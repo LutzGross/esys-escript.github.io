@@ -64,7 +64,7 @@ NE_TOTAL=4096
 class Test_AMG(unittest.TestCase):
 
    def test_Poisson(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
@@ -82,9 +82,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -97,7 +97,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_PoissonWithDirectInterpolation(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
@@ -115,9 +115,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setNumPreSweeps(3)
         pde.getSolverOptions().setNumPostSweeps(3)
@@ -133,7 +133,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_PoissonClassic(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
@@ -151,9 +151,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         pde.getSolverOptions().setNumPreSweeps(3)
@@ -169,7 +169,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_PoissonClassicWithFFCoupling(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Scalar(1,Solution(self.domain))
@@ -187,9 +187,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         pde.getSolverOptions().setNumPreSweeps(3)
@@ -205,7 +205,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_PoissonSqueezedX(self):
-	global USE_AMG
+        global USE_AMG
         x=self.domain.getX().copy()
         x[0]*=0.5
         self.domain.setX(x)
@@ -226,9 +226,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -242,7 +242,7 @@ class Test_AMG(unittest.TestCase):
 
 
    def test_Poisson2(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(2,),Solution(self.domain))
@@ -265,9 +265,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -280,7 +280,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_Poisson3(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(3,),Solution(self.domain))
@@ -306,9 +306,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -321,7 +321,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_Poisson4(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(4,),Solution(self.domain))
@@ -350,9 +350,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -364,7 +364,7 @@ class Test_AMG(unittest.TestCase):
         error=Lsup(u-u_ex)/Lsup(u_ex)
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
    def test_Poisson2Classic(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(2,),Solution(self.domain))
@@ -387,9 +387,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -403,7 +403,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_Poisson3Classic(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(3,),Solution(self.domain))
@@ -429,9 +429,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -445,7 +445,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_Poisson4Classic(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(4,),Solution(self.domain))
@@ -474,9 +474,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -490,7 +490,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_WeakCoupled2(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(2,),Solution(self.domain))
@@ -535,7 +535,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_WeakCoupled3(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(3,),Solution(self.domain))
@@ -569,9 +569,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -583,7 +583,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_WeakCoupled4(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(4,),Solution(self.domain))
@@ -622,9 +622,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -636,7 +636,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_StrongCoupled2(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(2,),Solution(self.domain))
@@ -666,9 +666,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -681,7 +681,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_StrongCoupled3(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(3,),Solution(self.domain))
@@ -715,9 +715,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -729,7 +729,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
 
    def test_StrongCoupled4(self):
-	global USE_AMG
+        global USE_AMG
         x=Solution(self.domain).getX()
         # --- set exact solution ----
         u_ex=Data(1.,(4,),Solution(self.domain))
@@ -768,9 +768,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
@@ -783,7 +783,7 @@ class Test_AMG(unittest.TestCase):
 
 
    def test_Square(self):
-	global USE_AMG
+        global USE_AMG
         # PDE constants
         h1 = 0.5
         h2 = 0.5
@@ -838,9 +838,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)

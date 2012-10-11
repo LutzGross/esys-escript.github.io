@@ -84,21 +84,21 @@ def GetMeshFromFile(filename, **kwargs):
     ext=spl[len(spl)-1]
     # extract possible params
     integrationOrder=-1
-    if kwargs.has_key("integrationOrder"):
+    if "integrationOrder" in kwargs:
         integrationOrder=kwargs["integrationOrder"]
     reducedIntegrationOrder=-1
-    if kwargs.has_key("reducedIntegrationOrder"):
+    if "reducedIntegrationOrder" in kwargs:
         integrationOrder=kwargs["reducedIntegrationOrder"]
     optimize=True  
-    if kwargs.has_key("optimize"):
+    if "optimize" in kwargs:
         integrationOrder=kwargs["optimize"]
     useMacroElements=False
-    if kwargs.has_key("useMacroElements"):
+    if "useMacroElements" in kwargs:
         integrationOrder=kwargs["useMacroElements"]
     if ext=="fly":
         return ReadMesh(filename, integrationOrder, reducedIntegrationOrder, optimize)
     elif ext=="msh":
-        if not kwargs.has_key("numDim"):
+        if not "numDim" in kwargs:
            raise ValueError("The numDim argument is required in order to read .msh files.")
         return ReadGmsh(filename, kwargs['numDim'], integrationOrder, reducedIntegrationOrder, optimize, useMacroElements)
     else:

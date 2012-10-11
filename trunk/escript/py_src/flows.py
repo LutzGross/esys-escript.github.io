@@ -101,7 +101,7 @@ class DarcyFlow(object):
          if self.useReduced: self.__pde_v.setReducedOrderOn()
          self.w=w
          x=self.domain.getX()
-         self.l=min( [util.sup(x[i])-util.inf(x[i]) for i in xrange(self.domain.getDim()) ] )
+         self.l=min( [util.sup(x[i])-util.inf(x[i]) for i in range(self.domain.getDim()) ] )
          #self.l=util.vol(self.domain)**(1./self.domain.getDim()) # length scale
 
       elif self.solver  == self.SMOOTH:

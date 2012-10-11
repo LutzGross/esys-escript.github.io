@@ -81,7 +81,7 @@ class SymbolicTestCase(unittest.TestCase):
         xx=numpy.array([[9.2518231214758302, -5.4150410540605654], [-1.5781869039394181, -0.36601352461017989], [6.5486813875509249, -8.6886755722383953]])
         ref=[xx**2, xx**3, xx**4, xx**5]
         res=e(x=xx)
-        for i in xrange(len(ref)):
+        for i in range(len(ref)):
             self.assertTrue(isinstance(res[i], numpy.ndarray), "substituted expression not a numpy array object")
             self.assertAlmostEqual(Lsup(res[i]-ref[i]), 0.0, self.TOL_DIGITS, "wrong result after substitution with Data object")
 
