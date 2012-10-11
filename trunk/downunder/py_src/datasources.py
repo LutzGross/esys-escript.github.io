@@ -47,7 +47,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     Converts one or more longitude,latitude pairs to the corresponding x,y
     coordinates in the Universal Transverse Mercator projection.
 
-    :note: If the ``pyproj`` module is not installed a warning if printed and
+    :note: If the ``pyproj`` module is not installed a warning is printed and
            the input values are scaled by a constant and returned.
     :note: If `wkt_string` is not given or invalid or the ``gdal`` module is
            not available to convert the string, then the input values are

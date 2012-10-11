@@ -750,7 +750,6 @@ class Symbol(object):
         return self.__binaryop('__rmul__', other)
 
     def __div__(self, other):
-        print(type(self), type(other))
         return self.__binaryop('__div__', other)
 
     def __truediv__(self, other):
