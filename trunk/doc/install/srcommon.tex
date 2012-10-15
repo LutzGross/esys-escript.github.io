@@ -21,13 +21,14 @@ Section~\ref{sec:deps} describes the dependencies, while Section~\ref{sec:compil
 If you would prefer to build all the dependecies from source in the escript-support packages please see Chapter~\ref{chap:allsrc}.
 \esfinley is known to compile and run on the following systems:
 \begin{itemize}
- \item \linux using gcc\footnote{There are some problems with \openmp under gcc prior to version 4.3.2. Also do not link the gomp library with gcc 4.3.3 - it causes problems.}
-\item \linux using icc on SGI ICE 8200. (At this stage, we do not recommend building with intel-11)\footnote{There is a bug in icpc-11 related to exception handling and openmp. This results in binaries which crash.}
-\item \macosx using gcc
+ \item \linux using gcc
+\item \linux using icc on SGI ICE 8200. (We do not recommend building with intel-11)
+\item \macosx using gcc or clang
 \item \winxp using the Visual C compiler (we do not specifically discuss Windows builds in this guide).
 \end{itemize}
 
-If you have compiled a previous version of \esfinley please note that the format of the \file{..._options.py} file has changed so you will not be able to reuse old options file for this build.
+If you have compiled a previous version of \esfinley, the \file{..._options.py} file has the same format
+as in the previous release, so you can reuse it.
 
 
 \section{External dependencies}
@@ -53,9 +54,10 @@ The version numbers given here are not strict requirements, more recent (and in 
 The following packages should be sufficient (but not necessarily minimal) for Debian 6.0 (``Squeeze''):
 \texttt{libboost-python-dev, scons, python-numpy, python-sympy, g++}.
 
-These packages may be required for some of the optional capabilities of the system:
-
+\noindent The following packages may be required for some of the optional capabilities of the system:
 \begin{itemize}
+ \item sympy $\geq$ (\url{http://sympy.org}) \\-
+        Used by \texttt{esys.escript.symbolic}.
  \item netcdf $\geq 3.6.2$ (\url{http://www.unidata.ucar.edu/software/netcdf}) \\-
         Used to save data sets in binary form for checkpoint/restart (must be compiled with -fPIC)
  \item parmetis $\geq 3.1$ (\url{http://glaros.dtc.umn.edu/gkhome/metis/parmetis/overview}) \\-
@@ -64,12 +66,12 @@ These packages may be required for some of the optional capabilities of the syst
         Intel's Math Kernel Library for use with their C compiler.
 \item Lapack - Available in various versions from various places. \\ 
 Currently only used to invert dense square matrices larger than 3x3. 
+ \item gmsh $\geq 2.2.0$ (\url{http://www.geuz.org/gmsh}) \\-
+        Mesh generation and viewing [esys.pycad uses this]
 \end{itemize}
 
-The following packages might be useful for mesh generation:
+\noindent Mesh generation: as well as \textt{gmsh} above you could also use:
 \begin{itemize}
- \item gmsh $\geq 2.2.0$ (\url{http://www.geuz.org/gmsh}) \\-
-        Mesh generation and viewing
  \item triangle $\geq 1.6$ (\url{http://www.cs.cmu.edu/~quake/triangle.html}) \\-
         Two-dimensional mesh generator and Delaunay triangulator.
 \end{itemize}
@@ -80,7 +82,10 @@ Packages for visualization:
         MayaVi is referenced in our User's Guide for viewing VTK files
  \item visit $\geq 1.11.2$ (\url{https://wci.llnl.gov/codes/visit/}) \\-
         A featureful visualization system with movie-making capabilities.
+  \end{itemize} 
 \end{itemize}
+
+
 
 The source code comes with an extensive set of unit tests. If you would like to
 build those to verify your installation you need:
