@@ -751,13 +751,8 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
             return;
     }
 
-    if (rhs.getDataPointSize() == 1) {
-        assemblePDESingle(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
-        assemblePDEBoundarySingle(NULL, rhs, escript::Data(), y);
-    } else {
-        assemblePDESystem(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
-        assemblePDEBoundarySystem(NULL, rhs, escript::Data(), y);
-    }
+    assemblePDE(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
+    assemblePDEBoundary(NULL, rhs, escript::Data(), y);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -1125,12 +1120,11 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
         }
     }
 
-    if (!rhs.isEmpty() && rhs.getDataPointSize() != mat->logical_row_block_size)
+    if (!rhs.isEmpty() && mat && (rhs.getDataPointSize() != mat->logical_row_block_size))
         throw RipleyException("assemblePDE: matrix row block size and number of components of right hand side don't match");
 
-    const int numEq=mat->logical_row_block_size;
-    const int numComp=mat->logical_col_block_size;
-
+    const int numEq = (mat ? mat->logical_row_block_size : 1);
+    const int numComp = (mat ? mat->logical_col_block_size : 1);
     if (numEq != numComp)
         throw RipleyException("assemblePDE: number of equations and number of solutions don't match");
 
