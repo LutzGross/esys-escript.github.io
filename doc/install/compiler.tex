@@ -32,8 +32,8 @@ The table below shows which types of parallelism are available under which compi
 \begin{center}
 \begin{tabular}{|l|c|c|c|}\hline
  & Serial & OpenMP & MPI \\\hline
- $\leq$ gcc-2.1 & \checkmark & \raisebox{-0.1cm}{\footnotemark}& \checkmark \\\hline
- gcc (recent)  & \checkmark& \checkmark& \checkmark \\\hline
+ $\leq$ gcc-4.2.1 & \checkmark & \raisebox{-0.1cm}{\footnotemark}& \checkmark \\\hline
+ gcc (recent $geq 4.3.2$)  & \checkmark& \checkmark& \checkmark \\\hline
  icc(10) & \checkmark& \checkmark& \checkmark \\\hline
  icc(11) & \checkmark& \raisebox{-0.1cm}{\footnotemark}  &\checkmark \\\hline
  icc(12) & \checkmark& \checkmark&\checkmark \\\hline
@@ -41,8 +41,9 @@ The table below shows which types of parallelism are available under which compi
 \end{tabular}
 \end{center}
 \addtocounter{footnote}{-1}
-\footnotetext{The \openmp support in gcc-2.1 is buggy. In particular, the version of gcc-2.1 requires
-extra compile options to build escript. Even when built, escript crashes in tests.}
+\footnotetext{The \openmp support in gcc-4.2.1 is buggy. In particular, the version of gcc-4.2.1 
+distributed by Apple, requires extra compile options to build escript. 
+Even when built, escript crashes in tests.}
 \addtocounter{footnote}{1}
 \footnotetext{There is a subtle bug in icc-11 when \openmp and c++ exception handling 
 are combined.}
@@ -54,9 +55,10 @@ We use OpenMPI or IntelMPI depending on what is available on the system.
 
 
 \section{Compiling on OSX}
-Older versions of OSX (eg ``Leopard'') came with optional ``developer tools'' packages on their install media.
+Older versions of OSX (eg ``Leopard'') come with an optional ``developer tools'' package on their install media.
 Newer versions (eg ``Lion'') require users to have an iTunes account to be able to download XCode.
-There is also at least one project which offers builds of gcc for OSX for download.
+Alternatively, there is at least one project\footnote{\url{http://hpc.sourceforge.net/} --- 
+the escript development team has no connection with this project} which offers builds of gcc for OSX for download.
 
 At this time,  the best (although not simplest) option seems to be to use either of the compilers 
 provided by Apple to build a more up to date version of gcc ($4.7$ at time of writing).
