@@ -2791,7 +2791,7 @@ class LinearPDE(LinearProblem):
           mat,f=self.getSystem()
           if self.isUsingLumping():
              if not util.inf(abs(mat)) > 0.:
-                 raise ZeroDivisionError("Lumped mass matrix as zero entry (try order 1 elements or HRZ lumping).")
+                 raise ZeroDivisionError("Lumped mass matrix has zero entry (try order 1 elements or HRZ lumping).")
              self.setSolution(f*1/mat)
           else:
              self.trace("PDE is resolved.")
