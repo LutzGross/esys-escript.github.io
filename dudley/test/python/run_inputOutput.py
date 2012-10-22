@@ -147,10 +147,26 @@ class InputOutput(unittest.TestCase):
 
      def test_gmshTags(self):
        if getEscriptParamInt('MPIBUILD',0)==0:
-        tags=ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest.fly"),2).showTagNames()
-        self.assertEqual(tags,'tag1, tag2, tag3','error with tags')
+        dom=ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest.msh"),2)
+        tags=dom.showTagNames().split(', ')
+        self.assertEqual(tags,['tag1','tag2', 'tag3'],'error with tags')
+        self.assertEqual(dom.getTag('tag1'),1,'error with tag1')
+        self.assertEqual(dom.getTag('tag2'),2,'error with tag2')
+        self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
+        self.assertRaises(RuntimeError, dom.getTag, 'tag4')
+
        else:
         print("Test supressed due to MPI build")
+     def test_flyTags(self):
+        dom=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest2.fly"))
+        tags=dom.showTagNames().split(', ')
+        self.assertEqual(tags,['tag1', 'tag2', 'tag3', 'tag4', 'All'])
+        self.assertEqual(dom.getTag('tag1'),5,'error with tag1')
+        self.assertEqual(dom.getTag('tag2'),8,'error with tag2,')
+        self.assertEqual(dom.getTag('tag3'),6,'error with tag3')
+        self.assertEqual(dom.getTag('tag4'),7,'error with tag4')
+        self.assertEqual(dom.getTag('All'),10,'error with All')
+        self.assertRaises(RuntimeError, dom.getTag, 'tag6')
 
      def test_mesh_dump_to_NetCDF_brick(self):
         if loadIsConfigured():
