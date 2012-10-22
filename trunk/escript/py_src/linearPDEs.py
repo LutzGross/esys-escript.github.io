@@ -1703,6 +1703,14 @@ class LinearProblem(object):
            self.__COEFFICIENTS[name]=type
            self.__COEFFICIENTS[name].resetValue()
            self.trace("coefficient %s has been introduced."%name)
+   def resetRightHandSideCoefficients(self):
+       """
+       Resets all coefficients defining the the right hand side
+       """
+       for name in self.__COEFFICIENTS:
+         if self.__COEFFICIENTS[name].altering == PDECoef.RIGHTHANDSIDE  :
+              self.__COEFFICIENTS[name].resetValue()
+              self.trace("coefficient %s has been reset."%name)
 
    def getDomain(self):
      """
