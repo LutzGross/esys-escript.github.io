@@ -90,7 +90,7 @@ class Design(design.Design):
        """
        return self.__scriptname
 
-    def setOptions(self,algorithm=None, optimize_quality=True, smoothing=1, curvature_based_element_size=False, algorithm2D=None, algorithm3D=None, generate_hexahedra=False):
+    def setOptions(self,algorithm=None, optimize_quality=True, smoothing=1, curvature_based_element_size=False, algorithm2D=None, algorithm3D=None, generate_hexahedra=False, random_factor=None):
         """
         Sets options for the mesh generator.
        
@@ -106,7 +106,16 @@ class Design(design.Design):
         :type optimize_quality: ```bool```
         :param generate_hexahedra: switch for using quadrangles/hexahedra elements everywhere.
         :type generate_hexahedra: ```bool```
+        :param random_factor: used in the 2D meshing algorithm (should be increased if RandomFactor * size(triangle)/size(model) approaches machine accuracy)
+        :type random_factor: positive ```float```
         """
+        if random_factor==None: random_factor=1.e-9
+        if not random_factor > 0: 
+               raise ValueError("random_factor must be positive.")
+        smoothing=int(smoothing)
+        if not  smoothing > 0: 
+               raise ValueError("smoothing must be positive.")
+
         if algorithm3D==None: algorithm3D=self.FRONTAL
         if algorithm==None: 
            if algorithm2D==None: algorithm2D=self.MESHADAPT
@@ -126,6 +135,7 @@ class Design(design.Design):
         self.__optimize_quality=optimize_quality
         self.__smoothing=smoothing
         self.__generate_hexahedra=generate_hexahedra
+        self.__random_factor=random_factor
     def getOptions(self,name=None):
         """
         Returns the current options for the mesh generator.
@@ -136,7 +146,8 @@ class Design(design.Design):
                    "curvature_based_element_size" : self.__curvature_based_element_size, 
                    "generate_hexahedra" : self.__generate_hexahedra, 
                    "algorithm2D" : self.__algo2D, 
-                   "algorithm3D" : self.__algo3D }
+                   "algorithm3D" : self.__algo3D ,
+                   "random_factor" : self.__random_factor }
         else:
            return self.getOption()[name]
 
@@ -206,6 +217,7 @@ class Design(design.Design):
         else:
                out+="Mesh.SubdivisionAlgorithm = 0;\n"
         out+="Mesh.Smoothing = %d;\n"%options["smoothing"]
+        out+="Mesh.RandomFactor = %.14e;\n"%options["random_factor"]
         if options["algorithm2D"] == self.MESHADAPT: out+="Mesh.Algorithm = 1; // = MeshAdapt\n"
         if options["algorithm2D"] == self.DELAUNAY : out+="Mesh.Algorithm = 5; // = Delaunay\n"
         if options["algorithm2D"] == self.FRONTAL: out+="Mesh.Algorithm = 6; // = Frontal\n"
