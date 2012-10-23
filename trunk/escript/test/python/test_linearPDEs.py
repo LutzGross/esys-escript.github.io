@@ -3309,27 +3309,24 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(X=numpy.ones((self.N,d)))
         coeff=mypde.getCoefficient("X")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,d),Function(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty after reset of right hand side coefficients")
     def test_setCoefficient_Y_System(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
         mypde.setValue(Y=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("Y")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),Function(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty after reset of right hand side coefficients")
     def test_setCoefficient_y_System(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
         mypde.setValue(y=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("y")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),FunctionOnBoundary(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty after reset of right hand side coefficients")
     def test_setCoefficient_m_System(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
@@ -3361,9 +3358,8 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(y_contact=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("y_contact")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),FunctionOnContactZero(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty after reset of right hand side coefficients")
     def test_setCoefficient_M_System_reduced(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
@@ -3410,7 +3406,6 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(X_reduced=numpy.ones((self.N,d)))
         coeff=mypde.getCoefficient("X_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,d),ReducedFunction(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
         self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
     def test_setCoefficient_Y_System_reduced(self):
@@ -3419,18 +3414,16 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(Y_reduced=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("Y_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunction(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty after reset of right hand side coefficients")
     def test_setCoefficient_y_System_reduced(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
         mypde.setValue(y_reduced=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("y_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnBoundary(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty after reset of right hand side coefficients")
     def test_setCoefficient_m_reduced_System(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
@@ -3461,18 +3454,16 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(y_contact_reduced=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("y_contact_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"X is not empty after reset of right hand side coefficients")
     def test_setCoefficient_r_System(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
         mypde.setValue(r=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("r")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions()),((self.N,),Solution(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty after reset of right hand side coefficients")
     def test_setCoefficient_q_System(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
@@ -3488,9 +3479,8 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(r=numpy.ones((self.N,)))
         coeff=mypde.getCoefficient("r")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumSolutions()),((self.N,),ReducedSolution(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is no empty after reset of right hand side coefficients")
     def test_setCoefficient_q_System_reducedOn(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numEquations=3,debug=self.DEBUG)
@@ -3547,27 +3537,24 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(X=Data(numpy.ones((self.N,d)),ReducedFunction(self.domain)))
         coeff=mypde.getCoefficient("X_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,d),ReducedFunction(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty after reset of right hand side coefficients")
     def test_setCoefficient_Y_System_reduced_using_Y(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
         mypde.setValue(Y=Data(numpy.ones((self.N,)),ReducedFunction(self.domain)))
         coeff=mypde.getCoefficient("Y_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunction(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty after reset of right hand side coefficients")
     def test_setCoefficient_y_reduced_System_using_y(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,numSolutions=3,debug=self.DEBUG)
         mypde.setValue(y=Data(numpy.ones((self.N,)),ReducedFunctionOnBoundary(self.domain)))
         coeff=mypde.getCoefficient("y_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnBoundary(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty after reset of right hand side coefficients")
     def test_setCoefficient_m_reduced_System_using_m(self):
         d=self.domain.getDim()
         mypde=TransportPDE(self.domain,debug=self.DEBUG)
@@ -3598,9 +3585,8 @@ class Test_TransportPDE(Test_linearPDEs):
         mypde.setValue(y_contact=Data(numpy.ones((self.N,)),ReducedFunctionOnContactZero(self.domain)))
         coeff=mypde.getCoefficient("y_contact_reduced")
         self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((self.N,),ReducedFunctionOnContactZero(self.domain),self.N))
-        XXX
         mypde.resetRightHandSideCoefficients()
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is empty after reset of right hand side coefficients")
+        self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty after reset of right hand side coefficients")
 
     def test_symmetryCheckTrue_System(self):
         d=self.domain.getDim()
