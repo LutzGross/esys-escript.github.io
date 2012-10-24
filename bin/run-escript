@@ -107,7 +107,7 @@ function get_buildvar {
 #
 WITH_VISIT=`get_buildvar visit`
 if [ "$WITH_VISIT" = "1" ]; then
-    VISIT_BIN=`which visit`
+    VISIT_BIN=`which visit 2>/dev/null`
     if [ $? -eq 0 ]; then
         VISIT_PY_PATH=`$VISIT_BIN -env | grep LIBPATH | cut -d= -f2`
         EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
