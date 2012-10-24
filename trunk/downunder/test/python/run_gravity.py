@@ -44,10 +44,12 @@ handler.setLevel(logging.INFO)
 logger.addHandler(handler)
 source=SyntheticDataSource(DIM=2, NE=20, l=500*U.km, h=60*U.km, features=features)
 source.setPadding(5, 5)
+
 inv=GravityInversion()
 inv.setSolverTolerance(1e-5)
 inv.setSolverMaxIterations(100)
 inv.setSolverOptions(initialHessian=100)
 inv.setup(source)
+
 rho_new=inv.run()
 
