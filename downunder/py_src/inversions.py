@@ -143,7 +143,10 @@ class InversionBase(object):
         """
         Sets the maximum number of solver iterations to run
         """
-        self._solver_maxiter=maxiter
+        if maxiter>0:
+           self._solver_maxiter=maxiter 
+        else:
+	   raise ValueError("maxiter must be positive.")
 
     def setSolverOptions(self, **opts):
         """
@@ -157,7 +160,11 @@ class InversionBase(object):
         Sets the error tolerance for the solver. An acceptable solution is
         considered to be found once the tolerance is reached.
         """
-        self._solver_tol=tol
+        if tol>0:
+           self._solver_tol=tol
+        else:
+	   raise ValueError("tolerance must be positive.")
+        
 
     def isSetup(self):
         """
@@ -223,6 +230,10 @@ class GravityInversion(InversionBase):
         :type source: `DataSource'
         :param rho_ref: reference density. If not specified, zero is used.
         :type rho_ref: ``float`` or `Scalar`
+        :param w0: weighting factor for L2 term in the regularization
+        :type rho_ref: ``float`` or `Scalar`
+         :param w: weighting factor for H1 term in the regularization
+        :type rho_ref: list of float or `Vector`
         """
         self.logger.info('Retrieving domain...')
         self.setDomain(source.getDomain())
@@ -231,7 +242,7 @@ class GravityInversion(InversionBase):
         if rho_ref == None: 
             rho_ref=0.
         if w==None: 
-            w=[1]*DIM
+            w=[1.]*DIM
 
         self.logger.info("Retrieving density mask...")
         rho_mask = source.getSetDensityMask()
@@ -246,7 +257,7 @@ class GravityInversion(InversionBase):
         chi=chi*kronecker(DIM)[DIM-1]
         
         self.logger.info("Set up regularization and forward model...")
-        self.setRegularization(Regularization(self.getDomain(), m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))
+        self.setRegularization(Regularization(self.getDomain(), m_ref=m_ref, w0=w0[:DIM], w=w, location_of_set_m=rho_mask))
         self.setForwardModel(GravityModel(self.getDomain(), chi, g))
             
         x=self.getDomain().getX()
