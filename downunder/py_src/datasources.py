@@ -150,7 +150,7 @@ class DataSource(object):
             self._domain=self._createDomain(self._pad_x, self._pad_y)
         return self._domain
 
-    def getDensityMask(self):
+    def getSetDensityMask(self):
         """
         Returns the density mask data object, where mask has value 1 in the
         padding area, 0 elsewhere.
@@ -380,7 +380,7 @@ class UBCDataSource(DataSource):
         """
         return self.__domainclass
 
-    #def getDensityMask(self):
+    #def getSetDensityMask(self):
     #    topodata=self.__readTopography()
     #    mask=self._interpolateOnDomain(topodata)
     #    mask=wherePositive(self.getDomain().getX()[2]-mask[0])
@@ -826,7 +826,7 @@ class SyntheticDataSource(DataSource):
 
         return dom
 
-    def getDensityMask(self):
+    def getSetDensityMask(self):
         return self._mask
 
     def getReferenceDensity(self):
