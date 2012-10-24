@@ -30,8 +30,8 @@ if [ $STDLOCATION -ne 0 ]
 then
     ESCRIPT_ROOT=/usr/lib/escript
 else
-  #We don't know the escript root so we need to work it out from the invocation
-  #Need to match if the name contains /
+  # We don't know the escript root so we need to work it out from the invocation
+  # Need to match if the name contains /
   if [[ $0 =~ / ]]
   then
       # We are not using the PATH to find the script
@@ -56,7 +56,7 @@ else
   cd "$CURDIR"
 
 fi
-##### End finding ESCRIPT_ROOT  ########
+##### End finding ESCRIPT_ROOT ########
 
 
 
@@ -84,21 +84,21 @@ fi
 
 BUILDINFO_FILE=$ESCRIPT_ROOT/lib/buildvars
 if [ ! -r $BUILDINFO_FILE ]; then
-    if [ "$1" = "-e" ];then
-	echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
-	echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
-	echo "export PATH=$EXTRA_PATH:\$PATH"
-	if [ "`uname`" = "Darwin" ]
-	then
-	    echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
-	fi	
+    if [ "$1" = "-e" ]; then
+        echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+        echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+        echo "export PATH=$EXTRA_PATH:\$PATH"
+        if [ "`uname`" = "Darwin" ]
+        then
+            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+        fi  
         exit 0
     fi
     echo "Error! Unable to read escript build information. Exiting."
     exit 1
 fi
 
-function get_buildvar {
+get_buildvar () {
     echo `grep "^$1=" $BUILDINFO_FILE |cut -d= -f2`
 }
 
@@ -118,19 +118,19 @@ if [ "$WITH_VISIT" = "1" ]; then
 fi
 
 HELP_TEXT="
-Usage: escript [options] script.py [arguments...]
+Usage: run-escript [options] script.py [arguments...]
 	-n nn		number of nodes to use
 	-p np		number of MPI processes to spawn per node
 	-t nt		number of OpenMP threads to use
 	-f file		name of MPI hostfile
-	-c 		print compile information for escript and exit
+	-c		print compile information for escript and exit
 	-V		print escript version and exit
 	-i		interactive mode 
 	-b		do not invoke python (run non-python programs)
 	-e		print export statements for environment and exit
 	-o		redirect output from MPI to files
 	-v		print diagnostics
-	-x		..reserved for future use ..
+	-x		run in new xterm instance
 	script.py	Your python script
 	arguments...	The optional command-line arguments to your script
 "
@@ -139,57 +139,53 @@ if [ "$1" = "--help" ]; then
   echo "$HELP_TEXT"
   exit 0
 fi
-#=======================================================================================
-
-# Avoid bug in hybrid runs with MPT MPI
-
+#==============================================================================
 
 # Parse the command-line options
 # option e should not be followed by a :
-while getopts 'bn:p:t:f:h:ecVviox' option
+while getopts 'bn:p:t:f:hecVviox' option
 do
-	case "$option" in
-	  "b")  DOBINARY=yes
-		;;
-	  "n")	ESCRIPT_NUM_NODES=$OPTARG
-		;;
-	  "p")	ESCRIPT_NUM_PROCS=$OPTARG
-		;;
-	  "t")	ESCRIPT_NUM_THREADS=$OPTARG
-		;;
-	  "f")	ESCRIPT_HOSTFILE=$OPTARG
-		;;
-	  "c")  cat $ESCRIPT_ROOT/lib/buildvars
-		exit 0
-		;;
-	  "V")	echo "escript-development(build "`get_buildvar svn_revision`")"
-		exit 0
-		;;
-	  "h")  echo "$HELPTEXT"
-		exit 0
-		;;
-	  "i")  DOINTERACTIVE=yes
-		;;
-	  "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
-		echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
-		echo "export PATH=$EXTRA_PATH:\$PATH"
-		if [ "`uname`" = "Darwin" ]
-		then
-		    echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
-		fi
-		exit 0
-		;;
-	  "o")  ESCRIPT_CREATESTDFILES="yes"
-		;;
-	  "v")  ESCRIPT_VERBOSE="yes"
-		;;
-	  "x")  echo "-x not implemented yet"
-		exit 1
-		;;
-	  ?)	echo "$HELP_TEXT"
-		exit 1
-		;;
-	esac
+    case "$option" in
+      "b")  DO_BINARY=y
+        ;;
+      "n")  ESCRIPT_NUM_NODES=$OPTARG
+        ;;
+      "p")  ESCRIPT_NUM_PROCS=$OPTARG
+        ;;
+      "t")  ESCRIPT_NUM_THREADS=$OPTARG
+        ;;
+      "f")  ESCRIPT_HOSTFILE=$OPTARG
+        ;;
+      "c")  cat $ESCRIPT_ROOT/lib/buildvars
+        exit 0
+        ;;
+      "V")  echo "escript-development(build "`get_buildvar svn_revision`")"
+        exit 0
+        ;;
+      "h")  echo "$HELP_TEXT"
+        exit 0
+        ;;
+      "i")  DO_INTERACTIVE=y
+        ;;
+      "e")  echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
+        echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
+        echo "export PATH=$EXTRA_PATH:\$PATH"
+        if [ "`uname`" = "Darwin" ]
+        then
+            echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
+        fi
+        exit 0
+        ;;
+      "o")  ESCRIPT_CREATESTDFILES=y
+        ;;
+      "v")  ESCRIPT_VERBOSE=y
+        ;;
+      "x")  DO_XTERM=y
+        ;;
+      ?)    echo "$HELP_TEXT"
+        exit 1
+        ;;
+    esac
 done
 shift `expr $OPTIND - 1`
 #==============================================
@@ -245,7 +241,7 @@ then
     ESCRIPT_NUM_PROCS=1
 else
     # use the PBS_NODEFILE if not otherwise specified
-    if [[ ( ! -z $PBS_NODEFILE ) && ( -z $ESCRIPT_HOSTFILE ) ]]
+    if [ ! -z $PBS_NODEFILE ] && [ -z $ESCRIPT_HOSTFILE ]
     then
         ESCRIPT_HOSTFILE=$PBS_NODEFILE
     fi
@@ -306,7 +302,7 @@ then
         echo "ESCRIPT_NUM_THREADS is $ESCRIPT_NUM_THREADS."
    fi
 else
-   if [[ ( ! -z $ESCRIPT_NUM_THREADS ) && ( $ESCRIPT_NUM_THREADS != 1 ) ]]
+   if [ ! -z $ESCRIPT_NUM_THREADS ] && [ $ESCRIPT_NUM_THREADS != 1 ]
    then
        echo "Warning: OpenMP is disabled but number of threads requested is $ESCRIPT_NUM_THREADS!=1. Running without threads."
    fi
@@ -315,9 +311,9 @@ fi
 #
 # Now we compute total number of Processes
 #
-(( TOTPROC=$ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS))
-if [ $? -ne 0 ]		#Some compute error 
-then			#This could happen if the args were not a number
+TOTPROC=$((ESCRIPT_NUM_NODES * ESCRIPT_NUM_PROCS))
+if [ $? -ne 0 ]     #Some compute error 
+then            #This could happen if the args were not a number
     echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
     exit 1
 fi
@@ -325,7 +321,7 @@ fi
 #
 # Test to ensure people aren't trying to combine interactive and multi-process
 #
-if [[ ( ( ! -z $DOINTERACTIVE ) || ( $# -eq 0 ) ) && ( $TOTPROC -gt 1) ]]
+if ([ ! -z $DO_INTERACTIVE ] || ([ $# -eq 0 ] && [ $TOTPROC -gt 1 ]))
 then
     echo "Interactive mode cannot be used with more than one process"
     exit 1
@@ -342,30 +338,37 @@ then
 else
     PYTHON_MPI=$PYTHON_MPI_NULL
 fi
-#=========================================================================================================
+#==============================================================================
 # Must have at least one command-line arg: the python script
 if [ $# -eq 0 ]
 then
-    if [ ! -z $DOBINARY ]
+    if [ ! -z $DO_BINARY ]
     then
         echo "No program to run was specified. Exiting."
         exit 1
     else
-        DOINTERACTIVE="yes"
+        DO_INTERACTIVE=y
     fi
 fi
 
-#=========================================================================================================
-if [ ! -z $DOBINARY ]
+#==============================================================================
+if [ ! -z $DO_XTERM ]
 then
-    EXEC_CMD="$@"
+    EXEC_CMD="xterm -e"
+else
+    EXEC_CMD=""
+fi
+
+if [ ! -z $DO_BINARY ]
+then
+    EXEC_CMD="$EXEC_CMD $@"
 else
     # Check to see if the python version we were compiled with matches the
     # one of PYTHON_CMD.
     compfull=`get_buildvar python_version`
     compversion=`echo $compfull | cut -d. -f1,2`
     compmajor=`echo $compfull | cut -d. -f1`
-    if [ "$PYTHON_CMD" = "python" ]	# if people have customised the command they
+    if [ "$PYTHON_CMD" = "python" ] # if people have customised the command they
     then                                # might not want us changing it
         if [ "$compmajor" = "3" ]
         then
@@ -381,25 +384,25 @@ else
     fi
     if [ "$MPI_FLAVOUR" = "none" ]
     then
-        if [ ! -z $DOINTERACTIVE ]
+        if [ ! -z $DO_INTERACTIVE ]
         then
-           EXEC_CMD="$PYTHON_CMD -i $@"
+           EXEC_CMD="$EXEC_CMD $PYTHON_CMD -i $@"
         else
-           EXEC_CMD="$PYTHON_CMD $@"
+           EXEC_CMD="$EXEC_CMD $PYTHON_CMD $@"
         fi
     else
-        if [ ! -z $DOINTERACTIVE ]
+        if [ ! -z $DO_INTERACTIVE ]
         then
-           EXEC_CMD="$PYTHON_MPI -i $@"
+           EXEC_CMD="$EXEC_CMD $PYTHON_MPI -i $@"
         else
-           EXEC_CMD="$PYTHON_MPI $@"
+           EXEC_CMD="$EXEC_CMD $PYTHON_MPI $@"
         fi
     fi
 fi
 if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"."; fi
-#===============================================================================================
+#==============================================================================
 #
-#   now we start to spwan things:
+#   now we start to spawn things:
 #
 if [ "$WITH_OPENMP" = "1" ]
 then
@@ -524,3 +527,4 @@ else
    echo "unknown MPI flavour '$MPI_FLAVOUR'."
 fi
 exit $EXIT_CODE
+
