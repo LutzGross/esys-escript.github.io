@@ -83,5 +83,5 @@ env.Alias('install_ripleycpp_lib', mod_inst)
 local_env.SConscript(dirs = ['#/ripley/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/ripley/test'], variant_dir='$BUILD_DIR/$PLATFORM/ripley/test', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/ripley/test'], variant_dir='test', duplicate=0, exports=['py_wrapper_lib'])
 

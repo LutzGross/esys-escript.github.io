@@ -175,5 +175,5 @@ env.Alias('install_dudleycpp_lib', mod_inst)
 local_env.SConscript(dirs = ['#/dudley/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/dudley/test'], variant_dir='$BUILD_DIR/$PLATFORM/dudley/test', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/dudley/test'], variant_dir='test', duplicate=0, exports=['py_wrapper_lib'])
 

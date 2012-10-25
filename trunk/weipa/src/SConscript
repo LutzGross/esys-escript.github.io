@@ -136,5 +136,5 @@ env.Alias('install_escriptreader_lib', tmp)
 local_env.SConscript(dirs = ['#/weipa/py_src'], variant_dir='py', duplicate=0, exports=['py_wrapper_lib'])
 
 # configure unit tests
-local_env.SConscript(dirs = ['#/weipa/test'], variant_dir='$BUILD_DIR/$PLATFORM/weipa/test', duplicate=0)
+local_env.SConscript(dirs = ['#/weipa/test'], variant_dir='test', duplicate=0)
 
