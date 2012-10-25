@@ -44,95 +44,97 @@ class InversionBase(object):
         self._solver_opts = {}
         self._solver_tol = 1e-9
         self._solver_maxiter = 200
-        # use identity mapping by default
+        # set default mapping and solver
         self.setMapping()
-        self.setSolverClass()        
+        self.setSolverClass()
         self.__domain=None
         self.__regularization=None
         self.__forwardmodel=None
-        
+
     def setDomain(self, domain):
         """
         sets the domain of the inversion
-        
+
         :param domain: domain of the inversion
         :type domain: `Domain`
         """
         self.__domain=domain
-        
+
     def getDomain(self):
         """
         returns the domain of the inversion
-        
-        :rtype domain: domain of the inversion
+
+        :rtype: `Domain`
         """
         return  self.__domain
-        
+
     def setMapping(self, mapping=None):
         """
-        Sets the mapping oobject to map between model parameters and the data.
+        Sets the mapping object to map between model parameters and the data.
         If no mapping is provided, an identity mapping is used (`ScalingMapping`
         with constant 1).
-        
+
         :param mapping: parameter mapping
         :type mapping: `Mapping`
         """
-        if mapping == None:
-	     self.__mapping=ScalingMapping(1)
-	else:
-             self.__mapping=mapping
-             
+        if mapping is None:
+            self.__mapping=ScalingMapping(1)
+        else:
+            self.__mapping=mapping
+
     def getMapping(self):
         """
         return the mapping(s) used in the inversion
-        
+
         :rtype: `Mapping`
         """
         return self.__mapping
-        
-        
+
+
     def setRegularization(self, regularization):
         """
-        sets the regularization for the inversion. 
-        
+        Sets the regularization for the inversion.
+
         :param regularization: regularization
         :type regularization: `Regularization`
         """
         self.__regularization=regularization
-        
+
     def getRegularization(self):
         """
         returns the regularization method(s)
+
         :rtype: `Regularization`
         """
         return self.__regularization
-        
+
     def setForwardModel(self, forwardmodel):
         """
-        sets the forward model(s) for the inversion. 
-        
+        Sets the forward model(s) for the inversion.
+
         :param forwardmodel: forward model
         :type forwardmodel: `ForwardModel`
         """
         self.__forwardmodel=forwardmodel
-        
+
     def getForwardModel(self):
         """
         returns the forward model
+
         :rtype: `ForwardModel`
         """
         return self.__forwardmodel
-        
+
     def setSolverClass(self, solverclass=None):
         """
         The solver to be used in the inversion process. See the minimizers
         module for available solvers. By default, the L-BFGS minimizer is used.
         """
         if solverclass == None:
-	   self.solverclass=MinimizerLBFGS
-	else:
-           self.solverclass=solverclass
-            
+            self.solverclass=MinimizerLBFGS
+        else:
+            self.solverclass=solverclass
+
     def setSolverCallback(self, callback):
         """
         Sets the callback function which is called after every solver iteration
@@ -144,9 +146,9 @@ class InversionBase(object):
         Sets the maximum number of solver iterations to run
         """
         if maxiter>0:
-           self._solver_maxiter=maxiter 
+            self._solver_maxiter=maxiter
         else:
-	   raise ValueError("maxiter must be positive.")
+            raise ValueError("maxiter must be positive.")
 
     def setSolverOptions(self, **opts):
         """
@@ -161,17 +163,16 @@ class InversionBase(object):
         considered to be found once the tolerance is reached.
         """
         if tol>0:
-           self._solver_tol=tol
+            self._solver_tol=tol
         else:
-	   raise ValueError("tolerance must be positive.")
-        
+            raise ValueError("tolerance must be positive.")
 
     def isSetup(self):
         """
-        return True if the inversion is set up.
+        returns True if the inversion is set up and ready to run.
         """
         raise NotImplementedError
-        
+
     def run(self, *args):
         """
         This method starts the inversion process and must be overwritten.
@@ -183,33 +184,34 @@ class InversionBase(object):
 
 class GravityInversion(InversionBase):
     """
+    Inversion of Gravity (Bouguer) anomaly data.
     """
     def __init__(self):
         super(GravityInversion,self).__init__()
         self.__is_setup=False
         self.setWeights()
-        
-    def setWeights(self, mu_reg=1., mu_model=1.):
+
+    def setWeights(self, mu_reg=None, mu_model=1.):
         """
-        sets the weighting factors for the cost funtion
+        Sets the weighting factors for the cost function.
         """
+        self.logger.debug("Setting weighting factors...")
+        self.logger.debug("mu_reg = %s"%mu_reg)
+        self.logger.debug("mu_model = %s"%mu_model)
         self._mu_reg=mu_reg
         self._mu_model=mu_model
 
-    def isSetUp(self):
-        """
-        return True if the inversion is set up.
-        """
-        if self.getRegularization() and self.getMapping() and self.getForwardModel() and self.getDomain():
-	    return True
-	else:
-	    return False
+    def isSetup(self):
+        if self.getRegularization() and self.getMapping() \
+                and self.getForwardModel() and self.getDomain():
+            return True
+        else:
+            return False
 
-        
     def siloWriterCallback(self, k, x, fx, gfx):
         """
-        callback function for solver to track solution
-         
+        callback function that can be used to track the solution
+
         :param k: iteration count
         :param x: current m approximation
         :param fx: value of cost function
@@ -224,63 +226,59 @@ class GravityInversion(InversionBase):
 
     def setup(self, source, rho_ref=None, w0=None, w=None):
         """
-        sets up the inversion parameters from a downunder.DataSource.
-        
+        Sets up the inversion parameters from a downunder.`DataSource`.
+
         :param source: suitable data source
         :type source: `DataSource'
         :param rho_ref: reference density. If not specified, zero is used.
         :type rho_ref: ``float`` or `Scalar`
         :param w0: weighting factor for L2 term in the regularization
         :type rho_ref: ``float`` or `Scalar`
-         :param w: weighting factor for H1 term in the regularization
-        :type rho_ref: list of float or `Vector`
+        :param w: weighting factor for H1 term in the regularization
+        :type rho_ref: ``list`` of float or `Vector`
         """
         self.logger.info('Retrieving domain...')
         self.setDomain(source.getDomain())
         DIM=self.getDomain().getDim()
 
-        if rho_ref == None: 
+        if rho_ref is None:
             rho_ref=0.
-        if w==None: 
+        if w is None:
             w=[1.]*DIM
 
         self.logger.info("Retrieving density mask...")
         rho_mask = source.getSetDensityMask()
         m_ref=self.getMapping().getInverse(rho_ref)
-        
+
         self.logger.info("Retrieving gravity and standard deviation data...")
         g, sigma=source.getGravityAndStdDev()
-        chi=safeDiv(1., sigma*sigma)        
+        chi=safeDiv(1., sigma*sigma)
         self.logger.debug("g = %s"%g)
         self.logger.debug("sigma = %s"%sigma)
         self.logger.debug("chi = %s"%chi)
         chi=chi*kronecker(DIM)[DIM-1]
-        
-        self.logger.info("Set up regularization and forward model...")
-        self.setRegularization(Regularization(self.getDomain(), m_ref=m_ref, w0=w0[:DIM], w=w, location_of_set_m=rho_mask))
+
+        self.logger.info("Setting up regularization and forward model...")
+        self.setRegularization(Regularization(self.getDomain(),\
+                m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))
         self.setForwardModel(GravityModel(self.getDomain(), chi, g))
-            
-        x=self.getDomain().getX()
-        l=0
-        for i in range(DIM-1):
-              l=max(l, sup(x[i])-inf(x[i]))
-        G=6.6742e-11
-        mu_reg=0.5*(l*l*G)**2
-        mu_model=1.
-        #CIHAN: reg is not used!
-        self.logger.debug("Set weighting factors...")    
-        self.logger.debug("mu_reg = %s"%mu_reg)
-        self.logger.debug("mu_model = %s"%mu_model)
-        self.setWeights(mu_reg=mu_reg, mu_model=mu_model)
+
+        if self._mu_reg is None:
+            x=self.getDomain().getX()
+            l=0.
+            for i in range(DIM-1):
+                l=max(l, sup(x[i])-inf(x[i]))
+            G=6.6742e-11
+            mu_reg=0.5*(l*l*G)**2
+            self.setWeights(mu_reg=mu_reg)
 
     def run(self, rho_init=0.):
-      
-        if not self.isSetUp():
-	    raise ValueError("Inversion is no setup properly.")
-        
+        if not self.isSetup():
+            raise RuntimeError("Inversion is not setup properly.")
+
         f=SimpleCostFunction(self.getRegularization(), self.getMapping(), self.getForwardModel())
         f.setWeights(mu_reg=self._mu_reg, mu_model=self._mu_model)
-             
+
         solver=self.solverclass(f)
         solver.setCallback(self._solver_callback)
         solver.setMaxIterations(self._solver_maxiter)
