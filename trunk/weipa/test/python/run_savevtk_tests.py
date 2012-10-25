@@ -27,8 +27,8 @@ from esys.escript import ContinuousFunction, Function, ReducedFunction,\
             FunctionOnBoundary, ReducedFunctionOnBoundary,\
             FunctionOnContactZero, ReducedFunctionOnContactZero,\
             FunctionOnContactOne, ReducedFunctionOnContactOne,\
-            Solution, ReducedSolution
-from esys import dudley,finley
+            Solution, ReducedSolution, getMPISizeWorld
+from esys import dudley,finley,ripley
 from esys.weipa import saveVTK
 
 try:
@@ -140,7 +140,7 @@ class Test_VTKSaver(unittest.TestCase):
     # match up to a tolerance TOL, false otherwise
     def numericCompareL2(self, vector1, vector2):
         if vector2 == None: return False
-        TOL = 2.0e-6
+        TOL = 2.0e-5
         if len(vector1) != len(vector2): return False
         diff = 0.0
         for i in range(0, len(vector1)):
@@ -1379,7 +1379,6 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === TRI 2D order 1 =======================================================
 
   def test_tet_2D_order1_ContinuousFunction(self):
-     reference="tet_2D_o1_node_s.vtu"
      dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o1_node_s", data=x[0])
@@ -1431,7 +1430,6 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === TET 3D order 1 =======================================================
 
   def test_tet_3D_order1_ContinuousFunction(self):
-     reference="tet_3D_o1_node_s.vtu"
      dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order1.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_3D_o1_node_s", data=x[0])
@@ -1483,7 +1481,6 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
   # === TET 3D order 2 =======================================================
 
   def test_tet_3D_order2_ContinuousFunction(self):
-     reference="tet_3D_o2_node_s.vtu"
      dom=finley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_order2.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_3D_o2_node_s", data=x[0])
@@ -1589,7 +1586,6 @@ class Test_Dudley_SaveVTK(Test_VTKSaver):
   # === TRI 2D order 1 =======================================================
 
   def test_tet_2D_dudley_ContinuousFunction(self):
-     reference="tet_2D_o1_node_s.vtu"
      dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_2D_dudley.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_2D_o1_node_s", data=x[0])
@@ -1641,7 +1637,6 @@ class Test_Dudley_SaveVTK(Test_VTKSaver):
   # === TET 3D order 1 =======================================================
 
   def test_tet_3D_dudley_ContinuousFunction(self):
-     reference="tet_3D_o1_node_s.vtu"
      dom=dudley.ReadMesh(os.path.join(WEIPA_TEST_MESHES,"tet_3D_dudley.fly"),optimize=False)
      x=ContinuousFunction(dom).getX()
      self.check_vtk("tet_3D_o1_node_s", data=x[0])
@@ -1691,11 +1686,122 @@ class Test_Dudley_SaveVTK(Test_VTKSaver):
      self.check_vtk("tet_3D_o1_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
 
 
+class Test_Ripley_SaveVTK(Test_VTKSaver):
+
+  # element numbers are chosen so the tests should pass with MPI size=1...4
+  # === Rect (2D) ============================================================
+
+  def test_ripley_2D_ContinuousFunction(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ContinuousFunction(dom).getX()
+     self.check_vtk("ripley_2D_node_s", data=x[0])
+     self.check_vtk("ripley_2D_node_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_node_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_ripley_2D_Solution(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=Solution(dom).getX()
+     self.check_vtk("ripley_2D_node_s", data=x[0])
+     self.check_vtk("ripley_2D_node_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_node_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_ripley_2D_ReducedSolution(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ReducedSolution(dom).getX()
+     self.check_vtk("ripley_2D_node_s", data=x[0])
+     self.check_vtk("ripley_2D_node_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_node_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_ripley_2D_Function(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=Function(dom).getX()
+     self.check_vtk("ripley_2D_cell_s", data=x[0])
+     self.check_vtk("ripley_2D_cell_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_ripley_2D_ReducedFunction(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ReducedFunction(dom).getX()
+     self.check_vtk("ripley_2D_cell_s", data=x[0])
+     self.check_vtk("ripley_2D_cell_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_cell_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_ripley_2D_FunctionOnBoundary(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=FunctionOnBoundary(dom).getX()
+     self.check_vtk("ripley_2D_boundary_s", data=x[0])
+     self.check_vtk("ripley_2D_boundary_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  def test_ripley_2D_ReducedFunctionOnBoundary(self):
+     dom=ripley.Rectangle(n0=11, n1=3, l0=(-2.5,8.0), l1=(1.2,3.8), d0=getMPISizeWorld())
+     x=ReducedFunctionOnBoundary(dom).getX()
+     self.check_vtk("ripley_2D_boundary_s", data=x[0])
+     self.check_vtk("ripley_2D_boundary_v", data=x[0]*[1.,2.])
+     self.check_vtk("ripley_2D_boundary_t", data=x[0]*[[11.,12.],[21.,22.]])
+
+  # === Hex (3D) =============================================================
+
+  def test_ripley_3D_ContinuousFunction(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ContinuousFunction(dom).getX()
+     self.check_vtk("ripley_3D_node_s", data=x[0])
+     self.check_vtk("ripley_3D_node_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_ripley_3D_Solution(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=Solution(dom).getX()
+     self.check_vtk("ripley_3D_node_s", data=x[0])
+     self.check_vtk("ripley_3D_node_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_ripley_3D_ReducedSolution(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ReducedSolution(dom).getX()
+     self.check_vtk("ripley_3D_node_s", data=x[0])
+     self.check_vtk("ripley_3D_node_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_node_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_ripley_3D_Function(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=Function(dom).getX()
+     self.check_vtk("ripley_3D_cell_s", data=x[0])
+     self.check_vtk("ripley_3D_cell_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_ripley_3D_ReducedFunction(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ReducedFunction(dom).getX()
+     self.check_vtk("ripley_3D_cell_s", data=x[0])
+     self.check_vtk("ripley_3D_cell_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_cell_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_ripley_3D_FunctionOnBoundary(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=FunctionOnBoundary(dom).getX()
+     self.check_vtk("ripley_3D_boundary_s", data=x[0])
+     self.check_vtk("ripley_3D_boundary_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+  def test_ripley_3D_ReducedFunctionOnBoundary(self):
+     dom=ripley.Brick(n0=11, n1=3, n2=2, l0=(-2.5,7.0), l1=(1.2,3.8), l2=4., d0=getMPISizeWorld(), d1=1, d2=1)
+     x=ReducedFunctionOnBoundary(dom).getX()
+     self.check_vtk("ripley_3D_boundary_s", data=x[0])
+     self.check_vtk("ripley_3D_boundary_v", data=x[0]*[1.,2.,3.])
+     self.check_vtk("ripley_3D_boundary_t", data=x[0]*[[11.,12.,13.],[21.,22.,23],[31.,32.,33.]])
+
+
+
 if __name__ == '__main__':
    import sys
    suite = unittest.TestSuite()
    suite.addTest(unittest.makeSuite(Test_Finley_SaveVTK))
    suite.addTest(unittest.makeSuite(Test_Dudley_SaveVTK))
+   if getMPISizeWorld()<5:
+       suite.addTest(unittest.makeSuite(Test_Ripley_SaveVTK))
+   else:
+       print("Skipping ripley saveVTK tests since MPI size > 4")
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 
