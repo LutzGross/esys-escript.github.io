@@ -749,14 +749,14 @@ class SmoothAnomaly(SourceFeature):
         self.rho_inner=rho_inner
         self.rho_outer=rho_outer
         self.rho=None
-    
+
     def getDensity(self):
         return self.rho
 
     def getMask(self, x):
         DIM=x.getDomain().getDim()
         m=whereNonNegative(x[DIM-1]-(sup(x[DIM-1])-self.depth-self.lz/2)) * whereNonPositive(x[DIM-1]-(sup(x[DIM-1])-self.depth+self.lz/2)) \
-            *whereNonNegative(x[0]-(self.x-self.lx/2)) * whereNonPositive(x[0]-(self.x+self.lx/2)) 
+            *whereNonNegative(x[0]-(self.x-self.lx/2)) * whereNonPositive(x[0]-(self.x+self.lx/2))
         if DIM>2:
             m*=whereNonNegative(x[1]-(self.y-self.ly/2)) * whereNonPositive(x[1]-(self.y+self.ly/2))
         if self.rho is None:
@@ -765,7 +765,7 @@ class SmoothAnomaly(SourceFeature):
             rho=rho*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
             self.rho=maximum(abs(self.rho_outer), abs(self.rho_inner*rho))
             if self.rho_inner<0: self.rho=-self.rho
-        return m	 
+        return m
 
 ##############################################################################
 class SyntheticDataSource(DataSource):
@@ -798,7 +798,7 @@ class SyntheticDataSource(DataSource):
             self.logger.debug("Domain size: %d x %d elements"%(NE_new[0], NE_new[1]))
             self.logger.debug("     length: %g x %g"%(l_new[0],l_new[1]))
             self.logger.debug("     origin: %g x %g"%(origin_new[0],origin_new[1]))
-        else:   
+        else:
             from esys.finley import Brick
             dom = Brick(n0=NE_new[0], n1=NE_new[1], n2=NE_new[2], l0=l_new[0], l1=l_new[1], l2=l_new[2])
             self._x = dom.getX() + origin_new

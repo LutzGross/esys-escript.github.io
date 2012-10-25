@@ -113,7 +113,8 @@ class GravityModel(ForwardModel):
         return phi, -grad(phi)
 
     def getPotential(self, rho):
-        self.__pde.setValue(Y=(-4*PI*self.__G) * rho, X=Data(), X_reduced=Data())
+        self.__pde.resetRightHandSideCoefficients()
+        self.__pde.setValue(Y=-4.*PI*self.__G*rho)
         phi=self.__pde.getSolution()
         return phi
 
@@ -128,7 +129,8 @@ class GravityModel(ForwardModel):
         for s in xrange(len(self.__chi)):
             Z = self.__chi[s] * (-gravity_force+self.__g[s]) + Z
 
-        self.__pde.setValue(Y=Data(), X=Z)
+        self.__pde.resetRightHandSideCoefficients()
+        self.__pde.setValue(X=Z)
         ZT=self.__pde.getSolution()
         return ZT*(-4*PI*self.__G)
 
