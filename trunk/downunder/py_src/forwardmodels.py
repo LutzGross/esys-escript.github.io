@@ -29,8 +29,6 @@ from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from esys.escript.util import *
 from esys.escript import Data, Vector, Scalar, Function
 from math import pi as PI
-G = 6.6742e-11*U.m**3/(U.kg*U.sec**2)
-MU_0= PI*4*1e-7 * U.V*U.sec/(U.A*U.m)
 
 class ForwardModel(object):
     """
@@ -157,7 +155,7 @@ class GravityModel(ForwardModelWithPotential):
     """
     Forward Model for gravity inversion as described in the inversion cookbook.
     """
-    def __init__(self, domain, chi, g, fix_all_faces=True, gravity_constant=G, tol=1e-8):
+    def __init__(self, domain, chi, g, fix_all_faces=True, gravity_constant=U.Gravitational_Constant, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
         surveys (weight, g).
@@ -268,7 +266,7 @@ class MagneticModel(ForwardModelWithPotential):
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         """
-        super(GravityModel, self).__init__(domain, chi, B, fix_all_faces, tol)
+        super(MagneticModel, self).__init__(domain, chi, B, fix_all_faces, tol)
         self.__background_field=interpolate(background_field, Function(self.getDomain()))
         self.getPDE().setValue(A=kronecker(self.getDomain()))
 
@@ -339,6 +337,6 @@ class MagneticModel(ForwardModelWithPotential):
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
         YT=pde.getSolution()
-        return inner(Z-grad(ZT),self.__background_field)
+        return inner(Y-grad(YT),self.__background_field)
         
 
