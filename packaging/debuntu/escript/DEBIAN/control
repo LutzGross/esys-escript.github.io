@@ -10,4 +10,3 @@ Conflicts: escript-noalias
 Replaces: escript-noalias
 Recommends: python-matplotlib
 Architecture: i386
- 
