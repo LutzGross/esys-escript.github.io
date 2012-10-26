@@ -373,4 +373,8 @@ R_Earth_equator=6378.1370*km
 R_Earth_poles=6356.7523*km
 R_Earth=(R_Earth_equator+R_Earth_poles)/2
 v_light=299792458.*m/sec
+Mu_0 = 4 * pi * 10**(-7)*V*sec/A/m 
+Magnetic_Dipole_Moment_Earth = 8.22 * 10**22*A*m**2 
+Gravitational_Constant=6.6742e-11*m**3/(kg*sec**2)
+
 

@@ -28,11 +28,12 @@ from esys.escript import *
 from esys.weipa import createDataset
 
 from costfunctions import SimpleCostFunction
-from forwardmodels import GravityModel, ForwardModel
+from forwardmodels import GravityModel, ForwardModel, MagneticModel
 from mappings import *
 from minimizers import *
 from regularizations import Regularization
 from datasources import DataSource
+import esys.escript.unitsSI as U
 
 class InversionBase(object):
     """
@@ -278,16 +279,13 @@ class GravityInversion(SingleParameterInversionBase):
         self.logger.info('Retrieving domain...')
         self.setDomain(source.getDomain())
         DIM=self.getDomain().getDim()
+
         self.logger.info("Retrieving density mask...")
         rho_mask = source.getSetDensityMask()
-
         if w is None:
             w=[1.]*DIM
-        
-        self.logger.info("Retrieving density mask...")
-        rho_mask = source.getSetDensityMask()
-        
         m_ref=self.getMapping().getInverse(rho_ref)    
+        
         self.logger.info("Setting up regularization...")
         self.setRegularization(Regularization(self.getDomain(),\
                 m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))  
@@ -308,6 +306,60 @@ class GravityInversion(SingleParameterInversionBase):
             l=0.
             for i in range(DIM-1):
                 l=max(l, sup(x[i])-inf(x[i]))
-            G=6.6742e-11
+            G=U.Gravitational_Constant
             mu_reg=0.5*(l*l*G)**2
             self.setWeights(mu_reg=mu_reg)
+
+class MagneticInversion(SingleParameterInversionBase):
+    """
+    Inversion of magnetic data
+    """
+    def setup(self, source, k_ref=None, w0=None, w=None):
+        """
+        Sets up the inversion parameters from a downunder.`DataSource`.
+
+        :param source: suitable data source
+        :type source: `DataSource'
+        :param k_ref: reference susceptibility. If not specified, zero is used.
+        :type k_ref: ``float`` or `Scalar`
+        :param w0: weighting factor for L2 term in the regularization
+        :type k_ref: ``float`` or `Scalar`
+        :param w: weighting factor for H1 term in the regularization
+        :type k_ref: ``list`` of float or `Vector`
+        """
+        if k_ref is None:
+          k_ref=0.
+
+        self.logger.info('Retrieving domain...')
+        self.setDomain(source.getDomain())
+        DIM=self.getDomain().getDim()
+        
+        self.logger.info("Retrieving susceptibility mask...")
+        k_mask = source.getSetSusceptibilityMask()
+
+        if w is None:
+            w=[1.]*DIM
+       
+        m_ref=self.getMapping().getInverse(k_ref)    
+        self.logger.info("Setting up regularization...")
+        self.setRegularization(Regularization(self.getDomain(),\
+                m_ref=m_ref, w0=w0, w=w, location_of_set_m=k_mask))  
+                
+        self.logger.info("Retrieving gravity and standard deviation data...")
+        B, sigma=source.getMagneticFlieldAndStdDev()
+        chi=safeDiv(1., sigma*sigma)
+        self.logger.debug("B = %s"%B)
+        self.logger.debug("sigma = %s"%sigma)
+        self.logger.debug("chi = %s"%chi)
+        chi=chi*kronecker(DIM)[DIM-1]
+                
+        self.logger.info("Setting up model...")                
+        self.setForwardModel(MagneticModel(self.getDomain(), chi, B, source.getBackgroundMagneticField()))
+
+        if self._mu_reg is None:
+            x=self.getDomain().getX()
+            l=0.
+            for i in range(DIM-1):
+                l=max(l, sup(x[i])-inf(x[i]))
+            mu_reg=0.5*(l*l)**2
+            self.setWeights(mu_reg=mu_reg)            

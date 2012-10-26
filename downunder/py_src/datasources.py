@@ -97,6 +97,8 @@ class DataSource(object):
         self._constrainBottom=False
         self._constrainSides=True
         self._domain=None
+        self.__set_density_mask=None
+        self.__set_susceptibility_mask=None
         self.setPadding()
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
 
@@ -158,14 +160,47 @@ class DataSource(object):
         :return: The mask for the density.
         :rtype: `esys.escript.Data`
         """
-        return self._mask
+        return self.__set_density_mask
+        
+    def setSetDensityMask(self, mask):
+        self.__set_density_mask=mask
+    
+    def getSetSusceptibilityMask(self):
+        """
+        Returns the susceptibility mask data object, where mask has value 1 in the
+        padding area, 0 elsewhere.
 
+        :return: The mask for the susceptibility.
+        :rtype: `esys.escript.Data`
+        """
+        return self.__set_susceptibility_mask
+        
+    def setSetSusceptibilityMask(self, mask):
+        self.__set_susceptibility_mask=mask
+        
+ 
     def getGravityAndStdDev(self):
         """
         Returns the gravity anomaly and standard deviation data objects as a
         tuple. This method must be implemented in subclasses.
         """
         raise NotImplementedError
+        
+    def getMagneticFlieldAndStdDev(self):
+        """
+        Returns the magnetic flield and standard deviation data objects as a
+        tuple. This method must be implemented in subclasses.
+        """
+        raise NotImplementedError
+    
+    
+    
+    def getBackgroundMagneticField(self):
+        """
+        returns the back ground magnetic field. his method must be implemented in subclasses.
+        """
+        return NotImplementedError
+     
 
     def getDataExtents(self):
         """
@@ -332,7 +367,7 @@ class DataSource(object):
 
         if self._constrainBottom:
             mask = mask + whereNonPositive(x[2])
-        self._mask=wherePositive(mask)
+        self.getSetDensityMask(wherePositive(mask))
 
         self.logger.debug("Domain size: %d x %d x %d elements"%(self._dom_NE[0],self._dom_NE[1],self._dom_NE[2]))
         self.logger.debug("     length: %g x %g x %g"%(self._dom_len[0],self._dom_len[1],self._dom_len[2]))
@@ -418,7 +453,7 @@ class UBCDataSource(DataSource):
 
 ##############################################################################
 class NetCDFDataSource(DataSource):
-    def __init__(self, gravfile, topofile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
+    def __init__(self, gravfile=None, magfile=None, topofile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
         """
         vertical_extents - (alt_min, alt_max, num_points)
         alt_of_data - altitude of measurements
@@ -426,6 +461,7 @@ class NetCDFDataSource(DataSource):
         super(NetCDFDataSource,self).__init__()
         self.__topofile=topofile
         self.__gravfile=gravfile
+        self.__magfile=magfile
         self.__determineExtents(vertical_extents)
         self.__altOfData=alt_of_data
 
@@ -739,7 +775,7 @@ class SourceFeature(object):
         raise NotImplementedError
 
 class SmoothAnomaly(SourceFeature):
-    def __init__(self, lx, ly, lz, x, y, depth, rho_inner, rho_outer):
+    def __init__(self, lx, ly, lz, x, y, depth, rho_inner=None, rho_outer=None, k_inner=None, k_outer=None):
         self.x=x
         self.y=y
         self.lx=lx
@@ -748,34 +784,59 @@ class SmoothAnomaly(SourceFeature):
         self.depth=depth
         self.rho_inner=rho_inner
         self.rho_outer=rho_outer
+        self.k_inner=k_inner
+        self.k_outer=k_outer
         self.rho=None
+        self.k=None
+        self.mask=None     
 
-    def getDensity(self):
+    def getDensity(self,x):
+        if self.rho is None:
+	    if self.rho_outer is None or self.rho_inner is None:
+	        self.rho=0
+	    else:
+		DIM=x.getDomain().getDim()  
+		alpha=-log(abs(self.rho_outer/self.rho_inner))*4
+		rho=exp(-alpha*((x[0]-self.x)/self.lx)**2)
+		rho=rho*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
+		self.rho=maximum(abs(self.rho_outer), abs(self.rho_inner*rho))
+		if self.rho_inner<0: self.rho=-self.rho
+            
         return self.rho
-
+        
+    def getSusceptibility(self,x):
+         if self.k is None:
+	    if self.k_outer is None or self.k_inner is None:
+	        self.k=0
+	    else:
+   	        DIM=x.getDomain().getDim()  
+                alpha=-log(abs(self.k_outer/self.k_inner))*4
+                k=exp(-alpha*((x[0]-self.x)/self.lx)**2)
+                k=k*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
+                self.k=maximum(abs(self.k_outer), abs(self.k_inner*k))
+                if self.k_inner<0: self.k=-self.k
+            
+         return self.k
+        
     def getMask(self, x):
         DIM=x.getDomain().getDim()
         m=whereNonNegative(x[DIM-1]-(sup(x[DIM-1])-self.depth-self.lz/2)) * whereNonPositive(x[DIM-1]-(sup(x[DIM-1])-self.depth+self.lz/2)) \
             *whereNonNegative(x[0]-(self.x-self.lx/2)) * whereNonPositive(x[0]-(self.x+self.lx/2))
         if DIM>2:
             m*=whereNonNegative(x[1]-(self.y-self.ly/2)) * whereNonPositive(x[1]-(self.y+self.ly/2))
-        if self.rho is None:
-            alpha=-log(abs(self.rho_outer/self.rho_inner))*4
-            rho=exp(-alpha*((x[0]-self.x)/self.lx)**2)
-            rho=rho*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
-            self.rho=maximum(abs(self.rho_outer), abs(self.rho_inner*rho))
-            if self.rho_inner<0: self.rho=-self.rho
+        self.mask = m        
         return m
 
 ##############################################################################
 class SyntheticDataSource(DataSource):
-    def __init__(self, DIM, NE, l, h, features):
+    def __init__(self, DIM, NE, l, h, features, latitude=-32.):
         super(SyntheticDataSource,self).__init__()
         self._features = features
         self.DIM=DIM
         self.NE=NE
         self.l=l
         self.h=h
+        self.latitude=latitude
 
     def _createDomain(self, padding_x, padding_y):
         NE_H=self.NE
@@ -811,30 +872,36 @@ class SyntheticDataSource(DataSource):
                 * whereNegative(dom.getX()[0]-(l_new[0]-origin_new[0])) \
                 * whereNonNegative(dom.getX()[self.DIM-1]-(l_new[self.DIM-1]+origin_new[self.DIM-1])) \
                 * whereNonPositive(dom.getX()[self.DIM-1]-(l_new[self.DIM-1]+(origin_new[self.DIM-1]+dz)))
-        self._mask=whereNegative(self._x[self.DIM-1]) + \
+                
+        self._B_mask=self._g_mask
+        
+        mask=whereNegative(self._x[self.DIM-1]) + \
                 wherePositive(self._x[self.DIM-1]-l[self.DIM-1])
         for i in xrange(self.DIM-1):
-            self._mask=self._mask + whereNegative(self._x[i]) + \
-                    wherePositive(self._x[i]-l[i])
-        self._mask=wherePositive(self._mask)
+            mask+= whereNegative(self._x[i]) +  wherePositive(self._x[i]-l[i])
+        self.setSetDensityMask(wherePositive(mask))
+        self.setSetSusceptibilityMask(wherePositive(mask))
 
         rho_ref=0.
+        k_ref=0
         for f in self._features:
             m=f.getMask(self._x)
-            rho_ref = rho_ref * (1-m) + f.getDensity() * m
+            rho_ref = rho_ref * (1-m) + f.getDensity(self._x) * m
+            k_ref = k_ref * (1-m) + f.getSusceptibility(self._x) * m
         self._rho=rho_ref
+        self._k=k_ref
 
         return dom
 
-    def getSetDensityMask(self):
-        return self._mask
 
     def getReferenceDensity(self):
         return self._rho
+    def getReferenceSusceptibility(self):
+        return self._k 
 
     def getGravityAndStdDev(self):
         pde=LinearSinglePDE(self.getDomain())
-        G=6.6742e-11*U.m**3/(U.kg*U.sec**2)
+        G=U.Gravitational_Constant
         m_psi_ref=0.
         for i in xrange(self.DIM):
             m_psi_ref=m_psi_ref + whereZero(self._x[i]-inf(self._x[i])) \
@@ -847,4 +914,32 @@ class SyntheticDataSource(DataSource):
         g=-grad(psi_ref)
         sigma=self._g_mask
         return g,sigma
-
+        
+    def getMagneticFlieldAndStdDev(self):
+      
+        pde=LinearSinglePDE(self.getDomain())
+        B_b=self.getBackgroundMagneticField()
+        DIM=self.getDomain().getDim()
+        m_psi_ref=0.
+        for i in xrange(self.DIM):
+            m_psi_ref=m_psi_ref + whereZero(self._x[i]-inf(self._x[i])) \
+                    + whereZero(self._x[i]-sup(self._x[i]))        
+        pde.setValue(A=kronecker(self.getDomain()), X=(1+self._k)*B_b, q=m_psi_ref)
+        pde.setSymmetryOn()
+        psi_ref=pde.getSolution()
+        del pde
+        B= (1+self._k) * B_b -grad(psi_ref)
+        sigma=self._B_mask
+        return B,sigma
+        
+        
+    def getBackgroundMagneticField(self): 
+       theta = (90-self.latitude)/180.*np.pi 
+       B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
+       B_theta= B_0 * sin(theta)
+       B_r= 2 * B_0 * cos(theta)
+       DIM=self.getDomain().getDim()
+       if DIM<3:
+	  return np.array([0.,  -B_r])
+       else:
+          return np.array([-B_theta, 0.,  -B_r])
