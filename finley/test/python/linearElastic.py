@@ -55,10 +55,12 @@ mypde.setValue(A=mu * ( swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3) ) + lame*k3Xk3
 mypde.setSymmetryOn()
 mypde.getSolverOptions().setVerbosityOn()
 # use direct solver (default is iterative)
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().DIRECT)
+#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().DIRECT)
 # mypde.getSolverOptions().setPreconditioner(mypde.getSolverOptions().AMG)
 # solve for the displacements:
 u_d=mypde.getSolution()
+
+mypde.applyOperator(u_d)
 # get the gradient and calculate the stress:
 g=grad(u_d)
 stress=lame*trace(g)*kronecker(domain)+mu*(g+transpose(g))

@@ -25,12 +25,12 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['ForwardModel','GravityModel']
 
 from esys.escript import unitsSI as U
-from esys.escript.linearPDEs import LinearSinglePDE
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from esys.escript.util import *
-from esys.escript import Data
-
-PI = 3.14159265358979323846
+from esys.escript import Data, Vector, Scalar, Function
+from math import pi as PI
 G = 6.6742e-11*U.m**3/(U.kg*U.sec**2)
+MU_0= PI*4*1e-7 * U.V*U.sec/(U.A*U.m)
 
 class ForwardModel(object):
     """
@@ -49,88 +49,296 @@ class ForwardModel(object):
 
     def getGradient(self, x, *args):
         pass
-
-class GravityModel(ForwardModel):
+      
+class ForwardModelWithPotential(ForwardModel):     
     """
-    Forward Model for gravity inversion as described in the inversion cookbook.
+    base class for forward  model using a potential such as magnetic or gravity. It defines a 
+    cost function 
+    
+         defect = 1/2 sum_s integrate(  weight_i[s] * ( r_i - data_i[s] )**2 )
+          
+    where s runs over the survey, weight_i are weighting factors, data_i are the data, and r_i are the results 
+    produced from the forward model. It is assumed that the forward model is produced through postprocessing of the 
+    solution of a potential PDE. 
+          
     """
-    def __init__(self, domain, chi, g, constrain_top=True, gravity_constant=G, tol=1e-8):
+    def __init__(self, domain, weight, data, fix_all_faces=False,   tol=1e-8): 
         """
-        Creates a new gravity model on the given domain with one or more
-        surveys (chi, g).
+        initialization
+        
+        :param domain: domain of the model
+        :type domain: `Domain`
+        :param weight: data weighting factors 
+        :type weight: `Vector` or list of `Vector` 
+        :param data: data
+        :type data: `Vector` or list of `Vector`
+        :param fix_all_faces: if true all faces of the domain are fixed otherwise only the top surface. 
+        :type fix_all_faces: ``bool``
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
+        
         """
+        super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
+        
         try:
-            n=len(chi)
-            m=len(g)
+            n=len(weight)
+            m=len(data)
             if m != n:
-                raise ValueError("Length of chi and g must be the same.")
-            self.__chi = chi
-            self.__g = g
+                raise ValueError("Length of weight and g must be the same.")
+            self.__weight = weight
+            self.__data = data
         except TypeError:
-            self.__chi = [chi]
-            self.__g = [g]
+            self.__weight = [weight]
+            self.__data = [data]
 
         A=0
-        for s in xrange(len(self.__chi)):
-            A2 = integrate(inner(self.__chi[s], self.__g[s]**2))
+        for s in xrange(len(self.__weight)):
+            A2 = integrate(inner(self.__weight[s], self.__data[s]**2))
             if A2 < 0:
                 raise ValueError("Negative weighting factor for survey %s"%s)
             A=max(A2, A)
         if not A > 0:
             raise ValueError("No reference data set.")
-        self.__G = gravity_constant
+        
         BX = boundingBox(domain)
         DIM = domain.getDim()
         x = domain.getX()
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
-        if constrain_top:
-            constraint=whereZero(x[DIM-1]-BX[DIM-1][1])+whereZero(x[DIM-1]-BX[DIM-1][0])
-        else:
-            constraint=whereZero(x[DIM-1]-BX[DIM-1][0])
-        for i in xrange(DIM-1):
+        
+        if fix_all_faces:
+	   constraint=whereZero(x[DIM-1]-BX[DIM-1][1])+whereZero(x[DIM-1]-BX[DIM-1][0])
+	   for i in xrange(DIM-1):
             constraint=constraint+whereZero(x[i]-BX[i][1])+whereZero(x[i]-BX[i][0])
-        self.__pde.setValue(A=kronecker(DIM), q=constraint)
-
+	else:
+           constraint=whereZero(x[DIM-1]-BX[DIM-1][1])	 
+	self.__pde.setValue(q=constraint)
+	 
+ 
+    def getDomain(self):
+        """
+        return the domain of the forward model
+        """
+        return self.__domain
+    def getPDE(self):
+        """
+        return the underlying PDE
+        :rtype: `LinearPDE`
+        """
+        return self.__pde
+ 
+    def getDefect(self, result):
+        """
+        return the underlying PDE
+        
+        :param result: a result vector
+        :type result: `Vector`
+        :rtype: ``float``
+        """
+        A=0.
+        for s in xrange(len(self.__weight)):
+            A = inner(self.__weight[s], (result-self.__data[s])**2) + A
+        return 0.5*integrate(A)
+        
     def getSurvey(self, index=None):
         """
-        Returns the pair (g_index, chi_index), where g_i is the gravity
-        anomaly of survey i, chi_i is the weighting factor for survey i.
+        Returns the pair (g_index, weight_index), where g_i is the gravity
+        anomaly of survey i, weight_i is the weighting factor for survey i.
         If index is None, all surveys will be returned in a pair of lists.
         """
         if index is None:
-            return self.__g, self.__chi
-        if index>=len(self.__g):
-            raise IndexError("Forward model only has %d surveys"%len(self.__g))
-        return self.__g[index], self.__chi[index]
+            return self.__data, self.__weight
+        if index>=len(self.__data):
+            raise IndexError("Forward model only has %d surveys"%len(self.__data))
+        return self.__data[index], self.__weight[index]
+        
+class GravityModel(ForwardModelWithPotential):
+    """
+    Forward Model for gravity inversion as described in the inversion cookbook.
+    """
+    def __init__(self, domain, chi, g, fix_all_faces=True, gravity_constant=G, tol=1e-8):
+        """
+        Creates a new gravity model on the given domain with one or more
+        surveys (weight, g).
+        
+        :param domain: domain of the model
+        :type domain: `Domain`
+        :param chi: data weighting factors 
+        :type chi: `Vector` or list of `Vector` 
+        :param g: gravity data
+        :type g: `Vector` or list of `Vector`
+        :param fix_all_faces: 
+        :type fix_all_faces: ``bool``
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
+        """
+        super(GravityModel, self).__init__(domain, chi, g, fix_all_faces, tol)
+        
+        self.__G = gravity_constant
+        self.getPDE().setValue(A=kronecker(self.getDomain()))
 
     def getArguments(self, rho):
         """
         Returns precomputed values shared by getValue() and getGradient().
+        
+        :param rho: a suggestion for the density distribution
+        :type rho: `Scalar`
+        :return: gravity potential and corresponding gravity field.
+        :rtype: ``Scalar``, ``Vector``
         """
         phi = self.getPotential(rho)
-        return phi, -grad(phi)
+        gravity_force = -grad(phi)
+        return phi, gravity_force
 
     def getPotential(self, rho):
-        self.__pde.resetRightHandSideCoefficients()
-        self.__pde.setValue(Y=-4.*PI*self.__G*rho)
-        phi=self.__pde.getSolution()
+        """
+        calculates the gravity potential of for a given density distribution
+        
+        :param rho: a suggestion for the density distribution
+        :type rho: `Scalar`   
+        :return: gravity potential
+        :rtype: ``Scalar``
+        """
+        pde=self.getPDE()
+        
+        pde.resetRightHandSideCoefficients()
+        pde.setValue(Y=-4.*PI*self.__G*rho)
+        phi=pde.getSolution()
+        
         return phi
-
+                
     def getValue(self, rho, phi, gravity_force):
-        A=0.
-        for s in xrange(len(self.__chi)):
-            A = inner(self.__chi[s], (gravity_force-self.__g[s])**2) + A
-        return 0.5*integrate(A)
+        """
+        return the value of the defect
+        
+        :param rho: density distribution
+        :type rho: `Scalar` 
+        :param phi: corresponding potential
+        :type phi: `Scalar` 
+        :param gravity_force: gravity force
+        :type gravity_force: `Vector`  
+        :rtype: ``float``
+        """
+        return self.getDefect(gravity_force)
 
     def getGradient(self, rho, phi, gravity_force):
+        """
+        return the gradient of the defect with respect of density
+        
+        :param rho: density distribution
+        :type rho: `Scalar` 
+        :param phi: corresponding potential
+        :type phi: `Scalar` 
+        :param gravity_force: gravity force
+        :type gravity_force: `Vector`  
+        :rtype: `Scalar`
+        
+        """     
+        pde=self.getPDE()
+        g, chi = self.getSurvey()
+        
         Z=0.
-        for s in xrange(len(self.__chi)):
-            Z = self.__chi[s] * (-gravity_force+self.__g[s]) + Z
+        for s in xrange(len(chi)):
+            Z = chi[s] * (g[s]-gravity_force) + Z
 
-        self.__pde.resetRightHandSideCoefficients()
-        self.__pde.setValue(X=Z)
-        ZT=self.__pde.getSolution()
+        pde.resetRightHandSideCoefficients()
+        pde.setValue(X=Z)
+        ZT=pde.getSolution()
         return ZT*(-4*PI*self.__G)
+
+        
+class MagneticModel(ForwardModelWithPotential):
+    """
+    Forward Model for magnetic inversion as described in the inversion cookbook.
+    """
+    def __init__(self, domain, chi, B, background_field, fix_all_faces=True, tol=1e-8):
+        """
+        Creates a new gravity model on the given domain with one or more
+        surveys (weight, g).
+        
+        :param domain: domain of the model
+        :type domain: `Domain`
+        :param chi: data weighting factors 
+        :type chi: `Vector` or list of `Vector` 
+        :param B: magnetic field data
+        :type B: `Vector` or list of `Vector`
+        :param fix_all_faces: 
+        :type fix_all_faces: ``bool``
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
+        """
+        super(GravityModel, self).__init__(domain, chi, B, fix_all_faces, tol)
+        self.__background_field=interpolate(background_field, Function(self.getDomain()))
+        self.getPDE().setValue(A=kronecker(self.getDomain()))
+
+    def getArguments(self, k):
+        """
+        Returns precomputed values shared by getValue() and getGradient().
+        
+        :param k: susceptibility 
+        :type k: `Scalar`
+        :return: scalar magnetic potential and corresponding magnetic field.
+        :rtype: ``Scalar``, ``Vector``
+        """
+        phi = self.getPotential(k)
+        magnetic_field = (1+k) * self.__background_field -grad(phi)
+        return phi, magnetic_field
+
+    def getPotential(self, k):
+        """
+        calculates the magnetic potential of for a given susceptibility
+        
+        :param k: susceptibility
+        :type k: `Scalar`   
+        :return: gravity potential
+        :rtype: ``Scalar``
+        """
+        pde=self.getPDE()
+        
+        pde.resetRightHandSideCoefficients()
+        pde.setValue(X = (1+k)* self.__background_field)
+        phi=pde.getSolution()
+        
+        return phi
+                
+    def getValue(self, k, phi, magnetic_field):
+        """
+        return the value of the defect
+        
+        :param k: susceptibility
+        :type k: `Scalar` 
+        :param phi: corresponding potential
+        :type phi: `Scalar` 
+        :param magnetic_field: magnetic field
+        :type magnetic_field: `Vector`  
+        :rtype: ``float``
+        """
+        return self.getDefect(magnetic_field)
+
+    def getGradient(self, k, phi, magnetic_field):
+        """
+        return the gradient of the defect with respect of susceptibility
+        
+        :param k: susceptibility
+        :type k: `Scalar` 
+        :param phi: corresponding potential
+        :type phi: `Scalar` 
+        :param magnetic_field: magnetic field
+        :type magnetic_field: `Vector`  
+        :rtype: `Scalar`
+        
+        """     
+        pde=self.getPDE()
+        B, chi = self.getSurvey()
+        
+        Y=0.
+        for s in xrange(len(chi)):
+            Y = chi[s] * (magnetic_field-B[s]) + Y
+            
+        pde.resetRightHandSideCoefficients()
+        pde.setValue(X=Y)
+        YT=pde.getSolution()
+        return inner(Z-grad(ZT),self.__background_field)
+        
 

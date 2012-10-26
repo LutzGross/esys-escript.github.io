@@ -182,14 +182,17 @@ class InversionBase(object):
         raise NotImplementedError
 
 
-class GravityInversion(InversionBase):
+ 
+ 
+
+class SingleParameterInversionBase(InversionBase):
     """
-    Inversion of Gravity (Bouguer) anomaly data.
+    Base class for inversion with a single parameter to find
     """
     def __init__(self):
-        super(GravityInversion,self).__init__()
-        self.__is_setup=False
+        super(SingleParameterInversionBase,self).__init__()
         self.setWeights()
+ 
 
     def setWeights(self, mu_reg=None, mu_model=1.):
         """
@@ -200,14 +203,7 @@ class GravityInversion(InversionBase):
         self.logger.debug("mu_model = %s"%mu_model)
         self._mu_reg=mu_reg
         self._mu_model=mu_model
-
-    def isSetup(self):
-        if self.getRegularization() and self.getMapping() \
-                and self.getForwardModel() and self.getDomain():
-            return True
-        else:
-            return False
-
+        
     def siloWriterCallback(self, k, x, fx, gfx):
         """
         callback function that can be used to track the solution
@@ -224,6 +220,45 @@ class GravityInversion(InversionBase):
         self.logger.debug("Jreg(m) = %e"%self.regularization.getValue(x))
         self.logger.debug("f(m) = %e"%fx)
 
+
+    def isSetup(self):
+        if self.getRegularization() and self.getMapping() \
+                and self.getForwardModel() and self.getDomain():
+            return True
+        else:
+            return False
+            
+    def run(self, initial_value=0.):
+        if not self.isSetup():
+            raise RuntimeError("Inversion is not setup properly.")
+
+        f=SimpleCostFunction(self.getRegularization(), self.getMapping(), self.getForwardModel())
+        f.setWeights(mu_reg=self._mu_reg, mu_model=self._mu_model)
+
+        solver=self.solverclass(f)
+        solver.setCallback(self._solver_callback)
+        solver.setMaxIterations(self._solver_maxiter)
+        solver.setOptions(**self._solver_opts)
+        solver.setTolerance(self._solver_tol)
+        if not isinstance(initial_value, Data):
+            initial_value=Scalar(initial_value, ContinuousFunction(self.getDomain()))
+        m_init=self.getMapping().getInverse(initial_value)
+
+        self.logger.info("Starting solver...")
+        solver.run(m_init)
+        m_star=solver.getResult()
+        self.logger.info("m* = %s"%m_star)
+        value_star=self.getMapping().getValue(m_star)
+        self.logger.info("result * = %s"%value_star)
+        solver.logSummary()
+        return value_star
+ 
+      
+
+class GravityInversion(SingleParameterInversionBase):
+    """
+    Inversion of Gravity (Bouguer) anomaly data.
+    """
     def setup(self, source, rho_ref=None, w0=None, w=None):
         """
         Sets up the inversion parameters from a downunder.`DataSource`.
@@ -237,19 +272,26 @@ class GravityInversion(InversionBase):
         :param w: weighting factor for H1 term in the regularization
         :type rho_ref: ``list`` of float or `Vector`
         """
+        if rho_ref is None:
+          rho_ref=0.
+
         self.logger.info('Retrieving domain...')
         self.setDomain(source.getDomain())
         DIM=self.getDomain().getDim()
-
-        if rho_ref is None:
-            rho_ref=0.
-        if w is None:
-            w=[1.]*DIM
-
         self.logger.info("Retrieving density mask...")
         rho_mask = source.getSetDensityMask()
-        m_ref=self.getMapping().getInverse(rho_ref)
 
+        if w is None:
+            w=[1.]*DIM
+        
+        self.logger.info("Retrieving density mask...")
+        rho_mask = source.getSetDensityMask()
+        
+        m_ref=self.getMapping().getInverse(rho_ref)    
+        self.logger.info("Setting up regularization...")
+        self.setRegularization(Regularization(self.getDomain(),\
+                m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))  
+                
         self.logger.info("Retrieving gravity and standard deviation data...")
         g, sigma=source.getGravityAndStdDev()
         chi=safeDiv(1., sigma*sigma)
@@ -257,10 +299,8 @@ class GravityInversion(InversionBase):
         self.logger.debug("sigma = %s"%sigma)
         self.logger.debug("chi = %s"%chi)
         chi=chi*kronecker(DIM)[DIM-1]
-
-        self.logger.info("Setting up regularization and forward model...")
-        self.setRegularization(Regularization(self.getDomain(),\
-                m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))
+                
+        self.logger.info("Setting up model...")                
         self.setForwardModel(GravityModel(self.getDomain(), chi, g))
 
         if self._mu_reg is None:
@@ -271,29 +311,3 @@ class GravityInversion(InversionBase):
             G=6.6742e-11
             mu_reg=0.5*(l*l*G)**2
             self.setWeights(mu_reg=mu_reg)
-
-    def run(self, rho_init=0.):
-        if not self.isSetup():
-            raise RuntimeError("Inversion is not setup properly.")
-
-        f=SimpleCostFunction(self.getRegularization(), self.getMapping(), self.getForwardModel())
-        f.setWeights(mu_reg=self._mu_reg, mu_model=self._mu_model)
-
-        solver=self.solverclass(f)
-        solver.setCallback(self._solver_callback)
-        solver.setMaxIterations(self._solver_maxiter)
-        solver.setOptions(**self._solver_opts)
-        solver.setTolerance(self._solver_tol)
-        if not isinstance(rho_init, Data):
-            rho_init=Scalar(rho_init, ContinuousFunction(self.getDomain()))
-        m_init=self.getMapping().getInverse(rho_init)
-
-        self.logger.info("Starting solver...")
-        solver.run(m_init)
-        m_star=solver.getResult()
-        self.logger.info("m* = %s"%m_star)
-        rho_star=self.getMapping().getValue(m_star)
-        self.logger.info("rho* = %s"%rho_star)
-        solver.logSummary()
-        return rho_star
-
