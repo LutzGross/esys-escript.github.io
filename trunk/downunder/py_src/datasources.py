@@ -367,7 +367,7 @@ class DataSource(object):
 
         if self._constrainBottom:
             mask = mask + whereNonPositive(x[2])
-        self.getSetDensityMask(wherePositive(mask))
+        self.setSetDensityMask(wherePositive(mask))
 
         self.logger.debug("Domain size: %d x %d x %d elements"%(self._dom_NE[0],self._dom_NE[1],self._dom_NE[2]))
         self.logger.debug("     length: %g x %g x %g"%(self._dom_len[0],self._dom_len[1],self._dom_len[2]))
@@ -792,24 +792,24 @@ class SmoothAnomaly(SourceFeature):
 
     def getDensity(self,x):
         if self.rho is None:
-	    if self.rho_outer is None or self.rho_inner is None:
-	        self.rho=0
-	    else:
-		DIM=x.getDomain().getDim()  
-		alpha=-log(abs(self.rho_outer/self.rho_inner))*4
-		rho=exp(-alpha*((x[0]-self.x)/self.lx)**2)
-		rho=rho*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
-		self.rho=maximum(abs(self.rho_outer), abs(self.rho_inner*rho))
-		if self.rho_inner<0: self.rho=-self.rho
+            if self.rho_outer is None or self.rho_inner is None:
+                self.rho=0
+            else:
+                DIM=x.getDomain().getDim()  
+                alpha=-log(abs(self.rho_outer/self.rho_inner))*4
+                rho=exp(-alpha*((x[0]-self.x)/self.lx)**2)
+                rho=rho*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
+                self.rho=maximum(abs(self.rho_outer), abs(self.rho_inner*rho))
+                if self.rho_inner<0: self.rho=-self.rho
             
         return self.rho
         
     def getSusceptibility(self,x):
          if self.k is None:
-	    if self.k_outer is None or self.k_inner is None:
-	        self.k=0
-	    else:
-   	        DIM=x.getDomain().getDim()  
+            if self.k_outer is None or self.k_inner is None:
+                self.k=0
+            else:
+                DIM=x.getDomain().getDim()  
                 alpha=-log(abs(self.k_outer/self.k_inner))*4
                 k=exp(-alpha*((x[0]-self.x)/self.lx)**2)
                 k=k*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
@@ -940,6 +940,6 @@ class SyntheticDataSource(DataSource):
        B_r= 2 * B_0 * cos(theta)
        DIM=self.getDomain().getDim()
        if DIM<3:
-	  return np.array([0.,  -B_r])
+          return np.array([0.,  -B_r])
        else:
           return np.array([-B_theta, 0.,  -B_r])
