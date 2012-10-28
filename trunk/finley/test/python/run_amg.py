@@ -520,9 +520,9 @@ class Test_AMG(unittest.TestCase):
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(self.SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-	if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
+        if USE_AMG and getEscriptParamInt('DISABLE_AMG',0):
              print("AMG is disabled for MPI builds")
-	     USE_AMG=0
+             USE_AMG=0
         if (USE_AMG): pde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
         pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
