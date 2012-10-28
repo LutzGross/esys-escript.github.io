@@ -33,6 +33,10 @@ except:
     sqrt=np.sqrt
     EPSILON=1e-18
 
+import sys
+if sys.version_info[0]>2:
+    xrange=range
+    
 lslogger=logging.getLogger('inv.minimizer.linesearch')
 zoomlogger=logging.getLogger('inv.minimizer.linesearch.zoom')
 

@@ -339,7 +339,7 @@ class DataSource(object):
                 NE, l, origin)
 
         # number of padding elements per side
-        NE_pad=[(NE_new[i]-NE[i])/2 for i in xrange(3)]
+        NE_pad=[(NE_new[i]-NE[i])//2 for i in xrange(3)]
 
         self._dom_NE_pad = NE_pad
         self._dom_len = l_new
