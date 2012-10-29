@@ -39,14 +39,11 @@
 <DataArray Name="data_s" type="Float64" NumberOfComponents="1" format="ascii">
 5.000000e-01
 </DataArray>
-<DataArray Name="data_v" type="Float64" NumberOfComponents="3" format="ascii">
-5.000000e-01 1.000000e+00 0.000000e+00
-</DataArray>
-<DataArray Name="data_t2" type="Float64" NumberOfComponents="9" format="ascii">
--5.500000e+00 -1.050000e+01 0.000000e+00 -6.000000e+00 -1.100000e+01 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
-</DataArray>
 <DataArray Name="data_t" type="Float64" NumberOfComponents="9" format="ascii">
 5.500000e+00 1.050000e+01 0.000000e+00 6.000000e+00 1.100000e+01 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
+</DataArray>
+<DataArray Name="data_v" type="Float64" NumberOfComponents="3" format="ascii">
+5.000000e-01 1.000000e+00 0.000000e+00
 </DataArray>
 </CellData>
 </Piece>

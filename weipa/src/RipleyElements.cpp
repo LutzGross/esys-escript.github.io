@@ -61,7 +61,7 @@ RipleyElements::RipleyElements(const RipleyElements& e)
     NperDim = e.NperDim;
     nodes = e.nodes;
     ID = e.ID;
-    tag = e.tag;
+    //tag = e.tag;
     owner = e.owner;
 }
 
@@ -100,7 +100,7 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
         ID.assign(iPtr, iPtr+numElements);
 
         //iPtr = dom->borrowListOfTags(fsType);
-        tag.assign(iPtr, iPtr+numElements);
+        //tag.assign(iPtr, iPtr+numElements);
 
         const IntVec NN = dom->getNumNodesPerDim();
         nodes.clear();
@@ -360,7 +360,7 @@ StringVec RipleyElements::getVarNames() const
     StringVec res;
     res.push_back(name + string("_Id"));
     res.push_back(name + string("_Owner"));
-    res.push_back(name + string("_Tag"));
+    //res.push_back(name + string("_Tag"));
     return res;
 }
 
@@ -370,8 +370,8 @@ const IntVec& RipleyElements::getVarDataByName(const string varName) const
         return ID;
     if (varName == name+string("_Owner"))
         return owner;
-    if (varName == name+string("_Tag"))
-        return tag;
+    //if (varName == name+string("_Tag"))
+    //    return tag;
 
     throw "Invalid variable name";
 }
@@ -426,7 +426,7 @@ void RipleyElements::reorderGhostZones(int ownIndex)
         reorderArray(nodes, indexArray, nodesPerElement);
         reorderArray(owner, indexArray, 1);
         reorderArray(ID, indexArray, 1);
-        reorderArray(tag, indexArray, 1);
+        //reorderArray(tag, indexArray, 1);
     }
 }
 
@@ -439,7 +439,7 @@ void RipleyElements::removeGhostZones(int ownIndex)
         nodes.resize(numElements*nodesPerElement);
         owner.resize(numElements);
         ID.resize(numElements);
-        tag.resize(numElements);
+        //tag.resize(numElements);
         numGhostElements = 0;
     }
 }
