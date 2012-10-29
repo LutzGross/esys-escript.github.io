@@ -46,6 +46,17 @@
 </DataArray>
 </Cells>
 <PointData>
+<DataArray Name="data_sp" type="Float64" NumberOfComponents="1" format="ascii">
+0.000000e+00
+5.000000e-01
+1.000000e+00
+0.000000e+00
+5.000000e-01
+1.000000e+00
+0.000000e+00
+5.000000e-01
+1.000000e+00
+</DataArray>
 <DataArray Name="data_tp" type="Float64" NumberOfComponents="9" format="ascii">
 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
 5.500000e+00 1.050000e+01 0.000000e+00 6.000000e+00 1.100000e+01 0.000000e+00 0.000000e+00 0.000000e+00 0.000000e+00
@@ -67,17 +78,6 @@
 0.000000e+00 0.000000e+00 0.000000e+00
 5.000000e-01 1.000000e+00 0.000000e+00
 1.000000e+00 2.000000e+00 0.000000e+00
-</DataArray>
-<DataArray Name="data_sp" type="Float64" NumberOfComponents="1" format="ascii">
-0.000000e+00
-5.000000e-01
-1.000000e+00
-0.000000e+00
-5.000000e-01
-1.000000e+00
-0.000000e+00
-5.000000e-01
-1.000000e+00
 </DataArray>
 <DataArray Name="mesh_vars/Nodes_Id" type="Float64" NumberOfComponents="1" format="ascii">
 0.000000e+00
