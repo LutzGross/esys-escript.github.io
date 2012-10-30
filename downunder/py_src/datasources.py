@@ -31,10 +31,6 @@ from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 import esys.escript.unitsSI as U
 from esys.ripley import Brick, Rectangle, ripleycpp
-import sys
-
-if sys.version_info[0]>2:
-    xrange=range
 
 try:
     from scipy.io.netcdf import netcdf_file
@@ -87,8 +83,9 @@ class DataSource(object):
     A class that provides survey data for the inversion process.
     This is an abstract base class that implements common functionality.
     Methods to be overwritten by subclasses are marked as such.
+    This class assumes 2D data which is mapped to a slice of a 3D domain.
+    For other setups override the `_createDomain` method.
     """
-    # this is currently specific to gravity inversion and should be generalised
 
     def __init__(self):
         """
@@ -161,46 +158,51 @@ class DataSource(object):
         :rtype: `esys.escript.Data`
         """
         return self.__set_density_mask
-        
+
     def setSetDensityMask(self, mask):
+        """
+        Sets the density mask to use.
+        """
         self.__set_density_mask=mask
-    
+
     def getSetSusceptibilityMask(self):
         """
-        Returns the susceptibility mask data object, where mask has value 1 in the
-        padding area, 0 elsewhere.
+        Returns the susceptibility mask data object, where mask has value 1
+        in the padding area, 0 elsewhere.
 
         :return: The mask for the susceptibility.
         :rtype: `esys.escript.Data`
         """
         return self.__set_susceptibility_mask
-        
+
     def setSetSusceptibilityMask(self, mask):
+        """
+        Sets the susceptibility mask to use.
+        """
         self.__set_susceptibility_mask=mask
-        
- 
+
     def getGravityAndStdDev(self):
         """
         Returns the gravity anomaly and standard deviation data objects as a
-        tuple. This method must be implemented in subclasses.
+        tuple. This method must be implemented in subclasses that supply
+        gravity data.
         """
         raise NotImplementedError
-        
-    def getMagneticFlieldAndStdDev(self):
+
+    def getMagneticFieldAndStdDev(self):
         """
-        Returns the magnetic flield and standard deviation data objects as a
-        tuple. This method must be implemented in subclasses.
+        Returns the magnetic field and standard deviation data objects as a
+        tuple. This method must be implemented in subclasses that supply
+        magnetic data.
         """
         raise NotImplementedError
-    
-    
-    
+
     def getBackgroundMagneticField(self):
         """
-        returns the back ground magnetic field. his method must be implemented in subclasses.
+        Returns the background magnetic field. This method must be
+        implemented in subclasses that supply magnetic data.
         """
         return NotImplementedError
-     
 
     def getDataExtents(self):
         """
@@ -219,17 +221,10 @@ class DataSource(object):
         returns a tuple ``(z0, nz, dz)``, where
 
         - ``z0`` = minimum z coordinate (origin)
-        - ``nz`` = number of nodes in z direction
-        - ``dz`` = spacing of nodes (= cell size in z)
+        - ``nz`` = number of elements in z direction
+        - ``dz`` = spacing of elements (= cell size in z)
 
         This method must be implemented in subclasses.
-        """
-        raise NotImplementedError
-
-    def getDomainClass(self):
-        """
-        returns the domain generator class (e.g. esys.ripley.Brick).
-        Must be implemented in subclasses.
         """
         raise NotImplementedError
 
@@ -266,11 +261,11 @@ class DataSource(object):
                 frac[1]=2.*pad_y/(float(NE[1]))
 
         # calculate new number of elements
-        NE_new=[int(NE[i]*(1+frac[i])) for i in xrange(DIM)]
-        NEdiff=[NE_new[i]-NE[i] for i in xrange(DIM)]
-        spacing=[l[i]/NE[i] for i in xrange(DIM)]
-        l_new=[NE_new[i]*spacing[i] for i in xrange(DIM)]
-        origin_new=[origin[i]-NEdiff[i]/2.*spacing[i] for i in xrange(DIM)]
+        NE_new=[int(NE[i]*(1+frac[i])) for i in range(DIM)]
+        NEdiff=[NE_new[i]-NE[i] for i in range(DIM)]
+        spacing=[l[i]/NE[i] for i in range(DIM)]
+        l_new=[NE_new[i]*spacing[i] for i in range(DIM)]
+        origin_new=[origin[i]-NEdiff[i]/2.*spacing[i] for i in range(DIM)]
         return NE_new, l_new, origin_new
 
     def _interpolateOnDomain(self, data):
@@ -283,7 +278,7 @@ class DataSource(object):
         dim=dom.getDim()
         # determine number of values required per element
         DPP=Scalar(0., ReducedFunction(dom)).getNumberOfDataPoints()
-        for i in xrange(dim):
+        for i in range(dim):
             DPP=DPP/self._dom_NE[i]
         DPP=int(DPP)
 
@@ -293,16 +288,16 @@ class DataSource(object):
         # separate data arrays and coordinates
         num_arrays=len(data[0])-dim
         arrays=[]
-        for i in xrange(num_arrays):
+        for i in range(num_arrays):
             d=Scalar(0., ReducedFunction(dom))
             d.expand()
             arrays.append(d)
 
         for entry in data:
-            index=[int((entry[i]-self._dom_origin[i])/self._spacing[i]) for i in xrange(dim)]
+            index=[int((entry[i]-self._dom_origin[i])/self._spacing[i]) for i in range(dim)]
             index=int(idx_mult.dot(index))
-            for i in xrange(num_arrays):
-                for p in xrange(DPP):
+            for i in range(num_arrays):
+                for p in range(DPP):
                     arrays[i].setValueOfDataPoint(index+p, entry[dim+i])
 
         return arrays
@@ -332,36 +327,30 @@ class DataSource(object):
         self._spacing = [float(np.round(si)) for si in self._spacing]
 
         # length of domain (without padding)
-        l = [NE[i]*self._spacing[i] for i in xrange(len(NE))]
+        l = [NE[i]*self._spacing[i] for i in range(len(NE))]
 
         # now add padding to the values
         NE_new, l_new, origin_new = self._addPadding(padding_x, padding_y, \
                 NE, l, origin)
 
         # number of padding elements per side
-        NE_pad=[(NE_new[i]-NE[i])//2 for i in xrange(3)]
+        NE_pad=[(NE_new[i]-NE[i])//2 for i in range(3)]
 
         self._dom_NE_pad = NE_pad
         self._dom_len = l_new
         self._dom_NE = NE_new
         self._dom_origin = origin_new
-        lo=[(origin_new[i], origin_new[i]+l_new[i]) for i in xrange(3)]
-        try:
-            dom=self.getDomainClass()(*self._dom_NE, l0=lo[0], l1=lo[1], l2=lo[2])
-            # ripley may internally adjust NE and length, so recompute
-            self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in xrange(3)]
-            self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in xrange(3)]
-            x=dom.getX()-[self._dom_origin[i]+NE_pad[i]*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(dom.getX()[2])
-
-        except TypeError:
-            dom=self.getDomainClass()(*self._dom_NE, l0=l_new[0], l1=l_new[1], l2=l_new[2])
-            x=dom.getX()-[NE_pad[i]*self._spacing[i] for i in xrange(3)]
-            mask=wherePositive(x[2]+self._dom_origin[2])
+        lo=[(origin_new[i], origin_new[i]+l_new[i]) for i in range(3)]
+        dom=Brick(*self._dom_NE, l0=lo[0], l1=lo[1], l2=lo[2])
+        # ripley may internally adjust NE and length, so recompute
+        self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(3)]
+        self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(3)]
+        x=dom.getX()-[self._dom_origin[i]+NE_pad[i]*self._spacing[i] for i in range(3)]
+        mask=wherePositive(dom.getX()[2])
 
         # prepare density mask (=1 at padding area, 0 else)
         if self._constrainSides:
-            for i in xrange(2):
+            for i in range(2):
                 mask=mask + whereNegative(x[i]) + \
                         wherePositive(x[i]-l_new[i]+2*NE_pad[i]*self._spacing[i])
 
@@ -378,12 +367,11 @@ class DataSource(object):
 
 ##############################################################################
 class UBCDataSource(DataSource):
-    def __init__(self, domainclass, meshfile, gravfile, topofile=None):
+    def __init__(self, meshfile, gravfile, topofile=None):
         super(UBCDataSource,self).__init__()
         self.__meshfile=meshfile
         self.__gravfile=gravfile
         self.__topofile=topofile
-        self.__domainclass=domainclass
         self.__readMesh()
 
     def __readMesh(self):
@@ -409,12 +397,6 @@ class UBCDataSource(DataSource):
         """
         return (self.__origin[2], self.__nPts[2], self.__delta[2])
 
-    def getDomainClass(self):
-        """
-        returns the domain generator class (e.g. esys.ripley.Brick)
-        """
-        return self.__domainclass
-
     #def getSetDensityMask(self):
     #    topodata=self.__readTopography()
     #    mask=self._interpolateOnDomain(topodata)
@@ -430,7 +412,7 @@ class UBCDataSource(DataSource):
         f=open(self.__topofile)
         n=int(f.readline())
         topodata=np.zeros((n,3))
-        for i in xrange(n):
+        for i in range(n):
             x=f.readline().split()
             x=map(float, x)
             topodata[i]=x
@@ -441,7 +423,7 @@ class UBCDataSource(DataSource):
         f=open(self.__gravfile)
         n=int(f.readline())
         gravdata=np.zeros((n,5))
-        for i in xrange(n):
+        for i in range(n):
             x=f.readline().split()
             x=map(float, x) # x, y, z, anomaly in mGal, stddev
             # convert gravity anomaly units to m/s^2 and rescale error
@@ -453,6 +435,9 @@ class UBCDataSource(DataSource):
 
 ##############################################################################
 class NetCDFDataSource(DataSource):
+    """
+    Data Source for gridded netCDF data that use CF/COARDS conventions.
+    """
     def __init__(self, gravfile=None, magfile=None, topofile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
         """
         vertical_extents - (alt_min, alt_max, num_points)
@@ -547,7 +532,7 @@ class NetCDFDataSource(DataSource):
         self.__nPts=[NX, NY, ve[2]]
         self.__origin=origin
         # we are rounding to avoid interpolation issues
-        self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in xrange(3)]
+        self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in range(3)]
         self.__wkt_string=wkt_string
         self.__lon=lon_name
         self.__lat=lat_name
@@ -565,12 +550,6 @@ class NetCDFDataSource(DataSource):
         returns (z0, nz, dz)
         """
         return (self.__origin[2], self.__nPts[2], self.__delta[2])
-
-    def getDomainClass(self):
-        """
-        returns the domain generator class (e.g. esys.ripley.Brick)
-        """
-        return Brick
 
     def getGravityAndStdDev(self):
         nValues=self.__nPts[:2]+[1]
@@ -637,7 +616,7 @@ class ERSDataSource(DataSource):
         metadata=open(self.__headerfile, 'r').readlines()
         # parse metadata
         start=-1
-        for i in xrange(len(metadata)):
+        for i in range(len(metadata)):
             if metadata[i].strip() == 'DatasetHeader Begin':
                 start=i+1
         if start==-1:
@@ -645,7 +624,7 @@ class ERSDataSource(DataSource):
 
         md_dict={}
         section=[]
-        for i in xrange(start, len(metadata)):
+        for i in range(start, len(metadata)):
             line=metadata[i]
             if line[-6:].strip() == 'Begin':
                 section.append(line[:-6].strip())
@@ -735,12 +714,6 @@ class ERSDataSource(DataSource):
         """
         return (self.__origin[2], self.__nPts[2], self.__delta[2])
 
-    def getDomainClass(self):
-        """
-        returns the domain generator class (e.g. esys.ripley.Brick)
-        """
-        return Brick
-
     def getGravityAndStdDev(self):
         nValues=self.__nPts[:2]+[1]
         first=self._dom_NE_pad[:2]+[self._dom_NE_pad[2]+int((self.__altOfData-self.__origin[2])/self.__delta[2])]
@@ -788,43 +761,43 @@ class SmoothAnomaly(SourceFeature):
         self.k_outer=k_outer
         self.rho=None
         self.k=None
-        self.mask=None     
+        self.mask=None
 
     def getDensity(self,x):
         if self.rho is None:
             if self.rho_outer is None or self.rho_inner is None:
                 self.rho=0
             else:
-                DIM=x.getDomain().getDim()  
+                DIM=x.getDomain().getDim()
                 alpha=-log(abs(self.rho_outer/self.rho_inner))*4
                 rho=exp(-alpha*((x[0]-self.x)/self.lx)**2)
                 rho=rho*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
                 self.rho=maximum(abs(self.rho_outer), abs(self.rho_inner*rho))
                 if self.rho_inner<0: self.rho=-self.rho
-            
+
         return self.rho
-        
+
     def getSusceptibility(self,x):
          if self.k is None:
             if self.k_outer is None or self.k_inner is None:
                 self.k=0
             else:
-                DIM=x.getDomain().getDim()  
+                DIM=x.getDomain().getDim()
                 alpha=-log(abs(self.k_outer/self.k_inner))*4
                 k=exp(-alpha*((x[0]-self.x)/self.lx)**2)
                 k=k*exp(-alpha*((x[DIM-1]-(sup(x[DIM-1])-self.depth))/self.lz)**2)
                 self.k=maximum(abs(self.k_outer), abs(self.k_inner*k))
                 if self.k_inner<0: self.k=-self.k
-            
+
          return self.k
-        
+
     def getMask(self, x):
         DIM=x.getDomain().getDim()
         m=whereNonNegative(x[DIM-1]-(sup(x[DIM-1])-self.depth-self.lz/2)) * whereNonPositive(x[DIM-1]-(sup(x[DIM-1])-self.depth+self.lz/2)) \
             *whereNonNegative(x[0]-(self.x-self.lx/2)) * whereNonPositive(x[0]-(self.x+self.lx/2))
         if DIM>2:
             m*=whereNonNegative(x[1]-(self.y-self.ly/2)) * whereNonPositive(x[1]-(self.y+self.ly/2))
-        self.mask = m        
+        self.mask = m
         return m
 
 ##############################################################################
@@ -853,14 +826,12 @@ class SyntheticDataSource(DataSource):
 
         self.logger.debug("Data Source: synthetic with %d features"%len(self._features))
         if self.DIM==2:
-            from esys.finley import Rectangle
             dom = Rectangle(n0=NE_new[0], n1=NE_new[1], l0=l_new[0], l1=l_new[1])
             self._x = dom.getX() + origin_new
             self.logger.debug("Domain size: %d x %d elements"%(NE_new[0], NE_new[1]))
             self.logger.debug("     length: %g x %g"%(l_new[0],l_new[1]))
             self.logger.debug("     origin: %g x %g"%(origin_new[0],origin_new[1]))
         else:
-            from esys.finley import Brick
             dom = Brick(n0=NE_new[0], n1=NE_new[1], n2=NE_new[2], l0=l_new[0], l1=l_new[1], l2=l_new[2])
             self._x = dom.getX() + origin_new
             self.logger.debug("Domain size: %d x %d x %d elements"%(self.NE[0],self.NE[1],self.NE[2]))
@@ -872,12 +843,12 @@ class SyntheticDataSource(DataSource):
                 * whereNegative(dom.getX()[0]-(l_new[0]-origin_new[0])) \
                 * whereNonNegative(dom.getX()[self.DIM-1]-(l_new[self.DIM-1]+origin_new[self.DIM-1])) \
                 * whereNonPositive(dom.getX()[self.DIM-1]-(l_new[self.DIM-1]+(origin_new[self.DIM-1]+dz)))
-                
+
         self._B_mask=self._g_mask
-        
+
         mask=whereNegative(self._x[self.DIM-1]) + \
                 wherePositive(self._x[self.DIM-1]-l[self.DIM-1])
-        for i in xrange(self.DIM-1):
+        for i in range(self.DIM-1):
             mask+= whereNegative(self._x[i]) +  wherePositive(self._x[i]-l[i])
         self.setSetDensityMask(wherePositive(mask))
         self.setSetSusceptibilityMask(wherePositive(mask))
@@ -897,13 +868,13 @@ class SyntheticDataSource(DataSource):
     def getReferenceDensity(self):
         return self._rho
     def getReferenceSusceptibility(self):
-        return self._k 
+        return self._k
 
     def getGravityAndStdDev(self):
         pde=LinearSinglePDE(self.getDomain())
         G=U.Gravitational_Constant
         m_psi_ref=0.
-        for i in xrange(self.DIM):
+        for i in range(self.DIM):
             m_psi_ref=m_psi_ref + whereZero(self._x[i]-inf(self._x[i])) \
                     + whereZero(self._x[i]-sup(self._x[i]))
 
@@ -914,16 +885,15 @@ class SyntheticDataSource(DataSource):
         g=-grad(psi_ref)
         sigma=self._g_mask
         return g,sigma
-        
-    def getMagneticFlieldAndStdDev(self):
-      
+
+    def getMagneticFieldAndStdDev(self):
         pde=LinearSinglePDE(self.getDomain())
         B_b=self.getBackgroundMagneticField()
         DIM=self.getDomain().getDim()
         m_psi_ref=0.
-        for i in xrange(self.DIM):
+        for i in range(self.DIM):
             m_psi_ref=m_psi_ref + whereZero(self._x[i]-inf(self._x[i])) \
-                    + whereZero(self._x[i]-sup(self._x[i]))        
+                    + whereZero(self._x[i]-sup(self._x[i]))
         pde.setValue(A=kronecker(self.getDomain()), X=(1+self._k)*B_b, q=m_psi_ref)
         pde.setSymmetryOn()
         psi_ref=pde.getSolution()
@@ -931,15 +901,15 @@ class SyntheticDataSource(DataSource):
         B= (1+self._k) * B_b -grad(psi_ref)
         sigma=self._B_mask
         return B,sigma
-        
-        
-    def getBackgroundMagneticField(self): 
-       theta = (90-self.latitude)/180.*np.pi 
-       B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
-       B_theta= B_0 * sin(theta)
-       B_r= 2 * B_0 * cos(theta)
-       DIM=self.getDomain().getDim()
-       if DIM<3:
-          return np.array([0.,  -B_r])
-       else:
-          return np.array([-B_theta, 0.,  -B_r])
+
+    def getBackgroundMagneticField(self):
+        theta = (90-self.latitude)/180.*np.pi
+        B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
+        B_theta= B_0 * sin(theta)
+        B_r= 2 * B_0 * cos(theta)
+        DIM=self.getDomain().getDim()
+        if DIM<3:
+            return np.array([0.,  -B_r])
+        else:
+            return np.array([-B_theta, 0.,  -B_r])
+

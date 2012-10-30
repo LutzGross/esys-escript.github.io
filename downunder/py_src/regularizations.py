@@ -43,7 +43,6 @@ class Regularization(object):
             self._w = None
         else:
             self._w=np.asarray(w)
-            
 
         self.__projector=LinearSinglePDE(domain)
         self.__projector.getSolverOptions().setTolerance(tol)
