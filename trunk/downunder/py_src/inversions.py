@@ -25,6 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 import logging
 
 from esys.escript import *
+import esys.escript.unitsSI as U
 from esys.weipa import createDataset
 
 from costfunctions import SimpleCostFunction
@@ -33,7 +34,6 @@ from mappings import *
 from minimizers import *
 from regularizations import Regularization
 from datasources import DataSource
-import esys.escript.unitsSI as U
 
 class InversionBase(object):
     """
@@ -72,8 +72,8 @@ class InversionBase(object):
     def setMapping(self, mapping=None):
         """
         Sets the mapping object to map between model parameters and the data.
-        If no mapping is provided, an identity mapping is used (`ScalingMapping`
-        with constant 1).
+        If no mapping is provided, an identity mapping is used
+        (`ScalingMapping` with constant 1).
 
         :param mapping: parameter mapping
         :type mapping: `Mapping`
@@ -129,7 +129,8 @@ class InversionBase(object):
     def setSolverClass(self, solverclass=None):
         """
         The solver to be used in the inversion process. See the minimizers
-        module for available solvers. By default, the L-BFGS minimizer is used.
+        module for available solvers.
+        By default, the L-BFGS minimizer is used.
         """
         if solverclass == None:
             self.solverclass=MinimizerLBFGS
@@ -138,13 +139,14 @@ class InversionBase(object):
 
     def setSolverCallback(self, callback):
         """
-        Sets the callback function which is called after every solver iteration
+        Sets the callback function which is called after every solver
+        iteration.
         """
         self._solver_callback=callback
 
     def setSolverMaxIterations(self, maxiter):
         """
-        Sets the maximum number of solver iterations to run
+        Sets the maximum number of solver iterations to run.
         """
         if maxiter>0:
             self._solver_maxiter=maxiter
@@ -153,8 +155,8 @@ class InversionBase(object):
 
     def setSolverOptions(self, **opts):
         """
-        Sets additional solver options. The valid options depend on the solver
-        being used.
+        Sets additional solver options. The valid options depend on the
+        solver being used.
         """
         self._solver_opts.update(**opts)
 
@@ -183,17 +185,13 @@ class InversionBase(object):
         raise NotImplementedError
 
 
- 
- 
-
 class SingleParameterInversionBase(InversionBase):
     """
-    Base class for inversion with a single parameter to find
+    Base class for inversions with a single parameter to be found.
     """
     def __init__(self):
         super(SingleParameterInversionBase,self).__init__()
         self.setWeights()
- 
 
     def setWeights(self, mu_reg=None, mu_model=1.):
         """
@@ -204,7 +202,7 @@ class SingleParameterInversionBase(InversionBase):
         self.logger.debug("mu_model = %s"%mu_model)
         self._mu_reg=mu_reg
         self._mu_model=mu_model
-        
+
     def siloWriterCallback(self, k, x, fx, gfx):
         """
         callback function that can be used to track the solution
@@ -228,7 +226,7 @@ class SingleParameterInversionBase(InversionBase):
             return True
         else:
             return False
-            
+
     def run(self, initial_value=0.):
         if not self.isSetup():
             raise RuntimeError("Inversion is not setup properly.")
@@ -253,8 +251,7 @@ class SingleParameterInversionBase(InversionBase):
         self.logger.info("result * = %s"%value_star)
         solver.logSummary()
         return value_star
- 
-      
+
 
 class GravityInversion(SingleParameterInversionBase):
     """
@@ -265,13 +262,13 @@ class GravityInversion(SingleParameterInversionBase):
         Sets up the inversion parameters from a downunder.`DataSource`.
 
         :param source: suitable data source
-        :type source: `DataSource'
+        :type source: `DataSource`
         :param rho_ref: reference density. If not specified, zero is used.
         :type rho_ref: ``float`` or `Scalar`
         :param w0: weighting factor for L2 term in the regularization
-        :type rho_ref: ``float`` or `Scalar`
+        :type w0: ``float`` or `Scalar`
         :param w: weighting factor for H1 term in the regularization
-        :type rho_ref: ``list`` of float or `Vector`
+        :type w: ``list`` of float or `Vector`
         """
         if rho_ref is None:
           rho_ref=0.
@@ -284,12 +281,12 @@ class GravityInversion(SingleParameterInversionBase):
         rho_mask = source.getSetDensityMask()
         if w is None:
             w=[1.]*DIM
-        m_ref=self.getMapping().getInverse(rho_ref)    
-        
+        m_ref=self.getMapping().getInverse(rho_ref)
+
         self.logger.info("Setting up regularization...")
         self.setRegularization(Regularization(self.getDomain(),\
-                m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))  
-                
+                m_ref=m_ref, w0=w0, w=w, location_of_set_m=rho_mask))
+
         self.logger.info("Retrieving gravity and standard deviation data...")
         g, sigma=source.getGravityAndStdDev()
         chi=safeDiv(1., sigma*sigma)
@@ -297,8 +294,8 @@ class GravityInversion(SingleParameterInversionBase):
         self.logger.debug("sigma = %s"%sigma)
         self.logger.debug("chi = %s"%chi)
         chi=chi*kronecker(DIM)[DIM-1]
-                
-        self.logger.info("Setting up model...")                
+
+        self.logger.info("Setting up model...")
         self.setForwardModel(GravityModel(self.getDomain(), chi, g))
 
         if self._mu_reg is None:
@@ -310,41 +307,42 @@ class GravityInversion(SingleParameterInversionBase):
             mu_reg=0.5*(l*l*G)**2
             self.setWeights(mu_reg=mu_reg)
 
+
 class MagneticInversion(SingleParameterInversionBase):
     """
-    Inversion of magnetic data
+    Inversion of magnetic data.
     """
     def setup(self, source, k_ref=None, w0=None, w=None):
         """
         Sets up the inversion parameters from a downunder.`DataSource`.
 
         :param source: suitable data source
-        :type source: `DataSource'
+        :type source: `DataSource`
         :param k_ref: reference susceptibility. If not specified, zero is used.
         :type k_ref: ``float`` or `Scalar`
-        :param w0: weighting factor for L2 term in the regularization
-        :type k_ref: ``float`` or `Scalar`
-        :param w: weighting factor for H1 term in the regularization
-        :type k_ref: ``list`` of float or `Vector`
+        :param w0: weighting factor for the L2 term in the regularization
+        :type w0: ``float`` or `Scalar`
+        :param w: weighting factor for the H1 term in the regularization
+        :type w: ``list`` of float or `Vector`
         """
         if k_ref is None:
-          k_ref=0.
+            k_ref=0.
 
         self.logger.info('Retrieving domain...')
         self.setDomain(source.getDomain())
         DIM=self.getDomain().getDim()
-        
+
         self.logger.info("Retrieving susceptibility mask...")
         k_mask = source.getSetSusceptibilityMask()
 
         if w is None:
             w=[1.]*DIM
-       
-        m_ref=self.getMapping().getInverse(k_ref)    
+
+        m_ref=self.getMapping().getInverse(k_ref)
         self.logger.info("Setting up regularization...")
         self.setRegularization(Regularization(self.getDomain(),\
-                m_ref=m_ref, w0=w0, w=w, location_of_set_m=k_mask))  
-                
+                m_ref=m_ref, w0=w0, w=w, location_of_set_m=k_mask))
+
         self.logger.info("Retrieving gravity and standard deviation data...")
         B, sigma=source.getMagneticFlieldAndStdDev()
         chi=safeDiv(1., sigma*sigma)
@@ -352,8 +350,8 @@ class MagneticInversion(SingleParameterInversionBase):
         self.logger.debug("sigma = %s"%sigma)
         self.logger.debug("chi = %s"%chi)
         chi=chi*kronecker(DIM)[DIM-1]
-                
-        self.logger.info("Setting up model...")                
+
+        self.logger.info("Setting up model...")
         self.setForwardModel(MagneticModel(self.getDomain(), chi, B, source.getBackgroundMagneticField()))
 
         if self._mu_reg is None:
@@ -362,4 +360,5 @@ class MagneticInversion(SingleParameterInversionBase):
             for i in range(DIM-1):
                 l=max(l, sup(x[i])-inf(x[i]))
             mu_reg=0.5*(l*l)**2
-            self.setWeights(mu_reg=mu_reg)            
+            self.setWeights(mu_reg=mu_reg)
+
