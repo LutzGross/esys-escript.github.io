@@ -1,0 +1,212 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2012 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Gravity Inversion}
+We want to recover the density field $\rho$ from an acceleration field $g_i$ known on certain locations within the domain $\Omega$. It is
+assumed that
+\begin{equation}
+\Omega = [x^{min}_0, x^{max}_0] \times
+ [x^{min}_1, x^{max}_1] \times
+ [x^{min}_2, x^{max}_2] 
+\end{equation} 
+If the density field $\rho$ is known the gravitational potential $\psi$ is given
+as the solution of the PDE 
+\begin{equation}\label{GRAV:EQU:100}
+\psi_{,ii} = 4\pi \cdot G \cdot  \rho
+\end{equation}
+where $G=6.67300 \cdot 10^{-11}  \frac{m^3}{kg \cdot s^2}$ is the gravitational constant.  
+The gravity force $g_i$ is given
+as the negative of the gradient of the gravity potential $\psi$:
+\begin{equation}\label{GRAV:EQU:101}
+ g_i = - \psi_{,i} 
+\end{equation} 
+The boundary conditions for PDE~\ref{GRAV:EQU:100} are set as follows:
+On vertical faces of the domain we assume that the horizontal gravity forces are equal to zero:
+\begin{equation}\label{GRAV:EQU:101a}
+\begin{array}{ll}
+g_0=0 & \mbox{ for } x_0=x^{min}_0 \mbox{ or } x_0=x^{max}_0 \\
+g_1=0 & \mbox{ for } x_1=x^{min}_1 \mbox{ or } x_1=x^{max}_1 \\
+\end{array}
+\end{equation}
+which translates to
+\begin{equation}\label{GRAV:EQU:101aa}
+n_i \cdot  \psi_{,i} = 0
+\end{equation} 
+on faces $x_0=x^{min}_0$, 
+$x_0=x^{max}_0$,
+$x_1=x^{min}_1$ or 
+$x_1=x^{max}_1$. On the bottom surface we set 
+\begin{equation}\label{GRAV:EQU:101b}
+\psi = 0 \mbox{ for } x_2=x^{min}_2
+\end{equation} 
+which sets all horizontal gravity forces to zero $g_0=g_1=0$. 
+For the boundary conditions on the top surface we consider two options
+\begin{itemize}
+ \item[(D)] 
+On the top surface we set 
+\begin{equation}\label{GRAV:EQU:101 BC D}
+\psi = 0 \mbox{ for } x_2=x^{max}_2
+\end{equation} 
+which sets all horizontal gravity forces to zero $g_0=g_1=0$.
+ \item[(N)] 
+On the top surface we set the vertical gravity forces to zero:
+\begin{equation}\label{GRAV:EQU:101 BC N}
+n_i \cdot  \psi_{,i} = 0 \mbox{ for } x_2=x^{max}_2
+\end{equation} 
+\end{itemize}
+The PDE~\ref{GRAV:EQU:100} together with the boundary conditions~\ref{GRAV:EQU:101aa}, ~\ref{GRAV:EQU:101b}
+and~\ref{GRAV:EQU:101 BC D} or~\ref{GRAV:EQU:101 BC N}
+has a unique solution. For a given density $\rho$ we denote the unique solution $\psi$ by $\Psi[\rho]$.
+
+
+The problem is to calculate the density distribution $\rho$ from the gravity force known at some parts of the region of interest 
+$\Omega$. In fact we want to minimize the value
+\begin{equation}\label{GRAV:EQU:102}
+J_{data}(\psi) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  g_{i}- g^{(s)}_i)^2 dx
+\footnote{Summation over $i$ is performed by Einstein notation.}
+\end{equation} 
+where $g^{(s)}_i$ is a measurement of the gravity force $g_i=-\psi_{,i}$ and $\chi^{(s)}_i$ is a weighting factor. 
+$s$ indexes the surveys included in the inversion. 
+We assume that the gravity force $g^{(s)}_i$ is measured as deviation from a background gravity force $g^{bg}_i$,
+i.e. the actually present gravity force is given as  $g^{(s)}_i + g^{bg}$~\footnote{Notice that we use the same reference gravity force for all surveys.}.
+This can be added to the 
+gravitational potential $\psi$ 
+\begin{equation}\label{GRAV:EQU:102x}
+\psi^{total} = \psi + g^{bg}_i \cdot ( x_i - x^{min}_i ) 
+\end{equation}
+The total gravitational potential $\psi^{total}$ still fulfills the PDE~\ref{GRAV:EQU:100} 
+with inhomogeneous versions of the boundary conditions. For the most common case of a purely vertical
+background gravity force (i.e. $g^{bg}_0=g^{bg}_1=0$) the boundary conditions at the top of the domain
+take the form $\psi^{total} =g^{bg}_2 \cdot ( x_2^{max} - x^{min}_2 )$ for case (D) or
+$n_i \cdot  \psi^{total}_{,i} =g^{bg}_2$ for case (N). Notice that the first case does not enforce
+the background gravity force on the top surface but enforces the vertical gravity forces to be zero. 
+The second condition for case (D) enforces the vertical gravity force to the background gravity force but allows 
+for a non-zero vertical gravity force. In most cases the case (N) is the appropriate boundary condition
+assuming the top boundary of the domain is sufficiently far away from any density variation.   
+ 
+
+In field observations  $g^{(s)}_i$
+are known on a sub-domain of the domain only so one will set
+\begin{equation}\label{GRAV:EQU:105}
+\chi^{(s)}_i 
+= \left\{
+\begin{array}{lcl}
+\frac{1}{(\sigma^{(s)}_i)^2} & & g^{(s)}_i \mbox{ is available} \\
+& \mbox{ where } & \\
+0 & & \mbox{ otherwise } \\
+\end{array}
+\right.
+\end{equation} 
+where $\sigma^{(s)}_i$ is the standard error deviation of measurement $g^{(s)}_i$, see~\cite{A}.
+With this setting the data $g^{(s)}_i$ can be extended to any arbitrary value (typically to zero) on
+all locations where no measurements of $g^{(s)}_i$ are available.  
+
+We need to make sure that the density $\rho$ takes physically meaningful values. 
+To achieve this we use a parametrization $C(m)$ for the $\rho$ where $C$ is a given function. We think as 
+$m$ being a dimensionless value between $-\infty$ to $\infty$. Possible settings for the function $C$ are:
+\begin{itemize}
+ \item[(I)] We can set $\rho = C(m)= \rho^{scale} \cdot m$ where $\rho^{scale}$ is a reference density.
+ \item[(B)] To restrict the density $\rho$ between 
+a minimum density $\rho^{min}$ and a maximum density $\rho^{max}$ one sets 
+\begin{equation} 
+\rho = C(m) = \frac{\rho^{max} +\rho^{min}}{2} + \frac{\rho^{max} -\rho^{min}}{2} \cdot \tanh(m)
+\end{equation} 
+ \item[(L)] To use a logarithmic scale which ensures a positive density one sets
+\begin{equation} 
+\rho = C(m) = \rho^{scale} \cdot e^{m}
+\end{equation} 
+\end{itemize}
+In the following the exact form of the parametrization $C$ is not relevant, however we will make use of the 
+fact that $C$ is sufficiently smooth and invertible, i.e. for any given valid density $\rho$ there is a unique
+ value $m$ in the parameter space such that $\rho=C(m)$. For the inverse function we use the notation $C^{-1}$.
+In the minimization problem we will search for the value of $m$ providing the best fit to the data 
+rather than the density $\rho$. 
+
+
+The regularization term is added into the minimization problem so the problem has a unique answer. This
+takes the form 
+\begin{equation}\label{GRAV:EQU:104}
+J_{reg}(m) =  \int_{\Omega} \omega \cdot (m-m^{ref})^2 + \omega_i \cdot L_i^2 \cdot [ (m -m^{ref})_{,i}] ^2 dx
+\end{equation} 
+where $\omega$ and $\omega_i$ are weighting factors, $L_i$ is the smoothing length (e.g. $L_i= x^{max}_i-x^{min}_i$)
+and $m^{ref}=C^{-1}(\rho^{ref})$ defines a reference parametrization for a given reference 
+density $\rho^{ref}$. 
+If the density (and therefore the parameter $m$) is known to be exactly $\rho^{ref}$ on a certain subregion $\Omega^{ref}$ of
+the domain this information can be used
+to directly constraint the problem, or alternatively one can choose the weights $\omega$. 
+
+The task is now to find $m$ which minimizes the cost function
+\begin{equation}\label{GRAV:EQU:103}
+f(m) =  J_{data}(\Psi[C[m]]) +  \mu \cdot J_{reg}(m)
+\end{equation} 
+where $\mu>0$ is a fixed penalty factor subject to $m=m^{ref}$ on $\Omega^{ref}$.
+
+\section{Solution methods}
+To apply the Nonlinear Conjugate Gradient method (NLCG), see Appendix~\ref{sec:NLCG} or the L-BFGS method, see Appendix~\ref{sec:LBFGS} we need
+to define an inner product $<.,.>$ and need to calculate the gradient of of $f$. 
+
+As inner product we use 
+\begin{equation}\label{GRAV:EQU:200}
+<p,q> = \int_{\Omega} p \cdot q \; dx
+\end{equation} 
+With this notation the gravity potential $\phi$ is given as
+\begin{equation}\label{GRAV:EQU:201}
+< q_{,i},\psi_{,i} > = - 4\pi \cdot G \cdot  < q , \rho > \mbox{ for all } q \mbox{ with } q=0 \mbox{ on } \Gamma_{z}
+\end{equation} 
+where $\Gamma_{z}$ denotes the top and bottom surface of the domain for case (D)
+and the top surface of the domain for case (N). 
+
+
+For any $q$ with $q=0$ on $\Omega^{ref}$ we get 
+\begin{equation}\label{GRAV:EQU:202}
+< \nabla f(m),q> = < \nabla J_{data}(\Psi[C[m]]), q>  +  \mu \cdot < \nabla J_{reg}(m),q>
+\end{equation} 
+with 
+\begin{equation}\label{GRAV:EQU:202a}
+< \nabla J_{reg}(m),q> = 
+\int_{\Omega} 2 \omega q \cdot (m-m^{ref}) + 2 \omega_i \cdot L_i^2 \cdot q_{,i} (m-m^{ref})_{,i} dx
+\end{equation} 
+and 
+\begin{equation}\label{GRAV:EQU:202b}
+< \nabla J_{data}(\Psi[C[m]]), q> = 
+\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  \psi_{,i} +  g^{(s)}_i)  \cdot (\Psi[\frac{dC}{dm} \cdot q])_{,i} dx 
+\end{equation} 
+where $\rho=C(m)$ and $\psi=\Psi[\rho]$. We then set 
+\begin{equation}\label{GRAV:EQU:202c}
+Z_i[\psi]= \sum_{s} \chi^{(s)}_i \cdot (  \psi_{,i} +  g^{(s)}_i) 
+\end{equation} 
+and $Z^*[\psi]$ as the solution of the equation 
+\begin{equation}\label{GRAV:EQU:202d}
+< p_{,i},Z^*[\psi]_{,i} > =  < p_{,i} ,Z_i[\psi] > \mbox{ for all } p \mbox{ with } p=0 \mbox{ on } \Gamma_{z}
+\end{equation} 
+with $Z^*[\psi]=0$ on $\Gamma_{z}$. By stetting $p=\Psi_0[\frac{dC}{dm} \cdot q]$ we get
+\begin{equation}\label{GRAV:EQU:202e}
+<(\Psi_0[\frac{dC}{dm} \cdot q]) _{,i},Z^*[\psi]_{,i} > =  < (\Psi_0[\frac{dC}{dm} \cdot q])_{,i} ,Z_i[\psi] >
+\end{equation} 
+and from~\ref{GRAV:EQU:201} with $q=Z^*[\psi]$ we get
+\begin{equation}\label{GRAV:EQU:20e}
+< (Z^*[\psi])_{,i},(\Psi_0[\frac{dC}{dm} \cdot q])_{,i} > = - 4\pi \cdot G \cdot  < Z^*[\psi], \frac{dC}{dm} \cdot q >
+\end{equation}
+which leads to 
+\begin{equation}\label{GRAV:EQU:202f}
+< \nabla J_{data}(\Psi[C[m]]), q> = < (\Psi_0[\frac{dC}{dm} \cdot q])_{,i} ,Z_i[\psi] > 
+=  - 4\pi \cdot G \cdot  < \frac{dC}{dm} Z^*[\psi] , q > 
+\end{equation} 
+Putting this all together we get
+\begin{equation}\label{GRAV:EQU:202g}
+< \nabla f(m),q> = 
+\mu \cdot < 2 \omega \cdot (m-m^{ref}), q>
++ \mu \cdot < 2 \omega_i \cdot L_i^2 \cdot (m-m^{ref})_{,i}, q_{,i}> - 4\pi \cdot G \cdot  < \frac{dC}{dm} Z^*[\psi] , q > 
+\end{equation}  
+

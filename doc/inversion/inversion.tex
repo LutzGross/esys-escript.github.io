@@ -1,0 +1,66 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2012 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{esysdoc}
+
+\usepackage{program}
+
+\graphicspath{{figures/}}
+
+\ifpdf
+\pdfinfo {
+/Author (Cihan Altinay, Vince Boros, Lutz Gross)
+/Title (Inversion with escript cookbook)
+/Keywords (escript, inversion)
+}
+\fi
+
+
+\begin{document}
+
+\pagestyle{empty} %No headings for the first pages.
+
+\title{Inversion with escript cookbook}
+\author{Cihan Altinay, Vince Boros, Lutz Gross}
+\authoraddress{
+The University of Queensland\\
+School of Earth Sciences\\
+St. Lucia, QLD 4072, Australia.}
+
+\maketitle
+
+\input{defs}
+
+\tableofcontents %Table of contents
+\cleardoublepage %The first chapter should start on an odd page.
+
+\pagestyle{fancy}
+
+\input{intro}
+
+\input{gravity}
+
+
+\addtocontents{toc}{\protect\vspace*{\baselineskip}}
+
+\bibliographystyle{plain}
+\bibliography{inversion}
+
+\appendix
+
+\input{minimization}
+
+
+\end{document}
+
