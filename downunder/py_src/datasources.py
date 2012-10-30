@@ -438,16 +438,33 @@ class NetCDFDataSource(DataSource):
     """
     Data Source for gridded netCDF data that use CF/COARDS conventions.
     """
-    def __init__(self, gravfile=None, magfile=None, topofile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
+    def __init__(self, gravfile=None, magfile=None, topofile=None,
+                       depth=40000.,
+                       air_layer=10000.,
+                       vertical_cells=25,
+                       alt_of_data=0.):
         """
-        vertical_extents - (alt_min, alt_max, num_points)
-        alt_of_data - altitude of measurements
+        :param gravfile: file with gravity data in netcdf format
+        :type gravfile: ```str```
+        :param magfile: file with magnetic datafile in netcdf format
+        :type magfile: ```str```
+        :param topofile: file with topography data in netcdf format
+        :type topofile: ```str```
+        :param depth: depth below surface filled with rock
+        :type depth: ```float```
+        :param air_layer: height above surface filled with air. It is assumed that that density correction is zero
+                       in this region.
+        :type air_layer: ```float```
+        :param vertical_cells: number of vertical cells
+        type vertical_cells: ```int```
+        :param alt_of_data: altitude of measurements above ground in meter
+        :type alt_of_data: ```float```
         """
         super(NetCDFDataSource,self).__init__()
         self.__topofile=topofile
         self.__gravfile=gravfile
         self.__magfile=magfile
-        self.__determineExtents(vertical_extents)
+        self.__determineExtents((-depth,air_layer,n))
         self.__altOfData=alt_of_data
 
     def __determineExtents(self, ve):

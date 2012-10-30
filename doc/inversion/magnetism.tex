@@ -1,0 +1,138 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2012 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Magnetic Inversion}\label{chp:magnetic inversion}
+
+We want to calculate the susceptibility $k$ over a rectangular domain as described in Chapter~\ref{chp:gravity inversion} from 
+the measured magnetic field $B_i$. Under the assumption of linear, isotropic material the magnetic field is 
+given as 
+\begin{equation}\label{EQU:Hb}
+B_i = H_i + k \cdot B^b_i 
+\end{equation}
+where  $H_i$ is the unknown is the magnetizing field and
+$B^b_i$ is the background  magnetic field of the Earth.
+\footnote{Notation: the superscript ``b'' following a symbol indicates 
+a background field quantity.}. We assume that the background  magnetizing field is constant across the domain 
+where for a domain at latitude $theta$ the latitude and radial components of magnetizing field are given as  
+\begin{equation}\label{EQU:Hb 2}
+\begin{array}{rcl}
+B^b_{\theta}  & = & \displaystyle{ \frac{\mu_0 \cdot m}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\
+B^b_r & = & \displaystyle{ \frac{\mu_0 \cdot m}{1 \pi \cdot R_{earth}^3} cos(\theta) }
+\end{array}
+\end{equation}
+with the vacuum permeability $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$, 
+the magnetic dipole moment of Earth $m= 8.22 \cdot 10^22 Am^2$ and earth radius $R_{earth}= 6378137m$. We assume a flat domain
+and associate where longitude is associated with $x_0$-direction,
+the latitude is associated with $x_1$-direction and the radial direction is associated with $x_2$-direction:
+\begin{equation}\label{EQU:Hb 3}
+\begin{array}{rcl}
+B^b_0  & = & 0 \\
+B^b_1  & = & -B^b_{\theta} \\
+B^b_2  & = & -B^b_r \\
+\end{array}
+\end{equation}
+We introduce the potential $\psi$ for the deviation of the magnetizing field from the background magnetizing field: 
+\begin{equation}\label{EQU:Hb 4}
+H_i = - \psi_{,i} + B^b
+\end{equation}
+With the is notation we get from equation~(\ref{EQU:Hb}):
+\begin{equation}\label{EQU:Hb 5}
+B_i = (1+k) B^b_i  - \psi_{,i} 
+\end{equation} 
+As the magnetic field $B$ is divergence free we get the PDE 
+\begin{equation}\label{EQU:Hb 5}
+- \psi_{,ii} = - ((1+k) B^b_i)_{,i} 
+\end{equation} 
+for the magnetic potential $\psi$. 
+
+The problem is to calculate the susceptibility $k$ from the magnetic field $B$ known at some parts of the region of interest 
+$\Omega$. In fact we want to minimize the value
+\begin{equation}\label{GRAV:EQU:102}
+J_{data}(\psi) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  B_{i}- B^{(s)}_i)^2 dx
+\footnote{Summation over $i$ is performed by Einstein notation.}
+\end{equation} 
+where $B^{(s)}_i$ is a measurement of the gravity force $B_i = (1+k) H^b_i  - \psi_{,i} $
+and $\chi^{(s)}_i$ is a weighting factor. 
+$s$ indexes the surveys included in the inversion.
+
+
+
+\section{Solution methods}
+To apply the Nonlinear Conjugate Gradient method (NLCG), see Appendix~\ref{sec:NLCG} or the L-BFGS method, see Appendix~\ref{sec:LBFGS} we need
+to define an inner product $<.,.>$ and need to calculate the gradient of of $f$. 
+
+As inner product we use 
+\begin{equation}\label{MAG:EQU:200}
+<p,q> = \int_{\Omega} p \cdot q \; dx
+\end{equation} 
+With this notation the magnetic potential is given as $\psi=\Psi[1+k]$ where
+\begin{equation}\label{MAG:EQU:201}
+< q_{,i},\Psi[p]_{,i} > = < q_{,i} , p \cdot H^b_i> \mbox{ for all } q \mbox{ with } q=0 \mbox{ on } \Gamma_{z}
+\end{equation} 
+where $\Gamma_{z}$ denotes the top and bottom surface of the domain for case (D)
+and the top surface of the domain for case (N). 
+
+
+
+For any $q$ with $q=0$ on $\Omega^{ref}$ we get 
+\begin{equation}\label{MAG:EQU:202}
+< \nabla f(m),q> = < \nabla J_{data}(\Psi[1+C[m]]), q>  +  \mu \cdot < \nabla J_{reg}(m),q>
+\end{equation} 
+with 
+\begin{equation}\label{MAG:EQU:202a}
+< \nabla J_{reg}(m),q> = 
+\int_{\Omega} 2 \omega q \cdot (m-m^{ref}) + 2 \omega_i \cdot L_i^2 \cdot q_{,i} (m-m^{ref})_{,i} dx
+\end{equation} 
+and 
+\begin{equation}\label{MAG:EQU:202b}
+< \nabla J_{data}(\Psi[C[m]]), q> =  \sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  B_i  -  B^{(s)}_i ) 
+\cdot ( \frac{dC}{dm} \cdot q \cdot B^b_i  - \Psi[\frac{dC}{dm} \cdot q]_{,i}) dx 
+\end{equation} 
+where $k=C(m)$ and $B_i=(1+k) H^b_i  - \Psi[1+k]_{,i}$
+With
+\begin{equation}\label{MAG:EQU:202c}
+Y_i[\psi]= \sum_{s} \chi^{(s)}_i \cdot (  B_i  -  B^{(s)}_i ) 
+\end{equation} 
+we get 
+\begin{equation}\label{MAG:EQU:202bb}
+< \nabla J_{data}(\Psi[C[m]]), q> = 
+< Y_i[\psi] B^b_i, \frac{dC}{dm} q> - < Y_i[\psi] ,  \Psi[\frac{dC}{dm} \cdot q]_{,i} >
+\end{equation} 
+and $Y^*[\psi]$ as the solution of the equation 
+\begin{equation}\label{MAG:EQU:202d}
+< p_{,i},Y^*[\psi]_{,i} > =  < p_{,i} ,Y_i[\psi] > \mbox{ for all } p \mbox{ with } p=0 \mbox{ on } \Gamma_{z}
+\end{equation} 
+with $Y^*[\psi]=0$ on $\Gamma_{z}$. 
+By stetting $p=\Psi[\frac{dC}{dm} \cdot q]$ we get
+\begin{equation}\label{MAG:EQU:202e}
+<(\Psi[\frac{dC}{dm} \cdot q]) _{,i},Y^*[\psi]_{,i} > =  < (\Psi[\frac{dC}{dm} \cdot q])_{,i} ,Y_i[\psi] >
+\end{equation} 
+and from~\ref{MAG:EQU:201} with $q=Y^*[\psi]$ we get
+\begin{equation}\label{MAG:EQU:20e}
+< (Y^*[\psi])_{,i},(\Psi[\frac{dC}{dm} \cdot q])_{,i} > = <(Y^*[\psi])_{,i} , \frac{dC}{dm} \cdot q \cdot H^b_i>
+\end{equation}
+which leads to 
+\begin{equation}\label{MAG:EQU:202f}
+< \nabla J_{data}(\Psi[C[m]]), q> = < ( Y_i[\psi] - (Y^*[\psi])_{,i} ) H^b_i,  \frac{dC}{dm} \cdot q>
+\end{equation} 
+Putting this all together we get
+\begin{equation}\label{MAG:EQU:202g}
+< \nabla f(m),q> = 
+\mu \cdot < 2 \omega \cdot (m-m^{ref}), q>
++ \mu \cdot < 2 \omega_i \cdot L_i^2 \cdot (m-m^{ref})_{,i}, q_{,i}> +
+< ( Y_i[\psi] - (Y^*[\psi])_{,i} ) B^b_i,  \frac{dC}{dm} \cdot q>
+\end{equation}  
+
+
