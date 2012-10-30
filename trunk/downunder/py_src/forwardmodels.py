@@ -342,5 +342,6 @@ class MagneticModel(ForwardModelWithPotential):
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
         YT=pde.getSolution()
+        print "gradient called."
         return inner(Y-grad(YT),self.__background_field)
 

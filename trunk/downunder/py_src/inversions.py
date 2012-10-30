@@ -344,7 +344,7 @@ class MagneticInversion(SingleParameterInversionBase):
                 m_ref=m_ref, w0=w0, w=w, location_of_set_m=k_mask))
 
         self.logger.info("Retrieving gravity and standard deviation data...")
-        B, sigma=source.getMagneticFlieldAndStdDev()
+        B, sigma=source.getMagneticFieldAndStdDev()
         chi=safeDiv(1., sigma*sigma)
         self.logger.debug("B = %s"%B)
         self.logger.debug("sigma = %s"%sigma)

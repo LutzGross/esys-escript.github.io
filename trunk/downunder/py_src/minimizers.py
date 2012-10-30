@@ -116,12 +116,14 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
     i=1
 
     while i<IMAX and alpha>0. and alpha<alpha_max:
+
         args_a=phiargs(alpha)
         phi_a=phi(alpha, *args_a)
         lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
             alpha, phi_a, gphi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0)
             break
+
         gphi_a=gradphi(alpha, *args_a)
         if np.abs(gphi_a) <= -c2*gphi0:
             break
@@ -325,6 +327,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         q=gf
         alpha=[]
         for s,y in reversed(s_and_y):
+	    print "TT",s, y, self._f.getInner(s, y)
             rho=1./(self._f.getInner(s, y))
             a=rho*self._f.getInner(s, q)
             alpha.append(a)
