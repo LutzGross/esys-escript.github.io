@@ -40,6 +40,8 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import math
 import numpy
 import os
+import warnings
+warnings.simplefilter('default', category=DeprecationWarning)
 from . import escriptcpp
 escore=escriptcpp
 from esys.escript import C_GeneralTensorProduct
@@ -195,7 +197,6 @@ def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
     Deprecated. See esys.weipa.saveVTK().
     """
 
-    import warnings
     msg = "esys.escript.util.saveVTK is deprecated.  Use the esys.weipa module."
     warnings.warn(msg, DeprecationWarning, stacklevel=2)
 
@@ -224,11 +225,15 @@ def saveDX(filename,domain=None,**data):
                      identifier. The identifier can be used to select the data
                      set when data are imported into DX.
     :type <name>: `Data` object
+    :note: THIS METHOD IS DEPRECATED AND WILL BE REMOVED IN A FUTURE VERSION.
     :note: The data objects have to be defined on the same domain. They may not
            be in the same `FunctionSpace` but one cannot expect that all
            `FunctionSpace` s can be mixed. Typically, data on the boundary and
            data on the interior cannot be mixed.
     """
+
+    msg = "saveDX is deprecated and will be removed in a future version."
+    warnings.warn(msg, DeprecationWarning)
     new_data={}
     for n,d in list(data.items()):
           if not d.isEmpty():

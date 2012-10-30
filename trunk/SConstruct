@@ -185,7 +185,7 @@ if len(vars.UnknownVariables())>0:
 
 #################### Make sure install directories exist #####################
 
-env['BUILD_DIR']=env['build_dir']
+env['BUILD_DIR']=Dir(env['build_dir']).abspath
 prefix=Dir(env['prefix']).abspath
 env['incinstall'] = os.path.join(prefix, 'include')
 env['bininstall'] = os.path.join(prefix, 'bin')
