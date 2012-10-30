@@ -65,7 +65,11 @@ PAD_Y=2
 
 class TestERSDataSource(unittest.TestCase):
     def test_ers_with_padding(self):
-        source = ERSDataSource(headerfile=ERS_DATA, vertical_extents=(VMIN,VMAX,NE_V), alt_of_data=ALT)
+        source = ERSDataSource(headerfile=ERS_DATA, 
+                               depth=-VMIN,
+                               air_layer=VMAX,
+                               vertical_cells=NE_V,
+                               alt_of_data=ALT)
         source.setPadding(PAD_X,PAD_Y)
         dom=source.getDomain()
         g,s=source.getGravityAndStdDev()
@@ -116,7 +120,11 @@ class TestERSDataSource(unittest.TestCase):
 
 class TestNetCDFDataSource(unittest.TestCase):
     def test_cdf_with_padding(self):
-        source = NetCDFDataSource(gravfile=NC_DATA, vertical_extents=(VMIN,VMAX,NE_V), alt_of_data=ALT)
+        source = NetCDFDataSource(gravfile=NC_DATA, 
+                                  depth=-VMIN,
+                                  air_layer=VMAX,
+                                  vertical_cells=NE_V,
+                                  alt_of_data=ALT)
         source.setPadding(PAD_X,PAD_Y)
         dom=source.getDomain()
         g,s=source.getGravityAndStdDev()
