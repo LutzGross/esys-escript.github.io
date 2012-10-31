@@ -202,7 +202,7 @@ class DataSource(object):
         Returns the background magnetic field. This method must be
         implemented in subclasses that supply magnetic data.
         """
-        return NotImplementedError
+        raise NotImplementedError
 
     def getDataExtents(self):
         """
@@ -357,6 +357,7 @@ class DataSource(object):
         if self._constrainBottom:
             mask = mask + whereNonPositive(x[2])
         self.setSetDensityMask(wherePositive(mask))
+        self.setSetSusceptibilityMask(wherePositive(mask))
 
         self.logger.debug("Domain size: %d x %d x %d elements"%(self._dom_NE[0],self._dom_NE[1],self._dom_NE[2]))
         self.logger.debug("     length: %g x %g x %g"%(self._dom_len[0],self._dom_len[1],self._dom_len[2]))
@@ -539,6 +540,7 @@ class NetCDFDataSource(DataSource):
         #lat_range=latitude.actual_range
         #lon_range=[f.geospatial_lon_min,f.geospatial_lon_max]
         #lat_range=[f.geospatial_lat_min,f.geospatial_lat_max]
+        self.latitude=latitude.data.min()
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
         lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
@@ -568,6 +570,17 @@ class NetCDFDataSource(DataSource):
         returns (z0, nz, dz)
         """
         return (self.__origin[2], self.__nPts[2], self.__delta[2])
+
+    def getBackgroundMagneticField(self):
+        theta = (90-self.latitude)/180.*np.pi
+        B_0=U.Mu_0*U.Magnetic_Dipole_Moment_Earth / (4*np.pi*U.R_Earth**3)
+        B_theta= B_0 * sin(theta)
+        B_r= 2 * B_0 * cos(theta)
+        return np.array([-B_theta, 0., -B_r])
+
+    def getMagneticFieldAndStdDev(self):
+        B,sigma=self.getGravityAndStdDev()
+        return 1e-3*B,1e-3*sigma
 
     def getGravityAndStdDev(self):
         nValues=self.__nPts[:2]+[1]

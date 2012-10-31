@@ -159,7 +159,7 @@ class GravityModel(ForwardModelWithPotential):
     Forward Model for gravity inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, chi, g, fix_all_faces=True, gravity_constant=U.Gravitational_Constant, tol=1e-8):
+    def __init__(self, domain, chi, g, fix_all_faces=False, gravity_constant=U.Gravitational_Constant, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
         surveys (chi, g).
@@ -255,7 +255,7 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, chi, B, background_field, fix_all_faces=True, tol=1e-8):
+    def __init__(self, domain, chi, B, background_field, fix_all_faces=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (chi, B).
