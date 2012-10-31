@@ -26,7 +26,7 @@ F(u)= 0
 \end{equation}
 
 \section{Newton-Raphson Scheme}
-This equation is iteratively solved by the Newton-Raphson method\index{Newton-Raphson method}, see \cite{lit171}.
+This equation is iteratively solved by the Newton-Raphson method\index{Newton-Raphson method}, see \cite{Kelley2004a}.
 Starting with the initial guess
 $u^{(0)}$ the sequence
 \begin{equation} \label{APP NEWTON EQU 43}
@@ -99,7 +99,7 @@ is given by the error estimation:
     \| u - u^{(\nu)} \|_{\infty} \le C \;
     \| u - u^{(\nu-1)} \|_{\infty}^2
 \end{equation}
-with a positive value $C$ \cite{lit171,lit159}.  Therefore a quadratic
+with a positive value $C$, see \cite{Kelley2004a}.  Therefore a quadratic
 convergence of the Newton iteration can be assumed if the corrections
 of the current and the last step fulfill the following condition:
 \begin{equation} \label{APP NEWTON EQU 66}
@@ -188,7 +188,7 @@ The first term means that it would be useless to compute digits by the
 linear solver, which are overwritten by the next Newton step.  In the
 region of quadratic convergence the number of significant digits is
 doubled in each Newton step, i.e.~later digits are overwritten by the
-following Newton-Raphson correction \cite{nfs28}.  The second 
+following Newton-Raphson correction, see \cite{Schoenauer1981a}.  The second 
 mean that no digits should be computed which are in significance
 below the prescribed tolerance {\it rtol}.  The number $0.1$ is a `safety factor' to take care
 of the coarse norm estimations. Figure~\ref{APP NEWTON PIC 61} shows the workflow of
