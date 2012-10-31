@@ -343,7 +343,7 @@ class MagneticInversion(SingleParameterInversionBase):
         self.setRegularization(Regularization(self.getDomain(),\
                 m_ref=m_ref, w0=w0, w=w, location_of_set_m=k_mask))
 
-        self.logger.info("Retrieving gravity and standard deviation data...")
+        self.logger.info("Retrieving magnetic field and standard deviation data...")
         B, sigma=source.getMagneticFieldAndStdDev()
         chi=safeDiv(1., sigma*sigma)
         self.logger.debug("B = %s"%B)
@@ -359,6 +359,6 @@ class MagneticInversion(SingleParameterInversionBase):
             l=0.
             for i in range(DIM-1):
                 l=max(l, sup(x[i])-inf(x[i]))
-            mu_reg=0.5*(l*l)**2
+            mu_reg=0.5*l**2
             self.setWeights(mu_reg=mu_reg)
 
