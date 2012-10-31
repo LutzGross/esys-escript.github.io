@@ -13,9 +13,9 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
-\chapter{Magnetic Inversion}\label{chp:magnetic inversion}
+\chapter{Magnetic Inversion}\label{chp:magneticinversion}
 
-We want to calculate the susceptibility $k$ over a rectangular domain as described in Chapter~\ref{chp:gravity inversion} from 
+We want to calculate the susceptibility $k$ over a rectangular domain as described in Chapter~\ref{chp:gravityinversion} from 
 the measured magnetic field $B_i$. Under the assumption of linear, isotropic material the magnetic field is 
 given as 
 \begin{equation}\label{EQU:Hb}
@@ -128,11 +128,10 @@ which leads to
 < \nabla J_{data}(\Psi[C[m]]), q> = < ( Y_i[\psi] - (Y^*[\psi])_{,i} ) H^b_i,  \frac{dC}{dm} \cdot q>
 \end{equation} 
 Putting this all together we get
-\begin{equation}\label{MAG:EQU:202g}
-< \nabla f(m),q> = 
-\mu \cdot < 2 \omega \cdot (m-m^{ref}), q>
-+ \mu \cdot < 2 \omega_i \cdot L_i^2 \cdot (m-m^{ref})_{,i}, q_{,i}> +
-< ( Y_i[\psi] - (Y^*[\psi])_{,i} ) B^b_i,  \frac{dC}{dm} \cdot q>
-\end{equation}  
+\begin{align}
+< \nabla f(m),q> = &\mu \cdot < 2 \omega \cdot (m-m^{ref}), q>\nonumber\\
++ &\mu \cdot < 2 \omega_i \cdot L_i^2 \cdot (m-m^{ref})_{,i}, q_{,i}>\nonumber\\
++ &< ( Y_i[\psi] - (Y^*[\psi])_{,i} ) B^b_i,  \frac{dC}{dm} \cdot q>\label{MAG:EQU:202g}
+\end{align}  
 
 
