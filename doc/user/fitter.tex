@@ -46,7 +46,7 @@ of the solution $u_i$ and the parameter $p_i$ and their gradients
 and  $H$ is a scalar, possibly spatially variable  function 
 of the solution $u_i$ and the parameter $p_i$. For example~(\ref{APP FIT EQU 2a})
 one has
-\begin{equation}\label{APP FIT EQU 2a}
+\begin{equation}\label{APP FIT EQU 4a}
 H = \frac{1}{2} \chi \cdot (d_i u_{,i} - \hat{g})^2 +  \frac{1}{2} (p_{,i}p_{,i})^{2} 
 \end{equation} 
 So task is to minimize the cost function $J$ over $u$ and $p$  
@@ -58,7 +58,7 @@ J(u,p,\lambda) = \int_{\Omega} H \; dx + \int_{\partial \Omega} h \; ds
 + \int_{\partial \Omega}  \lambda_{i} \cdot y_{i} \; ds
 \end{equation}
 Notice that the Lagrangean multiplier needs to fullfull the constraint
-\begin{equation} \label{APP FIT EQU 1b}
+\begin{equation} \label{APP FIT EQU 5b}
 \lambda_{i}=0 \mbox{ where } q_i>0
 \end{equation}
 
