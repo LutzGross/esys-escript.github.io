@@ -445,26 +445,27 @@ class NetCDFDataSource(DataSource):
                        alt_of_data=0.):
         """
         :param gravfile: file with gravity data in netcdf format
-        :type gravfile: ```str```
+        :type gravfile: ``str``
         :param magfile: file with magnetic datafile in netcdf format
-        :type magfile: ```str```
+        :type magfile: ``str``
         :param topofile: file with topography data in netcdf format
-        :type topofile: ```str```
+        :type topofile: ``str``
         :param depth: depth below surface filled with rock
-        :type depth: ```float```
-        :param air_layer: height above surface filled with air. It is assumed that that density correction is zero
-                       in this region.
-        :type air_layer: ```float```
+        :type depth: ``float``
+        :param air_layer: height above surface filled with air. It is
+                          assumed that that density correction is zero
+                          in this region.
+        :type air_layer: ``float``
         :param vertical_cells: number of vertical cells
-        type vertical_cells: ```int```
-        :param alt_of_data: altitude of measurements above ground in meter
-        :type alt_of_data: ```float```
+        :type vertical_cells: ``int``
+        :param alt_of_data: altitude of measurements above ground in meters
+        :type alt_of_data: ``float``
         """
         super(NetCDFDataSource,self).__init__()
         self.__topofile=topofile
         self.__gravfile=gravfile
         self.__magfile=magfile
-        self.__determineExtents((-depth,air_layer,n))
+        self.__determineExtents((-depth,air_layer,vertical_cells))
         self.__altOfData=alt_of_data
 
     def __determineExtents(self, ve):
@@ -614,10 +615,24 @@ class ERSDataSource(DataSource):
     Note that this class only accepts a very specific type of ER Mapper data
     input and will raise an exception if other data is found.
     """
-    def __init__(self, headerfile, datafile=None, vertical_extents=(-40000,10000,25), alt_of_data=0.):
+    def __init__(self, headerfile, datafile=None, depth=40000.,
+                 air_layer=10000., vertical_cells=25, alt_of_data=0.):
         """
-        headerfile - usually ends in .ers
-        datafile - usually has the same name as the headerfile without '.ers'
+        :param headerfile: ER Mapper header file (usually ends in .ers)
+        :type headerfile: ``str``
+        :param datafile: ER Mapper binary data file name. If not supplied the
+                         name of the header file without '.ers' is assumed
+        :type datafile: ``str``
+        :param depth: depth below surface filled with rock
+        :type depth: ``float``
+        :param air_layer: height above surface filled with air. It is
+                          assumed that that density correction is zero
+                          in this region.
+        :type air_layer: ``float``
+        :param vertical_cells: number of vertical cells
+        :type vertical_cells: ``int``
+        :param alt_of_data: altitude of measurements above ground in meters
+        :type alt_of_data: ``float``
         """
         super(ERSDataSource,self).__init__()
         self.__headerfile=headerfile
@@ -625,7 +640,7 @@ class ERSDataSource(DataSource):
             self.__datafile=headerfile[:-4]
         else:
             self.__datafile=datafile
-        self.__readHeader(vertical_extents)
+        self.__readHeader((-depth, air_layer, vertical_cells))
         self.__altOfData=alt_of_data
 
     def __readHeader(self, ve):
