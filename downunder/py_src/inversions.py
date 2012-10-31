@@ -248,7 +248,7 @@ class SingleParameterInversionBase(InversionBase):
         m_star=solver.getResult()
         self.logger.info("m* = %s"%m_star)
         value_star=self.getMapping().getValue(m_star)
-        self.logger.info("result * = %s"%value_star)
+        self.logger.info("result* = %s"%value_star)
         solver.logSummary()
         return value_star
 

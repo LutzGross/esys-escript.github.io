@@ -327,7 +327,6 @@ class MinimizerLBFGS(AbstractMinimizer):
         q=gf
         alpha=[]
         for s,y in reversed(s_and_y):
-	    print "TT",s, y, self._f.getInner(s, y)
             rho=1./(self._f.getInner(s, y))
             a=rho*self._f.getInner(s, q)
             alpha.append(a)
