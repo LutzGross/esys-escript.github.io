@@ -12,7 +12,7 @@
 %
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-\chapter{Gravity Inversion}\label{chp:gravityinversion}
+\section{Gravity Inversion}\label{sec:forward gravity}
 We want to recover the density field $\rho$ from an acceleration field $g_i$ known on certain locations within the domain $\Omega$. It is
 assumed that
 \begin{equation}
@@ -152,7 +152,7 @@ f(m) =  J_{data}(\Psi[C[m]]) +  \mu \cdot J_{reg}(m)
 \end{equation} 
 where $\mu>0$ is a fixed penalty factor subject to $m=m^{ref}$ on $\Omega^{ref}$.
 
-\section{Solution methods}
+\subsection{Solution methods}
 To apply the Nonlinear Conjugate Gradient method (NLCG), see Appendix~\ref{sec:NLCG} or the L-BFGS method, see Appendix~\ref{sec:LBFGS} we need
 to define an inner product $<.,.>$ and need to calculate the gradient of of $f$. 
 
