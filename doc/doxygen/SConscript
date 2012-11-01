@@ -22,7 +22,7 @@ env.Command(doxy_dir, [], [Mkdir(doxy_dir)])
 # Now some magic from the doxygen FAQ to get the global revision number into
 # the doxyfile
 if os.name=='posix':
-    env.Alias('api_doxygen',[doxy_dir],['(cat doc/doxygen/doxygen_esys; echo "PROJECT_NUMBER=\"Revision_`svnversion`\"" ) | doxygen - '])
+    env.Alias('api_doxygen',[doxy_dir],['(cat doc/doxygen/doxygen_esys; echo "PROJECT_NUMBER=\"Revision_`svnversion`\""; echo OUTPUT_DIRECTORY=\"'+doxy_dir+'\" ) | doxygen - '])
 else:
     env.Alias('api_doxygen',[doxy_dir],["doxygen doc/doxygen/doxygen_esys"])
 

@@ -1,0 +1,20 @@
+Source: escript
+Maintainer: Escript team <joelfenwick@uq.edu.au>
+Section: main
+Priority: extra
+Build-Depends: python-dev, python-numpy, libboost-python1.49-dev, libnetcdf-dev, scons
+Standards-Version: 3.9.3
+Homepage: https://launchpad.net/escript-finley
+
+Package: escript
+Description: Escript/Finley finite elements python system.
+ Solve partial differential equations using finite element methods.
+Architecture: any
+Section: main
+Priority: extra
+Essential: no
+Depends: python, python-numpy, libboost-python1.49.0, libnetcdfc7, libnetcdfc++4, doc-base(>=0.8.4)
+Recommends: python-sympy, python-matplotlib
+Conflicts: escript-noalias
+Replaces: escript-noalias
+Homepage: https://launchpad.net/escript-finley
