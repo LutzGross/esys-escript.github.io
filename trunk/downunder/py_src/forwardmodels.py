@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['ForwardModel','GravityModel']
+__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel']
 
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
@@ -105,6 +105,7 @@ class ForwardModelWithPotential(ForwardModel):
         x = domain.getX()
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
+        self.__pde.setSymmetryOn()
 
         if fix_all_faces:
             constraint=whereZero(x[DIM-1]-BX[DIM-1][1])+whereZero(x[DIM-1]-BX[DIM-1][0])

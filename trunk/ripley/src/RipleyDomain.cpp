@@ -449,6 +449,17 @@ void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
         }
     }
 
+    switch (arg.getFunctionSpace().getTypeCode()) {
+        case DegreesOfFreedom:
+        case ReducedDegreesOfFreedom:
+        case Nodes:
+        case ReducedNodes:
+            break;
+        default: {
+            throw RipleyException("setToGradient: only supported for nodal input data");
+        }
+    }
+
     if (getMPISize()>1) {
         if (arg.getFunctionSpace().getTypeCode()==DegreesOfFreedom) {
             escript::Data contArg(arg, escript::continuousFunction(*this));
