@@ -15,16 +15,7 @@
 \documentclass{esysdoc}
 
 \usepackage{program}
-
 \graphicspath{{figures/}}
-
-\ifpdf
-\pdfinfo {
-/Author (Cihan Altinay, Vince Boros, Lutz Gross)
-/Title (Inversion with escript cookbook)
-/Keywords (escript, inversion)
-}
-\fi
 
 
 \begin{document}
@@ -63,15 +54,15 @@ St. Lucia, QLD 4072, Australia.}
 \include{ForwardModels}
 
 
+\esysappendix
 \addtocontents{toc}{\protect\vspace*{\baselineskip}}
+\cleardoublepage
+\include{minimization}
 
 \bibliographystyle{plain}
+\cleardoublepage\phantomsection
+\addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{inversion}
-
-\appendix
-
-\input{minimization}
-
 
 \end{document}
 
