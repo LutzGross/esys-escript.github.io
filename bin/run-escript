@@ -321,7 +321,7 @@ fi
 #
 # Test to ensure people aren't trying to combine interactive and multi-process
 #
-if ([ ! -z $DO_INTERACTIVE ] || ([ $# -eq 0 ] && [ $TOTPROC -gt 1 ]))
+if ([ ! -z $DO_INTERACTIVE ] || [ $# -eq 0 ]) && ([ $TOTPROC -gt 1 ])
 then
     echo "Interactive mode cannot be used with more than one process"
     exit 1
