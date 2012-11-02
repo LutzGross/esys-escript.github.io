@@ -22,7 +22,7 @@
 \usepackage[nohyphen, strings]{underscore}
 
 %Blue was chosen here because it looks ok when printed
-\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue]{hyperref}
+\usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,pdfusetitle]{hyperref}
 
 %Dummy commands for if we ever need to switch off hyperref
 % \providecommand{\pdfbookmark}[3][0]{}
