@@ -1,0 +1,83 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2012 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{The \downunder Module}\label{chap:ModuleRef}
+
+\section{Concepts}
+\downunder is a \python module that allows running inversions within the
+\escript framework as described in the previous chapters.
+
+\section{\downunder classes}
+
+\subsection{Cost Functions}
+
+%%%%%%%%
+\begin{classdesc}{CostFunction}{}
+    This is the base class for functions $f(x)$ that can be minimized.
+    The function calls update statistical information.
+    The actual work is done by the methods with corresponding name and a
+    leading underscore. These functions need to be overwritten for a particular
+    cost function implementation.
+\end{classdesc}
+
+\noindent The following methods are implemented:
+%
+\begin{methoddesc}[CostFunction]{resetCounters}{}
+    resets all statistical counters.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getInner}{f0, f1}
+    returns the inner product of \member{f0} and \member{f1}.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getValue}{x, *args}
+    returns the value $f(x)$ using precalculated values for $x$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getGradient}{x, *args}
+    returns the gradient of $f$ at $x$ using precalculated values for $x$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getDirectionalDerivative}{x, d, *args}
+    returns \texttt{inner(grad(f(x)), d)} using precalculated values for $x$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getArguments}{x}
+    returns precalculated values that are shared in the calculation of $f(x)$
+    and \texttt{grad(f(x))}.
+\end{methoddesc}
+
+%%%%%%%%
+\begin{classdesc}{SimpleCostFunction}{regularization, mapping, forwardmodel}
+    This is a simple cost function with a single continuous (mapped) variable.
+    It is the sum of two weighted terms, a single forward model and a single
+    regularization term. This cost function is used by the provided gravity
+    and magnetic inversion implementations.
+\end{classdesc}
+
+
+\subsection{Forward Models}
+
+\subsection{Mappings}
+
+\subsection{Regularizations}
+
+\subsection{Solvers}
+
+\subsection{Data Sources}
+
+\subsection{The \class{DomainBuilder} class}
+
+\subsection{Inversion classes}
+
