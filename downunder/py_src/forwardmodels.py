@@ -144,8 +144,8 @@ class ForwardModelWithPotential(ForwardModel):
 
     def getSurvey(self, index=None):
         """
-        Returns the pair (g_index, weight_index), where g_i is the gravity
-        anomaly of survey i, weight_i is the weighting factor for survey i.
+        Returns the pair (data_index, weight_index), where data_i is the data
+        of survey i, weight_i is the weighting factor for survey i.
         If index is None, all surveys will be returned in a pair of lists.
         """
         if index is None:
