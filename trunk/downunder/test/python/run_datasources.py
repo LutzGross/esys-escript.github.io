@@ -27,6 +27,7 @@ import sys
 import unittest
 from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
+from esys.downunder.domainbuilder import DomainBuilder
 
 # this is mainly to avoid warning messages
 logger=logging.getLogger('inv')
@@ -63,22 +64,22 @@ ALT=0.
 PAD_X=3
 PAD_Y=2
 
-class TestERSDataSource(unittest.TestCase):
+class TestErMapperData(unittest.TestCase):
     def test_ers_with_padding(self):
-        source = ERSDataSource(headerfile=ERS_DATA, 
-                               depth=-VMIN,
-                               air_layer=VMAX,
-                               vertical_cells=NE_V,
-                               alt_of_data=ALT)
-        source.setPadding(PAD_X,PAD_Y)
-        dom=source.getDomain()
-        g,s=source.getGravityAndStdDev()
+        source = ErMapperData(DataSource.GRAVITY, headerfile=ERS_DATA, 
+                              altitude=ALT)
+        domainbuilder=DomainBuilder()
+        domainbuilder.addSource(source)
+        domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
+        domainbuilder.setPadding(PAD_X,PAD_Y)
+        dom=domainbuilder.getDomain()
+        g,s=domainbuilder.getGravitySurveys()[0]
 
         outfn=os.path.join(WORKDIR, '_ersdata.csv')
-        saveDataCSV(outfn, g=g[2], s=s)
+        saveDataCSV(outfn, g=g, s=s)
 
         X0,NP,DX=source.getDataExtents()
-        V0,NV,DV=source.getVerticalExtents()
+        DV=(VMAX-VMIN)/NE_V
 
         # check metadata
         self.assertEqual(NP, ERS_SIZE, msg="Wrong number of data points")
@@ -94,7 +95,7 @@ class TestERSDataSource(unittest.TestCase):
         nx=NP[0]+2*PAD_X
         ny=NP[1]+2*PAD_Y
         nz=NE_V
-        z_data=int(np.round((ALT-V0)/DV)-1)
+        z_data=int(np.round((ALT-VMIN)/DV)-1)
 
         ref=np.genfromtxt(ERS_REF, delimiter=',', dtype=float)
         g_ref=ref[:,0].reshape((NP[1],NP[0]))
@@ -118,22 +119,21 @@ class TestERSDataSource(unittest.TestCase):
         self.assertAlmostEqual(np.abs(g_out-ERS_NULL).max(), 0.,
                 msg="Wrong values in padding area")
 
-class TestNetCDFDataSource(unittest.TestCase):
+class TestNetCdfData(unittest.TestCase):
     def test_cdf_with_padding(self):
-        source = NetCDFDataSource(gravfile=NC_DATA, 
-                                  depth=-VMIN,
-                                  air_layer=VMAX,
-                                  vertical_cells=NE_V,
-                                  alt_of_data=ALT)
-        source.setPadding(PAD_X,PAD_Y)
-        dom=source.getDomain()
-        g,s=source.getGravityAndStdDev()
+        source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT)
+        domainbuilder=DomainBuilder()
+        domainbuilder.addSource(source)
+        domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
+        domainbuilder.setPadding(PAD_X,PAD_Y)
+        dom=domainbuilder.getDomain()
+        g,s=domainbuilder.getGravitySurveys()[0]
 
         outfn=os.path.join(WORKDIR, '_ncdata.csv')
-        saveDataCSV(outfn, g=g[2], s=s)
+        saveDataCSV(outfn, g=g, s=s)
 
         X0,NP,DX=source.getDataExtents()
-        V0,NV,DV=source.getVerticalExtents()
+        DV=(VMAX-VMIN)/NE_V
 
         # check metadata
         self.assertEqual(NP, NC_SIZE, msg="Wrong number of data points")
@@ -149,7 +149,7 @@ class TestNetCDFDataSource(unittest.TestCase):
         nx=NP[0]+2*PAD_X
         ny=NP[1]+2*PAD_Y
         nz=NE_V
-        z_data=int(np.round((ALT-V0)/DV)-1)
+        z_data=int(np.round((ALT-VMIN)/DV)-1)
 
         ref=np.genfromtxt(NC_REF, delimiter=',', dtype=float)
         g_ref=ref[:,0].reshape((NP[1],NP[0]))
@@ -177,9 +177,9 @@ class TestNetCDFDataSource(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     if getMPISizeWorld()==1:
-        suite.addTest(unittest.makeSuite(TestERSDataSource))
-        if 'NetCDFDataSource' in dir():
-            suite.addTest(unittest.makeSuite(TestNetCDFDataSource))
+        suite.addTest(unittest.makeSuite(TestErMapperData))
+        if 'NetCdfData' in dir():
+            suite.addTest(unittest.makeSuite(TestNetCdfData))
         else:
             print("Skipping netCDF data source test since netCDF is not installed")
     else:

@@ -179,7 +179,7 @@ class ErMapperData(DataSource):
             self.__datafile=headerfile[:-4]
         else:
             self.__datafile=datafile
-        self.__altOfData=altitude
+        self.__altitude=altitude
         self.__datatype=datatype
         self.__readHeader()
 
@@ -285,6 +285,9 @@ class ErMapperData(DataSource):
         """
         return (list(self.__origin), list(self.__nPts), list(self.__delta))
 
+    def getDataType(self):
+        return self.__datatype
+
     def getSurveyData(self, domain, origin, NE, spacing):
         nValues=self.__nPts
         # determine base location of this dataset within the domain
@@ -298,7 +301,7 @@ class ErMapperData(DataSource):
                 first, nValues, (), self.__maskval)
         sigma = whereNonZero(data-self.__maskval)
         data = data*self.__scalefactor
-        sigma = sigma*self.__scalefactor
+        sigma = sigma * 2. * self.__scalefactor
         return data, sigma
 
 
