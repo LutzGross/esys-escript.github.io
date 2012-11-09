@@ -4,14 +4,14 @@ DEST=$(CURDIR)/debian/escript
 WORK=$(CURDIR)/debian/tmp
 
 clean:
-	scons -c
 	rm -rf build condif.log esys include lib release .sconf_tmp .sconsign.dblite config.log .sconf_temp
 	rm -rf debian/tmp
 	rm -rf debian/escript
 
 build:
+	#if [ -e .svn ];then echo "Don't want .svn in source. Please build from export."; exit 1;fi	
 	mkdir -p debian/tmp
-	scons debug=yes build_dir=$(WORK) prefix=$(WORK)  release_prep
+	scons debug=yes build_dir=$(WORK) prefix=$(WORK) options_file=`packaging/debuntu/getsubst` release_prep
 	sed -e "s%STDLOCATION=0%STDLOCATION=1%" < bin/run-escript > $(WORK)/bin/run-escript
 
 install: build
@@ -24,6 +24,7 @@ install: build
 	cp $(WORK)/release/doc/install/install.pdf $(DEST)/usr/share/doc/escript
 	cp $(WORK)/release/doc/user/user.pdf $(DEST)/usr/share/doc/escript
 	cp $(WORK)/release/doc/cookbook/cookbook.pdf $(DEST)/usr/share/doc/escript
+	cp $(WORK)/release/doc/inversion/inversion.pdf $(DEST)/usr/share/doc/escript
 	cp -r $(WORK)/release/doc/epydoc $(DEST)/usr/share/doc/escript/python_html
 	cp $(WORK)/lib/* $(DEST)/usr/lib/escript
 	cp $(WORK)/bin/* $(DEST)/usr/bin

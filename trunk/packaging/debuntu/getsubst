@@ -1,0 +1,12 @@
+
+#this bash script chooses the appropriate options file and subst variables for the current build arch
+
+distr=`lsb_release -sc`
+
+case "$distr" in
+    "wheezy") opf="badger";;
+    *) echo "No file found" >&2; exit 1;;
+esac
+rm -f debian/substvars
+ln packaging/debuntu/subst/$distr.subst debian/substvars
+echo scons/${opf}_options.py

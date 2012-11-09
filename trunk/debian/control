@@ -2,7 +2,7 @@ Source: escript
 Maintainer: Escript team <joelfenwick@uq.edu.au>
 Section: main
 Priority: extra
-Build-Depends: python-dev, python-numpy, libboost-python1.49-dev, libnetcdf-dev, scons
+Build-Depends: python-dev, python-numpy, libboost-python1.49-dev, libnetcdfc7, libnetcdfc++4, scons
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/escript-finley
 
@@ -13,7 +13,7 @@ Architecture: any
 Section: main
 Priority: extra
 Essential: no
-Depends: python, python-numpy, libboost-python1.49.0, libnetcdfc7, libnetcdfc++4, doc-base(>=0.8.4)
+Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:netcdf}, doc-base(>=0.8.4)
 Recommends: python-sympy, python-matplotlib
 Conflicts: escript-noalias
 Replaces: escript-noalias
