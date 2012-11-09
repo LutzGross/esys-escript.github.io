@@ -1,0 +1,3 @@
+es:python=python2.7
+es:boostpy=libboost-python1.46.1
+es:netcdf=libnetcdf6

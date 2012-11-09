@@ -9,7 +9,6 @@ clean:
 	rm -rf debian/escript
 
 build:
-	#if [ -e .svn ];then echo "Don't want .svn in source. Please build from export."; exit 1;fi	
 	mkdir -p debian/tmp
 	scons debug=yes build_dir=$(WORK) prefix=$(WORK) options_file=`packaging/debuntu/getsubst` release_prep
 	sed -e "s%STDLOCATION=0%STDLOCATION=1%" < bin/run-escript > $(WORK)/bin/run-escript
