@@ -10,7 +10,8 @@ clean:
 
 build:
 	mkdir -p debian/tmp
-	scons debug=yes build_dir=$(WORK) prefix=$(WORK) options_file=`packaging/debuntu/getsubst` release_prep
+	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
+	scons SVN_VERSION=`cat svn_version` build_dir=$(WORK) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` release_prep
 	sed -e "s%STDLOCATION=0%STDLOCATION=1%" < bin/run-escript > $(WORK)/bin/run-escript
 
 install: build
@@ -28,6 +29,7 @@ install: build
 	cp $(WORK)/lib/* $(DEST)/usr/lib/escript
 	cp $(WORK)/bin/* $(DEST)/usr/bin
 	touch $(WORK)/installed
+
 
 binary:	binary-arch binary-indep
 

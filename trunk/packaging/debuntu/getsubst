@@ -14,4 +14,4 @@ case "$distr" in
 esac
 rm -f debian/substvars
 ln packaging/debuntu/subst/$distr.subst debian/substvars
-echo scons/${distr}_options.py
+echo scons/TEMPLATE_${distr}.py
