@@ -16,16 +16,15 @@
 \section{Magnetic Inversion}\label{sec:forward magnetic}
 
 We want to calculate the susceptibility $k$ over a rectangular domain as described in Chapter~\ref{chp:gravityinversion} from 
-the measured magnetic field $B_i$. Under the assumption of linear, isotropic material the magnetic field is 
+the measured magnetic field $B_i$. Assuming a linear, isotropic material and that the magnetic susceptibility of the material is proportional to the background magnetic field, the total magnetic field is 
 given as 
 \begin{equation}\label{EQU:Hb}
-B_i = H_i + k \cdot B^b_i 
+B_i = \mu_0 H_i + k \cdot B^b_i 
 \end{equation}
-where  $H_i$ is the unknown is the magnetizing field and
-$B^b_i$ is the background  magnetic field of the Earth.
-\footnote{Notation: the superscript ``b'' following a symbol indicates 
-a background field quantity.}. We assume that the background  magnetizing field is constant across the domain 
-where for a domain at latitude $theta$ the latitude and radial components of magnetizing field are given as  
+where $H_i$ is the (unknown) magnetizing field and
+$B^b_i$ is the background magnetic field of the Earth.\footnote{Notation: the superscript ``b'' following a symbol indicates 
+a background field quantity.} We assume that the background  magnetic field is constant across the domain 
+where for a domain at latitude $theta$ the latitude and radial components of magnetic field are given as  
 \begin{equation}\label{EQU:Hb 2}
 \begin{array}{rcl}
 B^b_{\theta}  & = & \displaystyle{ \frac{\mu_0 \cdot m}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\

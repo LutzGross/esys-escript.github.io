@@ -7,7 +7,7 @@ A field is a spatial distribution of a quantity.  Variations in a field can be r
 
 \section{The Magnetostatic Model}\label{sec:magnetostatics}
 An electric charge $q$ (C) with velocity $\mathbf{v}$ (m/s) experiences a force $\mathbf{F_m}$ (N) when placed in a steady magnetic field represented by $\mathbf{B}$:
-\begin{equation}\label{F_m}
+\begin{equation}\label{F m}
 \mathbf{F_m} = q \mathbf{v} \times \mathbf{B}
 \end{equation}
 Units for $\mathbf{B}$: $\left( \frac{\mathrm{N}}{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}} \right)$ or $\left( \frac{\mathrm{J}}{\mathrm{A} \cdot \mathrm{m^2}} \right)$ or (Wb/m$^2$) or (T).\footnote{Although $\mathbf{B}$ is described commonly as a density of the flux of the magnetic field (magnetic flux density), it is a direct measure of the \emph{strength} of the field, since it measures the \emph{force} exerted by the magnetic field on moving electric charges.  Similarly, $\mathbf{H}$ is described commonly as the magnetic field strength but is only indirectly a measure of the strength, since it is the product of the electric charges and their velocities per unit area of a surface through which the magnetic field they generate passes (see main text below); and so it may be better described as a density of the flux of the field (magnetic flux density).  Calling $\mathbf{B}$ the \emph{magnetic field strength} and $\mathbf{H}$ the \emph{magnetic flux density} has an analog in electric field theory 
@@ -35,10 +35,10 @@ or in integral form:
 \int_S (\mathbf{\nabla} \times \mathbf{B}) \cdot d\mathbf{s} = \oint_C \mathbf{B} \cdot d\mathbf{l} =  \mu_0 \int_S (\mathbf{J} + \mathbf{J_m}) \cdot d\mathbf{s} = \mu_0 (I + I_m)
 \end{equation}
 {\noindent}where $I_m$ (A) is the equivalent magnetization current corresponding to $\mathbf{J_m}$. $\mathbf{J_m}$ is the circulation of the magnetic polarization $\mathbf{M}$ (A/m) which is the density of magnetic dipole moments arising from the atoms in a material:
-\begin{equation}\label{J_m}
+\begin{equation}\label{J m}
 \mathbf{J_m} = \mathbf{\nabla} \times \mathbf{M}
 \end{equation}
-Substituting Eq.~\ref{J_m} into Eq.~\ref{curl B in} yields one of the governing equations for the magnetostatic model:
+Substituting Eq.~\ref{J m} into Eq.~\ref{curl B in} yields one of the governing equations for the magnetostatic model:
 \begin{equation}\label{curl H}
 \mathbf{\nabla} \times \mathbf{H} = \mathbf{J}
 \end{equation}
@@ -104,7 +104,7 @@ Units for $\mathbf{A}$: $\left( \frac{\mathrm{J}}{\mathrm{C} \cdot \frac{\mathrm
 The vector magnetic potential $\mathbf{A}$ can thus be obtained from the current density $\mathbf{J}$, and $\mathbf{B}$ can then be obtained from $\mathbf{A}$.\\
 
 Although there is no net flow of the magnetic field in free space through an enclosing surface (see Eq.~\ref{int B.ds}), through a surface not bounding a volume there will be a net flow.  If $\mathbf{B}$, the force exerted on or by moving electric charges, is used to quantify the magnetic field, then  $\Phi_{\mathbf{B}}$ is the integral of $\mathbf{B}$ over an area of surface, which relates to the integral of the vector magnetic potential over a contour bounding the surface using the curl theorem:
-\begin{equation}\label{Phi_B}
+\begin{equation}\label{Phi B}
 \Phi_{\mathbf{B}} = \int_S \mathbf{B} \cdot d\mathbf{s} = \int_S (\mathbf{\nabla} \times \mathbf{A}) \cdot d\mathbf{s} = \oint_C \mathbf{A} \cdot d\mathbf{l}
 \end{equation}
 {\noindent}Units for $\Phi_{\mathbf{B}}$: $\left( \frac{\mathrm{N} \cdot \mathrm{m^2}}{\mathrm{C} \cdot \frac{\mathrm{m}}{\mathrm{s}}} \right)$ or (J/A) or (Wb).\\
@@ -118,12 +118,12 @@ If $\mathbf{H}$, the density of moving electric charges, is used to quantify the
 The flux of $\mathbf{H}$ in free space through an open surface equals the electric charges multiplied by their velocities which are generating the magnetic field through the surface.  This also bears a resemblance to another form of Gauss's law which states that the net flux of $\mathbf{D}$ (electric flux density) through a closed surface equals the electric charges enclosed by the surface.\\
 
 When the magnetic properties of a medium are linear, the magnetization $\mathbf{M}$ is directly proportional to the magnitude of $\mathbf{H}$; when the properties are  also isotropic, $\mathbf{M}$ is also independent of the direction of $\mathbf{H}$ and the magnetization is formulated as:
-\begin{equation}\label{chi_m}
+\begin{equation}\label{chi m}
 \mathbf{M} = \chi_m \mathbf{H}
 \end{equation}
 {\noindent}where $\chi_m$ is a dimensionless variable called the magnetic susceptibility, which is a function only of coordinates (that is, $\chi_m \equiv \chi_m(x,y,z)$ in a cartesian coordinate system) of the linear, isotropic medium.
 {\noindent}$\mathbf{H}$ and $\mathbf{B}$ are now related in the magnetostatic model (for linear, isotropic media) by the constitutive relation:
-\begin{equation}\label{H chi_m}
+\begin{equation}\label{H chi m}
 \mathbf{H} = \frac{1}{\mu} \mathbf{B}
 \end{equation}
 {\noindent}where $\mu = \mu_0 \mu_r$ (H/m) is the permeability of the medium and $\mu_r =  1 + \chi_m$, another dimensionless variable, is the relative permeability of the medium.  When, besides being linear and isotropic, the medium is homogeneous (a simple medium), the magnetic susceptibility, permeability and relative permeability, besides being independent of $\mathbf{H}$, are also independent of space coordinates and are thus constant.
