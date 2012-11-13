@@ -1345,7 +1345,7 @@ class ArithmeticTuple(object):
 
        from esys.escript import Data
        from numpy import array
-       a=Data(...)
+       a=eData(...)
        b=array([1.,4.])
        x=ArithmeticTuple(a,b)
        y=5.*x
@@ -1395,13 +1395,13 @@ class ArithmeticTuple(object):
                raise ValueError("length of arguments don't match.")
            for i in range(l): 
 		if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
-		    out.append(Data())
+		    out.append(escore.Data())
 		else:
 		    out.append(self[i]*other[i])
        except TypeError:
 	    for i in range(len(self)):  
 		if self.__isEmpty(self[i]) or self.__isEmpty(other):
-		    out.append(Data())
+		    out.append(escore.Data())
 		else:
 		    out.append(self[i]*other)
        return ArithmeticTuple(*tuple(out))
@@ -1422,13 +1422,13 @@ class ArithmeticTuple(object):
 	      raise ValueError("length of arguments don't match.")
 	  for i in range(l): 
 		if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
-		    out.append(Data())
+		    out.append(escore.Data())
 		else:
 		    out.append(other[i]*self[i])
       except TypeError:
 	  for i in range(len(self)):  
 		if self.__isEmpty(self[i]) or self.__isEmpty(other):
-		    out.append(Data())
+		    out.append(escore.Data())
 		else:
 		    out.append(other*self[i])
       return ArithmeticTuple(*tuple(out))
@@ -1464,7 +1464,7 @@ class ArithmeticTuple(object):
 		    raise ZeroDivisionError("in component %s"%i)
 		else:
 		    if self.__isEmpty(other[i]):
-			out.append(Data())
+			out.append(escore.Data())
 		    else:
 			out.append(other[i]/self[i])
       except TypeError:
@@ -1473,7 +1473,7 @@ class ArithmeticTuple(object):
 		    raise ZeroDivisionError("in component %s"%i)
 		else:
 		    if self.__isEmpty(other):
-			out.append(Data())
+			out.append(escore.Data())
 		    else:
 			out.append(other/self[i])
       return ArithmeticTuple(*tuple(out))
@@ -1578,13 +1578,13 @@ class ArithmeticTuple(object):
       out=[]
       for i in range(len(self)):
 	  if self.__isEmpty(self[i]):
-	      out.append(Data())
+	      out.append(escore.Data())
 	  else:
 	      out.append(-self[i])
 	  
       return ArithmeticTuple(*tuple(out))
    def __isEmpty(self, d):
-    if isinstance(d, Data):
+    if isinstance(d, escore.Data):
 	return d.isEmpty()
     else:
 	return False
