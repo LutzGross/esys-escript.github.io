@@ -1393,29 +1393,45 @@ class ArithmeticTuple(object):
            l=len(other)
            if l!=len(self):
                raise ValueError("length of arguments don't match.")
-           for i in range(l): out.append(self[i]*other[i])
+           for i in range(l): 
+		if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
+		    out.append(Data())
+		else:
+		    out.append(self[i]*other[i])
        except TypeError:
-           for i in range(len(self)): out.append(self[i]*other)
+	    for i in range(len(self)):  
+		if self.__isEmpty(self[i]) or self.__isEmpty(other):
+		    out.append(Data())
+		else:
+		    out.append(self[i]*other)
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
-       """
-       Scales by ``other`` from the left.
+      """
+      Scales by ``other`` from the left.
 
-       :param other: scaling factor
-       :type other: ``float``
-       :return: itemwise other*self
-       :rtype: `ArithmeticTuple`
-       """
-       out=[]
-       try:
-           l=len(other)
-           if l!=len(self):
-               raise ValueError("length of arguments don't match.")
-           for i in range(l): out.append(other[i]*self[i])
-       except TypeError:
-           for i in range(len(self)): out.append(other*self[i])
-       return ArithmeticTuple(*tuple(out))
+      :param other: scaling factor
+      :type other: ``float``
+      :return: itemwise other*self
+      :rtype: `ArithmeticTuple`
+      """
+      out=[]
+      try:
+	  l=len(other)
+	  if l!=len(self):
+	      raise ValueError("length of arguments don't match.")
+	  for i in range(l): 
+		if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
+		    out.append(Data())
+		else:
+		    out.append(other[i]*self[i])
+      except TypeError:
+	  for i in range(len(self)):  
+		if self.__isEmpty(self[i]) or self.__isEmpty(other):
+		    out.append(Data())
+		else:
+		    out.append(other*self[i])
+      return ArithmeticTuple(*tuple(out))
 
    def __div__(self,other):
        """
@@ -1429,92 +1445,149 @@ class ArithmeticTuple(object):
        return self*(1/other)
 
    def __rdiv__(self,other):
-       """
-       Scales by (1/``other``) from the left.
+      """
+      Scales by (1/``other``) from the left.
 
-       :param other: scaling factor
-       :type other: ``float``
-       :return: itemwise other/self
-       :rtype: `ArithmeticTuple`
-       """
-       out=[]
-       try:
-           l=len(other)
-           if l!=len(self):
-               raise ValueError("length of arguments don't match.")
-           for i in range(l): out.append(other[i]/self[i])
-       except TypeError:
-           for i in range(len(self)): out.append(other/self[i])
-       return ArithmeticTuple(*tuple(out))
+      :param other: scaling factor
+      :type other: ``float``
+      :return: itemwise other/self
+      :rtype: `ArithmeticTuple`
+      """
+      out=[]
+      try:
+	  l=len(other)
+	  if l!=len(self):
+	      raise ValueError("length of arguments don't match.")
+	  
+	  for i in range(l): 
+		if self.__isEmpty(self[i]):
+		    raise ZeroDivisionError("in component %s"%i)
+		else:
+		    if self.__isEmpty(other[i]):
+			out.append(Data())
+		    else:
+			out.append(other[i]/self[i])
+      except TypeError:
+	  for i in range(len(self)):
+		if self.__isEmpty(self[i]):
+		    raise ZeroDivisionError("in component %s"%i)
+		else:
+		    if self.__isEmpty(other):
+			out.append(Data())
+		    else:
+			out.append(other/self[i])
+      return ArithmeticTuple(*tuple(out))
 
    def __iadd__(self,other):
-       """
-       Inplace addition of ``other`` to self.
+      """
+      Inplace addition of ``other`` to self.
 
-       :param other: increment
-       :type other: ``ArithmeticTuple``
-       """
-       if len(self) != len(other):
-           raise ValueError("tuple lengths must match.")
-       for i in range(len(self)):
-           self.__items[i]+=other[i]
-       return self
+      :param other: increment
+      :type other: ``ArithmeticTuple``
+      """
+      if len(self) != len(other):
+	  raise ValueError("tuple lengths must match.")
+      for i in range(len(self)):
+	  if self.__isEmpty(self.__items[i]):
+	      self.__items[i]=other[i]
+	  else:
+	      self.__items[i]+=other[i]
+	      
+      return self
 
    def __add__(self,other):
-       """
-       Adds ``other`` to self.
+      """
+      Adds ``other`` to self.
 
-       :param other: increment
-       :type other: ``ArithmeticTuple``
-       """
-       out=[]
-       try:
-           l=len(other)
-           if l!=len(self):
-               raise ValueError("length of arguments don't match.")
-           for i in range(l): out.append(self[i]+other[i])
-       except TypeError:
-           for i in range(len(self)): out.append(self[i]+other)
-       return ArithmeticTuple(*tuple(out))
+      :param other: increment
+      :type other: ``ArithmeticTuple``
+      """
+      out=[]
+      try:
+	  l=len(other)
+	  if l!=len(self):
+	      raise ValueError("length of arguments don't match.")
+	  for i in range(l): 
+		if self.__isEmpty(self[i]):
+		    out.append(other[i])
+		elif self.__isEmpty(other[i]):
+		    out.append(self[i])
+		else:
+		    out.append(self[i]+other[i])
+      except TypeError:
+	    for i in range(len(self)):     
+		if self.__isEmpty(self[i]):
+		    out.append(other)
+		elif self.__isEmpty(other):
+		    out.append(self[i])
+		else:
+		    out.append(self[i]+other)
+      return ArithmeticTuple(*tuple(out))
 
    def __sub__(self,other):
-       """
-       Subtracts ``other`` from self.
+      """
+      Subtracts ``other`` from self.
 
-       :param other: decrement
-       :type other: ``ArithmeticTuple``
-       """
-       out=[]
-       try:
-           l=len(other)
-           if l!=len(self):
-               raise ValueError("length of arguments don't match.")
-           for i in range(l): out.append(self[i]-other[i])
-       except TypeError:
-           for i in range(len(self)): out.append(self[i]-other)
-       return ArithmeticTuple(*tuple(out))
+      :param other: decrement
+      :type other: ``ArithmeticTuple``
+      """
+      out=[]
+      try:
+	  l=len(other)
+	  if l!=len(self):
+	      raise ValueError("length of arguments don't match.")
+	  for i in range(l): 
+		if self.__isEmpty(other[i]):
+		    out.append(self[i])
+		elif self.__isEmpty(self[i]):
+		    out.append(-other[i])
+		else:
+		    out.append(self[i]-other[i])
+      except TypeError:
+	    for i in range(len(self)):     
+		if  self.__isEmpty(other):
+		    out.append(self[i])
+		elif self.__isEmpty(self[i]):
+		    out.append(-other)
+		else:
+		    out.append(self[i]-other)
+		    
+      return ArithmeticTuple(*tuple(out))
 
    def __isub__(self,other):
-       """
-       Inplace subtraction of ``other`` from self.
+      """
+      Inplace subtraction of ``other`` from self.
 
-       :param other: decrement
-       :type other: ``ArithmeticTuple``
-       """
-       if len(self) != len(other):
-           raise ValueError("tuple length must match.")
-       for i in range(len(self)):
-           self.__items[i]-=other[i]
-       return self
+      :param other: decrement
+      :type other: ``ArithmeticTuple``
+      """
+      if len(self) != len(other):
+	  raise ValueError("tuple length must match.")
+      for i in range(len(self)):
+	  if not self.__isEmpty(other[i]):
+	      if self.__isEmpty(self.__items[i]):
+		  self.__items[i]=-other[i]
+	      else:
+		  self.__items[i]=other[i]
+      return self
 
    def __neg__(self):
-       """
-       Negates values.
-       """
-       out=[]
-       for i in range(len(self)):
-           out.append(-self[i])
-       return ArithmeticTuple(*tuple(out))
+      """
+      Negates values.
+      """
+      out=[]
+      for i in range(len(self)):
+	  if self.__isEmpty(self[i]):
+	      out.append(Data())
+	  else:
+	      out.append(-self[i])
+	  
+      return ArithmeticTuple(*tuple(out))
+   def __isEmpty(self, d):
+    if isinstance(d, Data):
+	return d.isEmpty()
+    else:
+	return False
 
 
 class HomogeneousSaddlePointProblem(object):
