@@ -48,12 +48,7 @@ class ForwardModel(object):
 
     def getGradient(self, x, *args):
         raise NotImplementedError
-    def getDirectionalDerivative(self, x, d, *args):
-        """
-        return directional derivatiave
-        """
-        Y=self.getGradient(x, *args)
-        return integrate(p * Y)
+
         
 class ForwardModelWithPotential(ForwardModel):
     """

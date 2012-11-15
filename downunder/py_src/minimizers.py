@@ -94,7 +94,7 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
     def gradphi(a, *args):
         gf_new[0]=f.getGradient(x+a*p, *args)
         return f.getDualProduct(p, gf_new[0])
-        #return f.getDirectionalDerivative(x+a*p, p, *args)
+
     def phiargs(a):
         try:
             args=f.getArguments(x+a*p)

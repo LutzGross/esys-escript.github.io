@@ -253,47 +253,6 @@ class Regularization(CostFunction):
 		       A+= mu[n+k*numLS+l] * integrate( self.__sc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) 
         return A/2
         
-    def getDirectionalDerivative(self, m, d, grad_m):
-        """
-        returns the directional derivative
-        """
-        mu=self.getWeights( uncompress=True)
-        DIM=self.getDomain().getDim()
-        numLS=self.getNumLevelSets()
-        grad_q=grad(q)
-        
-        A=0
-        n=0
-        
-        if self.__s0 is not None:
-            A+=inner(integrate(m*q*self.__s0), mu[:numLS])
-        n+=numLS
-        
-        if self.__s1 is not None:
-	    if numLS == 1:
-	        A+=integrate(inner(grad_m* self.__s1,grad_q))*mu[n]
-	    else:
-	        for k in xrange(numLS):
-		    A+=mu[n+k]*integrate(inner(grad_m[k,:]*self.__s1[k,:],grad_q[k,:]))
-        n+=numLS*DIM    
-        
-        # this needs to be checked tested:
-        if self.__sc is not None:
-	      for k in xrange(numLS):
-		   gm_k=grad_m[k,:]
-		   gq_k=grad_q[k,:]
-		   len2_gm_k=length(gm_k)**2
-		   gmq_k = inner(gm_k,gq_k) 
-  		   for l in xrange(k):
-		       gm_l=grad_m[l,:]
-		       gq_l=grad_q[l,:]
-		       A+= mu[n+k*numLS+l] * integrate( self.__sc[l,k] * (
-		          ( gmq_k * length(gm_l)**2 + len2_gm_k * inner(gm_l,gq_l)
-                           - inner(gm_k, gm_l)*( inner(gm_k, gq_l) + inner(gq_k, gm_l) ) )
-		          ) )
-		          
-        return A       
-        
     def getGradient(self, m,  grad_m):
         """
         returns the gradient of the costfunction J with respect to m. The function returns Y_k=dPsi/dm_k and

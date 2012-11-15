@@ -88,22 +88,6 @@ class CostFunction(object):
         :rtype r: r-type
         """
         raise NotImplementedError
-
-    def getDirectionalDerivative(self, x, d, *args):
-        """
-        return the directional derivative of *f(x)* in direction of *d*
-        
-        :note: this returns ``dualProduct(d, grad f(x))`` but the method can be overwritten 
-        to use a more efficient evalautaion.
-        
-        :param x: location of derivative
-        :type x: x-type
-        :param d: direction
-        :type d: x-type
-        :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype: ``float``
-        """
-        return self.getDualProduct(d, self.getGradient(x, *args))
         
     def getArguments(self, x):
         """
@@ -164,7 +148,6 @@ class MeteredCostFunction(CostFunction):
         self.DualProduct_calls=0
         self.Value_calls=0
         self.Gradient_calls=0
-        self.DirectionalDerivative_calls=0
         self.Arguments_calls=0
 	self.InverseHessianApproximation_calls=0
         
@@ -237,38 +220,6 @@ class MeteredCostFunction(CostFunction):
         """      
         raise NotImplementedError
         
-    def getDirectionalDerivative(self, x, d, *args):
-        """
-        return the directional derivative of *f(x)* in direction of *d*
-        
-        :note: this returns ``dualProduct(d, grad f(x))`` but the method can be overwritten 
-        to use a more efficient evalautaion.
-        
-        :param x: location of derivative
-        :type x: x-type
-        :param d: direction
-        :type d: x-type
-        :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype: ``float``
-        """
-        self.DirectionalDerivative_calls+=1
-        return self._getDirectionalDerivative(x, d, *args)
-    
-    def _getDirectionalDerivative(self, x, d, *args):
-        """
-        returns the directional derivative of *f(x)* in direction of *d*
-        
-        :note: this returns ``dualProduct(d, grad f(x))`` but the method can be overwritten 
-        to use a more efficient evalautaion.
-        
-        :param x: location of derivative
-        :type x: x-type
-        :param d: direction
-        :type d: x-type
-        :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype: ``float``
-        """
-        return self.getDualProduct(d, self.getGradient(x, *args))
         
 
     def getArguments(self, x):
