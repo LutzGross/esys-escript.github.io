@@ -81,7 +81,6 @@ escript::Domain_ptr  rectangle(int n0,int n1,int order,
 
 namespace finley {
 
-  const boost::python::list EmptyPythonList = boost::python::list();
 struct null_deleter
 {
   void operator()(void const *ptr) const
