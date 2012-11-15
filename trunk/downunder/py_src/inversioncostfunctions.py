@@ -117,16 +117,6 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         
         return self.mu_model * ArithmeticTuple(Y, Data()) + g_reg
 
-        
-    def _getDirectionalDerivative(self, m, d, *args):
-        """
-        returns the directional derivative at *m* in direction *d*.
-
-        :rtype: `float`
-        """
-        dpdm = self.mapping.getDerivative(m)
-        return  self.mu_model* self.forwardmodel.getDirectionalDerivative(args[0], dpdm*d,*args[1]) + \
-                   getDirectionalDerivative(self, m, d, *args[2])
 
     def _getInverseHessianApproximation(self, m, r, *args):
         """
