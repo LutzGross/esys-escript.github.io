@@ -54,7 +54,7 @@ inv=MagneticInversion()
 inv.setSolverTolerance(1e-9)
 inv.setSolverMaxIterations(100)
 inv.setSolverOptions(initialHessian=100)
-inv.setWeights(mu_reg=1e-4)
+#inv.setWeights(mu_reg=1e-4)
 inv.setup(domainbuilder)
 
 k_new=inv.run()

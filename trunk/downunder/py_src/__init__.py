@@ -25,4 +25,4 @@ __url__="https://launchpad.net/escript-finley"
 from .datasources import *
 from .domainbuilder import *
 from .inversions import *
-
+from .costfunctions import *

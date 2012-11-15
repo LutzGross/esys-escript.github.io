@@ -23,13 +23,14 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['Mapping', 'BoundedRangeMapping', 'ScalingMapping']
+__all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping', 'BoundedRangeMapping', 'LinearMapping']
 
-from esys.escript import inf, sup, log, tanh
+from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths
+import esys.escript.unitsSI as U
 
 class Mapping(object):
     """
-    An abstract mapping class.
+    An abstract mapping class to map level set functions *m* to physical parameters *p*
     """
 
     def __init__(self, *args):
@@ -55,11 +56,108 @@ class Mapping(object):
 
     def getInverse(self, s):
         """
-        returns the value of the inverse of the mapping for s
+        returns the value of the inverse of the mapping for physical parameter p
         """
         raise NotImplementedError
 
+class LinearMapping(Mapping):
+    """
+    Maps a parameter by a linear transformation p = a *m + p0
+    """
 
+    def __init__(self, a=1, p0=0):
+        self.__a=a
+        self.__p0=p0
+        self.__a_inv = 1/a
+        
+    def getValue(self, m):
+        """
+        returns the value of the mapping for m
+        """
+        return self.__a*m + self.__p0
+
+    def getDerivative(self, m):
+        """
+        returns the value for the derivative of the mapping for m
+        """
+        return self.__a
+
+    def getInverse(self, p):
+        """
+        returns the value of the inverse of the mapping for s
+        """
+        return self.__a_inv * ( p - self.__p0)
+
+class DensityMapping(LinearMapping):
+    """
+    Density mapping with depth weighting
+    
+    *rho =  rho0 + drho  * ( (x_2 - z0)/l_z)^(beta/2) ) * m* 
+    
+    """
+    def __init__(self, domain, z0=None, rho0=None, drho=None,  beta=None):
+         """
+         set up mapping
+         
+         :param domain: domain of the mapping
+         :param z0: depth weighting offset. If not present no depth scaling is applied.
+         :param drho: density scale. By default density of granite = 2750kg/m**3 is used. 
+         :param rho0: reference density.
+         :param beta: depth weighting exponent.
+         :type domain: ``Domain``
+         :type z0: scalar
+         :type drho: scalar 
+         :type rho0: scalar
+         :type beta: ``float``
+         """
+         if rho0 == None: rho0=0.
+         if drho == None: drho=2750*U.kg/U.m**3
+         if beta == None: beta=2.
+         
+         self.domain=domain
+         if z0:
+	    DIM=self.domain.getDim()
+	    l_z=boundingBoxEdgeLengths(domain)[DIM-1]
+	    a = drho * ( (domain.getX()[DIM-1]-z0)/l_z )**(beta/2)
+	 else:
+	    a = drho
+	 super(DensityMapping,self).__init__(a=a, p0=rho0)
+	 
+class SusceptibilityMapping(LinearMapping):
+    """
+    Susceptibility mapping with depth weighting
+    
+    *k =  k0 + dk  * ( (x_2 - z0)/l_z)^(beta/2) ) * m* 
+    
+    """
+    def __init__(self, domain, z0=None, k0=None, dk=None,  beta=None):
+         """
+         set up mapping
+         
+         :param domain: domain of the mapping
+         :param z0: depth weighting offset. If not present no depth scaling is applied.
+         :param dk: susceptibility scale. Default 1.. 
+         :param k0: reference density. Default 0.
+         :param beta: depth weighting exponent.
+         :type domain: ``Domain``
+         :type z0: scalar
+         :type dk: scalar 
+         :type k0: scalar
+         :type beta: ``float``
+         """
+         if k0==None: k0=0
+         if beta==None: beta=2.
+         if dk==None: dk=1
+         self.domain=domain
+         if z0:
+	    DIM=self.domain.getDim()
+	    l_z=boundingBoxEdgeLengths(domain)[DIM-1]
+	    a = dk * ( (domain.getX()[DIM-1]-z0)/l_z )**(beta/2)
+	 else:
+	    a = dk
+	 super(SusceptibilityMapping,self).__init__(a=a, p0=k0)
+	 
+# needs REVISION        
 class BoundedRangeMapping(Mapping):
     """
     Maps an unbounded parameter to a bounded range. The mapping is smooth and
@@ -94,31 +192,5 @@ class BoundedRangeMapping(Mapping):
         return 1./2. * log( (s-self.s_min)/(self.s_max-s) )
 
 
-class ScalingMapping(Mapping):
-    """
-    Maps a parameter by scaling it with a constant.
-    """
 
-    def __init__(self, alpha=1):
-        if alpha==0:
-            raise ValueError("Scaling parameter must not be 0.")
-        self.__alpha=alpha
-
-    def getValue(self, m):
-        """
-        returns the value of the mapping for m
-        """
-        return self.__alpha*m
-
-    def getDerivative(self, m):
-        """
-        returns the value for the derivative of the mapping for m
-        """
-        return self.__alpha
-
-    def getInverse(self, s):
-        """
-        returns the value of the inverse of the mapping for s
-        """
-        return s/self.__alpha
 

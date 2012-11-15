@@ -1,0 +1,179 @@
+\chapter{Regularization}\label{Chp:ref:regularization}
+
+The general cost function $J_{total}$ to be minimized has some of the cost function $J_{forward}$ measuring the defect of the result from the  
+forward model with the data and the cost function $J_{reg}$ introducing the regularization into the problem and makes sure 
+that a unique answer exists. The regularization term is a function of possibly, vector-valued level set function  $m$ which 
+represents the physical properties to be represented and is - from a mathematical point of view - the unknown
+of the inversion problem. It is the intention that the values of $m$ are between zero and one and that
+actual physical values are created from a mapping before being fed into a forward model. In general the cost function $J_{reg}$ is 
+defined as 
+\begin{equation}\label{EQU:REG:1}
+J_{reg}(m) = \frac{1}{2} \int_{\Omega} 
+ \sum_{k} \mu^{(0)}_k \cdot s^{(0)}_k \cdot m_k^2 +  \mu^{(1)}_{ki} \cdot s^{(1)}_{ki} \cdot L_i^2  \cdot m_{k,i} \cdot m_{k,i}
++  \sum_{l<k} \mu^{(c)}_{lk} \cdot s^{(c)}_{lk} \cdot L^4  \cdot  \sigma(m_l,m_k) dx 
+\end{equation} 
+where $s^{(0)}_k$, $s^{(1)}_{ki}$ and $s^{(c)}_{lk}$ are scaling factors with values between
+zero and one (limits including). They may vary with there location within the domain $\Omega$.  $L_i$ is the width of the domain in $x_i$ direction and $L^2=L_i \cdot L_i$.
+$sigma$ is a given symmetric, non-negative cross correlation function. We use
+\begin{equation}\label{EQU:REG:4}
+ \sigma(a,b) =  ( a_{,i} \cdot a_{,i}) \cdot ( b_{,i} \cdot b_{,i}) -   ( a_{,i} \cdot b_{,i})^2 
+\end{equation} 
+Notice that cross correlation function is measuring the angle between the surface normals of contours of level set functions. So 
+minimizing the cost function will make align the surface normals of the contours.
+The additional weight factors $\mu^{(0)}_k$, $ \mu^{(1)}_{ki}$ and $\mu^{(c)}_{lk}$ are between zero and one and constant across the 
+domain. They are potentially modified during the inversion in order to improve the balance between the different terms 
+in the cost function. Notice that values for $\mu^{(0)}_k$, $ \mu^{(1)}_{ki}$ and $\mu^{(c)}_{lk}$ are relevant for which 
+the values of the corresponding entries in scaling factors $s^{(0)}_k$, $s^{(1)}_{ki}$ and $s^{(c)}_{lk}$ are non-zero.
+Notice that the factors $L^4$ and $L_i^2$ are take care of any length scale changes. With the notation
+\begin{equation}\label{EQU:REG:2}
+\begin{array}{rcl}
+\widehat{s}^{(0)}_k & = & \mu^{(0)}_k \cdot w^{(0)}_k \\
+\widehat{s}^{(1)}_{ki} & = & \mu^{(1)}_{ki} \cdot w^{(1)}_{ki} \cdot L_i^2  \\
+\widehat{s}^{(c)}_{lk} & = & \mu^{c}_{lk} \cdot w^{(c)}_{lk} \cdot L^4  \\
+\end{array}
+\end{equation} 
+with $k<l$ we can write
+\begin{equation}\label{EQU:REG:1b}
+J_{reg}(m) = \frac{1}{2} \int_{\Omega} \left(
+ \sum_{k} \widehat{s}^{(0)}_k \cdot m_k^2 + \widehat{s}^{(1)}_{ki}  \cdot m_{k,i} \cdot m_{k,i}
++  \sum_{l<k} \widehat{s}^{(c)}_{lk} \cdot  \sigma(m_l,m_k) \right) dx 
+\end{equation} 
+We need to provide the derivative $\frac{ \partial J_{reg}}{\partial q}$  of the cost function $J_{reg}$ with respect to a given direction $q$ which equals zero at locations
+where $m$ is assumed to be zero. The derivative is given as 
+\begin{equation}\label{EQU:REG:3}
+\frac{ \partial J_{reg}}{\partial q}(m) =
+ \int_{\Omega} Y_k \cdot q_k + X_{k,i} q_{k,i} dx 
+\end{equation} 
+where
+
+
+
+ For a single-valued 
+level set function th is takes the form 
+\begin{equation}\label{EQU:REG:3}
+\frac{ \partial J_{reg}}{\partial q}(m) =
+\mu^{reg} \int_{\Omega} \omega \cdot m \cdot q  + \omega_i \cdot L_i^2 \cdot m_{,i} \cdot q_{,i} dx
+\end{equation} 
+So we can represent the gradient $\nabla J_{reg}$ of the cost function $J_{reg}$ by the pair of values $(Y,X)$ where we set   
+\begin{equation}\label{EQU:REG:3b}
+Y=\mu^{reg} \cdot \omega \cdot m \mbox{ and } X_i = \mu^{reg} \cdot \omega_i \cdot L_i^2 \cdot m_{,i}
+\end{equation} 
+and 
+\begin{equation}\label{EQU:REG:3c}
+\frac{ \partial J_{reg}}{\partial q}(m) = [ \nabla J_{reg}(m), q ] =
+\int_{\Omega} Y  \cdot q  + X_i  \cdot q_{,i} dx
+\end{equation} 
+where $[.,.]$ is called the dual product.
+
+
+
+==============================================================
+
+where $<.,.>$ is an inner product. If the level set function  $m$ has several components $m_j$ the inner product $<.>$ is given
+in the form 
+$\omega^{(k)}$ and $\omega^{(k)}_i$ are fixed non-negative weighting factors and  $\mu^{reg}_k$ are weighting factors
+which may be modified during the inversion.  $L_i$ is the length of the domain in $x_i$ direction. In the special case that 
+the level set function  $m$ has a single component the inner product takes the form
+\begin{equation}\label{EQU:REG:2b}
+<p,q> = 
+\mu^{reg} \int_{\Omega} \omega \cdot p \cdot q  + \omega_i \cdot L_i^2 \cdot p_{,i} \cdot q_{,i} dx
+\end{equation} 
+In practice it is assumed that the level set function is known to be zero in certain regions in the domain. Typically these regions
+corresponds to region above the surface or regions explored by drilling.
+
+We need to provide the derivative of the cost function $J_{reg}$ with respect to a given direction $q$ which equals zero at locations
+where $m$ is assumed to be zero. For a single-valued 
+level set function th is takes the form 
+\begin{equation}\label{EQU:REG:3}
+\frac{ \partial J_{reg}}{\partial q}(m) =
+\mu^{reg} \int_{\Omega} \omega \cdot m \cdot q  + \omega_i \cdot L_i^2 \cdot m_{,i} \cdot q_{,i} dx
+\end{equation} 
+So we can represent the gradient $\nabla J_{reg}$ of the cost function $J_{reg}$ by the pair of values $(Y,X)$ where we set   
+\begin{equation}\label{EQU:REG:3b}
+Y=\mu^{reg} \cdot \omega \cdot m \mbox{ and } X_i = \mu^{reg} \cdot \omega_i \cdot L_i^2 \cdot m_{,i}
+\end{equation} 
+and 
+\begin{equation}\label{EQU:REG:3c}
+\frac{ \partial J_{reg}}{\partial q}(m) = [ \nabla J_{reg}(m), q ] =
+\int_{\Omega} Y  \cdot q  + X_i  \cdot q_{,i} dx
+\end{equation} 
+where $[.,.]$ is called the dual product.
+
+For a multi-valued level set function an additional correlation term is introduced into the cost function $J_{total}$:
+\begin{equation}\label{EQU:REG:1c}
+J_{reg}(m)  =  \frac{1}{2} < m,   m > + \frac{1}{2}  \sum_{k,l} \mu_{kl}^{sec} \cdot \int_{\Omega} \sigma(m_k,m_l) dx
+\end{equation} 
+where $sigma$ is a given symmetric, non-negative correlation function, and $\mu_{kl}^{sec}$ are symmetric, weighting factors 
+($\mu_{kl}^{sec} = \mu_{lk}^{sec}$, $\mu_{kk}^{sec}=0$) which may 
+be altered during the inversion. We use the correlation function 
+\begin{equation}\label{EQU:REG:4}
+ \sigma(a,b) = \frac{L^2}{2} \cdot ( ( a_{,i} \cdot a_{,i}) \cdot ( b_{,i} \cdot b_{,i}) -   ( a_{,i} \cdot b_{,i})^2 )
+\end{equation} 
+with $L=L_i \cdot L_i$. Minimizing $J_{reg}(m)$ is minimizing the angle between the surface normals of the contours formed by
+two level set function. the derivative of the cost function $J_{reg}$ with respect to a given direction $q$  which equals zero at locations
+where $m$ is assumed to be zero:
+\begin{equation}\label{EQU:REG:5}
+\begin{array}{ll}
+\displaystyle{\frac{ \partial J_{reg}}{\partial q}(m)} =
+\displaystyle{\sum_{k} \mu^{reg}_k \int_{\Omega} \omega^{(k)} \cdot m_k \cdot q_k  + \omega^{(k)}_i \cdot L_i^2 \cdot m_{k,i} \cdot q_{k,i} dx } \\
++ \displaystyle{\sum_{k,l} \mu_{kl}^{sec} \cdot {L^2}  \int_{\Omega}  ( m_{k,i} \cdot q_{k,i}) \cdot ( m_{l,j} \cdot m_{l,j}) -   ( m_{k,j} \cdot m_{l,j}) \cdot  ( q_{l,i} \cdot m_{k,i}) } dx 
+\end{array}
+\end{equation} 
+Similar to the single-case we can represent  
+the gradient $\nabla J_{reg}$ of the cost function $J_{reg}$ by the pair of values $(Y,X)$ where we set   
+\begin{equation}\label{EQU:REG:6}
+Y_k= \mu^{reg}_k  \cdot \omega^{(k)} \cdot m_k
+\end{equation} 
+and 
+\begin{equation}\label{EQU:REG:6b}
+X_{ki} = \mu^{reg}_k \cdot  \omega^{(k)} \cdot L_i^2 \cdot m_{k,i} +
+\sum_{l} \mu_{kl}^{sec} \cdot {L^2} \cdot ( ( m_{l,j} \cdot m_{l,j}) \cdot m_{k,i}  -   ( m_{l,j} \cdot m_{k,j}) \cdot m_{l,i} ) 
+\end{equation} 
+and 
+\begin{equation}\label{EQU:REG:7}
+\frac{ \partial J_{reg}}{\partial q}(m) = [ \nabla J_{reg}(m), q ] =
+\int_{\Omega} Y_j  \cdot q_j  + X_{ki}  \cdot q_{k,i} dx
+\end{equation} 
+where $[.,.]$ is the dual product.
+
+We also need to provide an approximation of the inverse of the Hessian operator which provides a 
+level set function $h$ for a given value $r$ represented by the pair of values $(Y,X)$. If one ignores the correlation function
+the inner product defines the Hessian operator of the cost function. In this approach we set 
+\begin{equation}\label{EQU:REG:8}
+ < p,   h > = [p, r]
+\end{equation} 
+for all $p$. This problem can be solved using \escript \class{LinearPDE} class by setting
+\begin{equation}\label{EQU:REG:8b}
+\begin{array}{rcl}
+ A_{ij} & =&  (\omega_i \cdot L_i^2) \cdot \delta_{ij}  \\
+D & = & \mu^{reg} \cdot \omega
+\end{array}
+\end{equation} 
+and $X$ and $Y$ as defined by $r$ for the case of a single-valued level set function.
+For a vector-valued level-set function one sets:
+\begin{equation}\label{EQU:REG:8c}
+\begin{array}{rcl}
+ A_{kilj} & = & (\mu^{reg}_l \omega^{(l)}_i L_i^2) \cdot  \delta_{kl} \cdot  \delta_{ij}  \\
+D_{kl} & =  & \mu^{reg}_l  \cdot \omega^{(l)} \delta_{kl}  \omega
+\end{array}
+\end{equation} 
+====================================================
+\begin{classdesc}{Regularization}{domain, \optional{s0=\None,  \optional{s1=\None, \optional{sc=\None, 
+\optional{location_of_set_m=Data(), 
+\optional{numLevelSets=1, 
+\optional{useDiagonalHessianApproximation=\True, \optional{tol=1e-8}}}}}}}}
+
+opens a linear, steady, second order PDE on the \Domain \var{domain}.
+The parameters \var{numEquations} and \var{numSolutions} give the number of
+equations and the number of solution components.
+If \var{numEquations} and \var{numSolutions} are non-positive, then the number
+of equations and the number of solutions, respectively, stay undefined until a
+coefficient is defined.
+\end{classdesc}
+ 
+
+
+\subsection{The general regularization class}
+\begin{classdesc}{RegularizationBase}{}
+
+\end{classdesc}

@@ -40,7 +40,7 @@ features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
      x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=200., v_outer=1e-6)]
 
 logger=logging.getLogger('inv')
-logger.setLevel(logging.INFO)
+logger.setLevel(logging.DEBUG)
 handler=logging.StreamHandler()
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
@@ -54,7 +54,7 @@ inv=GravityInversion()
 inv.setSolverTolerance(1e-9)
 inv.setSolverMaxIterations(100)
 inv.setSolverOptions(initialHessian=10)
-inv.setWeights(mu_reg=1e-5)
+inv.setWeights(mu_reg=1e-5*0+1.)
 inv.setup(domainbuilder)
 
 rho_new=inv.run()

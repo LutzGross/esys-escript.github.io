@@ -30,6 +30,7 @@ from esys.escript.util import *
 from esys.escript import Data, Vector, Scalar, Function
 from math import pi as PI
 
+
 class ForwardModel(object):
     """
     An abstract forward model that can be plugged into a cost function.
@@ -47,7 +48,13 @@ class ForwardModel(object):
 
     def getGradient(self, x, *args):
         raise NotImplementedError
-
+    def getDirectionalDerivative(self, x, d, *args):
+        """
+        return directional derivatiave
+        """
+        Y=self.getGradient(x, *args)
+        return integrate(p * Y)
+        
 class ForwardModelWithPotential(ForwardModel):
     """
     Base class for a forward model using a potential such as magnetic or
@@ -60,7 +67,7 @@ class ForwardModelWithPotential(ForwardModel):
     It is assumed that the forward model is produced through postprocessing
     of the solution of a potential PDE.
     """
-    def __init__(self, domain, weight, data, fix_all_faces=False, tol=1e-8):
+    def __init__(self, domain, weight, data,  tol=1e-8):
         """
         initialization.
 
@@ -70,9 +77,6 @@ class ForwardModelWithPotential(ForwardModel):
         :type weight: `Vector` or list of `Vector`
         :param data: data
         :type data: `Vector` or list of `Vector`
-        :param fix_all_faces: if ``true`` all faces of the domain are fixed
-                              otherwise only the top surface
-        :type fix_all_faces: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
 
@@ -93,12 +97,12 @@ class ForwardModelWithPotential(ForwardModel):
 
         A=0
         for s in xrange(len(self.__weight)):
-            A2 = integrate(inner(self.__weight[s], self.__data[s]**2))
-            if A2 < 0:
-                raise ValueError("Negative weighting factor for survey %s"%s)
-            A=max(A2, A)
-        if not A > 0:
-            raise ValueError("No reference data set.")
+            A += integrate(inner(self.__weight[s], self.__data[s]**2))      
+        if A > 0:
+	    for s in xrange(len(self.__weight)):  self.__weight[s]*=1./A
+	else:
+            raise ValueError("No non-zero data contribution found.")
+            
 
         BX = boundingBox(domain)
         DIM = domain.getDim()
@@ -106,14 +110,7 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
-
-        if fix_all_faces:
-            constraint=whereZero(x[DIM-1]-BX[DIM-1][1])+whereZero(x[DIM-1]-BX[DIM-1][0])
-            for i in xrange(DIM-1):
-                constraint=constraint+whereZero(x[i]-BX[i][1])+whereZero(x[i]-BX[i][0])
-        else:
-            constraint=whereZero(x[DIM-1]-BX[DIM-1][1])
-        self.__pde.setValue(q=constraint)
+        self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
 
     def getDomain(self):
         """
@@ -155,12 +152,13 @@ class ForwardModelWithPotential(ForwardModel):
         return self.__data[index], self.__weight[index]
 
 
+
 class GravityModel(ForwardModelWithPotential):
     """
     Forward Model for gravity inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, chi, g, fix_all_faces=False, gravity_constant=U.Gravitational_Constant, tol=1e-8):
+    def __init__(self, domain, chi, g,  gravity_constant=U.Gravitational_Constant, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
         surveys (chi, g).
@@ -177,7 +175,7 @@ class GravityModel(ForwardModelWithPotential):
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         """
-        super(GravityModel, self).__init__(domain, chi, g, fix_all_faces, tol)
+        super(GravityModel, self).__init__(domain, chi, g, tol)
 
         self.__G = gravity_constant
         self.getPDE().setValue(A=kronecker(self.getDomain()))
@@ -256,7 +254,7 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, chi, B, background_field, fix_all_faces=False, tol=1e-8):
+    def __init__(self, domain, chi, B, background_field,  tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (chi, B).
@@ -273,7 +271,7 @@ class MagneticModel(ForwardModelWithPotential):
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         """
-        super(MagneticModel, self).__init__(domain, chi, B, fix_all_faces, tol)
+        super(MagneticModel, self).__init__(domain, chi, B, tol)
         self.__background_field=interpolate(background_field, Function(self.getDomain()))
         self.getPDE().setValue(A=kronecker(self.getDomain()))
 
@@ -287,7 +285,7 @@ class MagneticModel(ForwardModelWithPotential):
         :rtype: ``Scalar``, ``Vector``
         """
         phi = self.getPotential(k)
-        magnetic_field = (1+k) * self.__background_field -grad(phi)
+        magnetic_field = k * self.__background_field -grad(phi)
         return phi, magnetic_field
 
     def getPotential(self, k):
@@ -302,7 +300,7 @@ class MagneticModel(ForwardModelWithPotential):
         pde=self.getPDE()
 
         pde.resetRightHandSideCoefficients()
-        pde.setValue(X = (1+k)* self.__background_field)
+        pde.setValue(X = k* self.__background_field)
         phi=pde.getSolution()
 
         return phi
@@ -342,6 +340,12 @@ class MagneticModel(ForwardModelWithPotential):
 
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
+        
+        print "test VTK file generated"
+        from esys.weipa import saveVTK
+        saveVTK("Y.vtu",RHS=pde.getRightHandSide(), Y=Y)
+        
         YT=pde.getSolution()
         return inner(Y-grad(YT),self.__background_field)
 
+        
