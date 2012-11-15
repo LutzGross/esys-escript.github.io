@@ -26,6 +26,7 @@ __all__ = ['AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerBFGS', 'MinimizerNLC
 
 import logging
 import numpy as np
+
 try:
     from esys.escript import Lsup, sqrt, EPSILON
 except:
@@ -92,7 +93,7 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
         return f(x+a*p, *args)
     def gradphi(a, *args):
         gf_new[0]=f.getGradient(x+a*p, *args)
-        return f.getInner(gf_new[0], p)
+        return f.getDualProduct(p, gf_new[0])
         #return f.getDirectionalDerivative(x+a*p, p, *args)
     def phiargs(a):
         try:
@@ -110,7 +111,7 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
     else:
         phi0=fx
     lslogger.debug("phi(0)=%e"%(phi0))
-    gphi0=f.getInner(gf, p) #gradphi(0., *args0)
+    gphi0=f.getDualProduct(p, gf) #gradphi(0., *args0)
     lslogger.debug("grad phi(0)=%e"%(gphi0))
     old_phi_a=phi0
     i=1
@@ -221,10 +222,11 @@ class AbstractMinimizer(object):
         """
         Outputs a summary of the completed minimization process to the logger.
         """
-        self.logger.warning("Number of function evaluations: %d"%self._f.Value_calls)
-        self.logger.warning("Number of gradient evaluations: %d"%self._f.Gradient_calls)
-        self.logger.warning("Number of inner product evaluations: %d"%self._f.Inner_calls)
-        self.logger.warning("Number of argument evaluations: %d"%self._f.Arguments_calls)
+        if hasattr(self._f, "Value_calls"):
+	  self.logger.warning("Number of function evaluations: %d"%self._f.Value_calls)
+	  self.logger.warning("Number of gradient evaluations: %d"%self._f.Gradient_calls)
+	  self.logger.warning("Number of inner product evaluations: %d"%self._f.DualProduct_calls)
+	  self.logger.warning("Number of argument evaluations: %d"%self._f.Arguments_calls)
 
 
 ##############################################################################
@@ -252,15 +254,16 @@ class MinimizerLBFGS(AbstractMinimizer):
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
-    def getNorm(self, x):
-        return sqrt(self._f.getInner(x, x))
-
     def run(self, x):
         args=self._f.getArguments(x)
         gf=self._f.getGradient(x, *args)
         fx=self._f(x, *args)
+        if self._f.provides_inverse_Hessian_approximation:
+            self._f.updateHessian()
+            invH_scale = None 
+        else:
+	    invH_scale = self._initial_H
         k=0
-        H=self._initial_H
         error=2*self._tol
         s_and_y=[]
 
@@ -270,12 +273,12 @@ class MinimizerLBFGS(AbstractMinimizer):
             #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
             self.logger.info("iteration %d, error=%e"%(k,error))
             # determine search direction
-            p = -self._twoLoop(H, gf, s_and_y)
+            p = -self._twoLoop(invH_scale, gf, s_and_y, x, *args)
 
-            self.logger.debug("H = %s"%H)
+            if invH_scale: self.logger.debug("H = %s"%invH_scale)
             self.logger.debug("grad f(x) = %s"%gf)
-            self.logger.debug("p = %s"%p)
-            self.logger.debug("x = %s"%x)
+            #self.logger.debug("p = %s"%p)
+            #self.logger.debug("x = %s"%x)
 
             # determine step length
             alpha, fx_new, gf_new = line_search(self._f, x, p, gf, fx)
@@ -283,14 +286,20 @@ class MinimizerLBFGS(AbstractMinimizer):
             # execute the step
             x_new = x + alpha*p
             if gf_new is None:
-                gf_new=self._f.getGradient(x_new)
+	        args=self._f.getArguments(x_new)
+                gf_new=self._f.getGradient(x_new, args)
+
             delta_x=x_new-x
             delta_g=gf_new-gf
-            s_and_y.append((delta_x,delta_g))
+            s_and_y.append((delta_x,delta_g, self._f.getDualProduct(delta_x, delta_g) ))
+            
+            # this needs to be reviewed
             if fx_new==0.:
                 error=fx
             else:
                 error=abs(fx_new-fx)/abs(fx_new)
+            
+            self._f.updateHessian()
             x=x_new
             gf=gf_new
             fx=fx_new
@@ -301,14 +310,14 @@ class MinimizerLBFGS(AbstractMinimizer):
             # delete oldest vector pair
             if k>self._m: s_and_y.pop(0)
 
-            # set the new scaling factor (approximation of inverse Hessian)
-            gnorm=self.getNorm(gf)
-            denom=self.getNorm(delta_g)
-            if denom < EPSILON * gnorm:
-                H=1.
-                self.logger.debug("Break down in H update. Resetting to 1.")
-            else:
-                H=self._f.getInner(delta_x,delta_g)/denom**2
+            if not self._f.provides_inverse_Hessian_approximation:            
+		  # set the new scaling factor (approximation of inverse Hessian)
+		  denom=self._f.getDualProduct(delta_g, delta_g)
+		  if denom > 0:
+		      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
+		  else:
+		      invH_scale=self._initial_H
+		      self.logger.debug("Break down in H update. Resetting to initial value %s."%self._initial_H) 
 
         if k >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
@@ -319,23 +328,25 @@ class MinimizerLBFGS(AbstractMinimizer):
         self._result=x
         return reason
 
-    def _twoLoop(self, H, gf, s_and_y):
+    def _twoLoop(self, invH_scale, gf, s_and_y, x, *args):
         """
         Helper for the L-BFGS method.
         See 'Numerical Optimization' by J. Nocedal for an explanation.
         """
         q=gf
         alpha=[]
-        for s,y in reversed(s_and_y):
-            rho=1./(self._f.getInner(s, y))
-            a=rho*self._f.getInner(s, q)
+        for s,y, rho in reversed(s_and_y):
+            a=self._f.getDualProduct(s, q)/rho
             alpha.append(a)
             q=q-a*y
 
-        r=H*q
-        for s,y in s_and_y:
-            rho=1./(self._f.getInner(s, y))
-            beta=rho*self._f.getInner(y,r)
+        if self._f.provides_inverse_Hessian_approximation:    
+             r= self._f.getInverseHessianApproximation(x, q, *args)
+        else:
+	     r= invH_scale * q
+	     
+        for s,y,rho in s_and_y:
+            beta=self._f.getDualProduct(r, y)/rho
             a=alpha.pop()
             r=r+s*(a-beta)
         return r
@@ -377,7 +388,7 @@ class MinimizerBFGS(AbstractMinimizer):
             self.logger.info("iteration %d, gnorm=%e"%(k,gnorm))
 
             # determine search direction
-            d=-self._f.getInner(H, gf)
+            d=-self._f.getDualProduct(H, gf)
 
             self.logger.debug("H = %s"%H)
             self.logger.debug("grad f(x) = %s"%gf)
@@ -401,7 +412,7 @@ class MinimizerBFGS(AbstractMinimizer):
             if (gnorm<=self._tol): break
 
             # update Hessian
-            denom=self._f.getInner(delta_x, delta_g)
+            denom=self._f.getDualProduct(delta_x, delta_g)
             if denom < EPSILON * gnorm:
                 denom=1e-5
                 self.logger.debug("Break down in H update. Resetting.")
@@ -409,7 +420,7 @@ class MinimizerBFGS(AbstractMinimizer):
             self.logger.debug("rho=%e"%rho)
             A=I-rho*delta_x[:,None]*delta_g[None,:]
             AT=I-rho*delta_g[:,None]*delta_x[None,:]
-            H=self._f.getInner(A, self._f.getInner(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
+            H=self._f.getDualProduct(A, self._f.getDualProduct(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
         if k >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
             self.logger.warning("Maximum number of iterations reached!")
@@ -434,7 +445,7 @@ class MinimizerNLCG(AbstractMinimizer):
         r=-self._f.getGradient(x, *args)
         fx=self._f(x, *args)
         d=r
-        delta=self._f.getInner(r,r)
+        delta=self._f.getDualProduct(r,r)
         delta0=delta
         self._doCallback(i, x, fx, -r)
 
@@ -449,7 +460,7 @@ class MinimizerNLCG(AbstractMinimizer):
             x=x+alpha*d
             r=-self._f.getGradient(x) if gf_new is None else -gf_new
             delta_o=delta
-            delta=self._f.getInner(r,r)
+            delta=self._f.getDualProduct(r,r)
             beta=delta/delta_o
             d=r+beta*d
             k=k+1
@@ -457,7 +468,7 @@ class MinimizerNLCG(AbstractMinimizer):
                 lenx=len(x)
             except:
                 lenx=x.getNumberOfDataPoints()
-            if k == lenx or self._f.getInner(r,d) <= 0:
+            if k == lenx or self._f.getDualProduct(r,d) <= 0:
                 d=r
                 k=0
             i+=1
@@ -477,13 +488,16 @@ class MinimizerNLCG(AbstractMinimizer):
 if __name__=="__main__":
     # Example usage with function 'rosen' (minimum=[1,1,...1]):
     from scipy.optimize import rosen, rosen_der
-    from esys.downunder.costfunctions import CostFunction
+    from esys.downunder import  MeteredCostFunction
     import sys
-    N=100
+    N=10
     x0=np.array([4.]*N) # initial guess
 
-    class RosenFunc(CostFunction):
-        def _getInner(self, f0, f1):
+    class RosenFunc(MeteredCostFunction):
+        def __init__(self):
+	   super(RosenFunc, self).__init__()
+           self.provides_inverse_Hessian_approximation=False
+        def _getDualProduct(self, f0, f1):
             return np.dot(f0, f1)
         def _getValue(self, x, *args):
             return rosen(x)
@@ -504,7 +518,7 @@ if __name__=="__main__":
         m=MinimizerLBFGS(f)
         #m.setOptions(historySize=10000)
 
-    logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.INFO)
+    logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.DEBUG)
     m.setTolerance(1e-5)
     m.setMaxIterations(600)
     m.run(x0)

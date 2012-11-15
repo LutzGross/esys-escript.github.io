@@ -19,30 +19,32 @@ which have different requirements on $f$ in order to be successful.
 We assume that $n$ is large and computing the Hessian matrix
 $\nabla^2 f(\mat{x})$ is not feasible.
 The algorithms that are most widely used in the literature for this type of
-optimization problem are the \emph{Nonlinear Conjugate Gradient} (\emph{NLCG})
-method and the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS}),
+optimization problem is the 
+%the \emph{Nonlinear Conjugate Gradient} (\emph{NLCG}) 
+the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS}),
 which is a \emph{quasi-Newton} method.
 
-\section{The Nonlinear Conjugate Gradient method}\label{sec:NLCG}
-The steps for NLCG are
-\begin{enumerate}
-    \item Given an initial guess $\mat{x}_0$, compute the steepest descent
-        direction using the gradient: $\mat{p}_0=-\nabla f(\mat{x}_0)$
-    \item Perform an inexact \emph{line search} (see Section~\ref{sec:LineSearch}) to obtain the step
-        length $\alpha_i$ which loosely minimizes $f(\mat{x}_i+\alpha_i \mat{d}_i)$
-    \item Update the position: $\mat{x}_{i+1}=\mat{x}_i+\alpha_i \mat{d}_i$
-    \item Update the conjugate direction: $\mat{d}_{i+1}=-\nabla f(\mat{x}_{i+1})+\beta_{i+1} \mat{d}_i$\label{CGupdate}
-\end{enumerate}
+% 
+%\section{The Nonlinear Conjugate Gradient method}\label{sec:NLCG}
+%The steps for NLCG are
+%\begin{enumerate}
+%    \item Given an initial guess $\mat{x}_0$, compute the steepest descent
+%        direction using the gradient: $\mat{p}_0=-\nabla f(\mat{x}_0)$
+%    \item Perform an inexact \emph{line search} (see Section~\ref{sec:LineSearch}) to obtain the step
+%        length $\alpha_i$ which loosely minimizes $f(\mat{x}_i+\alpha_i \mat{d}_i)$
+%    \item Update the position: $\mat{x}_{i+1}=\mat{x}_i+\alpha_i \mat{d}_i$
+%    \item Update the conjugate direction: $\mat{d}_{i+1}=-\nabla f(\mat{x}_{i+1})+\beta_{i+1} \mat{d}_i$\label{CGupdate}
+%\end{enumerate}
 
-\flushleft There are many choices for the CG update parameter $\beta_{i+1}$ in step
-\ref{CGupdate} above, see \cite{Hager2006} for a discussion. An efficient
-choice, proposed by Polak and Ribi\`{e}re, is:
-\begin{equation*}
-    \beta_{i+1}=\text{max}\left\{\frac{\nabla f^T(\mat{x}_{i+1})(\nabla f(\mat{x}_{i+1})-\nabla f(\mat{x}_i))}{\| \nabla f(\mat{x}_i)\|}, 0\right\}
-\end{equation*}
+%\flushleft There are many choices for the CG update parameter $\beta_{i+1}$ in step
+%\ref{CGupdate} above, see \cite{Hager2006} for a discussion. An efficient
+%choice, proposed by Polak and Ribi\`{e}re, is:
+%\begin{equation*}
+%    \beta_{i+1}=\text{max}\left\{\frac{\nabla f^T(\mat{x}_{i+1})(\nabla f(\mat{x}_{i+1})-\nabla f(\mat{x}_i))}{\| \nabla f(\mat{x}_i)\|}, 0\right\}
+%\end{equation*}
 
 
-\section{Limited-Memory BFGS Method}\label{sec:LBFGS}
+%\section{Limited-Memory BFGS Method}\label{sec:LBFGS}
 The L-BFGS algorithm is as follows:
 
 \begin{algorithm}
@@ -63,7 +65,7 @@ The L-BFGS algorithm is as follows:
         \FI
         s_k \leftarrow x_{k+1}-x_k;
         y_k \leftarrow \nabla f_{k+1}-\nabla f_k;
-        \gamma_k \leftarrow \frac{s^T_k y_k}{y^T_k y_k};
+        \gamma_k \leftarrow \frac{[s_k,y_k]}{[y_k, y_k]_0};
         H_k \leftarrow \gamma_k I
         k \leftarrow k+1;
         \OD

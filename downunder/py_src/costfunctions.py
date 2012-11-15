@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-"""Collection of cost functions for minimization"""
+"""General cost functions for minimization"""
 
 __copyright__="""Copyright (c) 2003-2012 by University of Queensland
 http://www.uq.edu.au
@@ -22,11 +22,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-try:
-    # only needed for getDirectionalDerivative(), so ignore error
-    from esys.escript import grad
-except:
-    pass
+__all__ = ['CostFunction', 'MeteredCostFunction' ]
+
 
 class CostFunction(object):
     """
@@ -40,12 +37,11 @@ class CostFunction(object):
         f=cf.getValue(x, *args)
         # ... it could be required to update x without using the gradient...
         # ... but then ...
-        gf=cf.getGradient(x, *args)
+        gf=cf.getGradient(x, *args) 
 
-    The function calls update statistical information.
-    The actual work is done by the methods with corresponding name and a
-    leading underscore. These functions need to be overwritten for a particular
-    cost function implementation.
+        
+    The class makes a difference for the representation of the solution x (x-type) and 
+    the gradients (r-type). 
     """
 
     def __init__(self):
@@ -53,31 +49,27 @@ class CostFunction(object):
         the base constructor initializes the counters so subclasses should
         ensure the super class constructor is called.
         """
-        self.resetCounters()
-
-    def resetCounters(self):
+        self.provides_inverse_Hessian_approximation=True
+        
+    def getDualProduct(self, x, r):
         """
-        resets all statistical counters
+        returns the dual product of ``x`` and ``r``
+        
+        :type x: x-type
+        :type r: r-type
+        :rtype: ```float```
         """
-        self.Inner_calls=0
-        self.Value_calls=0
-        self.Gradient_calls=0
-        self.DirectionalDerivative_calls=0
-        self.Arguments_calls=0
-
-    def getInner(self, f0, f1):
-        """
-        returns the inner product of ``f0`` and ``f1``
-        """
-        self.Inner_calls+=1
-        return self._getInner(f0, f1)
+        raise NotImplementedError
 
     def getValue(self, x, *args):
         """
         returns the value *f(x)* using the precalculated values for *x*.
+        
+        :param x: a solution approximation
+        :type x: x-type
+        :rtype: ```float```
         """
-        self.Value_calls+=1
-        return self._getValue(x, *args)
+        raise NotImplementedError
 
     def __call__(self, x, *args):
         """
@@ -89,158 +81,251 @@ class CostFunction(object):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
+        
+        :param x: location of derivative
+        :type x: x-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype r: r-type
         """
-        self.Gradient_calls+=1
-        return self._getGradient(x, *args)
+        raise NotImplementedError
 
     def getDirectionalDerivative(self, x, d, *args):
         """
-        returns ``inner(grad f(x), d)`` using the precalculated values for *x*.
+        return the directional derivative of *f(x)* in direction of *d*
+        
+        :note: this returns ``dualProduct(d, grad f(x))`` but the method can be overwritten 
+        to use a more efficient evalautaion.
+        
+        :param x: location of derivative
+        :type x: x-type
+        :param d: direction
+        :type d: x-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype: ``float``
+        """
+        return self.getDualProduct(d, self.getGradient(x, *args))
+        
+    def getArguments(self, x):
+        """
+        returns precalculated values that are shared in the calculation of
+        *f(x)* and *grad f(x)* and the Hessian operator
+        
+        :param x: location of derivative
+        :type x: x-type 
+        """
+        return ()
+        
+    def getInverseHessianApproximation(self, x, r, *args):
+        """
+        returns an approximative evaluation *p* of the inverse of the Hessian operator of the costfunction
+        for a given gradient type *r* at a given location *x*: *H(x) p = r*
+        
+        :param x: location of Hessian operator to be evaluated.
+        :type x: x-type
+        :param r: a given gradient 
+        :type r: r-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype x: x-type
+        :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
+        location *x*. However, the solver may suggest that this is not required, typically when the iteration 
+        is close to completeness.
+        :note: class attribute provides_inverse_Hessian_approximation need to be set to True to encourage
+        the solver to call this method.
+       
+        """
+        raise NotImplementedError
+        
+    def updateHessian(self):
+        """
+        notifies the class that the Hessian operator needs to be updated. This method is 
+        called by the solver method.
+        """
+        pass
+    
+class MeteredCostFunction(CostFunction):
+    """
+    This an intrumented version of the ``CostFunction`` class. The function calls update statistical information.
+    The actual work is done by the methods with corresponding name and a leading underscore. These functions
+    need to be overwritten for a particular cost function implementation.
+    """
+
+    def __init__(self):
+        """
+        the base constructor initializes the counters so subclasses should
+        ensure the super class constructor is called.
+        """
+        super(MeteredCostFunction, self).__init__()
+        self.resetCounters()
+
+    def resetCounters(self):
+        """
+        resets all statistical counters
+        """
+        self.DualProduct_calls=0
+        self.Value_calls=0
+        self.Gradient_calls=0
+        self.DirectionalDerivative_calls=0
+        self.Arguments_calls=0
+	self.InverseHessianApproximation_calls=0
+        
+    def getDualProduct(self, x, r):
+        """
+        returns the dual product of ``x`` and ``r``
+        
+        :type x: x-type
+        :type r: r-type
+        :rtype: ```float```
+        """
+        self.DualProduct_calls+=1
+        return self._getDualProduct(x, r)
+        
+    def _getDualProduct(self, x, r):
+        """
+        returns the dual product of ``x`` and ``r``
+        
+        :type x: x-type
+        :type r: r-type
+        :rtype: ```float```
+        :note: This is the worker for `getDualProduct()`, needs to be overwritten.
+        """
+        raise NotImplementedError
+        
+    def getValue(self, x, *args):
+        """
+        returns the value *f(x)* using the precalculated values for *x*.
+        
+        :param x: a solution approximation
+        :type x: x-type
+        :rtype: ```float```
+        """
+        self.Value_calls+=1
+        return self._getValue(x, *args)
+    
+    def _getValue(self, x, *args):
+        """
+        returns the value *f(x)* using the precalculated values for *x*.
+        
+        :param x: a solution approximation
+        :type x: x-type
+        :rtype: ```float```
+        :note: This is the worker for ``getValue()`, needs to be overwritten.
+        """
+        raise NotImplementedError
+        
+    def getGradient(self, x, *args):
+        """
+        returns the gradient of *f* at *x* using the precalculated values for
+        *x*.
+        
+        :param x: location of derivative
+        :type x: x-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype r: r-type        
+        """
+        self.Gradient_calls+=1
+        return self._getGradient(x, *args)
+    def _getGradient(self, x, *args):
+        """
+        returns the gradient of *f* at *x* using the precalculated values for
+        *x*.
+        
+        :param x: location of derivative
+        :type x: x-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype r: r-type  
+        :note: This is the worker for `getGradient()`, needs to be overwritten.
+        """      
+        raise NotImplementedError
+        
+    def getDirectionalDerivative(self, x, d, *args):
+        """
+        return the directional derivative of *f(x)* in direction of *d*
+        
+        :note: this returns ``dualProduct(d, grad f(x))`` but the method can be overwritten 
+        to use a more efficient evalautaion.
+        
+        :param x: location of derivative
+        :type x: x-type
+        :param d: direction
+        :type d: x-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype: ``float``
         """
         self.DirectionalDerivative_calls+=1
         return self._getDirectionalDerivative(x, d, *args)
+    
+    def _getDirectionalDerivative(self, x, d, *args):
+        """
+        returns the directional derivative of *f(x)* in direction of *d*
+        
+        :note: this returns ``dualProduct(d, grad f(x))`` but the method can be overwritten 
+        to use a more efficient evalautaion.
+        
+        :param x: location of derivative
+        :type x: x-type
+        :param d: direction
+        :type d: x-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype: ``float``
+        """
+        return self.getDualProduct(d, self.getGradient(x, *args))
+        
 
     def getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of
-        *f(x)* and *grad f(x)*.
+        *f(x)* and *grad f(x)* and the Hessian operator
+        
+        :param x: location of derivative
+        :type x: x-type 
         """
         self.Arguments_calls+=1
         return self._getArguments(x)
-
-    def _getInner(self, f0, f1):
-        """
-        Worker for `getInner()`, needs to be overwritten.
-        """
-        raise NotImplementedError
-
-    def _getValue(self, x, *args):
-        """
-        Worker for `getValue()`, needs to be overwritten.
-        """
-        raise NotImplementedError
-
-    def _getGradient(self, x, *args):
-        """
-        Worker for `getGradient()`, needs to be overwritten.
-        """
-        raise NotImplementedError
-
-    def _getDirectionalDerivative(self, x, d, *args):
-        """
-        returns ``getInner(grad f(x), d)`` using the precalculated values for x.
-
-        This function may be overwritten as there might be more efficient ways
-        of calculating the return value rather than using a
-        ``self.getGradient()`` call.
-        """
-        return self.getInner(self.getGradient(x, *args), d)
-
+    
     def _getArguments(self, x):
         """
-        can be overwritten to return precalculated values that are shared in
-        the calculation of *f(x)* and *grad f(x)*. By default returns an empty
-        tuple.
-        """
-        return ()
-
-
-class SimpleCostFunction(CostFunction):
-    """
-    This is a simple cost function with a single continuous (mapped) variable.
-    It is the sum of two weighted terms, a single forward model and a single
-    regularization term. This cost function is used in the gravity inversion.
-    """
-    def __init__(self, regularization, mapping, forwardmodel):
-        """
-        constructor stores the supplied object references and sets default
-        weights.
-
-        :param regularization: The regularization part of the cost function
-        :param mapping: Parametrization object
-        :param forwardmodel: The forward model part of the cost function
-        """
-        super(SimpleCostFunction, self).__init__()
-        self.forwardmodel=forwardmodel
-        self.regularization=regularization
-        self.mapping=mapping
-        self.setWeights()
-
-    def setWeights(self, mu_model=1., mu_reg=1.):
-        """
-        sets the weighting factors for the forward model and regularization
-        terms.
-        
-        :param mu_model: Weighting factor for the forward model (default=1.)
-        :type mu_model: non-negative `float`
-        :param mu_reg: Weighting factor for the regularization (default=1.)
-        :type mu_reg: non-negative `float`
-        """
-        if mu_model<0. or mu_reg<0.:
-            raise ValueError("weighting factors must be non-negative.")
-        self.mu_model=mu_model
-        self.mu_reg=mu_reg
- 
-    def _getInner(self, f0, f1):
-        """
-        returns ``regularization.getInner(f0,f1)``
-
-        :rtype: `float`
-        """
-        # if there is more than one regularization involved their contributions
-        # need to be added up.
-        return self.regularization.getInner(f0, f1)
-
-    def _getArguments(self, m):
-        """
         returns precalculated values that are shared in the calculation of
-        *f(x)* and *grad f(x)*. In this implementation returns a tuple with the
-        mapped value of ``m``, the arguments from the forward model and the
-        arguments from the regularization.
-
-        :rtype: `tuple`
+        *f(x)* and *grad f(x)* and the Hessian operator
+        
+        :param x: location of derivative
+        :type x: x-type 
+        :note: Overwrite this function to implement a specific cost function
         """
-        rho=self.mapping(m)
-        return rho, self.forwardmodel.getArguments(rho), self.regularization.getArguments(m)
-
-    def _getValue(self, m, *args):
+        return ()    
+        
+    def getInverseHessianApproximation(self, x, r,*args):
         """
-        returns the function value at m.
-        If the precalculated values are not supplied `getArguments()` is called.
-
-        :rtype: `float`
+        returns an approximative evaluation *p* of the inverse of the Hessian operator of the costfunction
+        for a given gradient type *r* at a given location *x*: *H(x) p = r*
+        
+        :param x: location of Hessian operator to be evaluated.
+        :type x: x-type
+        :param r: a given gradient 
+        :type r: r-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype x: x-type
+        :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
+        location *x*. However, the solver may suggest that this is not required, typically when the iteration 
+        ius close to completness. 
         """
-        # if there is more than one forward_model and/or regularization their
-        # contributions need to be added up. But this implementation allows
-        # only one of each...
-        if len(args)==0:
-            args=self.getArguments(m)
-        return self.mu_model * self.forwardmodel.getValue(args[0],*args[1]) \
-               + self.mu_reg * self.regularization.getValue(m)
-
-    def _getGradient(self, m, *args):
+        self.InverseHessianApproximation_calls+=1
+        return self._getInverseHessianApproximation(x, r, *args)
+   
+    def _getInverseHessianApproximation(self, x, r, *args):
         """
-        returns the gradient of *f* at *m*.
-        If the precalculated values are not supplied `getArguments()` is called.
-
-        :rtype: `esys.escript.Data`
+        returns an approximative evaluation *p* of the inverse of the Hessian operator of the costfunction
+        for a given gradient type *r* at a given location *x*: *H(x) p = r*
+        
+        :param x: location of Hessian operator to be evaluated.
+        :type x: x-type
+        :param r: a given gradient 
+        :type r: r-type
+        :param args: pre-calculated values for ``x`` from ``getArguments()``
+        :rtype x: x-type
+        :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
+        location *x*. However, the solver may suggest that this is not required, typically when the iteration 
+        ius close to completness. 
+        :note: :note: This is the worker for getInverseHessianApproximation()`, needs to be overwritten.
         """
-        drhodm = self.mapping.getDerivative(m)
-        if len(args)==0:
-            args = self.getArguments(m)
-        Y0 = self.forwardmodel.getGradient(args[0],*args[1])
-        Y1, X1 = self.regularization.getGradient(m)
-        return self.regularization.project(Y=self.mu_reg*Y1 + self.mu_model*Y0*drhodm, X=self.mu_reg*X1)
-
-    def _getDirectionalDerivative(self, m, d, *args):
-        """
-        returns the directional derivative at *m* in direction *d*.
-
-        :rtype: `float`
-        """
-        drhodm = self.mapping.getDerivative(m)
-        Y0 = self.forwardmodel.getGradient(args[0],*args[1])
-        Y1, X1 = self.regularization.getGradient(m)
-        return self.regularization.getInner(d, self.mu_reg*Y1 + self.mu_model*Y0*drhodm) \
-                + self.mu_reg*self.regularization.getInner(grad(d), X1)
+        raise NotImplementedError
 

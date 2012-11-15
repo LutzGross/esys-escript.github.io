@@ -39,12 +39,15 @@ logger.addHandler(handler)
 
 # Rosenbrock test function to be minimized. The minimum is 0 and lies at
 # [1,1,...,1].
-class RosenFunc(CostFunction):
-    def _getInner(self, f0, f1):
+class RosenFunc(CostFunction): 
+    def __init__(self):
+	   super(RosenFunc, self).__init__()
+           self.provides_inverse_Hessian_approximation=False
+    def getDualProduct(self, f0, f1):
         return np.dot(f0, f1)
-    def _getValue(self, x, *args):
+    def getValue(self, x, *args):
         return np.sum(100.0*(x[1:]-x[:-1]**2.)**2. + (1-x[:-1])**2.)
-    def _getGradient(self, x, *args):
+    def getGradient(self, x, *args):
         xm = x[1:-1]
         xm_m1 = x[:-2]
         xm_p1 = x[2:]
