@@ -546,10 +546,8 @@ class SyntheticData(DataSource):
         G=U.Gravitational_Constant
         m_psi_ref=0.
         x=domain.getX()
-        for i in range(self.DIM):
-            m_psi_ref=m_psi_ref + whereZero(x[i]-inf(x[i])) \
-                    + whereZero(x[i]-sup(x[i]))
-
+        DIM=domain.getDim()
+        m_psi_ref=whereZero(x[DIM-1]-sup(x[DIM-1])) # + whereZero(x[DIM-1]-inf(x[DIM-1]))
         if self.getDataType()==DataSource.GRAVITY:
             rho_ref=0.
             for f in self._features:

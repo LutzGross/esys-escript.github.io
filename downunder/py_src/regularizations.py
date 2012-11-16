@@ -27,7 +27,7 @@ from costfunctions import CostFunction
 
 import numpy as np
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
-from esys.escript import Data, grad, inner, integrate, kronecker, boundingBoxEdgeLengths, interpolate
+from esys.escript import Data, grad, inner, integrate, kronecker, boundingBoxEdgeLengths, interpolate, vol
 from esys.escript.pdetools import ArithmeticTuple
 
 class Regularization(CostFunction):
@@ -105,6 +105,7 @@ class Regularization(CostFunction):
 	                   # we count s0, then s1, then sc (k<l).
 	# THE S0 weighting factor
 	n=0
+	VV=vol(domain)
         if not s0 is None:
 	    s0 = interpolate(s0,self.__pde.getFunctionSpaceForCoefficient('D'))	    
 	    s=s0.getShape()
@@ -113,7 +114,7 @@ class Regularization(CostFunction):
 		     V=integrate(s0)
 		     if V > 0:
 		       self.__weight_index.append(n)
-		       s0*=1./V
+		       s0*=VV/V
 	             else:
 		       s0=None
 		 else:
@@ -122,9 +123,9 @@ class Regularization(CostFunction):
 	       	 if s == (numLevelSets,):
 		     for k in xrange(numLevelSets):
 		        V=integrate(s0[k])
-		        if Lsup(V) > 0: 
+		        if V > 0: 
 		            self.__weight_index.append(n+k)
-		            s0[k]*=1/V
+		            s0[k]*=VV/V
 		 else:
 		     raise ValueError("Unexpected shape %s for weight s0."%s)   
         self.__s0=s0
@@ -137,10 +138,11 @@ class Regularization(CostFunction):
 	    
 	    if numLevelSets == 1 :
 	         if s == (DIM,) :
-		       V=integrate(inner(s1, self.__L2))
+		       V=integrate(inner(s1, 1/self.__L2))
 		       if V > 0:
 			  self.__weight_index.append(n)
-		          s1*=1/V
+		          s1*=VV/V
+		       print "REG SCALE = ",s1
 		 else:
 		     raise ValueError("Unexpected shape %s for weight s1."%s)
             else:
@@ -148,10 +150,10 @@ class Regularization(CostFunction):
 		     for k in xrange(numLevelSets):
 		        for i in xrange(DIM):
 			    ww=s1[k,:]
-			    V=integrate(inner(ww,self.__L2))
+			    V=integrate(inner(ww,1/self.__L2))
 		            if V > 0: 
 		               self.__weight_index.append(n+i)
-		               s1[k,:]=ww*(1./V)
+		               s1[k,:]=ww*(VV/V)
 		 else:
 		     raise ValueError("Unexpected shape %s for weight s1."%s)      
 		   
@@ -173,7 +175,7 @@ class Regularization(CostFunction):
 			    V=integrate(ww)
 		            if V > 0: 
 		               self.__weight_index.append(n+k*numLevelSets+l)
-		               sc[l,k]=ww/V*self.__L4
+		               sc[l,k]=ww*VV/V*self.__L4
 		               sc[k,l]=0
               else:
 		     raise ValueError("Unexpected shape %s for weight s0."%s)      
@@ -305,7 +307,6 @@ class Regularization(CostFunction):
             if self.__s0 is not None:
 	        if numLS == 1:
 	             D=self.__s0 * mu[n]
-	             print "D =",D
                 else:	
                      D=self.getPDE().createCoefficient("D")
 	             for k in xrange(numLS): D[k,k]=self.__s0[k] * mu[n+k]
@@ -316,18 +317,22 @@ class Regularization(CostFunction):
             if self.__s1 is not None:
 	       if numLS == 1:
 		   for i in xrange(DIM): A[i,i]=self.__s1[i] * mu[n]
-		   print "A =",A
 	       else:
 	           for k in xrange(numLS): 
 	                for i in xrange(DIM): A[k,i,k,i]=self.__s1[k,i] * mu[n+k]
             n+=numLS 
             if self.__sc is not None:
                 raise NotImplementedError
+            print A
             self.getPDE().setValue(A=A)
         self.getPDE().resetRightHandSideCoefficients()
-        print A
-        print r[1]
-        print r[0]
+        self.getPDE().setValue(X=r[1])
+        print "X only: ",self.getPDE().getSolution()
+        self.getPDE().resetRightHandSideCoefficients()
+        self.getPDE().setValue(Y=r[0])
+        print "Y only: ",self.getPDE().getSolution()
+        
+        self.getPDE().resetRightHandSideCoefficients()
         self.getPDE().setValue(X=r[1], Y=r[0])
         return self.getPDE().getSolution()
         

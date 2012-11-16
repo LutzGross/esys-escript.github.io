@@ -94,7 +94,9 @@ class ForwardModelWithPotential(ForwardModel):
         for s in xrange(len(self.__weight)):
             A += integrate(inner(self.__weight[s], self.__data[s]**2))
         if A > 0:
-            for s in xrange(len(self.__weight)):  self.__weight[s]*=1./A
+	    A=vol(domain)/A 
+            for s in xrange(len(self.__weight)):  self.__weight[s]*=A
+            print "FORWARD SCALE = ",self.__weight[0]
         else:
             raise ValueError("No non-zero data contribution found.")
 
@@ -105,8 +107,8 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
-        self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
-
+        #self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
+        self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1])+whereZero(x[DIM-1]-BX[DIM-1][0]))
     def getDomain(self):
         """
         Returns the domain of the forward model.
@@ -131,8 +133,8 @@ class ForwardModelWithPotential(ForwardModel):
         """
         A=0.
         for s in xrange(len(self.__weight)):
-            A = inner(self.__weight[s], (result-self.__data[s])**2) + A
-        return 0.5*integrate(A)
+            A += integrate(inner(self.__weight[s], (result-self.__data[s])**2))
+        return A/2
 
     def getSurvey(self, index=None):
         """
@@ -267,6 +269,9 @@ class MagneticModel(ForwardModelWithPotential):
         :type tol: positive ``float``
         """
         super(MagneticModel, self).__init__(domain, chi, B, tol)
+        print "B = ",B[0]
+        print "background_field = ",background_field
+        
         self.__background_field=interpolate(background_field, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
 
@@ -341,5 +346,6 @@ class MagneticModel(ForwardModelWithPotential):
         #saveVTK("Y.vtu",RHS=pde.getRightHandSide(), Y=Y)
 
         YT=pde.getSolution()
+        print "YT = ",YT
         return inner(Y-grad(YT),self.__background_field)
 

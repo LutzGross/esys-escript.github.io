@@ -52,12 +52,12 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2, phi
         alpha=alpha_lo+.5*(alpha_hi-alpha_lo) # should use interpolation...
         args_a=phiargs(alpha)
         phi_a=phi(alpha, *args_a)
-        zoomlogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
+        zoomlogger.debug("Zoom.iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if phi_a > phi0+c1*alpha*gphi0 or phi_a >= phi_lo:
             alpha_hi=alpha
         else:
             gphi_a=gradphi(alpha, *args_a)
-            zoomlogger.debug("grad(phi(alpha))=%e"%(gphi_a))
+            zoomlogger.debug("Zoom.grad(phi(alpha))=%e"%(gphi_a))
             if np.abs(gphi_a) <= -c2*gphi0:
                 break
             if gphi_a*(alpha_hi-alpha_lo) >= 0:
@@ -120,7 +120,7 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
 
         args_a=phiargs(alpha)
         phi_a=phi(alpha, *args_a)
-        lslogger.debug("iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
+        lslogger.debug("Line Search.iteration %d, alpha=%e, phi(alpha)=%e"%(i,alpha,phi_a))
         if (phi_a > phi0+c1*alpha*gphi0) or ((phi_a>=old_phi_a) and (i>1)):
             alpha, phi_a, gphi_a = _zoom(phi, gradphi, phiargs, old_alpha, alpha, old_phi_a, phi_a, c1, c2, phi0, gphi0)
             break
@@ -271,7 +271,10 @@ class MinimizerLBFGS(AbstractMinimizer):
 
         while error > self._tol and k < self._imax:
             #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
-            self.logger.info("iteration %d, error=%e"%(k,error))
+            if k >0:
+                self.logger.info("LBFGS.iteration %d, error=%e"%(k,error))
+            else:
+                self.logger.info("LBFGS.iteration %d"%k)
             # determine search direction
             p = -self._twoLoop(invH_scale, gf, s_and_y, x, *args)
 
@@ -282,17 +285,22 @@ class MinimizerLBFGS(AbstractMinimizer):
 
             # determine step length
             alpha, fx_new, gf_new = line_search(self._f, x, p, gf, fx)
-            self.logger.debug("alpha=%e"%(alpha))
+            self.logger.debug("LBFGS.alpha=%e"%(alpha))
             # execute the step
             x_new = x + alpha*p
+            print gf_new
             if gf_new is None:
 	        args=self._f.getArguments(x_new)
                 gf_new=self._f.getGradient(x_new, args)
 
             delta_x=x_new-x
             delta_g=gf_new-gf
-            s_and_y.append((delta_x,delta_g, self._f.getDualProduct(delta_x, delta_g) ))
-            
+            rho=self._f.getDualProduct(delta_x, delta_g)
+            print "rho =",rho
+            if abs(rho)>0 :
+               s_and_y.append((delta_x,delta_g, rho ))
+            else:
+	       raise ZeroDivisionError("LBFGS break down.")
             # this needs to be reviewed
             if fx_new==0.:
                 error=fx
@@ -317,14 +325,14 @@ class MinimizerLBFGS(AbstractMinimizer):
 		      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
 		  else:
 		      invH_scale=self._initial_H
-		      self.logger.debug("Break down in H update. Resetting to initial value %s."%self._initial_H) 
+		      self.logger.debug("LBFGS.Break down in H update. Resetting to initial value %s."%self._initial_H) 
 
         if k >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
-            self.logger.warning("Maximum number of iterations reached!")
+            self.logger.warning("LBFGS.Maximum number of iterations reached!")
         else:
             reason=self.TOLERANCE_REACHED
-            self.logger.warning("Success after %d iterations! Final error=%e"%(k,error))
+            self.logger.warning("LBFGS.Success after %d iterations! Final error=%e"%(k,error))
         self._result=x
         return reason
 
@@ -340,7 +348,7 @@ class MinimizerLBFGS(AbstractMinimizer):
             alpha.append(a)
             q=q-a*y
 
-        if self._f.provides_inverse_Hessian_approximation:    
+        if self._f.provides_inverse_Hessian_approximation:   
              r= self._f.getInverseHessianApproximation(x, q, *args)
         else:
 	     r= invH_scale * q
