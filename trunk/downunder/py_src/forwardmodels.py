@@ -49,7 +49,7 @@ class ForwardModel(object):
     def getGradient(self, x, *args):
         raise NotImplementedError
 
-        
+
 class ForwardModelWithPotential(ForwardModel):
     """
     Base class for a forward model using a potential such as magnetic or
@@ -83,7 +83,7 @@ class ForwardModelWithPotential(ForwardModel):
             n=len(weight)
             m=len(data)
             if m != n:
-                raise ValueError("Length of weight and g must be the same.")
+                raise ValueError("Length of weight and data must be the same.")
             self.__weight = weight
             self.__data = data
         except TypeError:
@@ -92,12 +92,12 @@ class ForwardModelWithPotential(ForwardModel):
 
         A=0
         for s in xrange(len(self.__weight)):
-            A += integrate(inner(self.__weight[s], self.__data[s]**2))      
+            A += integrate(inner(self.__weight[s], self.__data[s]**2))
         if A > 0:
-	    for s in xrange(len(self.__weight)):  self.__weight[s]*=1./A
-	else:
+            for s in xrange(len(self.__weight)):  self.__weight[s]*=1./A
+        else:
             raise ValueError("No non-zero data contribution found.")
-            
+
 
         BX = boundingBox(domain)
         DIM = domain.getDim()
@@ -267,7 +267,7 @@ class MagneticModel(ForwardModelWithPotential):
         :type tol: positive ``float``
         """
         super(MagneticModel, self).__init__(domain, chi, B, tol)
-        self.__background_field=interpolate(background_field, Function(self.getDomain()))
+        self.__background_field=interpolate(background_field, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
 
     def getArguments(self, k):
@@ -335,12 +335,11 @@ class MagneticModel(ForwardModelWithPotential):
 
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
-        
-        print "test VTK file generated"
-        from esys.weipa import saveVTK
-        saveVTK("Y.vtu",RHS=pde.getRightHandSide(), Y=Y)
-        
+
+        #print "test VTK file generated"
+        #from esys.weipa import saveVTK
+        #saveVTK("Y.vtu",RHS=pde.getRightHandSide(), Y=Y)
+
         YT=pde.getSolution()
         return inner(Y-grad(YT),self.__background_field)
 
-        
