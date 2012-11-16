@@ -43,7 +43,7 @@ Depends(program, 'build_py_tests')
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("DOWNUNDER_TEST_DATA_ROOT","$BATCH_ROOT/downunder/test/python/ref_data"),('DOWNUNDER_WORKDIR','$BUILD_DIR/downunder/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/downunder/test/python","$BATCH_ROOT/downunder/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("DOWNUNDER_TEST_DATA_ROOT","$BATCH_ROOT/downunder/test/python/ref_data"),('DOWNUNDER_WORKDIR','$BUILD_DIR/downunder/test/python')),"$BATCH_ROOT/escript/test/python:$BATCH_ROOT/downunder/test/python","$BATCH_ROOT/downunder/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/downunder/test")
 tgroup.makeDir("$BUILD_DIR/downunder/test/python")
 TestGroups.append(tgroup)
