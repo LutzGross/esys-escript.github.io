@@ -32,11 +32,11 @@ except KeyError:
    WORKDIR='.'
 
 features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
-     x=8*U.km, y=3*U.km, depth=2.5*U.km, v_inner=200., v_outer=1e-6),\
+     x=8*U.km, y=3*U.km, depth=2.5*U.km, v_inner=2., v_outer=1e-6),\
           SmoothAnomaly(lx=25*U.km, ly=20*U.km, lz=20*U.km,
-     x=30*U.km, y=1*U.km, depth=18*U.km, v_inner=-100., v_outer=1e-6),\
+     x=30*U.km, y=1*U.km, depth=18*U.km, v_inner=-1., v_outer=1e-6),\
           SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
-     x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=200., v_outer=1e-6)]
+     x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=20., v_outer=1e-6)]
 
 
 logger=logging.getLogger('inv')
@@ -51,8 +51,8 @@ domainbuilder.setPadding(10)
 domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
 
 inv=MagneticInversion()
-inv.setSolverTolerance(1e-9)
-inv.setSolverMaxIterations(100)
+inv.setSolverTolerance(1e-4)
+inv.setSolverMaxIterations(10)
 inv.setSolverOptions(initialHessian=100)
 #inv.setWeights(mu_reg=1e-4)
 inv.setup(domainbuilder)
