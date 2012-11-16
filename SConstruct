@@ -967,21 +967,37 @@ env.Alias('api_epydoc','install_all')
 env.Alias('docs', ['examples_tarfile', 'examples_zipfile', 'api_epydoc', 'api_doxygen', 'user_pdf', 'install_pdf', 'cookbook_pdf', 'inversion_pdf'])
 env.Alias('release_prep', ['docs', 'install_all'])
 
+
+# The test scripts are always generated, this target allows us to
+# generate the testscripts without doing a full build
+env.Alias('testscripts',[])
+
 if not IS_WINDOWS:
     try:
         utest=open('utest.sh','w')
-        utest.write(GroupTest.makeHeader(env['PLATFORM'], prefix))
+        utest.write(GroupTest.makeHeader(env['PLATFORM'], prefix, False))
         for tests in TestGroups:
             utest.write(tests.makeString())
         utest.close()
         Execute(Chmod('utest.sh', 0o755))
         print("Generated utest.sh.")
+        # This version contains only python tests - I want this to be usable
+        # From a binary only install if you have the test files
+        utest=open('itest.sh','w')
+        utest.write(GroupTest.makeHeader(env['PLATFORM'], prefix, True))
+        for tests in TestGroups:
+          if tests.exec_cmd=='$PYTHONRUNNER ':
+            utest.write(tests.makeString())
+        utest.close()
+        Execute(Chmod('itest.sh', 0o755))
+        print("Generated itest.sh.")        
     except IOError:
         print("Error attempting to write unittests file.")
         Exit(1)
 
     # delete utest.sh upon cleanup
     env.Clean('target_init', 'utest.sh')
+    env.Clean('target_init', 'itest.sh')
 
     # Make sure that the escript wrapper is in place
     if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):

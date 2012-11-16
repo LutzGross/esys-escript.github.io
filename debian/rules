@@ -27,6 +27,7 @@ install: build
 	cp $(WORK)/release/doc/inversion/inversion.pdf $(DEST)/usr/share/doc/escript
 	cp -r $(WORK)/release/doc/epydoc $(DEST)/usr/share/doc/escript/python_html
 	cp $(WORK)/lib/* $(DEST)/usr/lib/escript
+	cp -r $(WORK)/esys $(DEST)/usr/lib/escript
 	cp $(WORK)/bin/* $(DEST)/usr/bin
 	touch $(WORK)/installed
 

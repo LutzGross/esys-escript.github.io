@@ -82,7 +82,7 @@ Depends(program, 'build_py_tests')
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("FINLEY_TEST_DATA","$BATCH_ROOT/finley/test/python"),('FINLEY_WORKDIR','$BUILD_DIR/finley/test/python')),"$BUILD_DIR/escript/test/python:$BUILD_DIR/finley/test/python","$BATCH_ROOT/finley/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("FINLEY_TEST_DATA","$BATCH_ROOT/finley/test/python"),('FINLEY_WORKDIR','$BUILD_DIR/finley/test/python')),"$BATCH_ROOT/escript/test/python:$BATCH_ROOT/finley/test/python","$BATCH_ROOT/finley/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/finley/test/python")
 TestGroups.append(tgroup)
 

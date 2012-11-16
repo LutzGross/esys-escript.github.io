@@ -58,8 +58,6 @@ else
 fi
 ##### End finding ESCRIPT_ROOT ########
 
-
-
 PYTHON_MPI_NULL="$ESCRIPT_ROOT/lib/pythonMPI"
 PYTHON_MPI_REDIRECT="$ESCRIPT_ROOT/lib/pythonMPIredirect"
 PYTHON_CMD=python
@@ -70,7 +68,14 @@ PYTHON_CMD=python
 EXTRA_DYLD_LIBRARY_PATH=""
 EXTRA_PATH=$ESCRIPT_ROOT/bin
 EXTRA_PYTHONPATH=$ESCRIPT_ROOT
-EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
+
+if [ $STDLOCATION -eq 1 ]
+then
+    EXTRA_LD_LIBRARY_PATH=/usr/lib/escript
+else
+    EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
+fi
+
 
 if [ $STANDALONE -eq 1 ]
 then
@@ -83,6 +88,10 @@ fi
 
 
 BUILDINFO_FILE=$ESCRIPT_ROOT/lib/buildvars
+if [ "$STDLOCATION" = "1" ]
+then
+    BUILDINFO_FILE=/usr/lib/escript/buildvars
+fi
 if [ ! -r $BUILDINFO_FILE ]; then
     if [ "$1" = "-e" ]; then
         echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
@@ -156,7 +165,7 @@ do
         ;;
       "f")  ESCRIPT_HOSTFILE=$OPTARG
         ;;
-      "c")  cat $ESCRIPT_ROOT/lib/buildvars
+      "c")  cat $BUILDINFO_FILE
         exit 0
         ;;
       "V")  echo "escript-development(build "`get_buildvar svn_revision`")"
