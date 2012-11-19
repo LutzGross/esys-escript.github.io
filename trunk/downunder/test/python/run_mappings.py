@@ -24,17 +24,18 @@ import unittest
 import sys
 from esys.downunder.mappings import *
 
-class TestScalingMapping(unittest.TestCase):
+class TestLinearMapping(unittest.TestCase):
     def setUp(self):
-        self.alpha=4.2
-        self.mapping=ScalingMapping(self.alpha)
+        self.alpha = 4.2
+        self.p0 = 1.75
+        self.mapping=LinearMapping(self.alpha, self.p0)
 
     def test_invalid_alpha(self):
-        self.assertRaises(ValueError, ScalingMapping, 0)
+        self.assertRaises(Exception, LinearMapping, 0)
 
     def test_value(self):
         v=self.mapping.getValue(1.23)
-        ref=self.alpha*1.23
+        ref=self.alpha*1.23+self.p0
         self.assertAlmostEqual(v, ref)
 
     def test_derivative(self):
@@ -44,7 +45,7 @@ class TestScalingMapping(unittest.TestCase):
 
     def test_inverse(self):
         v=self.mapping.getInverse(1.23)
-        ref=1.23/self.alpha
+        ref=(1.23-self.p0)/self.alpha
         self.assertAlmostEqual(v, ref)
 
 class TestBoundedRangeMapping(unittest.TestCase):
@@ -98,7 +99,7 @@ class TestBoundedRangeMapping(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestScalingMapping))
+    suite.addTest(unittest.makeSuite(TestLinearMapping))
     suite.addTest(unittest.makeSuite(TestBoundedRangeMapping))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
