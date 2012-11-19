@@ -53,11 +53,8 @@ domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
 inv=MagneticInversion()
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(10)
-inv.setSolverOptions(initialHessian=100)
-#inv.setWeights(mu_reg=1e-4)
 inv.setup(domainbuilder)
-
-k_new=inv.run()
+k_new = inv.run()
 B, chi = inv.getForwardModel().getSurvey(0)
-saveSilo(os.path.join(WORKDIR, 'maginv'), sus=k_new, sus_mask=inv.getRegularization().location_of_set_m, sus_ref=source.getReferenceSusceptibility(), B=B, chi=chi)
+saveSilo(os.path.join(WORKDIR, 'maginv'), sus=k_new, sus_ref=source.getReferenceSusceptibility(), B=B, chi=chi)
 
