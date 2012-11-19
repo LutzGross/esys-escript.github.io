@@ -267,10 +267,6 @@ class GravityInversion(SingleParameterInversionBase):
         
         :param rho0: reference density. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
-        :param w0: weighting factor for L2 term in the regularization
-        :type w0: ``float`` or `Scalar`
-        :param w: weighting factor for H1 term in the regularization
-        :type w: ``list`` of float or `Vector`
         """
 	self.logger.info('Retrieving domain...')
 	self.setDomain(domainbuilder.getDomain())
@@ -332,12 +328,6 @@ class MagneticInversion(SingleParameterInversionBase):
         :param domainbuilder: Domain builder object with magnetic source(s)
         :type domainbuilder: `DomainBuilder`
         
-        :param k_ref: reference susceptibility. If not specified, zero is used.
-        :type k_ref: ``float`` or `Scalar`
-        :param w0: weighting factor for the L2 term in the regularization
-        :type w0: ``float`` or `Scalar`
-        :param w: weighting factor for the H1 term in the regularization
-        :type w: ``list`` of float or `Vector`
         """
         self.logger.info('Retrieving domain...')
         self.setDomain(domainbuilder.getDomain())

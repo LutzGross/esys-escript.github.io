@@ -317,7 +317,7 @@ class NetCdfData(DataSource):
         :param datatype: type of data, must be `GRAVITY` or `MAGNETIC`
         :type datatype: ``int``
         :param altitude: altitude of measurements in meters
-        :type datatype: ``float``
+        :type altitude: ``float``
         """
         super(NetCdfData,self).__init__()
         self.__filename=filename

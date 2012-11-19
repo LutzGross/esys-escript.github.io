@@ -135,7 +135,8 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         :param args: pre-calculated values for ``m`` from ``getArguments()``
         :rtype: ``Data``
         :note: in the current implementation only the regularization term is considered in the 
-        inverse Hessian approximation. 
+          inverse Hessian approximation. 
+          
         """
         print "nverseHessianApproximation:"
         print "Y  = ",r[0]

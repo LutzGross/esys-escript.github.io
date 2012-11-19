@@ -85,7 +85,7 @@ class CostFunction(object):
         :param x: location of derivative
         :type x: x-type
         :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype r: r-type
+        :rtype: r-type
         """
         raise NotImplementedError
         
@@ -109,12 +109,12 @@ class CostFunction(object):
         :param r: a given gradient 
         :type r: r-type
         :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype x: x-type
+        :rtype: x-type
         :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
-        location *x*. However, the solver may suggest that this is not required, typically when the iteration 
-        is close to completeness.
+          location *x*. However, the solver may suggest that this is not required, typically when the 
+          iteration is close to completeness.
         :note: class attribute provides_inverse_Hessian_approximation need to be set to True to encourage
-        the solver to call this method.
+          the solver to call this method.
        
         """
         raise NotImplementedError
@@ -191,7 +191,7 @@ class MeteredCostFunction(CostFunction):
         :param x: a solution approximation
         :type x: x-type
         :rtype: ```float```
-        :note: This is the worker for ``getValue()`, needs to be overwritten.
+        :note: This is the worker for ``getValue()``, needs to be overwritten.
         """
         raise NotImplementedError
         
@@ -203,7 +203,7 @@ class MeteredCostFunction(CostFunction):
         :param x: location of derivative
         :type x: x-type
         :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype r: r-type        
+        :rtype: r-type        
         """
         self.Gradient_calls+=1
         return self._getGradient(x, *args)
@@ -215,7 +215,7 @@ class MeteredCostFunction(CostFunction):
         :param x: location of derivative
         :type x: x-type
         :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype r: r-type  
+        :rtype: r-type  
         :note: This is the worker for `getGradient()`, needs to be overwritten.
         """      
         raise NotImplementedError
@@ -254,10 +254,11 @@ class MeteredCostFunction(CostFunction):
         :param r: a given gradient 
         :type r: r-type
         :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype x: x-type
+        :rtype: x-type
         :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
-        location *x*. However, the solver may suggest that this is not required, typically when the iteration 
-        ius close to completness. 
+          location *x*. However, the solver may suggest that this is not required, typically when the iteration 
+          ius close to completness. 
+        
         """
         self.InverseHessianApproximation_calls+=1
         return self._getInverseHessianApproximation(x, r, *args)
@@ -272,11 +273,11 @@ class MeteredCostFunction(CostFunction):
         :param r: a given gradient 
         :type r: r-type
         :param args: pre-calculated values for ``x`` from ``getArguments()``
-        :rtype x: x-type
+        :rtype: x-type
         :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
-        location *x*. However, the solver may suggest that this is not required, typically when the iteration 
-        ius close to completness. 
-        :note: :note: This is the worker for getInverseHessianApproximation()`, needs to be overwritten.
+          location *x*. However, the solver may suggest that this is not required, typically when the
+          iteration is close to completness. 
+        :note: This is the worker for getInverseHessianApproximation()`, needs to be overwritten.
         """
         raise NotImplementedError
 
