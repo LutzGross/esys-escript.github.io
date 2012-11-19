@@ -62,7 +62,7 @@ class Mapping(object):
 
 class LinearMapping(Mapping):
     """
-    Maps a parameter by a linear transformation p = a *m + p0
+    Maps a parameter by a linear transformation p = a * m + p0
     """
 
     def __init__(self, a=1, p0=0):

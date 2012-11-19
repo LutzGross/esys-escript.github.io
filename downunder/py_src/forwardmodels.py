@@ -166,9 +166,6 @@ class GravityModel(ForwardModelWithPotential):
         :type chi: `Vector` or list of `Vector`
         :param g: gravity anomaly data
         :type g: `Vector` or list of `Vector`
-        :param fix_all_faces: if ``true`` all faces of the domain are fixed
-                              otherwise only the top surface
-        :type fix_all_faces: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         """
@@ -262,9 +259,6 @@ class MagneticModel(ForwardModelWithPotential):
         :type chi: `Vector` or list of `Vector`
         :param B: magnetic field data
         :type B: `Vector` or list of `Vector`
-        :param fix_all_faces: if ``true`` all faces of the domain are fixed
-                              otherwise only the top surface
-        :type fix_all_faces: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         """

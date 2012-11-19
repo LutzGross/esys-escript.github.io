@@ -32,9 +32,9 @@ from esys.escript.pdetools import ArithmeticTuple
 
 class Regularization(CostFunction):
     """
-    The regularization term for the level set function `m` within the cost function J for an inversion:
+    The regularization term for the level set function ``m`` within the cost function J for an inversion:
     
-    *J(m)=1/2 * sum_k imtegrate( mu_0[k]*s0[k] * m_k**2 + mu_1[k]*s1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] sc[l,l]* |curl(m_k) x curl(m_l)|^2*
+    *J(m)=1/2 * sum_k imtegrate( mu_0[k] * s0[k] * m_k**2 + mu_1[k] * s1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] sc[l,l] * | curl(m_k) x curl(m_l) |^2*
     
     where s0[k], s1[k,i] and  sc[k,l] are non-negative scaling factors and mu_0[k], mu_1[k], mu_c[l,k] are weighting factors
     which may be alter during the inversion. The scaling factors are normalized such that their integrals over the
@@ -57,14 +57,14 @@ class Regularization(CostFunction):
         :param numLevelSets: number of level sets
         :type numLevelSets: ``int``
         :param s0: scaling factor for the m**2 term. If not set zero is assumed.
-        :type s0: ``Scalar`` if `numLevelSets`==1 or `Data` object of shape ('numLevelSets`,) if numLevelSets > 1
+        :type s0: ``Scalar`` if ``numLevelSets``==1 or `Data` object of shape ('numLevelSets`,) if numLevelSets > 1
         :param s1: scaling factor for the grad(m_i) terms. If not set zero is assumed.
-        :type s1: ``Vector`` if `numLevelSets`==1 or `Data` object of shape (`numLevelSets`,DIM) if numLevelSets > 1.
+        :type s1: ``Vector`` if ``numLevelSets``==1 or `Data` object of shape (`numLevelSets`,DIM) if numLevelSets > 1.
         :param sc: scaling factor for the cross correlation terms. If not set zero is assumed. Used for the case if numLevelSets > 1 only.
-                   values `sc[l,k]``  in the lower triangle (l<k) are used only.
+                   values ``sc[l,k]``  in the lower triangle (l<k) are used only.
         :type sc: `Data` object of shape (`numLevelSets`,`numLevelSets`)     
-        :param location_of_set_m: marks location of zero values of the level set function `m` by a positive entry.
-        :type location_of_set_m: ``Scalar`` if `numLevelSets`==1 or `Data` object of shape ('numLevelSets`,) if numLevelSets > 1. 
+        :param location_of_set_m: marks location of zero values of the level set function ``m`` by a positive entry.
+        :type location_of_set_m: ``Scalar`` if ``numLevelSets``==1 or `Data` object of shape (``numLevelSets``,) if numLevelSets > 1. 
         :param useDiagonalHessianApproximation: if True cross correllation terms between level set components are ignored when calculating 
                                                 approximations of the inverse of the Hessian Operator. This can speep-up the calculation of 
                                                 the inverse but may lead to an increase of the number of iteration steps in the inversion.
@@ -425,7 +425,6 @@ class Regularization(CostFunction):
         The first ``numLevelSets`` values used for the 
         regularization terms and the remaining values for the cross correlation terms.
  
-       :type mu: ``list`` of ``float``
         """
         if uncompress:
 	     mu = np.zeros(self.__total_num_weights) 
