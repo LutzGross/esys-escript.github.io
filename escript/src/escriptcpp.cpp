@@ -366,8 +366,22 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 "\n:rtype: `Data`"
 */
 )
-
-
+    .def("nonuniformInterpolate", &escript::Data::nonuniforminterp, "1D interpolation with non equally spaced points",
+      (arg("in"), arg("out"), arg("check_boundaries")),
+"Creates a Data object by linear interpolation of the function F(in)->out\n\n"
+":param in: input values of interpolation function\n"
+":param out: corresponing output values of interpolation function\n"
+":param check_boundaries: If True, an exception will the thrown if the data object contains values"
+"outside the range given by ``in``.\n"
+    )
+    .def("nonuniformSlope", &escript::Data::nonuniformslope, "1D interpolation of slope with non equally spaced points",
+      (arg("in"), arg("out"), arg("check_boundaries")),
+"Creates a Data object by computing the slope of the function F(in)->out\n\n"
+":param in: input values of interpolation function\n"
+":param out: corresponing output values of interpolation function\n"
+":param check_boundaries: If True, an exception will the thrown if the data object contains values"
+"outside the range given by ``in``.\n"
+    )	 
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint,"Please consider using getInfLocator() from pdetools instead.")
     .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint, "Please consider using getSupLocator() from pdetools instead.")
     .def("saveDX",&escript::Data::saveDX,args("fileName"),"Save the object in DX format.\n\n"
