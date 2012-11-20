@@ -147,6 +147,37 @@ class Test_TableInterpolationOnFinley(Test_TableInterpolation):
         del self.functionspaces
 
 
+#This functionality is only testes on Finley.
+#It is not finley specific but it does need a known set of input points so I've chosen to put it here
+class Test_OtherInterpolationOnFinley(unittest.TestCase):
+    def setUp(self):
+        self.r=Rectangle(4,1).getX()[0]+2
+        self.z=Data(2)
+        
+    def tearDown(self):
+        del self.z
+        del self.r
+       
+    def test_nonuniformint(self):
+        self.assertRaises(RuntimeError, self.z.nonuniformInterpolate, [0,1], [5,6], True)
+        self.assertRaises(RuntimeError, self.z.nonuniformInterpolate, [3,4], [5,6], True)
+        self.assertTrue(Lsup(self.z.nonuniformInterpolate([0,1], [5,6], False)-6)<0.00001, "RHS edge not fitted")
+        self.assertTrue(Lsup(self.z.nonuniformInterpolate([3,4], [5,6], False)-5)<0.00001, "LHS edge not fitted")
+        tmp=self.r.nonuniformInterpolate([2.125, 2.4, 2.5, 2.8], [1, -1, 2, 4], False)
+        self.assertTrue(Lsup(sup(tmp)-4)<0.0001, "RHS edge not fitted for Rect")
+        self.assertTrue(Lsup(inf(tmp)-0.090909)<0.00001, "Internal interpolate failed")
+        tmp=self.r.nonuniformInterpolate([2.125, 2.4, 2.5, 3.2], [1, -1, 2, 4], False)
+        self.assertTrue(Lsup(sup(tmp)-3.42857)<0.00001, "Internal interpolate failed")
+        
+    def test_nonuniformSlope(self):
+        self.assertRaises(RuntimeError, self.z.nonuniformSlope, [0,1], [5,6], True)
+        self.assertRaises(RuntimeError, self.z.nonuniformSlope, [3,4], [5,6], True)
+        self.assertTrue(Lsup(self.z.nonuniformSlope([0,1], [5,6], False))<0.00001, "RHS edge not fitted")
+        self.assertTrue(Lsup(self.z.nonuniformSlope([3,4], [5,6], False))<0.00001, "LHS edge not fitted")
+        tmp=self.r.nonuniformSlope([2.125, 2.4, 2.5, 3.2], [1, -1, 2, 4], False)
+        self.assertTrue(Lsup(sup(tmp)-30)<0.00001, "Internal interpolate failed")
+        self.assertTrue(Lsup(inf(tmp)+7.27273)<0.00001, "Internal interpolate failed")
+        
 class Test_CSVOnFinley(Test_saveCSV):
     def setUp(self):
         NE0=NE
@@ -211,6 +242,7 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
    suite.addTest(unittest.makeSuite(Test_TableInterpolationOnFinley))
    suite.addTest(unittest.makeSuite(Test_CSVOnFinley))
+   suite.addTest(unittest.makeSuite(Test_OtherInterpolationOnFinley))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
 

@@ -821,7 +821,15 @@ If false, the result is a list of scalars [1, 2, ...]
   Data
   interpolateFromTable1DP(boost::python::object table, double Amin, double Astep,
                         double undef,bool check_boundaries);
+  
+  ESCRIPT_DLL_API
+  Data
+  nonuniforminterp(boost::python::object in, boost::python::object out, bool check_boundaries);
 
+  ESCRIPT_DLL_API
+  Data
+  nonuniformslope(boost::python::object in, boost::python::object out, bool check_boundaries);  
+  
   /**
      \brief
      Calculates the gradient of the data at the data points of functionspace.

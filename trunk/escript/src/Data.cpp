@@ -3809,6 +3809,157 @@ cerr << "  usex=" << usex << "  usey=" << usey << "  usez=" << usez << endl;*/
     return res;
 }
 
+Data Data::nonuniforminterp(boost::python::object in, boost::python::object out, bool check_boundaries)
+{
+    WrappedArray win(in);
+    win.convertArray();
+    WrappedArray wout(out);
+    wout.convertArray();
+    if ((win.getRank()!=1) || (wout.getRank()!=1) || (win.getShape()[0]<1))
+    {
+        throw DataException("Input and output must be arrays/lists of scalars");
+    }
+    if (win.getShape()!=win.getShape())
+    {
+        throw DataException("Input and output must contain the same number of items.");
+    }
+    if (getDataPointRank()!=0)
+    {
+        throw DataException("The data being interpolated must be scalar.");
+    }
+    // now create an object the same size as this one
+    // We'll expand it later if we need to
+    expand();
+    Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
+    int numpts=getNumDataPoints();
+    const DataVector& sdat=getReady()->getVectorRO();
+    DataVector& rdat=result.getReady()->getVectorRW();
+    double maxlimit=win.getElt(win.getShape()[0]-1);
+    double maxout=wout.getElt(wout.getShape()[0]-1);
+    int ipoints=win.getShape()[0];
+    int l=0;
+    bool error=false;
+    #pragma omp parallel for private(l) shared(error, rdat, sdat) schedule(static) 
+    for (l=0; l<numpts; ++l)
+    {
+        if ((sdat)[l]<win.getElt(0))
+	{
+	   if (check_boundaries)
+	   {
+	       error=true;		// Could have done an early exit but I'm not sure it's worth it
+	   }
+	   else
+	   {
+	       rdat[l]=wout.getElt(0);
+	   }
+	}
+	else if (sdat[l]>maxlimit)
+	{
+	   if (check_boundaries)
+	   {
+	       error=true;		// Could have done an early exit but I'm not sure it's worth it
+	   }
+	   else
+	   {
+	       rdat[l]=maxout;
+	   }
+	}
+        else
+	{
+	    int i=0;
+	    for (;i<ipoints-2;++i)
+	    {
+	        if (sdat[l]<win.getElt(i+1))
+		{
+		    break;
+		}
+	    }
+	    // we must have found one by this point or we would have triggered earlier branches
+	    rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i)) * (sdat[l]-win.getElt(i)) + wout.getElt(i);
+	}
+    }
+    if (error)	// we had an illegal value (below the start threwshold)
+    {
+        throw DataException("Data being interpolated contains a value outside the range given.");
+    }
+    return result;
+}
+
+Data Data::nonuniformslope(boost::python::object in, boost::python::object out, bool check_boundaries)
+{
+    WrappedArray win(in);
+    win.convertArray();
+    WrappedArray wout(out);
+    wout.convertArray();
+    if ((win.getRank()!=1) || (wout.getRank()!=1) || (win.getShape()[0]<1))
+    {
+        throw DataException("Input and output must be arrays/lists of scalars");
+    }
+    if (win.getShape()!=win.getShape())
+    {
+        throw DataException("Input and output must contain the same number of items.");
+    }
+    if (getDataPointRank()!=0)
+    {
+        throw DataException("The data being interpolated must be scalar.");
+    }
+    // now create an object the same size as this one
+    // We'll expand it later if we need to
+    expand();
+    Data result(0, DataTypes::scalarShape, getFunctionSpace(), true);  
+    int numpts=getNumDataPoints();
+    const DataVector& sdat=getReady()->getVectorRO();
+    DataVector& rdat=result.getReady()->getVectorRW();
+    double maxlimit=win.getElt(win.getShape()[0]-1);
+    int ipoints=win.getShape()[0];
+    int l=0;
+    bool error=false;
+    #pragma omp parallel for private(l) shared(error, rdat, sdat) schedule(static) 
+    for (l=0; l<numpts; ++l)
+    {
+        if ((sdat)[l]<win.getElt(0))
+	{
+	   if (check_boundaries)
+	   {
+	       error=true;		// Could have done an early exit but I'm not sure it's worth it
+	   }
+	   else
+	   {
+	       rdat[l]=0;
+	   }
+	}
+	else if (sdat[l]>maxlimit)
+	{
+	   if (check_boundaries)
+	   {
+	       error=true;		// Could have done an early exit but I'm not sure it's worth it
+	   }
+	   else
+	   {
+	       rdat[l]=0;
+	   }
+	}
+        else
+	{
+	    int i=0;
+	    for (;i<ipoints-2;++i)
+	    {
+	        if (sdat[l]<=win.getElt(i+1))
+		{
+		    break;
+		}
+	    }
+	    // we must have found one by this point or we would have triggered earlier branches
+	    rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i));
+	}
+    }
+    if (error)	// we had an illegal value (below the start threwshold)
+    {
+        throw DataException("Data being interpolated contains a value outside the range given.");
+    }
+    return result;
+}
+
 
 /* Member functions specific to the MPI implementation */
 
