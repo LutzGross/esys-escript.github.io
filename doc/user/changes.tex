@@ -15,13 +15,20 @@
 \chapter{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{3.3 to 3.3.1}
+\begin{itemize}
+ \item Source packages for Debian and Ubuntu can now be made directly by dpkg-source from the source tree\footnote{For this to work, you will need to place a file called \texttt{svn_version} containing the revision number in the root of the source.}.
+ \item non-uniform 1D interpolation (see Section~\ref{sec:interpolation}.
+\end{itemize}
+
+
 \subsection*{3.2.1 to 3.3}
 \begin{itemize}
  \item Experimental support for \pythonthree.
  \item Parameter order for the table interpolation methods has changed to be consistant. 
  Please test your scripts if you use these functions.
  \item setX on \finley and \dudley domains will now only accept coordinates from ContinuousFunction spaces.
- This is to avoid some potentially nasty behaviour when use periodic boundary conditions.
+ This is to avoid some potentially nasty behaviour when using periodic boundary conditions.
  You can still use setX, just make sure that you interpolate first.
 \end{itemize}
 

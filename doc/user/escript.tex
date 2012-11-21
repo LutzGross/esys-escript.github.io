@@ -1257,6 +1257,7 @@ value of \var{a} times \var{rtol} is used.
 
 \subsection{Interpolating Data}
 \index{interpolateTable}
+\label{sec:interpolation}
 In some cases, it may be useful to produce Data objects which fit some user
 defined function.
 Manually modifying each value in the Data object is not a good idea since it
@@ -1358,6 +1359,32 @@ zmin=minval
 result3=interpolateTable(table3, x3, (xmin, ymin, zmin), (xstep, ystep, zstep), toobig)
 \end{python}
 
+
+\subsubsection{Non-uniform Interpolation}
+Non-uniform interpolation is also supported for the one dimensional case.
+\begin{python}
+Data.nonuniformInterpolate(in, out, check_boundaries)
+Data.nonuniformSlope(in, out, check_boundaries)
+\end{python}
+
+Will produce a new \Data object by mapping the given \Data object through the user-defined function
+specified by \texttt{in} and \texttt{out}.
+The \ldots Interpolate version gives the value of the function at the specified point and the 
+\ldots Slope version gives the slope at those points.
+The check_boundaries boolean argument specifies what the function should do if the \Data object contains
+values outside the range specified by the \texttt{in} parameter.
+If the argument is \texttt{False}, then those datapoints will be interpolated to the value of the edge 
+they are closest to (or assigned a slope of zero).
+If the argument is \texttt{True}, then an exception will be thrown if out of bounds values are detected.
+Note that the values given by the \texttt{in} parameter must be monotonically increasing.
+
+\noindent For example:\\
+If \texttt{d} contains the values \texttt{\{1,2,3,4,5\}}, then
+\begin{python}
+d.nonuniformInterpolate([1.5, 2, 2.8, 4.6], [4, 5, -1, 1], False)
+\end{python}
+would produce a \Data object containing \texttt{\{4, 5, -0.7777, 0.3333, 1\}}.\\
+A similar call to \texttt{nonuniformSlope} would produce a \Data object containing \texttt{\{0, 2, 1.1111, 1.1111, 0\}}.
 % 
 % 
 % We will interpolate a surface such that the bottom
