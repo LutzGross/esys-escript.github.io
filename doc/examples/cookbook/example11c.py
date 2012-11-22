@@ -25,27 +25,25 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# example10a.py
+# example11c.py
 # Model of gravitational Potential.
 
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
-from esys.escript import * # This imports everything from the escript library
-from esys.escript.unitsSI import * 
-from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
-from esys.finley import Rectangle # This imports the rectangle domain function from finley
-import os, sys #This package is necessary to handle saving our data.
-from math import pi, sqrt, sin, cos
-from esys.finley import ReadMesh
-
-from esys.escript.pdetools import Projector
-from cblib import toRegGrid
-
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 
+import os, sys #This package is necessary to handle saving our data.
+from math import pi, sqrt, sin, cos
 import pylab as pl #Plotting package
 import numpy as np
+from esys.escript import * # This imports everything from the escript library
+from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
+from esys.escript.pdetools import Projector
+from esys.escript.unitsSI import * 
+from esys.finley import ReadMesh,Rectangle
+
+from cblib import toRegGrid
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:

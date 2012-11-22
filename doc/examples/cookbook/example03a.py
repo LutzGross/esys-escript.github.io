@@ -32,6 +32,9 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 #######################################################EXTERNAL MODULES
 #To solve the problem it is necessary to import the modules we require.
+#For interactive use, you can comment out the next two lines
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 #This imports everything from the escript library
 from esys.escript import *
 # This defines the LinearPDE module as LinearPDE
@@ -41,9 +44,6 @@ from esys.finley import Rectangle
 # A useful unit handling package which will make sure all our units
 # match up in the equations under SI.
 from esys.escript.unitsSI import *
-#For interactive use, you can comment out the next two lines
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os #This package is necessary to handle saving our data.

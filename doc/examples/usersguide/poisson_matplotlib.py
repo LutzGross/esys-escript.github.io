@@ -20,16 +20,16 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import *
-from esys.escript.linearPDEs import Poisson
-from esys.finley import Rectangle
-import numpy
 import matplotlib
-
 matplotlib.use('agg')	#For interactive use, you can comment out this line
 #It's just here to make testing easier
 
+import numpy
 import pylab 
+
+from esys.escript import *
+from esys.escript.linearPDEs import Poisson
+from esys.finley import Rectangle
 
 #Testing whether we have a late enough version of matplotlib
 try:

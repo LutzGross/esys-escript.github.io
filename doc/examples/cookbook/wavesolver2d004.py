@@ -23,20 +23,20 @@ __url__="https://launchpad.net/escript-finley"
 # You can shorten the execution time by reducing variable tend from 60 to 0.5
 
 # Importing all the necessary modules required.
-from esys.escript import *
-from esys.finley import Rectangle
-from esys.weipa import saveVTK
-import sys
-import os
-from cblib1 import wavesolver2d
-# smoothing operator 
-from esys.escript.pdetools import Projector
-import numpy as np
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 
+import os
+import sys
+import numpy as np
 import pylab as pl
 import matplotlib.cm as cm
+from esys.escript import *
+# smoothing operator 
+from esys.escript.pdetools import Projector
+from esys.finley import Rectangle
+from esys.weipa import saveVTK
+from cblib1 import wavesolver2d
 
 # Establish a save path.
 savepath = "data/wavesolver2d008mpltestABC"

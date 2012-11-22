@@ -30,13 +30,13 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 # initial temperature. Solve for the spatial distribution of temperature.
 
 # To solve the problem it is necessary to import the modules we require.
+#For interactive use, you can comment out the next two lines
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
 from esys.finley import Rectangle # This imports the rectangle domain function
-#For interactive use, you can comment out the next two lines
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
 import pylab as pl #Plotting package.
 import numpy as np #Array package.
 import os, sys #This package is necessary to handle saving our data.
