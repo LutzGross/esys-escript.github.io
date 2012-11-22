@@ -24,11 +24,10 @@ __url__="https://launchpad.net/escript-finley"
 # Acoustic Wave Equation Simulation
 
 # Importing all the necessary modules required.
-import numpy as np
-
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
 
+import numpy as np
 import pylab as pl
 
 #Geometric and material property related variables.

@@ -20,18 +20,17 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import *
-from esys.escript.pdetools import Locator
-from esys.escript.linearPDEs import LinearPDE
-from esys.dudley import Brick
-from esys.weipa import saveVTK
-from numpy import identity,zeros,ones
 import matplotlib
-
 matplotlib.use('agg')    #For interactive use, you can comment out this line
 #It's just here to make testing easier
 
 import matplotlib.pyplot as plt
+from numpy import identity,zeros,ones
+from esys.escript import *
+from esys.escript.linearPDEs import LinearPDE
+from esys.escript.pdetools import Locator
+from esys.dudley import Brick
+from esys.weipa import saveVTK
 
 
 ne=32          # number of cells in x_0 and x_1 directions

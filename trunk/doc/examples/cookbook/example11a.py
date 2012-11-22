@@ -25,27 +25,25 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 """
 
 ############################################################FILE HEADER
-# example10a.py
+# example11a.py
 # Model of electrical potential in a half-space.
 
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
-from esys.escript import * # This imports everything from the escript library
-from esys.escript.unitsSI import * 
-from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
-from esys.weipa import saveVTK
-from esys.finley import Rectangle # This imports the rectangle domain function from finley
-import os, sys #This package is necessary to handle saving our data.
-from math import pi, sqrt, sin, cos
-
 import matplotlib
 matplotlib.use('agg') #It's just here for automated testing
-from esys.escript.pdetools import Projector
-from cblib import toRegGrid
-
-
-import pylab as pl #Plotting package
+import os, sys #This package is necessary to handle saving our data.
+from math import pi, sqrt, sin, cos
 import numpy as np
+import pylab as pl #Plotting package
+
+from esys.escript import * # This imports everything from the escript library
+from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
+from esys.escript.pdetools import Projector
+from esys.escript.unitsSI import * 
+from esys.finley import Rectangle # This imports the rectangle domain function from finley
+from esys.weipa import saveVTK
+from cblib import toRegGrid
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:

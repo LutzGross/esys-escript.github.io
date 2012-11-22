@@ -30,6 +30,9 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 
 #######################################################EXTERNAL MODULES
 # To solve the problem it is necessary to import the modules we require.
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
+
 from esys.escript import * # This imports everything from the escript library
 from esys.escript.unitsSI import * 
 from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as LinearPDE
@@ -39,9 +42,6 @@ import os, sys #This package is necessary to handle saving our data.
 from math import pi, sqrt, sin, cos
 
 from esys.escript.pdetools import Projector
-
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
 
 from cblib import toRegGrid
 import pylab as pl #Plotting package

@@ -30,6 +30,8 @@ Author: Antony Hallam antony.hallam@uqconnect.edu.au
 # tools. Then model steady state heat solution.
 
 #######################################################EXTERNAL MODULES
+import matplotlib
+matplotlib.use('agg') #It's just here for automated testing
 from esys.pycad import * #domain constructor
 from esys.pycad.gmsh import Design #Finite Element meshing package
 from esys.finley import MakeDomain #Converter for escript
@@ -38,8 +40,6 @@ from math import * # math package
 from esys.escript import *
 from esys.escript.unitsSI import *
 from esys.escript.linearPDEs import LinearPDE
-import matplotlib
-matplotlib.use('agg') #It's just here for automated testing
 from cblib import toRegGrid
 import pylab as pl #Plotting package
 
