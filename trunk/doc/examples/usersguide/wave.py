@@ -25,7 +25,7 @@ matplotlib.use('agg')    #For interactive use, you can comment out this line
 #It's just here to make testing easier
 
 import matplotlib.pyplot as plt
-from numpy import identity,zeros,ones
+from numpy import zeros,ones
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 from esys.escript.pdetools import Locator
@@ -53,11 +53,11 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
    # ... open new PDE ...
    mypde=LinearPDE(domain)
    mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
-   kronecker=identity(mypde.getDim())
+   kron=kronecker(mypde.getDim())
 
    dunit=numpy.array([1.,0.,0.]) # defines direction of point source
 
-   mypde.setValue(D=kronecker*rho, q=whereNegative(length(x-xc)-src_radius)*dunit)
+   mypde.setValue(D=kron*rho, q=whereNegative(length(x-xc)-src_radius)*dunit)
    # ... set initial values ....
    n=0
    # for first two time steps
@@ -76,7 +76,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
      t+=h
      # ... get current stress ....
      g=grad(u)
-     stress=lam*trace(g)*kronecker+mu*(g+transpose(g))
+     stress=lam*trace(g)*kron+mu*(g+transpose(g))
      # ... get new acceleration ....
      amplitude=U0*(4*(t-t0)**3/alpha**3-6*(t-t0)/alpha)*sqrt(2.)/alpha**2*exp(1./2.-(t-t0)**2/alpha**2)
      mypde.setValue(X=-stress, r=dunit*amplitude)
