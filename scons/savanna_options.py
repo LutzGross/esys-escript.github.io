@@ -53,7 +53,7 @@ cc_extra = '-sox'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = '-sox -I/sw/libs/numpy/x86_64/gcc-4.3.2/numpy-1.6.1/lib/python2.6/site-packages/numpy/core/include'
+cxx_extra = '-sox -I/sw/libs/numpy/x86_64/icc-13/numpy-1.6.2-py27/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
@@ -90,16 +90,16 @@ mpi = 'INTELMPI'
 #mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/sw/sdev/intel/impi/4.0.3.008/intel64'
+mpi_prefix = '/sw/sdev/intel/impi/4.1.0.024/intel64'
 
 # MPI libraries to link against
 mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/sw/libs/boost/x86_64/gcc-4.3.2/python-2.6.5/boost_1_42_0'
+boost_prefix = '/sw/libs/boost/x86_64/gcc-4.3.2/python-2.7.3/boost_1_51_0'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-gcc43-mt']
+boost_libs = ['boost_python']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
@@ -122,7 +122,7 @@ netcdf_prefix = '/sw/libs/netcdf/x86_64/gcc-4.3.2/netcdf-4.1.1'
 parmetis = True
 
 # Prefix or paths to parMETIS headers and libraries. See note above.
-parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-12/parmetis-4.0.2'
+parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
 
 # parMETIS library/libraries to link against
 #parmetis_libs = ['parmetis', 'metis']
@@ -146,7 +146,7 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-12/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composer_xe_2011_sp1.6.233/mkl/include', '/sw/sdev/intel/composer_xe_2011_sp1.6.233/mkl/lib/intel64']
+mkl_prefix = ['/sw/sdev/intel/composer_xe_2013.1.117/mkl/include', '/sw/sdev/intel/composer_xe_2013.1.117/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -156,10 +156,10 @@ mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 umfpack = True
 
 # Prefix or paths to UMFPACK headers and libraries. See note above.
-umfpack_prefix = '/sw/libs/umfpack/x86_64/icc-12/umfpack-5.5.2'
+umfpack_prefix = '/sw/libs/umfpack/x86_64/icc-13/umfpack-5.6.1'
 
 # UMFPACK library/libraries to link against
-umfpack_libs = ['umfpack', 'amd']
+umfpack_libs = ['umfpack', 'amd', 'suitesparseconfig']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
@@ -196,10 +196,10 @@ silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-visit = True
+visit = False
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.3.0/2.3.0/linux-x86_64/libsim/V2'
+visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.6.0/2.6.0/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
@@ -227,7 +227,7 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.3.0/2.3.0/linux-x86_64/l
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2011_sp1.6.233'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013.1.117'})]
 
 #iknowwhatimdoing = False
 
