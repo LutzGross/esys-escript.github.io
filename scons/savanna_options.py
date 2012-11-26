@@ -77,7 +77,7 @@ openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
-omp_flags = '-openmp -openmp-report2'
+#omp_flags = '-openmp -openmp-report=1'
 
 # Additional linker flags for OpenMP builds
 # DEFAULT: compiler-dependent
