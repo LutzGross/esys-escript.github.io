@@ -14,57 +14,65 @@
 
 
 \section{Magnetic Inversion}\label{sec:forward magnetic}
-
-We want to calculate the susceptibility $k$ over a rectangular domain as described in Chapter~\ref{chp:gravityinversion} from 
-the measured magnetic field $B_i$. Assuming a linear, isotropic material and that the magnetic susceptibility of the material is proportional to the background magnetic field, the total magnetic field is 
-given as 
-\begin{equation}\label{EQU:Hb}
-B_i = \mu_0 H_i + k \cdot B^b_i 
+For the magnetic inversion we use the anomaly of the magnetic flux density~\index{magnetic flux density} of the Earth.
+The controlling material parameter
+is the susceptibility~\index{susceptibility} $k$ of the rock. With magnetization $M$,
+inducing magnetic field anomaly $H^s$ the magnetic flux density anomaly $B^s$ is given as
+\begin{equation}\label{ref:EQU:1}
+B_i = \mu_0 \cdot ( H^s_i  + M_i )
 \end{equation}
-where $H_i$ is the (unknown) magnetizing field and
-$B^b_i$ is the background magnetic field of the Earth.\footnote{Notation: the superscript ``b'' following a symbol indicates 
-a background field quantity.} We assume that the background  magnetic field is constant across the domain 
-where for a domain at latitude $theta$ the latitude and radial components of magnetic field are given as  
-\begin{equation}\label{EQU:Hb 2}
+where $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$.
+In this forward model we make the simplifying assumption that the magnetization is proportional to
+the known geomagnetic
+ flux density $B^b$:
+\begin{equation}\label{ref:EQU:4}
+\mu_0  \cdot M_i = k \cdot B^b_i \;. 
+\end{equation}
+Values for the magnetic flux density
+can be obtained by the International Geomagnetic Reference Field (IGRF)~\cite{IGRF}
+(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}). A rough approximation at 
+at latitude $\theta$ is given by 
+\begin{equation}\label{ref:EQU:5}
 \begin{array}{rcl}
-B^b_{\theta}  & = & \displaystyle{ \frac{\mu_0 \cdot m}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\
-B^b_r & = & \displaystyle{ \frac{\mu_0 \cdot m}{1 \pi \cdot R_{earth}^3} cos(\theta) }
+B^b_{\theta}  & = & \displaystyle{ \frac{ \mu_0 \cdot m_{earth}}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\
+B^b_r & = & \displaystyle{ \frac{\mu_0 \cdot  m_{earth}}{1 \pi \cdot R_{earth}^3} cos(\theta) }
 \end{array}
 \end{equation}
-with the vacuum permeability $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$, 
-the magnetic dipole moment of Earth $m= 8.22 \cdot 10^22 Am^2$ and earth radius $R_{earth}= 6378137m$. We assume a flat domain
-and associate where longitude is associated with $x_0$-direction,
-the latitude is associated with $x_1$-direction and the radial direction is associated with $x_2$-direction:
-\begin{equation}\label{EQU:Hb 3}
-\begin{array}{rcl}
-B^b_0  & = & 0 \\
-B^b_1  & = & -B^b_{\theta} \\
-B^b_2  & = & -B^b_r \\
-\end{array}
-\end{equation}
-We introduce the potential $\psi$ for the deviation of the magnetizing field from the background magnetizing field: 
-\begin{equation}\label{EQU:Hb 4}
-H_i = - \psi_{,i} + B^b
-\end{equation}
-With the is notation we get from equation~(\ref{EQU:Hb}):
-\begin{equation}\label{EQU:Hb 5}
-B_i = (1+k) B^b_i  - \psi_{,i} 
-\end{equation} 
-As the magnetic field $B$ is divergence free we get the PDE 
-\begin{equation}\label{EQU:Hb 5}
-- \psi_{,ii} = - ((1+k) B^b_i)_{,i} 
-\end{equation} 
-for the magnetic potential $\psi$. 
+with the vacuum permeability\index{vacuum permeability}  $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$, 
+the magnetic dipole moment of Earth $m_{earth}= 8.22 \cdot 10^{22} Am^2$ and earth radius $R_{earth}= 6378137m$.
+$B^b_r$ and $b^b_{\theta}$ denote the radial and latitudinal component of the geomagnetic
+ flux density.
+Notice that convention~(\ref{REF:EQU:INTRO 9}) applies if Cartesian coordinates\index{Cartesian coordinates} are used. 
+In most cases it is reasonable to assume that that the background field is constant across the domain.
 
-The problem is to calculate the susceptibility $k$ from the magnetic field $B$ known at some parts of the region of interest 
-$\Omega$. In fact we want to minimize the value
-\begin{equation}\label{GRAV:EQU:102}
-J_{data}(\psi) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  B_{i}- B^{(s)}_i)^2 dx
-\footnote{Summation over $i$ is performed by Einstein notation.}
+The magnetic field anomaly $H^s$ can be represented be the gradient of a magnetic scalar potential\index{scalar potential!magnetic}
+$\psi$. We use the form 
+\begin{equation}\label{ref:EQU:6}
+\mu_0  \cdot H^s_i = - \psi_{,i}
+\end{equation}
+With this notation one gets from equations~(\ref{ref:EQU:1}) and~(\ref{ref:EQU:4}):
+\begin{equation}\label{ref:EQU:7}
+B_i = - \psi_{,i}  + k \cdot B^b_i
+\end{equation}
+As the $B^s$ magnetic flux density anomaly we obtain the PDE  
+\begin{equation}\label{ref:EQU:8}
+- \psi_{,ii} = - (k B^b_i)_{,i} 
 \end{equation} 
-where $B^{(s)}_i$ is a measurement of the gravity force $B_i = (1+k) H^b_i  - \psi_{,i} $
-and $\chi^{(s)}_i$ is a weighting factor. 
-$s$ indexes the surveys included in the inversion.
+which needs to be solved for a given susceptibility $k$. The magnetic scalar potential is set to zero 
+at the top of the domain $\Gamma_{top}$. On all other faces the normal component of the magnetic flux density anomaly $B_i$
+is set to zero, i.e. $n_i \psi_{,i}  = k \cdot n_i  B^b_i$ with outer normal field $n_i$).
+
+From the magnetic scalar potential we can calculate the magnetic flux density anomaly via equation~(\ref{ref:EQU:8}) to
+calculate the defect to the given data. If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for 
+survey $s$ and $\chi^{(s)}_i$ is a weighting factor the data defect $J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction}
+is given as
+\begin{equation}\label{ref:EQU:9}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (B_{i}- B^{(s)}_i)^2 dx
+\end{equation} 
+The cost function kernel\index{cost function!kernel} is given as
+\begin{equation}\label{ref:EQU:10}
+K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i)^2
+\end{equation} 
 
 
 
@@ -97,7 +105,7 @@ with
 and 
 \begin{equation}\label{MAG:EQU:202b}
 < \nabla J_{data}(\Psi[C[m]]), q> =  \sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  B_i  -  B^{(s)}_i ) 
-\cdot ( \frac{dC}{dm} \cdot q \cdot B^b_i  - \Psi[\frac{dC}{dm} \cdot q]_{,i}) dx 
+\cdot ( \frac{dC}{dm} \cdot q \cdot H^b_i  - \Psi[\frac{dC}{dm} \cdot q]_{,i}) dx 
 \end{equation} 
 where $k=C(m)$ and $B_i=(1+k) H^b_i  - \Psi[1+k]_{,i}$
 With
@@ -107,7 +115,7 @@ Y_i[\psi]= \sum_{s} \chi^{(s)}_i \cdot (  B_i  -  B^{(s)}_i )
 we get 
 \begin{equation}\label{MAG:EQU:202bb}
 < \nabla J_{data}(\Psi[C[m]]), q> = 
-< Y_i[\psi] B^b_i, \frac{dC}{dm} q> - < Y_i[\psi] ,  \Psi[\frac{dC}{dm} \cdot q]_{,i} >
+< Y_i[\psi] H^b_i, \frac{dC}{dm} q> - < Y_i[\psi] ,  \Psi[\frac{dC}{dm} \cdot q]_{,i} >
 \end{equation} 
 and $Y^*[\psi]$ as the solution of the equation 
 \begin{equation}\label{MAG:EQU:202d}
@@ -130,7 +138,7 @@ Putting this all together we get
 \begin{align}
 < \nabla f(m),q> = &\mu \cdot < 2 \omega \cdot (m-m^{ref}), q>\nonumber\\
 + &\mu \cdot < 2 \omega_i \cdot L_i^2 \cdot (m-m^{ref})_{,i}, q_{,i}>\nonumber\\
-+ &< ( Y_i[\psi] - (Y^*[\psi])_{,i} ) B^b_i,  \frac{dC}{dm} \cdot q>\label{MAG:EQU:202g}
++ &< ( Y_i[\psi] - (Y^*[\psi])_{,i} ) H^b_i,  \frac{dC}{dm} \cdot q>\label{MAG:EQU:202g}
 \end{align}  
 
 
