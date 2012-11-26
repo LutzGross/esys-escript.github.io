@@ -225,11 +225,12 @@ cc_name=os.path.basename(env['CC'])
 
 if cc_name == 'icc':
     # Intel compiler
-    cc_flags    = "-std=c99 -fPIC -wd161 -w1 -vec-report0 -DBLOCKTIMER -DCORE_ID1"
-    cc_optim    = "-O3 -ftz -IPF_ftlacc- -IPF_fma -fno-alias -ip"
+    # #1875: offsetof applied to non-POD types is nonstandard (in boost)
+    cc_flags    = "-std=c99 -fPIC -w2 -wd1875 -Wno-unknown-pragmas -DBLOCKTIMER -DCORE_ID1"
+    cc_optim    = "-O3 -ftz -fno-alias -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
-    omp_flags   = "-openmp -openmp_report0"
-    omp_ldflags = "-openmp -openmp_report0 -lpthread"
+    omp_flags   = "-openmp"
+    omp_ldflags = "-openmp -openmp_report=1"
     fatalwarning = "-Werror"
 elif cc_name[:3] == 'gcc':
     # GNU C on any system
