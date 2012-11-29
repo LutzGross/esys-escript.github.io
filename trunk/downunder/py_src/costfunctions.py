@@ -40,13 +40,13 @@ class CostFunction(object):
         gf=cf.getGradient(x, *args) 
 
         
-    The class makes a difference for the representation of the solution x (x-type) and 
-    the gradients (r-type). 
+    The class distinguishes between the representation of the solution
+    x (x-type) and the gradients (r-type). 
     """
 
     def __init__(self):
         """
-        the base constructor initializes the counters so subclasses should
+        The base constructor initializes the counters so subclasses should
         ensure the super class constructor is called.
         """
         self.provides_inverse_Hessian_approximation=True
@@ -149,7 +149,7 @@ class MeteredCostFunction(CostFunction):
         self.Value_calls=0
         self.Gradient_calls=0
         self.Arguments_calls=0
-	self.InverseHessianApproximation_calls=0
+        self.InverseHessianApproximation_calls=0
         
     def getDualProduct(self, x, r):
         """
