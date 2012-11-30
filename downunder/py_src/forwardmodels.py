@@ -55,48 +55,62 @@ class ForwardModelWithPotential(ForwardModel):
     Base class for a forward model using a potential such as magnetic or
     gravity. It defines a cost function
 
-        defect = 1/2 sum_s integrate( weight_i[s] * ( r_i - data_i[s] )**2 )
+        defect = scale/2 sum_s integrate(  ( weight_i[s] * ( r_i - data_i[s] ) ) **2  )
 
     where s runs over the survey, weight_i are weighting factors, data_i are
     the data, and r_i are the results produced by the forward model.
     It is assumed that the forward model is produced through postprocessing
     of the solution of a potential PDE.
     """
-    def __init__(self, domain, weight, data,  tol=1e-8):
+    def __init__(self, domain, w, data,  useSphericalCoordinates=False, scale=1., tol=1e-8):
         """
         initialization.
 
         :param domain: domain of the model
         :type domain: `esys.escript.Domain`
-        :param weight: data weighting factors
-        :type weight: `Vector` or list of `Vector`
+        :param w: data weighting factors
+        :type w: `Vector` or list of `Vector`
         :param data: data
         :type data: `Vector` or list of `Vector`
+        :param useSphericalCoordinates: if set spherical coordinates are used. 
+        :type useSphericalCoordinates: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
+        :param scale: constant scaling factor 
+        :type scale: positive ``float``
 
+        :note: The weighting factors are rescaled such that 
+             *sum_s integrate(  ( weight_i[s] *data_i[s]) **2  )=1*
         """
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
+        if scale > 0:
+	     self.__scale = scale
+	else:
+	     raise ValueError("Scaling factor must be positive.")
 
+        
+        if useSphericalCoordinates:
+	     raise ValueError("Spherical coordinates are not supported yet.")
+	else:
+	     self.__useSphericalCoordinates=useSphericalCoordinates
         try:
-            n=len(weight)
+            n=len(w)
             m=len(data)
             if m != n:
                 raise ValueError("Length of weight and data must be the same.")
-            self.__weight = weight
+            self.__weight = w
             self.__data = data
         except TypeError:
-            self.__weight = [weight]
+            self.__weight = [w]
             self.__data = [data]
 
         A=0
         for s in xrange(len(self.__weight)):
-            A += integrate(inner(self.__weight[s], self.__data[s]**2))
+            A += integrate( inner(self.__weight[s], self.__data[s]) **2 )
         if A > 0:
 	    A=vol(domain)/A 
             for s in xrange(len(self.__weight)):  self.__weight[s]*=A
-            print "FORWARD SCALE = ",self.__weight[0]
         else:
             raise ValueError("No non-zero data contribution found.")
 
@@ -107,8 +121,20 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
-        #self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
-        self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1])+whereZero(x[DIM-1]-BX[DIM-1][0]))
+        self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
+        
+    def useSphericalCoordinates(self):
+        """
+        Returns ``True`` if spherical coordinates are used.
+        """
+        return self.__useSphericalCoordinates
+    
+    def getScalingFactor(self):
+        """
+        Returns scaling factor.
+        """
+        return self.__scale
+    
     def getDomain(self):
         """
         Returns the domain of the forward model.
@@ -133,9 +159,16 @@ class ForwardModelWithPotential(ForwardModel):
         """
         A=0.
         for s in xrange(len(self.__weight)):
-            A += integrate(inner(self.__weight[s], (result-self.__data[s])**2))
-        return A/2
+            A += integrate( inner(self.__weight[s], self.__data[s]-result)**2 )
+        return  self.__scale*A/2
 
+    def getDefectGradient(self, result):
+        Y=0.
+        for s in xrange(len(self.__weight[s])):
+            Y = inner(self.__weight[s], self.__data[s]-result) * w[s] + Y
+        print "self.__scale*Y =",self.__scale*Y
+        return self.__scale*Y
+        
     def getSurvey(self, index=None):
         """
         Returns the pair (data_index, weight_index), where data_i is the data
@@ -154,22 +187,31 @@ class GravityModel(ForwardModelWithPotential):
     """
     Forward Model for gravity inversion as described in the inversion
     cookbook.
+        
     """
-    def __init__(self, domain, chi, g,  gravity_constant=U.Gravitational_Constant, tol=1e-8):
+    def __init__(self, domain, w, g,  gravity_constant=U.Gravitational_Constant, 
+                 useSphericalCoordinates=False, scale=1., tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
-        surveys (chi, g).
+        surveys (w, g).
 
         :param domain: domain of the model
         :type domain: `esys.escript.Domain`
-        :param chi: data weighting factors
-        :type chi: `Vector` or list of `Vector`
+        :param w: data weighting factors
+        :type w: `Vector` or list of `Vector`
         :param g: gravity anomaly data
         :type g: `Vector` or list of `Vector`
+        :param useSphericalCoordinates: if set spherical coordinates are used. 
+        :type useSphericalCoordinates: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
+        :param scale: constant scaling factor 
+        :type scale: positive ``float``
+
+        :note: The weighting factors are rescaled such that 
+             *sum_s integrate(  ( w_i[s] *g_i[s]) **2  )=1*
         """
-        super(GravityModel, self).__init__(domain, chi, g, tol)
+        super(GravityModel, self).__init__(domain, w, g, useSphericalCoordinates, scale, tol)
 
         self.__G = gravity_constant
         self.getPDE().setValue(A=kronecker(self.getDomain()))
@@ -231,14 +273,8 @@ class GravityModel(ForwardModelWithPotential):
         :rtype: `Scalar`
         """
         pde=self.getPDE()
-        g, chi = self.getSurvey()
-
-        Z=0.
-        for s in xrange(len(chi)):
-            Z = chi[s] * (g[s]-gravity_force) + Z
-
         pde.resetRightHandSideCoefficients()
-        pde.setValue(X=Z)
+        pde.setValue(X=self.getDefectGradient(gravity_force))
         ZT=pde.getSolution()
         return ZT*(-4*PI*self.__G)
 
@@ -248,24 +284,28 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, chi, B, background_field,  tol=1e-8):
+    def __init__(self, domain, w, B, background_field,  useSphericalCoordinates=False, scale=1., tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
-        surveys (chi, B).
+        surveys (w, B).
 
         :param domain: domain of the model
         :type domain: `Domain`
-        :param chi: data weighting factors
-        :type chi: `Vector` or list of `Vector`
+        :param w: data weighting factors
+        :type w: `Vector` or list of `Vector`
         :param B: magnetic field data
         :type B: `Vector` or list of `Vector`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        """
-        super(MagneticModel, self).__init__(domain, chi, B, tol)
-        print "B = ",B[0]
-        print "background_field = ",background_field
+        :param useSphericalCoordinates: if set spherical coordinates are used. 
+        :type useSphericalCoordinates: ``bool``
+        :param scale: constant scaling factor 
+        :type scale: positive ``float``
         
+        :note: The weighting factors are rescaled such that 
+             *sum_s integrate(  ( w_i[s] *B_i[s]) **2  )=1*
+        """
+        super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, scale, tol)        
         self.__background_field=interpolate(background_field, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
 
@@ -325,13 +365,8 @@ class MagneticModel(ForwardModelWithPotential):
         :type magnetic_field: `Vector`
         :rtype: `Scalar`
         """
+        Y=self.getDefectGradient(magnetic_field)
         pde=self.getPDE()
-        B, chi = self.getSurvey()
-
-        Y=0.
-        for s in xrange(len(chi)):
-            Y = chi[s] * (magnetic_field-B[s]) + Y
-
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
 
@@ -340,6 +375,5 @@ class MagneticModel(ForwardModelWithPotential):
         #saveVTK("Y.vtu",RHS=pde.getRightHandSide(), Y=Y)
 
         YT=pde.getSolution()
-        print "YT = ",YT
-        return inner(Y-grad(YT),self.__background_field)
+        return inner(grad(YT)-Y,self.__background_field)
 

@@ -115,6 +115,10 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 	      Esys_MPIInfo_noError(A->mpi_info);
               prec->type=PASO_RILU;
               break;
+           case PASO_NO_PRECONDITIONER:
+              if (options->verbose) printf("Paso_Preconditioner: no preconditioner is applied.\n");
+              prec->type=PASO_NO_PRECONDITIONER;
+              break;
         }
     }
     if (! Esys_noError() ){
@@ -129,6 +133,7 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 /* Has to be called within a parallel region. */
 /* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
 void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,double* x,double* b){
+    dim_t n=0;
 
     switch (prec->type) {
         default:
@@ -149,6 +154,10 @@ void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,d
         case PASO_RILU:
 	   Paso_Solver_solveRILU(prec->rilu,x,b);
            break;
+        case PASO_NO_PRECONDITIONER:
+            n = MIN(Paso_SystemMatrix_getTotalNumCols(A),Paso_SystemMatrix_getTotalNumRows(A));
+            Paso_Copy(n,x,b);
+            break;
 
     }
 }

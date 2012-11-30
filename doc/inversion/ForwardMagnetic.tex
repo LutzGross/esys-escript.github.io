@@ -18,21 +18,21 @@ For the magnetic inversion we use the anomaly of the magnetic flux density~\inde
 The controlling material parameter
 is the susceptibility~\index{susceptibility} $k$ of the rock. With magnetization $M$,
 inducing magnetic field anomaly $H^s$ the magnetic flux density anomaly $B^s$ is given as
-\begin{equation}\label{ref:EQU:1}
+\begin{equation}\label{ref:MAG:EQU:1}
 B_i = \mu_0 \cdot ( H^s_i  + M_i )
 \end{equation}
 where $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$.
 In this forward model we make the simplifying assumption that the magnetization is proportional to
 the known geomagnetic
  flux density $B^b$:
-\begin{equation}\label{ref:EQU:4}
+\begin{equation}\label{ref:MAG:EQU:4}
 \mu_0  \cdot M_i = k \cdot B^b_i \;. 
 \end{equation}
 Values for the magnetic flux density
 can be obtained by the International Geomagnetic Reference Field (IGRF)~\cite{IGRF}
 (or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}). A rough approximation at 
 at latitude $\theta$ is given by 
-\begin{equation}\label{ref:EQU:5}
+\begin{equation}\label{ref:MAG:EQU:5}
 \begin{array}{rcl}
 B^b_{\theta}  & = & \displaystyle{ \frac{ \mu_0 \cdot m_{earth}}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\
 B^b_r & = & \displaystyle{ \frac{\mu_0 \cdot  m_{earth}}{1 \pi \cdot R_{earth}^3} cos(\theta) }
@@ -47,98 +47,121 @@ In most cases it is reasonable to assume that that the background field is const
 
 The magnetic field anomaly $H^s$ can be represented be the gradient of a magnetic scalar potential\index{scalar potential!magnetic}
 $\psi$. We use the form 
-\begin{equation}\label{ref:EQU:6}
+\begin{equation}\label{ref:MAG:EQU:6}
 \mu_0  \cdot H^s_i = - \psi_{,i}
 \end{equation}
-With this notation one gets from equations~(\ref{ref:EQU:1}) and~(\ref{ref:EQU:4}):
-\begin{equation}\label{ref:EQU:7}
+With this notation one gets from equations~(\ref{ref:MAG:EQU:1}) and~(\ref{ref:MAG:EQU:4}):
+\begin{equation}\label{ref:MAG:EQU:7}
 B_i = - \psi_{,i}  + k \cdot B^b_i
 \end{equation}
 As the $B^s$ magnetic flux density anomaly we obtain the PDE  
-\begin{equation}\label{ref:EQU:8}
+\begin{equation}\label{ref:MAG:EQU:8}
 - \psi_{,ii} = - (k B^b_i)_{,i} 
 \end{equation} 
 which needs to be solved for a given susceptibility $k$. The magnetic scalar potential is set to zero 
 at the top of the domain $\Gamma_{top}$. On all other faces the normal component of the magnetic flux density anomaly $B_i$
 is set to zero, i.e. $n_i \psi_{,i}  = k \cdot n_i  B^b_i$ with outer normal field $n_i$).
 
-From the magnetic scalar potential we can calculate the magnetic flux density anomaly via equation~(\ref{ref:EQU:8}) to
+From the magnetic scalar potential we can calculate the magnetic flux density anomaly via equation~(\ref{ref:MAG:EQU:8}) to
 calculate the defect to the given data. If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for 
-survey $s$ and $\chi^{(s)}_i$ is a weighting factor the data defect $J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction}
+survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect $J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction}
 is given as
-\begin{equation}\label{ref:EQU:9}
-J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (B_{i}- B^{(s)}_i)^2 dx
+\begin{equation}\label{ref:MAG:EQU:9}
+J^{mag}(k) = \frac{\alpha}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
 \end{equation} 
+Summation over $i$ is performed. $\alpha$ defines a scaling factor which is typically set to one.
 The cost function kernel\index{cost function!kernel} is given as
-\begin{equation}\label{ref:EQU:10}
-K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i)^2
+\begin{equation}\label{ref:MAG:EQU:10}
+K^{mag}(\psi_{,i},k) = \frac{\alpha}{2}\sum_{s} ( \omega^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i) ) ^2
+\end{equation} 
+Notice that if magnetic flux density is measured in air one can ignore the $k \cdot B^b_i$ as the susceptibility is zero.
+
+In practice the magnetic flux density $b^{(s)}$ is measured along a certain direction $d^{(s)}_i$ with a 
+standard error deviation $\sigma^{(s)}$ at certain locations in the domain. In this case
+one sets $B^{(s)}_i=b^{(s)} \cdot d^{(s)}_i$ and the weighting factors $\omega^{(s)}$ as
+\begin{equation}\label{ref:MAG:EQU:11}
+\omega^{(s)}_i 
+= \left\{
+\begin{array}{lcl}
+f \cdot  \frac{d^{(s)}_i}{\sigma^{(s)}} & & \mbox{data are available} \\
+& \mbox{ where } & \\
+0 & & \mbox{ otherwise } \\
+\end{array}
+\right.
+\end{equation} 
+where it is assumed that $d^{(s)}_i \cdot d^{(s)}_i =1$. The scaling factor $f$ is chosen in the way that 
+\begin{equation}\label{ref:MAG:EQU:12}
+\sum_{s} \int_{\Omega} ( \omega^{(s)}_i B^{(s)}_i ) ^2 dx =1 
 \end{equation} 
 
+\subsection{Usage}
+
+\LG{Add example}
+
+\begin{classdesc}{MagneticModel}{domain, 
+w, B, background_field,
+\optional{, useSphericalCoordinates=False
+\optional{, scale=1
+\optional{, tol=1e-8}}}}
+opens a magnetic forward model over the \Domain \var{domain} with 
+weighting factors \var{w} ($=\omega^{(s)}$) and measured magnetic flux density anomalies \var{B} ($=B^{(s)}$).
+The weighting factors and the  measured magnetic flux density anomalies must be vectors.
+\var{background_field} defines the background magnetic flux density $B^b$. 
+\var{background_field} must be a vector.
+If \var{useSphericalCoordinates} is \True spherical coordinates are used. 
+\var{scale} sets the scaling factor $\alpha$. 
+\var{tol} set the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
+The weighting factors are rescaled such that conditon~(\ref{ref:MAG:EQU:12}) holds.
+\end{classdesc}
 
 
-\subsection{Solution methods}
-To apply the Nonlinear Conjugate Gradient method (NLCG), see Appendix~\ref{sec:NLCG} or the L-BFGS method, see Appendix~\ref{sec:LBFGS} we need
-to define an inner product $<.,.>$ and need to calculate the gradient of of $f$. 
-
-As inner product we use 
-\begin{equation}\label{MAG:EQU:200}
-<p,q> = \int_{\Omega} p \cdot q \; dx
+\subsection{Gradient Calculation}
+The subsection briefly explains how the gradient $\frac{\partial J^{mag}}{\partial k}$  of the cost function $J^{mag}$ with respect to the 
+susceptibility $k$ is calculated. 
+The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8})  is solved in weak form:
+\begin{equation}\label{ref:MAG:EQU:201}
+\int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^b_i \; dx 
 \end{equation} 
-With this notation the magnetic potential is given as $\psi=\Psi[1+k]$ where
-\begin{equation}\label{MAG:EQU:201}
-< q_{,i},\Psi[p]_{,i} > = < q_{,i} , p \cdot H^b_i> \mbox{ for all } q \mbox{ with } q=0 \mbox{ on } \Gamma_{z}
+for all $q$ with $q=0$ on $\Gamma_{top}$. In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as solution
+of the variational problem~(\ref{ref:MAG:EQU:201}).If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is known
+and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
+\begin{equation}\label{ref:MAG:EQU:201}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \alpha \cdot  \int_{\Omega}  
+\sum_{s} (\omega^{(s)}_j 
+( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( \Psi[p]_{,i} - p  \cdot B^b_i  ) ) \; dx  
 \end{equation} 
-where $\Gamma_{z}$ denotes the top and bottom surface of the domain for case (D)
-and the top surface of the domain for case (N). 
-
-
-
-For any $q$ with $q=0$ on $\Omega^{ref}$ we get 
-\begin{equation}\label{MAG:EQU:202}
-< \nabla f(m),q> = < \nabla J_{data}(\Psi[1+C[m]]), q>  +  \mu \cdot < \nabla J_{reg}(m),q>
+With 
+\begin{equation}\label{ref:MAG:EQU:202c}
+Y_i[\psi]=  \alpha \cdot \sum_{s} (\omega^{(s)}_j 
+(B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
 \end{equation} 
-with 
-\begin{equation}\label{MAG:EQU:202a}
-< \nabla J_{reg}(m),q> = 
-\int_{\Omega} 2 \omega q \cdot (m-m^{ref}) + 2 \omega_i \cdot L_i^2 \cdot q_{,i} (m-m^{ref})_{,i} dx
+This is written as 
+\begin{equation}\label{ref:MAG:EQU:201}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
+Y_i[\psi] \Psi[p]_{,i} - p \cdot Y_i[\psi]B^b_i   \; dx  
 \end{equation} 
-and 
-\begin{equation}\label{MAG:EQU:202b}
-< \nabla J_{data}(\Psi[C[m]]), q> =  \sum_{s} \int_{\Omega} \chi^{(s)}_i \cdot (  B_i  -  B^{(s)}_i ) 
-\cdot ( \frac{dC}{dm} \cdot q \cdot H^b_i  - \Psi[\frac{dC}{dm} \cdot q]_{,i}) dx 
+We then set $Y^*[\psi]$ as the solution of the equation 
+\begin{equation}\label{ref:MAG:EQU:202d}
+\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{top}
 \end{equation} 
-where $k=C(m)$ and $B_i=(1+k) H^b_i  - \Psi[1+k]_{,i}$
-With
-\begin{equation}\label{MAG:EQU:202c}
-Y_i[\psi]= \sum_{s} \chi^{(s)}_i \cdot (  B_i  -  B^{(s)}_i ) 
+with $Y^*[\psi]=0$ on $\Gamma_{top}$. With $r=\Psi[p]$ we get
+\begin{equation}\label{ref:MAG:EQU:202d}
+\int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx
 \end{equation} 
-we get 
-\begin{equation}\label{MAG:EQU:202bb}
-< \nabla J_{data}(\Psi[C[m]]), q> = 
-< Y_i[\psi] H^b_i, \frac{dC}{dm} q> - < Y_i[\psi] ,  \Psi[\frac{dC}{dm} \cdot q]_{,i} >
-\end{equation} 
-and $Y^*[\psi]$ as the solution of the equation 
-\begin{equation}\label{MAG:EQU:202d}
-< p_{,i},Y^*[\psi]_{,i} > =  < p_{,i} ,Y_i[\psi] > \mbox{ for all } p \mbox{ with } p=0 \mbox{ on } \Gamma_{z}
-\end{equation} 
-with $Y^*[\psi]=0$ on $\Gamma_{z}$. 
-By stetting $p=\Psi[\frac{dC}{dm} \cdot q]$ we get
-\begin{equation}\label{MAG:EQU:202e}
-<(\Psi[\frac{dC}{dm} \cdot q]) _{,i},Y^*[\psi]_{,i} > =  < (\Psi[\frac{dC}{dm} \cdot q])_{,i} ,Y_i[\psi] >
-\end{equation} 
-and from~\ref{MAG:EQU:201} with $q=Y^*[\psi]$ we get
-\begin{equation}\label{MAG:EQU:20e}
-< (Y^*[\psi])_{,i},(\Psi[\frac{dC}{dm} \cdot q])_{,i} > = <(Y^*[\psi])_{,i} , \frac{dC}{dm} \cdot q \cdot H^b_i>
+and from equation~(\ref{ref:MAG:EQU:201}) with $q=Y^*[\psi]$ we get
+\begin{equation}\label{ref:MAG:EQU:20e}
+\int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^b_i \; dx  
 \end{equation}
 which leads to 
-\begin{equation}\label{MAG:EQU:202f}
-< \nabla J_{data}(\Psi[C[m]]), q> = < ( Y_i[\psi] - (Y^*[\psi])_{,i} ) H^b_i,  \frac{dC}{dm} \cdot q>
+\begin{equation}\label{ref:MAG:EQU:20ee}
+\int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^b_i \; dx  
+\end{equation}
+and finally
+\begin{equation}\label{ref:MAG:EQU:201a}
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
+p \cdot (Y_i[\psi] - Y^*[\psi]_{,i})  B^b_i \; dx  
 \end{equation} 
-Putting this all together we get
-\begin{align}
-< \nabla f(m),q> = &\mu \cdot < 2 \omega \cdot (m-m^{ref}), q>\nonumber\\
-+ &\mu \cdot < 2 \omega_i \cdot L_i^2 \cdot (m-m^{ref})_{,i}, q_{,i}>\nonumber\\
-+ &< ( Y_i[\psi] - (Y^*[\psi])_{,i} ) H^b_i,  \frac{dC}{dm} \cdot q>\label{MAG:EQU:202g}
-\end{align}  
-
-
+or 
+\begin{equation}\label{ref:MAG:EQU:201b}
+\frac{\partial J^{mag}}{\partial k} = (Y^*[\psi]_{,i}-Y_i[\psi])  B^b_i
+\end{equation} 

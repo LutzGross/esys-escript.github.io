@@ -86,7 +86,7 @@ err_t Paso_Solver_TFQMR(
   bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
-  double  *u1=NULL, *u2=NULL, *y1=NULL, *y2=NULL, *d=NULL, *w=NULL, *v=NULL, *v_old=NULL, *temp_vector=NULL,*res=NULL;
+  double  *u1=NULL, *u2=NULL, *y1=NULL, *y2=NULL, *d=NULL, *w=NULL, *v=NULL, *temp_vector=NULL,*res=NULL;
 
   double eta,theta,tau,rho,beta,alpha,sigma,rhon,c;
 
@@ -106,11 +106,10 @@ err_t Paso_Solver_TFQMR(
   d=TMPMEMALLOC(n,double);
   w=TMPMEMALLOC(n,double);
   v=TMPMEMALLOC(n,double);
-  v_old=TMPMEMALLOC(n,double);
   temp_vector=TMPMEMALLOC(n,double);
   res=TMPMEMALLOC(n,double);
  
- if (u1 ==NULL || u2== NULL || y1 == NULL || y2== NULL || d==NULL || w==NULL || v==NULL || v_old==NULL) {
+ if (u1 ==NULL || u2== NULL || y1 == NULL || y2== NULL || d==NULL || w==NULL || v==NULL ) {
      status=SOLVER_MEMORY_ERROR;
   }
  
@@ -148,6 +147,7 @@ err_t Paso_Solver_TFQMR(
   Paso_SystemMatrix_solvePreconditioner(A,v,temp_vector);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+  /* v = P^{-1} * A y1 */
   
   Paso_Copy(n,u1,v);
     
@@ -158,7 +158,7 @@ err_t Paso_Solver_TFQMR(
   
   rho = tau * tau;
       
-  norm_of_residual=tau*sqrt ( m + 1 );
+  norm_of_residual=tau;
   
   while (!(convergeFlag || maxIterFlag || breakFlag || (status !=SOLVER_NO_ERROR) ))
   {
@@ -174,7 +174,7 @@ err_t Paso_Solver_TFQMR(
        {
          /*  Compute y2 and u2 only if you have to */
          if ( j == 1 ){
-          Paso_LinearCombination(n,y2,1.,y1,-alpha,v);
+          Paso_LinearCombination(n,y2,PASO_ONE,y1,-alpha,v); /* y2 = y1 - alpha*v */
           
           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
           Performance_startMonitor(pp,PERFORMANCE_MVM);
@@ -184,22 +184,25 @@ err_t Paso_Solver_TFQMR(
           
           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
           Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-	  Paso_SystemMatrix_solvePreconditioner(A,u2,temp_vector);
+	  Paso_SystemMatrix_solvePreconditioner(A,u2,temp_vector);  
           Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
           Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+          /* u2 = P^{-1} * A y2 */
          } 
          m = 2 * (num_iter+1) - 2 + (j+1);
+
           if (j==0) { 
-            Paso_Update(n,1.,w,-alpha,u1);
-            Paso_Update(n,( theta * theta * eta / alpha ),d,1.,y1);
+            Paso_Update(n,1.,w,-alpha,u1); /* w = w - alpha * u1 */
+            Paso_Update(n,( theta * theta * eta / alpha ),d,1.,y1); /* d = ( theta * theta * eta / alpha )*d + y1 */
           }
           if (j==1) {
-            Paso_Update(n,1.,w,-alpha,u2);
-            Paso_Update(n,( theta * theta * eta / alpha ),d,1.,y2);
+            Paso_Update(n,1.,w,-alpha,u2);  /* w = w - -alpha * u2 */
+            Paso_Update(n,( theta * theta * eta / alpha ),d,1.,y2); /* d = ( theta * theta * eta / alpha )*d + y2 */
           } 
          
          theta =Paso_l2(n,w,A->mpi_info)/tau;
-         c = 1.0 / sqrt ( 1.0 + theta * theta );
+     printf("tau = %e, %e %e\n",tau, Paso_l2(n,w,A->mpi_info)/tau, theta);
+         c = PASO_ONE / sqrt ( PASO_ONE + theta * theta );
          tau = tau * theta * c;
          eta = c * c * alpha;
          Paso_Update(n,1.,x,eta,d);       
@@ -211,10 +214,9 @@ err_t Paso_Solver_TFQMR(
      beta = rhon / rho;
      rho = rhon;
   
-     Paso_LinearCombination(n,y1,1.,w,beta,y2);
+     Paso_LinearCombination(n,y1, PASO_ONE,w,beta,y2); /* y1 = w + beta * y2 */
 
      Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-     
      Performance_startMonitor(pp,PERFORMANCE_MVM);
      Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1,PASO_ZERO,temp_vector);
      Performance_stopMonitor(pp,PERFORMANCE_MVM);
@@ -222,16 +224,14 @@ err_t Paso_Solver_TFQMR(
      Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
      Paso_SystemMatrix_solvePreconditioner(A,u1,temp_vector);
      Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
-     
      Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+     /*  u1 = P^{-1} * A y1 */
      
-     Paso_Copy(n,v_old,v);
-          
-     Paso_Update(n,beta,v_old,1,u2);
-     Paso_LinearCombination(n,v,1.,u1,beta,v_old);
+     Paso_LinearCombination(n,temp_vector,PASO_ONE,u2,beta,v); /* t = u2 + beta * v */
+     Paso_LinearCombination(n,v,PASO_ONE,u1,beta,temp_vector); /* v = u1 + beta * t */
      }
      maxIterFlag = (num_iter > maxit);
-     norm_of_residual=tau*sqrt ( m + 1 );
+     norm_of_residual=tau*sqrt ( (double) (m + 1 ) );
      convergeFlag=(norm_of_residual<(*tolerance));
     
     
@@ -252,7 +252,6 @@ err_t Paso_Solver_TFQMR(
     TMPMEMFREE(d);
     TMPMEMFREE(w); 
     TMPMEMFREE(v); 
-    TMPMEMFREE(v_old);
     TMPMEMFREE(temp_vector);
     TMPMEMFREE(res);
     *iter=num_iter;
