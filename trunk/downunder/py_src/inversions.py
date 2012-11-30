@@ -285,27 +285,26 @@ class GravityInversion(SingleParameterInversionBase):
 	self.logger.info("Retrieving gravity surveys...")
 	surveys=domainbuilder.getGravitySurveys()
 	g=[]
-	chi=[]
+	w=[]
 	for g_i,sigma_i in surveys:
-	    chi_i=safeDiv(1., sigma_i*sigma_i)
+	    w_i=safeDiv(1., sigma_i)
 	    if g_i.getRank()==0:
 		g_i=g_i*kronecker(DIM)[DIM-1]
-	    if chi_i.getRank()==0:
-		chi_i=chi_i*kronecker(DIM)[DIM-1]
+	    if w_i.getRank()==0:
+		w_i=w_i*kronecker(DIM)[DIM-1]
 	    g.append(g_i)
-	    chi.append(chi_i)
+	    w.append(w_i)
 	    self.logger.debug("Added gravity survey:")
 	    self.logger.debug("g = %s"%g_i)
 	    self.logger.debug("sigma = %s"%sigma_i)
-	    self.logger.debug("chi = %s"%chi_i)
+	    self.logger.debug("w = %s"%w_i)
 	#====================================================================
 	
 	self.logger.info("Setting up model...")
-	self.setForwardModel(GravityModel(self.getDomain(), chi, g))
+	self.setForwardModel(GravityModel(self.getDomain(), w, g))
 
 	# this is switched off for now:
 	if self._mu_reg is None and False:
-	    print "SDSAD"
 	    x=self.getDomain().getX()
 	    l=0.
 	    for i in range(DIM-1):
@@ -349,22 +348,22 @@ class MagneticInversion(SingleParameterInversionBase):
         self.logger.info("Retrieving magnetic field surveys...")
         surveys=domainbuilder.getMagneticSurveys()
         B=[]
-        chi=[]
+        w=[]
         for B_i,sigma_i in surveys:
-            chi_i=safeDiv(1., sigma_i*sigma_i)
+            w_i=safeDiv(1., sigma_i)
             if B_i.getRank()==0:
                 B_i=B_i*kronecker(DIM)[DIM-1]
-            if chi_i.getRank()==0:
-                chi_i=chi_i*kronecker(DIM)[DIM-1]
+            if w_i.getRank()==0:
+                w_i=w_i*kronecker(DIM)[DIM-1]
             B.append(B_i)
-            chi.append(chi_i)
+            w.append(w_i)
             self.logger.debug("Added magnetic survey:")
             self.logger.debug("B = %s"%B_i)
             self.logger.debug("sigma = %s"%sigma_i)
-            self.logger.debug("chi = %s"%chi_i)
+            self.logger.debug("w = %s"%w_i)
         #====================================================================
         self.logger.info("Setting up model...")
-        self.setForwardModel(MagneticModel(self.getDomain(), chi, B, domainbuilder.getBackgroundMagneticField()))
+        self.setForwardModel(MagneticModel(self.getDomain(), w, B, domainbuilder.getBackgroundMagneticField()))
 
         # this is switched off for now:
         if self._mu_reg is None and False:
