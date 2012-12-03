@@ -164,8 +164,8 @@ class ForwardModelWithPotential(ForwardModel):
 
     def getDefectGradient(self, result):
         Y=0.
-        for s in xrange(len(self.__weight[s])):
-            Y = inner(self.__weight[s], self.__data[s]-result) * w[s] + Y
+        for s in range(len(self.__weight)):
+            Y = inner(self.__weight[s], self.__data[s]-result) * self.__weight[s] + Y
         print "self.__scale*Y =",self.__scale*Y
         return self.__scale*Y
         
