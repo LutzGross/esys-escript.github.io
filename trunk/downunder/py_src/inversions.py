@@ -73,10 +73,8 @@ class InversionBase(object):
     def setMapping(self, mapping):
         """
         Sets the mapping object to map between model parameters and the data.
-        If no mapping is provided, an identity mapping is used
-        (`ScalingMapping` with constant 1).
 
-        :param mapping: parameter mapping
+        :param mapping: Parameter mapping object
         :type mapping: `Mapping`
         """
         self.__mapping=mapping

@@ -35,6 +35,8 @@ class SimpleInversionCostFunction(MeteredCostFunction):
     It is the sum of two weighted terms, a single forward model and a single
     regularization term. This cost function is used in the gravity inversion.
     """
+    provides_inverse_Hessian_approximation=True
+
     def __init__(self, regularization, mapping, forwardmodel):
         """
         constructor stores the supplied object references and sets default
@@ -138,7 +140,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
           inverse Hessian approximation. 
           
         """
-        print "nverseHessianApproximation:"
+        print "inverse Hessian approximation:"
         print "Y  = ",r[0]
         print "X  = ",r[1]
         m=self.regularization.getInverseHessianApproximation(m, r, *args[2])
@@ -150,3 +152,4 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         notifies the class that the Hessian operator needs to be updated.
         """
         self.regularization.updateHessian()
+

@@ -63,17 +63,15 @@
 
 \newenvironment{bigdef}[1]{%
 
-\noindent
-\setlength{\hangindent}{2cm}
-\textbf{#1}
+\vspace{1em}
+\setlength{\hangindent}{2cm}%
+\raggedright\textbf{#1}
 
 \setlength{\hangindent}{1cm}%
 \setlength{\hangafter}{0}%
-\noindent%
 }%
 {%
 
-\vspace{0.5cm}
 }
 
 \newenvironment{classdesc}[2]{%

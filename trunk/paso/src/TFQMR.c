@@ -201,7 +201,7 @@ err_t Paso_Solver_TFQMR(
           } 
          
          theta =Paso_l2(n,w,A->mpi_info)/tau;
-     printf("tau = %e, %e %e\n",tau, Paso_l2(n,w,A->mpi_info)/tau, theta);
+         /*printf("tau = %e, %e %e\n",tau, Paso_l2(n,w,A->mpi_info)/tau, theta);*/
          c = PASO_ONE / sqrt ( PASO_ONE + theta * theta );
          tau = tau * theta * c;
          eta = c * c * alpha;
