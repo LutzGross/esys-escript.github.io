@@ -25,9 +25,9 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel']
 
 from esys.escript import unitsSI as U
+from esys.escript import Data, Vector, Scalar, Function
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from esys.escript.util import *
-from esys.escript import Data, Vector, Scalar, Function
 from math import pi as PI
 
 
@@ -53,9 +53,9 @@ class ForwardModel(object):
 class ForwardModelWithPotential(ForwardModel):
     """
     Base class for a forward model using a potential such as magnetic or
-    gravity. It defines a cost function
+    gravity. It defines a cost function::
 
-        defect = scale/2 sum_s integrate(  ( weight_i[s] * ( r_i - data_i[s] ) ) **2  )
+        defect = scale/2 sum_s integrate( ( weight_i[s] * ( r_i - data_i[s] ) ) ** 2 )
 
     where s runs over the survey, weight_i are weighting factors, data_i are
     the data, and r_i are the results produced by the forward model.
@@ -64,7 +64,7 @@ class ForwardModelWithPotential(ForwardModel):
     """
     def __init__(self, domain, w, data,  useSphericalCoordinates=False, scale=1., tol=1e-8):
         """
-        initialization.
+        initializes a new forward model with potential.
 
         :param domain: domain of the model
         :type domain: `esys.escript.Domain`
@@ -85,15 +85,15 @@ class ForwardModelWithPotential(ForwardModel):
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
         if scale > 0:
-	     self.__scale = scale
-	else:
-	     raise ValueError("Scaling factor must be positive.")
+             self.__scale = scale
+        else:
+             raise ValueError("Scaling factor must be positive.")
 
         
         if useSphericalCoordinates:
-	     raise ValueError("Spherical coordinates are not supported yet.")
-	else:
-	     self.__useSphericalCoordinates=useSphericalCoordinates
+             raise ValueError("Spherical coordinates are not supported yet.")
+        else:
+             self.__useSphericalCoordinates=useSphericalCoordinates
         try:
             n=len(w)
             m=len(data)
@@ -109,7 +109,7 @@ class ForwardModelWithPotential(ForwardModel):
         for s in xrange(len(self.__weight)):
             A += integrate( inner(self.__weight[s], self.__data[s]) **2 )
         if A > 0:
-	    A=vol(domain)/A 
+            A=vol(domain)/A 
             for s in xrange(len(self.__weight)):  self.__weight[s]*=A
         else:
             raise ValueError("No non-zero data contribution found.")
@@ -131,13 +131,17 @@ class ForwardModelWithPotential(ForwardModel):
     
     def getScalingFactor(self):
         """
-        Returns scaling factor.
+        Returns the scaling factor.
+
+        :rtype: ``float``
         """
         return self.__scale
     
     def getDomain(self):
         """
         Returns the domain of the forward model.
+
+        :rtype: `esys.escript.Domain`
         """
         return self.__domain
 

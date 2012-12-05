@@ -14,71 +14,85 @@
 
 
 \section{Magnetic Inversion}\label{sec:forward magnetic}
-For the magnetic inversion we use the anomaly of the magnetic flux density~\index{magnetic flux density} of the Earth.
-The controlling material parameter
-is the susceptibility~\index{susceptibility} $k$ of the rock. With magnetization $M$,
-inducing magnetic field anomaly $H^s$ the magnetic flux density anomaly $B^s$ is given as
+For the magnetic inversion we use the anomaly of the magnetic flux
+density~\index{magnetic flux density} of the Earth.
+The controlling material parameter is the susceptibility~\index{susceptibility}
+$k$ of the rock.
+With magnetization $M$ and inducing magnetic field anomaly $H^s$, the magnetic
+flux density anomaly $B^s$ is given as
 \begin{equation}\label{ref:MAG:EQU:1}
 B_i = \mu_0 \cdot ( H^s_i  + M_i )
 \end{equation}
 where $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$.
-In this forward model we make the simplifying assumption that the magnetization is proportional to
-the known geomagnetic
- flux density $B^b$:
+In this forward model we make the simplifying assumption that the magnetization
+is proportional to the known geomagnetic flux density $B^b$:
 \begin{equation}\label{ref:MAG:EQU:4}
 \mu_0  \cdot M_i = k \cdot B^b_i \;. 
 \end{equation}
-Values for the magnetic flux density
-can be obtained by the International Geomagnetic Reference Field (IGRF)~\cite{IGRF}
-(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}). A rough approximation at 
-at latitude $\theta$ is given by 
+Values for the magnetic flux density can be obtained by the International
+Geomagnetic Reference Field (IGRF)~\cite{IGRF}
+(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}).
+A rough approximation at latitude $\theta$ is given by 
 \begin{equation}\label{ref:MAG:EQU:5}
 \begin{array}{rcl}
 B^b_{\theta}  & = & \displaystyle{ \frac{ \mu_0 \cdot m_{earth}}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\
 B^b_r & = & \displaystyle{ \frac{\mu_0 \cdot  m_{earth}}{1 \pi \cdot R_{earth}^3} cos(\theta) }
 \end{array}
 \end{equation}
-with the vacuum permeability\index{vacuum permeability}  $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$, 
-the magnetic dipole moment of Earth $m_{earth}= 8.22 \cdot 10^{22} Am^2$ and earth radius $R_{earth}= 6378137m$.
-$B^b_r$ and $b^b_{\theta}$ denote the radial and latitudinal component of the geomagnetic
- flux density.
-Notice that convention~(\ref{REF:EQU:INTRO 9}) applies if Cartesian coordinates\index{Cartesian coordinates} are used. 
-In most cases it is reasonable to assume that that the background field is constant across the domain.
+with the vacuum permeability\index{vacuum permeability} $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$,
+the magnetic dipole moment of Earth $m_{earth}=8.22 \cdot 10^{22} Am^2$ and
+earth radius $R_{earth}= 6378137m$.
+$B^b_r$ and $b^b_{\theta}$ denote the radial and latitudinal component of the
+geomagnetic flux density.
+Notice that convention~(\ref{REF:EQU:INTRO 9}) applies if Cartesian
+coordinates\index{Cartesian coordinates} are used.
+In most cases it is reasonable to assume that that the background field is
+constant across the domain.
 
-The magnetic field anomaly $H^s$ can be represented be the gradient of a magnetic scalar potential\index{scalar potential!magnetic}
-$\psi$. We use the form 
+The magnetic field anomaly $H^s$ can be represented by the gradient of a
+magnetic scalar potential\index{scalar potential!magnetic} $\psi$.
+We use the form 
 \begin{equation}\label{ref:MAG:EQU:6}
 \mu_0  \cdot H^s_i = - \psi_{,i}
 \end{equation}
-With this notation one gets from equations~(\ref{ref:MAG:EQU:1}) and~(\ref{ref:MAG:EQU:4}):
+With this notation one gets from Equations~(\ref{ref:MAG:EQU:1}) and~(\ref{ref:MAG:EQU:4}):
 \begin{equation}\label{ref:MAG:EQU:7}
 B_i = - \psi_{,i}  + k \cdot B^b_i
 \end{equation}
-As the $B^s$ magnetic flux density anomaly we obtain the PDE  
+As the $B^s$ magnetic flux density anomaly we obtain the PDE
 \begin{equation}\label{ref:MAG:EQU:8}
 - \psi_{,ii} = - (k B^b_i)_{,i} 
 \end{equation} 
-which needs to be solved for a given susceptibility $k$. The magnetic scalar potential is set to zero 
-at the top of the domain $\Gamma_{top}$. On all other faces the normal component of the magnetic flux density anomaly $B_i$
-is set to zero, i.e. $n_i \psi_{,i}  = k \cdot n_i  B^b_i$ with outer normal field $n_i$).
+which needs to be solved for a given susceptibility $k$.
+The magnetic scalar potential is set to zero at the top of the domain
+$\Gamma_{top}$.
+On all other faces the normal component of the magnetic flux density anomaly
+$B_i$ is set to zero, i.e. $n_i \psi_{,i} = k \cdot n_i  B^b_i$ with outer
+normal field $n_i$.
 
-From the magnetic scalar potential we can calculate the magnetic flux density anomaly via equation~(\ref{ref:MAG:EQU:8}) to
-calculate the defect to the given data. If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for 
-survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect $J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction}
-is given as
+From the magnetic scalar potential we can calculate the magnetic flux density
+anomaly via Equation~(\ref{ref:MAG:EQU:8}) to calculate the defect to the given
+data.
+If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for
+survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
+$J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction} is given as
 \begin{equation}\label{ref:MAG:EQU:9}
 J^{mag}(k) = \frac{\alpha}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
 \end{equation} 
-Summation over $i$ is performed. $\alpha$ defines a scaling factor which is typically set to one.
+Summation over $i$ is performed. $\alpha$ defines a scaling factor which is
+typically set to one.
 The cost function kernel\index{cost function!kernel} is given as
 \begin{equation}\label{ref:MAG:EQU:10}
 K^{mag}(\psi_{,i},k) = \frac{\alpha}{2}\sum_{s} ( \omega^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i) ) ^2
 \end{equation} 
-Notice that if magnetic flux density is measured in air one can ignore the $k \cdot B^b_i$ as the susceptibility is zero.
+Notice that if magnetic flux density is measured in air one can ignore the
+$k\cdot B^b_i$ as the susceptibility is zero.
 
-In practice the magnetic flux density $b^{(s)}$ is measured along a certain direction $d^{(s)}_i$ with a 
-standard error deviation $\sigma^{(s)}$ at certain locations in the domain. In this case
-one sets $B^{(s)}_i=b^{(s)} \cdot d^{(s)}_i$ and the weighting factors $\omega^{(s)}$ as
+In practice the magnetic flux density $b^{(s)}$ is measured along a certain
+direction $d^{(s)}_i$ with a standard error deviation $\sigma^{(s)}$ at
+certain locations in the domain.
+In this case one sets $B^{(s)}_i=b^{(s)} \cdot d^{(s)}_i$ and the weighting
+factors $\omega^{(s)}$ as
 \begin{equation}\label{ref:MAG:EQU:11}
 \omega^{(s)}_i 
 = \left\{
@@ -89,7 +103,8 @@ f \cdot  \frac{d^{(s)}_i}{\sigma^{(s)}} & & \mbox{data are available} \\
 \end{array}
 \right.
 \end{equation} 
-where it is assumed that $d^{(s)}_i \cdot d^{(s)}_i =1$. The scaling factor $f$ is chosen in the way that 
+where it is assumed that $d^{(s)}_i \cdot d^{(s)}_i =1$.
+The scaling factor $f$ is chosen in the way that 
 \begin{equation}\label{ref:MAG:EQU:12}
 \sum_{s} \int_{\Omega} ( \omega^{(s)}_i B^{(s)}_i ) ^2 dx =1 
 \end{equation} 
@@ -98,39 +113,42 @@ where it is assumed that $d^{(s)}_i \cdot d^{(s)}_i =1$. The scaling factor $f$ 
 
 \LG{Add example}
 
-\begin{classdesc}{MagneticModel}{domain, 
-w, B, background_field,
-\optional{, useSphericalCoordinates=False
-\optional{, scale=1
-\optional{, tol=1e-8}}}}
-opens a magnetic forward model over the \Domain \var{domain} with 
-weighting factors \var{w} ($=\omega^{(s)}$) and measured magnetic flux density anomalies \var{B} ($=B^{(s)}$).
+\begin{classdesc}{MagneticModel}{domain, w, B, background_field,
+        \optional{, useSphericalCoordinates=False}
+        \optional{, scale=1}
+        \optional{, tol=1e-8}}
+opens a magnetic forward model over the \Domain \member{domain} with 
+weighting factors \member{w} ($=\omega^{(s)}$) and measured magnetic flux
+density anomalies \member{B} ($=B^{(s)}$).
 The weighting factors and the  measured magnetic flux density anomalies must be vectors.
-\var{background_field} defines the background magnetic flux density $B^b$. 
-\var{background_field} must be a vector.
-If \var{useSphericalCoordinates} is \True spherical coordinates are used. 
-\var{scale} sets the scaling factor $\alpha$. 
-\var{tol} set the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
+\member{background_field} defines the background magnetic flux density $B^b$
+as a vector.
+If \member{useSphericalCoordinates} is \True spherical coordinates are used. 
+\member{scale} sets the scaling factor $\alpha$. 
+\member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
 The weighting factors are rescaled such that conditon~(\ref{ref:MAG:EQU:12}) holds.
 \end{classdesc}
 
 
 \subsection{Gradient Calculation}
-The subsection briefly explains how the gradient $\frac{\partial J^{mag}}{\partial k}$  of the cost function $J^{mag}$ with respect to the 
-susceptibility $k$ is calculated. 
-The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8})  is solved in weak form:
+This section briefly explains how the gradient
+$\frac{\partial J^{mag}}{\partial k}$ of the cost function $J^{mag}$ with
+respect to the susceptibility $k$ is calculated. 
+The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8}) is solved in weak form:
 \begin{equation}\label{ref:MAG:EQU:201}
 \int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^b_i \; dx 
 \end{equation} 
-for all $q$ with $q=0$ on $\Gamma_{top}$. In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as solution
-of the variational problem~(\ref{ref:MAG:EQU:201}).If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is known
-and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
+for all $q$ with $q=0$ on $\Gamma_{top}$.
+In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as
+solution of the variational problem~(\ref{ref:MAG:EQU:201}).
+If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
+known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
 \begin{equation}\label{ref:MAG:EQU:201}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \alpha \cdot  \int_{\Omega}  
 \sum_{s} (\omega^{(s)}_j 
 ( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( \Psi[p]_{,i} - p  \cdot B^b_i  ) ) \; dx  
 \end{equation} 
-With 
+with
 \begin{equation}\label{ref:MAG:EQU:202c}
 Y_i[\psi]=  \alpha \cdot \sum_{s} (\omega^{(s)}_j 
 (B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
@@ -148,7 +166,7 @@ with $Y^*[\psi]=0$ on $\Gamma_{top}$. With $r=\Psi[p]$ we get
 \begin{equation}\label{ref:MAG:EQU:202d}
 \int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx
 \end{equation} 
-and from equation~(\ref{ref:MAG:EQU:201}) with $q=Y^*[\psi]$ we get
+and from Equation~(\ref{ref:MAG:EQU:201}) with $q=Y^*[\psi]$ we get
 \begin{equation}\label{ref:MAG:EQU:20e}
 \int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^b_i \; dx  
 \end{equation}
@@ -164,4 +182,5 @@ p \cdot (Y_i[\psi] - Y^*[\psi]_{,i})  B^b_i \; dx
 or 
 \begin{equation}\label{ref:MAG:EQU:201b}
 \frac{\partial J^{mag}}{\partial k} = (Y^*[\psi]_{,i}-Y_i[\psi])  B^b_i
-\end{equation} 
+\end{equation}
+

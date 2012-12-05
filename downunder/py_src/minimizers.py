@@ -223,10 +223,10 @@ class AbstractMinimizer(object):
         Outputs a summary of the completed minimization process to the logger.
         """
         if hasattr(self._f, "Value_calls"):
-	  self.logger.warning("Number of function evaluations: %d"%self._f.Value_calls)
-	  self.logger.warning("Number of gradient evaluations: %d"%self._f.Gradient_calls)
-	  self.logger.warning("Number of inner product evaluations: %d"%self._f.DualProduct_calls)
-	  self.logger.warning("Number of argument evaluations: %d"%self._f.Arguments_calls)
+            self.logger.warning("Number of function evaluations: %d"%self._f.Value_calls)
+            self.logger.warning("Number of gradient evaluations: %d"%self._f.Gradient_calls)
+            self.logger.warning("Number of inner product evaluations: %d"%self._f.DualProduct_calls)
+            self.logger.warning("Number of argument evaluations: %d"%self._f.Arguments_calls)
 
 
 ##############################################################################
@@ -262,7 +262,7 @@ class MinimizerLBFGS(AbstractMinimizer):
             self._f.updateHessian()
             invH_scale = None 
         else:
-	    invH_scale = self._initial_H
+            invH_scale = self._initial_H
         k=0
         error=2*self._tol
         s_and_y=[]
@@ -290,7 +290,7 @@ class MinimizerLBFGS(AbstractMinimizer):
             x_new = x + alpha*p
             print gf_new
             if gf_new is None:
-	        args=self._f.getArguments(x_new)
+                args=self._f.getArguments(x_new)
                 gf_new=self._f.getGradient(x_new, args)
 
             delta_x=x_new-x
@@ -351,8 +351,8 @@ class MinimizerLBFGS(AbstractMinimizer):
         if self._f.provides_inverse_Hessian_approximation:   
              r= self._f.getInverseHessianApproximation(x, q, *args)
         else:
-	     r= invH_scale * q
-	     
+             r= invH_scale * q
+             
         for s,y,rho in s_and_y:
             beta=self._f.getDualProduct(r, y)/rho
             a=alpha.pop()
@@ -503,7 +503,7 @@ if __name__=="__main__":
 
     class RosenFunc(MeteredCostFunction):
         def __init__(self):
-	   super(RosenFunc, self).__init__()
+           super(RosenFunc, self).__init__()
            self.provides_inverse_Hessian_approximation=False
         def _getDualProduct(self, f0, f1):
             return np.dot(f0, f1)
