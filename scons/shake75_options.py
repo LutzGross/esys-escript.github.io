@@ -41,7 +41,7 @@ escript_opts_version = 201
 
 # Additional compiler (optimization) flags for non-debug builds
 # DEFAULT: compiler-dependent
-cc_optim = '-O3 -mmmx -msse'
+cc_optim = '-O3 -march=native'
 
 # Additional compiler flags for debug builds
 # DEFAULT: compiler-dependent
@@ -196,7 +196,7 @@ silo = True
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit/2.6.0b/linux-intel/libsim/V2'
+visit_prefix = '/opt/visit/2.6.0/linux-intel/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']

@@ -1,46 +1,62 @@
 \chapter{Introduction}\label{Chp:ref:introduction}
 Our task in the inversion\index{inversion} is to find the geological structure within a given three-dimensional region $\Omega$ from given geophysical 
 observations\index{observation}. 
-The structure is described by level set function $m$\index{level set function}. The level set 
-function can be a scalar function or may have several components, see Chapter~\ref{Chp:ref:regularization} for more details.
-Its values are dimensionless and should be between zero and one. The latter condition is not enforced.    
-Through a mapping, see Chapter~\ref{Chp:ref:mapping}\index{mapping}, the values of the level set function are mapped
-onto physical parameter $p^f$\index{physical parameter}. The physical parameter feeds into forward models\index{forward model}
-which returns a prediction for the observations, see Chapter~\ref{Chp:ref:forward models}. An inversion may consider 
-several forward models which we call joint inversion\index{joint inversion}.
+The structure is described by a \emph{level set function} $m$\index{level set function}.
+This function can be a scalar function or may have several components,
+see Chapter~\ref{Chp:ref:regularization} for more details.
+Its values are dimensionless and should be between zero and one.
+However, the latter condition is not enforced.
+Through a mapping (see Chapter~\ref{Chp:ref:mapping}\index{mapping}) the values
+of the level set function are mapped onto physical parameter $p^f$\index{physical parameter}.
+The physical parameter feeds into one or more forward models\index{forward model}
+which return a prediction for the observations, see Chapter~\ref{Chp:ref:forward models}.
+An inversion may consider several forward models at once which we call
+\emph{joint inversion}\index{joint inversion}.
 
 
-The level set function describing the actual geological structure is given as those level set function which minimizes
-a particular cost function $J$\index{cost function} which is a composition of the 
-difference of the predicted observations to the actual observations for the relevant forward models  
-and the regularization term\index{regularization} which controls the smoothness of the level set function. In general
-the  cost function $J$ takes the form
+The level set function describing the actual geological structure is given as
+the function which minimizes a particular \emph{cost function}
+$J$\index{cost function}.
+This cost function is a composition of the difference of the predicted
+observations to the actual observations for the relevant forward models, and
+the regularization term\index{regularization} which controls the smoothness of
+the level set function.
+In general the cost function $J$ takes the form
 \begin{equation}\label{REF:EQU:INTRO 1}
 J(m) = J^{reg}(m) + \sum_{f} \mu^{data}_{f} \cdot J^{f}(p^f)
 \end{equation} 
-where $J^{f}(p)$ is a measure of the defect of the observations predicted for the parameter $p^f$ 
-against the observations for forward model $f$ and $J^{reg}(m)$ is the regularization term.  Notice
-that the physical parameter $p^f$ depend on the level set function $m$ in a known form.
-The weighting factors $\mu^{data}_{f}$ are dimensionless, non-negative trade-off factors\index{trade-off factor}. Potentially
-values for the trade-off factors are altered during the inversion process in order to improve the balance 
-between the regularization term and the data defect terms\footnote{The current version does not support an automated selection 
+where $J^{f}(p)$ is a measure of the defect of the observations predicted for
+the parameter $p^f$ against the observations for forward model $f$, and
+$J^{reg}(m)$ is the regularization term.
+Notice that the physical parameter $p^f$ depends on the level set function
+$m$ in a known form.
+The weighting factors $\mu^{data}_{f}$ are dimensionless, non-negative
+trade-off factors\index{trade-off factor}.
+Potentially, values for the trade-off factors are altered during the inversion
+process in order to improve the balance between the regularization term and
+the data defect terms\footnote{The current version does not support an automated selection 
 of trade-off factors}.
 
-The regularization cost function $J^{reg}$ is given through a cost function kernel\index{cost function!kernel} $K^{reg}$ in the form
+The regularization cost function $J^{reg}$ is given through a cost function
+kernel\index{cost function!kernel} $K^{reg}$ in the form
 \begin{equation}\label{REF:EQU:INTRO 2a}
 J^{reg}(m) = \int_{\Omega} K^{reg}(m, \nabla m) \; dx
 \end{equation} 
-where $\Omega$ is the region of interest. $K^{reg}$ is a given function of the level set function $m$ and its gradient $\nabla m$.
-In case of a multi-component level set function the kernel may consider cross correlation terms between the components.
+where $\Omega$ is the region of interest. $K^{reg}$ is a given function of the
+level set function $m$ and its gradient $\nabla m$.
+In case of a multi-component level set function the kernel may consider cross
+correlation terms between the components.
 Similar for the data defect for forward model $f$ we use a cost function kernel $K^{f}$ 
 \begin{equation}\label{REF:EQU:INTRO 2b}
 J^{f}(p^f) = \int_{\Omega} K^{f}(u^f, \nabla u^f,p^f) \; dx
 \end{equation} 
-where $u_f$ is a solution of a partial differential equation (PDE) involving the physical parameter $p^f$. The
-cost function kernel may directly depend on $u^f$, its gradient $\nabla u^f$ and the physical parameter $p^f$.
+where $u_f$ is a solution of a partial differential equation (PDE) involving
+the physical parameter $p^f$.
+The cost function kernel may directly depend on $u^f$, its gradient
+$\nabla u^f$ and the physical parameter $p^f$.
 
 
-\subsection{Cartesian Domain}
+\section{Cartesian Domain}
 For the Cartesian domain\index{Cartesian Domain} $\Omega$ we assume a flat Earth in the form
 \begin{equation} \label{REF:EQU:INTRO 8}
 \Omega = [x^{min}_0, x^{max}_0] \times
@@ -62,6 +78,6 @@ Q_2  & = & -Q_r \\
 \end{array}
 \end{equation}
 
-\subsection{Sphere Shell Segment}
+\section{Sphere Shell Segment}
 
  

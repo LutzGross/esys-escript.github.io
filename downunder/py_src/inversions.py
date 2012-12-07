@@ -46,13 +46,13 @@ class InversionBase(object):
         self._solver_opts = {}
         self._solver_tol = 1e-9
         self._solver_maxiter = 200
-        # set default mapping and solver
+        # set default solver
         self.setSolverClass()
         self.__domain=None
         self.__regularization=None
         self.__forwardmodel=None
         self.__mapping=None
-        
+
     def setDomain(self, domain):
         """
         sets the domain of the inversion
@@ -212,7 +212,6 @@ class SingleParameterInversionBase(InversionBase):
         ds=createDataset(rho=self.getMapping().getValue(x))
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
-        self.logger.debug("Jreg(m) = %e"%self.regularization.getValue(x))
         self.logger.debug("f(m) = %e"%fx)
 
 
@@ -253,93 +252,91 @@ class GravityInversion(SingleParameterInversionBase):
     """
     Inversion of Gravity (Bouguer) anomaly data.
     """
-    def setup(self, domainbuilder, 
-                    rho0=None, drho=None, z0=None, beta=None, 
+    def setup(self, domainbuilder,
+                    rho0=None, drho=None, z0=None, beta=None,
                     s0=None, s1=None):
         """
-        Sets up the inversion parameters from a downunder.`DomainBuilder`.
+        Sets up the inversion parameters from a `DomainBuilder`.
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-        
-        
         :param rho0: reference density. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
         """
-	self.logger.info('Retrieving domain...')
-	self.setDomain(domainbuilder.getDomain())
-	DIM=self.getDomain().getDim()
-	#========================        
-	self.logger.info('Set mapping ...')
-	self.setMapping(DensityMapping(self.getDomain(), rho0=rho0, drho=drho, z0=z0, beta=beta))
-	#========================
-	self.logger.info("Setting up regularization...")
-	if s1 is None: 
-	    s1=[1.]*DIM
-	rho_mask = domainbuilder.getSetDensityMask()
-	self.setRegularization(Regularization(self.getDomain(), numLevelSets=1, \
-			       s0=s0, s1=s1, location_of_set_m=rho_mask))
-	#====================================================================
-	self.logger.info("Retrieving gravity surveys...")
-	surveys=domainbuilder.getGravitySurveys()
-	g=[]
-	w=[]
-	for g_i,sigma_i in surveys:
-	    w_i=safeDiv(1., sigma_i)
-	    if g_i.getRank()==0:
-		g_i=g_i*kronecker(DIM)[DIM-1]
-	    if w_i.getRank()==0:
-		w_i=w_i*kronecker(DIM)[DIM-1]
-	    g.append(g_i)
-	    w.append(w_i)
-	    self.logger.debug("Added gravity survey:")
-	    self.logger.debug("g = %s"%g_i)
-	    self.logger.debug("sigma = %s"%sigma_i)
-	    self.logger.debug("w = %s"%w_i)
-	#====================================================================
-	
-	self.logger.info("Setting up model...")
-	self.setForwardModel(GravityModel(self.getDomain(), w, g))
+        self.logger.info('Retrieving domain...')
+        self.setDomain(domainbuilder.getDomain())
+        DIM=self.getDomain().getDim()
+        #========================
+        self.logger.info('Creating mapping...')
+        self.setMapping(DensityMapping(self.getDomain(), rho0=rho0, drho=drho, z0=z0, beta=beta))
+        #========================
+        self.logger.info("Setting up regularization...")
+        if s1 is None:
+            s1=[1.]*DIM
+        rho_mask = domainbuilder.getSetDensityMask()
+        self.setRegularization(Regularization(self.getDomain(), numLevelSets=1,\
+                               s0=s0, s1=s1, location_of_set_m=rho_mask))
+        #====================================================================
+        self.logger.info("Retrieving gravity surveys...")
+        surveys=domainbuilder.getGravitySurveys()
+        g=[]
+        w=[]
+        for g_i,sigma_i in surveys:
+            w_i=safeDiv(1., sigma_i)
+            if g_i.getRank()==0:
+                g_i=g_i*kronecker(DIM)[DIM-1]
+            if w_i.getRank()==0:
+                w_i=w_i*kronecker(DIM)[DIM-1]
+            g.append(g_i)
+            w.append(w_i)
+            self.logger.debug("Added gravity survey:")
+            self.logger.debug("g = %s"%g_i)
+            self.logger.debug("sigma = %s"%sigma_i)
+            self.logger.debug("w = %s"%w_i)
+        #====================================================================
 
-	# this is switched off for now:
-	if self._mu_reg is None and False:
-	    x=self.getDomain().getX()
-	    l=0.
-	    for i in range(DIM-1):
-		l=max(l, sup(x[i])-inf(x[i]))
-	    G=U.Gravitational_Constant
-	    mu_reg=0.5*(l*l*G)**2
-	    self.setWeights(mu_reg=mu_reg)
+        self.logger.info("Setting up model...")
+        self.setForwardModel(GravityModel(self.getDomain(), w, g))
+
+        # this is switched off for now:
+        if self._mu_reg is None and False:
+            x=self.getDomain().getX()
+            l=0.
+            for i in range(DIM-1):
+                l=max(l, sup(x[i])-inf(x[i]))
+            G=U.Gravitational_Constant
+            mu_reg=0.5*(l*l*G)**2
+            self.setWeights(mu_reg=mu_reg)
 
 
 class MagneticInversion(SingleParameterInversionBase):
     """
     Inversion of magnetic data.
     """
-    def setup(self, domainbuilder, 
+    def setup(self, domainbuilder,
                     k0=None, dk=None, z0=None, beta=None,
                     s0=None, s1=None):
         """
-        Sets up the inversion parameters from a downunder.`DomainBuilder`.
+        Sets up the inversion parameters from a `DomainBuilder`.
 
         :param domainbuilder: Domain builder object with magnetic source(s)
         :type domainbuilder: `DomainBuilder`
-        
+
         """
         self.logger.info('Retrieving domain...')
         self.setDomain(domainbuilder.getDomain())
         DIM=self.getDomain().getDim()
-        
+
         #========================
-        self.logger.info('Set mapping ...')
+        self.logger.info('Creating mapping ...')
         self.setMapping(SusceptibilityMapping(self.getDomain(), k0=k0, dk=dk, z0=z0, beta=beta))
-        
+
         #========================
         self.logger.info("Setting up regularization...")
         if s1 is None:
             s1=[1.]*DIM
         k_mask = domainbuilder.getSetSusceptibilityMask()
-        self.setRegularization(Regularization(self.getDomain(), numLevelSets=1, \
+        self.setRegularization(Regularization(self.getDomain(), numLevelSets=1,\
                                s0=s0, s1=s1, location_of_set_m=k_mask))
 
         #====================================================================

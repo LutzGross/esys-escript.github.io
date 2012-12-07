@@ -27,7 +27,7 @@ __all__ = ['DomainBuilder']
 import logging
 import numpy as np
 from esys.escript.util import *
-import esys.escript.unitsSI as U
+from esys.escript import unitsSI as U
 from esys.ripley import Brick, Rectangle
 from .datasources import DataSource
 
@@ -127,6 +127,7 @@ class DomainBuilder(object):
         if self._dim < 3:
             return np.array([0., -B_r])
         else:
+            #return np.array([3.0281e-5, 2.356e-6, -4.3346e-5])
             return np.array([-B_theta, 0., -B_r])
 
     def getSetDensityMask(self):

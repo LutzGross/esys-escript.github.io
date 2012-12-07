@@ -56,7 +56,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         """
         sets the weighting factors for the forward model and regularization
         terms.
-        
+
         :param mu_model: Weighting factor for the forward model (default=1.)
         :type mu_model: non-negative `float`
         :param mu_reg_0: Weighting factor for the regularization (default=1.)
@@ -67,7 +67,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         self.mu_model=mu_model
         self.regularization.setWeightsForS0(mu_reg_0)
         self.regularization.setWeightsForS1(mu_reg_1)
-        
+
     def _getDualProduct(self, x, r):
         """
         returns ``regularization.getDualProduct(x, r)``
@@ -78,7 +78,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
 
     def _getArguments(self, m):
         """
-        returns precalculated values that are shared in the calculation of
+        returns precomputed values that are shared in the calculation of
         *f(x)* and *grad f(x)*. In this implementation returns a tuple with the
         mapped value of ``m``, the arguments from the forward model and the
         arguments from the regularization.
@@ -91,7 +91,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
     def _getValue(self, m, *args):
         """
         returns the function value at m.
-        If the precalculated values are not supplied `getArguments()` is called.
+        If the precomputed values are not supplied `getArguments()` is called.
 
         :rtype: `float`
         """
@@ -107,7 +107,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
     def _getGradient(self, m, *args):
         """
         returns the gradient of *f* at *m*.
-        If the precalculated values are not supplied `getArguments()` is called.
+        If the precomputed values are not supplied `getArguments()` is called.
 
         :rtype: `esys.escript.Data`
         """
@@ -120,8 +120,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         print "grad forward = ", Y
         print "grad regularization Y  = ", g_reg[0]
         print "grad regularization X = ", g_reg[1]
-        
-         
+
         return self.mu_model * ArithmeticTuple(Y, Data()) + g_reg
 
 
@@ -129,16 +128,16 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         """
         returns an approximative evaluation *p* of the inverse of the Hessian operator of the cost function
         for a given gradient type *r* at a given location *m*: *H(m) p = r*
-        
+
         :param m: level set approximation where to calculate Hessian inverse
-        :type m: ``Data``
-        :param r: a given gradient 
-        :type r: ``ArithmeticTuple``
-        :param args: pre-calculated values for ``m`` from ``getArguments()``
-        :rtype: ``Data``
-        :note: in the current implementation only the regularization term is considered in the 
-          inverse Hessian approximation. 
-          
+        :type m: `Data`
+        :param r: a given gradient
+        :type r: `ArithmeticTuple`
+        :param args: pre-calculated values for ``m`` from `getArguments()`
+        :rtype: `Data`
+        :note: in the current implementation only the regularization term is
+               considered in the inverse Hessian approximation.
+
         """
         print "inverse Hessian approximation:"
         print "Y  = ",r[0]
@@ -146,7 +145,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         m=self.regularization.getInverseHessianApproximation(m, r, *args[2])
         print "m  = ",m
         return m
-        
+
     def updateHessian(self):
         """
         notifies the class that the Hessian operator needs to be updated.
