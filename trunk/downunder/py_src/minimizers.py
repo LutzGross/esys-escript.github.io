@@ -34,10 +34,6 @@ except:
     sqrt=np.sqrt
     EPSILON=1e-18
 
-import sys
-if sys.version_info[0]>2:
-    xrange=range
-    
 lslogger=logging.getLogger('inv.minimizer.linesearch')
 zoomlogger=logging.getLogger('inv.minimizer.linesearch.zoom')
 
@@ -146,7 +142,7 @@ class AbstractMinimizer(object):
     Base class for function minimization methods.
     """
 
-    TOLERANCE_REACHED, MAX_ITERATIONS_REACHED=list(xrange(2))
+    TOLERANCE_REACHED, MAX_ITERATIONS_REACHED=list(range(2))
 
     def __init__(self, f, tol=1e-5, imax=300):
         """
@@ -260,7 +256,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         fx=self._f(x, *args)
         if self._f.provides_inverse_Hessian_approximation:
             self._f.updateHessian()
-            invH_scale = None 
+            invH_scale = None
         else:
             invH_scale = self._initial_H
         k=0
@@ -298,15 +294,15 @@ class MinimizerLBFGS(AbstractMinimizer):
             rho=self._f.getDualProduct(delta_x, delta_g)
             print "rho =",rho
             if abs(rho)>0 :
-               s_and_y.append((delta_x,delta_g, rho ))
+                s_and_y.append((delta_x,delta_g, rho ))
             else:
-	       raise ZeroDivisionError("LBFGS break down.")
+                raise ZeroDivisionError("LBFGS break down.")
             # this needs to be reviewed
             if fx_new==0.:
                 error=fx
             else:
                 error=abs(fx_new-fx)/abs(fx_new)
-            
+
             self._f.updateHessian()
             x=x_new
             gf=gf_new
@@ -318,14 +314,14 @@ class MinimizerLBFGS(AbstractMinimizer):
             # delete oldest vector pair
             if k>self._m: s_and_y.pop(0)
 
-            if not self._f.provides_inverse_Hessian_approximation:            
-		  # set the new scaling factor (approximation of inverse Hessian)
-		  denom=self._f.getDualProduct(delta_g, delta_g)
-		  if denom > 0:
-		      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
-		  else:
-		      invH_scale=self._initial_H
-		      self.logger.debug("LBFGS.Break down in H update. Resetting to initial value %s."%self._initial_H) 
+            if not self._f.provides_inverse_Hessian_approximation:
+                  # set the new scaling factor (approximation of inverse Hessian)
+                  denom=self._f.getDualProduct(delta_g, delta_g)
+                  if denom > 0:
+                      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
+                  else:
+                      invH_scale=self._initial_H
+                      self.logger.debug("LBFGS.Break down in H update. Resetting to initial value %s."%self._initial_H)
 
         if k >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
@@ -348,15 +344,15 @@ class MinimizerLBFGS(AbstractMinimizer):
             alpha.append(a)
             q=q-a*y
 
-        if self._f.provides_inverse_Hessian_approximation:   
-             r= self._f.getInverseHessianApproximation(x, q, *args)
+        if self._f.provides_inverse_Hessian_approximation:
+             r = self._f.getInverseHessianApproximation(x, q, *args)
         else:
-             r= invH_scale * q
-             
+             r = invH_scale * q
+
         for s,y,rho in s_and_y:
-            beta=self._f.getDualProduct(r, y)/rho
-            a=alpha.pop()
-            r=r+s*(a-beta)
+            beta = self._f.getDualProduct(r, y)/rho
+            a = alpha.pop()
+            r = r + s * (a-beta)
         return r
 
 ##############################################################################

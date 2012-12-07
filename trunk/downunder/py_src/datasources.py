@@ -85,7 +85,7 @@ class DataSource(object):
     This is an abstract base class that implements common functionality.
     Methods to be overwritten by subclasses are marked as such.
     This class assumes 2D data which is mapped to a slice of a 3D domain.
-    For other setups override the `_createDomain` method.
+    For other setups override the methods as required.
     """
 
     GRAVITY, MAGNETIC = list(range(2))
@@ -410,7 +410,8 @@ class NetCdfData(DataSource):
         #lat_range=[f.geospatial_lat_min,f.geospatial_lat_max]
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
-        lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
+        if lon_range[1]<180:
+            lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         f.close()
 
@@ -562,14 +563,14 @@ class SyntheticData(DataSource):
                 k_ref = k_ref * (1-m) + f.getValue(x) * m
             self._k=k_ref
             B_b = self.getBackgroundMagneticField()
-            pde.setValue(A=kronecker(domain), X=(1+k_ref)*B_b, q=m_psi_ref)
+            pde.setValue(A=kronecker(domain), X=k_ref*B_b, q=m_psi_ref)
         pde.setSymmetryOn()
         psi_ref=pde.getSolution()
         del pde
         if self.getDataType()==DataSource.GRAVITY:
             data = -grad(psi_ref, ReducedFunction(domain))
         else:
-            data = (1+self._k)*B_b-grad(psi_ref, ReducedFunction(domain))
+            data = self._k*B_b-grad(psi_ref, ReducedFunction(domain))
 
         sigma=1.
         # limit mask to non-padding in horizontal area
@@ -584,7 +585,7 @@ class SyntheticData(DataSource):
 
     def getBackgroundMagneticField(self):
         #FIXME:
-        latitude=-28.0
+        latitude=-28.5
         theta = (90-latitude)/180.*np.pi
         B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
         B_theta= B_0 * sin(theta)

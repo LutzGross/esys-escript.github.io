@@ -37,10 +37,10 @@ class CostFunction(object):
         f=cf.getValue(x, *args)
         # ... it could be required to update x without using the gradient...
         # ... but then ...
-        gf=cf.getGradient(x, *args) 
+        gf=cf.getGradient(x, *args)
 
     The class distinguishes between the representation of the solution
-    x (x-type) and the gradients (r-type). 
+    x (x-type) and the gradients (r-type).
 
     :cvar provides_inverse_Hessian_approximation: This member should be set
             to ``True`` in subclasses that provide a valid implementation of
@@ -60,17 +60,17 @@ class CostFunction(object):
         returns precalculated values that are shared in the calculation of
         *f(x)* and *grad f(x)* and the Hessian operator. The default
         implementation returns an empty tuple.
-        
+
         :param x: location of derivative
-        :type x: x-type 
+        :type x: x-type
         :rtype: ``tuple``
         """
         return ()
-        
+
     def getDualProduct(self, x, r):
         """
         returns the dual product of ``x`` and ``r``
-        
+
         :type x: x-type
         :type r: r-type
         :rtype: ``float``
@@ -81,23 +81,23 @@ class CostFunction(object):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
-        
+
         :param x: location of derivative
         :type x: x-type
         :param args: pre-calculated values for ``x`` from `getArguments()`
         :rtype: r-type
         """
         raise NotImplementedError
-        
+
     def getInverseHessianApproximation(self, x, r, *args):
         """
         returns an approximative evaluation *p* of the inverse of the Hessian
         operator of the cost function for a given gradient *r* at a given
         location *x*: *H(x) p = r*
-        
+
         :param x: location of Hessian operator to be evaluated
         :type x: x-type
-        :param r: a given gradient 
+        :param r: a given gradient
         :type r: r-type
         :param args: pre-calculated values for ``x`` from `getArguments()`
         :rtype: x-type
@@ -114,7 +114,7 @@ class CostFunction(object):
     def getValue(self, x, *args):
         """
         returns the value *f(x)* using the precalculated values for *x*.
-        
+
         :param x: a solution approximation
         :type x: x-type
         :rtype: ``float``
@@ -155,60 +155,60 @@ class MeteredCostFunction(CostFunction):
         self.Gradient_calls=0
         self.Arguments_calls=0
         self.InverseHessianApproximation_calls=0
-        
+
     def getDualProduct(self, x, r):
         """
         returns the dual product of ``x`` and ``r``
-        
+
         :type x: x-type
         :type r: r-type
         :rtype: ``float``
         """
         self.DualProduct_calls+=1
         return self._getDualProduct(x, r)
-        
+
     def _getDualProduct(self, x, r):
         """
         returns the dual product of ``x`` and ``r``
-        
+
         :type x: x-type
         :type r: r-type
         :rtype: ``float``
         :note: This is the worker for `getDualProduct()`, needs to be overwritten.
         """
         raise NotImplementedError
-        
+
     def getValue(self, x, *args):
         """
         returns the value *f(x)* using the precalculated values for *x*.
-        
+
         :param x: a solution approximation
         :type x: x-type
         :rtype: ``float``
         """
         self.Value_calls+=1
         return self._getValue(x, *args)
-    
+
     def _getValue(self, x, *args):
         """
         returns the value *f(x)* using the precalculated values for *x*.
-        
+
         :param x: a solution approximation
         :type x: x-type
         :rtype: ``float``
         :note: This is the worker for ``getValue()``, needs to be overwritten.
         """
         raise NotImplementedError
-        
+
     def getGradient(self, x, *args):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
-        
+
         :param x: location of derivative
         :type x: x-type
         :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: r-type        
+        :rtype: r-type
         """
         self.Gradient_calls+=1
         return self._getGradient(x, *args)
@@ -217,73 +217,74 @@ class MeteredCostFunction(CostFunction):
         """
         returns the gradient of *f* at *x* using the precalculated values for
         *x*.
-        
+
         :param x: location of derivative
         :type x: x-type
         :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: r-type  
+        :rtype: r-type
         :note: This is the worker for `getGradient()`, needs to be overwritten.
-        """      
+        """
         raise NotImplementedError
-        
+
 
     def getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of
         *f(x)* and *grad f(x)* and the Hessian operator
-        
+
         :param x: location of derivative
-        :type x: x-type 
+        :type x: x-type
         """
         self.Arguments_calls+=1
         return self._getArguments(x)
-    
+
     def _getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of
         *f(x)* and *grad f(x)* and the Hessian operator
-        
+
         :param x: location of derivative
-        :type x: x-type 
+        :type x: x-type
         :note: Overwrite this function to implement a specific cost function
         """
-        return ()    
-        
+        return ()
+
     def getInverseHessianApproximation(self, x, r,*args):
         """
         returns an approximative evaluation *p* of the inverse of the Hessian
         operator of the cost function for a given gradient *r* at a given
         location *x*: *H(x) p = r*
-        
+
         :param x: location of Hessian operator to be evaluated.
         :type x: x-type
-        :param r: a given gradient 
+        :param r: a given gradient
         :type r: r-type
         :param args: pre-calculated values for ``x`` from `getArguments()`
-        :rtype: x-type
-        :note: In general it is assumed that the Hessian *H(x)* needs to be calculate in each call for a new
-          location *x*. However, the solver may suggest that this is not required, typically when the iteration 
-          ius close to completness. 
-        
-        """
-        self.InverseHessianApproximation_calls+=1
-        return self._getInverseHessianApproximation(x, r, *args)
-   
-    def _getInverseHessianApproximation(self, x, r, *args):
-        """
-        returns an approximative evaluation *p* of the inverse of the Hessian operator of the costfunction
-        for a given gradient type *r* at a given location *x*: *H(x) p = r*
-        
-        :param x: location of Hessian operator to be evaluated.
-        :type x: x-type
-        :param r: a given gradient 
-        :type r: r-type
-        :param args: pre-calculated values for ``x`` from ``getArguments()``
         :rtype: x-type
         :note: In general it is assumed that the Hessian *H(x)* needs to be
                calculate in each call for a new location *x*. However, the
                solver may suggest that this is not required, typically when
-               the iteration is close to completness. 
+               the iteration is close to completeness.
+        """
+        self.InverseHessianApproximation_calls+=1
+        return self._getInverseHessianApproximation(x, r, *args)
+
+    def _getInverseHessianApproximation(self, x, r, *args):
+        """
+        returns an approximative evaluation *p* of the inverse of the Hessian
+        operator of the cost function for a given gradient *r* at a given
+        location *x*: *H(x) p = r*
+
+        :param x: location of Hessian operator to be evaluated
+        :type x: x-type
+        :param r: a given gradient
+        :type r: r-type
+        :param args: pre-calculated values for ``x`` from `getArguments()`
+        :rtype: x-type
+        :note: In general it is assumed that the Hessian *H(x)* needs to be
+               calculate in each call for a new location *x*. However, the
+               solver may suggest that this is not required, typically when
+               the iteration is close to completeness.
         :note: This is the worker for getInverseHessianApproximation()`, needs
                to be overwritten.
         :note: Subclasses that implement this method should set the class
