@@ -96,7 +96,7 @@ class DensityMapping(LinearMapping):
     *rho =  rho0 + drho  * ( (x_2 - z0)/l_z)^(beta/2) ) * m*
 
     """
-    def __init__(self, domain, z0=None, rho0=0., drho=None,  beta=2.):
+    def __init__(self, domain, z0=None, rho0=None, drho=None,  beta=None):
         """
         initializes the mapping
 
@@ -111,7 +111,9 @@ class DensityMapping(LinearMapping):
         :param beta: depth weighting exponent, defaults to 2
         :type beta: ``float``
         """
+        if rho0 is None: rho0=0.
         if drho is None: drho=2750*U.kg/U.m**3
+        if beta is None: beta=2.
 
         self.domain=domain
         if z0 is not None:
@@ -129,7 +131,7 @@ class SusceptibilityMapping(LinearMapping):
     *k =  k0 + dk  * ( (x_2 - z0)/l_z)^(beta/2) ) * m*
 
     """
-    def __init__(self, domain, z0=None, k0=0., dk=1.,  beta=2.):
+    def __init__(self, domain, z0=None, k0=None, dk=None,  beta=None):
         """
         set up mapping
 
@@ -144,7 +146,11 @@ class SusceptibilityMapping(LinearMapping):
         :param beta: depth weighting exponent, defaults to 2
         :type beta: ``float``
         """
+        if k0 is None: k0=0.
+        if beta is None: beta=2.
+        if dk is None: dk=1.
         self.domain=domain
+
         if z0 is not None:
             DIM=self.domain.getDim()
             l_z=boundingBoxEdgeLengths(domain)[DIM-1]
