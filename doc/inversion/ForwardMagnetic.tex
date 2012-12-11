@@ -77,13 +77,12 @@ If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for
 survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
 $J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction} is given as
 \begin{equation}\label{ref:MAG:EQU:9}
-J^{mag}(k) = \frac{\alpha}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
 \end{equation} 
-Summation over $i$ is performed. $\alpha$ defines a scaling factor which is
-typically set to one.
+Summation over $i$ is performed.
 The cost function kernel\index{cost function!kernel} is given as
 \begin{equation}\label{ref:MAG:EQU:10}
-K^{mag}(\psi_{,i},k) = \frac{\alpha}{2}\sum_{s} ( \omega^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i) ) ^2
+K^{mag}(\psi_{,i},k) = \frac{1}{2}\sum_{s} ( \omega^{(s)}_i \cdot (k \cdot B^b_i - \psi_{,i} - B^{(s)}_i) ) ^2
 \end{equation} 
 Notice that if magnetic flux density is measured in air one can ignore the
 $k\cdot B^b_i$ as the susceptibility is zero.
@@ -106,8 +105,10 @@ f \cdot  \frac{d^{(s)}_i}{\sigma^{(s)}} & & \mbox{data are available} \\
 where it is assumed that $d^{(s)}_i \cdot d^{(s)}_i =1$.
 The scaling factor $f$ is chosen in the way that 
 \begin{equation}\label{ref:MAG:EQU:12}
-\sum_{s} \int_{\Omega} ( \omega^{(s)}_i B^{(s)}_i ) ^2 dx =1 
+\sum_{s} \int_{\Omega} ( \omega^{(s)}_i B^{(s)}_i ) ^2 dx =\alpha \cdot  vol(\Omega)
 \end{equation} 
+where $\alpha$ defines a scaling factor which is typically set to one.
+
 
 \subsection{Usage}
 
@@ -126,7 +127,9 @@ as a vector.
 If \member{useSphericalCoordinates} is \True spherical coordinates are used. 
 \member{scale} sets the scaling factor $\alpha$. 
 \member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
-The weighting factors are rescaled such that conditon~(\ref{ref:MAG:EQU:12}) holds.
+\member{scale} sets the scaling factor $\alpha$.
+The weighting factors are rescaled such that conditon~(\ref{ref:MAG:EQU:12}) holds for
+$\alpha$=\member{scale}. 
 \end{classdesc}
 
 
@@ -144,13 +147,13 @@ solution of the variational problem~(\ref{ref:MAG:EQU:201}).
 If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
 known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
 \begin{equation}\label{ref:MAG:EQU:201}
-\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \alpha \cdot  \int_{\Omega}  
+\int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \int_{\Omega}  
 \sum_{s} (\omega^{(s)}_j 
 ( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( \Psi[p]_{,i} - p  \cdot B^b_i  ) ) \; dx  
 \end{equation} 
 with
 \begin{equation}\label{ref:MAG:EQU:202c}
-Y_i[\psi]=  \alpha \cdot \sum_{s} (\omega^{(s)}_j 
+Y_i[\psi]=   \sum_{s} (\omega^{(s)}_j 
 (B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
 \end{equation} 
 This is written as 

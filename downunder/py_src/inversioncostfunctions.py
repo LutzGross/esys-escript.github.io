@@ -50,24 +50,23 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         self.forwardmodel=forwardmodel
         self.regularization=regularization
         self.mapping=mapping
-        self.setWeights()
+        self.setTradeOffFactors()
 
-    def setWeights(self, mu_model=1., mu_reg_0=None,mu_reg_1=None):
+    def setTradeOffFactors(self, mu_model=1., mu_reg=1.):
         """
-        sets the weighting factors for the forward model and regularization
+        sets the trade-off factors for the forward model and regularization
         terms.
 
         :param mu_model: Weighting factor for the forward model (default=1.)
         :type mu_model: non-negative `float`
-        :param mu_reg_0: Weighting factor for the regularization (default=1.)
-        :type mu_reg_0: non-negative `float`
+        :param mu_reg: Weighting factor for the regularization (default=1.)
+        :type mu_reg: non-negative `float`
         """
         if mu_model<0:
-            raise ValueError("weighting factors must be non-negative.")
+            raise ValueError("trade-off factors must be non-negative.")
         self.mu_model=mu_model
-        self.regularization.setWeightsForS0(mu_reg_0)
-        self.regularization.setWeightsForS1(mu_reg_1)
-
+        self.regularization.setTradeOffFactors(mu_reg)
+        
     def _getDualProduct(self, x, r):
         """
         returns ``regularization.getDualProduct(x, r)``
