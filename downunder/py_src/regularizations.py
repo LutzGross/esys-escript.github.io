@@ -25,7 +25,7 @@ __all__ = ['Regularization']
 from costfunctions import CostFunction
 
 import numpy as np
-from esys.escript import Data, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol
+from esys.escript import Data, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 
@@ -172,7 +172,7 @@ class Regularization(CostFunction):
              sc=wc.getShape()
              raise ValueError("Unexpected shape %s for weight wc."%sc)
         # ============= now we rescale weights: ======================================
-        vol_d=vol(self.__domain)
+        self.__vol_d=vol(self.__domain)
         L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
         L4=1/np.sum(1/L2s)**2
         if numLevelSets is 1 : 
@@ -182,7 +182,7 @@ class Regularization(CostFunction):
 	    if w1 is not None:
 	        A += integrate(inner(w1, 1/L2s))
 	    if A > 0:
-	        f = scale*vol_d/A
+	        f = scale*self.__vol_d/A
 	        if w0 is not None:
 	             w0*=f
 	        if w1 is not None:
@@ -197,7 +197,7 @@ class Regularization(CostFunction):
 	         if w1 is not None:
 	              A += integrate(inner(w1[k,:], 1/L2s))
 	         if A > 0:
-	              f = scale[k]*vol_d/A
+	              f = scale[k]*self.__vol_d/A
 	              if w0 is not None:
 	                 w0[k]*=f
 	              if w1 is not None:
@@ -209,7 +209,7 @@ class Regularization(CostFunction):
 	         for l in xrange(k):   
 	             A = integrate(wc[l,k])/L4
   	             if A > 0:
- 	                f = scale_c[l,k]*vol_d/A
+ 	                f = scale_c[l,k]*self.__vol_d/A
  	                wc[l,k]*=f
                      else:
 	                raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
@@ -484,3 +484,13 @@ class Regularization(CostFunction):
         """
         if not self.__useDiagonalHessianApproximation:
             self._update_Hessian=True
+            
+    def getNorm(self, m):
+        """
+        returns the norm of ``m``
+
+        :param m: level set function
+        :type m: `Data`
+        :rtype: ``float``
+        """
+        return sqrt(integrate(length(m)**2)/self.__vol_d)

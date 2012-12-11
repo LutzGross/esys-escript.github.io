@@ -44,7 +44,7 @@ class InversionBase(object):
         self.logger=logging.getLogger('inv.%s'%self.__class__.__name__)
         self._solver_callback = None
         self._solver_opts = {}
-        self._solver_tol = 1e-9
+        self._solver_xtol = 1e-9
         self._solver_maxiter = 200
         # set default solver
         self.setSolverClass()
@@ -162,7 +162,7 @@ class InversionBase(object):
         considered to be found once the tolerance is reached.
         """
         if tol>0:
-            self._solver_tol=tol
+            self._solver_xtol=tol
         else:
             raise ValueError("tolerance must be positive.")
 
@@ -233,7 +233,7 @@ class SingleParameterInversionBase(InversionBase):
         solver.setCallback(self._solver_callback)
         solver.setMaxIterations(self._solver_maxiter)
         solver.setOptions(**self._solver_opts)
-        solver.setTolerance(self._solver_tol)
+        solver.setTolerance(x_tol=self._solver_xtol)
         if not isinstance(initial_value, Data):
             initial_value=Scalar(initial_value, ContinuousFunction(self.getDomain()))
         m_init=self.getMapping().getInverse(initial_value)
