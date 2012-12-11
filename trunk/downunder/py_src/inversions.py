@@ -187,9 +187,9 @@ class SingleParameterInversionBase(InversionBase):
     """
     def __init__(self):
         super(SingleParameterInversionBase,self).__init__()
-        self.setWeights()
+        self.setTradeOffFactors()
 
-    def setWeights(self, mu_reg=None, mu_model=1.):
+    def setTradeOffFactors(self, mu_reg=None, mu_model=1.):
         """
         Sets the weighting factors for the cost function.
         """
@@ -227,7 +227,7 @@ class SingleParameterInversionBase(InversionBase):
             raise RuntimeError("Inversion is not setup properly.")
 
         f=SimpleInversionCostFunction(self.getRegularization(), self.getMapping(), self.getForwardModel())
-        f.setWeights(mu_reg_1=self._mu_reg, mu_model=self._mu_model)
+        f.setTradeOffFactors(mu_reg=self._mu_reg, mu_model=self._mu_model)
 
         solver=self.solverclass(f)
         solver.setCallback(self._solver_callback)
@@ -254,7 +254,7 @@ class GravityInversion(SingleParameterInversionBase):
     """
     def setup(self, domainbuilder,
                     rho0=None, drho=None, z0=None, beta=None,
-                    s0=None, s1=None):
+                    w0=None, w1=None):
         """
         Sets up the inversion parameters from a `DomainBuilder`.
 
@@ -271,11 +271,11 @@ class GravityInversion(SingleParameterInversionBase):
         self.setMapping(DensityMapping(self.getDomain(), rho0=rho0, drho=drho, z0=z0, beta=beta))
         #========================
         self.logger.info("Setting up regularization...")
-        if s1 is None:
-            s1=[1.]*DIM
+        if w1 is None:
+            w1=[1.]*DIM
         rho_mask = domainbuilder.getSetDensityMask()
         self.setRegularization(Regularization(self.getDomain(), numLevelSets=1,\
-                               s0=s0, s1=s1, location_of_set_m=rho_mask))
+                               w0=w0, w1=w1, location_of_set_m=rho_mask))
         #====================================================================
         self.logger.info("Retrieving gravity surveys...")
         surveys=domainbuilder.getGravitySurveys()
@@ -306,7 +306,7 @@ class GravityInversion(SingleParameterInversionBase):
                 l=max(l, sup(x[i])-inf(x[i]))
             G=U.Gravitational_Constant
             mu_reg=0.5*(l*l*G)**2
-            self.setWeights(mu_reg=mu_reg)
+            self.setTradeOffFactors(mu_reg=mu_reg)
 
 
 class MagneticInversion(SingleParameterInversionBase):
@@ -315,7 +315,7 @@ class MagneticInversion(SingleParameterInversionBase):
     """
     def setup(self, domainbuilder,
                     k0=None, dk=None, z0=None, beta=None,
-                    s0=None, s1=None):
+                    w0=None, w1=None):
         """
         Sets up the inversion parameters from a `DomainBuilder`.
 
@@ -333,11 +333,11 @@ class MagneticInversion(SingleParameterInversionBase):
 
         #========================
         self.logger.info("Setting up regularization...")
-        if s1 is None:
-            s1=[1.]*DIM
+        if w1 is None:
+            w1=[1.]*DIM
         k_mask = domainbuilder.getSetSusceptibilityMask()
         self.setRegularization(Regularization(self.getDomain(), numLevelSets=1,\
-                               s0=s0, s1=s1, location_of_set_m=k_mask))
+                               w0=w0, w1=w1, location_of_set_m=k_mask))
 
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
@@ -367,5 +367,5 @@ class MagneticInversion(SingleParameterInversionBase):
             for i in range(DIM-1):
                 l=max(l, sup(x[i])-inf(x[i]))
             mu_reg=0.5*l**2
-            self.setWeights(mu_reg=mu_reg)
+            self.setTradeOffFactors(mu_reg=mu_reg)
 

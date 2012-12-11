@@ -34,22 +34,22 @@ class Regularization(CostFunction):
     The regularization term for the level set function ``m`` within the cost
     function J for an inversion:
 
-    *J(m)=1/2 * sum_k imtegrate( mu_0[k] * s0[k] * m_k**2 + mu_1[k] * s1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] sc[l,l] * | curl(m_k) x curl(m_l) |^2*
+    *J(m)=1/2 * sum_k imtegrate( mu[k] * ( w0[k] * m_k**2 * w1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] wc[l,k] * | curl(m_k) x curl(m_l) |^2*
 
-    where s0[k], s1[k,i] and  sc[k,l] are non-negative scaling factors and
-    mu_0[k], mu_1[k], mu_c[l,k] are weighting factors which may be altered
-    during the inversion. The scaling factors are normalized such that their
+    where w0[k], w1[k,i] and  wc[k,l] are non-negative weighting factors and
+    mu[k] and mu_c[l,k] are trade-off factors which may be altered
+    during the inversion. The weighting factors are normalized such that their
     integrals over the domain are constant:
 
-    *integrate(s0[k])=1*
-    *integrate(inner(s1[k,:],L[:])=1*
-    *integrate(inner(sc[l,k]*L**4)=1*
+    *integrate(w0[k] + inner(w1[k,:],1/L[:]**2))=scale[k]* volume(domain)*
+    *integrate(wc[l,k]*1/L**4)=scale_c[k]* volume(domain) *
 
     """
     def __init__(self, domain, numLevelSets=1,
-                       s0=None, s1=None, sc=None,
+                       w0=None, w1=None, wc=None,
                        location_of_set_m=Data(),
-                       useDiagonalHessianApproximation=True, tol=1e-8):
+                       useDiagonalHessianApproximation=False, tol=1e-8,
+                       scale=None, scale_c=None):
         """
         initialization.
 
@@ -57,22 +57,22 @@ class Regularization(CostFunction):
         :type domain: `Domain`
         :param numLevelSets: number of level sets
         :type numLevelSets: ``int``
-        :param s0: scaling factor for the m**2 term. If not set zero is assumed.
-        :type s0: ``Scalar`` if ``numLevelSets`` == 1 or `Data` object of shape
+        :param w0: weighting factor for the m**2 term. If not set zero is assumed.
+        :type w0: ``Scalar`` if ``numLevelSets`` == 1 or `Data` object of shape
                   (``numLevelSets`` ,) if ``numLevelSets`` > 1
-        :param s1: scaling factor for the grad(m_i) terms. If not set zero is assumed
-        :type s1: ``Vector`` if ``numLevelSets`` == 1 or `Data` object of shape
+        :param w1: weighting factor for the grad(m_i) terms. If not set zero is assumed
+        :type w1: ``Vector`` if ``numLevelSets`` == 1 or `Data` object of shape
                   (``numLevelSets`` , DIM) if ``numLevelSets`` > 1
-        :param sc: scaling factor for the cross correlation terms. If not set
+        :param wc: weighting factor for the cross gradient terms. If not set
                    zero is assumed. Used for the case if ``numLevelSets`` > 1
-                   only. Only values ``sc[l,k]`` in the lower triangle (l<k)
+                   only. Only values ``wc[l,k]`` in the lower triangle (l<k)
                    are used.
-        :type sc: `Data` object of shape (``numLevelSets`` , ``numLevelSets``)
+        :type wc: `Data` object of shape (``numLevelSets`` , ``numLevelSets``)
         :param location_of_set_m: marks location of zero values of the level
                                   set function ``m`` by a positive entry.
         :type location_of_set_m: ``Scalar`` if ``numLevelSets`` == 1 or `Data`
                 object of shape (``numLevelSets`` ,) if ``numLevelSets`` > 1
-        :param useDiagonalHessianApproximation: if True cross correlation terms
+        :param useDiagonalHessianApproximation: if True cross gradient terms
                     between level set components are ignored when calculating
                     approximations of the inverse of the Hessian Operator.
                     This can speed-up the calculation of the inverse but may
@@ -82,116 +82,153 @@ class Regularization(CostFunction):
         :param tol: tolerance when solving the PDE for the inverse of the
                     Hessian Operator
         :type tol: positive ``float``
+        
+        :param scale: weighting factor for level set function variation terms. If not set one is used. 
+        :type scale: ``Scalar`` if ``numLevelSets`` == 1 or `Data` object of shape
+                  (``numLevelSets`` ,) if ``numLevelSets`` > 1
+        :param scale_c: scale for the cross gradient terms. If not set
+                   one is assumed. Used for the case if ``numLevelSets`` > 1
+                   only. Only values ``scale_c[l,k]`` in the lower triangle (l<k)
+                   are used.
+        :type scale_c: `Data` object of shape (``numLevelSets`` , ``numLevelSets``)
+        
 
         """
         if numLevelSets>1:
               raise ValueError("Currently only numLevelSets<=1 is supported.")
-        if s0 == None and s1==None:
-              raise ValueError("Values for s0 or s1 must be given.")
+	    
+        if w0 == None and w1==None:
+              raise ValueError("Values for w0 or for w1 must be given.")
+	if wc == None and  numLevelSets>1:
+	      raise ValueError("Values for wc must be given.")
 
         self.__domain=domain
         DIM=self.__domain.getDim()
-        self.__L2=np.asarray(boundingBoxEdgeLengths(domain))**2
-        self.__L4=np.sum(self.__L2)**2
         self.__numLevelSets=numLevelSets
+        
+        self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets)
+        self.__pde.getSolverOptions().setTolerance(tol)
+        self.__pde.setSymmetryOn()
+        try:
+            self.__pde.setValue(q=location_of_set_m)
+        except IllegalCoefficientValue:
+            raise ValueError("Unable to set location of fixed level set function.")
+	  
+        # =========== check the shape of the scales: =================================
+        if scale is None:
+	    if numLevelSets == 1 :
+	       scale = 1.
+	    else:
+	       scale = np.ones((numLevelSets,))
+	else:
+	    scale=np.asarray(scale)
+	    if numLevelSets == 1 :
+	        if scale.shape == ():
+		   if not scale > 0 :
+		      raise ValueError("Value for scale must be positive.")
+		else:
+		   raise ValueError("Unexpected shape %s for scale."%scale.shape)
+            else:
+	         if scale.shape is (numLevelSets,):
+		     if not min(scale) > 0:
+		        raise ValueError("All value for scale must be positive.")
+		 else:
+		   raise ValueError("Unexpected shape %s for scale."%scale.shape)
+	
+        if scale_c is None or numLevelSets < 2:
+	    scale_c = np.ones((numLevelSets,numLevelSets))
+	else:
+	    scale_c=np.asarray(scale_c)
+	    if scale_c.shape == (numLevelSets,numLevelSets):
+	        if not all( [ [ scale_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLevelSets) ]):
+		        raise ValueError("All values in the lower triangle of scale_c must be positive.")
+            else:
+		 raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
+	# ===== check the shape of the weights: ============================================
+        if w0 is not None:
+	      w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
+	      s0=w0.getShape()
+	      if numLevelSets == 1 :
+		   if  not s0 == () :
+		      raise ValueError("Unexpected shape %s for weight w0."%s0)
+              else:
+		   if not s0 == (numLevelSets,):
+		      raise ValueError("Unexpected shape %s for weight w0."%s0) 
+	if not w1 is None:
+	      w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
+	      s1=w1.getShape()
+	      print s1, (DIM,)
+	      print w1
+	      if numLevelSets is 1 :
+		   if not s1 == (DIM,) :
+		      raise ValueError("Unexpected shape %s for weight w1."%s1)
+              else:
+		   if not s1 == (numLevelSets,DIM):
+		      raise ValueError("Unexpected shape %s for weight w1."%s1) 
+        if numLevelSets == 1 :
+             wc=None
+        else:
+             wc = interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
+             sc=wc.getShape()
+             raise ValueError("Unexpected shape %s for weight wc."%sc)
+        # ============= now we rescale weights: ======================================
+        vol_d=vol(self.__domain)
+        L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
+        L4=1/np.sum(1/L2s)**2
+        if numLevelSets is 1 : 
+            A=0
+            if w0 is not None:
+	        A = integrate(w0)
+	    if w1 is not None:
+	        A += integrate(inner(w1, 1/L2s))
+	    if A > 0:
+	        f = scale*vol_d/A
+	        if w0 is not None:
+	             w0*=f
+	        if w1 is not None:
+		     w1*=f
+            else:
+	       raise ValueError("Non-positive weighting factor detected.") 
+        else:
+	     for k in xrange(numLevelSets):
+	         A=0
+                 if w0 is not None:
+	             A = integrate(w0[k])
+	         if w1 is not None:
+	              A += integrate(inner(w1[k,:], 1/L2s))
+	         if A > 0:
+	              f = scale[k]*vol_d/A
+	              if w0 is not None:
+	                 w0[k]*=f
+	              if w1 is not None:
+		         w1[k,:]*=f
+                 else:
+	           raise ValueError("Non-positive weighting factor for level set component %d detected."%k) 
+		 
+	         # and now the cross-gradient:
+	         for l in xrange(k):   
+	             A = integrate(wc[l,k])/L4
+  	             if A > 0:
+ 	                f = scale_c[l,k]*vol_d/A
+ 	                wc[l,k]*=f
+                     else:
+	                raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
+	            
+        self.__w0=w0
+        self.__w1=w1
+        self.__wc=wc
+        
 
+
+        self.__pde_is_set=False        
         if self.__numLevelSets > 1:
             self.__useDiagonalHessianApproximation=useDiagonalHessianApproximation
         else:
             self.__useDiagonalHessianApproximation=True
         self._update_Hessian=True
 
-        self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets)
-        self.__pde.getSolverOptions().setTolerance(tol)
-        self.__pde.setSymmetryOn()
-        self.__pde_is_set=False
-        try:
-            self.__pde.setValue(q=location_of_set_m)
-        except IllegalCoefficientValue:
-            raise ValueError("Unable to set location of fixed level set function.")
-
-        self.__total_num_weights=2*numLevelSets+((numLevelSets-1)*numLevelSets)/2
-        self.__weight_index=[]  # this is a mapping from the relevant mu-coefficients to the set of all mu-coefficients
-                           # we count s0, then s1, then sc (k<l).
-        # THE S0 weighting factor
-        n=0
-        VV=vol(domain)
-        if s0 is not None:
-            s0 = interpolate(s0,self.__pde.getFunctionSpaceForCoefficient('D'))
-            s=s0.getShape()
-            if numLevelSets == 1 :
-                 if s == () :
-                     V=integrate(s0)
-                     if V > 0:
-                       self.__weight_index.append(n)
-                       s0*=VV/V
-                     else:
-                       s0=None
-                 else:
-                     raise ValueError("Unexpected shape %s for weight s0."%s)
-            else:
-                 if s == (numLevelSets,):
-                     for k in xrange(numLevelSets):
-                        V=integrate(s0[k])
-                        if V > 0:
-                            self.__weight_index.append(n+k)
-                            s0[k]*=VV/V
-                 else:
-                     raise ValueError("Unexpected shape %s for weight s0."%s)
-        self.__s0=s0
-        n+=numLevelSets
-
-        # The S1 weighting factor
-        if not s1 is None:
-            s1 = interpolate(s1,self.__pde.getFunctionSpaceForCoefficient('A'))
-            s=s1.getShape()
-
-            if numLevelSets == 1 :
-                if s == (DIM,) :
-                    V=integrate(inner(s1, 1/self.__L2))
-                    if V > 0:
-                        self.__weight_index.append(n)
-                        s1*=VV/V
-                    print "REG SCALE = ",s1
-                else:
-                    raise ValueError("Unexpected shape %s for weight s1."%s)
-            else:
-                if s == (numLevelSets,DIM):
-                    for k in xrange(numLevelSets):
-                        for i in xrange(DIM):
-                            ww=s1[k,:]
-                            V=integrate(inner(ww,1/self.__L2))
-                            if V > 0:
-                                self.__weight_index.append(n+i)
-                                s1[k,:]=ww*(VV/V)
-                else:
-                    raise ValueError("Unexpected shape %s for weight s1."%s)
-
-        self.__s1=s1
-        n+=numLevelSets
-
-        # The SC weighting factor
-        if not sc is None:
-            if numLevelSets == 1 :
-                sc=None
-            else:
-                sc = interpolate(sc,self.__pde.getFunctionSpaceForCoefficient('A'))
-                s=sc.getShape()
-                if s == (numLevelSets,numLevelSets):
-                    for k in xrange(numLevelSets):
-                        sc[k,k]=0.
-                        for l in xrange(k):
-                            ww=sc[l,k]
-                            V=integrate(ww)
-                            if V > 0:
-                                self.__weight_index.append(n+k*numLevelSets+l)
-                                sc[l,k]=ww*VV/V*self.__L4
-                                sc[k,l]=0
-                else:
-                    raise ValueError("Unexpected shape %s for weight s0."%s)
-
-        self.__sc=sc
-        self.setWeights()
+        self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)/2
+        self.setTradeOffFactors()
 
     def getDomain(self):
         """
@@ -232,6 +269,106 @@ class Regularization(CostFunction):
         if not r[0].isEmpty(): A+=integrate(inner(r[0], m))
         if not r[1].isEmpty(): A+=integrate(inner(r[1], grad(m)))
         return A
+    def getNumTradeOffFactors(self):
+        """
+        returns the number of trade-off factors being used.
+
+        :rtype: ``int``
+        """
+        return self.__num_tradeoff_factors
+
+    def setTradeOffFactors(self, mu=None):
+        """
+        sets the trade-off factors for the level-set variation and the cross-gradient
+        
+        :param mu: new values for the trade-off factors where values mu[:numLevelSets] are the 
+                   trade-off factors for the level-set variation and the remaining values for 
+                   the cross-gradient part with mu_c[l,k]=mu[numLevelSets+l+((k-1)*k)/2] (l<k).
+                   If no values for mu is given ones are used. Values must be positive.
+        :type mu: ``list`` of ``float`` or ```numpy.array```
+        """
+        numLS=self.getNumLevelSets()
+        numTF=self.getNumTradeOffFactors()
+        if mu is None:
+	   mu = np.ones((numTF,))
+	else:
+	   mu = np.asarray(mu)
+
+	if mu.shape == (numTF,):
+	    self.setTradeOffFactorsForVariation(mu[:numLS])
+	    mu_c2=np.zeros((numLS,numLS))
+	    for k in xrange(numLS):
+	       for l in xrange(k):
+		   mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2] 
+	    self.setTradeOffFactorsForCrossGradient(mu_c2)
+	elif mu.shape == () and numLS ==1:
+	    self.setTradeOffFactorsForVariation(mu)
+	else:
+	   raise ValueError("Unexpected shape %s for mu."%(mu.shape,)) 
+	   
+    def setTradeOffFactorsForVariation(self, mu=None):
+         """
+         sets the trade-off factors for the level-set variation part
+         
+         :param mu:  new values for the trade-off factors. Values must be positive.
+         :type mu: `float``, ``list`` of ``float`` or ```numpy.array```
+         """
+         numLS=self.getNumLevelSets()
+         if mu is None:
+	    if numLS == 1:
+	       mu = 1.
+	    else:
+	       mu = np.ones((numLS,))
+
+	 mu=np.asarray(mu)
+	 if numLS == 1:
+	   if mu.shape == (1,): mu=mu[0] 
+	   if mu.shape == ():
+	      if mu > 0:
+		 self.__mu= mu
+		 self._new_mu=True
+	      else:
+		 raise ValueError("Value for trade-off factor must be positive.") 
+	   else:
+	      raise ValueError("Unexpected shape %s for mu."%mu.shape)
+	 else:
+	   if mu.shape == (numLS,):
+	       if min(mu) > 0:
+		   self.__mu= mu
+		   self._new_mu=True
+	       else:
+		   raise ValueError("All value for mu must be positive.")
+           else:
+	       raise ValueError("Unexpected shape %s for trade-off factor."%mu.shape) 
+
+    def setTradeOffFactorsForCrossGradient(self, mu_c=None):
+        """
+        sets the trade-off factors for the cross--gradient terms
+         
+        :param mu_c:  new values for the trade-off factors for the cross--gradient terms. Values must be positive.
+                      if now value is given ones are used. Onky value mu_c[l,k] for l<k are used.
+        :type mu: `float``, ``list`` of ``float`` or ```numpy.array```
+         
+        """
+        numLS=self.getNumLevelSets()
+        if mu_c is None or numLS < 2:
+	    self.__mu_c = np.ones((numLS,numLS))
+	else:
+	    mu_c=np.asarray(mu_c)
+	    if mu_c.shape == (numLS,numLS):
+	        if not all( [ [ mu_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLS) ]):
+		     raise ValueError("All trade-off factors in the lower triangle of mu_c must be positive.")
+		else:
+		     self.__mu_c =  mu_c
+		     self._new_mu=True
+            else:
+		 raise ValueError("Unexpected shape %s for mu."%mu_c.shape)
+    
+    def getArguments(self, m):
+        """
+        """
+        return ( grad(m),)
+		 
 
     def getValue(self, m, grad_m):
         """
@@ -239,32 +376,29 @@ class Regularization(CostFunction):
 
         :rtype: ``float``
         """
-        mu=self.getWeights( uncompress=True)
+        mu=self.__mu
+        mu_c=self.__mu_c
         DIM=self.getDomain().getDim()
         numLS=self.getNumLevelSets()
 
         A=0
-        n=0
+        if self.__w0 is not None:
+           A+=inner(integrate(m**2 * self.__w0), mu)
 
-        if self.__s0 is not None:
-            A+=inner(integrate(m**2*self.__s0), mu[:numLS])
-        n+=numLS
-
-        if self.__s1 is not None:
+        if self.__w1 is not None:
             if numLS == 1:
-                A+=integrate(inner(grad_m**2, self.__s1))*mu[n]
+                A+=integrate(inner(grad_m**2, self.__w1))*mu
             else:
                 for k in xrange(numLS):
-                    A+=mu[n+k]*integrate(inner(grad_m[k,:]**2,self.__s1[k,:]))
-        n+=numLS
-
-        if self.__sc is not None:
+                    A+=mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
+                    
+        if numLS > 1:
             for k in xrange(numLS):
                 gk=grad_m[k,:]
                 len_gk=length(gk)
                 for l in xrange(k):
                     gl=grad_m[l,:]
-                    A+= mu[n+k*numLS+l] * integrate( self.__sc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
+                    A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
         return A/2
 
     def getGradient(self, m,  grad_m):
@@ -273,36 +407,33 @@ class Regularization(CostFunction):
         The function returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj
         """
 
-        mu=self.getWeights( uncompress=True)
+        mu=self.__mu
+        mu_c=self.__mu_c
         DIM=self.getDomain().getDim()
         numLS=self.getNumLevelSets()
 
         n=0
 
-        if self.__s0 is not None:
-            Y = m * self.__s0 * mu[:numLS]
+        if self.__w0 is not None:
+            Y = m * self.__w0 * mu
         else:
             Y = Data()
         n+=numLS
 
-        if self.__s1 is not None:
+        if self.__w1 is not None:
             if numLS == 1:
-                X=grad_m* self.__s1*mu[n]
+                X=grad_m* self.__w1*mu
             else:
-                X=self.getPDE().createCoefficient("X")
+                X=grad_m[k,:]*self.__w1[k,:]
                 for k in xrange(numLS):
-                    X[k,:]=mu[n+k]*grad_m[k,:]*self.__s1[k,:]
+                    X[k,:]*=mu[k]
         else:
             X = Data()
-        n+=numLS 
-        if self.__sc is not None:
+        if numLS > 1:
             raise NotImplementedError
         return ArithmeticTuple(Y, X)
 
-    def getArguments(self, m):
-        """
-        """
-        return ( grad(m),)
+
 
     def getInverseHessianApproximation(self, m, r, grad_m):
         """
@@ -311,29 +442,28 @@ class Regularization(CostFunction):
 
             self._new_mu=False
             self._update_Hessian=False
+            mu=self.__mu
+            mu_c=self.__mu_c
 
-            mu=self.getWeights( uncompress=True)
             DIM=self.getDomain().getDim()
             numLS=self.getNumLevelSets()
-            n=0
-            if self.__s0 is not None:
+            if self.__w0 is not None:
                 if numLS == 1:
-                     D=self.__s0 * mu[n]
+                     D=self.__w0 * mu
                 else:
                      D=self.getPDE().createCoefficient("D")
-                     for k in xrange(numLS): D[k,k]=self.__s0[k] * mu[n+k]
+                     for k in xrange(numLS): D[k,k]=self.__w0[k] * mu[k]
                 self.getPDE().setValue(D=D)
-            n+=numLS
 
             A=self.getPDE().createCoefficient("A")
-            if self.__s1 is not None:
+            if self.__w1 is not None:
                if numLS == 1:
-                   for i in xrange(DIM): A[i,i]=self.__s1[i] * mu[n]
+                   for i in xrange(DIM): A[i,i]=self.__w1[i] * mu
                else:
                    for k in xrange(numLS):
-                        for i in xrange(DIM): A[k,i,k,i]=self.__s1[k,i] * mu[n+k]
-            n+=numLS
-            if self.__sc is not None:
+                        for i in xrange(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
+                        
+            if numLS > 1:
                 raise NotImplementedError
             print A
             self.getPDE().setValue(A=A)
@@ -354,105 +484,3 @@ class Regularization(CostFunction):
         """
         if not self.__useDiagonalHessianApproximation:
             self._update_Hessian=True
-
-   # ================ we should factor these out ==============================
-
-    def getNumRelevantTerms(self):
-        """
-        returns the number of terms in the cost function of regularization
-        with non-zero scaling factors.
-
-        :rtype: ``int``
-        """
-        return len(self.__weight_index)
-
-    def getNumTerms(self):
-        """
-        returns the number of terms in the cost function of regularization
-        with non-zero scaling factors.
-
-        :rtype: ``int``
-        """
-        return len(self.__weight_index)
-
-    def setWeights(self, mu=None):
-        """
-        sets the values for the weighting terms in the cost function.
-        Note that only values corresponding to entries with non-negative
-        scaling factors are used.
-
-        :param mu: weights
-        :type mu: ``list`` of ``float`` or ``np,array``
-        """
-        if mu == None:
-            mu = np.ones(self.getNumRelevantTerms())
-        mu=np.asarray(mu)
-
-        if len(mu) == self.getNumRelevantTerms():
-            if not mu.shape == (self.getNumRelevantTerms(),):
-                raise ValueError("%s values are expected."%self.getNumRelevantTerms())
-            self.__mu=mu
-        else:
-            if not mu.shape == (self.__total_num_weights,):
-                raise ValueError("%s values are expected."%self.__total_num_weights)
-            self.__mu = np.zeros(self.getNumRelevantTerms())
-            for i in xrange(len(self.__weight_index)): self.__mu[i]=mu[self.__weight_index[i]]
-        self._new_mu=True
-
-    def setWeightsForS0(self, mu=None):
-         """
-         sets the weights for s0-terms
-         """
-         numLS=self.getNumLevelSets()
-         my_mu=self.getWeights(uncompress=True)
-         if mu is None:
-             my_mu[:numLS]=1
-         else:
-             my_mu[:numLS]=mu
-         self.setWeights(my_mu)
-
-    def setWeightsForS1(self, mu=None):
-         """
-         sets the weights for s1-terms
-         """
-         numLS=self.getNumLevelSets()
-         my_mu=self.getWeights(uncompress=True)
-         if mu is None:
-              my_mu[numLS:2*numLS]=1
-         else:
-              my_mu[numLS:2*numLS]=mu
-         self.setWeights(my_mu)
-
-    def setWeightsForSc(self, mu):
-         """
-         sets the weights for sc-terms
-         """
-         numLS=self.getNumLevelSets()
-         my_mu=self.getWeights(uncompress=True)
-         if mu is None:
-              my_mu[2*numLS:]=1
-         else:
-              my_mu[2*numLS:]=mu
-         self.setWeights(my_mu)
-
-    def getWeights(self, uncompress=False):
-        """
-        Returns the weights for the terms in the cost function.
-        The first ``numLevelSets`` values are used for the regularization terms
-        and the remaining values for the cross correlation terms.
-        """
-        if uncompress:
-            mu = np.zeros(self.__total_num_weights)
-            for i in xrange(len(self.__weight_index)):
-                mu[self.__weight_index[i]] = self.__mu[i]
-            return mu
-        else:
-            return self.__mu
-
-    def getWeightIndex(self):
-        """
-        returns an index to the contributions of terms with non-zero scaling
-        factor.
-        """
-        return self.__weight_index
-

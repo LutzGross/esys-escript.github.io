@@ -39,13 +39,12 @@ If $g^{(s)}_i$ is a measurement of the gravity acceleration anomaly for
 survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
 $J^{grav}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction} is given as
 \begin{equation}\label{ref:GRAV:EQU:9}
-J^{grav}(k) = \frac{\alpha}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (g_{i}- g^{(s)}_i) ) ^2 dx
+J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (g_{i}- g^{(s)}_i) ) ^2 dx
 \end{equation} 
-Summation over $i$ is performed.
-$\alpha$ defines a scaling factor which is typically set to one.
+Summation over $i$ is performed. 
 The cost function kernel\index{cost function!kernel} is given as
 \begin{equation}\label{ref:GRAV:EQU:10}
-K^{grav}(\psi_{,i},k) = \frac{\alpha}{2}\sum_{s} ( \omega^{(s)}_i \cdot (\psi_{,i}+ g^{(s)}_i) ) ^2
+K^{grav}(\psi_{,i},k) = \frac{1}{2}\sum_{s} ( \omega^{(s)}_i \cdot (\psi_{,i}+ g^{(s)}_i) ) ^2
 \end{equation} 
 In practice the gravity acceleration $g^{(s)}$ is measured in vertical
 direction $z$ with a standard error deviation $\sigma^{(s)}$ at certain
@@ -63,26 +62,27 @@ f \cdot  \frac{\delta_{iz}}{\sigma^{(s)}} & & \mbox{data are available} \\
 \end{equation} 
 The scaling factor $f$ is chosen in the way that
 \begin{equation}\label{ref:GRAV:EQU:12}
-\sum_{s} \int_{\Omega} ( \omega^{(s)}_i g^{(s)}_i ) ^2 dx =1 
+\sum_{s} \int_{\Omega} ( \omega^{(s)}_i g^{(s)}_i ) ^2 dx =\alpha \cdot  vol(\Omega)
 \end{equation} 
+where $\alpha$ defines a scaling factor which is typically set to one.
 
 \subsection{Usage}
 
 \LG{Add example}
 
-\begin{classdesc}{GravityModel}{domain, w, g
-        \optional{, useSphericalCoordinates=False}
-        \optional{, scale=1}
-        \optional{, tol=1e-8}}
-opens a gravity forward model over the \member{domain} with weighting factors
-\member{w} ($=\omega^{(s)}$) and measured gravity acceleration
-anomalies \member{g} ($=g^{(s)}$).
-The weighting factors and the measured gravity acceleration anomalies must be
-vectors.
-If \member{useSphericalCoordinates} is \True spherical coordinates are used.
+\begin{classdesc}{GravityModel}{domain, 
+w, g,
+\optional{, useSphericalCoordinates=False
+\optional{, scale=1
+\optional{, tol=1e-8}}}}
+opens a gravity forward model over the \Domain \member{domain} with 
+weighting factors \member{w} ($=\omega^{(s)}$) and measured gravity acceleration anomalies\member{g} ($=g^{(s)}$).
+The weighting factors and the  measured gravity acceleration anomalies\member must be vectors.
+If \member{useSphericalCoordinates} is \True spherical coordinates are used. 
+\member{tol} set the tolerance for the solution of the PDE~(\ref{ref:GRAV:EQU:100}).
 \member{scale} sets the scaling factor $\alpha$.
-\member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:GRAV:EQU:100}).
-The weighting factors are rescaled such that conditon~(\ref{ref:GRAV:EQU:12}) holds.
+The weighting factors are rescaled such that conditon~(\ref{ref:GRAV:EQU:12}) holds for
+$\alpha$=\member{scale}. 
 \end{classdesc}
 
 \subsection{Gradient Calculation}
@@ -100,13 +100,13 @@ solution of the variational problem~(\ref{ref:GRAV:EQU:201}).
 If $\Gamma_{\rho}$ denotes the region of the domain where the density is known
 and for a given direction $p$ with $p=0$ on $\Gamma_{\rho}$ one has
 \begin{equation}\label{ref:GRAV:EQU:201}
-\int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \; dx  = \alpha \cdot  \int_{\Omega}  
+\int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \; dx  =  \int_{\Omega}  
 \sum_{s} (\omega^{(s)}_j \cdot 
 (g^{(s)}_j-g_{j}) ) \cdot ( \omega^{(s)}_i \Psi[p]_{,i})  \; dx  
 \end{equation} 
 with 
 \begin{equation}\label{ref:GRAV:EQU:202c}
-Y_i[\psi]= \alpha \cdot \sum_{s} (\omega^{(s)}_j \cdot 
+Y_i[\psi]=  \sum_{s} (\omega^{(s)}_j \cdot 
 (g^{(s)}_j-g_{j}) ) \cdot  \omega^{(s)}_i
 \end{equation} 
 This is written as 
