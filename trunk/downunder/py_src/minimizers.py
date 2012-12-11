@@ -144,7 +144,7 @@ class AbstractMinimizer(object):
 
     TOLERANCE_REACHED, MAX_ITERATIONS_REACHED=list(range(2))
 
-    def __init__(self, f, tol=1e-5, imax=300):
+    def __init__(self, f, x_tol=1e-5, f_tol=None, imax=300):
         """
         Initializes a new minimizer for a given cost function.
 
@@ -152,18 +152,20 @@ class AbstractMinimizer(object):
         :type f: CostFunction
         """
         self._f=f
-        self._tol = tol
+        self._x_tol = x_tol
+        self._f_tol = f_tol
         self._imax = imax
         self._result = None
         self._callback = None
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
 
-    def setTolerance(self, tol):
+    def setTolerance(self, x_tol=None, f_tol=None):
         """
         Sets the tolerance for the stopping criterion. The minimizer stops when
         an appropriate norm is less than `tol`.
         """
-        self._tol = tol
+        if x_tol: self._x_tol = x_tol
+        if f_tol: self._f_tol = f_tol
 
     def setMaxIterations(self, imax):
         """
@@ -223,7 +225,7 @@ class AbstractMinimizer(object):
             self.logger.warning("Number of gradient evaluations: %d"%self._f.Gradient_calls)
             self.logger.warning("Number of inner product evaluations: %d"%self._f.DualProduct_calls)
             self.logger.warning("Number of argument evaluations: %d"%self._f.Arguments_calls)
-
+            self.logger.warning("Number of norm evaluations: %d"%self._f.Norm_calls)
 
 ##############################################################################
 class MinimizerLBFGS(AbstractMinimizer):
@@ -251,86 +253,113 @@ class MinimizerLBFGS(AbstractMinimizer):
                 raise KeyError("Invalid option '%s'"%o)
 
     def run(self, x):
-        args=self._f.getArguments(x)
-        gf=self._f.getGradient(x, *args)
-        fx=self._f(x, *args)
-        if self._f.provides_inverse_Hessian_approximation:
-            self._f.updateHessian()
-            invH_scale = None
-        else:
-            invH_scale = self._initial_H
-        k=0
-        error=2*self._tol
-        s_and_y=[]
+	if not ( self._f_tol or self._x_tol):
+	    raise ValueError("No tolerance set.")
+	if self._f.provides_inverse_Hessian_approximation:
+	    self._f.updateHessian()
+	    invH_scale = None
+	else:
+	    invH_scale = self._initial_H
+	    
+	args=self._f.getArguments(x)
+	gf=self._f.getGradient(x, *args)
+	fx=self._f(x, *args)
+	fx_0=fx
+	self.logger.debug("LBFGS.f(x) = %s"%fx)
+	self.logger.debug("LBFGS.grad f(x) = %s"%gf)
 
-        self._doCallback(k, x, fx, gf)
+	k=0
+	converged = False
+	s_and_y=[]
 
-        while error > self._tol and k < self._imax:
-            #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
-            if k >0:
-                self.logger.info("LBFGS.iteration %d, error=%e"%(k,error))
-            else:
-                self.logger.info("LBFGS.iteration %d"%k)
-            # determine search direction
-            p = -self._twoLoop(invH_scale, gf, s_and_y, x, *args)
+	self._doCallback(k, x, fx, gf)
 
-            if invH_scale: self.logger.debug("H = %s"%invH_scale)
-            self.logger.debug("grad f(x) = %s"%gf)
-            #self.logger.debug("p = %s"%p)
-            #self.logger.debug("x = %s"%x)
+	while not converged and k < self._imax:
+	    #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
+	    self.logger.info("LBFGS.iteration %d .......... "%k)
+	    # determine search direction
+	    if invH_scale: self.logger.debug("LBFGS.H = %s"%invH_scale)
+	    self.logger.debug("LBFGS.grad f(x) = %s"%gf)
+	    p = -self._twoLoop(invH_scale, gf, s_and_y, x, *args)
 
-            # determine step length
-            alpha, fx_new, gf_new = line_search(self._f, x, p, gf, fx)
-            self.logger.debug("LBFGS.alpha=%e"%(alpha))
-            # execute the step
-            x_new = x + alpha*p
-            print gf_new
-            if gf_new is None:
-                args=self._f.getArguments(x_new)
-                gf_new=self._f.getGradient(x_new, args)
 
-            delta_x=x_new-x
-            delta_g=gf_new-gf
-            rho=self._f.getDualProduct(delta_x, delta_g)
-            print "rho =",rho
-            if abs(rho)>0 :
-                s_and_y.append((delta_x,delta_g, rho ))
-            else:
-                raise ZeroDivisionError("LBFGS break down.")
-            # this needs to be reviewed
-            if fx_new==0.:
-                error=fx
-            else:
-                error=abs(fx_new-fx)/abs(fx_new)
+	    #self.logger.debug("p = %s"%p)
+	    #self.logger.debug("x = %s"%x)
 
-            self._f.updateHessian()
-            x=x_new
-            gf=gf_new
-            fx=fx_new
-            k+=1
-            self._doCallback(k, x, fx, gf)
-            if (error<=self._tol): break
+	    # determine step length
+	    alpha, fx_new, gf_new = line_search(self._f, x, p, gf, fx)
+	    # this function returns the a scaling alpha for the serch direction
+	    # as well the cost function evaluation and gradient for the new solution 
+	    # approximation x_new = x + alpha*p
+	    
+	    self.logger.debug("LBFGS.alpha=%e"%(alpha))
+	    # execute the step
+	    delta_x = alpha*p 
+	    x_new = x + delta_x
+	    self.logger.debug("LBFGS.f(x) = %s"%fx_new)
 
-            # delete oldest vector pair
-            if k>self._m: s_and_y.pop(0)
+	    converged = True
+	    if self._f_tol:
+		flag= abs(fx_new-fx) <= self._f_tol * abs(fx_new-fx_0)
+		if flag: 
+		    self.logger.debug("LBFGS: cost function has converged: df, f*f_tol = %e, %e"%(fx-fx_new,abs(fx_new-fx_0)*self._f_tol))
+		else:    
+		    self.logger.debug("LBFGS: cost function checked: df, f*f_tol = %e, %e"%(fx-fx_new,abs(fx_new)*self._f_tol))
 
-            if not self._f.provides_inverse_Hessian_approximation:
-                  # set the new scaling factor (approximation of inverse Hessian)
-                  denom=self._f.getDualProduct(delta_g, delta_g)
-                  if denom > 0:
-                      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
-                  else:
-                      invH_scale=self._initial_H
-                      self.logger.debug("LBFGS.Break down in H update. Resetting to initial value %s."%self._initial_H)
+		converged = converged and flag
+	    if self._x_tol:	      
+	      norm_x=self._f.getNorm(x_new)
+	      norm_d=self._f.getNorm(delta_x)
+	      flag= norm_d <= self._x_tol * norm_x
+	      if flag:
+		  self.logger.debug("LBFGS: solution has converged: dx, x*x_tol = %e, %e"%(norm_d,norm_x*self._x_tol))
+	      else:
+		  self.logger.debug("LBFGS: solution checked: dx, x*x_tol = %e, %e"%(norm_d,norm_x*self._x_tol))
+	      converged = converged and flag
+	    if converged:
+	      break
+	    
+	    # unfortunatly there is more work to do!
+	    if gf_new is None:
+		args=self._f.getArguments(x_new)
+		gf_new=self._f.getGradient(x_new, args)
+	    self.logger.debug("LBFGS.grad f(x) = %s"%gf_new)
+	    delta_g=gf_new-gf
+	    rho=self._f.getDualProduct(delta_x, delta_g)
+	    
+	    print "rho =",rho
+	    if abs(rho)>0 :
+		s_and_y.append((delta_x,delta_g, rho ))
+	    else:
+		raise ZeroDivisionError("LBFGS break down.")
 
-        if k >= self._imax:
-            reason=self.MAX_ITERATIONS_REACHED
-            self.logger.warning("LBFGS.Maximum number of iterations reached!")
-        else:
-            reason=self.TOLERANCE_REACHED
-            self.logger.warning("LBFGS.Success after %d iterations! Final error=%e"%(k,error))
-        self._result=x
-        return reason
+	    self._f.updateHessian()
+	    x=x_new
+	    gf=gf_new
+	    fx=fx_new
+	    k+=1
+	    self._doCallback(k, x, fx, gf)
+
+	    # delete oldest vector pair
+	    if k>self._m: s_and_y.pop(0)
+
+	    if not self._f.provides_inverse_Hessian_approximation:
+		  # set the new scaling factor (approximation of inverse Hessian)
+		  denom=self._f.getDualProduct(delta_g, delta_g)
+		  if denom > 0:
+		      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
+		  else:
+		      invH_scale=self._initial_H
+		      self.logger.debug("LBFGS.Break down in H update. Resetting to initial value %s."%self._initial_H)
+
+	if k >= self._imax:
+	    reason=self.MAX_ITERATIONS_REACHED
+	    self.logger.warning("LBFGS.Maximum number of iterations reached!")
+	else:
+	    reason=self.TOLERANCE_REACHED
+	    self.logger.warning("LBFGS.Success after %d iterations!"%k)
+	self._result=x
+	return reason
 
     def _twoLoop(self, invH_scale, gf, s_and_y, x, *args):
         """
@@ -388,7 +417,7 @@ class MinimizerBFGS(AbstractMinimizer):
         gnorm=Lsup(gf)
         self._doCallback(k, x, fx, gf)
 
-        while gnorm > self._tol and k < self._imax:
+        while gnorm > self._x_tol and k < self._imax:
             self.logger.info("iteration %d, gnorm=%e"%(k,gnorm))
 
             # determine search direction
@@ -413,7 +442,7 @@ class MinimizerBFGS(AbstractMinimizer):
             k+=1
             self._doCallback(k, x, fx, gf)
             gnorm=Lsup(gf)
-            if (gnorm<=self._tol): break
+            if (gnorm<=self._x_tol): break
 
             # update Hessian
             denom=self._f.getDualProduct(delta_x, delta_g)
@@ -453,7 +482,7 @@ class MinimizerNLCG(AbstractMinimizer):
         delta0=delta
         self._doCallback(i, x, fx, -r)
 
-        while i<self._imax and Lsup(r)>self._tol:
+        while i<self._imax and Lsup(r)>self._x_tol:
             self.logger.info("iteration %d"%i)
             self.logger.debug("grad f(x) = %s"%(-r))
             self.logger.debug("d = %s"%d)
@@ -498,15 +527,17 @@ if __name__=="__main__":
     x0=np.array([4.]*N) # initial guess
 
     class RosenFunc(MeteredCostFunction):
-        def __init__(self):
-           super(RosenFunc, self).__init__()
-           self.provides_inverse_Hessian_approximation=False
-        def _getDualProduct(self, f0, f1):
-            return np.dot(f0, f1)
-        def _getValue(self, x, *args):
-            return rosen(x)
-        def _getGradient(self, x, *args):
-            return rosen_der(x)
+	def __init__(self):
+	  super(RosenFunc, self).__init__()
+	  self.provides_inverse_Hessian_approximation=False
+	def _getDualProduct(self, f0, f1):
+	    return np.dot(f0, f1)
+	def _getValue(self, x, *args):
+	    return rosen(x)
+	def _getGradient(self, x, *args):
+	    return rosen_der(x)
+	def _getNorm(self,x):
+	    return Lsup(x)
 
     f=RosenFunc()
     m=None
@@ -523,7 +554,7 @@ if __name__=="__main__":
         #m.setOptions(historySize=10000)
 
     logging.basicConfig(format='[%(funcName)s] \033[1;30m%(message)s\033[0m', level=logging.DEBUG)
-    m.setTolerance(1e-5)
+    m.setTolerance(x_tol=1e-5)
     m.setMaxIterations(600)
     m.run(x0)
     m.logSummary()

@@ -52,7 +52,7 @@ domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
 
 inv=GravityInversion()
 inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(40)
+inv.setSolverMaxIterations(30)
 inv.setup(domainbuilder)
 
 rho_new=inv.run()

@@ -127,7 +127,16 @@ class CostFunction(object):
         This method is called by the solver class.
         """
         pass
+      
+    def getNorm(self, x):
+        """
+        returns the norm of ``x``
 
+        :type x: x-type
+        :rtype: ``float``
+        """
+        raise NotImplementedError
+        
 
 class MeteredCostFunction(CostFunction):
     """
@@ -155,6 +164,7 @@ class MeteredCostFunction(CostFunction):
         self.Gradient_calls=0
         self.Arguments_calls=0
         self.InverseHessianApproximation_calls=0
+        self.Norm_calls=0
 
     def getDualProduct(self, x, r):
         """
@@ -178,6 +188,26 @@ class MeteredCostFunction(CostFunction):
         """
         raise NotImplementedError
 
+    def getNorm(self, x):
+        """
+        returns the norm of ``x``
+
+        :type x: x-type
+        :rtype: ``float``
+        """
+        self.Norm_calls+=1
+        return self._getNorm(x)
+
+    def _getNorm(self, x):
+        """
+        returns the norm of ``x``
+
+        :type x: x-type
+        :rtype: ``float``
+        :note: This is the worker for `getNorm()`, needs to be overwritten.
+        """
+        raise NotImplementedError
+        
     def getValue(self, x, *args):
         """
         returns the value *f(x)* using the precalculated values for *x*.

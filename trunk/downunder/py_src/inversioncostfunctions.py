@@ -150,4 +150,13 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         notifies the class that the Hessian operator needs to be updated.
         """
         self.regularization.updateHessian()
+        
+    def _getNorm(self, m):
+        """
+        returns the norm of ``m``
 
+        :param m: level set function
+        :type m: `Data`
+        :rtype: ``float``
+        """
+        return self.regularization.getNorm(m)
