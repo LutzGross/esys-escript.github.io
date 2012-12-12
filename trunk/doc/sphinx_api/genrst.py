@@ -44,11 +44,14 @@ def listmods():
       elif inspect.isfunction(mem):
 	flist+=[(name, mem)]
       else:
-	vlist+=[(name,mem)]
+	if type(mem).__module__+'.'+type(mem).__name__=='Boost.Python.function':
+	  flist+=[(name, mem)]
+	else:
+	  vlist+=[(name, mem)]
     pack.write('Classes\n')
     pack.write('-------\n')
     for (name, mem) in clist:
-      pack.write('* '+name+'\n')
+      pack.write('* `'+name+'`\n')
     pack.write('\n')
     for (name, mem) in clist:
       pack.write('.. autoclass:: '+name+'\n')

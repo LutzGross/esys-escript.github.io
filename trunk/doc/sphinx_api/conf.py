@@ -21,7 +21,9 @@ import sys, os
 # -- General configuration -----------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
+needs_sphinx = '1.0'	# For the autodoc_default_flags variable
+
+autodoc_default_flags=['show-inheritance', 'inherited-members', 'members', 'undoc-members']
 
 # Add any Sphinx extension module names here, as strings. They can be extensions
 # coming with Sphinx (named 'sphinx.ext.*') or your custom ones.
@@ -131,7 +133,9 @@ html_static_path = ['_static']
 #html_use_smartypants = True
 
 # Custom sidebar templates, maps document names to template names.
-#html_sidebars = {}
+html_sidebars = {
+'**': ['localtoc.html', 'relations.html']  
+}
 
 # Additional templates that should be rendered to pages, maps page names to
 # template names.
@@ -147,7 +151,7 @@ html_static_path = ['_static']
 #html_split_index = False
 
 # If true, links to the reST sources are added to the pages.
-#html_show_sourcelink = True
+html_show_sourcelink = False
 
 # If true, "Created using Sphinx" is shown in the HTML footer. Default is True.
 #html_show_sphinx = True
