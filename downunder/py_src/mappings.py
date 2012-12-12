@@ -61,6 +61,13 @@ class Mapping(object):
         """
         raise NotImplementedError
 
+    def getTypicalDerivative(self):
+        """
+        returns a typical value for the derivative
+        """
+        raise NotImplementedError
+
+        
 class LinearMapping(Mapping):
     """
     Maps a parameter by a linear transformation p = a * m + p0
@@ -88,7 +95,13 @@ class LinearMapping(Mapping):
         returns the value of the inverse of the mapping for s
         """
         return self.__a_inv * ( p - self.__p0)
-
+    
+    def getTypicalDerivative(self):
+        """
+        returns a typical value for the derivative
+        """
+        return self.__a
+        
 class DensityMapping(LinearMapping):
     """
     Density mapping with depth weighting

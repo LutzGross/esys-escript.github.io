@@ -157,8 +157,6 @@ class Regularization(CostFunction):
 	if not w1 is None:
 	      w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
 	      s1=w1.getShape()
-	      print s1, (DIM,)
-	      print w1
 	      if numLevelSets is 1 :
 		   if not s1 == (DIM,) :
 		      raise ValueError("Unexpected shape %s for weight w1."%s1)
@@ -172,7 +170,6 @@ class Regularization(CostFunction):
              sc=wc.getShape()
              raise ValueError("Unexpected shape %s for weight wc."%sc)
         # ============= now we rescale weights: ======================================
-        self.__vol_d=vol(self.__domain)
         L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
         L4=1/np.sum(1/L2s)**2
         if numLevelSets is 1 : 
@@ -182,7 +179,7 @@ class Regularization(CostFunction):
 	    if w1 is not None:
 	        A += integrate(inner(w1, 1/L2s))
 	    if A > 0:
-	        f = scale*self.__vol_d/A
+	        f = scale/A
 	        if w0 is not None:
 	             w0*=f
 	        if w1 is not None:
@@ -197,7 +194,7 @@ class Regularization(CostFunction):
 	         if w1 is not None:
 	              A += integrate(inner(w1[k,:], 1/L2s))
 	         if A > 0:
-	              f = scale[k]*self.__vol_d/A
+	              f = scale[k]/A
 	              if w0 is not None:
 	                 w0[k]*=f
 	              if w1 is not None:
@@ -209,7 +206,7 @@ class Regularization(CostFunction):
 	         for l in xrange(k):   
 	             A = integrate(wc[l,k])/L4
   	             if A > 0:
- 	                f = scale_c[l,k]*self.__vol_d/A
+ 	                f = scale_c[l,k]/A
  	                wc[l,k]*=f
                      else:
 	                raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
@@ -229,7 +226,8 @@ class Regularization(CostFunction):
 
         self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)/2
         self.setTradeOffFactors()
-
+        self.__vol_d=vol(self.__domain)
+        
     def getDomain(self):
         """
         returns the domain of the regularization term
@@ -465,14 +463,13 @@ class Regularization(CostFunction):
                         
             if numLS > 1:
                 raise NotImplementedError
-            print A
             self.getPDE().setValue(A=A)
-        self.getPDE().resetRightHandSideCoefficients()
-        self.getPDE().setValue(X=r[1])
-        print "X only: ",self.getPDE().getSolution()
-        self.getPDE().resetRightHandSideCoefficients()
-        self.getPDE().setValue(Y=r[0])
-        print "Y only: ",self.getPDE().getSolution()
+        #self.getPDE().resetRightHandSideCoefficients()
+        #self.getPDE().setValue(X=r[1])
+        #print "X only: ",self.getPDE().getSolution()
+        #self.getPDE().resetRightHandSideCoefficients()
+        #self.getPDE().setValue(Y=r[0])
+        #print "Y only: ",self.getPDE().getSolution()
 
         self.getPDE().resetRightHandSideCoefficients()
         self.getPDE().setValue(X=r[1], Y=r[0])

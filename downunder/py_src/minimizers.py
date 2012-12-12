@@ -325,9 +325,8 @@ class MinimizerLBFGS(AbstractMinimizer):
 		gf_new=self._f.getGradient(x_new, args)
 	    self.logger.debug("LBFGS.grad f(x) = %s"%gf_new)
 	    delta_g=gf_new-gf
-	    rho=self._f.getDualProduct(delta_x, delta_g)
 	    
-	    print "rho =",rho
+	    rho=self._f.getDualProduct(delta_x, delta_g)
 	    if abs(rho)>0 :
 		s_and_y.append((delta_x,delta_g, rho ))
 	    else:
@@ -354,7 +353,7 @@ class MinimizerLBFGS(AbstractMinimizer):
 
 	if k >= self._imax:
 	    reason=self.MAX_ITERATIONS_REACHED
-	    self.logger.warning("LBFGS.Maximum number of iterations reached!")
+	    self.logger.warning("LBFGS.Maximum >>>>>> number of iterations reached!")
 	else:
 	    reason=self.TOLERANCE_REACHED
 	    self.logger.warning("LBFGS.Success after %d iterations!"%k)

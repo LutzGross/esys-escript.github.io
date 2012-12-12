@@ -99,9 +99,14 @@ class SimpleInversionCostFunction(MeteredCostFunction):
         # only one of each...
         if len(args)==0:
             args=self.getArguments(m)
-
-        return  self.mu_model * self.forwardmodel.getValue(args[0],*args[1]) \
-               +  self.regularization.getValue(m, *args[2])
+        
+        A = self.forwardmodel.getValue(args[0],*args[1])
+        B = self.regularization.getValue(m, *args[2])
+        print "J_f=",A
+        print "J_reg = ",B
+        print "mu_model =",self.mu_model
+        print "J = ", A * self.mu_model + B
+        return   A * self.mu_model + B
 
     def _getGradient(self, m, *args):
         """
@@ -116,10 +121,6 @@ class SimpleInversionCostFunction(MeteredCostFunction):
 
         Y = self.forwardmodel.getGradient(args[0],*args[1]) * dpdm
         g_reg = self.regularization.getGradient(m, *args[2])
-        print "grad forward = ", Y
-        print "grad regularization Y  = ", g_reg[0]
-        print "grad regularization X = ", g_reg[1]
-
         return self.mu_model * ArithmeticTuple(Y, Data()) + g_reg
 
 
@@ -138,11 +139,7 @@ class SimpleInversionCostFunction(MeteredCostFunction):
                considered in the inverse Hessian approximation.
 
         """
-        print "inverse Hessian approximation:"
-        print "Y  = ",r[0]
-        print "X  = ",r[1]
         m=self.regularization.getInverseHessianApproximation(m, r, *args[2])
-        print "m  = ",m
         return m
 
     def updateHessian(self):

@@ -131,7 +131,9 @@ class DomainBuilder(object):
             return np.array([-B_theta, 0., -B_r])
 
     def getSetDensityMask(self):
-        return wherePositive(self.getDomain().getX()[self._dim-1])
+        x=self.getDomain().getX()
+        return wherePositive(x[self._dim-1])+whereZero(x[self._dim-1]-inf(x[self._dim-1])) 
+        # \        + whereZero(x[0]-inf(x[0]))+ whereZero(x[0]-sup(x[0]))
 
     def getSetSusceptibilityMask(self):
         return wherePositive(self.getDomain().getX()[self._dim-1])

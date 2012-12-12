@@ -33,29 +33,32 @@ except KeyError:
    WORKDIR='.'
 
 features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
-     x=8*U.km, y=3*U.km, depth=2.5*U.km, v_inner=200., v_outer=1e-6),\
+     x=22*U.km, y=3*U.km, depth=10*U.km, v_inner=200., v_outer=1e-6),\
           SmoothAnomaly(lx=25*U.km, ly=20*U.km, lz=20*U.km,
-     x=30*U.km, y=1*U.km, depth=18*U.km, v_inner=-200., v_outer=1e-6),\
+     x=40*U.km, y=1*U.km, depth=22*U.km, v_inner=-500., v_outer=1e-6),\
           SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
-     x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=200., v_outer=1e-6)]
+     x=68*U.km, y=3*U.km, depth=13*U.km, v_inner=200., v_outer=1e-6)]
 
 logger=logging.getLogger('inv')
 logger.setLevel(logging.DEBUG)
 handler=logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
-source=SyntheticData(DataSource.GRAVITY, DIM=2, NE=60, l=100*U.km, features=features)
+source=SyntheticData(DataSource.GRAVITY, DIM=2, NE=220, l=100*U.km, features=features)
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
-domainbuilder.setPadding(10)
-domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
+domainbuilder.setPadding(20)
+domainbuilder.setVerticalExtents(depth=50*U.km, air_layer=20*U.km, num_cells=25)
 
 inv=GravityInversion()
 inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(30)
+inv.setSolverMaxIterations(10)
+#inv.setTradeOffFactors(mu_model=30.)
 inv.setup(domainbuilder)
 
 rho_new=inv.run()
+print "rho_new = ",rho_new
+print "rho =", source.getReferenceDensity()
 g, chi = inv.getForwardModel().getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceDensity(), g=g, chi=chi)
 

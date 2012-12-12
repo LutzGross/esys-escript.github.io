@@ -269,6 +269,8 @@ class GravityInversion(SingleParameterInversionBase):
         #========================
         self.logger.info('Creating mapping...')
         self.setMapping(DensityMapping(self.getDomain(), rho0=rho0, drho=drho, z0=z0, beta=beta))
+        scale_mapping=self.getMapping().getTypicalDerivative()
+        print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
@@ -297,7 +299,7 @@ class GravityInversion(SingleParameterInversionBase):
 
         self.logger.info("Setting up model...")
         self.setForwardModel(GravityModel(self.getDomain(), w, g))
-
+        self.getForwardModel().rescaleWeights(rho_scale=scale_mapping)
         # this is switched off for now:
         if self._mu_reg is None and False:
             x=self.getDomain().getX()
@@ -330,7 +332,8 @@ class MagneticInversion(SingleParameterInversionBase):
         #========================
         self.logger.info('Creating mapping ...')
         self.setMapping(SusceptibilityMapping(self.getDomain(), k0=k0, dk=dk, z0=z0, beta=beta))
-
+        scale_mapping=self.getMapping().getTypicalDerivative()
+        print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
@@ -359,7 +362,7 @@ class MagneticInversion(SingleParameterInversionBase):
         #====================================================================
         self.logger.info("Setting up model...")
         self.setForwardModel(MagneticModel(self.getDomain(), w, B, domainbuilder.getBackgroundMagneticField()))
-
+        self.getForwardModel().rescaleWeights(k_scale=scale_mapping)
         # this is switched off for now:
         if self._mu_reg is None and False:
             x=self.getDomain().getX()

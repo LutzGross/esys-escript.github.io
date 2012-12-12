@@ -29,7 +29,7 @@ from esys.escript import Data, Vector, Scalar, Function
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from esys.escript.util import *
 from math import pi as PI
-
+import numpy as np
 
 class ForwardModel(object):
     """
@@ -61,13 +61,8 @@ class ForwardModelWithPotential(ForwardModel):
     the data, and r_i are the results produced by the forward model.
     It is assumed that the forward model is produced through postprocessing
     of the solution of a potential PDE.
-    
-    The weighting factors are rescaled such that 
-    
-       sum_s integrate( ( weight_i[s] * data_i[s] ) ** 2 ) = scale * volume(domain)
-       
     """
-    def __init__(self, domain, w, data,  useSphericalCoordinates=False, scale=1., tol=1e-8):
+    def __init__(self, domain, w, data,  useSphericalCoordinates=False, tol=1e-8):
         """
         initializes a new forward model with potential.
 
@@ -81,16 +76,10 @@ class ForwardModelWithPotential(ForwardModel):
         :type useSphericalCoordinates: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param scale: scale of data weighting factors
-        :type scale: positive ``float``
-
-        :note: The weighting factors are rescaled such that
-               *sum_s integrate( ( weight_i[s] *data_i[s]) **2 )=1*
         """
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
-        if not scale > 0:
-             raise ValueError("Value for scale must be positive.")
+
 
         if useSphericalCoordinates:
              raise ValueError("Spherical coordinates are not supported yet.")
@@ -107,16 +96,6 @@ class ForwardModelWithPotential(ForwardModel):
             self.__weight = [w]
             self.__data = [data]
 
-        A=0
-        for s in xrange(len(self.__weight)):
-            A += integrate( inner(self.__weight[s], self.__data[s])**2 )
-        if A > 0:
-            A=sqrt(scale*vol(domain)/A)
-            for s in xrange(len(self.__weight)):  self.__weight[s]*=A
-        else:
-            raise ValueError("No non-zero data contribution found.")
-
-
         BX = boundingBox(domain)
         DIM = domain.getDim()
         x = domain.getX()
@@ -124,7 +103,27 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
         self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
-
+        
+        self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
+        self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
+        
+    def _rescaleWeights(self, scale=1., fetch_factor=1.):
+        """
+        rescales the weights such that 
+        
+        *sum_s integrate( ( weight_i[s] *data_i[s]) (weight_j[s]*1/L_j) * L**2 * fetch_factor )=scale*
+        """
+        if not scale > 0:
+             raise ValueError("Value for scale must be positive.")
+        A=0
+        for s in xrange(len(self.__weight)):
+            A += integrate( abs(inner(self.__weight[s], self.__data[s])*  inner(self.__weight[s], 1/self.edge_lengths) * fetch_factor))
+        if A > 0:
+            A=sqrt(scale/A)/self.diameter
+            for s in xrange(len(self.__weight)):  self.__weight[s]*=A
+        else:
+            raise ValueError("Rescaling of weights failed.")
+	  
     def useSphericalCoordinates(self):
         """
         Returns ``True`` if spherical coordinates are used.
@@ -187,7 +186,7 @@ class GravityModel(ForwardModelWithPotential):
     cookbook.
     """
     def __init__(self, domain, w, g,  gravity_constant=U.Gravitational_Constant,
-                 useSphericalCoordinates=False, scale=1., tol=1e-8):
+                 useSphericalCoordinates=False, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
         surveys (w, g).
@@ -202,17 +201,28 @@ class GravityModel(ForwardModelWithPotential):
         :type useSphericalCoordinates: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param scale: scale of data weighting factors
-        :type scale: positive ``float``
 
-        :note: The weighting factors are rescaled such that
-               *sum_s integrate(  ( w_i[s] *g_i[s]) **2  )= scale * volume(domain) *
+
+        :note: It is advisable to call rescaleWeights() to rescale weights before start inversion.
         """
-        super(GravityModel, self).__init__(domain, w, g, useSphericalCoordinates, scale, tol)
+        super(GravityModel, self).__init__(domain, w, g, useSphericalCoordinates, tol)
 
         self.__G = gravity_constant
         self.getPDE().setValue(A=kronecker(self.getDomain()))
-
+    
+    def rescaleWeights(self, scale=1., rho_scale=1.):
+        """
+        rescales the weights such that 
+        
+        *sum_s integrate( ( w_i[s] *g_i[s]) (w_j[s]*1/L_j) * L**2 * 4*pi*G*rho_scale )=scale*
+        
+        :param scale: scale of data weighting factors
+        :type scale: positive ``float``
+        :param rho_scale: scale of density.
+        :type rho_scale: ``Scalar`` 
+        """
+        self._rescaleWeights(scale, 4.*PI*self.__G*rho_scale)
+	  
     def getArguments(self, rho):
         """
         Returns precomputed values shared by `getValue()` and `getGradient()`.
@@ -281,7 +291,7 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, w, B, background_field,  useSphericalCoordinates=False, scale=1., tol=1e-8):
+    def __init__(self, domain, w, B, background_field,  useSphericalCoordinates=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (w, B).
@@ -296,16 +306,24 @@ class MagneticModel(ForwardModelWithPotential):
         :type tol: positive ``float``
         :param useSphericalCoordinates: if set spherical coordinates are used
         :type useSphericalCoordinates: ``bool``
-        :param scale: scale of data weighting factors
-        :type scale: positive ``float``
-
-        :note: The weighting factors are rescaled such that
-               *sum_s integrate( ( w_i[s] * B_i[s])**2 )=scale * volume(domain) *
         """
-        super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, scale, tol)
+        super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, tol)
         self.__background_field=interpolate(background_field, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
-
+        
+    def rescaleWeights(self, scale=1., k_scale=1.):
+        """
+        rescales the weights such that 
+        
+        *sum_s integrate( ( w_i[s] *B_i[s]) (w_j[s]*1/L_j) * L**2 * (background_field_j[s]*1/L_j) * k_scale )=scale*
+        
+        :param scale: scale of data weighting factors
+        :type scale: positive ``float``
+        :param k_scale: scale of susceptibility.
+        :type k_scale: ``Scalar``  
+        """
+        self._rescaleWeights(scale, inner(self.__background_field,1/self.edge_lengths ) * k_scale)
+        
     def getArguments(self, k):
         """
         Returns precomputed values shared by `getValue()` and `getGradient()`.
