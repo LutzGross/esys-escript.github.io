@@ -34,7 +34,7 @@ class SubSteppingException(Exception):
    pass
 
 
-class Mountains:
+class Mountains(object):
   """
   The Mountains class is defined by the following equations:
   

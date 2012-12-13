@@ -25,7 +25,7 @@ __author__="Cihan Altinay"
 Symbolic expression evaluator for escript
 """
 
-class Evaluator:
+class Evaluator(object):
     def __init__(self, *expressions):
         """
         Returns a symbolic evaluator.

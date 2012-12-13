@@ -48,7 +48,7 @@ import numpy
 from . import util
 import math
 
-class TimeIntegrationManager:
+class TimeIntegrationManager(object):
   """
   A simple mechanism to manage time dependend values.
 
@@ -128,7 +128,7 @@ class TimeIntegrationManager:
          return out
 
 
-class Projector:
+class Projector(object):
   """
   The Projector is a factory which projects a discontinuous function onto a
   continuous function on a given domain.
@@ -199,7 +199,7 @@ class Projector:
                     out[i0,i1,i2,i3]=self.__pde.getSolution()
     return out
 
-class NoPDE:
+class NoPDE(object):
      """
      Solves the following problem for u:
 
@@ -316,7 +316,7 @@ class NoPDE:
                 if not self.__r==None: self.__u+=q*self.__r
          return self.__u
 
-class Locator:
+class Locator(object):
      """
      Locator provides access to the values of data objects at a given spatial
      coordinate x.
