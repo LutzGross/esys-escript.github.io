@@ -1,0 +1,32 @@
+
+##############################################################################
+#
+# Copyright (c) 2012 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development since 2012 by School of Earth Sciences
+#
+##############################################################################
+
+import os
+Import('*')
+
+epy_dir=os.path.join(release_dir, 'sphinx_api')
+env.Command(epy_dir, [], [Mkdir(epy_dir)])
+
+int_dir=os.path.join(env['BUILD_DIR'], 'sphinx_int')
+env.Command(int_dir, [], [Mkdir(int_dir)])
+
+env.Alias(os.path.join(int_dir,'index.rst'),[env['pyinstall'], int_dir],'doc/sphinx_api/genrst.py ./esys esys '+int_dir)
+
+env.Alias('sphinxdoc', [epy_dir, int_dir], 'doc/sphinx_api/genrst.py ./esys esys '+int_dir+" && sphinx-build -b html -d "+int_dir+"/tree -c doc/sphinx_api "+int_dir+" "+epy_dir)
+
+# This will need to be here at least until the output of api_epydoc properly
+# depends on the libraries it uses as input
+env.AlwaysBuild('sphinxdoc')
+
