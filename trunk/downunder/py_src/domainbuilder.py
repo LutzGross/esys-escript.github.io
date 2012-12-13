@@ -70,23 +70,80 @@ class DomainBuilder(object):
             raise TypeError("source is not a DataSource")
         self._sources.append(source)
 
-    def setPadding(self, pad_x=10, pad_y=10):
+    def setFractionalPadding(self, pad_x=None, pad_y=None):
         """
-        Sets the amount of padding around the dataset. If `pad_x`/`pad_y`
-        is >=1 the value is treated as number of elements to be added to the
-        domain (per side).
-        If ``0 < pad_x,pad_y < 1``, the padding amount is relative to the
-        dataset size. For example, calling ``setPadding(3, 0.1)`` to a data
-        source with size 10x20 will result in the padded data set size
-        16x24 (10+2*3, 20*(1+2*0.1))
+        Sets the amount of padding around the dataset as a fraction of the
+        dataset side lengths.
 
-        :param pad_x: Padding per side in x direction (default: 10 elements)
-        :type pad_x: ``int`` or ``float``
-        :param pad_y: Padding per side in y direction (default: 10 elements).
-                      This value is only used for 3-dimensional datasets
-        :type pad_y: ``int`` or ``float``
+        For example, calling ``setFractionalPadding(0.2, 0.1)`` to a data
+        source with size 10x20 will result in the padded data set size
+        14x24 (10*(1+2*0.2), 20*(1+2*0.1))
+
+        :param pad_x: Padding per side in x direction (default: no padding)
+        :type pad_x: ``float``
+        :param pad_y: Padding per side in y direction (default: no padding)
+        :type pad_y: ``float``
+        :note: `pad_y` is ignored for 2-dimensional datasets.
         """
-        self._padding=[pad_x,pad_y]
+        if pad_x is not None:
+            if pad_x < 0:
+                raise ValueError("setFractionalPadding: Arguments must be non-negative")
+            if pad_x > 10:
+                raise ValueError("setFractionalPadding: Argument too large")
+        if pad_y is not None:
+            if pad_y < 0:
+                raise ValueError("setFractionalPadding: Arguments must be non-negative")
+            if pad_y > 10:
+                raise ValueError("setFractionalPadding: Argument too large")
+        self._padding = [pad_x,pad_y], 'f'
+        
+    def setPadding(self, pad_x=None, pad_y=None):
+        """
+        Sets the amount of padding around the dataset in absolute length units.
+
+        The final domain size will be the length in x (in y) of the dataset
+        plus twice the value of `pad_x` (`pad_y`). The arguments must be
+        non-negative.
+
+        :param pad_x: Padding per side in x direction (default: no padding)
+        :type pad_x: ``float``
+        :param pad_y: Padding per side in y direction (default: no padding)
+        :type pad_y: ``float``
+        :note: `pad_y` is ignored for 2-dimensional datasets.
+        """
+        if pad_x is not None:
+            if pad_x < 0:
+                raise ValueError("setPadding: Arguments must be non-negative")
+        if pad_y is not None:
+            if pad_y < 0:
+                raise ValueError("setPadding: Arguments must be non-negative")
+        self._padding = [pad_x,pad_y], 'l'
+
+    def setElementPadding(self, pad_x=None, pad_y=None):
+        """
+        Sets the amount of padding around the dataset in number of elements.
+
+        When the domain is constructed `pad_x` (`pad_y`) elements are added
+        on each side of the x- (y-) dimension. The arguments must be
+        non-negative.
+
+        :param pad_x: Padding per side in x direction (default: no padding)
+        :type pad_x: ``int``
+        :param pad_y: Padding per side in y direction (default: no padding)
+        :type pad_y: ``int``
+        :note: `pad_y` is ignored for 2-dimensional datasets.
+        """
+        if pad_x is not None:
+            if type(pad_x) is not int:
+                raise TypeError("setElementPadding expects integer arguments")
+            if pad_x < 0:
+                raise ValueError("setElementPadding: Arguments must be non-negative")
+        if pad_y is not None:
+            if type(pad_y) is not int:
+                raise TypeError("setElementPadding expects integer arguments")
+            if pad_y < 0:
+                raise ValueError("setElementPadding: Arguments must be non-negative")
+        self._padding = [pad_x,pad_y], 'e'
 
     def getGravitySurveys(self):
         """
@@ -123,11 +180,11 @@ class DomainBuilder(object):
         sets the back ground magnetic field B=(B_r,B_theta, B_phi)
         """
         self.__background_magnetic_field=B
-        
+
     def getBackgroundMagneticField(self):
         """
         returns the back ground magnetic field.
-        """       
+        """
         B = self.__background_magnetic_field
         # this is for Cartesian (FIXME ?)
         if self._dim<3:
@@ -137,7 +194,7 @@ class DomainBuilder(object):
 
     def getSetDensityMask(self):
         x=self.getDomain().getX()
-        return wherePositive(x[self._dim-1])+whereZero(x[self._dim-1]-inf(x[self._dim-1])) 
+        return wherePositive(x[self._dim-1])+whereZero(x[self._dim-1]-inf(x[self._dim-1]))
         # \        + whereZero(x[0]-inf(x[0]))+ whereZero(x[0]-sup(x[0]))
 
     def getSetSusceptibilityMask(self):
@@ -184,11 +241,16 @@ class DomainBuilder(object):
         frac=[]
         # padding is applied to each side so multiply by 2 to get the total
         # amount of padding per dimension
+        pad, pt = self._padding
         for i in range(DIM):
-            if self._padding[i]>=0 and self._padding[i]<1:
-                frac.append(2.*self._padding[i])
-            else:
-                frac.append(2.*self._padding[i]/float(NX[i]))
+            if pad[i] is None: continue
+            if pt == 'f': # fraction of side length
+                frac.append(2.*pad[i])
+            elif pt == 'e': # number of elements
+                frac.append(2.*pad[i]/float(NX[i]))
+            else: # absolute length
+                f=pad[i]/DX[i]
+                frac.append(2.*f/float(NX[i]))
 
         # calculate new number of elements
         NX_padded=[int(round(NX[i]*(1+frac[i]))) for i in range(DIM)]
@@ -244,7 +306,7 @@ class DomainBuilder(object):
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])
         else:
             dom=Rectangle(*NE, l0=lo[0], l1=lo[1])
-            
+
         # ripley may internally adjust NE and length, so recompute
         self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self._dim)]
         self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(self._dim)]

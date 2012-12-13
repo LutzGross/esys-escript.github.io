@@ -84,7 +84,7 @@ def simpleBackgroundMagneticField(latitude, longitude=0.):
         B_theta= B_0 * sin(theta)
         B_r= 2 * B_0 * cos(theta)
         return B_r, B_theta, 0.
-        
+
 class DataSource(object):
     """
     A class that provides survey data for the inversion process.
@@ -161,7 +161,6 @@ class DataSource(object):
         return self.__subsampling_factor
 
 
-        
 ##############################################################################
 class ErMapperData(DataSource):
     """
@@ -532,12 +531,10 @@ class SyntheticFeatureData(DataSource):
         self.l=l
         # this is for Cartesian (FIXME ?)
         if datatype  ==  self.MAGNETIC:
-	    
             if self.DIM<3:
                self.__B_b =  np.array([-B_b[2],  -B_b[0]])
             else:
                self.__B_b = ([-B_b[1],  -B_b[2],  -B_b[0]])
-
 
     def getDataExtents(self):
         return (list(self.__origin), list(self.__nPts), list(self.__delta))

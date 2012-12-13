@@ -47,7 +47,7 @@ logger.addHandler(handler)
 source=SyntheticFeatureData(DataSource.GRAVITY, DIM=2, NE=220, l=100*U.km, features=features)
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
-domainbuilder.setPadding(20)
+domainbuilder.setElementPadding(20)
 domainbuilder.setVerticalExtents(depth=50*U.km, air_layer=20*U.km, num_cells=25)
 
 inv=GravityInversion()

@@ -49,7 +49,7 @@ source=SyntheticFeatureData(DataSource.MAGNETIC, DIM=2, NE=30, l=100*U.km, featu
 
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
-domainbuilder.setPadding(10)
+domainbuilder.setElementPadding(10)
 domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
 domainbuilder.setBackgroundMagneticField(B_b)
 
