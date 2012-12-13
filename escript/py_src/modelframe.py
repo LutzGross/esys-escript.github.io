@@ -228,7 +228,7 @@ class ESySXMLCreator(object):
         self.includeTargets()
         return self.__dom.toprettyxml()
 
-class Link:
+class Link(object):
     """
     A Link makes an attribute of an object callable::
 
@@ -421,7 +421,7 @@ class LinkableObject(object):
         else:
             raise AttributeError("No attribute %s."%name)
 
-class _ParameterIterator:
+class _ParameterIterator(object):
     def __init__(self,parameterset):
 
         self.__set=parameterset

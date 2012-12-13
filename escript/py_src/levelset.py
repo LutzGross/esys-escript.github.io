@@ -30,7 +30,7 @@ USE_OLD_VERSION=False
 USE_OLD_VERSION_REINIT=False
 
 
-class LevelSet:
+class LevelSet(object):
   """
   The level set method tracking an interface defined by the zero contour of the
   level set function phi which defines the signed distance of a point x from the

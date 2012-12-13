@@ -24,7 +24,7 @@ from esys.escript.pdetools import Locator
 import numpy
 import math
 
-class FaultSystem:
+class FaultSystem(object):
   """
   The FaultSystem class defines a system of faults in the Earth's crust.
 

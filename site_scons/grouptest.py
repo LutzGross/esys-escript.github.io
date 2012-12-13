@@ -21,7 +21,7 @@ __url__="https://launchpad.net/escript-finley"
 
 
 
-class GroupTest:
+class GroupTest(object):
     def __init__(self, exec_cmd, evars, python_dir, working_dir, test_list, single_processor_only=False):
 	self.python_dir=python_dir
 	self.working_dir=working_dir
