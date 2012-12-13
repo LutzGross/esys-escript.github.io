@@ -38,17 +38,20 @@ features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
           SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
      x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=20., v_outer=1e-6)]
 
+B_b=simpleBackgroundMagneticField(latitude=-28.5)
 
 logger=logging.getLogger('inv')
 logger.setLevel(logging.INFO)
 handler=logging.StreamHandler()
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
-source=SyntheticData(DataSource.MAGNETIC, DIM=2, NE=30, l=100*U.km, features=features)
+source=SyntheticFeatureData(DataSource.MAGNETIC, DIM=2, NE=30, l=100*U.km, features=features, B_b=B_b)
+
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
 domainbuilder.setPadding(10)
 domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
+domainbuilder.setBackgroundMagneticField(B_b)
 
 inv=MagneticInversion()
 inv.setSolverTolerance(1e-4)

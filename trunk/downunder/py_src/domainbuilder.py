@@ -57,6 +57,7 @@ class DomainBuilder(object):
         self._sources=[]
         self.setPadding()
         self.setVerticalExtents()
+        self.__background_magnetic_field = None
 
     def addSource(self, source):
         """
@@ -117,18 +118,22 @@ class DomainBuilder(object):
                     self._magnetic_surveys.append(survey)
         return self._magnetic_surveys
 
+    def setBackgroundMagneticField(self, B):
+        """
+        sets the back ground magnetic field B=(B_r,B_theta, B_phi)
+        """
+        self.__background_magnetic_field=B
+        
     def getBackgroundMagneticField(self):
-        #FIXME:
-        latitude=-28.5
-        theta = (90-latitude)/180.*np.pi
-        B_0 = U.Mu_0*U.Magnetic_Dipole_Moment_Earth / (4*np.pi*U.R_Earth**3)
-        B_theta = B_0*sin(theta)
-        B_r = 2*B_0*cos(theta)
-        if self._dim < 3:
-            return np.array([0., -B_r])
+        """
+        returns the back ground magnetic field.
+        """       
+        B = self.__background_magnetic_field
+        # this is for Cartesian (FIXME ?)
+        if self._dim<3:
+            return np.array([-B[2],  -B[0]])
         else:
-            #return np.array([3.0281e-5, 2.356e-6, -4.3346e-5])
-            return np.array([-B_theta, 0., -B_r])
+            return np.array([-B[1],  -B[2],  -B[0]])
 
     def getSetDensityMask(self):
         x=self.getDomain().getX()

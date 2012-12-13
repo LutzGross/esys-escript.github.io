@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['DataSource','ErMapperData','SyntheticData','SmoothAnomaly']
+__all__ = ['simpleBackgroundMagneticField', 'DataSource','ErMapperData','SyntheticFeatureData','SmoothAnomaly']
 
 import logging
 import numpy as np
@@ -78,7 +78,13 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
     return x,y
 
-
+def simpleBackgroundMagneticField(latitude, longitude=0.):
+        theta = (90-latitude)/180.*np.pi
+        B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
+        B_theta= B_0 * sin(theta)
+        B_r= 2 * B_0 * cos(theta)
+        return B_r, B_theta, 0.
+        
 class DataSource(object):
     """
     A class that provides survey data for the inversion process.
@@ -96,6 +102,7 @@ class DataSource(object):
         """
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__subsampling_factor=1
+        self.__background_magnetic_field=None
 
     def getDataExtents(self):
         """
@@ -154,6 +161,7 @@ class DataSource(object):
         return self.__subsampling_factor
 
 
+        
 ##############################################################################
 class ErMapperData(DataSource):
     """
@@ -508,9 +516,9 @@ class SmoothAnomaly(SourceFeature):
         return m
 
 ##############################################################################
-class SyntheticData(DataSource):
-    def __init__(self, datatype, DIM, NE, l, features):
-        super(SyntheticData,self).__init__()
+class SyntheticFeatureData(DataSource):
+    def __init__(self, datatype, DIM, NE, l, features, B_b=None):
+        super(SyntheticFeatureData,self).__init__()
         if not datatype in [self.GRAVITY,self.MAGNETIC]:
             raise ValueError("Invalid value for datatype parameter")
         self.__datatype = datatype
@@ -518,9 +526,18 @@ class SyntheticData(DataSource):
         self.__origin = [0]*(DIM-1)
         self.__nPts = [NE]*(DIM-1)
         self.__delta = [float(l)/NE]*(DIM-1)
+        self.__B_b =None
         self.DIM=DIM
         self.NE=NE
         self.l=l
+        # this is for Cartesian (FIXME ?)
+        if datatype  ==  self.MAGNETIC:
+	    
+            if self.DIM<3:
+               self.__B_b =  np.array([-B_b[2],  -B_b[0]])
+            else:
+               self.__B_b = ([-B_b[1],  -B_b[2],  -B_b[0]])
+
 
     def getDataExtents(self):
         return (list(self.__origin), list(self.__nPts), list(self.__delta))
@@ -562,15 +579,14 @@ class SyntheticData(DataSource):
                 m=f.getMask(x)
                 k_ref = k_ref * (1-m) + f.getValue(x) * m
             self._k=k_ref
-            B_b = self.getBackgroundMagneticField()
-            pde.setValue(A=kronecker(domain), X=k_ref*B_b, q=m_psi_ref)
+            pde.setValue(A=kronecker(domain), X=k_ref*self.__B_b, q=m_psi_ref)
         pde.setSymmetryOn()
         psi_ref=pde.getSolution()
         del pde
         if self.getDataType()==DataSource.GRAVITY:
             data = -grad(psi_ref, ReducedFunction(domain))
         else:
-            data = self._k*B_b-grad(psi_ref, ReducedFunction(domain))
+            data = self._k*self.__B_b-grad(psi_ref, ReducedFunction(domain))
 
         sigma=1.
         # limit mask to non-padding in horizontal area
@@ -583,15 +599,5 @@ class SyntheticData(DataSource):
                 * whereNonPositive(x[self.DIM-1]-spacing[self.DIM-1])
         return data,sigma
 
-    def getBackgroundMagneticField(self):
-        #FIXME:
-        latitude=-28.5
-        theta = (90-latitude)/180.*np.pi
-        B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
-        B_theta= B_0 * sin(theta)
-        B_r= 2 * B_0 * cos(theta)
-        if self.DIM<3:
-            return np.array([0.,  -B_r])
-        else:
-            return np.array([-B_theta, 0.,  -B_r])
+
 
