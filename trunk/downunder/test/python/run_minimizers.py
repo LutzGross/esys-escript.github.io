@@ -39,14 +39,13 @@ logger.addHandler(handler)
 
 # Rosenbrock test function to be minimized. The minimum is 0 and lies at
 # [1,1,...,1].
-class RosenFunc(CostFunction): 
+class RosenFunc(CostFunction):
     def __init__(self):
-	   super(RosenFunc, self).__init__()
-           self.provides_inverse_Hessian_approximation=False
+        super(RosenFunc, self).__init__()
     def getDualProduct(self, f0, f1):
         return np.dot(f0, f1)
-    def getValue(self, x, *args):
-        return np.sum(100.0*(x[1:]-x[:-1]**2.)**2. + (1-x[:-1])**2.)
+    def getNorm(self,x):
+        return (abs(x.max()))
     def getGradient(self, x, *args):
         xm = x[1:-1]
         xm_m1 = x[:-2]
@@ -56,6 +55,8 @@ class RosenFunc(CostFunction):
         der[0] = -400*x[0]*(x[1]-x[0]**2) - 2*(1-x[0])
         der[-1] = 200*(x[-1]-x[-2]**2)
         return der
+    def getValue(self, x, *args):
+        return np.sum(100.0*(x[1:]-x[:-1]**2.)**2. + (1-x[:-1])**2.)
 
 class TestMinimizerLBFGS(unittest.TestCase):
     def setUp(self):
@@ -71,9 +72,8 @@ class TestMinimizerLBFGS(unittest.TestCase):
         self.assertEqual(reason, MinimizerLBFGS.MAX_ITERATIONS_REACHED)
 
     def test_solution(self):
-        self.minimizer.setTolerance(1e-6)
+        self.minimizer.setTolerance(1e-8)
         self.minimizer.setMaxIterations(100)
-        self.minimizer.setOptions(initialHessian=1e-3)
         reason=self.minimizer.run(self.x0)
         x=self.minimizer.getResult()
         # We should be able to get a solution in under 100 iterations
