@@ -1,4 +1,5 @@
-#!/usr/bin/python
+#!/usr/bin/env python
+
 import os
 import inspect
 import sys
@@ -14,9 +15,6 @@ if len(sys.argv)!=4:
 startdir=sys.argv[1]
 startpackage=sys.argv[2]
 outdir=sys.argv[3]
-
-print startdir, startpackage, outdir
-
 
 def listmods():
   W=os.walk(startdir,topdown=True)
