@@ -144,8 +144,20 @@ class DomainBuilder(object):
             if pad_y < 0:
                 raise ValueError("setElementPadding: Arguments must be non-negative")
         self._padding = [pad_x,pad_y], 'e'
-
+        
     def getGravitySurveys(self):
+	"""
+	Returns a list of gravity surveys, see `` getSurveys`` for details
+	"""
+	return self.getSurveys(DataSource.GRAVITY)
+	
+    def getMagneticSurveys(self):
+	"""
+	Returns a list of magnetic surveys, see `` getSurveys`` for details
+	"""
+	return self.getSurveys(DataSource.MAGNETIC)
+        
+    def getSurveys(self, datatype):
         """
         Returns a list of `Data` objects for all gravity surveys available to
         this domain builder.
@@ -155,35 +167,20 @@ class DomainBuilder(object):
         """
         if len(self._gravity_surveys)==0:
             for src in self._sources:
-                if src.getDataType()==DataSource.GRAVITY:
+                if src.getDataType()==datatype:
                     survey=src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing)
                     self._gravity_surveys.append(survey)
         return self._gravity_surveys
 
-    def getMagneticSurveys(self):
+    def setBackgroundMagneticFluxDensity(self, B):
         """
-        Returns a list of `Data` objects for all magnetic surveys available to
-        this domain builder.
-
-        :return: List of magnetic surveys which are tuples (anomaly,error).
-        :rtype: ``list``
-        """
-        if len(self._magnetic_surveys)==0:
-            for src in self._sources:
-                if src.getDataType()==DataSource.MAGNETIC:
-                    survey=src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing)
-                    self._magnetic_surveys.append(survey)
-        return self._magnetic_surveys
-
-    def setBackgroundMagneticField(self, B):
-        """
-        sets the back ground magnetic field B=(B_r,B_theta, B_phi)
+        sets the back ground magnetic flux density B=(B_r,B_theta, B_phi)
         """
         self.__background_magnetic_field=B
 
-    def getBackgroundMagneticField(self):
+    def getBackgroundMagneticFluxDensity(self):
         """
-        returns the back ground magnetic field.
+        returns the back ground magnetic flux density.
         """
         B = self.__background_magnetic_field
         # this is for Cartesian (FIXME ?)
@@ -194,7 +191,7 @@ class DomainBuilder(object):
 
     def getSetDensityMask(self):
         x=self.getDomain().getX()
-        return wherePositive(x[self._dim-1])+whereZero(x[self._dim-1]-inf(x[self._dim-1]))
+        return wherePositive(x[self._dim-1]) #+whereZero(x[self._dim-1]-inf(x[self._dim-1]))
         # \        + whereZero(x[0]-inf(x[0]))+ whereZero(x[0]-sup(x[0]))
 
     def getSetSusceptibilityMask(self):

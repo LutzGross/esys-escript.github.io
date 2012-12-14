@@ -38,20 +38,20 @@ features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
           SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
      x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=20., v_outer=1e-6)]
 
-B_b=simpleBackgroundMagneticField(latitude=-28.5)
+B_b=simpleGeoMagneticFluxDensity(latitude=-28.5)
 
 logger=logging.getLogger('inv')
 logger.setLevel(logging.INFO)
 handler=logging.StreamHandler()
 handler.setLevel(logging.INFO)
 logger.addHandler(handler)
-source=SyntheticFeatureData(DataSource.MAGNETIC, DIM=2, NE=30, l=100*U.km, features=features, B_b=B_b)
+source=SyntheticFeatureData(DataSource.MAGNETIC, DIM=2, number_of_elements=30, length=100*U.km, features=features, B_b=B_b)
 
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
 domainbuilder.setElementPadding(10)
 domainbuilder.setVerticalExtents(depth=30*U.km, air_layer=10*U.km, num_cells=16)
-domainbuilder.setBackgroundMagneticField(B_b)
+domainbuilder.setBackgroundMagneticFluxDensity(B_b)
 
 inv=MagneticInversion()
 inv.setSolverTolerance(1e-4)
@@ -59,5 +59,5 @@ inv.setSolverMaxIterations(10)
 inv.setup(domainbuilder)
 k_new = inv.run()
 B, chi = inv.getForwardModel().getSurvey(0)
-saveSilo(os.path.join(WORKDIR, 'maginv'), sus=k_new, sus_ref=source.getReferenceSusceptibility(), B=B, chi=chi)
+saveSilo(os.path.join(WORKDIR, 'maginv'), sus=k_new, sus_ref=source.getReferenceProperty(), B=B, chi=chi)
 

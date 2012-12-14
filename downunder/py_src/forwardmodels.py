@@ -291,7 +291,7 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, w, B, background_field,  useSphericalCoordinates=False, tol=1e-8):
+    def __init__(self, domain, w, B, background_magnetic_flux_density,  useSphericalCoordinates=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (w, B).
@@ -308,21 +308,21 @@ class MagneticModel(ForwardModelWithPotential):
         :type useSphericalCoordinates: ``bool``
         """
         super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, tol)
-        self.__background_field=interpolate(background_field, B[0].getFunctionSpace())
+        self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
         
     def rescaleWeights(self, scale=1., k_scale=1.):
         """
         rescales the weights such that 
         
-        *sum_s integrate( ( w_i[s] *B_i[s]) (w_j[s]*1/L_j) * L**2 * (background_field_j[s]*1/L_j) * k_scale )=scale*
+        *sum_s integrate( ( w_i[s] *B_i[s]) (w_j[s]*1/L_j) * L**2 * (background_magnetic_flux_density_j[s]*1/L_j) * k_scale )=scale*
         
         :param scale: scale of data weighting factors
         :type scale: positive ``float``
         :param k_scale: scale of susceptibility.
         :type k_scale: ``Scalar``  
         """
-        self._rescaleWeights(scale, inner(self.__background_field,1/self.edge_lengths ) * k_scale)
+        self._rescaleWeights(scale, inner(self.__background_magnetic_flux_density,1/self.edge_lengths ) * k_scale)
         
     def getArguments(self, k):
         """
@@ -334,7 +334,7 @@ class MagneticModel(ForwardModelWithPotential):
         :rtype: ``Scalar``, ``Vector``
         """
         phi = self.getPotential(k)
-        magnetic_field = k * self.__background_field -grad(phi)
+        magnetic_field = k * self.__background_magnetic_flux_density -grad(phi)
         return phi, magnetic_field
 
     def getPotential(self, k):
@@ -349,7 +349,7 @@ class MagneticModel(ForwardModelWithPotential):
         pde=self.getPDE()
 
         pde.resetRightHandSideCoefficients()
-        pde.setValue(X = k* self.__background_field)
+        pde.setValue(X = k* self.__background_magnetic_flux_density)
         phi=pde.getSolution()
 
         return phi
@@ -385,5 +385,5 @@ class MagneticModel(ForwardModelWithPotential):
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
         YT=pde.getSolution()
-        return inner(grad(YT)-Y,self.__background_field)
+        return inner(grad(YT)-Y,self.__background_magnetic_flux_density)
 

@@ -361,7 +361,7 @@ class MagneticInversion(SingleParameterInversionBase):
             self.logger.debug("w = %s"%w_i)
         #====================================================================
         self.logger.info("Setting up model...")
-        self.setForwardModel(MagneticModel(self.getDomain(), w, B, domainbuilder.getBackgroundMagneticField()))
+        self.setForwardModel(MagneticModel(self.getDomain(), w, B, domainbuilder.getBackgroundMagneticFluxDensity()))
         self.getForwardModel().rescaleWeights(k_scale=scale_mapping)
         # this is switched off for now:
         if self._mu_reg is None and False:
