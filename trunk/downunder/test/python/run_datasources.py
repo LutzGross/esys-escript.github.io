@@ -71,7 +71,7 @@ class TestErMapperData(unittest.TestCase):
         domainbuilder=DomainBuilder()
         domainbuilder.addSource(source)
         domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
-        domainbuilder.setPadding(PAD_X,PAD_Y)
+        domainbuilder.setElementPadding(PAD_X,PAD_Y)
         dom=domainbuilder.getDomain()
         g,s=domainbuilder.getGravitySurveys()[0]
 
@@ -125,7 +125,7 @@ class TestNetCdfData(unittest.TestCase):
         domainbuilder=DomainBuilder()
         domainbuilder.addSource(source)
         domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
-        domainbuilder.setPadding(PAD_X,PAD_Y)
+        domainbuilder.setElementPadding(PAD_X,PAD_Y)
         dom=domainbuilder.getDomain()
         g,s=domainbuilder.getGravitySurveys()[0]
 
