@@ -44,7 +44,7 @@ logger.setLevel(logging.DEBUG)
 handler=logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
-source=SyntheticFeatureData(DataSource.GRAVITY, DIM=2, NE=220, l=100*U.km, features=features)
+source=SyntheticFeatureData(DataSource.GRAVITY, DIM=2, number_of_elements=220, length=100*U.km, features=features)
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
 domainbuilder.setElementPadding(20)
@@ -58,7 +58,7 @@ inv.setup(domainbuilder)
 
 rho_new=inv.run()
 print "rho_new = ",rho_new
-print "rho =", source.getReferenceDensity()
+print "rho =", source.getReferenceProperty()
 g, chi = inv.getForwardModel().getSurvey(0)
-saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceDensity(), g=g, chi=chi)
+saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceProperty(), g=g, chi=chi)
 
