@@ -136,15 +136,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("getDim",&escript::AbstractDomain::getDim,":rtype: `int`\n:return: Spatial dimension of the `Domain`")
      .def("getNormal",&escript::AbstractDomain::getNormal,":rtype: `escript`\n:return: Boundary normals")
      .def("getSize",&escript::AbstractDomain::getSize,":return: the local size of samples. The function space is chosen appropriately\n:rtype: `Data`")
-     .def("saveVTK",&escript::AbstractDomain::saveVTK,args("filename","arg", "metadata"
-, "metadata_schema"),
-":param filename: \n:type filename: ``string``\n:param arg: items to be added"
-"\n:type arg: ``dict``\n:param metadata: string representing some meta data to be added\n:type metadata: ``string``"
-"\n:param metadata_schema: schema type for metadata\n:type metadata_schema: ``string``")
      .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file"
 ":param filename:\n:type filename: string")
-     .def("saveDX",&escript::AbstractDomain::saveDX,args("filename","arg"),"Saves a dictonary of Data objects to an OpenDX input file.\n\n:param filename:\n:type filename: ``string``"
-"\n:param arg:\n:type arg: `dict`")
      .def("getMPISize",&escript::AbstractDomain::getMPISize,":return: the number of processes used for this `Domain`\n:rtype: ``int``")
      .def("getMPIRank",&escript::AbstractDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
      .def("MPIBarrier",&escript::AbstractDomain::MPIBarrier,"Wait until all processes have reached this point")
@@ -384,10 +377,6 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     )	 
     .def("minGlobalDataPoint",&escript::Data::minGlobalDataPoint,"Please consider using getInfLocator() from pdetools instead.")
     .def("maxGlobalDataPoint",&escript::Data::maxGlobalDataPoint, "Please consider using getSupLocator() from pdetools instead.")
-    .def("saveDX",&escript::Data::saveDX,args("fileName"),"Save the object in DX format.\n\n"
-":param fileName: filename\n:type fileName: string")
-    .def("saveVTK",&escript::Data::saveVTK, args("fileName"),"Save the object in VTK format.\n\n"
-":param fileName: \n:type fileName: string")
     .def("getTagNumber",&escript::Data::getTagNumber,args("dpno"),"Return tag number for the specified datapoint\n\n:rtype: int\n:param dpno: datapoint number\n:type dpno: int")
     // Unary functions for Data
     .def("_interpolate",&escript::Data::interpolate)

@@ -158,9 +158,3 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_mesh
     dataset.setSaveMeshData(write_meshdata)
     return dataset.saveVTK(filename)
 
-def _saveVTK(filename, domain=None, metadata='', metadata_schema=None, data={}):
-    """
-    This is only here to support the deprecated domain C++ member saveVTK().
-    """
-    return saveVTK(filename, domain, metadata, metadata_schema, **data)
-

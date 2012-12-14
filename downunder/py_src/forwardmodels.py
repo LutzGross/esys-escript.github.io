@@ -384,11 +384,6 @@ class MagneticModel(ForwardModelWithPotential):
         pde=self.getPDE()
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
-
-        #print "test VTK file generated"
-        #from esys.weipa import saveVTK
-        #saveVTK("Y.vtu",RHS=pde.getRightHandSide(), Y=Y)
-
         YT=pde.getSolution()
         return inner(grad(YT)-Y,self.__background_field)
 

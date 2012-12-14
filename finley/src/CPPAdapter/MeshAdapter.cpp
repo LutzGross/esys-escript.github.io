@@ -1522,65 +1522,6 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
    checkFinleyError();
 }
 
-//
-// Helper for the save* methods. Extracts optional data variable names and the
-// corresponding pointers from python dictionary. Caller must free arrays.
-//
-void MeshAdapter::extractArgsFromDict(const boost::python::dict& arg, int& numData, char**& names, escriptDataC*& data, escriptDataC**& dataPtr) const
-{
-   numData = boost::python::extract<int>(arg.attr("__len__")());
-   /* win32 refactor */
-   names = (numData>0) ? TMPMEMALLOC(numData, char*) : (char**)NULL;
-   data = (numData>0) ? TMPMEMALLOC(numData,escriptDataC) : (escriptDataC*)NULL;
-   dataPtr = (numData>0) ? TMPMEMALLOC(numData,escriptDataC*) : (escriptDataC**)NULL;
-
-   boost::python::list keys=arg.keys();
-   for (int i=0; i<numData; ++i) {
-      string n=boost::python::extract<string>(keys[i]);
-      escript::Data& d=boost::python::extract<escript::Data&>(arg[keys[i]]);
-      if (dynamic_cast<const MeshAdapter&>(*(d.getFunctionSpace().getDomain())) !=*this) 
-         throw FinleyAdapterException("Error: Data must be defined on same Domain");
-      data[i] = d.getDataC();
-      dataPtr[i] = &(data[i]);
-      names[i] = TMPMEMALLOC(n.length()+1, char);
-      strcpy(names[i], n.c_str());
-   }
-}
-
-//
-// saves mesh and optionally data arrays in openDX format
-//
-void MeshAdapter::saveDX(const string& filename,const boost::python::dict& arg) const
-{
-   int num_data;
-   char **names;
-   escriptDataC *data;
-   escriptDataC **ptr_data;
-
-   extractArgsFromDict(arg, num_data, names, data, ptr_data);
-   Finley_Mesh_saveDX(filename.c_str(), m_finleyMesh.get(), num_data, names, ptr_data);
-   checkFinleyError();
- 
-   /* win32 refactor */
-   TMPMEMFREE(data);
-   TMPMEMFREE(ptr_data);
-   for(int i=0; i<num_data; i++)
-   {
-      TMPMEMFREE(names[i]);
-   }
-   TMPMEMFREE(names);
-}
-
-//
-// saves mesh and optionally data arrays in VTK format
-//
-void MeshAdapter::saveVTK(const string& filename,const boost::python::dict& arg,  const string& metadata, const string& metadata_schema) const
-{
-    boost::python::object pySaveVTK = boost::python::import("esys.weipa").attr("_saveVTK");
-    pySaveVTK(filename, const_cast<MeshAdapter*>(this)->getPtr(),
-              metadata, metadata_schema, arg);
-}
-
 bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
     if (getMPISize() > 1) {

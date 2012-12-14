@@ -384,24 +384,6 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   */
   ESCRIPT_DLL_API
   virtual void setToGradient(escript::Data& grad, const escript::Data& arg) const;
-  /**
-     \brief
-     Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier
-
-     This has to be implemented by the actual Domain adapter.
-  */
-  ESCRIPT_DLL_API
-  virtual void saveDX(const std::string& filename,const boost::python::dict& arg) const;
-
-  /**
-     \brief
-     Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier.
-     metadata is string representing some meta data to be added. metadata_schema assign schema to namespaces used in the meta data.
-
-     This has to be implemented by the actual Domain adapter.
-  */
-  ESCRIPT_DLL_API
-  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg, const std::string& metadata, const std::string& metadata_schema) const;
 
   /**
   \brief True if this rank owns the sample(id)

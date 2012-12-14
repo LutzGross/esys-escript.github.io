@@ -540,24 +540,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   FINLEY_DLL_API
   virtual bool isCellOriented(int functionSpaceCode) const;
 
-  /**
-     \brief
-     Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier
-                                                                                                                                                                        
-     This has to be implemented by the actual Domain adapter.
-  */
-  FINLEY_DLL_API
-  virtual void saveDX(const std::string& filename,const boost::python::dict& arg) const;
-
-
-  /**
-     \brief
-     Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier
-                                                                                                                                                                        
-     This has to be implemented by the actual Domain adapter.
-  */
-  FINLEY_DLL_API
-  virtual void saveVTK(const std::string& filename,const boost::python::dict& arg,  const std::string& metadata, const std::string& metadata_schema) const;
 
   FINLEY_DLL_API
   virtual bool ownSample(int fs_code, index_t id) const;

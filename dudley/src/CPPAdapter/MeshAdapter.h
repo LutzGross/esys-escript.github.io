@@ -510,25 +510,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   DUDLEY_DLL_API
   virtual bool isCellOriented(int functionSpaceCode) const;
 
-  /**
-     \brief
-     Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier
-                                                                                                                                                                        
-     This has to be implemented by the actual Domain adapter.
-  */
-  DUDLEY_DLL_API
-  virtual void saveDX(const std::string& filename,const boost::python::dict& arg) const;
-
-
   DUDLEY_DLL_API
   virtual bool ownSample(int fs_code, index_t id) const;
-
-  /**
-     \brief
-     returns the function space representation of the type functionSpaceCode on this domain
-     as a vtkObject.
-  */
-  // vtkObject createVtkObject(int functionSpaceCode) const;
 
   /**
      \brief

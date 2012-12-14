@@ -2303,46 +2303,6 @@ Data::calc_maxGlobalDataPoint(int& ProcNo,
 #endif
 }
 
-void
-Data::saveDX(std::string fileName) const
-{
-    if (isEmpty())
-    {
-        throw DataException("Error - Operations not permitted on instances of DataEmpty.");
-    }
-    if (isLazy())
-    {
-        Data temp(*this);  // to get around the fact that you can't resolve a const Data
-        temp.resolve();
-        temp.saveDX(fileName);
-        return;
-    }
-    bp::dict args;
-    args["data"]=bp::object(this);
-    getDomain()->saveDX(fileName,args);
-}
-
-void
-Data::saveVTK(std::string fileName) const
-{
-    if (isEmpty())
-    {
-        throw DataException("Error - Operations not permitted on instances of DataEmpty.");
-    }
-    if (isLazy())
-    {
-        Data temp(*this);  // to get around the fact that you can't resolve a const Data
-        temp.resolve();
-        temp.saveVTK(fileName);
-        return;
-    }
-    bp::dict args;
-    args["data"]=bp::object(this);
-    getDomain()->saveVTK(fileName,args,"","");
-}
-
-
-
 Data&
 Data::operator+=(const Data& right)
 {

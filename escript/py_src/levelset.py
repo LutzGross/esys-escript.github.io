@@ -20,10 +20,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-#from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE, SingleTransportPDE
 from esys.escript.pdetools import Projector
-
 import math
 
 USE_OLD_VERSION=False
@@ -492,7 +490,6 @@ class LevelSet2(object):
         #==============================================
         TVD=integrate(length(grad_phi))
         print(("initial range ",inf(self.__phi),sup(self.__phi),"error:",Lsup(1.-len_grad_phi),"volume =",vol,TVD))
-        # saveVTK("test.%s.vtu"%c,l=length(grad(self.__phi,fs))-1,s=s,phi=self.__phi)
 
         dtau=f*inf(h/abs(s))
         while c < self.__reinit_max: # and abs(diff) >= 0.01:
@@ -521,7 +518,6 @@ class LevelSet2(object):
           r=Lsup(length(grad(self.__phi))-1.)
           TVD=integrate(length(grad(self.__phi,fs)))
           print(("iteration :", c, "range ",inf(self.__phi),sup(self.__phi),"error :",r,"volume change:",diff,TVD))
-          # saveVTK("test.%s.vtu"%(c+1),l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs))
           c += 1
         return
         #==============================================
@@ -555,12 +551,7 @@ class LevelSet2(object):
         vol,vol_old=self.getVolumeOfNegativeDomain(),vol
         diff=(vol-vol_old)/vol
         print(("iteration :", inf(self.__phi),sup(self.__phi),r,diff))
-        # saveVTK("test.%s.vtu"%0,l=length(grad(self.__phi,fs)),s=s,phi=self.__phi,v=grad(self.__phi,fs),s2=s2)
-        return
-        #=============================================
-
         #============
-
 
      def getVolumeOfNegativeDomain(self):
          """

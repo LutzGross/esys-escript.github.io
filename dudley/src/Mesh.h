@@ -156,16 +156,10 @@ void Dudley_Mesh_joinFaces(Dudley_Mesh * self, double safety_factor, double tole
 int Dudley_Mesh_findMatchingFaces_compar(const void *, const void *);
 void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *, Dudley_ElementFile *, double, double, int *, int *, int *, int *);
 void Dudley_Mesh_print(Dudley_Mesh * in);
-void Dudley_Mesh_saveDX(const char *filename_p, Dudley_Mesh * mesh_p, const dim_t num_data, char **names_p,
-			escriptDataC * *data_pp);
 void Dudley_Mesh_optimizeNodeLabeling(Dudley_Mesh * mesh_p);
 dim_t Dudley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern * pattern_p, index_t * available, index_t indicator);
 index_t Dudley_Mesh_getDegree(Paso_SystemMatrixPattern * pattern_p, index_t * label);
-
-void Dudley_Mesh_saveVTK(const char *filename_p, Dudley_Mesh * mesh_p, const dim_t num_data, char **names_p,
-			 escriptDataC * *data_pp, const char *metadata, const char *metadata_schema);
 void Dudley_Mesh_setTagsInUse(Dudley_Mesh * in);
-
 int Dudley_Mesh_getStatus(Dudley_Mesh * in);
 
 #endif				/* #ifndef INC_DUDLEY_MESH */
