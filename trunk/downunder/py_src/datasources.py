@@ -712,14 +712,15 @@ class SyntheticData(SyntheticDataBase):
     """
     defines synthetic  gravity/magnetic data based on harmonic property anomaly
     
-        rho = mean + amplitude * sin(n_depth * pi /depth * z) * sin(n_length * pi /length * x - shift )
+        rho = mean + amplitude * sin(n_depth * pi /depth * (z+depth_offset)) * sin(n_length * pi /length * x - shift )
         
     for all x and z<=0. for z>0 rho = 0.        
     """
     def __init__(self, datatype, 
                        n_length=1,
                        n_depth=1, 
-                       shift=0.,
+                       depth_offset=0.,
+                       depth=None,
                        amplitude=None, 
                        DIM=2,
                        number_of_elements=10,
@@ -734,7 +735,8 @@ class SyntheticData(SyntheticDataBase):
         :param n_length: number of oscillation in the anomaly data within the observation region.
         :type n_length: ``int`` 
         :param n_depth: number of oscillation in the anomaly data below surface
-        :param shift: lateral phase shift in the  anomaly data
+        :param depth: vertical extend in the  anomaly data. If not present the depth of the domain is used.
+        :type depth: ``float``
         :param amplitude: data amplitude. Default value is 200 *U.kg/U.m**3 for gravity and 0.1 for magnetic data.
         :param features: list of features. It is recommended that the features do entirely lay below surface.
         :type features: ``list`` of ``SourceFeature``
@@ -761,7 +763,8 @@ class SyntheticData(SyntheticDataBase):
                                  spherical=spherical)
         self.__n_length = n_length
         self.__n_depth = n_depth 
-        self.__shift = shift
+        self.depth = depth
+        self.depth_offset=depth_offset
         if amplitude == None:
 	    if datatype == DataSource.GRAVITY:
 	        amplitude = 200 *U.kg/U.m**3
@@ -781,9 +784,14 @@ class SyntheticData(SyntheticDataBase):
             x=domain.getX()
             # set the reference data
             z=x[DIM-1]
-            k=sin(self.__n_depth * np.pi/inf(z) * z) * whereNegative(z) * self.__amplitude 
+            dd=self.depth
+            if  dd ==None :  dd=inf(z)
+            z2=(z+self.depth_offset)/(self.depth_offset-dd)
+            k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude 
             for i in xrange(DIM-1):
-	       k*= sin(self.__n_length * np.pi /self.__length * x[i] - shift )
+	       x_i=x[i]
+	       m=whereNonNegative(x_i)*whereNonNegative(self.length-x_i)
+	       k*= sin(self.__n_length*np.pi /self.length * x_i)*m
             self._reference_data= k
         return self._reference_data
 
