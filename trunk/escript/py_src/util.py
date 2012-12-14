@@ -192,66 +192,6 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
                raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     escore._saveDataCSV(filename, new_data,sep, csep, append)
 
-def saveVTK(filename,domain=None, metadata=None, metadata_schema=None, **data):
-    """
-    Deprecated. See esys.weipa.saveVTK().
-    """
-
-    msg = "esys.escript.util.saveVTK is deprecated.  Use the esys.weipa module."
-    warnings.warn(msg, DeprecationWarning, stacklevel=2)
-
-    from esys import weipa
-    weipa.saveVTK(filename, domain, metadata, metadata_schema, **data)
-
-def saveDX(filename,domain=None,**data):
-    """
-    Writes `Data` objects into a file using the OpenDX file format.
-
-    Example::
-
-        tmp=Scalar(..)
-        v=Vector(..)
-        saveDX("solution.dx", temperature=tmp, velocity=v)
-
-    ``tmp`` and ``v`` are written into "solution.dx" where ``tmp`` is named
-    "temperature" and ``v`` is named "velocity".
-
-    :param filename: file name of the output file
-    :type filename: ``str``
-    :param domain: domain of the `Data` objects. If not specified, the domain
-                   of the given `Data` objects is used.
-    :type domain: `escript.Domain`
-    :keyword <name>: writes the assigned value to the DX file using <name> as
-                     identifier. The identifier can be used to select the data
-                     set when data are imported into DX.
-    :type <name>: `Data` object
-    :note: THIS METHOD IS DEPRECATED AND WILL BE REMOVED IN A FUTURE VERSION.
-    :note: The data objects have to be defined on the same domain. They may not
-           be in the same `FunctionSpace` but one cannot expect that all
-           `FunctionSpace` s can be mixed. Typically, data on the boundary and
-           data on the interior cannot be mixed.
-    """
-
-    msg = "saveDX is deprecated and will be removed in a future version."
-    warnings.warn(msg, DeprecationWarning)
-    new_data={}
-    for n,d in list(data.items()):
-          if not d.isEmpty():
-            fs=d.getFunctionSpace()
-            domain2=fs.getDomain()
-            if fs == escore.Solution(domain2):
-               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
-            elif fs == escore.ReducedSolution(domain2):
-               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
-            elif fs == escore.ContinuousFunction(domain2):
-               new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
-            else:
-               new_data[n]=d
-            if domain==None: domain=domain2
-    if domain==None:
-        raise ValueError("saveDX: no domain detected.")
-    domain.saveDX(filename,new_data)
-
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, **data):
     """
     Saves `Data` objects to files and creates an I{escript dataset} (ESD) file

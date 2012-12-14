@@ -1323,24 +1323,6 @@ instead of manually manipulating process and point IDs.
 
   /**
      \brief
-     writes the object to a file in the DX file format
-  */
-  ESCRIPT_DLL_API
-  void
-  saveDX(std::string fileName) const;
-
-  /**
-     \brief
-     writes the object to a file in the VTK file format
-  */
-  ESCRIPT_DLL_API
-  void
-  saveVTK(std::string fileName) const;
-
-
-
-  /**
-     \brief
      Overloaded operator +=
      \param right - Input - The right hand side.
      *

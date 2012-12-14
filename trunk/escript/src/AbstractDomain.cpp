@@ -209,18 +209,6 @@ void AbstractDomain::setTags(const int functionSpaceType, const int newTag, cons
   return;
 }
 
-void AbstractDomain::saveDX(const std::string& filename,const boost::python::dict& arg) const 
-{
-  throwStandardException("AbstractDomain::saveDX");
-  return;
-}
-
-void AbstractDomain::saveVTK(const std::string& filename,const boost::python::dict& arg, const std::string& metadata, const std::string& metadata_schema) const 
-{
-  throwStandardException("AbstractDomain::saveVTK");
-  return;
-}
-
 bool AbstractDomain::ownSample(int fs_code, index_t id) const
 {
   throwStandardException("AbstractDomain::ownSample");

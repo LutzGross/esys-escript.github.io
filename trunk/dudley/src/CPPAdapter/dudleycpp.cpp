@@ -246,18 +246,6 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":rtype: `Data`")
       .def("getSize",&dudley::MeshAdapter::getSize,":return: the element size\n"
 ":rtype: `Data`")
-      .def("saveDX",&dudley::MeshAdapter::saveDX,args("filename" ,"arg"),
-"Saves a dictonary of Data objects to an OpenDX input file. The keywords are used as identifier"
-"\n\n:param filename: \n:type filename: ``string``\n"
-"\n:param arg: \n:type arg: ``dict``\n")
-      .def("saveVTK",&dudley::MeshAdapter::saveVTK,
-args("filename" ,"arg",  "metadata", "metadata_schema"),
-"Saves a dictonary of Data objects to an VTK XML input file. The keywords are used as identifier"
-"\n\n:param filename:\n:type filename: ``string``\n"
-":param arg:\n:type arg: ``dict``\n"
-":param metadata:\n:type metadata: ``string``\n"
-":param metadata_schema:\n:type metadata_schema: ``string``\n"
-)
       .def("setTagMap",&dudley::MeshAdapter::setTagMap,args("name","tag"),
 "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
 ":param tag: numeric id\n:type tag: ``int``\n:note: Tag names must be unique within a domain")
