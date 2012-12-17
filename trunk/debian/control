@@ -2,7 +2,7 @@ Source: escript
 Maintainer: Escript team <joelfenwick@uq.edu.au>
 Section: main
 Priority: extra
-Build-Depends: python-dev, python-numpy, libboost-python-dev, libnetcdf-dev, scons, zip, python-epydoc, doxygen, python-docutils, texlive, ghostscript, texlive-latex-extra, latex-xcolor
+Build-Depends: python-dev, python-numpy, libboost-python-dev, libnetcdf-dev, scons, zip, python-sphinx, doxygen, python-docutils, texlive, ghostscript, texlive-latex-extra, latex-xcolor
 Standards-Version: 3.9.3
 Homepage: https://launchpad.net/escript-finley
 
