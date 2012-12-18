@@ -38,11 +38,11 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 # interesting parameter:
-depth_offset=10.*U.km
-n_humbs_h= 5 
-n_humbs_v=2
-mu=10
-n_cells_in_data=50
+depth_offset=0.*U.km
+n_humbs_h= 3
+n_humbs_v=1
+mu=100
+n_cells_in_data=100
 full_knowledge=False
 # 
 n_cells_in_data=max(n_humbs_h*7,n_cells_in_data)
@@ -62,6 +62,7 @@ domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
 domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset, air_layer=l_air, num_cells=n_cells_v)
 domainbuilder.setPadding(l_pad)
+domainbuilder.fixDensityBelow(depth=THICKNESS+depth_offset)
 
 inv=GravityInversion()
 inv.setSolverTolerance(1e-4)

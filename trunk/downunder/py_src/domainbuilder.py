@@ -58,6 +58,8 @@ class DomainBuilder(object):
         self.setPadding()
         self.setVerticalExtents()
         self.__background_magnetic_field = None
+        self.fixDensityBelow()
+        self.fixSusceptibilityBelow()
 
     def addSource(self, source):
         """
@@ -156,6 +158,19 @@ class DomainBuilder(object):
 	Returns a list of magnetic surveys, see `` getSurveys`` for details
 	"""
 	return self.getSurveys(DataSource.MAGNETIC)
+    def fixDensityBelow(self,depth=None):
+        """
+        defines the depth below which density anomaly is set to zero.
+        """
+        self.__fix_density_below=depth
+        
+    def fixSusceptibilityBelow(self,depth=None):
+        """
+        defines the depth below which density anomaly is set to zero.
+        """
+        self.__fix_susceptibility_below=depth
+
+        
         
     def getSurveys(self, datatype):
         """
@@ -190,12 +205,20 @@ class DomainBuilder(object):
             return np.array([-B[1],  -B[2],  -B[0]])
 
     def getSetDensityMask(self):
-        x=self.getDomain().getX()
-        return wherePositive(x[self._dim-1]) +whereZero(x[self._dim-1]-inf(x[self._dim-1]))
-        # \        + whereZero(x[0]-inf(x[0]))+ whereZero(x[0]-sup(x[0]))
-
+        z=self.getDomain().getX()[self._dim-1]
+        m = whereNonNegative(z)
+        if self.__fix_density_below:
+	   m += whereNonPositive(z+self.__fix_density_below)
+        
+        return m
+        
     def getSetSusceptibilityMask(self):
-        return wherePositive(self.getDomain().getX()[self._dim-1])
+        z=self.getDomain().getX()[self._dim-1]
+        m = whereNonNegative(z)
+        if self.__fix_susceptibility_below:
+	   m += whereNonPositive(z+self.__fix_susceptibility_below)
+        return m
+
 
     def getDomain(self):
         """

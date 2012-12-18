@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerBFGS', 'MinimizerNLCG']
+__all__ = ['MinimizerException', 'MinimizerIterationIncurableBreakDown', 'MinimizerMaxIterReached' , 'AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerBFGS', 'MinimizerNLCG']
 
 import logging
 import numpy as np
@@ -66,7 +66,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2, phi
             break
     return alpha, phi_a, gphi_a
 
-def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
+def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMAX=15):
     """
     Line search method that satisfies the strong Wolfe conditions.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -74,22 +74,22 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
     :param f: callable objective function f(x)
     :param x: start value for the line search
     :param p: search direction
-    :param gf: value for the gradient of f at x
-    :param fx: value of f(x)
-    :param alpha_max: algorithm terminates if alpha reaches this value
+    :param g_Jx: value for the gradient of f at x
+    :param Jx: value of f(x)
+    :param alpha_truncationax: algorithm terminates if alpha reaches this value
     :param c1: value for Armijo condition (see reference)
     :param c2: value for curvature condition (see reference)
     :param IMAX: maximum number of iterations to perform
     """
     # this stores the latest gradf(x+a*p) which is returned
-    gf_new=[gf]
+    g_Jx_new=[g_Jx]
 
     def phi(a, *args):
         """ phi(a):=f(x+a*p) """
         return f(x+a*p, *args)
     def gradphi(a, *args):
-        gf_new[0]=f.getGradient(x+a*p, *args)
-        return f.getDualProduct(p, gf_new[0])
+        g_Jx_new[0]=f.getGradient(x+a*p, *args)
+        return f.getDualProduct(p, g_Jx_new[0])
 
     def phiargs(a):
         try:
@@ -99,20 +99,20 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
         return args
 
     old_alpha=0.
-    # we assume gf is properly scaled so alpha=1 is a reasonable starting value
+    # we assume g_Jx is properly scaled so alpha=1 is a reasonable starting value
     alpha=1.
-    if fx is None:
+    if Jx is None:
         args0=phiargs(0.)
         phi0=phi(0., *args0)
     else:
-        phi0=fx
+        phi0=Jx
     lslogger.debug("phi(0)=%e"%(phi0))
-    gphi0=f.getDualProduct(p, gf) #gradphi(0., *args0)
+    gphi0=f.getDualProduct(p, g_Jx) #gradphi(0., *args0)
     lslogger.debug("grad phi(0)=%e"%(gphi0))
     old_phi_a=phi0
     i=1
 
-    while i<IMAX and alpha>0. and alpha<alpha_max:
+    while i<IMAX and alpha>0. and alpha<alpha_truncationax:
 
         args_a=phiargs(alpha)
         phi_a=phi(alpha, *args_a)
@@ -134,7 +134,26 @@ def line_search(f, x, p, gf, fx, alpha_max=50.0, c1=1e-4, c2=0.9, IMAX=15):
         old_phi_a=phi_a
         i+=1
 
-    return alpha, phi_a, gf_new[0]
+    return alpha, phi_a, g_Jx_new[0]
+
+class MinimizerException(Exception):
+   """
+   This is a generic exception thrown by a minimizer.
+   """
+   pass
+
+class MinimizerMaxIterReached(MinimizerException):
+   """
+   Exception thrown if the maximum number of iteration steps is reached.
+   """
+   pass
+
+class MinimizerIterationIncurableBreakDown(MinimizerException):
+   """
+   Exception thrown if the iteration scheme encountered an incurable breakdown.
+   """
+   pass    
+
 
 ##############################################################################
 class AbstractMinimizer(object):
@@ -142,30 +161,31 @@ class AbstractMinimizer(object):
     Base class for function minimization methods.
     """
 
-    TOLERANCE_REACHED, MAX_ITERATIONS_REACHED=list(range(2))
+    TOLERANCE_REACHED, MAX_ITERATIONS_REACHED, INCURABLE_BREAKDOWN = list(range(3))
 
-    def __init__(self, f, x_tol=1e-5, f_tol=None, imax=300):
+    def __init__(self, J, x_tol=1e-5, J_tol=None, imax=300):
         """
         Initializes a new minimizer for a given cost function.
 
         :param f: the cost function to be minimized
         :type f: CostFunction
         """
-        self._f=f
+        self._J=J
         self._x_tol = x_tol
-        self._f_tol = f_tol
+        self._J_tol = J_tol
         self._imax = imax
         self._result = None
         self._callback = None
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
+        self.setTolerance()
 
-    def setTolerance(self, x_tol=None, f_tol=None):
+    def setTolerance(self, x_tol=1e-4, J_tol=None):
         """
         Sets the tolerance for the stopping criterion. The minimizer stops when
         an appropriate norm is less than `tol`.
         """
         if x_tol: self._x_tol = x_tol
-        if f_tol: self._f_tol = f_tol
+        if J_tol: self._J_tol = J_tol
 
     def setMaxIterations(self, imax):
         """
@@ -176,9 +196,9 @@ class AbstractMinimizer(object):
     def setCallback(self, callback):
         """
         Sets a callback function to be called after every iteration.
-        The arguments to the function are: (k, x, fx, gfx), where
-        k is the current iteration, x is the current estimate, fx=f(x) and
-        gfx=grad f(x).
+        The arguments to the function are: (k, x, Jx, g_Jxx), where
+        k is the current iteration, x is the current estimate, Jx=f(x) and
+        g_Jxx=grad f(x).
         """
         if callback is not None and not callable(callback):
             raise TypeError("Callback function not callable.")
@@ -220,12 +240,12 @@ class AbstractMinimizer(object):
         """
         Outputs a summary of the completed minimization process to the logger.
         """
-        if hasattr(self._f, "Value_calls"):
-            self.logger.warning("Number of function evaluations: %d"%self._f.Value_calls)
-            self.logger.warning("Number of gradient evaluations: %d"%self._f.Gradient_calls)
-            self.logger.warning("Number of inner product evaluations: %d"%self._f.DualProduct_calls)
-            self.logger.warning("Number of argument evaluations: %d"%self._f.Arguments_calls)
-            self.logger.warning("Number of norm evaluations: %d"%self._f.Norm_calls)
+        if hasattr(self._J, "Value_calls"):
+            self.logger.warning("Number of cost function evaluations: %d"%self._J.Value_calls)
+            self.logger.warning("Number of gradient evaluations: %d"%self._J.Gradient_calls)
+            self.logger.warning("Number of inner product evaluations: %d"%self._J.DualProduct_calls)
+            self.logger.warning("Number of argument evaluations: %d"%self._J.Arguments_calls)
+            self.logger.warning("Number of norm evaluations: %d"%self._J.Norm_calls)
 
 ##############################################################################
 class MinimizerLBFGS(AbstractMinimizer):
@@ -235,150 +255,174 @@ class MinimizerLBFGS(AbstractMinimizer):
     """
 
     # History size
-    _m = 15
+    _truncation = 30
 
     # Initial Hessian multiplier
     _initial_H = 1
+    
+    # restart 
+    _restart= 60
 
     def getOptions(self):
-        return {'historySize':self._m,'initialHessian':self._initial_H}
+        return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart}
 
     def setOptions(self, **opts):
         for o in opts:
-            if o=='historySize':
-                self._m=opts[o]
+            if o=='historySize' or 'truncation':
+                self._truncation=opts[o]
             elif o=='initialHessian':
                 self._initial_H=opts[o]
+            elif o=='restart':
+                self._restart=opts[o]
             else:
                 raise KeyError("Invalid option '%s'"%o)
 
     def run(self, x):
-	if not ( self._f_tol or self._x_tol):
-	    raise ValueError("No tolerance set.")
-	if self._f.provides_inverse_Hessian_approximation:
-	    self._f.updateHessian()
+
+	if self._J.provides_inverse_Hessian_approximation:
+	    self._J.updateHessian()
 	    invH_scale = None
 	else:
 	    invH_scale = self._initial_H
 	    
-	args=self._f.getArguments(x)
-	gf=self._f.getGradient(x, *args)
-	fx=self._f(x, *args)
-	fx_0=fx
-	self.logger.debug("LBFGS.f(x) = %s"%fx)
-	self.logger.debug("LBFGS.grad f(x) = %s"%gf)
-
-	k=0
+	# start the iteration:
+	n_iter = 0
+	n_last_break_down=-1
+	non_curable_break_down = False
 	converged = False
-	s_and_y=[]
+	args=self._J.getArguments(x)
+	g_Jx=self._J.getGradient(x, *args)
+	Jx=self._J(x, *args)
+	Jx_0=Jx	
+	
+	while not converged and not non_curable_break_down and n_iter < self._imax:
+	  	 
+	  k=0	
+	  break_down = False
+	  s_and_y=[]
+	  self._doCallback(n_iter, x, Jx, g_Jx)
 
-	self._doCallback(k, x, fx, gf)
-
-	while not converged and k < self._imax:
+	  while not converged and not break_down and k < self._restart and n_iter < self._imax:
 	    #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
-	    self.logger.info("LBFGS.iteration %d .......... "%k)
+	    self.logger.info("LBFGS.iteration %d .......... "%n_iter)
 	    # determine search direction
-	    if invH_scale: self.logger.debug("LBFGS.H = %s"%invH_scale)
-	    self.logger.debug("LBFGS.grad f(x) = %s"%gf)
-	    p = -self._twoLoop(invH_scale, gf, s_and_y, x, *args)
+	    self.logger.debug("LBFGS.J(x) = %s"%Jx)
+	    self.logger.debug("LBFGS.grad f(x) = %s"%g_Jx)
+            if invH_scale: self.logger.debug("LBFGS.H = %s"%invH_scale)
 
-
-	    #self.logger.debug("p = %s"%p)
-	    #self.logger.debug("x = %s"%x)
-
+	    p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
 	    # determine step length
-	    alpha, fx_new, gf_new = line_search(self._f, x, p, gf, fx)
+	    alpha, Jx_new, g_Jx_new = line_search(self._J, x, p, g_Jx, Jx)
 	    # this function returns the a scaling alpha for the serch direction
 	    # as well the cost function evaluation and gradient for the new solution 
 	    # approximation x_new = x + alpha*p
 	    
-	    self.logger.debug("LBFGS.alpha=%e"%(alpha))
+	    self.logger.debug("LBFGS.search direction scaling alpha=%e"%(alpha))
 	    # execute the step
 	    delta_x = alpha*p 
 	    x_new = x + delta_x
-	    self.logger.debug("LBFGS.f(x) = %s"%fx_new)
+	    self.logger.debug("LBFGS.J(x) = %s"%Jx_new)
 
 	    converged = True
-	    if self._f_tol:
-		flag= abs(fx_new-fx) <= self._f_tol * abs(fx_new-fx_0)
+	    if self._J_tol:
+		flag= abs(Jx_new-Jx) <= self._J_tol * abs(Jx_new-Jx_0)
 		if flag: 
-		    self.logger.debug("LBFGS: cost function has converged: df, f*f_tol = %e, %e"%(fx-fx_new,abs(fx_new-fx_0)*self._f_tol))
+		    self.logger.debug("LBFGS: cost function has converged: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new-Jx_0)*self._J_tol))
 		else:    
-		    self.logger.debug("LBFGS: cost function checked: df, f*f_tol = %e, %e"%(fx-fx_new,abs(fx_new)*self._f_tol))
+		    self.logger.debug("LBFGS: cost function checked: dJ, J * J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new)*self._J_tol))
 
 		converged = converged and flag
 	    if self._x_tol:	      
-	      norm_x=self._f.getNorm(x_new)
-	      norm_d=self._f.getNorm(delta_x)
-	      flag= norm_d <= self._x_tol * norm_x
+	      norm_x=self._J.getNorm(x_new)
+	      norm_dx=self._J.getNorm(delta_x)
+	      flag= norm_dx <= self._x_tol * norm_x
 	      if flag:
-		  self.logger.debug("LBFGS: solution has converged: dx, x*x_tol = %e, %e"%(norm_d,norm_x*self._x_tol))
+		  self.logger.debug("LBFGS: solution has converged: dx, x*x_tol = %e, %e"%(norm_dx,norm_x*self._x_tol))
 	      else:
-		  self.logger.debug("LBFGS: solution checked: dx, x*x_tol = %e, %e"%(norm_d,norm_x*self._x_tol))
+		  self.logger.debug("LBFGS: solution checked: dx, x*x_tol = %e, %e"%(norm_dx,norm_x*self._x_tol))
 	      converged = converged and flag
+	    
+	    x=x_new
 	    if converged:
 	      break
 	    
 	    # unfortunatly there is more work to do!
-	    if gf_new is None:
-		args=self._f.getArguments(x_new)
-		gf_new=self._f.getGradient(x_new, args)
-	    self.logger.debug("LBFGS.grad f(x) = %s"%gf_new)
-	    delta_g=gf_new-gf
+	    if g_Jx_new is None:
+		args=self._J.getArguments(x_new)
+		g_Jx_new=self._J.getGradient(x_new, args)
+	    delta_g=g_Jx_new-g_Jx
 	    
-	    rho=self._f.getDualProduct(delta_x, delta_g)
+	    rho=self._J.getDualProduct(delta_x, delta_g)
 	    if abs(rho)>0 :
 		s_and_y.append((delta_x,delta_g, rho ))
 	    else:
-		raise ZeroDivisionError("LBFGS break down.")
+	        break_down=True
 
-	    self._f.updateHessian()
-	    x=x_new
-	    gf=gf_new
-	    fx=fx_new
+	    self._J.updateHessian()	    
+	    g_Jx=g_Jx_new
+	    Jx=Jx_new
+	    
 	    k+=1
-	    self._doCallback(k, x, fx, gf)
+	    n_iter+=1
+	    self._doCallback(k, x, Jx, g_Jx)
 
 	    # delete oldest vector pair
-	    if k>self._m: s_and_y.pop(0)
+	    if k>self._truncation: s_and_y.pop(0)
 
-	    if not self._f.provides_inverse_Hessian_approximation:
+	    if not self._J.provides_inverse_Hessian_approximation and not break_down :
 		  # set the new scaling factor (approximation of inverse Hessian)
-		  denom=self._f.getDualProduct(delta_g, delta_g)
+		  denom=self._J.getDualProduct(delta_g, delta_g)
 		  if denom > 0:
-		      invH_scale=self._f.getDualProduct(delta_x,delta_g)/denom
+		      invH_scale=self._J.getDualProduct(delta_x,delta_g)/denom
 		  else:
 		      invH_scale=self._initial_H
 		      self.logger.debug("LBFGS.Break down in H update. Resetting to initial value %s."%self._initial_H)
+          # case handeling for inner iteration: 
+          if break_down:
+	     if n_iter == n_last_break_down +1 :
+	        non_curable_break_down = True
+	        self.logger.debug("LBFGS. Incurable break down detected in step %d."%(n_iter,))
+	     else: 
+	        n_last_break_down = n_iter
+	        self.logger.debug("LBFGS.Break down detected in step %d. Iteration is restarted."%(n_iter,))
+          if not k < self._restart:
+	        self.logger.debug("LBFGS.Iteration is restarted after %d steps."%(n_iter,))
 
-	if k >= self._imax:
-	    reason=self.MAX_ITERATIONS_REACHED
-	    self.logger.warning("LBFGS.Maximum >>>>>> number of iterations reached!")
-	else:
-	    reason=self.TOLERANCE_REACHED
+	# case handeling for inner iteration:         
+	self._result=x    
+	if n_iter >= self._imax:
+	    self.return_status=self.MAX_ITERATIONS_REACHED
+	    raise MinimizerMaxIterReached("Gave up after %d steps."%(n_iter,))
+	    self.logger.warning("LBFGS.>>>>>> Maximum number of iterations reached!")
+	elif non_curable_break_down:
+	    self.return_status=self.INCURABLE_BREAKDOWN	
+	    self.logger.warning("LBFGS.>>>>>> Uncurable breakdown!")
+	    raise MinimizerIterationIncurableBreakDown("Gave up after %d steps."%(n_iter,))
+	else: 
+	    self.return_status=self.TOLERANCE_REACHED
 	    self.logger.warning("LBFGS.Success after %d iterations!"%k)
-	self._result=x
-	return reason
 
-    def _twoLoop(self, invH_scale, gf, s_and_y, x, *args):
+	return self.return_status
+	
+    def _twoLoop(self, invH_scale, g_Jx, s_and_y, x, *args):
         """
         Helper for the L-BFGS method.
         See 'Numerical Optimization' by J. Nocedal for an explanation.
         """
-        q=gf
+        q=g_Jx
         alpha=[]
         for s,y, rho in reversed(s_and_y):
-            a=self._f.getDualProduct(s, q)/rho
+            a=self._J.getDualProduct(s, q)/rho
             alpha.append(a)
             q=q-a*y
 
-        if self._f.provides_inverse_Hessian_approximation:
-             r = self._f.getInverseHessianApproximation(x, q, *args)
+        if self._J.provides_inverse_Hessian_approximation:
+             r = self._J.getInverseHessianApproximation(x, q, *args)
         else:
              r = invH_scale * q
 
         for s,y,rho in s_and_y:
-            beta = self._f.getDualProduct(r, y)/rho
+            beta = self._J.getDualProduct(r, y)/rho
             a = alpha.pop()
             r = r + s * (a-beta)
         return r
@@ -403,9 +447,9 @@ class MinimizerBFGS(AbstractMinimizer):
                 raise KeyError("Invalid option '%s'"%o)
 
     def run(self, x):
-        args=self._f.getArguments(x)
-        gf=self._f.getGradient(x, *args)
-        fx=self._f(x, *args)
+        args=self._J.getArguments(x)
+        g_Jx=self._J.getGradient(x, *args)
+        Jx=self._J(x, *args)
         k=0
         try:
             n=len(x)
@@ -413,38 +457,38 @@ class MinimizerBFGS(AbstractMinimizer):
             n=x.getNumberOfDataPoints()
         I=np.eye(n)
         H=self._initial_H*I
-        gnorm=Lsup(gf)
-        self._doCallback(k, x, fx, gf)
+        gnorm=Lsup(g_Jx)
+        self._doCallback(k, x, Jx, g_Jx)
 
         while gnorm > self._x_tol and k < self._imax:
             self.logger.info("iteration %d, gnorm=%e"%(k,gnorm))
 
             # determine search direction
-            d=-self._f.getDualProduct(H, gf)
+            d=-self._J.getDualProduct(H, g_Jx)
 
             self.logger.debug("H = %s"%H)
-            self.logger.debug("grad f(x) = %s"%gf)
+            self.logger.debug("grad f(x) = %s"%g_Jx)
             self.logger.debug("d = %s"%d)
             self.logger.debug("x = %s"%x)
 
             # determine step length
-            alpha, fx, gf_new = line_search(self._f, x, d, gf, fx)
+            alpha, Jx, g_Jx_new = line_search(self._J, x, d, g_Jx, Jx)
             self.logger.debug("alpha=%e"%alpha)
             # execute the step
             x_new=x+alpha*d
             delta_x=x_new-x
             x=x_new
-            if gf_new is None:
-                gf_new=self._f.getGradient(x_new)
-            delta_g=gf_new-gf
-            gf=gf_new
+            if g_Jx_new is None:
+                g_Jx_new=self._J.getGradient(x_new)
+            delta_g=g_Jx_new-g_Jx
+            g_Jx=g_Jx_new
             k+=1
-            self._doCallback(k, x, fx, gf)
-            gnorm=Lsup(gf)
+            self._doCallback(k, x, Jx, g_Jx)
+            gnorm=Lsup(g_Jx)
             if (gnorm<=self._x_tol): break
 
             # update Hessian
-            denom=self._f.getDualProduct(delta_x, delta_g)
+            denom=self._J.getDualProduct(delta_x, delta_g)
             if denom < EPSILON * gnorm:
                 denom=1e-5
                 self.logger.debug("Break down in H update. Resetting.")
@@ -452,7 +496,7 @@ class MinimizerBFGS(AbstractMinimizer):
             self.logger.debug("rho=%e"%rho)
             A=I-rho*delta_x[:,None]*delta_g[None,:]
             AT=I-rho*delta_g[:,None]*delta_x[None,:]
-            H=self._f.getDualProduct(A, self._f.getDualProduct(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
+            H=self._J.getDualProduct(A, self._J.getDualProduct(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
         if k >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
             self.logger.warning("Maximum number of iterations reached!")
@@ -473,13 +517,13 @@ class MinimizerNLCG(AbstractMinimizer):
     def run(self, x):
         i=0
         k=0
-        args=self._f.getArguments(x)
-        r=-self._f.getGradient(x, *args)
-        fx=self._f(x, *args)
+        args=self._J.getArguments(x)
+        r=-self._J.getGradient(x, *args)
+        Jx=self._J(x, *args)
         d=r
-        delta=self._f.getDualProduct(r,r)
+        delta=self._J.getDualProduct(r,r)
         delta0=delta
-        self._doCallback(i, x, fx, -r)
+        self._doCallback(i, x, Jx, -r)
 
         while i<self._imax and Lsup(r)>self._x_tol:
             self.logger.info("iteration %d"%i)
@@ -487,12 +531,12 @@ class MinimizerNLCG(AbstractMinimizer):
             self.logger.debug("d = %s"%d)
             self.logger.debug("x = %s"%x)
 
-            alpha, fx, gf_new = line_search(self._f, x, d, -r, fx, c2=0.4)
+            alpha, Jx, g_Jx_new = line_search(self._J, x, d, -r, Jx, c2=0.4)
             self.logger.debug("alpha=%e"%(alpha))
             x=x+alpha*d
-            r=-self._f.getGradient(x) if gf_new is None else -gf_new
+            r=-self._J.getGradient(x) if g_Jx_new is None else -g_Jx_new
             delta_o=delta
-            delta=self._f.getDualProduct(r,r)
+            delta=self._J.getDualProduct(r,r)
             beta=delta/delta_o
             d=r+beta*d
             k=k+1
@@ -500,11 +544,11 @@ class MinimizerNLCG(AbstractMinimizer):
                 lenx=len(x)
             except:
                 lenx=x.getNumberOfDataPoints()
-            if k == lenx or self._f.getDualProduct(r,d) <= 0:
+            if k == lenx or self._J.getDualProduct(r,d) <= 0:
                 d=r
                 k=0
             i+=1
-            self._doCallback(i, x, fx, gf_new)
+            self._doCallback(i, x, Jx, g_Jx_new)
 
         if i >= self._imax:
             reason=self.MAX_ITERATIONS_REACHED
