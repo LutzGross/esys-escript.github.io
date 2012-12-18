@@ -64,6 +64,7 @@ domainbuilder.addSource(source)
 domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset, air_layer=l_air, num_cells=n_cells_v)
 domainbuilder.setBackgroundMagneticFluxDensity(B_b)
 domainbuilder.setPadding(l_pad)
+domainbuilder.fixSusceptibilityBelow(depth=THICKNESS+depth_offset)
 
 inv=MagneticInversion()
 inv.setSolverTolerance(1e-4)

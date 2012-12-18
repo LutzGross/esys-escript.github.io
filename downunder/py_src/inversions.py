@@ -239,13 +239,17 @@ class SingleParameterInversionBase(InversionBase):
         m_init=self.getMapping().getInverse(initial_value)
 
         self.logger.info("Starting solver...")
-        solver.run(m_init)
-        m_star=solver.getResult()
-        self.logger.info("m* = %s"%m_star)
-        value_star=self.getMapping().getValue(m_star)
-        self.logger.info("result* = %s"%value_star)
+        try:
+            solver.run(m_init)
+            self.m=solver.getResult()
+            self.p=self.getMapping().getValue(self.m)
+        except MinimizerException as e:
+            self.m=solver.getResult()
+            self.p=self.getMapping().getValue(self.m)
+            raise e
+        self.logger.info("result* = %s"%self.p)
         solver.logSummary()
-        return value_star
+        return self.p
 
 
 class GravityInversion(SingleParameterInversionBase):
