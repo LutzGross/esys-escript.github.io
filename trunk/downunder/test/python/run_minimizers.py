@@ -68,8 +68,7 @@ class TestMinimizerLBFGS(unittest.TestCase):
     def test_max_iterations(self):
         self.minimizer.setTolerance(1e-10)
         self.minimizer.setMaxIterations(1)
-        reason=self.minimizer.run(self.x0)
-        self.assertEqual(reason, MinimizerLBFGS.MAX_ITERATIONS_REACHED)
+        self.assertRaises(MinimizerMaxIterReached, self.minimizer.run,self.x0)
 
     def test_solution(self):
         self.minimizer.setTolerance(1e-8)
@@ -85,11 +84,11 @@ class TestMinimizerLBFGS(unittest.TestCase):
         def callback(k, x, fg, gf):
             n[0]=n[0]+1
         self.minimizer.setCallback(callback)
-        self.minimizer.setTolerance(1e-10)
-        self.minimizer.setMaxIterations(10)
+        self.minimizer.setTolerance(1e-8)
+        self.minimizer.setMaxIterations(100)
         reason=self.minimizer.run(self.x0)
         # callback should be called once for each iteration (including 0th)
-        self.assertEqual(n[0], 11)
+        self.assertEqual(n[0], 83)
 
 class TestMinimizerBFGS(unittest.TestCase):
     def setUp(self):

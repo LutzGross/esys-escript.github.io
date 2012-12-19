@@ -64,8 +64,8 @@ As the $B^s$ magnetic flux density anomaly we obtain the PDE
 - \psi_{,ii} = - (k B^b_i)_{,i} 
 \end{equation} 
 which needs to be solved for a given susceptibility $k$.
-The magnetic scalar potential is set to zero at the top of the domain
-$\Gamma_{top}$.
+The magnetic scalar potential is set to zero at the top and the bottom of the domain
+$\Gamma_{0}$.
 On all other faces the normal component of the magnetic flux density anomaly
 $B_i$ is set to zero, i.e. $n_i \psi_{,i} = k \cdot n_i  B^b_i$ with outer
 normal field $n_i$.
@@ -150,12 +150,12 @@ The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8}) is solved in weak f
 \begin{equation}\label{ref:MAG:EQU:201}
 \int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^b_i \; dx 
 \end{equation} 
-for all $q$ with $q=0$ on $\Gamma_{top}$.
+for all $q$ with $q=0$ on $\Gamma_{0}$.
 In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as
 solution of the variational problem~(\ref{ref:MAG:EQU:201}).
 If $\Gamma_{k}$ denotes the region of the domain where the susceptibility is
 known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
-\begin{equation}\label{ref:MAG:EQU:201}
+\begin{equation}\label{ref:MAG:EQU:201aa}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \; dx  = \int_{\Omega}  
 \sum_{s} (\omega^{(s)}_j 
 ( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( \Psi[p]_{,i} - p  \cdot B^b_i  ) ) \; dx  
@@ -166,16 +166,16 @@ Y_i[\psi]=   \sum_{s} (\omega^{(s)}_j
 (B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
 \end{equation} 
 This is written as 
-\begin{equation}\label{ref:MAG:EQU:201}
+\begin{equation}\label{ref:MAG:EQU:202cc}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
 Y_i[\psi] \Psi[p]_{,i} - p \cdot Y_i[\psi]B^b_i   \; dx  
 \end{equation} 
 We then set $Y^*[\psi]$ as the solution of the equation 
 \begin{equation}\label{ref:MAG:EQU:202d}
-\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{top}
+\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
 \end{equation} 
-with $Y^*[\psi]=0$ on $\Gamma_{top}$. With $r=\Psi[p]$ we get
-\begin{equation}\label{ref:MAG:EQU:202d}
+with $Y^*[\psi]=0$ on $\Gamma_{0}$. With $r=\Psi[p]$ we get
+\begin{equation}\label{ref:MAG:EQU:202dd}
 \int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx
 \end{equation} 
 and from Equation~(\ref{ref:MAG:EQU:201}) with $q=Y^*[\psi]$ we get
