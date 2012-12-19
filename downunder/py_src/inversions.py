@@ -224,8 +224,7 @@ class SingleParameterInversionBase(InversionBase):
 
     def run(self, initial_value=0.):
         if not self.isSetup():
-            raise RuntimeError("Inversion is not setup properly.")
-
+            raise RuntimeError("Inversion is not setup properly.")           
         f=SimpleInversionCostFunction(self.getRegularization(), self.getMapping(), self.getForwardModel())
         f.setTradeOffFactors(mu_reg=self._mu_reg, mu_model=self._mu_model)
 

@@ -23,8 +23,8 @@ given as the solution of the PDE
 \end{equation}
 where $G=6.6730 \cdot 10^{-11}  \frac{m^3}{kg \cdot s^2}$ is the gravitational
 constant.
-The gravitational potential is set to zero at the top of the
-domain $\Gamma_{top}$.
+The gravitational potential is set to zero at the top and bottom of the
+domain $\Gamma_0$.
 On all other faces the normal component of the gravity acceleration anomaly
 $g_i$ is set to zero, i.e. $n_i \psi_{,i} = 0$ with outer normal field $n_i$.
 The gravity force $g_i$ is given as the negative of the gradient of the gravity
@@ -105,12 +105,12 @@ weak form:
 \begin{equation}\label{ref:GRAV:EQU:201}
 \int_{\Omega} q_{,i} \psi_{,i} \; dx  = - \int_{\Omega}  4\pi G \cdot q \rho\; dx 
 \end{equation} 
-for all $q$ with $q=0$ on $\Gamma_{top}$.
+for all $q$ with $q=0$ on $\Gamma_0$.
 In the following we set $\Psi[\cdot]=\psi$ for a given density $\cdot$ as
 solution of the variational problem~(\ref{ref:GRAV:EQU:201}).
 If $\Gamma_{\rho}$ denotes the region of the domain where the density is known
 and for a given direction $p$ with $p=0$ on $\Gamma_{\rho}$ one has
-\begin{equation}\label{ref:GRAV:EQU:201}
+\begin{equation}\label{ref:GRAV:EQU:201aa}
 \int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \; dx  =  \int_{\Omega}  
 \sum_{s} (\omega^{(s)}_j \cdot 
 (g^{(s)}_j-g_{j}) ) \cdot ( \omega^{(s)}_i \Psi[p]_{,i})  \; dx  
@@ -121,7 +121,7 @@ Y_i[\psi]=  \sum_{s} (\omega^{(s)}_j \cdot
 (g^{(s)}_j-g_{j}) ) \cdot  \omega^{(s)}_i
 \end{equation} 
 This is written as 
-\begin{equation}\label{ref:GRAV:EQU:201}
+\begin{equation}\label{ref:GRAV:EQU:202cc}
 \int_{\Omega}   \frac{\partial J^{grav}}{\partial \rho} \cdot p \;  dx  = \int_{\Omega}  
 Y_i[\psi] \Psi[p]_{,i} \; dx  
 \end{equation} 
@@ -129,8 +129,8 @@ We then set $Y^*[\psi]$ as the solution of the equation
 \begin{equation}\label{ref:GRAV:EQU:202d}
 \int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{top}
 \end{equation} 
-with $Y^*[\psi]=0$ on $\Gamma_{top}$. With $r=\Psi[p]$ we get
-\begin{equation}\label{ref:GRAV:EQU:202d}
+with $Y^*[\psi]=0$ on $\Gamma_0$. With $r=\Psi[p]$ we get
+\begin{equation}\label{ref:GRAV:EQU:202dd}
 \int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx
 \end{equation} 
 and from Equation~(\ref{ref:GRAV:EQU:201}) with $q=Y^*[\psi]$ we get

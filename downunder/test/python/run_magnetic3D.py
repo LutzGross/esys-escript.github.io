@@ -38,11 +38,12 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 # interesting parameter:
-depth_offset=0.*U.km
-n_humbs_h= 1
-n_humbs_v=1
-mu=1.
-n_cells_in_data=200
+depth_offset=10.*U.km
+n_humbs_h= 5 
+n_humbs_v=2
+mu=0.0001
+n_cells_in_data=50
+latitude=-28.5
 full_knowledge=False
 # 
 n_cells_in_data=max(n_humbs_h*7,n_cells_in_data)
@@ -52,10 +53,10 @@ THICKNESS=20.*U.km
 l_air=20*U.km
 n_cells_v=max(int((2*l_air+THICKNESS+depth_offset)/l_data*n_cells_in_data + 0.5), 25)
 
-B_b=simpleGeoMagneticFluxDensity(latitude=-28.5)
+B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
 
 source=SyntheticData(DataSource.MAGNETIC,n_length=n_humbs_h, n_depth=n_humbs_v, depth=THICKNESS+depth_offset, depth_offset=depth_offset,
-                     DIM=2, number_of_elements =n_cells_in_data, length=l_data, B_b=B_b,
+                     DIM=3, number_of_elements =n_cells_in_data, length=l_data, B_b=B_b,
                      data_offset=0,full_knowledge=full_knowledge, spherical=False)
 
 
@@ -65,13 +66,10 @@ domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset, air_layer=l
 domainbuilder.setBackgroundMagneticFluxDensity(B_b)
 domainbuilder.setPadding(l_pad)
 domainbuilder.fixSusceptibilityBelow(depth=THICKNESS+depth_offset)
-#domainbuilder.fixSusceptibilityBelow(depth=None)
-
-
 
 inv=MagneticInversion()
 inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(50)
+inv.setSolverMaxIterations(10)
 inv.setTradeOffFactors(mu_model=mu)
 inv.setup(domainbuilder)
 

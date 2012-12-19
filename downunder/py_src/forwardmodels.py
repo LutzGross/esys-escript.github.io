@@ -102,7 +102,8 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
-        self.__pde.setValue(q=whereZero(x[DIM-1]-BX[DIM-1][1]))
+        z=x[DIM-1]
+        self.__pde.setValue(q=whereZero(z-BX[DIM-1][1])+whereZero(z-BX[DIM-1][0]))
         
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
@@ -334,8 +335,8 @@ class MagneticModel(ForwardModelWithPotential):
         :rtype: ``Scalar``, ``Vector``
         """
         phi = self.getPotential(k)
-        magnetic_field = k * self.__background_magnetic_flux_density -grad(phi)
-        return phi, magnetic_field
+        magnetic_flux_density = k * self.__background_magnetic_flux_density -grad(phi)
+        return phi, magnetic_flux_density
 
     def getPotential(self, k):
         """
@@ -354,7 +355,7 @@ class MagneticModel(ForwardModelWithPotential):
 
         return phi
 
-    def getValue(self, k, phi, magnetic_field):
+    def getValue(self, k, phi, magnetic_flux_density):
         """
         Returns the value of the defect.
 
@@ -362,13 +363,13 @@ class MagneticModel(ForwardModelWithPotential):
         :type k: ``Scalar``
         :param phi: corresponding potential
         :type phi: ``Scalar``
-        :param magnetic_field: magnetic field
-        :type magnetic_field: ``Vector``
+        :param magnetic_flux_density: magnetic field
+        :type magnetic_flux_density: ``Vector``
         :rtype: ``float``
         """
-        return self.getDefect(magnetic_field)
+        return self.getDefect(magnetic_flux_density)
 
-    def getGradient(self, k, phi, magnetic_field):
+    def getGradient(self, k, phi, magnetic_flux_density):
         """
         Returns the gradient of the defect with respect to susceptibility.
 
@@ -376,11 +377,11 @@ class MagneticModel(ForwardModelWithPotential):
         :type k: ``Scalar``
         :param phi: corresponding potential
         :type phi: ``Scalar``
-        :param magnetic_field: magnetic field
-        :type magnetic_field: ``Vector``
+        :param magnetic_flux_density: magnetic field
+        :type magnetic_flux_density: ``Vector``
         :rtype: ``Scalar``
         """
-        Y=self.getDefectGradient(magnetic_field)
+        Y=self.getDefectGradient(magnetic_flux_density)
         pde=self.getPDE()
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)

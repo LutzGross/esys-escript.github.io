@@ -610,19 +610,20 @@ class SyntheticDataBase(DataSource):
 	k=self.getReferenceProperty(domain)
 	# calculate the corresponding potential
 	z=x[DIM-1]
-	m_psi_ref=whereZero(z-sup(z))
+	m_psi_ref=whereZero(z-sup(z))+whereZero(z-inf(z))
 	if self.getDataType()==DataSource.GRAVITY:
 	    pde.setValue(A=kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
 	else:
 	    pde.setValue(A=kronecker(domain), X=self._reference_data*self.__B_b, q=m_psi_ref)
 	pde.setSymmetryOn()
+	#pde.getSolverOptions().setTolerance(1e-13)
 	psi_ref=pde.getSolution()
 	del pde
 	if self.getDataType()==DataSource.GRAVITY:
 	    data = -grad(psi_ref, ReducedFunction(domain))
 	else:
 	    data = self._reference_data*self.__B_b-grad(psi_ref, ReducedFunction(domain))
-	  
+
 	x=ReducedFunction(domain).getX()    
 	if self.__full_knowledge:
 	    sigma = whereNegative(x[DIM-1])

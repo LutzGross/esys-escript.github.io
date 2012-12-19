@@ -304,7 +304,7 @@ class MinimizerLBFGS(AbstractMinimizer):
 
 	  while not converged and not break_down and k < self._restart and n_iter < self._imax:
 	    #self.logger.info("\033[1;31miteration %d\033[1;30m, error=%e"%(k,error))
-	    self.logger.info("LBFGS.iteration %d .......... "%n_iter)
+	    self.logger.debug("LBFGS.iteration %d .......... "%n_iter)
 	    # determine search direction
 	    self.logger.debug("LBFGS.J(x) = %s"%Jx)
 	    self.logger.debug("LBFGS.grad f(x) = %s"%g_Jx)
@@ -461,7 +461,7 @@ class MinimizerBFGS(AbstractMinimizer):
         self._doCallback(k, x, Jx, g_Jx)
 
         while gnorm > self._x_tol and k < self._imax:
-            self.logger.info("iteration %d, gnorm=%e"%(k,gnorm))
+            self.logger.debug("iteration %d, gnorm=%e"%(k,gnorm))
 
             # determine search direction
             d=-self._J.getDualProduct(H, g_Jx)
@@ -526,7 +526,7 @@ class MinimizerNLCG(AbstractMinimizer):
         self._doCallback(i, x, Jx, -r)
 
         while i<self._imax and Lsup(r)>self._x_tol:
-            self.logger.info("iteration %d"%i)
+            self.logger.debug("iteration %d"%i)
             self.logger.debug("grad f(x) = %s"%(-r))
             self.logger.debug("d = %s"%d)
             self.logger.debug("x = %s"%x)
