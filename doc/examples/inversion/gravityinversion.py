@@ -40,14 +40,17 @@ db.addSource(source)
 db.setVerticalExtents(depth=DEPTH, air_layer=AIR, num_cells=NE_Z)
 db.setFractionalPadding(PAD_X, PAD_Y)
 db.fixDensityBelow(depth=DEPTH)
-db.setTradeOffFactors(mu_model=10)
+
+
 
 
 inv=GravityInversion()
 inv.setup(db)
-g, w = inv.getForwardModel().getSurvey(0)
+inv.getCostFunction().setTradeOffFactorsModels(10.)
+
 density=inv.run()
 
 # Save results
+g, w =  inv.getCostFunction().getForwardModels()[0].getSurvey(0)
 saveSilo("result.silo", density=density, gravity_anomaly=g[2], gravity_weight=w[2])
 

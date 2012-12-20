@@ -22,14 +22,14 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['InversionBase','SingleParameterInversionBase','GravityInversion','MagneticInversion']
+__all__ = ['InversionBase', 'GravityInversion','MagneticInversion']
 
 import logging
 from esys.escript import *
 import esys.escript.unitsSI as U
 from esys.weipa import createDataset
 
-from .inversioncostfunctions import SimpleInversionCostFunction
+from .inversioncostfunctions import InversionCostFunction
 from .forwardmodels import GravityModel, MagneticModel
 from .mappings import *
 from .minimizers import *
@@ -38,90 +38,41 @@ from .datasources import DataSource
 
 class InversionBase(object):
     """
-    Base class for inversions.
+    Base class for running an inversion
     """
     def __init__(self):
         self.logger=logging.getLogger('inv.%s'%self.__class__.__name__)
-        self._solver_callback = None
-        self._solver_opts = {}
-        self._solver_xtol = 1e-9
-        self._solver_maxiter = 200
-        # set default solver
+        self.__costfunction = None
+        self.setSolverMaxIterations()
+        self.setSolverTolerance()
+        self.setSolverCallback()
         self.setSolverClass()
-        self.__domain=None
-        self.__regularization=None
-        self.__forwardmodel=None
-        self.__mapping=None
+        self._solver_opts = {}
+        self.initial_value = None
+        # set default solver
 
-    def setDomain(self, domain):
+
+    def setCostFunction(self, costfunction):
         """
-        sets the domain of the inversion
+        sets the cost function of the inversion. This function needs to be called 
+        before the inversion iteration can be started.
 
-        :param domain: domain of the inversion
-        :type domain: `Domain`
+        :param costfunction: domain of the inversion
+        :type costfunction: 'InversionCostFunction'
         """
-        self.__domain=domain
+        self.__costfunction=costfunction
 
-    def getDomain(self):
+    def getCostFunction(self):
         """
         returns the domain of the inversion
 
-        :rtype: `Domain`
+        :rtype: 'InversionCostFunction'
         """
-        return  self.__domain
-
-    def setMapping(self, mapping):
-        """
-        Sets the mapping object to map between model parameters and the data.
-
-        :param mapping: Parameter mapping object
-        :type mapping: `Mapping`
-        """
-        self.__mapping=mapping
-
-    def getMapping(self):
-        """
-        return the mapping(s) used in the inversion
-
-        :rtype: `Mapping`
-        """
-        return self.__mapping
-
-
-    def setRegularization(self, regularization):
-        """
-        Sets the regularization for the inversion.
-
-        :param regularization: regularization
-        :type regularization: `Regularization`
-        """
-        self.__regularization=regularization
-
-    def getRegularization(self):
-        """
-        returns the regularization method(s)
-
-        :rtype: `Regularization`
-        """
-        return self.__regularization
-
-    def setForwardModel(self, forwardmodel):
-        """
-        Sets the forward model(s) for the inversion.
-
-        :param forwardmodel: forward model
-        :type forwardmodel: `ForwardModel`
-        """
-        self.__forwardmodel=forwardmodel
-
-    def getForwardModel(self):
-        """
-        returns the forward model
-
-        :rtype: `ForwardModel`
-        """
-        return self.__forwardmodel
-
+        if self.isSetUp():
+           return  self.__costfunction
+        else:
+	   raise RuntimeError("Inversion is not set up.")
+    
     def setSolverClass(self, solverclass=None):
         """
         The solver to be used in the inversion process. See the minimizers
@@ -132,18 +83,38 @@ class InversionBase(object):
             self.solverclass=MinimizerLBFGS
         else:
             self.solverclass=solverclass
+            
+    def isSetUp(self):
+        """
+        returns True if the inversion is set up and is ready to run.
+        
+        :rtype: `bool`
+        """
+        if  self.__costfunction:
+	    return True
+	else:
+	    return False
+	    
+    def getDomain(self):
+        """
+        returns the domain of the inversion
 
-    def setSolverCallback(self, callback):
+        :rtype: `Domain`
+        """
+        self.getCostFunction().getDomain()
+        
+    def setSolverCallback(self, callback=None):
         """
         Sets the callback function which is called after every solver
         iteration.
         """
         self._solver_callback=callback
-
-    def setSolverMaxIterations(self, maxiter):
+        
+    def setSolverMaxIterations(self, maxiter=None):
         """
         Sets the maximum number of solver iterations to run.
         """
+        if maxiter == None: maxiter = 200
         if maxiter>0:
             self._solver_maxiter=maxiter
         else:
@@ -156,102 +127,70 @@ class InversionBase(object):
         """
         self._solver_opts.update(**opts)
 
-    def setSolverTolerance(self, tol):
+    def setSolverTolerance(self, tol=None, atol=None):
+	"""
+	Sets the error tolerance for the solver. An acceptable solution is
+	considered to be found once the tolerance is reached.
+	
+	:param tol: tolerance for changes to level set function. If `None` changes to the 
+		    level set function are not checked for convergence during iteration.
+	:param atol: tolerance for changes to cost function. If `None` changes to the 
+		    cost function are not checked for convergence during iteration.
+	:type tol: `float` or `None`
+	:type atol: `float` or `None` 
+	:note: if both arguments are equal to `None` the default setting tol=1e-4, atol=None is used.
+
+	"""
+	if tol == None and atol==None:
+	    tol=1e-4
+
+	self._solver_xtol=tol
+	self._solver_atol=atol
+
+ 
+    def setInitialGuess(self, *args):
         """
-        Sets the error tolerance for the solver. An acceptable solution is
-        considered to be found once the tolerance is reached.
+        set the initial guess for the inversion iteration. By default zero is used.
+        
         """
-        if tol>0:
-            self._solver_xtol=tol
-        else:
-            raise ValueError("tolerance must be positive.")
-
-    def isSetup(self):
+        self.initial_value=self.getCostFunction().createLevelSetFunction(*args)
+        
+    def run(self):
         """
-        returns True if the inversion is set up and ready to run.
+        this function runs the inversion. 
+        
+        
         """
-        raise NotImplementedError
+        if not self.isSetUp():
+            raise RuntimeError("Inversion is not setup.")           
 
-    def run(self, *args):
-        """
-        This method starts the inversion process and must be overwritten.
-        Preferably, users should be able to set a starting point so
-        inversions can be continued after stopping.
-        """
-        raise NotImplementedError
-
-
-class SingleParameterInversionBase(InversionBase):
-    """
-    Base class for inversions with a single parameter to be found.
-    """
-    def __init__(self):
-        super(SingleParameterInversionBase,self).__init__()
-        self.setTradeOffFactors()
-
-    def setTradeOffFactors(self, mu_reg=None, mu_model=1.):
-        """
-        Sets the weighting factors for the cost function.
-        """
-        self.logger.debug("Setting weighting factors...")
-        self.logger.debug("mu_reg = %s"%mu_reg)
-        self.logger.debug("mu_model = %s"%mu_model)
-        self._mu_reg=mu_reg
-        self._mu_model=mu_model
-
-    def siloWriterCallback(self, k, x, fx, gfx):
-        """
-        callback function that can be used to track the solution
-
-        :param k: iteration count
-        :param x: current m approximation
-        :param fx: value of cost function
-        :param gfx: gradient of f at x
-        """
-        fn='inv.%d'%k
-        ds=createDataset(rho=self.getMapping().getValue(x))
-        ds.setCycleAndTime(k,k)
-        ds.saveSilo(fn)
-        self.logger.debug("f(m) = %e"%fx)
-
-
-    def isSetup(self):
-        if self.getRegularization() and self.getMapping() \
-                and self.getForwardModel() and self.getDomain():
-            return True
-        else:
-            return False
-
-    def run(self, initial_value=0.):
-        if not self.isSetup():
-            raise RuntimeError("Inversion is not setup properly.")           
-        f=SimpleInversionCostFunction(self.getRegularization(), self.getMapping(), self.getForwardModel())
-        f.setTradeOffFactors(mu_reg=self._mu_reg, mu_model=self._mu_model)
-
-        solver=self.solverclass(f)
+        if self.initial_value == None: self.setInitialGuess()
+        solver=self.solverclass(self.getCostFunction())
         solver.setCallback(self._solver_callback)
         solver.setMaxIterations(self._solver_maxiter)
         solver.setOptions(**self._solver_opts)
         solver.setTolerance(x_tol=self._solver_xtol)
-        if not isinstance(initial_value, Data):
-            initial_value=Scalar(initial_value, ContinuousFunction(self.getDomain()))
-        m_init=self.getMapping().getInverse(initial_value)
-
         self.logger.info("Starting solver...")
         try:
-            solver.run(m_init)
-            self.m=solver.getResult()
-            self.p=self.getMapping().getValue(self.m)
+            solver.run(self.initial_value)
+            self.m=solver.getResult() 
+            self.p=self.getCostFunction().getProperties(self.m)
         except MinimizerException as e:
             self.m=solver.getResult()
-            self.p=self.getMapping().getValue(self.m)
+            self.p=self.getCostFunction().getProperties(self.m)
+            self.logger.info("iteration failed.")
             raise e
-        self.logger.info("result* = %s"%self.p)
+        self.logger.info("iteration completed.")
         solver.logSummary()
         return self.p
 
+    def setup(self, *args, **k_args): 
+        """
+        returns True if the inversion is set up and ready to run.
+        """
+        pass
 
-class GravityInversion(SingleParameterInversionBase):
+class GravityInversion(InversionBase):
     """
     Inversion of Gravity (Bouguer) anomaly data.
     """
@@ -267,20 +206,20 @@ class GravityInversion(SingleParameterInversionBase):
         :type rho0: ``float`` or `Scalar`
         """
         self.logger.info('Retrieving domain...')
-        self.setDomain(domainbuilder.getDomain())
-        DIM=self.getDomain().getDim()
+        dom=domainbuilder.getDomain()
+        DIM=dom.getDim()
         #========================
         self.logger.info('Creating mapping...')
-        self.setMapping(DensityMapping(self.getDomain(), rho0=rho0, drho=drho, z0=z0, beta=beta))
-        scale_mapping=self.getMapping().getTypicalDerivative()
+        rho_mapping=DensityMapping(dom, rho0=rho0, drho=drho, z0=z0, beta=beta)
+        scale_mapping=rho_mapping.getTypicalDerivative()
         print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
             w1=[1.]*DIM
         rho_mask = domainbuilder.getSetDensityMask()
-        self.setRegularization(Regularization(self.getDomain(), numLevelSets=1,\
-                               w0=w0, w1=w1, location_of_set_m=rho_mask))
+        regularization=Regularization(dom, numLevelSets=1,\
+                               w0=w0, w1=w1, location_of_set_m=rho_mask)
         #====================================================================
         self.logger.info("Retrieving gravity surveys...")
         surveys=domainbuilder.getGravitySurveys()
@@ -301,20 +240,43 @@ class GravityInversion(SingleParameterInversionBase):
         #====================================================================
 
         self.logger.info("Setting up model...")
-        self.setForwardModel(GravityModel(self.getDomain(), w, g))
-        self.getForwardModel().rescaleWeights(rho_scale=scale_mapping)
-        # this is switched off for now:
-        if self._mu_reg is None and False:
-            x=self.getDomain().getX()
-            l=0.
-            for i in range(DIM-1):
-                l=max(l, sup(x[i])-inf(x[i]))
-            G=U.Gravitational_Constant
-            mu_reg=0.5*(l*l*G)**2
-            self.setTradeOffFactors(mu_reg=mu_reg)
+        forward_model=GravityModel(dom, w, g)
+        forward_model.rescaleWeights(rho_scale=scale_mapping)
 
+ 
+        #====================================================================
+        self.logger.info("Setting cost function...")
+        self.setCostFunction(InversionCostFunction(regularization, rho_mapping, forward_model))
+        
+    def setInitialGuess(self, rho=None):
+        """
+        set the initial guess *rho* for density the inversion iteration. If no *rho* present
+        then an appropriate initial guess is chosen.
+        
+        :param rho: initial value for the density anomaly.
+        :type rho: `Scalar`
+        """
+        if rho:
+	    super(GravityInversion,self).setInitialGuess(rho)
+	else:
+	    super(GravityInversion,self).setInitialGuess()
+        
+    def siloWriterCallback(self, k, m, Jm, g_Jm):
+        """
+        callback function that can be used to track the solution
 
-class MagneticInversion(SingleParameterInversionBase):
+        :param k: iteration count
+        :param m: current m approximation
+        :param Jm: value of cost function
+        :param g_Jm: gradient of f at x
+        """
+        fn='inv.%d'%k
+        ds=createDataset(rho=self.getCostFunction().mappings[0].getValue(m))
+        ds.setCycleAndTime(k,k)
+        ds.saveSilo(fn)
+        self.logger.debug("J(m) = %e"%Jm)
+
+class MagneticInversion(InversionBase):
     """
     Inversion of magnetic data.
     """
@@ -329,21 +291,20 @@ class MagneticInversion(SingleParameterInversionBase):
 
         """
         self.logger.info('Retrieving domain...')
-        self.setDomain(domainbuilder.getDomain())
-        DIM=self.getDomain().getDim()
+        dom=domainbuilder.getDomain()
+        DIM=dom.getDim()
 
         #========================
         self.logger.info('Creating mapping ...')
-        self.setMapping(SusceptibilityMapping(self.getDomain(), k0=k0, dk=dk, z0=z0, beta=beta))
-        scale_mapping=self.getMapping().getTypicalDerivative()
+        susc_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=z0, beta=beta)
+        scale_mapping=susc_mapping.getTypicalDerivative()
         print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
             w1=[1.]*DIM
         k_mask = domainbuilder.getSetSusceptibilityMask()
-        self.setRegularization(Regularization(self.getDomain(), numLevelSets=1,\
-                               w0=w0, w1=w1, location_of_set_m=k_mask))
+        regularization=Regularization(dom, numLevelSets=1,w0=w0, w1=w1, location_of_set_m=k_mask)
 
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
@@ -364,14 +325,38 @@ class MagneticInversion(SingleParameterInversionBase):
             self.logger.debug("w = %s"%w_i)
         #====================================================================
         self.logger.info("Setting up model...")
-        self.setForwardModel(MagneticModel(self.getDomain(), w, B, domainbuilder.getBackgroundMagneticFluxDensity()))
-        self.getForwardModel().rescaleWeights(k_scale=scale_mapping)
-        # this is switched off for now:
-        if self._mu_reg is None and False:
-            x=self.getDomain().getX()
-            l=0.
-            for i in range(DIM-1):
-                l=max(l, sup(x[i])-inf(x[i]))
-            mu_reg=0.5*l**2
-            self.setTradeOffFactors(mu_reg=mu_reg)
+        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity())
+        forward_model.rescaleWeights(k_scale=scale_mapping)
 
+        #====================================================================
+        self.logger.info("Setting cost function...")
+        self.setCostFunction(InversionCostFunction(regularization, susc_mapping, forward_model))
+        
+    def setInitialGuess(self, k=None):
+        """
+        set the initial guess *k* for susceptibility for the inversion iteration. If no *k* present
+        then an appropriate initial guess is chosen.
+        
+        :param k: initial value for the susceptibility anomaly.
+        :type k: `Scalar`
+        """
+        if k:
+	    super(MagneticInversion,self).setInitialGuess(k)
+	else:
+	    super(MagneticInversion,self).setInitialGuess()
+	    
+    def siloWriterCallback(self, k, m, Jm, g_Jm):
+        """
+        callback function that can be used to track the solution
+
+        :param k: iteration count
+        :param m: current m approximation
+        :param Jm: value of cost function
+        :param g_Jm: gradient of f at x
+        """
+        fn='inv.%d'%k
+        ds=createDataset(susceptibility=self.getCostFunction().mappings[0].getValue(m))
+        ds.setCycleAndTime(k,k)
+        ds.saveSilo(fn)
+        self.logger.debug("J(m) = %e"%Jm)
+        

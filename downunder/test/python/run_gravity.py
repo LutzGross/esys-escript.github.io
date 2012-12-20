@@ -51,14 +51,14 @@ domainbuilder.setElementPadding(20)
 domainbuilder.setVerticalExtents(depth=50*U.km, air_layer=20*U.km, num_cells=25)
 
 inv=GravityInversion()
+inv.setup(domainbuilder)
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(40)
-inv.setTradeOffFactors(mu_model=10.)
-inv.setup(domainbuilder)
+inv.getCostFunction().setTradeOffFactorsModels(10)
 
 rho_new=inv.run()
 print "rho_new = ",rho_new
 print "rho =", source.getReferenceProperty()
-g, chi = inv.getForwardModel().getSurvey(0)
+g, chi = inv.getCostFunction().getForwardModels()[0].getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceProperty(), g=g, chi=chi)
 

@@ -33,12 +33,12 @@ The coefficients $\omega^{(0)}_k$, $\omega^{(1)}_{ki}$ and $\omega^{(c)}_{lk}$ d
 may depend on their location within the domain. We assume that for given level set function $k$ the 
 weighting factors $\omega^{(0)}_k$, $\omega^{(1)}_{ki}$ are scaled such that 
 \begin{equation}\label{ref:EQU:REG:5}
-\int_{\Omega} ( \omega^{(0)}_k  + \frac{\omega^{(1)}_{ki}}{L_i^2} ) \; dx = \alpha_k \cdot  vol(\Omega)
+\int_{\Omega} ( \omega^{(0)}_k  + \frac{\omega^{(1)}_{ki}}{L_i^2} ) \; dx = \alpha_k 
 \end{equation} 
 where $\alpha_k$ defines the scale which is typically set to one. $L_i$ is the width of the domain in $x_i$ direction.
 Similarly we set for $l<k$ we set 
 \begin{equation}\label{ref:EQU:REG:6}
-\int_{\Omega} \frac{\omega^{(c)}_{lk}}{L^4} \; dx = \alpha^{(c)}_{lk} \cdot  vol(\Omega)
+\int_{\Omega} \frac{\omega^{(c)}_{lk}}{L^4} \; dx = \alpha^{(c)}_{lk}
 \end{equation} 
 where $\alpha^{(c)}_{lk}$ defines the scale which is typically set to one and
 \begin{equation}\label{ref:EQU:REG:6b}
@@ -115,45 +115,69 @@ K^{reg}(m) = \frac{1}{2}
 \sum_{k} \mu_k \cdot ( \omega^{(0)}_k \cdot m_k^2 + \omega^{(1)}_{ki}m_{k,i}^2 ) 
 +  \sum_{l<k} \mu^{(c)}_{lk} \cdot \omega^{(c)}_{lk}  \cdot  \chi(m_l,m_k)
 \end{equation} 
-
 We need to provide the gradient of the cost function $J^{reg}$  with respect to the level set functions $m$.
 The gradient is represented by two functions $Y$ and $X$ which define the 
 derivative of the cost function kernel with respect to $m$ and to the gradient $m_{,i}$, respectively:
 \begin{equation}\label{ref:EQU:REG:101}
 \begin{array}{rcl}
   Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} \\
-   X_{k,i} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
+   X_{ki} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
 \end{array}
 \end{equation} 
-For $Y$ we get 
-\begin{equation}\label{ref:EQU:REG:102}
-Y_k = \mu_k \cdot \omega^{(0)}_k \cdot m_k
+For the case of a single valued level set function $m$ we get 
+\begin{equation}\label{ref:EQU:REG:202}
+Y = \mu \cdot \omega^{(0)} \cdot m
 \end{equation} 
-and for $X$ (and ignoring the cross gradient component):
-\begin{equation}\label{ref:EQU:REG:103}
- X_{k,i} = \mu_k \cdot \omega^{(1)}_{ki} \cdot m_{k,i}
+and 
+\begin{equation}\label{ref:EQU:REG:203}
+ X_{i} = \mu \cdot \omega^{(1)}_{i} \cdot m_{,i}
+\end{equation}
+For a two-valued level set function $(m_0,m_1)$ we have
+\begin{equation}\label{ref:EQU:REG:302}
+Y_k = \mu_k \cdot \omega^{(0)}_k \cdot m_k \mbox{ for } k=0,1
+\end{equation} 
+and for $X$ 
+\begin{equation}\label{ref:EQU:REG:303}
+\begin{array}{rcl}
+ X_{0i} &  = & \mu_0 \cdot \omega^{(1)}_{0i} \cdot m_{0,i} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot
+\left( (m_{1,j}m_{1,j} ) \cdot m_{0,i} - (m_{1,j}m_{0,j} ) \cdot m_{1,i} \right) \\
+ X_{1i} &  = & \mu_1 \cdot \omega^{(1)}_{1i} \cdot m_{1,i} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot
+\left( (m_{0,j}m_{0,j} ) \cdot m_{1,i} - (m_{1,j}m_{0,j} ) \cdot m_{0,i} \right)
+\\
+\end{array}
 \end{equation}  
-
-
-We also need to provide an approximation of the inverse of the Hessian operator which provides a 
-level set function $h$ for a given value $r$ represented by the pair of values $(Y,X)$. If one ignores the correlation function
-the inner product defines the Hessian operator of the cost function. In this approach we set 
-\begin{equation}\label{EQU:REG:8}
- < p,   h > = [p, r]
+We also need to provide an approximation of the inverse of the Hessian operator. The operator evaluation is executes as a solution 
+of a linear PDE which is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
+\begin{equation}\label{ref:EQU:REG:600}
+\begin{array}{rcl}
+ A_{kilj} & = & \displaystyle{\frac{\partial X_{ki}}{\partial m_{l,j}}} \\
+D_{kl} & =  &  \displaystyle{\frac{\partial Y_{k}}{\partial m_{l}}} 
+\end{array}
 \end{equation} 
-for all $p$. This problem can be solved using \escript \class{LinearPDE} class by setting
-\begin{equation}\label{EQU:REG:8b}
+For the case of a single valued level set function $m$ we get 
+\begin{equation}\label{ref:EQU:REG:601}
 \begin{array}{rcl}
  A_{ij} & =&  \mu \cdot \omega^{(1)}_i \cdot \delta_{ij}  \\
 D & = &  \mu \cdot \omega^{(0)} 
 \end{array}
+\end{equation}
+For a two-valued level set function $(m_0,m_1)$ we have
+\begin{equation}\label{ref:EQU:REG:602}
+D_{kl}  =   \mu_k \cdot \omega^{(0)}_k \cdot \delta_{kl} 
 \end{equation} 
-and $X$ and $Y$ as defined by $r$ for the case of a single-valued level set function.
-For a vector-valued level-set function one sets:
-\begin{equation}\label{EQU:REG:8c}
+and 
+\begin{equation}\label{ref:EQU:REG:603}
 \begin{array}{rcl}
- A_{kilj} & = & \mu_k \cdot \omega^{(1)}_{ki} \cdot \delta_{ij} \cdot \delta_{kl}  \\
-D_{kl} & =  &  \mu_k \cdot \omega^{(0)}_k \cdot \delta_{kl} 
+A_{0i0j} & = & \mu_0 \cdot \omega^{(1)}_{0i} \cdot \delta_{ij} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot 
+\left( (m_{1,j'}m_{1,j'} )\cdot \delta_{ij}  -  m_{1,i} \cdot m_{1,j} \right)    \\
+A_{0i1j} & = & \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot \left( 2 \cdot m_{0,i} \cdot  m_{1,j}
+- m_{1,i} \cdot  m_{0,j} - ( m_{1,j'} m_{0,j'} ) \cdot  \delta_{ij}
+\right)  \\
+A_{1i0j} & = & \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot \left( 2 \cdot m_{1,i} \cdot  m_{0,j}
+- m_{0,i} \cdot  m_{1,j} - ( m_{1,j'} m_{0,j'} ) \cdot  \delta_{ij} \right)  \\
+A_{1i1j} & = &  \mu_1 \cdot \omega^{(1)}_{1i} \cdot \delta_{ij} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot
+\left( (m_{0,j'}m_{0,j'} ) \cdot \delta_{ij}  -  m_{0,i} \cdot m_{0,j}  ) \right) 
 \end{array}
 \end{equation} 
+
 
