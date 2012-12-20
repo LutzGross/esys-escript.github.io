@@ -51,6 +51,6 @@ inv.getCostFunction().setTradeOffFactorsModels(10.)
 density=inv.run()
 
 # Save results
-g, w =  inv.getCostFunction().getForwardModels()[0].getSurvey(0)
+g, w =  inv.getCostFunction().getForwardModel().getSurvey(0)
 saveSilo("result.silo", density=density, gravity_anomaly=g[2], gravity_weight=w[2])
 

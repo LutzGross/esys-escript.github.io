@@ -128,11 +128,19 @@ class InversionCostFunction(MeteredCostFunction):
         :rtype: ``int``
         """
         return self.__num_tradeoff_factors
-    def getForwardModels(self):
+    def getForwardModel(self, idx=None):
         """
-        returns the forward models as a list
+        returns the *idx*-th forward model.
+        :param idx: model index. If cost function contains one model only `idx` can be omitted.
+        :type idx: `int`
         """
-        return self.forward_models
+        if idx==None: idx=0
+        f=self.forward_models[idx]
+	if isinstance(f, ForwardModel): 
+              F=f
+        else:
+	      F=f[0]
+        return F
         
     def getRegularization(self):
         """

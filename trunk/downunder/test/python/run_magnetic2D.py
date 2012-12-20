@@ -78,6 +78,6 @@ inv.getCostFunction().setTradeOffFactorsModels(mu)
 k_new=inv.run()
 print "k_new = ",k_new
 print "k =", source.getReferenceProperty()
-B, chi = inv.getCostFunction().getForwardModels()[0].getSurvey(0)
+B, chi = inv.getCostFunction().getForwardModel().getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'maginv'), k=k_new, k_ref=source.getReferenceProperty(), B=B, chi=chi)
 
