@@ -68,14 +68,14 @@ domainbuilder.setPadding(l_pad)
 domainbuilder.fixSusceptibilityBelow(depth=THICKNESS+depth_offset)
 
 inv=MagneticInversion()
+inv.setup(domainbuilder)
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(10)
-inv.setTradeOffFactors(mu_model=mu)
-inv.setup(domainbuilder)
+inv.getCostFunction().setTradeOffFactorsModels(mu)
 
 k_new=inv.run()
 print "k_new = ",k_new
 print "k =", source.getReferenceProperty()
-B, chi = inv.getForwardModel().getSurvey(0)
+B, chi = inv.getCostFunction().getForwardModels()[0].getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'maginv'), k=k_new, k_ref=source.getReferenceProperty(), B=B, chi=chi)
 

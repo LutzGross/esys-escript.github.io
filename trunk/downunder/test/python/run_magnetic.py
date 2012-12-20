@@ -58,6 +58,6 @@ inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(10)
 inv.setup(domainbuilder)
 k_new = inv.run()
-B, chi = inv.getForwardModel().getSurvey(0)
+B, chi = inv.getCostFunction().getForwardModels()[0].getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'maginv'), sus=k_new, sus_ref=source.getReferenceProperty(), B=B, chi=chi)
 

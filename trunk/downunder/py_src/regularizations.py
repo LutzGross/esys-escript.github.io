@@ -25,7 +25,7 @@ __all__ = ['Regularization']
 from costfunctions import CostFunction
 
 import numpy as np
-from esys.escript import Data, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
+from esys.escript import Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 
@@ -94,9 +94,6 @@ class Regularization(CostFunction):
         
 
         """
-        if numLevelSets>1:
-              raise ValueError("Currently only numLevelSets<=1 is supported.")
-	    
         if w0 == None and w1==None:
               raise ValueError("Values for w0 or for w1 must be given.")
 	if wc == None and  numLevelSets>1:
@@ -251,7 +248,7 @@ class Regularization(CostFunction):
         :rtype: `LinearPDE`
         """
         return self.__pde
-
+    
     def getDualProduct(self, m, r):
         """
         returns the dual product of a gradient represented by X=r[1] and Y=r[0]
@@ -410,25 +407,37 @@ class Regularization(CostFunction):
         DIM=self.getDomain().getDim()
         numLS=self.getNumLevelSets()
 
-        n=0
-
         if self.__w0 is not None:
             Y = m * self.__w0 * mu
         else:
-            Y = Data()
-        n+=numLS
+	    if numLS == 1:
+	      Y = Scalar(0,  grad_m.getFunctionSpace())
+	    else:
+              Y = Data(0, (numLS,) , grad_m.getFunctionSpace())
 
         if self.__w1 is not None:
+	    X=grad_m*self.__w1
             if numLS == 1:
                 X=grad_m* self.__w1*mu
             else:
-                X=grad_m[k,:]*self.__w1[k,:]
                 for k in xrange(numLS):
                     X[k,:]*=mu[k]
         else:
-            X = Data()
-        if numLS > 1:
-            raise NotImplementedError
+            X = Data(0, grad_m.getShape(), grad_m.getFunctionSpace())
+        
+        # cross gradient terms:
+        if numLS > 1:	  
+	  for  k in xrange(numLS):
+       	     grad_m_k=grad_m[k,:]
+  	     l2_grad_m_k = length(grad_m_k)**2
+	     for  l in xrange(k):
+	       grad_m_l=grad_m[l,:]
+	       l2_grad_m_l = length(grad_m_l)**2
+	       grad_m_lk = inner(grad_m_l, grad_m_k)
+	       f=  mu_c[l,k]* self.__wc[l,k]
+	       X[l,:] += f * ( l2_grad_m_l *  grad_m_l - grad_m_lk * grad_m_k )
+	       X[k,:] += f * ( l2_grad_m_k *  grad_m_k - grad_m_lk * grad_m_l )
+        
         return ArithmeticTuple(Y, X)
 
 
@@ -462,7 +471,23 @@ class Regularization(CostFunction):
                         for i in xrange(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
                         
             if numLS > 1:
-                raise NotImplementedError
+	       for  k in xrange(numLS):
+       	         grad_m_k=grad_m[k,:]
+  	         l2_grad_m_k = length(grad_m_k)**2
+  	         o_kk=outer(grad_m_k, grad_m_k)
+	         for  l in xrange(k):
+	            grad_m_l=grad_m[l,:]
+	            l2_grad_m_l = length(grad_m_l)**2
+	            i_lk = inner(grad_m_l, grad_m_k)
+	            o_lk = outer(grad_m_l, grad_m_k)
+	            o_kl = outer(grad_m_k, grad_m_l)
+	            o_ll=outer(grad_m_l, grad_m_l)
+	            f=  mu_c[l,k]* self.__wc[l,k]
+	            
+	            A[l,:,l:] += f * ( l2_grad_m_k * kronecker(DIM) - o_kk )
+	            A[l,:,k:] += f * ( 2 * o_lk -   o_kl - i_lk * kronecker(DIM) )
+	            A[k,:,l:] += f * ( 2 * o_kl -   o_lk - i_lk * kronecker(DIM) )
+	            A[k,:,k:] += f * ( l2_grad_m_l * kronecker(DIM) - o_ll )
             self.getPDE().setValue(A=A)
         #self.getPDE().resetRightHandSideCoefficients()
         #self.getPDE().setValue(X=r[1])

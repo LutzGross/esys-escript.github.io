@@ -68,12 +68,13 @@ domainbuilder.fixDensityBelow(depth=THICKNESS+depth_offset)
 inv=GravityInversion()
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
-inv.setTradeOffFactors(mu_model=mu)
 inv.setup(domainbuilder)
+inv.getCostFunction().setTradeOffFactorsModels(mu)
+
 
 rho_new=inv.run()
 print "rho_new = ",rho_new
 print "rho =", source.getReferenceProperty()
-g, chi = inv.getForwardModel().getSurvey(0)
+g, chi =  inv.getCostFunction().getForwardModels()[0].getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceProperty(), g=g, chi=chi)
 
