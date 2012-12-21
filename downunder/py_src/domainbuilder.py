@@ -52,8 +52,6 @@ class DomainBuilder(object):
             raise ValueError("Number of dimensions must be 2 or 3")
         self._domain=None
         self._dim=dim
-        self._gravity_surveys=[]
-        self._magnetic_surveys=[]
         self._sources=[]
         self.setPadding()
         self.setVerticalExtents()
@@ -158,6 +156,7 @@ class DomainBuilder(object):
 	Returns a list of magnetic surveys, see `` getSurveys`` for details
 	"""
 	return self.getSurveys(DataSource.MAGNETIC)
+	
     def fixDensityBelow(self,depth=None):
         """
         defines the depth below which density anomaly is set to zero.
@@ -174,18 +173,17 @@ class DomainBuilder(object):
         
     def getSurveys(self, datatype):
         """
-        Returns a list of `Data` objects for all gravity surveys available to
+        Returns a list of `Data` objects for all surveys of type *datatype*  available to
         this domain builder.
 
         :return: List of gravity surveys which are tuples (anomaly,error).
         :rtype: ``list``
         """
-        if len(self._gravity_surveys)==0:
-            for src in self._sources:
-                if src.getDataType()==datatype:
-                    survey=src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing)
-                    self._gravity_surveys.append(survey)
-        return self._gravity_surveys
+        surveys=[]
+        for src in self._sources:
+           if src.getDataType()==datatype:
+              surveys.append(src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing))
+        return surveys
 
     def setBackgroundMagneticFluxDensity(self, B):
         """
