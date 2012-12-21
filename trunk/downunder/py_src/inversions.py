@@ -22,12 +22,13 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['InversionBase', 'GravityInversion','MagneticInversion']
+__all__ = ['InversionBase', 'GravityInversion','MagneticInversion', 'JointGravityMagneticInversion']
 
 import logging
 from esys.escript import *
 import esys.escript.unitsSI as U
 from esys.weipa import createDataset
+import numpy as np
 
 from .inversioncostfunctions import InversionCostFunction
 from .forwardmodels import GravityModel, MagneticModel
@@ -271,7 +272,7 @@ class GravityInversion(InversionBase):
         :param g_Jm: gradient of f at x
         """
         fn='inv.%d'%k
-        ds=createDataset(rho=self.getCostFunction().mappings[0].getValue(m))
+        ds=createDataset(density=self.getCostFunction().getProperties(m))
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
         self.logger.debug("J(m) = %e"%Jm)
@@ -296,8 +297,8 @@ class MagneticInversion(InversionBase):
 
         #========================
         self.logger.info('Creating mapping ...')
-        susc_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=z0, beta=beta)
-        scale_mapping=susc_mapping.getTypicalDerivative()
+        k_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=z0, beta=beta)
+        scale_mapping=k_mapping.getTypicalDerivative()
         print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
@@ -330,7 +331,7 @@ class MagneticInversion(InversionBase):
 
         #====================================================================
         self.logger.info("Setting cost function...")
-        self.setCostFunction(InversionCostFunction(regularization, susc_mapping, forward_model))
+        self.setCostFunction(InversionCostFunction(regularization, k_mapping, forward_model))
         
     def setInitialGuess(self, k=None):
         """
@@ -355,7 +356,131 @@ class MagneticInversion(InversionBase):
         :param g_Jm: gradient of f at x
         """
         fn='inv.%d'%k
-        ds=createDataset(susceptibility=self.getCostFunction().mappings[0].getValue(m))
+        ds=createDataset(susceptibility=self.getCostFunction().getProperties(m))
+        ds.setCycleAndTime(k,k)
+        ds.saveSilo(fn)
+        self.logger.debug("J(m) = %e"%Jm)
+        
+class JointGravityMagneticInversion(InversionBase):
+    """
+    Joint inversion of Gravity (Bouguer) anomaly and magnetic data.
+    """
+    DENSITY=0
+    SUSCEPTIBILITY=1
+    
+    def setup(self, domainbuilder,
+                    rho0=None, drho=None, rho_z0=None, rho_beta=None,
+                    k0=None, dk=None, k_z0=None, k_beta=None, w0=None, w1=None,
+                    w_gc=None):
+        """
+        Sets up the inversion parameters from a `DomainBuilder`.
+
+        :param domainbuilder: Domain builder object with gravity source(s)
+        :type domainbuilder: `DomainBuilder`
+        :param rho0: reference density. If not specified, zero is used.
+        :type rho0: ``float`` or `Scalar`
+        """
+        self.logger.info('Retrieving domain...')
+        dom=domainbuilder.getDomain()
+        DIM=dom.getDim()
+
+        #========================
+        self.logger.info('Creating mappings ...')
+        rho_mapping=DensityMapping(dom, rho0=rho0, drho=drho, z0=rho_z0, beta=rho_beta)
+        rho_scale_mapping=rho_mapping.getTypicalDerivative()
+        print " rho_scale_mapping = ",rho_scale_mapping
+        k_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=k_z0, beta=k_beta)
+        k_scale_mapping=k_mapping.getTypicalDerivative()
+        print " rho_scale_mapping = ",k_scale_mapping
+        #========================
+        self.logger.info("Setting up regularization...")
+        
+        if w1 is None:
+            w1=np.ones((2,DIM))
+        
+        wc=Data(0.,(2,2), Function(dom))
+        if w_gc is  None:
+	    wc[0,1]=1
+	else:
+	    wc[0,1]=w_gc
+	 
+	    
+        reg_mask=Data(0.,(2,), Solution(dom))   
+        reg_mask[self.DENSITY] = domainbuilder.getSetDensityMask()
+        reg_mask[self.SUSCEPTIBILITY] = domainbuilder.getSetSusceptibilityMask()
+        regularization=Regularization(dom, numLevelSets=2,\
+                               w0=w0, w1=w1,wc=wc, location_of_set_m=reg_mask)
+        #====================================================================
+        self.logger.info("Retrieving gravity surveys...")
+        surveys=domainbuilder.getGravitySurveys()
+        g=[]
+        w=[]
+        for g_i,sigma_i in surveys:
+            w_i=safeDiv(1., sigma_i)
+            if g_i.getRank()==0:
+                g_i=g_i*kronecker(DIM)[DIM-1]
+            if w_i.getRank()==0:
+                w_i=w_i*kronecker(DIM)[DIM-1]
+            g.append(g_i)
+            w.append(w_i)
+            self.logger.debug("Added gravity survey:")
+            self.logger.debug("g = %s"%g_i)
+            self.logger.debug("sigma = %s"%sigma_i)
+            self.logger.debug("w = %s"%w_i)
+
+        self.logger.info("Setting up gravity model...")
+        gravity_model=GravityModel(dom, w, g)
+        gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
+        #====================================================================
+        self.logger.info("Retrieving magnetic field surveys...")
+        surveys=domainbuilder.getMagneticSurveys()
+        B=[]
+        w=[]
+        for B_i,sigma_i in surveys:
+            w_i=safeDiv(1., sigma_i)
+            if B_i.getRank()==0:
+                B_i=B_i*kronecker(DIM)[DIM-1]
+            if w_i.getRank()==0:
+                w_i=w_i*kronecker(DIM)[DIM-1]
+            B.append(B_i)
+            w.append(w_i)
+            self.logger.debug("Added magnetic survey:")
+            self.logger.debug("B = %s"%B_i)
+            self.logger.debug("sigma = %s"%sigma_i)
+            self.logger.debug("w = %s"%w_i)
+            
+        self.logger.info("Setting up magnetic model...")
+        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity())
+        magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
+        #====================================================================
+        self.logger.info("Setting cost function...")
+        self.setCostFunction(InversionCostFunction(regularization, 
+             ((rho_mapping,self.DENSITY), (k_mapping, self.SUSCEPTIBILITY)),
+               ((gravity_model,0), (magnetic_model,1)) ))
+        
+    def setInitialGuess(self, rho=None, k=None):
+        """
+        set the initial guess *rho* for density and *k* for susceptibility for the inversion iteration. 
+ 
+        :param rho: initial value for the density anomaly.
+        :type rho: `Scalar`
+        :param k: initial value for the susceptibility anomaly.
+        :type k: `Scalar`
+        """
+        super(JointGravityMagneticInversion,self).setInitialGuess(rho, k)
+        
+    def siloWriterCallback(self, k, m, Jm, g_Jm):
+        """
+        callback function that can be used to track the solution
+
+        :param k: iteration count
+        :param m: current m approximation
+        :param Jm: value of cost function
+        :param g_Jm: gradient of f at x
+        """
+        fn='inv.%d'%k
+        p=self.getCostFunction().getProperties(m)
+        ds=createDataset(density=p[self.DENSITY], susceptibility=p[self.SUSCEPTIBILITY])
         ds.setCycleAndTime(k,k)
         ds.saveSilo(fn)
         self.logger.debug("J(m) = %e"%Jm)

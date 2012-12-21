@@ -25,7 +25,7 @@ __all__ = ['Regularization']
 from costfunctions import CostFunction
 
 import numpy as np
-from esys.escript import Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
+from esys.escript import ReducedFunction, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 
@@ -165,11 +165,12 @@ class Regularization(CostFunction):
         else:
              wc = interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
              sc=wc.getShape()
-             raise ValueError("Unexpected shape %s for weight wc."%sc)
+             if not sc == (numLevelSets, numLevelSets):
+                raise ValueError("Unexpected shape %s for weight wc."%(sc,))
         # ============= now we rescale weights: ======================================
         L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
         L4=1/np.sum(1/L2s)**2
-        if numLevelSets is 1 : 
+        if numLevelSets == 1 : 
             A=0
             if w0 is not None:
 	        A = integrate(w0)
@@ -184,6 +185,7 @@ class Regularization(CostFunction):
             else:
 	       raise ValueError("Non-positive weighting factor detected.") 
         else:
+
 	     for k in xrange(numLevelSets):
 	         A=0
                  if w0 is not None:
@@ -200,19 +202,18 @@ class Regularization(CostFunction):
 	           raise ValueError("Non-positive weighting factor for level set component %d detected."%k) 
 		 
 	         # and now the cross-gradient:
-	         for l in xrange(k):   
-	             A = integrate(wc[l,k])/L4
-  	             if A > 0:
- 	                f = scale_c[l,k]/A
- 	                wc[l,k]*=f
-                     else:
-	                raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
+	         if wc is not None:
+	             for l in xrange(k):   
+	                A = integrate(wc[l,k])/L4
+  	                if A > 0:
+ 	                   f = scale_c[l,k]/A
+ 	                   wc[l,k]*=f
+#                        else:
+#	                   raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
 	            
         self.__w0=w0
         self.__w1=w1
         self.__wc=wc
-        
-
 
         self.__pde_is_set=False        
         if self.__numLevelSets > 1:
@@ -348,6 +349,9 @@ class Regularization(CostFunction):
         numLS=self.getNumLevelSets()
         if mu_c is None or numLS < 2:
 	    self.__mu_c = np.ones((numLS,numLS))
+	if isinstance(mu_c, float) or isinstance(mu_c, int):
+	    self.__mu_c = np.zeros((numLS,numLS))
+	    self.__mu_c[:,:]=mu_c 
 	else:
 	    mu_c=np.asarray(mu_c)
 	    if mu_c.shape == (numLS,numLS):
@@ -407,6 +411,9 @@ class Regularization(CostFunction):
         DIM=self.getDomain().getDim()
         numLS=self.getNumLevelSets()
 
+        print "WARNING: WRONG FUNCTION SPACE"
+        
+        grad_m=grad(m, ReducedFunction(m.getDomain()))
         if self.__w0 is not None:
             Y = m * self.__w0 * mu
         else:
@@ -484,10 +491,10 @@ class Regularization(CostFunction):
 	            o_ll=outer(grad_m_l, grad_m_l)
 	            f=  mu_c[l,k]* self.__wc[l,k]
 	            
-	            A[l,:,l:] += f * ( l2_grad_m_k * kronecker(DIM) - o_kk )
-	            A[l,:,k:] += f * ( 2 * o_lk -   o_kl - i_lk * kronecker(DIM) )
-	            A[k,:,l:] += f * ( 2 * o_kl -   o_lk - i_lk * kronecker(DIM) )
-	            A[k,:,k:] += f * ( l2_grad_m_l * kronecker(DIM) - o_ll )
+	            A[l,:,l,:] += f * ( l2_grad_m_k * kronecker(DIM) - o_kk )
+	            A[l,:,k,:] += f * ( 2 * o_lk -   o_kl - i_lk * kronecker(DIM) )
+	            A[k,:,l,:] += f * ( 2 * o_kl -   o_lk - i_lk * kronecker(DIM) )
+	            A[k,:,k,:] += f * ( l2_grad_m_l * kronecker(DIM) - o_ll )
             self.getPDE().setValue(A=A)
         #self.getPDE().resetRightHandSideCoefficients()
         #self.getPDE().setValue(X=r[1])
