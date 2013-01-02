@@ -610,7 +610,7 @@ class SyntheticDataBase(DataSource):
 	k=self.getReferenceProperty(domain)
 	# calculate the corresponding potential
 	z=x[DIM-1]
-	m_psi_ref=whereZero(z-sup(z))+whereZero(z-inf(z))
+	m_psi_ref=whereZero(z-sup(z))
 	if self.getDataType()==DataSource.GRAVITY:
 	    pde.setValue(A=kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
 	else:
@@ -791,8 +791,9 @@ class SyntheticData(SyntheticDataBase):
             k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude 
             for i in xrange(DIM-1):
 	       x_i=x[i]
-	       m=whereNonNegative(x_i)*whereNonNegative(self.length-x_i)
-	       k*= sin(self.__n_length*np.pi /self.length * x_i)*m
+	       min_x=inf(x_i)
+	       max_x=sup(x_i)
+	       k*= sin(self.__n_length*np.pi*(x_i-min_x)/(max_x-min_x))
             self._reference_data= k
         return self._reference_data
 

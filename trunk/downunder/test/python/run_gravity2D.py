@@ -38,12 +38,13 @@ handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
 # interesting parameter:
-depth_offset=0.*U.km
 n_humbs_h= 3
 n_humbs_v=1
 mu=100
 n_cells_in_data=100
+# ignore:
 full_knowledge=False
+depth_offset=0.*U.km
 # 
 n_cells_in_data=max(n_humbs_h*7,n_cells_in_data)
 l_data = 100 * U.km
