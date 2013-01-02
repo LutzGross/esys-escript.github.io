@@ -103,7 +103,7 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
         z=x[DIM-1]
-        self.__pde.setValue(q=whereZero(z-BX[DIM-1][1])+whereZero(z-BX[DIM-1][0]))
+        self.__pde.setValue(q=whereZero(z-BX[DIM-1][1]))
         
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
