@@ -85,8 +85,8 @@ def listmods():
 	print ".."+n+"."+m
     pack.close()
   main.write('\n')
-  main.write('Indicies and Tables\n')
-  main.write('===================\n')
+  main.write('Indices and Tables\n')
+  main.write('==================\n')
   main.write('\n')
   main.write('* :ref:`genindex`\n')
   main.write('* :ref:`modindex`\n')
