@@ -261,7 +261,9 @@ class DomainBuilder(object):
         # amount of padding per dimension
         pad, pt = self._padding
         for i in range(DIM):
-            if pad[i] is None: continue
+            if pad[i] is None:
+		frac.append(0.)
+		continue
             if pt == 'f': # fraction of side length
                 frac.append(2.*pad[i])
             elif pt == 'e': # number of elements

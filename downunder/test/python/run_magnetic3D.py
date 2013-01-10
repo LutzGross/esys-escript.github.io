@@ -60,7 +60,7 @@ source=SyntheticData(DataSource.MAGNETIC,n_length=n_humbs_h, n_depth=n_humbs_v, 
                      data_offset=0,full_knowledge=full_knowledge, spherical=False)
 
 
-domainbuilder=DomainBuilder(dim=2)
+domainbuilder=DomainBuilder(dim=3)
 domainbuilder.addSource(source)
 domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset, air_layer=l_air, num_cells=n_cells_v)
 domainbuilder.setBackgroundMagneticFluxDensity(B_b)
