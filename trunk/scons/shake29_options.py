@@ -84,7 +84,7 @@ openmp = True
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'OPENMPI'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/usr/lib/openmpi'
@@ -181,7 +181,7 @@ lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-#silo = True
+silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 #silo_prefix = '/usr/local'
