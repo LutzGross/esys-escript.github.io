@@ -85,10 +85,13 @@ class TestMinimizerLBFGS(unittest.TestCase):
             n[0]=n[0]+1
         self.minimizer.setCallback(callback)
         self.minimizer.setTolerance(1e-8)
-        self.minimizer.setMaxIterations(100)
-        reason=self.minimizer.run(self.x0)
+        self.minimizer.setMaxIterations(10)
+        try:
+            reason=self.minimizer.run(self.x0)
+        except MinimizerMaxIterReached:
+            pass
         # callback should be called once for each iteration (including 0th)
-        self.assertEqual(n[0], 83)
+        self.assertEqual(n[0], 11)
 
 class TestMinimizerBFGS(unittest.TestCase):
     def setUp(self):
