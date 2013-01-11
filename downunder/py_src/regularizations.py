@@ -96,8 +96,8 @@ class Regularization(CostFunction):
         """
         if w0 == None and w1==None:
               raise ValueError("Values for w0 or for w1 must be given.")
-	if wc == None and  numLevelSets>1:
-	      raise ValueError("Values for wc must be given.")
+        if wc == None and  numLevelSets>1:
+              raise ValueError("Values for wc must be given.")
 
         self.__domain=domain
         DIM=self.__domain.getDim()
@@ -110,56 +110,56 @@ class Regularization(CostFunction):
             self.__pde.setValue(q=location_of_set_m)
         except IllegalCoefficientValue:
             raise ValueError("Unable to set location of fixed level set function.")
-	  
+          
         # =========== check the shape of the scales: =================================
         if scale is None:
-	    if numLevelSets == 1 :
-	       scale = 1.
-	    else:
-	       scale = np.ones((numLevelSets,))
-	else:
-	    scale=np.asarray(scale)
-	    if numLevelSets == 1 :
-	        if scale.shape == ():
-		   if not scale > 0 :
-		      raise ValueError("Value for scale must be positive.")
-		else:
-		   raise ValueError("Unexpected shape %s for scale."%scale.shape)
+            if numLevelSets == 1 :
+               scale = 1.
             else:
-	         if scale.shape is (numLevelSets,):
-		     if not min(scale) > 0:
-		        raise ValueError("All value for scale must be positive.")
-		 else:
-		   raise ValueError("Unexpected shape %s for scale."%scale.shape)
-	
+               scale = np.ones((numLevelSets,))
+        else:
+            scale=np.asarray(scale)
+            if numLevelSets == 1 :
+                if scale.shape == ():
+                   if not scale > 0 :
+                      raise ValueError("Value for scale must be positive.")
+                else:
+                   raise ValueError("Unexpected shape %s for scale."%scale.shape)
+            else:
+                 if scale.shape is (numLevelSets,):
+                     if not min(scale) > 0:
+                        raise ValueError("All value for scale must be positive.")
+                 else:
+                   raise ValueError("Unexpected shape %s for scale."%scale.shape)
+        
         if scale_c is None or numLevelSets < 2:
-	    scale_c = np.ones((numLevelSets,numLevelSets))
-	else:
-	    scale_c=np.asarray(scale_c)
-	    if scale_c.shape == (numLevelSets,numLevelSets):
-	        if not all( [ [ scale_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLevelSets) ]):
-		        raise ValueError("All values in the lower triangle of scale_c must be positive.")
+            scale_c = np.ones((numLevelSets,numLevelSets))
+        else:
+            scale_c=np.asarray(scale_c)
+            if scale_c.shape == (numLevelSets,numLevelSets):
+                if not all( [ [ scale_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLevelSets) ]):
+                        raise ValueError("All values in the lower triangle of scale_c must be positive.")
             else:
-		 raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
-	# ===== check the shape of the weights: ============================================
+                 raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
+        # ===== check the shape of the weights: ============================================
         if w0 is not None:
-	      w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
-	      s0=w0.getShape()
-	      if numLevelSets == 1 :
-		   if  not s0 == () :
-		      raise ValueError("Unexpected shape %s for weight w0."%s0)
+              w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
+              s0=w0.getShape()
+              if numLevelSets == 1 :
+                   if  not s0 == () :
+                      raise ValueError("Unexpected shape %s for weight w0."%s0)
               else:
-		   if not s0 == (numLevelSets,):
-		      raise ValueError("Unexpected shape %s for weight w0."%s0) 
-	if not w1 is None:
-	      w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
-	      s1=w1.getShape()
-	      if numLevelSets is 1 :
-		   if not s1 == (DIM,) :
-		      raise ValueError("Unexpected shape %s for weight w1."%s1)
+                   if not s0 == (numLevelSets,):
+                      raise ValueError("Unexpected shape %s for weight w0."%s0) 
+        if not w1 is None:
+              w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
+              s1=w1.getShape()
+              if numLevelSets is 1 :
+                   if not s1 == (DIM,) :
+                      raise ValueError("Unexpected shape %s for weight w1."%s1)
               else:
-		   if not s1 == (numLevelSets,DIM):
-		      raise ValueError("Unexpected shape %s for weight w1."%s1) 
+                   if not s1 == (numLevelSets,DIM):
+                      raise ValueError("Unexpected shape %s for weight w1."%s1) 
         if numLevelSets == 1 :
              wc=None
         else:
@@ -173,44 +173,44 @@ class Regularization(CostFunction):
         if numLevelSets == 1 : 
             A=0
             if w0 is not None:
-	        A = integrate(w0)
-	    if w1 is not None:
-	        A += integrate(inner(w1, 1/L2s))
-	    if A > 0:
-	        f = scale/A
-	        if w0 is not None:
-	             w0*=f
-	        if w1 is not None:
-		     w1*=f
+                A = integrate(w0)
+            if w1 is not None:
+                A += integrate(inner(w1, 1/L2s))
+            if A > 0:
+                f = scale/A
+                if w0 is not None:
+                     w0*=f
+                if w1 is not None:
+                     w1*=f
             else:
-	       raise ValueError("Non-positive weighting factor detected.") 
+               raise ValueError("Non-positive weighting factor detected.") 
         else:
 
-	     for k in xrange(numLevelSets):
-	         A=0
+             for k in xrange(numLevelSets):
+                 A=0
                  if w0 is not None:
-	             A = integrate(w0[k])
-	         if w1 is not None:
-	              A += integrate(inner(w1[k,:], 1/L2s))
-	         if A > 0:
-	              f = scale[k]/A
-	              if w0 is not None:
-	                 w0[k]*=f
-	              if w1 is not None:
-		         w1[k,:]*=f
+                     A = integrate(w0[k])
+                 if w1 is not None:
+                      A += integrate(inner(w1[k,:], 1/L2s))
+                 if A > 0:
+                      f = scale[k]/A
+                      if w0 is not None:
+                         w0[k]*=f
+                      if w1 is not None:
+                         w1[k,:]*=f
                  else:
-	           raise ValueError("Non-positive weighting factor for level set component %d detected."%k) 
-		 
-	         # and now the cross-gradient:
-	         if wc is not None:
-	             for l in xrange(k):   
-	                A = integrate(wc[l,k])/L4
-  	                if A > 0:
- 	                   f = scale_c[l,k]/A
- 	                   wc[l,k]*=f
+                   raise ValueError("Non-positive weighting factor for level set component %d detected."%k) 
+                 
+                 # and now the cross-gradient:
+                 if wc is not None:
+                     for l in xrange(k):   
+                        A = integrate(wc[l,k])/L4
+                        if A > 0:
+                           f = scale_c[l,k]/A
+                           wc[l,k]*=f
 #                        else:
-#	                   raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
-	            
+#                          raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
+                    
         self.__w0=w0
         self.__w1=w1
         self.__wc=wc
@@ -286,88 +286,89 @@ class Regularization(CostFunction):
         numLS=self.getNumLevelSets()
         numTF=self.getNumTradeOffFactors()
         if mu is None:
-	   mu = np.ones((numTF,))
-	else:
-	   mu = np.asarray(mu)
+           mu = np.ones((numTF,))
+        else:
+           mu = np.asarray(mu)
 
-	if mu.shape == (numTF,):
-	    self.setTradeOffFactorsForVariation(mu[:numLS])
-	    mu_c2=np.zeros((numLS,numLS))
-	    for k in xrange(numLS):
-	       for l in xrange(k):
-		   mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2] 
-	    self.setTradeOffFactorsForCrossGradient(mu_c2)
-	elif mu.shape == () and numLS ==1:
-	    self.setTradeOffFactorsForVariation(mu)
-	else:
-	   raise ValueError("Unexpected shape %s for mu."%(mu.shape,)) 
-	   
+        if mu.shape == (numTF,):
+            self.setTradeOffFactorsForVariation(mu[:numLS])
+            mu_c2=np.zeros((numLS,numLS))
+            for k in xrange(numLS):
+               for l in xrange(k):
+                   mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2] 
+            self.setTradeOffFactorsForCrossGradient(mu_c2)
+        elif mu.shape == () and numLS ==1:
+            self.setTradeOffFactorsForVariation(mu)
+        else:
+           raise ValueError("Unexpected shape %s for mu."%(mu.shape,)) 
+           
     def setTradeOffFactorsForVariation(self, mu=None):
          """
          sets the trade-off factors for the level-set variation part
          
          :param mu:  new values for the trade-off factors. Values must be positive.
-         :type mu: `float``, ``list`` of ``float`` or ```numpy.array```
+         :type mu: ``float``, ``list`` of ``float`` or ```numpy.array```
          """
          numLS=self.getNumLevelSets()
          if mu is None:
-	    if numLS == 1:
-	       mu = 1.
-	    else:
-	       mu = np.ones((numLS,))
+            if numLS == 1:
+               mu = 1.
+            else:
+               mu = np.ones((numLS,))
 
-	 mu=np.asarray(mu)
-	 if numLS == 1:
-	   if mu.shape == (1,): mu=mu[0] 
-	   if mu.shape == ():
-	      if mu > 0:
-		 self.__mu= mu
-		 self._new_mu=True
-	      else:
-		 raise ValueError("Value for trade-off factor must be positive.") 
-	   else:
-	      raise ValueError("Unexpected shape %s for mu."%mu.shape)
-	 else:
-	   if mu.shape == (numLS,):
-	       if min(mu) > 0:
-		   self.__mu= mu
-		   self._new_mu=True
-	       else:
-		   raise ValueError("All value for mu must be positive.")
+         mu=np.asarray(mu)
+         if numLS == 1:
+           if mu.shape == (1,): mu=mu[0] 
+           if mu.shape == ():
+              if mu > 0:
+                 self.__mu= mu
+                 self._new_mu=True
+              else:
+                 raise ValueError("Value for trade-off factor must be positive.") 
            else:
-	       raise ValueError("Unexpected shape %s for trade-off factor."%mu.shape) 
+              raise ValueError("Unexpected shape %s for mu."%mu.shape)
+         else:
+           if mu.shape == (numLS,):
+               if min(mu) > 0:
+                   self.__mu= mu
+                   self._new_mu=True
+               else:
+                   raise ValueError("All value for mu must be positive.")
+           else:
+               raise ValueError("Unexpected shape %s for trade-off factor."%mu.shape) 
 
     def setTradeOffFactorsForCrossGradient(self, mu_c=None):
         """
-        sets the trade-off factors for the cross--gradient terms
+        sets the trade-off factors for the cross-gradient terms
          
-        :param mu_c:  new values for the trade-off factors for the cross--gradient terms. Values must be positive.
-                      if now value is given ones are used. Onky value mu_c[l,k] for l<k are used.
-        :type mu: `float``, ``list`` of ``float`` or ```numpy.array```
+        :param mu_c: new values for the trade-off factors for the cross-gradient
+                     terms. Values must be positive. If no value is given ones
+                     are used. Onky value mu_c[l,k] for l<k are used.
+        :type mu_c: ``float``, ``list`` of ``float`` or ``numpy.array``
          
         """
         numLS=self.getNumLevelSets()
         if mu_c is None or numLS < 2:
-	    self.__mu_c = np.ones((numLS,numLS))
-	if isinstance(mu_c, float) or isinstance(mu_c, int):
-	    self.__mu_c = np.zeros((numLS,numLS))
-	    self.__mu_c[:,:]=mu_c 
-	else:
-	    mu_c=np.asarray(mu_c)
-	    if mu_c.shape == (numLS,numLS):
-	        if not all( [ [ mu_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLS) ]):
-		     raise ValueError("All trade-off factors in the lower triangle of mu_c must be positive.")
-		else:
-		     self.__mu_c =  mu_c
-		     self._new_mu=True
+            self.__mu_c = np.ones((numLS,numLS))
+        if isinstance(mu_c, float) or isinstance(mu_c, int):
+            self.__mu_c = np.zeros((numLS,numLS))
+            self.__mu_c[:,:]=mu_c 
+        else:
+            mu_c=np.asarray(mu_c)
+            if mu_c.shape == (numLS,numLS):
+                if not all( [ [ mu_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLS) ]):
+                     raise ValueError("All trade-off factors in the lower triangle of mu_c must be positive.")
+                else:
+                     self.__mu_c =  mu_c
+                     self._new_mu=True
             else:
-		 raise ValueError("Unexpected shape %s for mu."%mu_c.shape)
+                 raise ValueError("Unexpected shape %s for mu."%mu_c.shape)
     
     def getArguments(self, m):
         """
         """
         return ( grad(m),)
-		 
+                 
 
     def getValue(self, m, grad_m):
         """
@@ -417,13 +418,13 @@ class Regularization(CostFunction):
         if self.__w0 is not None:
             Y = m * self.__w0 * mu
         else:
-	    if numLS == 1:
-	      Y = Scalar(0,  grad_m.getFunctionSpace())
-	    else:
+            if numLS == 1:
+              Y = Scalar(0,  grad_m.getFunctionSpace())
+            else:
               Y = Data(0, (numLS,) , grad_m.getFunctionSpace())
 
         if self.__w1 is not None:
-	    X=grad_m*self.__w1
+            X=grad_m*self.__w1
             if numLS == 1:
                 X=grad_m* self.__w1*mu
             else:
@@ -433,17 +434,17 @@ class Regularization(CostFunction):
             X = Data(0, grad_m.getShape(), grad_m.getFunctionSpace())
         
         # cross gradient terms:
-        if numLS > 1:	  
-	  for  k in xrange(numLS):
-       	     grad_m_k=grad_m[k,:]
-  	     l2_grad_m_k = length(grad_m_k)**2
-	     for  l in xrange(k):
-	       grad_m_l=grad_m[l,:]
-	       l2_grad_m_l = length(grad_m_l)**2
-	       grad_m_lk = inner(grad_m_l, grad_m_k)
-	       f=  mu_c[l,k]* self.__wc[l,k]
-	       X[l,:] += f * ( l2_grad_m_l *  grad_m_l - grad_m_lk * grad_m_k )
-	       X[k,:] += f * ( l2_grad_m_k *  grad_m_k - grad_m_lk * grad_m_l )
+        if numLS > 1:     
+          for  k in xrange(numLS):
+             grad_m_k=grad_m[k,:]
+             l2_grad_m_k = length(grad_m_k)**2
+             for  l in xrange(k):
+               grad_m_l=grad_m[l,:]
+               l2_grad_m_l = length(grad_m_l)**2
+               grad_m_lk = inner(grad_m_l, grad_m_k)
+               f=  mu_c[l,k]* self.__wc[l,k]
+               X[l,:] += f * ( l2_grad_m_l *  grad_m_l - grad_m_lk * grad_m_k )
+               X[k,:] += f * ( l2_grad_m_k *  grad_m_k - grad_m_lk * grad_m_l )
         
         return ArithmeticTuple(Y, X)
 
@@ -478,23 +479,23 @@ class Regularization(CostFunction):
                         for i in xrange(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
                         
             if numLS > 1:
-	       for  k in xrange(numLS):
-       	         grad_m_k=grad_m[k,:]
-  	         l2_grad_m_k = length(grad_m_k)**2
-  	         o_kk=outer(grad_m_k, grad_m_k)
-	         for  l in xrange(k):
-	            grad_m_l=grad_m[l,:]
-	            l2_grad_m_l = length(grad_m_l)**2
-	            i_lk = inner(grad_m_l, grad_m_k)
-	            o_lk = outer(grad_m_l, grad_m_k)
-	            o_kl = outer(grad_m_k, grad_m_l)
-	            o_ll=outer(grad_m_l, grad_m_l)
-	            f=  mu_c[l,k]* self.__wc[l,k]
-	            
-	            A[l,:,l,:] += f * ( l2_grad_m_k * kronecker(DIM) - o_kk )
-	            A[l,:,k,:] += f * ( 2 * o_lk -   o_kl - i_lk * kronecker(DIM) )
-	            A[k,:,l,:] += f * ( 2 * o_kl -   o_lk - i_lk * kronecker(DIM) )
-	            A[k,:,k,:] += f * ( l2_grad_m_l * kronecker(DIM) - o_ll )
+               for  k in xrange(numLS):
+                 grad_m_k=grad_m[k,:]
+                 l2_grad_m_k = length(grad_m_k)**2
+                 o_kk=outer(grad_m_k, grad_m_k)
+                 for  l in xrange(k):
+                    grad_m_l=grad_m[l,:]
+                    l2_grad_m_l = length(grad_m_l)**2
+                    i_lk = inner(grad_m_l, grad_m_k)
+                    o_lk = outer(grad_m_l, grad_m_k)
+                    o_kl = outer(grad_m_k, grad_m_l)
+                    o_ll=outer(grad_m_l, grad_m_l)
+                    f=  mu_c[l,k]* self.__wc[l,k]
+                    
+                    A[l,:,l,:] += f * ( l2_grad_m_k * kronecker(DIM) - o_kk )
+                    A[l,:,k,:] += f * ( 2 * o_lk -   o_kl - i_lk * kronecker(DIM) )
+                    A[k,:,l,:] += f * ( 2 * o_kl -   o_lk - i_lk * kronecker(DIM) )
+                    A[k,:,k,:] += f * ( l2_grad_m_l * kronecker(DIM) - o_ll )
             self.getPDE().setValue(A=A)
         #self.getPDE().resetRightHandSideCoefficients()
         #self.getPDE().setValue(X=r[1])

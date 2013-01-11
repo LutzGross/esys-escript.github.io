@@ -516,28 +516,31 @@ class SmoothAnomaly(SourceFeature):
 
 ##############################################################################
 class SyntheticDataBase(DataSource):
-  """
-  Base class to define reference data based on a given property distribution (density or
-  susceptibility). Data are collected from a square region of vertical extend `length` on a 
-  grid with ``number_of_elements`` cells in each direction.
-  
-  The synthetic data are constructed by solving the appropriate forward problem. Data can be sampled
-  with an offset from the surface at z=0 or using the entire subsurface region.
-  """
-  def __init__(self, datatype, 
-		DIM=2,
-		number_of_elements=10,
-		length=1*U.km,
-		B_b=None,
-		data_offset=0,
-		full_knowledge=False,
-		spherical=False):
-	"""
+    """
+    Base class to define reference data based on a given property distribution
+    (density or susceptibility). Data are collected from a square region of
+    vertical extent `length` on a grid with `number_of_elements` cells in each
+    direction.
+    
+    The synthetic data are constructed by solving the appropriate forward
+    problem. Data can be sampled with an offset from the surface at z=0 or
+    using the entire subsurface region.
+    """
+    def __init__(self, datatype, 
+                 DIM=2,
+                 number_of_elements=10,
+                 length=1*U.km,
+                 B_b=None,
+                 data_offset=0,
+                 full_knowledge=False,
+                 spherical=False):
+        """
         :param datatype: data type indicator
         :type datatype: ``DataSource.GRAVITY``, ``DataSource.MAGNETIC``
-        :param DIM: spatial dimension
-        :type DIM: 2 or 3
-        :param number_of_elements: lateral number of elements in the region where data are collected
+        :param DIM: number of spatial dimension
+        :type DIM: ``int`` (2 or 3)
+        :param number_of_elements: lateral number of elements in the region
+                                   where data are collected
         :type number_of_elements: ``int``
         :param length: lateral extend of the region where data are collected
         :type length: ``float``
@@ -545,112 +548,115 @@ class SyntheticDataBase(DataSource):
         :type B_b: ``list`` of ``Scalar``
         :param data_offset: offset of the data collection region from the surface
         :type data_offset: ``float``
-        :param full_knowledge: if ``True`` data are collected from the entire subsurface region. This is mainly for testing.
+        :param full_knowledge: if ``True`` data are collected from the entire
+                               subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` sperical coordinates are used (ignored)
+        :param spherical: if ``True`` sperical coordinates are used (ignored for now)
         :type spherical: ``Bool``
-	"""
-	super(SyntheticDataBase,self).__init__()
-	if not datatype in [self.GRAVITY,self.MAGNETIC]:
-	    raise ValueError("Invalid value for datatype parameter")	  
-	self.DIM=DIM
-	self.number_of_elements=number_of_elements
-	self.length=length
-	self.__datatype = datatype
-	
-	self.__spherical = spherical   
-	self.__full_knowledge= full_knowledge
-	self.__data_offset=data_offset
-	self.__B_b =None
-	# this is for Cartesian (FIXME ?)
-	if datatype  ==  self.MAGNETIC:
-	    if self.DIM<3:
-	      self.__B_b =  np.array([-B_b[2],  -B_b[0]])
-	    else:
-	      self.__B_b = ([-B_b[1],  -B_b[2],  -B_b[0]])     
-	self.__origin = [0]*(DIM-1)
-	self.__delta = [float(length)/number_of_elements]*(DIM-1)
-	self.__nPts = [number_of_elements]*(DIM-1)
-	self._reference_data=None
-	
-  def getDataExtents(self):
-	"""
-	returns the lateral data extend of the data set
-	"""
-	return (list(self.__origin), list(self.__nPts), list(self.__delta))
+        """
+        super(SyntheticDataBase,self).__init__()
+        if not datatype in [self.GRAVITY,self.MAGNETIC]:
+            raise ValueError("Invalid value for datatype parameter")      
+        self.DIM=DIM
+        self.number_of_elements=number_of_elements
+        self.length=length
+        self.__datatype = datatype
+        
+        self.__spherical = spherical   
+        self.__full_knowledge= full_knowledge
+        self.__data_offset=data_offset
+        self.__B_b =None
+        # this is for Cartesian (FIXME ?)
+        if datatype  ==  self.MAGNETIC:
+            if self.DIM < 3:
+                self.__B_b = np.array([-B_b[2], -B_b[0]])
+            else:
+                self.__B_b = ([-B_b[1], -B_b[2], -B_b[0]])     
+        self.__origin = [0]*(DIM-1)
+        self.__delta = [float(length)/number_of_elements]*(DIM-1)
+        self.__nPts = [number_of_elements]*(DIM-1)
+        self._reference_data=None
+        
+    def getDataExtents(self):
+        """
+        returns the lateral data extend of the data set
+        """
+        return (list(self.__origin), list(self.__nPts), list(self.__delta))
 
-  def getDataType(self):
-	"""
-	returns the data type
-	"""
-	return self.__datatype
-	
-  def getSurveyData(self, domain, origin, number_of_elements, spacing):
-	"""
-	returns the survey data placed on a given domain.
-	
-	:param domain: domain on which the data are to be placed
-	:type param: ``Domain``
-	:param origin: origin of the domain
-	:type origin: ``list`` of ``float``
-	:param number_of_elements: number of elements (or cells) in each spatial direction used 
-				  span the domain
-	:type number_of_elements: `list`` of ``int``
-	:param spacing: cell size in each spatial direction
-	:type spacing: ``list`` of ``float``
-	:return: observed gravity field or magnetic flux density for each cell in the domain and
-	for each cell an indicator 1/0 if the data are valid or not.
-	:rtype: pair of ``Scalar``
-	"""
-	pde=LinearSinglePDE(domain)
-	DIM=domain.getDim()
-	x=domain.getX()
-	# set the reference data
-	
-	k=self.getReferenceProperty(domain)
-	# calculate the corresponding potential
-	z=x[DIM-1]
-	m_psi_ref=whereZero(z-sup(z))
-	if self.getDataType()==DataSource.GRAVITY:
-	    pde.setValue(A=kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
-	else:
-	    pde.setValue(A=kronecker(domain), X=self._reference_data*self.__B_b, q=m_psi_ref)
-	pde.setSymmetryOn()
-	#pde.getSolverOptions().setTolerance(1e-13)
-	psi_ref=pde.getSolution()
-	del pde
-	if self.getDataType()==DataSource.GRAVITY:
-	    data = -grad(psi_ref, ReducedFunction(domain))
-	else:
-	    data = self._reference_data*self.__B_b-grad(psi_ref, ReducedFunction(domain))
+    def getDataType(self):
+        """
+        returns the data type
+        """
+        return self.__datatype
+        
+    def getSurveyData(self, domain, origin, number_of_elements, spacing):
+        """
+        returns the survey data placed on a given domain.
+        
+        :param domain: domain on which the data are to be placed
+        :type domain: ``Domain``
+        :param origin: origin of the domain
+        :type origin: ``list`` of ``float``
+        :param number_of_elements: number of elements (or cells) in each
+                                   spatial direction used to span the domain
+        :type number_of_elements: ``list`` of ``int``
+        :param spacing: cell size in each spatial direction
+        :type spacing: ``list`` of ``float``
+        :return: observed gravity field or magnetic flux density for each cell
+                 in the domain and for each cell an indicator 1/0 if the data
+                 are valid or not.
+        :rtype: pair of ``Scalar``
+        """
+        pde=LinearSinglePDE(domain)
+        DIM=domain.getDim()
+        x=domain.getX()
+        # set the reference data
+        
+        k=self.getReferenceProperty(domain)
+        # calculate the corresponding potential
+        z=x[DIM-1]
+        m_psi_ref=whereZero(z-sup(z))
+        if self.getDataType()==DataSource.GRAVITY:
+            pde.setValue(A=kronecker(domain), Y=-4*np.pi*U.Gravitational_Constant*self._reference_data, q=m_psi_ref)
+        else:
+            pde.setValue(A=kronecker(domain), X=self._reference_data*self.__B_b, q=m_psi_ref)
+        pde.setSymmetryOn()
+        #pde.getSolverOptions().setTolerance(1e-13)
+        psi_ref=pde.getSolution()
+        del pde
+        if self.getDataType()==DataSource.GRAVITY:
+            data = -grad(psi_ref, ReducedFunction(domain))
+        else:
+            data = self._reference_data*self.__B_b-grad(psi_ref, ReducedFunction(domain))
 
-	x=ReducedFunction(domain).getX()    
-	if self.__full_knowledge:
-	    sigma = whereNegative(x[DIM-1])
-	else:
-	  
-	    sigma=1.
-	    # limit mask to non-padding in horizontal area        
-	    for i in range(DIM-1):
-		x_i=x[i]
-		sigma=sigma * wherePositive(x_i) * whereNegative(x_i-(sup(x_i)+inf(x_i)))
-	    # limit mask to one cell thickness at z=0
-	    z=x[DIM-1]
-	    oo=int(self.__data_offset/spacing[DIM-1]+0.5)*spacing[DIM-1]
-	    sigma = sigma * whereNonNegative(z-oo) * whereNonPositive(z-oo-spacing[DIM-1])
-	return data,sigma
-	
-  def getReferenceProperty(self, domain=None):
-	"""
-	Returns the reference density Data object that was used to generate
-	the gravity/susceptibility anomaly data.
-	
-	:return: the density or susceptibility anomaly used to create the survey data.
-	:note: it can be assumed that in the first call the ``domain`` argument is present so the 
-	actual anomaly data can be created. In subsequent calls this may not be true.
-	:note: method needs to be overwritten
-	"""
-	raise NotImplementedError()       
+        x=ReducedFunction(domain).getX()    
+        if self.__full_knowledge:
+            sigma = whereNegative(x[DIM-1])
+        else:
+            sigma=1.
+            # limit mask to non-padding in horizontal area        
+            for i in range(DIM-1):
+                x_i=x[i]
+                sigma=sigma * wherePositive(x_i) * whereNegative(x_i-(sup(x_i)+inf(x_i)))
+            # limit mask to one cell thickness at z=0
+            z=x[DIM-1]
+            oo=int(self.__data_offset/spacing[DIM-1]+0.5)*spacing[DIM-1]
+            sigma = sigma * whereNonNegative(z-oo) * whereNonPositive(z-oo-spacing[DIM-1])
+        return data,sigma
+        
+    def getReferenceProperty(self, domain=None):
+        """
+        Returns the reference density Data object that was used to generate
+        the gravity/susceptibility anomaly data.
+        
+        :return: the density or susceptibility anomaly used to create the
+                 survey data
+        :note: it can be assumed that in the first call the ``domain``
+               argument is present so the actual anomaly data can be created.
+               In subsequent calls this may not be true.
+        :note: method needs to be overwritten
+        """
+        raise NotImplementedError()       
       
 class SyntheticFeatureData(SyntheticDataBase):
     """
@@ -696,8 +702,8 @@ class SyntheticFeatureData(SyntheticDataBase):
 
     def getReferenceProperty(self, domain=None):
         """
-	Returns the reference density Data object that was used to generate
-	the gravity/susceptibility anomaly data.
+        Returns the reference density Data object that was used to generate
+        the gravity/susceptibility anomaly data.
         """
         if self._reference_data == None:
             DIM=domain.getDim()
@@ -733,31 +739,36 @@ class SyntheticData(SyntheticDataBase):
         """
         :param datatype: data type indicator
         :type datatype: ``DataSource.GRAVITY``, ``DataSource.MAGNETIC``
-        :param n_length: number of oscillation in the anomaly data within the observation region.
+        :param n_length: number of oscillations in the anomaly data within the
+                         observation region
         :type n_length: ``int`` 
-        :param n_depth: number of oscillation in the anomaly data below surface
-        :param depth: vertical extend in the  anomaly data. If not present the depth of the domain is used.
+        :param n_depth: number of oscillations in the anomaly data below surface
+        :param depth: vertical extent in the anomaly data. If not present the
+                      depth of the domain is used.
         :type depth: ``float``
-        :param amplitude: data amplitude. Default value is 200 *U.kg/U.m**3 for gravity and 0.1 for magnetic data.
-        :param features: list of features. It is recommended that the features do entirely lay below surface.
-        :type features: ``list`` of ``SourceFeature``
-        :param DIM: spatial dimension
-        :type DIM: 2 or 3
-        :param number_of_elements: lateral number of elements in the region where data are collected
+        :param amplitude: data amplitude. Default value is 200 U.kg/U.m**3 for
+                          gravity and 0.1 for magnetic data.
+        :param DIM: spatial dimensionality
+        :type DIM: ``int`` (2 or 3)
+        :param number_of_elements: lateral number of elements in the region
+                                   where data are collected
         :type number_of_elements: ``int``
-        :param length: lateral extend of the region where data are collected
+        :param length: lateral extent of the region where data are collected
         :type length: ``float``
-        :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude]. Only used for magnetic data.
+        :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude].
+                    Only used for magnetic data.
         :type B_b: ``list`` of ``Scalar``
         :param data_offset: offset of the data collection region from the surface
         :type data_offset: ``float``
-        :param full_knowledge: if ``True`` data are collected from the entire subsurface region. This is mainly for testing.
+        :param full_knowledge: if ``True`` data are collected from the entire
+                               subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` sperical coordinates are used (ignored)
+        :param spherical: if ``True`` sperical coordinates are used (ignored for now)
         :type spherical: ``Bool``
         """      
         super(SyntheticData,self).__init__(
-                                 datatype=datatype, DIM=DIM, number_of_elements=number_of_elements, 
+                                 datatype=datatype, DIM=DIM,
+                                 number_of_elements=number_of_elements, 
                                  length=length, B_b=B_b, 
                                  data_offset=data_offset,
                                  full_knowledge=full_knowledge,
@@ -767,13 +778,11 @@ class SyntheticData(SyntheticDataBase):
         self.depth = depth
         self.depth_offset=depth_offset
         if amplitude == None:
-	    if datatype == DataSource.GRAVITY:
-	        amplitude = 200 *U.kg/U.m**3
-	    else:
-	         amplitude =0.1
+            if datatype == DataSource.GRAVITY:
+                amplitude = 200 *U.kg/U.m**3
+            else:
+                amplitude = 0.1
         self.__amplitude = amplitude
-
-
 
     def getReferenceProperty(self, domain=None):
         """
@@ -790,11 +799,10 @@ class SyntheticData(SyntheticDataBase):
             z2=(z+self.depth_offset)/(self.depth_offset-dd)
             k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude 
             for i in xrange(DIM-1):
-	       x_i=x[i]
-	       min_x=inf(x_i)
-	       max_x=sup(x_i)
-	       k*= sin(self.__n_length*np.pi*(x_i-min_x)/(max_x-min_x))
+               x_i=x[i]
+               min_x=inf(x_i)
+               max_x=sup(x_i)
+               k*= sin(self.__n_length*np.pi*(x_i-min_x)/(max_x-min_x))
             self._reference_data= k
         return self._reference_data
-
 
