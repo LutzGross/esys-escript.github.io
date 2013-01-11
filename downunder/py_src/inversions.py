@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['InversionBase', 'GravityInversion','MagneticInversion', 'JointGravityMagneticInversion']
+__all__ = ['InversionDriver', 'GravityInversion','MagneticInversion', 'JointGravityMagneticInversion']
 
 import logging
 from esys.escript import *
@@ -37,11 +37,14 @@ from .minimizers import *
 from .regularizations import Regularization
 from .datasources import DataSource
 
-class InversionBase(object):
+class InversionDriver(object):
     """
     Base class for running an inversion
     """
     def __init__(self):
+        """
+        creates an intance of an inversion driver.
+        """
         self.logger=logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__costfunction = None
         self.setSolverMaxIterations()
@@ -50,6 +53,7 @@ class InversionBase(object):
         self.setSolverClass()
         self._solver_opts = {}
         self.initial_value = None
+        self.m=None
         # set default solver
 
 
@@ -77,8 +81,10 @@ class InversionBase(object):
     def setSolverClass(self, solverclass=None):
         """
         The solver to be used in the inversion process. See the minimizers
-        module for available solvers.
-        By default, the L-BFGS minimizer is used.
+        module for available solvers. By default, the L-BFGS minimizer is used.
+        
+        :param solverclass: solver class to be used.
+        :type solverclass: 'AbstractMinimizer'.
         """
         if solverclass == None:
             self.solverclass=MinimizerLBFGS
@@ -113,7 +119,11 @@ class InversionBase(object):
         
     def setSolverMaxIterations(self, maxiter=None):
         """
-        Sets the maximum number of solver iterations to run.
+        Sets the maximum number of solver iterations to run. If ``maxiter`` is reached the iteration 
+        is terminated and `MinimizerMaxIterReached` is thrown.
+        
+        :param maxiter: maximum number of iteration steps.
+        :type maxiter: positive ``int``
         """
         if maxiter == None: maxiter = 200
         if maxiter>0:
@@ -158,9 +168,10 @@ class InversionBase(object):
         
     def run(self):
         """
-        this function runs the inversion. 
+        This function runs the inversion.
         
-        
+        :return: physical parameters as result of the inversion
+        :rtype: ``list`` of physical parameters or a physical parameter
         """
         if not self.isSetUp():
             raise RuntimeError("Inversion is not setup.")           
@@ -184,16 +195,26 @@ class InversionBase(object):
         self.logger.info("iteration completed.")
         solver.logSummary()
         return self.p
-
+        
+    def getLevelSetFunction(self):
+        """
+        returns the level set function as solution of the optimization problem
+        
+        :rtype: `Data`
+        """
+        return self.m
+        
     def setup(self, *args, **k_args): 
         """
         returns True if the inversion is set up and ready to run.
         """
         pass
 
-class GravityInversion(InversionBase):
+class GravityInversion(InversionDriver):
     """
-    Inversion of Gravity (Bouguer) anomaly data.
+     Driver class to perform an inversion of  Gravity (Bouguer) anomaly data. The class uses the standard
+     'Regularization` class for a single level set function, `DensityMapping` mapping,
+     and the gravity forward model `GravityModel`.
     """
     def setup(self, domainbuilder,
                     rho0=None, drho=None, z0=None, beta=None,
@@ -203,8 +224,18 @@ class GravityInversion(InversionBase):
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-        :param rho0: reference density. If not specified, zero is used.
+        :param rho0: reference density, see `DensityMapping`. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
+        :param drho: density scale, see `DensityMapping`. If not specified, 2750kg/m^3 is used.
+        :type drho: ``float`` or `Scalar`  
+        :param z0: reference depth for depth weighting, see `DensityMapping`. If not specified, zero is used.
+        :type z0: ``float`` or `Scalar`
+        :param beta: exponent for  depth weighting, see `DensityMapping`. If not specified, zero is used.
+        :type beta: ``float`` or `Scalar`   
+        :param w0: weighting factor for level set term regularization. If not set zero is assumed.
+        :type w0: ``Scalar`` or ''float''
+        :param w1: weighting factor for the gradient term in the regularization. If not set zero is assumed
+        :type w1: ``Vector``  or list of ``float``s   
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
@@ -213,7 +244,6 @@ class GravityInversion(InversionBase):
         self.logger.info('Creating mapping...')
         rho_mapping=DensityMapping(dom, rho0=rho0, drho=drho, z0=z0, beta=beta)
         scale_mapping=rho_mapping.getTypicalDerivative()
-        print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
@@ -277,9 +307,11 @@ class GravityInversion(InversionBase):
         ds.saveSilo(fn)
         self.logger.debug("J(m) = %e"%Jm)
 
-class MagneticInversion(InversionBase):
+class MagneticInversion(InversionDriver):
     """
-    Inversion of magnetic data.
+    Driver class to perform an inversion of magnetic anomaly data. The class uses the standard 
+    `Regularization` class for a single level set function. 'SusceptibilityMapping` mapping
+    and the linear magnetic forward model `MagneticModel`
     """
     def setup(self, domainbuilder,
                     k0=None, dk=None, z0=None, beta=None,
@@ -287,9 +319,20 @@ class MagneticInversion(InversionBase):
         """
         Sets up the inversion parameters from a `DomainBuilder`.
 
-        :param domainbuilder: Domain builder object with magnetic source(s)
+        :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-
+        :param k0: reference susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
+        :type k0: ``float`` or `Scalar`
+        :param dk: susceptibility scale, see `SusceptibilityMapping`. If not specified, 2750kg/m^3 is used.
+        :type dk: ``float`` or `Scalar`  
+        :param z0: reference depth for depth weighting, see `SusceptibilityMapping`. If not specified, zero is used.
+        :type z0: ``float`` or `Scalar`
+        :param beta: exponent for  depth weighting, see `SusceptibilityMapping`. If not specified, zero is used.
+        :type beta: ``float`` or `Scalar`   
+        :param w0: weighting factor for level set term regularization. If not set zero is assumed.
+        :type w0: ``Scalar`` or ''float''
+        :param w1: weighting factor for the gradient term in the regularization. If not set zero is assumed
+        :type w1: ``Vector``  or list of ``float``s   
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
@@ -299,7 +342,6 @@ class MagneticInversion(InversionBase):
         self.logger.info('Creating mapping ...')
         k_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=z0, beta=beta)
         scale_mapping=k_mapping.getTypicalDerivative()
-        print " scale_mapping = ",scale_mapping
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
@@ -361,9 +403,12 @@ class MagneticInversion(InversionBase):
         ds.saveSilo(fn)
         self.logger.debug("J(m) = %e"%Jm)
         
-class JointGravityMagneticInversion(InversionBase):
+class JointGravityMagneticInversion(InversionDriver):
     """
-    Joint inversion of Gravity (Bouguer) anomaly and magnetic data.
+     Driver class to perform a joint inversion of  Gravity (Bouguer) and magnetic anomaly data.  The class uses 
+     the standard `Regularization` class for two level set functions with cross-gradient correlation. '
+     DensityMapping' and 'SusceptibilityMapping' mappings, the gravity forward model 'GravityModel'
+     and the linear magnetic forward model 'MagneticModel.
     """
     DENSITY=0
     SUSCEPTIBILITY=1
@@ -374,11 +419,34 @@ class JointGravityMagneticInversion(InversionBase):
                     w_gc=None):
         """
         Sets up the inversion parameters from a `DomainBuilder`.
-
+        Sets up the inversion from an instance ``domainbuilder`` of a `DomainBuilder`.
+        Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
+        
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-        :param rho0: reference density. If not specified, zero is used.
+        
+        :param rho0: reference density, see `DensityMapping`. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
+        :param drho: density scale, see `DensityMapping`. If not specified, 2750kg/m^3 is used.
+        :type drho: ``float`` or `Scalar`  
+        :param rho_z0: reference depth for depth weighting for density, see `DensityMapping`. If not specified, zero is used.
+        :type rho_z0: ``float`` or `Scalar`
+        :param rho_beta: exponent for  depth weighting  for density, see `DensityMapping`. If not specified, zero is used.
+        :type rho_beta: ``float`` or `Scalar`        
+        :param k0: reference susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
+        :type k0: ``float`` or `Scalar`
+        :param dk: susceptibility scale, see `SusceptibilityMapping`. If not specified, 2750kg/m^3 is used.
+        :type dk: ``float`` or `Scalar`  
+        :param k_z0: reference depth for depth weighting for susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
+        :type k_z0: ``float`` or `Scalar`
+        :param k_beta: exponent for  depth weighting for susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
+        :type k_beta: ``float`` or `Scalar`   
+        :param w0: weighting factors for level set term regularization, see `Regularization`. If not set zero is assumed.
+        :type w0: `Data` or `ndarray` of shape (2,)
+        :param w1: weighting factor for the gradient term in the regularization see `Regularization`. If not set zero is assumed
+        :type w1: `Data` or `ndarray` of shape (2,DIM)  
+        :param w_gc: weighting factor for the cross gradient term in the regularization, see `Regularization`. If not set one is assumed
+        :type w_gc: `Scalar` or `float` 
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
