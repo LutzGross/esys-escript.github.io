@@ -76,7 +76,7 @@ class InversionDriver(object):
         if self.isSetUp():
            return  self.__costfunction
         else:
-	   raise RuntimeError("Inversion is not set up.")
+           raise RuntimeError("Inversion is not set up.")
     
     def setSolverClass(self, solverclass=None):
         """
@@ -98,10 +98,10 @@ class InversionDriver(object):
         :rtype: `bool`
         """
         if  self.__costfunction:
-	    return True
-	else:
-	    return False
-	    
+            return True
+        else:
+            return False
+            
     def getDomain(self):
         """
         returns the domain of the inversion
@@ -139,24 +139,24 @@ class InversionDriver(object):
         self._solver_opts.update(**opts)
 
     def setSolverTolerance(self, tol=None, atol=None):
-	"""
-	Sets the error tolerance for the solver. An acceptable solution is
-	considered to be found once the tolerance is reached.
-	
-	:param tol: tolerance for changes to level set function. If `None` changes to the 
-		    level set function are not checked for convergence during iteration.
-	:param atol: tolerance for changes to cost function. If `None` changes to the 
-		    cost function are not checked for convergence during iteration.
-	:type tol: `float` or `None`
-	:type atol: `float` or `None` 
-	:note: if both arguments are equal to `None` the default setting tol=1e-4, atol=None is used.
+        """
+        Sets the error tolerance for the solver. An acceptable solution is
+        considered to be found once the tolerance is reached.
+        
+        :param tol: tolerance for changes to level set function. If `None` changes to the 
+                    level set function are not checked for convergence during iteration.
+        :param atol: tolerance for changes to cost function. If `None` changes to the 
+                    cost function are not checked for convergence during iteration.
+        :type tol: `float` or `None`
+        :type atol: `float` or `None` 
+        :note: if both arguments are equal to `None` the default setting tol=1e-4, atol=None is used.
 
-	"""
-	if tol == None and atol==None:
-	    tol=1e-4
+        """
+        if tol == None and atol==None:
+            tol=1e-4
 
-	self._solver_xtol=tol
-	self._solver_atol=atol
+        self._solver_xtol=tol
+        self._solver_atol=atol
 
  
     def setInitialGuess(self, *args):
@@ -225,17 +225,17 @@ class GravityInversion(InversionDriver):
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
         :param rho0: reference density, see `DensityMapping`. If not specified, zero is used.
-        :type rho0: ``float`` or `Scalar`
+        :type rho0: ``float`` or ``Scalar``
         :param drho: density scale, see `DensityMapping`. If not specified, 2750kg/m^3 is used.
-        :type drho: ``float`` or `Scalar`  
+        :type drho: ``float`` or ``Scalar``
         :param z0: reference depth for depth weighting, see `DensityMapping`. If not specified, zero is used.
-        :type z0: ``float`` or `Scalar`
+        :type z0: ``float`` or ``Scalar``
         :param beta: exponent for  depth weighting, see `DensityMapping`. If not specified, zero is used.
-        :type beta: ``float`` or `Scalar`   
+        :type beta: ``float`` or ``Scalar``
         :param w0: weighting factor for level set term regularization. If not set zero is assumed.
-        :type w0: ``Scalar`` or ''float''
+        :type w0: ``Scalar`` or ``float``
         :param w1: weighting factor for the gradient term in the regularization. If not set zero is assumed
-        :type w1: ``Vector``  or list of ``float``s   
+        :type w1: ``Vector`` or list of ``float``
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
@@ -288,9 +288,9 @@ class GravityInversion(InversionDriver):
         :type rho: `Scalar`
         """
         if rho:
-	    super(GravityInversion,self).setInitialGuess(rho)
-	else:
-	    super(GravityInversion,self).setInitialGuess()
+            super(GravityInversion,self).setInitialGuess(rho)
+        else:
+            super(GravityInversion,self).setInitialGuess()
         
     def siloWriterCallback(self, k, m, Jm, g_Jm):
         """
@@ -322,17 +322,17 @@ class MagneticInversion(InversionDriver):
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
         :param k0: reference susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
-        :type k0: ``float`` or `Scalar`
+        :type k0: ``float`` or ``Scalar``
         :param dk: susceptibility scale, see `SusceptibilityMapping`. If not specified, 2750kg/m^3 is used.
-        :type dk: ``float`` or `Scalar`  
+        :type dk: ``float`` or ``Scalar``
         :param z0: reference depth for depth weighting, see `SusceptibilityMapping`. If not specified, zero is used.
-        :type z0: ``float`` or `Scalar`
+        :type z0: ``float`` or ``Scalar``
         :param beta: exponent for  depth weighting, see `SusceptibilityMapping`. If not specified, zero is used.
-        :type beta: ``float`` or `Scalar`   
+        :type beta: ``float`` or ``Scalar``
         :param w0: weighting factor for level set term regularization. If not set zero is assumed.
-        :type w0: ``Scalar`` or ''float''
+        :type w0: ``Scalar`` or ``float``
         :param w1: weighting factor for the gradient term in the regularization. If not set zero is assumed
-        :type w1: ``Vector``  or list of ``float``s   
+        :type w1: ``Vector`` or list of ``float``
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
@@ -384,10 +384,10 @@ class MagneticInversion(InversionDriver):
         :type k: `Scalar`
         """
         if k:
-	    super(MagneticInversion,self).setInitialGuess(k)
-	else:
-	    super(MagneticInversion,self).setInitialGuess()
-	    
+            super(MagneticInversion,self).setInitialGuess(k)
+        else:
+            super(MagneticInversion,self).setInitialGuess()
+            
     def siloWriterCallback(self, k, m, Jm, g_Jm):
         """
         callback function that can be used to track the solution
@@ -442,9 +442,9 @@ class JointGravityMagneticInversion(InversionDriver):
         :param k_beta: exponent for  depth weighting for susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
         :type k_beta: ``float`` or `Scalar`   
         :param w0: weighting factors for level set term regularization, see `Regularization`. If not set zero is assumed.
-        :type w0: `Data` or `ndarray` of shape (2,)
+        :type w0: `Data` or ``ndarray`` of shape (2,)
         :param w1: weighting factor for the gradient term in the regularization see `Regularization`. If not set zero is assumed
-        :type w1: `Data` or `ndarray` of shape (2,DIM)  
+        :type w1: `Data` or ``ndarray`` of shape (2,DIM)  
         :param w_gc: weighting factor for the cross gradient term in the regularization, see `Regularization`. If not set one is assumed
         :type w_gc: `Scalar` or `float` 
         """
@@ -468,11 +468,11 @@ class JointGravityMagneticInversion(InversionDriver):
         
         wc=Data(0.,(2,2), Function(dom))
         if w_gc is  None:
-	    wc[0,1]=1
-	else:
-	    wc[0,1]=w_gc
-	 
-	    
+            wc[0,1]=1
+        else:
+            wc[0,1]=w_gc
+         
+            
         reg_mask=Data(0.,(2,), Solution(dom))   
         reg_mask[self.DENSITY] = domainbuilder.getSetDensityMask()
         reg_mask[self.SUSCEPTIBILITY] = domainbuilder.getSetSusceptibilityMask()

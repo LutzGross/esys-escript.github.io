@@ -167,8 +167,8 @@ class AbstractMinimizer(object):
         """
         Initializes a new minimizer for a given cost function.
 
-        :param f: the cost function to be minimized
-        :type f: CostFunction
+        :param J: the cost function to be minimized
+        :type J: `CostFunction`
         """
         self._J=J
         self._x_tol = x_tol
@@ -182,7 +182,7 @@ class AbstractMinimizer(object):
     def setTolerance(self, x_tol=1e-4, J_tol=None):
         """
         Sets the tolerance for the stopping criterion. The minimizer stops when
-        an appropriate norm is less than `tol`.
+        an appropriate norm is less than `x_tol`.
         """
         if x_tol: self._x_tol = x_tol
         if J_tol: self._J_tol = J_tol
