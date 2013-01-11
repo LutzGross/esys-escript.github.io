@@ -76,6 +76,8 @@
 
 \newenvironment{classdesc}[2]{%
 \begin{bigdef}{class #1(#2)}}{\end{bigdef}}
+\newenvironment{classdesc*}[1]{%
+\begin{bigdef}{class #1}}{\end{bigdef}}
 
 \newenvironment{methoddesc}[3][{}]{%
 \begin{bigdef}{#2(#3)}}{\end{bigdef}}
@@ -114,6 +116,7 @@
 \newcommand{\kbd}[1]{\texttt{#1}}
 \newcommand{\function}[1]{\texttt{#1}}
 \newcommand{\class}[1]{\texttt{#1}}
+\newcommand{\exception}[1]{\texttt{#1}}
 \newcommand{\constant}[1]{\textsl{#1}}
 \newcommand{\method}[1]{\texttt{#1}}
 \newcommand{\member}[1]{\texttt{#1}}
