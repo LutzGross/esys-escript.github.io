@@ -315,6 +315,7 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Brick_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -332,55 +333,6 @@ class SimpleSolve_Brick_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         mask=whereZero(x[0])
         pde.setValue(r=u_ex,q=mask)
         pde.setValue(A=kronecker(3),y=inner(g_ex,domain.getNormal()))
-        # -------- get the solution ---------------------------
-        pde.getSolverOptions().setTolerance(SOLVER_TOL)
-        pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
-        pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
-        pde.getSolverOptions().setPackage(SolverOptions.PASO)
-        pde.getSolverOptions().setVerbosity(SOLVER_VERBOSE)
-        u=pde.getSolution()
-        # -------- test the solution ---------------------------
-        error=Lsup(u-u_ex)
-        self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
-class SimpleSolve_Brick_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
-     def test_solve(self):
-        domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
-        x=Solution(domain).getX()
-        # --- set exact solution ----
-        u_ex=Vector(0,Solution(domain))
-        u_ex[0]=1.+2.*x[0]+3.*x[1]+4.*x[2]
-        u_ex[1]=-1.+4.*x[0]+1.*x[1]-2.*x[2]
-        u_ex[2]=5.+8.*x[0]+4.*x[1]+5.*x[2]
-        # --- set exact gradient -----------
-        g_ex=Data(0.,(3,3),Solution(domain))
-        g_ex[0,0]=2.
-        g_ex[0,1]=3.
-        g_ex[0,2]=4.
-        g_ex[1,0]=4.
-        g_ex[1,1]=1.
-        g_ex[1,2]=-2.
-        g_ex[2,0]=8.
-        g_ex[2,1]=4.
-        g_ex[2,2]=5.
-        # -------- test gradient --------------------------------
-        self.assertTrue(Lsup(g_ex-grad(u_ex))<REL_TOL*Lsup(g_ex))
-        # -------- set-up PDE ----------------------------------- 
-        pde=LinearPDE(domain,numEquations=3)
-        mask=whereZero(x[0])
-        pde.setValue(r=u_ex,q=mask*numpy.ones(3,))
-        A=Tensor4(0,Function(domain))
-        A[0,:,0,:]=kronecker(3)
-        A[1,:,1,:]=kronecker(3)
-        A[2,:,2,:]=kronecker(3)
-        Y=Vector(0.,Function(domain))
-        Y[0]=u_ex[0]*FAC_DIAG+u_ex[2]*FAC_OFFDIAG+u_ex[1]*FAC_OFFDIAG
-        Y[1]=u_ex[1]*FAC_DIAG+u_ex[0]*FAC_OFFDIAG+u_ex[2]*FAC_OFFDIAG
-        Y[2]=u_ex[2]*FAC_DIAG+u_ex[1]*FAC_OFFDIAG+u_ex[0]*FAC_OFFDIAG
-        pde.setValue(A=A,
-                     D=kronecker(3)*(FAC_DIAG-FAC_OFFDIAG)+numpy.ones((3,3))*FAC_OFFDIAG,
-                     Y=Y,
-                     y=matrixmult(g_ex,domain.getNormal()))
         # -------- get the solution ---------------------------
         pde.getSolverOptions().setTolerance(SOLVER_TOL)
         pde.getSolverOptions().setSolverMethod(SolverOptions.TFQMR)
