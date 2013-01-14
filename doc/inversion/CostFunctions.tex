@@ -1,124 +1,407 @@
-\chapter{Introduction}\label{Chp:ref:introduction}
-Our task in the inversion\index{inversion} is to find the geological structure within a given three-dimensional region $\Omega$ from given geophysical 
-observations\index{observation}. 
-The structure is described by a \emph{level set function} $m$\index{level set function}.
-This function can be a scalar function or may have several components,
-see Chapter~\ref{Chp:ref:regularization} for more details.
-Its values are dimensionless and should be between zero and one.
-However, the latter condition is not enforced.
-Through a mapping (see Chapter~\ref{Chp:ref:mapping}\index{mapping}) the values
-of the level set function are mapped onto physical parameter $p^f$\index{physical parameter}.
-The physical parameter feeds into one or more forward models\index{forward model}
-which return a prediction for the observations, see Chapter~\ref{Chp:ref:forward models}.
-An inversion may consider several forward models at once which we call
-\emph{joint inversion}\index{joint inversion}.
-
-
-The level set function describing the actual geological structure is given as
-the function which minimizes a particular \emph{cost function}
-$J$\index{cost function}.
-This cost function is a composition of the difference of the predicted
-observations to the actual observations for the relevant forward models, and
-the regularization term\index{regularization} which controls the smoothness of
-the level set function.
-In general the cost function $J$ takes the form
-\begin{equation}\label{REF:EQU:INTRO 1}
+\chapter{Cost Function}\label{chapter:ref:inversion cost function}
+The general form of the cost function minimized in the inversion is given in the form (see also Chapter~\ref{Chp:ref:introduction})
+\begin{equation}\label{REF:EQU:DRIVE:10}
 J(m) = J^{reg}(m) + \sum_{f} \mu^{data}_{f} \cdot J^{f}(p^f)
 \end{equation} 
-where $J^{f}(p)$ is a measure of the defect of the observations predicted for
-the parameter $p^f$ against the observations for forward model $f$, and
-$J^{reg}(m)$ is the regularization term.
-The weighting factors $\mu^{data}_{f}$ are dimensionless, non-negative
-trade-off factors\index{trade-off factor}.
-Potentially, values for the trade-off factors are altered during the inversion
-process in order to improve the balance between the regularization term and
-the data defect terms\footnote{The current version does not support an automated selection 
-of trade-off factors}.
-The physical parameter $p^f$ depends on the level set function
-$m$ in a known form:
-\begin{equation}\label{REF:EQU:INTRO 1b}
-p^f = M_{f}(m)
-\end{equation} 
-where $M_f$ is a given mapping. For the case of gravity inversion
-the $M_f$ is a simple linear function mapping the level set function $m$ with dimensionless values 
-to physical density anomaly values $\rho$.
-(see Chapter~\ref{Chp:ref:mapping}\index{mapping}). In its simplest from the mapping is given as 
-$\rho = \rho_0 \cdot m$ where $\rho_0$ is a reference density. It is pointed out that 
-the inversion techniques applied do not constrain limits to the values of the level set function
-although there is the notion that its values are between zero and one. However, 
-limits can be enforced to physical parameters using appropriate mappings.
+where $m$ represents the level set function, $J^{reg}$ is the regularization term, see Chapter~\ref{Chp:ref:regularization},
+and $J^{f}$ are a set of forward problems, see Chapter~\ref{Chp:ref:forward models} depending of 
+physical parameters $p^f$.  The physical parameters $p^f$ are known functions 
+of the  level set function $m$ which is the unknown to be calculated by the optimization process. 
+$\mu^{data}_{f}$ are trade-off factors. It is pointed out that the regularization term includes additional trade-off factors 
+The \class{InversionCostFunction} is class to define cost functions of an inversion. It is pointed out that
+the \class{InversionCostFunction} class implements the \class{CostFunction} template class, see Chapter~\ref{chapter:ref:Minimization}.
 
-The level set function $m$ and consequently the physical parameters $p^f$ are 
-defined over a three dimensional domain $\Omega$ which represented by an \escript 
-\class{Domain} object, see \cite{ESCRIPT}. The domain builder methods provide 
-functions to build appropriate domains from field data sets, see Section~\ref{Chp:ref:domain builder}.
-In general the domain is a rectangular three-dimensional domain where the third dimension $x_2=z$ represents
-depth. The $z=0$ surface defines the surface of the earth where $z<0$ is defining the subsurface region and
-$z>0$ is defining the region above the surface, see Figure~\ref{fig:cartesianDomain}. In general physical parameters such as
-density and susceptibility anomaly are known above the surface, typically assumed to be zero. 
-For subregions where a physical parameter is known it is assumed that the corresponding level set function as 
-the value zero. If required, non-zero values for the physical parameters can be set using appropriate mapping.      
+In the simplest case there is a single forward model using a single physical parameter which is 
+derived form single-values level set function. The following script snippet shows the creation of the
+\class{InversionCostFunction} for the case of a gravity inversion:
+\begin{verbatim}
+p=DensityMapping(...)
+f=GravityModel(...)
+J=InversionCostFunction(Regularization(...), \
+                        mappings=p, \
+                        forward_models=f)
+\end{verbatim}
+The argument \verb|...| refers to an appropriate argument list.
 
-\section{Cartesian Domain}
-For the Cartesian domain\index{Cartesian Domain} $\Omega$ we assume a flat Earth in the form
-\begin{equation} \label{REF:EQU:INTRO 8}
-\Omega = [x^{min}_0, x^{max}_0] \times
- [x^{min}_1, x^{max}_1] \times
- [x^{min}_2, x^{max}_2] 
-\end{equation} 
-and use the Universal Transverse Mercator (UTM) coordinate system\footnote{See
-    e.g. \url{http://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system}.}
-where $x_0$ represents the easting, $x_1$ the northing and $x_2$ the altitude.
-In this way, all three coordinates can be given in meters with minimal
-distortion when visualizing the domain.
-The origin in vertical direction (altitude 0) corresponds to sea level.
-A proper inversion set up requires a buffer zone in all dimensions.
-Figure~\ref{fig:cartesianDomain} depicts these as areas shaded in red (padding
-area) and blue (air buffer).
-While the inversion results contain values for the entire domain the buffer zone
-should be disregarded when performing any analysis.
-In other words, only the region labeled \emph{data area} in
-Figure~\ref{fig:cartesianDomain} contains useful information.
-Both the thickness of the air layer and the amount of padding in the $x_0$/$x_1$
-dimension is configurable when setting up an inversion.
+If two forward models are coming into play using two different physical parameters 
+the \member{mappings} and \member{forward_models} are defined as lists in the following form:
+\begin{verbatim}
+p_rho=DensityMapping(...)
+p_k=SusceptibilityMapping(...)
+f_mag=MagneticModel(...)
+f_grav=GravityModel(...)
 
-\begin{figure}[ht]
-    \centering\includegraphics{cartesian}
-    \caption{Illustration of domain extents, mapping and padding area}
-    \label{fig:cartesianDomain}
-\end{figure}
+J=InversionCostFunction(Regularization(...), \
+                        mappings=[p_rho, p_k], \
+                        forward_models=[(f_mag, 1), (f_grav,0)])
+\end{verbatim}
+Here we define a joint inversion of gravity and magnetic data. \member{forward_models} is given as a list of
+a tuple of a forward model and an index which referring to parameter in the \member{mappings} list to be used as an input.
+The magnetic forward model \member{f_mag} is using the the second parameter (=\member{p_k}) in \member{mappings} list.
+In this case the physical parameters are defined by a single-valued level set function. It is also possible
+to link physical parameters to components of a level set function:
+\begin{verbatim}
+p_rho=DensityMapping(...)
+p_k=SusceptibilityMapping(...)
+f_mag=MagneticModel(...)
+f_grav=GravityModel(...)
 
-\begin{equation}\label{REF:EQU:INTRO 9}
-\begin{array}{rcl}
-Q_0  & = &  Q_{\phi} \\
-Q_1  & = & -Q_{\theta} \\
-Q_2  & = & -Q_r \\
-\end{array}
-\end{equation}
+J=InversionCostFunction(Regularization(numLevelSets=2,...), \
+                        mappings=[(p_rho,0), (p_k,1)], \
+                        forward_models=[[(f_mag, 1), (f_grav,0)])   
+\end{verbatim}
+The \member{mappings} argument is now a list of pairs where the first pair entry specifies the parameter mapping and
+the second pair entry specifies the index of the component of the level set function to be used to evaluate the parameter.
+In this case the level set function has two components, where the density mapping uses the first component of the level set function 
+while the susceptibility mapping uses the second component.
 
-\section{Sphere Shell Segment}
-This is not supported yet.
+The \class{InversionCostFunction} API is defined as follows:
 
-The regularization cost function $J^{reg}$ is given through a cost function
-kernel\index{cost function!kernel} $K^{reg}$ in the form
-\begin{equation}\label{REF:EQU:INTRO 2a}
-J^{reg}(m) = \int_{\Omega} K^{reg}(m, \nabla m) \; dx
-\end{equation} 
-where $\Omega$ is the region of interest. $K^{reg}$ is a given function of the
-level set function $m$ and its gradient $\nabla m$.
-In case of a multi-component level set function the kernel may consider cross
-correlation terms between the components.
-Similar for the data defect for forward model $f$ we use a cost function kernel $K^{f}$ 
-\begin{equation}\label{REF:EQU:INTRO 2b}
-J^{f}(p^f) = \int_{\Omega} K^{f}(u^f, \nabla u^f,p^f) \; dx
-\end{equation} 
-where $u_f$ is a solution of a partial differential equation (PDE) involving
-the physical parameter $p^f$.
-The cost function kernel may directly depend on $u^f$, its gradient
-$\nabla u^f$ and the physical parameter $p^f$.
+\begin{classdesc}{InversionCostFunction}{regularization, mappings, forward_models}
+Constructor for the inversion cost function. \member{regularization} sets the regularization to be used, see Chapter~\ref{Chp:ref:regularization}.
+\member{mappings} is a list of pairs where each pair comprises of a 
+physical parameter mapping (see Chapter~\ref{Chp:ref:mapping}) and an index which refers to the component of level set function
+defined by the \member{regularization} to be used to calculate the corresponding physical parameter. If 
+the level set function has a single component the index can be omitted. If in addition there is a single physical parameter
+the mapping can be given instead of a list. \member{forward_models} is a list of pairs where the 
+first pair component is a forward model ( see Chapter~\ref{Chp:ref:forward models}) and the second 
+pair component referring to the physical parameter in the \member{mappings} list providing the  physical parameter for the model.
+If a single physical parameter is present the index can be omitted. If in addition a single  forward model is used this
+forward model can be assigned to \member{forward_models} in replacement of a list.
+\end{classdesc}
 
 
+\begin{methoddesc}[InversionCostFunction]{getDomain}{}
+        """
+        returns the domain of the cost function
+        :rtype: 'Domain`
+        """
+        self.regularization.getDomain()
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{getNumTradeOffFactors}{}
+        """
+        returns the number of trade-off factors being used including the
+        trade-off factors used in the regularization component.
+
+        :rtype: ``int``
+        """
+        return self.__num_tradeoff_factors
+\end{methoddesc}
+
+ \begin{methoddesc}[InversionCostFunction]{getForwardModel}{idx=None}
+        """
+        returns the *idx*-th forward model.
+
+        :param idx: model index. If cost function contains one model only `idx`
+                    can be omitted.
+        :type idx: ``int``
+        """
+        if idx==None: idx=0
+        f=self.forward_models[idx]
+        if isinstance(f, ForwardModel): 
+              F=f
+        else:
+              F=f[0]
+        return F
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{getRegularization}{}
+        """
+        returns the regularization
+        """
+        return self.regularization
+\end{methoddesc}
+
+        
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsModels}{mu=None}
+        """
+        sets the trade-off factors for the forward model components.
+        
+        :param mu: list of the trade-off factors. If not present ones are used.
+        :type mu: ``float`` in case of a single model or a ``list`` of ``float``
+                  with the length of the number of models.
+        """
+        if mu==None:
+            self.mu_model=np.ones((self.numModels, )) 
+        else:
+            if self.numModels > 1:
+               mu=np.asarray(mu)
+               if min(mu) > 0:
+                  self.mu_model= mu
+               else:
+                  raise ValueError("All value for trade-off factor mu must be positive.")
+            else:
+              mu=float(mu)
+              if mu > 0:
+                  self.mu_model= [mu, ]
+              else:
+                  raise ValueError("Trade-off factor must be positive.") 
+\end{methoddesc}
+           
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsRegularization}{mu=None, mu_c=None}
+        """
+        sets the trade of factors for the regularization component of the cost
+        function, see `Regularization` for details.
+        
+        :param mu: trade-off factors for the level-set variation part 
+        :param mu_c: trade-off factors for the cross gradient variation part 
+        """
+        self.regularization.setTradeOffFactorsForVariation(mu)
+        self.regularization.setTradeOffFactorsForCrossGradient(mu_c)
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactors}{mu=None}
+        """
+        sets the trade-off factors for the forward model and regularization
+        terms. 
+
+        :param mu: list of trade-off factors. 
+        :type mu: ``list`` of ``float``
+        """
+        if mu is None:
+            mu=np.ones((self.__num_tradeoff_factors,))
+        self.setTradeOffFactorsModels(mu[:self.numModels])
+        self.regularization.setTradeOffFactors(mu[self.numModels:])
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{createLevelSetFunction}{*props}
+        """
+        returns an instance of an object used to represent a level set function
+        initialized with zeros. Components can be overwritten by physical
+        properties 'props'. If present entries must correspond to the
+        `mappings` arguments in the constructor. Use `None` for properties for
+        which no value is given.
+        """
+        m=self.regularization.getPDE().createSolution()
+        if len(props) > 0:
+           for i in xrange(self.numMappings): 
+              if props[i]: 
+                  mm=self.mappings[i]
+                  if isinstance(mm, Mapping):
+                      m=mm.getInverse(props[i])
+                  elif len(mm) == 1:
+                      m=mm[0].getInverse(props[i])
+                  else:
+                      m[mm[1]]=mm[0].getInverse(props[i])
+        return m
+\end{methoddesc}
+    
+\begin{methoddesc}[InversionCostFunction]{getProperties}{m, return_list=False}
+        """
+        returns a list of the physical properties from a given level set
+        function *m* using the mappings of the cost function.
+        
+        :param m: level set function
+        :type m: `Data`
+        :param return_list: if True a list is returned. 
+            def _:type return_list: `bool`
+        :rtype: `list` of `Data`
+        """
+        props=[]
+        for i in xrange(self.numMappings): 
+           mm=self.mappings[i]
+           if isinstance(mm, Mapping):
+               p=mm.getValue(m)
+           elif len(mm) == 1:
+               p=mm[0].getValue(m)
+           else:
+               p=mm[0].getValue(m[mm[1]])
+           props.append(p)
+        if self.numMappings > 1 or return_list:
+           return props
+        else:
+           return props[0]
+\end{methoddesc}
+           
+\begin{methoddesc}[InversionCostFunction]{getDualProduct}{x, r}
+        """
+        Returns the dual product, see `Regularization.getDualProduct`
+
+        :type x: `Data`
+        :type r: `ArithmeticTuple`             
+        :rtype: `float`
+        """
+        return self.regularization.getDualProduct(x, r)
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getArguments}{m}
+        """
+        returns pre-computed values that are shared in the calculation of
+        *J(m)* and *grad J(m)*. In this implementation returns a tuple with the
+        mapped value of ``m``, the arguments from the forward model and the
+        arguments from the regularization.
+        
+        :param m: current approximation of the level set function
+        :type m: `Data`
+        :return: tuple of of values of the parameters, pre-computed values for the forward model and
+                 pre-computed values for the regularization
+        :rtype: `tuple`
+        """
+        args_reg=self.regularization.getArguments(m)
+
+        props=self.getProperties(m, return_list=True)
+        args_f=[]
+        for i in xrange(self.numModels):
+           f=self.forward_models[i]
+           if isinstance(f, ForwardModel): 
+              aa=f.getArguments(props[0])
+           elif len(f) == 1:
+              aa=f[0].getArguments(props[0])
+           else:
+              idx = f[1]
+              f=f[0]
+              if isinstance(idx, int):
+                 aa=f.getArguments(props[idx])
+              else:
+                 pp=tuple( [ props[i] for i in idx] )
+                 aa=f.getArguments(*pp)
+           args_f.append(aa)
+           
+        return props, args_f, args_reg
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getValue}{m, *args}
+        """
+        Returns the value *J(m)* of the cost function at *m*.
+        If the pre-computed values are not supplied `getArguments()` is called.
+
+        :param m: current approximation of the level set function
+        :type m: `Data`
+        :param args: tuple of of values of the parameters, pre-computed values for the forward model and
+                 pre-computed values for the regularization
+        :rtype: `float`
+        """
+
+        if len(args)==0:
+            args=self.getArguments(m)
+        
+        props=args[0]
+        args_f=args[1]
+        args_reg=args[2]
+        
+        J = self.regularization.getValue(m, *args_reg)
+        print "J_reg = %e"%J
+                
+        for i in xrange(self.numModels):
+                 
+           f=self.forward_models[i]
+           if isinstance(f, ForwardModel): 
+              J_f = f.getValue(props[0],*args_f[i])
+           elif len(f) == 1:
+              J_f=f[0].getValue(props[0],*args_f[i])
+           else:
+              idx = f[1]
+              f=f[0]
+              if isinstance(idx, int):
+                 J_f = f.getValue(props[idx],*args_f[i])
+              else:
+                 args=tuple( [ props[j] for j in idx] + args_f[i])
+                 J_f = f.getValue(*args)
+           print "J_f[%d] = %e"%(i, J_f)
+           print "mu_model[%d] = %e"%(i, self.mu_model[i])
+           J += self.mu_model[i] * J_f
+           
+        return   J
+\end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getGradient}{m, *args}
+        """
+        returns the gradient of the cost function  at *m*.
+        If the pre-computed values are not supplied `getArguments()` is called.
+
+        :param m: current approximation of the level set function
+        :type m: `Data`
+        :param args: tuple of of values of the parameters, pre-computed values for the forward model and
+                 pre-computed values for the regularization
+                 
+        :rtype: `ArithmeticTuple`
+        """
+        if len(args)==0:
+            args = self.getArguments(m)
+         
+        props=args[0]
+        args_f=args[1]
+        args_reg=args[2]
+        
+        g_J = self.regularization.getGradient(m, *args_reg) 
+        p_diffs=[]
+        for i in xrange(self.numMappings): 
+           mm=self.mappings[i]
+           if isinstance(mm, Mapping):
+               dpdm = mm.getDerivative(m)
+           elif len(mm) == 1:
+               dpdm = mm[0].getDerivative(m)
+           else:
+               dpdm = mm[0].getDerivative(m[mm[1]])
+           p_diffs.append(dpdm)
+           
+        Y=g_J[0]   
+        for i in xrange(self.numModels):
+           mu=self.mu_model[i] 
+           f=self.forward_models[i]
+           if isinstance(f, ForwardModel): 
+              Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[0] * mu
+              if self.numLevelSets == 1 :
+                 Y +=Ys
+              else:
+                  Y[0] +=Ys
+           elif len(f) == 1:
+              Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[0]  * mu
+              if self.numLevelSets == 1 :
+                 Y +=Ys
+              else:
+                  Y[0] +=Ys
+           else:
+              idx = f[1]
+              f=f[0]
+              if isinstance(idx, int):
+                 Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[idx] * mu 
+                 if self.numLevelSets == 1 :
+                     if idx == 0:
+                         Y+=Ys
+                     else:
+                         raise IndexError("Illegal mapping index.")
+                 else:
+                     Y[idx] += Ys 
+              else:
+                 args=tuple( [ props[j] for j in idx] + args_f[i])
+                 Ys = f.getGradient(*args)
+                 for ii in xrange(len(idx)):
+                     Y[idx[ii]]+=Ys[ii]* p_diffs[idx[ii]]  * mu
+
+        return g_J
+\end{methoddesc}
 
 
+\begin{methoddesc}[InversionCostFunction]{getInverseHessianApproximation}{m, r, *args}
+        """
+        returns an approximative evaluation *p* of the inverse of the Hessian operator of the cost function
+        for a given gradient type *r* at a given location *m*: *H(m) p = r*
 
- 
+        :param m: level set approximation where to calculate Hessian inverse
+        :type m: `Data`
+        :param r: a given gradient
+        :type r: `ArithmeticTuple`
+        :param args: tuple of of values of the parameters, pre-computed values for the forward model and
+                 pre-computed values for the regularization
+        :rtype: `Data`
+        :note: in the current implementation only the regularization term is
+               considered in the inverse Hessian approximation.
+
+        """
+        m=self.regularization.getInverseHessianApproximation(m, r, *args[2])
+        return m
+
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionCostFunction]{getNorm}{m}
+        """
+        returns the norm of ``m``
+
+        :param m: level set function
+        :type m: `Data`
+        :rtype: ``float``
+        """
+
+\end{methoddesc}
