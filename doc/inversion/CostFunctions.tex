@@ -54,7 +54,7 @@ defined over a three dimensional domain $\Omega$ which represented by an \escrip
 functions to build appropriate domains from field data sets, see Section~\ref{Chp:ref:domain builder}.
 In general the domain is a rectangular three-dimensional domain where the third dimension $x_2=z$ represents
 depth. The $z=0$ surface defines the surface of the earth where $z<0$ is defining the subsurface region and
-$z>0$ is defining the region above the surface, see Figure~\ref{FIG:XXXX}. In general physical parameters such as
+$z>0$ is defining the region above the surface, see Figure~\ref{fig:cartesianDomain}. In general physical parameters such as
 density and susceptibility anomaly are known above the surface, typically assumed to be zero. 
 For subregions where a physical parameter is known it is assumed that the corresponding level set function as 
 the value zero. If required, non-zero values for the physical parameters can be set using appropriate mapping.      
@@ -66,14 +66,29 @@ For the Cartesian domain\index{Cartesian Domain} $\Omega$ we assume a flat Earth
  [x^{min}_1, x^{max}_1] \times
  [x^{min}_2, x^{max}_2] 
 \end{equation} 
+and use the Universal Transverse Mercator (UTM) coordinate system\footnote{See
+    e.g. \url{http://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system}.}
+where $x_0$ represents the easting, $x_1$ the northing and $x_2$ the altitude.
+In this way, all three coordinates can be given in meters with minimal
+distortion when visualizing the domain.
+The origin in vertical direction (altitude 0) corresponds to sea level.
+A proper inversion set up requires a buffer zone in all dimensions.
+Figure~\ref{fig:cartesianDomain} depicts these as areas shaded in red (padding
+area) and blue (air buffer).
+While the inversion results contain values for the entire domain the buffer zone
+should be disregarded when performing any analysis.
+In other words, only the region labeled \emph{data area} in
+Figure~\ref{fig:cartesianDomain} contains useful information.
+Both the thickness of the air layer and the amount of padding in the $x_0$/$x_1$
+dimension is configurable when setting up an inversion.
 
-\CIHAN{Clarify how xs are set. where is air?}
-\CIHAN{Clarify projection}
-longitude $\phi$ latitude $\theta$ and radial $r$
-and associate where longitude is associated with $x_0$-direction,
-the latitude is associated with $x_1$-direction and the radial direction is associated with $x_2$-direction: 
+\begin{figure}[ht]
+    \centering\includegraphics{cartesian}
+    \caption{Illustration of domain extents, mapping and padding area}
+    \label{fig:cartesianDomain}
+\end{figure}
 
- \begin{equation}\label{REF:EQU:INTRO 9}
+\begin{equation}\label{REF:EQU:INTRO 9}
 \begin{array}{rcl}
 Q_0  & = &  Q_{\phi} \\
 Q_1  & = & -Q_{\theta} \\
@@ -82,7 +97,7 @@ Q_2  & = & -Q_r \\
 \end{equation}
 
 \section{Sphere Shell Segment}
-not supported yet.
+This is not supported yet.
 
 The regularization cost function $J^{reg}$ is given through a cost function
 kernel\index{cost function!kernel} $K^{reg}$ in the form
