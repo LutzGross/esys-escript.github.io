@@ -503,7 +503,6 @@ if __name__ == '__main__':
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_TFQMR_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SystemPDE_Paso_TFQMR_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SinglePDE_Paso_TFQMR_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SystemPDE_Paso_TFQMR_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi))
    suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SinglePDE_Paso_MINRES_Jacobi))
