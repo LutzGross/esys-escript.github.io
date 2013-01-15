@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2012 by University of Queensland
+# Copyright (c) 2003-2013 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -13,7 +13,9 @@
 #
 ##############################################################################
 
-__copyright__="""Copyright (c) 2003-2012 by University of Queensland
+"""2D gravity inversion example using synthetic data"""
+
+__copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -26,42 +28,44 @@ from esys.downunder import *
 from esys.escript import unitsSI as U
 from esys.weipa import saveSilo
 
-
-try: 
-   WORKDIR=os.environ['DOWNUNDER_WORKDIR']
+try:
+    WORKDIR=os.environ['DOWNUNDER_WORKDIR']
 except KeyError:
-   WORKDIR='.'
+    WORKDIR='.'
 logger=logging.getLogger('inv')
 logger.setLevel(logging.DEBUG)
 handler=logging.StreamHandler()
 handler.setLevel(logging.DEBUG)
 logger.addHandler(handler)
 
-# interesting parameter:
-n_humbs_h= 3
-n_humbs_v=1
-mu=100
-n_cells_in_data=100
+# interesting parameters:
+n_humps_h = 3
+n_humps_v = 1
+mu = 100
+n_cells_in_data = 100
 # ignore:
-full_knowledge=False
-depth_offset=0.*U.km
-# 
-n_cells_in_data=max(n_humbs_h*7,n_cells_in_data)
-l_data = 100 * U.km
-l_pad=40*U.km
-THICKNESS=20.*U.km
-l_air=20*U.km
-n_cells_v=max(int((2*l_air+THICKNESS+depth_offset)/l_data*n_cells_in_data + 0.5), 25)
+full_knowledge = False
+depth_offset = 0. * U.km
+#
+DIM = 2
+n_cells_in_data = max(n_humps_h*7, n_cells_in_data)
+l_data = 100. * U.km
+l_pad = 40. * U.km
+THICKNESS = 20. * U.km
+l_air = 20. * U.km
+n_cells_v = max(
+        int((2*l_air+THICKNESS+depth_offset)/l_data*n_cells_in_data + 0.5), 25)
 
 
-source=SyntheticData(DataSource.GRAVITY,n_length=n_humbs_h, n_depth=n_humbs_v, depth=THICKNESS+depth_offset, depth_offset=depth_offset,
-                     DIM=2, number_of_elements =n_cells_in_data, length=l_data,
-                     data_offset=0,full_knowledge=full_knowledge, spherical=False)
+source=SyntheticData(DataSource.GRAVITY, n_length=n_humps_h, n_depth=n_humps_v,
+        depth=THICKNESS+depth_offset, depth_offset=depth_offset,
+        DIM=DIM, number_of_elements=n_cells_in_data, length=l_data,
+        data_offset=0, full_knowledge=full_knowledge, spherical=False)
 
-
-domainbuilder=DomainBuilder(dim=2)
+domainbuilder=DomainBuilder(dim=DIM)
 domainbuilder.addSource(source)
-domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset, air_layer=l_air, num_cells=n_cells_v)
+domainbuilder.setVerticalExtents(depth=l_air+THICKNESS+depth_offset,
+                                 air_layer=l_air, num_cells=n_cells_v)
 domainbuilder.setPadding(l_pad)
 domainbuilder.fixDensityBelow(depth=THICKNESS+depth_offset)
 
@@ -71,9 +75,10 @@ inv.setSolverMaxIterations(50)
 inv.setup(domainbuilder)
 inv.getCostFunction().setTradeOffFactorsModels(mu)
 
-rho_new=inv.run()
-print "rho_new = ",rho_new
-print "rho =", source.getReferenceProperty()
+rho_new = inv.run()
+rho_ref = source.getReferenceProperty()
+print("rho_new = %s"%rho_new)
+print("rho = %s"%rho_ref)
 g, chi = inv.getCostFunction().getForwardModel().getSurvey(0)
-saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceProperty(), g=g, chi=chi)
+saveSilo(os.path.join(WORKDIR, 'results_gravity_2d'), density=rho_new, density_ref=rho_ref, g=g, chi=chi)
 
