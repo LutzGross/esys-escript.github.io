@@ -21,9 +21,11 @@ local_env = env.Clone()
 # files defining test runs (passing in a release)
 testruns = [ \
             'run_datasources.py',\
-            'run_gravity.py',\
             'run_mappings.py',\
-            'run_minimizers.py'
+            'run_minimizers.py',\
+            'inversion_gravity_2d.py',\
+            'inversion_magnetic_2d.py',\
+            'inversion_gravmag_2d.py'
             ]
 
 # all tests
