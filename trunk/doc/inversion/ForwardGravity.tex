@@ -37,7 +37,7 @@ anomaly via Equation~(\ref{ref:GRAV:EQU:101}) to obtain the defect to the
 given data.
 If $g^{(s)}_i$ is a measurement of the gravity acceleration anomaly for
 survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
-$J^{grav}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction} is given as
+$J^{grav}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
 \begin{equation}\label{ref:GRAV:EQU:9}
 J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (g_{i}- g^{(s)}_i) ) ^2 dx
 \end{equation} 
@@ -99,7 +99,7 @@ in order to make sure that all components of the cost function are appropriately
 \subsection{Gradient Calculation}
 This section briefly explains how the gradient
 $\frac{\partial J^{grav}}{\partial \rho}$ of the cost function $J^{grav}$ with
-respect to the density $\rho$ is calculated.
+respect to the density $\rho$ is calculated. We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
 The magnetic potential $\psi$ from PDE~(\ref{ref:GRAV:EQU:100}) is solved in
 weak form:
 \begin{equation}\label{ref:GRAV:EQU:201}

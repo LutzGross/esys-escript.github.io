@@ -156,6 +156,8 @@ class InversionCostFunction(MeteredCostFunction):
     def getRegularization(self):
         """
         returns the regularization
+        
+        :rtype: `Regularization`
         """
         return self.regularization
 
@@ -183,7 +185,18 @@ class InversionCostFunction(MeteredCostFunction):
                   self.mu_model= [mu, ]
               else:
                   raise ValueError("Trade-off factor must be positive.") 
-           
+		
+    def getTradeOffFactorsModels(self):
+        """
+        returns the trade-off factors for the forward models
+        
+        :rtype: ``float`` or ``list`` of ``float``
+        """
+        if self.numModels>1:
+	    return self.mu_model
+	else:
+	    return self.mu_model[0]
+	    
     def setTradeOffFactorsRegularization(self,mu=None, mu_c=None):
         """
         sets the trade of factors for the regularization component of the cost
@@ -207,7 +220,17 @@ class InversionCostFunction(MeteredCostFunction):
             mu=np.ones((self.__num_tradeoff_factors,))
         self.setTradeOffFactorsModels(mu[:self.numModels])
         self.regularization.setTradeOffFactors(mu[self.numModels:])
+    
+    def getTradeOffFactors(self, mu=None):
+        """
+        returns a list of the trade-off factors
+        :rtype: ``list`` of ``float``
+        """
+        mu1=self.getTradeOffFactorsModels(mu[:self.numModels])
+        mu2=self.regularization.getTradeOffFactors()
+        return [ m for m in mu1] + [ m for m in mu2]
 
+        
     def createLevelSetFunction(self, *props):
         """
         returns an instance of an object used to represent a level set function
