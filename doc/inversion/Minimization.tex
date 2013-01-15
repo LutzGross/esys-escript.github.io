@@ -48,37 +48,7 @@ which is a \emph{quasi-Newton} method.
 %    \beta_{i+1}=\text{max}\left\{\frac{\nabla f^T(\mat{x}_{i+1})(\nabla f(\mat{x}_{i+1})-\nabla f(\mat{x}_i))}{\| \nabla f(\mat{x}_i)\|}, 0\right\}
 %\end{equation*}
 
-\begin{classdesc}{CostFunction}{}
-template of cost function
-\end{classdesc}
 
-\begin{methoddesc}[CostFunction]{resetCounters}{}
-    resets all statistical counters.
-\end{methoddesc}
-%
-\begin{methoddesc}[CostFunction]{getInner}{f0, f1}
-    returns the inner product of \member{f0} and \member{f1}.
-\end{methoddesc}
-%
-\begin{methoddesc}[CostFunction]{getValue}{x, *args}
-    returns the value $f(x)$ using precalculated values for $x$.
-\end{methoddesc}
-%
-\begin{methoddesc}[CostFunction]{getGradient}{x, *args}
-    returns the gradient of $f$ at $x$ using precalculated values for $x$.
-\end{methoddesc}
-%
-\begin{methoddesc}[CostFunction]{getDirectionalDerivative}{x, d, *args}
-    returns \texttt{inner(grad(f(x)), d)} using precalculated values for $x$.
-\end{methoddesc}
-%
-\begin{methoddesc}[CostFunction]{getArguments}{x}
-    returns precalculated values that are shared in the calculation of $f(x)$
-    and \texttt{grad(f(x))}.
-\end{methoddesc}
-\begin{methoddesc}[CostFunction]{getNorm}{x}
-returns the norm of x
-\end{methoddesc}
 
 
 %\section{Limited-Memory BFGS Method}\label{sec:LBFGS}
@@ -179,3 +149,32 @@ See \cite{Nocedal2006}, \cite{MoreThuente1992}
     \end{program}
 \end{algorithm}
 
+\section{\member{CostFunction} Class Template}\label{chapter:ref:Minimization: costfunction class}
+
+\begin{classdesc}{CostFunction}{}
+template of cost function
+\end{classdesc}
+
+\begin{methoddesc}[CostFunction]{resetCounters}{}
+    resets all statistical counters.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getDualProduct}{x, r}
+    returns the inner product of \member{x} and \member{r}.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getValue}{x, *args}
+    returns the value $f(x)$ using precalculated values for $x$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getGradient}{x, *args}
+    returns the gradient of $f$ at $x$ using precalculated values for $x$.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getArguments}{x}
+    returns precalculated values that are shared in the calculation of $f(x)$
+    and \texttt{grad(f(x))}.
+\end{methoddesc}
+\begin{methoddesc}[CostFunction]{getNorm}{x}
+returns the norm of x
+\end{methoddesc}

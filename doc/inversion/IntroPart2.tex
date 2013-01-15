@@ -102,23 +102,7 @@ This is not supported yet.
 
 \input{Drivers}
 
-The regularization cost function $J^{reg}$ is given through a cost function
-kernel\index{cost function!kernel} $K^{reg}$ in the form
-\begin{equation}\label{REF:EQU:INTRO 2a}
-J^{reg}(m) = \int_{\Omega} K^{reg}(m, \nabla m) \; dx
-\end{equation} 
-where $\Omega$ is the region of interest. $K^{reg}$ is a given function of the
-level set function $m$ and its gradient $\nabla m$.
-In case of a multi-component level set function the kernel may consider cross
-correlation terms between the components.
-Similar for the data defect for forward model $f$ we use a cost function kernel $K^{f}$ 
-\begin{equation}\label{REF:EQU:INTRO 2b}
-J^{f}(p^f) = \int_{\Omega} K^{f}(u^f, \nabla u^f,p^f) \; dx
-\end{equation} 
-where $u_f$ is a solution of a partial differential equation (PDE) involving
-the physical parameter $p^f$.
-The cost function kernel may directly depend on $u^f$, its gradient
-$\nabla u^f$ and the physical parameter $p^f$.
+
 
 
 

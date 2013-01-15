@@ -55,7 +55,10 @@ the second pair entry specifies the index of the component of the level set func
 In this case the level set function has two components, where the density mapping uses the first component of the level set function 
 while the susceptibility mapping uses the second component.
 
-The \class{InversionCostFunction} API is defined as follows:
+\section{\class{InversionCostFunction} API}\label{chapter:ref:inversion cost function:api}
+
+The \class{InversionCostFunction} implements a \class{CostFunction} class used to run optimization solvers, 
+see section~\ref{chapter:ref:Minimization: costfunction class}.Its API is defined as follows:
 
 \begin{classdesc}{InversionCostFunction}{regularization, mappings, forward_models}
 Constructor for the inversion cost function. \member{regularization} sets the regularization to be used, see Chapter~\ref{Chp:ref:regularization}.
@@ -72,337 +75,288 @@ forward model can be assigned to \member{forward_models} in replacement of a lis
 
 
 \begin{methoddesc}[InversionCostFunction]{getDomain}{}
-        """
-        returns the domain of the cost function
-        :rtype: 'Domain`
-        """
-        self.regularization.getDomain()
+returns the \escript domain of the inversion, see~\cite{ESCRIPT}.
 \end{methoddesc}
         
 \begin{methoddesc}[InversionCostFunction]{getNumTradeOffFactors}{}
-        """
-        returns the number of trade-off factors being used including the
-        trade-off factors used in the regularization component.
-
-        :rtype: ``int``
-        """
-        return self.__num_tradeoff_factors
+returns the total number of trade-off factors. The count includes the trade-off factors $\mu^{data}_{f}$ for 
+the forward models and (hidden) trade-off fatcors in the regularization term, see~definition\ref{REF:EQU:DRIVE:10}.
 \end{methoddesc}
 
- \begin{methoddesc}[InversionCostFunction]{getForwardModel}{idx=None}
-        """
-        returns the *idx*-th forward model.
-
-        :param idx: model index. If cost function contains one model only `idx`
-                    can be omitted.
-        :type idx: ``int``
-        """
-        if idx==None: idx=0
-        f=self.forward_models[idx]
-        if isinstance(f, ForwardModel): 
-              F=f
-        else:
-              F=f[0]
-        return F
+\begin{methoddesc}[InversionCostFunction]{getForwardModel}{\optional{idx=\None}}
+returns the forward model with index \member{idx}. If the cost function contains
+on model only argument \member{idx} can be omitted.  
 \end{methoddesc}
         
 \begin{methoddesc}[InversionCostFunction]{getRegularization}{}
-        """
-        returns the regularization
-        """
-        return self.regularization
+returns the regularization component of the cost function, see \class{regularization} in Chapter~\ref{Chp:ref:regularization}.
 \end{methoddesc}
 
         
-\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsModels}{mu=None}
-        """
-        sets the trade-off factors for the forward model components.
-        
-        :param mu: list of the trade-off factors. If not present ones are used.
-        :type mu: ``float`` in case of a single model or a ``list`` of ``float``
-                  with the length of the number of models.
-        """
-        if mu==None:
-            self.mu_model=np.ones((self.numModels, )) 
-        else:
-            if self.numModels > 1:
-               mu=np.asarray(mu)
-               if min(mu) > 0:
-                  self.mu_model= mu
-               else:
-                  raise ValueError("All value for trade-off factor mu must be positive.")
-            else:
-              mu=float(mu)
-              if mu > 0:
-                  self.mu_model= [mu, ]
-              else:
-                  raise ValueError("Trade-off factor must be positive.") 
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsModels}{\optional{mu=\None}}
+sets the trade-off factors  $\mu^{data}_{f}$ for the forward model components.
+If a single model is present \member{mu} must be a floating point numbers. Otherwise
+\member{mu} must be a list of floating point numbers. It is assumed that all 
+numbers are positive. Default values for the trade-off factors is one.
 \end{methoddesc}
+
+\begin{methoddesc}[InversionCostFunction]{getTradeOffFactorsModels}{}
+returns the values of the the trade-off factors  $\mu^{data}_{f}$ for the forward model components.
+\end{methoddesc}
+
            
-\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsRegularization}{mu=None, mu_c=None}
-        """
-        sets the trade of factors for the regularization component of the cost
-        function, see `Regularization` for details.
-        
-        :param mu: trade-off factors for the level-set variation part 
-        :param mu_c: trade-off factors for the cross gradient variation part 
-        """
-        self.regularization.setTradeOffFactorsForVariation(mu)
-        self.regularization.setTradeOffFactorsForCrossGradient(mu_c)
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactorsRegularization}{\optional{mu=\None}, \optional{mu_c=\None}}
+sets the trade of factors for the regularization component of the cost function.
+for details. \member{mu} defines the trade-off factors for the level-set variation part and 
+\member{mu_c} sets the trade-off factors for the cross-gradient variation part. 
+This method is a short-cut for calling \member{setTradeOffFactorsForVariation} and
+\member{setTradeOffFactorsForCrossGradient} for the underlying the regularization. 
+Please see \class{Regularization} in Chapter~\ref{Chp:ref:regularization} for more details
+on the arguments \member{mu} and \member{mu_c}.
 \end{methoddesc}
         
-\begin{methoddesc}[InversionCostFunction]{setTradeOffFactors}{mu=None}
-        """
-        sets the trade-off factors for the forward model and regularization
-        terms. 
+\begin{methoddesc}[InversionCostFunction]{setTradeOffFactors}{\optional{mu=\None}}
+sets the trade-off factors for the forward model and regularization
+terms. \member{mu} is a list of positive floats. The length of the list 
+is total number of trade-off factors given by the method \method{getNumTradeOffFactors}. The
+first part of \member{mu} define the trade-off factors  $\mu^{data}_{f}$ for the forward model components
+while the remaining entries define the trade-off factors for the regularization components of the 
+cost function. By default all values are set to one. 
+\end{methoddesc}
 
-        :param mu: list of trade-off factors. 
-        :type mu: ``list`` of ``float``
-        """
-        if mu is None:
-            mu=np.ones((self.__num_tradeoff_factors,))
-        self.setTradeOffFactorsModels(mu[:self.numModels])
-        self.regularization.setTradeOffFactors(mu[self.numModels:])
+\begin{methoddesc}[InversionCostFunction]{getProperties}{m}
+returns the physical properties from a given level set function \member{m}
+using the mappings of the cost function. The physical properties are 
+returned in the order in which they are given in the \member{mappings} argument
+in the class constructor.
 \end{methoddesc}
 
 \begin{methoddesc}[InversionCostFunction]{createLevelSetFunction}{*props}
-        """
-        returns an instance of an object used to represent a level set function
-        initialized with zeros. Components can be overwritten by physical
-        properties 'props'. If present entries must correspond to the
-        `mappings` arguments in the constructor. Use `None` for properties for
-        which no value is given.
-        """
-        m=self.regularization.getPDE().createSolution()
-        if len(props) > 0:
-           for i in xrange(self.numMappings): 
-              if props[i]: 
-                  mm=self.mappings[i]
-                  if isinstance(mm, Mapping):
-                      m=mm.getInverse(props[i])
-                  elif len(mm) == 1:
-                      m=mm[0].getInverse(props[i])
-                  else:
-                      m[mm[1]]=mm[0].getInverse(props[i])
-        return m
+returns the level set function corresponding to set of given physical properties. 
+This method is the inverse of the \method{getProperties} method.
+The arguments \member{props} define a tuple of values for the  physical properties
+where the order needs to correspond to the order in which the physical property mappings 
+are given in the \member{mappings} argument
+in the class constructor. If a value for a physical property 
+is given as \None the corresponding component of the returned level set function is set to zero.
+If no physical properties are given all components of the level set function are set to zero.
 \end{methoddesc}
     
-\begin{methoddesc}[InversionCostFunction]{getProperties}{m, return_list=False}
-        """
-        returns a list of the physical properties from a given level set
-        function *m* using the mappings of the cost function.
-        
-        :param m: level set function
-        :type m: `Data`
-        :param return_list: if True a list is returned. 
-            def _:type return_list: `bool`
-        :rtype: `list` of `Data`
-        """
-        props=[]
-        for i in xrange(self.numMappings): 
-           mm=self.mappings[i]
-           if isinstance(mm, Mapping):
-               p=mm.getValue(m)
-           elif len(mm) == 1:
-               p=mm[0].getValue(m)
-           else:
-               p=mm[0].getValue(m[mm[1]])
-           props.append(p)
-        if self.numMappings > 1 or return_list:
-           return props
-        else:
-           return props[0]
-\end{methoddesc}
-           
-\begin{methoddesc}[InversionCostFunction]{getDualProduct}{x, r}
-        """
-        Returns the dual product, see `Regularization.getDualProduct`
-
-        :type x: `Data`
-        :type r: `ArithmeticTuple`             
-        :rtype: `float`
-        """
-        return self.regularization.getDualProduct(x, r)
+\begin{methoddesc}[InversionCostFunction]{getNorm}{m}
+returns the norm of a level set function \member{m} as a floating point number.
 \end{methoddesc}
 
 \begin{methoddesc}[InversionCostFunction]{getArguments}{m}
-        """
-        returns pre-computed values that are shared in the calculation of
-        *J(m)* and *grad J(m)*. In this implementation returns a tuple with the
-        mapped value of ``m``, the arguments from the forward model and the
-        arguments from the regularization.
-        
-        :param m: current approximation of the level set function
-        :type m: `Data`
-        :return: tuple of of values of the parameters, pre-computed values for the forward model and
-                 pre-computed values for the regularization
-        :rtype: `tuple`
-        """
-        args_reg=self.regularization.getArguments(m)
-
-        props=self.getProperties(m, return_list=True)
-        args_f=[]
-        for i in xrange(self.numModels):
-           f=self.forward_models[i]
-           if isinstance(f, ForwardModel): 
-              aa=f.getArguments(props[0])
-           elif len(f) == 1:
-              aa=f[0].getArguments(props[0])
-           else:
-              idx = f[1]
-              f=f[0]
-              if isinstance(idx, int):
-                 aa=f.getArguments(props[idx])
-              else:
-                 pp=tuple( [ props[i] for i in idx] )
-                 aa=f.getArguments(*pp)
-           args_f.append(aa)
-           
-        return props, args_f, args_reg
+returns pre-computed values for the evaluation of the 
+cost function and its gradient for a given value \member{m} 
+of the level set function. In essence the method collects
+pre-computed values for the underlying regularization and forward models\footnote{Using pre-computed 
+values can significant speed up the optimization process when the value
+of the cost function and it gradient for the same same leve set function 
+are needed.}.
 \end{methoddesc}
 
-\begin{methoddesc}[InversionCostFunction]{getValue}{m, *args}
-        """
-        Returns the value *J(m)* of the cost function at *m*.
-        If the pre-computed values are not supplied `getArguments()` is called.
-
-        :param m: current approximation of the level set function
-        :type m: `Data`
-        :param args: tuple of of values of the parameters, pre-computed values for the forward model and
-                 pre-computed values for the regularization
-        :rtype: `float`
-        """
-
-        if len(args)==0:
-            args=self.getArguments(m)
-        
-        props=args[0]
-        args_f=args[1]
-        args_reg=args[2]
-        
-        J = self.regularization.getValue(m, *args_reg)
-        print "J_reg = %e"%J
-                
-        for i in xrange(self.numModels):
-                 
-           f=self.forward_models[i]
-           if isinstance(f, ForwardModel): 
-              J_f = f.getValue(props[0],*args_f[i])
-           elif len(f) == 1:
-              J_f=f[0].getValue(props[0],*args_f[i])
-           else:
-              idx = f[1]
-              f=f[0]
-              if isinstance(idx, int):
-                 J_f = f.getValue(props[idx],*args_f[i])
-              else:
-                 args=tuple( [ props[j] for j in idx] + args_f[i])
-                 J_f = f.getValue(*args)
-           print "J_f[%d] = %e"%(i, J_f)
-           print "mu_model[%d] = %e"%(i, self.mu_model[i])
-           J += self.mu_model[i] * J_f
-           
-        return   J
+\begin{methoddesc}[InversionCostFunction]{getValue}{m \optional{, *args}}
+returns the value of the cost function for a given level set function \member{m}
+and corresponding pre-computed values \member{args}. If no pre-computed values are present
+\member{getArguments} is called.
 \end{methoddesc}
 
-\begin{methoddesc}[InversionCostFunction]{getGradient}{m, *args}
-        """
-        returns the gradient of the cost function  at *m*.
-        If the pre-computed values are not supplied `getArguments()` is called.
-
-        :param m: current approximation of the level set function
-        :type m: `Data`
-        :param args: tuple of of values of the parameters, pre-computed values for the forward model and
-                 pre-computed values for the regularization
-                 
-        :rtype: `ArithmeticTuple`
-        """
-        if len(args)==0:
-            args = self.getArguments(m)
-         
-        props=args[0]
-        args_f=args[1]
-        args_reg=args[2]
-        
-        g_J = self.regularization.getGradient(m, *args_reg) 
-        p_diffs=[]
-        for i in xrange(self.numMappings): 
-           mm=self.mappings[i]
-           if isinstance(mm, Mapping):
-               dpdm = mm.getDerivative(m)
-           elif len(mm) == 1:
-               dpdm = mm[0].getDerivative(m)
-           else:
-               dpdm = mm[0].getDerivative(m[mm[1]])
-           p_diffs.append(dpdm)
-           
-        Y=g_J[0]   
-        for i in xrange(self.numModels):
-           mu=self.mu_model[i] 
-           f=self.forward_models[i]
-           if isinstance(f, ForwardModel): 
-              Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[0] * mu
-              if self.numLevelSets == 1 :
-                 Y +=Ys
-              else:
-                  Y[0] +=Ys
-           elif len(f) == 1:
-              Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[0]  * mu
-              if self.numLevelSets == 1 :
-                 Y +=Ys
-              else:
-                  Y[0] +=Ys
-           else:
-              idx = f[1]
-              f=f[0]
-              if isinstance(idx, int):
-                 Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[idx] * mu 
-                 if self.numLevelSets == 1 :
-                     if idx == 0:
-                         Y+=Ys
-                     else:
-                         raise IndexError("Illegal mapping index.")
-                 else:
-                     Y[idx] += Ys 
-              else:
-                 args=tuple( [ props[j] for j in idx] + args_f[i])
-                 Ys = f.getGradient(*args)
-                 for ii in xrange(len(idx)):
-                     Y[idx[ii]]+=Ys[ii]* p_diffs[idx[ii]]  * mu
-
-        return g_J
+\begin{methoddesc}[InversionCostFunction]{getGradient}{m \optional{, *args}}
+returns the gradient of the cost function  at level set function \member{m}
+using the corresponding pre-computed values \member{args}. If no pre-computed values are present
+\member{getArguments} is called. The gradient 
+is represented as a tuple $(Y,X)$ where in essence 
+$Y$ represents the derivative of the cost function kernel with respect to the 
+level set function and $X$ represents thederivative of the cost function kernel with respect to the gradient of the 
+level set function, see Section~\ref{chapter:ref:inversion cost function:gradient} for more details.
+\end{methoddesc}
+       
+\begin{methoddesc}[InversionCostFunction]{getDualProduct}{m, g}
+return the dual product of a level set function \member{m} 
+with a gradient \member{g}, see Section~\ref{chapter:ref:inversion cost function:gradient} for more details.
+This method uses the dual product of the regularization. 
 \end{methoddesc}
 
-
-\begin{methoddesc}[InversionCostFunction]{getInverseHessianApproximation}{m, r, *args}
-        """
-        returns an approximative evaluation *p* of the inverse of the Hessian operator of the cost function
-        for a given gradient type *r* at a given location *m*: *H(m) p = r*
-
-        :param m: level set approximation where to calculate Hessian inverse
-        :type m: `Data`
-        :param r: a given gradient
-        :type r: `ArithmeticTuple`
-        :param args: tuple of of values of the parameters, pre-computed values for the forward model and
-                 pre-computed values for the regularization
-        :rtype: `Data`
-        :note: in the current implementation only the regularization term is
-               considered in the inverse Hessian approximation.
-
-        """
-        m=self.regularization.getInverseHessianApproximation(m, r, *args[2])
-        return m
-
+\begin{methoddesc}[InversionCostFunction]{getInverseHessianApproximation}{m, g \optional{, *args}}
+returns an approximative evaluation of the inverse of the Hessian operator of the cost function 
+for a given gradient \member{g} at a given level set function \member{m}
+using the corresponding pre-computed values \member{args}. If no pre-computed values are present
+\member{getArguments} is called. In the current implementation
+contributions to Hessian operator from the forward models are ignored and only contributions
+from the regularization and cross-gradient term.
 \end{methoddesc}
         
-\begin{methoddesc}[InversionCostFunction]{getNorm}{m}
-        """
-        returns the norm of ``m``
 
-        :param m: level set function
-        :type m: `Data`
-        :rtype: ``float``
-        """
+\section{Gradient calculation}\label{chapter:ref:inversion cost function:gradient}
+In this section we briefly discuss the calculation of the gradient and the Hessian operator.
+If $\nabla$ denotes the gradient operator (with respect to the level set function $m$) 
+the gradient of  $J$ is given as
+\begin{equation}\label{REF:EQU:DRIVE:10b}
+\nabla J(m) = \nabla J^{reg}(m) + \sum_{f} \mu^{data}_{f} \cdot \nabla J^{f}(p^f) \; .
+\end{equation} 
+We first focus on the calculation of $\nabla J^{reg}$. In fact the 
+regularization cost function $J^{reg}$ is given through a cost function
+kernel\index{cost function!kernel} $K^{reg}$ in the form
+\begin{equation}\label{REF:EQU:INTRO 2a}
+J^{reg}(m) = \int_{\Omega} K^{reg} \; dx
+\end{equation} 
+where $K^{reg}$ is a given function of the
+level set function $m_k$ and its spatial derivative $m_{k,i}$. If $n$ is an increment to the level set function 
+then the directional derivative of $J^{ref}$ in the direction of $n$ is given as
+\begin{equation}\label{REF:EQU:INTRO 2a}
+<n, \nabla J^{reg}(m)> = \int_{\Omega} \frac{ \partial K^{reg}}{\partial m_k} n_k + \frac{ \partial K^{reg}}{\partial m_{k,i}} n_{k,i} \; dx
+\end{equation} 
+where $<.,.>$ denotes the dual product, see Chapter~\ref{chapter:ref:Minimization}. Consequently, the gradient $\nabla J^{reg}$
+can be represented by a pair of values $Y$ and $X$ 
+\begin{equation}\label{ref:EQU:CS:101}
+\begin{array}{rcl}
+  Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} \\
+   X_{ki} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
+\end{array}
+\end{equation} 
+while the dual product $<.,.>$ of a level set increment $n$ and a gradient increment $g=(Y,X)$ is given as
+\begin{equation}\label{REF:EQU:INTRO 2a}
+<n,g> = \int_{\Omega} Y_k n_k + X_{ki} n_{k,i} \; dx
+\end{equation} 
+We also need to provide (an approximation of) the value $p$ of the inverse of the Hessian operator $\nabla \nabla J$
+for a given gradient increment $g=(Y,X)$. This means we need to (approximatively) solve the variational problem 
+\begin{equation}\label{REF:EQU:INTRO 2b}
+<n,\nabla \nabla J p > = \int_{\Omega} Y_k n_k + X_{ki} n_{k,i} \; dx
+\end{equation} 
+for all increments $n$ of the level set function. If we ignore contributions 
+from the forward models the left hand side takes the form
+\begin{equation}\label{REF:EQU:INTRO 2c}
+<n,\nabla \nabla J^{reg} p > = \int_{\Omega} 
+\displaystyle{\frac{\partial Y_k}{\partial m_l}} p_l n_k +
+\displaystyle{\frac{\partial Y_k}{\partial m_{l,j}}} p_{l,j} n_k +
+\displaystyle{\frac{\partial X_{ki}}{\partial m_l}} p_l n_{k,i} +
+\displaystyle{\frac{\partial X_{ki}}{\partial m_{l,j}}} p_{l,j} n_{k,i} 
+\; dx
+\end{equation}  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+Notice that equation~\ref{REF:EQU:INTRO 2b} defines a system of linear PDEs
+which is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
+\begin{equation}\label{ref:EQU:REG:600}
+\begin{array}{rcl}
+ A_{kilj} & = &  \displaystyle{\frac{\partial X_{ki}}{\partial m_{l,j}}}  \\
+ B_{kil} & = &  \displaystyle{\frac{\partial X_{ki}}{\partial m_l}}   \\
+ C_{klj} & = &  \displaystyle{\frac{\partial Y_k}{\partial m_{l,j}}}    \\
+  D_{kl} & = & \displaystyle{\frac{\partial Y_k}{\partial m_l}}    \\ 
+\end{array}
+\end{equation} 
+The calculation of the gradient of the forward model component is more complicated:
+the data defect $J^{f}$ for forward model $f$ is expressed use a cost function kernel $K^{f}$ 
+\begin{equation}\label{REF:EQU:INTRO 2b}
+J^{f}(p^f) = \int_{\Omega} K^{f} \; dx
+\end{equation} 
+In this case the cost function kernel $K^{f}$ is a function of the 
+physical parameter $p^f$, which again is a function of the level-set function,
+and the state variable $u^f_{k}$ and its gradient $u^f_{k,i}$. For the sake of a simpler 
+presentation the upper index $f$ is dropped.
+ 
+The gradient $\nabla_{p} J$ of the  $J$ with respect to
+the physical property $p$ is given as 
+\begin{equation}\label{REF:EQU:costfunction 100b}
+<q, \nabla_{p} J(p)> =    \int_{\Omega}
+\displaystyle{\frac{\partial K }{\partial u_k }  } \displaystyle{\frac{\partial u_k }{\partial q }  } +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } \left( \displaystyle{\frac{\partial u_k }{\partial q }  } \right)_{,i}+
+\displaystyle{\frac{\partial K }{\partial p }  }  q \; dx
+\end{equation}
+for any $q$ as an increment to the physical parameter $p$. If the change 
+  of the state variable
+$u_f$ for physical parameter $p$ in the direction of $q$ is denoted as
+\begin{equation}\label{REF:EQU:costfunction 100c}
+d_k =\displaystyle{\frac{\partial u_k }{\partial q }  }
+\end{equation} 
+equation~\ref{REF:EQU:costfunction 100b} can be written as
+\begin{equation}\label{REF:EQU:costfunction 100d}
+<q, \nabla_{p} J(p)> =    \int_{\Omega}
+\displaystyle{\frac{\partial K }{\partial u_k }  } d_k +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } d_{k,i}+
+\displaystyle{\frac{\partial K }{\partial p }  }  q \; dx
+\end{equation}
+The  state variable are the solution of PDE which in variational from is given
+\begin{equation}\label{REF:EQU:costfunction 100}
+\int_{\Omega} F_k \cdot r_k +  G_{li} \cdot r_{k,i} \; dx = 0 
+\end{equation} 
+for all increments $r$ to the stat $u$. The functions $F$ and $G$ are given and describe the physical
+model. They depend of the state variable $u_{k}$ and its gradient $u_{k,i}$ and the physical parameter $p$. The change 
+$d_k$  of the state 
+$u_f$ for physical parameter $p$ in the direction of $q$ is given from the equation
+\begin{equation}\label{REF:EQU:costfunction 100b}
+ \int_{\Omega} 
+\displaystyle{\frac{\partial F_k }{\partial u_l }  } d_l r_k +
+\displaystyle{\frac{\partial F_k }{\partial u_{l,j}} } d_{l,j} r_k +
+\displaystyle{\frac{\partial F_k }{\partial p} }q r_k +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_l} } d_l r_{k,i} +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_{l,j}} } d_{l,j} r_{k,i}+
+\displaystyle{\frac{\partial G_{ki}}{\partial p} } q r_{k,i}  
+\; dx = 0  
+\end{equation}
+to be fulfilled for all functions $r$. Now let $d^*_k$ be the solution of the 
+variational equation
+\begin{equation}\label{REF:EQU:costfunction 100d}
+ \int_{\Omega} 
+\displaystyle{\frac{\partial F_k }{\partial u_l }  } h_l d^*_k +
+\displaystyle{\frac{\partial F_k }{\partial u_{l,j}} } h_{l,j} d^*_k +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_l} } h_l d^*_{k,i} +
+\displaystyle{\frac{\partial G_{ki}}{\partial u_{l,j}} } h_{l,j} d^*_{k,i}
+\; dx
+= \int_{\Omega} 
+\displaystyle{\frac{\partial K }{\partial u_k }  } h_k +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } h_{k,i}  \; dx
+\end{equation}
+for all increments $h_k$ to the physical property $p$. This problem
+is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
+\begin{equation}\label{ref:EQU:REG:600}
+\begin{array}{rcl}
+ A_{kilj} & = &  \displaystyle{\frac{\partial G_{lj}}{\partial u_{k,i}} }  \\
+ B_{kil} & = &  \displaystyle{\frac{\partial F_l }{\partial u_{k,i}} }   \\
+ C_{klj} & = & \displaystyle{\frac{\partial G_{lj}}{\partial u_k} }    \\
+  D_{kl} & = & \displaystyle{\frac{\partial F_l }{\partial u_k }  }   \\ 
+  Y_{k} & = & \displaystyle{\frac{\partial K }{\partial u_k }  }     \\ 
+  X_{ki} & = & \displaystyle{\frac{\partial K }{\partial u_{k,i} }  }    \\ 
+\end{array}
+\end{equation} 
+Notice that these coefficient are transposed to the coefficients used to solve for the 
+state variables in equation~\ref{REF:EQU:costfunction 100}. 
 
-\end{methoddesc}
+Setting $h_l=d_l$ in equation~\ref{REF:EQU:costfunction 100d} and
+$r_k=d^*_k$ in equation~\ref{REF:EQU:costfunction 100b} one gets
+\begin{equation}\label{ref:EQU:REG:601}
+\int_{\Omega}
+\displaystyle{\frac{\partial K }{\partial u_k }  } d_k +
+\displaystyle{\frac{\partial K }{\partial u_{k,i} }  } d_{k,i}+
+\displaystyle{\frac{\partial F_k }{\partial p} } q d^*_k +
+\displaystyle{\frac{\partial G_{ki}}{\partial p} } q d^*_{k,i}  
+\; dx = 0  
+\end{equation} 
+which is inserted into equation~\ref{REF:EQU:costfunction 100d} to get
+\begin{equation}\label{REF:EQU:costfunction 602}
+<q, \nabla_{p} J(p)> =    \int_{\Omega} \left(
+\displaystyle{\frac{\partial K }{\partial p }  } - \displaystyle{\frac{\partial F_k }{\partial p} } d^*_k
+- \displaystyle{\frac{\partial G_{ki}}{\partial p} }  d^*_{k,i} \right) q \; dx
+\end{equation}
+We need in fact the gradient of $J^f$ with respect to the level set function which is given as
+\begin{equation}\label{REF:EQU:costfunction 603}
+<n, \nabla J^f> =    \int_{\Omega} \left(
+\displaystyle{\frac{\partial K^f}{\partial p^f}  } - \displaystyle{\frac{\partial F^f_k }{\partial p^f} } d^{f*}_k
+- \displaystyle{\frac{\partial G^f_{ki}}{\partial p^f} }  d^{f*}_{k,i} \right) 
+\cdot \displaystyle{\frac{\partial p^f }{\partial m_l} } n_l \; dx
+\end{equation}
+for any increment $n$ to the level set function. So in summary we get  
+\begin{equation}\label{ref:EQU:CS:101}
+\begin{array}{rcl}
+  Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} + 
+ \sum_{f} \mu^{data}_{f} \left(
+\displaystyle{\frac{\partial K^f}{\partial p^f}  } - \displaystyle{\frac{\partial F^f_l }{\partial p^f} } d^{f*}_l
+- \displaystyle{\frac{\partial G^f_{li}}{\partial p^f} }  d^{f*}_{l,i} \right) 
+\cdot \displaystyle{\frac{\partial p^f }{\partial m_k} } 
+
+\\
+   X_{ki} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
+\end{array}
+\end{equation} 
+to represent $\nabla J$ as the tuple $(Y,X)$. Contributions of the forward model to the 
+Hessian operator are ignored.
 

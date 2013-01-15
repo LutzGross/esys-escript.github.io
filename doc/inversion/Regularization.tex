@@ -146,14 +146,7 @@ and for $X$
 \\
 \end{array}
 \end{equation}  
-We also need to provide an approximation of the inverse of the Hessian operator. The operator evaluation is executes as a solution 
-of a linear PDE which is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
-\begin{equation}\label{ref:EQU:REG:600}
-\begin{array}{rcl}
- A_{kilj} & = & \displaystyle{\frac{\partial X_{ki}}{\partial m_{l,j}}} \\
-D_{kl} & =  &  \displaystyle{\frac{\partial Y_{k}}{\partial m_{l}}} 
-\end{array}
-\end{equation} 
+We also need to provide an approximation of the inverse of the Hessian operator as discussed in section~\ref{chapter:ref:inversion cost function:gradient}.
 For the case of a single valued level set function $m$ we get 
 \begin{equation}\label{ref:EQU:REG:601}
 \begin{array}{rcl}

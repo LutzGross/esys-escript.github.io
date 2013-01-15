@@ -75,7 +75,7 @@ anomaly via Equation~(\ref{ref:MAG:EQU:8}) to calculate the defect to the given
 data.
 If $B^{(s)}_i$ is a measurement of the magnetic flux density anomaly for
 survey $s$ and $\omega^{(s)}_i$ is a weighting factor the data defect
-$J^{mag}(k)$ in the notation of Chapter~\ref{Chp:ref:introduction} is given as
+$J^{mag}(k)$ in the notation of Chapter~\ref{chapter:ref:inversion cost function} is given as
 \begin{equation}\label{ref:MAG:EQU:9}
 J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\Omega} ( \omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) ) ^2 dx
 \end{equation} 
@@ -145,7 +145,8 @@ in order to make sure that all components of the cost function are appropriately
 \subsection{Gradient Calculation}
 This section briefly explains how the gradient
 $\frac{\partial J^{mag}}{\partial k}$ of the cost function $J^{mag}$ with
-respect to the susceptibility $k$ is calculated. 
+respect to the susceptibility $k$ is calculated.  We follow the concept as outlined in section~\ref{chapter:ref:inversion cost function:gradient}.
+
 The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8}) is solved in weak form:
 \begin{equation}\label{ref:MAG:EQU:201}
 \int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^b_i \; dx 
