@@ -41,20 +41,18 @@ class InversionDriver(object):
     """
     Base class for running an inversion
     """
-    def __init__(self):
+    def __init__(self, solverclass=None):
         """
-        creates an intance of an inversion driver.
+        creates an instance of an inversion driver. 
+        
+        :param solverclass: class of the solver to be used.
+        :type solverclass: 'AbstractMinimizer'.
         """
         self.logger=logging.getLogger('inv.%s'%self.__class__.__name__)
-        self.__costfunction = None
-        self.setSolverMaxIterations()
-        self.setSolverTolerance()
-        self.setSolverCallback()
-        self.setSolverClass()
-        self._solver_opts = {}
+        if solverclass is None: solverclass=MinimizerLBFGS
+        self.__solver=solverclass()
         self.initial_value = None
         self.m=None
-        # set default solver
 
 
     def setCostFunction(self, costfunction):
@@ -65,7 +63,7 @@ class InversionDriver(object):
         :param costfunction: domain of the inversion
         :type costfunction: 'InversionCostFunction'
         """
-        self.__costfunction=costfunction
+        self.__solver.setCostFunction(costfunction)
 
     def getCostFunction(self):
         """
@@ -74,22 +72,18 @@ class InversionDriver(object):
         :rtype: 'InversionCostFunction'
         """
         if self.isSetUp():
-           return  self.__costfunction
+            return self.getSolver().getCostFunction()
         else:
            raise RuntimeError("Inversion is not set up.")
     
-    def setSolverClass(self, solverclass=None):
+    def getSolver(self):
         """
         The solver to be used in the inversion process. See the minimizers
         module for available solvers. By default, the L-BFGS minimizer is used.
         
-        :param solverclass: solver class to be used.
-        :type solverclass: 'AbstractMinimizer'.
+        :rtype: 'AbstractMinimizer'.
         """
-        if solverclass == None:
-            self.solverclass=MinimizerLBFGS
-        else:
-            self.solverclass=solverclass
+        return self.__solver
             
     def isSetUp(self):
         """
@@ -97,7 +91,7 @@ class InversionDriver(object):
         
         :rtype: `bool`
         """
-        if  self.__costfunction:
+        if  self.getSolver().getCostFunction():
             return True
         else:
             return False
@@ -115,7 +109,8 @@ class InversionDriver(object):
         Sets the callback function which is called after every solver
         iteration.
         """
-        self._solver_callback=callback
+        self.getSolver().setCallback(callback)
+        
         
     def setSolverMaxIterations(self, maxiter=None):
         """
@@ -127,36 +122,28 @@ class InversionDriver(object):
         """
         if maxiter == None: maxiter = 200
         if maxiter>0:
-            self._solver_maxiter=maxiter
+	    self.getSolver().setMaxIterations(maxiter)
         else:
             raise ValueError("maxiter must be positive.")
 
-    def setSolverOptions(self, **opts):
-        """
-        Sets additional solver options. The valid options depend on the
-        solver being used.
-        """
-        self._solver_opts.update(**opts)
 
-    def setSolverTolerance(self, tol=None, atol=None):
+    def setSolverTolerance(self, m_tol=None, J_tol=None):
         """
-        Sets the error tolerance for the solver. An acceptable solution is
-        considered to be found once the tolerance is reached.
+        Sets the error tolerance for the self.getSolver(). An acceptable solution is
+        considered to be found once the tolerance is reached. is None
         
-        :param tol: tolerance for changes to level set function. If `None` changes to the 
+        :param m_tol: tolerance for changes to level set function. If `None` changes to the 
                     level set function are not checked for convergence during iteration.
-        :param atol: tolerance for changes to cost function. If `None` changes to the 
+        :param J_tol: tolerance for changes to cost function. If `None` changes to the 
                     cost function are not checked for convergence during iteration.
-        :type tol: `float` or `None`
-        :type atol: `float` or `None` 
-        :note: if both arguments are equal to `None` the default setting tol=1e-4, atol=None is used.
+        :type m_tol: `float` or `None`
+        :type J_tol: `float` or `None` 
+        :note: if both arguments are equal to `None` the default setting m_tol=1e-4, J_tol=None is used.
 
         """
-        if tol == None and atol==None:
-            tol=1e-4
-
-        self._solver_xtol=tol
-        self._solver_atol=atol
+        if m_tol == None and J_tol==None:
+            m_tol=1e-4
+        self.getSolver().setTolerance(m_tol=m_tol, J_tol=J_tol)
 
  
     def setInitialGuess(self, *args):
@@ -177,23 +164,18 @@ class InversionDriver(object):
             raise RuntimeError("Inversion is not setup.")           
 
         if self.initial_value == None: self.setInitialGuess()
-        solver=self.solverclass(self.getCostFunction())
-        solver.setCallback(self._solver_callback)
-        solver.setMaxIterations(self._solver_maxiter)
-        solver.setOptions(**self._solver_opts)
-        solver.setTolerance(x_tol=self._solver_xtol)
-        self.logger.info("Starting solver...")
+        self.logger.info("Starting self.getSolver()...")
         try:
-            solver.run(self.initial_value)
-            self.m=solver.getResult() 
+            self.getSolver().run(self.initial_value)
+            self.m=self.getSolver().getResult() 
             self.p=self.getCostFunction().getProperties(self.m)
         except MinimizerException as e:
-            self.m=solver.getResult()
+            self.m=self.getSolver().getResult()
             self.p=self.getCostFunction().getProperties(self.m)
             self.logger.info("iteration failed.")
             raise e
         self.logger.info("iteration completed.")
-        solver.logSummary()
+        self.getSolver().logSummary()
         return self.p
         
     def getLevelSetFunction(self):

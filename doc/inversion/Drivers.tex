@@ -7,12 +7,17 @@ is to set up the appropriate cost function, to manage solution parameters and to
 
 \subsection{Template}
 \begin{classdesc*}{InversionDriver}
-template for inversion drivers. By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+template for inversion drivers. 
 \end{classdesc*}
  
 \begin{methoddesc}[InversionDriver]{getCostFunction}{}
 returns the cost function of the inversion. This will be an instance of the \class{InversionCostFunction} class, see Section~\ref{chapter:ref:inversion cost function}.
 Use this method to access or alter attributes or call methods of the underlying cost function.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionDriver]{getSolver}{}
+returns the instance of the solver class used to minimize the cost function, see Chapter~\ref{chapter:ref:Minimization}. 
+Use this method to modify solver options.
 \end{methoddesc}
 
 \begin{methoddesc}[InversionDriver]{getDomain}{}
@@ -25,13 +30,13 @@ sets the maximum number of iteration steps for the solver used to minimize the c
 If the maximum number is reached, the iteration will be terminated and \exception{MinimizerMaxIterReached} is thrown.
 \end{methoddesc}
 
-\begin{methoddesc}[InversionDriver]{setSolverTolerance}{\optional{tol=\None} \optional{, atol=\None}}
-set the tolerance for the the solver used to minimize the cost function. If \member{tol} is set the iteration is terminated 
-if the relative change of the level set function is less than or equal \member{tol}. 
-If \member{atol} is set the iteration is terminated if the change of the cost
-function relative to the initial value is less than or equal \member{atol}.
+\begin{methoddesc}[InversionDriver]{setSolverTolerance}{\optional{m_tol=\None} \optional{, J_tol=\None}}
+set the tolerance for the the solver used to minimize the cost function. If \member{m_tol} is set the iteration is terminated 
+if the relative change of the level set function is less than or equal \member{m_tol}, see condition~\ref{EQU:MIN:3a}. 
+If \member{J_tol} is set the iteration is terminated if the change of the cost
+function relative to the initial value is less than or equal \member{J_tol}, , see condition~\ref{EQU:MIN:3b}.
 If both tolerances are set both stopping criteria need to be met.
-By default \member{tol}=1e-4 and \member{atol}=\None.
+By default \member{tol}=1e-4 and \member{J_tol}=\None.
 \end{methoddesc}
 
 \begin{methoddesc}[InversionDriver]{getLevelSetFunction}{}
@@ -52,13 +57,17 @@ incurable break down in the iteration in which case a \exception{MinimizerIterat
 \subsection{Gravity Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:gravity inversion}.
 
-\begin{classdesc}{GravityInversion}{}
+\begin{classdesc}{GravityInversion}{\optional{solverclass=None}}
 Driver class to perform an inversion of Gravity (Bouguer) anomaly data.
 This class is a sub-class of \class{InversionDriver}. The class uses the
 standard \class{Regularization} for a single level set function,
 see Chapter~\ref{Chp:ref:regularization}, \class{DensityMapping} mapping,
 see Section~\ref{Chp:ref:mapping density}, and the gravity forward model
 \class{GravityModel}, see Section~\ref{sec:forward gravity}.
+\member{solverclass} set the solver class to be used for inversion,
+see Chapter~\ref{chapter:ref:Minimization}.
+ By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+
 \end{classdesc}
 
 \begin{methoddesc}[GravityInversion]{setup}{
@@ -89,12 +98,15 @@ sets an initial guess for the density anomaly. By default zero is used.
 \subsection{Magnetic Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:magnetic inversion}.
 
-\begin{classdesc}{MagneticInversion}{}
+\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}}
 Driver class to perform an inversion of magnetic anomaly data. This class
 is a sub-class of \class{InversionDriver}. The class uses the standard
 \class{Regularization} class for a single level set function, see Chapter~\ref{Chp:ref:regularization},
 \class{SusceptibilityMapping} mapping, see Section~\ref{Chp:ref:mapping susceptibility}, and the linear
 magnetic forward model \class{MagneticModel}, see Section~\ref{sec:forward magnetic}.
+\member{solverclass} set the solver class to be used for inversion,
+see Chapter~\ref{chapter:ref:Minimization}.
+ By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
 \end{classdesc}
 
 
@@ -127,7 +139,7 @@ sets an initial guess for the susceptibility anomaly. By default zero is used.
 \subsection{Gravity and Magnetic Joint Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:joint inversion}.
 
-\begin{classdesc}{JointGravityMagneticInversion}{}
+\begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}}
 Driver class to perform a joint inversion of Gravity (Bouguer) and magnetic anomaly data.
 This class is a sub-class of \class{InversionDriver}. 
 The class uses the standard \class{Regularization} for two level set functions
@@ -136,6 +148,9 @@ with cross-gradient correlation, see Chapter~\ref{Chp:ref:regularization},
 gravity forward model \class{GravityModel}, see Section~\ref{sec:forward gravity}
 and the linear
 magnetic forward model \class{MagneticModel}, see Section~\ref{sec:forward magnetic}.
+\member{solverclass} set the solver class to be used for inversion,
+see Chapter~\ref{chapter:ref:Minimization}.
+ By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
 \end{classdesc}
 
 
