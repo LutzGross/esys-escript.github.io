@@ -204,7 +204,7 @@ J^{reg}(m) = \int_{\Omega} K^{reg} \; dx
 where $K^{reg}$ is a given function of the
 level set function $m_k$ and its spatial derivative $m_{k,i}$. If $n$ is an increment to the level set function 
 then the directional derivative of $J^{ref}$ in the direction of $n$ is given as
-\begin{equation}\label{REF:EQU:INTRO 2a}
+\begin{equation}\label{REF:EQU:INTRO 2aa}
 <n, \nabla J^{reg}(m)> = \int_{\Omega} \frac{ \partial K^{reg}}{\partial m_k} n_k + \frac{ \partial K^{reg}}{\partial m_{k,i}} n_{k,i} \; dx
 \end{equation} 
 where $<.,.>$ denotes the dual product, see Chapter~\ref{chapter:ref:Minimization}. Consequently, the gradient $\nabla J^{reg}$
@@ -216,7 +216,7 @@ can be represented by a pair of values $Y$ and $X$
 \end{array}
 \end{equation} 
 while the dual product $<.,.>$ of a level set increment $n$ and a gradient increment $g=(Y,X)$ is given as
-\begin{equation}\label{REF:EQU:INTRO 2a}
+\begin{equation}\label{REF:EQU:INTRO 2aaa}
 <n,g> = \int_{\Omega} Y_k n_k + X_{ki} n_{k,i} \; dx
 \end{equation} 
 We also need to provide (an approximation of) the value $p$ of the inverse of the Hessian operator $\nabla \nabla J$
@@ -246,7 +246,7 @@ which is solved using \escript \class{LinearPDE} class. In the \escript notation
 \end{equation} 
 The calculation of the gradient of the forward model component is more complicated:
 the data defect $J^{f}$ for forward model $f$ is expressed use a cost function kernel $K^{f}$ 
-\begin{equation}\label{REF:EQU:INTRO 2b}
+\begin{equation}\label{REF:EQU:INTRO 2bb}
 J^{f}(p^f) = \int_{\Omega} K^{f} \; dx
 \end{equation} 
 In this case the cost function kernel $K^{f}$ is a function of the 
@@ -283,7 +283,7 @@ for all increments $r$ to the stat $u$. The functions $F$ and $G$ are given and 
 model. They depend of the state variable $u_{k}$ and its gradient $u_{k,i}$ and the physical parameter $p$. The change 
 $d_k$  of the state 
 $u_f$ for physical parameter $p$ in the direction of $q$ is given from the equation
-\begin{equation}\label{REF:EQU:costfunction 100b}
+\begin{equation}\label{REF:EQU:costfunction 100bb}
  \int_{\Omega} 
 \displaystyle{\frac{\partial F_k }{\partial u_l }  } d_l r_k +
 \displaystyle{\frac{\partial F_k }{\partial u_{l,j}} } d_{l,j} r_k +
@@ -295,7 +295,7 @@ $u_f$ for physical parameter $p$ in the direction of $q$ is given from the equat
 \end{equation}
 to be fulfilled for all functions $r$. Now let $d^*_k$ be the solution of the 
 variational equation
-\begin{equation}\label{REF:EQU:costfunction 100d}
+\begin{equation}\label{REF:EQU:costfunction 100dd}
  \int_{\Omega} 
 \displaystyle{\frac{\partial F_k }{\partial u_l }  } h_l d^*_k +
 \displaystyle{\frac{\partial F_k }{\partial u_{l,j}} } h_{l,j} d^*_k +
@@ -308,7 +308,7 @@ variational equation
 \end{equation}
 for all increments $h_k$ to the physical property $p$. This problem
 is solved using \escript \class{LinearPDE} class. In the \escript notation we need to provide 
-\begin{equation}\label{ref:EQU:REG:600}
+\begin{equation}\label{ref:EQU:REG:600b}
 \begin{array}{rcl}
  A_{kilj} & = &  \displaystyle{\frac{\partial G_{lj}}{\partial u_{k,i}} }  \\
  B_{kil} & = &  \displaystyle{\frac{\partial F_l }{\partial u_{k,i}} }   \\
@@ -323,7 +323,7 @@ state variables in equation~\ref{REF:EQU:costfunction 100}.
 
 Setting $h_l=d_l$ in equation~\ref{REF:EQU:costfunction 100d} and
 $r_k=d^*_k$ in equation~\ref{REF:EQU:costfunction 100b} one gets
-\begin{equation}\label{ref:EQU:REG:601}
+\begin{equation}\label{ref:EQU:costfunction:601}
 \int_{\Omega}
 \displaystyle{\frac{\partial K }{\partial u_k }  } d_k +
 \displaystyle{\frac{\partial K }{\partial u_{k,i} }  } d_{k,i}+
@@ -345,7 +345,7 @@ We need in fact the gradient of $J^f$ with respect to the level set function whi
 \cdot \displaystyle{\frac{\partial p^f }{\partial m_l} } n_l \; dx
 \end{equation}
 for any increment $n$ to the level set function. So in summary we get  
-\begin{equation}\label{ref:EQU:CS:101}
+\begin{equation}\label{ref:EQU:CS:101b}
 \begin{array}{rcl}
   Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} + 
  \sum_{f} \mu^{data}_{f} \left(
