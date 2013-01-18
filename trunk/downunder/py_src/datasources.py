@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2012 by University of Queensland
+# Copyright (c) 2003-2013 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -15,21 +15,23 @@
 
 """Data readers/providers for inversions"""
 
-__copyright__="""Copyright (c) 2003-2012 by University of Queensland
+__copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['simpleGeoMagneticFluxDensity', 'DataSource','ErMapperData', 'SyntheticDataBase' , 'SyntheticFeatureData', 'SyntheticData','SmoothAnomaly']
+__all__ = ['simpleGeoMagneticFluxDensity', 'DataSource', 'ErMapperData', \
+        'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
+        'SmoothAnomaly']
 
 import logging
 import numpy as np
 from esys.escript import ReducedFunction
+from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
-import esys.escript.unitsSI as U
 from esys.ripley import Brick, Rectangle, ripleycpp
 
 try:
@@ -79,11 +81,11 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     return x,y
 
 def simpleGeoMagneticFluxDensity(latitude, longitude=0.):
-        theta = (90-latitude)/180.*np.pi
-        B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
-        B_theta= B_0 * sin(theta)
-        B_r= 2 * B_0 * cos(theta)
-        return B_r, B_theta, 0.
+    theta = (90-latitude)/180.*np.pi
+    B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
+    B_theta= B_0 * sin(theta)
+    B_r= 2 * B_0 * cos(theta)
+    return B_r, B_theta, 0.
 
 class DataSource(object):
     """
@@ -102,7 +104,6 @@ class DataSource(object):
         """
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__subsampling_factor=1
-        self.__background_magnetic_field=None
 
     def getDataExtents(self):
         """
@@ -127,6 +128,7 @@ class DataSource(object):
         """
         This method is called by the `DomainBuilder` to retrieve the survey
         data as `Data` objects on the given domain.
+
         Subclasses should return one or more `Data` objects with survey data
         interpolated on the given ripley domain. The exact return type
         depends on the type of data.
@@ -145,6 +147,7 @@ class DataSource(object):
     def setSubsamplingFactor(self, f):
         """
         Sets the data subsampling factor (default=1).
+
         The factor is applied in all dimensions. For example a 2D dataset
         with 300 x 150 data points will be reduced to 150 x 75 when a
         subsampling factor of 2 is used.

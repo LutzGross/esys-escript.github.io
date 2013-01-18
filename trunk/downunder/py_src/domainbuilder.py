@@ -1,7 +1,7 @@
 
 ##############################################################################
 #
-# Copyright (c) 2003-2012 by University of Queensland
+# Copyright (c) 2003-2013 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -15,7 +15,7 @@
 
 """Domain construction from survey data for inversions"""
 
-__copyright__="""Copyright (c) 2003-2012 by University of Queensland
+__copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
@@ -50,12 +50,12 @@ class DomainBuilder(object):
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         if dim not in (2,3):
             raise ValueError("Number of dimensions must be 2 or 3")
-        self._domain=None
-        self._dim=dim
-        self._sources=[]
+        self.__domain=None
+        self.__dim=dim
+        self.__sources=[]
+        self.__background_magnetic_field=None
         self.setPadding()
         self.setVerticalExtents()
-        self.__background_magnetic_field = None
         self.fixDensityBelow()
         self.fixSusceptibilityBelow()
 
@@ -63,12 +63,12 @@ class DomainBuilder(object):
         """
         Adds a survey data provider to the domain builder.
 
-        :param source: The data source to be added.
+        :param source: The data source to be added
         :type source: `DataSource`
         """
         if not isinstance(source, DataSource):
             raise TypeError("source is not a DataSource")
-        self._sources.append(source)
+        self.__sources.append(source)
 
     def setFractionalPadding(self, pad_x=None, pad_y=None):
         """
@@ -121,7 +121,8 @@ class DomainBuilder(object):
 
     def setElementPadding(self, pad_x=None, pad_y=None):
         """
-        Sets the amount of padding around the dataset in number of elements.
+        Sets the amount of padding around the dataset in number of elements
+        (cells).
 
         When the domain is constructed `pad_x` (`pad_y`) elements are added
         on each side of the x- (y-) dimension. The arguments must be
@@ -146,100 +147,98 @@ class DomainBuilder(object):
         self._padding = [pad_x,pad_y], 'e'
         
     def getGravitySurveys(self):
-	"""
-	Returns a list of gravity surveys, see `` getSurveys`` for details
-	"""
-	return self.getSurveys(DataSource.GRAVITY)
-	
-    def getMagneticSurveys(self):
-	"""
-	Returns a list of magnetic surveys, see `` getSurveys`` for details
-	"""
-	return self.getSurveys(DataSource.MAGNETIC)
-	
-    def fixDensityBelow(self,depth=None):
         """
-        defines the depth below which density anomaly is set to zero.
+        Returns a list of gravity surveys, see `getSurveys` for details.
+        """
+        return self.getSurveys(DataSource.GRAVITY)
+        
+    def getMagneticSurveys(self):
+        """
+        Returns a list of magnetic surveys, see `getSurveys` for details.
+        """
+        return self.getSurveys(DataSource.MAGNETIC)
+        
+    def fixDensityBelow(self, depth=None):
+        """
+        Defines the depth below which the density anomaly is set to zero.
         """
         self.__fix_density_below=depth
         
-    def fixSusceptibilityBelow(self,depth=None):
+    def fixSusceptibilityBelow(self, depth=None):
         """
-        defines the depth below which density anomaly is set to zero.
+        Defines the depth below which the susceptibility anomaly is set to
+        zero.
         """
         self.__fix_susceptibility_below=depth
 
-        
-        
     def getSurveys(self, datatype):
         """
-        Returns a list of `Data` objects for all surveys of type *datatype*  available to
-        this domain builder.
+        Returns a list of `Data` objects for all surveys of type `datatype`
+        available to this domain builder.
 
         :return: List of gravity surveys which are tuples (anomaly,error).
         :rtype: ``list``
         """
         surveys=[]
-        for src in self._sources:
-           if src.getDataType()==datatype:
-              surveys.append(src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing))
+        for src in self.__sources:
+            if src.getDataType()==datatype:
+                surveys.append(src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing))
         return surveys
 
     def setBackgroundMagneticFluxDensity(self, B):
         """
-        sets the back ground magnetic flux density B=(B_r,B_theta, B_phi)
+        Sets the background magnetic flux density B=(B_r, B_theta, B_phi)
         """
         self.__background_magnetic_field=B
 
     def getBackgroundMagneticFluxDensity(self):
         """
-        returns the back ground magnetic flux density.
+        Returns the background magnetic flux density.
         """
         B = self.__background_magnetic_field
         # this is for Cartesian (FIXME ?)
-        if self._dim<3:
-            return np.array([-B[2],  -B[0]])
+        if self.__dim<3:
+            return np.array([-B[2], -B[0]])
         else:
-            return np.array([-B[1],  -B[2],  -B[0]])
+            return np.array([-B[1], -B[2], -B[0]])
 
     def getSetDensityMask(self):
-        z=self.getDomain().getX()[self._dim-1]
+        z=self.getDomain().getX()[self.__dim-1]
         m = whereNonNegative(z)
         if self.__fix_density_below:
-	   m += whereNonPositive(z+self.__fix_density_below)
-        
-        return m
-        
-    def getSetSusceptibilityMask(self):
-        z=self.getDomain().getX()[self._dim-1]
-        m = whereNonNegative(z)
-        if self.__fix_susceptibility_below:
-	   m += whereNonPositive(z+self.__fix_susceptibility_below)
+            m += whereNonPositive(z+self.__fix_density_below)
         return m
 
+    def getSetSusceptibilityMask(self):
+        z=self.getDomain().getX()[self.__dim-1]
+        m = whereNonNegative(z)
+        if self.__fix_susceptibility_below:
+            m += whereNonPositive(z+self.__fix_susceptibility_below)
+        return m
 
     def getDomain(self):
         """
         Returns a domain that spans the data area plus padding.
-        The domain is created the first time this method is called, subsequent
-        calls return the same domain so anything that affects the domain
-        (such as padding) needs to be set beforehand.
 
-        :return: The escript domain for this data source.
+        The domain is created the first time this method is called,
+        subsequent calls return the same domain so anything that affects
+        the domain (such as padding) needs to be set beforehand.
+
+        :return: The escript domain for this data source
         :rtype: `esys.escript.Domain`
         """
-        if self._domain is None:
-            self._domain=self.__createDomain()
-        return self._domain
+        if self.__domain is None:
+            self.__domain=self.__createDomain()
+        return self.__domain
 
     def setVerticalExtents(self, depth=40000., air_layer=10000., num_cells=25):
         """
         This method sets the target domain parameters for the vertical
         dimension.
 
-        :param depth: Depth in meters of the domain.
+        :param depth: Depth of the domain (in meters)
         :type depth: ``float``
-        :param air_layer: Depth of the layer above sea level in meters
+        :param air_layer: Depth of the layer above sea level (in meters)
         :type air_layer: ``float``
         :param num_cells: Number of domain elements for the entire vertical
                           dimension
@@ -262,8 +261,8 @@ class DomainBuilder(object):
         pad, pt = self._padding
         for i in range(DIM):
             if pad[i] is None:
-		frac.append(0.)
-		continue
+                frac.append(0.)
+                continue
             if pt == 'f': # fraction of side length
                 frac.append(2.*pad[i])
             elif pt == 'e': # number of elements
@@ -283,12 +282,12 @@ class DomainBuilder(object):
         Helper method that computes the origin, number of elements and
         minimal element spacing taking into account all available survey data.
         """
-        if len(self._sources)==0:
+        if len(self.__sources)==0:
             raise ValueError("No data")
-        X0, NE, DX = self._sources[0].getDataExtents()
+        X0, NE, DX = self.__sources[0].getDataExtents()
         XN=[X0[i]+NE[i]*DX[i] for i in range(len(NE))]
 
-        for src in self._sources[1:]:
+        for src in self.__sources[1:]:
             d_x0, d_ne, d_dx = src.getDataExtents()
             for i in range(len(d_x0)):
                 X0[i]=min(X0[i], d_x0[i])
@@ -321,15 +320,15 @@ class DomainBuilder(object):
         spacing = DX + [(self._v_depth+self._v_air_layer)/self._v_num_cells]
         self._spacing = [float(np.floor(si)) for si in spacing]
 
-        lo=[(self._dom_origin[i], self._dom_origin[i]+NE[i]*self._spacing[i]) for i in range(self._dim)]
-        if self._dim==3:
+        lo=[(self._dom_origin[i], self._dom_origin[i]+NE[i]*self._spacing[i]) for i in range(self.__dim)]
+        if self.__dim==3:
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])
         else:
             dom=Rectangle(*NE, l0=lo[0], l1=lo[1])
 
         # ripley may internally adjust NE and length, so recompute
-        self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self._dim)]
-        self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(self._dim)]
+        self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self.__dim)]
+        self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(self.__dim)]
 
         self.logger.debug("Domain size: "+str(self._dom_NE))
         self.logger.debug("     length: "+str(self._dom_len))
