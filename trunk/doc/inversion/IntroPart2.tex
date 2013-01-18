@@ -60,7 +60,43 @@ density and susceptibility anomaly are known above the surface, typically assume
 For subregions where a physical parameter is known it is assumed that the corresponding level set function as 
 the value zero. If required, non-zero values for the physical parameters can be set using appropriate mapping.      
 
-\section{Cartesian Domain}
+\begin{figure}[ht]
+    \centering\includegraphics{classdep}
+    \caption{Class dependencies}
+    \label{fig:classes}
+\end{figure} 
+
+\section{Class Dependencies}
+For simplification of usage \downunder provides predefined classes that drive inversion for particular 
+problems. The usage of this classes is being discussed in Part~\ref{part1}. More details are shown in
+Section~\ref{chapter:ref:Drivers:Drivers}. It is the role of the driver class to orchestration an 
+inversion. New inversions can easily be implemented by modifying the available drivers.
+
+As illustrated in Figure~\ref{fig:classes} the driver class uses geophysical data as
+managed through the \class{DataSource} class (see Chapter~\ref{Chp:ref:data sources}) and 
+an \escript domain to define an appropriate
+costs function to be minimized. The driver class also run the minimization solver.
+The \escript domain~\cite{ESCRIPT} is created using the \class{DomainBuilder}, see Chapter~\ref{Chp:ref:domain builder},
+which builds an appropriate domain and mesh based on the geophysical data used in the inversion. 
+Based on the inversion to be performed (gravity, magnetic, joint) the 
+driver class builds an appropriate cost function $J$ including the regularization term $J^{reg}$, see
+\class{Regularization} class in Chapter~\ref{Chp:ref:regularization}, 
+the forward models, see Chapter~\ref{Chp:ref:forward models} and
+the required mappings, see \class{Mapping} class in Chapter~\ref{Chp:ref:mapping},
+to connect the level set function with physical parameters. Finally the driver class calls the
+solver to minimize the cost function, see Chapter~\ref{chapter:ref:Minimization}.
+
+
+\section{Domains}
+
+
+\begin{figure}[ht]
+    \centering\includegraphics{cartesian}
+    \caption{Illustration of domain extents, mapping and padding area}
+    \label{fig:cartesianDomain}
+\end{figure}
+
+\subsection{Cartesian Domain}
 For the Cartesian domain\index{Cartesian Domain} $\Omega$ we assume a flat Earth in the form
 \begin{equation} \label{REF:EQU:INTRO 8}
 \Omega = [x^{min}_0, x^{max}_0] \times
@@ -83,11 +119,7 @@ Figure~\ref{fig:cartesianDomain} contains useful information.
 Both the thickness of the air layer and the amount of padding in the $x_0$/$x_1$
 dimension is configurable when setting up an inversion.
 
-\begin{figure}[ht]
-    \centering\includegraphics{cartesian}
-    \caption{Illustration of domain extents, mapping and padding area}
-    \label{fig:cartesianDomain}
-\end{figure}
+
 
 \begin{equation}\label{REF:EQU:INTRO 9}
 \begin{array}{rcl}
@@ -97,8 +129,12 @@ Q_2  & = & -Q_r \\
 \end{array}
 \end{equation}
 
-\section{Sphere Shell Segment}
+\subsection{Sphere Shell Segment}
 This is not supported yet.
+
+
+
+
 
 \input{Drivers}
 
