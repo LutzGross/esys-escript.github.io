@@ -66,6 +66,8 @@ class DomainBuilder(object):
         :param source: The data source to be added
         :type source: `DataSource`
         """
+        if self.__domain is not None:
+            raise RuntimeError("Invalid call to addSource(). Domain is already built.")
         if not isinstance(source, DataSource):
             raise TypeError("source is not a DataSource")
         self.__sources.append(source)
@@ -75,16 +77,18 @@ class DomainBuilder(object):
         Sets the amount of padding around the dataset as a fraction of the
         dataset side lengths.
 
-        For example, calling ``setFractionalPadding(0.2, 0.1)`` to a data
-        source with size 10x20 will result in the padded data set size
+        For example, calling ``setFractionalPadding(0.2, 0.1)`` with a data
+        source of size 10x20 will result in the padded data set size
         14x24 (10*(1+2*0.2), 20*(1+2*0.1))
 
         :param pad_x: Padding per side in x direction (default: no padding)
         :type pad_x: ``float``
         :param pad_y: Padding per side in y direction (default: no padding)
         :type pad_y: ``float``
-        :note: `pad_y` is ignored for 2-dimensional datasets.
+        :note: `pad_y` is ignored for 2-dimensional domains.
         """
+        if self.__domain is not None:
+            raise RuntimeError("Invalid call to setFractionalPadding(). Domain is already built.")
         if pad_x is not None:
             if pad_x < 0:
                 raise ValueError("setFractionalPadding: Arguments must be non-negative")
@@ -109,8 +113,10 @@ class DomainBuilder(object):
         :type pad_x: ``float``
         :param pad_y: Padding per side in y direction (default: no padding)
         :type pad_y: ``float``
-        :note: `pad_y` is ignored for 2-dimensional datasets.
+        :note: `pad_y` is ignored for 2-dimensional domains.
         """
+        if self.__domain is not None:
+            raise RuntimeError("Invalid call to setPadding(). Domain is already built.")
         if pad_x is not None:
             if pad_x < 0:
                 raise ValueError("setPadding: Arguments must be non-negative")
@@ -134,6 +140,8 @@ class DomainBuilder(object):
         :type pad_y: ``int``
         :note: `pad_y` is ignored for 2-dimensional datasets.
         """
+        if self.__domain is not None:
+            raise RuntimeError("Invalid call to setElementPadding(). Domain is already built.")
         if pad_x is not None:
             if type(pad_x) is not int:
                 raise TypeError("setElementPadding expects integer arguments")
@@ -176,7 +184,7 @@ class DomainBuilder(object):
         Returns a list of `Data` objects for all surveys of type `datatype`
         available to this domain builder.
 
-        :return: List of gravity surveys which are tuples (anomaly,error).
+        :return: List of surveys which are tuples (anomaly,error).
         :rtype: ``list``
         """
         surveys=[]
@@ -203,6 +211,10 @@ class DomainBuilder(object):
             return np.array([-B[1], -B[2], -B[0]])
 
     def getSetDensityMask(self):
+        """
+        Returns the density mask data object which is non-zero for cells
+        whose density value is fixed, zero otherwise.
+        """
         z=self.getDomain().getX()[self.__dim-1]
         m = whereNonNegative(z)
         if self.__fix_density_below:
@@ -210,6 +222,10 @@ class DomainBuilder(object):
         return m
 
     def getSetSusceptibilityMask(self):
+        """
+        Returns the susceptibility mask data object which is non-zero for
+        cells whose susceptibility value is fixed, zero otherwise.
+        """
         z=self.getDomain().getX()[self.__dim-1]
         m = whereNonNegative(z)
         if self.__fix_susceptibility_below:
@@ -244,6 +260,8 @@ class DomainBuilder(object):
                           dimension
         :type num_cells: ``int``
         """
+        if self.__domain is not None:
+            raise RuntimeError("Invalid call to setVerticalExtents(). Domain is already built.")
         self._v_depth=depth
         self._v_air_layer=air_layer
         self._v_num_cells=num_cells
