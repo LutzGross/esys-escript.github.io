@@ -7,7 +7,7 @@ factors and distortions.
 This chapter provides an overview of the classes related to data input for
 inversions.
 
-\section{General Interface}
+\section{Overview}
 The inversion module comes with a number of classes that can read gridded
 (raster) data on a 2-dimensional plane from file or provide artificial values
 for testing purposes. These classes all derive from the abstract
@@ -32,8 +32,10 @@ requirement.
 
 
 \section{Domain Builder}\label{Chp:ref:domain builder}
-Every inversion requires one \class{DomainBuilder} instance which has the
-following methods:
+Every inversion requires one \class{DomainBuilder} instance which creates and
+holds a reference to the \escript domain as well as associated \Data objects for
+the input data used for the inversion.
+The class has the following public methods:
 
 \begin{classdesc}{DomainBuilder}{\optional{dim=3}}
 Constructor for the domain builder. \member{dim} sets the dimensionality of the
@@ -41,21 +43,138 @@ target domain and must be 2 or 3. By default a 3-dimensional domain is created.
 \end{classdesc}
 
 \begin{methoddesc}[DomainBuilder]{addSource}{source}
-    Adds survey data \member{source} (a \class{DataSource} object) to the domain
-    builder. The dimensionality of the data must be less than or equal to the
-    domain dimensionality.
+adds survey data \member{source} (a \class{DataSource} object) to the domain
+builder. The dimensionality of the data must be less than or equal to the
+domain dimensionality.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{setVerticalExtents}{%
+\optional{depth=40000.}%
+\optional{, air_layer=10000.}%
+\optional{, num_cells=25}}
+sets the parameters for the vertical dimension of the domain. The parameter
+\member{depth} specifies the thickness in meters of the subsurface layer
+($-x_2^{min}$ in Figure~\ref{fig:cartesianDomain}).
+The default value of $40$ km is usually appropriate. Similarly, the
+\member{air_layer} parameter defines the buffer zone thickness above the surface
+($x_2^{max}$ in Figure~\ref{fig:cartesianDomain}) which should be a few
+kilometres to avoid artefacts in the inversion.
+The number of elements (or cells) in the vertical dimension is set with the
+\member{num_cells} parameter. Consider the size and resolution of your datasets,
+the total vertical length (=\member{depth}+\member{air_layer}) and available
+compute resources when setting this value.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{setFractionalPadding}{%
+\optional{pad_x=\None}%
+\optional{, pad_y=\None}}
+sets the amount of padding around the dataset as a fraction of the dataset side
+lengths.  
+For example, calling \member{setFractionalPadding(0.2, 0.1)} with a data source
+of size $10 \times 20$ will result in the padded data set size $14 \times 24$
+(that is $10 \times (1+2 \times 0.2)$ and $20 \times (1+2 \times 0.1)$).
+By default no padding is applied and \member{pad_y} is ignored for 2-dimensional
+domains.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{setPadding}{%
+\optional{pad_x=\None}%
+\optional{, pad_y=\None}}
+sets the amount of padding around the dataset in absolute length units.
+The final domain size will be the length in x (in y) of the dataset plus twice
+the value of \member{pad_x} (\member{pad_y}). The arguments must be non-negative.
+By default no padding is applied and \member{pad_y} is ignored for 2-dimensional
+domains.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{setElementPadding}{%
+\optional{pad_x=\None}%
+\optional{, pad_y=\None}}
+sets the amount of padding around the dataset in number of elements (cells).
+When the domain is constructed \member{pad_x} (\member{pad_y}) elements are
+added on each side of the x- (y-) dimension. The arguments must be non-negative.
+By default no padding is applied and \member{pad_y} is ignored for 2-dimensional
+domains.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{fixDensityBelow}{%
+\optional{depth=\None}}
+defines the depth below which the density anomaly is fixed to zero.
+This method is only useful for inversions that involve gravity data.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{fixSusceptibilityBelow}{%
+\optional{depth=\None}}
+defines the depth below which the susceptibility anomaly is fixed to zero.
+This method is only useful for inversions that involve magnetic data.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{getGravitySurveys}{}
+returns a list of all gravity surveys added to the domain builder. See
+\member{getSurveys()} for more details.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{getMagneticSurveys}{}
+returns a list of all magnetic surveys added to the domain builder. See
+\member{getSurveys()} for more details.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{getSurveys}{datatype}
+returns a list of surveys of type \member{datatype} available to this domain
+builder. In the current implementation each survey is a tuple of two \Data
+objects, the first containing anomaly values and the second standard error
+values for the survey.
 \end{methoddesc}
 
 \begin{methoddesc}[DomainBuilder]{getDomain}{}
-returns the \escript domain of the inversion, see~\cite{ESCRIPT}.
+returns an \escript domain (see~\cite{ESCRIPT}) suitable for running inversions
+on the attached data sources.
+The first time this method is called the target parameters (such as resolution,
+extents and number of elements) are computed, and the domain is created.
+Subsequent calls return the same domain instance so calls to
+\member{setPadding()}, \member{addSource()} and other methods that influence
+the domain will fail once \member{getDomain()} is called the first time.
 \end{methoddesc}
 
-\section{ER Mapper Raster Data}
+\begin{methoddesc}[DomainBuilder]{setBackgroundMagneticFluxDensity}{B}
+sets the background magnetic flux density $B=(B_r,B_\theta,B_\phi)$ which is
+required for magnetic inversions.
+A implementation of the dipole approximation as described in
+Equation~\ref{ref:MAG:EQU:5} is provided through the function
+\member{simpleGeoMagneticFluxDensity} (see Section~\ref{sec:ref:DataSource}).
+$B_\theta$ is ignored for 2-dimensional magnetic inversions.
+\end{methoddesc}
 
-\section{NetCDF Data}
-An example script how to create a data input file for both gravity and magnetic data using the NetCDF file format~\cite{netcdf}
-is available in the script \examplefile{create_ncinput.py}. To plot an input file using matplotlib~\cite{matplotlib} 
-is avilable in the script \examplefile{show_ncinput.py}.
+\begin{methoddesc}[DomainBuilder]{getBackgroundMagneticFluxDensity}{}
+returns the background magnetic flux density $B$ set via
+\member{setBackgroundMagneticFluxDensity()} in a form suitable for the inversion.
+There should be no need to call this method directly.
+\end{methoddesc}
 
-\section{Synthetic Data}
+\begin{methoddesc}[DomainBuilder]{getSetDensityMask}{}
+returns the density mask \Data object which is non-zero for cells that have a
+fixed density value, zero otherwise.
+There should be no need to call this method directly.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{getSetSusceptibilityMask}{}
+returns the susceptibility mask \Data object which is non-zero for cells that
+have a fixed susceptibility value, zero otherwise.
+There should be no need to call this method directly.
+\end{methoddesc}
+
+\section{Data Source}\label{sec:ref:DataSource}
+
+\begin{funcdesc}{simpleGeoMagneticFluxDensity}{latitude}
+\end{funcdesc}
+
+\subsection{ER Mapper Raster Data}
+
+\subsection{NetCDF Data}
+An example script how to create a data input file for both gravity and magnetic
+data using the \netcdf file format~\cite{netcdf} is available in the script
+\examplefile{create_ncinput.py}.
+To plot an input file using matplotlib~\cite{matplotlib} see the script \examplefile{show_ncinput.py}.
+
+\subsection{Synthetic Data}
 
