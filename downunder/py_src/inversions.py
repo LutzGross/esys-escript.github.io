@@ -299,7 +299,9 @@ class MagneticInversion(InversionDriver):
                     k0=None, dk=None, z0=None, beta=None,
                     w0=None, w1=None):
         """
-        Sets up the inversion parameters from a `DomainBuilder`.
+        Sets up the inversion from a `DomainBuilder`.
+        If magnetic data are given as scalar it is assumed that values are collected in direction of
+        the background magnetic field.
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
@@ -333,15 +335,16 @@ class MagneticInversion(InversionDriver):
 
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
+        d_b=normalize(domainbuilder.getBackgroundMagneticFluxDensity())
         surveys=domainbuilder.getMagneticSurveys()
         B=[]
         w=[]
         for B_i,sigma_i in surveys:
             w_i=safeDiv(1., sigma_i)
             if B_i.getRank()==0:
-                B_i=B_i*kronecker(DIM)[DIM-1]
+                B_i=B_i*d_b
             if w_i.getRank()==0:
-                w_i=w_i*kronecker(DIM)[DIM-1]
+                w_i=w_i*d_b
             B.append(B_i)
             w.append(w_i)
             self.logger.debug("Added magnetic survey:")
@@ -400,9 +403,10 @@ class JointGravityMagneticInversion(InversionDriver):
                     k0=None, dk=None, k_z0=None, k_beta=None, w0=None, w1=None,
                     w_gc=None):
         """
-        Sets up the inversion parameters from a `DomainBuilder`.
         Sets up the inversion from an instance ``domainbuilder`` of a `DomainBuilder`.
         Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
+        If magnetic data are given as scalar it is assumed that values are collected in direction of
+        the background magnetic field.
         
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
@@ -483,15 +487,16 @@ class JointGravityMagneticInversion(InversionDriver):
         gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
+        d_b=normalize(domainbuilder.getBackgroundMagneticFluxDensity())
         surveys=domainbuilder.getMagneticSurveys()
         B=[]
         w=[]
         for B_i,sigma_i in surveys:
             w_i=safeDiv(1., sigma_i)
             if B_i.getRank()==0:
-                B_i=B_i*kronecker(DIM)[DIM-1]
+                B_i=B_i*d_b
             if w_i.getRank()==0:
-                w_i=w_i*kronecker(DIM)[DIM-1]
+                w_i=w_i*d_b
             B.append(B_i)
             w.append(w_i)
             self.logger.debug("Added magnetic survey:")
