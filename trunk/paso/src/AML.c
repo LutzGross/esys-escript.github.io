@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2012 by University of Queensland
+* Copyright (c) 2003-2013 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -563,7 +563,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2012 by University of Queensland
+* Copyright (c) 2003-2013 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia

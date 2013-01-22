@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2012 by University of Queensland
+# Copyright (c) 2003-2013 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -17,7 +17,7 @@ this is a convection simulation over a domain [0,L] X [0,L] x [0,H]
 It is solved in dimensionless form
 
 """
-__copyright__="""Copyright (c) 2003-2012 by University of Queensland
+__copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
