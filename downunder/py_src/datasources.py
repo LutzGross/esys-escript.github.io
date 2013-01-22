@@ -52,9 +52,9 @@ def LatLonToUTM(lon, lat, wkt_string=None):
            assumed to be given in the Clarke 1866 projection.
 
     :param lon: longitude value(s)
-    :type lon: `float`, `list`, `tuple`, or ``numpy.array``
+    :type lon: ``float``, ``list``, ``tuple``, or ``numpy.array``
     :param lat: latitude value(s)
-    :type lat: `float`, `list`, `tuple`, or ``numpy.array``
+    :type lat: ``float``, ``list``, ``tuple``, or ``numpy.array``
     :rtype: ``numpy.array``
     """
 
@@ -81,6 +81,12 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     return x,y
 
 def simpleGeoMagneticFluxDensity(latitude, longitude=0.):
+    """
+    Returns an approximation of the geomagnetic flux density B at the given
+    `latitude`. The parameter `longitude` is currently ignored.
+
+    :rtype: ``tuple``
+    """
     theta = (90-latitude)/180.*np.pi
     B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
     B_theta= B_0 * sin(theta)
