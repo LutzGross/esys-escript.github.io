@@ -165,7 +165,18 @@ There should be no need to call this method directly.
 
 \section{Data Source}\label{sec:ref:DataSource}
 
-\begin{funcdesc}{simpleGeoMagneticFluxDensity}{latitude}
+\begin{funcdesc}{simpleGeoMagneticFluxDensity}{latitude%
+\optional{, longitude=0.}}
+returns an approximation of the geomagnetic flux density $B$ as described in
+Equation~\ref{ref:MAG:EQU:5} for the given \member{latitude}.
+The \member{longitude} parameter is currently ignored and the return value is
+the tuple $(B_r, B_{\theta}, 0)$.
+\end{funcdesc}
+
+\begin{funcdesc}{LatLonToUTM}{longitude, latitude%
+\optional{, wkt_string=\None}}
+converts one or more (longitude,latitude) pairs to the corresponding (x,y)
+coordinates in the \emph{Universal Transverse Mercator} (UTM) projection.
 \end{funcdesc}
 
 \subsection{ER Mapper Raster Data}
