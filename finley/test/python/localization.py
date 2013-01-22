@@ -1,6 +1,6 @@
 ##############################################################################
 #
-# Copyright (c) 2003-2012 by University of Queensland
+# Copyright (c) 2003-2013 by University of Queensland
 # http://www.uq.edu.au
 #
 # Primary Business: Queensland, Australia
@@ -17,7 +17,7 @@ with a plastic layer above a viscous layer of thickness H_VISC.
 The yield condition is perturbed along a line at the boundary between
 viscous and plastic layer to trigger localization.
 """
-__copyright__="""Copyright (c) 2003-2012 by University of Queensland
+__copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
