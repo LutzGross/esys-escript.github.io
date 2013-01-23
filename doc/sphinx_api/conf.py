@@ -43,7 +43,7 @@ master_doc = 'index'
 
 # General information about the project.
 project = u'esys'
-copyright = u'2012, Author'
+copyright = u'2012-2013, Author'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
