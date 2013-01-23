@@ -24,6 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 
 # Import required modules
 from esys.downunder import *
+from esys.downunder.minimizers import MinimizerMaxIterReached
 from esys.escript import unitsSI as U
 from esys.weipa import saveSilo
 
@@ -54,7 +55,12 @@ inv.setup(db)
 inv.getCostFunction().setTradeOffFactorsModels(mu)
 
 print("Starting inversion, please stand by...")
-susceptibility = inv.run()
+try:
+    susceptibility = inv.run()
+except MinimizerMaxIterReached as e:
+    print(e)
+    susceptibility = inv.p
+
 print("susceptibility = %s"%susceptibility)
 
 # Save results
