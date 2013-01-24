@@ -12,6 +12,8 @@
 #
 ##############################################################################
 
+"""This example shows how to create compatible netCDF input files for inversion"""
+
 from datetime import datetime
 import numpy as np
 from scipy.io import netcdf_file
