@@ -120,8 +120,8 @@ l_air=6*U.km
 \end{verbatim}
 
 The others assumptions comes with each examples.
-
-1.  A 2D density section with a maximum in center was assumed. The reference density and inverted will be shown. The padding area is excluded. (\ref{fig:gravity2D1})
+\begin{enumerate}
+\item  A 2D density section with a maximum in center was assumed. The reference density and inverted will be shown. The padding area is excluded. (\ref{fig:gravity2D1})
 
 \begin{verbatim}
 n_cells_in_data=100
@@ -138,7 +138,7 @@ mu=100
 \end{figure}
 
 
-2. A 2D density properties with two maximum in corners and one minimum in the center was inverted. The result have eliminated the effects in padding area.(\ref{fig:gravity2D3}) 
+\item A 2D density properties with two maximum in corners and one minimum in the center was inverted. The result have eliminated the effects in padding area.(\ref{fig:gravity2D3}) 
 
 \begin{verbatim}
 n_cells_in_data=100
@@ -154,7 +154,7 @@ mu=100
 \label{fig:gravity2D3}
 \end{figure}
 
-3. A 3D model with a maximum in the center was used as input data and the result after simulation in shown in the next image which determined a good distribution of density through the model in the main area.(\ref{fig:gravity3D} and \ref{fig:gravity3D1})
+\item A 3D model with a maximum in the center was used as input data and the result after simulation in shown in the next image which determined a good distribution of density through the model in the main area.(\ref{fig:gravity3D} and \ref{fig:gravity3D1})
 
 \begin{verbatim}
 n_cells_in_data=50
@@ -176,3 +176,4 @@ mu=10
 \caption{3D density model of result}
 \label{fig:gravity3D1}
 \end{figure}
+\end{enumerate}

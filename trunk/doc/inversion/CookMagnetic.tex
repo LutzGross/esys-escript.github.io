@@ -19,7 +19,7 @@ negative numbers for Bouguer anomaly.
 
 \section{Magnetic Data} 
 
-Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth so magnetic fields are not central, their directions vary with azimuth. Its north pole is in the south of the Earth and south pole in north of the earth. Meantime magnetic pole and its axis are not exactly coinciding with geographical one. Also poles are shifted continuously. the line of magnetic field come out from south magnetic pole and go into north magnetic field. 
+Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth so magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not exactly coinciding with geographical one. Also poles are shifted continuously. The lines of magnetic field come out from south magnetic pole and go into north magnetic field. 
 
 The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
 
@@ -81,7 +81,7 @@ It is defined in accordance with the noise of data and it has a wide range to se
 
 \section{Output File}
 
-After inversion is completed, an output file with silo extension is created which consist inversion result. this file show the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with have a best fit with input data. the inversion go forward to attain an acceptable volume for error in its mathematical function. 
+After inversion completion, an output file with silo extension is created which is consisted inversion result. this file show the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with have a best fit with input data. the inversion go forward to attain an acceptable volume for error in its mathematical function. 
 
 
 \section{Reference}
@@ -100,8 +100,9 @@ l_air=6*U.km
 
 The others assumptions comes with each example.
 
-1. A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. that after inversion the main boundary of our dataset  have got a best simulation.(\ref{fig:mag2D2}) 
-
+\begin{enumerate}
+\item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. that after inversion the main boundary of our dataset  have got a best simulation.(\ref{fig:mag2D2}) 
+\end{enumerate}
 \begin{verbatim}
 n_cells_in_data=100
 n_humbs_h= 2
@@ -116,7 +117,7 @@ mu=1.
 \label{fig:mag2D2}
 \end{figure}
 
-2. A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
+\item A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
 
 \begin{verbatim}
 n_cells_in_data=100
@@ -132,7 +133,7 @@ mu=1.
 \label{fig:mag2D4}
 \end{figure}
 
-3. A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. after inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
+\item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. after inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
 
 \begin{verbatim}
 n_humbs_h=4
@@ -154,3 +155,4 @@ n_cells_in_data=50
 \caption{3D magnetic inversion result}
 \label{fig:mag3D1}
 \end{figure}
+\end{enumerate}
