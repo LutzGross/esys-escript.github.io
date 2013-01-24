@@ -17,21 +17,27 @@ gravity data which was calculated using a density of $2.67 \frac{t}{m^3}$.
 negative numbers for Bouguer anomaly.
 \end{itemize}
 
-\textbf{Magnetic Data} \\
+\section{Magnetic Data} 
 
-Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth so magnetic fields are not central, their directions vary with azimuth. Its north pole is in the south of the Earth and south pole in north of the earth. Meantime magnetic pole and its axis are not exactly coinciding with geographical one. Also poles are shifted continuously. the line of magnetic field come out from south magnetic pole and go into north magnetic field. \\
+Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth so magnetic fields are not central, their directions vary with azimuth. Its north pole is in the south of the Earth and south pole in north of the earth. Meantime magnetic pole and its axis are not exactly coinciding with geographical one. Also poles are shifted continuously. the line of magnetic field come out from south magnetic pole and go into north magnetic field. 
 
-The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.\\
-All material magnetic behavior, refer on the magnetic moments of atoms or its ions, have a character, to be magnetized in an external magnetic field, which introduce as susceptibility. based on their magnetic susceptibility, material are compartmented in three main class: diamagnetism, paramagnetism and ferromagnetism.\\
-Increasing in magnetic field anomalies over subsurface geological structure illustrate contrast between magnetization in neighboring rock properties.\\
+The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
 
-Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. so this time related change of magnetic field is the diurnal variation which depends on the latitude . \\
-Magnetic field intensity differ in latitude, longitude and altitude. the vertical gradient of magnetic field gives the elevation correction. It is varied from magnetic equator to magnetic poles. which is generally small.\\
-latitude correction is zero in magnetic poles and equator and reaches a maximum at intermediate latitude.\\
+All material magnetic behavior, refer on the magnetic moments of atoms or its ions, have a character, to be magnetized in an external magnetic field, which introduce as susceptibility. based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
+
+Increasing in magnetic field anomalies over subsurface geological structure illustrate contrast between magnetization in neighboring rock properties.
+
+Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. so this time related change of magnetic field is the diurnal variation which depends on the latitude . 
+
+Magnetic field intensity differ in latitude, longitude and altitude. the vertical gradient of magnetic field gives the elevation correction. It is varied from magnetic equator to magnetic poles. which is generally small.
+
+latitude correction is zero in magnetic poles and equator and reaches a maximum at intermediate latitude.
+
 The shape of the magnetic anomalies is distinguished by the form and the depth of the structure and depends on magnetization contrast and the objects orientation.\\
-global magnetic field is provided by International Geomagnetic Reference Field (IGRF) each 5 year.\\
+global magnetic field is provided by International Geomagnetic Reference Field (IGRF) each 5 year.
 
-In comparison to the correction of gravity observation, magnetic survey needs very few corrections. after compensation of durnal correction, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. finally magnetic anomaly is used is geophysicsl proccesing.\\
+
+In comparison to the correction of gravity observation, magnetic survey needs very few corrections. after compensation of diurnal correction, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. finally magnetic anomaly is used in geophysical processing.
 
 \begin{figure}
 \centering
@@ -45,13 +51,15 @@ In comparison to the correction of gravity observation, magnetic survey needs ve
 \caption{Depth image across previous 3D magnetic inversion which presents discrepancy in susceptibility. Diversity in susceptibility are detected with colors and contours.}
 \end{figure}
 
-\textbf{Input File} \\
+\section{Input File} 
 
-This module of magnetic inversion needs 2 input files which contain magnetic anomalies and some constraint factors. The firs file contain magnetic anomalies, in which all corrections were applied previously, and the position of them. Elevation, latitude and longitude if the position are defined precisely.\\
+This module of magnetic inversion needs 2 input files which contain magnetic anomalies and some constraint factors. The firs file contain magnetic anomalies, in which all corrections were applied previously, and the position of them. Elevation, latitude and longitude if the position are defined precisely.
+
 The next file which includes some factors to figure the inversion escripts. 
 Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
  
-A small part of sample of run_mag2D:\\
+A small part of sample of run_mag2D:
+
 \begin{verbatim}
 mu=10
 THICKNESS=20.*U.km
@@ -62,7 +70,7 @@ l_air = 6. * U.km
 n_cells_v = 25
 \end{verbatim}
 
-Almost all of constraints factors are the same as gravity instesd of Mu factor.\\
+Almost all of constraints factors are the same as gravity instead of Mu factor.\\
 
 \begin{description} 	
 
@@ -71,15 +79,17 @@ It is defined in accordance with the noise of data and it has a wide range to se
 
 \end{description}
 
-\textbf{Output File}\\
+\section{Output File}
 
-After inversion is completed, an output file with silo extention is created which consist inversion result. this file show the input data as magnetic anomaly and inverted susceptibility seperatly. The objective is indeed to  predict a susceptibility model with have a best fit with input data. the inversion go forward to attain an acceptable volume for error in its mathematical function. 
+After inversion is completed, an output file with silo extension is created which consist inversion result. this file show the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with have a best fit with input data. the inversion go forward to attain an acceptable volume for error in its mathematical function. 
 
 
-\textbf{Reference}\\
+\section{Reference}
 
-As some examples there are several inversions which have ran in some synthetic magnetic data sets . Here comparisons between synthetic susceptibility and inverted one are shown.\\
-Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:\\
+As some examples there are several inversions which have ran in some synthetic magnetic data sets . Here comparisons between synthetic susceptibility and inverted one are shown.
+
+Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:
+
 \begin{verbatim}
 depth_offset=0.*U.km
 l_data = 100 * U.km
@@ -87,9 +97,11 @@ l_pad=40*U.km
 THICKNESS=20.*U.km
 l_air=6*U.km
 \end{verbatim}
-The others assumptions comes with each example.\\
 
-1. A 2D magnetic susceptibility area is created with one maximum and one minimum in two sieds. that after inversion the main boundary of our dataset  have got a best simulation.\\ 
+The others assumptions comes with each example.
+
+1. A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. that after inversion the main boundary of our dataset  have got a best simulation.(\ref{fig:mag2D2}) 
+
 \begin{verbatim}
 n_cells_in_data=100
 n_humbs_h= 2
@@ -101,10 +113,11 @@ mu=1.
 \centering
 \includegraphics[width=\textwidth]{mag2D2.png}
 \caption{2D magnetic inversion up) the reference model  down)the inverted model}
-
+\label{fig:mag2D2}
 \end{figure}
 
-2. A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is ommited then. so in the result just two humps in middle of the boundary is observable.\\
+2. A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
+
 \begin{verbatim}
 n_cells_in_data=100
 n_humbs_h= 4
@@ -116,10 +129,11 @@ mu=1.
 \centering
 \includegraphics[width=\textwidth]{mag2D4.png}
 \caption{2D magnetic model up) the reference model  down)the inverted model}
-
+\label{fig:mag2D4}
 \end{figure}
 
-3. A 3D magnetic model with one humbs in the middle of the area is proposed that surronded all main and padding. after inversion just the main area is objective which have a good result for inversion.\\
+3. A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. after inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
+
 \begin{verbatim}
 n_humbs_h=4
 n_humbs_v=1
@@ -131,12 +145,12 @@ n_cells_in_data=50
 \centering
 \includegraphics[width=\textwidth]{mag3D1-ref.png}
 \caption{3D magnetic reference model with one maximum susceptibility}
-
+\label{fig:mag3D1-ref}
 \end{figure}
 
 \begin{figure}
 \centering
 \includegraphics[width=\textwidth]{mag3D1.png}
 \caption{3D magnetic inversion result}
-
+\label{fig:mag3D1}
 \end{figure}
