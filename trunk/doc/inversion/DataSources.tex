@@ -163,7 +163,61 @@ have a fixed susceptibility value, zero otherwise.
 There should be no need to call this method directly.
 \end{methoddesc}
 
-\section{Data Source}\label{sec:ref:DataSource}
+\section{\class{DataSource} Class}\label{sec:ref:DataSource}
+
+Data sources added to a \class{DomainBuilder} must provide an implementation for
+a few methods as described in the class template \class{DataSource} from
+the \module{esys.downunder.datasources} module:
+
+\begin{classdesc}{DataSource}{}
+Base constructor which initializes members and should therefore be invoked by
+subclasses. Subclasses may then use the member \member{logger} to print any
+output.
+\end{classdesc}
+
+\begin{methoddesc}[DataSource]{getDataExtents}{}
+This method should be implemented to return a tuple of tuples
+( (x0, y0), (nx, ny), (dx, dy) ), where (x0, y0) denote the UTM coordinates of
+the data origin, (nx, ny) the number of data points, and (dx, dy) the spacing
+of data points.
+\end{methoddesc}
+
+\begin{methoddesc}[DataSource]{getDataType}{}
+Subclasses must return \class{DataSource}.\member{GRAVITY} or
+\class{DataSource}.\member{MAGNETIC} depending on the type of data they provide.
+\end{methoddesc}
+
+\begin{methoddesc}[DataSource]{getSurveyData}{domain, origin, NE, spacing}
+This method is called by the \class{DomainBuilder} to retrieve the actual survey
+data in the form of \Data objects on the \member{domain}.
+Data sources are responsible to map or interpolate their data onto the domain
+which has been constructed to fit the data.
+The domain \member{origin}, number of elements \member{NE} and element
+\member{spacing} are provided as tuples or lists to aid with interpolation.
+\end{methoddesc}
+
+\begin{methoddesc}[DataSource]{setSubsamplingFactor}{factor}
+Notifies the data source that data should be subsampled by \member{factor}.
+This method does not need to be overwritten.
+See \member{getSubsamplingFactor()} for an explanation.
+\end{methoddesc}
+
+\begin{methoddesc}[DataSource]{getSubsamplingFactor}{}
+Returns the subsampling factor which was set by \member{setSubsamplingFactor()}
+or $1$ which indicates that no subsampling is requested.
+Data sources that support subsampling (or interleaving) of their data should use
+this method to query the subsampling factor before returning surveys via
+\member{getSurveyData}. If supported, the factor should be applied in all
+dimensions. For example, a 2-dimensional dataset with 300 x 150 data points
+should be reduced to 150 x 75 data points when the subsampling factor equals $2$.
+Subsampling becomes important when the survey data resolution is too fine or
+when using data with varying resolution in one inversion.
+Note that data sources may choose to ignore the subsampling factor if they
+don't support it.
+\end{methoddesc}
+
+\vspace{1em}\noindent The \module{esys.downunder.datasources} module contains the following helper
+functions:
 
 \begin{funcdesc}{simpleGeoMagneticFluxDensity}{latitude%
 \optional{, longitude=0.}}
@@ -177,6 +231,8 @@ the tuple $(B_r, B_{\theta}, 0)$.
 \optional{, wkt_string=\None}}
 converts one or more (longitude,latitude) pairs to the corresponding (x,y)
 coordinates in the \emph{Universal Transverse Mercator} (UTM) projection.
+This function requires the \module{pyproj} module for conversion and the
+\module{gdal} module to parse the \member{wkt_string} parameter if supplied.
 \end{funcdesc}
 
 \subsection{ER Mapper Raster Data}
