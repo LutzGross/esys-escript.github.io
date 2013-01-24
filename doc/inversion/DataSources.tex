@@ -236,12 +236,37 @@ This function requires the \module{pyproj} module for conversion and the
 \end{funcdesc}
 
 \subsection{ER Mapper Raster Data}
+\emph{ER Mapper} files that contain 2-dimensional raster data may be used for
+inversions through the \class{ErMapperData} class which is derived from
+\class{DataSource}.
+Generally, these datasets contain two files, a header file and a data file.
+The former usually has the \texttt{.ers} file extension and is a text file that
+describes the data format, size, coordinate system used etc.
+The data file usually has the same file name but no extension.
+Note, that the current implementation may not work with all \emph{ER Mapper}
+datasets. For example, the only cell type understood is \emph{IEEE4ByteReal}
+at the moment.
+To run inversions on a \emph{ER Mapper} dataset use the following constructor:
+\begin{classdesc}{ErMapperData}{datatype, headerfile%
+\optional{, datafile=\None}%
+\optional{, altitude=0.}}
+Creates a new data source from \emph{ER Mapper} data.
+The parameter \member{datatype} must be one of
+\class{DataSource}.\member{GRAVITY} or \class{DataSource}.\member{MAGNETIC}
+depending on the type of data, \member{headerfile} is the name of the header
+file, \member{datafile} specifies the name of the data file and
+\member{altitude} specifies the altitude in meters of the measurements.
+The parameter \member{datafile} can be left blank if the name is identical to
+the header file except for the file extension. The \member{altitude} parameter
+is only used with 3-dimensional domains and determines the vertical location
+of the 2-dimensional slice of data within the domain.
+\end{classdesc}
 
 \subsection{NetCDF Data}
 An example script how to create a data input file for both gravity and magnetic
 data using the \netcdf file format~\cite{netcdf} is available in the script
-\examplefile{create_ncinput.py}.
-To plot an input file using matplotlib~\cite{matplotlib} see the script \examplefile{show_ncinput.py}.
+\examplefile{create_netcdf.py}.
+To plot an input file using matplotlib~\cite{matplotlib} see the script \examplefile{show_netcdf.py}.
 
 \subsection{Synthetic Data}
 

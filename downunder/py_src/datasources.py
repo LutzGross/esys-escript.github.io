@@ -136,7 +136,7 @@ class DataSource(object):
         data as `Data` objects on the given domain.
 
         Subclasses should return one or more `Data` objects with survey data
-        interpolated on the given ripley domain. The exact return type
+        interpolated on the given `escript` domain. The exact return type
         depends on the type of data.
 
         :param domain: the escript domain to use
