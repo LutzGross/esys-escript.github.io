@@ -1,0 +1,118 @@
+\chapter{The Data Inversion Problem}
+\label{APP: FITTER}
+
+We solve the following nonlinear PDE for the unknown solution $u_i$:
+\begin{equation} \label{APP FIT EQU 1a}
+\int_{\Omega} v_{i,j} \cdot X_{ij} + v_{i} \cdot Y_{i} \; dx
++ \int_{\partial \Omega}  v_{i} \cdot y_{i} \; ds  = 0 
+\end{equation}
+for all smooth $v_i$ with $v_i=0$ where $q_i>0$ and
+\begin{equation} \label{APP FIT EQU 1b}
+u_i=r_i \mbox{ where } q_i>0
+\end{equation}
+where $X_{ij}$ and $Y_i$ are non-linear functions of the solution $u_k$ and its gradient $u_{k,l}$
+and $y_i$ is a function of solution $u_k$. 
+
+The equation may depend on set of parameters $p_i$. It is the task to 
+give values of the parameters $p_i$ such that the solution gives the best 
+approximation of given measurements. In mathematical terms we need to minimize
+a so-called cost function $J$ which measures the distance of the solution
+to the data over the set of valid parameters. A typical example 
+for a cost function measuring the gradient of a scalar solution $u$ 
+in a given direction $d_i$ against measured data $\hat{g}$ is given as
+\begin{equation}\label{APP FIT EQU 2a}
+J_{data}(u) = \frac{1}{2}\int_{\Omega}  \chi \cdot ( d_i u_{,i} - \hat{g})^2 dx
+\end{equation} 
+where $\chi$ is a weighting function which has a non-negative value where data are available. 
+Typically, $\chi$ is to be the inverse of the square of the deviation of the measurements or zero.
+If the parameter $p_i$ is spatially variable a regularization term needs to be
+added into the cost function in order to get a unique solution. Typically,
+for a scalar parameter $p$ the regularization term takes the from
+\begin{equation}\label{APP FIT EQU 3}
+J_{reg}(p) =  \int_{\Omega} \frac{1}{2} \cdot (p_{,i}p_{,i})^{2} dx
+\end{equation} 
+The cost function to be minimized then takes the from
+\begin{equation}\label{APP FIT EQU 2a}
+J(p,u) = \frac{1}{2}\int_{\Omega}  \chi \cdot ( d_i u_{,i} - \hat{g})^2
++ (p_{,i}p_{,i})^{2} \;
+dx
+\end{equation} 
+A more general from is given as 
+\begin{equation}\label{APP FIT EQU 4}
+J(u,p) = \int_{\Omega} H\; dx +  \int_{\partial \Omega} h \; ds
+\end{equation} 
+where $H$ is a scalar, possibly spatially variable  function 
+of the solution $u_i$ and the parameter $p_i$ and their gradients
+and  $H$ is a scalar, possibly spatially variable  function 
+of the solution $u_i$ and the parameter $p_i$. For example~(\ref{APP FIT EQU 2a})
+one has
+\begin{equation}\label{APP FIT EQU 4a}
+H = \frac{1}{2} \chi \cdot (d_i u_{,i} - \hat{g})^2 +  \frac{1}{2} (p_{,i}p_{,i})^{2} 
+\end{equation} 
+So task is to minimize the cost function $J$ over $u$ and $p$  
+subject to the PDE~(\ref{APP FIT EQU 1a} connection $p$ and $u$. The secondary condition
+is mixed into the cost function using a Lagrangean multiplier before the variation is calculated:
+\begin{equation}\label{APP FIT EQU 5}
+J(u,p,\lambda) = \int_{\Omega} H \; dx + \int_{\partial \Omega} h \; ds
++ \int_{\Omega} \lambda_{i,j} \cdot X_{ij} + \lambda_{i} \cdot Y_{i} \; dx
++ \int_{\partial \Omega}  \lambda_{i} \cdot y_{i} \; ds
+\end{equation}
+Notice that the Lagrangean multiplier needs to fullfull the constraint
+\begin{equation} \label{APP FIT EQU 5b}
+\lambda_{i}=0 \mbox{ where } q_i>0
+\end{equation}
+
+We can rearrange $J$ to 
+\begin{equation}\label{APP FIT EQU 5}
+J(u,p,\lambda) = \int_{\Omega} Z \; dx 
++  \int_{\partial \Omega} z \; ds
+\end{equation}
+with 
+\begin{align}\label{APP FIT EQU 6}
+ Z =  H+ \lambda_{i,j} \cdot X_{ij} +  \lambda_{i} \cdot Y_{i} \\
+z= h  + \lambda_{i} \cdot y_{i} 
+\end{align}
+
+We are taking variation along $p$:
+\begin{equation}\label{APP FIT EQU 10}
+\int_{\Omega} \fracp{Z}{p_{i,j}}  \cdot  (\delta p)_{i,j} + \fracp{Z}{p_{i}} \cdot  (\delta p)_{i}
+\; dx +  \int_{\partial \Omega} \fracp{z}{p_{i}}  \cdot  (\delta p)_{i} \; ds =0
+\end{equation}
+along $u$:
+\begin{align}\label{APP FIT EQU 11}
+\int_{\Omega} \fracp{Z}{u_{i,j}}  \cdot (\delta u)_{i,j} + \fracp{Z}{u_{i}} \cdot  (\delta u)_{i}
+\; dx +  \int_{\partial \Omega} \fracp{z}{u_{i}}  \cdot  (\delta u)_{i} \; ds =0
+\end{align}
+and $\lambda$:
+\begin{equation}\label{APP FIT EQU 12}
+\int_{\Omega} X_{ij}  \cdot (\delta \lambda)_{i,j}  +  Y_{i}  \cdot (\delta \lambda)_{i}  \; dx
++ \int_{\partial \Omega}   y_{i}  \cdot  (\delta \lambda)_{i}  \; ds = 0
+\end{equation}
+This defines a system of non-linear PDEs for the unknown solution $\widehat{u} = (p,u,\lambda)$. With 
+$\widehat{v} = (\delta p,\delta \lambda, \delta u)$\footnote{Notice that in comparison to the solution
+the corresponding components for $u$ and $\lambda$ are swapped in order to bring strong couplings into the main-diagonal.}
+we can write equations~(\ref{APP FIT EQU 10})-(\ref{APP FIT EQU 12}) in the form:
+\begin{equation} \label{APP FIT EQU 13}
+\int_{\Omega} \widehat{v}_{i,j} \cdot \widehat{X}_{ij} + \widehat{v}_{i} \cdot \widehat{Y}_{i} \; dx
++ \int_{\partial \Omega}  \widehat{v}_{i} \cdot \widehat{y}_{i} \; ds  = 0 
+\end{equation}
+with
+\begin{align}\label{APP FIT EQU 15}
+\widehat{X}_{:j} = \left[ \fracp{Z}{p_{:,j}}, X_{:j}, \fracp{Z}{u_{:,j}} \right] \\
+\widehat{Y}_{:} = \left[ \fracp{Z}{p_{:}}, Y_{:}, \fracp{Z}{u_{:}} \right] \\
+\widehat{y}_{:} = \left[ \fracp{z}{p_{:}}, y_{:}, \fracp{z}{u_{:}} \right] 
+\end{align}
+In some cases values for the parameter are known. So similar to the constraint~(\ref{APP FIT EQU 1b}) fro the solution
+we need to observe a constraint for the parameter $p_i$:
+\begin{equation} \label{APP FIT EQU 12a}
+p_i=rp_i \mbox{ where } qp_i>0
+\end{equation}
+So for the composed solution $\widehat{u} = (p,u,\lambda)$ we need to observe the constraint
+\begin{equation} \label{APP FIT EQU 12b}
+\widehat{u}_i=\widehat{r}_i \mbox{ where } \widehat{q}_i>0
+\end{equation}
+with 
+\begin{align}\label{APP FIT EQU 12c}
+\widehat{q}_{:j} = \left[ qp_{:}, q_{:}, q_{:} \right] \\
+\widehat{r}_{:} = \left[ rp_{:}, r_{:}, 0\right] \\
+\end{align}
