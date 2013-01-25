@@ -1,7 +1,0 @@
-DOMAIN -> Region over which a PDE is to solved as defined by the problem. Contains the limits of the problems and the mesh or grid on which it will be solved. 
-
-FUNCTIONSPACE -> Defines where on a DOMAIN a function will be evaluated. Specifically what part of the mesh. A number of FUNCTIONSPACES exist and these are defined in the user guide.
-
-DATAOBJECTS -> when a function is applied to DOMAIN and a FUNCTIONSPACE a DATA OBJECT is returned. It contains the values of the function when evaluated at the points defined by the union of a domain and a function space.
-
-

@@ -1,4 +1,0 @@
-es:python=python2.6, libpython2.6
-es:boostpy=libboost-python1.40.0
-es:netcdf=libnetcdf4
-es:doc=python-epydoc

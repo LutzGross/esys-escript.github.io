@@ -1,6 +1,0 @@
-
-# Python 2.3 - include files only
-
-PKG_CC_INC_DIRS  += /raid2/tools/python-2.3.4/include/python2.3
-PKG_CPP_INC_DIRS += /raid2/tools/python-2.3.4/include/python2.3
-

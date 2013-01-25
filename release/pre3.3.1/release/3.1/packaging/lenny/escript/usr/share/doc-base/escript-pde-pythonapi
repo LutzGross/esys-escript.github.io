@@ -1,9 +1,0 @@
-Document: escript-pde-pydocs
-Title: escript python api
-Author: escript development team(esys@esscc.uq.edu.au)
-Abstract: Describes the python interface to escript.
-Section: Science/Mathematics
-
-Format: HTML
-Index: /usr/share/doc/escript/python_html/index.html
-Files: /usr/share/doc/escript/python_html/*html
