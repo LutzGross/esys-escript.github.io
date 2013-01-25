@@ -1,0 +1,37 @@
+Import('*')
+
+lib_name = 'finleyC'
+
+finleyC_env=env.Copy()
+src_dir = finleyC_env.Dir('.').srcnode().abspath
+
+import os
+filenames = os.listdir(src_dir)
+sources = [x for x in filenames if os.path.splitext(x)[1] in ['.cpp', '.c']]
+headers = [x for x in filenames if os.path.splitext(x)[1] in ['.h']]
+
+include = Dir('finley/finleyC', esys_inc)
+finleyC_env.Install( include, headers )
+
+if env['PLATFORM'] != "win32" and env['PLATFORM'] != "posix" :
+    import os
+    
+    cc_flags = '-O0 -openmp -openmp_report0 -tpp2 -ansi -ansi_alias -no-gcc -w1'
+    
+    cpp_path = ['#../escript/inc',
+                '#../esysUtils/inc',
+                '#../finley/inc',
+                '#../paso/inc',
+                '/raid2/tools/python-2.3.4/include/python2.3',
+                '/raid2/tools/boost/include/boost-1_31']
+    
+    
+    
+    finleyC_env = Environment(ENV = os.environ)
+    
+    finleyC_env.Replace(CC = 'icc')
+    finleyC_env.Replace(CCFLAGS = cc_flags)
+    finleyC_env.Replace(CPPPATH = cpp_path)
+    
+finleyC_lib = finleyC_env.StaticLibrary(lib_name, sources)
+finleyC_env.Install(esys_lib, finleyC_lib)

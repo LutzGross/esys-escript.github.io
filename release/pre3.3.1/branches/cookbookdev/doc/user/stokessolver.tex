@@ -1,0 +1,497 @@
+\section{The Stokes Problem}
+\label{STOKES PROBLEM} 
+In this section we discuss how to solve the Stokes problem which is defined as follows:
+
+We want to calculate the velocity \index{velocity} field $v$ and pressure $p$ of an incompressible fluid \index{incompressible fluid}. They are given as the solution of the Stokes problem\index{Stokes problem}
+\begin{equation}\label{Stokes 1}
+-\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i}=f\hackscore{i}-\sigma\hackscore{ij,j}
+\end{equation}
+where  $f\hackscore{i}$ defines an internal force \index{force, internal} and $\sigma\hackscore{ij}$ is an intial stress \index{stress, initial}. The viscosity $\eta$ may weakly depend on pressure and velocity. If relevant we will use the notation $\eta(v,p)$ to express this dependency.
+
+We assume an incompressible media:
+\begin{equation}\label{Stokes 2}
+-v\hackscore{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form 
+\begin{equation}\label{Stokes Boundary}
+\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)n\hackscore{j}-n\hackscore{i}p=s\hackscore{i} - \alpha \cdot n\hackscore{i} n\hackscore{j} v\hackscore{j}+\sigma\hackscore{ij} n\hackscore{j}
+\end{equation}
+which can be overwritten by constraints of the form 
+\begin{equation}\label{Stokes Boundary0}
+v\hackscore{i}(x)=v^D\hackscore{i}(x)
+\end{equation}
+at some locations $x$ at the boundary of the domain. $s\hackscore{i}$ defines a normal stress and 
+$\alpha\ge 0$ the spring constant for restoring normal force.
+The index $i$ may depend on the location $x$ on the boundary.
+$v^D$ is a given function on the domain.
+
+\subsection{Solution Method \label{STOKES SOLVE}}
+If we assume that $\eta$ is independent from the velocity and pressure equations~\ref{Stokes 1} and~\ref{Stokes 2} 
+can be written in the block form
+\begin{equation}
+\left[ \begin{array}{cc}
+A     & B^{*} \\
+B & 0 \\
+\end{array} \right]
+\left[ \begin{array}{c}
+v \\
+p \\
+\end{array} \right]
+=\left[ \begin{array}{c}
+G \\
+0 \\
+\end{array} \right]
+\label{SADDLEPOINT}
+\end{equation}
+where $A$ is coercive, self-adjoint linear operator in a suitable Hilbert space, $B$ is the $(-1) \cdot$ divergence operator and $B^{*}$ is it adjoint operator (=gradient operator).
+For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}. 
+
+If $v\hackscore{0}$ and $p\hackscore{0}$ are given initial guesses for
+velocity and pressure we calculate a correction $dv$ for the velocity by solving the first
+equation of equation~\ref{SADDLEPOINT}
+ \begin{equation}\label{SADDLEPOINT ITER STEP 1}
+ A dv\hackscore{1} = G - A v\hackscore{0} - B^{*} p\hackscore{0}
+\end{equation}
+We then insert the new approximation $v\hackscore{1}=v\hackscore{0}+dv\hackscore{1}$ to calculate a correction $dp\hackscore{2}$
+for the pressure and an additional correction $dv\hackscore{2}$ for the velocity by solving
+ \begin{equation}
+ \begin{array}{rcl}
+ B A^{-1} B^{*} dp\hackscore{2} & = & Bv\hackscore{1} \\
+ A dv\hackscore{2} & = & B^{*} dp\hackscore{2} 
+\end{array}
+ \label{SADDLEPOINT ITER STEP 2}
+ \end{equation}
+The new velocity and pressure are then given by $v=v\hackscore{1}-dv\hackscore{2}$ and
+$p=p\hackscore{0}+dp\hackscore{2}$ which will fullfill the block system~\ref{SADDLEPOINT}. 
+This solution strategy is called the Uzawa scheme \index{Uzawa scheme}. There are 
+two problems with this scheme. Firstly, in practice we will use an iterative scheme
+to solve the problem for operator $A$. So we will be unable to calculate the operator
+$ B A^{-1} B^{*}$ required for $dp\hackscore{2}$. In fact, we need to use an iterative scheme
+to solve the first equation in~\ref{SADDLEPOINT ITER STEP 2} where in each iteration step
+an iterative solver for $A$ is applied. The second issue is that 
+viscosity $\eta$ may depend of velocity or pressure and so we need to iterate over the 
+three equations~\ref{SADDLEPOINT ITER STEP 1} and~\ref{SADDLEPOINT ITER STEP 2}. Using the
+two norms
+\begin{equation}
+\|v\|\hackscore{1}^2 = \int\hackscore{\Omega} v\hackscore{j,k}v\hackscore{j,k} \; dx 
+\mbox{ and }
+\|p\|\hackscore{0}^2= \int\hackscore{\Omega} p^2 \; dx.
+\label{STOKES STOP}
+\end{equation}
+to define the stopping criterium
+ \begin{equation}
+\max(\|Bv\hackscore{1}\|\hackscore{0},\|v-v\hackscore{0}\|\hackscore{1}) \le \tau \cdot \|v\|\hackscore{1} 
+ \end{equation}
+to terminate the overall iteration with a overall given tolerance $0<\tau<1$. 
+Notice that because of the first equation of
+and~\ref{SADDLEPOINT ITER STEP 2} $\|Bv\hackscore{1}\|\hackscore{0}$ is equal to the
+norm of $B A^{-1} B^{*} dp\hackscore{2}$ and consequently provides a norm for the  pressure correction.
+
+Let us first have a look at the solution process~\ref{SADDLEPOINT ITER STEP 1} which needs to resolve the 
+non-linearity of the viscosity coeficient. We will run a iterative process by resolving 
+the equation~\ref{SADDLEPOINT ITER STEP 1} with $v\hackscore{0} \leftarrow v\hackscore{1}$. The first observation is that there is no point start
+the iteration process over the second set of equation if $\|Bv\hackscore{1}\|\hackscore{0}$
+is smaller then $\|v\hackscore{1}-v\hackscore{0}\|\hackscore{1}$. So we will terminate the non-linear iteration
+process of the first equation if
+ \begin{equation}
+\theta \cdot \|v\hackscore{1}-v\hackscore{0}\| \le \|Bv\hackscore{1}\|\hackscore{0}
+\mbox{ or }
+\|v\hackscore{1}-v\hackscore{0}\|\hackscore{1} \le \tau \cdot \|v\hackscore{1}\|\hackscore{1} 
+\end{equation}
+where $0<\theta<1$ is a given factor (typically $\theta=0.5$). 
+
+We need to think about appropriate stopping criteria when solving 
+\ref{SADDLEPOINT ITER STEP 1}. We would like to use very weak convergence criteria to reduce computational costs but they need to be tight enough to not interfere with the 
+convergence of the iteration process one level above.
+We will use a sparse matrix solver so we have not full control on the norm $\|.\|\hackscore{s}$ used in the stopping criteria 
+\begin{equation} 
+\| G - A v\hackscore{1} - B^{*} p\hackscore{0}  \|\hackscore{s} \le \tau\hackscore{1} \| G - A v\hackscore{0}  - B^{*} p\hackscore{0} \|\hackscore{s} 
+\end{equation}
+If $e\hackscore{1}$ is the error of the returned solution $dv\hackscore{1}$ this translates into the condition
+\begin{equation} 
+\| e\hackscore{1} \|\hackscore{1} \le K \tau\hackscore{1} \| dv\hackscore{1} - e\hackscore{1} \|\hackscore{1} 
+\end{equation}
+The constant $K$ represents some uncertainty combining a variety of unknown factors such as the 
+solver being used and the condition number of the stiffness matrix.  This leads to the estimate 
+\begin{equation} 
+\| dv\hackscore{1} \|\hackscore{1} \le (1+K \tau\hackscore{1}) \chi \| dv\hackscore{1}^- \|\hackscore{1}
+\label{DV COND}
+\end{equation}
+where $chi$ is the convergence rate of the \ref{SADDLEPOINT ITER STEP 1} iteration and $dv\hackscore{1}^-$ the correction from the last step. In order to make sure that the error $e\hackscore{1}$ can be neglected we need
+to have $K \tau\hackscore{1} \le \chi$ which leads to the condition 
+ \begin{equation}
+ \tau\hackscore{1} \le \frac{\min(\chi,\frac{1}{2})}{K}
+ \label{NEW TAU 1}
+\end{equation}
+We can estimate $K$ by comparing estimates for the convergence rate $\chi=\frac{\| dv\hackscore{1} \|\hackscore{1}}{\| dv\hackscore{1}^- \|\hackscore{1}}$ by checking our error prediction~\ref{DV COND}. If we have
+access to the estimate of the convergence rate $\chi^-$ of the previous iteration step we 
+get 
+ \begin{equation}
+ \frac{1}{K} = \frac{\chi^-}{\chi-\chi^{-}} \tau\hackscore{1}^-
+\end{equation}
+if $\chi \ge \chi^- (1 + \chi^-) $ which means that our prediction for a suitable tolerane based on the avaibale $K$ value was wrong.
+So we start with the value $K=1$ in~\ref{NEW TAU 1} and recalculate 
+$K$ if we have underestimate $K$. 
+
+
+
+
+
+
+
+If $dv\hackscore{1}$
+From Equation~\ref{SADDLEPOINT ITER STEP 1} we have 
+\begin{equation} 
+v\hackscore{1} = e\hackscore{1} + A^{-1} ( G - B^{*} p ) 
+\end{equation}
+This translates into the conditoon
+\begin{equation} 
+\| e\hackscore{1} \|\hackscore{1} \le K \tau\hackscore{1} \| dv\hackscore{1} - e\hackscore{1} \|\hackscore{1} 
+\mbox{ therefore } 
+\| e\hackscore{1} \|\hackscore{1} \le \frac{K \tau\hackscore{1}}{1-K \tau\hackscore{1}}  \| dv\hackscore{1} \|\hackscore{1}
+\end{equation}
+The constant $K$ represents some uncertainty combining a variety of unknown factors such as the 
+solver being used and the condition number of the stiffness matrix.  
+
+
+
+
+ 
+===================================
+
+
+We use iterative techniques to solve this problem: Given an approximation $v$ and $p$ for 
+velocity and pressure we perform the following steps in the Uzawa scheme \index{Uzawa scheme} style:
+\begin{enumerate}
+ \item calculate viscosity $\eta(v,p)$ and assemble operator $A$ from $\eta$.
+ \item Solve for $dv$:
+ \begin{equation}
+ A dv = G - A v - B^{*} p  \label{SADDLEPOINT ITER STEP 1}
+\end{equation}
+ \item update $v\hackscore{1}= v+ dv$
+ \item if $\max(\|Bv\hackscore{1}\|\hackscore{0},\|dv\|\hackscore{1}) \le \tau \cdot \|v\hackscore{1}\|\hackscore{1}$: return v$\hackscore{1},p$ 
+ \item Solve for $dp$:
+ \begin{equation}
+ \begin{array}{rcl}
+ B A^{-1} B^{*} dp & = & Bv\hackscore{1} \\
+ A dv\hackscore{2} & = & B^{*} dp 
+\end{array}
+ \label{SADDLEPOINT ITER STEP 2}
+ \end{equation}
+ \item update $p\hackscore{2}\leftarrow p+ dp$ and $v\hackscore{2}= v\hackscore{1} - dv\hackscore{2}$
+ \item goto Step 0 with $v=v\hackscore{2}$ and $p=p\hackscore{2}$.
+\end{enumerate}
+where $\tau$ is the given tolerance. Notice that the operator $A$ if it is depending on $v$ or $p$ is updated once only.
+In this algorithm 
+\begin{equation}
+\|v\|\hackscore{1}^2 = \int\hackscore{\Omega} v\hackscore{j,k}v\hackscore{j,k} \; dx 
+\mbox{ and }
+\|p\|\hackscore{0}^2= \int\hackscore{\Omega} p^2 \; dx.
+\label{STOKES STOP}
+\end{equation}
+so the stopping criterion used is checking for convergence as well as for 
+the fact that the incompressiblity condition~\ref{Stokes 2} is fullfilled.
+
+To solve the update step~\ref{SADDLEPOINT ITER STEP 2} we use an iterative solver with iteration 
+operator $B A^{-1} B^{*}$, eg. using generalized minimal residual method (GMRES) \index{linear solver!GMRES}\index{GMRES}, preconditioned conjugate gradient method (PCG) \index{linear solver!PCG}\index{PCG}. As suitable preconditioner \index{preconditioner} for this operator is $\frac{1}{\eta}$, ie 
+the evaluation of the preconditioner $P$ for a given pressure increment $q$ is the solution of
+\begin{equation} \label{P PREC}
+\frac{1}{\eta} Pq = q \; . 
+\end{equation}
+Note that in each evaluation of the iteration operator $q=B A^{-1} B^{*} s$ one needs to solve
+the problem
+\begin{equation} \label{P OPERATOR}
+A w = B^{*} s 
+\end{equation}
+with sufficient accuracy to return $q=Bw$. Notice that the residual $r$ is given as
+\begin{equation} \label{STOKES RES }
+ r= B (v\hackscore{1} -  A^{-1} B^{*} dp) =  B (v\hackscore{1} - A^{-1} B^{*} dp) = B (v\hackscore{1}-dv\hackscore{2}) = B v\hackscore{2}
+\end{equation}
+so in fact the residual $r$ is represented by the updated velocity $v\hackscore{2}$. This saves the recovery of 
+$dv\hackscore{2}$ in~\ref{SADDLEPOINT ITER STEP 2} after $dp$ has been calculated as iterative method such as PCG calculate the solution approximations along with the their residual. In PCG the iteration is terminated if
+\begin{equation} \label{P OPERATOR}
+\| P^{\frac{1}{2}}B v\hackscore{2} \|\hackscore{0} \le \tau\hackscore{2} \| P^{\frac{1}{2}}B v\hackscore{1} \|\hackscore{0}
+\end{equation}
+where $\tau\hackscore{2}$ is the given tolerane. The update step~\ref{P OPERATOR} involves the 
+solution of a sparse matrix problem. We use the tolerance $\tau\hackscore{2}^2$ in order to make sure that any
+error from solving this problem does not interfere with the PCG iteration.
+
+
+
+We need to think about appropriate stopping criteria when solving 
+\ref{SADDLEPOINT ITER STEP 1}, \ref{SADDLEPOINT ITER STEP 2} and~\ref{P OPERATOR}. We would like to use very weak convergence criteria to reduce computational costs but they need to be tight enough to not interfere with the 
+convergence of the iteration process one level above. From Equation~\ref{SADDLEPOINT ITER STEP 1} we have 
+\begin{equation} 
+v\hackscore{1} = e\hackscore{1} + A^{-1} ( G - B^{*} p ) 
+\end{equation}
+We will use a sparse matrix solver so we have not full control on the norm $\|.\|\hackscore{s}$ used in the stopping criteria 
+\begin{equation} 
+\| G - A v\hackscore{1} - B^{*} p \|\hackscore{s} \le \tau\hackscore{1} \| G - A v - B^{*} p \|\hackscore{s} 
+\end{equation}
+This translates into the conditoon
+\begin{equation} 
+\| e\hackscore{1} \|\hackscore{1} \le K \tau\hackscore{1} \| dv\hackscore{1} - e\hackscore{1} \|\hackscore{1} 
+\mbox{ therefore } 
+\| e\hackscore{1} \|\hackscore{1} \le \frac{K \tau\hackscore{1}}{1-K \tau\hackscore{1}}  \| dv\hackscore{1} \|\hackscore{1}
+\end{equation}
+The constant $K$ represents some uncertainty combining a variety of unknown factors such as the 
+solver being used and the condition number of the stiffness matrix.  
+
+From the first equation of~\ref{SADDLEPOINT ITER STEP 2} we have
+\begin{equation} 
+p\hackscore{2} =  p + (B A^{-1} B^{*})^{-1} (e\hackscore{2} + Bv\hackscore{1} ) =
+(B A^{-1} B^{*})^{-1} ( e\hackscore{2} + B e\hackscore{1} + B A^{-1} G)  
+\end{equation}
+and simlar
+\begin{equation} 
+v\hackscore{2} =  v\hackscore{1} - dv\hackscore{2} 
+= v\hackscore{1}  - A^{-1} B^{*}dp 
+= e\hackscore{1}  + A^{-1} ( G - B^{*} p ) - A^{-1} B^{*} (p\hackscore{2}-p) 
+= e\hackscore{1}  + A^{-1} ( G - B^{*} p\hackscore{2}) 
+\end{equation}
+This shows that we can write the iterative process as a fixed point iteration to solve (assume all errors are zero)
+\begin{equation} 
+v = \Phi(v,p) \mbox{ and } p = \Psi(u,p) 
+\end{equation}
+where 
+\begin{equation} 
+ \begin{array}{rcl}
+\Psi(v,p) & = &  (B A^{-1} B^{*})^{-1} B A^{-1} G \\
+\Phi(u,p) & = & A^{-1} ( G - B^{*} (B A^{-1} B^{*})^{-1} B A^{-1} G )
+\end{array}
+\end{equation}
+Notice that if $A$ is independent from $v$ and $p$ the operators $\Phi(v,p)$ and $\Psi(u,p)$ are constant
+and threfore the iteration will terminate - providing no termination errors in sub-iterations - after one step.
+We also can give a formula for the error 
+\begin{equation} 
+ \begin{array}{rcl}
+\delta p & = &  (B A^{-1} B^{*})^{-1} ( e\hackscore{2} + B e\hackscore{1} ) \\
+\delta v & = &   e\hackscore{1} -  A^{-1} B^{*}\delta p  \;.
+\end{array}\label{STOKES ERRORS}
+\end{equation}
+Notice that $B\delta v = - e\hackscore{2}=-Bv\hackscore{2}$.
+
+With this notation
+\begin{equation} 
+ \begin{array}{rcl}
+v\hackscore{2} = \Phi(v,p) + \delta v \\
+p\hackscore{2} = \Psi(v,p) + \delta p \\
+\end{array}
+\end{equation}
+We use the values $dv=v\hackscore{2}-v$ and $Bv\hackscore{1}=B A^{-1} B^{*} dp$ to measure the error of the 
+current approximation $v\hackscore{2}$ and $v\hackscore{2}$ towards the exact solution.
+Assuming that the iteration does converge with a convergence rate $\chi^{-}$ we have the estimate
+\begin{equation} 
+\max(\|dv\|\hackscore{1}, \|Bv\hackscore{1}\|\hackscore{0})
+\le \chi^{-} \max(\|dv^{-}\|\hackscore{1}, \|Bv\hackscore{1}^{-}\|\hackscore{0})
++ \max(\|\delta v\|\hackscore{1}, \|(B A^{-1} B^{*}) \delta p\|\hackscore{0})
+\end{equation}
+were the upper index $-$ referes to the increments in the last step.
+
+Now we will establish estimates for $\|\delta v\|$ and $\|Bv\hackscore{1}\|$ from
+formulas~\ref{STOKES ERRORS} where neglect the $\delta p$ in the equation for $\delta v$ assuming that 
+$\delta p$ is controlled.
+\begin{equation}
+\|\delta v\|\hackscore{1} \approx \|e\hackscore{1}\|\hackscore{1} \le \frac{K \tau\hackscore{1}}{1-K \tau\hackscore{1}}  \| dv\hackscore{1} \|\hackscore{1} \approx \frac{K \tau\hackscore{1}}{1-K \tau\hackscore{1}} \| dv\|\hackscore{1}
+\end{equation}
+and  
+\begin{equation}
+\|(B A^{-1} B^{*}) \delta p\|\hackscore{0}  \approx \| e\hackscore{2} \|\hackscore{0}
+= \| B v\hackscore{2} \|\hackscore{0} \le M \tau\hackscore{2} \| B v\hackscore{1} \|\hackscore{0}
+\end{equation}
+which leads to 
+\begin{equation} 
+\max(\|dv\|\hackscore{1}, \|Bv\hackscore{1}\|\hackscore{0})
+\le \frac{\chi^{-}}{1-max{(M \tau\hackscore{2}, \frac{K \tau\hackscore{1}}{1-K \tau\hackscore{1}})}} \max(\|dv^{-}\|\hackscore{1}, \|Bv\hackscore{1}^{-}\|\hackscore{0}) \label{STOKES ESTIMTED IMPROVEMENT}
+\end{equation}
+where the upper index $-$ refers to the previous iteration step.
+If we allow require $max{(M \tau\hackscore{2}, \frac{K \tau\hackscore{1}}{1-K \tau\hackscore{1}})}\le \gamma$ 
+with a given $0<\gamma<1$ we can set
+\begin{equation} \label{STOKES SET TOL}
+\tau\hackscore{2} = \frac{\gamma}{M} \mbox{ and } \tau\hackscore{1} = \frac{1}{K} \frac{\gamma}{1+\gamma}
+\end{equation}
+Problem is that we do not know $M$ and $K$ but can use the convergence rate 
+\begin{equation} 
+ \chi := \frac{\max(\|dv\|\hackscore{1}, \|Bv\hackscore{1}\|\hackscore{0})}{\max(\|dv^{-}\|\hackscore{1}, \|Bv\hackscore{1}^{-}\|\hackscore{0})}
+\end{equation}
+to construct estimates of $M$ and $K$. We look at the two cases where our prediction and choice of 
+the tolerances was good or where we went wrong:
+\begin{equation} 
+\chi \le \frac{\chi^{-}}{1-\gamma} \mbox{ or } 
+\chi = \frac{\chi^{-}}{1-\gamma\hackscore{0}} >\frac{\chi^{-}}{1-\gamma}.
+\end{equation}
+which translates to 
+\begin{equation} 
+\gamma\hackscore{0} \le \gamma \mbox{ or } \gamma\hackscore{0}=1-\frac{\chi^{-}}{ \chi}>\gamma>0
+\end{equation}
+In the second case use \ref{STOKES SET TOL} for $\gamma=\gamma\hackscore{0}$ to get new estimates $M^{+}$ and $K^{+}$
+for $M$ and $K$:
+\begin{equation} \label{TOKES CONST UPDATE}
+M^{+} = 
+\frac{\gamma\hackscore{0}}{\gamma} M
+\mbox{ and } K^{+} = 
+\frac{\gamma\hackscore{0}}{\gamma}
+\frac{1+\gamma}{1+\gamma\hackscore{0}}
+K 
+\mbox{ with } \gamma\hackscore{0}=\max(1-\frac{\chi^{-}}{ \chi},\gamma)
+\end{equation}
+With these updated constants we can now get better values for the tolerances via an updated value $\gamma^{+}$ for $\gamma$ and the corrected values $M^{+}$ and $K^{+}$ for $M$ and $K$. If we are in the case of convergence which we 
+meassure by 
+\begin{equation}
+\chi < \chi\hackscore{max}
+\end{equation}
+where $\chi\hackscore{max}$ is given value with $0<\chi\hackscore{max}<1$. We then consider the following 
+criteria
+\begin{itemize}
+ \item As we are in case of convergence we try to relax the tolerances by increasing $\gamma$ by a factor $\frac{1}{\omega}$ ($0<\omega<1$). So we would like to choose 
+$\gamma^{+} \ge \frac{\gamma}{\omega}$.
+\item We need to make sure that the estimated convergence rate based on $\gamma^{+}$ will still maintain convergence 
+\begin{equation}
+\frac{\chi}{1-\gamma^{+}} \le \chi\hackscore{max} 
+\end{equation}
+which translates into 
+\begin{equation}
+\gamma^{+} \le 1 - \frac{\chi}{\chi\hackscore{max}} 
+\end{equation}
+Notice that the right hand side is positive.
+\item We do not want to iterate more then necessary. So we would like reduce the error in the next just below the 
+desired tolerance:
+\begin{equation}
+\frac{\chi}{1-\gamma^{+}}\max(\|dv\|\hackscore{1}, \|Bv\hackscore{1}\|\hackscore{0}) \ge f \cdot \tau \|v\hackscore{2}\|\hackscore{1}
+\end{equation}
+where the left hand side provides an estimate for the error to prediced in the next step. $f$ is a 
+safty factor. This leads to
+\begin{equation}
+\gamma^{+} \le
+1 - 
+\chi \frac{\max(\|dv\|\hackscore{1}, \|Bv\hackscore{1}\|\hackscore{0})} { f \cdot \tau \|v\hackscore{2}\|\hackscore{1}}
+\end{equation}
+\end{itemize}
+Putting all these criteria together we get
+\begin{equation}
+\gamma^{+}=\min(\max(
+\frac{\gamma}{\omega},
+1 - 
+\chi \frac{\max(\|dv\|\hackscore{1}, \|Bv\hackscore{1}\|\hackscore{0})} { f \cdot \tau \|v\hackscore{2}\|\hackscore{1}}), 1 - \frac{\chi}{\chi\hackscore{max}})
+\label{STOKES SET GAMMA PLUS}
+\end{equation}
+In case we cannot see convergence $\gamma$ is reduced by the factor $\omega$
+\begin{equation}
+\gamma^{+}=\max(\omega \cdot \gamma, \gamma\hackscore{min})\label{STOKES SET GAMMA PLUS2}
+\end{equation}
+where $\gamma\hackscore{min}$ is introduced to make sure that $\gamma^{+}$ stays away from zero. 
+
+
+Appling~\ref{STOKES SET TOL} for $\gamma^{+}$ and~\ref{TOKES CONST UPDATE} we get the update formula 
+\begin{equation} \label{STOKES CONST UPDATE}
+\tau\hackscore{2}^{+} = 
+\frac{\gamma^{+}}{\gamma\hackscore{0}} \tau\hackscore{2}
+\mbox{ and } \tau\hackscore{1}^{+} = 
+\frac{\gamma^{+}}{\gamma\hackscore{0}}
+\frac{1+\gamma\hackscore{0}}{1+\gamma^{+}}
+\tau\hackscore{1}
+\end{equation}
+to get the new tolerances $\tau\hackscore{1}^{+}$ and $\tau\hackscore{2}^{+}$ to be used in the next iteration step.
+Notice that the coefficients $M$ and $K$ have been eliminated. The calculation of $\gamma\hackscore{0}$ requires 
+at least two iteration steps (or a previous time step). 
+
+Typical initial values are
+\begin{equation} \label{STOKES VALUES}
+\tau\hackscore{1}=\tau\hackscore{1}=\frac{1}{100} ; \; \omega=\frac{1}{2} \; \gamma=\frac{1}{10} ;\gamma\hackscore{min}=10^{-6}
+\end{equation}
+where after the first step we set $\gamma\hackscore{0}=\gamma$ as no $\chi^{-}$ is available.
+
+
+\subsection{Functions}
+
+\begin{classdesc}{StokesProblemCartesian}{domain}
+opens the Stokes problem\index{Stokes problem} on the \Domain domain. The domain
+needs to support LBB compliant elements for the Stokes problem, see~\cite{LBB} for detials~\index{LBB condition}.
+For instance one can use second order polynomials for velocity and 
+first order polynomials for the pressure on the same element. Alternativly, one can use 
+macro elements\index{macro elements} using linear polynomial for both pressure and velocity bu with a subdivided
+element for the velocity. Typically, the macro element is more cost effective. The fact that pressure and velocity are represented in different way is expressed by
+\begin{python}
+velocity=Vector(0.0, Solution(mesh))
+pressure=Scalar(0.0, ReducedSolution(mesh))
+\end{python}
+\end{classdesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{initialize}{\optional{f=Data(), \optional{fixed_u_mask=Data(), \optional{eta=1, \optional{surface_stress=Data(), \optional{stress=Data()}, \optional{
+restoration_factor=0}}}}}}
+assigns values to the model parameters. In any call all values must be set.
+\var{f} defines the external force $f$, \var{eta} the viscosity $\eta$,
+\var{surface_stress} the surface stress $s$ and \var{stress} the initial stress $\sigma$.
+The locations and compontents where the velocity is fixed are set by 
+the values of \var{fixed_u_mask}. \var{restoration_factor} defines the restoring force factor $\alpha$. 
+The method will try to cast the given values to appropriate 
+\Data class objects.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{solve}{v,p
+\optional{, max_iter=100 \optional{, verbose=False \optional{, usePCG=True }}}}
+solves the problem and return approximations for velocity and pressure. 
+The arguments \var{v} and \var{p} define initial guess.
+\var{v} must have function space \var{Solution(domain)} and
+\var{p} must have function space \var{ReducedSolution(domain)}.
+The values of \var{v} marked
+by \var{fixed_u_mask} remain unchanged. 
+If \var{usePCG} is set to \True 
+reconditioned conjugate gradient method (PCG) \index{preconditioned conjugate gradient method!PCG}  scheme is used. Otherwise the problem is solved generalized minimal residual method (GMRES) \index{generalized minimal residual method!GMRES}. In most cases 
+the PCG scheme is more efficient.
+\var{max_iter} defines the maximum number of iteration steps. 
+
+If \var{verbose} is set to \True informations on the progress of of the solver are printed.
+\end{methoddesc}
+
+
+\begin{methoddesc}[StokesProblemCartesian]{setTolerance}{\optional{tolerance=1.e-4}}
+sets the tolerance in an appropriate norm relative to the right hand side. The tolerance must be non-negative and less than 1.
+\end{methoddesc}
+\begin{methoddesc}[StokesProblemCartesian]{getTolerance}{}
+returns the current relative tolerance.
+\end{methoddesc}
+\begin{methoddesc}[StokesProblemCartesian]{setAbsoluteTolerance}{\optional{tolerance=0.}}
+sets the absolute tolerance for the error in the relevant norm. The tolerance must be non-negative. Typically the
+absolute talerance is set to 0.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getAbsoluteTolerance}{}
+sreturns the current absolute tolerance.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsVelocity}{}
+returns the solver options used  solve the equations~(\ref{V CALC}) for velocity.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsPressure}{}
+returns the solver options used  solve the equation~(\ref{P PREC}) for pressure.
+\end{methoddesc}
+
+\begin{methoddesc}[StokesProblemCartesian]{getSolverOptionsDiv}{}
+set the solver options for solving the equation to project the divergence of the velocity onto the function space of pressure.
+\end{methoddesc}
+
+
+\subsection{Example: Lit Driven Cavity}
+ The following script \file{lit\hackscore driven\hackscore cavity.py} 
+\index{scripts!\file{helmholtz.py}} which is available in the \ExampleDirectory
+illustrates the usage of the \class{StokesProblemCartesian} class to solve
+the lit driven cavity problem:
+\begin{python}
+from esys.escript import *
+from esys.finley import Rectangle
+from esys.escript.models import StokesProblemCartesian
+NE=25
+dom = Rectangle(NE,NE,order=2)
+x = dom.getX()
+sc=StokesProblemCartesian(dom)
+mask= (whereZero(x[0])*[1.,0]+whereZero(x[0]-1))*[1.,0] + \
+      (whereZero(x[1])*[0.,1.]+whereZero(x[1]-1))*[1.,1]
+sc.initialize(eta=.1, fixed_u_mask= mask)
+v=Vector(0.,Solution(dom))
+v[0]+=whereZero(x[1]-1.)
+p=Scalar(0.,ReducedSolution(dom))
+v,p=sc.solve(v,p, verbose=True)
+saveVTK("u.xml",velocity=v,pressure=p)
+\end{python}

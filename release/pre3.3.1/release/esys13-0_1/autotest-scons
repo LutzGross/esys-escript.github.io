@@ -1,0 +1,114 @@
+#!/bin/bash
+#          Copyright 2006 by ACcESS MNRF
+#
+#              http://www.access.edu.au
+#       Primary Business: Queensland, Australia
+#  Licensed under the Open Software License version 3.0
+#     http://www.opensource.org/licenses/osl-3.0.php
+#
+#
+#
+# $Id: autotest-scons 162 2005-11-11 00:09:59Z svn $
+# An explicit testing script for esys using the scons build system
+
+# list of users to email test results to
+# currently disabled during testing.
+# MAIL_RECIPIENTS="gross@esscc.uq.edu.au elspeth@esscc.uq.edu.au matt@esscc.uq.edu.au robert.woodcock@csiro.au Peter.Hornby@csiro.au"
+MAIL_RECIPIENTS="elspeth@esscc.uq.edu.au" 
+
+# the python tests to run
+BRUCE_PYTESTS="ImportTest.passed BruceTest.passed test_utilOnBruce.py"
+ESCRIPT_PYTESTS="ImportTest.passed BinaryOps.passed UnaryOps.passed SliceGetting.passed SliceSetting.passed MiscTests.passed ArchiveTests.passed newEscriptTests.passed test_xml.passed insituTests.passed s2.passed"
+FINLEY_PYTESTS="ImportTest.passed finleyTest.passed SimpleSolve.passed RecTest.passed test_linearPDEsOnFinley.passed test_generators.passed test_visualization_interface.passed test_utilOnFinley.passed"
+
+# Changed slightly to cope with new script, so it doesn't stomp all over previous iterations
+
+echo "===> cd $1"
+cd $1
+if [ $? != 0 ]
+then
+  echo "couldnt cd $1"
+  echo "couldnt cd $1" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 1
+fi
+
+# this is for the automated script
+echo "===> change up a directory"
+cd ..
+echo "===> make a sandbox and work in that"
+mkdir sandbox
+cd sandbox
+
+PWD=`pwd`
+echo "===> working in: $PWD"
+
+# Setup the environment
+echo "loading modules"
+. ${MODULESHOME}/init/sh
+module load intel_cc.9.0.026
+export MODULEPATH=${MODULEPATH}:/data/raid2/toolspp4/modulefiles/gcc-3.3.6
+module load python/2.4.1
+module load boost/1.33.0/python-2.4.1
+module load numarray/1.3.3
+
+# set openmp settings
+export OMP_NUM_THREADS=4
+
+# doesn't appear to work - don't know why.
+#echo "===> svn update"
+#svn update
+#if [ $? != 0 ]
+#then
+#  echo "svn update failed"
+#  echo "svn update failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+#  exit 2
+#fi
+
+# Need to test this bit yet.
+echo "==> removing previous checkout"
+rm -rf trunk/
+ls
+# This works - temporarily removed to speed up testing.
+echo "==> svn checkout"
+svn checkout svn+ssh://ess/esys13/trunk
+if [ $? != 0 ]
+then
+    echo "svn checkout failed"
+    echo "svn checkout failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+    exit 2
+fi
+
+echo "==> change to trunk"
+ls trunk
+cd trunk
+
+# This bit works. Commented out to speed up testing.
+echo "===> scons building esys"
+scons
+if [ $? != 0 ]
+then
+  echo "scons build failed"
+  echo "scons build failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 3
+fi
+
+# This bit works. Commented out to speed up testing.
+echo "===> building unit_tests"
+scons build_all_tests
+if [ $? != 0 ]
+then
+  echo "build_tests failed"
+  echo "build_tests failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 3
+fi
+
+FAIL=0
+
+#echo "===> running all tests"
+#scons all_tests 
+if [ $? != 0 ]
+then
+  echo "all_tests failed"
+  echo "all_tests failed" | mail -s "esys autotest-scons results" $MAIL_RECIPIENTS
+  exit 4
+fi

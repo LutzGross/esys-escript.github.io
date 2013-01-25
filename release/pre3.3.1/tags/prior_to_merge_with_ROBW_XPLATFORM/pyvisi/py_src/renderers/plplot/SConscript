@@ -1,0 +1,38 @@
+pyinstall = None
+
+Import('*')
+
+import os
+import sys
+
+extensions_dir = str(esysroot) + '/scons'
+sys.path.append(extensions_dir)
+
+import scons_extensions
+
+pyvisipy_env = Environment(ENV = os.environ)
+
+py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+pyvisipy_env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+python_src = ['__init__.py',
+              'arrow_plot.py',
+              'axes.py',
+              'camera.py',
+              'common.py',
+              'contour_plot.py',
+              'image.py',
+              'item.py',
+              'line_plot.py',
+              'plane.py',
+              'plot.py',
+              'renderer.py',
+              'scene.py',
+              'surface_plot.py',
+              'text.py']
+
+pyc = pyvisipy_env.PyCompile(python_src)
+
+Default(pyvisipy_env.Install(Dir(str(pydir2)+"/renderers/plplot"), pyc))
+if pyinstall != None:
+  Default(pyvisipy_env.Install(pyinstall, pyc))

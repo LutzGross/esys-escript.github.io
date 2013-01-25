@@ -1,0 +1,80 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2012 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Einstein Notation}
+\label{EINSTEIN NOTATION}
+
+Compact notation is used in equations such continuum mechanics and linear
+algebra; it is known as Einstein notation or the Einstein summation convention.
+It makes the conventional notation of equations involving tensors more compact
+by shortening and simplifying them.
+
+There are two rules which make up the convention.
+Firstly, the rank of a tensor is represented by an index.
+For example, $a$ is a scalar, $b_{i}$ represents a vector, and $c_{ij}$
+represents a matrix.
+Secondly, if an expression contains repeated subscripted variables, they are
+assumed to be summed over all possible values, from $0$ to $n$.
+For example, the expression
+\begin{equation}
+y = a_{0}b_{0} + a_{1}b_{1} + \ldots + a_{n}b_{n}
+\label{NOTATION1}
+\end{equation}
+can be represented as
+\begin{equation}
+y = \sum_{i=0}^n  a_{i}b_{i}
+\label{NOTATION2}
+\end{equation}
+then in Einstein notation:
+\begin{equation}
+y = a_{i}b_{i}
+\label{NOTATION3}
+\end{equation}
+%
+Another example:
+\begin{equation}
+\nabla p = \frac{\partial p}{\partial x_{0}}\textbf{i} + \frac{\partial p}{\partial x_{1}}\textbf{j} + \frac{\partial p}{\partial x_{2}}\textbf{k}
+\label{NOTATION4}
+\end{equation}
+can be expressed in Einstein notation as
+\begin{equation}
+\nabla p = p,_{i}
+\label{NOTATION5}
+\end{equation}
+where the comma ',' in the subscript indicates the partial derivative.
+
+\noindent For a tensor:
+\begin{equation}
+\sigma _{ij}= 
+\left[ \begin{array}{ccc}
+\sigma_{00} & \sigma_{01} & \sigma_{02} \\
+\sigma_{10} & \sigma_{11} & \sigma_{12} \\
+\sigma_{20} & \sigma_{21} & \sigma_{22} \\
+\end{array} \right]
+\label{NOTATION6}
+\end{equation}
+
+The $\delta_{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones
+in its diagonal entries ($i = j$) and zeros in the remaining entries
+($i \neq j$).
+
+\begin{equation}
+\delta _{ij} = 
+\left \{ \begin{array}{cc}
+1, & \mbox{if $i = j$} \\
+0, & \mbox{if $i \neq j$} \\
+\end{array}
+\right.
+\label{KRONECKER}
+\end{equation}
+

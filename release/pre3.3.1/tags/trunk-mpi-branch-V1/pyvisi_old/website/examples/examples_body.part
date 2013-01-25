@@ -1,0 +1,516 @@
+<!-- $Id: examples_body.part,v 1.19 2005/06/28 04:09:31 paultcochrane Exp $ -->
+  <h1>Examples</h1>
+  
+  <hr class="top" />
+
+  <p>
+  These are some simple examples showing the core functionality of the
+  currently available pyvisi plotting objects.
+  </p>
+
+<h2>simplePlot</h2>
+
+<p>
+This is a very simple example showing how one would produce a line plot
+using pyvisi.  It shows a graph of <code>y = x^2</code>.
+</p>
+
+<a href="examples/simpleLinePlot.html">simpleLinePlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+<th><a href="http://www.gnuplot.info">Gnuplot</a> renderer module</th>
+<th><a href="http://www.vtk.org">Vtk</a> renderer module</th>
+</tr>
+<tr>
+<td><a href="examples/simpleLinePlotGnuplot.png"><img 
+src="examples/simpleLinePlotGnuplotSmall.png" 
+alt="simpleLinePlotGnuplot.png"/></a></td>
+<td><a href="examples/simpleLinePlotVtk.png"><img 
+src="examples/simpleLinePlotVtkSmall.png" 
+alt="simpleLinePlotVtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>singleArrayPlot</h2>
+
+<p>
+This example shows a graph of <code>y = sin(x)</code>.  However, what is
+special about it is that one only specifies the y-coordinate, and pyvisi
+uses the indicies of the y array as the x-coordinate points.
+</p>
+
+<a href="examples/singleArrayLinePlot.html">singleArrayLinePlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+<th><a href="http://www.gnuplot.info">Gnuplot</a> renderer module</th>
+<th><a href="http://www.vtk.org">Vtk</a> renderer module</th>
+</tr>
+<tr>
+<td><a href="examples/singleArrayLinePlotGnuplot.png"><img 
+src="examples/singleArrayLinePlotGnuplotSmall.png" 
+alt="singleArrayLinePlotGnuplot.png"/></a></td>
+<td><a href="examples/singleArrayLinePlotVtk.png"><img 
+src="examples/singleArrayLinePlotVtkSmall.png" 
+alt="singleArrayLinePlotVtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>multiCurvePlot</h2>
+
+<p>
+Here we have an example of how to plot multiple curves with the same
+x-coordinate variable.  This example shows <code>y = sin(x)</code>, 
+<code>y = cos(x)</code> and <code>y = cos(x)^2</code>.
+</p>
+
+<a href="examples/multiCurvePlot.html">multiCurvePlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+<th><a href="http://www.gnuplot.info">Gnuplot</a> renderer module</th>
+<th><a href="http://www.vtk.org">Vtk</a> renderer module</th>
+</tr>
+<tr>
+    <td><a href="examples/multiCurvePlotGnuplot.png"><img 
+	    src="examples/multiCurvePlotGnuplotSmall.png" 
+	    alt="multiCurvePlotGnuplot.png"/></a></td>
+    <td><a href="examples/multiCurvePlotVtk.png"><img 
+	    src="examples/multiCurvePlotVtkSmall.png" 
+	    alt="multiCurvePlotVtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>contourPlot</h2>
+
+<p>
+This shows a two-dimensional contour map of a three-dimensional surface.
+The surface was generated with the equation 
+<code>z = x*exp(-x^2 - y^2)</code>.
+</p>
+
+<a href="examples/contourPlot.html">contourPlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module 
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/contourPlotGnuplot.png"><img 
+	    src="examples/contourPlotGnuplotSmall.png" 
+	    alt="contourPlotGnuplot.png"/></a></td>
+    <td><a href="examples/contourPlotGnuplot4.png"><img 
+	    src="examples/contourPlotGnuplot4Small.png" 
+	    alt="contourPlotGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>surfacePlot</h2>
+
+<p>
+This shows a three-dimensional surface.  The surface was generated
+with the equation <code>z = x*exp(-x^2 - y^2)</code>.
+</p>
+
+<a href="examples/surfacePlot.html">surfacePlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/surfacePlotGnuplot.png"><img 
+	    src="examples/surfacePlotGnuplotSmall.png" 
+	    alt="surfacePlotGnuplot.png"/></a></td>
+    <td><a href="examples/surfacePlotGnuplot4.png"><img 
+	    src="examples/surfacePlotGnuplot4Small.png" 
+	    alt="surfacePlotGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>surfaceAndContourPlot</h2>
+
+<p>
+This shows a three-dimensional surface, with its contour shown on the base
+of the axes.  The surface was generated with the equation 
+<code>z = x*exp(-x^2 - y^2)</code>.
+</p>
+
+<a href="examples/surfaceAndContourPlot.html">surfaceAndContourPlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/surfaceAndContourPlotGnuplot.png"><img 
+	    src="examples/surfaceAndContourPlotGnuplotSmall.png" 
+	    alt="surfaceAndContourPlotGnuplot.png"/></a></td>
+    <td><a href="examples/surfaceAndContourPlotGnuplot4.png"><img 
+	    src="examples/surfaceAndContourPlotGnuplot4Small.png" 
+	    alt="surfaceAndContourPlotGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>scatterPlot</h2>
+
+<p>
+Here we have randomly generated x-y data plotted as a scatter plot.
+</p>
+
+<a href="examples/scatterPlot.html">scatterPlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module 
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/scatterPlotGnuplot.png"><img 
+	    src="examples/scatterPlotGnuplotSmall.png" 
+	    alt="scatterPlotGnuplot.png"/></a></td>
+    <td><a href="examples/scatterPlotGnuplot4.png"><img 
+	    src="examples/scatterPlotGnuplot4Small.png" 
+	    alt="scatterPlotGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>scatterPlot3D</h2>
+
+<p>
+Here we have a three-dimensional scatter plot.  The x and y data are
+generated randomly, and the z value is calculated via 
+<code>z = exp(-x^2 - y^2)</code>.
+</p>
+
+<a href="examples/scatterPlot3D.html">scatterPlot3D.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/scatterPlot3DGnuplot.png"><img 
+	    src="examples/scatterPlot3DGnuplotSmall.png" 
+	    alt="scatterPlot3DGnuplot.png"/></a></td>
+    <td><a href="examples/scatterPlot3DGnuplot4.png"><img 
+	    src="examples/scatterPlot3DGnuplot4Small.png" 
+	    alt="scatterPlot3DGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>arrowPlot</h2>
+
+<p>
+This example shows a vector plot of randomly generated vectors.  Here we are
+only using 1D arrays as input.
+</p>
+
+<a href="examples/arrowPlot.html">arrowPlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/arrowPlotGnuplot.png"><img 
+	    src="examples/arrowPlotGnuplotSmall.png" 
+	    alt="arrowPlotGnuplot.png"/></a></td>
+    <td><a href="examples/arrowPlotGnuplot4.png"><img 
+	    src="examples/arrowPlotGnuplot4Small.png" 
+	    alt="arrowPlotGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>arrowPlot2D</h2>
+
+<p>
+This example shows a vector plot of randomly generated vectors.  Here we are
+only using 2D arrays as input.
+</p>
+
+<a href="examples/arrowPlot2D.html">arrowPlot2D.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 3.8)
+    </th>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+	(gnuplot version 4.0)
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/arrowPlot2DGnuplot.png"><img 
+	    src="examples/arrowPlot2DGnuplotSmall.png" 
+	    alt="arrowPlot2DGnuplot.png"/></a></td>
+    <td><a href="examples/arrowPlot2DGnuplot4.png"><img 
+	    src="examples/arrowPlot2DGnuplot4Small.png" 
+	    alt="arrowPlot2DGnuplot4.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>offsetPlot</h2>
+
+<p>
+This shows offset plot, or record section as is useful in seismology.
+</p>
+
+<a href="examples/offsetPlot.html">offsetPlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+    </th>
+    <th>
+	<a href="http://www.vtk.org">vtk</a> renderer module
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/offsetPlotGnuplot.png"><img 
+	    src="examples/offsetPlotGnuplotSmall.png" 
+	    alt="offsetPlotGnuplot.png"/></a></td>
+    <td><a href="examples/offsetPlotVtk.png"><img 
+	    src="examples/offsetPlotVtkSmall.png" 
+	    alt="offsetPlotVtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>seismicOffsetPlot1</h2>
+
+<p>
+Another offset plot example with data imported from file.
+</p>
+
+<a href="examples/seismicOffsetPlot1.html">seismicOffsetPlot1.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.gnuplot.info">Gnuplot</a> renderer module
+    </th>
+    <th>
+	<a href="http://www.vtk.org">vtk</a> renderer module
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/seismicOffsetPlot1Gnuplot.png"><img 
+	    src="examples/seismicOffsetPlot1GnuplotSmall.png" 
+	    alt="seismicOffsetPlot1Gnuplot.png"/></a></td>
+    <td><a href="examples/seismicOffsetPlot1Vtk.png"><img 
+	    src="examples/seismicOffsetPlot1VtkSmall.png" 
+	    alt="seismicOffsetPlot1Vtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>ballPlot</h2>
+
+<p>
+Plot spheres in space, loading data from a vtk xml file
+</p>
+
+<a href="examples/ballPlot.html">ballPlot.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.povray.org">Povray</a> renderer module
+	(unavailable at this time)
+    </th>
+    <th>
+	<a href="http://www.vtk.org">vtk</a> renderer module
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/ballPlotPovray.png"><img 
+	    src="examples/ballPlotPovraySmall.png" 
+	    alt="ballPlotPovray.png"/></a></td>
+    <td><a href="examples/ballPlotVtk.png"><img 
+	    src="examples/ballPlotVtkSmall.png" 
+	    alt="ballPlotVtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+
+<hr />
+
+<h2>arrowPlot3D</h2>
+
+<p>
+Plot three dimensional arrows in space, loading data from a vtk xml file
+</p>
+
+<a href="examples/arrowPlot3D.html">arrowPlot3D.py</a>
+
+<h3>Example pyvisi output</h3>
+
+<table>
+<tr>
+    <th>
+	<a href="http://www.povray.org">Povray</a> renderer module
+	(unavailable at this time)
+    </th>
+    <th>
+	<a href="http://www.vtk.org">vtk</a> renderer module
+    </th>
+</tr>
+<tr>
+    <td><a href="examples/arrowPlot3DPovray.png"><img 
+	    src="examples/arrowPlot3DPovraySmall.png" 
+	    alt="arrowPlot3DPovray.png"/></a></td>
+    <td><a href="examples/arrowPlot3DVtk.png"><img 
+	    src="examples/arrowPlot3DVtkSmall.png" 
+	    alt="arrowPlot3DVtk.png"/></a></td>
+</tr>
+<tr>
+<td>Click on image for larger version</td>
+<td>Click on image for larger version</td>
+</tr>
+</table>
+

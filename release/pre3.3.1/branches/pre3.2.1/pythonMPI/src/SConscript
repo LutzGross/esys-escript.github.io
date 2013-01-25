@@ -1,0 +1,30 @@
+
+########################################################
+#
+# Copyright (c) 2003-2011 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+Import('*')
+
+sources = ['ScriptMPI.cpp']
+sources_redirect = ['ScriptMPIredirect.cpp']
+
+local_env = env.Clone()
+local_env.Append(LIBS = ['esysUtils'])
+
+prog = local_env.Program('pythonMPI', sources)
+prog_redirect = local_env.Program('pythonMPIredirect', sources_redirect)
+
+lib_inst1 = local_env.Install(local_env['libinstall'], prog)
+lib_inst2 = local_env.Install(local_env['libinstall'], prog_redirect)
+
+env.Alias('build_pythonMPI', [prog, prog_redirect])
+env.Alias('install_pythonMPI', [lib_inst1, lib_inst2])
+

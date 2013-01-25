@@ -1,0 +1,41 @@
+# $Id: hex_2D_o1_node_3xs.dx 153 2005-10-25 01:51:20Z jgs $
+object 1 class array type float rank 1 shape 2 items 4 data follows
+ 0 0
+ 1 0
+ 0 1
+ 1 1
+object 2 class array type int rank 1 shape 4 items 1 data follows
+ 0 2 1 3
+attribute "element type" string "quads"
+attribute "ref" string "positions"
+object 3 class array type float rank 0 items 4 data follows
+ 0
+ 1
+ 0
+ 1
+attribute "dep" string "positions"
+object 4 class array type float rank 0 items 4 data follows
+ 0
+ 1
+ 0
+ 1
+attribute "dep" string "positions"
+object 5 class array type float rank 0 items 4 data follows
+ 0
+ 1
+ 0
+ 1
+attribute "dep" string "positions"
+object "data_r" class field
+component "positions" value 1
+component "connections" value 2
+component "data" value 3
+object "data" class field
+component "positions" value 1
+component "connections" value 2
+component "data" value 4
+object "data_n" class field
+component "positions" value 1
+component "connections" value 2
+component "data" value 5
+end

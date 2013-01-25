@@ -1,0 +1,51 @@
+pyinstall = None
+
+Import('*')
+
+import os
+import sys
+
+extensions_dir = str(esysroot) + '/scons'
+sys.path.append(extensions_dir)
+
+import scons_extensions
+
+escriptpy_env = Environment(ENV = os.environ)
+
+py_builder = Builder(action = scons_extensions.build_py, suffix = '.pyc', src_suffix = '.py', single_source=True)
+escriptpy_env.Append(BUILDERS = {'PyCompile' : py_builder});
+
+python_src = ['__init__.py',
+              'escript.py',
+              'esysXML.py',
+              'linearPDEs.py',
+              'pdetools.py',
+              'modelframe.py',
+              'runmodel.py',
+              'symbols.py',
+              'test_symbols.py',
+              'timeseries.py',
+              'test_linearPDEs.py',
+              'util.py',
+              'test_util.py',
+              'test_util_base.py',
+              'test_util_overloaded_binary_no_tagged_data.py',
+              'test_util_reduction_with_tagged_data.py',
+              'test_util_binary_no_tagged_data.py',
+              'test_util_overloaded_binary_with_tagged_data.py',
+              'test_util_slicing_no_tagged_data.py',
+              'test_util_unary_no_tagged_data.py',
+              'test_util_binary_with_tagged_data.py',
+              'test_util_reduction_no_tagged_data.py',
+              'test_util_unary_with_tagged_data.py',
+              'test_util_slicing_with_tagged_data.py',
+              'test_util_spatial_functions.py',
+              'test_pdetools.py',
+              'benchmark.py']
+
+pyc = escriptpy_env.PyCompile(python_src)
+
+Default(escriptpy_env.Install(pydir, pyc))
+Default(escriptpy_env.Install(pydir2, pyc))
+if pyinstall != None:
+  Default(escriptpy_env.Install(pyinstall, pyc))

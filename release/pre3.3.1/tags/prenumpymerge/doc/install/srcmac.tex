@@ -1,0 +1,457 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Installing from source for \macosx}
+\label{sec:srcmac}
+
+First of all before you start installing from source you will need Mac OS X development tools installed on your Mac. This will ensure that you have  the following installed:
+\begin{itemize}
+\item \filename{g++} and associated tools.
+\item \filename{make}
+\end{itemize}
+
+Here are the instruction on how to install them. 
+\begin{enumerate}
+\item Insert the Mac OS X v10.5 (Leopard) DVD. 
+\item Double-click on XcodeTools.mpkg, located inside Optional Installs/Xcode Tools. 
+\item Follow the instructions in the Installer. 
+\item Authenticate as the administrative user. The first user you create when setting up Mac OS X has administrator privileges by default. 
+\end{enumerate}
+
+You will also need a copy of the \esfinley source code.
+If you retrieved the source using subversion, don't forget that one can use the export command instead of checkout to get a smaller copy.
+For additional visualisation functionality see Section~\ref{sec:macaddfunc}.
+
+These instructions will produce the following structure:
+\begin{itemize}
+\item \filename{stand}: \begin{itemize}
+\item \filename{escript.d}
+\item \filename{packages}
+\item \filename{package_src}
+\item \filename{build}
+\item \filename{doc}
+  \end{itemize}
+\end{itemize}
+
+The build directory can be removed when you are finished.
+
+The following instructions assume you are running the \filename{bash} shell.
+Comments are indicated with \# characters. 
+
+Open a terminal~\footnote{If you do not know how to open a terminal on Mac, then just type terminal in the spotlight (search tool on the top of the right corner) and once found just click on it.} and type
+
+\begin{shellCode}
+mkdir stand
+cd stand
+export PKG_ROOT=`pwd`/packages
+\end{shellCode}
+
+Copy compressed source bundles into \filename{stand/package_src}.
+Copy documentation files into \filename{doc}.
+
+\begin{shellCode}
+mkdir packages
+mkdir build
+cd build
+tar -jxf ../package_src/Python-2.6.1.tar.bz2
+tar -jxf ../package_src/boost_1_38_0.tar.bz2
+tar -jxf ../package_src/MesaLib-7.2.tar.bz2
+tar -zxf ../package_src/netcdf-4.0.tar.gz
+tar -zxf ../package_src/vtk-5.2.1.tar.gz
+tar -zxf ../package_src/vtkdata-5.2.1.tar.gz
+tar -zxf ../package_src/numarray-1.5.2.tar.gz
+tar -zxf ../package_src/cmake-2.6.3.tar.gz
+tar -zxf ../package_src/scons-1.2.0.tar.gz
+\end{shellCode}
+
+Build python.
+\begin{shellCode}
+cd Python*
+
+./configure --prefix=$PKG_ROOT/python-2.6.1 \
+  --exec-prefix=$PKG_ROOT/python-2.6.1 --enable-shared \
+  --enable-framework=$PKG_ROOT/python-2.6.1 2>&1 | tee tt.configure.out
+  
+make -j2
+
+make install 2>&1 | tee tt.make.out
+
+cp ../../packages/python-2.6.1/Python.framework/Versions/2.6/Python \
+     ../../packages/python-2.6.1/lib/libpython2.6.dylib
+
+cp ../../packages/python-2.6.1/Python.framework/Versions/2.6/Python \
+      ../../packages/python-2.6.1/lib/libpython.dylib
+
+cp ../../packages/python-2.6.1/include/python2.6/pyconfig.h \
+     ../../packages/python-2.6.1/Python.framework/Headers/
+
+cd ..
+
+export PATH=$PKG_ROOT/python/bin:$PATH
+export PYTHONHOME=$PKG_ROOT/python
+export LD_LIBRARY_PATH=$PKG_ROOT/python/lib:$LD_LIBRARY_PATH
+
+pushd ../packages
+ln -s python-2.6.1/ python
+popd
+
+\end{shellCode}
+
+Run python to make sure~(check the version number) it works.
+Now build numarray.
+
+\begin{shellCode}
+cd numarray-1.5.2
+
+python setup.py install \
+ --gencode --install-lib=$PKG_ROOT/numarray-1.5.2/lib \
+ --install-headers=$PKG_ROOT=$PKG_ROOT/numarray-1.5.2/include/numarray \ 
+   2>&1 | tee tt.install.out
+
+
+export PYTHONPATH=$PKG_ROOT/numarray/lib:$PYTHONPATH
+cd ..
+pushd ../packages
+ln -s numarray-1.5.2 numarray
+popd
+\end{shellCode}
+
+Now we build scons.
+\begin{shellCode}
+cd scons-1.2.0
+python setup.py install --prefix=$PKG_ROOT/scons-1.2.0
+
+export PATH=$PKG_ROOT/scons/bin:$PATH
+cd ..
+pushd ../packages
+ln -s scons-1.2.0 scons
+popd
+\end{shellCode}
+
+...Boost libraries ...
+\begin{shellCode}
+cd boost_1_38_0
+
+./configure --prefix=$PKG_ROOT/boost_1_38_0 --with-python-root=$PKG_ROOT/python \
+  --with-python-version=2.6 --with-libraries=python
+
+make -j2
+make install
+ln -s $PKG_ROOT/boost_1_38_0 $PKG_ROOT/boost
+export LD_LIBRARY_PATH=$PKG_ROOT/boost/lib:$LD_LIBRARY_PATH
+cd ..
+pushd ../packages
+ln -s boost_1_38_0 boost
+popd
+\end{shellCode}
+
+... and netcdf.
+\begin{shellCode}
+cd netcdf-4.0
+CFLAGS="-O2 fPIC -Df2cFortran" CXXFLAGS="-O2 fPIC -Df2cFortran" \
+FFLAGS="-O2 fPIC -Df2cFortran" FCFLAGS="-O2 fPIC -Df2cFortran" \
+./configure --prefix=$PKG_ROOT/netcdf-4.0
+
+make -j2
+make install
+
+export LD_LIBRARY_PATH=$PKG_ROOT/netcdf/lib:$LD_LIBRARY_PATH
+cd ..
+pushd ../packages
+ln -s netcdf-4.0 netcdf
+popd
+\end{shellCode}
+
+CMake and Mesa are required for VTK. 
+\begin{shellCode}
+cd cmake-2.6.3
+./configure --prefix=$PKG_ROOT/cmake-2.6.3 2>&1 | tee tt.configure
+make -j 4
+make install
+
+export PATH=$PKG_ROOT/cmake/bin:$PATH
+cd ..
+pushd ../packages
+ln -s cmake-2.6.3 cmake
+popd
+\end{shellCode}
+
+These instructions do not compile MesaDemos or GLUT.
+If you need to check if Mesa compiled correctly, then the demos are a good test.
+\begin{shellCode}
+cd Mesa-7.2
+./configure --prefix=$PKG_ROOT/mesa-7.2 --enable-gl-osmesa
+
+make -j 4
+make install
+
+export LD_LIBRARY_PATH=$PKG_ROOT/mesa:$LD_LIBRARY_PATH
+cd ..
+pushd ../packages
+ln -s mesa-7.2 mesa
+popd
+\end{shellCode}
+
+\begin{shellCode}
+cd VTK
+cmake .
+
+#Edit the CMakeCache and make the following changes: 
+#(Please replace .... with an absolute path to the stand directory)
+
+#-----------------
+
+BUILD_EXAMPLES should be OFF
+BUILD_SHARED_LIBS should be ON
+
+CMAKE_INSTALL_PREFIX	..../stand/packages/vtk-5.2.1
+CMAKE_VERBOSE_MAKEFILE	TRUE
+
+#check PYTHON_EXECUTABLE is correct.
+#but it seems to be when I went through these steps
+
+VTK_OPENGL_HAS_OSMESA	TRUE
+VTK_USE_64BIT_IDS	ON
+# That last one is marked as "May cause some bugs" in the original instructions
+
+VTK_WRAP_PYTHON	ON
+VTK_USE_MANGLED_MESA	OFF
+
+#--------------------
+
+cmake .
+#It won't work but it will put some variables in that you need.
+
+#Edit CMakeCache again and make the following changes
+
+#----------------
+
+VTK_USE_TK	OFF
+
+OSMESA_INCLUDE_DIR	..../stand/packages/mesa/include
+
+OSMESA_LIBRARY	..../stand/packages/mesa/lib/libOSMesa.dylib
+
+PYTHON_INCLUDE_PATH	..../stand/packages/python/include/python2.6
+
+PYTHON_LIBRARY	..../stand/packages/python/lib/libpython2.6.dylib
+
+OPENGL_INCLUDE_DIR	..../stand/packages/mesa/include
+
+OPENGL_gl_LIBRARY	..../stand/packages/mesa/lib/libGL.dylib
+
+#----------------
+
+cmake .
+make
+make install
+
+
+cd ../../packages
+ln -s vtk-5.2.1 vtk
+cd ..
+\end{shellCode}
+
+Now copy the \esfinley source into an \filename{escript.d} directory in \filename{stand}.
+
+\begin{shellCode}
+cd scons
+cp mac_options_example.py YourMachineName_options.py
+
+#edit the options file and make the following changes:
+#-----------------------------------------------------------------
+declare a PKG_ROOT variable at the top of the file eg:
+PKG_ROOT='/Users/artak/stand/packages'
+
+python_path		= PKG_ROOT+'python/include/python2.6'
+python_lib_path		= PKG_ROOT+'python/lib'
+python_libs		= 'python2.6'
+
+boost_path		= PKG_ROOT+'boost/include/boost-1_38'
+boost_lib_path		= PKG_ROOT+'boost/lib'
+boost_libs		= ['boost_python-gcc43-mt']
+# You could simlink the boost python library to give a shorter 
+# name but it's not worth it
+
+usevtk		= 'yes'
+#-------------------------------------------------------------------
+
+ln -s $PKG_ROOT/vtk-5.2.1 $PKG_ROOT/vtk
+
+Modify /scripts/finley_wrapper_template
+
+STANDALONE=1
+
+#Check to make sure the paths in the if [ $STANDALONE == 1 ]
+# Section are correct
+
+#-----------------------------------------------------------------
+
+scons bin/escript
+
+#start a new terminal
+cd stand
+export PATH=`pwd`/packages/scons/bin:$PATH
+cd escript.d
+eval `bin/escript -e`
+scons
+\end{shellCode}
+
+If you wish to test your build, then you can do the following. 
+Note this may take a while if you have a slow processor and/or less than 1Gb of RAM.
+\begin{shellCode}
+scons all_tests
+\end{shellCode}
+
+Once you are satisfied, the \filename{build} and \filename{\$PKG_ROOT/build} directories can be removed.
+Within the \filename{packages} directory, the \filename{scons}, \filename{scons-1.2.0}, \filename{cmake-2.6.3} and \filename{cmake} entries can also be removed.
+If you are not redistributing this bundle you can remove \filename{\$PKG_ROOT/package_src}.
+
+If you do not plan to edit or recompile the source you can remove it.
+The only entries which are required in \filename{escript.d} are:
+\begin{itemize}
+ \item \filename{bin}
+\item \filename{esys}
+\item \filename{include}
+\item \filename{lib}
+\item \filename{README_LICENSE}
+\end{itemize}
+
+Hidden files can be removed with
+\begin{shellCode}
+find . -name .?* | xargs rm -rf
+\end{shellCode}
+
+\section{Additional Functionality}\label{sec:macaddfunc}
+To perform visualisations you will need some additional tools.
+Since these do not need to be linked with any of the packages above, you can install versions available for your
+system, or build them from source.
+\begin{itemize}
+\item \filename{ppmtompeg} and \filename{jpegtopnm} from the \filename{netpbm} suite. - To build from source 
+you would also need \filename{libjpeg} and its headers as well as \filename{libpng}\footnote{libpng requires zlib to build} and its headers.
+\item A tool to visualise VTK files. For example Mayavi or Visit.
+\end{itemize}
+
+
+\section{Installing from source for \macosx using Macports}
+\label{sec:srcmacports}
+
+As we mentioned in the Section~\ref{sec:srcmac}, before you start installing from source you will need Mac OS X development tools installed on your Mac. 
+
+If you do not have Macports already, please install Macports from \url{www.macports.org}. You can also install porticus (GUI for Macports).
+ 
+Once you have Macports working Install boost using porticus or from terminal 
+\begin{shellCode}
+sudo port install boost@1.35.0_2+complete
+\end{shellCode}
+Sometimes this fails due to unknown reasons, but to overcome this problem you need to run
+\begin{shellCode}
+sudo port clean boost@1.35.0_2+complete
+
+sudo port install boost@1.35.0_2+complete
+ \end{shellCode}
+  
+Download scons source scons-0.98.5.tar.gz from \url{www.scons.org}.
+\begin{shellCode}
+tar xfz scons-0.98.5.tar.gz
+cd scons-0.98.5
+python setup.py install
+\end{shellCode}
+
+Note: Do not try to install scons using porticus or sudo port install scons, because if automatically installs another python version and you are likely run into problems with different python versions.  
+ 
+Download numarray-1.5.2.tar.gz from \\
+\url{http://www.stsci.edu/resources/software_hardware/numarray/numarray.html}. 
+\begin{shellCode}
+tar xfz numarray-1.5.2.tar.gz
+cd numarray-1.5.2
+python setup.py install --gencode  2>&1 | tee tt.install.out
+\end{shellCode}
+
+You can ran a test to check numarray installation by
+\begin{shellCode}
+python
+import numarray.testall as testall
+testall.test()
+\end{shellCode}
+ 
+Install netcdf, gsl and fltk using Macports 
+\begin{shellCode}
+sudo port install netcdf
+sudo port install gsl
+sudo port intall fltk
+\end{shellCode}
+Note: If this fails, download and install from sources. 
+ 
+Downlaod gmsh-2.2.3-source.tar and install from sources.
+\begin{shellCode}
+./configure --with-gsl-prefix=/opt/local/  --with-fltk    --prefix=/usr/local/
+\end{shellCode}
+Note: if you install using porticus or sudo port  it automaticall installs in \filename{/opt/local/}, but if you install from sources it installs in /usr/local. So, make sure these paths are right.
+\begin{shellCode}
+sudo make -j2
+sudo make install
+\end{shellCode} 
+ 
+Download and install Mesa-7.0.3 (required for VTK) from sources
+\begin{shellCode}
+tar xjf MesaDemos-7.0.3.tar.bz2
+tar xjf MesaGLUT-7.0.3.tar.bz2
+tar xjf MesaLib-7.0.3.tar.bz2
+cd Mesa-7.0.3
+ 
+sudo make -j 2
+make install
+\end{shellCode} 
+ 
+Install vtk-5.0.4 from source. If you install from ports it won't configure to use shared libraries. Once you untar it you will have (assume user is john) /Users/john/Downloads/VTK folder, then run following:
+ 
+\begin{shellCode}
+sudo mkdir /usr/local/VTKBuild/
+cd /usr/local/VTKBuild/
+sudo ccmake /Users/john/Downloads/VTK/ 
+# It will create CMakeCache.txt. Make sure  you use the following configurations.
+ 
+#       Advanced options			ON
+#       BUILD_EXAMPLES				ON
+#       BUILD_SHARED_LIBS			ON
+#       VTK_WRAP_PYTHON				ON
+#       CMAKE_VERBOSE_MAKEFILE			TRUE
+#       VTK_OPENGL_HAS_OSMESA			ON
+#       VTK_USE_MANGLED_MESA			OFF
+#       VTK_USE_OFFSCREEN			OFF
+ 
+sudo make -j2
+sudo make install
+\end{shellCode}
+ 
+Note: you need to set following ENV variables into your \filename{/Users/john/.profile} for VTK to work:
+\begin{shellCode}
+export LD_LIBRARY_PATH = /usr/local/VTKBuild/bin: \
+             /usr/local/VTKBuild/bin:${LD_LIBRARY_PATH}
+export PYTHONPATH = /usr/local/VTKBuild/Wrapping/Python:\ 
+            /usr/local/VTKBuild/bin:${PYTHONPATH}
+     
+#     For testing you can run:
+python
+import vtk
+\end{shellCode}
+ 
+Left only to install triangle and netpbm (required for ppmtompeg) using Macports 
+\begin{shellCode}
+sudo port install triangle
+sudo port install netpbm
+\end{shellCode}
+ 
+
+

@@ -1,0 +1,50 @@
+
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = clone_env(env)
+
+# get all the file names in doc/examples:
+#src_dir = local_env.Dir('examples').srcnode().abspath
+src_dir = local_env.Dir('.').srcnode().abspath
+cur_dir = os.path.abspath(os.curdir)
+outputdir=local_env.Dir('#/release/doc/').srcnode().abspath
+
+os.chdir(src_dir)
+example_files = os.popen("find examples -name .svn -prune -o -type f -print").read().split(None)
+os.chdir(cur_dir)
+
+tmp1 = env.Command("#/release/doc/escript_examples.zip", None, 
+"zip "+os.path.join(outputdir,"escript_examples.zip ") +" ".join(example_files),chdir=src_dir)
+env.Alias('examples_zipfile', tmp1)
+
+
+#Need to use explicit tar rather than the tar builder due to problems getting it not to put
+#unwanted path components in the tar file
+#--transform on tar is not supported on savanna
+tmp2 = env.Command("#/release/doc/escript_examples.tar.gz", None, "tar -czf "+os.path.join(outputdir,"escript_examples.tar.gz ")+"  ".join(example_files), chdir=src_dir)
+env.Alias('examples_tarfile',tmp2)
+
+#env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
+#if 'Tar' in dir(env): env.Tar('#/release/doc/escript_examples.tar.gz', example_files,chdir=src_dir)
+#env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
+
+local_env.SConscript(dirs = ['#/doc/user'], build_dir='#/build/$PLATFORM/doc/user', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/epydoc'], build_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/doxygen'], build_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/install'], build_dir='#/build/$PLATFORM/doc/install', duplicate=1)
+
+

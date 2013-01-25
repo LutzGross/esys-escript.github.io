@@ -1,0 +1,10 @@
+Package: escript
+Version: ~2.0-1
+Description: Escript/Finley finite elements python system.
+ Solve partial differential equations using finite element methods.
+Maintainer: Escript team <esys@esscc.uq.edu.au>
+Priority: extra
+Section: main
+Depends: python2.5, libboost-python1.35.0, python-numarray, libnetcdf4, python-vtk
+Architecture: i386
+ 

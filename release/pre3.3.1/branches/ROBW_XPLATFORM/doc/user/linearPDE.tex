@@ -1,0 +1,502 @@
+% $Id$
+
+\chapter{The module \linearPDEs}
+
+\declaremodule{extension}{linearPDEs} \modulesynopsis{Linear partial pifferential equation handler}
+The module \linearPDEs provides an interface to define and solve linear partial 
+differential equations within \escript. \linearPDEs does not provide any 
+solver capabilities in itself but hands the PDE over to 
+the PDE solver library defined through the \Domain of the PDE.
+The general interface is provided through the \LinearPDE class. The
+\AdvectivePDE which is derived from the \LinearPDE class
+provides an interface to PDE dominated by its advective terms. The \Poisson
+class which is also derived form the \LinearPDE class should be used
+to define the Poisson equation \index{Poisson}.  
+
+\section{\LinearPDE Class}
+\label{SEC LinearPDE}
+
+The \LinearPDE class is used to define a general linear, steady, second order PDE
+for an unknown function $u$ on a given $\Omega$ defined through a \Domain object.
+In the following $\Gamma$ denotes the boundary of the domain $\Omega$. $n$ denotes
+the outer normal field on $\Gamma$. 
+
+For a single PDE with a solution with a single component the linear PDE is defined in the 
+following form:
+\begin{equation}\label{LINEARPDE.SINGLE.1}
+-(A\hackscore{jl} u\hackscore{,l}){,j}+(B\hackscore{j} u)\hackscore{,j}+C\hackscore{l} u\hackscore{,l}+D u =-X\hackscore{j,j}+Y \; .
+\end{equation}
+$u_{,j}$ denotes the derivative of $u$ with respect to the $j$-th spatial direction. Einstein's summation convention, ie. summation over indexes appearing twice in a term of a sum is performed, is used. 
+The coefficients $A$, $B$, $C$, $D$, $X$ and $Y$ have to be specified through \Data objects in the 
+\Function on the PDE or objects that can be converted into such \Data objects. 
+$A$ is a \RankTwo, $B$, $C$ and $X$ are \RankOne and $D$ and $Y$ are scalar. 
+The following natural
+boundary conditions are considered \index{boundary condition!natural} on $\Gamma$:
+\begin{equation}\label{LINEARPDE.SINGLE.2}
+n\hackscore{j}(A\hackscore{jl} u\hackscore{,l}+B\hackscore{j} u)+d u=n\hackscore{j}X\hackscore{j} + y  \;.
+\end{equation}
+Notice that the coefficients $A$, $B$ and $X$ are defined in the PDE. The coefficients $d$ and $y$ are  
+each a \Scalar in the \FunctionOnBoundary.  Constraints \index{constraint} for the solution prescribing the value of the 
+solution at certain locations in the domain. They have the form
+\begin{equation}\label{LINEARPDE.SINGLE.3}
+u=r \mbox{ where } q>0
+\end{equation}
+$r$ and $q$ are each \Scalar where $q$ is the characteristic function
+\index{characteristic function} defining where the constraint is applied.
+The constraints defined by \eqn{LINEARPDE.SINGLE.3} override any other condition set by \eqn{LINEARPDE.SINGLE.1}
+or \eqn{LINEARPDE.SINGLE.2}. The PDE is symmetrical \index{symmetrical} if
+\begin{equation}\label{LINEARPDE.SINGLE.4}
+A\hackscore{jl}=A\hackscore{lj} \mbox{ and } B\hackscore{j}=C\hackscore{j}
+\end{equation}
+For a system of PDEs and a solution with several components the PDE has the form
+\begin{equation}\label{LINEARPDE.SYSTEM.1}
+-(A\hackscore{ijkl} u\hackscore{k,l}){,j}+(B\hackscore{ijk} u_k)\hackscore{,j}+C\hackscore{ikl} u\hackscore{k,l}+D\hackscore{ik} u_k =-X\hackscore{ij,j}+Y\hackscore{i} \; .
+\end{equation}
+$A$ is a \RankFour, $B$ and $C$ are each a \RankThree, $D$ and $X$ are each a \RankTwo and $Y$ is a \RankOne. 
+The natural boundary conditions \index{boundary condition!natural} take the form:
+\begin{equation}\label{LINEARPDE.SYSTEM.2}
+n\hackscore{j}(A\hackscore{ijkl} u\hackscore{k,l}){,j}+(B\hackscore{ijk} u_k)+d\hackscore{ik} u_k=n\hackscore{j}-X\hackscore{ij}+y\hackscore{i}  \;.
+\end{equation}
+The coefficient $d$ is a \RankTwo and $y$ is a  
+\RankOne both in the \FunctionOnBoundary. Constraints \index{constraint} take the form
+\begin{equation}\label{LINEARPDE.SYSTEM.3}
+u\hackscore{i}=r\hackscore{i} \mbox{ where } q\hackscore{i}>0
+\end{equation}
+$r$ and $q$ are each \RankOne. Notice that at some locations not necessarily all components must 
+have a constraint. The system of PDEs is symmetrical \index{symmetrical} if
+\begin{eqnarray}\label{LINEARPDE.SYSTEM.4}
+A\hackscore{ijkl}=A\hackscore{klij} \\
+B\hackscore{ijk}=C\hackscore{kij} \\
+D\hackscore{ik}=D\hackscore{ki} \\
+d\hackscore{ik}=d\hackscore{ki} \
+\end{eqnarray}
+\LinearPDE also supports solution discontinuities \index{discontinuity} over contact region $\Gamma^{contact}$
+in the domain $\Omega$. To specify the conditions across the discontinuity we are using the
+generalised flux $J$ which is in the case of a systems of PDEs and several components of the solution
+defined as 
+\begin{equation}\label{LINEARPDE.SYSTEM.5}
+J\hackscore{ij}=A\hackscore{ijkl}u\hackscore{k,l}+B\hackscore{ijk}u\hackscore{k}-X\hackscore{ij}
+\end{equation}
+For the case of single solution component and single PDE $J$ is defined
+\begin{equation}\label{LINEARPDE.SINGLE.5}
+J\hackscore{j}=A\hackscore{jl}u\hackscore{,l}+B\hackscore{j}u\hackscore{k}-X\hackscore{j}
+\end{equation}
+In the context of discontinuities \index{discontinuity} $n$ denotes the normal on the 
+discontinuity pointing from side 0 towards side 1. For a system of PDEs
+the contact condition takes the form
+\begin{equation}\label{LINEARPDE.SYSTEM.6}
+n\hackscore{j} J^{0}\hackscore{ij}=n\hackscore{j} J^{1}\hackscore{ij}=y^{contact}\hackscore{i} - d^{contact}\hackscore{ik} [u]\hackscore{k} \; .
+\end{equation}
+where $J^{0}$ and $J^{1}$ are the fluxes on side $0$ and side $1$ of the
+discontinuity $\Gamma^{contact}$, respectively. $[u]$, which is the difference
+of the solution at side 1 and at side 0, denotes the jump of $u$ across $\Gamma^{contact}$.
+The coefficient $d^{contact}$ is a \RankTwo and $y^{contact}$ is a  
+\RankOne both in the \FunctionOnContactZero or \FunctionOnContactOne.
+In case of a single PDE and a single component solution the contact condition takes the form
+\begin{equation}\label{LINEARPDE.SINGLE.6}
+n\hackscore{j} J^{0}\hackscore{j}=n\hackscore{j} J^{1}\hackscore{j}=y^{contact} - d^{contact}[u]
+\end{equation}
+In this case the the coefficient $d^{contact}$ and $y^{contact}$ are eaach \Scalar
+both in the \FunctionOnContactZero or \FunctionOnContactOne.
+ 
+\begin{classdesc}{LinearPDE}{domain,numEquations=0,numSolutions=0}
+opens a linear, steady, second order PDE on the \Domain \var{domain}. \var{numEquations}
+and \var{numSolutions} gives the number of equations and the number of solutiopn components.
+If \var{numEquations} and \var{numSolutions} is non-positive, the number of equations 
+and the number solutions, respctively, stay undefined until a coefficient is
+defined. 
+\end{classdesc}
+
+\begin{methoddesc}[LinearPDE]{setValues}{arg1,arg2,...,argN}
+assigns new values to coefficients \var{arg1}, \var{arg2}, $\ldots$ \var{argN}. 
+The coefficients must be one of the valid coefficient names
+\var{A},
+\var{B},
+\var{C},
+\var{D},
+\var{X},
+\var{Y},
+\var{d},
+\var{y},
+\var{dcontact},
+\var{ycontact},
+\var{r},
+or \var{q}.
+If the coefficient is not a \Data object, it is converted into a \Data object in the
+appropriate \FunctionSpace.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{createCoefficient}{name}
+facilitates the creation of a \Data object corresponding to coefficient of name
+\var{name}. If \var{name} is not a valid name an exception is raised. The
+returned \Data object is initialised to zero and is not set as a value of the
+LinearPDE.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getCoefficient}{name}
+return the value assigned to coefficient \var{name}. If \var{name} is not a valid name 
+an exception is raised. 
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{cleanCoefficients}{}
+resets all coefficients to their initialization values. This method is useful to call when trying to save memory
+as is releaces eqnerences to coefficients but keeping the differential operator.
+\end{methoddesc}
+\begin{methoddesc}[LinearPDE]{createNewCoefficient}{name}
+returns a \Data object which has the \FunctionSpace and \Shape of coefficient \var{name}. The initial value is $0$.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getShapeOfCoefficient}{name}
+returns the shape of coefficient \var{name} even if no value has been assigned to it.
+\end{methoddesc}
+
+
+\begin{methoddesc}[LinearPDE]{getFunctionSpaceOfCoefficient}{name}
+returns the \FunctionSpace of coefficient \var{name} even if no value has been assigned to it.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{hasCoefficient}{name}
+returns \True if \var{name} is valid name of a coefficient
+\end{methoddesc}
+
+
+\begin{methoddesc}[LinearPDE]{getFunctionSpaceForEquation}{}
+returns \FunctionSpace of the right hand side which is identical to \FunctionSpace of 
+the result of the PDE operator.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getFunctionSpaceForSolution}{}
+returns \FunctionSpace of the solution of the PDE hich is identical to \FunctionSpace of 
+the result of argument of the PDE operator.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setDebugOn}{}
+switches the debug mode to on.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setDebugOff}{}
+switches the debug mode to on.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{debug}{}
+returns \True if the debug mode is switched on. Otherwise it return \False.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setLumpingOn}{}
+switches on lumping \index{lumping}. If lumping is switched on 
+the operator is 
+\end{methoddesc}
+
+
+\begin{methoddesc}[LinearPDE]{setLumpingOff}
+switches lumping off \index{lumping}.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setLumping}{flag=\False}
+switches on lumping if \var{flag} is \True. Otherwise lumping is swiched off.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{isUsingLumping}{}
+returns \True if lumping is switched on. Otherwise \False is returned.
+\end{methoddesc}
+
+\begin{memberdesc}[LinearPDE]{DEFAULT_METHOD}
+default method to be used to solve the PDE. An appropriate method should be 
+chosen by the used PDE solver library.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{DIRECT}
+direct linear solver~\Ref{SAAD} 
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{CHOLEVSKY}
+direct solver based on Cholevsky factorization (or similar), see~\Ref{SAAD}. The solver will require a symmetric PDE. 
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{PCG}
+preconditioned conjugate gradient method, see~\Ref{WEISS}. The solver will require a symmetric PDE.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{GMRES}
+the GMRES method, see~\Ref{WEISS}. Truncation and restart ar econtrolled by the parameters
+\var{truncation} and \var{restart} of \method{getSolution}.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{PRES20}
+the GMRES method with trunction after five residuals and
+restart after 20 steps, see~\Ref{WEISS}.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{CR}
+conjugate residual method, see~\Ref{WEISS}. 
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{CGS}
+conjugate gradient squared method, see~\Ref{WEISS}.
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{BICGSTAB}
+stabilzed bi-conjugate gradients methods, see~\Ref{WEISS}. 
+\end{memberdesc}
+
+\begin{memberdesc}[LinearPDE]{SSOR}
+symmetric successive overrelaxtion method, see~\Ref{WEISS}.
+\end{memberdesc}
+
+\begin{methoddesc}[LinearPDE]{setSolverMethod}{solver=linearPDE.DEFAULT_METHOD}
+sets the solver method to be used. It is pointed out that the PDE solver library
+does not know the specified solver method but may choose a similar method. 
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setTolerance}{tol=1.e-8}
+resets the tolerance for solution. The actually meaning of tolerance is
+depending on the underlying PDE library. In most cases, the tolerance 
+will only consider the error from solving the discerete problem but will
+not consider any discretization error.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getTolerance}{}
+returns the current tolerance of the solution
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{isSymmetric}{}
+returns \True if the PDE has been indicated to be symmetric.
+Otherwise \False is returned.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setSymmetryOn}{}
+indicates that the PDE is symmetric.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setSymmetryOff}{}
+indicates that the PDE is not symmetric.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setSymmetryTo}{flag=\False}
+indicates that the PDE is symmetric if \var{flag}=\True
+and indicates a non-symmetric PDE is \var{flag}=\False. 
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderOn}{}
+switches on the reduction of polynomial order for the solution and 
+equation evaluation.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderOff}{}
+switches off the reduction of polynomial order for the solution and 
+equation evaluation.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderTo}{flag=\False}
+switches on the reduction of polynomial order for the solution and 
+equation evaluation if \var{flag}=\True. Otherwise
+the order reduction is switched off.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderForSolutionOn}{}
+switches on reduction of polynomial order for the solution.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderForSolutionOff}{}
+switches off reduction of polynomial order for the solution.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderForSolutionTo}{flag=\False}
+switches on the reduction of polynomial order for the solution 
+if \var{flag}=\True. Otherwise
+the order reduction is switched off.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderForEquationOn}{}
+switches on reduction of polynomial order for the equation evaluation.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderForEquationOff}{}
+switches off reduction of polynomial order for the equation evaluation.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{setReducedOrderForEquationTo}{flag=\False}
+switches on the reduction of polynomial order for the equation 
+evaluation if \var{flag}=\True. Otherwise
+the order reduction is switched off.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getOperator}{}
+returns the \Operator of the PDE.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getRightHandSide}{ignoreConstraint=\False}
+returns the right hand side of the PDE as a \Data object. If
+\var{ignoreConstraint}=\True the constraints are not considered
+when building up the right hand side.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getSystem}{}
+returns the \Operator and right hand side of the PDE.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getSolution}{option1,option2,...,optionN}
+returns (an approximation of) the solution of the PDE. \var{options1},  \var{options2} 
+$\ldots$ \var{optionsN} are options handed over to the underlying PDE solver library.  
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getDomain}{}
+returns the \Domain of the PDE.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getDim}{}
+returns the spatial dimension of the PDE.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getNumEquations}{}
+returns the number of equations.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getNumSolutions}{}
+returns the number of components of the solution.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{checkSymmetry}{verbose=\False}
+returns \True if the PDE is symmetric and \False otherwise. 
+The method is very computational expensive and should only be 
+called for testing purposes. The symmetry flag is not altered.
+If \var{verbose}=\True information about where symmetry is violated
+are printed.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getFlux}{u}
+returns the flux $J\hackscore{ij}$ \index{flux} for given solution \var{u}
+defined by \eqn{LINEARPDE.SYSTEM.5} and \eqn{LINEARPDE.SINGLE.5}, respectively.
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{applyOperator}{u}
+applies the PDE operator to \var{u}
+\end{methoddesc}
+
+\begin{methoddesc}[LinearPDE]{getResidual}{u}
+returns the residual when insering \var{u} into the PDE
+\end{methoddesc}
+
+\section{\AdvectivePDE Class}
+In cases of PDEs dominated by the advection terms $B$ and $C$ against the diffusion term $A$
+up-winding has been used. 
+The \AdvectivePDE class applies upwinding to the advective terms, see \Ref{SUPG}. 
+
+In the following we set
+\begin{eqnarray}\label{LINEARPDE.UPWIND.Z}
+Z\hackscore{j}=C\hackscore{j}-B\hackscore{j}
+\mbox{ or } \\
+Z\hackscore{ikl}=C\hackscore{ikl}-B\hackscore{ilk}
+\end{eqnarray}
+To measure the dominance of the advective terms over the diffusive term $A$ the 
+Pelclet number is used \index{Pelclet number}. The are defined as
+\begin{eqnarray}\label{LINEARPDE.Peclet.single}
+P=\frac{h\|Z\hackscore{:}\|}{2\|A\hackscore{::}\|}
+\end{eqnarray}
+\begin{eqnarray}\label{LINEARPDE.Peclet.system}
+P\hackscore{ik}=\frac{h\|Z\hackscore{i:k}\|}{2\|A\hackscore{i:k:}\|}
+\end{eqnarray}
+where $h$ is the local cell size and
+\begin{eqnarray}\label{LINEARPDE.ADVECTIVE.1b}
+\|Z\hackscore{:}\|^2=Z\hackscore{j}Z\hackscore{j} \\
+\|A\hackscore{::}\|^2=A\hackscore{jl}A\hackscore{jl} \\
+\|Z\hackscore{i:k}\|^2=\delta\hackscore{in} \delta\hackscore{km} Z\hackscore{njm}Z\hackscore{njm} \\
+\|A\hackscore{i:k:}\|^2=\delta\hackscore{in} \delta\hackscore{km} A\hackscore{njml}A\hackscore{njml} \; .
+\end{eqnarray}
+In the case that it is $\|A\hackscore{::}\|$ we set $P=0$ if $\|Z\hackscore{:}\|=0$ and
+$P=\infinity$ if $\|Z\hackscore{:}\|=0$. Analogously for $P$ in the case of a systems of PDEs.
+
+From the Pelclet number the stabilization parameters $\Xi$ and $\Xi$ are calculated:
+\begin{eqnarray}\label{LINEARPDE.Peclet.2}
+\Xi=\xi(P) \frac{h}{\|Z\hackscore{:}\|}  \\
+\mbox{ or } \\
+\Xi\hackscore{ik}=\xi(P\hackscore{ik}) \frac{h}{\|Z\hackscore{i:k}\|}
+\end{eqnarray}
+where $\xi$ is a suitable function of the Peclet number.
+In the case of a single PDE the coefficient are up-dated in the following way:
+\begin{eqnarray}\label{LINEARPDE.ADVECTIVE.1}
+A\hackscore{jl} \leftarrow A\hackscore{jl} + \Xi Z\hackscore{j} Z\hackscore{l} \\
+B\hackscore{j} \leftarrow B\hackscore{j} + \Xi C\hackscore{j} D \\
+C\hackscore{j} \leftarrow C\hackscore{j} + \Xi B\hackscore{j} D \\
+X\hackscore{j} \leftarrow X\hackscore{j} + \Xi Z\hackscore{j} Y \\
+\end{eqnarray}
+Similar for the case of a systems of PDEs:
+\begin{eqnarray}\label{LINEARPDE.ADVECTIVE.SYSTEM}
+A\hackscore{ijkl} \leftarrow A\hackscore{ijl} + \delta\hackscore{pm} \Xi\hackscore{mi} Z\hackscore{pij} Z\hackscore{mkl} \\
+B\hackscore{ijk} \leftarrow B\hackscore{ijk} +  \delta\hackscore{pm} \Xi\hackscore{mi} D\hackscore{pk} C\hackscore{mij} \\
+C\hackscore{ikl} \leftarrow C\hackscore{ikl} +  \delta\hackscore{pm} \Xi\hackscore{mi} D\hackscore{pk} B\hackscore{mli} \\
+X\hackscore{ij} \leftarrow X\hackscore{ij} + \delta\hackscore{pm} \Xi\hackscore{mi}  Y\hackscore{p} Z\hackscore{mij}\\
+\end{eqnarray}
+Using upwinding in this form, introduces an additonal error which is proprtional to the cell size $h$
+but with the intension to stabilize the solution.
+
+\begin{classdesc}{AdvectivePDE}{domain,numEquations=0,numSolutions=0,xi=AdvectivePDE.ELMAN_RAMAGE}
+opens a linear, steady, second order PDE on the \Domain \var{domain}. \var{numEquations}
+and \var{numSolutions} gives the number of equations and the number of solutiopn components.
+If \var{numEquations} and \var{numSolutions} is non-positive, the number of equations 
+and the number solutions, respectively, stay undefined until a coefficient is
+defined. \var{xi} defines a function which returns for any given  Preclet number $P\ge 0$ the 
+$\xi$-value used to define the stabilization parameters $\Xi$ and $\Xi$.
+\AdvectivePDE is derived from \LinearPDE.
+\end{classdesc}
+
+\begin{memberdesc}[AdvectivePDE]{SIMPLIFIED_BROOKS_HUGHES}{}
+Predefined function to set a values for $\xi$ from a Preclet number $P$. 
+This function uses the method suggested in \Ref{SUPG1}
+where $\xi(P)$ is given by 
+\begin{equation}\label{LINEARPDE.ADVECTIVE.1d}
+\xi(P)=coth(P)-\frac{1}{P} \;.
+\end{equation}
+As the evaluation of $coth$ is expensive we are using the approximation:
+The function $\xi$ is approximated by
+\begin{equation}\label{LINEARPDE.ADVECTIVE.23}
+\xi(P)=
+\left\{ 
+\begin{array}{lc}
+\frac{P}{6} & P<3 \\
+\frac{1}{2} & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+\end{memberdesc}
+
+\begin{memberdesc}[AdvectivePDE]{ELMAN_RAMAGE}{}
+Predefined function to set a values for $\xi$ from a Preclet number $P$. 
+This function uses the method suggested in \Ref{SUPG2}
+where $\xi(P)$ is given by 
+\begin{equation}\label{LINEARPDE.ADVECTIVE.23b}
+\xi(P)=
+\left\{ 
+\begin{array}{lc}
+0  & P<1 \\
+\frac{1}{2}(1-\frac{1}{P}) & \mbox{otherwise}
+\end{array}
+\right.
+\end{equation}
+\end{memberdesc}
+
+
+\section{The \Poisson Class}
+
+The \Poisson class provides an easy way to define and solve the Poisson
+equation
+\begin{equation}\label{POISSON.1}
+-u\hackscore{,ii}=f\; .
+\end{equation}
+with homogeneous boundary conditions
+\begin{equation}\label{POISSON.2}
+n\hackscore{i}u\hackscore{,i}=0
+\end{equation}
+and homogeneous constraints
+\begin{equation}\label{POISSON.3}
+u=0 \mbox{ where } q>0
+\end{equation}
+$f$ has to be a \Scalar in the \Function and $q$ must be
+a \Scalar in  the \SolutionFS. 
+
+\begin{classdesc}{Poisson}{domain}
+opens a Poisson equation on the \Domain domain. \Poisson is derived from \LinearPDE.
+\end{classdesc}
+\begin{methoddesc}[Poisson]{setValue}{f=escript.Data(),q=escript.Data()}
+assigns new values to \var{f} and \var{q}.
+\end{methoddesc}

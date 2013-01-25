@@ -1,0 +1,77 @@
+# Scons configuration file for DataTagged unit tests
+
+#
+# set appropriate defaults for configuration variables
+esysroot=str(Dir('./../../../..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
+
+cxx_flags=cxx_flags_debug
+
+print "Build configuration for module: DataTagged unit tests"
+print "             cxx: ", cxx
+print "       cxx_flags: ", cxx_flags
+
+#
+# do the actual build
+
+datatagged_test_path = str(esysroot) + '/escript/test/DataTagged'
+escript_path = str(esysroot) + '/escript/src'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
+CppUnitTest_path = str(esysroot) + '/tools/CppUnitTest/inc'
+
+esys_lib_path = str(esysroot) + '/lib'
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+CppUnitTest_lib_path = str(esysroot) + '/tools/CppUnitTest/lib'
+
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+
+install_dir = str(esysroot) + '/escript/test'
+
+cpp_path = [datatagged_test_path,
+            escript_path,
+            esysUtils_path,
+            CppUnitTest_path,
+            python_path,
+            boost_path]
+
+lib_path = [esys_lib_path,
+            esysUtils_lib_path,
+            CppUnitTest_lib_path,
+            python_lib_path,
+            boost_lib_path]
+
+libs = ['escriptcpp',
+        'esysUtils',
+        'CppUnitTest',
+        str(python_lib),
+        str(boost_lib),
+        'dl',
+        'util']
+
+libs.extend(sys_libs)
+
+sources = ['DataTaggedTestCase.cpp',
+           'DataTaggedTest.cpp']
+
+target = 'DataTaggedTest.exe'
+
+import os
+datatagged_env = Environment(ENV = os.environ)
+
+datatagged_env.Replace(CXX = cxx)
+datatagged_env.Replace(CXXFLAGS = cxx_flags)
+datatagged_env.Replace(CPPPATH = cpp_path)
+datatagged_env.Replace(LIBPATH = lib_path)
+datatagged_env.Replace(LIBS = libs)
+
+datatagged_test_exe = datatagged_env.Program(target, sources)
+
+Depends(datatagged_test_exe, escript_lib)
+
+Alias("build_tests", datatagged_env.Install(install_dir, datatagged_test_exe))
+
+import scons_extensions
+runUnitTest_builder = Builder(action = scons_extensions.runUnitTest, suffix = '.passed', single_source=True)
+datatagged_env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
+
+Alias("run_tests", datatagged_env.RunUnitTest(target))

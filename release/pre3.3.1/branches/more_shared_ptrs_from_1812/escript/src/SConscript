@@ -1,0 +1,136 @@
+########################################################
+#
+# Copyright (c) 2003-2008 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = clone_env(env_mpi)
+py_wrapper_local_env = clone_env(env_mpi)
+
+# Remove the sharedlibrary prefix on all platform - we don't want 'lib' mucking with our python modules
+del py_wrapper_local_env['SHLIBPREFIX']
+
+sources = """
+	AbstractContinuousDomain.cpp
+	AbstractDomain.cpp
+	AbstractSystemMatrix.cpp
+	AbstractTransportProblem.cpp
+	Data.cpp
+	DataAbstract.cpp
+	DataBlocks2D.cpp
+	DataC.cpp
+	DataConstant.cpp
+	DataEmpty.cpp
+	DataException.cpp
+	DataExpanded.cpp
+	DataFactory.cpp
+	DataMaths.cpp
+	DataTagged.cpp
+	DataTypes.cpp
+	DataVector.cpp
+	DomainException.cpp
+	FunctionSpace.cpp
+	FunctionSpaceException.cpp
+	FunctionSpaceFactory.cpp
+	NullDomain.cpp
+	SystemMatrixException.cpp
+	Taipan.cpp
+	TransportProblemException.cpp
+	Utils.cpp
+	blocktimer.c
+""".split()
+headers = """
+	AbstractContinuousDomain.h
+	AbstractDomain.h
+	AbstractSystemMatrix.h
+	AbstractTransportProblem.h
+	BinaryOp.h
+	Data.h
+	DataAbstract.h
+	DataAlgorithm.h
+	DataBlocks2D.h
+	DataC.h
+	DataConstant.h
+	DataEmpty.h
+	DataException.h
+	DataExpanded.h
+	DataFactory.h
+	DataMaths.h
+	DataTagged.h
+	DataTypes.h
+	DataVector.h
+	DomainException.h
+	FunctionSpace.h
+	FunctionSpaceException.h
+	FunctionSpaceFactory.h
+	LocalOps.h
+	NullDomain.h
+	Pointers.h
+	SystemMatrixException.h
+	Taipan.h
+	TransportProblemException.h
+	UnaryFuncs.h
+	UnaryOp.h
+	UtilC.h
+	Utils.h
+	blocktimer.h
+	esysmpi.h
+	system_dep.h
+""".split()
+
+local_env.Append(LIBS = [ 'esysUtils'] + env['sys_libs'] )
+py_wrapper_local_env.Append(LIBS = [ 'escript', 'esysUtils'] + env['sys_libs'])
+
+module_name = 'escript'
+py_wrapper_name = module_name + 'cpp'
+
+lib = local_env.SharedLibrary(module_name, sources)
+env.Alias('target_escript_so', lib)
+
+py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'escriptcpp.cpp')
+env.Alias('target_escriptcpp_so', py_wrapper_lib)
+
+include_path = Dir('escript', local_env['incinstall'])
+
+tmp1 = local_env.Install(include_path, headers )
+env.Alias('target_install_escript_headers', [tmp1])
+
+tmp3 = local_env.Install(local_env['libinstall'], lib)
+env.Alias('target_install_escript_so', tmp3)
+
+#windows specific mod
+tmp_inst = os.path.join(local_env['pyinstall'],module_name)
+if os.name == 'nt':
+  wrapper_postfix = '.pyd'
+else:
+  wrapper_postfix = '.so'
+
+share_name = os.path.join(tmp_inst,py_wrapper_name+wrapper_postfix)
+
+tmp4 = py_wrapper_local_env.InstallAs(target=share_name,
+                                      source=py_wrapper_lib[0])
+
+env.Alias('target_install_escriptcpp_so', tmp4)
+
+# export the lib target since tests will depend on it
+# the lib target is a list of file nodes (why? win32 produces more than one output file: .lib, .dll, .pdb)
+# FIXME: This list handling produces the desired result but can this be done directly with scons File nodes?
+dep_lib = [local_env['libinstall']+'/'+str(x) for x in lib]
+Export('dep_lib')
+
+# Call the python sconscript
+env.SConscript(dirs = ['#/escript/py_src'], build_dir='py', duplicate=0)
+
+# Call the unit tests SConscript
+local_env.SConscript(dirs = ['#/escript/test'], build_dir='#/build/$PLATFORM/escript/test', duplicate=0)
+

@@ -1,0 +1,9 @@
+# boostStatic - include directories plus library to link with
+
+PKG_CC_INC_DIRS  += /raid2/tools/boost/include/boost-1_31
+PKG_CPP_INC_DIRS += /raid2/tools/boost/include/boost-1_31
+
+PKG_LD_LIB_DIRS += /raid2/tools/boost/lib
+
+PKG_LD_LIBS += boost_python-intel-d-1_31
+

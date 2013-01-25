@@ -1,0 +1,117 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ESys>
+     <MiningArea>
+	<Name>Greater Newcastle Mining
+</Name>
+         <Location>
+         <LocationOnEarth>
+                <Longitude unit="D.MM">151.5581906349188</Longitude>
+                <Latitude unit="D.MM">-32.94607054435458</Latitude>
+                <Altitude unit="m">0</Altitude>
+         </LocationOnEarth>
+         </Location>
+         <LongitudeLength unit="km">100</LongitudeLength>
+         <LatitudeLength unit="km">100</LatitudeLength>
+         <Tilt unit="D.MM">4</Tilt>
+         <Depth unit="km">30</Depth>
+         <Mine>
+		<Name>Newcastle Mining2</Name>
+                <Location>
+                <LocationOnEarth>
+                       <Longitude unit="D.MM">151.5581906349188</Longitude>
+                       <Latitude unit="D.MM">-32.94607054435458</Latitude>
+                       <Altitude unit="m">-100</Altitude>
+                </LocationOnEarth>
+                </Location>
+                <Tilt unit="D.MM"> 20</Tilt>
+                <Depth unit="m">100</Depth>
+                <LongitudeLength unit="m">300 </LongitudeLength>
+                <LatitudeLength unit="m">200 </LatitudeLength>
+                <Record><Material>coal</Material>
+                   <Year>1840</Year>
+                   <Extraction unit="Mt">1</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1922</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1945</Year>
+                   <Extraction unit="Mt">2</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1967</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+         </Mine>
+         <Mine>
+		<Name>Newcastle Mining1</Name>
+                <Location>
+                <LocationOnEarth>
+		       <Longitude unit="D.MM">151.6209275285916</Longitude>
+		       <Latitude unit="D.MM">-32.94383075889717</Latitude>
+                       <Altitude unit="m">-200</Altitude>
+                </LocationOnEarth>
+                </Location>
+                <Tilt unit="D.MM">-10</Tilt>
+                <Depth unit="m">50</Depth>
+                <LongitudeLength unit="m">200</LongitudeLength>
+                <LatitudeLength unit="m">300</LatitudeLength>
+                <Record>
+                  <Material>coal</Material>
+                   <Year>1922</Year>
+                   <Extraction unit="Mt">2</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1945</Year>
+                   <Extraction unit="Mt">1</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1967</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1980</Year>
+                   <Extraction unit="Mt">7</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1997</Year>
+                   <Extraction unit="Mt">14</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>2000</Year>
+                   <Extraction unit="Mt">13</Extraction>
+                </Record>
+         </Mine>
+         <Mine>
+		<Name>Newcastle Mining3</Name>
+                <Location>
+                <LocationOnEarth>
+		       <Longitude unit="D.MM">151.5011809571203</Longitude>
+		       <Latitude unit="D.MM">-33.0479913390422</Latitude>
+                       <Altitude unit="m">-300</Altitude>
+                </LocationOnEarth>
+                </Location>
+                <Tilt unit="D.MM">-60</Tilt>
+                <Depth unit="m">500</Depth>
+                <LongitudeLength unit="m">100</LongitudeLength>
+                <LatitudeLength unit="m">100</LatitudeLength>
+                <Record><Material>coal</Material>
+                   <Year>1967</Year>
+                   <Extraction unit="Mt">2</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1980</Year>
+                   <Extraction unit="Mt">3</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>1997</Year>
+                   <Extraction unit="Mt">6</Extraction>
+                </Record>
+                <Record><Material>coal</Material>
+                   <Year>2000</Year>
+                   <Extraction unit="Mt">5</Extraction>
+                </Record>
+         </Mine>
+     </MiningArea>
+</ESys>

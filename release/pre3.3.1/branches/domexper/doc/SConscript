@@ -1,0 +1,146 @@
+
+########################################################
+#
+# Copyright (c) 2003-2010 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+import os
+Import('*')
+
+haveGMSH=False  # do we have gmsh?
+haveMPL=False   # do we have matplotlib?
+haveGD=False    # does matplotlib have griddata?
+
+# check for gmsh
+try:
+    import subprocess
+    p=subprocess.Popen(['gmsh', '-version'], stderr=subprocess.PIPE)
+    p.poll()
+    haveGMSH=True
+except OSError:
+    print("gmsh not found")
+
+mplmagicversion='0.98.5'
+
+# check for matplotlib
+try:
+   import matplotlib
+   haveMPL=True
+   mplversion=matplotlib.__version__
+   from matplotlib.mlab import griddata
+   haveGD=True
+except ImportError:
+   pass
+
+if not haveMPL:
+    print("matplotlib not found, skipping some tests")
+else:
+    if mplversion<mplmagicversion:
+        print("matplotlib found, but version too early. Some tests skipped.")
+
+example_files_allow_mpi = []
+example_files_no_mpi = []
+example_deps = []
+
+def sortOutExample(name, needsGMSH=False, needsMPL=False, needsMagicMPL=False, needsGD=False, allowsMPI=True):
+    if needsMagicMPL: needsMPL=True
+    if needsGD: needsMPL=True
+    if needsGMSH: allowsMPI=False
+
+    if (not needsGMSH or haveGMSH) and (not needsMPL or haveMPL) and (not needsMagicMPL or mplversion>=mplmagicversion) and (not needsGD or haveGD):
+        if allowsMPI:
+            example_files_allow_mpi.append(name)
+        else:
+            example_files_no_mpi.append(name)
+    else:
+        example_deps.append(name)
+
+# these are the release examples in example subdirectory:
+#
+#_deps is for files which end in .py and are required for
+# testing but should not be invoked directly themselves
+
+sortOutExample('usersguide/lit_driven_cavity.py')
+sortOutExample('usersguide/mount.py')
+sortOutExample('usersguide/heatedblock.py')
+sortOutExample('usersguide/helmholtz.py')
+sortOutExample('usersguide/fluid.py')
+sortOutExample('usersguide/poisson.py')
+sortOutExample('usersguide/diffusion.py')
+sortOutExample('usersguide/poisson_vtk.py')
+sortOutExample('usersguide/slip.py')
+sortOutExample('usersguide/int_save.py')
+sortOutExample('usersguide/wave.py', needsMPL=True)
+sortOutExample('usersguide/trapezoid.py', needsGMSH=True)
+sortOutExample('usersguide/quad.py', needsGMSH=True)
+sortOutExample('usersguide/brick.py', needsGMSH=True)
+sortOutExample('usersguide/refine.py', needsGMSH=True)
+sortOutExample('usersguide/poisson_matplotlib.py', needsGD=True, allowsMPI=False)
+
+sortOutExample('geotutorial/steadystate_variablek.py')
+sortOutExample('geotutorial/steadystate.py')
+sortOutExample('geotutorial/forward_euler.py')
+sortOutExample('geotutorial/myfirstscript.py')
+sortOutExample('geotutorial/backward_euler.py')
+
+example_deps.append('cookbook/cblib.py')
+sortOutExample('cookbook/example01a.py')
+sortOutExample('cookbook/example01b.py', needsMPL=True)
+sortOutExample('cookbook/example01c.py', needsMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example02.py', needsMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example03a.py', needsGD=True, allowsMPI=False)
+sortOutExample('cookbook/example03b.py')
+sortOutExample('cookbook/example04a.py', needsGMSH=True)
+sortOutExample('cookbook/example04b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05a.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05b.py', needsGMSH=True, needsGD=True)
+sortOutExample('cookbook/example05c.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
+sortOutExample('cookbook/example06.py', needsGMSH=True, needsGD=True, needsMagicMPL=True)
+sortOutExample('cookbook/example07a.py', needsMagicMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example07b.py', needsMagicMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example08a.py', needsMagicMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example08b.py', needsMagicMPL=True, allowsMPI=False)
+sortOutExample('cookbook/example08c.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
+#sortOutExample('cookbook/example09m.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
+#sortOutExample('cookbook/example09a.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
+#sortOutExample('cookbook/example09b.py', needsMagicMPL=True, needsGMSH=True, allowsMPI=False)
+
+example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
+
+ex2=[os.path.join("examples", str(x)) for x in example_files]
+
+#=============================================================================
+
+local_env = env.Clone()
+src_dir = local_env.Dir('.').srcnode().abspath
+release_dir=local_env.Dir('#/release/doc/').srcnode().abspath
+
+dir_cmd = "cd "+src_dir+" && "
+
+tmp1 = local_env.Command("#/release/doc/escript_examples.zip", None, dir_cmd+"zip "+os.path.join(release_dir,"escript_examples.zip ") +" ".join(ex2))
+env.Alias('examples_zipfile', tmp1)
+
+# Need to use explicit tar rather than the tar builder due to problems getting
+# it not to put unwanted path components in the tar file
+# --transform on tar is not supported on savanna
+tmp2 = local_env.Command("#/release/doc/escript_examples.tar.gz", None, dir_cmd+"tar -czf "+os.path.join(release_dir,"escript_examples.tar.gz ")+"  ".join(ex2))
+env.Alias('examples_tarfile',tmp2)
+
+#env=Environment(TARFLAGS = "-c -z",chdir=src_dir)
+#if 'Tar' in dir(env): env.Tar('#/release/doc/escript_examples.tar.gz', example_files,chdir=src_dir)
+#env.Alias('examples_tarfile', '#release/doc/escript_examples.tar.gz')
+
+local_env.SConscript(dirs = ['#/doc/cookbook'], variant_dir='#/build/$PLATFORM/doc/cookbook', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/user'], variant_dir='#/build/$PLATFORM/doc/user', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/epydoc'], variant_dir='#/build/$PLATFORM/doc/epydoc', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/doxygen'], variant_dir='#/build/$PLATFORM/doc/doxygen', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/install'], variant_dir='#/build/$PLATFORM/doc/install', duplicate=1)
+local_env.SConscript(dirs = ['#/doc/examples'], variant_dir='#/build/$PLATFORM/doc/examples', duplicate=1, exports=['example_files_allow_mpi', 'example_files_no_mpi', 'example_deps'])
+

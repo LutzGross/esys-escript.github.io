@@ -1,0 +1,6 @@
+
+# boost - include directories only
+
+PKG_CC_INC_DIRS  += /raid2/tools/boost/include/boost-1_31
+PKG_CPP_INC_DIRS += /raid2/tools/boost/include/boost-1_31
+

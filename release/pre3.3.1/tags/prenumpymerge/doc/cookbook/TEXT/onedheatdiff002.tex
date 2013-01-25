@@ -1,0 +1,52 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{One Dimensional Heat Diffusion accross an Interface}
+%\label{Sec:1DHDv1}
+ It is quite simple to now expand upon the 1D heat diffusion problem we just tackled. Suppose we have two blocks of isotropic material which are very large in all directions to the point that they seem infinite in size compared to the size of our problem. If \textit{Block 1} is of a temperature \verb 0  and \textit{Block 2} is at a temperature \verb T  what would happen to the temperature distribution in each block if we placed them next to each other. This problem is very similar to our Iron Rod but instead of a constant heat source we instead have a heat disparity with a fixed amount of energy. In such a situation it is common knowledge that the heat energy in the warmer block will gradually conduct into the cooler block until the temperature between the blocks is balanced.
+
+By modifying our previous code it is possible to solve this new problem. In doing so we will also try to tackle a real world example and as a result, introduce and discuss some new variables. The linear model of the two blocks is very similar to the effect a large magmatic intrusion would have on a cold country rock. It is however, simpler at this stage to have both materials the same and for this example we will use granite \editor{picture here would be helpful}.  The intrusion will have an initial temperature defined by \verb Tref and the granite properties required are:
+\begin{verbatim}
+Tref=2273 # Kelvin #the starting temperature of our intrusion
+rho = 2750 #kg/m^{3} density
+cp = 790 #j/(kg.K) specific heat
+rhocp = rho*cp	 #DENSITY * SPECIFIC HEAT
+eta=0.  # RADIATION CONDITION - A closed model.
+kappa=2.2 # Watts/(meter*Kelvin) DIFFUSION CONSTANT/HEAT PERMEABILITY
+\end{verbatim}
+
+Since the scale and values involved in our problem have changed, the length and step size of the iteration must be considered. Instead of seconds which our units are in, it may be more prudent to decide the number of days or years we would like to run the simulation over. These can then be converted accordingly to SI units \editor{lutz new schema in here}. 
+\begin{verbatim}
+#Script/Iteration Related
+t=0. #our start time, usually zero
+tday=2000. #the time we want to end the simulation in days
+tend=tday*24*60*60
+outputs = 400 #number of timesteps required
+h=(tend-t)/outputs #size of time step
+\end{verbatim}
+
+If we assume that the intrusion and surrounding block are extremely large compared to the model size; it is practical to locate the boundary between the two at the center of our model. By doing this the energy between the two block becomes balanced resulting in a more realistic result. As there is no heat source our \verb q variable can be set to zero. The new initial conditions are defined using the following:
+\begin{verbatim}
+bound = x[0]-mx/(ndx/250.) #where the boundary will be located
+T= 0*Tref*whereNegative(bound)+Tref*wherePositive(bound) #defining the initial temperatures
+\end{verbatim}
+The \verb bound statement chooses the boundary by taking a percentage of the maximum length \verb mx defined by the number of x steps \verb ndx divided by a specified position \verb 250 . In this case as \verb ndx is equal to 500, the chosen boundary is exactly halfway along the length of the model.
+
+The PDE can then be solved as before.
+
+FOR THE READER:
+\begin{enumerate}
+ \item Move the boundary line between the two blocks to another part of the domain.
+ \item Try splitting the domain in to multiple blocks with varying temperatures.
+\end{enumerate}
+

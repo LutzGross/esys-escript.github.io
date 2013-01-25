@@ -1,0 +1,68 @@
+libinstall = None
+incinstall = None
+
+Import('*')
+
+import os
+import string
+
+libname = 'brucecpp'
+
+bruce_path = str(esysroot) + '/bruce/src'
+escript_path = str(esysroot) + '/escript/src'
+esysUtils_path = str(esysroot) + '/esysUtils/src'
+
+esys_lib_path = str(esysroot) + '/lib'
+esysUtils_lib_path = str(esysroot) + '/esysUtils/lib'
+
+escript_lib = str(esys_lib_path) + '/libescriptcpp.so'
+esysUtils_lib = str(esysUtils_lib_path) + '/libesysUtils.a'
+
+cpp_path = [bruce_path,
+            escript_path,
+            esysUtils_path,
+            python_path,
+            boost_path]
+
+incs = ['BruceException.h',
+        'BruceFactory.h',
+        'Bruce.h',
+        'vtkCellType.h']
+
+sources = ['Bruce.cpp',
+           'BruceFactory.cpp',
+           'brucecpp.cpp']
+
+lib_path = [esys_lib_path,
+            esysUtils_lib_path,
+            boost_lib_path]
+
+libs = ['esysUtils',
+        'escriptcpp',
+        str(boost_lib)]
+
+libs.extend(sys_libs)
+
+bruce_env = Environment(ENV = os.environ)
+
+bruce_env.Replace(CXX = cxx)
+bruce_env.Replace(SHOBJSUFFIX = '.lo')
+bruce_env.Replace(CXXFLAGS = cxx_flags)
+bruce_env.Replace(CPPPATH = cpp_path)
+bruce_env.Replace(LIBPATH = lib_path)
+bruce_env.Replace(LIBS = libs)
+
+bruce_lib = bruce_env.SharedLibrary(libname, sources)
+
+Depends(bruce_lib, esysUtils_lib)
+Depends(bruce_lib, escript_lib)
+
+Default(bruce_env.Install(incdir, incs))
+Default(bruce_env.Install(incdir2, incs))
+if incinstall != None:
+  Default(bruce_env.Install(incinstall, incs))
+
+Default(bruce_env.Install(libdir, bruce_lib))
+Default(bruce_env.Install(libdir2, bruce_lib))
+if libinstall != None:
+  Default(bruce_env.Install(libinstall, bruce_lib))

@@ -1,0 +1,269 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2008 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter{Models}
+
+The following sections give a breif overview of the model classes and their corresponding methods.
+
+\section{Stokes Problem}
+The velocity field $v$ and pressure $p$ of an incompressible fluid is given as the solution of their
+Stokes problem
+\begin{equation}\label{Stokes 1}
+-\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}
+\end{equation}
+where $\eta$ is the viscosity and $F_i$ defines an internal force. We assume an incompressible media:
+\begin{equation}\label{Stokes 2}
+-v\hackscore{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form 
+\begin{equation}\label{Stokes Boundary}
+\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)n\hackscore{j}-n\hackscore{i}p=f
+\end{equation}
+which can be overwritten by a constraint 
+\begin{equation}\label{Stokes Boundary0}
+v\hackscore{i}(x)=0
+\end{equation}
+where the index $i$ may depend on the location $x$ on the bondary.
+
+
+\subsection{Solution Method \label{STOKES SOLVE}}
+In block form equation equations~\ref{Stokes 1} and~\ref{Stokes 2} takes the form of a saddle point problem
+\begin{equation}
+\left[ \begin{array}{cc}
+A     & B^{*} \\
+B & 0 \\
+\end{array} \right]
+\left[ \begin{array}{c}
+u \\
+p \\
+\end{array} \right]
+=\left[ \begin{array}{c}
+F \\
+0 \\
+\end{array} \right]
+\label{SADDLEPOINT}
+\end{equation}
+where $A$ is coercive, self-adjoint linear operator in $V$, $B$ is a divergence operator and $B^{*}$ is it adjoint operator (=gradient operator)). For more details on the mathematics see references \cite{AAMIRBERKYAN2008,MBENZI2005}.
+We apply the preconditioner matrix
+\begin{equation}
+\left[ \begin{array}{cc}
+A^{-1}     & 0 \\
+S^{-1} B A^{-1}  & -S^{-1} \\
+\end{array} \right]
+\label{SADDLEPOINT PRECODITIONER}
+\end{equation}
+with the Schur complement $S=BA^{-1}B^{*}$ to solve the problem iteratively. The updates $dv$ and $dp$ for 
+given velocity $v$ and pressure $p$ is given as
+\begin{equation}
+\begin{array}{rcl}
+A dv & = & F-Av-B^{*}p \\
+S dp & = & B(v+dv) \\
+\end{array}
+\label{SADDLEPOINT iteration}
+\end{equation}
+This scheme is called the Uzawa scheme. 
+
+In the case of the Stokes problem it can be shown that $S$ can be approximated by $\frac{1}{\eta}$. With this the iteration scheme can be implemented as
+\begin{equation}
+\begin{array}{rcl}
+-\left(\eta(dv\hackscore{i,j}+ dv\hackscore{i,j})\right)\hackscore{,j} & = & F\hackscore{i}+\left(\eta(v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}-p\hackscore{,i} \\
+\frac{1}{\eta} dp & = & - \left(v\hackscore{,i}+dv\hackscore{,i} \right)\hackscore{,i} \\
+\end{array}
+\label{SADDLEPOINT iteration 2}
+\end{equation}
+To accelerate the convergence we are using the restarted $GMRES$ method using the norm
+\begin{equation}
+\|(v,p)\|^2= \int\hackscore{\Omega} \eta^2 v\hackscore{i,j}^2 + p^2 \; dx
+\label{SADDLEPOINT iteration 3}
+\end{equation}
+or alternatively the $PCG$ method on the pressure only using the norm 
+\begin{equation}
+\|p\|^2= \int\hackscore{\Omega} \frac{1}{\eta^2} p^2 \; dx
+\label{SADDLEPOINT iteration 4}
+\end{equation}
+
+
+
+
+
+\begin{classdesc}{StokesProblemCartesian}{domain,debug}
+opens the stokes equations on the \Domain domain. Setting debug=True switches the debug mode to on.
+\end{classdesc}
+
+example usage:
+
+solution=StokesProblemCartesian(mesh) \\
+solution.setTolerance(TOL) \\
+solution.initialize(fixed\_u\_mask=b\_c,eta=eta,f=Y) \\
+velocity,pressure=solution.solve(velocity,pressure,max\_iter=max\_iter,solver=solver) \\
+
+% \subsection{Benchmark Problem}
+% 
+% Convection problem
+
+
+\section{Temperature Cartesian}
+
+\begin{equation}
+\rho c\hackscore{p} \left (\frac{\partial T}{\partial t} + \vec{v} \cdot \nabla T \right ) = k \nabla^{2}T
+\label{HEAT EQUATION}
+\end{equation}
+
+where $\vec{v}$ is the velocity vector, $T$ is the temperature, $\rho$ is the density, $\eta$ is the viscosity, $c\hackscore{p}$ is the specific heat at constant pressure and $k$ is the thermal conductivity.
+
+\subsection{Description}
+
+\subsection{Method}
+
+\begin{classdesc}{TemperatureCartesian}{dom,theta=THETA,useSUPG=SUPG}
+\end{classdesc}
+
+\subsection{Benchmark Problem}
+
+
+\section{Level Set Method}
+
+\subsection{Description}
+
+\subsection{Method}
+
+Advection and Reinitialisation
+
+\begin{classdesc}{LevelSet}{mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth}
+\end{classdesc}
+
+%example usage:
+
+%levelset = LevelSet(mesh, func\_new, reinit\_max, reinit\_each, tolerance, smooth)
+
+\begin{methoddesc}[LevelSet]{update\_parameter}{parameter}
+Update the parameter.
+\end{methoddesc}
+
+\begin{methoddesc}[LevelSet]{update\_phi}{paramter}{velocity}{dt}{t\_step}
+Update level set function; advection and reinitialization
+\end{methoddesc}
+
+\subsection{Benchmark Problem}
+
+Rayleigh-Taylor instability problem
+
+
+% \section{Drucker Prager Model}
+
+\section{Isotropic Kelvin Material \label{IKM}}
+As proposed by Kelvin~\ref{KELVN} material strain $D\hackscore{ij}=v\hackscore{i,j}+v\hackscore{j,i}$ can be decomposed into
+an elastic part $D\hackscore{ij}^{el}$ and visco-plastic part $D\hackscore{ij}^{vp}$:
+\begin{equation}\label{IKM-EQU-2}
+D\hackscore{ij}=D\hackscore{ij}^{el}+D\hackscore{ij}^{vp}
+\end{equation}
+with the elastic strain given as 
+\begin{equation}\label{IKM-EQU-3}
+D\hackscore{ij}'^{el}=\frac{1}{2 \mu} \dot{\sigma}\hackscore{ij}'
+\end{equation}
+where $\sigma'\hackscore{ij}$ is the deviatoric stress (Notice that $\sigma'\hackscore{ii}=0$).
+If the material is composed by materials $q$ the visco-plastic strain can be decomposed as
+\begin{equation}\label{IKM-EQU-4}
+D\hackscore{ij}'^{vp}=\sum\hackscore{q} D\hackscore{ij}'^{q} 
+\end{equation}
+where $D\hackscore{ij}^{q}$ is the strain in material $q$ given as 
+\begin{equation}\label{IKM-EQU-5}
+D\hackscore{ij}'^{q}=\frac{1}{2 \eta^{q}} \sigma'\hackscore{ij} 
+\end{equation}
+where $\eta^{q}$ is the viscosity of material $q$. We assume the following 
+betwee the the strain in material $q$ 
+\begin{equation}\label{IKM-EQU-5b}
+\eta^{q}=\eta^{q}\hackscore{N} \left(\frac{\tau}{\tau\hackscore{t}^q}\right)^{\frac{1}{n^{q}}-1}
+\mbox{ with } \tau=\sqrt{\frac{1}{2}\sigma'\hackscore{ij} \sigma'\hackscore{ij}}
+\end{equation}
+for a given power law coefficients $n^{q}$ and transition stresses $\tau\hackscore{t}^q$, see~\ref{POERLAW}.
+Notice that $n^{q}=1$ gives a constant viscosity.
+After inserting equation~\ref{IKM-EQU-5} into equation \ref{IKM-EQU-4} one gets:
+\begin{equation}\label{IKM-EQU-6}
+D\hackscore{ij}'^{vp}=\frac{1}{2 \eta^{vp}} \sigma'\hackscore{ij} \mbox{ with } \frac{1}{\eta^{vp}} \sum\hackscore{q} \frac{1}{\eta^{q}} \;.
+\end{equation}
+With
+\begin{equation}\label{IKM-EQU-8}
+\dot{\gamma}=\sqrt{2 D\hackscore{ij} D\hackscore{ij}}
+\end{equation}
+one gets 
+\begin{equation}\label{IKM-EQU-8b}
+\tau = \eta^{vp} \dot{\gamma}^{vp} \;.
+\end{equation}
+With the Drucker-Prager cohesion factor $\tau\hackscore{Y}$, Drucker-Prager friction $\beta$ and total pressure $p$ we want to achieve 
+\begin{equation}\label{IKM-EQU-8c}
+\tau \le \tau\hackscore{Y} + \beta \; p
+\end{equation}
+which leads to the condition
+\begin{equation}\label{IKM-EQU-8d}
+\eta^{vp} \le \frac{\tau\hackscore{Y} + \beta \; p}{ \dot{\gamma}^{vp}} \; .
+\end{equation}
+Therefore we modify the definition of $\eta^{vp}$ to the form
+\begin{equation}\label{IKM-EQU-6b}
+\frac{1}{\eta^{vp}}=\max(\sum\hackscore{q} \frac{1}{\eta^{q}}, \frac{\dot{\gamma}^{vp}} {\tau\hackscore{Y} + \beta \; p})
+\end{equation}
+The deviatoric stress needs to fullfill the equilibrion equation
+\begin{equation}\label{IKM-EQU-1}
+-\sigma'\hackscore{ij,j}+p\hackscore{,i}=F\hackscore{i}
+\end{equation}
+where $F\hackscore{j}$ is a given external fource. We assume an incompressible media:
+\begin{equation}\label{IKM-EQU-2}
+-v\hackscore{i,i}=0
+\end{equation}
+Natural boundary conditions are taken in the form 
+\begin{equation}\label{IKM-EQU-Boundary}
+\sigma'\hackscore{ij}n\hackscore{j}-n\hackscore{i}p=f
+\end{equation}
+which can be overwritten by a constraint 
+\begin{equation}\label{IKM-EQU-Boundary0}
+v\hackscore{i}(x)=0
+\end{equation}
+where the index $i$ may depend on the location $x$ on the bondary.
+
+\subsection{Solution Method \label{IKM-SOLVE}}
+By using a first order finite difference approximation wit step size $dt>0$~\ref{IKM-EQU-3} get the form
+\begin{equation}\label{IKM-EQU-3b}
+D\hackscore{ij}'^{el}=\frac{1}{2 \mu dt } \left( \sigma\hackscore{ij}' - \sigma\hackscore{ij}^{'-} \right)
+\end{equation}
+where $\sigma\hackscore{ij}^{'-}$ is the deviatoric stress at the precious time step.
+Now we can combine equations~\ref{IKM-EQU-2}, \ref{IKM-EQU-3b} and~\ref{IKM-EQU-6b} to get
+\begin{equation}\label{IKM-EQU-10}
+\sigma\hackscore{ij}' =  2 \eta\hackscore{eff} D\hackscore{ij}' + 
+\frac{\eta\hackscore{eff}}{\mu \; dt}
+\sigma\hackscore{ij}^{'-} \mbox{ with }
+\frac{1}{\eta\hackscore{eff}}=\frac{1}{\mu \; dt}+\frac{1}{\eta^{vp}}
+\end{equation}
+Notice that $\eta\hackscore{eff}$ is a function of stress.
+After inserting~\ref{IKM-EQU-10} into~\ref{IKM-EQU-1} we get
+\begin{equation}\label{IKM-EQU-1ib}
+-\left(\eta\hackscore{eff} (v\hackscore{i,j}+ v\hackscore{i,j})\right)\hackscore{,j}+p\hackscore{,i}=F\hackscore{i}+
+\frac{\eta\hackscore{eff}}{\mu dt } \sigma\hackscore{ij,j}^{'-}
+\end{equation}
+Together with the incomressibilty condition~\ref{IKM-EQU-2} we need to solve a problem with a form almost identical 
+to the Stokes problem discussed in section~\label{STOKES SOLVE} but with the difference that $\eta\hackscore{eff}$ is depending on the solution. Analog to the iteration scheme~\ref{SADDLEPOINT iteration 2} we can run
+\begin{equation}
+\begin{array}{rcl}
+-\left(\eta\hackscore{eff}(dv\hackscore{i,j}+ dv\hackscore{i,j})\right)\hackscore{,j} & = & F\hackscore{i}+ \sigma\hackscore{ij,j}' \\
+\frac{1}{\eta\hackscore{eff}} dp & = & - v\hackscore{i,i}^+ \\
+d\sigma\hackscore{ij}' & = & 2 \eta\hackscore{eff} D\hackscore{ij}^{+'} + \frac{\eta\hackscore{eff}}{\mu \; dt} \sigma\hackscore{ij}' -  \sigma\hackscore{ij}\\
+\end{array}
+\label{IKM iteration 2}
+\end{equation}
+where $v^+=v+dv$. As this problem is non-linear the Jacobi-free Newton-GMRES method is used with the norm
+\begin{equation}
+\|(\sigma, p)\|^2= \int\hackscore{\Omega} \sigma\hackscore{i,j}^2 + p^2 \; dx
+\label{IKM iteration 3}
+\end{equation}
+
+

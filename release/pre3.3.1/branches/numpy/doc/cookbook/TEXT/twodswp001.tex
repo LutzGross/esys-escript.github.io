@@ -1,0 +1,89 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\section{Seismic Wave Propagation in Two Dimensions}
+\editor{This chapter aims to expand the readers understanding of escript by modelling the wave equations.
+Challenges will include a second order differential (multiple initial conditions). A new PDE to fit to the general form. Movement to a 3D problem (maybe)??? }
+
+\verb|wavesolver2d.py|
+
+Wave propagation in the earth can be described by the wave equation:
+\begin{equation} \label{eqn:wav} \index{wave equation}
+\rho \frac{\partial^{2}u\hackscore{i}}{\partial t^2} - \frac{\partial \sigma\hackscore{ij}}{\partial\hackscore{j}} = 0
+\end{equation}
+where $\sigma$ represents stress and is given by:
+\begin{equation} \label{eqn:sigw}
+ \sigma \hackscore{ij} = \lambda u\hackscore{k,k} \delta\hackscore{ij} + \mu ( u\hackscore{i,j} + u\hackscore{j,i})
+\end{equation}
+$\lambda$ and $\mu$ are the Lame Coefficients. Specifically $\mu$ is the bulk modulus. Equation \ref{eqn:wav} can be written with the Einstein summation convention as:
+\begin{equation}
+ \rho u\hackscore{i,tt} = \sigma\hackscore{ij,j}
+\end{equation}
+For this model we will specify the boundary conditions such that the normal of the stress from the boundary is zero.
+\begin{eqnarray} \label{eqn:bdw}
+\sigma \hackscore{ij}n\hackscore{j}=0
+\end{eqnarray}
+To solve this PDE we are going to write a more generic solution routine than we have in the previous chapters. There are a number of advantages to this approach. Firstly, by writing a subroutine that will solve a 2D wave propagation problem it reduces the amount of code duplication that may occur. When errors arrise one need only ammend the subroutine rather than all iterations of it that may have been created. This saves time and effort in the long run. 
+
+To create the our subroutine we will need to import all our necessary libraries again. This is as for previous examples. Then we can define our script and the variables it will take. Our subroutine is located in \verb|/examples/cblib/wavesolver2d.py|  . The arguments of the subroutine are;
+\begin{verbatim}
+domain  : domain to solve over
+h       : time step
+tend    : end time
+lam, mu : lames constants for domain
+rho	: density of domain
+U0	: magnitude of source
+xc	: source location in domain (Vector)
+savepath: where to output the data files
+\end{verbatim}
+There are a few differences between the wave equation and the heat diffusion problem of the previous chapter. While the nodes are defined the same way with the function \verb getX  and the PDE is still linear; one must consider the solution method. Without the line;
+\begin{verbatim}
+mypde.setSolverMethod(LinearPDE.LUMPING)
+\end{verbatim}
+the PDE would take a significant amount of time to solve. The \verb LUMPING  functionality implements an aggressive approximation for the $D$ coefficient matrix of the \esc linear PDE general form. While \verb LUMPING  introduces additional error to the solution it can significantly reduce the solution time. Care should be taken with however as this function can only be used when the $A$, $B$ and$C$ coefficients of the general form are zero. 
+
+As the wave equation has a double time derivative, it is not sufficient to only stipulate the initial conditions for one time step. Two time steps must be specified so that the equation can be solved. For this example $u$ (\verb u ) and $u(t-1)$ (\verb u_m1 ) will be the same but if both of these condititions are known, they can specified individually. It should be noted here that if multiple time steps are known or understood in the begining of a modle, they can be added to the simulation manually. The solver is then able to continue the model from where the data ends. Alternatively, if the source motion is understood, its position can be corrected for each itteration to create a more accurate recreation of an event. The source in this example will induce a radially propagating wave. To do this we will introduce a small displacement to the medium about a singularity which we have called \verb xc  , this is the source location. We start by giving the source some spatial magnitude by defining a small radius about \verb xc  which is affected. The \verb src_radius  is defined by 0.1 times the maxium (\verb Lsup() ) size of the domain;
+\begin{verbatim}
+ src_radius = 0.1*Lsup(domain.getSize())
+\end{verbatim}
+
+
+ \esc can be used to model the propgation of waves through a medium. 
+
+
+
+
+
+In this example we will see how the wave equation can be implemented using \esc and solved for in two dimensions. Our domain is defined by a thin sheet that has dimensions $x$ and $y$ and to model waves we will introduce a point source displacement at time zero. The affects of this displacement should propagate radially from the source and eventually be reflected from the boundaries of the model.
+
+
+
+
+
+
+The code described in this section can be found in \fileex{wavesolver2d001.py}
+In a similar manner to the previous chapter the first step to creating our script is to import the necessary modules and functions. Following this the PDE and control variables must be defined. This includes the domain dimensions and type, the time scale and the time step. To ensure stability the time step can be calcuated such that it satisfies the Courant stability criteria \editor{MORE HERE ONCE METHOD FINALISED}. Considering the complexity of the computational solution to the wave equation it is proudant to consider how many steps will need to be solved. This example includes an acknowledgement clause
+\begin{verbatim}
+ #Check to make sure number of time steps is not too large.
+print "Time step size= ",h, "Expected number of outputs= ",tend/h
+proceeder = raw_input("Is this ok?(y/n)")
+#Exit if user thinks too many outputs.
+if proceeder == "n":
+   sys.exit()
+\end{verbatim}
+This requires that the user knows the number of itterations that will be required to solve the model for the time period \verb 0  to \verb tend . The command \verb sys.exit()  is used here to halt the script if the input to preceeder is \verb n  and thus prevent a forced crash of the script should its projected solve time be too large. 
+
+To solve this PDE we are going to introduce the concept of a python library. A library is useful as it allows a user to store defined functions that can be called to solve generic problems. The 2D wave equation satisfies this criteria. The first step is to create a new python file which we have called \verb cblib.py  within this file we can set all of the necessary includes to make things easier in the future. Other advantages of libraries include a reduction in the duplication of code and the ability to modularise functions and variables.
+
+
+ 

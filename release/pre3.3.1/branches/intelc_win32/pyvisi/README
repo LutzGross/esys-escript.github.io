@@ -1,0 +1,79 @@
+$Id: README,v 1.4 2005/03/22 06:28:56 paultcochrane Exp $
+			 ===============
+  		  	     pyvisi
+  			 ===============
+  
+
+--------------------------------------------------------------------
+ Summary
+--------------------------------------------------------------------
+
+Pyvisi is the Python visualisation interface: a generic Python-based interface
+to many different scientific visualisation packages.
+
+See http://pyvisi.sourceforge.net
+
+
+--------------------------------------------------------------------
+ Installation
+--------------------------------------------------------------------
+
+Pyvisi is just a python module ... treat it as any other module
+
+ * Global Instalation
+
+   As root use
+
+   > python setup.py install
+
+   This will install the files, in the appropriate place for 
+   your python distribution. This will be something like
+   e.g. /usr/lib/python2.3/site-packages/
+
+ * Local instalation:
+
+   You can supply the base directory using
+
+   > python setup.py install --home=<dir>
+
+   which will install the files in 
+
+   <dir>/lib/python/
+
+   for more help and options use 
+   > python setup.py install --help
+
+   also see http://www.python.org/doc/current/inst/ for more details on 
+   using the distutils package
+
+
+--------------------------------------------------------------------
+ Dependencies
+--------------------------------------------------------------------
+
+  * Numeric package
+
+    Pyvisi does some computation, and to be able to do this requires the
+    Numeric python package.  You can get this from
+    http://sourceforge.net/projects/numpy
+
+Pyvisi depends upon the relevant renderer module's application and/or python
+wrappers to be installed so that the renderer module can be used.  At
+present, the vtk and gnuplot renderer modules are being developed.
+
+  * Gnuplot renderer module
+
+    You must have gnuplot installed (version 4.0 or above).  You can get 
+    gnuplot from http://www.gnuplot.info.  
+    Note that gnuplot version 3 is no longer supported by pyvisi.
+
+    You must have the Gnuplot.py (version 1.7 or greater) python wrapper for
+    gnuplot.  You can get this from http://gnuplot-py.sourceforge.net/.  
+
+  * VTK renderer module
+
+    You must have vtk version 4.2 or above installed.  You can get vtk from 
+    http://www.vtk.org.
+    Note that when you install vtk, that you must install the python wrappers 
+    as well (this is explained in the vtk installation information.)
+

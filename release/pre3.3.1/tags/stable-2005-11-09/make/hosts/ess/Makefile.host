@@ -1,0 +1,71 @@
+# $Id$
+
+# Define all Makefile variables specfying compiler settings relevant to this host
+
+# C Compiler Settings
+CC := icc
+CC_SYS_INC_DIRS := ${NULL}
+CC_INC_DIR_FLAG := -I
+CC_DEF_FLAG := -D
+CC_DEP_FLAGS := -MM
+CC_OBJ_FLAGS := -c -fpic
+CC_SHARE_FLAGS := -fpic
+CC_CONFORM_FLAGS := -c99 -ansi_alias -no-gcc
+CC_DIAG_FLAGS := -w1
+CC_ARCH_FLAGS := -tpp2
+ifeq ($(strip $(DODEBUG)),YES)
+  CC_OPT_FLAGS := -O0 -openmp -openmp_report0
+else 
+  CC_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1
+endif
+CC_OUTPUT_FLAG := -o
+
+# CPP Compiler Settings
+CPP := icc
+CPP_SYS_INC_DIRS := ${NULL}
+CPP_INC_DIR_FLAG := -I
+CPP_DEF_FLAG := -D
+CPP_DEP_FLAGS := -MM
+CPP_OBJ_FLAGS := -c -fpic
+CPP_SHARE_FLAGS := -fpic
+CPP_CONFORM_FLAGS := -ansi -ansi_alias -no-gcc
+CPP_DIAG_FLAGS := -w1
+CPP_ARCH_FLAGS := -tpp2
+ifeq ($(strip $(DODEBUG)),YES)
+  CPP_OPT_FLAGS := -O0 -openmp -openmp_report0
+  DEBUG_FILE_EXT := ${NULL}
+  L_DEFS := ${L_DEFS} DOASSERT DOPROF
+else
+  CPP_OPT_FLAGS := -O3 -IPF_fma -ftz -openmp -openmp_report0 -mp1
+  DEBUG_FILE_EXT := ${NULL}
+endif
+CPP_OUTPUT_FLAG := -o
+
+# Linker Settings
+LD := icc
+LD_SYS_LIB_DIRS := ${NULL}
+LD_SYS_LIBS := guide irc
+LD_LIB_DIR_FLAG := -L
+LD_LIB_FLAG := -l
+LD_DIAG_FLAGS := ${NULL}
+LD_SHARE_FLAG := -ftz -shared
+LD_OUTPUT_FLAG := -o
+
+# Archiver Settings
+AR := /usr/bin/ar
+AR_OPTION_FLAGS := crus
+
+# Swig Compiler Settings
+#SWIG := /usr/bin/swig
+#SWIG_INC_DIR_FLAGS := ${patsubst %, -I%, ${L_EXT_INC_DIRS}}
+#SWIG_OPT_FLAGS := -stat -v -strict 2
+#SWIG_DOC_FLAG := -dnone
+#SWIG_LANG_FLAG := -c++ -python -shadow
+#SWIG_OUTPUT_FLAG := -o
+
+# Python Compiler Settings
+PYTHON := /raid2/tools/python-2.3.4/bin/python
+PYTHON_CMD_FLAG := -c
+PYTHON_OPT_FLAGS := -O
+PYTHON_DIAG_FLAGS := -Wall
+PYTHON_COMPILE_CMD = 'import py_compile, sys; py_compile.compile("$<", "${L_LIB_DIR}/$@", "$<")'

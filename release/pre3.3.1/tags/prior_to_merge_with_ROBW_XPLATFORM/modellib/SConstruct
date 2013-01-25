@@ -1,0 +1,32 @@
+# Scons configuration file for modellib
+
+#          Copyright 2006 by ACcESS MNRF                   
+#                                                          
+#              http://www.access.edu.au                    
+#       Primary Business: Queensland, Australia            
+#  Licensed under the Open Software License version 3.0    
+#     http://www.opensource.org/licenses/osl-3.0.php       
+#                                                          
+#
+#
+# set appropriate configuration variable defaults
+esysroot=str(Dir('./..').abspath)
+execfile(str(File(esysroot+"/scons/esys_options.py")))
+
+pydir = Dir(str(esysroot) + '/modellib/lib/py_src')
+Export(["pydir"])
+pydir2 = Dir(str(esysroot) + '/esys/modellib')
+Export(["pydir2"])
+if pyinstall != None:
+  pyinstall = Dir(str(pyinstall) + '/modellib')
+  Export(["pyinstall"])
+
+#
+# print out build configuration for this module
+
+print "Build configuration for module: modellib"
+
+#
+# call the SConscript to do the actual build
+
+SConscript(dirs=['py_src'], build_dir='obj/py_src', duplicate=0)

@@ -1,0 +1,31 @@
+
+########################################################
+#
+# Copyright (c) 2003-2009 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+local_env = clone_env(env)
+
+src_dir = local_env.Dir('.').srcnode().abspath
+
+filenames = os.listdir(src_dir)
+python_src = [x for x in filenames if os.path.splitext(x)[1] in ['.py']]
+
+pyc = local_env.PyCompile(python_src)
+
+local_env.Depends(pyc, dep_lib)
+
+tmp1 = local_env.Install(local_env['pyinstall']+'/finley', pyc)
+env.Alias('target_install_finley_py', [tmp1])
+

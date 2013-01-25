@@ -1,0 +1,48 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2013 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+\chapter*{Overview}\label{sec:Intro}
+this document provides some documentation for the 
+usage of the \downunder module for \python. The module is 
+designed to perform the inversion of geophysical data such as gravity and magnetic 
+data using parallel supercomputer. The solution approach bases entirely on the
+finite element method and is therefore different from the usual approach based on Green's functions
+and linear algebra techniques. 
+
+\downunder is implemented on using the \escript solver environment for \python and 
+is distributed as part of the \escript package through \url{https://launchpad.net/escript-finley}. We refer 
+to the \escript documentation~\cite{ESCRIPT} for installation. An basic introduction
+into \escript can be found in~\cite{ESCRIPTCOOKBOOK}
+
+This document has to parts: In part~\ref{part1} we give an introduction on how to solve inversion
+using the \downunder module for the inversion of gravity and of magnetic data
+for the joint inversion of gravity and magnetic data. The part is designed for high-level users and does not
+require any programming skills. 
+
+Part~\ref{part2} gives more details on the mathematical methods being used and the 
+program infrastructure. It is the intention of the part to given users a deeper understanding of how
+\downunder is implemented and also open the ddor for users with more experience in \python programming 
+to build their own inversion programs using \downunder components and the \escript infrastructure. 
+
+
+
+
+%\begin{figure}
+%    \centering
+%    \includegraphics{components.pdf}
+%    \caption{The main components of the inversion toolbox}
+%    \label{fig:components}
+%\end{figure}
+

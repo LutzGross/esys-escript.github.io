@@ -1,0 +1,29 @@
+
+########################################################
+#
+# Copyright (c) 2003-2010 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+Import('*')
+local_env = env.Clone()
+
+# get the test source file names
+sources = Glob('*.py')
+
+# compile
+pyc = local_env.PyCompile(sources)
+
+# install
+py_inst = local_env.Install(local_env['pyinstall']+'/pycad', pyc)
+env.Alias('install_pycad_py', py_inst)
+
+# configure python unit tests
+local_env.SConscript(dirs = ['#/pycad/test/python'], variant_dir='$BUILD_DIR/$PLATFORM/pycad/test/python', duplicate=0)
+

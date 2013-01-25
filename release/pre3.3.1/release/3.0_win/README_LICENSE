@@ -1,0 +1,17 @@
+
+
+The majority of the files contained in this distribution are licensed 
+under the Open Software License version 3.0 (http://www.opensource.org/licenses/osl-3.0.php).
+
+Any exceptions are listed below:
+
+tools/CppUnitTest 
+ - See tools/CppUnitTest/doc/license.html
+ The files in this directory are not required to run or compile or use escript (the are not 
+ linked) however they are required to run the c++ unit tests.
+
+The following tex style files come from Python under version 2 of the PYTHON SOFTWARE FOUNDATION LICENSE.
+manual.cls
+pypaper.sty
+python.sty
+
