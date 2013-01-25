@@ -24,16 +24,16 @@ model is not defined. Increasing and decreasing in density are indicated with re
 \caption{Depth image across previous 3D gravity inversion which presents discrepancy in density. Diversity in density are detected with colors and contours.}
 \end{figure}
 
-Such inversion calculations invariably depend on the characteristic of the forward modeling assumptions. From this point of view, it could be mentioned  that traditional inversion is fundamentally based on a model of the subsurface which have used as a prior knowledge.
+Such inversion calculations invariably depend on the characteristics of the forward modeling assumptions. From this point of view, it could be mentioned that traditional inversion is fundamentally based on a model of the subsurface which have used as a prior knowledge.
 
-This inversion method is contained iteration inversion approach which use a series of improvement on a basic model in order to fit the result with the input data. Eventually the result after desirable iterations and error factor provide  satisfactory fitting to given data, is as a final model.
+This inversion method is contained iterations inversion approach which use a series of improvement on a basic model in order to fit the result with the input data. Eventually the result after desirable iterations and error factor and providing satisfactory fitting to given data, is as a final model.
 
 
 \section{Gravity Data}
 
-Theoretically weighs depends on the force of gravity at that position and the force of gravity varies with elevation, rock densities, latitude and topography. Mass, however, does not depend on gravity but is a constitutive quantity throughout the earth. So the spring stretch in mass suspension is related to the gravity force. In addition with a constant mass, difference in spring stretch illustrate the changes in acceleration of gravity. The principal of gravity exploration is based on the topography of the basement, thickness of the sedimentary section with various density and porosity of the layer and elevation.
+Theoretically weighs depends on the force of gravity at that position and the force of gravity varies with elevation, rock densities, latitude and topography. Mass, however, does not depend on gravity but is a constitutive quantity throughout the earth. So the spring stretch in mass suspension is related to the gravity force. In addition with a constant mass, difference in spring stretch illustrate the changes in acceleration of gravity. The principal of gravity exploration is based on the topography of the basement, thickness of the sedimentary section with various density, porosity of the layer and elevation.
 
-The amount of $g$ at sea level is about 980 $kg/s^2$ or 980,000 $mgal$. Gravity acceleration is measured in two types. The first corresponds to specify the absolute magnitude of gravity at any place and the second refers to the alteration in gravity from one place to another. In gravity study variation of this value which is caused by underground structure, is plotted as a residual gravity. Closed variation in residual gravity indicates subsurface geological structure.
+The amount of $g$ at sea level is about 980 $kg/s^2$ or 980,000 $mgal$. Gravity acceleration is measured in two types. The first corresponds to specify the absolute magnitude of gravity at any place and the second refers to the alteration in gravity from one place to another. In gravity study variation of this value which is caused by underground structure, is plotted as a residual gravity. Closed variation in residual gravity indicates discrepancy in subsurface geological structure.
 
 The Gravity data are taken from onshore and offshore observation recorded at many gravity stations with high precision of determination in elevation and position (latitude and longitude). All Raw reading gravity observations require to process with many corrections.
 
@@ -61,7 +61,7 @@ For starting up the inversion 2 files are needed. Each of the two files contains
 
 The first file is contained the gravity anomaly, including number of points, the accurate location (latitude and longitude) of the observed position and the value of the anomaly after all gravity corrections. The main part in collecting the data is spacing of the observation point which means that all data must be gridded and its spacing affected the simulation resolution wisely.
 
-The other is run_gravity with py extension which is related to the codes though it needs some constraints to have a good results in inversion.
+The second is run_gravity with py extension which is related to the codes though it needs some constraints to have a good results in inversion.
 
 A small part of sample of run_gravity:
 
