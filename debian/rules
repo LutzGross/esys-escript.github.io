@@ -3,6 +3,8 @@
 DEST=$(CURDIR)/debian/escript
 WORK=$(CURDIR)/debian/tmp
 
+.PHONY: build clean install binary binary-arch binary-indep
+
 clean:
 	rm -rf build condif.log esys include lib release .sconf_tmp .sconsign.dblite config.log .sconf_temp
 	rm -rf debian/tmp
@@ -11,7 +13,7 @@ clean:
 build:
 	mkdir -p debian/tmp
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons SVN_VERSION=`cat svn_version` build_dir=$(WORK) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` release_prep
+	scons SVN_VERSION=`cat svn_version` build_dir=$(WORK) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` `packaging/debuntu/getreleasetarget`
 	sed -e "s%STDLOCATION=0%STDLOCATION=1%" < bin/run-escript > $(WORK)/bin/run-escript
 
 install: build
@@ -25,7 +27,8 @@ install: build
 	cp $(WORK)/release/doc/user/user.pdf $(DEST)/usr/share/doc/escript
 	cp $(WORK)/release/doc/cookbook/cookbook.pdf $(DEST)/usr/share/doc/escript
 	cp $(WORK)/release/doc/inversion/inversion.pdf $(DEST)/usr/share/doc/escript
-	cp -r $(WORK)/release/doc/sphinx_api $(DEST)/usr/share/doc/escript/python_html
+	if [ `packaging/debuntu/getreleasetarget` == release_prep_old ]; then cp -r $(WORK)/release/doc/epydoc $(DEST)/usr/share/doc/escript/python_html; fi
+	if [ `packaging/debuntu/getreleasetarget` == release_prep ]; then cp -r $(WORK)/release/doc/sphinx_api $(DEST)/usr/share/doc/escript/python_html; fi
 	cp -r $(WORK)/release/doc/doxygen $(DEST)/usr/share/doc/escript/doxygen
 	cp $(WORK)/lib/* $(DEST)/usr/lib/escript
 	cp -r $(WORK)/esys $(DEST)/usr/lib/escript
