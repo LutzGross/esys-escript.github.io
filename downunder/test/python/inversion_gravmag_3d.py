@@ -42,7 +42,8 @@ logger.addHandler(handler)
 depth_offset = 10. * U.km
 n_humps_h = 3
 n_humps_v = 1
-mu = 100.
+mu_gravity = 10.
+mu_magnetic = 0.1
 n_cells_in_data = 30
 latitude = -28.5
 full_knowledge = False
@@ -84,7 +85,7 @@ inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
 inv.setup(domainbuilder)
 
-inv.getCostFunction().setTradeOffFactorsModels([10., 1.])
+inv.getCostFunction().setTradeOffFactorsModels([mu_gravity, mu_magnetic])
 inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
 
 rho_new, k_new = inv.run()
