@@ -393,6 +393,7 @@ class NetCdfData(DataSource):
             raise RuntimeError("Could not determine data variable")
 
         # try to determine value for unused data
+        # NaN is always filtered out in ripley
         if hasattr(f.variables[data_name], 'missing_value'):
             maskval = float(f.variables[data_name].missing_value)
         elif hasattr(f.variables[data_name], '_FillValue'):
@@ -435,9 +436,6 @@ class NetCdfData(DataSource):
         self.__origin=[lon_range[0],lat_range[0]]
         # we are rounding to avoid interpolation issues
         self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in range(2)]
-        #self.__wkt_string=wkt_string
-        #self.__lon_name=lon_name
-        #self.__lat_name=lat_name
         self.__data_name=data_name
         self.__maskval=maskval
 

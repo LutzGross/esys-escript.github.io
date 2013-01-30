@@ -314,8 +314,10 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
             for (index_t x=0; x<num0; x++) {
                 double* dest = out.getSampleDataRW(dataIndex+x);
                 for (index_t c=0; c<numComp; c++) {
-                    for (index_t q=0; q<dpp; q++) {
-                        *dest++ = static_cast<double>(values[x*numComp+c]);
+                    if (!isnan(values[x*numComp+c])) {
+                        for (index_t q=0; q<dpp; q++) {
+                            *dest++ = static_cast<double>(values[x*numComp+c]);
+                        }
                     }
                 }
             }
@@ -418,9 +420,11 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
             for (index_t x=0; x<num0; x++) {
                 const int dataIndex = first0+(first1+y)*myN0+(first2+z)*myN0*myN1+x;
                 const int srcIndex=z*num1*num0+y*num0+x;
-                double* dest = out.getSampleDataRW(dataIndex);
-                for (index_t q=0; q<dpp; q++) {
-                    *dest++ = values[srcIndex];
+                if (!isnan(values[srcIndex])) {
+                    double* dest = out.getSampleDataRW(dataIndex);
+                    for (index_t q=0; q<dpp; q++) {
+                        *dest++ = values[srcIndex];
+                    }
                 }
             }
         }
