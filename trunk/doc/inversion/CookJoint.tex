@@ -20,23 +20,32 @@ Ferthermore the script file for 2D and 3D inversion is apart and it have to be s
 A small part of sample of inversion_gravmag_3d:
 
 \begin{verbatim}
-depth_offset = 10. * U.km
-mu = 100.
-n_cells_in_data = 30
+MAGNETIC_DATASET = 'mag.nc'
+GRAVITY_DATASET = 'gravity.nc'
 latitude = -28.5
-l_pad = 40. * U.km
-THICKNESS = 20. * U.km
+PAD_X = 0.2
+PAD_Y = 0.2
+thickness = 40. * U.km
 l_air = 6. * U.km
+n_cells_v = 25
+mu_gravity = 10.
+mu_magnetic = 0.1
 \end{verbatim}
 
 inversion_gravmag file consist many options to implement which control how joint inversion is performed such as padding area, depth , MU factor,\ldots. Which in previous section was explaind in deatails. just some items are fixed for joint inversion such as mu.
 
 
-\begin{description} 	
+\begin{description} 
+\item[MAGNETIC_DATASET]In inversion_gravmag file the name of the magnetic file which contains the magnetic anomalies data should be defined.
+
+\item[GRAVITY_DATASET]Because the gravity data is in another file, the name of the gravity file should be noted too.
+	
 \item[latitude]This is refered to the area of gathering data sets to calculate the main reference magnetic field. Which is selected -28 for east Australia.
 
 
-\item[mu]It is defined in accordance with the noise of data. it is 100 for this section.
+\item[mu_gravity]It is defined in accordance with the noise of gravity data. and it is not the same as gravity inversion which is 10.
+
+\item[mu_magnetic]It is determined as 0.1.
 
 \end{description}
 
