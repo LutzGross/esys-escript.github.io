@@ -19,25 +19,23 @@ negative numbers for Bouguer anomaly.
 
 \section{Magnetic Data} 
 
-Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth so magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not exactly coinciding with geographical one. Also poles are shifted continuously. The lines of magnetic field come out from south magnetic pole and go into north magnetic field. 
+Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth. Magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not exactly coinciding with geographical one. The lines of magnetic field come out from south magnetic pole and go into north magnetic field. Also poles are shifted continuously.
 
 The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
 
-All material magnetic behavior, refer on the magnetic moments of atoms or its ions, have a character, to be magnetized in an external magnetic field, which introduce as susceptibility. based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
+All material magnetic behavior, refer on magnetic moments of atoms or its ions, have a character. The ability of material to be magnetized in an external magnetic field, introduces as magnetic susceptibility. Based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
 
-Increasing in magnetic field anomalies over subsurface geological structure illustrate contrast between magnetization in neighboring rock properties.
+Increasing magnetic field anomalies over subsurface geological structure illustrate contrast between magnetization in neighboring rock properties.
 
-Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. so this time related change of magnetic field is the diurnal variation which depends on the latitude . 
+Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. This time related changes of magnetic field are the diurnal variation which depends on the latitude of observation point. 
 
-Magnetic field intensity differ in latitude, longitude and altitude. the vertical gradient of magnetic field gives the elevation correction. It is varied from magnetic equator to magnetic poles. which is generally small.
+Magnetic field intensity differs in latitude, longitude and altitude. The vertical gradient of magnetic field gives the elevation correction. It is varied from magnetic equator to magnetic poles which is generally small. Latitude correction is zero in magnetic poles and equator and reaches a maximum at intermediate latitude.
 
-latitude correction is zero in magnetic poles and equator and reaches a maximum at intermediate latitude.
+The shape of the magnetic anomaly is distinguished with the form and the depth of the structure and depends on magnetization contrast and the objects orientation in the earth.
 
-The shape of the magnetic anomalies is distinguished by the form and the depth of the structure and depends on magnetization contrast and the objects orientation.\\
-global magnetic field is provided by International Geomagnetic Reference Field (IGRF) each 5 year.
+International Geomagnetic Reference Field (IGRF) is a mathematical description of Global magnetic field and it  is provided each 5 year.
 
-
-In comparison to the correction of gravity observation, magnetic survey needs very few corrections. after compensation of diurnal correction, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. finally magnetic anomaly is used in geophysical processing.
+In comparison to the correction of gravity observation, magnetic survey needs very few corrections. after compensation of diurnal effect, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. finally magnetic anomaly is used in geophysical processing.
 
 \begin{figure}
 \centering
@@ -53,10 +51,9 @@ In comparison to the correction of gravity observation, magnetic survey needs ve
 
 \section{Input File} 
 
-This module of magnetic inversion needs 2 input files which contain magnetic anomalies and some constraint factors. The firs file contain magnetic anomalies, in which all corrections were applied previously, and the position of them. Elevation, latitude and longitude if the position are defined precisely.
+This module of magnetic inversion needs two input files which contain magnetic anomalies and some constraint factors. The firs file include magnetic anomalies, in which all corrections were applied previously, and the location (latitude and longitude) and elevation of the observed place are defined precisely.
 
-The next file which includes some factors to figure the inversion escripts. 
-Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
+The next file which consists some factors to figure the inversion escripts. Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
  
 A small part of sample of run_mag2D:
 

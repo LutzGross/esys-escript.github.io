@@ -53,7 +53,7 @@ db.setBackgroundMagneticFluxDensity(B_b)
 db.fixDensityBelow(depth=thickness)
 db.fixSusceptibilityBelow(depth=thickness)
 
-inv=MagneticInversion()
+inv=JointGravityMagneticInversion()
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
 inv.setup(db)
