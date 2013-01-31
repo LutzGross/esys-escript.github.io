@@ -24,6 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = [ 'CostFunction', 'MeteredCostFunction' ]
 
+import logging
 
 class CostFunction(object):
     """
@@ -48,6 +49,12 @@ class CostFunction(object):
     """
 
     provides_inverse_Hessian_approximation=False
+
+    def __init__(self):
+        """
+        Constructor. Initializes logger.
+        """
+        self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
 
     def __call__(self, x, *args):
         """
@@ -127,7 +134,7 @@ class CostFunction(object):
         This method is called by the solver class.
         """
         pass
-      
+
     def getNorm(self, x):
         """
         returns the norm of ``x``
@@ -136,7 +143,7 @@ class CostFunction(object):
         :rtype: ``float``
         """
         raise NotImplementedError
-        
+
 
 class MeteredCostFunction(CostFunction):
     """
@@ -207,7 +214,7 @@ class MeteredCostFunction(CostFunction):
         :note: This is the worker for `getNorm()`, needs to be overwritten.
         """
         raise NotImplementedError
-        
+
     def getValue(self, x, *args):
         """
         returns the value *f(x)* using the precalculated values for *x*.
