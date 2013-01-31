@@ -2,20 +2,6 @@
 This gives an intro to standard magnetic inversion
 
 
-\begin{itemize}
-\item All onshore station points are above mean see level with positive
-elevation.
-
-\item Data have to be gridded to a rectangular in latitude and longitude
-for gravity station records.
-
-\item All corrections was applied for observed gravity data including
-tidal, latitude and elevation. Bouguer anomalies have been utilized as
-gravity data which was calculated using a density of $2.67 \frac{t}{m^3}$.
-
-\item In this stage of processing, data have to contain positive and
-negative numbers for Bouguer anomaly.
-\end{itemize}
 
 \section{Magnetic Data} 
 
@@ -35,7 +21,7 @@ The shape of the magnetic anomaly is distinguished with the form and the depth o
 
 International Geomagnetic Reference Field (IGRF) is a mathematical description of Global magnetic field and it  is provided each 5 year.
 
-In comparison to the correction of gravity observation, magnetic survey needs very few corrections. after compensation of diurnal effect, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. finally magnetic anomaly is used in geophysical processing.
+In comparison to the correction of gravity observation, magnetic survey needs very few corrections. After compensation of diurnal effect, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. Finally magnetic anomaly is used in geophysical processing.
 
 \begin{figure}
 \centering
@@ -51,7 +37,7 @@ In comparison to the correction of gravity observation, magnetic survey needs ve
 
 \section{Input File} 
 
-This module of magnetic inversion needs two input files which contain magnetic anomalies and some constraint factors. The firs file include magnetic anomalies, in which all corrections were applied previously, and the location (latitude and longitude) and elevation of the observed place are defined precisely.
+This section of inversion package needs two input files which contain magnetic anomalies and some constraint factors. The firs file includes magnetic anomalies, in which all corrections were applied previously, the location (latitude and longitude) and elevation of the observed place precisely.
 
 The next file which consists some factors to figure the inversion escripts. Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
  
@@ -78,12 +64,12 @@ It is defined in accordance with the noise of data and it has a wide range to se
 
 \section{Output File}
 
-After inversion completion, an output file with silo extension is created which is consisted inversion result. this file show the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with have a best fit with input data. the inversion go forward to attain an acceptable volume for error in its mathematical function. 
+After inversion completion, an output file with silo extension is created, which is consisted inversion result. This file shows the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with having a best fit with input data. The inversion carry on to attain an acceptable volume for error in its mathematical function. 
 
 
 \section{Reference}
 
-As some examples there are several inversions which have ran in some synthetic magnetic data sets . Here comparisons between synthetic susceptibility and inverted one are shown.
+As some examples there are several inversions which have ran in some synthetic magnetic data sets. Here comparisons between synthetic susceptibility and inverted one are shown.
 
 Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:
 
@@ -98,7 +84,7 @@ l_air=6*U.km
 The others assumptions comes with each example.
 
 \begin{enumerate}
-\item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. that after inversion the main boundary of our dataset  have got a best simulation.(\ref{fig:mag2D2}) 
+\item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. After inversion the inside of main boundary of our dataset have a desirable simulation.(\ref{fig:mag2D2}) 
 \begin{verbatim}
 n_cells_in_data=100
 n_humbs_h= 2
@@ -129,7 +115,7 @@ mu=1.
 \label{fig:mag2D4}
 \end{figure}
 
-\item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. after inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
+\item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. After inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
 
 \begin{verbatim}
 n_humbs_h=4
