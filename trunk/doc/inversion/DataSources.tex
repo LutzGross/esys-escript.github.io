@@ -316,11 +316,82 @@ Data can be sampled with an offset from the surface at $z=0$ or using the
 entire subsurface region.
 \end{classdesc}
 
+\vspace{1em}\noindent The only additional method which needs to be implemented
+in subclasses is
 \begin{methoddesc}[SyntheticDataBase]{getReferenceProperty}{
 \optional{domain=\None}}
 Returns the reference \Data object that was used to generate the gravity or
 susceptibility anomaly data. The \member{domain} argument must be present
 when this method is called for the first time but not necessarily in
 subsequent calls.
+\end{methoddesc}
+
+\vspace{1em}\noindent Two synthetic data providers are currently available.
+The class \class{SyntheticData} defines synthetic gravity or magnetic anomaly
+data based on a harmonic
+\begin{equation}\label{eq:synthdata}
+    k=A\cdot sin\left(\pi \frac{n_D}{D} (z+\Delta z)\right) \cdot%
+        sin\left(\pi \frac{n_L}{L} (x - x_0)\right)
+\end{equation}
+where $A$ is the amplitude, $n_D$, $n_L$ denote the number of oscillations in
+the vertical and lateral direction, respectively, while $D$ and $L$ is the
+depth and side length for the data, respectively.
+The second data provider class is \class{SyntheticFeatureData} which takes a
+list of \class{SourceFeature} objects that define the anomaly and is thus more
+generic.
+The constructors are defined as follows:
+
+\begin{classdesc}{SyntheticData}{datatype%
+\optional{, n_length=1}
+\optional{, n_depth=1}
+\optional{, depth_offset=0.}
+\optional{, depth=\None}
+\optional{, amplitude=\None}
+\optional{, DIM=2}
+\optional{, number_of_elements=10}
+\optional{, length=1*U.km}
+\optional{, B_b=\None}
+\optional{, data_offset=0}
+\optional{, full_knowledge=\False}
+\optional{, spherical=\False}}
+The arguments \member{n_length}, \member{n_depth}, \member{depth_offset},
+\member{depth}, and \member{amplitude} correspond to the respective symbols in
+Equation~\ref{eq:synthdata}. The remaining arguments are passed to the parent
+class (\class{SyntheticDataBase}) and described there.
+If \member{depth} is not set the depth of the domain is used.
+The argument \member{amplitude} may be left unset as well in which case a
+default value is used ($200 \frac{kg}{m^3}$ for gravity and $0.1$ for magnetic
+data).
+\end{classdesc}
+
+\begin{classdesc}{SyntheticFeatureData}{datatype, features%
+\optional{, DIM=2}
+\optional{, number_of_elements=10}
+\optional{, length=1*U.km}
+\optional{, B_b=\None}
+\optional{, data_offset=0}
+\optional{, full_knowledge=\False}
+\optional{, spherical=\False}}
+The only new argument is \member{features} which is a list of
+\class{SourceFeature} objects to be included in the data preparation.
+All other arguments are passed on to the parent class (see there).
+\end{classdesc}
+
+\begin{classdesc}{SourceFeature}{}
+A feature adds a density/susceptibility distribution to (parts of) a domain of
+a synthetic data source, for example a layer of a specific rock type or a
+simulated ore body. This base class is empty and only provides the skeleton
+for subclasses which need to implement the following two methods:
+\end{classdesc}
+
+\begin{methoddesc}[SourceFeature]{getValue}{}
+Returns the value for the area covered by mask. It can be constant or a \Data
+object with spatial dependency.
+\end{methoddesc}
+
+\begin{methoddesc}[SourceFeature]{getMask}{x}
+Returns the mask of the region of interest for this feature. That is, mask is
+non-zero where the value returned by \member{getValue()} should be applied,
+zero elsewhere.
 \end{methoddesc}
 

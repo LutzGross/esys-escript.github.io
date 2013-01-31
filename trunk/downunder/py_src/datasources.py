@@ -481,7 +481,7 @@ class SourceFeature(object):
     def getMask(self, x):
         """
         Returns the mask of the area of interest for this feature. That is,
-        mask is non-zero where the value returned by getValue() should be
+        mask is non-zero where the value returned by `getValue()` should be
         applied, zero elsewhere.
         """
         raise NotImplementedError
@@ -747,9 +747,9 @@ class SyntheticData(SyntheticDataBase):
     """
     Defines synthetic gravity/magnetic data based on harmonic property anomaly
 
-        rho = mean + amplitude * sin(n_depth * pi /depth * (z+depth_offset)) * sin(n_length * pi /length * x - shift )
+        rho = amplitude * sin(n_depth * pi /depth * (z+depth_offset)) * sin(n_length * pi /length * (x - shift) )
 
-    for all x and z<=0. for z>0 rho = 0.
+    for all x and z<=0. For z>0 rho = 0.
     """
     def __init__(self, datatype,
                        n_length=1,
@@ -771,6 +771,9 @@ class SyntheticData(SyntheticDataBase):
                          observation region
         :type n_length: ``int``
         :param n_depth: number of oscillations in the anomaly data below surface
+        :type n_depth: ``int``
+        :param depth_offset: vertical offset of the data
+        :type depth_offset: ``float``
         :param depth: vertical extent in the anomaly data. If not present the
                       depth of the domain is used.
         :type depth: ``float``
@@ -817,13 +820,13 @@ class SyntheticData(SyntheticDataBase):
         Returns the reference `Data` object that was used to generate
         the gravity/susceptibility anomaly data.
         """
-        if self._reference_data == None:
+        if self._reference_data is None:
             DIM=domain.getDim()
             x=domain.getX()
             # set the reference data
             z=x[DIM-1]
             dd=self.depth
-            if  dd ==None :  dd=inf(z)
+            if dd is None: dd=inf(z)
             z2=(z+self.depth_offset)/(self.depth_offset-dd)
             k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude
             for i in xrange(DIM-1):
