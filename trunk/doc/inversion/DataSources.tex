@@ -290,4 +290,37 @@ domain.
 \end{classdesc}
 
 \subsection{Synthetic Data}
+As a special case the \module{esys.downunder.datasources} module contains
+classes to generate input data for inversions by solving a forward model with
+user-defined reference data.
+The main purpose of using synthetic data is to test the capabilities of the
+inversion module or for tracking down problems.
+
+The base class for synthetic data which is derived from \class{DataSource}
+has the following interface:
+
+\begin{classdesc}{SyntheticDataBase}{datatype%
+\optional{, DIM=2}
+\optional{, number_of_elements=10}
+\optional{, length=1*U.km}
+\optional{, B_b=\None}
+\optional{, data_offset=0}
+\optional{, full_knowledge=\False}
+\optional{, spherical=\False}}
+Base class to define reference data based on a given property distribution
+(density or susceptibility). Data are collected from a square region of
+vertical extent \member{length} on a grid with \member{number_of_elements}
+cells in each direction.
+The synthetic data are constructed by solving the appropriate forward problem.
+Data can be sampled with an offset from the surface at $z=0$ or using the
+entire subsurface region.
+\end{classdesc}
+
+\begin{methoddesc}[SyntheticDataBase]{getReferenceProperty}{
+\optional{domain=\None}}
+Returns the reference \Data object that was used to generate the gravity or
+susceptibility anomaly data. The \member{domain} argument must be present
+when this method is called for the first time but not necessarily in
+subsequent calls.
+\end{methoddesc}
 

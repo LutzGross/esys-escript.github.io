@@ -467,26 +467,42 @@ class NetCdfData(DataSource):
 ##############################################################################
 class SourceFeature(object):
     """
-    A feature adds a density distribution to (parts of) a domain of a synthetic
-    data source, for example a layer of a specific rock type or a simulated
-    ore body.
+    A feature adds a density/susceptibility distribution to (parts of) a
+    domain of a synthetic data source, for example a layer of a specific
+    rock type or a simulated ore body.
     """
     def getValue(self):
         """
         Returns the value for the area covered by mask. It can be constant
-        or a data object with spatial dependency.
+        or a `Data` object with spatial dependency.
         """
         raise NotImplementedError
+
     def getMask(self, x):
         """
         Returns the mask of the area of interest for this feature. That is,
-        mask is non-zero where the density returned by getDensity() should be
+        mask is non-zero where the value returned by getValue() should be
         applied, zero elsewhere.
         """
         raise NotImplementedError
 
 class SmoothAnomaly(SourceFeature):
+    """
+    A source feature in the form of a blob (roughly gaussian).
+    """
     def __init__(self, lx, ly, lz, x, y, depth, v_inner=None, v_outer=None):
+        """
+        Intializes the smooth anomaly data.
+
+        :param lx: size of blob in x-dimension
+        :param ly: size of blob in y-dimension
+        :param lz: size of blob in z-dimension
+        :param x: location of blob in x-dimension
+        :param y: location of blob in y-dimension
+        :param depth: depth of blob
+        :param v_inner: value in the centre of the blob
+        :param v_outer: value in the periphery of the blob
+        """
         self.x=x
         self.y=y
         self.lx=lx
@@ -528,12 +544,12 @@ class SyntheticDataBase(DataSource):
     (density or susceptibility). Data are collected from a square region of
     vertical extent `length` on a grid with `number_of_elements` cells in each
     direction.
-    
+
     The synthetic data are constructed by solving the appropriate forward
     problem. Data can be sampled with an offset from the surface at z=0 or
     using the entire subsurface region.
     """
-    def __init__(self, datatype, 
+    def __init__(self, datatype,
                  DIM=2,
                  number_of_elements=10,
                  length=1*U.km,
@@ -543,13 +559,13 @@ class SyntheticDataBase(DataSource):
                  spherical=False):
         """
         :param datatype: data type indicator
-        :type datatype: ``DataSource.GRAVITY``, ``DataSource.MAGNETIC``
-        :param DIM: number of spatial dimension
+        :type datatype: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param DIM: number of spatial dimensions
         :type DIM: ``int`` (2 or 3)
         :param number_of_elements: lateral number of elements in the region
                                    where data are collected
         :type number_of_elements: ``int``
-        :param length: lateral extend of the region where data are collected
+        :param length: lateral extent of the region where data are collected
         :type length: ``float``
         :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude]. Only used for magnetic data.
         :type B_b: ``list`` of ``Scalar``
@@ -558,18 +574,21 @@ class SyntheticDataBase(DataSource):
         :param full_knowledge: if ``True`` data are collected from the entire
                                subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` sperical coordinates are used (ignored for now)
+        :param spherical: if ``True`` spherical coordinates are used. This is
+                          not supported yet and should be set to ``False``.
         :type spherical: ``Bool``
         """
-        super(SyntheticDataBase,self).__init__()
-        if not datatype in [self.GRAVITY,self.MAGNETIC]:
-            raise ValueError("Invalid value for datatype parameter")      
+        super(SyntheticDataBase, self).__init__()
+        if not datatype in [self.GRAVITY, self.MAGNETIC]:
+            raise ValueError("Invalid value for datatype parameter")
         self.DIM=DIM
         self.number_of_elements=number_of_elements
         self.length=length
         self.__datatype = datatype
-        
-        self.__spherical = spherical   
+
+        if spherical:
+            raise ValueError("Spherical coordinates are not supported yet")
+        self.__spherical = spherical
         self.__full_knowledge= full_knowledge
         self.__data_offset=data_offset
         self.__B_b =None
@@ -578,12 +597,12 @@ class SyntheticDataBase(DataSource):
             if self.DIM < 3:
                 self.__B_b = np.array([-B_b[2], -B_b[0]])
             else:
-                self.__B_b = ([-B_b[1], -B_b[2], -B_b[0]])     
+                self.__B_b = ([-B_b[1], -B_b[2], -B_b[0]])
         self.__origin = [0]*(DIM-1)
         self.__delta = [float(length)/number_of_elements]*(DIM-1)
         self.__nPts = [number_of_elements]*(DIM-1)
         self._reference_data=None
-        
+
     def getDataExtents(self):
         """
         returns the lateral data extend of the data set
@@ -595,11 +614,11 @@ class SyntheticDataBase(DataSource):
         returns the data type
         """
         return self.__datatype
-        
+
     def getSurveyData(self, domain, origin, number_of_elements, spacing):
         """
         returns the survey data placed on a given domain.
-        
+
         :param domain: domain on which the data are to be placed
         :type domain: ``Domain``
         :param origin: origin of the domain
@@ -618,7 +637,6 @@ class SyntheticDataBase(DataSource):
         DIM=domain.getDim()
         x=domain.getX()
         # set the reference data
-        
         k=self.getReferenceProperty(domain)
         # calculate the corresponding potential
         z=x[DIM-1]
@@ -636,12 +654,12 @@ class SyntheticDataBase(DataSource):
         else:
             data = self._reference_data*self.__B_b-grad(psi_ref, ReducedFunction(domain))
 
-        x=ReducedFunction(domain).getX()    
+        x=ReducedFunction(domain).getX()
         if self.__full_knowledge:
             sigma = whereNegative(x[DIM-1])
         else:
             sigma=1.
-            # limit mask to non-padding in horizontal area        
+            # limit mask to non-padding in horizontal area
             for i in range(DIM-1):
                 x_i=x[i]
                 sigma=sigma * wherePositive(x_i) * whereNegative(x_i-(sup(x_i)+inf(x_i)))
@@ -650,12 +668,12 @@ class SyntheticDataBase(DataSource):
             oo=int(self.__data_offset/spacing[DIM-1]+0.5)*spacing[DIM-1]
             sigma = sigma * whereNonNegative(z-oo) * whereNonPositive(z-oo-spacing[DIM-1])
         return data,sigma
-        
+
     def getReferenceProperty(self, domain=None):
         """
-        Returns the reference density Data object that was used to generate
+        Returns the reference `Data` object that was used to generate
         the gravity/susceptibility anomaly data.
-        
+
         :return: the density or susceptibility anomaly used to create the
                  survey data
         :note: it can be assumed that in the first call the ``domain``
@@ -663,13 +681,13 @@ class SyntheticDataBase(DataSource):
                In subsequent calls this may not be true.
         :note: method needs to be overwritten
         """
-        raise NotImplementedError()       
-      
+        raise NotImplementedError()
+
 class SyntheticFeatureData(SyntheticDataBase):
     """
-    uses a list of ``SourceFeature`` to define synthetic anomaly data
+    Uses a list of `SourceFeature` objects to define synthetic anomaly data.
     """
-    def __init__(self, datatype, 
+    def __init__(self, datatype,
                        features,
                        DIM=2,
                        number_of_elements=10,
@@ -680,14 +698,16 @@ class SyntheticFeatureData(SyntheticDataBase):
                        spherical=False):
         """
         :param datatype: data type indicator
-        :type datatype: ``DataSource.GRAVITY``, ``DataSource.MAGNETIC``
-        :param features: list of features. It is recommended that the features do entirely lay below surface.
-        :type features: ``list`` of ``SourceFeature``
-        :param DIM: spatial dimension
-        :type DIM: 2 or 3
-        :param number_of_elements: lateral number of elements in the region where data are collected
+        :type datatype: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param features: list of features. It is recommended that the features
+                         are located entirely below the surface.
+        :type features: ``list`` of `SourceFeature`
+        :param DIM: spatial dimensionality
+        :type DIM: ``int`` (2 or 3)
+        :param number_of_elements: lateral number of elements in the region
+                                   where data are collected
         :type number_of_elements: ``int``
-        :param length: lateral extend of the region where data are collected
+        :param length: lateral extent of the region where data are collected
         :type length: ``float``
         :param B_b: background magnetic flux density [B_r, B_latiude, B_longitude]. Only used for magnetic data.
         :type B_b: ``list`` of ``Scalar``
@@ -695,12 +715,13 @@ class SyntheticFeatureData(SyntheticDataBase):
         :type data_offset: ``float``
         :param full_knowledge: if ``True`` data are collected from the entire subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` sperical coordinates are used (ignored)
+        :param spherical: if ``True`` spherical coordinates are used.
         :type spherical: ``Bool``
         """
         super(SyntheticFeatureData,self).__init__(
-                                 datatype=datatype, DIM=DIM, number_of_elements=number_of_elements, 
-                                 length=length, B_b=B_b, 
+                                 datatype=datatype, DIM=DIM,
+                                 number_of_elements=number_of_elements,
+                                 length=length, B_b=B_b,
                                  data_offset=data_offset,
                                  full_knowledge=full_knowledge,
                                  spherical=spherical)
@@ -709,7 +730,7 @@ class SyntheticFeatureData(SyntheticDataBase):
 
     def getReferenceProperty(self, domain=None):
         """
-        Returns the reference density Data object that was used to generate
+        Returns the reference `Data` object that was used to generate
         the gravity/susceptibility anomaly data.
         """
         if self._reference_data == None:
@@ -721,21 +742,21 @@ class SyntheticFeatureData(SyntheticDataBase):
                 k = k * (1-m) + f.getValue(x) * m
             self._reference_data= k
         return self._reference_data
-        
+
 class SyntheticData(SyntheticDataBase):
     """
-    defines synthetic  gravity/magnetic data based on harmonic property anomaly
-    
+    Defines synthetic gravity/magnetic data based on harmonic property anomaly
+
         rho = mean + amplitude * sin(n_depth * pi /depth * (z+depth_offset)) * sin(n_length * pi /length * x - shift )
-        
-    for all x and z<=0. for z>0 rho = 0.        
+
+    for all x and z<=0. for z>0 rho = 0.
     """
-    def __init__(self, datatype, 
+    def __init__(self, datatype,
                        n_length=1,
-                       n_depth=1, 
+                       n_depth=1,
                        depth_offset=0.,
                        depth=None,
-                       amplitude=None, 
+                       amplitude=None,
                        DIM=2,
                        number_of_elements=10,
                        length=1*U.km,
@@ -745,10 +766,10 @@ class SyntheticData(SyntheticDataBase):
                        spherical=False):
         """
         :param datatype: data type indicator
-        :type datatype: ``DataSource.GRAVITY``, ``DataSource.MAGNETIC``
+        :type datatype: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
         :param n_length: number of oscillations in the anomaly data within the
                          observation region
-        :type n_length: ``int`` 
+        :type n_length: ``int``
         :param n_depth: number of oscillations in the anomaly data below surface
         :param depth: vertical extent in the anomaly data. If not present the
                       depth of the domain is used.
@@ -770,18 +791,18 @@ class SyntheticData(SyntheticDataBase):
         :param full_knowledge: if ``True`` data are collected from the entire
                                subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` sperical coordinates are used (ignored for now)
+        :param spherical: if ``True`` spherical coordinates are used
         :type spherical: ``Bool``
-        """      
+        """
         super(SyntheticData,self).__init__(
                                  datatype=datatype, DIM=DIM,
-                                 number_of_elements=number_of_elements, 
-                                 length=length, B_b=B_b, 
+                                 number_of_elements=number_of_elements,
+                                 length=length, B_b=B_b,
                                  data_offset=data_offset,
                                  full_knowledge=full_knowledge,
                                  spherical=spherical)
         self.__n_length = n_length
-        self.__n_depth = n_depth 
+        self.__n_depth = n_depth
         self.depth = depth
         self.depth_offset=depth_offset
         if amplitude == None:
@@ -793,8 +814,8 @@ class SyntheticData(SyntheticDataBase):
 
     def getReferenceProperty(self, domain=None):
         """
-        Returns the reference density Data object that was used to generate
-        the gravity anomaly data.
+        Returns the reference `Data` object that was used to generate
+        the gravity/susceptibility anomaly data.
         """
         if self._reference_data == None:
             DIM=domain.getDim()
@@ -804,7 +825,7 @@ class SyntheticData(SyntheticDataBase):
             dd=self.depth
             if  dd ==None :  dd=inf(z)
             z2=(z+self.depth_offset)/(self.depth_offset-dd)
-            k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude 
+            k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude
             for i in xrange(DIM-1):
                x_i=x[i]
                min_x=inf(x_i)
