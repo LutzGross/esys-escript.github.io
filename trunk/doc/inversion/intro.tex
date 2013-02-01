@@ -14,35 +14,31 @@
 
 
 \chapter*{Overview}\label{sec:Intro}
-this document provides some documentation for the 
-usage of the \downunder module for \python. The module is 
-designed to perform the inversion of geophysical data such as gravity and magnetic 
-data using parallel supercomputer. The solution approach bases entirely on the
-finite element method and is therefore different from the usual approach based on Green's functions
-and linear algebra techniques. 
+The \downunder module for \python is designed to perform the inversion of
+geophysical data such as gravity and magnetic anomalies using a parallel
+supercomputer.
+The solution approach bases entirely on the finite element method and is
+therefore different from the usual approach based on Green's functions
+and linear algebra techniques.
+The module is implemented on top of the \escript solver environment for
+\python and is distributed as part of the \escript package through
+\url{https://launchpad.net/escript-finley}.
+We refer to the \escript documentation~\cite{ESCRIPT} for installation
+instructions and to \cite{ESCRIPTCOOKBOOK} for a basic introduction to \escript.
 
-\downunder is implemented on using the \escript solver environment for \python and 
-is distributed as part of the \escript package through \url{https://launchpad.net/escript-finley}. We refer 
-to the \escript documentation~\cite{ESCRIPT} for installation. An basic introduction
-into \escript can be found in~\cite{ESCRIPTCOOKBOOK}
+This document is split into two parts:
+Part~\ref{part1} provides a tutorial-style introduction to running inversions
+with the \downunder module.
+Users with minimal or no programming skills should be able to follow the
+tutorial which demonstrates how to run inversions of gravity anomaly data,
+magnetic anomaly data and the combination of both.
+The scripts and data files used in the examples are provided with the \escript
+distribution.
 
-This document has to parts: In part~\ref{part1} we give an introduction on how to solve inversion
-using the \downunder module for the inversion of gravity and of magnetic data
-for the joint inversion of gravity and magnetic data. The part is designed for high-level users and does not
-require any programming skills. 
-
-Part~\ref{part2} gives more details on the mathematical methods being used and the 
-program infrastructure. It is the intention of the part to given users a deeper understanding of how
-\downunder is implemented and also open the ddor for users with more experience in \python programming 
-to build their own inversion programs using \downunder components and the \escript infrastructure. 
-
-
-
-
-%\begin{figure}
-%    \centering
-%    \includegraphics{components.pdf}
-%    \caption{The main components of the inversion toolbox}
-%    \label{fig:components}
-%\end{figure}
+Part~\ref{part2} gives more details on the mathematical methods used and the
+module infrastructure.
+It is the intention of this part to give users a deeper understanding of how
+\downunder is implemented and also open the door for experienced \python
+programmers to build their own inversion programs using \downunder components
+and the \escript infrastructure. 
 
