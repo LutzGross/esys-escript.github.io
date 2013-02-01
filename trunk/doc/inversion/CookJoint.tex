@@ -3,7 +3,7 @@
 
 A striking interpretation of a joint inversion 3D model of gravity and magnetic data could solve a big problem of exploration geophysics. Traditionally inversion of magnetic and gravity data provide a 3D physical rock property model separately. However the inversion different type of datasets could supplement the result. In the meantime joint inversion by making more constraints on characteristics modify the outcome.
 
-In this section a new package is significantly presented to provide a joint model of density and magnetic susceptibility which undertake an apparent discrepancy in terms of geolophysical approach. This package is based on geological smooth model in density and magnetic susceptibility variations.
+In this section a new package is significantly presented to provide a joint model of density and magnetic susceptibility which undertake an apparent discrepancy in terms of geophysical approach. This package is based on geological smooth model in density and magnetic susceptibility variations.
 
 
 
@@ -11,11 +11,11 @@ In this section a new package is significantly presented to provide a joint mode
 
 According to the escript which is configured a prominent joint inversion in gravity and magnetic data, input data have contained gravity and magnetic anomalies data sets. In previous sections, gravity and magnetic data and their corrections, which need to invert, were distinguished in detail.
 
-However it does not need to have data in one input file and they could be seperatly. It have to be mentioned that the inversion just run in the overlaping area with properly result.
+However it does not need to have data in one input file and they could be separately. It have to be mentioned that the inversion just run in the overlapping area with properly result.
 
-Also its speacing is not important though the finer spacing , the better result. and its spacing could be differ in meter. 
+Also its spacing is not important though the finer spacing , the better result. and its spacing could be differ in meter. 
 
-Ferthermore the script file for 2D and 3D inversion is apart and it have to be selected to have 2D or 3D inversion.
+Furthermore the script file for 2D and 3D inversion is apart and it have to be selected to have 2D or 3D inversion.
 
 A small part of sample of inversion_gravmag_3d:
 
@@ -32,7 +32,7 @@ mu_gravity = 10.
 mu_magnetic = 0.1
 \end{verbatim}
 
-inversion_gravmag file consist many options to implement which control how joint inversion is performed such as padding area, depth , MU factor,\ldots. Which in previous section was explaind in deatails. just some items are fixed for joint inversion such as mu.
+Inversion_gravmag file consist many options to implement which control how joint inversion is performed such as padding area, depth , MU factor,\ldots. Which in previous section was explained in details. just some items are fixed for joint inversion such as mu.
 
 
 \begin{description} 
@@ -40,7 +40,7 @@ inversion_gravmag file consist many options to implement which control how joint
 
 \item[GRAVITY_DATASET]Because the gravity data is in another file, the name of the gravity file should be noted too.
 	
-\item[latitude]This is refered to the area of gathering data sets to calculate the main reference magnetic field. Which is selected -28 for east Australia.
+\item[latitude]This is referred to the area of gathering data sets to calculate the main reference magnetic field. Which is selected -28 for east Australia.
 
 
 \item[mu_gravity]It is defined in accordance with the noise of gravity data. and it is not the same as gravity inversion which is 10.
@@ -52,7 +52,7 @@ inversion_gravmag file consist many options to implement which control how joint
 
 \section{Output File}
 
-After preparing input files and submitting the 2D or 3D escript to run inversion, an output file will be created to show result of inversion. This file has silo extension and contains both density and susceptibility. Moreover it displays those values separately in a 2D or 3D model. The inversions dimention is related to our dessicion at the time of start up. Also its reference data is in output file to have a good comparison between output and input information.
+After preparing input files and submitting the 2D or 3D escript to run inversion, an output file will be created to show result of inversion. This file has silo extension and contains both density and susceptibility. Moreover it displays those values separately in a 2D or 3D model. The inversions dimension is related to our decision at the time of start up. Also its reference data is in output file to have a good comparison between output and input information.
 
 \section{Reference}
 
