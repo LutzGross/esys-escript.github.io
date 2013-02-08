@@ -28,6 +28,8 @@ from esys.weipa import saveVTK
 # dom=Rectangle(12,8,l0=1.5)
 # dom=Rectangle(24,16,l0=1.5)
 dom=Rectangle(48,32,l0=1.5)
+saveDataCSV("t.csv",x=dom.getX(), rho=length(dom.getX()))
+1/0
 # dom=Rectangle(8*48,8*32,l0=1.5)
 # dom=Rectangle(120,80,l0=1.5)
 V=Scalar(1.,Function(dom))*[-1.,0]
