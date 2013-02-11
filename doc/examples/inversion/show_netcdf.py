@@ -19,7 +19,7 @@ import numpy as np
 from scipy.io import netcdf_file
 
 # input filename
-FILENAME='output.nc'
+FILENAME='gravity_Mu.nc'
 
 f=netcdf_file(FILENAME, 'r')
 NY=f.dimensions["latitude"]
@@ -35,7 +35,7 @@ x_label=longitude.long_name
 x_units=longitude.units
 longitude=longitude[:]
 
-DATA=f.variables["data"]
+DATA=f.variables["onshore_and_offshore_gravity_anomaly_geodetic"]
 data_label=DATA.long_name
 UNITS=DATA.units
 DATA=DATA[:]
