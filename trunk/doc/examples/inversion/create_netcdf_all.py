@@ -12,10 +12,7 @@
 #
 ##############################################################################
 
-"""
-This example shows how to create a netCDF input files for inversion with
-inversion in esys.downunder. 
-"""
+"""This example shows how to create compatible netCDF input files for inversion"""
 
 from datetime import datetime
 import numpy as np
@@ -43,19 +40,20 @@ NY=10
 # Dummy value (for unset areas)
 MISSING=-9999
 
-# Data error
-SIGMA = 3.
-
-
+# Units of the data array
+UNITS='mGal'
 
 # The actual data array, must have shape (NY, NX)
-# these are just some random numbers.
-DATA=10*np.random.normal(size=(NY, NX), scale=SIGMA)
-ERROR=np.ones((NY, NX)) * SIGMA
+DATA=10*np.random.normal(size=(NY, NX))
 
 ##############################################################################
 ###################### Keep everything below this line #######################
 ##############################################################################
+
+# conventions used in the file
+conventions="CF-1.0, COARDS, Unidata Dataset Discovery v1.0"
+# projection string
+esri_pe_string="GEOGCS[\\\"GCS_WGS_1984\\\",DATUM[\\\"D_WGS_1984\\\",SPHEROID[\\\"WGS_1984\\\",6378137.0,298.257223563]],PRIMEM[\\\"Greenwich\\\",0.0],UNIT[\\\"Degree\\\",0.0174532925199433]]"
 # file log
 history=datetime.now().strftime("%d-%m-%Y")+" created using python script"
 # license
@@ -65,27 +63,37 @@ longitude=np.linspace(ORIGIN_X, ORIGIN_X+NX*DELTA_X, NX, endpoint=False)
 latitude=np.linspace(ORIGIN_Y, ORIGIN_Y-NY*DELTA_Y, NY, endpoint=False)
 
 o=netcdf_file(FILENAME,'w')
+o.cdm_data_type="Grid"
+o.Conventions=conventions
 o.history=history
 o.license=license
-o.title=TITLE
+o.Metadata_Conventions=conventions
 o.summary=SUMMARY
+o.title=TITLE
 o.createDimension("latitude", NY)
 o.createDimension("longitude", NX)
 
 v=o.createVariable("latitude", latitude.dtype, ["latitude"])
+v.axis = "Y"
+v.long_name="Latitude"
+v.standard_name="latitude"
+v.units="degrees_north"
 v.data[:]=latitude
 
 v=o.createVariable("longitude", longitude.dtype, ["longitude"])
+v.axis = "X"
+v.long_name="Longitude"
+v.standard_name="longitude"
+v.units="degrees_east"
 v.data[:]=longitude
 
 v=o.createVariable("data", DATA.dtype, ["latitude","longitude"])
+v.coordinates="lon lat"
+v.esri_pe_string=esri_pe_string
+v.long_name="Bouguer_anomaly"
 v.missing_value=MISSING
+v.units=UNITS
 v.data[:]=DATA
-
-# can be omitted.
-v=o.createVariable("error", DATA.dtype, ["latitude","longitude"])
-v.missing_value=MISSING
-v.data[:]=ERROR
 
 o.close()
 

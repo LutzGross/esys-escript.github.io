@@ -28,13 +28,13 @@ from esys.escript import unitsSI as U
 from esys.weipa import saveSilo
 
 # Set parameters
-DATASET = 'bouguer_anomaly.nc'
+DATASET = 'data/QLDWest_grav.nc'
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
-mu = 10.
+mu = 0.1
 
 # Setup and run the inversion
 source=NetCdfData(NetCdfData.GRAVITY, DATASET)

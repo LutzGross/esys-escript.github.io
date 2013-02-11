@@ -35,7 +35,12 @@ Moreover, if you want to visualize result, you must have access to plotting soft
 the tutorial is based on \mayavi as visualization. However, it pointed out 
 that \VisIt is the preferred visualization tool for \escript as it can deal with very large data sets more effectively.
     
-
+\begin{figure}
+\centering
+\includegraphics[width=\textwidth]{QLDWestGravityDataPlot.png}
+\caption{Gravity Anomaly Data in $mgal$ from Western Queensland, Australia.  \AZADEH{ADD CREDITS}}
+\label{FIG:P1:GRAV:0}
+\end{figure}
 
 \begin{figure}
 \centering
@@ -116,7 +121,8 @@ the visualization using the commands
 mayavi2 -d result.vtu -m SurfaceMap
 \end{verbatim}
 from the command line. Figure~\ref{FIG:P1:GRAV:1} shows the result using contour plotting\footnote{Plots
-have been created with \VisIt.}.
+have been created with \VisIt.} from the gravity anomaly data shown in Figure~\ref{FIG:P1:GRAV:0}. We will 
+discuss data later in Section~\ref{SEC:P1:GRAV:DATA}.
 
 Let us have a closer look at the script\footnote{In \python lines starting with `\#` are commends and are not processed further.}: Besides the header section one can separate the script into five steps:
 \begin{enumerate}
@@ -155,11 +161,11 @@ to cover all data sets. In order to reduce the impact of boundary a padding zone
 \centering
 \includegraphics[width=\textwidth]{dom2DFEM.png}
 \caption{Cell distribution and boundary conditions for 2D domain.}
-\label{FIG:P1:GRAV:2}
+\label{FIG:P1:GRAV:3}
 \end{figure}
 
 The reconstruction of the gravity field from an estimated density distribution is a the key component of the inversion process.
-To do this \downunder uses the finite element method (FEM) to do this. We need to introduce a grid over the domain, see Figure~\ref{FIG:P1:GRAV:2}.
+To do this \downunder uses the finite element method (FEM) to do this. We need to introduce a grid over the domain, see Figure~\ref{FIG:P1:GRAV:3}.
 The number of vertical cells is set by the user while the number of vertical cells is derived from the grid spacing of the 
 gravity data set(s). It is assumed that gravity field data given are constant across a cell. 
 To be able to reconstruct the gravity field some assumptions on the values of the gravity field on the domain boundary
@@ -194,9 +200,61 @@ dom.fixDensityBelow(depth= 40. * U.km)
 introduces this constrain. As in the case discussed here the depth for zero density is not less than the
 depth of the domain no constraint at depth is applied to the density.
 
-ADD U 
+\downunder uses the  metre-kilogram-second based 
+International System of Units (SI)~\footnote{see \url{http://en.wikipedia.org/wiki/International_System_of_Units}.}\index{SI}. So all 
+values must be converted to appropriate units. This does not apply to geographic coordinates where \downunder uses
+the degree with fractional degree (as a floating number) to represent longitude and latitude. In the script we have used the expression
+\begin{verbatim}
+depth= 40. * U.km
+\end{verbatim}
+to define the depth of the domain to $40 km$. The expression \verb|U.km| is the unit $km$ (kilo meter) and an appropriate conversion 
+of $40$ as length in $km$  into the base unit $m$ (meter). It is recommendable to add units to values (where present) 
+in order to make sure that the final value handed into \downunder is given in the appropriate units. The physical units
+module of \escript, which we have here imported under the name \verb|U| in the script header, defines a large number 
+physical units and constants, please see~\cite{ESCRIPT} and~\cite{ESCRIPTONLINE}. 
 
-\section{Getting the Data in}
+\section{How to Load Gravitational Data}\label{SEC:P1:GRAV:DATA}
+In practice gravity acceleration is measured in various way, for instance by airborne surveys \AZADEH{add reference}. \downunder
+assumes that at input that appropriate processing has been applied,  
+in particular, corrections for  
+\begin{itemize}
+ \item free-air to remove effects from altitude above ground 
+ \item latitude to remove effects from ellipsoidicity of the Earth  
+ \item terrain to remove effects from topography  
+\end{itemize}
+have been applied to the data. In general, data prepared in such a form are called Bouguer anomalies \AZADEH{add reference}. 
+
+To load gravity data into  \downunder the data are given on a plane parallel to the surface of the Earth at a constant
+altitude, see diagram~\ref{FIG:P1:GRAV:2}. The data need to be defined over a rectangular grid covering a subregion of 
+the Earth surface (see also remarks under subsection~\ref{SEC:P1:GRAV:REMARK:DATA2}). 
+The grid is using the geographic coordinate system. Figure~\ref{FIG:P1:GRAV:0} shows an example of such a data set
+from the westen parts of Queensland. The data set covers a rectangular region between $140^o$ and $141^o$ east 
+and between $20^o$ and $21^o$ south. Notice that latitude varies between $-90^o$ to $90^o$ where
+negative signs refer to places in the southern hemisphere and
+longitude varies between $-180^o$ to $180^o$ where
+negative signs refer to places in the western hemisphere.
+The color at a location represent the value of the vertical Bouguer gravity in  anomaly at this point at the surface of the Earth.
+Values range from $-160  \;  mgal$ to about $500 \; mgal$\footnote{$mgal$ refers to milli $gal$ (galileo) with 
+$1 \;  gal = 0.01 \frac{m}{sec^2}$.} over $121 \times 121$ grid.
+
+In general, a patch gravity data need to be defined over a plane \verb|NX| $\times$ \verb|NY| where 
+\verb|NX|  and \verb|NY|  define the number of grid lines in the longitude (\verb|X|) and the latitude (\verb|Y|) 
+direction, respectively. The grid is spanned of from an origin with spacing
+\verb|DELTA_X| and \verb|DELTA_Y| in the longitude and the latitude direction, respectively. 
+The gravity data for all grid points need to be given as an \verb|NX| $\times$ \verb|NY| array.  
+If available errors can be associated with the gravity data. The values are given as an \verb|NX| $\times$ \verb|NY| array
+matching the shape of the gravity. 
+The script \examplefile{create_netcdf.py} shows how to create a \netcdf file from these information.
+
+
+Two data formats are supported, namely ER Mapper Raster File and NetCDF. Here we will
+focus on the NetCDF file format~\cite{NETCDF} and refer to subsection~\ref{SEC:P1:GRAV:REMARK:ERMAPPER} and
+section~\ref{sec:ref:DataSource:ERM} for more information on the ER Mapper Raster format.
+
+===
+
+
+
 
 \section{Set-up Inversion and run the show}
 
@@ -204,35 +262,14 @@ ADD U
 
 \section{Remarks}
 
-=====
+\subsection{Data Patches}\label{SEC:P1:GRAV:REMARK:DATA2}
+\CIHAN{ADD some remarkes in several data sets: add and example, altitude?, restrictions?}
+
+\subsection{ER Mapper Raster File}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
+\CIHAN{ADD an example how ro use ER Mapper raster files}
 
 
-Before we do this a few words about the header section of the script:
-\begin{verbatim*}
-from esys.downunder import *
-from esys.weipa import *
-import esys.escript.unitsSI as U
-\end{verbatim*}
-The \verb|import| statement makes certain functions directly available for usage in the script. After \downunder
-has been imported in the first import statement all functions in the \downunder package cane directly been used,
-eg. we can call \verb|DomainBuilder| to create a domain for the inversion. Similar 
-the second import statement makes all the \weipa functions ready for usage in the script. 
-Here we will in particular use the \verb|saveVTK| function to write the inversion result to 
-an external file\footnote{See also \escript users guide~\cite{ESCRIPT}.}.
-
-
-For instance we can
-directly call which is part  Here we 
-load all the functions of \downunder which is the inversion tool kit and \weipa which supports the output 
-of the inversion into various file formats. Notice that both package use \escript so this is also imported behind the scenes.
-The third \verb|import| statement makes the 
-$40 km$
-\verb|40 * U.km| 
- 
-
- 
-
- 
+  
 
 ==============================
 
@@ -276,51 +313,7 @@ termination error reaches a given tolerance.
 
 
 \section{Gravity Data}
-Theoretically weighs depends on the force of gravity at 
-that position and the force of gravity varies with elevation, rock densities, latitude and topography. 
-Mass, however, does not depend on gravity but is a constitutive quantity throughout the earth. So the
-spring stretch in mass suspension is related to the gravity force. In addition with a constant mass, 
-difference in spring stretch illustrate the changes in acceleration of gravity. The principal of gravity exploration 
-is based on the topography of the basement, thickness of the sedimentary section with various density, porosity of 
-the layer and elevation.
 
-The amount of $g$ at sea level is about 980 $kg/s^2$ or 980,000 $mgal$. Gravity acceleration 
-is measured in two types. The first corresponds to specify the absolute magnitude of gravity 
-at any place and the second refers to the alteration in gravity from one place to another. 
-In gravity study variation of this value which is caused by underground structure, is plotted as a residual gravity.
-Closed variation in residual gravity indicates discrepancy in subsurface geological structure.
-
-The Gravity data are taken from onshore and offshore observation recorded at many gravity stations with high precision 
-of determination in elevation and position (latitude and longitude). All raw reading gravity observations require 
-to process with many corrections.
-
-The sun and moon gravitational forces make curvature in Earth's shape. These tide effects change figure of oceans, 
-atmosphere and even solid body of the Earth, which impress gravity measurement and it is necessary to compensate it,
- which vary with location, date and time of the day.
-
-The surface of the Earth is lumpy on land and water. However for Geophysical and Geological study, a smooth closed 
-surface is assumed. The main one is a spheroid flattened at the poles which is called ellipsoid. The new 
-data are used to defined a best-fitting obtained ellipsoid. The second suggestion is geoid which 
-is really mathematical convenience. There is a uniform mass between gravity stations and ellipsoid, that's 
-effect must be removed with corrections.
-
-Also the level of topography for hilly and valley measurements is important. The gravity amount which is 
-made up by that equal the mass of hill or valley must be added as a terrain correction to have a measurement on a level surface.
-
-Because gravity descend towards the poles the latitude correction must be added to the observed gravity.
-
-Free-air correction that must be added to observation, ignores the effects of material between the measurement 
-and reference level which is positive for above sea-level station and is negative for station below sea-level.
-
-The gravitational acceleration or Bouguer correction is calculated for known thickness (between measurements
-station and ellipsoid) and density (depends on local rock) which must be subtracted from the measurements 
-gravity if station is above sea-level. and the station is below sea-level this must be added.
-
-For this adjustment first of all Tidal correction apply based on tidal table or calculated tidal effect 
-for given time and location of gravity data. The second one is terrain correction. Then Latitude, Free air and
-Bouguer correction have applied. The standard Bouguer density is 2670 $kg/m^3$.
-
-(in the input file, bouguer anomaly is used as residual gravity  which have to be gridded.)
 
 
 
