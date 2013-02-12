@@ -62,6 +62,9 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
     in->Nodes=Nodes2;
     in->Tag=Tag2;
     in->Color=Color2;
+    in->tagsInUse=NULL;
+    in->numTagsInUse=0;
+    
 
     /* this initialization makes sure that data are located on the right processor */
 

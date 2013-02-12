@@ -168,6 +168,7 @@ namespace finley {
             cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Coordinates)");
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
             cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
+        Finley_NodeFile_setTagsInUse(mesh_p->Nodes);
 
         /* read elements */
         if (Finley_noError()) {
@@ -229,6 +230,7 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(Elements_Nodes);
+                   Finley_ElementFile_setTagsInUse(mesh_p->Elements);
                 } /* num_Elements>0 */
             }
         }
@@ -292,6 +294,7 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(FaceElements_Nodes);
+                   Finley_ElementFile_setTagsInUse(mesh_p->FaceElements);
                 } /* num_FaceElements>0 */
             }
         }
@@ -355,6 +358,7 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(ContactElements_Nodes);
+                   Finley_ElementFile_setTagsInUse(mesh_p->ContactElements);
                } /* num_ContactElements>0 */
            }
         }
@@ -413,9 +417,10 @@ namespace finley {
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
-                       mesh_p->Nodes->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
+                       mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
                    }
                    TMPMEMFREE(Points_Nodes);
+                   Finley_ElementFile_setTagsInUse(mesh_p->Points);
                 } /* num_Points>0 */
             }
         }
