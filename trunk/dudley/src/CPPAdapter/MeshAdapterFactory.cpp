@@ -168,6 +168,8 @@ namespace dudley {
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
             cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
 
+        Dudley_NodeFile_setTagsInUse(mesh_p->Nodes);
+
         /* read elements */
         if (Dudley_noError()) {
             mesh_p->Elements=Dudley_ElementFile_alloc((Dudley_ElementTypeId)Elements_TypeId, mpi_info);
@@ -216,6 +218,7 @@ namespace dudley {
                        }
                    }
                    TMPMEMFREE(Elements_Nodes);
+                   Dudley_ElementFile_setTagsInUse(mesh_p->Elements);
                 } /* num_Elements>0 */
             }
         }
@@ -266,6 +269,7 @@ namespace dudley {
                        }
                    }
                    TMPMEMFREE(FaceElements_Nodes);
+                   Dudley_ElementFile_setTagsInUse(mesh_p->FaceElements);
                 } /* num_FaceElements>0 */
             }
         }
@@ -311,9 +315,10 @@ namespace dudley {
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
-                       mesh_p->Nodes->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
+                       mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
                    }
                    TMPMEMFREE(Points_Nodes);
+                   Dudley_ElementFile_setTagsInUse(mesh_p->Points);
                 } /* num_Points>0 */
             }
         }
