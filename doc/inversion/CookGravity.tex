@@ -37,16 +37,18 @@ that \VisIt is the preferred visualization tool for \escript as it can deal with
     
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{QLDWestGravityDataPlot.png}
-\caption{Gravity Anomaly Data in $mgal$ from Western Queensland, Australia.  \AZADEH{ADD CREDITS}}
+\includegraphics[width=0.7\textwidth]{QLDWestGravityDataPlot.png}
+\caption{Gravity Anomaly Data in $mgal$ from Western Queensland, Australia, see file \examplefile{data/QLDWest_grav.nc}.
+ \AZADEH{ADD CREDITS}}
 \label{FIG:P1:GRAV:0}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{density10.png}
-\caption{3D contour plot of density distribution of inversion of data \file{bouguer_anomaly.nc}. Colors
-represent values of density where high values are represented by red and low values are represented by blue.}
+\includegraphics[width=0.7\textwidth]{DenMu1Contour.png}
+\caption{3D contour plot of density distribution of inversion of data \file{data/QLDWest_grav.nc} ($\mu=1.$). Colors
+represent values of density where high values are represented by red and low values are represented by blue.
+ \AZADEH{mu=10?}}
 \label{FIG:P1:GRAV:1}
 \end{figure}
 
@@ -61,7 +63,7 @@ refer to the \escript cook book \cite{ESCRIPTCOOKBOOK} and users guide \cite{ESC
 \downunder. For this part of the manual no \python knowledge is required but it is recommended that 
 users acquire some basic knowledge on \python as they progressing in their work with \downunder.
 
-The following script~\ref{code: garvity1}\footnote{The script is similar to the \examplefile{gravity_netcdf.py} script
+The following script~\ref{code: garvity1}\footnote{The script is similar to the \examplefile{grav_netcdf.py} script
 find in the \escript example file directory.} is a simple example to run an inversion for gravity data: 
 \begin{pyc}
 \
@@ -78,7 +80,7 @@ dom.setFractionalPadding(pad_x=0.2, pad_y=0.2)
 dom.fixDensityBelow(depth= 40. * U.km)
 
 # Step 2: read gravity data
-source0=NetCdfData(NetCdfData.GRAVITY, 'bouguer_anomaly.nc',altitude=0.)
+source0=NetCdfData(NetCdfData.GRAVITY, 'data/QLDWest_grav.nc',altitude=0.)
 dom.addSource(source0)
 
 # Step 3: set up inversion
@@ -102,7 +104,7 @@ to use the extention \file{py} to identify the file as \python script. We will d
 of the script later in this chapter. 
 
 Obviously the inversion needs to be fed with some gravity data. In this case 
-the data are loaded from the file \file{bouguer_anomaly.nc} which available in the \escript example file directory. The data are given 
+the data are loaded from the file \examplefile{data/QLDWest_grav.nc} which available in the \escript example file directory. The data are given 
 in the \netcdf data format for gridded data. After you have copied this file into the directory in which you have
 saved the script \file{grav.py} you can run the program using the command line 
 \begin{verbatim}
@@ -214,7 +216,7 @@ module of \escript, which we have here imported under the name \verb|U| in the s
 physical units and constants, please see~\cite{ESCRIPT} and~\cite{ESCRIPTONLINE}. 
 
 \section{How to Load Gravitational Data}\label{SEC:P1:GRAV:DATA}
-In practice gravity acceleration is measured in various way, for instance by airborne surveys \AZADEH{Telford, W.M., Geldart, L.P., Sheriff, R.E. and Keys, D.A.Applied Geophysics (2nd Edition). Cambridge University Press,1990,P.26.}. \downunder
+In practice gravity acceleration is measured in various way, for instance by airborne surveys~\cite{Telford1990a}. \downunder
 assumes that at input that appropriate processing has been applied,  
 in particular, corrections for  
 \begin{itemize}
@@ -222,11 +224,11 @@ in particular, corrections for
  \item latitude to remove effects from ellipsoidicity of the Earth  
  \item terrain to remove effects from topography  
 \end{itemize}
-have been applied to the data. In general, data prepared in such a form are called Bouguer anomalies \AZADEH{Telford, W.M., Geldart, L.P., Sheriff, R.E. and Keys, D.A.Applied Geophysics (2nd Edition). Cambridge University Press,1990,P.15.}. 
+have been applied to the data. In general, data prepared in such a form are called Bouguer anomalies~\cite{Telford1990a}. 
 
 To load gravity data into  \downunder the data are given on a plane parallel to the surface of the Earth at a constant
 altitude, see diagram~\ref{FIG:P1:GRAV:2}. The data need to be defined over a rectangular grid covering a subregion of 
-the Earth surface (see also remarks under subsection~\ref{SEC:P1:GRAV:REMARK:DATA2}). 
+the Earth surface. 
 The grid is using the geographic coordinate system. Figure~\ref{FIG:P1:GRAV:0} shows an example of such a data set
 from the westen parts of Queensland. The data set covers a rectangular region between $140^o$ and $141^o$ east 
 and between $20^o$ and $21^o$ south. Notice that latitude varies between $-90^o$ to $90^o$ where
@@ -244,60 +246,153 @@ direction, respectively. The grid is spanned of from an origin with spacing
 The gravity data for all grid points need to be given as an \verb|NX| $\times$ \verb|NY| array.  
 If available errors can be associated with the gravity data. The values are given as an \verb|NX| $\times$ \verb|NY| array
 matching the shape of the gravity. 
-The script \examplefile{create_netcdf.py} shows how to create a \netcdf file from these information.
+The \python script \examplefile{create_netcdf.py} shows how to create a file in the \netcdf file format~\cite{NETCDF}.
+see Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES}
+BLA 
+
+\CIHAN{ADD an example how ro use ER Mapper raster files}
+
+In addition to the \netcdf file format 
 
 
 Two data formats are supported, namely ER Mapper Raster File and NetCDF. Here we will
 focus on the NetCDF file format~\cite{NETCDF} and refer to subsection~\ref{SEC:P1:GRAV:REMARK:ERMAPPER} and
 section~\ref{sec:ref:DataSource:ERM} for more information on the ER Mapper Raster format.
 
-===
+BLA
+In script~\ref{code: garvity1} we use the statement 
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'data/QLDWest_grav.nc',altitude=0.)
+\end{verbatim}
+\CIHAN{REWISE} \AZADEH{ADD coarse data 10x10 or so?} 
+to load the gravity data stored in \examplefile{data/QLDWest_grav.nc} in the \netcdf format. 
+Within the script The data set is now available under the name \verb|source0|. We need to link
+the data set to the \verb|DomainBuilder| using 
+\begin{verbatim}
+dom.addSource(source0)
+\end{verbatim}
+At the time the domain for the inversion is build the \verb|DomainBuilder| will use the information about
+origin, extension and spacing along with the other options provided to build an appropriate domain. As at this point a
+flat Earth is assumed geographic coordinates used to represent data in the input file 
+are mapped to a (local) Cartesian coordinate system is applied. By default \CIHAN{WHAT} is used. 
+This transformation can be overwritten    \CIHAN{YES? HOW?}   
+   
+It is possible to added several, possibly overlapping data sets to the same domain:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'data0.nc',altitude=0.)
+source1=NetCdfData(NetCdfData.GRAVITY, 'data1.nc',altitude=0.)
+dom.addSource(source0)
+dom.addSource(source0)
+\end{verbatim}
+\CIHAN{Restrictions? Same Zone? Grid alignment?}
+
+It is important to keep an eye of the complexity of the inversion. A good measure is the total number of cells 
+being used. Assume we have given a data set on $20 \times 20$ grid. As lateral padding is added, lets say 
+we add $20 \%$ to each side of the data, the lateral number of cells is given as $(20 \cdot 1.4) \times (20 \cdot 1.4)$
+which given a value of $1.4^2 \cdot 20^2 \approx 2 \cdot 10^2 = 800$. If we use $20$ cells in vertical direction
+we end up with a total number of $800 \times 20 = 16,000$ cells. This size can easily be handed by a desk top PC.
+If we increase the grid size of the data to $40 \times 40$ grid and
+use $40$ cells in the vertical extend we get a total number of $( 2 \cdot 40^2) \cdot 50 =128,000$ a problem size
+which can still be handled by a desk top computer. If the grid of the data is increased 
+to $200 \times 200$ and we use $200$ cells in the vertical extend the domain will contain $16,000,000$ ($16$ million cells). 
+It will require a bigger computer to run the inversion. This estimate of complexity growth applies to the case where the increase 
+of data grid size is driven by an increase of resolution where it is recommendable to increase the 
+vertical resolution in sink with the lateral resolution. In other cases the expansion of the region of
+interest drives an increase of data grid size the increase of total number of cells is less dramatic as
+the vertical number of cells can remain constant while keeping a balanced resolution in vertical and lateral direction.
 
 
+\section{Set-up Inversion and Run It}
+We are now at step three of script~\ref{code: garvity1} in which the actual inversion is set-up. First 
+we create an empty inversion under the name \verb|inv|:
+\begin{verbatim}
+inv=GravityInversion()
+\end{verbatim}
+As indicated by the name we create an inversion of gravity 
+data\footnote{\verb|GravityInversion| is driver with a simplified interface 
+which is provided for convenience. See Part~\ref{part2} for more details 
+on how to write inversion scripts with more general functionality, e.g. constraints.}. The inversion
+is an iterative process which sequentially calculates updates to the density distribution 
+in the attempt to improve the match of the gravity field produced by the density distribution with the data. 
+Termination of the iteration is controlled by the tolerance to be set by the user:
+\begin{verbatim}
+inv.setSolverTolerance(1e-4)
+\end{verbatim}
+Here we set the tolerance to $10^{-4}$, i.e. the iteration is terminated if the maximum density correction
+is less or equal to $10^{-4}$ relative to the maximum value of estimated density anomaly. In case the 
+iteration is not converging a maximum number of iteration step is set:  
+\begin{verbatim}
+inv.setSolverMaxIterations(50)
+\end{verbatim}
+If the maximum number iteration steps (here $50$ steps) is reached the iteration is aborted and an error message is
+printed. In the case you can try to rerun the inversion with a larger value for the maximum number iteration steps. If even for 
+a very large number of iteration steps no convergence is observed, this is a strong indicator that the inversion has not been
+set up properly. 
 
+The statement 
+\begin{verbatim}
+inv.setup(dom)
+\end{verbatim}
+links the inversion with the domain and the data. At this step - as we are solving a gravity inversion problem -
+only gravitational data attached to the domain \verb|dom| are considered. Internally a cost function $J$
+is created which is minimized during the inversion iteration. It is a combination of
+a measure of the data misfit of the gravity field from the given density distribution and 
+a measure of the smoothness of the density distribution. The latter is often called the regularization term. By default 
+the gradient of density is used as the regularization term, see also section~\ref{SEC:P1:GRAV:REMARK:REG}. 
+Obviously, the result of the inversion is sensitive to the weighting between the misfit and the regularization. This
+trade-off factor $\mu$ for the misfit function is set by the following statement:
+\begin{verbatim}
+inv.getCostFunction().setTradeOffFactorsModels(0.1) 
+\end{verbatim}
+Here we set $\mu=0.1$. The statement \verb|inv.setup| must appear in the script before setting of the trade-off factor.
+A small value for the trade-off factor $\mu$ will give more emphasize to the regularization component 
+and create a smoother density distribution. A large value the trade-off factor $\mu$ will put more emphasize on the
+misfit and typically create a better fit to the data and a rougher density distribution. It is important to keep in mind that
+the regularization reduces noise in the date and in fact gives the problem a unique solution. Consequently 
+the trade-off factor $\mu$ may not be chosen too large in order control the noise on the solution and ensure convergence in
+the iteration process.
 
-\section{Set-up Inversion and run the show}
+We can now actually run the inversion:
+\begin{verbatim}
+rho = inv.run()
+\end{verbatim}
+The answer as calculated during the inversion is returned and can be accessed under the name \verb|rho|. As pointed out earlier
+the iteration process may fail in which case the execution of the script is aborted. 
 
 \section{Take a look}
 
+
 \section{Remarks}
 
-\subsection{Data Patches}\label{SEC:P1:GRAV:REMARK:DATA2}
-\CIHAN{ADD some remarkes in several data sets: add and example, altitude?, restrictions?}
+\subsection{Data With Holes}\label{SEC:P1:GRAV:REMARK:DATAHOLES}
+\CIHAN{ADD some remarkes hol;es in the data, example?}
+
 
 \subsection{ER Mapper Raster File}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
 \CIHAN{ADD an example how ro use ER Mapper raster files}
 
-
-  
-
-==============================
-
-will not make a difference between gravity and gravity anomalies 
-and density and density corrections. We will loosely use the terms density and gravity when referring to corrections and anomalies.  
-
-When using \downunder driver function it is also assumed that the necessary corrections (e.g. for height and topography) are applied 
-before data are fed into the inversion. 
- 
-To solve the inversion problem 
-the earth is modeled using a large number of points - so called nodes - in a rectangular grid.
-Density and susceptibility are estimated on these nodes. 
-There distribution is obtained by minimizing a cost function to fit the observed data and to achieve 
-a desirable smoothness of the distribution of density and susceptibility. 
-
- 
-
-Density and susceptibility as well as the resulting gravity and magnetic field
-are calculated as a distribution across a hexahedron which contains a subsurface region of the Earth filled
-with solid material of unknown density and susceptibility and a surface area filled with air 
-in which the gravity and magnetic field are measured and density and susceptibility are in fact known.
-
-The inversion problem is solved in an iterative manner 
-where an estimation of the density and susceptibility distribution
-is improved through a series of update steps in order to fit the result with the input data. 
-This iteration process is terminated after a stopping criteria is met, e.g. when the estimated 
-termination error reaches a given tolerance.
-
+\subsection{Regularization Term}\label{SEC:P1:GRAV:REMARK:REG}
+\verb|GravityInversion| supports the following form for the regularization:
+\begin{equation}
+\int w^{(0)} \cdot \rho^2 + w^{(1)}_0  \rho_{,0}^2 +  w^{(1)}_1  \rho_{,1}^2 +  w^{(1)}_2  \rho_{,2}^2\; dx   
+\end{equation}
+where the integral is calculated across the entire domain. $\rho$ represents the density distribution 
+where $\rho_{,0}$ $\rho_{,1}$ and $\rho_{,2}$ are the spatial derivatives of $\rho$ with respect to the 
+two lateral and the vertical direction, respectively.  
+$w^{(0)}$, $w^{(1)}_0$, $w^{(1)}_1$ and $w^{(1)}_2$ are weighting factors\footnote{A more general form, e.g. spatially variable values
+for the weighting factors, is supported, see Part~\ref{part2}}. By default it set
+$w^{(0)}=0$, $w^{(1)}_0=w^{(1)}_1=w^{(1)}_2=1$. Other weighting factors can be set in the inversion set-up. For instance to
+set $w^{(0)}=10$,
+$w^{(1)}_0=w^{(1)}_1=0$ and $w^{(1)}_2=100$ use the statement:
+\begin{verbatim}
+inv.setup(dom, w0=10, w1=[0,0,100])
+\end{verbatim}
+It is pointed out that the weighting factors are rescaled in order improve numerical stability. Therefore the relative size of
+the weighting factors is relevant and using  
+\begin{verbatim}
+inv.setup(dom, w0=0.1, w1=[0,0,1])
+\end{verbatim}
+would lead to the same regularization like the statement above.
 
 
 

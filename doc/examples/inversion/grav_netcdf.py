@@ -24,8 +24,8 @@ __url__="https://launchpad.net/escript-finley"
 
 # Import required modules
 from esys.downunder import *
+from esys.weipa import *
 from esys.escript import unitsSI as U
-from esys.weipa import saveSilo
 
 # Set parameters
 DATASET = 'data/QLDWest_grav.nc'
@@ -34,7 +34,7 @@ PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
-mu = 0.1
+MU = 0.1
 
 # Setup and run the inversion
 source=NetCdfData(NetCdfData.GRAVITY, DATASET)
@@ -48,7 +48,7 @@ inv=GravityInversion()
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
 inv.setup(db)
-inv.getCostFunction().setTradeOffFactorsModels(mu)
+inv.getCostFunction().setTradeOffFactorsModels(MU)
 
 print("Starting inversion, please stand by...")
 density = inv.run()
