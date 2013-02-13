@@ -213,7 +213,7 @@ class ErMapperData(DataSource):
         md_dict={}
         section=[]
         for i in range(start, len(metadata)):
-            line=metadata[i]
+            line=metadata[i].strip()
             if line[-6:].strip() == 'Begin':
                 section.append(line[:-6].strip())
             elif line[-4:].strip() == 'End':
