@@ -32,7 +32,7 @@ from esys.escript import ReducedFunction
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
-from esys.ripley import Brick, Rectangle, ripleycpp
+from esys.ripley import ripleycpp
 
 try:
     from scipy.io.netcdf import netcdf_file
@@ -45,26 +45,27 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     Converts one or more longitude,latitude pairs to the corresponding x,y
     coordinates in the Universal Transverse Mercator projection.
 
-    :note: If the ``pyproj`` module is not installed a warning is printed and
-           the input values are scaled by a constant and returned.
+    :note: The ``pyproj`` module is required for this method. If it is not
+           found an exception is raised.
     :note: If `wkt_string` is not given or invalid or the ``gdal`` module is
            not available to convert the string, then the input values are
-           assumed to be given in the Clarke 1866 projection.
+           assumed to be using the Clarke 1866 ellipsoid.
 
     :param lon: longitude value(s)
     :type lon: ``float``, ``list``, ``tuple``, or ``numpy.array``
     :param lat: latitude value(s)
     :type lat: ``float``, ``list``, ``tuple``, or ``numpy.array``
+    :param wkt_string: Well-known text (WKT) string describing the coordinate
+                       system used. The ``gdal`` module is used to convert
+                       the string to the corresponding Proj4 string.
+    :type wkt_string: ``str``
     :rtype: ``numpy.array``
     """
 
-    # not really optimal: if pyproj is not installed we return the input
-    # values scaled by a constant.
     try:
         import pyproj
     except:
-        print("Warning, pyproj not available. Domain extents will be wrong")
-        return np.array(lon)*1000., np.array(lat)*1000.
+        raise ImportError("The pyproj module is required for coordinate conversion. Please install and try again.")
 
     # determine UTM zone from the input data
     zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
@@ -75,8 +76,13 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         p_src = pyproj.Proj(srs.ExportToProj4())
     except:
         p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
-    # we assume southern hemisphere here
-    p_dest = pyproj.Proj('+proj=utm +zone=%d +south +units=m'%zone)
+
+    # check for hemisphere
+    if np.median(np.array(lat)) < 0.:
+        south='+south '
+    else:
+        south=''
+    p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m'%(zone,south))
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
     return x,y
 
@@ -326,109 +332,153 @@ class NetCdfData(DataSource):
     """
     Data Source for gridded netCDF data that use CF/COARDS conventions.
     """
-    def __init__(self, datatype, filename, altitude=0.):
+    def __init__(self, data_type, filename, altitude=0., data_variable=None,
+                       error=None, scale_factor=None, null_value=None):
         """
         :param filename: file name for survey data in netCDF format
         :type filename: ``str``
-        :param datatype: type of data, must be `GRAVITY` or `MAGNETIC`
-        :type datatype: ``int``
+        :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
+        :type data_type: ``int``
         :param altitude: altitude of measurements in meters
         :type altitude: ``float``
+        :param data_variable: name of the netCDF variable that holds the data.
+                              If not provided an attempt is made to determine
+                              the variable and an exception thrown on failure.
+        :type data_variable: ``str``
+        :param error: either the name of the netCDF variable that holds the
+                      uncertainties of the measurements or a constant value
+                      to use for the uncertainties. If a constant value is
+                      supplied, it is scaled by the same factor as the
+                      measurements. If not provided the error is assumed to
+                      be 2 units for all measurements (i.e. 0.2 mGal and 2 nT
+                      for gravity and magnetic, respectively)
+        :type error: ``str`` or ``float``
+        :param scale_factor: the measurements and error values are scaled by
+                             this factor. By default, gravity data is assumed
+                             to be given in 1e-6 m/s^2 (0.1 mGal), while
+                             magnetic data is assumed to be in 1e-9 T (1 nT).
+        :type scale_factor: ``float``
+        :param null_value: value that is used in the file to mark undefined
+                           areas. This information is usually included in the
+                           file.
+        :type null_value: ``float``
         """
         super(NetCdfData,self).__init__()
         self.__filename=filename
-        if not datatype in [self.GRAVITY,self.MAGNETIC]:
+        if not data_type in [self.GRAVITY,self.MAGNETIC]:
             raise ValueError("Invalid value for datatype parameter")
-        self.__datatype=datatype
-        self.__altitude=altitude
-        self.__readMetadata()
+        self.__data_type = data_type
+        self.__altitude = altitude
+        self.__data_name = data_variable
+        self.__scale_factor = scale_factor
+        self.__null_value = null_value
+        self.__readMetadata(error)
 
-    def __readMetadata(self):
+    def __readMetadata(self, error):
         self.logger.debug("Checking Data Source: %s"%self.__filename)
         f=netcdf_file(self.__filename, 'r')
+
+        ### longitude- / X-dimension and variable
         NX=0
         for n in ['lon','longitude','x']:
             if n in f.dimensions:
                 NX=f.dimensions[n]
+                lon_name=n
                 break
         if NX==0:
             raise RuntimeError("Could not determine extents of data")
+
+        # CF/COARDS states that coordinate variables have the same name as
+        # the dimensions
+        if not lon_name in f.variables:
+            raise RuntimeError("Could not determine longitude variable")
+        longitude=f.variables.pop(lon_name)
+
+        ### latitude- / Y-dimension and variable
         NY=0
         for n in ['lat','latitude','y']:
             if n in f.dimensions:
                 NY=f.dimensions[n]
+                lat_name=n
                 break
         if NY==0:
             raise RuntimeError("Could not determine extents of data")
-
-        # find longitude and latitude variables
-        lon_name=None
-        for n in ['lon','longitude']:
-            if n in f.variables:
-                lon_name=n
-                longitude=f.variables.pop(n)
-                break
-        if lon_name is None:
-            raise RuntimeError("Could not determine longitude variable")
-        lat_name=None
-        for n in ['lat','latitude']:
-            if n in f.variables:
-                lat_name=n
-                latitude=f.variables.pop(n)
-                break
-        if lat_name is None:
+        if not lat_name in f.variables:
             raise RuntimeError("Could not determine latitude variable")
+        latitude=f.variables.pop(lat_name)
 
-        # try to figure out data variable name
-        data_name=None
-        if len(f.variables)==1:
-            data_name=f.variables.keys()[0]
+        ### data variable
+        if self.__data_name is not None:
+            try:
+                dims = f.variables[self.__data_name].dimensions
+                if not ((lat_name in dims) and (lon_name in dims)):
+                    raise ValueError("Invalid data variable name supplied")
+            except KeyError:
+                raise ValueError("Invalid data variable name supplied")
         else:
             for n in f.variables.keys():
                 dims=f.variables[n].dimensions
                 if (lat_name in dims) and (lon_name in dims):
-                    data_name=n
+                    self.__data_name=n
                     break
-        if data_name is None:
+        if self.__data_name is None:
             raise RuntimeError("Could not determine data variable")
 
-        # try to determine value for unused data
-        # NaN is always filtered out in ripley
-        if hasattr(f.variables[data_name], 'missing_value'):
-            maskval = float(f.variables[data_name].missing_value)
-        elif hasattr(f.variables[data_name], '_FillValue'):
-            maskval = float(f.variables[data_name]._FillValue)
-        else:
-            self.logger.debug("missing_value attribute not found, using default.")
-            maskval = 99999
+        datavar = f.variables[self.__data_name]
 
-        # try to determine units of data - this is disabled for now
+        ### error value/variable
+        self.__error_name = None
+        if isinstance(error,str):
+            try:
+                dims = f.variables[error].dimensions
+                if not ((lat_name in dims) and (lon_name in dims)):
+                    raise ValueError("Invalid error variable name supplied")
+            except KeyError:
+                raise ValueError("Invalid error variable name supplied")
+            self.__error_name = error
+        elif isinstance(error,float) or isinstance(error,int):
+            self.__error_value = float(error)
+        elif error is None:
+            self.__error_value = 2.
+        else:
+            raise TypeError("Invalid type of error parameter")
+
+        ### mask/null value
+        # note that NaN is always filtered out in ripley
+        if self.__null_value is None:
+            if hasattr(datavar, 'missing_value'):
+                self.__null_value = float(datavar.missing_value)
+            elif hasattr(datavar, '_FillValue'):
+                self.__null_value = float(datavar._FillValue)
+            else:
+                self.logger.debug("Could not determine null value, using default.")
+                self.__null_value = 99999
+
+        # try to determine units of data - this is disabled until we obtain a
+        # file with valid information
         #if hasattr(f.variables[data_name], 'units'):
         #   units=f.variables[data_name].units
-        if self.__datatype == self.GRAVITY:
-            self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
-            self.__scalefactor = 1e-6
-        else:
-            self.logger.info("Assuming magnetic data units are 'nT'.")
-            self.__scalefactor = 1e-9
+
+        ### scale factor
+        if self.__scale_factor is None:
+            if self.__data_type == self.GRAVITY:
+                self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
+                self.__scale_factor = 1e-6
+            else:
+                self.logger.info("Assuming magnetic data units are 'nT'.")
+                self.__scale_factor = 1e-9
 
         # see if there is a wkt string to convert coordinates
         try:
-            wkt_string=f.variables[data_name].esri_pe_string
+            wkt_string=datavar.esri_pe_string
         except:
             wkt_string=None
 
-        # we don't trust actual_range & geospatial_lon_min/max since subset
-        # data does not seem to have these fields updated.
-        # Getting min/max from the arrays is obviously not very efficient but..
-        #lon_range=longitude.actual_range
-        #lat_range=latitude.actual_range
-        #lon_range=[f.geospatial_lon_min,f.geospatial_lon_max]
-        #lat_range=[f.geospatial_lat_min,f.geospatial_lat_max]
+        # actual_range & geospatial_lon_min/max do not always contain correct
+        # values so we have to obtain the min/max in a less efficient way:
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
-        if lon_range[1]<180:
-            lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
+        lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         f.close()
 
@@ -436,8 +486,6 @@ class NetCdfData(DataSource):
         self.__origin=[lon_range[0],lat_range[0]]
         # we are rounding to avoid interpolation issues
         self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in range(2)]
-        self.__data_name=data_name
-        self.__maskval=maskval
 
     def getDataExtents(self):
         """
@@ -446,9 +494,10 @@ class NetCdfData(DataSource):
         return (list(self.__origin), list(self.__nPts), list(self.__delta))
 
     def getDataType(self):
-        return self.__datatype
+        return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
+        FS=ReducedFunction(domain)
         nValues=self.__nPts
         # determine base location of this dataset within the domain
         first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
@@ -456,11 +505,16 @@ class NetCdfData(DataSource):
             first.append(int((self.__altitude-origin[2])/spacing[2]))
             nValues=nValues+[1]
 
-        data=ripleycpp._readNcGrid(self.__filename, self.__data_name,
-                  ReducedFunction(domain), first, nValues, (), self.__maskval)
-        sigma=whereNonZero(data-self.__maskval)
-        data=data*self.__scalefactor
-        sigma=sigma * 2. * self.__scalefactor
+        data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
+                                     first, nValues, (), self.__null_value)
+        if self.__error_name is not None:
+            sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
+                                          FS, first, nValues, (), 0.)
+        else:
+            sigma = self.__error_value * whereNonZero(data-self.__null_value)
+
+        data = data * self.__scale_factor
+        sigma = sigma * self.__scale_factor
         return data, sigma
 
 
