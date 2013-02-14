@@ -13,8 +13,8 @@
 ##############################################################################
 
 """
-This example shows how to create a netCDF input files for inversion with
-inversion in esys.downunder. 
+This example shows how to create a netCDF input file that is suitable for
+inversions in esys.downunder. 
 """
 
 from datetime import datetime
@@ -43,49 +43,60 @@ NY=10
 # Dummy value (for unset areas)
 MISSING=-9999
 
-# Data error
+# Data error (can be constant or variable over the data points)
 SIGMA = 3.
 
-
-
-# The actual data array, must have shape (NY, NX)
-# these are just some random numbers.
-DATA=10*np.random.normal(size=(NY, NX), scale=SIGMA)
-ERROR=np.ones((NY, NX)) * SIGMA
+# The actual data array, must have shape (NY, NX).
+# These are just some random numbers.
+DATA = 10*np.random.normal(size=(NY, NX), scale=SIGMA)
+ERROR = np.ones((NY, NX)) * SIGMA
 
 ##############################################################################
 ###################### Keep everything below this line #######################
 ##############################################################################
+# conventions used in the file
+conventions="CF-1.0, COARDS, Unidata Dataset Discovery v1.0"
 # file log
 history=datetime.now().strftime("%d-%m-%Y")+" created using python script"
 # license
 license="Free to use"
 
-longitude=np.linspace(ORIGIN_X, ORIGIN_X+NX*DELTA_X, NX, endpoint=False)
-latitude=np.linspace(ORIGIN_Y, ORIGIN_Y-NY*DELTA_Y, NY, endpoint=False)
-
+# Create the output file and write a few metadata entries
 o=netcdf_file(FILENAME,'w')
+o.Conventions=conventions
+o.Metadata_Conventions=conventions
 o.history=history
 o.license=license
-o.title=TITLE
 o.summary=SUMMARY
-o.createDimension("latitude", NY)
+o.title=TITLE
+
+# Create longitude dimension and variable
+longitude=np.linspace(ORIGIN_X, ORIGIN_X+NX*DELTA_X, NX, endpoint=False)
 o.createDimension("longitude", NX)
-
-v=o.createVariable("latitude", latitude.dtype, ["latitude"])
-v.data[:]=latitude
-
 v=o.createVariable("longitude", longitude.dtype, ["longitude"])
 v.data[:]=longitude
+v.units="degrees_east"
+v.long_name="Longitude"
 
+# Create latitude dimension and variable
+latitude=np.linspace(ORIGIN_Y, ORIGIN_Y-NY*DELTA_Y, NY, endpoint=False)
+o.createDimension("latitude", NY)
+v=o.createVariable("latitude", latitude.dtype, ["latitude"])
+v.data[:]=latitude
+v.units="degrees_north"
+v.long_name="Latitude"
+
+# Create the main data variable
 v=o.createVariable("data", DATA.dtype, ["latitude","longitude"])
 v.missing_value=MISSING
 v.data[:]=DATA
+v.long_name="Bouguer_anomaly"
 
-# can be omitted.
-v=o.createVariable("error", DATA.dtype, ["latitude","longitude"])
+# Create the error variable (can be omitted)
+v=o.createVariable("error", ERROR.dtype, ["latitude","longitude"])
 v.missing_value=MISSING
 v.data[:]=ERROR
 
+# Close the file
 o.close()
 

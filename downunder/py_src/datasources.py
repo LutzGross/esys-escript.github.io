@@ -59,7 +59,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
                        system used. The ``gdal`` module is used to convert
                        the string to the corresponding Proj4 string.
     :type wkt_string: ``str``
-    :rtype: ``numpy.array``
+    :rtype: ``tuple``
     """
 
     try:
@@ -84,7 +84,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         south=''
     p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m'%(zone,south))
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
-    return x,y
+    return x,y,zone
 
 def simpleGeoMagneticFluxDensity(latitude, longitude=0.):
     """
@@ -156,6 +156,15 @@ class DataSource(object):
         """
         raise NotImplementedError
 
+    def getUtmZone(self):
+        """
+        All data source coordinates are converted to UTM (Universal Transverse
+        Mercator) in order to have useful domain extents. Subclasses should
+        implement this method and return the UTM zone number of the projected
+        coordinates.
+        """
+        raise NotImplementedError
+
     def setSubsamplingFactor(self, f):
         """
         Sets the data subsampling factor (default=1).
@@ -183,10 +192,10 @@ class ErMapperData(DataSource):
     Note that this class only accepts a very specific type of ER Mapper data
     input and will raise an exception if other data is found.
     """
-    def __init__(self, datatype, headerfile, datafile=None, altitude=0.):
+    def __init__(self, data_type, headerfile, datafile=None, altitude=0.):
         """
-        :param datatype: type of data, must be `GRAVITY` or `MAGNETIC`
-        :type datatype: ``int``
+        :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
+        :type data_type: ``int``
         :param headerfile: ER Mapper header file (usually ends in .ers)
         :type headerfile: ``str``
         :param datafile: ER Mapper binary data file name. If not supplied the
@@ -202,7 +211,7 @@ class ErMapperData(DataSource):
         else:
             self.__datafile=datafile
         self.__altitude=altitude
-        self.__datatype=datatype
+        self.__data_type=data_type
         self.__readHeader()
 
     def __readHeader(self):
@@ -279,8 +288,9 @@ class ErMapperData(DataSource):
             except:
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
                 self.logger.warn('GDAL not available or file read error, assuming GDA94 data')
-            originX_UTM,originY_UTM=LatLonToUTM(originX, originY, wkt)
-            op1X,op1Y=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+            originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
+            op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+            self.__utm_zone = zone
             # we are rounding to avoid interpolation issues
             spacingX=np.round(op1X-originX_UTM)
             spacingY=np.round(op1Y-originY_UTM)
@@ -294,7 +304,7 @@ class ErMapperData(DataSource):
         self.__maskval = maskval
         self.__nPts = [NX, NY]
         self.__origin = [originX, originY]
-        if self.__datatype == self.GRAVITY:
+        if self.__data_type == self.GRAVITY:
             self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
             self.__scalefactor = 1e-6
         else:
@@ -308,7 +318,7 @@ class ErMapperData(DataSource):
         return (list(self.__origin), list(self.__nPts), list(self.__delta))
 
     def getDataType(self):
-        return self.__datatype
+        return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
         nValues=self.__nPts
@@ -325,6 +335,9 @@ class ErMapperData(DataSource):
         data = data*self.__scalefactor
         sigma = sigma * 2. * self.__scalefactor
         return data, sigma
+
+    def getUtmZone(self):
+        return self.__utm_zone
 
 
 ##############################################################################
@@ -366,7 +379,7 @@ class NetCdfData(DataSource):
         super(NetCdfData,self).__init__()
         self.__filename=filename
         if not data_type in [self.GRAVITY,self.MAGNETIC]:
-            raise ValueError("Invalid value for datatype parameter")
+            raise ValueError("Invalid value for data_type parameter")
         self.__data_type = data_type
         self.__altitude = altitude
         self.__data_name = data_variable
@@ -468,7 +481,7 @@ class NetCdfData(DataSource):
                 self.logger.info("Assuming magnetic data units are 'nT'.")
                 self.__scale_factor = 1e-9
 
-        # see if there is a wkt string to convert coordinates
+        # see if there is a WKT string to convert coordinates
         try:
             wkt_string=datavar.esri_pe_string
         except:
@@ -478,7 +491,8 @@ class NetCdfData(DataSource):
         # values so we have to obtain the min/max in a less efficient way:
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
-        lon_range,lat_range=LatLonToUTM(lon_range, lat_range, wkt_string)
+        lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+        self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         f.close()
 
@@ -516,6 +530,9 @@ class NetCdfData(DataSource):
         data = data * self.__scale_factor
         sigma = sigma * self.__scale_factor
         return data, sigma
+
+    def getUtmZone(self):
+        return self.__utm_zone
 
 
 ##############################################################################
@@ -603,7 +620,7 @@ class SyntheticDataBase(DataSource):
     problem. Data can be sampled with an offset from the surface at z=0 or
     using the entire subsurface region.
     """
-    def __init__(self, datatype,
+    def __init__(self, data_type,
                  DIM=2,
                  number_of_elements=10,
                  length=1*U.km,
@@ -612,8 +629,8 @@ class SyntheticDataBase(DataSource):
                  full_knowledge=False,
                  spherical=False):
         """
-        :param datatype: data type indicator
-        :type datatype: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
         :param DIM: number of spatial dimensions
         :type DIM: ``int`` (2 or 3)
         :param number_of_elements: lateral number of elements in the region
@@ -633,12 +650,12 @@ class SyntheticDataBase(DataSource):
         :type spherical: ``Bool``
         """
         super(SyntheticDataBase, self).__init__()
-        if not datatype in [self.GRAVITY, self.MAGNETIC]:
-            raise ValueError("Invalid value for datatype parameter")
+        if not data_type in [self.GRAVITY, self.MAGNETIC]:
+            raise ValueError("Invalid value for data_type parameter")
         self.DIM=DIM
         self.number_of_elements=number_of_elements
         self.length=length
-        self.__datatype = datatype
+        self.__data_type = data_type
 
         if spherical:
             raise ValueError("Spherical coordinates are not supported yet")
@@ -647,7 +664,7 @@ class SyntheticDataBase(DataSource):
         self.__data_offset=data_offset
         self.__B_b =None
         # this is for Cartesian (FIXME ?)
-        if datatype  ==  self.MAGNETIC:
+        if data_type  ==  self.MAGNETIC:
             if self.DIM < 3:
                 self.__B_b = np.array([-B_b[2], -B_b[0]])
             else:
@@ -656,6 +673,13 @@ class SyntheticDataBase(DataSource):
         self.__delta = [float(length)/number_of_elements]*(DIM-1)
         self.__nPts = [number_of_elements]*(DIM-1)
         self._reference_data=None
+
+    def getUtmZone(self):
+        """
+        returns a dummy UTM zone since this class does not use real coordinate
+        values.
+        """
+        return 0
 
     def getDataExtents(self):
         """
@@ -667,7 +691,7 @@ class SyntheticDataBase(DataSource):
         """
         returns the data type
         """
-        return self.__datatype
+        return self.__data_type
 
     def getSurveyData(self, domain, origin, number_of_elements, spacing):
         """
@@ -741,7 +765,7 @@ class SyntheticFeatureData(SyntheticDataBase):
     """
     Uses a list of `SourceFeature` objects to define synthetic anomaly data.
     """
-    def __init__(self, datatype,
+    def __init__(self, data_type,
                        features,
                        DIM=2,
                        number_of_elements=10,
@@ -751,8 +775,8 @@ class SyntheticFeatureData(SyntheticDataBase):
                        full_knowledge=False,
                        spherical=False):
         """
-        :param datatype: data type indicator
-        :type datatype: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
         :param features: list of features. It is recommended that the features
                          are located entirely below the surface.
         :type features: ``list`` of `SourceFeature`
@@ -773,7 +797,7 @@ class SyntheticFeatureData(SyntheticDataBase):
         :type spherical: ``Bool``
         """
         super(SyntheticFeatureData,self).__init__(
-                                 datatype=datatype, DIM=DIM,
+                                 data_type=data_type, DIM=DIM,
                                  number_of_elements=number_of_elements,
                                  length=length, B_b=B_b,
                                  data_offset=data_offset,
@@ -805,7 +829,7 @@ class SyntheticData(SyntheticDataBase):
 
     for all x and z<=0. For z>0 rho = 0.
     """
-    def __init__(self, datatype,
+    def __init__(self, data_type,
                        n_length=1,
                        n_depth=1,
                        depth_offset=0.,
@@ -819,8 +843,8 @@ class SyntheticData(SyntheticDataBase):
                        full_knowledge=False,
                        spherical=False):
         """
-        :param datatype: data type indicator
-        :type datatype: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
         :param n_length: number of oscillations in the anomaly data within the
                          observation region
         :type n_length: ``int``
@@ -852,7 +876,7 @@ class SyntheticData(SyntheticDataBase):
         :type spherical: ``Bool``
         """
         super(SyntheticData,self).__init__(
-                                 datatype=datatype, DIM=DIM,
+                                 data_type=data_type, DIM=DIM,
                                  number_of_elements=number_of_elements,
                                  length=length, B_b=B_b,
                                  data_offset=data_offset,
@@ -863,7 +887,7 @@ class SyntheticData(SyntheticDataBase):
         self.depth = depth
         self.depth_offset=depth_offset
         if amplitude == None:
-            if datatype == DataSource.GRAVITY:
+            if data_type == DataSource.GRAVITY:
                 amplitude = 200 *U.kg/U.m**3
             else:
                 amplitude = 0.1

@@ -62,6 +62,9 @@ class DomainBuilder(object):
     def addSource(self, source):
         """
         Adds a survey data provider to the domain builder.
+        An exception is raised if the domain has already been built or if the
+        UTM zone of `source` does not match the UTM zone of sources already
+        added to the domain builder.
 
         :param source: The data source to be added
         :type source: `DataSource`
@@ -70,6 +73,11 @@ class DomainBuilder(object):
             raise RuntimeError("Invalid call to addSource(). Domain is already built.")
         if not isinstance(source, DataSource):
             raise TypeError("source is not a DataSource")
+
+        if len(self.__sources)>0:
+            if self.__sources[0].getUtmZone() != source.getUtmZone():
+                raise ValueError("It is not possible to combine data sources located in different UTM zones at the moment.")
+
         self.__sources.append(source)
 
     def setFractionalPadding(self, pad_x=None, pad_y=None):
