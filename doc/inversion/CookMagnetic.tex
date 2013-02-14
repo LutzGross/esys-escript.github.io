@@ -25,13 +25,13 @@ In comparison to the correction of gravity observation, magnetic survey needs ve
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{sus3Dc.png}
+\includegraphics[width=\textwidth]{QLDMagMu100Contour.png}
 \caption{Contour image through a 3 dimensional magnetic inversion which presents discrepancy in susceptibility. The magnetic of padding area of the model is not defined. Increasing and decreasing in susceptibility are indicated with red color and blue color respectively.}
 \end{figure}
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{sus3D.png}
+\includegraphics[width=\textwidth]{QLDMagMu100Slice.png}
 \caption{Depth image across previous 3D magnetic inversion which presents discrepancy in susceptibility. Diversity in susceptibility are detected with colors and contours.}
 \end{figure}
 
@@ -67,74 +67,74 @@ It is defined in accordance with the noise of data and it has a wide range to se
 After inversion completion, an output file with silo extension is created, which is consisted inversion result. This file shows the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with having a best fit with input data. The inversion carry on to attain an acceptable volume for error in its mathematical function. 
 
 
-\section{Reference}
-
-As some examples there are several inversions which have ran in some synthetic magnetic data sets. Here comparisons between synthetic susceptibility and inverted one are shown.
-
-Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:
-
-\begin{verbatim}
-depth_offset=0.*U.km
-l_data = 100 * U.km
-l_pad=40*U.km
-THICKNESS=20.*U.km
-l_air=6*U.km
-\end{verbatim}
-
-The others assumptions comes with each example.
-
-\begin{enumerate}
-\item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. After inversion the inside of main boundary of our dataset have a desirable simulation.(\ref{fig:mag2D2}) 
-\begin{verbatim}
-n_cells_in_data=100
-n_humbs_h= 2
-n_humbs_v=1
-mu=1.
-\end{verbatim}
-
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{mag2D2.png}
-\caption{2D magnetic inversion up) the reference model  down)the inverted model}
-\label{fig:mag2D2}
-\end{figure}
-
-\item A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
-
-\begin{verbatim}
-n_cells_in_data=100
-n_humbs_h= 4
-n_humbs_v=1
-mu=1.
-\end{verbatim}
-
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{mag2D4.png}
-\caption{2D magnetic model up) the reference model  down)the inverted model}
-\label{fig:mag2D4}
-\end{figure}
-
-\item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. After inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
-
-\begin{verbatim}
-n_humbs_h=4
-n_humbs_v=1
-mu=0.0001
-n_cells_in_data=50
-\end{verbatim}
-
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{mag3D1-ref.png}
-\caption{3D magnetic reference model with one maximum susceptibility}
-\label{fig:mag3D1-ref}
-\end{figure}
-
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{mag3D1.png}
-\caption{3D magnetic inversion result}
-\label{fig:mag3D1}
-\end{figure}
-\end{enumerate}
+% \section{Reference}
+% 
+% As some examples there are several inversions which have ran in some synthetic magnetic data sets. Here comparisons between synthetic susceptibility and inverted one are shown.
+% 
+% Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:
+% 
+% \begin{verbatim}
+% depth_offset=0.*U.km
+% l_data = 100 * U.km
+% l_pad=40*U.km
+% THICKNESS=20.*U.km
+% l_air=6*U.km
+% \end{verbatim}
+% 
+% The others assumptions comes with each example.
+% 
+% \begin{enumerate}
+% \item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. After inversion the inside of main boundary of our dataset have a desirable simulation.(\ref{fig:mag2D2}) 
+% \begin{verbatim}
+% n_cells_in_data=100
+% n_humbs_h= 2
+% n_humbs_v=1
+% mu=1.
+% \end{verbatim}
+% 
+% \begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{mag2D2.png}
+% \caption{2D magnetic inversion up) the reference model  down)the inverted model}
+% \label{fig:mag2D2}
+% \end{figure}
+% 
+% \item A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
+% 
+% \begin{verbatim}
+% n_cells_in_data=100
+% n_humbs_h= 4
+% n_humbs_v=1
+% mu=1.
+% \end{verbatim}
+% 
+% \begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{mag2D4.png}
+% \caption{2D magnetic model up) the reference model  down)the inverted model}
+% \label{fig:mag2D4}
+% \end{figure}
+% 
+% \item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. After inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
+% 
+% \begin{verbatim}
+% n_humbs_h=4
+% n_humbs_v=1
+% mu=0.0001
+% n_cells_in_data=50
+% \end{verbatim}
+% 
+% \begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{mag3D1-ref.png}
+% \caption{3D magnetic reference model with one maximum susceptibility}
+% \label{fig:mag3D1-ref}
+% \end{figure}
+% 
+% \begin{figure}
+% \centering
+% \includegraphics[width=\textwidth]{mag3D1.png}
+% \caption{3D magnetic inversion result}
+% \label{fig:mag3D1}
+% \end{figure}
+% \end{enumerate}
