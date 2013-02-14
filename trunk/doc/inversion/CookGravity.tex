@@ -360,6 +360,65 @@ The answer as calculated during the inversion is returned and can be accessed un
 the iteration process may fail in which case the execution of the script is aborted. 
 
 \section{Take a look}
+In the final step of script~\ref{code: garvity1} the calculated density distribution is written to an external file. 
+A file format which is used by several visualization packages such as \VisIt~\cite{VISIT} and \mayavi~\cite{MAYAVI}
+is the \VTK file format. The result of the inversion which has been named \verb|rho| can be written to the file 
+\file{result.vtu} by adding the statement
+\begin{verbatim}
+saveVTK("result.vtu", density=rho)
+\end{verbatim}
+to the end of script. It is recommendable to use the extension \verb|vtu| for the \VTK result files. 
+The inversion solution is tagged with name \verb|density| in the result file. Notice that any other
+name for the tag could be used. As the format is text based
+\VTK files tend to be very large and take compute time to create in particular when it comes to large numbers of cells ($>10^6$).
+For large problems it is more efficient to use the \SILO file format~\cite{SILO}. \SILO files tend to be smaller 
+and to be faster generated and read. It is the preferred format to import results into the visualization program \VisIt~\cite{VISIT}
+which is particularly suitable for the visualization of large data sets. Inversion results can directly exported into \SILO files using
+the statement:       
+\begin{verbatim}
+saveSilo("result.silo", density=rho)
+\end{verbatim}
+replacing the \verb|saveVTK| statement. Similarly, to \VTK files the result \verb|rho| is tagged 
+with the name \verb|density| so it can be identified in the visualization program. 
+
+\begin{figure}
+	     \begin{center}
+        \subfigure[$\mu=0.1$]{%
+	            \label{fig:first}
+	            \includegraphics[width=0.4\textwidth]{density11.png}
+	        }%
+	        \subfigure[$\mu=1.$]{%
+	           \label{fig:second}
+	           \includegraphics[width=0.4\textwidth]{density11.png}
+	        }\\ %  ------- End of the first row ----------------------%
+	        \subfigure[$\mu=10.$]{%
+	            \label{fig:third}
+	            \includegraphics[width=0.4\textwidth]{density11.png}
+	        }%
+	        \subfigure[$\mu=100.$]{%
+	            \label{fig:fourth}
+	            \includegraphics[width=0.4\textwidth]{density11.png}
+	        }%
+	%
+	    \end{center}
+	   \label{fig:subfigures}
+
+\caption{Depth image across previous 3D gravity inversion which presents discrepancy in density. Diversity in density are detected with colors and contours.}
+\end{figure}
+
+For some analysis tools it is useful to process the results in form of Comma Separated Values (\CSV)~\footnote{see 
+\url{http://en.wikipedia.org/wiki/Comma-separated_values}.}. Such a file can be created using the statement
+\begin{verbatim}
+saveCSV("result.csv", x=rho.getFunctionSpace().getX(), density=rho)
+\end{verbatim}
+in the script. This will create a \file{result.csv} with columns separated by comma. Each row contains the value of the
+density distribution and the three coordinates of the corresponding location in the domain. There is a header specifying 
+the meaning of the corresponding column. \LG{Add example output CSV}. Notice that rows are not written in a particular 
+order and therefore, if necessary, the user has to apply appropriate sorting to the rows.
+Columns are written in alphabetic order of their corresponding tag names. For the interested reader: The 
+statement \verb|rho.getFunctionSpace()| returns the type used to store the density data \verb|rho|.
+The  \verb|getX()| returns the coordinates of the sampling points used for the particular type of
+representation, see~\cite{ESCRIPT} for details. 
 
 
 \section{Remarks}
@@ -397,11 +456,7 @@ would lead to the same regularization like the statement above.
 
 
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{density11.png}
-\caption{Depth image across previous 3D gravity inversion which presents discrepancy in density. Diversity in density are detected with colors and contours.}
-\end{figure}
+
 
 
 
