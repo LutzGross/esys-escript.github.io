@@ -1,0 +1,18 @@
+data:
+
+  data/QLDWest_grav.nc: gravity data, 120x120 cells, Western Queensland, netcdf
+  data/QLDWest_mag.nc: magnetic data, 120x120 cells, Western Queensland, netcdf
+  data/QLDWest_grav_small.nc: gravity data, ??? , Western Queensland, netcdf
+  data/QLDWest_mag_small.nc: magnetic data, ???, Western Queensland, netcdf  
+  data/QLD_grav2.nc:    ???
+  data/QLD_mag2.nc:    ???
+  
+scripts:
+
+   create_netcdf.py: example script to create netcdf file
+   plot_netcdf.py:   script to plot data in netcdf format using matplotlib
+   grav_netcdf.py : inversion from data/QLDWest_grav_small.nc, reads netcdf, creates vtk, silo and csv output
+   mag_netcdf.py : inversion from data/QLDWest_grav_small.nc, reads netcdf, creates vtk, silo and csv output
+   gravmag_netcdf.py: joint inversion from data ???,  reads netcdf, creates vtk, silo and csv output
+   gravmag_nodriver.py: joint inversion from data ??? without joint inversion driver,  reads netcdf, creates vtk, silo and csv output
+   

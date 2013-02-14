@@ -51,11 +51,17 @@ inv.setup(db)
 inv.getCostFunction().setTradeOffFactorsModels(MU)
 
 print("Starting inversion, please stand by...")
-density = inv.run()
+rho = inv.run()
 print("density = %s"%density)
 
-# Save results
+print("Results saved in result0.silo:")
 g, w =  inv.getCostFunction().getForwardModel().getSurvey(0)
-saveSilo("result_gravity.silo", density=density, gravity_anomaly=g[2], gravity_weight=w[2])
-print("Results saved in result_gravity.silo. Good bye.")
+saveSilo("result0.silo", density=rho, gravity_anomaly=g[2], gravity_weight=w[2])
 
+print("Results saved in result0.vtu:")
+saveSilo("result0.vtu", density=rho)
+
+print("Results saved in result0.csv:")
+saveCSV("result0.csv", density=rho, x=rho.getFunctionSpace().getX())
+
+print("All done. Have a nice day.!")
