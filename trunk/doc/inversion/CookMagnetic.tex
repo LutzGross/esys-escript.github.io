@@ -1,10 +1,6 @@
 \chapter{Magnetic Inversion}\label{Chp:cook:magnetic inversion}
-This gives an intro to standard magnetic inversion
-
-
 
 \section{Magnetic Data} 
-
 Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth. Magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not exactly coinciding with geographical one. The lines of magnetic field come out from south magnetic pole and go into north magnetic field. Also poles are shifted continuously.
 
 The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
@@ -36,7 +32,6 @@ In comparison to the correction of gravity observation, magnetic survey needs ve
 \end{figure}
 
 \section{Input File} 
-
 This section of inversion package needs two input files which contain magnetic anomalies and some constraint factors. The firs file includes magnetic anomalies, in which all corrections were applied previously, the location (latitude and longitude) and elevation of the observed place precisely.
 
 The next file which consists some factors to figure the inversion escripts. Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
@@ -63,7 +58,6 @@ It is defined in accordance with the noise of data and it has a wide range to se
 \end{description}
 
 \section{Output File}
-
 After inversion completion, an output file with silo extension is created, which is consisted inversion result. This file shows the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with having a best fit with input data. The inversion carry on to attain an acceptable volume for error in its mathematical function. 
 
 
@@ -138,3 +132,4 @@ After inversion completion, an output file with silo extension is created, which
 % \label{fig:mag3D1}
 % \end{figure}
 % \end{enumerate}
+
