@@ -24,6 +24,9 @@
 %Blue was chosen here because it looks ok when printed
 \usepackage[pdfborder={0 0 0},pdfdisplaydoctitle=true,linktocpage=false, colorlinks=true,linkcolor=blue,citecolor=blue,urlcolor=blue,pdfusetitle]{hyperref}
 
+%  links to figures point to captions without this:
+\usepackage[all]{hypcap}
+
 %Dummy commands for if we ever need to switch off hyperref
 % \providecommand{\pdfbookmark}[3][0]{}
 % \providecommand{\currentpdfbookmark}[2]{}
