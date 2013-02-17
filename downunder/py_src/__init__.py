@@ -26,3 +26,5 @@ from .datasources import *
 from .domainbuilder import *
 from .inversions import *
 from .costfunctions import *
+from .minimizers import *
+
