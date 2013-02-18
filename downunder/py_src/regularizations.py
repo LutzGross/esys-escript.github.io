@@ -25,7 +25,7 @@ __all__ = ['Regularization']
 from costfunctions import CostFunction
 
 import numpy as np
-from esys.escript import ReducedFunction, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
+from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 
@@ -412,9 +412,7 @@ class Regularization(CostFunction):
         DIM=self.getDomain().getDim()
         numLS=self.getNumLevelSets()
 
-        print "WARNING: WRONG FUNCTION SPACE"
-        
-        grad_m=grad(m, ReducedFunction(m.getDomain()))
+        grad_m=grad(m, Function(m.getDomain()))
         if self.__w0 is not None:
             Y = m * self.__w0 * mu
         else:
