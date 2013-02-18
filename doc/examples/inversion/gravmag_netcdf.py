@@ -71,8 +71,8 @@ print("density = %s"%density)
 print("susceptibility = %s"%susceptibility)
 
 # Save results
-g, wg =  inv.getCostFunction().getForwardModel().getSurvey(0)
-B, wB =  inv.getCostFunction().getForwardModel().getSurvey(1)
+g, wg =  inv.getCostFunction().getForwardModel(0).getSurvey()
+B, wB =  inv.getCostFunction().getForwardModel(1).getSurvey()
 saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g[2], gravity_weight=wg[2], susceptibility=susceptibility, magnetic_anomaly=B[2], magnetic_weight=wB[2])
 print("Results saved in result_gravmag.silo. Good bye.")
 
