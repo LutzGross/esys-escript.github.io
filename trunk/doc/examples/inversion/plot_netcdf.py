@@ -19,7 +19,7 @@ import numpy as np
 from scipy.io import netcdf_file
 
 # input filename
-FILENAME='gravity_Mu.nc'
+FILENAME='data/QLDWest_grav.nc'
 
 f=netcdf_file(FILENAME, 'r')
 NY=f.dimensions["latitude"]
