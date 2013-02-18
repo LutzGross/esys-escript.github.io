@@ -700,6 +700,9 @@ protected:
     /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
     void averageData(escript::Data& out, escript::Data& in) const;
 
+    /// copies data in 'in' to 'out' (from reduced to non-reduced fs)
+    void multiplyData(escript::Data& out, escript::Data& in) const;
+
     // this is const because setTags is const
     void updateTagsInUse(int fsType) const;
 
