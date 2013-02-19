@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-"""3D gravity inversion example using netCDF data"""
+"""3D gravity inversion example using ER Mapper data"""
 
 __copyright__="""Copyright (c) 2009-2013 by University of Queensland
 http://www.uq.edu.au
@@ -28,7 +28,7 @@ from esys.escript import unitsSI as U
 from esys.weipa import saveSilo
 
 # Set parameters
-DATASET = 'QLD_west.nc'
+DATASET = 'QLD_west.ers'
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
@@ -37,7 +37,7 @@ n_cells_v = 25
 mu = 10.
 
 # Setup and run the inversion
-source=NetCdfData(DataSource.GRAVITY, DATASET)
+source=ErMapperData(DataSource.GRAVITY, DATASET)
 db=DomainBuilder(dim=3)
 db.addSource(source)
 db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
@@ -55,6 +55,6 @@ print("density = %s"%density)
 
 # Save results
 g, w =  inv.getCostFunction().getForwardModel().getSurvey(0)
-saveSilo("result_gravity_netcdf.silo", density=density, gravity_anomaly=g[2], gravity_weight=w[2])
-print("Results saved in result_gravity_netcdf.silo. Have a nice day.")
+saveSilo("result_gravity_ermapper.silo", density=density, gravity_anomaly=g[2], gravity_weight=w[2])
+print("Results saved in result_gravity_ermapper.silo. Have a nice day.")
 
