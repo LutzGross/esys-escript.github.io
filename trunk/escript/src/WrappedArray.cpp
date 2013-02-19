@@ -17,6 +17,7 @@
 #include "WrappedArray.h"
 #include "DataException.h"
 #if HAVE_NUMPY_H
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
 #endif
 
