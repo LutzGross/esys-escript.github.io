@@ -261,14 +261,14 @@ The statement
 dom.fixDensityBelow(depth=40.*U.km)
 \end{verbatim}
 introduces this constraint.
-As in the case discussed here the depth for zero density is not less than the
-depth of the domain no constraint at depth is applied to the density.
+As in the case discussed here if the depth for zero density is not less than
+the depth of the domain no constraint at depth is applied to the density.
 
 \downunder uses the metre-kilogram-second based International System of Units
 (SI)~\footnote{see \url{http://en.wikipedia.org/wiki/International_System_of_Units}}\index{SI}.
 So all values must be converted to appropriate units.
-This does not apply to geographic coordinates where \downunder uses the degree
-with fractional degree (as a floating point number) to represent longitude and
+This does not apply to geographic coordinates which in \downunder are given in
+fractional degrees (as a floating point number) to represent longitude and
 latitude. In the script we have used the expression
 \begin{verbatim}
 depth=40.*U.km
@@ -301,7 +301,8 @@ to the surface of the Earth at a constant altitude, see
 diagram~\ref{FIG:P1:GRAV:2}.
 The data need to be defined over a rectangular grid covering a subregion of
 the Earth surface.
-The grid uses the geographic coordinate system.
+The grid uses a geographic coordinate system with latitudes and longitudes
+assumed to be given in the Clarke 1866 geodetic system.
 Figure~\ref{FIG:P1:GRAV:0} shows an example of such a data set from the
 western parts of Queensland, Australia.
 The data set covers a rectangular region between $140^o$ and $141^o$ east
