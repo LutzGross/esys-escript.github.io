@@ -20,7 +20,6 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import logging
 import os
 from esys.downunder import *
 from esys.escript import unitsSI as U
@@ -39,11 +38,6 @@ features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
           SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
      x=68*U.km, y=3*U.km, depth=13*U.km, v_inner=200., v_outer=1e-6)]
 
-logger=logging.getLogger('inv')
-logger.setLevel(logging.DEBUG)
-handler=logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-logger.addHandler(handler)
 source=SyntheticFeatureData(DataSource.GRAVITY, DIM=2, number_of_elements=220, length=100*U.km, features=features)
 domainbuilder=DomainBuilder(dim=2)
 domainbuilder.addSource(source)
@@ -57,8 +51,8 @@ inv.setSolverMaxIterations(40)
 inv.getCostFunction().setTradeOffFactorsModels(10)
 
 rho_new=inv.run()
-print "rho_new = ",rho_new
-print "rho =", source.getReferenceProperty()
+print("rho_new = %s"%rho_new)
+print("rho = %s"%source.getReferenceProperty())
 g, chi = inv.getCostFunction().getForwardModel().getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'gravinv'), density=rho_new, density_ref=source.getReferenceProperty(), g=g, chi=chi)
 

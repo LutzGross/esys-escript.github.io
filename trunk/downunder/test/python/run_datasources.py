@@ -30,11 +30,7 @@ from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
 
 # this is mainly to avoid warning messages
-logger=logging.getLogger('inv')
-logger.setLevel(logging.INFO)
-handler=logging.StreamHandler()
-handler.setLevel(logging.INFO)
-logger.addHandler(handler)
+logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
 try:
     TEST_DATA_ROOT=os.environ['DOWNUNDER_TEST_DATA_ROOT']

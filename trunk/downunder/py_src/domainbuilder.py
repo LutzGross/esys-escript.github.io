@@ -108,7 +108,7 @@ class DomainBuilder(object):
             if pad_y > 10:
                 raise ValueError("setFractionalPadding: Argument too large")
         self._padding = [pad_x,pad_y], 'f'
-        
+
     def setPadding(self, pad_x=None, pad_y=None):
         """
         Sets the amount of padding around the dataset in absolute length units.
@@ -161,25 +161,25 @@ class DomainBuilder(object):
             if pad_y < 0:
                 raise ValueError("setElementPadding: Arguments must be non-negative")
         self._padding = [pad_x,pad_y], 'e'
-        
+
     def getGravitySurveys(self):
         """
         Returns a list of gravity surveys, see `getSurveys` for details.
         """
         return self.getSurveys(DataSource.GRAVITY)
-        
+
     def getMagneticSurveys(self):
         """
         Returns a list of magnetic surveys, see `getSurveys` for details.
         """
         return self.getSurveys(DataSource.MAGNETIC)
-        
+
     def fixDensityBelow(self, depth=None):
         """
         Defines the depth below which the density anomaly is set to zero.
         """
         self.__fix_density_below=depth
-        
+
     def fixSusceptibilityBelow(self, depth=None):
         """
         Defines the depth below which the susceptibility anomaly is set to

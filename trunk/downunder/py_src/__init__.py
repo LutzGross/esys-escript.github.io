@@ -28,3 +28,6 @@ from .inversions import *
 from .costfunctions import *
 from .minimizers import *
 
+import logging
+logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
+
