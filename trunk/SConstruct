@@ -565,6 +565,14 @@ else:
     print("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
     env['sympy'] = False
 
+######## pyproj (optional)
+
+if detectModule(env, 'pyproj'):
+    env['pyproj'] = True
+else:
+    print("Cannot import pyproj. Inversions may not work.")
+    env['pyproj'] = False
+
 ######## netCDF (optional)
 
 netcdf_inc_path=''
@@ -763,7 +771,7 @@ else:
     print("          LAPACK:  DISABLED")
 d_list=[]
 e_list=[]
-for i in 'debug','openmp','boomeramg','mkl','netcdf','papi','parmetis','silo','sympy','umfpack','visit','vsl_random':
+for i in 'debug','openmp','boomeramg','mkl','netcdf','papi','parmetis','pyproj','silo','sympy','umfpack','visit','vsl_random':
     if env[i]: e_list.append(i)
     else: d_list.append(i)
 for i in e_list:
