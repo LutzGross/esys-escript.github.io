@@ -20,7 +20,6 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import logging
 import os
 from esys.downunder import *
 from esys.escript import unitsSI as U
@@ -40,11 +39,6 @@ features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
 
 B_b=simpleGeoMagneticFluxDensity(latitude=-28.5)
 
-logger=logging.getLogger('inv')
-logger.setLevel(logging.INFO)
-handler=logging.StreamHandler()
-handler.setLevel(logging.INFO)
-logger.addHandler(handler)
 source=SyntheticFeatureData(DataSource.MAGNETIC, DIM=2, number_of_elements=30, length=100*U.km, features=features, B_b=B_b)
 
 domainbuilder=DomainBuilder(dim=2)

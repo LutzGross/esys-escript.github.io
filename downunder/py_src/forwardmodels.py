@@ -104,14 +104,14 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde.setSymmetryOn()
         z=x[DIM-1]
         self.__pde.setValue(q=whereZero(z-BX[DIM-1][1]))
-        
+
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
-        
+
     def _rescaleWeights(self, scale=1., fetch_factor=1.):
         """
-        rescales the weights such that 
-        
+        rescales the weights such that
+
         *sum_s integrate( ( weight_i[s] *data_i[s]) (weight_j[s]*1/L_j) * L**2 * fetch_factor )=scale*
         """
         if not scale > 0:
@@ -124,7 +124,7 @@ class ForwardModelWithPotential(ForwardModel):
             for s in xrange(len(self.__weight)):  self.__weight[s]*=A
         else:
             raise ValueError("Rescaling of weights failed.")
-	  
+
     def useSphericalCoordinates(self):
         """
         Returns ``True`` if spherical coordinates are used.
@@ -210,20 +210,20 @@ class GravityModel(ForwardModelWithPotential):
 
         self.__G = gravity_constant
         self.getPDE().setValue(A=kronecker(self.getDomain()))
-    
+
     def rescaleWeights(self, scale=1., rho_scale=1.):
         """
-        rescales the weights such that 
-        
+        rescales the weights such that
+
         *sum_s integrate( ( w_i[s] *g_i[s]) (w_j[s]*1/L_j) * L**2 * 4*pi*G*rho_scale )=scale*
-        
+
         :param scale: scale of data weighting factors
         :type scale: positive ``float``
         :param rho_scale: scale of density.
-        :type rho_scale: ``Scalar`` 
+        :type rho_scale: ``Scalar``
         """
         self._rescaleWeights(scale, 4.*PI*self.__G*rho_scale)
-	  
+
     def getArguments(self, rho):
         """
         Returns precomputed values shared by `getValue()` and `getGradient()`.
@@ -311,20 +311,20 @@ class MagneticModel(ForwardModelWithPotential):
         super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, tol)
         self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
-        
+
     def rescaleWeights(self, scale=1., k_scale=1.):
         """
-        rescales the weights such that 
-        
+        rescales the weights such that
+
         *sum_s integrate( ( w_i[s] *B_i[s]) (w_j[s]*1/L_j) * L**2 * (background_magnetic_flux_density_j[s]*1/L_j) * k_scale )=scale*
-        
+
         :param scale: scale of data weighting factors
         :type scale: positive ``float``
         :param k_scale: scale of susceptibility.
-        :type k_scale: ``Scalar``  
+        :type k_scale: ``Scalar``
         """
         self._rescaleWeights(scale, inner(self.__background_magnetic_flux_density,1/self.edge_lengths ) * k_scale)
-        
+
     def getArguments(self, k):
         """
         Returns precomputed values shared by `getValue()` and `getGradient()`.

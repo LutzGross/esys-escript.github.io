@@ -82,8 +82,8 @@ class Regularization(CostFunction):
         :param tol: tolerance when solving the PDE for the inverse of the
                     Hessian Operator
         :type tol: positive ``float``
-        
-        :param scale: weighting factor for level set function variation terms. If not set one is used. 
+
+        :param scale: weighting factor for level set function variation terms. If not set one is used.
         :type scale: ``Scalar`` if ``numLevelSets`` == 1 or `Data` object of shape
                   (``numLevelSets`` ,) if ``numLevelSets`` > 1
         :param scale_c: scale for the cross gradient terms. If not set
@@ -91,7 +91,6 @@ class Regularization(CostFunction):
                    only. Only values ``scale_c[l,k]`` in the lower triangle (l<k)
                    are used.
         :type scale_c: `Data` object of shape (``numLevelSets`` , ``numLevelSets``)
-        
 
         """
         if w0 == None and w1==None:
@@ -102,7 +101,7 @@ class Regularization(CostFunction):
         self.__domain=domain
         DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
-        
+
         self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
@@ -110,8 +109,8 @@ class Regularization(CostFunction):
             self.__pde.setValue(q=location_of_set_m)
         except IllegalCoefficientValue:
             raise ValueError("Unable to set location of fixed level set function.")
-          
-        # =========== check the shape of the scales: =================================
+
+        # =========== check the shape of the scales: ========================
         if scale is None:
             if numLevelSets == 1 :
                scale = 1.
@@ -131,7 +130,7 @@ class Regularization(CostFunction):
                         raise ValueError("All value for scale must be positive.")
                  else:
                    raise ValueError("Unexpected shape %s for scale."%scale.shape)
-        
+
         if scale_c is None or numLevelSets < 2:
             scale_c = np.ones((numLevelSets,numLevelSets))
         else:
@@ -141,7 +140,7 @@ class Regularization(CostFunction):
                         raise ValueError("All values in the lower triangle of scale_c must be positive.")
             else:
                  raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
-        # ===== check the shape of the weights: ============================================
+        # ===== check the shape of the weights: =============================
         if w0 is not None:
               w0 = interpolate(w0,self.__pde.getFunctionSpaceForCoefficient('D'))
               s0=w0.getShape()
@@ -150,7 +149,8 @@ class Regularization(CostFunction):
                       raise ValueError("Unexpected shape %s for weight w0."%s0)
               else:
                    if not s0 == (numLevelSets,):
-                      raise ValueError("Unexpected shape %s for weight w0."%s0) 
+                      raise ValueError("Unexpected shape %s for weight w0."%s0)
+
         if not w1 is None:
               w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
               s1=w1.getShape()
@@ -159,18 +159,19 @@ class Regularization(CostFunction):
                       raise ValueError("Unexpected shape %s for weight w1."%s1)
               else:
                    if not s1 == (numLevelSets,DIM):
-                      raise ValueError("Unexpected shape %s for weight w1."%s1) 
-        if numLevelSets == 1 :
+                      raise ValueError("Unexpected shape %s for weight w1."%s1)
+
+        if numLevelSets == 1:
              wc=None
         else:
              wc = interpolate(wc,self.__pde.getFunctionSpaceForCoefficient('A'))
              sc=wc.getShape()
              if not sc == (numLevelSets, numLevelSets):
                 raise ValueError("Unexpected shape %s for weight wc."%(sc,))
-        # ============= now we rescale weights: ======================================
+        # ============= now we rescale weights: =============================
         L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
         L4=1/np.sum(1/L2s)**2
-        if numLevelSets == 1 : 
+        if numLevelSets == 1:
             A=0
             if w0 is not None:
                 A = integrate(w0)
@@ -183,7 +184,7 @@ class Regularization(CostFunction):
                 if w1 is not None:
                      w1*=f
             else:
-               raise ValueError("Non-positive weighting factor detected.") 
+               raise ValueError("Non-positive weighting factor detected.")
         else:
 
              for k in xrange(numLevelSets):
@@ -199,23 +200,23 @@ class Regularization(CostFunction):
                       if w1 is not None:
                          w1[k,:]*=f
                  else:
-                   raise ValueError("Non-positive weighting factor for level set component %d detected."%k) 
-                 
+                   raise ValueError("Non-positive weighting factor for level set component %d detected."%k)
+
                  # and now the cross-gradient:
                  if wc is not None:
-                     for l in xrange(k):   
+                     for l in xrange(k):
                         A = integrate(wc[l,k])/L4
                         if A > 0:
                            f = scale_c[l,k]/A
                            wc[l,k]*=f
 #                        else:
-#                          raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k)) 
-                    
+#                          raise ValueError("Non-positive weighting factor for cross-gradient level set components %d and %d detected."%(l,k))
+
         self.__w0=w0
         self.__w1=w1
         self.__wc=wc
 
-        self.__pde_is_set=False        
+        self.__pde_is_set=False
         if self.__numLevelSets > 1:
             self.__useDiagonalHessianApproximation=useDiagonalHessianApproximation
         else:
@@ -225,7 +226,7 @@ class Regularization(CostFunction):
         self.__num_tradeoff_factors=numLevelSets+((numLevelSets-1)*numLevelSets)/2
         self.setTradeOffFactors()
         self.__vol_d=vol(self.__domain)
-        
+
     def getDomain(self):
         """
         returns the domain of the regularization term
@@ -249,7 +250,7 @@ class Regularization(CostFunction):
         :rtype: `LinearPDE`
         """
         return self.__pde
-    
+
     def getDualProduct(self, m, r):
         """
         returns the dual product of a gradient represented by X=r[1] and Y=r[0]
@@ -276,9 +277,9 @@ class Regularization(CostFunction):
     def setTradeOffFactors(self, mu=None):
         """
         sets the trade-off factors for the level-set variation and the cross-gradient
-        
-        :param mu: new values for the trade-off factors where values mu[:numLevelSets] are the 
-                   trade-off factors for the level-set variation and the remaining values for 
+
+        :param mu: new values for the trade-off factors where values mu[:numLevelSets] are the
+                   trade-off factors for the level-set variation and the remaining values for
                    the cross-gradient part with mu_c[l,k]=mu[numLevelSets+l+((k-1)*k)/2] (l<k).
                    If no values for mu is given ones are used. Values must be positive.
         :type mu: ``list`` of ``float`` or ```numpy.array```
@@ -295,17 +296,17 @@ class Regularization(CostFunction):
             mu_c2=np.zeros((numLS,numLS))
             for k in xrange(numLS):
                for l in xrange(k):
-                   mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2] 
+                   mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2]
             self.setTradeOffFactorsForCrossGradient(mu_c2)
         elif mu.shape == () and numLS ==1:
             self.setTradeOffFactorsForVariation(mu)
         else:
-           raise ValueError("Unexpected shape %s for mu."%(mu.shape,)) 
-           
+           raise ValueError("Unexpected shape %s for mu."%(mu.shape,))
+
     def setTradeOffFactorsForVariation(self, mu=None):
          """
          sets the trade-off factors for the level-set variation part
-         
+
          :param mu:  new values for the trade-off factors. Values must be positive.
          :type mu: ``float``, ``list`` of ``float`` or ```numpy.array```
          """
@@ -318,13 +319,13 @@ class Regularization(CostFunction):
 
          mu=np.asarray(mu)
          if numLS == 1:
-           if mu.shape == (1,): mu=mu[0] 
+           if mu.shape == (1,): mu=mu[0]
            if mu.shape == ():
               if mu > 0:
                  self.__mu= mu
                  self._new_mu=True
               else:
-                 raise ValueError("Value for trade-off factor must be positive.") 
+                 raise ValueError("Value for trade-off factor must be positive.")
            else:
               raise ValueError("Unexpected shape %s for mu."%mu.shape)
          else:
@@ -335,24 +336,23 @@ class Regularization(CostFunction):
                else:
                    raise ValueError("All value for mu must be positive.")
            else:
-               raise ValueError("Unexpected shape %s for trade-off factor."%mu.shape) 
+               raise ValueError("Unexpected shape %s for trade-off factor."%mu.shape)
 
     def setTradeOffFactorsForCrossGradient(self, mu_c=None):
         """
         sets the trade-off factors for the cross-gradient terms
-         
+
         :param mu_c: new values for the trade-off factors for the cross-gradient
                      terms. Values must be positive. If no value is given ones
                      are used. Onky value mu_c[l,k] for l<k are used.
         :type mu_c: ``float``, ``list`` of ``float`` or ``numpy.array``
-         
         """
         numLS=self.getNumLevelSets()
         if mu_c is None or numLS < 2:
             self.__mu_c = np.ones((numLS,numLS))
         if isinstance(mu_c, float) or isinstance(mu_c, int):
             self.__mu_c = np.zeros((numLS,numLS))
-            self.__mu_c[:,:]=mu_c 
+            self.__mu_c[:,:]=mu_c
         else:
             mu_c=np.asarray(mu_c)
             if mu_c.shape == (numLS,numLS):
@@ -363,12 +363,11 @@ class Regularization(CostFunction):
                      self._new_mu=True
             else:
                  raise ValueError("Unexpected shape %s for mu."%mu_c.shape)
-    
+
     def getArguments(self, m):
         """
         """
         return ( grad(m),)
-                 
 
     def getValue(self, m, grad_m):
         """
@@ -391,7 +390,7 @@ class Regularization(CostFunction):
             else:
                 for k in xrange(numLS):
                     A+=mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
-                    
+
         if numLS > 1:
             for k in xrange(numLS):
                 gk=grad_m[k,:]
@@ -430,9 +429,9 @@ class Regularization(CostFunction):
                     X[k,:]*=mu[k]
         else:
             X = Data(0, grad_m.getShape(), grad_m.getFunctionSpace())
-        
+
         # cross gradient terms:
-        if numLS > 1:     
+        if numLS > 1:
           for  k in xrange(numLS):
              grad_m_k=grad_m[k,:]
              l2_grad_m_k = length(grad_m_k)**2
@@ -443,10 +442,8 @@ class Regularization(CostFunction):
                f=  mu_c[l,k]* self.__wc[l,k]
                X[l,:] += f * ( l2_grad_m_l *  grad_m_l - grad_m_lk * grad_m_k )
                X[k,:] += f * ( l2_grad_m_k *  grad_m_k - grad_m_lk * grad_m_l )
-        
+
         return ArithmeticTuple(Y, X)
-
-
 
     def getInverseHessianApproximation(self, m, r, grad_m):
         """
@@ -475,7 +472,7 @@ class Regularization(CostFunction):
                else:
                    for k in xrange(numLS):
                         for i in xrange(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
-                        
+
             if numLS > 1:
                for  k in xrange(numLS):
                  grad_m_k=grad_m[k,:]
@@ -489,7 +486,7 @@ class Regularization(CostFunction):
                     o_kl = outer(grad_m_k, grad_m_l)
                     o_ll=outer(grad_m_l, grad_m_l)
                     f=  mu_c[l,k]* self.__wc[l,k]
-                    
+
                     A[l,:,l,:] += f * ( l2_grad_m_k * kronecker(DIM) - o_kk )
                     A[l,:,k,:] += f * ( 2 * o_lk -   o_kl - i_lk * kronecker(DIM) )
                     A[k,:,l,:] += f * ( 2 * o_kl -   o_lk - i_lk * kronecker(DIM) )
@@ -512,7 +509,7 @@ class Regularization(CostFunction):
         """
         if not self.__useDiagonalHessianApproximation:
             self._update_Hessian=True
-            
+
     def getNorm(self, m):
         """
         returns the norm of ``m``
@@ -522,3 +519,4 @@ class Regularization(CostFunction):
         :rtype: ``float``
         """
         return sqrt(integrate(length(m)**2)/self.__vol_d)
+

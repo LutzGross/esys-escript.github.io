@@ -22,7 +22,6 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import logging
 import os
 from esys.downunder import *
 from esys.escript import unitsSI as U
@@ -32,11 +31,6 @@ try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
 except KeyError:
     WORKDIR='.'
-logger=logging.getLogger('inv')
-logger.setLevel(logging.DEBUG)
-handler=logging.StreamHandler()
-handler.setLevel(logging.DEBUG)
-logger.addHandler(handler)
 
 # interesting parameters:
 depth_offset = 10. * U.km
