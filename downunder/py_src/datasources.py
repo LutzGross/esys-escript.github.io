@@ -65,7 +65,9 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     try:
         import pyproj
     except:
-        raise ImportError("The pyproj module is required for coordinate conversion. Please install and try again.")
+        raise ImportError("In order to perform coordinate transformations on "
+        "the data you are using the 'pyproj' Python module is required but "
+        "was not found. Please install the module and try again.")
 
     # determine UTM zone from the input data
     zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
