@@ -16,10 +16,14 @@
 
 from matplotlib import pyplot as plt
 import numpy as np
+import sys
 from scipy.io import netcdf_file
 
 # input filename
-FILENAME='data/QLDWest_grav.nc'
+if len(sys.argv)>1:
+    FILENAME=sys.argv[1]
+else:
+    FILENAME='data/QLDWest_grav.nc'
 
 f=netcdf_file(FILENAME, 'r')
 NY=f.dimensions["latitude"]
@@ -35,7 +39,7 @@ x_label=longitude.long_name
 x_units=longitude.units
 longitude=longitude[:]
 
-DATA=f.variables["onshore_and_offshore_gravity_anomaly_geodetic"]
+DATA=f.variables["onshore_only_Bouguer_geodetic"]
 data_label=DATA.long_name
 UNITS=DATA.units
 DATA=DATA[:]
@@ -50,7 +54,10 @@ ll=2*latitude[-1]-latitude[-2]
 latitude=np.resize(latitude, len(latitude)+1)
 latitude[-1]=ll
 
+lx=longitude[-1]-longitude[0]
+ly=latitude[-1]-latitude[0]
 x,y=np.meshgrid(longitude, latitude)
+plt.figure(figsize=(6*lx/ly+1, 6), dpi=100)
 plt.pcolor(x, y, DATA)
 locs,_=plt.xticks()
 plt.xticks(locs, map(lambda x:"%g"%x, locs))
