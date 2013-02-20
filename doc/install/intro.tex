@@ -44,6 +44,12 @@ See the site \url{https://answers.launchpad.net/escript-finley} for online help.
 This means among other things that you can no longer build escript using the system Python from OSX Leopard.
  \item New [optional] symbolic support requires SymPy.   \\- This is not in the support bundle, so these features will be unavailable in the
 stand-alone bundle unless you install SymPy yourself.
+ \item This release contains the \module{downunder} inversion module. Certain operations in this module \emph{may} require either 
+\module{pyproj}\footnote{python-pyproj in Debian and Ubuntu} or \module{gdal}\footnote{python-gdal in Debian and Ubuntu}.
+Escript will warn you if you try to do something which requires either package.
+
+Please note however, that these packages are not included in the support bundle so if you do require them you will need to install
+them yourself.
 \end{itemize}
 
 % \noindent If you choose to compile from source your options are to

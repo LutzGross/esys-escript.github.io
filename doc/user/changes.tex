@@ -18,7 +18,15 @@
 \subsection*{3.3 to 3.3.1}
 \begin{itemize}
  \item Source packages for Debian and Ubuntu can now be made directly by dpkg-source from the source tree\footnote{For this to work, you will need to place a file called \texttt{svn_version} containing the revision number in the root of the source.}.
- \item non-uniform 1D interpolation (see Section~\ref{sec:interpolation}.
+ \item non-uniform 1D interpolation (see Section~\ref{sec:interpolation}).
+ \item The minimum version of python required for escript is now $2.6$.
+ \item The \module{downunder} inversion module is included.
+\begin{itemize}
+ \item The documentation includes an inversion cookbook to get you started.
+ \item Most operations are possible with \escript's existing dependencies but some \emph{may} require \module{pyproj} or \module{gdal}
+  but \escript will let you know if that happens.
+\end{itemize}
+ 
 \end{itemize}
 
 
