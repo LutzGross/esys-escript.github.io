@@ -1380,7 +1380,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             coeff=mypde.getCoefficient(coeff_name)
             self.assertEqual((coeff.getShape(),coeff.getFunctionSpace(), mypde.getNumEquations()),((),FS(self.domain),1))
             mypde.resetRightHandSideCoefficients()
-            self.assertFalse(mypde.getCoefficient(coeff_name).isEmpty(),"%s is empty after reset of right hand side coefficients"%coeff_name)
+            self.assertTrue(mypde.getCoefficient(coeff_name).isEmpty(),"%s is not empty after reset of right hand side coefficients"%coeff_name)
 
     #
     #  set coefficients for systems:
