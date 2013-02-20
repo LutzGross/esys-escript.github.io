@@ -194,7 +194,8 @@ class ErMapperData(DataSource):
     Note that this class only accepts a very specific type of ER Mapper data
     input and will raise an exception if other data is found.
     """
-    def __init__(self, data_type, headerfile, datafile=None, altitude=0.):
+    def __init__(self, data_type, headerfile, datafile=None, altitude=0.,
+                 error=None, scale_factor=None, null_value=None):
         """
         :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
         :type data_type: ``int``
@@ -205,8 +206,23 @@ class ErMapperData(DataSource):
         :type datafile: ``str``
         :param altitude: altitude of measurements above ground in meters
         :type altitude: ``float``
+        :param error: constant value to use for the data uncertainties.
+                      If a value is supplied, it is scaled by the same factor
+                      as the measurements. If not provided the error is
+                      assumed to be 2 units for all measurements (i.e. 0.2
+                      mGal and 2 nT for gravity and magnetic, respectively)
+        :type error: ``float``
+        :param scale_factor: the measurements and error values are scaled by
+                             this factor. By default, gravity data is assumed
+                             to be given in 1e-6 m/s^2 (0.1 mGal), while
+                             magnetic data is assumed to be in 1e-9 T (1 nT).
+        :type scale_factor: ``float``
+        :param null_value: value that is used in the file to mark undefined
+                           areas. This information is usually included in the
+                           file.
+        :type null_value: ``float``
         """
-        super(ErMapperData,self).__init__()
+        super(ErMapperData, self).__init__()
         self.__headerfile=headerfile
         if datafile is None:
             self.__datafile=headerfile[:-4]
@@ -214,19 +230,22 @@ class ErMapperData(DataSource):
             self.__datafile=datafile
         self.__altitude=altitude
         self.__data_type=data_type
+        self.__scale_factor = scale_factor
+        self.__null_value = null_value
+        self.__error_value = error
         self.__readHeader()
 
     def __readHeader(self):
         self.logger.debug("Checking Data Source: %s (header: %s)"%(self.__datafile, self.__headerfile))
         metadata=open(self.__headerfile, 'r').readlines()
-        # parse metadata
         start=-1
         for i in range(len(metadata)):
             if metadata[i].strip() == 'DatasetHeader Begin':
                 start=i+1
         if start==-1:
-            raise RuntimeError('Invalid ERS file (DatasetHeader not found)')
+            raise RuntimeError('Invalid ER Mapper header file ("DatasetHeader" not found)')
 
+        # parse header file filling dictionary of found values
         md_dict={}
         section=[]
         for i in range(start, len(metadata)):
@@ -244,6 +263,19 @@ class ErMapperData(DataSource):
                     fullkey='.'.join(section+[key])
                     md_dict[fullkey]=value
 
+        # check that that the data format/type is supported
+        try:
+            if md_dict['ByteOrder'] != 'LSBFirst':
+                raise RuntimeError('Unsupported byte order '+md_dict['ByteOrder'])
+        except KeyError:
+            self.logger.warn("Byte order not specified. Assuming LSB first.")
+
+        try:
+            if md_dict['DataType'] != 'Raster':
+                raise RuntimeError('Unsupported data type '+md_dict['DataType'])
+        except KeyError:
+            self.logger.warn("Data type not specified. Assuming raster data.")
+
         try:
             if md_dict['RasterInfo.CellType'] != 'IEEE4ByteReal':
                 raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
@@ -251,15 +283,29 @@ class ErMapperData(DataSource):
             self.logger.warn("Cell type not specified. Assuming IEEE4ByteReal.")
 
         try:
+            fileOffset = int(md_dict['HeaderOffset'])
+        except:
+            fileOffset = 0
+        if fileOffset > 0:
+            raise RuntimeError("ER Mapper data with header offset >0 not supported.")
+
+        # now extract required information
+        try:
             NX = int(md_dict['RasterInfo.NrOfCellsPerLine'])
             NY = int(md_dict['RasterInfo.NrOfLines'])
         except:
             raise RuntimeError("Could not determine extents of data")
 
-        try:
-            maskval = float(md_dict['RasterInfo.NullCellValue'])
-        except:
-            maskval = 99999
+        ### mask/null value
+        # note that NaN is always filtered out in ripley
+        if self.__null_value is None:
+            try:
+                self.__null_value = float(md_dict['RasterInfo.NullCellValue'])
+            except:
+                self.logger.debug("Could not determine null value, using default.")
+                self.__null_value = 99999
+        elif not isinstance(self.__null_value,float) and not isinstance(self.__null_value,int):
+            raise TypeError("Invalid type of null_value parameter")
 
         try:
             spacingX = float(md_dict['RasterInfo.CellInfo.Xdimension'])
@@ -299,19 +345,28 @@ class ErMapperData(DataSource):
             originX=np.round(originX_UTM)
             originY=np.round(originY_UTM)
 
-        # data sets have origin in top-left corner so y runs top-down
         self.__dataorigin=[originX, originY]
+        # data sets have origin in top-left corner so y runs top-down and
+        # we need to flip accordingly
         originY-=(NY-1)*spacingY
         self.__delta = [spacingX, spacingY]
-        self.__maskval = maskval
         self.__nPts = [NX, NY]
         self.__origin = [originX, originY]
-        if self.__data_type == self.GRAVITY:
-            self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
-            self.__scalefactor = 1e-6
-        else:
-            self.logger.info("Assuming magnetic data units are 'nT'.")
-            self.__scalefactor = 1e-9
+        ### scale factor
+        if self.__scale_factor is None:
+            if self.__data_type == self.GRAVITY:
+                self.logger.info("Assuming gravity data scale is 1e-6 m/s^2.")
+                self.__scale_factor = 1e-6
+            else:
+                self.logger.info("Assuming magnetic data units are 'nT'.")
+                self.__scale_factor = 1e-9
+
+        ### error value
+        if self.__error_value is None:
+            self.__error_value = 2.
+        elif not isinstance(self.__error_value,float) and not isinstance(self.__error_value,int):
+            raise TypeError("Invalid type of error parameter")
+
 
     def getDataExtents(self):
         """
@@ -332,10 +387,11 @@ class ErMapperData(DataSource):
 
         data=ripleycpp._readBinaryGrid(self.__datafile,
                 ReducedFunction(domain),
-                first, nValues, (), self.__maskval)
-        sigma = whereNonZero(data-self.__maskval)
-        data = data*self.__scalefactor
-        sigma = sigma * 2. * self.__scalefactor
+                first, nValues, (), self.__null_value)
+        sigma = self.__error_value * whereNonZero(data-self.__null_value)
+
+        data = data * self.__scale_factor
+        sigma = sigma * self.__scale_factor
         return data, sigma
 
     def getUtmZone(self):
@@ -468,6 +524,8 @@ class NetCdfData(DataSource):
             else:
                 self.logger.debug("Could not determine null value, using default.")
                 self.__null_value = 99999
+        elif not isinstance(self.__null_value,float) and not isinstance(self.__null_value,int):
+            raise TypeError("Invalid type of null_value parameter")
 
         # try to determine units of data - this is disabled until we obtain a
         # file with valid information
