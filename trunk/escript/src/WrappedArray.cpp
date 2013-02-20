@@ -17,6 +17,7 @@
 #include "WrappedArray.h"
 #include "DataException.h"
 #if HAVE_NUMPY_H
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include <numpy/ndarrayobject.h>
 #endif
 
@@ -127,7 +128,11 @@ WrappedArray::WrappedArray(const boost::python::object& obj_in)
 		{
 			PyObject* cobj=(PyObject*)o.ptr();
 			PyArrayInterface* arr=(PyArrayInterface*)PyCObject_AsVoidPtr(cobj);
-			if (arr->two==2 && arr->flags&NPY_IN_ARRAY && arr->flags&NPY_NOTSWAPPED)
+#ifndef NPY_1_7_API_VERSION
+  #define NPY_ARRAY_IN_ARRAY NPY_IN_ARRAY
+  #define NPY_ARRAY_NOTSWAPPED NPY_NOTSWAPPED
+#endif
+			if (arr->two==2 && arr->flags&NPY_ARRAY_IN_ARRAY && arr->flags&NPY_ARRAY_NOTSWAPPED)
 			{
 				std::vector<int> strides;
 				// convert #bytes to #elements
