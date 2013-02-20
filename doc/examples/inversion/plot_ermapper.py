@@ -16,10 +16,14 @@
 
 from matplotlib import pyplot as plt
 import numpy as np
+import sys
 from scipy.io import netcdf_file
 
 # input filename
-FILENAME='data/QLDWest_grav.ers'
+if len(sys.argv)>1:
+    FILENAME=sys.argv[1]
+else:
+    FILENAME='data/QLDWest_grav.ers'
 
 
 if FILENAME[-4:]=='.ers': FILENAME=FILENAME[:-4]
@@ -88,13 +92,13 @@ except:
 f=open(FILENAME,'r')
 
 longitude=np.linspace(originX, originX+spacingX*NX, NX, endpoint=True)
-latitude=np.linspace(originY, originY+spacingY*NY, NY, endpoint=True)
+latitude=np.linspace(originY, originY-spacingY*NY, NY, endpoint=True)
 DATA=np.fromfile(FILENAME, dtype=np.float32).reshape(NY, NX)
 # flip data in y-direction since ER Mapper stores data bottom up
 DATA=np.flipud(DATA)
 
 x,y=np.meshgrid(longitude, latitude)
-plt.figure(figsize=(6*(spacingX*NX/(spacingY*NY)), 6), dpi=100)
+plt.figure(figsize=(6*(spacingX*NX/(spacingY*NY))+1, 6), dpi=100)
 plt.pcolor(x, y, DATA)
 locs,_=plt.xticks()
 plt.xticks(locs, map(lambda x:"%g"%x, locs))
