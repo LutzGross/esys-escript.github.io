@@ -48,7 +48,7 @@ class Test_linearPDEs(unittest.TestCase):
             try:
                 d1=Data(d0, Function(self.domain))
                 self._domainCanInterpolateAdvanced=True
-            except e:
+            except:
                 self._domainCanInterpolateAdvanced=False
         return self._domainCanInterpolateAdvanced
 
