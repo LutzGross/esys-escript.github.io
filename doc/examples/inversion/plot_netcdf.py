@@ -43,6 +43,8 @@ DATA=f.variables["onshore_only_Bouguer_geodetic"]
 data_label=DATA.long_name
 UNITS=DATA.units
 DATA=DATA[:]
+if DATA.dtype.byteorder=='>':
+    DATA=DATA.byteswap().newbyteorder()
 
 f.close()
 
@@ -54,8 +56,8 @@ ll=2*latitude[-1]-latitude[-2]
 latitude=np.resize(latitude, len(latitude)+1)
 latitude[-1]=ll
 
-lx=longitude[-1]-longitude[0]
-ly=latitude[-1]-latitude[0]
+lx=abs(longitude[-1]-longitude[0])
+ly=abs(latitude[-1]-latitude[0])
 x,y=np.meshgrid(longitude, latitude)
 plt.figure(figsize=(6*lx/ly+1, 6), dpi=100)
 plt.pcolor(x, y, DATA)

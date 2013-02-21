@@ -9,11 +9,13 @@ data:
 - data/QLDWest_mag.ers, data/QLDWest_mag:
       magnetic data, 121x121 cells, Western Queensland, ER Mapper format
 - data/QLDWest_grav_small.nc:
-      gravity data, ??? , Western Queensland, netCDF format
+      gravity data, 40x40 , Western Queensland, netCDF format
+- data/QLDWest_grav_small.ers, data/QLDWest_grav_small:
+      gravity data, 40x40 , Western Queensland, ER Mapper format
 - data/QLDWest_mag_small.nc:
-      magnetic data, ???, Western Queensland, netCDF format
-- data/QLD_grav2.nc:    ???
-- data/QLD_mag2.nc:    ???
+      magnetic data, 40x40, Western Queensland, netCDF format
+- data/QLDWest_mag_small.ers, data/QLDWest_mag_small:
+      magnetic data, 40x40, Western Queensland, ER Mapper format
 
 scripts:
 
@@ -26,13 +28,19 @@ scripts:
 - grav_netcdf.py:
     inversion of data/QLDWest_grav_small.nc
     (reads netCDF, creates VTK, Silo and CSV output)
+- grav_ermapper.py:
+    inversion of data/QLDWest_grav_small.ers
+    (reads ER Mapper, creates VTK, Silo and CSV output)
 - mag_netcdf.py:
     inversion of data/QLDWest_mag_small.nc
     (reads netCDF, creates VTK, Silo and CSV output)
+- mag_ermapper.py:
+    inversion of data/QLDWest_mag_small.ers
+    (reads ER Mapper, creates VTK, Silo and CSV output)
 - gravmag_netcdf.py:
-    joint inversion from data ???
+    joint inversion from data QLDWest_grav_small.nc & QLDWest_mag_small.nc
     (reads netCDF, creates VTK, Silo and CSV output)
 - gravmag_nodriver.py:
-    joint inversion from data ??? without joint inversion driver (advanced)
+    joint inversion as above, without joint inversion driver (advanced)
     (reads netCDF, creates VTK, Silo and CSV output)
 
