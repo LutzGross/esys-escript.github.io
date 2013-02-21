@@ -62,6 +62,6 @@ print("Results saved in result0.vtu:")
 saveSilo("result0.vtu", density=rho)
 
 print("Results saved in result0.csv:")
-saveCSV("result0.csv", density=rho, x=rho.getFunctionSpace().getX())
+saveDataCSV("result0.csv", density=rho, x=rho.getFunctionSpace().getX())
 
 print("All done. Have a nice day.!")

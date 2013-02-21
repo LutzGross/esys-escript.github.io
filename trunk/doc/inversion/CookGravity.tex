@@ -594,7 +594,7 @@ Separated Values (\CSV)~\footnote{see
 \url{http://en.wikipedia.org/wiki/Comma-separated_values}.}.
 Such a file can be created using the statement
 \begin{verbatim}
-saveCSV("result.csv", x=rho.getFunctionSpace().getX(), density=rho)
+saveDataCSV("result.csv", x=rho.getFunctionSpace().getX(), density=rho)
 \end{verbatim}
 in the script.
 This will create a \file{result.csv} with columns separated by a comma.
