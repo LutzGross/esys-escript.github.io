@@ -211,7 +211,7 @@ silo_libs = ['silo']
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit2_3_2.linux-x86_64/2.3.2/linux-x86_64/libsim/V2'
+visit_prefix = '/opt/visit2_6_0.linux-x86_64/2.6.0/linux-x86_64/libsim/V2'
 
 # sim2 library/libraries to link against
 #visit_libs = ['simV2']

@@ -26,6 +26,7 @@ import os
 from esys.downunder import *
 from esys.escript import unitsSI as U
 from esys.weipa import saveSilo
+from esys.escript import saveDataCSV
 
 try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
@@ -34,10 +35,10 @@ except KeyError:
 
 # interesting parameters:
 depth_offset = 10. * U.km
-n_humps_h = 5
-n_humps_v = 2
+n_humps_h = 1
+n_humps_v = 1
 mu = 10
-n_cells_in_data = 50
+n_cells_in_data = 20
 full_knowledge = False
 #
 DIM = 3
@@ -74,4 +75,6 @@ print("rho_new = %s"%rho_new)
 print("rho = %s"%rho_ref)
 g, chi =  inv.getCostFunction().getForwardModel().getSurvey(0)
 saveSilo(os.path.join(WORKDIR, 'results_gravity_3d'), density=rho_new, density_ref=rho_ref, g=g, chi=chi)
+
+saveDataCSV(os.path.join(WORKDIR, 'results_gravity_3d.csv'), density=rho_new, x=rho_new.getFunctionSpace().getX())
 
