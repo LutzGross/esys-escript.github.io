@@ -441,7 +441,7 @@ class Locator(object):
       if isinstance(data, escore.Data):
          if data.getFunctionSpace()!=self.getFunctionSpace():
            raise TypeError("setValue: FunctionSpace of Locator and Data object must match.")
-         data.expand()	
+         data.expand()  
          id=self.getId()
          if isinstance(id, list):
           for i in id:
@@ -459,7 +459,7 @@ def getInfLocator(arg):
     if not isinstance(arg, escore.Data):
        raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.inf(arg)
-    loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
+    loc=util.length(arg-a_inf).minGlobalDataPoint()     # This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
     x_min=x.getTupleForGlobalDataPoint(*loc)
     return Locator(arg.getFunctionSpace(),x_min)
@@ -471,11 +471,11 @@ def getSupLocator(arg):
     if not isinstance(arg, escore.Data):
        raise TypeError("getInfLocator: Unknown argument type.")
     a_inf=util.sup(arg)
-    loc=util.length(arg-a_inf).minGlobalDataPoint()	# This gives us the location but not coords
+    loc=util.length(arg-a_inf).minGlobalDataPoint()     # This gives us the location but not coords
     x=arg.getFunctionSpace().getX()
     x_min=x.getTupleForGlobalDataPoint(*loc)
     return Locator(arg.getFunctionSpace(),x_min)
-	
+        
 
 class SolverSchemeException(Exception):
    """
@@ -746,16 +746,16 @@ def NewtonGMRES(defect, x, iter_max=100, sub_iter_max=20, atol=0,rtol=1.e-4, sub
    while not fnrm<=stop_tol:
             if iter  >= iter_max: raise MaxIterReached("maximum number of %s steps reached."%iter_max)
             #
-	    #   adjust subtol_
-	    #
+            #   adjust subtol_
+            #
             if iter > 1:
                rat=fnrm/fnrmo
                subtol_old=subtol
                subtol=gamma*rat**2
                if gamma*subtol_old**2 > .1: subtol=max(subtol,gamma*subtol_old**2)
                subtol=max(min(subtol,subtol_max), .5*stop_tol/fnrm)
-	    #
-	    # calculate newton increment xc
+            #
+            # calculate newton increment xc
             #     if iter_max in __FDGMRES is reached MaxIterReached is thrown
             #     if iter_restart -1 is returned as sub_iter
             #     if  atol is reached sub_iter returns the numer of steps performed to get there
@@ -1394,16 +1394,16 @@ class ArithmeticTuple(object):
            if l!=len(self):
                raise ValueError("length of arguments don't match.")
            for i in range(l): 
-		if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
-		    out.append(escore.Data())
-		else:
-		    out.append(self[i]*other[i])
+                if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
+                    out.append(escore.Data())
+                else:
+                    out.append(self[i]*other[i])
        except TypeError:
-	    for i in range(len(self)):  
-		if self.__isEmpty(self[i]) or self.__isEmpty(other):
-		    out.append(escore.Data())
-		else:
-		    out.append(self[i]*other)
+           for i in range(len(self)):  
+                if self.__isEmpty(self[i]) or self.__isEmpty(other):
+                    out.append(escore.Data())
+                else:
+                    out.append(self[i]*other)
        return ArithmeticTuple(*tuple(out))
 
    def __rmul__(self,other):
@@ -1417,20 +1417,20 @@ class ArithmeticTuple(object):
       """
       out=[]
       try:
-	  l=len(other)
-	  if l!=len(self):
-	      raise ValueError("length of arguments don't match.")
-	  for i in range(l): 
-		if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
-		    out.append(escore.Data())
-		else:
-		    out.append(other[i]*self[i])
+          l=len(other)
+          if l!=len(self):
+              raise ValueError("length of arguments don't match.")
+          for i in range(l): 
+                if self.__isEmpty(self[i]) or self.__isEmpty(other[i]):
+                    out.append(escore.Data())
+                else:
+                    out.append(other[i]*self[i])
       except TypeError:
-	  for i in range(len(self)):  
-		if self.__isEmpty(self[i]) or self.__isEmpty(other):
-		    out.append(escore.Data())
-		else:
-		    out.append(other*self[i])
+          for i in range(len(self)):  
+                if self.__isEmpty(self[i]) or self.__isEmpty(other):
+                    out.append(escore.Data())
+                else:
+                    out.append(other*self[i])
       return ArithmeticTuple(*tuple(out))
 
    def __div__(self,other):
@@ -1455,27 +1455,27 @@ class ArithmeticTuple(object):
       """
       out=[]
       try:
-	  l=len(other)
-	  if l!=len(self):
-	      raise ValueError("length of arguments don't match.")
-	  
-	  for i in range(l): 
-		if self.__isEmpty(self[i]):
-		    raise ZeroDivisionError("in component %s"%i)
-		else:
-		    if self.__isEmpty(other[i]):
-			out.append(escore.Data())
-		    else:
-			out.append(other[i]/self[i])
+          l=len(other)
+          if l!=len(self):
+              raise ValueError("length of arguments don't match.")
+          
+          for i in range(l): 
+                if self.__isEmpty(self[i]):
+                    raise ZeroDivisionError("in component %s"%i)
+                else:
+                    if self.__isEmpty(other[i]):
+                        out.append(escore.Data())
+                    else:
+                        out.append(other[i]/self[i])
       except TypeError:
-	  for i in range(len(self)):
-		if self.__isEmpty(self[i]):
-		    raise ZeroDivisionError("in component %s"%i)
-		else:
-		    if self.__isEmpty(other):
-			out.append(escore.Data())
-		    else:
-			out.append(other/self[i])
+          for i in range(len(self)):
+                if self.__isEmpty(self[i]):
+                    raise ZeroDivisionError("in component %s"%i)
+                else:
+                    if self.__isEmpty(other):
+                        out.append(escore.Data())
+                    else:
+                        out.append(other/self[i])
       return ArithmeticTuple(*tuple(out))
 
    def __iadd__(self,other):
@@ -1486,13 +1486,13 @@ class ArithmeticTuple(object):
       :type other: ``ArithmeticTuple``
       """
       if len(self) != len(other):
-	  raise ValueError("tuple lengths must match.")
+          raise ValueError("tuple lengths must match.")
       for i in range(len(self)):
-	  if self.__isEmpty(self.__items[i]):
-	      self.__items[i]=other[i]
-	  else:
-	      self.__items[i]+=other[i]
-	      
+          if self.__isEmpty(self.__items[i]):
+              self.__items[i]=other[i]
+          else:
+              self.__items[i]+=other[i]
+              
       return self
 
    def __add__(self,other):
@@ -1504,24 +1504,24 @@ class ArithmeticTuple(object):
       """
       out=[]
       try:
-	  l=len(other)
-	  if l!=len(self):
-	      raise ValueError("length of arguments don't match.")
-	  for i in range(l): 
-		if self.__isEmpty(self[i]):
-		    out.append(other[i])
-		elif self.__isEmpty(other[i]):
-		    out.append(self[i])
-		else:
-		    out.append(self[i]+other[i])
+          l=len(other)
+          if l!=len(self):
+              raise ValueError("length of arguments don't match.")
+          for i in range(l): 
+                if self.__isEmpty(self[i]):
+                    out.append(other[i])
+                elif self.__isEmpty(other[i]):
+                    out.append(self[i])
+                else:
+                    out.append(self[i]+other[i])
       except TypeError:
-	    for i in range(len(self)):     
-		if self.__isEmpty(self[i]):
-		    out.append(other)
-		elif self.__isEmpty(other):
-		    out.append(self[i])
-		else:
-		    out.append(self[i]+other)
+            for i in range(len(self)):     
+                if self.__isEmpty(self[i]):
+                    out.append(other)
+                elif self.__isEmpty(other):
+                    out.append(self[i])
+                else:
+                    out.append(self[i]+other)
       return ArithmeticTuple(*tuple(out))
 
    def __sub__(self,other):
@@ -1533,25 +1533,25 @@ class ArithmeticTuple(object):
       """
       out=[]
       try:
-	  l=len(other)
-	  if l!=len(self):
-	      raise ValueError("length of arguments don't match.")
-	  for i in range(l): 
-		if self.__isEmpty(other[i]):
-		    out.append(self[i])
-		elif self.__isEmpty(self[i]):
-		    out.append(-other[i])
-		else:
-		    out.append(self[i]-other[i])
+          l=len(other)
+          if l!=len(self):
+              raise ValueError("length of arguments don't match.")
+          for i in range(l): 
+                if self.__isEmpty(other[i]):
+                    out.append(self[i])
+                elif self.__isEmpty(self[i]):
+                    out.append(-other[i])
+                else:
+                    out.append(self[i]-other[i])
       except TypeError:
-	    for i in range(len(self)):     
-		if  self.__isEmpty(other):
-		    out.append(self[i])
-		elif self.__isEmpty(self[i]):
-		    out.append(-other)
-		else:
-		    out.append(self[i]-other)
-		    
+            for i in range(len(self)):     
+                if  self.__isEmpty(other):
+                    out.append(self[i])
+                elif self.__isEmpty(self[i]):
+                    out.append(-other)
+                else:
+                    out.append(self[i]-other)
+                    
       return ArithmeticTuple(*tuple(out))
 
    def __isub__(self,other):
@@ -1562,13 +1562,13 @@ class ArithmeticTuple(object):
       :type other: ``ArithmeticTuple``
       """
       if len(self) != len(other):
-	  raise ValueError("tuple length must match.")
+          raise ValueError("tuple length must match.")
       for i in range(len(self)):
-	  if not self.__isEmpty(other[i]):
-	      if self.__isEmpty(self.__items[i]):
-		  self.__items[i]=-other[i]
-	      else:
-		  self.__items[i]=other[i]
+          if not self.__isEmpty(other[i]):
+              if self.__isEmpty(self.__items[i]):
+                  self.__items[i]=-other[i]
+              else:
+                  self.__items[i]=other[i]
       return self
 
    def __neg__(self):
@@ -1577,17 +1577,17 @@ class ArithmeticTuple(object):
       """
       out=[]
       for i in range(len(self)):
-	  if self.__isEmpty(self[i]):
-	      out.append(escore.Data())
-	  else:
-	      out.append(-self[i])
-	  
+          if self.__isEmpty(self[i]):
+              out.append(escore.Data())
+          else:
+              out.append(-self[i])
+          
       return ArithmeticTuple(*tuple(out))
    def __isEmpty(self, d):
     if isinstance(d, escore.Data):
-	return d.isEmpty()
+        return d.isEmpty()
     else:
-	return False
+        return False
 
 
 class HomogeneousSaddlePointProblem(object):
@@ -1802,7 +1802,7 @@ class HomogeneousSaddlePointProblem(object):
           f=self.inner_p(p,p)
           if f<0: raise ValueError("negative pressure norm.")
           return math.sqrt(f)
-	  
+          
       def solve(self,v,p,max_iter=20, verbose=False, usePCG=True, iter_restart=20, max_correction_steps=10):
          """
          Solves the saddle point problem using initial guesses v and p.

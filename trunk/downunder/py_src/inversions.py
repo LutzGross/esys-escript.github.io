@@ -129,7 +129,7 @@ class InversionDriver(object):
         """
         if maxiter == None: maxiter = 200
         if maxiter>0:
-	    self.getSolver().setMaxIterations(maxiter)
+            self.getSolver().setMaxIterations(maxiter)
         else:
             raise ValueError("maxiter must be positive.")
 
