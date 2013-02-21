@@ -22,12 +22,16 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['Regularization']
 
-from costfunctions import CostFunction
+from .costfunctions import CostFunction
 
 import numpy as np
 from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
+
+import sys
+if sys.version_info.major>2:
+  xrange=range
 
 class Regularization(CostFunction):
     """

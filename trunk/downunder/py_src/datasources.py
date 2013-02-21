@@ -34,6 +34,11 @@ from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 from esys.ripley import ripleycpp
 
+import sys
+if sys.version_info.major>2:
+  xrange=range
+
+
 try:
     from scipy.io.netcdf import netcdf_file
     __all__ += ['NetCdfData']
