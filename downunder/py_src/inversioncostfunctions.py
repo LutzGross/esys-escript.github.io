@@ -24,12 +24,17 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = [ 'InversionCostFunction']
 
-from costfunctions import MeteredCostFunction
-from mappings import Mapping
-from forwardmodels import ForwardModel
+from .costfunctions import MeteredCostFunction
+from .mappings import Mapping
+from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
 from esys.escript import Data
 import numpy as np
+
+import sys
+if sys.version_info.major>2:
+  xrange=range
+
 
 class InversionCostFunction(MeteredCostFunction):
     """

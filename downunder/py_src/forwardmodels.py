@@ -31,6 +31,11 @@ from esys.escript.util import *
 from math import pi as PI
 import numpy as np
 
+import sys
+if sys.version_info.major>2:
+  xrange=range
+
+
 class ForwardModel(object):
     """
     An abstract forward model that can be plugged into a cost function.
