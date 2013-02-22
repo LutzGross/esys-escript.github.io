@@ -235,6 +235,7 @@ class ErMapperData(DataSource):
             self.__datafile=datafile
         self.__altitude=altitude
         self.__data_type=data_type
+        self.__utm_zone = None
         self.__scale_factor = scale_factor
         self.__null_value = null_value
         self.__error_value = error
