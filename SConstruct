@@ -974,7 +974,8 @@ env.Alias('build_PasoTests','$BUILD_DIR/$PLATFORM/paso/profiling/PasoTests')
 
 ##################### Targets to build the documentation #####################
 
-env.Alias('basedocs', ['examples_tarfile', 'examples_zipfile', 'api_doxygen', 'user_pdf', 'install_pdf', 'cookbook_pdf', 'inversion_pdf'])
+env.Alias('pdfdocs',['user_pdf', 'install_pdf', 'cookbook_pdf', 'inversion_pdf'])
+env.Alias('basedocs', ['pdfdocs','examples_tarfile', 'examples_zipfile', 'api_doxygen'])
 env.Alias('docs', ['basedocs', 'sphinxdoc'])
 env.Alias('release_prep', ['docs', 'install_all'])
 env.Alias('release_prep_old', ['basedocs', 'api_epydoc', 'install_all'])
