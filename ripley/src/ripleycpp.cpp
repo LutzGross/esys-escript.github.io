@@ -247,7 +247,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("shape"), arg("fill")=0.));
 
-    class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain> >
+    class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
         .def("write", &ripley::RipleyDomain::write, args("filename"),
                 "Writes the current mesh to a file with the given name. It can subsequently be recovered using ReadMesh().")
