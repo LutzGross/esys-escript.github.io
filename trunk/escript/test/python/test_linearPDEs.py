@@ -2897,7 +2897,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
             FS=ReducedFunction
         self.assertEqual(f.getFunctionSpace(),FS(self.domain),"wrong function space")
         f_ref=X*(5*x[0]-1+10)
-        self.assertTrue(self.check(f, f_ref),"wrong result")
+        self.assertTrue(self.check(f_ref, f),"wrong result")   #swapped
         
 class Test_LinearPDE(Test_LinearPDE_noLumping):
     def test_Lumping_attemptToSetA(self):
