@@ -158,7 +158,7 @@ umfpack = True
 umfpack_prefix = ['/usr/include/suitesparse', '/usr/lib']
 
 # UMFPACK library/libraries to link against
-umfpack_libs = ['umfpack', 'blas']
+umfpack_libs = ['umfpack', 'blas', 'amd']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
@@ -196,7 +196,7 @@ silo = True
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit/2.6.0/linux-intel/libsim/V2'
+visit_prefix = '/opt/visit/2.6.0/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
