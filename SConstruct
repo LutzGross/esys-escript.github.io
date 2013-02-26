@@ -967,6 +967,7 @@ env.Default('install_all')
 if not env['cppunit']:
     test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
     env.Alias('run_tests', test_msg)
+    env.Alias('build_tests', '')
 env.Alias('run_tests', ['install_all'])
 env.Alias('all_tests', ['install_all', 'run_tests', 'py_tests'])
 env.Alias('build_full',['install_all','build_tests','build_py_tests'])
