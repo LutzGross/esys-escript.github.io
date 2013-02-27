@@ -297,8 +297,21 @@ Note: This is _not_ equivalent to weak_ptr::lock.
   */
   ESCRIPT_DLL_API
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
+
+  /**
+  \brief True if interpolation is possible from source to target 
+  */
   ESCRIPT_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+
+  /**
+   \brief Preferred direction of interpolation.
+
+   If you really need to test for a particular direction, then use probeInterpolation.
+   
+   \return 0 for not possible,  1 for possible and preferred, -1 other direction preferred (does not mean this direction is possible)
+  */ 
+  virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
   /**
     \brief given a vector of FunctionSpace type codes, pass back a code which then can all be interpolated to.

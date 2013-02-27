@@ -68,6 +68,21 @@ using namespace boost::python;
  *
  */
 
+namespace escript
+{
+  
+  // Note: not virtual because it calls the virtual probeInterpolationOnDomain
+  ESCRIPT_DLL_API
+  bool canInterpolate(FunctionSpace src, FunctionSpace dest)
+  {
+      return src.getDomain()->probeInterpolationOnDomain(src.getTypeCode(), dest.getTypeCode());
+  }  
+  
+  
+}
+
+
+
 BOOST_PYTHON_MODULE(escriptcpp)
 {
 
@@ -116,7 +131,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
 ":type sep: ``string``\n"
 ":param csep: separator for fields within data object (defaults to \"_\")\n:type csep: ``string``\n"
 ":param append: If True, write to the end of ``filename``\n:type append: ``string``\n");
-
+   def("canInterpolate", &escript::canInterpolate, args("src", "dest"),":param src: Source FunctionSpace\n:param dest: Destination FunctionSpace\n:return: True if src can be interpolated to dest\n:rtype: `bool`");
 
   //
   // Interface for AbstractDomain

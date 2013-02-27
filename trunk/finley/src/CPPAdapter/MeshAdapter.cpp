@@ -1981,6 +1981,19 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
    return false;
 }
 
+signed char MeshAdapter::preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
+{
+    if (probeInterpolationOnDomain(functionSpaceType_source, functionSpaceType_target))
+    {
+        return 1;
+    }
+    else if (probeInterpolationOnDomain(functionSpaceType_target, functionSpaceType_source))
+    {
+        return -1;
+    }
+    return 0;
+}  
+  
 bool MeshAdapter::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
 {
    return false;

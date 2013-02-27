@@ -1614,6 +1614,21 @@ MeshAdapter::commonFunctionSpace(const vector<int>& fs, int& resultcode) const
     return true;
 }
 
+signed char MeshAdapter::preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
+{
+    if (probeInterpolationOnDomain(functionSpaceType_source, functionSpaceType_target))
+    {  
+        return 1;
+    }
+    else if (probeInterpolationOnDomain(functionSpaceType_target, functionSpaceType_source))
+    {  
+        return -1;
+    }
+    return 0;
+}
+
+
+
 bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
 {
    switch(functionSpaceType_source) {
