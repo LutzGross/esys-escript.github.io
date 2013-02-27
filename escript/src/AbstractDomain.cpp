@@ -221,6 +221,12 @@ bool AbstractDomain::probeInterpolationOnDomain(int functionSpaceType_source,int
   return false;
 }
 
+signed char AbstractDomain::preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const
+{
+  throwStandardException("AbstractDomain::preferredInterpolationOnDomain");
+  return false;
+}
+
 bool AbstractDomain::commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const
 {
   throwStandardException("AbstractDomain::commonFunctionSpace");

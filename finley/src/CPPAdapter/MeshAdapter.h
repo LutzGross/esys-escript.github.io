@@ -452,6 +452,11 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+  
+  FINLEY_DLL_API
+  virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+  
+  
 
   /**
     \brief given a vector of FunctionSpace typecodes, pass back a code which then can all be interpolated to.

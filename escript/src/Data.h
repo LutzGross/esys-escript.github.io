@@ -2148,17 +2148,27 @@ Data::binaryOp(const Data& right,
    //
    // initially make the temporary a shallow copy
    Data tempRight(right);
-
-   if (getFunctionSpace()!=right.getFunctionSpace()) {
-     if (right.probeInterpolation(getFunctionSpace())) {
-       //
+   FunctionSpace fsl=getFunctionSpace();
+   FunctionSpace fsr=right.getFunctionSpace();
+   if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - attempt to combine incompatible FunctionSpaces.";
+	 msg+=fsl.toString();
+	 msg+="  ";
+	 msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
        // an interpolation is required so create a new Data
-       tempRight=Data(right,this->getFunctionSpace());
-     } else if (probeInterpolation(right.getFunctionSpace())) {
-       //
-       // interpolate onto the RHS function space
-       Data tempLeft(*this,right.getFunctionSpace());
-//        m_data=tempLeft.m_data;
+       tempRight=Data(right,fsl);
+     }
+     else	// reverse interpolation preferred
+     {
+        // interpolate onto the RHS function space
+       Data tempLeft(*this,fsr);
        set_m_data(tempLeft.m_data);
      }
    }
@@ -2305,18 +2315,28 @@ C_TensorBinaryOperation(Data const &arg_0,
   }
   // Interpolate if necessary and find an appropriate function space
   Data arg_0_Z, arg_1_Z;
-  if (arg_0.getFunctionSpace()!=arg_1.getFunctionSpace()) {
-    if (arg_0.probeInterpolation(arg_1.getFunctionSpace())) {
+  FunctionSpace fsl=arg_0.getFunctionSpace();
+  FunctionSpace fsr=arg_1.getFunctionSpace();
+  if (fsl!=fsr) {
+     signed char intres=fsl.getDomain()->preferredInterpolationOnDomain(fsr.getTypeCode(), fsl.getTypeCode());
+     if (intres==0)
+     {
+         std::string msg="Error - C_TensorBinaryOperation: arguments have incompatible function spaces.";
+         msg+=fsl.toString();
+         msg+=" ";
+         msg+=fsr.toString();
+         throw DataException(msg.c_str());
+     } 
+     else if (intres==1)
+     {
+      arg_1_Z=arg_1.interpolate(arg_0.getFunctionSpace());
+      arg_0_Z =Data(arg_0);      
+     }
+     else	// reverse interpolation preferred
+     {
       arg_0_Z = arg_0.interpolate(arg_1.getFunctionSpace());
       arg_1_Z = Data(arg_1);
-    }
-    else if (arg_1.probeInterpolation(arg_0.getFunctionSpace())) {
-      arg_1_Z=arg_1.interpolate(arg_0.getFunctionSpace());
-      arg_0_Z =Data(arg_0);
-    }
-    else {
-      throw DataException("Error - C_TensorBinaryOperation: arguments have incompatible function spaces.");
-    }
+     }    
   } else {
       arg_0_Z = Data(arg_0);
       arg_1_Z = Data(arg_1);

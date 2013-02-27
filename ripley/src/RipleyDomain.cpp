@@ -271,6 +271,56 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
     }
 }
 
+signed char RipleyDomain::preferredInterpolationOnDomain(int fsType_source,
+                                              int fsType_target) const
+{
+    if (!isValidFunctionSpaceType(fsType_target)) {
+        stringstream msg;
+        msg << "preferredInterpolationOnDomain: Invalid function space type "
+            << fsType_target << " for " << getDescription();
+        throw RipleyException(msg.str());
+    }
+
+    if (fsType_source==fsType_target) {
+        return 1;
+    }
+    // There is a complication here in that Nodes and DegreesOfFreedom
+    // can be interpolated to anything, so we need to handle the
+    // reverse case for them specially
+
+    if ((fsType_target==Nodes) || (fsType_target==DegreesOfFreedom))
+    {
+        return -1;    // reverse interpolation
+    }
+
+    switch (fsType_source) {
+        case Nodes:
+        case DegreesOfFreedom:
+            return 1;
+        case ReducedNodes:
+        case ReducedDegreesOfFreedom:
+            return (fsType_target != Nodes &&
+                    fsType_target != DegreesOfFreedom)?-1:0;
+        case Elements:
+	    return (fsType_target==ReducedElements)?1:0;
+        case ReducedElements:
+	    return (fsType_target==Elements)?-1:0;	  
+        case FaceElements:
+	    return (fsType_target==ReducedFaceElements)?1:0;
+        case ReducedFaceElements:
+            return (fsType_target==FaceElements)?-1:0;
+	case Points: 
+	    return false;	// other case caught by the if above
+
+        default: {
+            stringstream msg;
+            msg << "probeInterpolationOnDomain: Invalid function space type "
+                << fsType_source << " for " << getDescription();
+            throw RipleyException(msg.str());
+        }
+    }
+}
+
 void RipleyDomain::interpolateOnDomain(escript::Data& target,
                                        const escript::Data& in) const
 {

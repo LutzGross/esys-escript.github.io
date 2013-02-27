@@ -29,7 +29,7 @@ Test suite for linearPDEs class
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_axes
-from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt
+from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate
 from esys.escript.linearPDEs import LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
 import numpy
 import unittest
@@ -44,12 +44,7 @@ class Test_linearPDEs(unittest.TestCase):
     # Can the domain interpolate from ReducedFunction to Function?
     def specialInterpolationSupported(self):
         if self._domainCanInterpolateAdvanced is None:
-            d0=Data(0,(),ReducedFunction(self.domain))
-            try:
-                d1=Data(d0, Function(self.domain))
-                self._domainCanInterpolateAdvanced=True
-            except:
-                self._domainCanInterpolateAdvanced=False
+            self._domainCanInterpolateAdvanced=canInterpolate(ReducedFunction(self.domain), Function(self.domain))
         return self._domainCanInterpolateAdvanced
 
     def check(self,arg,ref_arg,tol=None):
@@ -2848,10 +2843,7 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         x=self.domain.getX()[0]
         f = pde.getFlux(x)
         self.assertEqual(f.getShape(),(self.domain.getDim(),),"wrong shape of result.")
-        if self.specialInterpolationSupported():
-            FS=Function
-        else:
-            FS=ReducedFunction
+        FS=ReducedFunction
         self.assertEqual(f.getFunctionSpace(),FS(self.domain),"wrong function space")
         f_ref=Data(x*kronecker(self.domain)[1]*2+(5-1)*kronecker(self.domain)[0], ReducedFunction(self.domain))
         self.assertTrue(self.check(f, f_ref),"wrong result")

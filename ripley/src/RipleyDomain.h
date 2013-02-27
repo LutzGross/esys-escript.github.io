@@ -240,6 +240,15 @@ public:
     */
     virtual bool probeInterpolationOnDomain(int fsType_source, int fsType_target) const;
 
+ /**
+   \brief Preferred direction of interpolation.
+
+   If you really need to test for a particular direction, then use probeInterpolation.
+
+   \return 0 for not possible,  1 for possible and preferred, -1 other direction preferred (does not mean this direction is possible)
+  */
+    virtual signed char preferredInterpolationOnDomain(int fsType_source, int fsType_target) const;
+
     /**
        \brief
        given a vector of FunctionSpace type codes, passes back a code which all
