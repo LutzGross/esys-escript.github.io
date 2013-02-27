@@ -20,10 +20,10 @@
 #ifndef VISIT_PLUGIN
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
-extern "C" {
+
 #include <dudley/Mesh.h>
 #include <finley/Mesh.h>
-}
+
 #endif
 
 #include <iostream>

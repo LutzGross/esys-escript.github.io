@@ -19,10 +19,10 @@ local_env = env.Clone()
 sources = """
 	EsysAssertException.cpp
 	EsysException.cpp
-	Esys_MPI.c
-	error.c
+	Esys_MPI.cpp
+	error.cpp
 	esysExceptionTranslator.cpp
-	blocktimer.c
+	blocktimer.cpp
 """.split()
 
 headers = """

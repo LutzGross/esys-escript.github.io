@@ -101,7 +101,7 @@ blocktimer_getOrCreateTimerId(__const char *name)
 
   if (found_item != NULL) {	/* Already defined so retrieve it from the hash */
     /* Return the ID of the entry we found */
-    int *idTmp = found_item->data;
+    int *idTmp = reinterpret_cast<int*>(found_item->data);
     id = *idTmp;
   }
   else {			/* Not already defined so create one */
@@ -118,7 +118,7 @@ blocktimer_getOrCreateTimerId(__const char *name)
     hsearch(item, ENTER);
     id = *idTmp;
     /* Make a copy of the name and save with other names */
-    tmp_str = malloc(strlen(name)+1);
+    tmp_str = (char*)malloc(strlen(name)+1);
     strcpy(tmp_str, name);
     g_names[id] = tmp_str;
   }

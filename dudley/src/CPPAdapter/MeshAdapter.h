@@ -18,12 +18,10 @@
 #define dudley_MeshAdapter_20040526_H
 #include "system_dep.h"
 
-extern "C" {
 #include "dudley/Mesh.h"
 #include "dudley/Dudley.h"
 #include "dudley/Assemble.h"
 #include "esysUtils/Esys_MPI.h"
-}
 
 #include "DudleyError.h"
 #include "DudleyAdapterException.h"

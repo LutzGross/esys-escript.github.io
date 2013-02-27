@@ -38,11 +38,9 @@
 #include <cppunit/TestResultCollector.h>
 #include <cppunit/TestRunner.h>
 
+#include "esysUtils/Esys_MPI.h"
 using namespace CppUnit;
 
-extern "C"{
-#include "esysUtils/Esys_MPI.h"
-}
 
 int main(int argc, char* argv[])
 {

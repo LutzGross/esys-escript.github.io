@@ -213,11 +213,11 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
                  #pragma omp for schedule(static) private(i, index, where_p)
                  for (i = 0; i < n; ++i) {
 		    index=&(A->index[A->ptr[i]]);
-		    where_p=bsearch(&i,
+		    where_p=reinterpret_cast<index_t*>(bsearch(&i,
 				    index,
 				    (size_t) (A->ptr[i + 1]-A->ptr[i]),
 			             sizeof(index_t),
-			             Paso_comparIndex);
+			             Paso_comparIndex));
 					      
 		    if (where_p==NULL) {
 		        fail=1;

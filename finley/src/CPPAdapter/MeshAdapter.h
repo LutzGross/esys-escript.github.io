@@ -18,12 +18,11 @@
 #define finley_MeshAdapter_20040526_H
 #include "system_dep.h"
 
-extern "C" {
 #include "finley/Mesh.h"
 #include "finley/Finley.h"
 #include "finley/Assemble.h"
 #include "esysUtils/Esys_MPI.h"
-}
+
 
 #include "FinleyError.h"
 #include "FinleyAdapterException.h"

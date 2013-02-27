@@ -19,10 +19,8 @@
 #define TransportProblemAdapter_H
 #include "system_dep.h"
 
-extern "C" {
 #include "paso/Transport.h"
 #include "paso/Options.h"
-}
 
 #include "PasoException.h"
 
