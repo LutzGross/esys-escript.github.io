@@ -17,9 +17,9 @@
 #ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
 #endif
-extern "C" {
+
 #include "../Dudley.h"
-}
+
 
 #include <pasowrap/SystemMatrixAdapter.h>
 #include <pasowrap/TransportProblemAdapter.h>

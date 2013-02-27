@@ -16,10 +16,8 @@
 
 #include "DataCTestCase.h"
 #include "escript/Data.h"
-extern "C" {
 #include "escript/DataC.h"
 #include "CompareFuncs.h"
-}
 
 #include <cppunit/TestCaller.h>
 #include <iostream>

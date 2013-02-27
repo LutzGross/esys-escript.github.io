@@ -19,10 +19,9 @@
 #include <weipa/ElementData.h>
 #include <weipa/FinleyNodes.h>
 
-extern "C" {
 #include <dudley/ElementType.h> // for Dudley_ElementTypeId
 #include <finley/ReferenceElements.h> // for Finley_ElementTypeId
-}
+
 
 class DBfile;
 class NcFile;

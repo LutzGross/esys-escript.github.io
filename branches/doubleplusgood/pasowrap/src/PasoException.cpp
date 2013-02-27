@@ -15,10 +15,9 @@
 
 
 #include "PasoException.h"
-extern "C"
-{
+
 #include <esysUtils/error.h>
-}
+
 
 namespace paso
 {

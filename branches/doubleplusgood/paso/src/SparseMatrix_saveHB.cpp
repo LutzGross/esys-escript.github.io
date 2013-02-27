@@ -84,7 +84,7 @@ void fmt_str( int nvalues, int integer, int *width, int *nlines, int *nperline, 
 /* function to print the actual data in the right format */
 void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *ptr, int integer, int adjust )
 {
-	double *data = ptr;
+	double *data = reinterpret_cast<double*>(ptr);
 	int entries_done = 0;
 	int padding, i;
 	char pad_fmt[10];
@@ -97,7 +97,7 @@ void print_data( FILE *fp, int n_perline, int width, int nval, char *fmt, void *
 
 	if( integer )
 	{
-		dim_t *data = ptr;
+		dim_t *data = reinterpret_cast<dim_t*>(ptr);
 		for(i=0; i<nval; i++ )
 		{
 			fprintf( fp, fmt, data[i]+adjust );

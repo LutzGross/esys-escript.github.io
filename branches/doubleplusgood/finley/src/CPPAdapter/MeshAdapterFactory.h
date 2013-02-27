@@ -18,11 +18,10 @@
 #define finley_MeshAdapterFactory_20040526_H
 #include "system_dep.h"
 
-extern "C" {
 #include "finley/Finley.h"
 #include "finley/Mesh.h"
 #include "finley/RectangularMesh.h"
-}
+
 
 #include "MeshAdapter.h"
 

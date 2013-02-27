@@ -14,9 +14,9 @@
 *****************************************************************************/
 
 #include <ripley/Brick.h>
-extern "C" {
+
 #include <paso/SystemMatrix.h>
-}
+
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>

@@ -31,9 +31,7 @@
 #include "Dodgy.h"
 #endif
 
-extern "C" {
 #include "esysUtils/blocktimer.h"
-}
 
 #include <algorithm>
 #include <fstream>

@@ -15,9 +15,7 @@
 
 
 
-extern "C" {
 #include <paso/Paso.h>
-}
 
 #include "SystemMatrixAdapter.h"
 #include "TransportProblemAdapter.h"

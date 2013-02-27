@@ -18,9 +18,8 @@
 #define dudley_DudleyError_20040528_H
 #include "system_dep.h"
 
-extern "C" {
 #include "dudley/Dudley.h"
-}
+
 
 #include "DudleyAdapterException.h"
 

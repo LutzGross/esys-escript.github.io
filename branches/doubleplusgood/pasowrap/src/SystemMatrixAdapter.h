@@ -18,10 +18,8 @@
 #define SystemMatrixAdapter_20040610_H
 #include "system_dep.h"
 
-extern "C" {
 #include "paso/SystemMatrix.h"
 #include "paso/Options.h"
-}
 
 #include "PasoException.h"
 

@@ -23,9 +23,8 @@
 
 #include <ripley/system_dep.h>
 
-extern "C" {
 #include <esysUtils/Esys_MPI.h>
-}
+
 
 #include <boost/shared_ptr.hpp>
 #include <list>

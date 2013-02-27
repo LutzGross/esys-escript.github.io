@@ -13,10 +13,7 @@
 *
 *****************************************************************************/
 
-
-extern "C" {
 #include "DataC.h"
-}
 
 #include "Data.h"
 #include "DataTypes.h"

@@ -21,9 +21,9 @@
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
-extern "C" {
+
 #include "esysUtils/blocktimer.h"
-}
+
 
 #include <boost/python/import.hpp>
 

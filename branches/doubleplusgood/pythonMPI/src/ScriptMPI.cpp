@@ -18,9 +18,7 @@
 #include <iostream>
 #include <stdexcept>
 
-extern "C"{
 #include "esysUtils/Esys_MPI.h"
-}
 
 #ifdef ESYS_MPI
 
