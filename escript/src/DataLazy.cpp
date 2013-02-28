@@ -195,11 +195,12 @@ resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
   FunctionSpace r=right->getFunctionSpace();
   if (l!=r)
   {
-    if (r.probeInterpolation(l))
+    signed char res=r.getDomain()->preferredInterpolationOnDomain(r.getTypeCode(), l.getTypeCode());
+    if (res==1)
     {
 	return l;
     }
-    if (l.probeInterpolation(r))
+    if (res==-1)
     {
 	return r;
     }
