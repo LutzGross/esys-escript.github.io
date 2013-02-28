@@ -31,10 +31,6 @@ from esys.escript.util import *
 from math import pi as PI
 import numpy as np
 
-import sys
-if sys.version_info.major>2:
-  xrange=range
-
 
 class ForwardModel(object):
     """
@@ -122,11 +118,11 @@ class ForwardModelWithPotential(ForwardModel):
         if not scale > 0:
              raise ValueError("Value for scale must be positive.")
         A=0
-        for s in xrange(len(self.__weight)):
+        for s in range(len(self.__weight)):
             A += integrate( abs(inner(self.__weight[s], self.__data[s])*  inner(self.__weight[s], 1/self.edge_lengths) * fetch_factor))
         if A > 0:
             A=sqrt(scale/A)/self.diameter
-            for s in xrange(len(self.__weight)):  self.__weight[s]*=A
+            for s in range(len(self.__weight)):  self.__weight[s]*=A
         else:
             raise ValueError("Rescaling of weights failed.")
 
@@ -162,7 +158,7 @@ class ForwardModelWithPotential(ForwardModel):
         :rtype: ``float``
         """
         A=0.
-        for s in xrange(len(self.__weight)):
+        for s in range(len(self.__weight)):
             A += integrate( inner(self.__weight[s], self.__data[s]-result)**2 )
         return  A/2
 
