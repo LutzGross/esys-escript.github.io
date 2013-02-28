@@ -34,11 +34,6 @@ from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 from esys.ripley import ripleycpp
 
-import sys
-if sys.version_info.major>2:
-  xrange=range
-
-
 try:
     from scipy.io.netcdf import netcdf_file
     __all__ += ['NetCdfData']
@@ -973,7 +968,7 @@ class SyntheticData(SyntheticDataBase):
             if dd is None: dd=inf(z)
             z2=(z+self.depth_offset)/(self.depth_offset-dd)
             k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude
-            for i in xrange(DIM-1):
+            for i in range(DIM-1):
                x_i=x[i]
                min_x=inf(x_i)
                max_x=sup(x_i)
