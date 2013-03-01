@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-"""3D magnetic inversion example using netCDF data"""
+"""3D gravity inversion example using ER Mapper data"""
 
 __copyright__="""Copyright (c) 2009-2013 by University of Queensland
 http://www.uq.edu.au
@@ -29,9 +29,8 @@ from esys.escript import unitsSI as U
 from esys.escript import saveDataCSV
 
 # Set parameters
-DATASET = 'data/MagneticSmall.nc'
-DATA_UNITS = U.Nano * U.V * U.sec / (U.m**2)
-latitude = -20.5
+DATASET = 'data/GravitySmall.ers'
+DATA_UNITS = 1e-6 * U.m/(U.sec**2)
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
@@ -40,33 +39,31 @@ n_cells_v = 25
 MU = 0.1
 
 # Setup and run the inversion
-B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
-source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
+source=ErMapperData(DataSource.GRAVITY, DATASET, scale_factor=DATA_UNITS)
 db=DomainBuilder(dim=3)
 db.addSource(source)
 db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
 db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
-db.setBackgroundMagneticFluxDensity(B_b)
-db.fixSusceptibilityBelow(depth=thickness)
+db.fixDensityBelow(depth=thickness)
 
-inv=MagneticInversion()
+inv=GravityInversion()
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
 inv.setup(db)
 inv.getCostFunction().setTradeOffFactorsModels(MU)
 
-susceptibility = inv.run()
-print("susceptibility = %s"%susceptibility)
+density = inv.run()
+print("density = %s"%density)
 
-B, w =  db.getMagneticSurveys()[0]
-saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
-print("Results saved in result_magnetic.silo")
+g, w =  db.getGravitySurveys()[0]
+saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w)
+print("Results saved in result0.silo")
 
-saveVTK("result_magnetic.vtu", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
-print("Results saved in result_magnetic.vtu")
+saveVTK("result0.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
+print("Results saved in result0.vtu")
 
-saveDataCSV("result_magnetic.csv", susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
-print("Results saved in result_magnetic.csv")
+saveDataCSV("result0.csv", density=density, x=density.getFunctionSpace().getX())
+print("Results saved in result0.csv")
 
-print("All done. Have a nice day!")
+print("All done. Have a nice day.!")
 

@@ -200,9 +200,10 @@ class InversionDriver(object):
 
 class GravityInversion(InversionDriver):
     """
-     Driver class to perform an inversion of  Gravity (Bouguer) anomaly data. The class uses the standard
-     'Regularization` class for a single level set function, `DensityMapping` mapping,
-     and the gravity forward model `GravityModel`.
+     Driver class to perform an inversion of Gravity (Bouguer) anomaly data.
+     The class uses the standard `Regularization` class for a single level set
+     function, `DensityMapping` mapping, and the gravity forward model
+     `GravityModel`.
     """
     def setup(self, domainbuilder,
                     rho0=None, drho=None, z0=None, beta=None,
@@ -296,17 +297,18 @@ class GravityInversion(InversionDriver):
 
 class MagneticInversion(InversionDriver):
     """
-    Driver class to perform an inversion of magnetic anomaly data. The class uses the standard
-    `Regularization` class for a single level set function. 'SusceptibilityMapping` mapping
-    and the linear magnetic forward model `MagneticModel`
+    Driver class to perform an inversion of magnetic anomaly data. The class
+    uses the standard `Regularization` class for a single level set function,
+    `SusceptibilityMapping` mapping and the linear magnetic forward model
+    `MagneticModel`.
     """
     def setup(self, domainbuilder,
                     k0=None, dk=None, z0=None, beta=None,
                     w0=None, w1=None):
         """
         Sets up the inversion from a `DomainBuilder`.
-        If magnetic data are given as scalar it is assumed that values are collected in direction of
-        the background magnetic field.
+        If magnetic data are given as scalar it is assumed that values are
+        collected in direction of the background magnetic field.
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
@@ -395,10 +397,11 @@ class MagneticInversion(InversionDriver):
 
 class JointGravityMagneticInversion(InversionDriver):
     """
-     Driver class to perform a joint inversion of  Gravity (Bouguer) and magnetic anomaly data.  The class uses
-     the standard `Regularization` class for two level set functions with cross-gradient correlation. '
-     DensityMapping' and 'SusceptibilityMapping' mappings, the gravity forward model 'GravityModel'
-     and the linear magnetic forward model 'MagneticModel.
+    Driver class to perform a joint inversion of Gravity (Bouguer) and
+    magnetic anomaly data. The class uses the standard `Regularization` class
+    for two level set functions with cross-gradient correlation,
+    `DensityMapping` and `SusceptibilityMapping` mappings, the gravity forward
+    model `GravityModel` and the linear magnetic forward model `MagneticModel`.
     """
     DENSITY=0
     SUSCEPTIBILITY=1
@@ -408,14 +411,14 @@ class JointGravityMagneticInversion(InversionDriver):
                     k0=None, dk=None, k_z0=None, k_beta=None, w0=None, w1=None,
                     w_gc=None):
         """
-        Sets up the inversion from an instance ``domainbuilder`` of a `DomainBuilder`.
-        Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
-        If magnetic data are given as scalar it is assumed that values are collected in direction of
-        the background magnetic field.
+        Sets up the inversion from an instance ``domainbuilder`` of a
+        `DomainBuilder`. Gravity and magnetic data attached to the
+        ``domainbuilder`` are considered in the inversion.
+        If magnetic data are given as scalar it is assumed that values are
+        collected in direction of the background magnetic field.
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-
         :param rho0: reference density, see `DensityMapping`. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
         :param drho: density scale, see `DensityMapping`. If not specified, 2750kg/m^3 is used.

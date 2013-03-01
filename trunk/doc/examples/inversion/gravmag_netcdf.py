@@ -24,14 +24,16 @@ __url__="https://launchpad.net/escript-finley"
 
 # Import required modules
 from esys.downunder import *
-from esys.downunder.minimizers import MinimizerMaxIterReached
 from esys.escript import unitsSI as U
-from esys.weipa import saveSilo
+from esys.escript import saveDataCSV
+from esys.weipa import *
 
 # Set parameters
-MAGNETIC_DATASET = 'magnetic_anomaly.nc'
-GRAVITY_DATASET = 'gravity_anomaly.nc'
-latitude = -28.5
+MAGNETIC_DATASET = 'data/MagneticSmall.nc'
+MAG_UNITS = U.Nano * U.V * U.sec / (U.m**2)
+GRAVITY_DATASET = 'data/GravitySmall.nc'
+GRAV_UNITS = 1e-6 * U.m/(U.sec**2)
+latitude = -20.5
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
@@ -42,8 +44,8 @@ mu_magnetic = 0.1
 
 # Setup and run the inversion
 B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
-grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET)
-mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET)
+grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
+mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
 db=DomainBuilder(dim=3)
 db.addSource(grav_source)
 db.addSource(mag_source)
@@ -60,21 +62,20 @@ inv.setup(db)
 inv.getCostFunction().setTradeOffFactorsModels([mu_gravity, mu_magnetic])
 inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
 
-print("Starting inversion, please stand by...")
-try:
-    density, susceptibility = inv.run()
-except MinimizerMaxIterReached as e:
-    print(e)
-    density, susceptibility = inv.p
-
+density, susceptibility = inv.run()
 print("density = %s"%density)
 print("susceptibility = %s"%susceptibility)
 
-# Save results
-gravSurveys = db.getGravitySurveys()
-magSurveys = db.getMagneticSurveys()
-g, wg =  gravSurveys[0]
-B, wB =  magSurveys[0]
-saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g[2], gravity_weight=wg[2], susceptibility=susceptibility, magnetic_anomaly=B[2], magnetic_weight=wB[2])
-print("Results saved in result_gravmag.silo. Good bye.")
+g, wg = db.getGravitySurveys()[0]
+B, wB = db.getMagneticSurveys()[0]
+saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=wB)
+print("Results saved in result_gravmag.silo")
+
+saveVTK("result_gravmag.vtu", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=wB)
+print("Results saved in result_gravmag.vtu")
+
+saveDataCSV("result_gravmag.csv", density=density, susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
+print("Results saved in result_gravmag.csv")
+
+print("All done. Have a nice day!")
 

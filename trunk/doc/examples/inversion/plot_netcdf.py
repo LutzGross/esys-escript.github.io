@@ -23,7 +23,7 @@ from scipy.io import netcdf_file
 if len(sys.argv)>1:
     FILENAME=sys.argv[1]
 else:
-    FILENAME='data/QLDWest_grav.nc'
+    FILENAME='data/QLDWestMagnetic.nc'
 
 f=netcdf_file(FILENAME, 'r')
 NY=f.dimensions["latitude"]
@@ -39,9 +39,12 @@ x_label=longitude.long_name
 x_units=longitude.units
 longitude=longitude[:]
 
-DATA=f.variables["onshore_only_Bouguer_geodetic"]
+DATA=f.variables["magmap_V5_2010"]
 data_label=DATA.long_name
-UNITS=DATA.units
+try:
+    UNITS=DATA.units
+except AttributeError:
+    UNITS="nT"
 DATA=DATA[:]
 if DATA.dtype.byteorder=='>':
     DATA=DATA.byteswap().newbyteorder()

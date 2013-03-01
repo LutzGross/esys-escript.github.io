@@ -23,7 +23,7 @@ from scipy.io import netcdf_file
 if len(sys.argv)>1:
     FILENAME=sys.argv[1]
 else:
-    FILENAME='data/QLDWest_grav.ers'
+    FILENAME='data/QLDWestGravity.ers'
 
 
 if FILENAME[-4:]=='.ers': FILENAME=FILENAME[:-4]
