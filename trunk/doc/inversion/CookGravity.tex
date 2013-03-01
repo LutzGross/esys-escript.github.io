@@ -9,7 +9,7 @@ The driver functions enable geologists and geophysicists to apply the
 \downunder module quickly and in an easy way without requiring detailed
 knowledge of the theory behind inversion or programming skills.
 However, users who are interested in specializing or extending the inversion
-capacity are referred to the Part~\ref{part2} of this manual.
+capacity are referred to Part~\ref{part2} of this manual.
 It is beyond the intention of this manual to give a detailed introduction to
 geophysical inversion, in particular to the appropriate preprocessing of data
 sets. We refer to~\cite{REF1, REF2, REF3}.
@@ -40,25 +40,27 @@ chapter on gravity data.
 
 To run the examples discussed you need to have \escript (version 3.3.1 or
 newer) installed on your computer.
-Moreover, if you want to visualize the results you must have access to a
-plotting software which is able to process \VTK input files, e.g. \mayavi and \VisIt.
-As \mayavi can easily be obtained and installed for most platforms the
-tutorial is based on \mayavi as visualization. However, it is pointed out 
-that \VisIt is the preferred visualization tool for \escript as it can deal
-with very large data sets more efficiently.
+Moreover, if you want to visualize the results you need to have access to a
+data plotting software which is able to process \VTK input files, e.g.
+\mayavi or \VisIt.
+As \mayavi can be easily obtained and installed for most platforms the
+tutorial includes commands to visualize output files using \mayavi .
+However, it is pointed out that \VisIt is the preferred visualization tool for
+\escript as it can deal with very large data sets more efficiently.
     
 \begin{figure}
 \centering
 \includegraphics[width=0.7\textwidth]{QLDWestGravityDataPlot.png}
 \caption{Gravity Anomaly Data in $mgal$ from Western Queensland, Australia
-    (see file \examplefile{data/QLDWest_grav.nc}). \AZADEH{Tracey R, Bacchin M, \& Wynne P. 2008. In preparation. AAGD07: A new absolute gravity datum for Australian gravity and new standards for the Australian National Gravity Database. Exploration Geophysics.}}
+    (see file \examplefile{data/QLDWest_grav.nc}). Data obtained from Geoscience Australia.}
+%\AZADEH{Tracey R, Bacchin M, \& Wynne P. 2008. In preparation. AAGD07: A new absolute gravity datum for Australian gravity and new standards for the Australian National Gravity Database. Exploration Geophysics.}}
 \label{FIG:P1:GRAV:0}
 \end{figure}
 
 \begin{figure}
 \centering%
 \includegraphics[width=0.9\textwidth]{QLDGravContourMu10.png}
-\caption{3D contour plot of the density distribution obtained by inversion of
+\caption{3-D contour plot of the density distribution obtained by inversion of
     file \file{data/QLDWest_grav.nc} (with $\mu=10$).
     Colours represent values of density where high values are represented by
     blue and low values are represented by red.}
@@ -102,7 +104,7 @@ dom.setFractionalPadding(pad_x=0.2, pad_y=0.2)
 dom.fixDensityBelow(depth=40.*U.km)
 
 # Step 2: read gravity data
-source0=NetCdfData(NetCdfData.GRAVITY, 'data/QLDWest_grav.nc', altitude=0.)
+source0=NetCdfData(NetCdfData.GRAVITY, 'QLDWest_grav.nc', altitude=0.)
 dom.addSource(source0)
 
 # Step 3: set up inversion
@@ -128,9 +130,9 @@ It is recommended to use the extension \file{.py} to identify the file as a
 We will discuss the statements of the script later in this chapter. 
 
 Obviously the inversion needs to be fed with some gravity data. In this case
-the data are loaded from the file \examplefile{data/QLDWest_grav.nc} which is
+the data are loaded from the file \examplefile{QLDWest_grav.nc} which is
 available in the \escript example file directory.
-The data are given in the \netcdf file format for gridded data.
+The data in this example are given in the \netcdf file format.
 After you have copied this file into the directory in which you have saved the
 script \file{grav.py} you can run the program using the command line 
 \begin{verbatim}
@@ -193,7 +195,7 @@ We think of the domain as a block with orthogonal, plain faces.
 Figure~\ref{FIG:P1:GRAV:2} shows the set-up for a two-dimensional domain
 (see also Figure~\ref{fig:domainBuilder} for 3-D).
 The lateral coordinates along the surface of the Earth are denoted by $x$ and
-$y$ (only $x$-direction is shown).
+$y$ (only $x$-direction is used in 2-D).
 The $z$ direction defines the vertical direction where the part above the
 surface has positive coordinates and the subsurface negative coordinates.
 The height of the section above the surface, which is assumed to be filled
@@ -274,8 +276,8 @@ latitude. In the script we have used the expression
 depth=40.*U.km
 \end{verbatim}
 to define the depth of the domain to $40 km$.
-The expression \verb|U.km| is the unit $km$ (kilometer) and an appropriate
-conversion of $40$ as length in $km$ into the base unit $m$ (meter).
+The expression \verb|U.km| denotes the unit $km$ (kilometer) and ensures
+appropriate conversion of the value $40$ into the base unit $m$ (meter).
 It is recommended to add units to values (where present) in order to make sure
 that the final values handed into \downunder is given with the appropriate
 units.
@@ -313,7 +315,7 @@ $-180^o$ to $180^o$ where negative signs refer to places in the western
 hemisphere.
 The colour at a location represents the value of the vertical Bouguer gravity
 anomaly at this point at the surface of the Earth.
-Values range from $-160 \; mgal$ to about $500 \; mgal$\footnote{The unit
+Values in this data set range from $-160 \; mgal$ to about $500 \; mgal$\footnote{The unit
 $mgal$ means milli $gal$ (galileo) with $1 \; gal = 0.01 \frac{m}{sec^2}$.}
 over a $121 \times 121$ grid.
 
@@ -325,33 +327,31 @@ The grid is spanned from an origin with spacing \verb|DELTA_X| and
 \verb|DELTA_Y| in the longitude and the latitude direction, respectively.
 The gravity data for all grid points need to be given as an \verb|NX|
 $\times$ \verb|NY| array.
-If available errors can be associated with the gravity data.
+If available, measurement errors can be associated with the gravity data.
 The values are given as an \verb|NX| $\times$ \verb|NY| array matching the
 shape of the gravity array.
-The \Python script \examplefile{create_netcdf.py} shows how to create a file
+Note that data need not be available on every single point of the grid, see
+Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES} for more information on this.
+
+Currently, two data file formats are supported, namely \emph{ER Mapper Raster}
+\cite{ERMAPPER} files and \netcdf~\cite{NETCDF} files.
+In the examples of this chapter we use \netcdf files and refer to
+Section~\ref{SEC:P1:GRAV:REMARK:ERMAPPER} and
+Section~\ref{sec:ref:DataSource:ERM} for more information on using ER Mapper
+Raster files.
+If you have data in any other format you have the option of writing a suitable
+reader (for advanced users, see Chapter~\ref{Chp:ref:data sources}) or,
+assuming you are able to read the data in \Python, refer to the example
+script \examplefile{create_netcdf.py} which shows how to create a file
 in the \netcdf file format~\cite{NETCDF} compatible with \downunder from
 a data array.
-see Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES}
-BLA 
 
-\CIHAN{ADD an example how ro use ER Mapper raster files}
-
-In addition to the \netcdf file format 
-
-
-Two data formats are supported, namely ER Mapper Raster File and \netcdf.
-Here we will focus on the \netcdf file format~\cite{NETCDF} and refer to
-subsection~\ref{SEC:P1:GRAV:REMARK:ERMAPPER} and
-Section~\ref{sec:ref:DataSource:ERM} for more information on the ER Mapper
-Raster format.
-
-BLA
+\CIHAN{Use coarse data 10x10 or so?} 
 In script~\ref{code: gravity1} we use the statement 
 \begin{verbatim}
-source0=NetCdfData(NetCdfData.GRAVITY, 'data/QLDWest_grav.nc', altitude=0.)
+source0=NetCdfData(NetCdfData.GRAVITY, 'QLDWest_grav.nc', altitude=0.)
 \end{verbatim}
-\CIHAN{REWISE} \AZADEH{ADD coarse data 10x10 or so?} 
-to load the gravity data stored in \examplefile{data/QLDWest_grav.nc} in the \netcdf format. 
+to load the gravity data stored in \examplefile{QLDWest_grav.nc} in the \netcdf format. 
 Within the script the data set is now available under the name \verb|source0|.
 We need to link the data set to the \verb|DomainBuilder| using 
 \begin{verbatim}
