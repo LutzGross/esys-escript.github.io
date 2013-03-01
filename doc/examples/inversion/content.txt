@@ -1,21 +1,21 @@
 data:
 
-- data/QLDWest_grav.nc:
+- data/QLDWestGravity.nc:
       gravity data, 121x121 cells, Western Queensland, netCDF format
-- data/QLDWest_grav.ers, data/QLDWest_grav:
+- data/QLDWestGravity.ers, data/QLDWestGravity:
       gravity data, 121x121 cells, Western Queensland, ER Mapper format
-- data/QLDWest_mag.nc:
+- data/QLDWestMagnetic.nc:
       magnetic data, 121x121 cells, Western Queensland, netCDF format
-- data/QLDWest_mag.ers, data/QLDWest_mag:
+- data/QLDWestMagnetic.ers, data/QLDWestMagnetic:
       magnetic data, 121x121 cells, Western Queensland, ER Mapper format
-- data/QLDWest_grav_small.nc:
-      gravity data, 40x40 , Western Queensland, netCDF format
-- data/QLDWest_grav_small.ers, data/QLDWest_grav_small:
-      gravity data, 40x40 , Western Queensland, ER Mapper format
-- data/QLDWest_mag_small.nc:
-      magnetic data, 40x40, Western Queensland, netCDF format
-- data/QLDWest_mag_small.ers, data/QLDWest_mag_small:
-      magnetic data, 40x40, Western Queensland, ER Mapper format
+- data/GravitySmall.nc:
+      gravity data, 13x13 cells, Western Queensland, netCDF format
+- data/GravitySmall.ers, data/GravitySmall:
+      gravity data, 13x13 cells, Western Queensland, ER Mapper format
+- data/MagneticSmall.nc:
+      magnetic data, 13x13 cells, Western Queensland, netCDF format
+- data/MagneticSmall.ers, data/MagneticSmall:
+      magnetic data, 13x13 cells, Western Queensland, ER Mapper format
 
 scripts:
 
@@ -26,21 +26,18 @@ scripts:
 - plot_ermapper.py:
     script to plot data in ER Mapper format using matplotlib
 - grav_netcdf.py:
-    inversion of data/QLDWest_grav_small.nc
+    inversion of data/GravitySmall.nc
     (reads netCDF, creates VTK, Silo and CSV output)
 - grav_ermapper.py:
-    inversion of data/QLDWest_grav_small.ers
+    inversion of data/GravitySmall.ers
     (reads ER Mapper, creates VTK, Silo and CSV output)
 - mag_netcdf.py:
-    inversion of data/QLDWest_mag_small.nc
+    inversion of data/MagneticSmall.nc
     (reads netCDF, creates VTK, Silo and CSV output)
-- mag_ermapper.py:
-    inversion of data/QLDWest_mag_small.ers
-    (reads ER Mapper, creates VTK, Silo and CSV output)
 - gravmag_netcdf.py:
-    joint inversion from data QLDWest_grav_small.nc & QLDWest_mag_small.nc
+    joint inversion of data/GravitySmall.nc and data/MagneticSmall.nc
     (reads netCDF, creates VTK, Silo and CSV output)
 - gravmag_nodriver.py:
-    joint inversion as above, without joint inversion driver (advanced)
-    (reads netCDF, creates VTK, Silo and CSV output)
+    joint inversion as above but without joint inversion driver (advanced)
+    (reads netCDF, creates VTK and Silo output)
 

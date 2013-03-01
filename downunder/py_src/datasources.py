@@ -327,6 +327,10 @@ class ErMapperData(DataSource):
             self.logger.warn("Could not determine coordinate origin. Setting to (0.0, 0.0)")
             originX,originY = 0.0, 0.0
 
+        # data sets have origin in top-left corner so y runs top-down and
+        # we need to flip accordingly
+        originY-=NY*spacingY
+
         if 'GEODETIC' in md_dict['CoordinateSpace.Projection']:
             # it appears we have lat/lon coordinates so need to convert
             # origin and spacing. Try using gdal to get the wkt if available:
@@ -347,9 +351,6 @@ class ErMapperData(DataSource):
             originY=np.round(originY_UTM)
 
         self.__dataorigin=[originX, originY]
-        # data sets have origin in top-left corner so y runs top-down and
-        # we need to flip accordingly
-        originY-=(NY-1)*spacingY
         self.__delta = [spacingX, spacingY]
         self.__nPts = [NX, NY]
         self.__origin = [originX, originY]
