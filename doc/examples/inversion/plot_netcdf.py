@@ -45,7 +45,10 @@ try:
     UNITS=DATA.units
 except AttributeError:
     UNITS="nT"
-DATA=DATA[:]
+
+# convert NaN (not-a-number) values to -1000 so the plotting works
+DATA=np.where(np.isnan(DATA[:]), -1000, DATA[:])
+
 if DATA.dtype.byteorder=='>':
     DATA=DATA.byteswap().newbyteorder()
 

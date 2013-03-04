@@ -51,6 +51,10 @@ SIGMA = 3.
 DATA = 10*np.random.normal(size=(NY, NX), scale=SIGMA)
 ERROR = np.ones((NY, NX)) * SIGMA
 
+# Use MISSING where data is invalid/not available, example:
+DATA[NY/2,NX/2]=MISSING
+ERROR[NY/2,NX/2]=MISSING
+
 ##############################################################################
 ###################### Keep everything below this line #######################
 ##############################################################################

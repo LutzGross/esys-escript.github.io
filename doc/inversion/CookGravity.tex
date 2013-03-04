@@ -318,7 +318,7 @@ Values in this data set range from $-160 \; mgal$ to about $500 \; mgal$\footnot
 $mgal$ means milli $gal$ (galileo) with $1 \; gal = 0.01 \frac{m}{sec^2}$.}
 over a $121 \times 121$ grid.
 
-In general, a patch of gravity data need to be defined over a plane
+In general, a patch of gravity data needs to be defined over a plane
 \verb|NX| $\times$ \verb|NY| where \verb|NX| and \verb|NY| define the number
 of grid lines in the longitude (\verb|X|) and the latitude (\verb|Y|)
 direction, respectively.
@@ -379,6 +379,39 @@ central longitude is used when projecting.
 For example, if one data set lies mostly in zone 51 but contains areas of zone
 52, it is transformed using zone 51.
 In this case more data from zone 51 can be added, but not from any other zone.
+
+There are a few optional arguments you can add when constructing a data source.
+While Section~\ref{sec:ref:DataSource} has a detailed description of all
+arguments it is worth noting a few.
+Firstly, it is important to know that data slices are assumed to be at altitude
+$0$ by default. This can be easily changed though:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', altitude=2.5*U.km)
+\end{verbatim}
+Another important setting is the scale or unit of the measurements.
+The default is dependent on the data type and for gravity anomalies a scale
+of $\frac{\mu m}{sec^2}$ (or $0.1 \; mgal$) is assumed.
+To change the default scale to $mgal$ (which is $10^{-5} \frac{m}{sec^2}$),
+you could use:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', scale_factor=1e-5)
+\end{verbatim}
+Finally, it is possible to specify measurement errors (i.e. uncertainties)
+alongside the data.
+Since these can never be zero, a value of $2$ units is used if nothing else
+has been specified.
+The error value is assumed to be given in the same units as the data so the
+default value translates to an error of $0.2 \; mgal$.
+There are two possibilities to specify the error, namely by providing a
+constant value which is applied to all data points:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', error=1.7)
+\end{verbatim}
+or, if the information is available in the same \netcdf file under the name
+\verb|errors|, provide \downunder with the variable name:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', error="errors")
+\end{verbatim}
 
 It is important to keep an eye on the complexity of the inversion.
 A good measure is the total number of cells being used.
@@ -589,8 +622,8 @@ Typically several runs are required to adjust the value for the trade-off
 factor to the datasets used.
 
 For some analysis tools it is useful to process the results in form of
-Comma-separated Values (\CSV)~\footnote{see 
-\url{http://en.wikipedia.org/wiki/Comma-separated_values}.}.
+Comma-separated Values (\CSV)\footnote{see 
+\url{http://en.wikipedia.org/wiki/Comma-separated_values}}.
 Such a file can be created using the statement
 \begin{verbatim}
 saveDataCSV("result.csv", x=rho.getFunctionSpace().getX(), density=rho)
@@ -611,10 +644,45 @@ for the particular type of representation, see~\cite{ESCRIPT} for details.
 \section{Remarks}
 
 \subsection{Data With Holes}\label{SEC:P1:GRAV:REMARK:DATAHOLES}
-\CIHAN{ADD some remarks holes in the data, example?}
+As described in the previous section input data is always given in the form of
+a rectangular grid with constant cell size in each dimension.
+However, there are cases when this is not necessarily the case.
+Consider an onshore data set which includes parts of the offshore region as in
+Figure~\ref{FIG:P1:GRAV:onshoreoffshore}.
+The valid data in this example has a value range of about $-600$ to $600$ and
+the inversion is to be run based on these values only, disregarding the
+offshore region.
+In order to achieve that, the offshore region is \emph{masked} by using a
+constant value which is not found within the onshore area.
+Figure~\ref{FIG:P1:GRAV:onshoreoffshore} clearly shows this masked area in
+dark blue since a mask value of $-1000$ was used.
 
+\begin{figure}[ht]
+    \centering
+    \includegraphics[width=0.45\textwidth]{onshore-offshore.png}
+    \caption{Plot of a rectangular gridded onshore data set that includes
+    offshore regions which have a value (here $-1000$) not found within the
+    real data (Bouguer anomalies in Tasmania, courtesy Geoscience Australia)}
+    \label{FIG:P1:GRAV:onshoreoffshore}
+\end{figure}
 
-\subsection{ER Mapper Raster File}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
+The \netcdf conventions supported in \downunder include a standard way of
+specifying such a mask value.
+The example script \examplefile{create_netcdf.py} demonstrates how this is
+accomplished in an easy way with any data.
+If, for any reason, the mask value in the input file is invalid it can be
+overridden via the \verb|null_value| argument when constructing the
+\verb|NetCdfData| object:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.GRAVITY, 'data0.nc', null_value=-1000)
+\end{verbatim}
+In this example, all data points that have a value of $-1000$ are ignored and
+not used in the inversion.
+Please note that the special value \emph{NaN} (not-a-number) is sometimes used
+for the purposes of masking in data sets.
+Areas marked with this value are always disregarded in \downunder.
+
+\subsection{ER Mapper Raster Files}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
 \CIHAN{ADD an example how to use ER Mapper raster files}
 
 \subsection{Regularization Term}\label{SEC:P1:GRAV:REMARK:REG}
