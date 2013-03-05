@@ -83,7 +83,7 @@ v.units="degrees_east"
 v.long_name="Longitude"
 
 # Create latitude dimension and variable
-latitude=np.linspace(ORIGIN_Y, ORIGIN_Y-NY*DELTA_Y, NY, endpoint=False)
+latitude=np.linspace(ORIGIN_Y-NY*DELTA_Y, ORIGIN_Y, NY, endpoint=False)
 o.createDimension("latitude", NY)
 v=o.createVariable("latitude", latitude.dtype, ["latitude"])
 v.data[:]=latitude
