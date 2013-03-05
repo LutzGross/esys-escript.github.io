@@ -99,15 +99,15 @@ err_t Paso_Solver_TFQMR(
 /*   ---------------------                                         */
 /*                                                                 */
 /*                                                                 */
-  u1=TMPMEMALLOC(n,double);
-  u2=TMPMEMALLOC(n,double);
-  y1=TMPMEMALLOC(n,double);
-  y2=TMPMEMALLOC(n,double);
-  d=TMPMEMALLOC(n,double);
-  w=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  temp_vector=TMPMEMALLOC(n,double);
-  res=TMPMEMALLOC(n,double);
+  u1=new double[n];
+  u2=new double[n];
+  y1=new double[n];
+  y2=new double[n];
+  d=new double[n];
+  w=new double[n];
+  v=new double[n];
+  temp_vector=new double[n];
+  res=new double[n];
  
  if (u1 ==NULL || u2== NULL || y1 == NULL || y2== NULL || d==NULL || w==NULL || v==NULL ) {
      status=SOLVER_MEMORY_ERROR;
@@ -245,15 +245,15 @@ err_t Paso_Solver_TFQMR(
     /* end of iteration */
     
     Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-    TMPMEMFREE(u1);
-    TMPMEMFREE(u2);
-    TMPMEMFREE(y1); 
-    TMPMEMFREE(y2);
-    TMPMEMFREE(d);
-    TMPMEMFREE(w); 
-    TMPMEMFREE(v); 
-    TMPMEMFREE(temp_vector);
-    TMPMEMFREE(res);
+    delete[] (u1);
+    delete[] (u2);
+    delete[] (y1); 
+    delete[] (y2);
+    delete[] (d);
+    delete[] (w); 
+    delete[] (v); 
+    delete[] (temp_vector);
+    delete[] (res);
     *iter=num_iter;
     *tolerance=norm_of_residual;
     

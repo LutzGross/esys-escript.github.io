@@ -39,15 +39,15 @@
 void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in) {
      if (in!=NULL) {
 	Paso_Preconditioner_LocalSmoother_free(in->localSmoother);
-        MEMFREE(in);
+        delete in;
      }
 }
 void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * in) {
    if (in!=NULL) {
-      MEMFREE(in->diag);
-      MEMFREE(in->pivot); 
-      MEMFREE(in->buffer);
-      MEMFREE(in);
+      delete[] in->diag;
+      delete[] in->pivot; 
+      delete[] in->buffer;
+      delete in;
    }
 }
 /************************************************************************************/
@@ -58,7 +58,7 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
 {
   
   /* allocations: */  
-  Paso_Preconditioner_Smoother* out=MEMALLOC(1,Paso_Preconditioner_Smoother);
+  Paso_Preconditioner_Smoother* out=new Paso_Preconditioner_Smoother;
   if (! Esys_checkPtr(out)) {
      out->localSmoother=Paso_Preconditioner_LocalSmoother_alloc(A_p->mainBlock,jacobi,verbose);
      out->is_local=is_local;
@@ -79,12 +79,12 @@ Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_
    
    double time0=Esys_timer();
    /* allocations: */  
-   Paso_Preconditioner_LocalSmoother* out=MEMALLOC(1,Paso_Preconditioner_LocalSmoother);
+   Paso_Preconditioner_LocalSmoother* out=new Paso_Preconditioner_LocalSmoother;
    if (! Esys_checkPtr(out)) {
       
-      out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
-      out->pivot=MEMALLOC( ((size_t) n) * ((size_t)  n_block), index_t);
-      out->buffer=MEMALLOC( ((size_t) n) * ((size_t)  n_block), double);
+      out->diag=new double[((size_t) n) * ((size_t) block_size)];
+      out->pivot=new index_t[ ((size_t) n) * ((size_t)  n_block)];
+      out->buffer=new double[((size_t) n) * ((size_t)  n_block)];
       out->Jacobi=jacobi;
       
       if ( ! ( Esys_checkPtr(out->diag) || Esys_checkPtr(out->pivot) ) ) {

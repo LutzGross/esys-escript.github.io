@@ -85,9 +85,9 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
 
      /* allocate arrays "ptr", "index" and "val" */
      num_vals = main_ptr[main_num_rows]-1;
-     *p_ptr = MEMALLOC(main_num_rows+1, index_t);
-     *p_idx = MEMALLOC(num_vals, index_t);
-     *p_val = MEMALLOC(num_vals, double);
+     *p_ptr = new index_t[main_num_rows+1];
+     *p_idx = new index_t[num_vals];
+     *p_val = new double[num_vals];
 
      #pragma omp for schedule(static) private(i,ij_ptr,j_lb,j_ub)
      for (i=0; i<main_num_rows; i++) {
@@ -115,7 +115,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   if (A->global_id == NULL) {
     /* prepare for global coordinates in colCoupleBlock, the results are
        in coupler->recv_buffer */
-    rows=TMPMEMALLOC(main_num_rows, double);
+    rows=new double[main_num_rows];
     row_offset = A->row_distribution->first_component[rank];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<main_num_rows; ++i) rows[i]=row_offset+i;
@@ -134,18 +134,18 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   main_num_vals = main_ptr[main_num_rows]-main_ptr[0];
   couple_num_vals = couple_ptr[couple_num_rows]-couple_ptr[0];
   num_vals = main_num_vals + couple_num_vals;
-  *p_ptr = MEMALLOC(main_num_rows+1, index_t);
-  *p_idx = MEMALLOC(num_vals, index_t);
-  *p_val = MEMALLOC(num_vals, double);
+  *p_ptr = new index_t[main_num_rows+1];
+  *p_idx = new index_t[num_vals];
+  *p_val = new double[num_vals];
   (*p_ptr)[0] = 0;
   i = 0;
   j = 0;
 
   if (A->global_id == NULL) {
     Paso_Coupler_finishCollect(coupler);
-    TMPMEMFREE(rows);
+    delete[] rows;
     num_cols = A->col_coupleBlock->numCols;
-    global_id = MEMALLOC(num_cols, index_t);
+    global_id = new index_t[num_cols];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_cols; ++i)
         global_id[i] = coupler->recv_buffer[i];
@@ -201,9 +201,9 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
 
      /* allocate arrays "ptr", "index" and "val" */
      num_vals = main_ptr[main_num_rows]-1;
-     *p_ptr = MEMALLOC(main_num_rows+1, index_t);
-     *p_idx = MEMALLOC(num_vals, index_t);
-     *p_val = MEMALLOC(num_vals * block_size, double);
+     *p_ptr = new index_t[main_num_rows+1];
+     *p_idx = new index_t[num_vals];
+     *p_val = new double[num_vals * block_size];
 
      #pragma omp for schedule(static) private(i,ij_ptr,j_lb,j_ub, ib)
      for (i=0; i<main_num_rows; i++) {
@@ -232,7 +232,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
   if (A->global_id == NULL) {
     /* prepare for global coordinates in colCoupleBlock, the results are
        in coupler->recv_buffer */
-    rows=TMPMEMALLOC(main_num_rows, double);
+    rows=new double[main_num_rows];
     row_offset = A->row_distribution->first_component[rank];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<main_num_rows; ++i) rows[i]=row_offset+i;
@@ -251,18 +251,18 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
   main_num_vals = main_ptr[main_num_rows]-main_ptr[0];
   couple_num_vals = couple_ptr[couple_num_rows]-couple_ptr[0];
   num_vals = main_num_vals + couple_num_vals;
-  *p_ptr = MEMALLOC(main_num_rows+1, index_t);
-  *p_idx = MEMALLOC(num_vals, index_t);
-  *p_val = MEMALLOC(num_vals*block_size, double);
+  *p_ptr = new index_t[main_num_rows+1];
+  *p_idx = new index_t[num_vals];
+  *p_val = new double[num_vals*block_size];
   (*p_ptr)[0] = 0;
   i = 0;
   j = 0;
 
   if (A->global_id == NULL) {
     Paso_Coupler_finishCollect(coupler);
-    TMPMEMFREE(rows);
+    delete[] rows;
     num_cols = A->col_coupleBlock->numCols;
-    global_id = MEMALLOC(num_cols, index_t);
+    global_id = new index_t[num_cols];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_cols; ++i)
         global_id[i] = coupler->recv_buffer[i];

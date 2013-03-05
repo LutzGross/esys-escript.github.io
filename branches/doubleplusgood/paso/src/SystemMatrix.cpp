@@ -64,7 +64,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
         /* or the offsets are wrong */
     ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1));
   
-  out=MEMALLOC(1,Paso_SystemMatrix);
+  out=new Paso_SystemMatrix;
   if (! Esys_checkPtr(out)) {  
      out->type=type;
      out->pattern=NULL;  
@@ -146,7 +146,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
            if (Esys_noError()) {
               /* allocate memory for matrix entries */
               n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
-	      out->balance_vector=MEMALLOC(n_norm,double);
+	      out->balance_vector=new double[n_norm];
 	      out->is_balanced=FALSE;
 	      if (! Esys_checkPtr(out->balance_vector)) {
                  #pragma omp parallel for private(i) schedule(static)
@@ -191,12 +191,12 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_SparseMatrix_free(in->row_coupleBlock);
 	Paso_SparseMatrix_free(in->remote_coupleBlock);
 	
-	MEMFREE(in->balance_vector);
-        if (in->global_id) MEMFREE(in->global_id);
+	delete[] in->balance_vector;
+        if (in->global_id) delete[] in->global_id;
         #ifdef TRILINOS
         Paso_TRILINOS_free(in->trilinos_data);
         #endif
-        MEMFREE(in);
+        delete in;
         #ifdef Paso_TRACE
         printf("Paso_SystemMatrix_free: system matrix has been deallocated.\n");
         #endif
