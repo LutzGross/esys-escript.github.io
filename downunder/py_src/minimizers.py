@@ -162,7 +162,7 @@ class AbstractMinimizer(object):
 
     TOLERANCE_REACHED, MAX_ITERATIONS_REACHED, INCURABLE_BREAKDOWN = list(range(3))
 
-    def __init__(self, J=None, m_tol=1e-5, J_tol=None, imax=300):
+    def __init__(self, J=None, m_tol=1e-4, J_tol=None, imax=300):
         """
         Initializes a new minimizer for a given cost function.
 

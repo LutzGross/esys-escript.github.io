@@ -683,7 +683,38 @@ for the purposes of masking in data sets.
 Areas marked with this value are always disregarded in \downunder.
 
 \subsection{ER Mapper Raster Files}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
-\CIHAN{ADD an example how to use ER Mapper raster files}
+The \downunder module can read data stored in ER Mapper Raster files. A data
+set in this format consists of two files, a header file whose name usually ends
+in \verb|.ers| and the actual data file which has the same filename as the
+header file but without any file extension.
+These files are usually produced by a commercial software package and the
+contents can be quite diverse.
+Therefore, it is not guaranteed that every data set is supported by \downunder
+but the most common types of raster data should work\footnote{If your data
+does not load please contact us through \url{https://launchpad.net/escript-finley}.}.
+
+The interface for loading ER Mapper files is very similar to the \netcdf
+interface described in Section~\ref{SEC:P1:GRAV:DATA}.
+To load gravity data stored in the file pair\footnote{These files are available
+in the example directory.} \examplefile{GravitySmall.ers} (the
+header) and \examplefile{GravitySmall} (the data) without changing any of the
+defaults use:
+\begin{verbatim}
+source0=ErMapperData(ErMapperData.GRAVITY, 'GravitySmall.ers')
+\end{verbatim}
+If your data set does not follow the default naming convention you can specify
+the name of the data file explicitly:
+\begin{verbatim}
+source0=ErMapperData(ErMapperData.GRAVITY, 'GravitySmall.ers',
+                     datafile='GravityData')
+\end{verbatim}
+Please note that there is no way for the reader to determine if the two files
+really form a pair so make sure to pass the correct filenames when constructing
+the reader object.
+The same optional arguments explained in sections \ref{SEC:P1:GRAV:DATA} and
+\ref{SEC:P1:GRAV:REMARK:DATAHOLES} are available for ER Mapper data sets.
+However, due to the limitation of the file format only a constant error value
+is supported.
 
 \subsection{Regularization Term}\label{SEC:P1:GRAV:REMARK:REG}
 The \verb|GravityInversion| class supports the following form for the

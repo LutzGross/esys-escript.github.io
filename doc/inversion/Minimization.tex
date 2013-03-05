@@ -14,82 +14,101 @@
 
 \chapter{Minimization Algorithms}\label{chapter:ref:Minimization}
 We need to find the level set function $m$ minimizing the cost function $J$ as 
-defined in equation~\ref{REF:EQU:INTRO 1}. The physical parameters $p^f$ and the 
-data defects are linked through state variables $u^f$ which is a 
-given as a solution of a partial differential equation (PDE) with 
-coefficients depending on $p_f$. This PDE  (or - in case of several forward models - this set of PDEs)
-defines a constraint in the minimization problem. In the context of our applications
-it can be assumed the the PDE is of 'maximum rank', ie. for a given value of the level set function $m$
-there is a unique value for the state variables $u^f$ as the solution of the forward model. So from a mathematical point of view 
-the state variable $u^f$ can be eliminated from the problem and the minimization problem becomes in fact 
-a minimization problem for the level set function $m$ alone where the physical parameters which are of most interest
-in applications can easily be derived from the solution. However one need to keep in mind that 
-each evaluation of the cost function requires the solution of a PDE (an additional PDE solution is required for the 
-gradient).
+defined in Equation~\ref{REF:EQU:INTRO 1}. The physical parameters $p^f$ and
+the data defects are linked through state variables $u^f$ which is given as a
+solution of a partial differential equation (PDE) with coefficients depending
+on $p_f$. This PDE (or -- in case of several forward models -- this set of PDEs)
+defines a constraint in the minimization problem.
+In the context of our applications it can be assumed that the PDE is of
+'maximum rank', i.e. for a given value of the level set function $m$ there is a
+unique value for the state variables $u^f$ as the solution of the forward model.
+So from a mathematical point of view the state variable $u^f$ can be eliminated
+from the problem and the minimization problem becomes in fact a minimization
+problem for the level set function $m$ alone where the physical parameters
+which are of most interest in applications can easily be derived from the
+solution. However one needs to keep in mind that each evaluation of the cost
+function requires the solution of a PDE (an additional PDE solution is required
+for the gradient).
 
-In some application cases the optimization problem to be solved defines a quadratic programming problem which would allow
-to use a special case of solvers. However, in the general scenarios we are interested here we cannot assume this
-simplification and need to be able to solve for a general cost function.
-The method used here is the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS}) method, see~\cite{Nocedal1980}. 
-The method is a quasi-Newton method.
-To implement the method one needs to provides the evaluation of the cost function $J$ and its gradient $\nabla J$
-and dual product $<.,.>$\footnote{A dual product $<.,.>$ defines function which assigns 
-a pair $(p,g)$ of a level set increment $p$ and a gradient $g$ a real number $<p,g>$. It is linear 
+In some application cases the optimization problem to be solved defines a
+quadratic programming problem which would allow to use a special case of
+solvers.
+However, for the general scenarios we are interested in here we cannot assume
+this simplification and need to be able to solve for a general cost function.
+The method used here is the limited-memory Broyden-Fletcher-Goldfarb-Shanno
+(\emph{L-BFGS}) method, see~\cite{Nocedal1980}.
+This method is a quasi-Newton method.
+To implement the method one needs to provide the evaluation of the cost
+function $J$ and its gradient $\nabla J$ and dual product $<.,.>$\footnote{A
+dual product $<.,.>$ defines a function which assigns a pair $(p,g)$ of a level
+set increment $p$ and a gradient $g$ a real number $<p,g>$. It is linear
 in the first and linear in the second argument.}
 such that for $\alpha \to$ 0 
 \begin{equation}\label{EQU:MIN:1}
 J(m+\alpha p) = J(m) + \alpha \cdot < p , \nabla J(m)> + o(\alpha)
 \end{equation}  
-where $p$ is an increment to the level set 
-function\footnote{ $o$ denotes the little o notation see \url{http://en.wikipedia.org/wiki/Big_O_notation}}.
-Notice that if $m$ is the unknown solution one has $\nabla J(m)=0$. 
-Moreover, an approximation of the inverse of the Hessian operator $\nabla \nabla J(m)$ needs to be provided
-for a given value of  $m$. In the implementation we don't need to provide the entire operator but 
-for a given gradient difference $g$ an approximation $h=Hg$ of $\nabla \nabla J(m))^{-1}g$ needs to be 
-calculated. This is an approximative solution of the equation $\nabla \nabla J(m)) h =g$ which in variational
-from is given as 
+where $p$ is an increment to the level set function\footnote{$o$ denotes the
+little o notation see \url{http://en.wikipedia.org/wiki/Big_O_notation}}.
+Notice that if $m$ is the unknown solution one has $\nabla J(m)=0$.
+Moreover, an approximation of the inverse of the Hessian operator
+$\nabla \nabla J(m)$ needs to be provided for a given value of $m$.
+In the implementation we don't need to provide the entire operator but for a
+given gradient difference $g$ an approximation $h=Hg$ of
+$\nabla \nabla J(m))^{-1}g$ needs to be calculated.
+This is an approximative solution of the equation $\nabla \nabla J(m)) h=g$
+which in variational form is given as 
 \begin{equation}\label{EQU:MIN:2}
 <p, \nabla \nabla J(m)\; h > = <p, g>
 \end{equation}
-for all level set increments $p$. In the cases relevant here, it is a possible approach to 
-make the approximation $\nabla \nabla J(m) \approx \nabla \nabla J^{reg}(m)$ which can easily be construction 
-and the resulting variational equation~\ref{EQU:MIN:2} can easily be solved, see Chapter~\ref{Chp:ref:regularization}.
+for all level set increments $p$.
+In the cases relevant here, it is a possible approach to make the approximation
+$\nabla \nabla J(m) \approx \nabla \nabla J^{reg}(m)$ which can easily be
+constructed and the resulting variational Equation~\ref{EQU:MIN:2} can easily
+be solved, see Chapter~\ref{Chp:ref:regularization}.
 
-The L-BFGS is an iterative method which calculates a sequence of level set approximations $m_{k}$ which converges 
-towards the unknown level set function minimizing the cost function. 
-This iterative process is terminated if certain stopping criteria are fulfilled. A criteria
-commonly used is
+L-BFGS is an iterative method which calculates a sequence of level set
+approximations $m_{k}$ which converges towards the unknown level set function
+minimizing the cost function.
+This iterative process is terminated if certain stopping criteria are fulfilled.
+A criterion commonly used is
 \begin{equation}\label{EQU:MIN:3a}
 \| m_k - m_{k-1} \| \le \|m_k\| \cdot {m\_tol} 
 \end{equation}
-in order to terminate the iteration after $m_k$ has been calculated. In this condition $\|.\|$ denotes a 
-norm and $x\_tol$ defines a relative tolerance. Typical value for  $x\_tol$ is $10^{-4}$. Alternatively
-one can check for changes in the cost function:
+in order to terminate the iteration after $m_k$ has been calculated.
+In this condition $\|.\|$ denotes a norm and $m\_tol$ defines a relative
+tolerance. A typical value for $m\_tol$ is $10^{-4}$. Alternatively one can
+check for changes in the cost function:
 \begin{equation}\label{EQU:MIN:3b}
-\mid J(m_k) - J(m_k) \mid \le \mid J(m_k) - J(m_0) \mid  \cdot {J\_tol}  
+\mid J(m_k) - J(m_k) \mid \le \mid J(m_k) - J(m_0) \mid \cdot {J\_tol}  
 \end{equation}
-where ${J\_tol}$ is a given tolerance and $m_0$ is the initial guess of the solution. 
-As this criterion is depending ion the initial guess it is not recommended. 
+where ${J\_tol}$ is a given tolerance and $m_0$ is the initial guess of the solution.
+As this criterion depends on the initial guess it is not recommended.
 
 \section{Solver Classes}
 
-\begin{classdesc}{MinimizerLBFGS}{\optional{J=\None}}
+\begin{classdesc}{MinimizerLBFGS}{%
+\optional{J=\None}%
+\optional{, m_tol=1e-4}%
+\optional{, J_tol=\None}%
+\optional{, imax=300}}
 Constructs an instance of the limited-memory Broyden-Fletcher-Goldfarb-Shanno \emph{L-BFGS} solver.
-\member{J} set the cost function to be minimized, see Section~\ref{chapter:ref:Minimization: costfunction class}. 
+\member{J} sets the cost function to be minimized, see Section~\ref{chapter:ref:Minimization: costfunction class}.
 If not present the cost function needs to be set using the \member{setCostFunction} method.
-\member{imax} sets the maximum number of iteration steps.
+\member{m_tol} and \member{J_tol} specify the tolerances for the stopping
+criteria (see description of \member{setTolerance} below).
+\member{imax} sets the maximum number of iteration steps (see
+\member{setMaxIterations} below).
 \end{classdesc}
 
-\begin{methoddesc}[MinimizerLBFGS]{setTolerance}{\optional{x_tol=1e-5} \optional{, J_tol=\None}}
-sets the tolerances for the stopping criterions. 
-\member{x_tol} sets the tolerance for the unknown level set function~\ref{EQU:MIN:3a}. If \member{x_tol}=\None 
-tolerance on  level set function is not checked.
-\member{J_tol} sets the tolerance for the cost function, see equation~\ref{EQU:MIN:3b}.
-If \member{J_tol} = \None
-tolerance on cost function is not checked (recommended). If \member{x_tol} and \member{J_tol} are both set
-criterion~\ref{EQU:MIN:3a} and criterion~\ref{EQU:MIN:3b} to terminate the iteration.
+\begin{methoddesc}[MinimizerLBFGS]{setTolerance}{\optional{m_tol=1e-4}\optional{, J_tol=\None}}
+sets the tolerances for the stopping criteria. 
+\member{m_tol} sets the tolerance for the unknown level set Function~\ref{EQU:MIN:3a}.
+If \member{m_tol}=\None the tolerance on level set function is not checked.
+\member{J_tol} sets the tolerance for the cost function, see Equation~\ref{EQU:MIN:3b}.
+If \member{J_tol}=\None tolerance on the cost function is not checked (recommended).
+If \member{m_tol} and \member{J_tol} are both set criterion~\ref{EQU:MIN:3a}
+and criterion~\ref{EQU:MIN:3b} are both applied to terminate the iteration.
 \end{methoddesc}
-
 
 \begin{methoddesc}[MinimizerLBFGS]{setMaxIterations}{imax}
 sets the maximum number of iterations before the minimizer terminates. If 
