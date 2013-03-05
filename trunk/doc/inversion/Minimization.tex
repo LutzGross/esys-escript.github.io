@@ -91,7 +91,7 @@ As this criterion depends on the initial guess it is not recommended.
 \optional{, m_tol=1e-4}%
 \optional{, J_tol=\None}%
 \optional{, imax=300}}
-Constructs an instance of the limited-memory Broyden-Fletcher-Goldfarb-Shanno \emph{L-BFGS} solver.
+constructs an instance of the limited-memory Broyden-Fletcher-Goldfarb-Shanno \emph{L-BFGS} solver.
 \member{J} sets the cost function to be minimized, see Section~\ref{chapter:ref:Minimization: costfunction class}.
 If not present the cost function needs to be set using the \member{setCostFunction} method.
 \member{m_tol} and \member{J_tol} specify the tolerances for the stopping
@@ -112,32 +112,43 @@ and criterion~\ref{EQU:MIN:3b} are both applied to terminate the iteration.
 
 \begin{methoddesc}[MinimizerLBFGS]{setMaxIterations}{imax}
 sets the maximum number of iterations before the minimizer terminates. If 
-the maximum number of iteration is reached \exception{MinimizerMaxIterReached} exception is thrown.
+the maximum number of iteration is reached a \exception{MinimizerMaxIterReached}
+exception is thrown.
 \end{methoddesc}
 
 \begin{methoddesc}[MinimizerLBFGS]{getResult}{}
 returns the solution of the optimization problem.
-This method can only be called if the optimization process as been completed.
-If the iteration failed the last available approximation of the solution is returned.
-If an exception is thrown, the last available solution approximation is returned.
+This method only returns something useful if the optimization process has
+completed.
+If the iteration failed the last available approximation of the solution is
+returned.
 \end{methoddesc}
 
 \begin{methoddesc}[MinimizerLBFGS]{getOptions}{}
-returns the solver options as a dictionary.
+returns the solver options as a dictionary which contains all available option
+names and their current value.
 \end{methoddesc}
 
-\begin{methoddesc}[MinimizerLBFGS]{setOptions}{\optional{truncation=30} \optional{, restart=60}}
-set solver options. \member{truncation} defines number of gradients to keep in memory.
+\begin{methoddesc}[MinimizerLBFGS]{setOptions}{%
+\optional{truncation=30}%
+\optional{, restart=60}%
+\optional{, initialHessian=1}}
+sets solver options. \member{truncation} defines number of gradients to keep in memory.
 \member{restart} defines the number of iteration steps after which the iteration is restarted.
+\member{initialHessian} can be used to provide an estimate for the scale of 
+the inverse Hessian. If the cost function provides such an estimate this
+option is ignored.
 \end{methoddesc}
 
 \begin{methoddesc}[MinimizerLBFGS]{run}{m0}
 runs the solution algorithm and returns an approximation of the solution.
-\member{m0} set the initial guess.
+\member{m0} is the initial guess to use.
+This method may throw an exception if the maximum number of iterations is
+reached or a solver breakdown occurs.
 \end{methoddesc}
 
 \begin{methoddesc}[MinimizerLBFGS]{logSummary}{}
-prints log information.
+writes some statistical information to the logger.
 \end{methoddesc}
 
 \section{\member{CostFunction} Class Template}\label{chapter:ref:Minimization: costfunction class}
@@ -146,28 +157,35 @@ prints log information.
 template of cost function $J$
 \end{classdesc}
 
-\begin{methoddesc}[CostFunction]{resetCounters}{}
-    resets all statistical counters.
-\end{methoddesc}
-%
 \begin{methoddesc}[CostFunction]{getDualProduct}{m, g}
-    returns the dual product $<m,g>$ of \member{m} and \member{g}.
+returns the dual product $<m,g>$ of \member{m} and \member{g}.
 \end{methoddesc}
 %
 \begin{methoddesc}[CostFunction]{getValue}{m, *args}
-    returns the value $J(m)$ using pre--calculated values \member{args} for $m$.
+returns the value $J(m)$ using pre-calculated values \member{args} for $m$.
 \end{methoddesc}
 %
 \begin{methoddesc}[CostFunction]{getGradient}{m, *args}
-    returns the gradient $\nabla J$ of $J$ at $m$ using precalculated values \member{args}  for $m$.
+returns the gradient $\nabla J$ of $J$ at $m$ using pre-calculated values \member{args} for $m$.
 \end{methoddesc}
 %
 \begin{methoddesc}[CostFunction]{getArguments}{m}
-    returns pre--calculated values that are shared in the calculation of $J(m)$
-    and $\nabla J(m)$.
+returns pre-calculated values that are shared in the calculation of $J(m)$ and
+$\nabla J(m)$.
 \end{methoddesc}
+%
 \begin{methoddesc}[CostFunction]{getNorm}{m}
 returns the norm $\|m\|$ of \member{m}.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{updateHessian}{}
+notifies the class that the Hessian operator needs to be updated in case the
+class provides an approximation for the inverse of the Hessian.
+\end{methoddesc}
+%
+\begin{methoddesc}[CostFunction]{getInverseHessianApproximation}{m, g, *args}
+returns an approximative evaluation $p$ of the inverse of the Hessian operator
+of the cost function for a given gradient $g$ at location $m$.
 \end{methoddesc}
 
 
@@ -190,11 +208,10 @@ returns the norm $\|m\|$ of \member{m}.
 %    \beta_{i+1}=\text{max}\left\{\frac{\nabla f^T(\mat{x}_{i+1})(\nabla f(\mat{x}_{i+1})-\nabla f(\mat{x}_i))}{\| \nabla f(\mat{x}_i)\|}, 0\right\}
 %\end{equation*}
 
-\section{The L-BFGS Algortihm}
-
+\section{The L-BFGS Algorithm}
 
 %\section{Limited-Memory BFGS Method}\label{sec:LBFGS}
-The L-BFGS algorithm, see~\cite{Nocedal1980}, is as follows:
+The L-BFGS algorithm looks as follows (see also~\cite{Nocedal1980}):
 \begin{algorithm}
     \mbox{L-BFGS}
     \begin{program}
@@ -234,16 +251,16 @@ The L-BFGS algorithm, see~\cite{Nocedal1980}, is as follows:
 \end{algorithm}
 
 \subsection{Line Search}\label{sec:LineSearch}
-Line search minimizes the function $\phi(\alpha)$ for a given level set function $m$ and 
-search direction $p$,  see \cite{Nocedal2006}, \cite{MoreThuente1992} with
+The line search procedure minimizes the function $\phi(\alpha)$ for a given
+level set function $m$ and search direction $p$, see \cite{Nocedal2006},
+\cite{MoreThuente1992} with
 \begin{equation}\label{EQU:MIN:22}
 \phi(\alpha) = J(m+ \alpha \cdot  p)
 \end{equation}
 Notice that 
 \begin{equation}\label{EQU:MIN:23}
-\phi'(\alpha) = < p , \nabla J(m+\alpha \cdot p)> 
+\phi'(\alpha) = < p , \nabla J(m+\alpha \cdot p)> \; .
 \end{equation}
-
 
 \begin{algorithm}
     \mbox{Line Search that satisfies strong Wolfe conditions}
@@ -296,5 +313,4 @@ Notice that
         \END
     \end{program}
 \end{algorithm}
-
 
