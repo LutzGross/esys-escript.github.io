@@ -69,10 +69,10 @@ class TestMinimizerLBFGS(unittest.TestCase):
     def test_solution(self):
         self.minimizer.setTolerance(1e-8)
         self.minimizer.setMaxIterations(100)
-        reason=self.minimizer.run(self.x0)
-        x=self.minimizer.getResult()
+        x=self.minimizer.run(self.x0)
+        xx=self.minimizer.getResult()
+        self.assertEqual(np.amax(abs(x-xx)), 0.)
         # We should be able to get a solution in under 100 iterations
-        self.assertEqual(reason, MinimizerLBFGS.TOLERANCE_REACHED)
         self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0.)
 
     def test_callback(self):
@@ -83,7 +83,7 @@ class TestMinimizerLBFGS(unittest.TestCase):
         self.minimizer.setTolerance(1e-8)
         self.minimizer.setMaxIterations(10)
         try:
-            reason=self.minimizer.run(self.x0)
+            x=self.minimizer.run(self.x0)
         except MinimizerMaxIterReached:
             pass
         # callback should be called once for each iteration (including 0th)
@@ -99,17 +99,16 @@ class TestMinimizerBFGS(unittest.TestCase):
     def test_max_iterations(self):
         self.minimizer.setTolerance(1e-10)
         self.minimizer.setMaxIterations(1)
-        reason=self.minimizer.run(self.x0)
-        self.assertEqual(reason, MinimizerBFGS.MAX_ITERATIONS_REACHED)
+        self.assertRaises(MinimizerMaxIterReached, self.minimizer.run, self.x0)
 
     def test_solution(self):
         self.minimizer.setTolerance(1e-6)
         self.minimizer.setMaxIterations(100)
         self.minimizer.setOptions(initialHessian=1e-3)
-        reason=self.minimizer.run(self.x0)
-        x=self.minimizer.getResult()
+        x=self.minimizer.run(self.x0)
+        xx=self.minimizer.getResult()
+        self.assertEqual(np.amax(abs(x-xx)), 0.)
         # We should be able to get a solution in under 100 iterations
-        self.assertEqual(reason, MinimizerBFGS.TOLERANCE_REACHED)
         self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0.)
 
     def test_callback(self):
@@ -119,7 +118,10 @@ class TestMinimizerBFGS(unittest.TestCase):
         self.minimizer.setCallback(callback)
         self.minimizer.setTolerance(1e-10)
         self.minimizer.setMaxIterations(10)
-        reason=self.minimizer.run(self.x0)
+        try:
+            x=self.minimizer.run(self.x0)
+        except MinimizerMaxIterReached:
+            pass
         # callback should be called once for each iteration (including 0th)
         self.assertEqual(n[0], 11)
 
@@ -133,16 +135,15 @@ class TestMinimizerNLCG(unittest.TestCase):
     def test_max_iterations(self):
         self.minimizer.setTolerance(1e-10)
         self.minimizer.setMaxIterations(1)
-        reason=self.minimizer.run(self.x0)
-        self.assertEqual(reason, MinimizerNLCG.MAX_ITERATIONS_REACHED)
+        self.assertRaises(MinimizerMaxIterReached, self.minimizer.run, self.x0)
 
     def test_solution(self):
         self.minimizer.setTolerance(1e-4)
         self.minimizer.setMaxIterations(400)
-        reason=self.minimizer.run(self.x0)
-        x=self.minimizer.getResult()
+        x=self.minimizer.run(self.x0)
+        xx=self.minimizer.getResult()
+        self.assertEqual(np.amax(abs(x-xx)), 0.)
         # We should be able to get a solution to set tolerance in #iterations
-        self.assertEqual(reason, MinimizerNLCG.TOLERANCE_REACHED)
         self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0., places=3)
 
     def test_callback(self):
@@ -152,7 +153,10 @@ class TestMinimizerNLCG(unittest.TestCase):
         self.minimizer.setCallback(callback)
         self.minimizer.setTolerance(1e-10)
         self.minimizer.setMaxIterations(10)
-        reason=self.minimizer.run(self.x0)
+        try:
+            x=self.minimizer.run(self.x0)
+        except MinimizerMaxIterReached:
+            pass
         # callback should be called once for each iteration (including 0th)
         self.assertEqual(n[0], 11)
 

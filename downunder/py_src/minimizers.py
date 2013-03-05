@@ -37,6 +37,26 @@ except:
 lslogger=logging.getLogger('inv.minimizer.linesearch')
 zoomlogger=logging.getLogger('inv.minimizer.linesearch.zoom')
 
+class MinimizerException(Exception):
+    """
+    This is a generic exception thrown by a minimizer.
+    """
+    pass
+
+class MinimizerMaxIterReached(MinimizerException):
+    """
+    Exception thrown if the maximum number of iteration steps is reached.
+    """
+    pass
+
+class MinimizerIterationIncurableBreakDown(MinimizerException):
+    """
+    Exception thrown if the iteration scheme encountered an incurable
+    breakdown.
+    """
+    pass
+
+
 def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2, phi0, gphi0, IMAX=25):
     """
     Helper function for `line_search` below which tries to tighten the range
@@ -134,33 +154,12 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
 
     return alpha, phi_a, g_Jx_new[0]
 
-class MinimizerException(Exception):
-    """
-    This is a generic exception thrown by a minimizer.
-    """
-    pass
-
-class MinimizerMaxIterReached(MinimizerException):
-    """
-    Exception thrown if the maximum number of iteration steps is reached.
-    """
-    pass
-
-class MinimizerIterationIncurableBreakDown(MinimizerException):
-    """
-    Exception thrown if the iteration scheme encountered an incurable
-    breakdown.
-    """
-    pass
-
 
 ##############################################################################
 class AbstractMinimizer(object):
     """
     Base class for function minimization methods.
     """
-
-    TOLERANCE_REACHED, MAX_ITERATIONS_REACHED, INCURABLE_BREAKDOWN = list(range(3))
 
     def __init__(self, J=None, m_tol=1e-4, J_tol=None, imax=300):
         """
@@ -248,7 +247,7 @@ class AbstractMinimizer(object):
         Executes the minimization algorithm for *f* starting with the initial
         guess ``x0``.
 
-        :return: `TOLERANCE_REACHED` or `MAX_ITERATIONS_REACHED`
+        :return: the result of the minimization
         """
         raise NotImplementedError
 
@@ -403,23 +402,19 @@ class MinimizerLBFGS(AbstractMinimizer):
                   n_last_break_down = n_iter
                   self.logger.debug("** Break down detected in step %d. Iteration is restarted."%n_iter)
           if not k < self._restart:
-              self.logger.debug("Iteration is restarted after %d steps."%(n_iter,))
+              self.logger.debug("Iteration is restarted after %d steps."%n_iter)
 
         # case handling for inner iteration:
         self._result=x
         if n_iter >= self._imax:
-            self.return_status=self.MAX_ITERATIONS_REACHED
-            self.logger.debug(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
-            raise MinimizerMaxIterReached("Gave up after %d steps."%(n_iter,))
+            self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            raise MinimizerMaxIterReached("Gave up after %d steps."%n_iter)
         elif non_curable_break_down:
-            self.return_status=self.INCURABLE_BREAKDOWN
-            self.logger.debug(">>>>>>>>>> Incurable breakdown! <<<<<<<<<<")
-            raise MinimizerIterationIncurableBreakDown("Gave up after %d steps."%(n_iter,))
-        else:
-            self.return_status=self.TOLERANCE_REACHED
-            self.logger.debug("Success after %d iterations!"%k)
+            self.logger.warn(">>>>>>>>>> Incurable breakdown! <<<<<<<<<<")
+            raise MinimizerIterationIncurableBreakDown("Gave up after %d steps."%n_iter)
 
-        return self.return_status
+        self.logger.info("Success after %d iterations!"%n_iter)
+        return self._result
 
     def _twoLoop(self, invH_scale, g_Jx, s_and_y, x, *args):
         """
@@ -502,6 +497,7 @@ class MinimizerBFGS(AbstractMinimizer):
             k+=1
             self._doCallback(k, x, Jx, g_Jx)
             gnorm=Lsup(g_Jx)
+            self._result=x
             if (gnorm<=self._m_tol): break
 
             # update Hessian
@@ -514,15 +510,13 @@ class MinimizerBFGS(AbstractMinimizer):
             A=I-rho*delta_x[:,None]*delta_g[None,:]
             AT=I-rho*delta_g[:,None]*delta_x[None,:]
             H=self.getCostFunction().getDualProduct(A, self.getCostFunction().getDualProduct(H,AT)) + rho*delta_x[:,None]*delta_x[None,:]
-        if k >= self._imax:
-            reason=self.MAX_ITERATIONS_REACHED
-            self.logger.debug("Maximum number of iterations reached!")
-        else:
-            reason=self.TOLERANCE_REACHED
-            self.logger.debug("Success after %d iterations! Final gnorm=%e"%(k,gnorm))
 
-        self._result=x
-        return reason
+        if k >= self._imax:
+            self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            raise MinimizerMaxIterReached("Gave up after %d steps."%k)
+
+        self.logger.info("Success after %d iterations! Final gnorm=%e"%(k,gnorm))
+        return self._result
 
 ##############################################################################
 class MinimizerNLCG(AbstractMinimizer):
@@ -566,16 +560,15 @@ class MinimizerNLCG(AbstractMinimizer):
                 k=0
             i+=1
             self._doCallback(i, x, Jx, g_Jx_new)
+            self._result=x
 
         if i >= self._imax:
-            reason=self.MAX_ITERATIONS_REACHED
-            self.logger.debug("Maximum number of iterations reached!")
-        else:
-            reason=self.TOLERANCE_REACHED
-            self.logger.debug("Success after %d iterations! Final delta=%e"%(i,delta))
+            self.logger.warn(">>>>>>>>>> Maximum number of iterations reached! <<<<<<<<<<")
+            raise MinimizerMaxIterReached("Gave up after %d steps."%i)
 
-        self._result=x
-        return reason
+
+        self.logger.info("Success after %d iterations! Final delta=%e"%(i,delta))
+        return self._result
 
 
 if __name__=="__main__":
