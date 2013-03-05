@@ -20,7 +20,7 @@
 */
 index_t* Paso_SparseMatrix_getBorderNodes(Paso_SystemMatrix* A, index_t* count) {
    const index_t MAXNEIGHBOURS=A->col_coupleBlock->len;
-   index_t* border=MEMALLOC(MAXNEIGHBOURS, index_t);	
+   index_t* border=new index_t[MAXNEIGHBOURS];	
    index_t len=0;
    int i;
    /* A node is in the border if it has a non-empty row in the coupling block */
@@ -130,9 +130,9 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
 	return 0;
     }
 
-    inborder=MEMALLOC(n,char);
-    weights=MEMALLOC(n,double);
-    mis=MEMALLOC(n,index_t);
+    inborder=new char[n];
+    weights=new double[n];
+    mis=new index_t[n];
 
     #pragma omp parallel for schedule(static) private(i)
     for (i=0;i<n;++i) {
@@ -208,12 +208,12 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
 	    mis[missize++]=i;
 	}
     }
-    MEMFREE(border);
-    MEMFREE(weights);
-    MEMFREE(inborder);
+    delete[] border;
+    delete[] weights;
+    delete[] inborder;
     if (done==0) {
         Esys_setError(NO_PROGRESS_ERROR,"Error in MIS - no progress.");
-	MEMFREE(mis);
+	delete[] mis;
 	*set=NULL;
 	return 0;
     }

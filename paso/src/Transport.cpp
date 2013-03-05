@@ -41,11 +41,11 @@ void Paso_TransportProblem_free(Paso_TransportProblem* in) {
            Paso_SystemMatrix_free(in->mass_matrix);
            Paso_SystemMatrix_free(in->iteration_matrix);
            Esys_MPIInfo_free(in->mpi_info);
-           MEMFREE(in->constraint_mask);
-           MEMFREE(in->reactive_matrix);
-           MEMFREE(in->main_diagonal_mass_matrix);
-           MEMFREE(in->lumped_mass_matrix);
-           MEMFREE(in->main_diagonal_low_order_transport_matrix);
+           delete[] in->constraint_mask;
+           delete[] in->reactive_matrix;
+           delete[] in->main_diagonal_mass_matrix;
+           delete[] in->lumped_mass_matrix;
+           delete[] in->main_diagonal_low_order_transport_matrix;
            MEMFREE(in);
         }
     }
@@ -83,11 +83,11 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
 
      if (Esys_noError()) {
          n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
-         out->constraint_mask=MEMALLOC(n,double); /* ? */
-         out->lumped_mass_matrix=MEMALLOC(n,double);  /* ? */
-         out->reactive_matrix=MEMALLOC(n,double); /* ? */
-         out->main_diagonal_mass_matrix=MEMALLOC(n,double); /* ? */	 
-         out->main_diagonal_low_order_transport_matrix=MEMALLOC(n,double); /* ? */
+         out->constraint_mask=new double[n]; /* ? */
+         out->lumped_mass_matrix=new double[n];  /* ? */
+         out->reactive_matrix=new double[n]; /* ? */
+         out->main_diagonal_mass_matrix=new double[n]; /* ? */	 
+         out->main_diagonal_low_order_transport_matrix=new double[n]; /* ? */
 
 
          if ( ! (Esys_checkPtr(out->constraint_mask) || 

@@ -82,7 +82,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
      Esys_setError(VALUE_ERROR,"Paso_SystemMatrixPattern_alloc: number of inputs for row couple pattern and number of received components in connector don't match.");
   }
 
-  out=MEMALLOC(1,Paso_SystemMatrixPattern);
+  out=new Paso_SystemMatrixPattern;
   if (Esys_checkPtr(out)) return NULL;
   out->type=type;
   out->reference_counter=1;
@@ -123,7 +123,7 @@ void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern* in) {
         Paso_Distribution_free(in->output_distribution);
         Paso_Distribution_free(in->input_distribution);
         Esys_MPIInfo_free(in->mpi_info);
-        MEMFREE(in);
+        delete in;
         #ifdef Paso_TRACE
         printf("Paso_SystemMatrixPattern_free: system matrix pattern has been deallocated.\n");
         #endif
