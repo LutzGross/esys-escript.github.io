@@ -46,7 +46,7 @@ void Paso_TransportProblem_free(Paso_TransportProblem* in) {
            delete[] in->main_diagonal_mass_matrix;
            delete[] in->lumped_mass_matrix;
            delete[] in->main_diagonal_low_order_transport_matrix;
-           MEMFREE(in);
+           delete in;
         }
     }
 }
@@ -64,7 +64,7 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
      Paso_TransportProblem* out=NULL;
      dim_t n,i;
      
-     out=MEMALLOC(1,Paso_TransportProblem);
+     out=new Paso_TransportProblem;
      if (Esys_checkPtr(out)) return NULL;
      out->reference_counter=0; 
      out->dt_max_R=LARGE_POSITIVE_FLOAT;

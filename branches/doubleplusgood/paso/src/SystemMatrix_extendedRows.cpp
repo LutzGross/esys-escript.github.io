@@ -51,7 +51,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
 
   /* sending/receiving unknown's global ID */
   num_main_cols = A->mainBlock->numCols;
-  cols = TMPMEMALLOC(num_main_cols, double);
+  cols = new double[num_main_cols];
   rank = A->mpi_info->rank;
   offset = A->col_distribution->first_component[rank];
   #pragma omp parallel for private(i) schedule(static)
@@ -62,24 +62,24 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   }
 
   my_n = A->mainBlock->numRows;
-  rows = TMPMEMALLOC(my_n, double);
+  rows = new double[my_n];
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<my_n; i++) rows[i] = degree_ST[i];
 
   num_couple_cols = A->col_coupleBlock->numCols;
   size = num_main_cols + num_couple_cols;
   overlapped_n = A->row_coupleBlock->numRows;
-  recv_offset_ST = TMPMEMALLOC(overlapped_n+1, index_t);
-  recv_degree_ST = TMPMEMALLOC(overlapped_n, dim_t);
-  send_ST = TMPMEMALLOC(offset_ST[my_n], index_t);
+  recv_offset_ST = new index_t[overlapped_n+1];
+  recv_degree_ST = new dim_t[overlapped_n];
+  send_ST = new index_t[offset_ST[my_n]];
   len = A->row_coupler->connector->send->offsetInShared[A->row_coupler->connector->send->numNeighbors] * size;
-  send_buf = TMPMEMALLOC(len, index_t);
+  send_buf = new index_t[len];
 
 
   /* waiting for receiving unknown's global ID */
   if (A->global_id == NULL) {
     Paso_Coupler_finishCollect(coupler);
-    global_id = MEMALLOC(num_couple_cols, index_t);
+    global_id = new index_t[num_couple_cols];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_couple_cols; ++i) 
 	global_id[i] = coupler->recv_buffer[i];
@@ -93,7 +93,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   Paso_Coupler_startCollect(coupler, rows);
 
   /* prepare ST with global ID */
-  B = TMPMEMALLOC(size*2, index_t);
+  B = new index_t[size*2];
   /* find the point z in array of global_id that 
      forall i < z, global_id[i] < offset; and
      forall i >= z, global_id[i] > offset + my_n */
@@ -137,7 +137,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
 
   /* waiting for receiving the degree_ST */
   Paso_Coupler_finishCollect(coupler);
-  TMPMEMFREE(rows);
+  delete[] rows;
 
   /* preparing degree_ST and offset_ST for the to-be-received extended rows */
   #pragma omp parallel for private(i) schedule(static)
@@ -146,7 +146,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   for (i=0; i<overlapped_n; i++) {
     recv_offset_ST[i+1] = recv_offset_ST[i] + coupler->recv_buffer[i];
   }
-  recv_ST = TMPMEMALLOC(recv_offset_ST[overlapped_n], index_t);
+  recv_ST = new index_t[recv_offset_ST[overlapped_n]];
   Paso_Coupler_free(coupler);
 
   /* receiving ST for the extended rows */
@@ -256,13 +256,13 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   }
 
   /* release all temp memory allocation */
-  TMPMEMFREE(cols);
-  TMPMEMFREE(B);
-  TMPMEMFREE(send_buf);
-  TMPMEMFREE(send_ST);
-  TMPMEMFREE(recv_ST);
-  TMPMEMFREE(recv_offset_ST);
-  TMPMEMFREE(recv_degree_ST);
+  delete[] cols;
+  delete[] B;
+  delete[] send_buf;
+  delete[] send_ST;
+  delete[] recv_ST;
+  delete[] recv_offset_ST;
+  delete[] recv_degree_ST;
 }
 
 

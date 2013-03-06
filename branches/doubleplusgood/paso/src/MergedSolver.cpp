@@ -45,7 +45,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
 
    Paso_MergedSolver* out = NULL;
    A_temp = Paso_MergedSolver_mergeSystemMatrix(A); 
-   out = MEMALLOC(1, Paso_MergedSolver);
+   out = new Paso_MergedSolver;
    Esys_checkPtr(out);
    if (Esys_noError()) {
    
@@ -59,10 +59,10 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
        out->sweeps = options->pre_sweeps+options->post_sweeps;
 
        /* First, gather x and b into rank 0 */
-       out->b = TMPMEMALLOC(global_n*n_block, double);
-       out->x = TMPMEMALLOC(global_n*n_block, double);
-       out->counts = TMPMEMALLOC(size, index_t);
-       out->offset = TMPMEMALLOC(size, index_t);
+       out->b = new double[global_n*n_block];
+       out->x = new double[global_n*n_block];
+       out->counts = new index_t[size];
+       out->offset = new index_t[size];
        
        if (! (Esys_checkPtr(out->b) || Esys_checkPtr(out->x) || Esys_checkPtr(out->counts) || Esys_checkPtr(out->offset) ) ){
            #pragma omp parallel for private(i)
@@ -102,11 +102,11 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
 void Paso_MergedSolver_free(Paso_MergedSolver* in) {
      if (in!=NULL) {
         Paso_SparseMatrix_free(in->A);
-	MEMFREE(in->x);
-	MEMFREE(in->b);
-	MEMFREE(in->counts);
-	MEMFREE(in->offset);
-	MEMFREE(in);
+	delete[] in->x;
+	delete[] in->b;
+	delete[] in->counts;
+	delete[] in->offset;
+	delete in;
      }
 }
 
@@ -131,11 +131,11 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
 
   if (size == 1) {
     n = A->mainBlock->numRows;
-    ptr = TMPMEMALLOC(n, index_t); 
+    ptr = new index_t[n]; 
     #pragma omp parallel for private(i)
     for (i=0; i<n; i++) ptr[i] = i;
     out = Paso_SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
-    TMPMEMFREE(ptr);
+    delete[] ptr;
     return out;
   }
 
@@ -149,11 +149,11 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
   Paso_SystemMatrix_mergeMainAndCouple(A, &ptr, &idx, &val);
 
   #ifdef ESYS_MPI
-    mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
-    mpi_stati=TMPMEMALLOC(size*2,MPI_Status);
+    mpi_requests=new MPI_Request[size*2];
+    mpi_stati=new MPI_Status[size*2];
   #else
-    mpi_requests=TMPMEMALLOC(size*2,int);
-    mpi_stati=TMPMEMALLOC(size*2,int);
+    mpi_requests=new int[size*2];
+    mpi_stati=new int[size*2];
   #endif
 
   /* Now, pass all info to rank 0 and merge them into one sparse 
@@ -161,12 +161,12 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
   if (rank == 0) {
     /* First, copy local ptr values into ptr_global */
     global_n=Paso_SystemMatrix_getGlobalNumRows(A);
-    ptr_global = MEMALLOC(global_n+1, index_t);
+    ptr_global = new index_t[global_n+1];
     memcpy(ptr_global, ptr, (n+1) * sizeof(index_t));
     iptr = n+1;
-    MEMFREE(ptr);
-    temp_n = TMPMEMALLOC(size, index_t);
-    temp_len = TMPMEMALLOC(size, index_t);
+    delete[] ptr;
+    temp_n = new index_t[size];
+    temp_len = new index_t[size];
     temp_n[0] = iptr;
     
     /* Second, receive ptr values from other ranks */
@@ -199,7 +199,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
 	temp_len[i] = 0;
     }
 
-    idx_global = MEMALLOC(len, index_t);
+    idx_global = new index_t[len];
     iptr = temp_len[0];
     offset = n+1;
     for (i=1; i<size; i++) {
@@ -218,14 +218,14 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
       iptr += len;
     }
     memcpy(idx_global, idx, temp_len[0] * sizeof(index_t));
-    MEMFREE(idx);
+    delete[] idx;
     row_block_size = A->mainBlock->row_block_size;
     col_block_size = A->mainBlock->col_block_size;
     #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     #endif
     A->mpi_info->msg_tag_counter += size;
-    TMPMEMFREE(temp_n);
+    delete[] temp_n;
 
     /* Then generate the sparse matrix */
     pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, global_n,
@@ -247,12 +247,12 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
       iptr += (len * block_size);
     }
     memcpy(out->val, val, temp_len[0] * sizeof(double) * block_size);
-    MEMFREE(val);
+    delete[] val;
     #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     #endif
     A->mpi_info->msg_tag_counter += size;
-    TMPMEMFREE(temp_len);
+    delete[] temp_len;
   } else { /* it's not rank 0 */
 
     /* First, send out the local ptr */
@@ -280,15 +280,15 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     MPI_Waitall(3, mpi_requests, mpi_stati);
     #endif
     A->mpi_info->msg_tag_counter = tag + size - rank;
-    MEMFREE(ptr);
-    MEMFREE(idx);
-    MEMFREE(val);
+    delete[] ptr;
+    delete[] idx;
+    delete[] val;
 
     out = NULL;
   }
 
-  TMPMEMFREE(mpi_requests);
-  TMPMEMFREE(mpi_stati);
+  delete[] mpi_requests;
+  delete[] mpi_stati;
   return out;
 }
 

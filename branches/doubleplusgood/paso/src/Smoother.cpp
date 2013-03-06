@@ -334,7 +334,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
 	    Paso_BlockOps_MViP_3(&diag[i*9], &x[3*i]);
       }
    } else {
-      double *y=TMPMEMALLOC(n_block, double);
+      double *y=new double[n_block];
       for (i = n-2; i > -1; --i) {
 	 mm=ptr_main[i];
 	 Paso_BlockOps_MV_N(n_block, &y[0], &A_p->val[block_len*mm], &x[n_block*i]);
@@ -345,7 +345,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
 	 Paso_BlockOps_Cpy_N(n_block ,&x[n_block*i], &y[0]);
 	 Paso_BlockOps_solve_N(n_block, &x[n_block*i], &diag[i*block_len], &pivot[i*n_block], &failed);
       }   
-      TMPMEMFREE(y);
+      delete[] y;
    }
    
    if (failed > 0) {
@@ -379,7 +379,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    #pragma omp parallel  private(mm, i,iptr_ik,k,rtmp, color, y)
    {
       if (n_block>3) {
-	 y=TMPMEMALLOC(n_block, double);
+	 y=new double[n_block];
       } else {
 	 y=NULL;
       }
@@ -517,7 +517,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
 	    }
 	 }
       }
-      TMPMEMFREE(y);
+      delete[] y;
    }
    if (failed > 0) {
       Esys_setError(ZERO_DIVISION_ERROR, "Paso_Preconditioner_LocalSmoother_Sweep_colored: non-regular main diagonal block.");

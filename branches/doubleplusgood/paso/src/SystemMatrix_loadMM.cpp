@@ -179,11 +179,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 	}
 	
 	/* prepare storage */
-	col_ind = MEMALLOC( nz, index_t );
-	row_ind = MEMALLOC( nz, index_t );
-	val = MEMALLOC( nz, double );
+	col_ind = new  index_t [ nz];
+	row_ind = new  index_t [ nz];
+	val = new  double [ nz];
 
-	row_ptr = MEMALLOC( (M+1), index_t );
+	row_ptr = new  index_t [ (M+1)];
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{
@@ -200,10 +200,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
 		if (scan_ret!=3)
 		{
-			MEMFREE( val );
-			MEMFREE( row_ind );
-			MEMFREE( col_ind );
-			MEMFREE( row_ptr );
+			delete[]  val ;
+			delete[]  row_ind ;
+			delete[]  col_ind ;
+			delete[]  row_ptr ;
 			Esys_MPIInfo_free(mpi_info);
 			fclose(fileHandle_p);
 			return NULL;
@@ -254,8 +254,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
         Paso_Distribution_free(input_dist);
 	Paso_SharedComponents_free(send);
         Esys_MPIInfo_free(mpi_info);
-	MEMFREE( val );
-	MEMFREE( row_ind );
+	delete[]  val ;
+	delete[]  row_ind ;
 	return out;
 }
 
@@ -318,11 +318,11 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 	}
 
 	/* prepare storage */
-	col_ind = MEMALLOC( nz, index_t );
-	row_ind = MEMALLOC( nz, index_t );
-	val = MEMALLOC( nz, double );
+	col_ind = new  index_t [ nz];
+	row_ind = new  index_t [ nz];
+	val = new  double [ nz];
 
-	col_ptr = MEMALLOC( (N+1), index_t );
+	col_ptr = new  index_t [ (N+1)];
 
 
 	/* perform actual read of elements */
@@ -331,10 +331,10 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
 		if (scan_ret!=3)
 		{
-			MEMFREE( val );
-			MEMFREE( row_ind );
-			MEMFREE( col_ind );
-			MEMFREE( col_ptr );
+			delete[]  val ;
+			delete[]  row_ind ;
+			delete[]  col_ind ;
+			delete[]  col_ptr ;
 			Esys_MPIInfo_free(mpi_info);
 			fclose(fileHandle_p);
 			return NULL;
@@ -381,8 +381,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
         Paso_Distribution_free(input_dist);
 	Paso_SharedComponents_free(send);
         Esys_MPIInfo_free(mpi_info);
-	MEMFREE( val );
-	MEMFREE( row_ind );
+	delete[]  val ;
+	delete[]  row_ind ;
 	return out;
 }
 

@@ -80,8 +80,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    num_Pcouple_cols = couple_block->numCols;
    block_size = P->block_size;
    copy_block_size = block_size * sizeof(double);
-   degree_set = TMPMEMALLOC(num_Pcouple_cols, index_t);
-   send_ptr = TMPMEMALLOC(num_Pcouple_cols+1, index_t);
+   degree_set = new index_t[num_Pcouple_cols];
+   send_ptr = new index_t[num_Pcouple_cols+1];
    memset(degree_set, 0, sizeof(index_t) * num_Pcouple_cols);
    for (i=0; i<n; i++) {
      iptr_ub = couple_block->pattern->ptr[i+1];
@@ -98,8 +98,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 
    memset(degree_set, 0, sizeof(index_t) * num_Pcouple_cols);
    sum = couple_block->pattern->ptr[n];
-   offset_set = TMPMEMALLOC(sum, index_t);
-   data_set = TMPMEMALLOC(sum * block_size, double);
+   offset_set = new index_t[sum];
+   data_set = new double[sum * block_size];
    offset = P->pattern->output_distribution->first_component[rank];
 
    if (P->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
@@ -134,18 +134,18 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 
 
    #ifdef ESYS_MPI
-     mpi_requests=TMPMEMALLOC(size*4,MPI_Request);
-     mpi_stati=TMPMEMALLOC(size*4,MPI_Status);
+     mpi_requests=new MPI_Request[size*4];
+     mpi_stati=new MPI_Status[size*4];
    #else
-     mpi_requests=TMPMEMALLOC(size*4,int);
-     mpi_stati=TMPMEMALLOC(size*4,int);
+     mpi_requests=new int[size*4];
+     mpi_stati=new int[size*4];
    #endif
 
    /* send/receive degree_set to build the "ptr" for R->col_coupleBlock */
    msgs = 0;
    send = P->col_coupler->connector->send;
    recv = P->col_coupler->connector->recv;
-   recv_ptr = TMPMEMALLOC(send->offsetInShared[send->numNeighbors], index_t);
+   recv_ptr = new index_t[send->offsetInShared[send->numNeighbors]];
    for (p=0; p<send->numNeighbors; p++) {
      i = send->offsetInShared[p];
      j = send->offsetInShared[p+1];
@@ -179,8 +179,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    #endif
    mpi_info->msg_tag_counter += size;
 
-   TMPMEMFREE(degree_set);
-   degree_set = TMPMEMALLOC(send->numNeighbors, index_t);
+   delete[] degree_set;
+   degree_set = new index_t[send->numNeighbors];
    memset(degree_set, 0, sizeof(index_t)*send->numNeighbors);
    for (p=0, sum=0; p<send->numNeighbors; p++) {
      iptr_ub = send->offsetInShared[p+1];
@@ -193,8 +193,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    /* send/receive offset_set and data_set to build the "idx" and "val"
       for R->col_coupleBlock */
    msgs = 0;
-   recv_idx = TMPMEMALLOC(sum, index_t);
-   recv_val = TMPMEMALLOC(sum * block_size, double);
+   recv_idx = new index_t[sum];
+   recv_val = new double[sum * block_size];
    for (p=0, offset=0; p<send->numNeighbors; p++) {
      if (degree_set[p]) {
 	#ifdef ESYS_MPI
@@ -231,7 +231,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    }
 
    len = send->offsetInShared[send->numNeighbors];
-   temp = TMPMEMALLOC(len, index_t);
+   temp = new index_t[len];
    memset(temp, 0, sizeof(index_t)*len);
    for (p=1; p<len; p++) {
      temp[p] = temp[p-1] + recv_ptr[p-1];
@@ -241,17 +241,17 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
    #endif
    mpi_info->msg_tag_counter += 2*size;
-   TMPMEMFREE(degree_set);
-   TMPMEMFREE(offset_set);
-   TMPMEMFREE(data_set);
-   TMPMEMFREE(send_ptr);
-   TMPMEMFREE(mpi_requests);
-   TMPMEMFREE(mpi_stati);
+   delete[] degree_set;
+   delete[] offset_set;
+   delete[] data_set;
+   delete[] send_ptr;
+   delete[] mpi_requests;
+   delete[] mpi_stati;
 
    /* construct "ptr", "idx" and "val" for R->col_coupleBlock */
-   ptr = MEMALLOC(n_C + 1, index_t);
-   idx = MEMALLOC(sum, index_t);
-   val = MEMALLOC(sum*block_size, double);
+   ptr = new  index_t[n_C + 1];
+   idx = new  index_t[sum];
+   val = new  double[sum*block_size];
    ptr[0] = 0;
    for (i=0; i<n_C; i++) {
      icb = 0;
@@ -271,9 +271,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      ptr[i+1] = ptr[i] + icb;
    }
    sum = ptr[n_C];
-   TMPMEMFREE(temp);
-   TMPMEMFREE(recv_ptr);
-   TMPMEMFREE(recv_val);
+   delete[] temp;
+   delete[] recv_ptr;
+   delete[] recv_val;
 
    /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock, 
       and convert the global id in "idx" into local id */
@@ -303,8 +303,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 
    /* prepare the receiver for the col_connector */
    dist = P->pattern->output_distribution->first_component;
-   offsetInShared = TMPMEMALLOC(size+1, index_t);
-   shared = TMPMEMALLOC(num_Rcouple_cols, index_t);
+   offsetInShared = new index_t[size+1];
+   shared = new index_t[num_Rcouple_cols];
    numNeighbors = send->numNeighbors;
    neighbor = send->neighbor;
    memset(offsetInShared, 0, sizeof(index_t) * (size+1));
@@ -325,13 +325,13 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    }
    recv = Paso_SharedComponents_alloc(n, numNeighbors,
 		neighbor, shared, offsetInShared, 1, 0, mpi_info);
-   TMPMEMFREE(recv_idx);
+   delete[] recv_idx;
 
    /* prepare the sender for the col_connector */
-   TMPMEMFREE(shared);
+   delete[] shared;
    numNeighbors = P->col_coupler->connector->recv->numNeighbors;
    neighbor = P->col_coupler->connector->recv->neighbor;
-   shared = TMPMEMALLOC(n * numNeighbors, index_t);
+   shared = new index_t[n * numNeighbors];
    couple_pattern = P->col_coupleBlock->pattern;
    sum=0;
    memset(offsetInShared, 0, sizeof(index_t) * (size+1));
@@ -359,8 +359,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    col_connector = Paso_Connector_alloc(send, recv);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-   TMPMEMFREE(offsetInShared);
-   TMPMEMFREE(shared);   
+   delete[] offsetInShared;
+   delete[] shared;   
 
    couple_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n_C,
                         num_Rcouple_cols, ptr, idx);
@@ -386,7 +386,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 		main_block->len * sizeof(double));
    memcpy(out->col_coupleBlock->val, val,
 		out->col_coupleBlock->len * sizeof(double));
-   MEMFREE(val);
+   delete[] val;
 
    /* clean up */ 
    Paso_SparseMatrix_free(main_block);

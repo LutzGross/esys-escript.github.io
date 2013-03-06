@@ -28,7 +28,7 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
 {
   Paso_Connector*out=NULL;
   Esys_resetError();
-  out=MEMALLOC(1,Paso_Connector);
+  out=new Paso_Connector;
   if ( send->mpi_info != recv->mpi_info ) {
      Esys_setError(SYSTEM_ERROR,"Paso_Coupler_alloc: send and recv mpi communicators don't match.");
      return NULL;
@@ -82,7 +82,7 @@ void Paso_Connector_free(Paso_Connector* in) {
         Paso_SharedComponents_free(in->send);
         Paso_SharedComponents_free(in->recv);
         Esys_MPIInfo_free(in->mpi_info);
-        MEMFREE(in);
+        delete in;
         #ifdef Paso_TRACE
         printf("Paso_Coupler_dealloc: system matrix pattern as been deallocated.\n");
         #endif
@@ -138,7 +138,7 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
   Esys_MPIInfo *mpi_info = connector->mpi_info;  
   Paso_Coupler*out=NULL;
   Esys_resetError();
-  out=MEMALLOC(1,Paso_Coupler);
+  out=new Paso_Coupler;
   if (!Esys_checkPtr(out)) {
       out->data=NULL;
       out->block_size=block_size;
@@ -152,14 +152,14 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
       out->in_use = FALSE;
       
       #ifdef ESYS_MPI
-         out->mpi_requests=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Request);
-         out->mpi_stati=MEMALLOC(connector->send->numNeighbors+connector->recv->numNeighbors,MPI_Status);
+         out->mpi_requests=new MPI_Request[connector->send->numNeighbors+connector->recv->numNeighbors];
+         out->mpi_stati=new MPI_Status[connector->send->numNeighbors+connector->recv->numNeighbors];
          Esys_checkPtr(out->mpi_requests);
          Esys_checkPtr(out->mpi_stati);
       #endif
       if (mpi_info->size>1) {
-        out->send_buffer=MEMALLOC(connector->send->numSharedComponents * block_size,double);
-        out->recv_buffer=MEMALLOC(connector->recv->numSharedComponents * block_size,double);
+        out->send_buffer=new double[connector->send->numSharedComponents * block_size];
+        out->recv_buffer=new double[connector->recv->numSharedComponents * block_size];
         Esys_checkPtr(out->send_buffer);
         Esys_checkPtr(out->recv_buffer);
       }
@@ -188,12 +188,14 @@ void Paso_Coupler_free(Paso_Coupler* in) {
      (in->reference_counter)--;
      if (in->reference_counter<=0) {
         Paso_Connector_free(in->connector);
-        MEMFREE(in->send_buffer);
-        MEMFREE(in->recv_buffer);
-        MEMFREE(in->mpi_requests);
-        MEMFREE(in->mpi_stati);
+        delete[] in->send_buffer;
+        delete[] in->recv_buffer;
+  #ifdef ESYS_MPI
+        delete[] in->mpi_requests;
+        delete[] in->mpi_stati;
+  #endif		
         Esys_MPIInfo_free(in->mpi_info);
-        MEMFREE(in);
+        delete in;
      }
    }
 }

@@ -136,7 +136,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
   pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
 
   Esys_resetError();
-  out=MEMALLOC(1,Paso_SparseMatrix);
+  out=new Paso_SparseMatrix;
   if (! Esys_checkPtr(out)) {  
      out->pattern=NULL;  
      out->val=NULL;  
@@ -193,7 +193,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Patte
 	 }
          out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
     
-         out->val=MEMALLOC(out->len,double);
+         out->val=new double[out->len];
          if (! Esys_checkPtr(out->val)) Paso_SparseMatrix_setValues(out,DBLE(0));
      }
   }
@@ -233,9 +233,9 @@ void Paso_SparseMatrix_free(Paso_SparseMatrix* in) {
 	       Paso_UMFPACK_free(in); /* releases solver_p */
 	       break;
 	}
-	MEMFREE(in->val);
+	delete[] in->val;
 	Paso_Pattern_free(in->pattern);
-        MEMFREE(in);
+        delete in;
      }
    }
 }
@@ -285,11 +285,11 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	}
 
 	/* prepare storage */
-	col_ind = MEMALLOC( nz, index_t );
-	row_ind = MEMALLOC( nz, index_t );
-	val = MEMALLOC( nz, double );
+	col_ind = new  index_t [ nz];
+	row_ind = new  index_t [ nz];
+	val = new  double [ nz];
 
-	row_ptr = MEMALLOC( (M+1), index_t );
+	row_ptr = new  index_t [ (M+1)];
 
 	if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
 	{

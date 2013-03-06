@@ -96,14 +96,14 @@ err_t Paso_Solver_MINRES(
       status=SOLVER_INPUT_ERROR;
    }
    
-   ZNEW       = TMPMEMALLOC(n,double);
-   Z       = TMPMEMALLOC(n,double);
-   AZ    = TMPMEMALLOC(n,double);
-   W       = TMPMEMALLOC(n,double);
-   R_old    = TMPMEMALLOC(n,double);
-   W_old    = TMPMEMALLOC(n,double);
-   R_ancient   = TMPMEMALLOC(n,double);
-   W_ancient   = TMPMEMALLOC(n,double);
+   ZNEW       = new double[n];
+   Z       = new double[n];
+   AZ    = new double[n];
+   W       = new double[n];
+   R_old    = new double[n];
+   W_old    = new double[n];
+   R_ancient   = new double[n];
+   W_ancient   = new double[n];
    
    if (R_ancient==NULL || Z==NULL || W==NULL || AZ==NULL || R_old==NULL || W_old==NULL || W_ancient==NULL || ZNEW==NULL) {
       status=SOLVER_MEMORY_ERROR;
@@ -196,14 +196,14 @@ err_t Paso_Solver_MINRES(
 	 ++(num_iter);
 	 if ( !convergeFlag && (num_iter>=maxit)) status = SOLVER_MAXITER_REACHED;
    }
-   TMPMEMFREE(Z);
-   TMPMEMFREE(ZNEW);
-   TMPMEMFREE(AZ);
-   TMPMEMFREE(R_old);
-   TMPMEMFREE(R_ancient);
-   TMPMEMFREE(W);
-   TMPMEMFREE(W_old);
-   TMPMEMFREE(W_ancient);
+   delete[] Z;
+   delete[] ZNEW;
+   delete[] AZ;
+   delete[] R_old;
+   delete[] R_ancient;
+   delete[] W;
+   delete[] W_old;
+   delete[] W_ancient;
       
    *iter=num_iter;
    *tolerance=rnorm_prec/norm_scal;

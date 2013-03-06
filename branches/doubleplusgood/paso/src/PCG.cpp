@@ -122,10 +122,10 @@ err_t Paso_Solver_PCG(
 /*   ---------------------                                         */
 /*                                                                 */
 /*                                                                 */
-  rs=TMPMEMALLOC(n,double);
-  p=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  x2=TMPMEMALLOC(n,double);
+  rs=new double[n];
+  p=new double[n];
+  v=new double[n];
+  x2=new double[n];
 
   /*     Test the input parameters. */
 
@@ -388,10 +388,10 @@ err_t Paso_Solver_PCG(
          status = SOLVER_BREAKDOWN;
     }
     Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-    TMPMEMFREE(rs);
-    TMPMEMFREE(x2);
-    TMPMEMFREE(v);
-    TMPMEMFREE(p);
+    delete[] rs;
+    delete[] x2;
+    delete[] v;
+    delete[] p;
     *iter=num_iter_global;
     *resid=norm_of_residual_global;
   }
