@@ -101,13 +101,13 @@ err_t Paso_Solver_BiCGStab(
   /* Executable Statements */
 
   /*     allocate memory: */
-  rtld=TMPMEMALLOC(n,double);
-  p=TMPMEMALLOC(n,double);
-  v=TMPMEMALLOC(n,double);
-  t=TMPMEMALLOC(n,double);
-  phat=TMPMEMALLOC(n,double);
-  shat=TMPMEMALLOC(n,double);
-  s=TMPMEMALLOC(n,double);
+  rtld=new double[n];
+  p=new double[n];
+  v=new double[n];
+  t=new double[n];
+  phat=new double[n];
+  shat=new double[n];
+  s=new double[n];
   /*     Test the input parameters. */
 
   if (n < 0) {
@@ -251,13 +251,13 @@ err_t Paso_Solver_BiCGStab(
 	    status = SOLVER_BREAKDOWN;
       }
   }
-  TMPMEMFREE(rtld);
-  TMPMEMFREE(p);
-  TMPMEMFREE(v);
-  TMPMEMFREE(t);
-  TMPMEMFREE(phat);
-  TMPMEMFREE(shat);
-  TMPMEMFREE(s);
+  delete[] rtld;
+  delete[] p;
+  delete[] v;
+  delete[] t;
+  delete[] phat;
+  delete[] shat;
+  delete[] s;
   *iter=num_iter_global;
   *resid=norm_of_residual_global;
 

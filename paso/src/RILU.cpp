@@ -36,19 +36,19 @@
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in) {
      if (in!=NULL) {
         Paso_Solver_RILU_free(in->RILU_of_Schur);
-        MEMFREE(in->inv_A_FF);
-        MEMFREE(in->A_FF_pivot);
+        delete[] in->inv_A_FF;
+        delete[] in->A_FF_pivot;
         Paso_SparseMatrix_free(in->A_FC);
         Paso_SparseMatrix_free(in->A_CF);
-        MEMFREE(in->rows_in_F);
-        MEMFREE(in->rows_in_C);
-        MEMFREE(in->mask_F);
-        MEMFREE(in->mask_C);
-        MEMFREE(in->x_F);
-        MEMFREE(in->b_F);
-        MEMFREE(in->x_C);
-        MEMFREE(in->b_C);
-        MEMFREE(in);
+        delete[] in->rows_in_F;
+        delete[] in->rows_in_C;
+        delete[] in->mask_F;
+        delete[] in->mask_C;
+        delete[] in->x_F;
+        delete[] in->b_F;
+        delete[] in->x_C;
+        delete[] in->b_C;
+        delete in;
      }
 }
 
@@ -83,9 +83,9 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0;/*,time2=0;*/
    
 
-  mis_marker=TMPMEMALLOC(n,index_t);
-  counter=TMPMEMALLOC(n,index_t);
-  out=MEMALLOC(1,Paso_Solver_RILU);
+  mis_marker=new index_t[n];
+  counter=new index_t[n];
+  out=new Paso_Solver_RILU;
   out->RILU_of_Schur=NULL;
   out->inv_A_FF=NULL;
   out->A_FF_pivot=NULL;
@@ -113,9 +113,9 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
         out->n=n;
         out->n_block=n_block;
         out->n_F=Paso_Util_cumsum(n,counter);
-        out->mask_F=MEMALLOC(n,index_t);
-        out->rows_in_F=MEMALLOC(out->n_F,index_t);
-        out->inv_A_FF=MEMALLOC(n_block*n_block*out->n_F,double);
+        out->mask_F=new index_t[n];
+        out->rows_in_F=new index_t[out->n_F];
+        out->inv_A_FF=new double[n_block*n_block*out->n_F];
         out->A_FF_pivot=NULL; /* later use for block size>3 */
         if (! (Esys_checkPtr(out->mask_F) || Esys_checkPtr(out->inv_A_FF) || Esys_checkPtr(out->rows_in_F) ) ) {
            #pragma omp parallel 
@@ -202,8 +202,8 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
               /* if there are no nodes in the coarse level there is no more work to do */
               out->n_C=n-out->n_F;
               if (out->n_C>0) {
-                   out->rows_in_C=MEMALLOC(out->n_C,index_t);
-                   out->mask_C=MEMALLOC(n,index_t);
+                   out->rows_in_C=new index_t[out->n_C];
+                   out->mask_C=new index_t[n];
                    if (! (Esys_checkPtr(out->mask_C) || Esys_checkPtr(out->rows_in_C) ) ) {
                        /* creates an index for C from mask */
                        #pragma omp parallel for private(i) schedule(static)
@@ -242,10 +242,10 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
                             }
                             /* allocate work arrays for RILU application */
                             if (Esys_noError()) {
-                              out->x_F=MEMALLOC(n_block*out->n_F,double);
-                              out->b_F=MEMALLOC(n_block*out->n_F,double);
-                              out->x_C=MEMALLOC(n_block*out->n_C,double);
-                              out->b_C=MEMALLOC(n_block*out->n_C,double);
+                              out->x_F=new double[n_block*out->n_F];
+                              out->b_F=new double[n_block*out->n_F];
+                              out->x_C=new double[n_block*out->n_C];
+                              out->b_C=new double[n_block*out->n_C];
                               if (! (Esys_checkPtr(out->x_F) || Esys_checkPtr(out->b_F) || Esys_checkPtr(out->x_C) || Esys_checkPtr(out->b_C) ) ) {
                                   #pragma omp parallel 
                                   {
@@ -274,8 +274,8 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
         }
      }
   }
-  TMPMEMFREE(mis_marker);
-  TMPMEMFREE(counter);
+  delete[] mis_marker;
+  delete[] counter;
   if (Esys_noError()) {
 /*
       if (verbose) {

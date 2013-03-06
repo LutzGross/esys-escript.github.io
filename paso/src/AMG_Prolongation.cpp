@@ -113,7 +113,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
       system matrix A. for now, I'm reuse A->mpi_info ??? */
    dist = A_p->pattern->output_distribution->first_component;
    output_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-   dist = TMPMEMALLOC(size+1, index_t); /* now prepare for col distribution */
+   dist = new  index_t[size+1]; /* now prepare for col distribution */
    Esys_checkPtr(dist);
    #ifdef ESYS_MPI
    MPI_Allgather(&my_n_C, 1, MPI_INT, dist, 1, MPI_INT, mpi_info->comm);
@@ -127,11 +127,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    dist[size] = global_label;
 
    input_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-   TMPMEMFREE(dist);
+   delete[] dist;
 
    /* create pattern for mainBlock and coupleBlock */
-   main_p = MEMALLOC(my_n+1, index_t);
-   couple_p = MEMALLOC(my_n+1, index_t);
+   main_p = new index_t[my_n+1];
+   couple_p = new index_t[my_n+1];
    if (!(Esys_checkPtr(main_p) || Esys_checkPtr(couple_p))) {
      /* count the number of entries per row in the Prolongation matrix :*/
      #pragma omp parallel for private(i,l,k,iptr,j,p) schedule(static)
@@ -168,10 +168,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      /* allocate and create index vector for prolongation: */
      p = Paso_Util_cumsum(my_n, main_p);
      main_p[my_n] = p;
-     main_idx = MEMALLOC(p, index_t);
+     main_idx = new index_t[p];
      p = Paso_Util_cumsum(my_n, couple_p);
      couple_p[my_n] = p;
-     couple_idx = MEMALLOC(p, index_t);
+     couple_idx = new index_t[p];
      if (!(Esys_checkPtr(main_idx) || Esys_checkPtr(couple_idx))) {
 	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
 	for (i=0; i<my_n; i++) {
@@ -204,33 +204,33 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      couple_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
 			sum, couple_p, couple_idx);
    } else {
-     MEMFREE(main_p);
-     MEMFREE(main_idx);
-     MEMFREE(couple_p);
-     MEMFREE(couple_idx);
+     delete[] main_p;
+     delete[] main_idx;
+     delete[] couple_p;
+     delete[] couple_idx;
    }
 
    /* prepare the receiver for the col_connector. 
       Note that the allocation for "shared" assumes the send and receive buffer
       of the interpolation matrix P is no larger than that of matrix A_p. */
-   neighbor = TMPMEMALLOC(size, Esys_MPI_rank);
-   offsetInShared = TMPMEMALLOC(size+1, index_t);
+   neighbor = new  Esys_MPI_rank[size];
+   offsetInShared = new  index_t[size+1];
    recv = A_p->col_coupler->connector->recv;
    send = A_p->col_coupler->connector->send;
    i = recv->numSharedComponents;
-   recv_shared = TMPMEMALLOC(i,index_t);
+   recv_shared = new index_t[i];
    memset(recv_shared, 0, sizeof(index_t)*i);
    k = send->numSharedComponents;
-   send_shared = TMPMEMALLOC(k,index_t);
+   send_shared = new index_t[k];
    if (k > i) i = k;
-   shared = TMPMEMALLOC(i, index_t);
+   shared = new  index_t[i];
 
    #ifdef ESYS_MPI
-     mpi_requests=TMPMEMALLOC(size*2,MPI_Request);
-     mpi_stati=TMPMEMALLOC(size*2,MPI_Status);
+     mpi_requests=new MPI_Request[size*2];
+     mpi_stati=new MPI_Status[size*2];
    #else
-     mpi_requests=TMPMEMALLOC(size*2,int);
-     mpi_stati=TMPMEMALLOC(size*2,int);
+     mpi_requests=new int[size*2];
+     mpi_stati=new int[size*2];
    #endif
 
    for (p=0; p<send->numNeighbors; p++) {
@@ -278,8 +278,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
    #endif
    mpi_info->msg_tag_counter += size;
-   TMPMEMFREE(mpi_requests);
-   TMPMEMFREE(mpi_stati);
+   delete[] mpi_requests;
+   delete[] mpi_stati;
 
    num_neighbors = 0;
    q = 0;
@@ -308,11 +308,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    col_connector = Paso_Connector_alloc(send, recv);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
-   TMPMEMFREE(recv_shared);
-   TMPMEMFREE(send_shared);
-   TMPMEMFREE(neighbor);
-   TMPMEMFREE(offsetInShared);
-   TMPMEMFREE(shared);
+   delete[] recv_shared;
+   delete[] send_shared;
+   delete[] neighbor;
+   delete[] offsetInShared;
+   delete[] shared;
 
    /* now we need to create the System Matrix 
       TO BE FIXED: at this stage, we only construction col_couple_pattern
@@ -531,13 +531,13 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
    
    #pragma omp parallel private(i,offset,ib,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp)
    {
-      sum_all_neg=TMPMEMALLOC(row_block_size, double); /* sum of all negative values in row i of A */
-      sum_all_pos=TMPMEMALLOC(row_block_size, double); /* sum of all positive values in row i of A */
-      sum_strong_neg=TMPMEMALLOC(row_block_size, double); /* sum of all negative values A_ij where j is in C and strongly connected to i*/
-      sum_strong_pos=TMPMEMALLOC(row_block_size, double); /* sum of all positive values A_ij where j is in C and strongly connected to i*/
-      alpha=TMPMEMALLOC(row_block_size, double);
-      beta=TMPMEMALLOC(row_block_size, double);
-      A_ii=TMPMEMALLOC(row_block_size, double);
+      sum_all_neg=new  double[row_block_size]; /* sum of all negative values in row i of A */
+      sum_all_pos=new  double[row_block_size]; /* sum of all positive values in row i of A */
+      sum_strong_neg=new  double[row_block_size]; /* sum of all negative values A_ij where j is in C and strongly connected to i*/
+      sum_strong_pos=new  double[row_block_size]; /* sum of all positive values A_ij where j is in C and strongly connected to i*/
+      alpha=new  double[row_block_size];
+      beta=new  double[row_block_size];
+      A_ii=new  double[row_block_size];
       
       #pragma omp for schedule(static)
       for (i=0;i<my_n;++i) {
@@ -679,13 +679,13 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
 
 	 }
       }/* end i loop */
-      TMPMEMFREE(sum_all_neg); 
-      TMPMEMFREE(sum_all_pos); 
-      TMPMEMFREE(sum_strong_neg); 
-      TMPMEMFREE(sum_strong_pos); 
-      TMPMEMFREE(alpha);
-      TMPMEMFREE(beta);
-      TMPMEMFREE(A_ii);
+      delete[] sum_all_neg; 
+      delete[] sum_all_pos; 
+      delete[] sum_strong_neg; 
+      delete[] sum_strong_pos; 
+      delete[] alpha;
+      delete[] beta;
+      delete[] A_ii;
    } /* end parallel region */
 }
 
@@ -730,8 +730,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
 
    #pragma omp parallel private(D_s,D_s_offset,i,start_p_main_i,start_p_couple_i,degree_p_main_i,degree_p_couple_i,range,iPtr,q,range_j,iPtr_j,len_D_s)
    {
-        D_s=TMPMEMALLOC(ll,double);
-        D_s_offset=TMPMEMALLOC(ll,index_t);
+        D_s=new double[ll];
+        D_s_offset=new index_t[ll];
 
 	#pragma omp for schedule(static)
         for (i=0;i<my_n;++i) {
@@ -929,8 +929,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
               }
           }
         }  /* end of row i loop */
-        TMPMEMFREE(D_s);
-        TMPMEMFREE(D_s_offset);
+        delete[] D_s;
+        delete[] D_s_offset;
      }    /* end of parallel region */
 }
 
@@ -960,9 +960,9 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
    main_len = main_pattern->len;
    #pragma omp parallel private(D_s,D_s_offset,i,ib,start_p_main_i,start_p_couple_i,degree_p_main_i,degree_p_couple_i,range,iPtr,q,range_j,iPtr_j,len_D_s)
    {
-        double *a=TMPMEMALLOC(row_block, double);
-        D_s=TMPMEMALLOC(row_block*ll,double);
-        D_s_offset=TMPMEMALLOC(row_block*ll,index_t);
+        double *a=new  double[row_block];
+        D_s=new double[row_block*ll];
+        D_s_offset=new index_t[row_block*ll];
 
    	#pragma omp for private(i) schedule(static)
         for (i=0;i<my_n;++i) {
@@ -1184,8 +1184,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
               }
           }
         }  /* end of row i loop */
-        TMPMEMFREE(D_s);
-        TMPMEMFREE(D_s_offset);
-        TMPMEMFREE(a);
+        delete[] D_s;
+        delete[] D_s_offset;
+        delete[] a;
      }    /* end of parallel region */
 }

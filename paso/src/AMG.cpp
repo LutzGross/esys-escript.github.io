@@ -48,12 +48,12 @@ void Paso_Preconditioner_AMG_free(Paso_Preconditioner_AMG * in) {
 	Paso_SystemMatrix_free(in->R);
 	Paso_SystemMatrix_free(in->A_C);
 	Paso_Preconditioner_AMG_free(in->AMG_C);
-	MEMFREE(in->r);
-	MEMFREE(in->x_C);
-	MEMFREE(in->b_C);
+	delete[] in->r;
+	delete[] in->x_C;
+	delete[] in->b_C;
         Paso_MergedSolver_free(in->merged_solver);
 
-	MEMFREE(in);
+	delete[] in;
      }
 }
 
@@ -152,16 +152,16 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      /* this is the table for strong connections combining mainBlock, col_coupleBlock and row_coupleBlock */
      const dim_t len_S=A_p->mainBlock->pattern->len + A_p->col_coupleBlock->pattern->len + A_p->row_coupleBlock->pattern->len  + A_p->row_coupleBlock->numRows * A_p->col_coupleBlock->numCols;
 
-     dim_t* degree_S=TMPMEMALLOC(n, dim_t);
-     index_t *offset_S=TMPMEMALLOC(n, index_t);
-     index_t *S=TMPMEMALLOC(len_S, index_t);
-     dim_t* degree_ST=TMPMEMALLOC(n, dim_t);
-     index_t *offset_ST=TMPMEMALLOC(n, index_t);
-     index_t *ST=TMPMEMALLOC(len_S, index_t);
+     dim_t* degree_S=new  dim_t[n];
+     index_t *offset_S=new  index_t[n];
+     index_t *S=new  index_t[len_S];
+     dim_t* degree_ST=new  dim_t[n];
+     index_t *offset_ST=new  index_t[n];
+     index_t *ST=new  index_t[len_S];
      
      
-     F_marker=TMPMEMALLOC(n,index_t);
-     counter=TMPMEMALLOC(n,index_t);
+     F_marker=new index_t[n];
+     counter=new index_t[n];
 
      if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) 
 	|| Esys_checkPtr(degree_ST) || Esys_checkPtr(offset_ST) || Esys_checkPtr(ST) ) ) {
@@ -208,7 +208,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker); 
             /* collect my_n_F values on all processes, a direct solver should 
                 be used if any my_n_F value is 0 */
-            F_set = TMPMEMALLOC(A_p->mpi_info->size, dim_t);
+            F_set = new  dim_t[A_p->mpi_info->size];
 	    #ifdef ESYS_MPI
             MPI_Allgather(&my_n_F, 1, MPI_INT, F_set, 1, MPI_INT, A_p->mpi_info->comm);
 	    #endif
@@ -218,7 +218,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
                 global_n_F+=F_set[i];
                 if (F_set[i] == 0) F_flag = 0;
             }
-            TMPMEMFREE(F_set);
+            delete[] F_set;
 
 	    my_n_C=my_n-my_n_F;
             global_n_C=global_n-global_n_F;
@@ -229,7 +229,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
             if (F_flag == 0) {
 	       out = NULL;
 	    } else {
-	       out=MEMALLOC(1,Paso_Preconditioner_AMG);
+	       out=new Paso_Preconditioner_AMG;
 	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
 		  out->A_C = NULL; 
@@ -244,8 +244,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 		  out->Smoother=NULL;
                   out->merged_solver=NULL;
 	       }
-	       mask_C=TMPMEMALLOC(n,index_t);
-	       rows_in_F=TMPMEMALLOC(n_F,index_t);
+	       mask_C=new index_t[n];
+	       rows_in_F=new index_t[n_F];
 	       Esys_checkPtr(mask_C);
 	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
@@ -258,9 +258,9 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			/* if nothing has been removed we have a diagonal dominant matrix and we just run a few steps of the smoother */ 
    
 			/* allocate helpers :*/
-			out->x_C=MEMALLOC(n_block*my_n_C,double);
-			out->b_C=MEMALLOC(n_block*my_n_C,double);
-			out->r=MEMALLOC(n_block*my_n,double);
+			out->x_C=new double[n_block*my_n_C];
+			out->b_C=new double[n_block*my_n_C];
+			out->r=new double[n_block*my_n];
 		     
 			Esys_checkPtr(out->r);
 			Esys_checkPtr(out->x_C);
@@ -326,20 +326,20 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			}		  
 		  }
 	       }
-	       TMPMEMFREE(mask_C);
-	       TMPMEMFREE(rows_in_F);
+	       delete[] mask_C;
+	       delete[] rows_in_F;
 	    }
 	 }
 
   }
-  TMPMEMFREE(counter);
-  TMPMEMFREE(F_marker);
-  TMPMEMFREE(degree_S);
-  TMPMEMFREE(offset_S);
-  TMPMEMFREE(S);
-  TMPMEMFREE(degree_ST);
-  TMPMEMFREE(offset_ST);
-  TMPMEMFREE(ST);
+  delete[] counter;
+  delete[] F_marker;
+  delete[] degree_S;
+  delete[] offset_S;
+  delete[] S;
+  delete[] degree_ST;
+  delete[] offset_ST;
+  delete[] ST;
   
   }
 
@@ -415,7 +415,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
    index_t iptr, i;
    double *threshold_p=NULL; 
 
-   threshold_p = TMPMEMALLOC(2*my_n, double);
+   threshold_p = new  double[2*my_n];
    
    #pragma omp parallel for private(i,iptr) schedule(static)
    for (i=0;i<my_n;++i) {        
@@ -522,7 +522,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 
           Paso_Coupler_free(threshold_coupler);
      }
-     TMPMEMFREE(threshold_p);
+     delete[] threshold_p;
 }
 
 /* theta = threshold for strong connections */
@@ -544,7 +544,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
    double *threshold_p=NULL; 
    
    
-   threshold_p = TMPMEMALLOC(2*my_n, double);
+   threshold_p = new  double[2*my_n];
 
    #pragma omp parallel private(i,iptr,bi)
    {
@@ -556,7 +556,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
       for (i=0;i<my_n;++i) max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
 				     +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
       
-      rtmp=TMPMEMALLOC(max_deg, double);
+      rtmp=new  double[max_deg];
       
       #pragma omp for schedule(static) 
       for (i=0;i<my_n;++i) {        
@@ -636,7 +636,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 offset_S[i]=koffset;
 	 degree_S[i]=kdeg;
       }
-      TMPMEMFREE(rtmp);
+      delete[] rtmp;
    }
    /* now we need to distribute the threshold and the diagonal dominance indicator */
    if (A->mpi_info->size > 1) {
@@ -695,7 +695,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
       }
       Paso_Coupler_free(threshold_coupler);
    }
-   TMPMEMFREE(threshold_p);
+   delete[] threshold_p;
 }
 
 void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S,
@@ -742,10 +742,10 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
 
   Paso_Coupler* w_coupler=Paso_Coupler_alloc(col_connector  ,1);
    
-  w=TMPMEMALLOC(n, double);
-  Status=TMPMEMALLOC(n, double);
+  w=new  double[n];
+  Status=new  double[n];
   random = Paso_Distribution_createRandomVector(col_dist,1);
-  ST_flag=TMPMEMALLOC(offset_ST[n-1]+ degree_ST[n-1], index_t);
+  ST_flag=new  index_t[offset_ST[n-1]+ degree_ST[n-1]];
 
   #pragma omp parallel for private(i)
   for (i=0; i< my_n; ++i) {
@@ -910,10 +910,10 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
   }
   /* clean up : */
   Paso_Coupler_free(w_coupler);
-  TMPMEMFREE(random);
-  TMPMEMFREE(w);
-  TMPMEMFREE(Status);
-  TMPMEMFREE(ST_flag);
+  delete[] random;
+  delete[] w;
+  delete[] Status;
+  delete[] ST_flag;
   
   return;
 }

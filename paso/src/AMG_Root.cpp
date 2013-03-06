@@ -38,12 +38,12 @@ void Paso_Preconditioner_AMG_Root_free(Paso_Preconditioner_AMG_Root* in) {
       Paso_Preconditioner_LocalAMG_free(in->localamg);
       Paso_Preconditioner_BoomerAMG_free(in->boomeramg);
       Paso_Preconditioner_Smoother_free(in->amgsubstitute);
-      MEMFREE(in);
+      delete in;
     }
 }
 
 Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatrix* A,Paso_Options* options) {
-    Paso_Preconditioner_AMG_Root* prec=MEMALLOC(1,Paso_Preconditioner_AMG_Root);
+    Paso_Preconditioner_AMG_Root* prec=new Paso_Preconditioner_AMG_Root;
 
     if (! Esys_checkPtr(prec)) {
         

@@ -46,7 +46,7 @@ void Paso_Preconditioner_BoomerAMG_free(Paso_Preconditioner_BoomerAMG * in) {
 
         /* Destroy solver */
         HYPRE_BoomerAMGDestroy(in->pt->solver);
-	MEMFREE(in->pt);
+	delete in->pt;
      }
 #endif
 }
@@ -84,10 +84,10 @@ Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(
         return NULL;
      }
 
-     out=MEMALLOC(1,Paso_Preconditioner_BoomerAMG);
+     out=new Paso_Preconditioner_BoomerAMG;
      if (Esys_checkPtr(out)) return NULL;
 
-     pt=(MEMALLOC(1,Paso_BOOMERAMG_Handler));
+     pt=new Paso_BOOMERAMG_Handler;
      if (Esys_checkPtr(pt)) return NULL;
 
      out->pt = pt;
@@ -101,7 +101,7 @@ Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(
      jlower = A->col_distribution->first_component[A->mpi_info->rank];
      jupper = ilower + A->mainBlock->numCols - 1;
 
-     rows = MEMALLOC(nrows,index_t);
+     rows = new index_t[nrows];
      #pragma omp parallel for schedule(static) private(i)
      for (i=0; i<nrows; i++) rows[i]=i+ilower;
 
@@ -230,10 +230,10 @@ Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(
      /* HYPRE_BoomerAMGSetTol(out->pt->solver, 1e-7);*/ 
 
      /* free memory allocation*/
-     MEMFREE(rows);
-     MEMFREE(ncols);
-     MEMFREE(cols);
-     MEMFREE(val);
+     delete[] rows;
+     delete[] ncols;
+     delete[] cols;
+     delete[] val;
      return out;
 #else
      return NULL;
@@ -274,7 +274,7 @@ void Paso_Preconditioner_BoomerAMG_solve(Paso_SystemMatrix* A,
 	nrows = A->mainBlock->numRows;
 	ilower = A->row_distribution->first_component[A->mpi_info->rank];
 	iupper = ilower + nrows - 1;
-	rows = MEMALLOC(nrows,index_t);
+	rows = new index_t[nrows];
 	#pragma omp parallel for schedule(static) private(i)
 	for (i=0; i<nrows; i++) rows[i]=i+ilower;
 
@@ -293,7 +293,7 @@ void Paso_Preconditioner_BoomerAMG_solve(Paso_SystemMatrix* A,
         HYPRE_IJVectorGetValues(amg->pt->x, nrows, rows, out);
 
 	/* free memory allocation*/
-	MEMFREE(rows); 
+	delete[] rows; 
      }
 #endif
 }
