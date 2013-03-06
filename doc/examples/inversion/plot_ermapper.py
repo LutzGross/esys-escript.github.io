@@ -17,7 +17,6 @@
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
-from scipy.io import netcdf_file
 
 # input filename
 if len(sys.argv)>1:
