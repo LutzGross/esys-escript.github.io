@@ -164,7 +164,8 @@ bool Rectangle::operator==(const AbstractDomain& other) const
 }
 
 void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
-            const vector<int>& first, const vector<int>& numValues) const
+            const vector<int>& first, const vector<int>& numValues,
+            const vector<int>& multiplier) const
 {
 #ifdef USE_NETCDF
     // check destination function space
@@ -184,6 +185,12 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 
     if (numValues.size() != 2)
         throw RipleyException("readNcGrid(): argument 'numValues' must have 2 entries");
+
+    if (multiplier.size() != 2)
+        throw RipleyException("readNcGrid(): argument 'multiplier' must have 2 entries");
+    for (size_t i=0; i<multiplier.size(); i++)
+        if (multiplier[i]<1)
+            throw RipleyException("readNcGrid(): all multipliers must be positive");
 
     // check file existence and size
     NcFile f(filename.c_str(), NcFile::ReadOnly);
@@ -210,8 +217,8 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     }
 
     // check if this rank contributes anything
-    if (first[0] >= m_offset0+myN0 || first[0]+numValues[0] <= m_offset0 ||
-            first[1] >= m_offset1+myN1 || first[1]+numValues[1] <= m_offset1)
+    if (first[0] >= m_offset0+myN0 || first[0]+numValues[0]*multiplier[0] <= m_offset0 ||
+            first[1] >= m_offset1+myN1 || first[1]+numValues[1]*multiplier[1] <= m_offset1)
         return;
 
     // now determine how much this rank has to write
@@ -222,7 +229,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     // indices to first value in file
     const int idx0 = max(0, m_offset0-first[0]);
     const int idx1 = max(0, m_offset1-first[1]);
-    // number of values to write
+    // number of values to read
     const int num0 = min(numValues[0]-idx0, myN0-first0);
     const int num1 = min(numValues[1]-idx1, myN1-first1);
 
@@ -241,12 +248,18 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
         for (index_t x=0; x<num0; x++) {
-            const int dataIndex = (first1+y)*myN0+first0+x;
-            const int srcIndex=y*num0+x;
+            const int baseIndex = first0+x*multiplier[0]
+                                  +(first1+y*multiplier[1])*myN0;
+            const int srcIndex = y*num0+x;
             if (!isnan(values[srcIndex])) {
-                double* dest = out.getSampleDataRW(dataIndex);
-                for (index_t q=0; q<dpp; q++) {
-                    *dest++ = values[srcIndex];
+                for (index_t m1=0; m1<multiplier[1]; m1++) {
+                    for (index_t m0=0; m0<multiplier[0]; m0++) {
+                        const int dataIndex = baseIndex+m0+m1*myN0;
+                        double* dest = out.getSampleDataRW(dataIndex);
+                        for (index_t q=0; q<dpp; q++) {
+                            *dest++ = values[srcIndex];
+                        }
+                    }
                 }
             }
         }
@@ -257,7 +270,9 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 }
 
 void Rectangle::readBinaryGrid(escript::Data& out, string filename,
-            const vector<int>& first, const vector<int>& numValues) const
+                               const vector<int>& first,
+                               const vector<int>& numValues,
+                               const vector<int>& multiplier) const
 {
     // check destination function space
     int myN0, myN1;
@@ -300,7 +315,7 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     // indices to first value in file
     const int idx0 = max(0, m_offset0-first[0]);
     const int idx1 = max(0, m_offset1-first[1]);
-    // number of values to write
+    // number of values to read
     const int num0 = min(numValues[0]-idx0, myN0-first0);
     const int num1 = min(numValues[1]-idx1, myN1-first1);
 
@@ -313,11 +328,18 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
         f.seekg(fileofs*sizeof(float));
         f.read((char*)&values[0], num0*numComp*sizeof(float));
         for (index_t x=0; x<num0; x++) {
-            double* dest = out.getSampleDataRW(first0+x+(first1+y)*myN0);
-            for (index_t c=0; c<numComp; c++) {
-                if (!isnan(values[x*numComp+c])) {
-                    for (index_t q=0; q<dpp; q++) {
-                        *dest++ = static_cast<double>(values[x*numComp+c]);
+            const int baseIndex = first0+x*multiplier[0]
+                                    +(first1+y*multiplier[1])*myN0;
+            for (index_t m1=0; m1<multiplier[1]; m1++) {
+                for (index_t m0=0; m0<multiplier[0]; m0++) {
+                    const int dataIndex = baseIndex+m0+m1*myN0;
+                    double* dest = out.getSampleDataRW(dataIndex);
+                    for (index_t c=0; c<numComp; c++) {
+                        if (!isnan(values[x*numComp+c])) {
+                            for (index_t q=0; q<dpp; q++) {
+                                *dest++ = static_cast<double>(values[x*numComp+c]);
+                            }
+                        }
                     }
                 }
             }

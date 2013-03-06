@@ -321,14 +321,16 @@ public:
     /**
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
-            const std::vector<int>& first,
-            const std::vector<int>& numValues) const;
+                                const std::vector<int>& first,
+                                const std::vector<int>& numValues,
+                                const std::vector<int>& multiplier) const;
 
     /**
     */
     virtual void readNcGrid(escript::Data& out, std::string filename,
             std::string varname, const std::vector<int>& first,
-            const std::vector<int>& numValues) const;
+            const std::vector<int>& numValues,
+            const std::vector<int>& multiplier) const;
 
     /**
        \brief

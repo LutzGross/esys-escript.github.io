@@ -28,11 +28,11 @@ using namespace boost::python;
 namespace ripley {
 
 escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
-        const object& pyFirst, const object& pyNum, const object& pyShape,
-        double fill=0.)
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyShape, double fill=0.)
 {
     int dim=fs.getDim();
-    std::vector<int> first(dim), numValues(dim), shape;
+    std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
 
     if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
         if (len(pyFirst)==dim) {
@@ -61,6 +61,16 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     } else
         throw RipleyException("Argument 'shape' must be a tuple or list");
 
+    if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
+        if (len(pyMultiplier)==dim) {
+            for (int i=0; i<dim; i++) {
+                multiplier[i]=extract<int>(pyMultiplier[i]);
+            }
+        } else
+            throw RipleyException("Argument 'multiplier' has wrong length");
+    } else
+        throw RipleyException("Argument 'multiplier' must be a tuple or list");
+
     const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
     if (!dom)
         throw RipleyException("Function space must be on a ripley domain");
@@ -68,16 +78,16 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readBinaryGrid(res, filename, first, numValues);
+    dom->readBinaryGrid(res, filename, first, numValues, multiplier);
     return res;
 }
 
 escript::Data readNcGrid(std::string filename, std::string varname,
         escript::FunctionSpace fs, const object& pyFirst, const object& pyNum,
-        const object& pyShape, double fill=0.)
+        const object& pyMultiplier, const object& pyShape, double fill=0.)
 {
     int dim=fs.getDim();
-    std::vector<int> first(dim), numValues(dim), shape;
+    std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
 
     if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
         if (len(pyFirst)==dim) {
@@ -99,6 +109,16 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     } else
         throw RipleyException("Argument 'numValues' must be a tuple or list");
 
+    if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
+        if (len(pyMultiplier)==dim) {
+            for (int i=0; i<dim; i++) {
+                multiplier[i]=extract<int>(pyMultiplier[i]);
+            }
+        } else
+            throw RipleyException("Argument 'multiplier' has wrong length");
+    } else
+        throw RipleyException("Argument 'multiplier' must be a tuple or list");
+
     if (extract<tuple>(pyShape).check() || extract<list>(pyShape).check()) {
         for (int i=0; i<len(pyShape); i++) {
             shape.push_back(extract<int>(pyShape[i]));
@@ -113,7 +133,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readNcGrid(res, filename, varname, first, numValues);
+    dom->readNcGrid(res, filename, varname, first, numValues, multiplier);
     return res;
 }
 
@@ -243,9 +263,9 @@ BOOST_PYTHON_MODULE(ripleycpp)
             "Reads a ripley domain from a file created by write().\n\n"
             ":rtype: `RipleyDomain`\n:param filename:\n:type filename: ``string``\n");
 
-    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("shape"), arg("fill")=0.));
+    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
-    def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("shape"), arg("fill")=0.));
+    def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
