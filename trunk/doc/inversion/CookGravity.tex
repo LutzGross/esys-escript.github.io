@@ -365,21 +365,6 @@ system. This is achieved by projecting the geographic coordinates into the
 \emph{Universal Transverse Mercator} (UTM) coordinate system\footnote{See e.g.
 \url{http://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system}}.
 
-It is possible to add several, possibly overlapping data sets to the same
-domain:
-\begin{verbatim}
-source0=NetCdfData(NetCdfData.GRAVITY, 'data0.nc')
-source1=NetCdfData(NetCdfData.GRAVITY, 'data1.nc')
-dom.addSource(source0)
-dom.addSource(source1)
-\end{verbatim}
-However, due to the coordinate transformation all data sets must be located in
-the same UTM zone. If a single dataset crosses UTM zones only the zone of the
-central longitude is used when projecting.
-For example, if one data set lies mostly in zone 51 but contains areas of zone
-52, it is transformed using zone 51.
-In this case more data from zone 51 can be added, but not from any other zone.
-
 There are a few optional arguments you can add when constructing a data source.
 While Section~\ref{sec:ref:DataSource} has a detailed description of all
 arguments it is worth noting a few.
@@ -434,7 +419,8 @@ This estimate of complexity growth applies to the case where the increase
 of data grid size is driven by an increase of resolution where it is
 recommended to increase the vertical resolution in synch with the lateral
 resolution. Note that if more than one data set is used the target resolution
-will be the resolution of the finest data set.
+will be the resolution of the finest data set (see also
+Section~\ref{SEC:P1:GRAV:REMARK:MULTIDATA}).
 In other cases the expansion of the region of interest drives an increase of
 data grid size and the increase of total number of cells is less dramatic as
 the vertical number of cells can remain constant while keeping a balanced
@@ -643,9 +629,43 @@ for the particular type of representation, see~\cite{ESCRIPT} for details.
 
 \section{Remarks}
 
+\subsection{ER Mapper Raster Files}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
+The \downunder module can read data stored in ER Mapper Raster files. A data
+set in this format consists of two files, a header file whose name usually ends
+in \verb|.ers| and the actual data file which has the same filename as the
+header file but without any file extension.
+These files are usually produced by a commercial software package and the
+contents can be quite diverse.
+Therefore, it is not guaranteed that every data set is supported by \downunder
+but the most common types of raster data should work\footnote{If your data
+does not load please contact us through \url{https://launchpad.net/escript-finley}.}.
+
+The interface for loading ER Mapper files is very similar to the \netcdf
+interface described in Section~\ref{SEC:P1:GRAV:DATA}.
+To load gravity data stored in the file pair\footnote{These files are available
+in the example directory.} \examplefile{GravitySmall.ers} (the
+header) and \examplefile{GravitySmall} (the data) without changing any of the
+defaults use:
+\begin{verbatim}
+source0=ErMapperData(ErMapperData.GRAVITY, 'GravitySmall.ers')
+\end{verbatim}
+If your data set does not follow the default naming convention you can specify
+the name of the data file explicitly:
+\begin{verbatim}
+source0=ErMapperData(ErMapperData.GRAVITY, 'GravitySmall.ers',
+                     datafile='GravityData')
+\end{verbatim}
+Please note that there is no way for the reader to determine if the two files
+really form a pair so make sure to pass the correct filenames when constructing
+the reader object.
+The same optional arguments explained in sections \ref{SEC:P1:GRAV:DATA} and
+\ref{SEC:P1:GRAV:REMARK:DATAHOLES} are available for ER Mapper data sets.
+However, due to the limitation of the file format only a constant error value
+is supported.
+
 \subsection{Data With Holes}\label{SEC:P1:GRAV:REMARK:DATAHOLES}
-As described in the previous section input data is always given in the form of
-a rectangular grid with constant cell size in each dimension.
+As described previously in this chapter input data is always given in the form
+of a rectangular grid with constant cell size in each dimension.
 However, there are cases when this is not necessarily the case.
 Consider an onshore data set which includes parts of the offshore region as in
 Figure~\ref{FIG:P1:GRAV:onshoreoffshore}.
@@ -682,39 +702,33 @@ Please note that the special value \emph{NaN} (not-a-number) is sometimes used
 for the purposes of masking in data sets.
 Areas marked with this value are always disregarded in \downunder.
 
-\subsection{ER Mapper Raster Files}\label{SEC:P1:GRAV:REMARK:ERMAPPER}
-The \downunder module can read data stored in ER Mapper Raster files. A data
-set in this format consists of two files, a header file whose name usually ends
-in \verb|.ers| and the actual data file which has the same filename as the
-header file but without any file extension.
-These files are usually produced by a commercial software package and the
-contents can be quite diverse.
-Therefore, it is not guaranteed that every data set is supported by \downunder
-but the most common types of raster data should work\footnote{If your data
-does not load please contact us through \url{https://launchpad.net/escript-finley}.}.
-
-The interface for loading ER Mapper files is very similar to the \netcdf
-interface described in Section~\ref{SEC:P1:GRAV:DATA}.
-To load gravity data stored in the file pair\footnote{These files are available
-in the example directory.} \examplefile{GravitySmall.ers} (the
-header) and \examplefile{GravitySmall} (the data) without changing any of the
-defaults use:
+\subsection{Multiple Data Sets}\label{SEC:P1:GRAV:REMARK:MULTIDATA}
+It is possible to run a single inversion using more than one input data set,
+possibly in different file formats.
+To do so, simply create the data sources and add them to the domain builder:
 \begin{verbatim}
-source0=ErMapperData(ErMapperData.GRAVITY, 'GravitySmall.ers')
+source0=NetCdfData(NetCdfData.GRAVITY, 'data0.nc')
+source1=ErMapperData(ErMapperData.GRAVITY, 'data1.ers')
+dom.addSource(source0)
+dom.addSource(source1)
 \end{verbatim}
-If your data set does not follow the default naming convention you can specify
-the name of the data file explicitly:
-\begin{verbatim}
-source0=ErMapperData(ErMapperData.GRAVITY, 'GravitySmall.ers',
-                     datafile='GravityData')
-\end{verbatim}
-Please note that there is no way for the reader to determine if the two files
-really form a pair so make sure to pass the correct filenames when constructing
-the reader object.
-The same optional arguments explained in sections \ref{SEC:P1:GRAV:DATA} and
-\ref{SEC:P1:GRAV:REMARK:DATAHOLES} are available for ER Mapper data sets.
-However, due to the limitation of the file format only a constant error value
-is supported.
+However, there are some restrictions when combining data sets:
+\begin{itemize}
+    \item Due to the coordinate transformation all data sets must be located in
+        the same UTM zone. If a single dataset crosses UTM zones only the zone
+        of the central longitude is used when projecting.
+        For example, if one data set lies mostly in zone 51 but contains areas
+        of zone 52, it is transformed using zone 51. In this case more data
+        from zone 51 can be added, but not from any other zone.
+    \item All data sets should have the same spatial resolution but this is not
+        enforced. Combining data with different resolution is currently
+        considered experimental but works best when the resolutions are
+        multiples of each other. For example if the first data set has a
+        resolution (or cell size) of $100$ metres and the second has a cell
+        size of $50$ metres then the target domain will have a cell size of
+        $50$ metres (the finer resolution) and each point of the coarse data
+        will occupy two cells (in the respective dimension).
+\end{itemize}
 
 \subsection{Regularization Term}\label{SEC:P1:GRAV:REMARK:REG}
 The \verb|GravityInversion| class supports the following form for the
