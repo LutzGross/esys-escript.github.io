@@ -1,13 +1,127 @@
 \chapter{Magnetic Inversion}\label{Chp:cook:magnetic inversion}
 
-\section{Magnetic Data} 
-Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth. Magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not exactly coinciding with geographical one. The lines of magnetic field come out from south magnetic pole and go into north magnetic field. Also poles are shifted continuously.
 
-The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
+\begin{figure}
+\centering
+\includegraphics[width=0.7\textwidth]{QLDWestMagneticDataPlot.png}
+\caption{Magentic Anomaly Data in $nT$ from Western Queensland, Australia
+    (file \examplefile{data/QLDWestMagnetic.nc}). Data obtained from Geoscience Australia.}
+\label{FIG:P1:MAG:0}
+\end{figure}
 
-All material magnetic behavior, refer on magnetic moments of atoms or its ions, have a character. The ability of material to be magnetized in an external magnetic field, introduces as magnetic susceptibility. Based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
+Magnitic data report the observed magnetic flux density over a region above the surface of the Earth. 
+Similar to the gravity case the data are given as deviation from an expected, background magnetic flux density $B^b$
+of the Earth. Example data in units of $nT$ (nano Tesla) are shown in Figure~\ref{FIG:P1:MAG:0} .
+It is the task of the inversion to recover the susceptibility distribution $k$ from the magnetic
+data collected. The approach for inverting magnetic is almost identical to the one used for gravity data. 
+In fact the \downunder script~\code{code: magnetic1} used for the magnetic inversion is very similar to the 
+script~\ref{code: gravity1} for gravity inversion.   
 
-Increasing magnetic field anomalies over subsurface geological structure illustrate contrast between magnetization in neighboring rock properties.
+
+\begin{pyc}\label{code: magnetic1}
+\
+\begin{python}
+# Header:
+from esys.downunder import *
+from esys.weipa import *
+from esys.escript import unitsSI as U
+
+
+# Step 1: set up domain
+dom=DomainBuilder()
+dom.setVerticalExtents(depth=40.*U.km, air_layer=6.*U.km, num_cells=25)
+dom.setFractionalPadding(pad_x=0.2, pad_y=0.2)
+B_b= [ -41000*U.Nano * U.Tesla, 31000*U.Nano * U.Tesla, 0.]
+dom.setBackgroundMagneticFluxDensity(B_b)
+dom.fixSusceptibilityBelow(depth=40.*U.km)
+
+# Step 2: read gravity data
+source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', scale_factor=U.Nano * U.Tesla)
+dom.addSource(source0)
+
+# Step 3: set up inversion
+inv=MagneticInversion()
+inv.setSolverTolerance(1e-4)
+inv.setSolverMaxIterations(50)
+inv.setup(dom)
+
+# Step 4: run inversion 
+inv.getCostFunction().setTradeOffFactorsModels(0.1) 
+k = inv.run()
+
+# Step 5: write reconstructed susceptibility to file
+saveVTK("result.vtu", susceptibility=k)
+\end{python}
+\end{pyc}
+
+\begin{figure}
+\centering
+\includegraphics[width=0.7\textwidth]{QLDMagContourMu01.png}
+\caption{Contour plot of susceptibility from three-dimensional magnetic inversion (with $\mu=0.1$).
+Colours represent values of susceptibility where high values are represented by
+    blue and low values are represented by red.}
+\label{FIG:P1:MAG:1}
+\end{figure}
+
+
+The structure of the script is identical to the gravity case. We have the header section importing the necessary modules. In the first step
+the domain of the inversion is defined. In step two the data are read and added to the domain builder. In step three the inversion is 
+set up and - in step four - is run. Finally in step five the result is written to the result file, here \file{result.vtu} in the \VTK format.
+Results are shown in Figure~\ref{FIG:P1:MAG:1}.
+
+Although scripts for magnetic and gravity inversion are largely identical there are a few small differences which we are
+going to highlight now. The magnetic inversion requires data about the background  magnetic flux densit which is added to the domain
+by the statements 
+\begin{verbatim}
+B_b= [ -41000*U.Nano * U.Tesla, 31000*U.Nano * U.Tesla, 0.]
+dom.setBackgroundMagneticFluxDensity(B_b)
+\end{verbatim}
+Here it is assumed that the background magnetic flux density is constant across the domain.
+Values for the magnetic flux density can be obtained by the International
+Geomagnetic Reference Field (IGRF)~\cite{IGRF} 
+(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF} via \url{http://www.ga.gov.au/oracle/geomag/agrfform.jsp}).
+
+
+\begin{verbatim}
+dom.fixSusceptibilityBelow(depth=40.*U.km)
+\end{verbatim}
+
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', \
+     scale_factor=U.Nano * U.Tesla)
+\end{verbatim}
+
+\begin{verbatim}
+inv=MagneticInversion()
+\end{verbatim}
+
+
+
+
+
+
+ B_r, B_theta, 0.
+
+
+
+Although Magnetic and gravity methods are almost the same, 
+Magnetic has its own complexity, elaboration and instability and it is very localized.
+Outer core of the Earth has a convection current which produce a magnetic field through the earth. 
+Magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of 
+the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not 
+exactly coinciding with geographical one. The lines of magnetic field come out from south magnetic pole and 
+go into north magnetic field. Also poles are shifted continuously.
+
+The basic magnetic field or magnetic flux density in any medium is $B$. M
+eanwhile $H$ is a parameter proportional to $B$ in non magnetizable material.
+ In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
+
+All material magnetic behavior, refer on magnetic moments of atoms or its ions, have a character. 
+The ability of material to be magnetized in an external magnetic field, introduces as magnetic susceptibility. 
+Based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
+
+Increasing magnetic field anomalies over subsurface geological structure illustrate 
+contrast between magnetization in neighboring rock properties.
 
 Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. This time related changes of magnetic field are the diurnal variation which depends on the latitude of observation point. 
 
@@ -19,17 +133,7 @@ International Geomagnetic Reference Field (IGRF) is a mathematical description o
 
 In comparison to the correction of gravity observation, magnetic survey needs very few corrections. After compensation of diurnal effect, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. Finally magnetic anomaly is used in geophysical processing.
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{QLDMagContourMu01.png}
-\caption{Contour image through a 3 dimensional magnetic inversion which presents discrepancy in susceptibility. The magnetic of padding area of the model is not defined. Increasing and decreasing in susceptibility are indicated with red color and blue color respectively.}
-\end{figure}
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{QLDMagDepthMu01.png}
-\caption{Depth image across previous 3D magnetic inversion which presents discrepancy in susceptibility. Diversity in susceptibility are detected with colors and contours.}
-\end{figure}
 
 \section{Input File} 
 This section of inversion package needs two input files which contain magnetic anomalies and some constraint factors. The firs file includes magnetic anomalies, in which all corrections were applied previously, the location (latitude and longitude) and elevation of the observed place precisely.
