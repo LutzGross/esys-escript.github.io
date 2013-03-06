@@ -1298,14 +1298,15 @@ void RipleyDomain::dump(const string& filename) const
 }
 
 void RipleyDomain::readBinaryGrid(escript::Data& out, string filename,
-            const vector<int>& first, const vector<int>& numValues) const
+            const vector<int>& first, const vector<int>& numValues,
+            const vector<int>& multiplier) const
 {
     throw RipleyException("readBinaryGrid() not implemented");
 }
 
 void RipleyDomain::readNcGrid(escript::Data& out, string filename,
             string varname, const vector<int>& first,
-            const vector<int>& numValues) const
+            const vector<int>& numValues, const vector<int>& multiplier) const
 {
     throw RipleyException("readNcGrid() not implemented");
 }

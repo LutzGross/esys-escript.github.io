@@ -380,16 +380,20 @@ class ErMapperData(DataSource):
         return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
+        FS = ReducedFunction(domain)
         nValues=self.__nPts
         # determine base location of this dataset within the domain
         first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
+        # determine the resolution difference between domain and data.
+        # If domain has twice the resolution we can double up the data etc.
+        multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
         if domain.getDim()==3:
             first.append(int((self.__altitude-origin[2])/spacing[2]))
+            multiplier=multiplier+[1]
             nValues=nValues+[1]
 
-        data=ripleycpp._readBinaryGrid(self.__datafile,
-                ReducedFunction(domain),
-                first, nValues, (), self.__null_value)
+        data = ripleycpp._readBinaryGrid(self.__datafile, FS, first, nValues,
+                                         multiplier, (), self.__null_value)
         sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
@@ -577,15 +581,20 @@ class NetCdfData(DataSource):
         nValues=self.__nPts
         # determine base location of this dataset within the domain
         first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
+        # determine the resolution difference between domain and data.
+        # If domain has twice the resolution we can double up the data etc.
+        multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
         if domain.getDim()==3:
             first.append(int((self.__altitude-origin[2])/spacing[2]))
+            multiplier=multiplier+[1]
             nValues=nValues+[1]
 
         data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
-                                     first, nValues, (), self.__null_value)
+                                     first, nValues, multiplier, (),
+                                     self.__null_value)
         if self.__error_name is not None:
             sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
-                                          FS, first, nValues, (), 0.)
+                                          FS, first, nValues, multiplier, (),0.)
         else:
             sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
