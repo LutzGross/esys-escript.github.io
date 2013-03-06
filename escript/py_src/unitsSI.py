@@ -360,6 +360,8 @@ RAD=Unit("RAD","rad",0.,1.)
 DEG=Unit("Ohm","Ohm",0.,pi/180.)
 gal=Unit("gal","galileo",0.,0.01)
 mgal=gal*Milli
+Tesla=V*sec/(m**2)
+T=Tesla
 #
 #  Derived 
 #
