@@ -448,7 +448,7 @@ DataExpanded::symmetric(DataAbstract* ev)
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::symmetric: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::symmetric: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -470,7 +470,7 @@ DataExpanded::nonsymmetric(DataAbstract* ev)
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::nonsymmetric: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::nonsymmetric: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -492,7 +492,7 @@ DataExpanded::trace(DataAbstract* ev, int axis_offset)
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::trace: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::trace: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -515,7 +515,7 @@ DataExpanded::transpose(DataAbstract* ev, int axis_offset)
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::transpose: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::transpose: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -538,7 +538,7 @@ DataExpanded::swapaxes(DataAbstract* ev, int axis0, int axis1)
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::swapaxes: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -560,7 +560,7 @@ DataExpanded::eigenvalues(DataAbstract* ev)
   int numDataPointsPerSample = getNumDPPSample();
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::eigenvalues: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::eigenvalues: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -582,11 +582,11 @@ DataExpanded::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
   int sampleNo,dataPointNo;
   DataExpanded* temp_ev=dynamic_cast<DataExpanded*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (probably a programming error).");
   }
   DataExpanded* temp_V=dynamic_cast<DataExpanded*>(V);
   if (temp_V==0) {
-    throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (propably a programming error).");
+    throw DataException("Error - DataExpanded::eigenvalues_and_eigenvectors: casting to DataExpanded failed (probably a programming error).");
   }
   const ValueType& vec=getVectorRO();
   const ShapeType& shape=getShape();
@@ -611,7 +611,7 @@ DataExpanded::matrixInverse(DataAbstract* out) const
   DataExpanded* temp=dynamic_cast<DataExpanded*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataExpanded::matrixInverse: casting to DataExpanded failed (propably a programming error).");
+	throw DataException("Error - DataExpanded::matrixInverse: casting to DataExpanded failed (probably a programming error).");
   }
 
   if (getRank()!=2)

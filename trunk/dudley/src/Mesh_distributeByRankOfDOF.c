@@ -16,7 +16,7 @@
 /************************************************************************************/
 
 /*   Dudley: Mesh: this will redistribute the Nodes and Elements including overlap */
-/*   according to the dof_distribiution. It will create an element coloring but will not create any mappings. */
+/*   according to the dof_distribution. It will create an element coloring but will not create any mappings. */
 
 /************************************************************************************/
 
@@ -41,7 +41,7 @@ void Dudley_Mesh_distributeByRankOfDOF(Dudley_Mesh * self, index_t * dof_distrib
 	Dudley_NodeFile_assignMPIRankToDOFs(self->Nodes, mpiRankOfDOF, dof_distribution);
 
 	/* first the elements are redistributed according to mpiRankOfDOF */
-	/* at the input the Node tables refering to a the local labeling of the nodes */
+	/* at the input the Node tables refer to a the local labeling of the nodes */
 	/* while at the output they refer to the global labeling which is rectified in the next step */
 	if (Dudley_noError())
 	    Dudley_ElementFile_distributeByRankOfDOF(self->Elements, mpiRankOfDOF, self->Nodes->Id);

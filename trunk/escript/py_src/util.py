@@ -2662,7 +2662,7 @@ def longestEdge(domain):
 
     :param domain: a domain
     :type domain: `escript.Domain`
-    :return: longest edge of the domain parallel to the Cartisean axis 
+    :return: longest edge of the domain parallel to the Cartesian axis 
     :rtype: ``float``
     """
     return max(boundingBoxEdgeLength(domain))

@@ -85,7 +85,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
                 where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
                 if (where_p!=NULL) {
                     iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
-                    /* this calculutes A_CF*invA_FF(i,col_CF) */
+                    /* this calculates A_CF*invA_FF(i,col_CF) */
                     if (set_A) {
                        A_CF_11=A_CF->val[4*iPtr_CF  ];
                        A_CF_21=A_CF->val[4*iPtr_CF+1];
@@ -135,7 +135,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
                 where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
                 if (where_p!=NULL) {
                     iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
-                    /* this calculutes A_CF*invA_FF(i,col_CF) */
+                    /* this calculates A_CF*invA_FF(i,col_CF) */
                     if (set_A) {
                        A_CF_11=A_CF->val[9*iPtr_CF  ];
                        A_CF_21=A_CF->val[9*iPtr_CF+1];
@@ -202,7 +202,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
  * Merge of development branch dev-02 back to main trunk on 2005-09-15
  *
  * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone libray for iterative
+ * These files have been extracted from finley to define a stand alone library for iterative
  * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
  * has not been tested yet.
  *

@@ -47,7 +47,7 @@ void Dudley_NodeFile_allocTable(Dudley_NodeFile * in, dim_t numNodes)
     degreesOfFreedomId2 = MEMALLOC(numNodes, index_t);
     reducedDegreesOfFreedomId2 = MEMALLOC(numNodes, index_t);
 
-    /*  if fine, freeate the old table and replace by new: */
+    /*  if fine, free the old table and replace by new: */
     if (Dudley_checkPtr(Id2) || Dudley_checkPtr(Coordinates2) || Dudley_checkPtr(Tag2)
 	|| Dudley_checkPtr(globalDegreesOfFreedom2)
 	|| Dudley_checkPtr(globalReducedDOFIndex2)

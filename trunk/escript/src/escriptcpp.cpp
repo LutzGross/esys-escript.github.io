@@ -278,7 +278,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
                  &escript::FunctionSpace::getTagFromDataPointNo,":return: the tag associated with the given sample number.\n:rtype: int");
   fs_definer.def("getReferenceIDFromDataPointNo", &escript::FunctionSpace::getReferenceIDFromDataPointNo,args("dataPointNo"),":return: the reference number associated with ``dataPointNo``\n:rtype: int ");
   fs_definer.def("getListOfTags",&escript::FunctionSpace::getListOfTags,":return: a list of the tags used in this function space\n:rtype: ``list``");
-  fs_definer.def("getApproximationOrder", &escript::FunctionSpace::getApproximationOrder,":return: the approximation order refering to the maximum degree of a polynomial which can be represenred exactly in interplation and/or integration.\n:rtype: ``int``");
+  fs_definer.def("getApproximationOrder", &escript::FunctionSpace::getApproximationOrder,":return: the approximation order referring to the maximum degree of a polynomial which can be represented exactly in interpolation and/or integration.\n:rtype: ``int``");
   fs_definer.def("__str__", &escript::FunctionSpace::toString);
   fs_definer.def(self == self);
   fs_definer.def(self != self);
@@ -300,7 +300,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("isProtected",&escript::Data::isProtected,"Can this instance be modified.\n:rtype: ``bool``")
     .def("setProtection",&escript::Data::setProtection,"Disallow modifications to this data object\n\n:note: This method does not allow you to undo protection.")
     .def("getShape",&escript::Data::getShapeTuple,"\nReturns the shape of the datapoints in this object as a python tuple. Scalar data has the shape ``()``\n\n:rtype: ``tuple``")
-    .def("getRank",&escript::Data::getDataPointRank,":return: the number of indicies required to address a component of a datapoints\n:rtype: positive ``int``")
+    .def("getRank",&escript::Data::getDataPointRank,":return: the number of indices required to address a component of a datapoint\n:rtype: positive ``int``")
     .def("dump",&escript::Data::dump,args("fileName"),"Save the data as a netCDF file\n\n:param fileName: \n:type fileName: ``string``")
     .def("toListOfTuples",&escript::Data::toListOfTuples, (arg("scalarastuple")=false),
 "Return the datapoints of this object in a list. Each datapoint is stored as a tuple.\n\n"
@@ -308,7 +308,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 " True => [(0), (1), (2)]; False => [0, 1, 2]")
     .def("copyWithMask",&escript::Data::copyWithMask,args("other","mask"),
 "Selectively copy values from ``other`` `Data`."
-"Datapoints which correspond to postive values in ``mask`` will be copied from ``other``\n"
+"Datapoints which correspond to positive values in ``mask`` will be copied from ``other``\n"
 "\n:param other: source of values\n"
 ":type other: `Data`\n:param mask:\n:type mask: Scalar `Data`")
     .def("setTaggedValue",&escript::Data::setTaggedValue,args("tagKey","value"),
@@ -358,7 +358,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":param Bmin: The base of locations in table for 2nd dimension\n:type Bmin: float\n"
 ":param Bstep: size of gap between each item in the table for 2nd dimension\n:type Bstep: float\n"
 ":param check_boundaries: if true, then values outside the boundaries will be rejected. If false, then boundary values will be used.\n"
-":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
+":raise RuntimeError(DataException): if the coordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 )
     .def("interpolateTable", &escript::Data::interpolateFromTable1DP, 
@@ -370,7 +370,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 ":param Astep: size of gap between each item in the table\n:type Astep: float\n"
 ":param undef: upper bound on interpolated values\n:type undef: float\n"
 ":param check_boundaries: if true, then values outside the boundaries will be rejected. If false, then boundary values will be used.\n"
-":raise RuntimeError(DataException): if the cordinates do not map into the table or if the interpolated value is above ``undef``"
+":raise RuntimeError(DataException): if the coordinates do not map into the table or if the interpolated value is above ``undef``"
 "\n:rtype: `Data`"
 */
 )
@@ -378,7 +378,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
       (arg("in"), arg("out"), arg("check_boundaries")),
 "Creates a Data object by linear interpolation of the function F(in)->out\n\n"
 ":param in: input values of interpolation function\n"
-":param out: corresponing output values of interpolation function\n"
+":param out: corresponding output values of interpolation function\n"
 ":param check_boundaries: If True, an exception will the thrown if the data object contains values"
 "outside the range given by ``in``.\n"
     )
@@ -386,7 +386,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
       (arg("in"), arg("out"), arg("check_boundaries")),
 "Creates a Data object by computing the slope of the function F(in)->out\n\n"
 ":param in: input values of interpolation function\n"
-":param out: corresponing output values of interpolation function\n"
+":param out: corresponding output values of interpolation function\n"
 ":param check_boundaries: If True, an exception will the thrown if the data object contains values"
 "outside the range given by ``in``.\n"
     )	 
@@ -483,7 +483,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     // Need scope resolution due to a bug either in the compiler or
     // the boost code. This calls operator << for Data.
     .def(self_ns::str(self))
-    .def("_inverse", &escript::Data::matrixInverse, ":return: inverse of square matricies\n")
+    .def("_inverse", &escript::Data::matrixInverse, ":return: inverse of square matrices\n")
 //    .def("__add__", &escript::Data::addOperatorD)
     .def("__add__", &escript::Data::__add__)
     .def("__radd__", &escript::Data::__add__)  // its the same coz + is commutative
@@ -650,7 +650,7 @@ args("source", "q", "r","factor"),
       (arg("name"), arg("value")=0), "Modify the value of an escript tuning parameter\n\n"
 ":param name:\n:type name: ``string``\n:param value:\n:type value: ``int``");
   def("getEscriptParamInt",escript::getEscriptParamInt,
-      (arg("name"),arg("sentinel")=0), "Read the value of an escript tuning paramter\n\n"
+      (arg("name"),arg("sentinel")=0), "Read the value of an escript tuning parameter\n\n"
 ":param name: parameter to lookup\n:type name: ``string``\n:param sentinel: Value to be returned if ``name`` is not a known parameter\n"
 ":type sentinel: ``int``");
   def("listEscriptParams",escript::listEscriptParams,":return: A list of pairs (p,d) where p is the name of a parameter for escript and d is a description.");

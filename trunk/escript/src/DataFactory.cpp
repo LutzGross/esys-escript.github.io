@@ -352,7 +352,7 @@ load(const std::string fileName,
    } else if (type == 2) {
       /* expanded data */
       if ( ! (ndims == rank + 2) )
-          throw DataException("Error - load:: illegal number of dimensions for exanded data in netCDF file.");
+          throw DataException("Error - load:: illegal number of dimensions for expanded data in netCDF file.");
       if ( ! (num_samples_dim = dataFile.get_dim("num_samples") ) )
           throw DataException("Error - load:: unable to recover number of samples from netCDF file.");
       num_samples = num_samples_dim->size();

@@ -57,9 +57,9 @@ Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(
 			Paso_SystemMatrix * A, Paso_Options* options)
 {
 #ifdef BOOMERAMG
-     index_t ilower; /* first row in current processer, number is given by
+     index_t ilower; /* first row in current processor, number is given by
                            the global indices. Can be 0- or 1-based indexing */
-     index_t iupper; /* last row in current processer, number is given by
+     index_t iupper; /* last row in current processor, number is given by
                            the global indices. Row partitioning must be 
                            contiguous, i.e., iupper for proc i must equal 
                            ilower-1 for proc i+1 */
@@ -220,7 +220,7 @@ Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(
      /* AMG coarsening strength threshold. Default is 0.25. For 2D Laplace 
 	operations, 0.25 is a good value. For 3D Laplace operations, 0.5 or 
 	0.6 is a better value. For elasticity problems, a large strength 
-	threshold, such as 0.9, is oftern better */
+	threshold, such as 0.9, is often better */
      if (options->coarsening_threshold > 0)
 	HYPRE_BoomerAMGSetStrongThreshold(out->pt->solver, options->coarsening_threshold); 
      /* threshold for diagonal dominant rows. Default is 0.9 */
@@ -248,9 +248,9 @@ void Paso_Preconditioner_BoomerAMG_solve(Paso_SystemMatrix* A,
                           double* in)
 {
 #ifdef BOOMERAMG
-     index_t ilower; /* first row in current processer, number is given by
+     index_t ilower; /* first row in current processor, number is given by
                            the global indices. Can be 0- or 1-based indexing */
-     index_t iupper; /* last row in current processer, number is given by
+     index_t iupper; /* last row in current processor, number is given by
 			   the global indices. Row partitioning must be 
 			   contiguous, i.e., iupper for proc i must equal 
 			   ilower-1 for proc i+1 */

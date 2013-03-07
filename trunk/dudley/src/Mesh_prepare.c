@@ -45,7 +45,7 @@ void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
 	newGlobalNumDOFs = Dudley_NodeFile_createDenseDOFLabeling(in->Nodes);
 
 	/* create a distribution of the global DOFs and determine
-	   the MPI_rank controling the DOFs on this processor      */
+	   the MPI_rank controlling the DOFs on this processor      */
 	Esys_MPIInfo_setDistribution(in->MPIInfo, 0, newGlobalNumDOFs - 1, distribution);
 
 	/* now the mesh is re-distributed according to the mpiRankOfDOF vector */
@@ -55,7 +55,7 @@ void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
 	    Dudley_Mesh_distributeByRankOfDOF(in, distribution);
     }
 
-    /* at this stage we are able to start an optimization of the DOF distribution using ParaMetis */
+    /* at this stage we are able to start an optimization of the DOF distribution using ParMetis */
     /* on return distribution is altered and new DOF ids have been assigned */
     if (Dudley_noError() && optimize && in->MPIInfo->size > 1)
     {

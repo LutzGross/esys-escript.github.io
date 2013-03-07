@@ -23,7 +23,7 @@
 
 /************************************************************************************/
 
-/*  prints the mesh to the standarts output: */
+/*  prints the mesh to the standard output: */
 
 void Dudley_Mesh_print(Dudley_Mesh * in)
 {

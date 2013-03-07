@@ -86,7 +86,7 @@ Taipan::release_unused_arrays()
           memTable_Root = tab->next;
         }
         delete tab;
-        // increment count of arrays dealloced
+        // increment count of arrays deallocated
         statTable->deallocations++;
       } else {
         tab_prev = tab;
@@ -251,7 +251,7 @@ Taipan::delete_array(double* array) {
           memTable_Root = tab->next;
         }
         delete tab;
-        // increment count of arrays dealloced
+        // increment count of arrays deallocated
         statTable->deallocations++;
       } else {
         tab_prev = tab;

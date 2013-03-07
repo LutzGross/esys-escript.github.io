@@ -15,7 +15,7 @@
 
 /************************************************************************************/
 
-/*    assemblage jacobiens: calculate the gradient of nodal data at quadrature points */
+/*    assemblage of jacobians: calculate the gradient of nodal data at quadrature points */
 
 /************************************************************************************/
 

@@ -1300,7 +1300,7 @@ void Rectangle::dofToNodes(escript::Data& out, escript::Data& in) const
 //private
 void Rectangle::populateSampleIds()
 {
-    // identifiers are ordered from left to right, bottom to top globablly.
+    // identifiers are ordered from left to right, bottom to top globally.
 
     // build node distribution vector first.
     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes

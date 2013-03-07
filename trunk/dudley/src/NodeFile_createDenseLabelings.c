@@ -171,7 +171,7 @@ void Dudley_NodeFile_assignMPIRankToDOFs(Dudley_NodeFile * in, Esys_MPI_rank * m
     index_t min_DOF, max_DOF, k;
     dim_t n;
     Esys_MPI_rank p, p_min = in->MPIInfo->size, p_max = -1;
-    /* first we calculate the min and max dof on this processor to reduce costs for seraching */
+    /* first we calculate the min and max dof on this processor to reduce costs for searching */
     Dudley_NodeFile_setDOFRange(&min_DOF, &max_DOF, in);
 
     for (p = 0; p < in->MPIInfo->size; ++p)
@@ -346,7 +346,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 #endif
     Esys_MPI_rank myRank = in->MPIInfo->rank;
 
-    /* find the range of node ids controled by me */
+    /* find the range of node ids controlled by me */
 
     myFirstDOF = dof_distribution[myRank];
     myLastDOF = dof_distribution[myRank + 1];

@@ -240,7 +240,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
     Paso_Coupler_startCollect(coupler, rows);
   }
 
-  /* initalization, including allocate arrays "ptr", "index" and "val" */
+  /* initialization, including allocate arrays "ptr", "index" and "val" */
   main_ptr=A->mainBlock->pattern->ptr;
   main_idx=A->mainBlock->pattern->index;
   main_val=A->mainBlock->val;

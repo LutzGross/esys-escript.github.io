@@ -133,7 +133,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		  Dudley_checkPtr(proc_mask)))
 	    {
 
-		/* callculate the offsets for the processor buffers */
+		/* calculate the offsets for the processor buffers */
 		recv_offset[0] = 0;
 		for (p = 0; p < size - 1; ++p)
 		    recv_offset[p + 1] = recv_offset[p] + recv_count[p];

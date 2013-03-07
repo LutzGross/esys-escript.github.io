@@ -110,7 +110,7 @@ Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 		else
 		{
 		    Dudley_setError(SYSTEM_ERROR,
-				    "Dudley_ElementFile_borrowJacobeans: local dimenion in a 2D domain has to be 1 or 2.");
+				    "Dudley_ElementFile_borrowJacobeans: local dimension in a 2D domain has to be 1 or 2.");
 		}
 	  /*========================== dim = 3 ============================================== */
 	    }
@@ -134,7 +134,7 @@ Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 		else
 		{
 		    Dudley_setError(SYSTEM_ERROR,
-				    "Dudley_ElementFile_borrowJacobeans: local dimenion in a 3D domain has to be 2 or 3.");
+				    "Dudley_ElementFile_borrowJacobeans: local dimension in a 3D domain has to be 2 or 3.");
 		}
 	    }
 	    else

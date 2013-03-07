@@ -86,7 +86,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_SystemMatrix_solvePreconditioner(A,x,b);
         errorCode=Paso_Solver_NewtonGMRES(F,x,options,pp);
         if (errorCode!=NO_ERROR) {
-           Esys_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
+           Esys_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occurred.");
         }
         Paso_Function_LinearSystem_free(F);
         return;
@@ -292,7 +292,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         } else if ( errorCode == SOLVER_BREAKDOWN ) {
                            if (cntIter <= 1) {
                               Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver: fatal break down in iterative solver.");
-                              if (options->verbose) printf("Paso_Solver: Uncurable break down!\n");
+                              if (options->verbose) printf("Paso_Solver: Incurable break down!\n");
                            } else {
                               if (options->verbose) printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", totIter, tol);
                               finalizeIteration = FALSE;

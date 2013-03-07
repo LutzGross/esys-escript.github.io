@@ -269,7 +269,7 @@ class NonlinearPDE(object):
           ``simplified_newton_limit``
                 if the norm of the defect is reduced by less than
                 ``simplified_newton_limit`` between two iteration steps and
-                quadratic convergence is detected the iteration swiches to the
+                quadratic convergence is detected the iteration switches to the
                 simplified Newton-Raphson scheme.
         """
         for key in opts:

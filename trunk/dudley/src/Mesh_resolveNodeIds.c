@@ -18,7 +18,7 @@
 /*   Dudley: Mesh */
 
 /*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
-/*   NodeFile. It is also not ensured that all nodes refered by an element is actually available */
+/*   NodeFile. It is also not ensured that all nodes referred by an element is actually available */
 /*   on the process.  At the output, a local node labeling is used and all nodes are available */
 /*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
 /*   The function does not create a distribution of the degrees of freedom. */
@@ -135,7 +135,7 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 	{
 	    Dudley_NodeFile_free(in->Nodes);
 	    in->Nodes = newNodeFile;
-	    /*  relable nodes of the elements: */
+	    /*  relabel nodes of the elements: */
 	    Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels, min_id, in);
 	}
     }
