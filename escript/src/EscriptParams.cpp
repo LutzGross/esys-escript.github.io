@@ -158,7 +158,7 @@ EscriptParams::setInt(const char* name, int value)
    {
 	lazy_verbose=value;
    }
-   // Note: there is no way to modifiy the LAPACK_SUPPORT variable atm
+   // Note: there is no way to modify the LAPACK_SUPPORT variable ATM
 }
 
 void 

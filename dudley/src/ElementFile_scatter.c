@@ -19,7 +19,7 @@
 *                                                                                            
 *   scatter the ElementFile in into the  ElementFile out using index[0:out->numElements-1].  
 *   index has to be between 0 and in->numElements-1.                                         
-*   a conservative assumtion on the coloring is made                                         
+*   a conservative assumption on the coloring is made                                         
 *                                                                                            
 ************************************************************************************/
 

@@ -28,7 +28,7 @@ namespace escript {
 // when all you have is the object. It explicitly fails in the case where
 // you haven't made a shared_ptr for this object yet.
 // _Currently_ we need this behaviour, hence the exception squashing.
-// An execption would be thrown in two circumstances:
+// An exception would be thrown in two circumstances:
 //    1. The object doesn't have a shared_ptr attached yet.
 //    2. All shared_ptrs have let go and the object is in the process of being destroyed.
 // An attempt to getPtr() in the second case is doomed anyway.

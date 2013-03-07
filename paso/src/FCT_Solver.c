@@ -185,7 +185,7 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
     Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
 }
 
-/* entry point for update proceedures */
+/* entry point for update procedures */
 err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_old,  Paso_Options* options, Paso_Performance *pp) 
 {    
     const index_t method=fct_solver->method;
@@ -268,7 +268,7 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
       if (options->verbose) printf("Paso_FCT_Solver_update_LCN: convergence after %d Gauss-Seidel steps.\n",sweep_max);
       errorCode=SOLVER_NO_ERROR;
    } else {
-      if (options->verbose) printf("Paso_FCT_Solver_update_LCN: Gauss-Seidel failed within %d stesp (rel. tolerance %e).\n",sweep_max,RTOL);
+      if (options->verbose) printf("Paso_FCT_Solver_update_LCN: Gauss-Seidel failed within %d steps (rel. tolerance %e).\n",sweep_max,RTOL);
       errorCode= SOLVER_MAXITER_REACHED;
    }
    return errorCode;
@@ -322,7 +322,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
     Paso_FCT_FluxLimiter_setU_tilda(flux_limiter, b); /* u_tilda = m^{-1} b */
     /* u_tilda_connector is completed */
     /********************************************************************************************************************************************/   
-    /* calculate stopping criterium */
+    /* calculate stopping criterion */
     norm_u_tilde=Paso_lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
     ATOL= rtol * norm_u_tilde + atol ;
     if (options->verbose) printf("Paso_FCT_Solver_updateNL: iteration starts u_tilda lsup = %e (abs. tol = %e)\n",norm_u_tilde,ATOL);
@@ -375,7 +375,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
 	      } else {
 		  tol *= MIN(MAX(rate*rate, 1e-2), 0.5);
 	      } 
-	      /* use BiCGSTab with jacobi preconditioner ( m - omega * L ) */
+	      /* use BiCGStab with jacobi preconditioner ( m - omega * L ) */
     	      Paso_zeroes(n,du); 
 	      errorCode = Paso_Solver_BiCGStab(fctp->iteration_matrix, z, du, &cntIter, &tol, pp);
 
@@ -437,7 +437,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
  *        f_{ij} = (m_{ij} - dt (1-theta) d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt theta d_{ij}) (u[j]-u[i])
  *         
  *     m=fc->mass matrix
- *     d=artifical diffusion matrix = L - K = - fc->iteration matrix - fc->transport matrix (away from main diagonal)
+ *     d=artificial diffusion matrix = L - K = - fc->iteration matrix - fc->transport matrix (away from main diagonal)
  *
  *   for CN : theta =0.5
  *   for BE : theta = 1.
@@ -533,7 +533,7 @@ void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
   }
 }
 
-/* special version of the ant-diffusive fluxes for the linear Crank-Nicolson scheme 
+/* special version of the anti-diffusive fluxes for the linear Crank-Nicolson scheme 
  * in fact this is evaluated for u = 2*u_tilde - u_old which is the predictor
  * of the solution of the stabilized problem at time dt using the forward Euler scheme 
  * 

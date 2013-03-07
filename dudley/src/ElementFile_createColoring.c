@@ -62,7 +62,7 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
 	    {
 		if (in->Color[e] < 0)
 		{
-		    /* find out if element e is independend from the elements already colored: */
+		    /* find out if element e is independent from the elements already colored: */
 		    independent = TRUE;
 		    for (i = 0; i < NN; i++)
 		    {
@@ -87,7 +87,7 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
 			    break;
 			}
 		    }
-		    /* if e is independend a new color is assigned and the nodes are marked as being used */
+		    /* if e is independent a new color is assigned and the nodes are marked as being used */
 		    if (independent)
 		    {
 			for (i = 0; i < NN; i++)

@@ -16,8 +16,8 @@
 /************************************************************************************/
 
 /*   Dudley: Mesh: optimizes the distribution of DOFs across processors */
-/*   using ParMETIS. On return a new distribution is given and the globalDOF are relabled */
-/*   accordingly but the mesh has not been redesitributed yet                             */
+/*   using ParMETIS. On return a new distribution is given and the globalDOF are relabeled */
+/*   accordingly but the mesh has not been redistributed yet                             */
 
 /************************************************************************************/
 
@@ -141,7 +141,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 		    index_list[i].n = 0;
 		}
 		/* ksteube build CSR format */
-		/*  insert contributions from element matrices into colums index index_list: */
+		/*  insert contributions from element matrices into columns index index_list: */
 		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
 									  in->Elements,
 									  in->Nodes->globalDegreesOfFreedom,
@@ -207,7 +207,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 
 	    Paso_Pattern_free(pattern);
 
-	    /* create a new distributioin and labeling of the DOF */
+	    /* create a new distribution and labeling of the DOF */
 	    memset(new_distribution, 0, mpiSize_size);
 #pragma omp parallel private(loc_partition_count)
 	    {

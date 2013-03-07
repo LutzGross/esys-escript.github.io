@@ -50,7 +50,7 @@
 *  A       (input) 
 *
 *  R       (input) DOUBLE PRECISION array, dimension N.
-*          On entry, residual of inital guess X
+*          On entry, residual of initial guess X
 *
 *  X       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess. 

@@ -151,7 +151,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       element_dim=1;
                       numNodesPerElement=2;  
                       break;
-                  case 2:  /* traingle order 1 */
+                  case 2:  /* triangle order 1 */
                       element_type[e]=Finley_Tri3;
                       numNodesPerElement= 3;
                       element_dim=2;
@@ -180,7 +180,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
                       numNodesPerElement= 3;
                       element_dim=1;
                       break;
-                  case 9:  /* traingle order 2 */
+                  case 9:  /* triangle order 2 */
                       if (useMacroElements) {
                            element_type[e]=Finley_Tri6Macro;
                       } else {
@@ -392,11 +392,11 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
       /* search for end of data block */
       do {
          if (!fgets(line, sizeof(line), fileHandle_p)) {
-            sprintf(error_msg,"Unexected end of file in %s",fname);
+            sprintf(error_msg,"Unexpected end of file in %s",fname);
             Finley_setError(IO_ERROR,error_msg);
          }
          if (feof(fileHandle_p)) {
-            sprintf(error_msg,"Unexected end of file in %s",fname);
+            sprintf(error_msg,"Unexpected end of file in %s",fname);
             Finley_setError(IO_ERROR,error_msg);
          }
          if (! Finley_noError()) break;

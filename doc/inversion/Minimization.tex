@@ -224,9 +224,9 @@ The L-BFGS algorithm looks as follows (see also~\cite{Nocedal1980}):
         p_k \leftarrow |twoLoop|(\{s, g\});
         \alpha_k \leftarrow |lineSearch|(m_k, p_k); \rcomment{See Section~\ref{sec:LineSearch}}
         m_{k+1} \leftarrow m_k+\alpha_k p_k;
-        \IF k> trunction
+        \IF k> truncation
         \THEN
-            |Discard the vector pair | \{s_{k-trunction}, g_{k-trunction}\} | from storage|;
+            |Discard the vector pair | \{s_{k-truncation}, g_{k-truncation}\} | from storage|;
         \FI
         s_k \leftarrow m_{k+1}-m_k;
         g_k \leftarrow \nabla J_{k+1}-\nabla J_k;
@@ -235,13 +235,13 @@ The L-BFGS algorithm looks as follows (see also~\cite{Nocedal1980}):
         \WHERE
         \FUNCT |twoLoop|(\{s, g\}) \BODY
             \EXP q \leftarrow \nabla J_k;
-            \FOR i=k-1, k-2, \ldots, k-trunction \DO
+            \FOR i=k-1, k-2, \ldots, k-truncation \DO
             \rho_i \leftarrow \frac{1}{<s_i, g_i>};
             \alpha_i \leftarrow \rho_i <s_i, q>;
             q \leftarrow q-\alpha_i\cdot  g_i;
             \OD
             r \leftarrow H q;
-            \FOR i = k-trunction, k-trunction+1, \ldots, k-1 \DO
+            \FOR i = k-truncation, k-truncation+1, \ldots, k-1 \DO
             \beta \leftarrow \rho_i \cdot <r,g_i>;
             r \leftarrow r + s_i \cdot (\alpha_i - \beta)
             \OD

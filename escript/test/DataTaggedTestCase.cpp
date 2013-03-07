@@ -4275,7 +4275,6 @@ void DataTaggedTestCase::testSetSlice() {
 
 
     offset=myData1.getDefaultOffset();
-//     myDataView = myData1.getDefslicing DataTagged with rank 3 values and one tagaultValue();
     CPPUNIT_ASSERT(offset==0);
     CPPUNIT_ASSERT(getRefRO(myData1,offset,0,0,0)==3.0);
     CPPUNIT_ASSERT(getRefRO(myData1,offset,1,0,0)==3.0);

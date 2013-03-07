@@ -30,7 +30,7 @@
 
 /************************************************************************************
 
-    Methods nessecary for AMG preconditioner
+    Methods necessary for AMG preconditioner
 
     construct n_C x n_C interpolation operator A_C from matrix A
     and prolongation matrix P.
@@ -39,9 +39,9 @@
 
 *************************************************************************************/
 
-/* Extend system matrix B with extra two sparse matrixes: 
+/* Extend system matrix B with extra two sparse matrices: 
 	B_ext_main and B_ext_couple
-   The combination of this two sparse matrixes represents  
+   The combination of this two sparse matrices represents  
    the portion of B that is stored on neighbor procs and 
    needed locally for triple matrix product (B^T) A B.
 
@@ -577,7 +577,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
   #endif
   P->mpi_info->msg_tag_counter += size;
 
-  /* Clean up and return with recevied ptr, index and data arrays */
+  /* Clean up and return with received ptr, index and data arrays */
   MEMFREE(ptr);
   MEMFREE(idx);
   MEMFREE(val);
@@ -631,7 +631,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 /*   if (!(P->type & MATRIX_FORMAT_DIAGONAL_BLOCK)) 
      return Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(A, P, R);*/
 
-   /* two sparse matrixes R_main and R_couple will be generate, as the 
+   /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
    R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
@@ -645,7 +645,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	A->col_coupler->connector->send->shared[rPtr...] 
 	rPtr=A->col_coupler->connector->send->OffsetInShared[k]
       on q. 
-      P_ext is represented by two sparse matrixes P_ext_main and 
+      P_ext is represented by two sparse matrices P_ext_main and 
       P_ext_couple */
    Paso_Preconditioner_AMG_extendB(A, P);
 
@@ -1080,8 +1080,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
    /* Now we have part of RAP[r,c] where row "r" is the list of rows 
       which is given by the column list of P->col_coupleBlock, and 
-      column "c" is the list of columns which possiblely covers the
-      whole column range of systme martris P. This part of data is to
+      column "c" is the list of columns which possibly covers the
+      whole column range of system matrix P. This part of data is to
       be passed to neighboring processors, and added to corresponding
       RAP[r,c] entries in the neighboring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
@@ -1712,7 +1712,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    TMPMEMFREE(P_marker);
 
    /******************************************************/
-   /* Start to create the coasre level System Matrix A_c */
+   /* Start to create the coarse level System Matrix A_c */
    /******************************************************/
    /* first, prepare the sender/receiver for the col_connector */
    dist = P->pattern->input_distribution->first_component;
@@ -2075,7 +2075,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      int *mpi_requests=NULL, *mpi_stati=NULL;
    #endif
 
-   /* two sparse matrixes R_main and R_couple will be generate, as the 
+   /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
    R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
@@ -2088,7 +2088,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 	A->col_coupler->connector->send->shared[rPtr...] 
 	rPtr=A->col_coupler->connector->send->OffsetInShared[k]
       on q. 
-      P_ext is represented by two sparse matrixes P_ext_main and 
+      P_ext is represented by two sparse matrices P_ext_main and 
       P_ext_couple */
    Paso_Preconditioner_AMG_extendB(A, P);
 
@@ -2516,8 +2516,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 
    /* Now we have part of RAP[r,c] where row "r" is the list of rows 
       which is given by the column list of P->col_coupleBlock, and 
-      column "c" is the list of columns which possiblely covers the
-      whole column range of systme martris P. This part of data is to
+      column "c" is the list of columns which possibly covers the
+      whole column range of system matrix P. This part of data is to
       be passed to neighboring processors, and added to corresponding
       RAP[r,c] entries in the neighboring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
@@ -3139,7 +3139,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    TMPMEMFREE(P_marker);
 
    /******************************************************/
-   /* Start to create the coasre level System Matrix A_c */
+   /* Start to create the coarse level System Matrix A_c */
    /******************************************************/
    /* first, prepare the sender/receiver for the col_connector */
    dist = P->pattern->input_distribution->first_component;

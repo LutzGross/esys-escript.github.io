@@ -127,8 +127,8 @@ dim_t Esys_MPIInfo_setDistribution(Esys_MPIInfo* mpi_info ,index_t min_id,index_
   }
 }
 
-/* checks that there is no error accross all processes in a communicator */
-/* NOTE : does not make guarentee consistency of error string on each process */
+/* checks that there is no error across all processes in a communicator */
+/* NOTE : does not make guarantee consistency of error string on each process */
 bool_t Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
 {
   int errorLocal = Esys_noError() ? 0 : 1;

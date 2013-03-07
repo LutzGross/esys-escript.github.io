@@ -121,9 +121,12 @@ def removeFsFromGrad(sym):
 
 def getTotalDifferential(f, x, order=0):
     """
-    Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
-               \   /         \   /
-                 a             b
+    This function computes::
+
+        | Df/Dx = del_f/del_x + del_f/del_grad(x)*del_grad(x)/del_x + ...
+        |            \   /         \   /
+        |              a             b
+    
     """
 
     from esys.escript import util

@@ -347,8 +347,8 @@ void DataTestCase::testSlicingWorker(bool delayed)
   CPPUNIT_ASSERT(target.isTagged());
   CPPUNIT_ASSERT(target.getDataPointRank()==2);
 
-    // use a non-existant tag so we get a pointer to the default value
-    // ie: the first element in the data array
+    // use a non-existent tag so we get a pointer to the default value
+    // i.e.: the first element in the data array
   DataAbstract::ValueType::value_type* targetData=target.getSampleDataByTag(9);
   for (int i=0; i<target.getLength(); i++) {
       CPPUNIT_ASSERT(targetData[i]>=0);
@@ -1045,7 +1045,7 @@ void DataTestCase::testOperations()
     }
   }
 
-  // rather than accomodate the different windows operations directly I'll just use inverse functions
+  // rather than accommodate the different windows operations directly I'll just use inverse functions
   cout << "\tTest Data::asinh." << endl;
   for (int z=0;z<NUMDATS;++z)
   {

@@ -53,8 +53,8 @@ We now start to specify the components of our model starting with the vertexes
 using the \verb!Point! primitive. These are then joined by lines in a regular
 manner taking note of the right hand rule. Finally, the lines are turned into
 loops and then planar surfaces.
-\footnote{Some code has been emmitted here for
-simlpicity. For the full script please refer to the script referenced at the beginning of
+\footnote{Some code has been omitted here for
+simplicity. For the full script please refer to the script referenced at the beginning of
 this section.}
 \begin{python}
 ####################################################DOMAIN CONSTRUCTION
@@ -213,7 +213,7 @@ Now the data object \verb|stop| has the value 1.0 on the surface
 \verb!'stop'! and zero everywhere else.
 % 
  To apply our function to the boundary only on \verb|stop| we now
- mulitply it by \verb|stop|
+ multiply it by \verb|stop|
 \begin{python}
 xb=FunctionOnBoundary(domain).getX()
 yx=(cos(length(xb-xc)*3.1415/src_length)+1)*whereNegative(length(xb-xc)-src_length)
