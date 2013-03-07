@@ -35,7 +35,7 @@ class Regularization(CostFunction):
     The regularization term for the level set function ``m`` within the cost
     function J for an inversion:
 
-    *J(m)=1/2 * sum_k imtegrate( mu[k] * ( w0[k] * m_k**2 * w1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] wc[l,k] * | curl(m_k) x curl(m_l) |^2*
+    *J(m)=1/2 * sum_k integrate( mu[k] * ( w0[k] * m_k**2 * w1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] wc[l,k] * | curl(m_k) x curl(m_l) |^2*
 
     where w0[k], w1[k,i] and  wc[k,l] are non-negative weighting factors and
     mu[k] and mu_c[l,k] are trade-off factors which may be altered

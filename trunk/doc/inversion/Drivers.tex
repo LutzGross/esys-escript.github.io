@@ -31,7 +31,7 @@ If the maximum number is reached, the iteration will be terminated and \exceptio
 \end{methoddesc}
 
 \begin{methoddesc}[InversionDriver]{setSolverTolerance}{\optional{m_tol=\None} \optional{, J_tol=\None}}
-set the tolerance for the the solver used to minimize the cost function. If \member{m_tol} is set the iteration is terminated 
+set the tolerance for the solver used to minimize the cost function. If \member{m_tol} is set the iteration is terminated 
 if the relative change of the level set function is less than or equal \member{m_tol}, see condition~\ref{EQU:MIN:3a}. 
 If \member{J_tol} is set the iteration is terminated if the change of the cost
 function relative to the initial value is less than or equal \member{J_tol}, , see condition~\ref{EQU:MIN:3b}.
