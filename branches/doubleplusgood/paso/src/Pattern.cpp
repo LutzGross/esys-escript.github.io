@@ -82,7 +82,7 @@ Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, inde
       return NULL;
     }
   }
-  out=MEMALLOC(1,Paso_Pattern);
+  out=new Paso_Pattern;
   if (! Esys_checkPtr(out)) {
       out->type=type;
       out->reference_counter=1;
@@ -118,11 +118,11 @@ void Paso_Pattern_free(Paso_Pattern* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
-        MEMFREE(in->ptr);
-        MEMFREE(in->index);
-	MEMFREE(in->main_iptr);
-	MEMFREE(in->coloring);
-        MEMFREE(in);
+        delete[] in->ptr;
+        delete[] in->index;
+	delete[] in->main_iptr;
+	delete[] in->coloring;
+        delete in;
      }
    }
 }
@@ -165,7 +165,7 @@ Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* ind
    index_t *index=NULL;
    Paso_Pattern* out=NULL;
 
-   ptr=MEMALLOC(n+1-n0,index_t);
+   ptr=new index_t[n+1-n0];
    if (! Esys_checkPtr(ptr) ) {
        /* get the number of connections per row */ 
        #pragma omp parallel for private(i) schedule(static)
@@ -181,7 +181,7 @@ Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* ind
        }
        ptr[n-n0]=s;
        /* fill index */
-       index=MEMALLOC(ptr[n-n0],index_t);
+       index=new index_t[ptr[n-n0]];
        if (! Esys_checkPtr(index)) {
               #pragma omp parallel for private(i) schedule(static) 
               for(i=n0;i<n;++i) {
@@ -191,8 +191,8 @@ Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* ind
        }
   }
   if (! Esys_noError()) {
-        MEMFREE(ptr);
-        MEMFREE(index);
+        delete[] ptr;
+        delete[] index;
         Paso_Pattern_free(out);
   }
   return out;
@@ -205,7 +205,7 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
     index_t *index,*where_p, i;
     
      if (A->main_iptr == NULL) {
-         A->main_iptr=MEMALLOC(n,index_t);
+         A->main_iptr=new index_t[n];
          if (! Esys_checkPtr(A->main_iptr) ) {
 	     #pragma omp parallel 
              {
@@ -228,7 +228,7 @@ index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A)
      
              }
 	     if (fail > 0) {
-	       MEMFREE(A->main_iptr);
+	       delete[] A->main_iptr;
 	       A->main_iptr=NULL;
 	     }
 
@@ -249,11 +249,11 @@ index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A)
    /* is coloring available ? */
    if (A->coloring == NULL) {
       
-      A->coloring=MEMALLOC(n,index_t);
+      A->coloring=new index_t[n];
       if ( ! Esys_checkPtr(A->coloring)) {
 	 Paso_Pattern_color(A,&(A->numColors),A->coloring);
 	 if (! Esys_noError()) {
-	    MEMFREE(A->coloring);
+	    delete[] A->coloring;
 	 }
       } 
    }

@@ -76,7 +76,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
       }
       /* start sending */
       z0=0;
-      send_buffer = TMPMEMALLOC(A->col_coupleBlock->len, double);
+      send_buffer = new double[A->col_coupleBlock->len];
 	
       for (p=0; p<A->row_coupler->connector->send->numNeighbors; p++) {
 	 /* j_min, j_max defines the range of columns to be sent to processor p*/
@@ -117,7 +117,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 		     A->row_coupler->mpi_stati);
          #endif
          A->mpi_info->msg_tag_counter+=A->mpi_info->size;
-         TMPMEMFREE(send_buffer);
+         delete[] send_buffer;
    }
    return; 		      
 }

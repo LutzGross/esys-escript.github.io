@@ -48,12 +48,12 @@ err_t Paso_Solver_GMRES2(
   /*     
    *  allocate memory: 
    */
-  h=TMPMEMALLOC(l*l,double);
-  v=TMPMEMALLOC(l,double*);
-  c=TMPMEMALLOC(l,double);
-  s=TMPMEMALLOC(l,double);
-  g=TMPMEMALLOC(l,double);
-  work=TMPMEMALLOC(n,double);
+  h=new double[l*l];
+  v=new double*[l];
+  c=new double[l];
+  s=new double[l];
+  g=new double[l];
+  work=new double[n];
 
   if (h==NULL || v ==NULL || c== NULL || s == NULL || g== NULL || work==NULL) {
      Status=SOLVER_MEMORY_ERROR;
@@ -69,7 +69,7 @@ err_t Paso_Solver_GMRES2(
       if (! convergeFlag) {
           abs_tol=rel_tol*normf0;
           printf("GMRES2 initial residual norm %e (rel. tol=%e)\n",normf0,rel_tol);
-          v[0]=TMPMEMALLOC(n,double);
+          v[0]=new double[n];
           if (v[0]==NULL) {
              Status=SOLVER_MEMORY_ERROR;
           } else {
@@ -79,7 +79,7 @@ err_t Paso_Solver_GMRES2(
           }
           while( (! (breakFlag || maxIterFlag || convergeFlag)) && (Status ==SOLVER_NO_ERROR) ) {
                k++;
-               v[k]=TMPMEMALLOC(n,double);
+               v[k]=new double[n];
                if (v[k]==NULL) {
                   Status=SOLVER_MEMORY_ERROR;
                } else {
@@ -168,14 +168,14 @@ err_t Paso_Solver_GMRES2(
   *  clean up:
   */
   if ( v !=NULL) {
-    for (i=0;i<iter_max;i++) TMPMEMFREE(v[i]);
+    for (i=0;i<iter_max;i++) delete[] v[i];
   }
-  TMPMEMFREE(h);
-  TMPMEMFREE(v);
-  TMPMEMFREE(c);
-  TMPMEMFREE(s);
-  TMPMEMFREE(g);
-  TMPMEMFREE(work);
+  delete[] h;
+  delete[] v;
+  delete[] c;
+  delete[] s;
+  delete[] g;
+  delete[] work;
   *iter=k;
   *tolerance=norm_of_residual;
   return Status;
