@@ -57,7 +57,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
 
   /* sending/receiving unknown's global ID */
   num_main_cols = A->mainBlock->numCols;
-  cols = TMPMEMALLOC(num_main_cols, double);
+  cols = new double[num_main_cols];
   offset = A->col_distribution->first_component[rank];
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
@@ -66,9 +66,9 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
     Paso_Coupler_startCollect(coupler, cols);
   }
 
-  recv_buf = TMPMEMALLOC(mpi_size, index_t);
-  recv_degree = TMPMEMALLOC(mpi_size, index_t);
-  recv_offset = TMPMEMALLOC(mpi_size+1, index_t);
+  recv_buf = new index_t[mpi_size];
+  recv_degree = new index_t[mpi_size];
+  recv_offset = new index_t[mpi_size+1];
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<mpi_size; i++){
     recv_buf[i] = 0;
@@ -87,7 +87,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   /* waiting for receiving unknown's global ID */
   if (A->global_id == NULL) {
     Paso_Coupler_finishCollect(coupler);
-    global_id = MEMALLOC(num_couple_cols+1, index_t);
+    global_id = new index_t[num_couple_cols+1];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_couple_cols; ++i) 
 	global_id[i] = coupler->recv_buffer[i];
@@ -109,7 +109,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
     len += recv_buf[i];
   }
   recv_offset[mpi_size] = len;
-  cols_array = TMPMEMALLOC(len, index_t);
+  cols_array = new index_t[len];
   if (Esys_checkPtr(cols_array)) fprintf(stderr, "rank %d MALLOC has trouble\n", rank);
 
   #ifdef ESYS_MPI
@@ -117,7 +117,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   #endif
 
   /* first, prepare the ptr_ptr to be received */
-  ptr_ptr = MEMALLOC(overlapped_n+1, index_t);
+  ptr_ptr = new index_t[overlapped_n+1];
   for (p=0; p<recv->numNeighbors; p++) {
     row = recv->offsetInShared[p];
     i = recv->offsetInShared[p+1];
@@ -137,10 +137,10 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
     len += recv_buf[send->neighbor[i]] * 
 		(send->offsetInShared[i+1] - send->offsetInShared[i]);
   }
-  send_buf = TMPMEMALLOC(len*block_size, double);
-  send_idx = TMPMEMALLOC(len, index_t);
-  send_offset = TMPMEMALLOC(p+1, index_t);
-  send_degree = TMPMEMALLOC(num_neighbors, index_t);
+  send_buf = new double[len*block_size];
+  send_idx = new index_t[len];
+  send_offset = new index_t[p+1];
+  send_degree = new index_t[num_neighbors];
 
   len = 0;
   base = 0;
@@ -245,7 +245,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
     len += p;
   }
   ptr_ptr[overlapped_n] = len;
-  ptr_idx = MEMALLOC(len, index_t);
+  ptr_idx = new index_t[len];
 
   /* send/receive index array */
   j=0;
@@ -325,15 +325,15 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
   A->mpi_info->msg_tag_counter += mpi_size;
 
   /* release all temp memory allocation */
-  TMPMEMFREE(cols);
-  TMPMEMFREE(cols_array);
-  TMPMEMFREE(recv_offset);
-  TMPMEMFREE(recv_degree);
-  TMPMEMFREE(recv_buf);
-  TMPMEMFREE(send_buf);
-  TMPMEMFREE(send_offset);
-  TMPMEMFREE(send_degree);
-  TMPMEMFREE(send_idx);
+  delete[] cols;
+  delete[] cols_array;
+  delete[] recv_offset;
+  delete[] recv_degree;
+  delete[] recv_buf;
+  delete[] send_buf;
+  delete[] send_offset;
+  delete[] send_degree;
+  delete[] send_idx;
 }
 
 

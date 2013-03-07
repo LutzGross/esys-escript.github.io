@@ -60,7 +60,7 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
    const dim_t n =A_p->numRows; 
    dim_t i,p,z, len_P;
    
-   ptr=MEMALLOC(n+1,index_t);
+   ptr=new index_t[n+1];
    if (! Esys_checkPtr(ptr)) {
 
       
@@ -84,7 +84,7 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
       ptr[n]=len_P;
       
       /* allocate and create index vector for prolongation: */
-      index=MEMALLOC(len_P,index_t);
+      index=new index_t[len_P];
    
       if (! Esys_checkPtr(index)) {
 	 #pragma omp parallel for private(i,z,iptr,j,p)  schedule(static)
@@ -108,8 +108,8 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
    if (Esys_noError()) {
 	 outpattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
    } else {
-      MEMFREE(ptr);
-      MEMFREE(index);
+      delete[] ptr;
+      delete[] index;
    }
    /* now we need to create a matrix and fill it */
    if (Esys_noError()) {
@@ -252,13 +252,13 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix*
    
    #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
    {
-      sum_all_neg=TMPMEMALLOC(row_block, double); /* sum of all negative values in row i of A */
-      sum_all_pos=TMPMEMALLOC(row_block, double); /* sum of all positive values in row i of A */
-      sum_strong_neg=TMPMEMALLOC(row_block, double); /* sum of all negative values A_ij where j is in C and strongly connected to i*/
-      sum_strong_pos=TMPMEMALLOC(row_block, double); /* sum of all positive values A_ij where j is in C and strongly connected to i*/
-      alpha=TMPMEMALLOC(row_block, double);
-      beta=TMPMEMALLOC(row_block, double);
-      A_ii=TMPMEMALLOC(row_block, double);
+      sum_all_neg=new  double[row_block]; /* sum of all negative values in row i of A */
+      sum_all_pos=new double[row_block]; /* sum of all positive values in row i of A */
+      sum_strong_neg=new double[row_block]; /* sum of all negative values A_ij where j is in C and strongly connected to i*/
+      sum_strong_pos=new double[row_block]; /* sum of all positive values A_ij where j is in C and strongly connected to i*/
+      alpha=new double[row_block];
+      beta=new double[row_block];
+      A_ii=new double[row_block];
       
       #pragma omp for schedule(static)
       for (i=0;i<n;++i) {
@@ -342,13 +342,13 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix*
 	    }
 	 }
       }/* end i loop */
-      TMPMEMFREE(sum_all_neg); 
-      TMPMEMFREE(sum_all_pos); 
-      TMPMEMFREE(sum_strong_neg); 
-      TMPMEMFREE(sum_strong_pos); 
-      TMPMEMFREE(alpha);
-      TMPMEMFREE(beta);
-      TMPMEMFREE(A_ii);
+      delete[] sum_all_neg; 
+      delete[] sum_all_pos; 
+      delete[] sum_strong_neg; 
+      delete[] sum_strong_pos; 
+      delete[] alpha;
+      delete[] beta;
+      delete[] A_ii;
    } /* end parallel region */
 }
 
@@ -381,8 +381,8 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
 
    #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j)
    {
-        D_s=TMPMEMALLOC(ll,double);
-        D_s_offset=TMPMEMALLOC(ll,index_t);
+        D_s=new double[ll];
+        D_s_offset=new index_t[ll];
 
 
    	#pragma omp for private(i) schedule(static)
@@ -459,8 +459,8 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
               }
           }
         }  /* end of row i loop */
-        TMPMEMFREE(D_s);
-        TMPMEMFREE(D_s_offset);
+        delete[] D_s;
+        delete[] D_s_offset;
      }    /* end of parallel region */
 }
 
@@ -480,9 +480,9 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
 
    #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)
    {
-        double *a=TMPMEMALLOC(row_block, double);
-        D_s=TMPMEMALLOC(row_block*ll,double);
-        D_s_offset=TMPMEMALLOC(row_block*ll,index_t);
+        double *a=new double[row_block];
+        D_s=new double[row_block*ll];
+        D_s_offset=new index_t[row_block*ll];
 
    	#pragma omp for private(i) schedule(static)
         for (i=0;i<n;++i) {
@@ -569,9 +569,9 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
               }
           }
         }  /* end of row i loop */
-        TMPMEMFREE(D_s);
-        TMPMEMFREE(D_s_offset);
-        TMPMEMFREE(a);
+        delete[] D_s;
+        delete[] D_s_offset;
+        delete[] a;
      }    /* end of parallel region */
 }
 

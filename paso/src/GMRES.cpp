@@ -102,24 +102,24 @@ err_t Paso_Solver_GMRES(
   }
 
   /*     allocate memory: */
-  X_PRES=TMPMEMALLOC(Length_of_mem,double*);
-  R_PRES=TMPMEMALLOC(Length_of_mem,double*);
-  P_PRES=TMPMEMALLOC(Length_of_mem,double*);
-  loc_dots=TMPMEMALLOC(MAX(Length_of_mem+1,3),double);
-  dots=TMPMEMALLOC(MAX(Length_of_mem+1,3),double);
-  P_PRES_dot_AP=TMPMEMALLOC(Length_of_mem,double);
-  R_PRES_dot_P_PRES=TMPMEMALLOC(Length_of_mem,double);
-  BREAKF=TMPMEMALLOC(Length_of_mem,double);
-  ALPHA=TMPMEMALLOC(Length_of_mem,double);
-  AP=TMPMEMALLOC(n,double);
+  X_PRES=new double*[Length_of_mem];
+  R_PRES=new double*[Length_of_mem];
+  P_PRES=new double*[Length_of_mem];
+  loc_dots=new double[MAX(Length_of_mem+1,3)];
+  dots=new double[MAX(Length_of_mem+1,3)];
+  P_PRES_dot_AP=new double[Length_of_mem];
+  R_PRES_dot_P_PRES=new double[Length_of_mem];
+  BREAKF=new double[Length_of_mem];
+  ALPHA=new double[Length_of_mem];
+  AP=new double[n];
   if (AP==NULL || X_PRES ==NULL || R_PRES == NULL || P_PRES == NULL || 
          P_PRES_dot_AP == NULL || R_PRES_dot_P_PRES ==NULL || BREAKF == NULL || ALPHA == NULL || dots==NULL || loc_dots==NULL) {
      Status=SOLVER_MEMORY_ERROR;
   } else {
      for (i=0;i<Length_of_mem;i++) {
-       X_PRES[i]=TMPMEMALLOC(n,double);
-       R_PRES[i]=TMPMEMALLOC(n,double);
-       P_PRES[i]=TMPMEMALLOC(n,double);
+       X_PRES[i]=new double[n];
+       R_PRES[i]=new double[n];
+       P_PRES[i]=new double[n];
        if (X_PRES[i]==NULL || R_PRES[i]==NULL ||  P_PRES[i]==NULL) Status=SOLVER_MEMORY_ERROR;
      }
   }
@@ -609,20 +609,20 @@ err_t Paso_Solver_GMRES(
 	}
     }
     for (i=0;i<Length_of_recursion;i++) {
-       TMPMEMFREE(X_PRES[i]);
-       TMPMEMFREE(R_PRES[i]);
-       TMPMEMFREE(P_PRES[i]);
+       delete[] X_PRES[i];
+       delete[] R_PRES[i];
+       delete[] P_PRES[i];
     }
-    TMPMEMFREE(AP);
-    TMPMEMFREE(X_PRES);
-    TMPMEMFREE(R_PRES);
-    TMPMEMFREE(P_PRES);
-    TMPMEMFREE(P_PRES_dot_AP);
-    TMPMEMFREE(R_PRES_dot_P_PRES);
-    TMPMEMFREE(BREAKF);
-    TMPMEMFREE(ALPHA);
-    TMPMEMFREE(dots);
-    TMPMEMFREE(loc_dots);
+    delete[] AP;
+    delete[] X_PRES;
+    delete[] R_PRES;
+    delete[] P_PRES;
+    delete[] P_PRES_dot_AP;
+    delete[] R_PRES_dot_P_PRES;
+    delete[] BREAKF;
+    delete[] ALPHA;
+    delete[] dots;
+    delete[] loc_dots;
     *iter=Num_iter_global;
     *tolerance=Norm_of_residual_global;
   return Status;

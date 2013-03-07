@@ -146,11 +146,11 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
       Esys_setError(VALUE_ERROR,"Paso_Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
    } else if (N > 0) {
 /* printf("relabeling of %d DOFs started.\n",N); */
-      degAndIdx=TMPMEMALLOC(N,Paso_DegreeAndIdx);
-      oldLabel=TMPMEMALLOC(N,bool_t);
-      AssignedLevel=TMPMEMALLOC(N,index_t);
-      VerticesInTree=TMPMEMALLOC(N,index_t);
-      firstVertexInLevel=TMPMEMALLOC(N+1,index_t);
+      degAndIdx=new Paso_DegreeAndIdx[N];
+      oldLabel=new bool_t[N];
+      AssignedLevel=new index_t[N];
+      VerticesInTree=new index_t[N];
+      firstVertexInLevel=new index_t[N+1];
       if (! ( Esys_checkPtr(degAndIdx) || Esys_checkPtr(oldLabel) || Esys_checkPtr(AssignedLevel) || Esys_checkPtr(VerticesInTree) || Esys_checkPtr(firstVertexInLevel) ) ) {
          /* get the initial bandwidth */
          #pragma omp parallel for private(i)
@@ -233,11 +233,11 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
            for (i=0;i<N;++i) oldToNew[i]=i; 
         }
       }      
-      TMPMEMFREE(degAndIdx);
-      TMPMEMFREE(oldLabel);
-      TMPMEMFREE(AssignedLevel);
-      TMPMEMFREE(VerticesInTree);
-      TMPMEMFREE(firstVertexInLevel);
+      delete[] degAndIdx;
+      delete[] oldLabel;
+      delete[] AssignedLevel;
+      delete[] VerticesInTree;
+      delete[] firstVertexInLevel;
    }
 }
 

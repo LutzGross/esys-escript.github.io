@@ -46,12 +46,12 @@ void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in) {
 	Paso_SparseMatrix_free(in->R);
 	Paso_SparseMatrix_free(in->A_C);
 	Paso_Preconditioner_LocalAMG_free(in->AMG_C);
-	MEMFREE(in->r);
-	MEMFREE(in->x_C);
-	MEMFREE(in->b_C);
+	delete[] in->r;
+	delete[] in->x_C;
+	delete[] in->b_C;
 
 	
-	MEMFREE(in);
+	delete in;
      }
 }
 
@@ -145,10 +145,10 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   } 
      /* Start Coarsening : */
 
-     F_marker=TMPMEMALLOC(n,index_t);
-     counter=TMPMEMALLOC(n,index_t);
-     degree_S=TMPMEMALLOC(n, dim_t);
-     S=TMPMEMALLOC(A_p->pattern->len, index_t);
+     F_marker=new index_t[n];
+     counter=new index_t[n];
+     degree_S=new dim_t[n];
+     S=new index_t[A_p->pattern->len];
      if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(S) ) ) {
 	 /* 
 	      set splitting of unknowns:
@@ -181,7 +181,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	    if ( n_F == 0 ) {  /* This is a nasty case. A direct solver should be used, return NULL */
 	       out = NULL;
 	    } else {
-	       out=MEMALLOC(1,Paso_Preconditioner_LocalAMG);
+	       out=new Paso_Preconditioner_LocalAMG;
 	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
 		  out->A_C = NULL; 
@@ -195,8 +195,8 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 		  out->AMG_C = NULL;
 		  out->Smoother=NULL;
 	       }
-	       mask_C=TMPMEMALLOC(n,index_t);
-	       rows_in_F=TMPMEMALLOC(n_F,index_t);
+	       mask_C=new index_t[n];
+	       rows_in_F=new index_t[n_F];
 	       Esys_checkPtr(mask_C);
 	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
@@ -209,9 +209,9 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
                             * the smoother */ 
    
 			/* allocate helpers :*/
-			out->x_C=MEMALLOC(n_block*n_C,double);
-			out->b_C=MEMALLOC(n_block*n_C,double);
-			out->r=MEMALLOC(n_block*n,double);
+			out->x_C=new double[n_block*n_C];
+			out->b_C=new double[n_block*n_C];
+			out->r=new double[n_block*n];
 		     
 			Esys_checkPtr(out->r);
 			Esys_checkPtr(out->x_C);
@@ -304,15 +304,15 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 			}		  
 		  }
 	       }
-	       TMPMEMFREE(mask_C);
-	       TMPMEMFREE(rows_in_F);
+	       delete[] mask_C;
+	       delete[] rows_in_F;
 	    }
 	 }
   }
-  TMPMEMFREE(counter);
-  TMPMEMFREE(F_marker);
-  TMPMEMFREE(degree_S);
-  TMPMEMFREE(S);
+  delete[] counter;
+  delete[] F_marker;
+  delete[] degree_S;
+  delete[] S;
 
   if (Esys_noError()) {
      return out;
@@ -450,7 +450,7 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) max_deg=MAX(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
       
-	 rtmp=TMPMEMALLOC(max_deg, double);
+	 rtmp=new double[max_deg];
       
 	 #pragma omp for schedule(static)
 	 for (i=0;i<n;++i) {
@@ -493,7 +493,7 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 	       degree_S[i]=kdeg;
             }
 	 }      
-	 TMPMEMFREE(rtmp);
+	 delete[] rtmp;
       } /* end of parallel region */
  
 }   
@@ -510,14 +510,19 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
    
    if (n<=0) return; /* make sure that the return of Paso_Util_arg_max is not pointing to nirvana */
    
-   lambda=TMPMEMALLOC(n, index_t); Esys_checkPtr(lambda);
-   degree_ST=TMPMEMALLOC(n, dim_t); Esys_checkPtr(degree_ST);
-   ST=TMPMEMALLOC(offset_S[n], index_t);  Esys_checkPtr(ST);
+   lambda=new index_t[n];
+   Esys_checkPtr(lambda);
+   degree_ST=new dim_t[n]; 
+   Esys_checkPtr(degree_ST);
+   ST=new index_t[offset_S[n]];  
+   Esys_checkPtr(ST);
    if (usePanel) {
       if (!SMALL_PANEL) {
-	 notInPanel=TMPMEMALLOC(n, bool_t); Esys_checkPtr(notInPanel);
+	 notInPanel=new bool_t[n];
+	 Esys_checkPtr(notInPanel);
       }
-      panel=TMPMEMALLOC(n, index_t); Esys_checkPtr(panel);
+      panel=new index_t[n];
+      Esys_checkPtr(panel);
    }
    
    
@@ -711,12 +716,12 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
       }
           
    }
-   TMPMEMFREE(lambda);
-   TMPMEMFREE(ST);
-   TMPMEMFREE(degree_ST);
+   delete[] lambda;
+   delete[] ST;
+   delete[] degree_ST;
    if (usePanel) {
-     TMPMEMFREE(panel);
-     if (!SMALL_PANEL) TMPMEMFREE(notInPanel);
+     delete[] panel;
+     if (!SMALL_PANEL) delete[] notInPanel;
    }
 }
 

@@ -58,7 +58,7 @@ void Paso_MKL_free(Paso_SparseMatrix* A) {
             PARDISO (pt, &maxfct, &mnum, &mtype, &phase,
                    &n, A->val, A->pattern->ptr, A->pattern->index, &idum, &nrhs,  
                    iparm, &msglvl,&ddum, &ddum, &error);  
-              MEMFREE(A->solver_p);  
+              delete[] A->solver_p;  
               A->solver_p=NULL;
 	      if (error != MKL_ERROR_NO) Esys_setError(TYPE_ERROR,"memory release in PARDISO library failed.");  
         }
@@ -124,7 +124,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
 
      if (pt==NULL) {
         /* allocate address pointer */
-        pt=MEMALLOC(64,_MKL_DSS_HANDLE_t);
+        pt=new _MKL_DSS_HANDLE_t[64];
         if (Esys_checkPtr(pt)) return;
         for (i=0;i<64;++i) pt[i]=NULL;
         A->solver_p=(void*) pt;

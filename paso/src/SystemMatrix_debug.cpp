@@ -39,8 +39,8 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
    Paso_Coupler* col_coupler=NULL, *row_coupler=NULL;
    double *cols=NULL, *rows=NULL; 
    
-   cols=TMPMEMALLOC(m, double);
-   rows=TMPMEMALLOC(n, double);
+   cols=new double[m];
+   rows=new double[n];
    col_coupler= Paso_Coupler_alloc(A->col_coupler->connector, 1);
    row_coupler = Paso_Coupler_alloc(A->col_coupler->connector, 1);
    
@@ -82,8 +82,8 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
       }      
    }
    
-   TMPMEMFREE(cols);
-   TMPMEMFREE(rows);
+   delete[] cols;
+   delete[] rows;
    Paso_Coupler_free(row_coupler);
    Paso_Coupler_free(col_coupler);
    return; 		      
@@ -96,8 +96,8 @@ void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
    const dim_t block_size=A->block_size;
    index_t rank=A->mpi_info->rank;
    char *str1, *str2;
-   str1 = TMPMEMALLOC(n*n*block_size*30+100, char);
-   str2 = TMPMEMALLOC(30, char);
+   str1 = new char[n*n*block_size*30+100];
+   str2 = new char[30];
    
    sprintf(str1, "rank %d Main Block:\n-----------\n", rank);
    for (q=0; q< n; ++q){
@@ -158,8 +158,8 @@ void Paso_SystemMatrix_print(Paso_SystemMatrix *A)
       }
       fprintf(stderr, "%s", str1);
    }
-   TMPMEMFREE(str1);
-   TMPMEMFREE(str2);
+   delete[] str1;
+   delete[] str2;
    return; 
 }
 
