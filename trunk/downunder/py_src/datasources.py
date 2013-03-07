@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['simpleGeoMagneticFluxDensity', 'DataSource', 'ErMapperData', \
+__all__ = ['DataSource', 'ErMapperData', \
         'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
         'SmoothAnomaly']
 
@@ -87,19 +87,6 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m'%(zone,south))
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
     return x,y,zone
-
-def simpleGeoMagneticFluxDensity(latitude, longitude=0.):
-    """
-    Returns an approximation of the geomagnetic flux density B at the given
-    `latitude`. The parameter `longitude` is currently ignored.
-
-    :rtype: ``tuple``
-    """
-    theta = (90-latitude)/180.*np.pi
-    B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
-    B_theta= B_0 * sin(theta)
-    B_r= 2 * B_0 * cos(theta)
-    return B_r, B_theta, 0.
 
 class DataSource(object):
     """

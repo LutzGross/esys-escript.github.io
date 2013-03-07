@@ -31,16 +31,16 @@ from esys.escript import saveDataCSV
 # Set parameters
 DATASET = 'data/MagneticSmall.nc'
 DATA_UNITS = U.Nano * U.V * U.sec / (U.m**2)
-latitude = -20.5
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
 MU = 0.1
+# background magnetic field components (B_North, B_East, B_Vertical)
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 # Setup and run the inversion
-B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
 source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
 db=DomainBuilder(dim=3)
 db.addSource(source)
