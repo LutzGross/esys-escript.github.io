@@ -535,7 +535,7 @@ void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
 
 /* special version of the ant-diffusive fluxes for the linear Crank-Nicolson scheme 
  * in fact this is evaluated for u = 2*u_tilde - u_old which is the predictor
- * of the solution of the the stabilized problem at time dt using the forward Euler scheme 
+ * of the solution of the stabilized problem at time dt using the forward Euler scheme 
  * 
  *   f_{ij} = (m_{ij} - dt/2 d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt/2 d_{ij}) (u[j]-u[i])
  *    =  (m_{ij} - dt/2 d_{ij}) * (u_old[j]-u_old[i]) - (m_{ij} + dt/2 d_{ij}) * ( 2*(u_tilde[j]-u_tilde[i]) - (u_old[j] -u_old [i]) )

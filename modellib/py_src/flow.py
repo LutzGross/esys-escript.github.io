@@ -121,7 +121,7 @@ class SteadyIncompressibleFlow(Model):
               raise IterationDivergenceError("Maximum number of iterations steps reached")
 
        def terminateIteration(self):
-          """iteration is terminateIterationd if relative pressure change is less then rel_tol"""
+          """iteration is terminateIterationd if relative pressure change is less than rel_tol"""
           return self.__diff<=self.rel_tol*Lsup(self.pressure)+self.abs_tol
 
        def doStepPostprocessing(self,dt):

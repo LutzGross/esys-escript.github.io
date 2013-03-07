@@ -152,7 +152,7 @@ class Mechanics(Model):
           self.__stress_last=self.stress
 
       def terminateIteration(self):
-          """iteration is terminateIterationd if relative pressure change is less then rel_tol"""
+          """iteration is terminateIterationd if relative pressure change is less than rel_tol"""
           if self.__iter>self.max_iter:
               raise IterationDivergenceError("Maximum number of iterations steps reached")
           if self.__iter==0:
