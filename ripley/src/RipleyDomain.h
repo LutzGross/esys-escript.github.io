@@ -37,19 +37,6 @@ namespace ripley {
 class RIPLEY_DLL_API RipleyDomain : public escript::AbstractContinuousDomain
 {
 public:
-
-    /**
-       \brief recovers mesh from a file created with the dump() method
-       \param filename the name of the file
-    */
-    static escript::Domain_ptr loadMesh(const std::string& filename);
-
-    /**
-       \brief reads a mesh from a file created with the write() method
-       \param filename the name of the file
-    */
-    static escript::Domain_ptr readMesh(const std::string& filename);
-
     /**
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
@@ -58,15 +45,9 @@ public:
 
     /**
        \brief
-       Destructor for RipleyDomain
+       Destructor
     */
     ~RipleyDomain();
-
-    /**
-       \brief
-       returns a description for this domain
-    */
-    virtual std::string getDescription() const;
 
     /**
        \brief
@@ -146,20 +127,6 @@ public:
 
     /**
        \brief
-       writes the current mesh to a file with the given name
-       \param filename The name of the file to write to
-    */
-    void write(const std::string& filename) const;
-
-    /**
-       \brief
-       dumps the mesh to a file with the given name
-       \param filename The name of the output file
-    */
-    void dump(const std::string& filename) const;
-
-    /**
-       \brief
        returns the number of data points per sample, and the number of samples
        as a pair.
        \param fsType The function space type
@@ -211,13 +178,6 @@ public:
        returns all tag names in a single string separated by commas
     */
     virtual std::string showTagNames() const;
-
-    /**
-       \brief
-       returns the array of reference numbers for a function space type
-       \param fsType The function space type
-    */
-    const int* borrowSampleReferenceIDs(int fsType) const;
 
     /**
        \brief
@@ -297,52 +257,11 @@ public:
 
     /**
        \brief
-       copies the surface normals at data points into out. The actual function
-       space to be considered is defined by out. out has to be defined on this
-       domain.
-    */
-    virtual void setToNormal(escript::Data& out) const;
-
-    /**
-       \brief
-       copies the size of samples into out. The actual function space to be
-       considered is defined by out. out has to be defined on this domain.
-    */
-    virtual void setToSize(escript::Data& out) const;
-
-    /**
-       \brief
        copies the gradient of 'in' into 'out'. The actual function space to be
        considered for the gradient is defined by 'in'. Both arguments have to
        be defined on this domain.
     */
     virtual void setToGradient(escript::Data& out, const escript::Data& in) const;
-
-    /**
-    */
-    virtual void readBinaryGrid(escript::Data& out, std::string filename,
-                                const std::vector<int>& first,
-                                const std::vector<int>& numValues,
-                                const std::vector<int>& multiplier) const;
-
-    /**
-    */
-    virtual void readNcGrid(escript::Data& out, std::string filename,
-            std::string varname, const std::vector<int>& first,
-            const std::vector<int>& numValues,
-            const std::vector<int>& multiplier) const;
-
-    /**
-       \brief
-       returns true if this rank owns the sample id on given function space
-    */
-    virtual bool ownSample(int fsType, index_t id) const;
-
-    /**
-       \brief
-       returns the number of data points summed across all MPI processes
-    */
-    virtual int getNumDataPointsGlobal() const;
 
     /**
        \brief
@@ -571,139 +490,123 @@ public:
     */
     virtual void Print_Mesh_Info(const bool full=false) const;
 
+
+    /************************************************************************/
+
+    /**
+       \brief
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
+    */
+    //void write(const std::string& filename) const = 0;
+
+    /**
+       \brief
+       returns a description for this domain
+    */
+    virtual std::string getDescription() const = 0;
+
+    /**
+       \brief
+       dumps the mesh to a file with the given name
+       \param filename The name of the output file
+    */
+    void dump(const std::string& filename) const = 0;
+
+    /**
+       \brief
+       returns the array of reference numbers for a function space type
+       \param fsType The function space type
+    */
+    const int* borrowSampleReferenceIDs(int fsType) const = 0;
+
+    /**
+       \brief
+       copies the surface normals at data points into out. The actual function
+       space to be considered is defined by out. out has to be defined on this
+       domain.
+    */
+    virtual void setToNormal(escript::Data& out) const = 0;
+
+    /**
+       \brief
+       copies the size of samples into out. The actual function space to be
+       considered is defined by out. out has to be defined on this domain.
+    */
+    virtual void setToSize(escript::Data& out) const = 0;
+
+    /**
+    */
+    virtual void readBinaryGrid(escript::Data& out, std::string filename,
+                                const std::vector<int>& first,
+                                const std::vector<int>& numValues,
+                                const std::vector<int>& multiplier) const = 0;
+
+    /**
+    */
+    virtual void readNcGrid(escript::Data& out, std::string filename,
+            std::string varname, const std::vector<int>& first,
+            const std::vector<int>& numValues,
+            const std::vector<int>& multiplier) const = 0;
+
+    /**
+       \brief
+       returns true if this rank owns the sample id on given function space
+    */
+    virtual bool ownSample(int fsType, index_t id) const = 0;
+
+    /**
+       \brief
+       returns the number of data points summed across all MPI processes
+    */
+    virtual int getNumDataPointsGlobal() const = 0;
+
     /**
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    virtual IndexVector getNumNodesPerDim() const;
+    virtual IndexVector getNumNodesPerDim() const = 0;
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    virtual IndexVector getNumElementsPerDim() const;
+    virtual IndexVector getNumElementsPerDim() const = 0;
 
     /**
        \brief
        returns the number of face elements in the order
        (left,right,bottom,top,[front,back]) on current MPI rank
     */
-    virtual IndexVector getNumFacesPerBoundary() const;
+    virtual IndexVector getNumFacesPerBoundary() const = 0;
 
     /**
        \brief
        returns the node distribution vector
     */
-    virtual IndexVector getNodeDistribution() const;
+    virtual IndexVector getNodeDistribution() const = 0;
 
     /**
        \brief
        returns the number of spatial subdivisions in each dimension
     */
-    virtual IndexVector getNumSubdivisionsPerDim() const;
+    virtual IndexVector getNumSubdivisionsPerDim() const = 0;
 
     /**
        \brief
        returns the first coordinate value and the node spacing along given
        dimension as a pair
     */
-    virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
+    virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const = 0;
 
 protected:
-    /// returns the number of nodes per MPI rank
-    virtual dim_t getNumNodes() const;
-
-    /// returns the number of elements per MPI rank
-    virtual dim_t getNumElements() const;
-
-    /// returns the number of degrees of freedom per MPI rank
-    virtual dim_t getNumDOF() const;
-
-    /// returns the number of face elements on current MPI rank
-    virtual dim_t getNumFaceElements() const;
-
-    /// inserts the nodes that share an element with 'node' into 'index' and
-    /// returns the number of these neighbours
-    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
-
-    /// populates the data object 'arg' with the node coordinates
-    virtual void assembleCoordinates(escript::Data& arg) const;
-
-    /// computes the gradient of 'in' and puts the result in 'out'
-    virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
-
-    /// copies the integrals of the function defined by 'arg' into 'integrals'
-    virtual void assembleIntegrate(std::vector<double>& integrals, escript::Data& arg) const;
-
-    /// assembles a single PDE into the system matrix 'mat' and the right hand
-    /// side 'rhs'
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-
-    /// assembles boundary conditions of a single PDE into the system matrix
-    /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-
-    /// assembles a single PDE with reduced order into the system matrix 'mat'
-    /// and the right hand side 'rhs'
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-
-    /// assembles boundary conditions of a single PDE with reduced order into
-    /// the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-
-    /// assembles a system of PDEs into the system matrix 'mat' and the right
-    /// hand side 'rhs'
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-
-    /// assembles boundary conditions of a system of PDEs into the system
-    /// matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-
-    /// assembles a system of PDEs with reduced order into the system matrix
-    /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-
-    /// assembles boundary conditions of a system of PDEs with reduced order
-    /// into the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-
-    /// returns the Paso system matrix pattern
-    virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
-            bool reducedColOrder) const;
-
-    /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
-    virtual void interpolateNodesOnElements(escript::Data& out,
-                                       escript::Data& in, bool reduced) const;
-
-    /// interpolates data on nodes in 'in' onto (reduced) face elements in 'out'
-    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
-                                         bool reduced) const;
-
-    /// converts data on nodes in 'in' to degrees of freedom in 'out'
-    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
-
-    /// converts data on degrees of freedom in 'in' to nodes in 'out'
-    virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
+    dim_t m_numDim;
+    StatusType m_status;
+    Esys_MPIInfo *m_mpiInfo;
+    TagMap m_tagMap;
+    mutable IndexVector m_nodeTags, m_nodeTagsInUse;
+    mutable IndexVector m_elementTags, m_elementTagsInUse;
+    mutable IndexVector m_faceTags, m_faceTagsInUse;
 
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, escript::Data& in) const;
@@ -735,26 +638,114 @@ protected:
             dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
             const std::vector<double>& array) const;
 
-    dim_t m_numDim;
-    StatusType m_status;
-    Esys_MPIInfo *m_mpiInfo;
-    TagMap m_tagMap;
-    mutable IndexVector m_nodeTags, m_nodeTagsInUse;
-    mutable IndexVector m_elementTags, m_elementTagsInUse;
-    mutable IndexVector m_faceTags, m_faceTagsInUse;
+    /***********************************************************************/
+
+    /// returns the number of nodes per MPI rank
+    virtual dim_t getNumNodes() const = 0;
+
+    /// returns the number of elements per MPI rank
+    virtual dim_t getNumElements() const = 0;
+
+    /// returns the number of degrees of freedom per MPI rank
+    virtual dim_t getNumDOF() const = 0;
+
+    /// returns the number of face elements on current MPI rank
+    virtual dim_t getNumFaceElements() const = 0;
+
+    /// inserts the nodes that share an element with 'node' into 'index' and
+    /// returns the number of these neighbours
+    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const = 0;
+
+    /// populates the data object 'arg' with the node coordinates
+    virtual void assembleCoordinates(escript::Data& arg) const = 0;
+
+    /// computes the gradient of 'in' and puts the result in 'out'
+    virtual void assembleGradient(escript::Data& out, escript::Data& in) const = 0;
+
+    /// copies the integrals of the function defined by 'arg' into 'integrals'
+    virtual void assembleIntegrate(std::vector<double>& integrals, escript::Data& arg) const = 0;
+
+    /// assembles a single PDE into the system matrix 'mat' and the right hand
+    /// side 'rhs'
+    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const = 0;
+
+    /// assembles boundary conditions of a single PDE into the system matrix
+    /// 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const = 0;
+
+    /// assembles a single PDE with reduced order into the system matrix 'mat'
+    /// and the right hand side 'rhs'
+    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const = 0;
+
+    /// assembles boundary conditions of a single PDE with reduced order into
+    /// the system matrix 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const = 0;
+
+    /// assembles a system of PDEs into the system matrix 'mat' and the right
+    /// hand side 'rhs'
+    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const = 0;
+
+    /// assembles boundary conditions of a system of PDEs into the system
+    /// matrix 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const = 0;
+
+    /// assembles a system of PDEs with reduced order into the system matrix
+    /// 'mat' and the right hand side 'rhs'
+    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const = 0;
+
+    /// assembles boundary conditions of a system of PDEs with reduced order
+    /// into the system matrix 'mat' and the right hand side 'rhs'
+    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const = 0;
+
+    /// returns the Paso system matrix pattern
+    virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
+            bool reducedColOrder) const = 0;
+
+    /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
+    virtual void interpolateNodesOnElements(escript::Data& out,
+                                   escript::Data& in, bool reduced) const = 0;
+
+    /// interpolates data on nodes in 'in' onto (reduced) face elements in 'out'
+    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+                                         bool reduced) const = 0;
+
+    /// converts data on nodes in 'in' to degrees of freedom in 'out'
+    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const = 0;
+
+    /// converts data on degrees of freedom in 'in' to nodes in 'out'
+    virtual void dofToNodes(escript::Data& out, escript::Data& in) const = 0;
 
 private:
     /// calls the right PDE assembly routines after performing input checks
-    virtual void assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
-    virtual void assemblePDEBoundary(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+    void assemblePDEBoundary(Paso_SystemMatrix* mat, escript::Data& rhs,
+            const escript::Data& d, const escript::Data& y) const;
 };
 
 } // end of namespace ripley

@@ -256,12 +256,6 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
     def("_theculprit_", ripley::_who);
-    def("LoadMesh", ripley::RipleyDomain::loadMesh, (arg("filename")),
-           "Loads a ripley domain from a dump file" ":rtype: `Domain`");
-
-    def("ReadMesh", ripley::RipleyDomain::readMesh, (arg("filename")),
-            "Reads a ripley domain from a file created by write().\n\n"
-            ":rtype: `RipleyDomain`\n:param filename:\n:type filename: ``string``\n");
 
     def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
@@ -269,8 +263,6 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
-        .def("write", &ripley::RipleyDomain::write, args("filename"),
-                "Writes the current mesh to a file with the given name. It can subsequently be recovered using ReadMesh().")
         .def("print_mesh_info", &ripley::RipleyDomain::Print_Mesh_Info, (arg("full")=false),
                 "Prints out a summary about the mesh.\n"
                 ":param full: whether to output additional data\n:type full: ``bool``")
