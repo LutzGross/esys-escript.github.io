@@ -684,8 +684,8 @@ class SyntheticDataBase(DataSource):
     """
     Base class to define reference data based on a given property distribution
     (density or susceptibility). Data are collected from a square region of
-    vertical extent `length` on a grid with `number_of_elements` cells in each
-    direction.
+    vertical extent ``length`` on a grid with ``number_of_elements`` cells in
+    each direction.
 
     The synthetic data are constructed by solving the appropriate forward
     problem. Data can be sampled with an offset from the surface at z=0 or
