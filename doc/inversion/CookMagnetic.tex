@@ -70,16 +70,24 @@ set up and - in step four - is run. Finally in step five the result is written t
 Results are shown in Figure~\ref{FIG:P1:MAG:1}.
 
 Although scripts for magnetic and gravity inversion are largely identical there are a few small differences which we are
-going to highlight now. The magnetic inversion requires data about the background  magnetic flux densit which is added to the domain
+going to highlight now. The magnetic inversion requires data about the background  magnetic flux density which is added to the domain
 by the statements 
 \begin{verbatim}
-B_b= [ -41000*U.Nano * U.Tesla, 31000*U.Nano * U.Tesla, 0.]
+B_b= [ -41000*U.Nano*U.Tesla, 31000*U.Nano * U.Tesla, 0.]
 dom.setBackgroundMagneticFluxDensity(B_b)
 \end{verbatim}
-Here it is assumed that the background magnetic flux density is constant across the domain.
+Here it is assumed that the background magnetic flux density is constant across the domain and is given as the list
+\begin{verbatim}
+B_b= [ B_N,  B_E, B_V ]
+\end{verbatim}
+in units of Tesla (T) where 
+\member{B_N}, \member{B_E} and \member{B_V} refer to 
+the north, east and vertical component of the magnetic flux density.
 Values for the magnetic flux density can be obtained by the International
 Geomagnetic Reference Field (IGRF)~\cite{IGRF} 
 (or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF} via \url{http://www.ga.gov.au/oracle/geomag/agrfform.jsp}).
+The 
+
 
 
 \begin{verbatim}

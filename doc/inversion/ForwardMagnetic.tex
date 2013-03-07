@@ -32,20 +32,6 @@ is proportional to the known geomagnetic flux density $B^b$:
 Values for the magnetic flux density can be obtained by the International
 Geomagnetic Reference Field (IGRF)~\cite{IGRF}
 (or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF}).
-A rough approximation at latitude $\theta$ is given by 
-\begin{equation}\label{ref:MAG:EQU:5}
-\begin{array}{rcl}
-B^b_{\theta}  & = & \displaystyle{ \frac{ \mu_0 \cdot m_{earth}}{4 \pi \cdot R_{earth}^3} sin(\theta) }  \\
-B^b_r & = & \displaystyle{ \frac{\mu_0 \cdot  m_{earth}}{2 \pi \cdot R_{earth}^3} cos(\theta) }
-\end{array}
-\end{equation}
-with the vacuum permeability\index{vacuum permeability} $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$,
-the magnetic dipole moment of Earth $m_{earth}=8.22 \cdot 10^{22} Am^2$ and
-earth radius $R_{earth}= 6378137m$.
-$B^b_r$ and $b^b_{\theta}$ denote the radial and latitudinal component of the
-geomagnetic flux density.
-Notice that convention~(\ref{REF:EQU:INTRO 9}) applies if Cartesian
-coordinates\index{Cartesian coordinates} are used.
 In most cases it is reasonable to assume that that the background field is
 constant across the domain.
 
@@ -127,7 +113,7 @@ weighting factors \member{w} ($=\omega^{(s)}$) and measured magnetic flux
 density anomalies \member{B} ($=B^{(s)}$).
 The weighting factors and the  measured magnetic flux density anomalies must be vectors.
 \member{background_field} defines the background magnetic flux density $B^b$
-as a vector.
+as a vector with north, east and vertical components.
 If \member{useSphericalCoordinates} is \True spherical coordinates are used. 
 \member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
 \end{classdesc}
