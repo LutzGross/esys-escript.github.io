@@ -74,5 +74,6 @@ plt.ylabel(y_label)
 plt.axis('tight')
 plt.title("%s (%s)"%(data_label,UNITS))
 plt.colorbar()
-plt.show()
 
+# To display the plot, uncomment the following line
+#plt.show()

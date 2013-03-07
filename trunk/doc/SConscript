@@ -131,6 +131,29 @@ sortOutExample('cookbook/example10m.py', needsMagicMPL=True, needsGMSH=True, all
 sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
 
+sortOutExample('inversion/create_netcdf.py', needsMagicMPL=False, allowsMPI=False)
+sortOutExample('inversion/grav_ermapper.py', needsMagicMPL=False, allowsMPI=False)
+sortOutExample('inversion/grav_netcdf.py', needsMagicMPL=False, allowsMPI=False)
+sortOutExample('inversion/gravmag_netcdf.py', needsMagicMPL=False, allowsMPI=False)
+sortOutExample('inversion/gravmag_nodriver.py', needsMagicMPL=False, allowsMPI=False)
+sortOutExample('inversion/mag_netcdf.py', needsMagicMPL=False, allowsMPI=False)
+sortOutExample('inversion/plot_ermapper.py', needsMagicMPL=True, allowsMPI=False)
+sortOutExample('inversion/plot_netcdf.py', needsMagicMPL=True, allowsMPI=False)
+example_deps.append('inversion/content.txt')
+example_deps.append('inversion/data/GravitySmall')
+example_deps.append('inversion/data/MagneticSmall')
+example_deps.append('inversion/data/QLDWestGravity')
+example_deps.append('inversion/data/QLDWestMagnetic')
+example_deps.append('inversion/data/GravitySmall.ers')
+example_deps.append('inversion/data/MagneticSmall.ers')
+example_deps.append('inversion/data/QLDWestGravity.ers')
+example_deps.append('inversion/data/QLDWestMagnetic.ers')
+example_deps.append('inversion/data/GravitySmall.nc')
+example_deps.append('inversion/data/MagneticSmall.nc')
+example_deps.append('inversion/data/QLDWestGravity.nc')
+example_deps.append('inversion/data/QLDWestMagnetic.nc')
+
+
 if len(skipped_tests)>0:
     print("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
 

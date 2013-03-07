@@ -106,5 +106,7 @@ plt.ylabel(labelY)
 plt.axis('tight')
 plt.title(FILENAME)
 plt.colorbar()
-plt.show()
+
+# To display the plot, uncomment the following line
+#plt.show()
 
