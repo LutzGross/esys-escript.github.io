@@ -31,6 +31,7 @@ def listmods():
   main.write('\n')
   
   for z in W:
+    if z[0].endswith('__pycache__'): continue
     print "Beginning ",z[0]
     # Now make the package name
     n=startpackage+'.'.join(z[0][len(startdir):].split(os.path.sep))
