@@ -30,10 +30,11 @@ from esys.weipa import *
 
 # Set parameters
 MAGNETIC_DATASET = 'data/MagneticSmall.nc'
-MAG_UNITS = U.Nano * U.V * U.sec / (U.m**2)
+MAG_UNITS = U.Nano * U.Tesla
 GRAVITY_DATASET = 'data/GravitySmall.nc'
 GRAV_UNITS = 1e-6 * U.m/(U.sec**2)
-latitude = -20.5
+# background magnetic field components (B_North, B_East, B_Vertical)
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
@@ -43,7 +44,6 @@ mu_gravity = 10.
 mu_magnetic = 0.1
 
 # Setup and run the inversion
-B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
 grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
 mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
 db=DomainBuilder(dim=3)

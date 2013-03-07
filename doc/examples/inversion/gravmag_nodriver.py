@@ -36,7 +36,8 @@ MAGNETIC_DATASET = 'data/MagneticSmall.nc'
 MAG_UNITS = U.Nano * U.V * U.sec / (U.m**2)
 GRAVITY_DATASET = 'data/GravitySmall.nc'
 GRAV_UNITS = 1e-6 * U.m/(U.sec**2)
-latitude=-20.5
+# background magnetic field components (B_North, B_East, B_Vertical)
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 thickness = 40. * U.km # below surface
 l_air = 6. * U.km      # above surface
@@ -52,7 +53,6 @@ MU_MAGNETIC = 0.1
 # read data:
 source_g=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
 source_m=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
-B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
 
 # create domain:
 db=DomainBuilder(dim=3)
