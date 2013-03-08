@@ -80,7 +80,7 @@ class GroupTest(object):
 	res=""
         if self.single_processor_only:
             res+="#if [ $MPIPROD -le 1 ]; then\n"
-	    res+='if [$MPITYPE" == "mpi=none" ]; then\n'
+	    res+='if [ "$MPITYPE" == "mpi=none" ]; then\n'
             tt="\t"
         else:
             tt=""
