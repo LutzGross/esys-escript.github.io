@@ -345,9 +345,9 @@ def checkOptionalLibraries(env):
         # to do that here
         if env['netcdf'] and env['mpi'] in ['MPT','OPENMPI']:
             env.Append(CPPDEFINES = ['MPI_INCLUDED'])
-        env['buildvars']['mpi']=env['mpi']
-    env['buildvars']['mpi_inc_path']=mpi_inc_path
-    env['buildvars']['mpi_lib_path']=mpi_lib_path
+        env['buildvars']['mpi_inc_path']=mpi_inc_path
+        env['buildvars']['mpi_lib_path']=mpi_lib_path
+    env['buildvars']['mpi']=env['mpi']
 
     ######## BOOMERAMG
     if env['mpi'] == 'none': env['boomeramg'] = False
