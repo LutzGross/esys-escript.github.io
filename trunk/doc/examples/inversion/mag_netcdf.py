@@ -30,7 +30,7 @@ from esys.escript import saveDataCSV
 
 # Set parameters
 DATASET = 'data/MagneticSmall.nc'
-DATA_UNITS = U.Nano * U.V * U.sec / (U.m**2)
+DATA_UNITS = U.Nano * U.Tesla
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
@@ -41,8 +41,6 @@ MU = 0.1
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 # Setup and run the inversion
-print B_b
-1/0
 source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
 db=DomainBuilder(dim=3)
 db.addSource(source)
