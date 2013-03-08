@@ -375,11 +375,11 @@ source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', altitude=2.5*U.km)
 \end{verbatim}
 Another important setting is the scale or unit of the measurements.
 The default is dependent on the data type and for gravity anomalies a scale
-of $\frac{\mu m}{sec^2}$ (or $0.1 \; mgal$) is assumed.
-To change the default scale to $mgal$ (which is $10^{-5} \frac{m}{sec^2}$),
+of $\frac{\mu m}{sec^2}$ (or $0.1 \; mgal$) is assumed. For instance to 
+change the default scale to $mgal$ (which is $10^{-5} \frac{m}{sec^2}$),
 you could use:
 \begin{verbatim}
-source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', scale_factor=1e-5)
+source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', scale_factor=U.mgal)
 \end{verbatim}
 Finally, it is possible to specify measurement errors (i.e. uncertainties)
 alongside the data.
@@ -393,10 +393,11 @@ constant value which is applied to all data points:
 source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', error=1.7)
 \end{verbatim}
 or, if the information is available in the same \netcdf file under the name
-\verb|errors|, provide \downunder with the variable name:
+\verb|errors|, provide \downunder with the appropriate variable name:
 \begin{verbatim}
 source0=NetCdfData(NetCdfData.GRAVITY, 'GravitySmall.nc', error="errors")
 \end{verbatim}
+
 
 It is important to keep an eye on the complexity of the inversion.
 A good measure is the total number of cells being used.
