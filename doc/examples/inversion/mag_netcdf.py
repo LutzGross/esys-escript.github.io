@@ -41,6 +41,8 @@ MU = 0.1
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 # Setup and run the inversion
+print B_b
+1/0
 source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
 db=DomainBuilder(dim=3)
 db.addSource(source)

@@ -31,7 +31,7 @@ from esys.escript import unitsSI as U
 dom=DomainBuilder()
 dom.setVerticalExtents(depth=40.*U.km, air_layer=6.*U.km, num_cells=25)
 dom.setFractionalPadding(pad_x=0.2, pad_y=0.2)
-B_b= [ -41000*U.Nano * U.Tesla, 31000*U.Nano * U.Tesla, 0.]
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 dom.fixSusceptibilityBelow(depth=40.*U.km)
 
@@ -73,7 +73,7 @@ Although scripts for magnetic and gravity inversion are largely identical there 
 going to highlight now. The magnetic inversion requires data about the background  magnetic flux density which is added to the domain
 by the statements 
 \begin{verbatim}
-B_b= [ -41000*U.Nano*U.Tesla, 31000*U.Nano * U.Tesla, 0.]
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 \end{verbatim}
 Here it is assumed that the background magnetic flux density is constant across the domain and is given as the list
@@ -86,95 +86,37 @@ the north, east and vertical component of the magnetic flux density.
 Values for the magnetic flux density can be obtained by the International
 Geomagnetic Reference Field (IGRF)~\cite{IGRF} 
 (or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF} via \url{http://www.ga.gov.au/oracle/geomag/agrfform.jsp}).
-The 
-
-
-
+Similar the gravity case susceptibility below a certain depth can be set to zero via the statement
 \begin{verbatim}
 dom.fixSusceptibilityBelow(depth=40.*U.km)
 \end{verbatim}
+where here the susceptibility below $40km$ is prescribed (this has no effect as the depth of the domain is
+$40km$)\footnote{Notice that the method called is different from the one in the case of gravity inversion.}. 
 
+Magnetic data are read and add to the domain with the the following statements:
 \begin{verbatim}
 source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', \
      scale_factor=U.Nano * U.Tesla)
+dom.addSource(source0)
 \end{verbatim}
+The first argument \member{NetCdfData.MAGNETIC} identifies the data read from
+file \file{MagneticSmall.nc} (second argument) as magnetic data. The argument
+\file{scale_factor} specifies the units (here $nT$) of the magnetic flux density data in the file.
+If scalar data are given it is assumed that the magnetic flux density anomalies are measured in direction of the
+background magnetic flux density\footnote{The default for \file{scale_factor} for magnetic data is $nT$.}. 
 
+
+Finally the inversion is created and run:
 \begin{verbatim}
 inv=MagneticInversion()
+k = inv.run()
 \end{verbatim}
-
-
-
-
-
-
- B_r, B_theta, 0.
-
-
-
-Although Magnetic and gravity methods are almost the same, 
-Magnetic has its own complexity, elaboration and instability and it is very localized.
-Outer core of the Earth has a convection current which produce a magnetic field through the earth. 
-Magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of 
-the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not 
-exactly coinciding with geographical one. The lines of magnetic field come out from south magnetic pole and 
-go into north magnetic field. Also poles are shifted continuously.
-
-The basic magnetic field or magnetic flux density in any medium is $B$. M
-eanwhile $H$ is a parameter proportional to $B$ in non magnetizable material.
- In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
-
-All material magnetic behavior, refer on magnetic moments of atoms or its ions, have a character. 
-The ability of material to be magnetized in an external magnetic field, introduces as magnetic susceptibility. 
-Based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
-
-Increasing magnetic field anomalies over subsurface geological structure illustrate 
-contrast between magnetization in neighboring rock properties.
-
-Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. This time related changes of magnetic field are the diurnal variation which depends on the latitude of observation point. 
-
-Magnetic field intensity differs in latitude, longitude and altitude. The vertical gradient of magnetic field gives the elevation correction. It is varied from magnetic equator to magnetic poles which is generally small. Latitude correction is zero in magnetic poles and equator and reaches a maximum at intermediate latitude.
-
-The shape of the magnetic anomaly is distinguished with the form and the depth of the structure and depends on magnetization contrast and the objects orientation in the earth.
-
-International Geomagnetic Reference Field (IGRF) is a mathematical description of Global magnetic field and it  is provided each 5 year.
-
-In comparison to the correction of gravity observation, magnetic survey needs very few corrections. After compensation of diurnal effect, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. Finally magnetic anomaly is used in geophysical processing.
-
-
-
-\section{Input File} 
-This section of inversion package needs two input files which contain magnetic anomalies and some constraint factors. The firs file includes magnetic anomalies, in which all corrections were applied previously, the location (latitude and longitude) and elevation of the observed place precisely.
-
-The next file which consists some factors to figure the inversion escripts. Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
- 
-A small part of sample of run_mag2D:
-
+The result for the susceptibility is named \member{k}. We then write the result to a \VTK file using
 \begin{verbatim}
-mu=10
-THICKNESS=20.*U.km
-DATASET='NSW_east.nc'
-PAD_X = 0.2
-PAD_Y = 0.2
-l_air = 6. * U.km
-n_cells_v = 25
+saveVTK("result.vtu", susceptibility=k)
 \end{verbatim}
-
-Almost all of constraints factors are the same as gravity instead of Mu factor.\\
-
-\begin{description} 	
-
-\item[mu]
-It is defined in accordance with the noise of data and it has a wide range to select from 0.0001 to 100. Also its does not have same value for 2D and 3D inversion.
-
-\end{description}
-
-\section{Output File}
-After inversion completion, an output file with silo extension is created, which is consisted inversion result. This file shows the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with having a best fit with input data. The inversion carry on to attain an acceptable volume for error in its mathematical function. 
-
-
-
-
+where the result of the inversion is tagged with the name \member{susceptibility} as an identifier 
+for the visualization software. 
 
 \begin{figure}
     \begin{center}
@@ -201,8 +143,7 @@ After inversion completion, an output file with silo extension is created, which
     \end{center}
     \caption{3-D contour plots of magnetic inversion results with data from
     Figure~\ref{FIG:P1:MAG:0} for various values of the model trade-off
-    factor $\mu$. Visualization has been performed in \VisIt.
-    \AZADEH{check images.}}
+    factor $\mu$. Visualization has been performed in \VisIt.}
     \label{FIG:P1:MAG:10}
 \end{figure}
 
@@ -231,10 +172,24 @@ After inversion completion, an output file with silo extension is created, which
     \end{center}
     \caption{3-D slice plots of magnetic inversion results with data from
     Figure~\ref{FIG:P1:MAG:0} for various values of the model trade-off
-    factor $\mu$. Visualization has been performed \VisIt.
-    \AZADEH{check images.}}
+    factor $\mu$. Visualization has been performed \VisIt.}
     \label{FIG:P1:MAG:11}
 \end{figure}
+
+Figures~\ref{FIG:P1:MAG:10} and~\ref{FIG:P1:MAG:11} shows results from
+the inversion of the magnetic data shown in Figure~\ref{FIG:P1:MAG:0}.
+In Figure~\ref{FIG:P1:MAG:10} is using surface contours to represent the 
+susceptibility while Figure~\ref{FIG:P1:MAG:11} uses contour lines
+on a lateral plane intercept and two vertical plane intercepts. 
+The images show the strong impact of the trade-off factor $\mu$
+on the result. Larger values give more emphasize to the miss-fit term 
+in the cost function leading to less smoother susceptibility distributions.
+The result for $\mu=0.1$ seems to be the most realistic.
+
+
+
+
+
 
 
 % \section{Reference}
