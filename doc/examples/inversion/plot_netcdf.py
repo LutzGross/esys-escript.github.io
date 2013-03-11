@@ -14,10 +14,18 @@
 
 """This example show how to display netCDF input data with matplotlib"""
 
+import matplotlib
+# The following line is here to allow automated testing. Remove or comment if
+# you would like to display the final plot in a window instead.
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
-from scipy.io import netcdf_file
+try:
+    from scipy.io import netcdf_file
+except ImportError:
+    print("The scipy module was not found but is required to read netCDF files. Exiting...")
+    sys.exit(1)
 
 # input filename
 if len(sys.argv)>1:
@@ -75,5 +83,6 @@ plt.axis('tight')
 plt.title("%s (%s)"%(data_label,UNITS))
 plt.colorbar()
 
-# To display the plot, uncomment the following line
-#plt.show()
+plt.show()
+plt.savefig("netcdf_plot.png")
+

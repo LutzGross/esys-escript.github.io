@@ -14,6 +14,10 @@
 
 """This example show how to display ER Mapper raster data with matplotlib"""
 
+import matplotlib
+# The following line is here to allow automated testing. Remove or comment if
+# you would like to display the final plot in a window instead.
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
@@ -107,6 +111,6 @@ plt.axis('tight')
 plt.title(FILENAME)
 plt.colorbar()
 
-# To display the plot, uncomment the following line
-#plt.show()
+plt.show()
+plt.savefig("ermapper_plot.png")
 

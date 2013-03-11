@@ -19,7 +19,11 @@ inversions in esys.downunder.
 
 from datetime import datetime
 import numpy as np
-from scipy.io import netcdf_file
+try:
+    from scipy.io import netcdf_file
+except ImportError:
+    print("The scipy module was not found but is required to write netCDF files. Exiting...")
+    sys.exit(1)
 
 # output filename
 FILENAME='output.nc'

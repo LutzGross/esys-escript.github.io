@@ -215,11 +215,20 @@ def checkCppUnit(env):
 def checkOptionalModules(env):
     ######## sympy
     if not detectModule(env, 'sympy'):
-        print("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
+        env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
 
     ######## pyproj
     if not detectModule(env, 'pyproj'):
-        print("Cannot import pyproj. Inversions may not work.")
+        env['warnings'].append("Cannot import pyproj. Inversions may not work.")
+
+    ######## gdal
+    if not detectModule(env, 'gdal'):
+        env['warnings'].append("Cannot import gdal. Inversions will not honour WKT coordinate system information.")
+
+    ######## scipy
+    if not detectModule(env, 'scipy'):
+        env['warnings'].append("Cannot import scipy. NetCDF sources will not be available for inversions.")
+
     return env
 
 def checkOptionalLibraries(env):

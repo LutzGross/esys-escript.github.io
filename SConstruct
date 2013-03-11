@@ -609,12 +609,15 @@ if not IS_WINDOWS:
 ######################## Summarize our environment ###########################
 def print_summary():
     print("")
-    print("*** Config Summary (see config.log and lib/buildvars for details) ***")
+    print("*** Config Summary (see config.log and <prefix>/lib/buildvars for details) ***")
     print("Escript/Finley revision %s"%global_revision)
     print("  Install prefix:  %s"%env['prefix'])
     print("          Python:  %s"%sysconfig.PREFIX)
     print("           boost:  %s"%env['boost_prefix'])
-    print("           numpy:  YES")
+    if env['numpy_h']:
+        print("           numpy:  YES (with headers)")
+    else:
+        print("           numpy:  YES (without headers)")
     if env['usempi']:
         print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
@@ -642,12 +645,7 @@ def print_summary():
         print("            gmsh:  FOUND")
     else:
         print("            gmsh:  NOT FOUND")
-    if env['numpy_h']:
-        print("   numpy headers:  FOUND")
-    else:
-        print("   numpy headers:  NOT FOUND")
-    print("   vsl_random:  %s"%env['vsl_random'])
-         
+
     if ((fatalwarning != '') and (env['werror'])):
         print("  Treating warnings as errors")
     else:
