@@ -23,6 +23,8 @@
 
 \input{defs}
 
+\makeindex
+
 \begin{document}
 
 \pagestyle{empty} %No headings for the first pages.
@@ -59,15 +61,12 @@ the Queensland State Government and The University of Queensland.
 
 
 \part{Inversion Cookbook}\label{part1}
-
 \include{CookGravity}
 \include{CookMagnetic}
 \include{CookJointDUMMY}
 
 
 \part{Reference Guide}\label{part2}
-
-
 \include{IntroPart2}
 \include{Minimization}
 \include{CostFunctions}
@@ -86,12 +85,10 @@ the Queensland State Government and The University of Queensland.
 \addcontentsline{toc}{chapter}{\indexname}
 \printindex
 
-
 \bibliographystyle{plain}
 \cleardoublepage\phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{inversion}
-
 
 \end{document}
 
