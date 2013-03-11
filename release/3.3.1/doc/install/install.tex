@@ -1,0 +1,63 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2013 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{esysdoc}
+
+\input{install_defs}
+
+\usepackage{upquote} %This is to allow single quotes in python blocks to be left alone (able to be be copy and pasted)
+%Previous LaTeX was replacing them with non python slanty quotes
+
+\title{Installation guide for \emph{esys-Escript}}
+
+\author{Escript development team}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}
+\date{\today}      
+\release{3.3.1 pre-release}
+% \setreleaseinfo{3.3.1 pre-release} 
+% \setshortversion{\RepVersion}
+
+\ifpdf
+\pdfinfo {
+/Author (Escript development team)
+/Title (escript install guide)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\makeindex
+\begin{document}
+
+\maketitle
+\cleardoublepage\pdfbookmark[0]{Contents}{contents}%
+\tableofcontents
+
+\include{intro}
+
+\include{bincommon}		% material common to all binary installs
+\include{binmac}
+\include{binwin}
+\include{compiler}
+\chapter{Building escript from source}
+\label{chap:essrc}
+\input{srcommon}		% material common to all source installs
+\include{allsrccommon} 
+
+\esysappendix
+\input{misc}
+\end{document}
