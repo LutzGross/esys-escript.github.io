@@ -1,22 +1,23 @@
 \chapter{Magnetic Inversion}\label{Chp:cook:magnetic inversion}
 
-
 \begin{figure}
 \centering
 \includegraphics[width=0.7\textwidth]{QLDWestMagneticDataPlot.png}
-\caption{Magentic Anomaly Data in $nT$ from Western Queensland, Australia
+\caption{Magnetic anomaly data in $nT$ from Western Queensland, Australia
     (file \examplefile{data/QLDWestMagnetic.nc}). Data obtained from Geoscience Australia.}
 \label{FIG:P1:MAG:0}
 \end{figure}
 
-Magnitic data report the observed magnetic flux density over a region above the surface of the Earth. 
-Similar to the gravity case the data are given as deviation from an expected, background magnetic flux density $B^b$
-of the Earth. Example data in units of $nT$ (nano Tesla) are shown in Figure~\ref{FIG:P1:MAG:0} .
-It is the task of the inversion to recover the susceptibility distribution $k$ from the magnetic
-data collected. The approach for inverting magnetic is almost identical to the one used for gravity data. 
-In fact the \downunder script~\code{code: magnetic1} used for the magnetic inversion is very similar to the 
-script~\ref{code: gravity1} for gravity inversion.   
-
+Magnetic data report the observed magnetic flux density over a region above the
+surface of the Earth.
+Similar to the gravity case the data are given as deviation from an expected
+background magnetic flux density $B^b$ of the Earth.
+Example data in units of $nT$ (nano Tesla) are shown in Figure~\ref{FIG:P1:MAG:0}.
+It is the task of the inversion to recover the susceptibility distribution $k$
+from the magnetic data collected. The approach for inverting magnetic data is
+almost identical to the one used for gravity data. 
+In fact the \downunder script~\ref{code: magnetic1} used for the magnetic
+inversion is very similar to the script~\ref{code: gravity1} for gravity inversion.
 
 \begin{pyc}\label{code: magnetic1}
 \
@@ -35,7 +36,7 @@ B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 dom.fixSusceptibilityBelow(depth=40.*U.km)
 
-# Step 2: read gravity data
+# Step 2: read magnetic data
 source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', scale_factor=U.Nano * U.Tesla)
 dom.addSource(source0)
 
@@ -57,66 +58,75 @@ saveVTK("result.vtu", susceptibility=k)
 \begin{figure}
 \centering
 \includegraphics[width=0.7\textwidth]{QLDMagContourMu01.png}
-\caption{Contour plot of susceptibility from three-dimensional magnetic inversion (with $\mu=0.1$).
+\caption{Contour plot of the susceptibility from a three-dimensional magnetic inversion (with $\mu=0.1$).
 Colours represent values of susceptibility where high values are represented by
     blue and low values are represented by red.}
 \label{FIG:P1:MAG:1}
 \end{figure}
 
-
-The structure of the script is identical to the gravity case. We have the header section importing the necessary modules. In the first step
-the domain of the inversion is defined. In step two the data are read and added to the domain builder. In step three the inversion is 
-set up and - in step four - is run. Finally in step five the result is written to the result file, here \file{result.vtu} in the \VTK format.
+The structure of the script is identical to the gravity case.
+Following the header section importing the necessary modules the domain of the
+inversion is defined in step one.
+In step two the data are read and added to the domain builder.
+Step three sets up the inversion and step four runs it.
+Finally in step five the result is written to the result file, here
+\file{result.vtu} in the \VTK format.
 Results are shown in Figure~\ref{FIG:P1:MAG:1}.
 
-Although scripts for magnetic and gravity inversion are largely identical there are a few small differences which we are
-going to highlight now. The magnetic inversion requires data about the background  magnetic flux density which is added to the domain
-by the statements 
+Although scripts for magnetic and gravity inversion are largely identical there
+are a few small differences which we are going to highlight now.
+The magnetic inversion requires data about the background magnetic flux density
+over the region of interest which is added to the domain by the statements 
 \begin{verbatim}
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 \end{verbatim}
-Here it is assumed that the background magnetic flux density is constant across the domain and is given as the list
+Here it is assumed that the background magnetic flux density is constant across
+the domain and is given as the list
 \begin{verbatim}
 B_b= [ B_N,  B_E, B_V ]
 \end{verbatim}
 in units of Tesla (T) where 
-\member{B_N}, \member{B_E} and \member{B_V} refer to 
-the north, east and vertical component of the magnetic flux density.
+\member{B_N}, \member{B_E} and \member{B_V} refer to the north, east and
+vertical component of the magnetic flux density, respectively.
 Values for the magnetic flux density can be obtained by the International
-Geomagnetic Reference Field (IGRF)~\cite{IGRF} 
-(or the Australian Geomagnetic Reference Field (AGRF)~\cite{AGRF} via \url{http://www.ga.gov.au/oracle/geomag/agrfform.jsp}).
-Similar the gravity case susceptibility below a certain depth can be set to zero via the statement
+Geomagnetic Reference Field (IGRF)~\cite{IGRF} (or the Australian Geomagnetic
+Reference Field (AGRF)~\cite{AGRF} via \url{http://www.ga.gov.au/oracle/geomag/agrfform.jsp}).
+Similar to the gravity case susceptibility below a certain depth can be set to
+zero via the statement
 \begin{verbatim}
 dom.fixSusceptibilityBelow(depth=40.*U.km)
 \end{verbatim}
-where here the susceptibility below $40km$ is prescribed (this has no effect as the depth of the domain is
-$40km$)\footnote{Notice that the method called is different from the one in the case of gravity inversion.}. 
+where here the susceptibility below $40km$ is prescribed (this has no effect as
+the depth of the domain is $40km$)\footnote{Notice that the method called is
+different from the one in the case of gravity inversion.}. 
 
-Magnetic data are read and add to the domain with the the following statements:
+Magnetic data are read and added to the domain with the following statements:
 \begin{verbatim}
 source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', \
-     scale_factor=U.Nano * U.Tesla)
+                   scale_factor=U.Nano * U.Tesla)
 dom.addSource(source0)
 \end{verbatim}
 The first argument \member{NetCdfData.MAGNETIC} identifies the data read from
-file \file{MagneticSmall.nc} (second argument) as magnetic data. The argument
-\file{scale_factor} specifies the units (here $nT$) of the magnetic flux density data in the file.
-If scalar data are given it is assumed that the magnetic flux density anomalies are measured in direction of the
-background magnetic flux density\footnote{The default for \file{scale_factor} for magnetic data is $nT$.}. 
-
+file \file{MagneticSmall.nc} (second argument) as magnetic data.The argument
+\file{scale_factor} specifies the units (here $nT$) of the magnetic flux
+density data in the file.
+If scalar data are given it is assumed that the magnetic flux density anomalies
+are measured in direction of the background magnetic flux density\footnote{The
+default for \file{scale_factor} for magnetic data is $nT$.}.
 
 Finally the inversion is created and run:
 \begin{verbatim}
 inv=MagneticInversion()
 k = inv.run()
 \end{verbatim}
-The result for the susceptibility is named \member{k}. We then write the result to a \VTK file using
+The result for the susceptibility is named \member{k}. We then write the result
+to a \VTK file using
 \begin{verbatim}
 saveVTK("result.vtu", susceptibility=k)
 \end{verbatim}
-where the result of the inversion is tagged with the name \member{susceptibility} as an identifier 
-for the visualization software. 
+where the result of the inversion is tagged with the name \member{susceptibility}
+as an identifier for the visualization software. 
 
 \begin{figure}
     \begin{center}
@@ -176,91 +186,13 @@ for the visualization software.
     \label{FIG:P1:MAG:11}
 \end{figure}
 
-Figures~\ref{FIG:P1:MAG:10} and~\ref{FIG:P1:MAG:11} shows results from
-the inversion of the magnetic data shown in Figure~\ref{FIG:P1:MAG:0}.
-In Figure~\ref{FIG:P1:MAG:10} is using surface contours to represent the 
+Figures~\ref{FIG:P1:MAG:10} and~\ref{FIG:P1:MAG:11} show results from the
+inversion of the magnetic data shown in Figure~\ref{FIG:P1:MAG:0}.
+In Figure~\ref{FIG:P1:MAG:10} surface contours are used to represent the
 susceptibility while Figure~\ref{FIG:P1:MAG:11} uses contour lines
-on a lateral plane intercept and two vertical plane intercepts. 
-The images show the strong impact of the trade-off factor $\mu$
-on the result. Larger values give more emphasize to the miss-fit term 
-in the cost function leading to less smoother susceptibility distributions.
+on a lateral plane intercept and two vertical plane intercepts.
+The images show the strong impact of the trade-off factor $\mu$ on the result.
+Larger values give more emphasis to the misfit term in the cost function
+leading to rougher susceptibility distributions.
 The result for $\mu=0.1$ seems to be the most realistic.
-
-
-
-
-
-
-
-% \section{Reference}
-% 
-% As some examples there are several inversions which have ran in some synthetic magnetic data sets. Here comparisons between synthetic susceptibility and inverted one are shown.
-% 
-% Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:
-% 
-% \begin{verbatim}
-% depth_offset=0.*U.km
-% l_data = 100 * U.km
-% l_pad=40*U.km
-% THICKNESS=20.*U.km
-% l_air=6*U.km
-% \end{verbatim}
-% 
-% The others assumptions comes with each example.
-% 
-% \begin{enumerate}
-% \item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. After inversion the inside of main boundary of our dataset have a desirable simulation.(\ref{fig:mag2D2}) 
-% \begin{verbatim}
-% n_cells_in_data=100
-% n_humbs_h= 2
-% n_humbs_v=1
-% mu=1.
-% \end{verbatim}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag2D2.png}
-% \caption{2D magnetic inversion up) the reference model  down)the inverted model}
-% \label{fig:mag2D2}
-% \end{figure}
-% 
-% \item A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
-% 
-% \begin{verbatim}
-% n_cells_in_data=100
-% n_humbs_h= 4
-% n_humbs_v=1
-% mu=1.
-% \end{verbatim}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag2D4.png}
-% \caption{2D magnetic model up) the reference model  down)the inverted model}
-% \label{fig:mag2D4}
-% \end{figure}
-% 
-% \item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. After inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
-% 
-% \begin{verbatim}
-% n_humbs_h=4
-% n_humbs_v=1
-% mu=0.0001
-% n_cells_in_data=50
-% \end{verbatim}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag3D1-ref.png}
-% \caption{3D magnetic reference model with one maximum susceptibility}
-% \label{fig:mag3D1-ref}
-% \end{figure}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag3D1.png}
-% \caption{3D magnetic inversion result}
-% \label{fig:mag3D1}
-% \end{figure}
-% \end{enumerate}
 
