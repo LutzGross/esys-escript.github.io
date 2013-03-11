@@ -628,7 +628,7 @@ def print_summary():
         print("          LAPACK:  DISABLED")
     d_list=[]
     e_list=[]
-    for i in 'debug','openmp','boomeramg','mkl','netcdf','papi','parmetis','pyproj','silo','sympy','umfpack','visit','vsl_random':
+    for i in 'debug','openmp','boomeramg','gdal','mkl','netcdf','papi','parmetis','pyproj','scipy','silo','sympy','umfpack','visit','vsl_random':
         if env[i]: e_list.append(i)
         else: d_list.append(i)
     for i in e_list:
