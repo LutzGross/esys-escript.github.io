@@ -17,6 +17,7 @@ This example shows how to create a netCDF input file that is suitable for
 inversions in esys.downunder. 
 """
 
+import sys
 from datetime import datetime
 import numpy as np
 try:
