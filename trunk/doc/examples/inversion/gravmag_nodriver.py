@@ -50,78 +50,84 @@ PAD_Y = 0.2
 MU_GRAVITY = 10.
 MU_MAGNETIC = 0.1
 
-# read data:
-source_g=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
-source_m=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
+def work():
+  # read data:
+  source_g=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
+  source_m=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
 
-# create domain:
-db=DomainBuilder(dim=3)
-db.addSource(source_g)
-db.addSource(source_m)
-db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
-db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
-db.fixDensityBelow(depth=thickness)
-db.fixSusceptibilityBelow(depth=thickness)
+  # create domain:
+  db=DomainBuilder(dim=3)
+  db.addSource(source_g)
+  db.addSource(source_m)
+  db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
+  db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
+  db.fixDensityBelow(depth=thickness)
+  db.fixSusceptibilityBelow(depth=thickness)
 
-dom=db.getDomain()
-DIM=dom.getDim()
+  dom=db.getDomain()
+  DIM=dom.getDim()
 
-# create mappings with standard parameters
-rho_mapping=DensityMapping(dom)
-k_mapping=SusceptibilityMapping(dom)
+  # create mappings with standard parameters
+  rho_mapping=DensityMapping(dom)
+  k_mapping=SusceptibilityMapping(dom)
 
-# create regularization with two level set functions:
-reg_mask=Data(0.,(2,), Solution(dom))
-reg_mask[0] = db.getSetDensityMask()        # mask for locations where m[0]~rho is known
-reg_mask[1] = db.getSetSusceptibilityMask() # mask for locations where m[0]~k is known
-regularization=Regularization(dom, numLevelSets=2,
+  # create regularization with two level set functions:
+  reg_mask=Data(0.,(2,), Solution(dom))
+  reg_mask[0] = db.getSetDensityMask()        # mask for locations where m[0]~rho is known
+  reg_mask[1] = db.getSetSusceptibilityMask() # mask for locations where m[0]~k is known
+  regularization=Regularization(dom, numLevelSets=2,
                                w1=np.ones((2,DIM)), # consider gradient terms
                                wc=[[0,1],[0,0]],    # and cross-gradient term
                                location_of_set_m=reg_mask)
 
-# create forward model for gravity
-# get data with deviation
-g,sigma_g=db.getGravitySurveys()[0]
-# turn the scalars into vectors (vertical direction)
-d=kronecker(DIM)[DIM-1]
-w=safeDiv(1., sigma_g)
+  # create forward model for gravity
+  # get data with deviation
+  g,sigma_g=db.getGravitySurveys()[0]
+  # turn the scalars into vectors (vertical direction)
+  d=kronecker(DIM)[DIM-1]
+  w=safeDiv(1., sigma_g)
 
-gravity_model=GravityModel(dom, w*d, g*d)
-gravity_model.rescaleWeights(rho_scale=rho_mapping.getTypicalDerivative())
+  gravity_model=GravityModel(dom, w*d, g*d)
+  gravity_model.rescaleWeights(rho_scale=rho_mapping.getTypicalDerivative())
 
-# create forward model for magnetic
-d=normalize(np.array(B_b)) # direction of measurement
-B,sigma_B=db.getMagneticSurveys()[0]
-w=safeDiv(1., sigma_B)
+  # create forward model for magnetic
+  d=normalize(np.array(B_b)) # direction of measurement
+  B,sigma_B=db.getMagneticSurveys()[0]
+  w=safeDiv(1., sigma_B)
 
-magnetic_model=MagneticModel(dom, w*d, B*d, B_b)
-magnetic_model.rescaleWeights(k_scale=k_mapping.getTypicalDerivative())
+  magnetic_model=MagneticModel(dom, w*d, B*d, B_b)
+  magnetic_model.rescaleWeights(k_scale=k_mapping.getTypicalDerivative())
 
 
-# finally we can set up the cost function:
-cf=InversionCostFunction(regularization,
+  # finally we can set up the cost function:
+  cf=InversionCostFunction(regularization,
              ((rho_mapping,0), (k_mapping, 1)),
              ((gravity_model,0), (magnetic_model,1)) )
 
-cf.setTradeOffFactorsModels([MU_GRAVITY, MU_MAGNETIC])
+  cf.setTradeOffFactorsModels([MU_GRAVITY, MU_MAGNETIC])
 
-# sun solver:
-solver=MinimizerLBFGS()
-solver.setCostFunction(cf)
-solver.setTolerance(1e-4)
-solver.setMaxIterations(50)
-solver.run(Data(0.,(2,),Solution(dom)))
-m=solver.getResult()
-density, susceptibility = cf.getProperties(m)
+  # sun solver:
+  solver=MinimizerLBFGS()
+  solver.setCostFunction(cf)
+  solver.setTolerance(1e-4)
+  solver.setMaxIterations(50)
+  solver.run(Data(0.,(2,),Solution(dom)))
+  m=solver.getResult()
+  density, susceptibility = cf.getProperties(m)
 
 
-# write everything to file:
-saveSilo("result_gravmag.silo",
+  # write everything to file:
+  saveSilo("result_gravmag.silo",
          density=density, susceptability=susceptibility,
          g_data=g, sigma_g=sigma_g, B_data=B, sigma_B=sigma_B)
-saveVTK("result_gravmag.vtu",
+  saveVTK("result_gravmag.vtu",
          density=density, susceptability=susceptibility,
          g_data=g, sigma_g=sigma_g, B_data=B, sigma_B=sigma_B)
 
-print("All done. Have a nice day!")
+  print("All done. Have a nice day!")
+
+if 'NetCdfData' in dir():
+  work()
+else:
+  print("This example requires scipy's netcdf support which does not appear to be installed.")
 
