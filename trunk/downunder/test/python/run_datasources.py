@@ -173,7 +173,13 @@ class TestNetCdfData(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     if getMPISizeWorld()==1:
-        suite.addTest(unittest.makeSuite(TestErMapperData))
+        try:
+          import pyproj
+          haveproj=True
+        except ImportError:
+          haveproj=False
+        if haveproj:
+          suite.addTest(unittest.makeSuite(TestErMapperData))
         if 'NetCdfData' in dir():
             suite.addTest(unittest.makeSuite(TestNetCdfData))
         else:
