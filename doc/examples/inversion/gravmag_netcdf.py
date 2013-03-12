@@ -43,39 +43,45 @@ n_cells_v = 25
 mu_gravity = 10.
 mu_magnetic = 0.1
 
-# Setup and run the inversion
-grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
-mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
-db=DomainBuilder(dim=3)
-db.addSource(grav_source)
-db.addSource(mag_source)
-db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
-db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
-db.setBackgroundMagneticFluxDensity(B_b)
-db.fixDensityBelow(depth=thickness)
-db.fixSusceptibilityBelow(depth=thickness)
+def work():
+  # Setup and run the inversion
+  grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
+  mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
+  db=DomainBuilder(dim=3)
+  db.addSource(grav_source)
+  db.addSource(mag_source)
+  db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
+  db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
+  db.setBackgroundMagneticFluxDensity(B_b)
+  db.fixDensityBelow(depth=thickness)
+  db.fixSusceptibilityBelow(depth=thickness)
 
-inv=JointGravityMagneticInversion()
-inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(50)
-inv.setup(db)
-inv.getCostFunction().setTradeOffFactorsModels([mu_gravity, mu_magnetic])
-inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
+  inv=JointGravityMagneticInversion()
+  inv.setSolverTolerance(1e-4)
+  inv.setSolverMaxIterations(50)
+  inv.setup(db)
+  inv.getCostFunction().setTradeOffFactorsModels([mu_gravity, mu_magnetic])
+  inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
 
-density, susceptibility = inv.run()
-print("density = %s"%density)
-print("susceptibility = %s"%susceptibility)
+  density, susceptibility = inv.run()
+  print("density = %s"%density)
+  print("susceptibility = %s"%susceptibility)
 
-g, wg = db.getGravitySurveys()[0]
-B, wB = db.getMagneticSurveys()[0]
-saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=wB)
-print("Results saved in result_gravmag.silo")
+  g, wg = db.getGravitySurveys()[0]
+  B, wB = db.getMagneticSurveys()[0]
+  saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB)
+  print("Results saved in result_gravmag.silo")
 
-saveVTK("result_gravmag.vtu", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=wB)
-print("Results saved in result_gravmag.vtu")
+  saveVTK("result_gravmag.vtu", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB)
+  print("Results saved in result_gravmag.vtu")
 
-saveDataCSV("result_gravmag.csv", density=density, susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
-print("Results saved in result_gravmag.csv")
+  saveDataCSV("result_gravmag.csv", density=density, susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
+  print("Results saved in result_gravmag.csv")
 
-print("All done. Have a nice day!")
+  print("All done. Have a nice day!")
+
+if 'NetCdfData' in dir():
+  work()
+else:
+  print("This example requires scipy's netcdf support which does not appear to be installed.")
 
