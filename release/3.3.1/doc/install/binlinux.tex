@@ -35,7 +35,7 @@ following Ubuntu releases:
 
 The package file will be named \file{escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} 
 is the distribution codename (eg ``\texttt{squeeze}'' or ``\texttt{oneric}'') and \texttt{A} is the architecture.
-For example, \file{escript-3.4-1-squeeze_amd64.deb} would be the file for squeeze for 64bit processors.
+For example, \file{escript-3.3.1-1-squeeze_amd64.deb} would be the file for squeeze for 64bit processors.
 To install \esfinley download the appropriate \file{.deb} file and execute the following 
 commands as root (you need to be in the directory containing the file):
 
@@ -71,7 +71,7 @@ Please notify the development team if something goes wrong.
 If there is no package available for your distribution, you may be able to use one of our stand alone bundles.
 You will need three pieces:
 \begin{enumerate}
- \item escript itself (\file{escript_3.4_i386.tar.bz2})\footnotemark\ from launchpad.net.\addtocounter{footnote}{-1}
+ \item escript itself (\file{escript_3.3.1_i386.tar.bz2})\footnotemark\ from launchpad.net.\addtocounter{footnote}{-1}
  \item the support bundle (\file{escript-support_3.0_i386.tar.bz2})\footnote{For $64$-bit Intel and Amd processors substitute \texttt{amd64} for \texttt{i386}.} from launchpad.net.  
  [This is the same support bundle as in previous releases. So you can reuse it if you have it already.]
  \item sympy from \url{http://sympy.org} --- This is a new dependency and is not in the support bundle.
@@ -81,7 +81,7 @@ Change directory to where you would like to install escript (We assume the three
 
 \begin{shellCode}
 tar -xjf escript-support_3.0_i386.tar.bz2
-tar -xjf escript_3.4_i386.tar.bz2
+tar -xjf escript_3.3.1_i386.tar.bz2
 
 \end{shellCode}
 This will produce a directory called \file{stand} which contains a stand-alone version of \esfinley and its dependencies.
