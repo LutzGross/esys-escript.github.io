@@ -40,33 +40,39 @@ MU = 0.1
 # background magnetic field components (B_North, B_East, B_Vertical)
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
-# Setup and run the inversion
-source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
-db=DomainBuilder(dim=3)
-db.addSource(source)
-db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
-db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
-db.setBackgroundMagneticFluxDensity(B_b)
-db.fixSusceptibilityBelow(depth=thickness)
+def work():
+  # Setup and run the inversion
+  source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
+  db=DomainBuilder(dim=3)
+  db.addSource(source)
+  db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
+  db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
+  db.setBackgroundMagneticFluxDensity(B_b)
+  db.fixSusceptibilityBelow(depth=thickness)
 
-inv=MagneticInversion()
-inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(50)
-inv.setup(db)
-inv.getCostFunction().setTradeOffFactorsModels(MU)
+  inv=MagneticInversion()
+  inv.setSolverTolerance(1e-4)
+  inv.setSolverMaxIterations(50)
+  inv.setup(db)
+  inv.getCostFunction().setTradeOffFactorsModels(MU)
 
-susceptibility = inv.run()
-print("susceptibility = %s"%susceptibility)
+  susceptibility = inv.run()
+  print("susceptibility = %s"%susceptibility)
 
-B, w =  db.getMagneticSurveys()[0]
-saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
-print("Results saved in result_magnetic.silo")
+  B, w =  db.getMagneticSurveys()[0]
+  saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
+  print("Results saved in result_magnetic.silo")
 
-saveVTK("result_magnetic.vtu", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
-print("Results saved in result_magnetic.vtu")
+  saveVTK("result_magnetic.vtu", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
+  print("Results saved in result_magnetic.vtu")
 
-saveDataCSV("result_magnetic.csv", susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
-print("Results saved in result_magnetic.csv")
+  saveDataCSV("result_magnetic.csv", susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
+  print("Results saved in result_magnetic.csv")
 
-print("All done. Have a nice day!")
+  print("All done. Have a nice day!")
+
+if 'NetCdfData' in dir():
+  work()
+else:
+  print("This example requires scipy's netcdf support which does not appear to be installed.")
 
