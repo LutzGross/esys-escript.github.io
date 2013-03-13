@@ -14,7 +14,7 @@ Section: main
 Priority: extra
 Essential: no
 Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:netcdf}, doc-base(>=0.8.4)
-Recommends: python-sympy, python-matplotlib
+Recommends: python-sympy, python-matplotlib, python-scipy
 Suggests: python-pyproj, python-gdal
 Conflicts: escript-noalias
 Replaces: escript-noalias
