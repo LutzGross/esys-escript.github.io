@@ -31,17 +31,17 @@ def checkCompiler(env):
     if 'CheckCC' in dir(conf): # exists since scons 1.1.0
         if not conf.CheckCC():
             print("Cannot run C compiler '%s' (check config.log)" % (env['CC']))
-            Exit(1)
+            env.Exit(1)
         if not conf.CheckCXX():
             print("Cannot run C++ compiler '%s' (check config.log)" % (env['CXX']))
-            Exit(1)
+            env.Exit(1)
     else:
         if not conf.CheckFunc('printf', language='c'):
             print("Cannot run C compiler '%s' (check config.log)" % (env['CC']))
-            Exit(1)
+            env.Exit(1)
         if not conf.CheckFunc('printf', language='c++'):
             print("Cannot run C++ compiler '%s' (check config.log)" % (env['CXX']))
-            Exit(1)
+            env.Exit(1)
 
     conf.env['buildvars']['cc']=conf.env['CC']
     conf.env['buildvars']['cxx']=conf.env['CXX']
@@ -143,10 +143,10 @@ def checkPython(env):
 
     if not conf.CheckCHeader('Python.h'):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
-        Exit(1)
+        env.Exit(1)
     if not conf.CheckFunc('Py_Exit'):
         print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
-        Exit(1)
+        env.Exit(1)
 
     return conf.Finish()
 
@@ -185,7 +185,7 @@ def checkBoost(env):
 def checkNumpy(env):
     if not detectModule(env, 'numpy'):
         print("Cannot import numpy. If it is installed try setting your PYTHONPATH and probably %s"%env['LD_LIBRARY_PATH_KEY'])
-        Exit(1)
+        env.Exit(1)
 
     ## check for numpy header (optional)
     conf = Configure(env.Clone())
@@ -291,7 +291,7 @@ def checkOptionalLibraries(env):
     ######## LAPACK
     if env['lapack']=='mkl' and not env['mkl']:
         print("mkl_lapack requires MKL!")
-        Exit(1)
+        env.Exit(1)
 
     env['uselapack'] = env['lapack']!='none'
     lapack_inc_path=''
