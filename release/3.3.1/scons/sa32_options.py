@@ -64,15 +64,15 @@ escript_opts_version = 201
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-cc_extra = '-I../pkg/netcdf/include/'
+cc_extra = ''
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = ''
+cxx_extra = '-I../pkg/netcdf/include/'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = ''
+ld_extra = '-L../pkg/boost/lib/ -L../pkg/netcdf/lib/'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
