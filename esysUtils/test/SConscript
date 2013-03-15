@@ -19,7 +19,7 @@ local_env = env.Clone()
 if local_env['cppunit']:
     # get the test source file names
     sources = Glob('*.cpp')+Glob('*.c')
-    testname='EsysExceptionTest'
+    testname='esysUtils_UnitTest'
 
     # build the executable
     local_env.Append(LIBS=['esysUtils']+env['cppunit_libs'])
