@@ -25,7 +25,6 @@ del py_wrapper_local_env['SHLIBPREFIX']
 sources = """
     DataVar.cpp
     EscriptDataset.cpp
-    FileWriter.cpp
     FinleyDomain.cpp
     FinleyElements.cpp
     FinleyNodes.cpp
@@ -40,7 +39,6 @@ headers = """
     DomainChunk.h
     ElementData.h
     EscriptDataset.h
-    FileWriter.h
     FinleyDomain.h
     FinleyElements.h
     FinleyNodes.h

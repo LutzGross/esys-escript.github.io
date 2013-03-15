@@ -15,6 +15,7 @@
 
 
 #include "EsysExceptionTestCase.h"
+#include "EsysFileWriterTestCase.h"
 #include <cppunit/CompilerOutputter.h>
 #include <cppunit/TestResult.h>
 #include <cppunit/TestResultCollector.h>
@@ -40,6 +41,7 @@ int main(int argc, char **argv)
     controller.addListener(&result);
     TestRunner runner;
     runner.addTest(EsysExceptionTestCase::suite());
+    runner.addTest(EsysFileWriterTestCase::suite());
     runner.run(controller);
     CompilerOutputter outputter( &result, std::cerr );
     outputter.write();
