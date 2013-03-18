@@ -338,7 +338,7 @@ fi
 
 if [ $TOTPROC -gt 1 ] 
 then
-    if [ "$ESCRIPT_CREATESTDFILES" = "yes" ]
+    if [ "$ESCRIPT_CREATESTDFILES" = "y" ]
     then
         PYTHON_MPI=$PYTHON_MPI_REDIRECT
     else
