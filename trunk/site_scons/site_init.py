@@ -21,7 +21,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import sys, os, time, py_compile, re, subprocess
-from SCons.Defaults import Chmod
+from SCons.Defaults import Chmod, Copy
 from grouptest import *
 
 def findLibWithHeader(env, libs, header, paths, lang='c'):
@@ -115,7 +115,7 @@ def generateTestScripts(env, TestGroups):
     # Make sure that the escript wrapper is in place
     if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):
         print("Copying escript wrapper.")
-        Execute(Copy(os.path.join(env['bininstall'],'run-escript'), 'bin/run-escript'))
+        env.Execute(Copy(os.path.join(env['bininstall'],'run-escript'), 'bin/run-escript'))
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
