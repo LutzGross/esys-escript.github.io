@@ -54,8 +54,9 @@ try:
     # convert NaN (not-a-number) values to -1000 so the plotting works
     DATA=np.where(np.isnan(DATA[:]), -1000, DATA[:])
 
-    if DATA.dtype.byteorder=='>':
-        DATA=DATA.byteswap().newbyteorder()
+    # make sure data is in native format
+    if DATA.dtype.byteorder != '=':
+        DATA=np.array(DATA, dtype=np.float32)
 
     f.close()
 

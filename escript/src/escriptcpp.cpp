@@ -48,7 +48,7 @@ using namespace boost::python;
 
 /*! \mainpage Esys Documentation
  *
- * \version 3.3.0
+ * \version 3.3.1
  *
  * Main modules/namespaces:
  *
@@ -63,6 +63,10 @@ using namespace boost::python;
  * - \ref ripley
  *
  * - \ref weipa
+ *
+ * Depending on your system, only one of the following will work:
+ *
+ * - <a href="../../sphinx_api/index.html">Python module documentation (sphinx generated)</a>
  *
  * - <a href="../../epydoc/index.html">Python module documentation (epydoc generated)</a>
  *
