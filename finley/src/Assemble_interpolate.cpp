@@ -130,7 +130,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 	   {
 		  local_data=NULL; 
 		  /* allocation of work arrays */
-		  local_data=THREAD_MEMALLOC(NS_DOF*numComps*numSub,double); 
+		  local_data=new double[NS_DOF*numComps*numSub]; 
 		  if (! Finley_checkPtr(local_data)) {
 			  numComps_size=(size_t)numComps*sizeof(double);
 			  /* open the element loop */
@@ -147,7 +147,7 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes, Finley_ElementFile* ele
 				  Finley_Util_SmallMatSetMult1(numSub,numComps,numQuad,getSampleDataRW(interpolated_data,e),NS_DOF,local_data,basis->S);
 			  } /* end of element loop */
 		  }
-		   THREAD_MEMFREE(local_data);
+		   delete[] local_data;
 	 	} /* end of parallel region */
   }
 }

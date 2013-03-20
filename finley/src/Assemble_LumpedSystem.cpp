@@ -130,8 +130,8 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 
 	  #pragma omp parallel private(color, EM_lumpedMat, row_index, Vol, D_p, s, q, k, rtmp, diagS, m_t, isub, rtmp2)
 	  {
-	    EM_lumpedMat=THREAD_MEMALLOC(len_EM_lumpedMat,double);
-	    row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
+	    EM_lumpedMat=new double[len_EM_lumpedMat];
+	    row_index=new index_t[p.row_numShapesTotal];
 	    if ( !Finley_checkPtr(EM_lumpedMat) && !Finley_checkPtr(row_index) ) {
 		if (p.numEqu == 1) { /* single equation */
 		  if (expandedD) {	/* with expanded D */	     
@@ -328,8 +328,8 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,Finley_ElementFile* ele
 		  }
 		}
 	    } /* end of pointer check */
-	    THREAD_MEMFREE(EM_lumpedMat);
-	    THREAD_MEMFREE(row_index);
+	    delete[] EM_lumpedMat;
+	    delete[] row_index;
 	  } /* end parallel region */
     }
   }

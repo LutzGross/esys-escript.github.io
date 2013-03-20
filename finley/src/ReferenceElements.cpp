@@ -602,7 +602,7 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
         
 	
 	
-	out=MEMALLOC(1,Finley_ReferenceElement);
+	out=new Finley_ReferenceElement;
     if (Finley_checkPtr(out)) return NULL;
 	
 	out->reference_counter=0;
@@ -634,8 +634,8 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
 
     numQuadNodes=quadscheme->getNumQuadNodes(order);
 	
-    quadNodes=MEMALLOC(numQuadNodes*quadscheme->numDim*nsub,double);
-    quadWeights=MEMALLOC(numQuadNodes*nsub,double);	
+    quadNodes=new double[numQuadNodes*quadscheme->numDim*nsub];
+    quadWeights=new double[numQuadNodes*nsub];	
 	if ( !( Finley_checkPtr(quadNodes) || Finley_checkPtr(quadWeights) ) ) {
 	
 		quadscheme->getQuadNodes(numQuadNodes, quadNodes, quadWeights);
@@ -650,12 +650,12 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
 		 */
 	
 		if (nsub>1) {
-                        out->DBasisFunctionDv=MEMALLOC(numQuadNodes*nsub* (basisfunction->numShapes) * (basisfunction->numDim), double );
+                        out->DBasisFunctionDv=new  double [numQuadNodes*nsub* (basisfunction->numShapes) * (basisfunction->numDim)];
                         out->DBasisFunctionDvShared=FALSE;
                         
 		        out->BasisFunctions=Finley_ShapeFunction_alloc(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights);
-			quadNodes2=MEMALLOC(numQuadNodes*quadscheme->numDim*nsub,double);
-			quadWeights2=MEMALLOC(numQuadNodes*nsub,double);
+			quadNodes2=new double[numQuadNodes*quadscheme->numDim*nsub];
+			quadWeights2=new double[numQuadNodes*nsub];
 			if ( !( Finley_checkPtr(quadNodes2) || Finley_checkPtr(quadWeights2) || Finley_checkPtr(out->DBasisFunctionDv)) ) {
 
 				numQuadNodes2=quadscheme->getMacro(nsub,out->BasisFunctions->numQuadNodes,
@@ -670,8 +670,8 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
 				}
 				
 			}
-			MEMFREE(quadNodes2);
-			MEMFREE(quadWeights2);
+			delete[] quadNodes2;
+			delete[] quadWeights2;
 			
 		} else {
 			out->Parametrization=Finley_ShapeFunction_alloc(parametrization->TypeId, quadscheme->numDim, numQuadNodes*nsub, quadNodes, quadWeights);
@@ -681,8 +681,8 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId id, 
                         out->DBasisFunctionDvShared=TRUE;
 		}
 	}
-	MEMFREE(quadNodes);
-	MEMFREE(quadWeights);
+	delete[] quadNodes;
+	delete[] quadWeights;
     if (Finley_noError()) {
 		return Finley_ReferenceElement_reference(out);
 	} else {
@@ -700,8 +700,8 @@ void Finley_ReferenceElement_dealloc(Finley_ReferenceElement* in) {
 			Finley_ShapeFunction_dealloc(in->Parametrization);
 			Finley_ShapeFunction_dealloc(in->BasisFunctions);
 			Finley_ShapeFunction_dealloc(in->LinearBasisFunctions);
-                        if (! in->DBasisFunctionDvShared) MEMFREE(in->DBasisFunctionDv);
-			MEMFREE(in);
+                        if (! in->DBasisFunctionDvShared) delete[] in->DBasisFunctionDv;
+			delete in;
 		}
 	}
 

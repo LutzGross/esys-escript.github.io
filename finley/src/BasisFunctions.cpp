@@ -430,7 +430,7 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId id,int numQ
   
   /*  allocate the Finley_ReferenceElement to be returned: */
   
-  out=MEMALLOC(1,Finley_ReferenceElement);
+  out=new Finley_ReferenceElement;
   if (Finley_checkPtr(out)) return NULL;
   out->Type=&(Finley_ReferenceElement_InfoList[id]);
   out->numQuadNodes=numQuadNodes;
@@ -443,10 +443,10 @@ Finley_ReferenceElement* Finley_ReferenceElement_alloc(ElementTypeId id,int numQ
   
   Ndim=Finley_ReferenceElement_InfoList[id].numDim;
   NS=Finley_ReferenceElement_InfoList[id].numShapes;
-  out->QuadNodes=MEMALLOC(numQuadNodes*Ndim,double);
-  out->QuadWeights=MEMALLOC(numQuadNodes,double);
-  out->S=MEMALLOC(NS*numQuadNodes,double);
-  out->dSdv=MEMALLOC(NS*Ndim*numQuadNodes,double);
+  out->QuadNodes=new double[numQuadNodes*Ndim];
+  out->QuadWeights=new double[numQuadNodes];
+  out->S=new double[NS*numQuadNodes];
+  out->dSdv=new double[NS*Ndim*numQuadNodes];
   if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
          Finley_ReferenceElement_dealloc(out);
          return NULL;
@@ -483,11 +483,11 @@ void Finley_ReferenceElement_dealloc(Finley_ReferenceElement* in) {
      #ifdef Finley_TRACE
      printf("reference element %s is deallocated.\n",in->Type->Name);
      #endif
-     MEMFREE(in->QuadNodes);
-     MEMFREE(in->QuadWeights);
-     MEMFREE(in->S);
-     MEMFREE(in->dSdv);
-     MEMFREE(in);
+     delete[] in->QuadNodes;
+     delete[] in->QuadWeights;
+     delete[] in->S;
+     delete[] in->dSdv;
+     delete in;
   }
 }
 

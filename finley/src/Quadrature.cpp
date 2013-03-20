@@ -1009,8 +1009,8 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
   bool_t set=FALSE;
   #define DIM 2
   
-  quadNodes1d=TMPMEMALLOC(numQuadNodes,double);
-  quadWeights1d=TMPMEMALLOC(numQuadNodes,double);
+  quadNodes1d=new double[numQuadNodes];
+  quadWeights1d=new double[numQuadNodes];
   if (! ( Finley_checkPtr(quadNodes1d) || Finley_checkPtr(quadWeights1d) ) ) {
      /*  find numQuadNodes1d with numQuadNodes1d**2==numQuadNodes: */
      
@@ -1042,8 +1042,8 @@ void Finley_Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeig
          sprintf(error_msg,"Finley_Quad_getNodesRec: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
          Finley_setError(VALUE_ERROR,error_msg);
      }
-     TMPMEMFREE(quadNodes1d);
-     TMPMEMFREE(quadWeights1d);
+     delete[] quadNodes1d;
+     delete[] quadWeights1d;
    }
    #undef DIM
 }
@@ -1062,8 +1062,8 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
   
   /*  find numQuadNodes1d with numQuadNodes1d**3==numQuadNodes: */
   
-  quadNodes1d=TMPMEMALLOC(numQuadNodes,double);
-  quadWeights1d=TMPMEMALLOC(numQuadNodes,double);
+  quadNodes1d=new double[numQuadNodes];
+  quadWeights1d=new double[numQuadNodes];
   if (! ( Finley_checkPtr(quadNodes1d) || Finley_checkPtr(quadWeights1d) ) ) {
      for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
        if (numQuadNodes1d*numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
@@ -1096,8 +1096,8 @@ void Finley_Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeig
           sprintf(error_msg,"Finley_Quad_getNodesHex: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
           Finley_setError(VALUE_ERROR,error_msg);
      }
-     TMPMEMFREE(quadNodes1d);
-     TMPMEMFREE(quadWeights1d);
+     delete[] quadNodes1d;
+     delete[] quadWeights1d;
   }
   #undef DIM
 }

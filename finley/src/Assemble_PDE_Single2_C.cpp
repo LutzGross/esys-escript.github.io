@@ -61,9 +61,9 @@ void  Finley_Assemble_PDE_Single2_C(Finley_Assemble_Parameters p,
 
     #pragma omp parallel private(color,EM_S, EM_F, Vol, D_p, Y_p, D_q, Y_q,row_index,q, s,r,rtmp, rtmp_D,add_EM_F, add_EM_S, isub)
     {
-       EM_S=THREAD_MEMALLOC(p.row_numShapesTotal*p.col_numShapesTotal,double);
-       EM_F=THREAD_MEMALLOC(p.row_numShapesTotal,double);
-       row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
+       EM_S=new double[p.row_numShapesTotal*p.col_numShapesTotal];
+       EM_F=new double[p.row_numShapesTotal];
+       row_index=new index_t[p.row_numShapesTotal];
                                                                                                                                                                                                      
        if (!Finley_checkPtr(EM_S) && !Finley_checkPtr(EM_F) && !Finley_checkPtr(row_index) ) {
 
@@ -151,9 +151,9 @@ void  Finley_Assemble_PDE_Single2_C(Finley_Assemble_Parameters p,
              } /* end element loop */
          } /* end color loop */
            
-         THREAD_MEMFREE(EM_S);
-         THREAD_MEMFREE(EM_F);
-         THREAD_MEMFREE(row_index);
+         delete[] EM_S;
+         delete[] EM_F;
+         delete[] row_index;
 
       } /* end of pointer check */
    } /* end parallel region */

@@ -297,13 +297,13 @@ void SystemMatrixAdapter::saveMM(const std::string& fileName) const
       throw PasoException("Null file name!");
    }
 
-   char *fName = TMPMEMALLOC(fileName.size()+1,char);
+   char *fName = new char[fileName.size()+1];
 	
    strcpy(fName,fileName.c_str());
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
    Paso_SystemMatrix_saveMM(mat,fName);
    checkPasoError();
-   TMPMEMFREE(fName);
+   delete[] fName;
 
 }
 
@@ -315,13 +315,13 @@ void SystemMatrixAdapter::saveHB(const std::string& fileName) const
       throw PasoException("Null file name!");
    }
 
-   char *fName = TMPMEMALLOC(fileName.size()+1,char);
+   char *fName = new char[fileName.size()+1];
 
    strcpy(fName,fileName.c_str());
    Paso_SystemMatrix* mat = getPaso_SystemMatrix();
    Paso_SystemMatrix_saveHB(mat,fName);
    checkPasoError();
-   TMPMEMFREE(fName);
+   delete[] fName;
 
 }
 

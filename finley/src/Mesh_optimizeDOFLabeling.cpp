@@ -49,8 +49,8 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
      len=0;
      for (p=0;p<mpiSize;++p) len=MAX(len,distribution[p+1]-distribution[p]);
 
-     index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
-     newGlobalDOFID=TMPMEMALLOC(len,index_t);
+     index_list=new Finley_IndexList[myNumVertices];
+     newGlobalDOFID=new index_t[len];
      /* create the adjacency structure xadj and adjncy */
      if (! ( Finley_checkPtr(index_list) || Finley_checkPtr(newGlobalDOFID) ) ) {
          #pragma omp parallel private(i)
@@ -123,8 +123,8 @@ void Finley_Mesh_optimizeDOFLabeling(Finley_Mesh* in,dim_t *distribution) {
                  }
               }
      }
-     TMPMEMFREE(index_list);
-     TMPMEMFREE(newGlobalDOFID);
+     delete[] index_list;
+     delete[] newGlobalDOFID;
 #if 0
 for (i=0;i<in->Nodes->numNodes;++i) printf("%d ",in->Nodes->globalDegreesOfFreedom[i]);
 printf("\n");

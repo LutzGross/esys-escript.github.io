@@ -508,7 +508,7 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    dim_t i;
    #ifdef _OPENMP
       index_t *partial_sums=NULL, sum;
-      partial_sums=TMPMEMALLOC(omp_get_max_threads(),index_t);
+      partial_sums=new index_t[omp_get_max_threads()];
       #pragma omp parallel private(sum,i,tmp)
       {
         sum=0;
@@ -534,7 +534,7 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
           array[i]=tmp;
         } 
       }
-      TMPMEMFREE(partial_sums);
+      delete[] partial_sums;
    #else 
       for (i=0;i<N;++i) {
          tmp=out;
@@ -579,10 +579,10 @@ void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, di
          /* if we found a new tag we need to add this to the valuesInUseList */
 
          if (minFoundValue < INDEX_T_MAX) {
-             newValuesInUse=MEMALLOC(nv+1,index_t);
+             newValuesInUse=new index_t[nv+1];
              if (*valuesInUse!=NULL) {
                  memcpy(newValuesInUse,*valuesInUse,sizeof(index_t)*nv);
-                 MEMFREE(*valuesInUse);
+                 delete[] *valuesInUse;
              }
              newValuesInUse[nv]=minFoundValue;
              *valuesInUse=newValuesInUse;
