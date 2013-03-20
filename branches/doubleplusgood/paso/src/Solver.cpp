@@ -92,8 +92,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         return;
      }
      
-     r=TMPMEMALLOC(numEqua,double);
-     x0=TMPMEMALLOC(numEqua,double);
+     r=new double[numEqua];
+     x0=new double[numEqua];
      Esys_checkPtr(r);
      Esys_checkPtr(x0);
      Paso_SystemMatrix_balance(A);
@@ -314,8 +314,8 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
            }
      
      }
-     MEMFREE(r);
-     MEMFREE(x0);
+     delete[] r;
+     delete[] x0;
      options->time=Esys_timer()-time_iter;
      Performance_stopMonitor(pp,PERFORMANCE_ALL);
      blocktimer_increment("Paso_Solver()", blocktimer_start);

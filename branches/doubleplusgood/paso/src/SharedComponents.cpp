@@ -46,19 +46,19 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
   register index_t itmp;
   Paso_SharedComponents* out=NULL;
   Esys_resetError();
-  out=MEMALLOC(1,Paso_SharedComponents);
+  out=new Paso_SharedComponents;
   if (!Esys_checkPtr(out)) {
       out->local_length=local_length*m;
       out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
       out->numNeighbors=numNeighbors;
-      out->neighbor=MEMALLOC(out->numNeighbors,Esys_MPI_rank);
+      out->neighbor=new Esys_MPI_rank[out->numNeighbors];
       if (offsetInShared == NULL) {
           out->numSharedComponents=0;
       } else {
           out->numSharedComponents=offsetInShared[numNeighbors]*m;
       }
-      out->shared=MEMALLOC(out->numSharedComponents,index_t);
-      out->offsetInShared=MEMALLOC(out->numNeighbors+1,index_t);
+      out->shared=new index_t[out->numSharedComponents];
+      out->offsetInShared=new index_t[out->numNeighbors+1];
       out->reference_counter=1;
       if (! (Esys_checkPtr(out->neighbor) ||
              Esys_checkPtr(out->shared) || 
@@ -109,11 +109,11 @@ void Paso_SharedComponents_free(Paso_SharedComponents* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
-        MEMFREE(in->neighbor);
-        MEMFREE(in->shared);
-        MEMFREE(in->offsetInShared);
+        delete[] in->neighbor;
+        delete[] in->shared;
+        delete[] in->offsetInShared;
         Esys_MPIInfo_free(in->mpi_info);
-        MEMFREE(in);
+        delete in;
         #ifdef Paso_TRACE
         printf("Paso_SharedComponents_dealloc: system matrix pattern has been deallocated.\n");
         #endif

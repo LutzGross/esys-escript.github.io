@@ -34,13 +34,13 @@ Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info,
 {
   int i;
   Paso_Distribution *out=NULL;
-  out = MEMALLOC( 1, Paso_Distribution );
+  out = new Paso_Distribution;
   if (Esys_checkPtr(out)) return NULL;
   out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
   out->reference_counter = 0;
   out->first_component=NULL;
 
-  out->first_component = MEMALLOC( (mpi_info->size)+1, index_t );
+  out->first_component = new index_t[(mpi_info->size)+1];
   if (Esys_checkPtr(out->first_component)) {
        Paso_Distribution_free(out);
        return NULL;
@@ -56,8 +56,8 @@ void Paso_Distribution_free( Paso_Distribution *in )
     --(in->reference_counter);
     if (in->reference_counter<=0) {
       Esys_MPIInfo_free( in->mpi_info );
-      MEMFREE( in->first_component );
-      MEMFREE( in );
+      delete[] in->first_component;
+      delete in;
     } 
   }
 }
@@ -121,7 +121,7 @@ double* Paso_Distribution_createRandomVector(Paso_Distribution *in, const dim_t 
    const index_t n = ( Paso_Distribution_getMaxGlobalComponents(in)-Paso_Distribution_getMinGlobalComponents(in) ) * block;
    const dim_t my_n = n_1-n_0;
    
-   out=MEMALLOC(my_n , double);
+   out=new double[my_n];
 
    #pragma omp parallel for private(i) schedule(static)
    for (i=0; i<my_n ;++i) {

@@ -198,8 +198,8 @@ void Paso_SparseMatrix_saveHB_CSC( Paso_SparseMatrix *A_p, FILE* fileHandle_p ) 
 		M = A_p->numRows*A_p->row_block_size;
 		N = A_p->numCols*A_p->col_block_size;
 
-		row_ind = MEMALLOC( nz, dim_t );
-		col_ind = MEMALLOC( nz, dim_t );
+		row_ind = new dim_t [nz];
+		col_ind = new dim_t [nz];
 
 		i = 0;
 		for( iCol=0; iCol<A_p->pattern->numOutput; iCol++ )
@@ -211,7 +211,7 @@ void Paso_SparseMatrix_saveHB_CSC( Paso_SparseMatrix *A_p, FILE* fileHandle_p ) 
 					     i++;
 					}
 		/* get the col_ptr */
-		col_ptr = MEMALLOC( (N+1), dim_t );
+		col_ptr = new dim_t [(N+1)];
 
 		curr_col = 0;
 		for(j=0; (j<nz && curr_col<N); curr_col++ ) {
@@ -225,9 +225,9 @@ void Paso_SparseMatrix_saveHB_CSC( Paso_SparseMatrix *A_p, FILE* fileHandle_p ) 
 		generate_HB( fileHandle_p, col_ptr, row_ind, A_p->val );
 
 		/* free the allocated memory */
-		MEMFREE( col_ptr );
-		MEMFREE( col_ind );
-		MEMFREE( row_ind );
+		delete[] col_ptr;
+		delete[] col_ind;
+		delete[] row_ind;
 	}
 	return;
 }

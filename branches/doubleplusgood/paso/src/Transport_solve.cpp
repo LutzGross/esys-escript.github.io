@@ -87,8 +87,8 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
          */
           fctsolver=Paso_FCT_Solver_alloc(fctp,options);
           rsolver=Paso_ReactiveSolver_alloc(fctp); 
-	  u_save=TMPMEMALLOC(n,double);
-	  u2=TMPMEMALLOC(n,double);
+	  u_save=new double[n];
+	  u2=new double[n];
           Esys_checkPtr(u_save);
 	  Esys_checkPtr(u2);
     }
@@ -180,8 +180,8 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 
     Paso_FCT_Solver_free(fctsolver);
     Paso_ReactiveSolver_free(rsolver);
-    TMPMEMFREE(u_save);
-    TMPMEMFREE(u2);
+    delete[] u_save;
+    delete[] u2;
 }
 
 

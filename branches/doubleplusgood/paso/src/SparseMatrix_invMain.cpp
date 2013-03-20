@@ -83,9 +83,6 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
    }
 }
 void Paso_SparseMatrix_applyBlockMatrix(Paso_SparseMatrix * A_p, double* block_diag, int* pivot, double*x, double *b) {
-   
-   /*   inv_diag=MEMALLOC( A->numRows * A_p-> block_size,double);
-   pivot=MEMALLOC( A->numRows * A->row_block_size */
    dim_t n=A_p->numRows;
    dim_t n_block=A_p->row_block_size;
    Paso_Copy(n_block*n, x,b);
