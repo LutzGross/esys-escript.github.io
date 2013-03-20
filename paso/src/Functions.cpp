@@ -111,7 +111,7 @@ void Paso_Function_free(Paso_Function * F) {
                Paso_Function_LinearSystem_free(F);
                break;
           default:
-               MEMFREE(F);
+               delete F;
       }
    }
 }

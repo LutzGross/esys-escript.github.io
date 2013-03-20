@@ -60,7 +60,7 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
      Esys_setError(VALUE_ERROR,"Paso_Pattern_mis: pattern must be square.");
      return;
   }
-  value=TMPMEMALLOC(n,double);
+  value=new double[n];
   if (!Esys_checkPtr(value)) {
 
    
@@ -115,7 +115,7 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;i++) mis_marker[i]=(mis_marker[i]==IS_IN_MIS);
   }
-  TMPMEMFREE(value);
+  delete[] value;
 }
 #undef IS_AVAILABLE 
 #undef IS_IN_MIS_NOW 
@@ -125,7 +125,7 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
 void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* colorOf) {
   index_t out=0, *mis_marker=NULL,i;
   dim_t n=pattern->numOutput;
-  mis_marker=TMPMEMALLOC(n,index_t);
+  mis_marker=new index_t[n];
   if ( !Esys_checkPtr(mis_marker) ) {
     /* get coloring */
     #pragma omp parallel for private(i) schedule(static)
@@ -146,7 +146,7 @@ void Paso_Pattern_color(Paso_Pattern* pattern, index_t* num_colors, index_t* col
        }
        ++out;
     }
-    TMPMEMFREE(mis_marker);
+    delete[] mis_marker;
     *num_colors=out;
   }
 }

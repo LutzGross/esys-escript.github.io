@@ -40,15 +40,15 @@ Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options
     const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
     const dim_t n =  Paso_TransportProblem_getTotalNumRows(fctp);
    
-    out=MEMALLOC(1,Paso_FCT_Solver);
+    out=new Paso_FCT_Solver;
     if (! Esys_checkPtr(out)) {
       	out->transportproblem  = Paso_TransportProblem_getReference(fctp);
         out->mpi_info          = Esys_MPIInfo_getReference(fctp->mpi_info);
 	out->flux_limiter      = Paso_FCT_FluxLimiter_alloc(fctp);
-	out->b                 = MEMALLOC(n, double);
+	out->b                 = new double[n];
 	if ( (options->ode_solver == PASO_CRANK_NICOLSON) || (options->ode_solver == PASO_BACKWARD_EULER) ) {
-	    out->du = MEMALLOC(n, double);
-	    out->z = MEMALLOC(n, double);
+	    out->du = new double[n];
+	    out->z = new double[n];
         } else {
 	     out->du = NULL;
 	     out->z=NULL;
@@ -88,10 +88,10 @@ void Paso_FCT_Solver_free(Paso_FCT_Solver *in)
 	  Paso_Coupler_free(in->u_old_coupler);
 	  Paso_Coupler_free(in->u_coupler);
 
-	  MEMFREE(in->b);
-	  MEMFREE(in->z);
-	  MEMFREE(in->du);
-          MEMFREE(in);
+	  delete[] in->b;
+	  delete[] in->z;
+	  delete[] in->du;
+          delete in;
       
     }
 }

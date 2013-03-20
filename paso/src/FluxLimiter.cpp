@@ -34,17 +34,17 @@ Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp)
      const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
      const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
      
-     out=MEMALLOC(1, Paso_FCT_FluxLimiter);
+     out=new Paso_FCT_FluxLimiter;
      if (! Esys_checkPtr(out)) {
       
             out->mpi_info = Esys_MPIInfo_getReference(fctp->mpi_info);
-	    out->u_tilde=MEMALLOC(n,double);
+	    out->u_tilde=new double[n];
 	    Esys_checkPtr(out->u_tilde);
 
-	    out->MQ=MEMALLOC(2*n,double);
+	    out->MQ=new double[2*n];
 	    Esys_checkPtr(out->MQ);
 
-	    out->R=MEMALLOC(2*n,double);
+	    out->R=new double[2*n];
 	    Esys_checkPtr(out->R);
 
 	    out->R_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),2*blockSize);
@@ -68,12 +68,12 @@ void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in)
    if (in!=NULL) {
        Esys_MPIInfo_free(in->mpi_info);
        Paso_SystemMatrix_free(in->antidiffusive_fluxes);
-       MEMFREE(in->u_tilde);
-       MEMFREE(in->MQ);
-       MEMFREE(in->R);
+       delete[] in->u_tilde;
+       delete[] in->MQ;
+       delete[] in->R;
        Paso_Coupler_free(in->R_coupler);
        Paso_Coupler_free(in->u_tilde_coupler);
-       MEMFREE(in);
+       delete in;
    }
 }
 

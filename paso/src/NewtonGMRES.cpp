@@ -69,8 +69,8 @@ err_t Paso_Solver_NewtonGMRES(
    *              inner_tolerance = max_inner_tolerance iteration.
    */
   
-  f=TMPMEMALLOC(n,double);
-  step=TMPMEMALLOC(n,double);
+  f=new double[n];
+  step=new double[n];
   if (f==NULL || step ==NULL) {
       Status=SOLVER_MEMORY_ERROR;
   } else {
@@ -163,8 +163,8 @@ err_t Paso_Solver_NewtonGMRES(
         if (maxIterFlag) Status=SOLVER_MAXITER_REACHED;
       }
   }
-  TMPMEMFREE(f);
-  TMPMEMFREE(step);
+  delete[] f;
+  delete[] step;
   if (debug) printf("NewtonGMRES: STATUS return = %d\n",Status);
   return Status;
 }
