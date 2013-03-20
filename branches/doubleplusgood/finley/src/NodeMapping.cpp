@@ -32,14 +32,14 @@ Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, in
   /* now we assume min_target=0! */
   max_target=Finley_Util_getFlaggedMaxInt(1,numNodes,target,unused);
   numTargets= min_target<=max_target ? max_target+1 :0;
-  out=MEMALLOC(1,Finley_NodeMapping);
+  out=new Finley_NodeMapping;
   if (!Finley_checkPtr(out)) {
      out->reference_counter=1;
      out->unused=unused;
      out->numNodes=numNodes;
      out->numTargets=numTargets;
-     out->map=MEMALLOC(numTargets,index_t);
-     out->target=MEMALLOC(numNodes,index_t);
+     out->map=new index_t[numTargets];
+     out->target=new index_t[numNodes];
      if (! (Finley_checkPtr(out->target) || Finley_checkPtr(out->map) ) ) {
         #pragma omp parallel
         {
@@ -70,9 +70,9 @@ void Finley_NodeMapping_free(Finley_NodeMapping* in) {
   if (in != NULL) {
       in->reference_counter--;
       if (in->reference_counter<=0) {
-         MEMFREE(in->target);
-         MEMFREE(in->map); 
-         MEMFREE(in);  
+         delete[] in->target;
+         delete[] in->map; 
+         delete in;  
      }
   }
 }

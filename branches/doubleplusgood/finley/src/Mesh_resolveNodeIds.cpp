@@ -82,8 +82,8 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
      and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
      new local id of global node i) */
   len=(max_id>=min_id) ? max_id-min_id+1 : 0 ;
-  globalToNewLocalNodeLabels=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
-  newLocalToGlobalNodeLabels=TMPMEMALLOC(len,index_t);
+  globalToNewLocalNodeLabels=new index_t[len]; /* local mask for used nodes */
+  newLocalToGlobalNodeLabels=new index_t[len];
   if (! ( (Finley_checkPtr(globalToNewLocalNodeLabels) && Finley_checkPtr(newLocalToGlobalNodeLabels) ) ) ) {
 
        #pragma omp parallel
@@ -126,8 +126,8 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
            Finley_Mesh_relableElementNodes(globalToNewLocalNodeLabels,min_id,in);
         }
   }
-  TMPMEMFREE(globalToNewLocalNodeLabels);
-  TMPMEMFREE(newLocalToGlobalNodeLabels);
+  delete[] globalToNewLocalNodeLabels;
+  delete[] newLocalToGlobalNodeLabels;
   if (! Finley_noError()) {
        Finley_NodeFile_free(newNodeFile);
   }

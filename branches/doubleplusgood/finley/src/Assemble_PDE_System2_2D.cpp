@@ -76,9 +76,9 @@ void  Finley_Assemble_PDE_System2_2D(Finley_Assemble_Parameters p,
     #pragma omp parallel private(color,EM_S, EM_F, Vol, DSDX, A_p, B_p, C_p, D_p, X_p, Y_p, A_q, B_q, C_q, D_q, X_q, Y_q,row_index,q, s,r,k,m,rtmp, rtmp0, rtmp1, rtmp00, rtmp10, rtmp01, rtmp11,add_EM_F, add_EM_S, isub)
     {
 
-       EM_S=THREAD_MEMALLOC(len_EM_S,double);
-       EM_F=THREAD_MEMALLOC(len_EM_F,double);
-       row_index=THREAD_MEMALLOC(p.row_numShapesTotal,index_t);
+       EM_S=new double[len_EM_S];
+       EM_F=new double[len_EM_F];
+       row_index=new index_t[p.row_numShapesTotal];
                                                                                                                                                                                                      
        if (!Finley_checkPtr(EM_S) && !Finley_checkPtr(EM_F) && !Finley_checkPtr(row_index) ) {
 
@@ -344,9 +344,9 @@ void  Finley_Assemble_PDE_System2_2D(Finley_Assemble_Parameters p,
              } /* end element loop */
          } /* end color loop */
            
-         THREAD_MEMFREE(EM_S);
-         THREAD_MEMFREE(EM_F);
-         THREAD_MEMFREE(row_index);
+         delete[] EM_S;
+         delete[] EM_F;
+         delete[] row_index;
 
       } /* end of pointer check */
    } /* end parallel region */

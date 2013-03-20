@@ -32,7 +32,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info)
   
   /*  allocate the return value */
   
-  out=MEMALLOC(1,Finley_Mesh);
+  out=new Finley_Mesh;
   if (Finley_checkPtr(out)) return NULL;
   out->Name=NULL;  
   out->Nodes=NULL; 
@@ -54,7 +54,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info)
   }
   /*   copy name: */
   
-  out->Name=MEMALLOC(strlen(name)+1,char);
+  out->Name=new char[strlen(name)+1];
   if (Finley_checkPtr(out->Name)) {
       Finley_Mesh_free(out);
       return NULL;
@@ -93,7 +93,7 @@ void Finley_Mesh_free(Finley_Mesh* in) {
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<1) {
-       MEMFREE(in->Name);
+       delete[] in->Name;
        Finley_NodeFile_free(in->Nodes);
        Finley_ElementFile_free(in->FaceElements);
        Finley_ElementFile_free(in->Elements);   
@@ -105,7 +105,7 @@ void Finley_Mesh_free(Finley_Mesh* in) {
        Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
        Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
        Esys_MPIInfo_free( in->MPIInfo );
-       MEMFREE(in);      
+       delete in;      
      }
   }
 }

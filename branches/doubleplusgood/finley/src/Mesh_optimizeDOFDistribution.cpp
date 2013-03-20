@@ -97,14 +97,14 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      globalNumVertices=distribution[mpiSize];
      len=0;
      for (p=0;p<mpiSize;++p) len=MAX(len,distribution[p+1]-distribution[p]);
-     partition=TMPMEMALLOC(len,index_t); /* len is used for the sending around of partition later on */
-     xyz=TMPMEMALLOC(myNumVertices*dim,float);
-     partition_count=TMPMEMALLOC(mpiSize+1,dim_t);
-     new_distribution=TMPMEMALLOC(mpiSize+1,dim_t);
-     newGlobalDOFID=TMPMEMALLOC(len,index_t);
-     setNewDOFId=TMPMEMALLOC(in->Nodes->numNodes,bool_t);
+     partition=new index_t[len]; /* len is used for the sending around of partition later on */
+     xyz=new float[myNumVertices*dim];
+     partition_count=new dim_t[mpiSize+1];
+     new_distribution=new dim_t[mpiSize+1];
+     newGlobalDOFID=new index_t[len];
+     setNewDOFId=new bool_t[in->Nodes->numNodes];
      if (!(Finley_checkPtr(partition) || Finley_checkPtr(xyz) || Finley_checkPtr(partition_count) || Finley_checkPtr(partition_count) || Finley_checkPtr(newGlobalDOFID) || Finley_checkPtr(setNewDOFId))) {
-         dim_t *recvbuf=TMPMEMALLOC(mpiSize*mpiSize,dim_t);
+         dim_t *recvbuf=new dim_t[mpiSize*mpiSize];
 
          /* set the coordinates: */
          /* it is assumed that at least one node on this processor provides a coordinate */
@@ -116,7 +116,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
              }
          }
 
-         index_list=TMPMEMALLOC(myNumVertices,Finley_IndexList);
+         index_list=new Finley_IndexList[myNumVertices];
 	 /* ksteube CSR of DOF IDs */
          /* create the adjacency structure xadj and adjncy */
          if (! Finley_checkPtr(index_list)) {
@@ -164,8 +164,8 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
 		 int ncon = 1;
 		 int edgecut;
 		 int options[2];
-		 float *tpwgts = TMPMEMALLOC(ncon*mpiSize,float);
-		 float *ubvec = TMPMEMALLOC(ncon,float);
+		 float *tpwgts = new float[ncon*mpiSize];
+		 float *ubvec = new float[ncon];
 		 for (i=0; i<ncon*mpiSize; i++) tpwgts[i] = 1.0/(float)mpiSize;
 		 for (i=0; i<ncon; i++) ubvec[i] = 1.05;
 		 options[0] = 3;
@@ -188,8 +188,8 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
                                           partition,				/* new CPU ownership of elements */
                                           &(in->MPIInfo->comm));
 		 /* printf("ParMETIS number of edges cut by partitioning per processor: %d\n", edgecut/MAX(in->MPIInfo->size,1)); */
-                 TMPMEMFREE(ubvec);
-                 TMPMEMFREE(tpwgts);
+                 delete[] ubvec;
+                 delete[] tpwgts;
 	      } else {
                  for (i=0;i<myNumVertices;++i) partition[i]=0;		/* CPU 0 owns it */
 	      }
@@ -234,7 +234,7 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
               for (i=myRank+1;i<mpiSize;++i) c+=recvbuf[rank+mpiSize*i];
               new_distribution[rank+1]=new_distribution[rank]+c;
            }
-           TMPMEMFREE(recvbuf);
+           delete[] recvbuf;
 
            /* now the overlap needs to be created by sending the partition around*/
 #ifdef ESYS_MPI
@@ -271,13 +271,13 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
            }
            for (i=0;i<mpiSize+1;++i) distribution[i]=new_distribution[i];
          }
-         TMPMEMFREE(index_list);
+         delete[] index_list;
      }
-     TMPMEMFREE(newGlobalDOFID);
-     TMPMEMFREE(setNewDOFId);
-     TMPMEMFREE(new_distribution);
-     TMPMEMFREE(partition_count);
-     TMPMEMFREE(partition);
-     TMPMEMFREE(xyz);
+     delete[] newGlobalDOFID;
+     delete[] setNewDOFId;
+     delete[] new_distribution;
+     delete[] partition_count;
+     delete[] partition;
+     delete[] xyz;
      return;
 }

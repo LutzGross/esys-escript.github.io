@@ -64,10 +64,10 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    }
 
    /* allocate work arrays */
-   elem1=TMPMEMALLOC(self->FaceElements->numElements,index_t);
-   elem0=TMPMEMALLOC(self->FaceElements->numElements,index_t);
-   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,index_t);
-   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,index_t);
+   elem1=new index_t[self->FaceElements->numElements];
+   elem0=new index_t[self->FaceElements->numElements];
+   elem_mask=new index_t[self->FaceElements->numElements];
+   matching_nodes_in_elem1=new index_t[self->FaceElements->numElements*NN];
 
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
 
@@ -132,8 +132,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
          }
       }
    }
-   TMPMEMFREE(elem1);
-   TMPMEMFREE(elem0);
-   TMPMEMFREE(matching_nodes_in_elem1);
-   TMPMEMFREE(elem_mask);
+   delete[] elem1;
+   delete[] elem0;
+   delete[] matching_nodes_in_elem1;
+   delete[] elem_mask;
 }

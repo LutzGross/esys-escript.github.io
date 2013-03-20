@@ -76,7 +76,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
         #pragma omp parallel private(local_X)
         {
 			/* allocation of work arrays */
-			local_X=THREAD_MEMALLOC(NN*numDim,double);
+			local_X=new double[NN*numDim];
 			if (! Finley_checkPtr(local_X) ) {
 				/* open the element loop */
 				#pragma omp for private(e,max_diff,diff,n0,n1,d,q,i,element_size_array) schedule(static)
@@ -101,7 +101,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes, Finley_ElementFile* element
 					for (q=0;q<numQuad;q++) element_size_array[q]=max_diff;
 				}
 			}
-			THREAD_MEMFREE(local_X);
+			delete [] local_X;
        } /* end of parallel region */
   }
   return;

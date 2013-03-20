@@ -75,7 +75,7 @@ Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,i
 	
 	/*  allocate the Finley_ShapeFunction to be returned: */
   
-	out=MEMALLOC(1,Finley_ShapeFunction);
+	out=new Finley_ShapeFunction;
 	if (Finley_checkPtr(out)) return NULL;
 
   
@@ -89,10 +89,10 @@ Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,i
   
 	/*  allocate memory: */
   
-	out->QuadNodes=MEMALLOC(numQuadNodes*numDim,double);
-	out->QuadWeights=MEMALLOC(numQuadNodes,double);
-	out->S=MEMALLOC(numShapes*numQuadNodes,double);
-	out->dSdv=MEMALLOC(numShapes*numDim*numQuadNodes,double);
+	out->QuadNodes=new double[numQuadNodes*numDim];
+	out->QuadWeights=new double[numQuadNodes];
+	out->S=new double[numShapes*numQuadNodes];
+	out->dSdv=new double[numShapes*numDim*numQuadNodes];
 	if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
          Finley_ShapeFunction_dealloc(out);
          return NULL;
@@ -130,11 +130,11 @@ void Finley_ShapeFunction_dealloc(Finley_ShapeFunction* in) {
   if (in!=NULL) { 
 	  in->reference_counter--;
 	  if (in->reference_counter<1) {
-		  MEMFREE(in->QuadNodes);
-		  MEMFREE(in->QuadWeights);
-		  MEMFREE(in->S);
-		  MEMFREE(in->dSdv);
-		  MEMFREE(in);
+		  delete[] in->QuadNodes;
+		  delete[] in->QuadWeights;
+		  delete[] in->S;
+		  delete[] in->dSdv;
+		  delete in;
 	  }
   }
 }

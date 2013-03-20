@@ -35,7 +35,7 @@ Finley_NodeFile* Finley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo *MPIInfo)
   
   /*  allocate the return value */
   
-  out=MEMALLOC(1,Finley_NodeFile);
+  out=new Finley_NodeFile;
   if (Finley_checkPtr(out)) return NULL;
   out->numNodes=0;
   out->numDim=numDim;
@@ -75,7 +75,7 @@ void Finley_NodeFile_free(Finley_NodeFile* in) {
   if (in!=NULL) {
      Finley_NodeFile_freeTable(in);
      Esys_MPIInfo_free( in->MPIInfo );
-     MEMFREE(in);      
+     delete in;      
   }
 }
 

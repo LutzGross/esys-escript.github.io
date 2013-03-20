@@ -37,16 +37,16 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
   dim_t n,i;
   
   /*  allocate memory: */
-  Id2=MEMALLOC(numNodes,index_t);
-  Coordinates2=MEMALLOC(numNodes*in->numDim,double);
-  Tag2=MEMALLOC(numNodes,index_t);
-  globalDegreesOfFreedom2=MEMALLOC(numNodes,index_t);
-  globalReducedDOFIndex2=MEMALLOC(numNodes,index_t);
-  globalReducedNodesIndex2=MEMALLOC(numNodes,index_t);
-  globalNodesIndex2=MEMALLOC(numNodes,index_t);
-  reducedNodesId2=MEMALLOC(numNodes,index_t);
-  degreesOfFreedomId2=MEMALLOC(numNodes,index_t);
-  reducedDegreesOfFreedomId2=MEMALLOC(numNodes,index_t);
+  Id2=new index_t[numNodes];
+  Coordinates2=new double[numNodes*in->numDim];
+  Tag2=new index_t[numNodes];
+  globalDegreesOfFreedom2=new index_t[numNodes];
+  globalReducedDOFIndex2=new index_t[numNodes];
+  globalReducedNodesIndex2=new index_t[numNodes];
+  globalNodesIndex2=new index_t[numNodes];
+  reducedNodesId2=new index_t[numNodes];
+  degreesOfFreedomId2=new index_t[numNodes];
+  reducedDegreesOfFreedomId2=new index_t[numNodes];
   
   /*  if fine, free the old table and replace by new: */
   if (Finley_checkPtr(Id2) || Finley_checkPtr(Coordinates2) || Finley_checkPtr(Tag2) 
@@ -56,16 +56,16 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
              || Finley_checkPtr(globalNodesIndex2)
              || Finley_checkPtr(reducedNodesId2) 
              || Finley_checkPtr(degreesOfFreedomId2) ) {
-    MEMFREE(Id2);
-    MEMFREE(Coordinates2);
-    MEMFREE(Tag2);
-    MEMFREE(globalDegreesOfFreedom2);
-    MEMFREE(globalReducedDOFIndex2);
-    MEMFREE(globalReducedNodesIndex2);
-    MEMFREE(globalNodesIndex2);
-    MEMFREE(reducedNodesId2);
-    MEMFREE(degreesOfFreedomId2);
-    MEMFREE(reducedDegreesOfFreedomId2);
+    delete[] Id2;
+    delete[] Coordinates2;
+    delete[] Tag2;
+    delete[] globalDegreesOfFreedom2;
+    delete[] globalReducedDOFIndex2;
+    delete[] globalReducedNodesIndex2;
+    delete[] globalNodesIndex2;
+    delete[] reducedNodesId2;
+    delete[] degreesOfFreedomId2;
+    delete[] reducedDegreesOfFreedomId2;
   } else { 
     Finley_NodeFile_freeTable(in);
     in->Id=Id2;
@@ -101,17 +101,17 @@ void Finley_NodeFile_allocTable(Finley_NodeFile* in ,dim_t numNodes)
 
 void Finley_NodeFile_freeTable(Finley_NodeFile* in) {
   if (in!=NULL) {
-    MEMFREE(in->Id);
-    MEMFREE(in->Coordinates);
-    MEMFREE(in->globalDegreesOfFreedom);
-    MEMFREE(in->globalReducedDOFIndex);
-    MEMFREE(in->globalReducedNodesIndex);
-    MEMFREE(in->globalNodesIndex);
-    MEMFREE(in->Tag);
-    MEMFREE(in->reducedNodesId);
-    MEMFREE(in->degreesOfFreedomId);
-    MEMFREE(in->reducedDegreesOfFreedomId);
-    MEMFREE(in->tagsInUse);
+    delete[] in->Id;
+    delete[] in->Coordinates;
+    delete[] in->globalDegreesOfFreedom;
+    delete[] in->globalReducedDOFIndex;
+    delete[] in->globalReducedNodesIndex;
+    delete[] in->globalNodesIndex;
+    delete[] in->Tag;
+    delete[] in->reducedNodesId;
+    delete[] in->degreesOfFreedomId;
+    delete[] in->reducedDegreesOfFreedomId;
+    delete[] in->tagsInUse;
     in->numTagsInUse=0;
     Finley_NodeMapping_free(in->nodesMapping);
     in->nodesMapping=NULL;
@@ -146,7 +146,7 @@ void Finley_NodeFile_setTagsInUse(Finley_NodeFile* in)
     if (in != NULL) {
        Finley_Util_setValuesInUse(in->Tag, in->numNodes, &numTagsInUse, &tagsInUse, in->MPIInfo);
        if (Finley_noError()) {
-          MEMFREE(in->tagsInUse);
+          delete[] in->tagsInUse;
           in->tagsInUse=tagsInUse;
           in->numTagsInUse=numTagsInUse;
        }

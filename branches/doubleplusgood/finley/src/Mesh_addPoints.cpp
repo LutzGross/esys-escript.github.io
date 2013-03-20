@@ -62,9 +62,9 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
   }  
   newPoints=Finley_ElementFile_alloc(refPoints, mpi_info);
   /* first we find the node which is the closest on this processor: */
-  dist_p=TMPMEMALLOC(numPoints, double);
-  point_index_p=TMPMEMALLOC(numPoints,index_t);
-  node_id_p=TMPMEMALLOC(numPoints,index_t);
+  dist_p=new  double[numPoints];
+  point_index_p=new index_t[numPoints];
+  node_id_p=new index_t[numPoints];
   
   for (i=0; i< numPoints; ++i) {
      dist_p[i]=LARGE_POSITIVE_FLOAT;
@@ -160,8 +160,8 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
          MPI_Op op;
          int count = 2* numPoints;
          double *sendbuf =NULL, *recvbuf=NULL;
-	 sendbuf=TMPMEMALLOC(count,double);
-	 recvbuf=TMPMEMALLOC(count,double);
+	 sendbuf=new double[count];
+	 recvbuf=new double[count];
 	 
 	 for (i=0; i< numPoints; ++i) {
               sendbuf[2*i  ]= dist_p[i];
@@ -177,8 +177,8 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
 		    node_id_p[i] =-1;
 	      }
          }
-         TMPMEMFREE(sendbuf);
-	 TMPMEMFREE(recvbuf);
+         delete[] sendbuf;
+	 delete[] recvbuf;
     }
   #endif
   /*  we pick the points to be used on this processor */
@@ -246,9 +246,9 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints, const doubl
    newPoints->maxColor=0;
   
   /* all done */
-  TMPMEMFREE(dist_p);
-  TMPMEMFREE(node_id_p);
-  TMPMEMFREE(point_index_p);
+  delete[] dist_p;
+  delete[] node_id_p;
+  delete[] point_index_p;
   Finley_ReferenceElementSet_dealloc(refPoints);
   Esys_MPIInfo_free(mpi_info);
   if (Finley_noError()) {

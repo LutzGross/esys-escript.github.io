@@ -37,7 +37,7 @@ Finley_ReferenceElementSet* Finley_ReferenceElementSet_alloc(Finley_ElementTypeI
         bf_info=Finley_ShapeFunction_getInfo(id_info->BasisFunctions);
 	if (! Finley_noError()) return NULL;
 
-	out=MEMALLOC(1,Finley_ReferenceElementSet);
+	out=new Finley_ReferenceElementSet;
 	if (Finley_checkPtr(out)) return NULL;
 	out->reference_counter=0;
         out->referenceElement =NULL;
@@ -75,7 +75,7 @@ void Finley_ReferenceElementSet_dealloc(Finley_ReferenceElementSet* in) {
 		if (in->reference_counter<1) {
 			Finley_ReferenceElement_dealloc(in->referenceElement);
 			Finley_ReferenceElement_dealloc(in->referenceElementReducedQuadrature);
-			MEMFREE(in);
+			delete in;
 		}
 	}
 }

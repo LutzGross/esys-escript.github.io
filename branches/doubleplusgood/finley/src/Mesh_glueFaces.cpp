@@ -54,13 +54,13 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    }
 
    /* allocate work arrays */
-   elem1=TMPMEMALLOC(self->FaceElements->numElements,index_t);
-   elem0=TMPMEMALLOC(self->FaceElements->numElements,index_t);
-   elem_mask=TMPMEMALLOC(self->FaceElements->numElements,index_t);
-   matching_nodes_in_elem1=TMPMEMALLOC(self->FaceElements->numElements*NN,index_t);
-   new_node_label=TMPMEMALLOC(self->Nodes->numNodes,index_t);
-   new_node_list=TMPMEMALLOC(self->Nodes->numNodes,index_t);
-   new_node_mask=TMPMEMALLOC(self->Nodes->numNodes,index_t);
+   elem1=new index_t[self->FaceElements->numElements];
+   elem0=new index_t[self->FaceElements->numElements];
+   elem_mask=new index_t[self->FaceElements->numElements];
+   matching_nodes_in_elem1=new index_t[self->FaceElements->numElements*NN];
+   new_node_label=new index_t[self->Nodes->numNodes];
+   new_node_list=new index_t[self->Nodes->numNodes];
+   new_node_mask=new index_t[self->Nodes->numNodes];
    if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(new_node_label) || Finley_checkPtr(new_node_list) || Finley_checkPtr(new_node_mask) || Finley_checkPtr(matching_nodes_in_elem1)) ) {
       /* find the matching face elements */
       Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
@@ -134,11 +134,11 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
        
       }
    }
-   TMPMEMFREE(elem1);
-   TMPMEMFREE(elem0);
-   TMPMEMFREE(elem_mask);
-   TMPMEMFREE(new_node_label);
-   TMPMEMFREE(new_node_list);
-   TMPMEMFREE(new_node_mask);
-   TMPMEMFREE(matching_nodes_in_elem1);
+   delete[] elem1;
+   delete[] elem0;
+   delete[] elem_mask;
+   delete[] new_node_label;
+   delete[] new_node_list;
+   delete[] new_node_mask;
+   delete[] matching_nodes_in_elem1;
 }

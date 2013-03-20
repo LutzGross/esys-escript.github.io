@@ -40,11 +40,11 @@ void Finley_TagMap_insert(Finley_TagMap** tag_map,
      return;
   }
   if (*tag_map == NULL) {
-       map=MEMALLOC(1,Finley_TagMap);
+       map=new Finley_TagMap;
        if (Finley_checkPtr(map)) return;
-       map->name=MEMALLOC(strlen(name)+1,char);
+       map->name=new char[strlen(name)+1];
        if (Finley_checkPtr(map->name) ) {
-            MEMFREE(map);
+            delete map;
         } else {
             strcpy(map->name,name);
             map->tag_key=tag_key;
@@ -92,8 +92,8 @@ bool_t Finley_TagMap_isValidTagName(Finley_TagMap* tag_map, const char* name)
 void Finley_TagMap_free(Finley_TagMap* in) {
   if (in!=NULL) {
     Finley_TagMap_free(in->next);
-    MEMFREE(in->name);
-    MEMFREE(in);
+    delete[] in->name;
+    delete in;
   }
   return;
 }
