@@ -40,7 +40,7 @@ void Paso_IndexList_insertIndex(Paso_IndexList* in, index_t index) {
   if (in->n==INDEXLIST_LENGTH) {
      /* if in->index is full check the extension */
      if (in->extension==NULL) {
-        in->extension=TMPMEMALLOC(1,Paso_IndexList);
+        in->extension=new Paso_IndexList;
         if (Esys_checkPtr(in->extension)) return;
         in->extension->n=0;
         in->extension->extension=NULL;
@@ -94,19 +94,19 @@ void Paso_IndexList_toArray(Paso_IndexList* in, index_t* array, index_t range_mi
 void Paso_IndexList_free(Paso_IndexList* in) {
   if (in!=NULL) {
     Paso_IndexList_free(in->extension);
-    TMPMEMFREE(in);
+    delete in;
   }
 }
 
 Paso_IndexListArray* Paso_IndexListArray_alloc(const dim_t n)
 {
    register dim_t i;
-   Paso_IndexListArray* out = MEMALLOC(1, Paso_IndexListArray);
+   Paso_IndexListArray* out = new Paso_IndexListArray;
    
    if (! Esys_checkPtr(out)) {
       
        out->n=n;
-       out->index_list=TMPMEMALLOC(out->n,Paso_IndexList);
+       out->index_list=new Paso_IndexList[out->n];
    
        if (Esys_checkPtr(out->index_list)) {
 	  Paso_IndexListArray_free(out);
@@ -131,9 +131,9 @@ void Paso_IndexListArray_free(Paso_IndexListArray* in)
 	 #pragma omp parallel for private(i) schedule(static)
 	 for(i=0; i<in->n; ++i) Paso_IndexList_free(in->index_list[i].extension);
       
-         MEMFREE(in->index_list);
+         delete[] in->index_list;
       }
-      MEMFREE(in);
+      delete in;
 
    }
 }

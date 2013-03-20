@@ -87,7 +87,7 @@ err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportPro
 Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp)
 {
     Paso_ReactiveSolver* out=NULL;
-    out=MEMALLOC(1,Paso_ReactiveSolver);
+    out=new Paso_ReactiveSolver;
     if (Esys_checkPtr(out)) return NULL;
     return out;
 }
@@ -95,7 +95,7 @@ Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp)
 void Paso_ReactiveSolver_free(Paso_ReactiveSolver* in)
 {
    if (in!=NULL) {
-      MEMFREE(in);
+      delete in;
    }
 }
 double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)

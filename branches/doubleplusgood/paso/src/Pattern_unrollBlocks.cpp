@@ -49,8 +49,8 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
      new_numOutput=(pattern->numOutput)*output_block_size;
      new_numInput=(pattern->numInput)*input_block_size;
    
-     ptr=MEMALLOC(new_numOutput+1,index_t);
-     index=MEMALLOC(new_len,index_t);
+     ptr=new index_t[new_numOutput+1];
+     index=new index_t[new_len];
      if (! ( Esys_checkPtr(ptr) || Esys_checkPtr(index) ) )  {
         #pragma omp parallel
         {
@@ -89,8 +89,8 @@ Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern* pattern, \
         out=Paso_Pattern_alloc(type,new_numOutput,new_numInput,ptr,index);
      }  
      if (! Esys_noError()) {
-        MEMFREE(index);
-        MEMFREE(ptr);
+        delete[] index;
+        delete[] ptr;
      }
   }
   return out;

@@ -304,10 +304,10 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 		scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
 		if (scan_ret!=3)
 		{
-			MEMFREE( val );
-			MEMFREE( row_ind );
-			MEMFREE( col_ind );
-			MEMFREE( row_ptr );
+			delete[] val;
+			delete[] row_ind;
+			delete[] col_ind;
+			delete[]row_ptr;
 			fclose(fileHandle_p);
 			return NULL;
 		}
@@ -335,8 +335,8 @@ Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p )
 	for( i=0; i<nz; i++ ) out->val[i] = val[i];
 	
 	Paso_Pattern_free(mainPattern);
-	MEMFREE( val );
-	MEMFREE( row_ind );
+	delete[] val;
+	delete[] row_ind;
 	return out;
 }
 

@@ -41,7 +41,7 @@ Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern, \
   dim_t i;
   Esys_resetError();
 
-  ptr=MEMALLOC(newNumRows+1,index_t);
+  ptr=new index_t[newNumRows+1];
   if (! Esys_checkPtr(ptr))  {
      #pragma omp parallel
      {
@@ -61,9 +61,9 @@ Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern, \
      }
      /* accumulate ptr */
      ptr[newNumRows]=Paso_Util_cumsum(newNumRows,ptr);
-     index=MEMALLOC(ptr[newNumRows],index_t);
+     index=new index_t[ptr[newNumRows]];
      if (Esys_checkPtr(index))  {
-        MEMFREE(ptr);
+        delete[] ptr;
      } else {
         /* find the number of column entries in each row */
         #pragma omp parallel for private(i,k,j,subpattern_row,tmp) schedule(static)
@@ -82,8 +82,8 @@ Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern, \
         /* create return value */
         out=Paso_Pattern_alloc(pattern->type,newNumRows,newNumCols,ptr,index);
         if (! Esys_noError()) {
-          MEMFREE(index);
-          MEMFREE(ptr);
+          delete[] index;
+          delete[] ptr;
         }
      }
   }

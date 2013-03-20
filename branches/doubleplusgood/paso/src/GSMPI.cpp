@@ -37,12 +37,12 @@
 
 void Paso_Solver_GSMPI_free(Paso_Solver_GS * in) {
      if (in!=NULL) {
-        MEMFREE(in->colorOf);
+        delete[] in->colorOf;
         Paso_SparseMatrix_free(in->factors);
-        MEMFREE(in->diag);
-        MEMFREE(in->main_iptr);
+        delete[] in->diag;
+        delete[] in->main_iptr;
         Paso_Pattern_free(in->pattern);   
-        MEMFREE(in);
+        delete in;
      }
 }
 
@@ -63,12 +63,12 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
 
   /* allocations: */  
 /*  printf("n_block= %d, n= %d\n", n_block, n); */
-  Paso_Solver_GS* out=MEMALLOC(1,Paso_Solver_GS);
+  Paso_Solver_GS* out=new Paso_Solver_GS;
   if (Paso_checkPtr(out)) return NULL;
-  out->colorOf=MEMALLOC(n,index_t);
-  out->diag=MEMALLOC( ((size_t) n) * ((size_t) block_size),double);
-  /*out->diag=MEMALLOC(A->len,double);*/
-  out->main_iptr=MEMALLOC(n,index_t);
+  out->colorOf=new index_t[n];
+  out->diag=new double[ ((size_t) n) * ((size_t) block_size)];
+  /*out->diag=new double[A->len];*/
+  out->main_iptr=new index_t[n];
   out->pattern=Paso_Pattern_getReference(A->pattern);
   out->factors=Paso_SparseMatrix_getReference(A);
   out->n_block=n_block;
@@ -252,7 +252,7 @@ void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * 
      Paso_Solver_GS_local(A,gs,x,b);
 
      if (sweeps > 1) {
-          double *new_b=MEMALLOC(n*n_block,double);
+          double *new_b=new double[n*n_block];
           double *remote_x=NULL;
 
           while (sweeps > 1) {
@@ -270,7 +270,7 @@ void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * 
                Paso_Solver_GS_local(A,gs,x,new_b);
                sweeps --;
           }
-          MEMFREE(new_b);
+          delete[] new_b;
      }
 
      return;

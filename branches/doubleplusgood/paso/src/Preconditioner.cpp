@@ -43,7 +43,7 @@ void Paso_Preconditioner_free(Paso_Preconditioner* in) {
       Paso_Solver_RILU_free(in->rilu);
       /*********************************/
       
-      MEMFREE(in);
+      delete in;
     }
 }
 
@@ -51,7 +51,7 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
 
     Paso_Preconditioner* prec=NULL;
 
-    prec=MEMALLOC(1,Paso_Preconditioner);
+    prec=new Paso_Preconditioner;
 
     if (! Esys_checkPtr(prec)) {
         

@@ -35,8 +35,8 @@
 
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
      if (in!=NULL) {
-        MEMFREE(in->factors);
-        MEMFREE(in);
+        delete[] in->factors;
+        delete in;
      }
 }
 
@@ -55,9 +55,9 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
   register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
   double time0=0,time_fac=0;
   /* allocations: */  
-  Paso_Solver_ILU* out=MEMALLOC(1,Paso_Solver_ILU);
+  Paso_Solver_ILU* out=new Paso_Solver_ILU;
   if (Esys_checkPtr(out)) return NULL;
-  out->factors=MEMALLOC(A->len,double);
+  out->factors=new double[A->len];
   
   if ( ! Esys_checkPtr(out->factors)  ) {
 
