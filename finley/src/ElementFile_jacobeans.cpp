@@ -25,7 +25,7 @@
 
 Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_ShapeFunction* BasisFunctions)
 {
-  Finley_ElementFile_Jacobeans* out=MEMALLOC(1,Finley_ElementFile_Jacobeans);
+  Finley_ElementFile_Jacobeans* out=new Finley_ElementFile_Jacobeans;
   if (Finley_checkPtr(out)) {
      return NULL;
   } else {
@@ -46,9 +46,9 @@ void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans* in)
 {
   if (in!=NULL) {
 	Finley_ShapeFunction_dealloc(in->BasisFunctions);  
-    MEMFREE(in->volume);
-    MEMFREE(in->DSDX);
-    MEMFREE(in);
+    delete[] in->volume;
+    delete[] in->DSDX;
+    delete in;
   }
 }
 
@@ -110,11 +110,11 @@ Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementF
            return NULL;
      }
 
-     if (out->volume==NULL) out->volume=MEMALLOC((out->numElements)*(out->numQuadTotal),double);
-     if (out->DSDX==NULL) out->DSDX=MEMALLOC((out->numElements)
+     if (out->volume==NULL) out->volume=new double[(out->numElements)*(out->numQuadTotal)];
+     if (out->DSDX==NULL) out->DSDX=new double[(out->numElements)
                                             *(out->numShapesTotal)
                                             *(out->numDim)
-                                            *(out->numQuadTotal),double);
+                                            *(out->numQuadTotal)];
      if (! (Finley_checkPtr(out->volume) || Finley_checkPtr(out->DSDX)) ) {
           /*========================== dim = 1 ============================================== */
           if (out->numDim==1) {

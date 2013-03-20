@@ -33,7 +33,7 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
      dim_t len,n,numDOFs;
 
      if (self==NULL) return;
-     mpiRankOfDOF=TMPMEMALLOC(self->Nodes->numNodes,Esys_MPI_rank);
+     mpiRankOfDOF=new Esys_MPI_rank[self->Nodes->numNodes];
      if (!Finley_checkPtr(mpiRankOfDOF)) {
 
 
@@ -53,8 +53,8 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
         /* create a local labeling of the DOFs */
         Finley_NodeFile_setDOFRange(&min_dof_id,&max_dof_id,self->Nodes);
         len=max_dof_id-min_dof_id+1;
-        tmp_node_localDOF_mask=TMPMEMALLOC(len,index_t); /* local mask for used nodes */
-        tmp_node_localDOF_map=TMPMEMALLOC(self->Nodes->numNodes,index_t);
+        tmp_node_localDOF_mask=new index_t[len]; /* local mask for used nodes */
+        tmp_node_localDOF_map=new index_t[self->Nodes->numNodes];
         if (! ( (Finley_checkPtr(tmp_node_localDOF_mask) && Finley_checkPtr(tmp_node_localDOF_map) ) ) ) {
    
           #pragma omp parallel for private(n) schedule(static)
@@ -88,9 +88,9 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, index_t *dof_distribut
           if (Finley_noError()) Finley_Mesh_createColoring(self,tmp_node_localDOF_map);
      
         }
-        TMPMEMFREE(tmp_node_localDOF_mask);
-        TMPMEMFREE(tmp_node_localDOF_map);
+        delete[] tmp_node_localDOF_mask;
+        delete[] tmp_node_localDOF_map;
      }
-     TMPMEMFREE(mpiRankOfDOF);
+     delete[] mpiRankOfDOF;
      return;
 }
