@@ -93,7 +93,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
       row_connector=mesh->Nodes->degreesOfFreedomConnector;
   }
 
-  index_list=TMPMEMALLOC(rowMap->numTargets,Finley_IndexList);
+  index_list=new Finley_IndexList[rowMap->numTargets];
   if (! Finley_checkPtr(index_list)) {
   
       #pragma omp parallel private(i)
@@ -142,7 +142,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
         #pragma omp parallel for private(i) 
         for(i=0;i<rowMap->numTargets;++i) Finley_IndexList_free(index_list[i].extension);
      }
-     TMPMEMFREE(index_list);
+     delete[] index_list;
      Paso_Pattern_free(main_pattern);
      Paso_Pattern_free(col_couple_pattern);
      Paso_Pattern_free(row_couple_pattern);

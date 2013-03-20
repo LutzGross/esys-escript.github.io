@@ -148,7 +148,7 @@ void Finley_IndexList_insertIndex(Finley_IndexList* in, index_t index) {
   if (in->n==INDEXLIST_LENGTH) {
      /* if in->index is full check the extension */
      if (in->extension==NULL) {
-        in->extension=TMPMEMALLOC(1,Finley_IndexList);
+        in->extension=new Finley_IndexList;
         if (Finley_checkPtr(in->extension)) return;
         in->extension->n=0;
         in->extension->extension=NULL;
@@ -202,7 +202,7 @@ void Finley_IndexList_toArray(Finley_IndexList* in, index_t* array, index_t rang
 void Finley_IndexList_free(Finley_IndexList* in) {
   if (in!=NULL) {
     Finley_IndexList_free(in->extension);
-    TMPMEMFREE(in);
+    delete in;
   }
 }
 
@@ -214,7 +214,7 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
    index_t *index=NULL;
    Paso_Pattern* out=NULL;
 
-   ptr=MEMALLOC(n+1-n0,index_t);
+   ptr=new index_t[n+1-n0];
    if (! Finley_checkPtr(ptr) ) {
        /* get the number of connections per row */
        #pragma omp parallel for schedule(static) private(i)
@@ -230,7 +230,7 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
        }
        ptr[n-n0]=s;
        /* fill index */
-       index=MEMALLOC(ptr[n-n0],index_t);
+       index=new index_t[ptr[n-n0]];
        if (! Finley_checkPtr(index)) {
               #pragma omp parallel for schedule(static)
               for(i=n0;i<n;++i) {
@@ -240,8 +240,8 @@ Paso_Pattern* Finley_IndexList_createPattern(dim_t n0, dim_t n,Finley_IndexList*
        }
   }
   if (! Finley_noError()) {
-        MEMFREE(ptr);
-        MEMFREE(index);
+        delete[] ptr;
+        delete[] index;
         Paso_Pattern_free(out);
   }
   return out;
