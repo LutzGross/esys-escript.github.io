@@ -108,7 +108,7 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
    int thread_num;
    
    if (num_threads>1) {
-      partial_sums=TMPMEMALLOC(num_threads, index_t);
+      partial_sums=new index_t[num_threads];
       #pragma omp parallel private(sum,thread_num ,i,tmp)
       {
         sum=0;
@@ -136,7 +136,7 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
           array[i]=tmp;
         } 
       }
-      TMPMEMFREE(partial_sums);
+      delete[] partial_sums;
    } else {
       for (i=0;i<N;++i) {
          tmp=out;
@@ -155,7 +155,7 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
    int thread_num;
  
    if (num_threads>1) {
-      partial_sums=TMPMEMALLOC(num_threads, index_t);
+      partial_sums=new index_t[num_threads];
       #pragma omp parallel private(sum,i,thread_num,tmp)
       {
          sum=0;
@@ -193,7 +193,7 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
             }
          } 
       }
-      TMPMEMFREE(partial_sums);
+      delete[] partial_sums;
    } else { /* num_threads=1 */
       for (i=0;i<N;++i) {
          if (mask[i]) {
@@ -215,7 +215,7 @@ index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
    int thread_num=0;
 
    if (num_threads>1) {
-      partial_sums=TMPMEMALLOC(num_threads,index_t);
+      partial_sums=new index_t[num_threads];
       #pragma omp parallel private(sum,i,thread_num,tmp)
       {
          sum=0;
@@ -253,7 +253,7 @@ index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
             }
          }
       }
-      TMPMEMFREE(partial_sums);
+      delete[] partial_sums;
    } else {
       for (i=0;i<N;++i) {
          if (! mask[i]) {

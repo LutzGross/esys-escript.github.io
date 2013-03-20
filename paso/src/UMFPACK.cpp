@@ -44,7 +44,7 @@ void Paso_UMFPACK_free(Paso_SparseMatrix* A) {
 	   umfpack_di_free_symbolic(&(pt->symbolic));
 	   umfpack_di_free_numeric(&(pt->numeric));
 	   #endif
-	   MEMFREE(pt);
+	   delete pt;
            A->solver_p=NULL;
      }
 }
@@ -74,7 +74,7 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
      
      if (pt==NULL) {
 	int n = A->numRows;
-	pt=(MEMALLOC(1,Paso_UMFPACK_Handler));
+	pt=new Paso_UMFPACK_Handler;
 	time0=Esys_timer();
 	if (Esys_checkPtr(pt)) return;
 	A->solver_p = (void*) pt;

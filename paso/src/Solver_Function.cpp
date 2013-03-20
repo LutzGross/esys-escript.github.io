@@ -27,14 +27,14 @@ Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b
     Paso_Function * out=NULL;
     Paso_SystemMatrix_setPreconditioner(A,options);
     if (! Esys_noError()) return NULL;
-    out=MEMALLOC(1,Paso_Function);
+    out=new Paso_Function;
     if (! Esys_checkPtr(out)) {
         out->kind=LINEAR_SYSTEM;
         out->mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
         out->n=Paso_SystemMatrix_getTotalNumRows(A);
         out->more=(void*)Paso_SystemMatrix_getReference(A);
         out->b=b;
-        out->tmp=MEMALLOC(out->n, double);
+        out->tmp=new double[out->n];
         Esys_checkPtr(out->tmp);
     }
     if (Esys_noError()) {
@@ -49,8 +49,8 @@ void Paso_Function_LinearSystem_free(Paso_Function * F)
    if (F!=NULL) {
        Esys_MPIInfo_free(F->mpi_info);
        Paso_SystemMatrix_free((Paso_SystemMatrix*)(F->more));
-       MEMFREE(F->tmp);
-       MEMFREE(F);
+       delete[] F->tmp;
+       delete F;
    }
 }
 /*

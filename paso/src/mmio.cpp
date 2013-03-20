@@ -77,9 +77,9 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 
     /* reserve memory for matrices */
 
-    Ip = MEMALLOC(nz, int);
-    Jp = MEMALLOC(nz, int);
-    val = MEMALLOC(nz, double);
+    Ip = new  int[nz];
+    Jp = new  int[nz];
+    val = new  double[nz];
 
     *val_ = val;
     *I_ = Ip;
@@ -94,9 +94,9 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
 	int scan_ret = fscanf(f, "%d %d %lg\n", &Ip[i], &Jp[i], &val[i]);
 	if (scan_ret!=3)
 	{
-    		MEMFREE(Ip);
-    		MEMFREE(Jp);
-    		MEMFREE(val);
+    		delete[] Ip;
+    		delete[] Jp;
+    		delete[] val;
 		fclose(f);
 		return -1;
 	}
@@ -380,20 +380,20 @@ int mm_read_mtx_crd(char *fname, int *M, int *N, int *nz, int **Ip, int **Jp,
         return ret_code;
 
 
-    *Ip = MEMALLOC(*nz, int);
-    *Jp = MEMALLOC(*nz, int);
+    *Ip = new  int[*nz];
+    *Jp = new  int[*nz];
     *val = NULL;
 
     if (mm_is_complex(*matcode))
     {
-        *val = MEMALLOC(*nz * 2, double);
+        *val = new  double[*nz * 2];
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *Ip, *Jp, *val,
                 *matcode);
         if (ret_code != 0) return ret_code;
     }
     else if (mm_is_real(*matcode))
     {
-        *val = MEMALLOC(*nz, double);
+        *val = new  double[*nz];
         ret_code = mm_read_mtx_crd_data(f, *M, *N, *nz, *Ip, *Jp, *val,
                 *matcode);
         if (ret_code != 0) return ret_code;
