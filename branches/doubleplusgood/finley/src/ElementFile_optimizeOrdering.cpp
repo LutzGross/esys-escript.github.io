@@ -36,8 +36,8 @@ void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in) {
      if (*in != NULL) {
         if ((*in)->numElements<1) return;
         NN=(*in)->referenceElementSet->numNodes;
-        item_list=TMPMEMALLOC((*in)->numElements,Finley_Util_ValueAndIndex);
-        index=TMPMEMALLOC((*in)->numElements,index_t);
+        item_list=new Finley_Util_ValueAndIndex[(*in)->numElements];
+        index=new index_t[(*in)->numElements];
         if (! (Finley_checkPtr(item_list) || Finley_checkPtr(index)) ) {
 
            out=Finley_ElementFile_alloc((*in)->referenceElementSet, (*in)->MPIInfo);
@@ -61,7 +61,7 @@ void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in) {
                }
            }
         }
-        TMPMEMFREE(item_list);
-        TMPMEMFREE(index);
+        delete[] item_list;
+        delete[] index;
    }
 }

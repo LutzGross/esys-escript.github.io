@@ -40,7 +40,7 @@ void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes, in
     min_id=Finley_Util_getMinInt(1,numNodes,degreeOfFreedom);
     max_id=Finley_Util_getMaxInt(1,numNodes,degreeOfFreedom);
     len=max_id-min_id+1;
-    maskDOF=TMPMEMALLOC(len,index_t);
+    maskDOF=new index_t[len];
     if (! Finley_checkPtr(maskDOF) ) {
          #pragma omp parallel for private(e) schedule(static)
          for (e=0;e<in->numElements;e++) in->Color[e]=-1;
@@ -81,5 +81,5 @@ if ((degreeOfFreedom[in->Nodes[INDEX2(i,e,NN)]]-min_id) >= len || (degreeOfFreed
          }  /* end of while loop */
     }
     /* all done : */
-    TMPMEMFREE(maskDOF);
+    delete[] maskDOF;
 }

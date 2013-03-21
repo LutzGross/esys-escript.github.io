@@ -73,8 +73,8 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 		  {
 			 local_X=dVdv=NULL;
 			 /* allocation of work arrays */
-			 local_X=THREAD_MEMALLOC(NS*numDim,double); 
-			 dVdv=THREAD_MEMALLOC(numQuad*numDim*numDim_local,double); 
+			 local_X=new double[NS*numDim]; 
+			 dVdv=new double[numQuad*numDim*numDim_local]; 
 			 if (!(Finley_checkPtr(local_X) || Finley_checkPtr(dVdv) ) ) {
 					   /* open the element loop */
 					   #pragma omp for private(e,q,normal_array) schedule(static)
@@ -89,8 +89,8 @@ void Finley_Assemble_setNormal(Finley_NodeFile* nodes, Finley_ElementFile* eleme
 						  for (q=0;q<numQuad*numDim;q++) normal_array[q]*=sign;
 					   }
 				 }
-				 THREAD_MEMFREE(local_X);
-				 THREAD_MEMFREE(dVdv);
+				 delete[] local_X;
+				 delete[] dVdv;
 			 }
 	}
 }

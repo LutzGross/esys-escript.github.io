@@ -36,7 +36,7 @@ Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referen
   
   /*  allocate the return value */
   
-  out=MEMALLOC(1,Finley_ElementFile);
+  out=new Finley_ElementFile;
   if (Finley_checkPtr(out)) return NULL;
   out->referenceElementSet=Finley_ReferenceElementSet_reference(referenceElementSet);
   out->numElements=0;
@@ -83,7 +83,7 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
      Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
      Esys_MPIInfo_free( in->MPIInfo );
-     MEMFREE(in);      
+     delete in;      
   }
 }
 void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
@@ -122,11 +122,11 @@ dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in) {
       return 0;
   } else {
     size=in->MPIInfo->size;
-    distribution=TMPMEMALLOC(size,dim_t);
+    distribution=new dim_t[size];
     Finley_ElementFile_setElementDistribution(in,distribution);
     out=0;
     for (p=0;p<size;++p) out+=distribution[p];
-    TMPMEMFREE(distribution);
+    delete[] distribution;
     return out;
   }
 }
@@ -136,10 +136,10 @@ dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in) {
       return 0;
   } else {
     size=in->MPIInfo->size;
-    distribution=TMPMEMALLOC(size,dim_t);
+    distribution=new dim_t[size];
     Finley_ElementFile_setElementDistribution(in,distribution);
     out=distribution[in->MPIInfo->rank];
-    TMPMEMFREE(distribution);
+    delete[] distribution;
     return out;
   }
 
@@ -150,11 +150,11 @@ index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in){
       return 0;
   } else {
     size=in->MPIInfo->size;
-    distribution=TMPMEMALLOC(size,dim_t);
+    distribution=new dim_t[size];
     Finley_ElementFile_setElementDistribution(in,distribution);
     out=0;
     for (p=0;p<in->MPIInfo->rank;++p) out+=distribution[p];
-    TMPMEMFREE(distribution);
+    delete[] distribution;
     return out;
   }
 }
