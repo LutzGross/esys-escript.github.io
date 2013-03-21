@@ -98,13 +98,13 @@ int main (int argc, char *argv[]) {
         break;
         case 'f':
             filename = optarg;
-            A=MEMALLOC(1,Paso_SystemMatrix);
+            A=new Paso_SystemMatrix;
             A=Paso_SystemMatrix_loadMM_toCSR(filename);
             n=Paso_SystemMatrix_getTotalNumRows(A);
-            b=MEMALLOC(n,double);
-            x=MEMALLOC(n,double);
-            x_ref=MEMALLOC(n,double);
-            error=MEMALLOC(n,double);
+            b=new double[n];
+            x=new double[n];
+            x_ref=new double[n];
+            error=new double[n];
             for(i=0;i<n;i++) {
              x_ref[i]=cos(i*PI/n);
             }
@@ -222,10 +222,10 @@ int main (int argc, char *argv[]) {
     }
 
    if (A!=NULL) {
-    MEMFREE(b);
-    MEMFREE(x);
-    MEMFREE(x_ref);
-    MEMFREE(error);
+    delete[] b;
+    delete[] x;
+    delete[] x_ref;
+    delete[] error;
     Paso_SystemMatrix_free(A);
    }
     
