@@ -40,10 +40,10 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
     /* get the global range of node ids */
     Dudley_NodeFile_setGlobalDOFRange(&min_dof, &max_dof, in);
 
-    distribution = TMPMEMALLOC(in->MPIInfo->size + 1, index_t);
-    offsets = TMPMEMALLOC(in->MPIInfo->size, dim_t);
-    loc_offsets = TMPMEMALLOC(in->MPIInfo->size, dim_t);
-    set_new_DOF = TMPMEMALLOC(in->numNodes, bool_t);
+    distribution = new  index_t[in->MPIInfo->size + 1];
+    offsets = new  dim_t[in->MPIInfo->size];
+    loc_offsets = new  dim_t[in->MPIInfo->size];
+    set_new_DOF = new  bool_t[in->numNodes];
 
     if (!
 	(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)
@@ -53,7 +53,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
 	myDOFs = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
-	DOF_buffer = TMPMEMALLOC(buffer_len, index_t);
+	DOF_buffer = new  index_t[buffer_len];
 	if (!Dudley_checkPtr(DOF_buffer))
 	{
 	    /* fill DOF_buffer by the unset_dof marker to check if nodes are defined */
@@ -157,12 +157,12 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	}
-	TMPMEMFREE(DOF_buffer);
+	delete[] DOF_buffer;
     }
-    TMPMEMFREE(distribution);
-    TMPMEMFREE(loc_offsets);
-    TMPMEMFREE(offsets);
-    TMPMEMFREE(set_new_DOF);
+    delete[] distribution;
+    delete[] loc_offsets;
+    delete[] offsets;
+    delete[] set_new_DOF;
     return new_numGlobalDOFs;
 }
 
@@ -209,9 +209,9 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
     /* get the global range of node ids */
     Dudley_NodeFile_setGlobalDOFRange(&min_dof, &max_dof, in);
 
-    distribution = TMPMEMALLOC(in->MPIInfo->size + 1, index_t);
-    offsets = TMPMEMALLOC(in->MPIInfo->size, dim_t);
-    loc_offsets = TMPMEMALLOC(in->MPIInfo->size, dim_t);
+    distribution = new  index_t[in->MPIInfo->size + 1];
+    offsets = new  dim_t[in->MPIInfo->size];
+    loc_offsets = new  dim_t[in->MPIInfo->size];
 
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)))
     {
@@ -219,7 +219,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
 	myDOFs = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
-	DOF_buffer = TMPMEMALLOC(buffer_len, index_t);
+	DOF_buffer = new  index_t[buffer_len];
 	if (!Dudley_checkPtr(DOF_buffer))
 	{
 	    /* fill DOF_buffer by the unset_dof marker to check if nodes are defined */
@@ -323,11 +323,11 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	}
-	TMPMEMFREE(DOF_buffer);
+	delete[] DOF_buffer;
     }
-    TMPMEMFREE(distribution);
-    TMPMEMFREE(loc_offsets);
-    TMPMEMFREE(offsets);
+    delete[] distribution;
+    delete[] loc_offsets;
+    delete[] offsets;
     return globalNumReducedDOFs;
 }
 
@@ -382,7 +382,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
     buffer_len = my_buffer_len;
 #endif
 
-    Node_buffer = TMPMEMALLOC(buffer_len + header_len, index_t);
+    Node_buffer = new  index_t[buffer_len + header_len];
     if (!Dudley_checkPtr(Node_buffer))
     {
 	/* mark and count the nodes in use */
@@ -471,7 +471,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 	    buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	}
     }
-    TMPMEMFREE(Node_buffer);
+    delete[] Node_buffer;
     return globalNumNodes;
 }
 
@@ -488,9 +488,9 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
     /* get the global range of node ids */
     Dudley_NodeFile_setGlobalNodeIDIndexRange(&min_node, &max_node, in);
 
-    distribution = TMPMEMALLOC(in->MPIInfo->size + 1, index_t);
-    offsets = TMPMEMALLOC(in->MPIInfo->size, dim_t);
-    loc_offsets = TMPMEMALLOC(in->MPIInfo->size, dim_t);
+    distribution = new  index_t[in->MPIInfo->size + 1];
+    offsets = new  dim_t[in->MPIInfo->size];
+    loc_offsets = new  dim_t[in->MPIInfo->size];
 
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)))
     {
@@ -498,7 +498,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_node, max_node, distribution);
 	myNodes = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
-	Nodes_buffer = TMPMEMALLOC(buffer_len, index_t);
+	Nodes_buffer = new  index_t[buffer_len];
 	if (!Dudley_checkPtr(Nodes_buffer))
 	{
 	    /* fill Nodes_buffer by the unset_node marker to check if nodes are defined */
@@ -602,10 +602,10 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	}
-	TMPMEMFREE(Nodes_buffer);
+	delete[] Nodes_buffer;
     }
-    TMPMEMFREE(distribution);
-    TMPMEMFREE(loc_offsets);
-    TMPMEMFREE(offsets);
+    delete[] distribution;
+    delete[] loc_offsets;
+    delete[] offsets;
     return globalNumReducedNodes;
 }
