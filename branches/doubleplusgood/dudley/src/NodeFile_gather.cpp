@@ -78,17 +78,17 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     Dudley_NodeFile_setGlobalIdRange(&min_id, &max_id, in);
     undefined_node = min_id - 1;
 
-    distribution = TMPMEMALLOC(in->MPIInfo->size + 1, index_t);
+    distribution = new  index_t[in->MPIInfo->size + 1];
 
     if (!Dudley_checkPtr(distribution))
     {
 	/* distribute the range of node ids */
 	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_id, max_id, distribution);
 	/* allocate buffers */
-	Id_buffer = TMPMEMALLOC(buffer_len, index_t);
-	Tag_buffer = TMPMEMALLOC(buffer_len, index_t);
-	globalDegreesOfFreedom_buffer = TMPMEMALLOC(buffer_len, index_t);
-	Coordinates_buffer = TMPMEMALLOC(buffer_len * out->numDim, double);
+	Id_buffer = new  index_t[buffer_len];
+	Tag_buffer = new  index_t[buffer_len];
+	globalDegreesOfFreedom_buffer = new  index_t[buffer_len];
+	Coordinates_buffer = new  double[buffer_len * out->numDim];
 	if (!(Dudley_checkPtr(Id_buffer) || Dudley_checkPtr(Tag_buffer) ||
 	      Dudley_checkPtr(globalDegreesOfFreedom_buffer) || Dudley_checkPtr(Coordinates_buffer)))
 	{
@@ -179,12 +179,12 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 	    }
 
 	}
-	TMPMEMFREE(Id_buffer);
-	TMPMEMFREE(Tag_buffer);
-	TMPMEMFREE(globalDegreesOfFreedom_buffer);
-	TMPMEMFREE(Coordinates_buffer);
+	delete[] Id_buffer;
+	delete[] Tag_buffer;
+	delete[] globalDegreesOfFreedom_buffer;
+	delete[] Coordinates_buffer;
     }
-    TMPMEMFREE(distribution);
+    delete[] distribution;
     /* make sure that the error is global */
     Esys_MPIInfo_noError(in->MPIInfo);
 }

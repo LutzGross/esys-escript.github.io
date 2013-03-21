@@ -88,8 +88,8 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduce
 	Dudley_setError(SYSTEM_ERROR, "Local elements do not span local degrees of freedom.");
 	return;
     }
-    rcv_len = TMPMEMALLOC(mpiSize, dim_t);
-    snd_len = TMPMEMALLOC(mpiSize, dim_t);
+    rcv_len = new  dim_t[mpiSize];
+    snd_len = new  dim_t[mpiSize];
 #ifdef ESYS_MPI
     mpi_requests = MEMALLOC(mpiSize * 2, MPI_Request);
     mpi_stati = MEMALLOC(mpiSize * 2, MPI_Status);
@@ -97,12 +97,12 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduce
     mpi_requests = MEMALLOC(mpiSize * 2, int);
     mpi_stati = MEMALLOC(mpiSize * 2, int);
 #endif
-    wanted_DOFs = TMPMEMALLOC(numNodes, index_t);
-    nodeMask = TMPMEMALLOC(numNodes, index_t);
-    neighbor = TMPMEMALLOC(mpiSize, Esys_MPI_rank);
-    shared = TMPMEMALLOC(numNodes * (p_max - p_min + 1), index_t);
-    offsetInShared = TMPMEMALLOC(mpiSize + 1, index_t);
-    locDOFMask = TMPMEMALLOC(len_loc_dof, index_t);
+    wanted_DOFs = new  index_t[numNodes];
+    nodeMask = new  index_t[numNodes];
+    neighbor = new  Esys_MPI_rank[mpiSize];
+    shared = new  index_t[numNodes * (p_max - p_min + 1)];
+    offsetInShared = new  index_t[mpiSize + 1];
+    locDOFMask = new  index_t[len_loc_dof];
     if (!
 	(Dudley_checkPtr(neighbor) || Dudley_checkPtr(shared) || Dudley_checkPtr(offsetInShared)
 	 || Dudley_checkPtr(locDOFMask) || Dudley_checkPtr(nodeMask) || Dudley_checkPtr(rcv_len)
@@ -291,16 +291,16 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduce
 	Paso_SharedComponents_free(rcv_shcomp);
 	Paso_SharedComponents_free(snd_shcomp);
     }
-    TMPMEMFREE(rcv_len);
-    TMPMEMFREE(snd_len);
-    TMPMEMFREE(mpi_requests);
-    TMPMEMFREE(mpi_stati);
-    TMPMEMFREE(wanted_DOFs);
-    TMPMEMFREE(nodeMask);
-    TMPMEMFREE(neighbor);
-    TMPMEMFREE(shared);
-    TMPMEMFREE(offsetInShared);
-    TMPMEMFREE(locDOFMask);
+    delete[] rcv_len;
+    delete[] snd_len;
+    delete[] mpi_requests;
+    delete[] mpi_stati;
+    delete[] wanted_DOFs;
+    delete[] nodeMask;
+    delete[] neighbor;
+    delete[] shared;
+    delete[] offsetInShared;
+    delete[] locDOFMask;
     if (Dudley_noError())
     {
 	if (use_reduced_elements)
@@ -328,8 +328,8 @@ void Dudley_Mesh_createMappings(Dudley_Mesh * mesh, index_t * dof_distribution, 
     index_t *maskReducedNodes = NULL, *indexReducedNodes = NULL;
     dim_t numReducedNodes;
 
-    maskReducedNodes = TMPMEMALLOC(mesh->Nodes->numNodes, index_t);
-    indexReducedNodes = TMPMEMALLOC(mesh->Nodes->numNodes, index_t);
+    maskReducedNodes = new  index_t[mesh->Nodes->numNodes];
+    indexReducedNodes = new  index_t[mesh->Nodes->numNodes];
 
     if (!(Dudley_checkPtr(maskReducedNodes) || Dudley_checkPtr(indexReducedNodes)))
     {
@@ -344,8 +344,8 @@ void Dudley_Mesh_createMappings(Dudley_Mesh * mesh, index_t * dof_distribution, 
 					       node_distribution);
     }
 
-    TMPMEMFREE(maskReducedNodes);
-    TMPMEMFREE(indexReducedNodes);
+    delete[] maskReducedNodes;
+    delete[] indexReducedNodes;
 }
 
 void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes, index_t * indexReducedNodes,
@@ -364,8 +364,8 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 
     /* mark the nodes used by the reduced mesh */
 
-    reduced_dof_first_component = TMPMEMALLOC(mpiSize + 1, index_t);
-    reduced_nodes_first_component = TMPMEMALLOC(mpiSize + 1, index_t);
+    reduced_dof_first_component = new  index_t[mpiSize + 1];
+    reduced_nodes_first_component = new  index_t[mpiSize + 1];
 
     if (!(Dudley_checkPtr(reduced_dof_first_component) || Dudley_checkPtr(reduced_nodes_first_component)))
     {
@@ -378,10 +378,10 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	myLastNode = nodes_first_component[myRank + 1];
 	myNumNodes = myLastNode - myFirstNode;
 
-	maskMyReducedDOF = TMPMEMALLOC(myNumDOF, index_t);
-	indexMyReducedDOF = TMPMEMALLOC(myNumDOF, index_t);
-	maskMyReducedNodes = TMPMEMALLOC(myNumNodes, index_t);
-	indexMyReducedNodes = TMPMEMALLOC(myNumNodes, index_t);
+	maskMyReducedDOF = new  index_t[myNumDOF];
+	indexMyReducedDOF = new  index_t[myNumDOF];
+	maskMyReducedNodes = new  index_t[myNumNodes];
+	indexMyReducedNodes = new  index_t[myNumNodes];
 
 	if (!
 	    (Dudley_checkPtr(maskMyReducedDOF) || Dudley_checkPtr(indexMyReducedDOF)
@@ -450,15 +450,15 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	    in->Nodes->reducedDegreesOfFreedomDistribution =
 		Paso_Distribution_alloc(in->Nodes->MPIInfo, reduced_dof_first_component, 1, 0);
 	}
-	TMPMEMFREE(maskMyReducedDOF);
-	TMPMEMFREE(indexMyReducedDOF);
-	TMPMEMFREE(maskMyReducedNodes);
-	TMPMEMFREE(indexMyReducedNodes);
+	delete[] maskMyReducedDOF;
+	delete[] indexMyReducedDOF;
+	delete[] maskMyReducedNodes;
+	delete[] indexMyReducedNodes;
     }
-    TMPMEMFREE(reduced_dof_first_component);
-    TMPMEMFREE(reduced_nodes_first_component);
+    delete[] reduced_dof_first_component;
+    delete[] reduced_nodes_first_component;
 
-    nodeMask = TMPMEMALLOC(in->Nodes->numNodes, index_t);
+    nodeMask = new  index_t[in->Nodes->numNodes];
     if (!Dudley_checkPtr(nodeMask) && Dudley_noError())
     {
 
@@ -477,7 +477,7 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	    nodeMask[indexReducedNodes[i]] = i;
 	in->Nodes->reducedNodesMapping = Dudley_NodeMapping_alloc(in->Nodes->numNodes, nodeMask, UNUSED);
     }
-    TMPMEMFREE(nodeMask);
+    delete[] nodeMask;
     /* ==== mapping between nodes and DOFs + DOF connector ========== */
     if (Dudley_noError())
         Dudley_Mesh_createDOFMappingAndCoupling(in, FALSE);

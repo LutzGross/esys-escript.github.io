@@ -609,7 +609,7 @@ index_t Dudley_Util_cumsum(dim_t N, index_t * array)
     dim_t i;
 #ifdef _OPENMP
     index_t *partial_sums = NULL, sum;
-    partial_sums = TMPMEMALLOC(omp_get_max_threads(), index_t);
+    partial_sums = new  index_t[omp_get_max_threads()];
 #pragma omp parallel private(sum,i,tmp)
     {
 	sum = 0;
@@ -638,7 +638,7 @@ index_t Dudley_Util_cumsum(dim_t N, index_t * array)
 	    array[i] = tmp;
 	}
     }
-    TMPMEMFREE(partial_sums);
+    delete[] partial_sums;
 #else
     for (i = 0; i < N; ++i)
     {

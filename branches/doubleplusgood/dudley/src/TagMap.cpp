@@ -40,13 +40,13 @@ void Dudley_TagMap_insert(Dudley_TagMap ** tag_map, const char *name, index_t ta
     }
     if (*tag_map == NULL)
     {
-	map = MEMALLOC(1, Dudley_TagMap);
+	map = new Dudley_TagMap;
 	if (Dudley_checkPtr(map))
 	    return;
-	map->name = MEMALLOC(strlen(name) + 1, char);
+	map->name = new char[strlen(name) + 1];
 	if (Dudley_checkPtr(map->name))
 	{
-	    MEMFREE(map);
+	    delete map;
 	}
 	else
 	{
@@ -117,8 +117,8 @@ void Dudley_TagMap_free(Dudley_TagMap * in)
     if (in != NULL)
     {
 	Dudley_TagMap_free(in->next);
-	MEMFREE(in->name);
-	MEMFREE(in);
+	delete[] in->name;
+	delete in;
     }
     return;
 }

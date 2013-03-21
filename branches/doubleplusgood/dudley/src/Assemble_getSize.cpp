@@ -82,7 +82,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 #pragma omp parallel private(local_X)
 	{
 	    /* allocation of work arrays */
-	    local_X = THREAD_MEMALLOC(NN * numDim, double);
+	    local_X = new double[NN * numDim];
 	    if (!Dudley_checkPtr(local_X))
 	    {
 		/* open the element loop */
@@ -116,7 +116,7 @@ void Dudley_Assemble_getSize(Dudley_NodeFile * nodes, Dudley_ElementFile * eleme
 			element_size_array[q] = max_diff;
 		}
 	    }
-	    THREAD_MEMFREE(local_X);
+	    delete[] local_X;
 	}			/* end of parallel region */
     }
     return;

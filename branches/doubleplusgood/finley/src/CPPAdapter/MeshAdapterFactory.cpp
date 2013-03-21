@@ -125,7 +125,7 @@ namespace finley {
     char *name = attr->as_string(0);
     delete attr;
 
-    TMPMEMFREE(fName);
+    delete[] fName;
 
     /* allocate mesh */
     mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
@@ -212,13 +212,13 @@ namespace finley {
                    }
                    mesh_p->Elements->maxColor=mc;
                    // Elements_Nodes
-                   int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
+                   int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
-                       TMPMEMFREE(Elements_Nodes);
+                       delete[] Elements_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
-                       TMPMEMFREE(Elements_Nodes);
+                       delete[] Elements_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Nodes)");
                    }
 
@@ -229,7 +229,7 @@ namespace finley {
                                 = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
                        }
                    }
-                   TMPMEMFREE(Elements_Nodes);
+                   delete[] Elements_Nodes;
                    Finley_ElementFile_setTagsInUse(mesh_p->Elements);
                 } /* num_Elements>0 */
             }
@@ -278,13 +278,13 @@ namespace finley {
                    }
                    mesh_p->FaceElements->maxColor=mc;
                    // FaceElements_Nodes
-                   int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
+                   int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
-                       TMPMEMFREE(FaceElements_Nodes);
+                       delete[] FaceElements_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
-                       TMPMEMFREE(FaceElements_Nodes);
+                       delete[] FaceElements_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->FaceElements->Nodes
@@ -293,7 +293,7 @@ namespace finley {
                            mesh_p->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
                        }
                    }
-                   TMPMEMFREE(FaceElements_Nodes);
+                   delete[] FaceElements_Nodes;
                    Finley_ElementFile_setTagsInUse(mesh_p->FaceElements);
                 } /* num_FaceElements>0 */
             }
@@ -342,13 +342,13 @@ namespace finley {
                    }
                    mesh_p->ContactElements->maxColor=mc;
                    // ContactElements_Nodes
-                   int *ContactElements_Nodes = TMPMEMALLOC(num_ContactElements*num_ContactElements_numNodes,int);
+                   int *ContactElements_Nodes = new int[num_ContactElements*num_ContactElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
-                       TMPMEMFREE(ContactElements_Nodes);
+                       delete[] ContactElements_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes) ) {
-                       TMPMEMFREE(ContactElements_Nodes);
+                       delete[] ContactElements_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->ContactElements->Nodes
@@ -357,7 +357,7 @@ namespace finley {
                            mesh_p->ContactElements->Nodes[INDEX2(j,i,num_ContactElements_numNodes)]= ContactElements_Nodes[INDEX2(j,i,num_ContactElements_numNodes)];
                        }
                    }
-                   TMPMEMFREE(ContactElements_Nodes);
+                   delete[] ContactElements_Nodes;
                    Finley_ElementFile_setTagsInUse(mesh_p->ContactElements);
                } /* num_ContactElements>0 */
            }
@@ -406,20 +406,20 @@ namespace finley {
                    }
                    mesh_p->Points->maxColor=mc;
                    // Points_Nodes
-                   int *Points_Nodes = TMPMEMALLOC(num_Points,int);
+                   int *Points_Nodes = new int[num_Points];
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
-                       TMPMEMFREE(Points_Nodes);
+                       delete[] Points_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
-                       TMPMEMFREE(Points_Nodes);
+                       delete[] Points_Nodes;
                        cleanupAndThrow(mesh_p, mpi_info, "get(Points_Nodes)");
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
                        mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
                    }
-                   TMPMEMFREE(Points_Nodes);
+                   delete[] Points_Nodes;
                    Finley_ElementFile_setTagsInUse(mesh_p->Points);
                 } /* num_Points>0 */
             }
@@ -429,24 +429,24 @@ namespace finley {
         if (Finley_noError()) {
           if (num_Tags>0) {
             // Temp storage to gather node IDs
-            int *Tags_keys = TMPMEMALLOC(num_Tags, int);
+            int *Tags_keys = new  int[num_Tags];
             char name_temp[4096];
             int i;
 
             // Tags_keys
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
-                TMPMEMFREE(Tags_keys);
+                delete[] Tags_keys;
                 cleanupAndThrow(mesh_p, mpi_info, "get_var(Tags_keys)");
             }
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
-                TMPMEMFREE(Tags_keys);
+                delete[] Tags_keys;
                 cleanupAndThrow(mesh_p, mpi_info, "get(Tags_keys)");
             }
             for (i=0; i<num_Tags; i++) {
               // Retrieve tag name
               sprintf(name_temp, "Tags_name_%d", i);
               if (! (attr=dataFile.get_att(name_temp)) ) {
-                  TMPMEMFREE(Tags_keys);
+                  delete[] Tags_keys;
                   sprintf(error_msg,"get_att(%s)", name_temp);
                   cleanupAndThrow(mesh_p, mpi_info, error_msg);
               }
@@ -454,37 +454,37 @@ namespace finley {
               delete attr;
               Finley_Mesh_addTagMap(mesh_p, name, Tags_keys[i]);
             }
-            TMPMEMFREE(Tags_keys);
+            delete[] Tags_keys;
           }
         }
    
         if (Finley_noError()) {
             // Nodes_DofDistribution
-            first_DofComponent = TMPMEMALLOC(mpi_size+1,index_t);
+            first_DofComponent = new index_t[mpi_size+1];
             if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
-                TMPMEMFREE(first_DofComponent);
+                delete[] first_DofComponent;
                 cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_DofDistribution)");
             }
             if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
-                TMPMEMFREE(first_DofComponent);
+                delete[] first_DofComponent;
                 cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
-            first_NodeComponent = TMPMEMALLOC(mpi_size+1,index_t);
+            first_NodeComponent = new index_t[mpi_size+1];
             if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
-                TMPMEMFREE(first_DofComponent);
-                TMPMEMFREE(first_NodeComponent);
+                delete[] first_DofComponent;
+                delete[] first_NodeComponent;
                 cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_NodeDistribution)");
             }
             if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
-                TMPMEMFREE(first_DofComponent);
-                TMPMEMFREE(first_NodeComponent);
+                delete[] first_DofComponent;
+                delete[] first_NodeComponent;
                 cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_NodeDistribution)");
             }
             Finley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
-            TMPMEMFREE(first_DofComponent);
-            TMPMEMFREE(first_NodeComponent);
+            delete[] first_DofComponent;
+            delete[] first_NodeComponent;
         }
 
     } /* Finley_noError() after Finley_Mesh_alloc() */
@@ -518,7 +518,7 @@ namespace finley {
        throw DataException("Null file name!");
     }
 
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+    char *fName = new char[fileName.size()+1];
         
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
@@ -528,7 +528,7 @@ namespace finley {
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
     /* win32 refactor */
-    TMPMEMFREE(fName);
+    delete[] fName;
     
     blocktimer_increment("ReadMesh()", blocktimer_start);
     return temp->getPtr();
@@ -551,7 +551,7 @@ namespace finley {
        throw DataException("Null file name!");
     }
 
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+    char *fName = new char[fileName.size()+1];
         
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
@@ -561,7 +561,7 @@ namespace finley {
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
     /* win32 refactor */
-    TMPMEMFREE(fName);
+    delete[] fName;
     
     blocktimer_increment("ReadGmsh()", blocktimer_start);
     return temp->getPtr();
@@ -725,7 +725,7 @@ namespace finley {
     //
     // extract the meshes from meshList
     int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
-    Finley_Mesh **mshes = (numMsh) ? TMPMEMALLOC(numMsh,Finley_Mesh*) : (Finley_Mesh**)NULL;
+    Finley_Mesh **mshes = (numMsh) ? new Finley_Mesh*[numMsh] : (Finley_Mesh**)NULL;
     for (int i=0;i<numMsh;++i) {
          AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
          const MeshAdapter* finley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
@@ -734,7 +734,7 @@ namespace finley {
     //
     // merge the meshes:
     fMesh=Finley_Mesh_merge(numMsh,mshes);
-          TMPMEMFREE(mshes);
+          delete[] mshes;
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();

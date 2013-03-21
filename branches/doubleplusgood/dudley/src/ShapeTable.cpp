@@ -49,12 +49,12 @@ bool_t getQuadShape(dim_t dim, bool_t reduced, const double **shapearr)
     if (arr == 0)
     {
 	int i;
-	arr = MEMALLOC(8,double*);	/* point occupies two slots to make things simpler */
-	arr[0] = MEMALLOC(1,double);
+	arr = new double*[8];	/* point occupies two slots to make things simpler */
+	arr[0] = new double[1];
 	arr[0][0] = 1.;		/* point */
 	arr[1] = arr[0];
-	arr[2] = MEMALLOC(4,double);	/* Line Single */
-	arr[3] = MEMALLOC(4,double);	/* Line 2 */
+	arr[2] = new double[4];	/* Line Single */
+	arr[3] = new double[4];	/* Line 2 */
 
 /*
 	for (i = 0; i < 2; ++i)
@@ -80,25 +80,25 @@ bool_t getQuadShape(dim_t dim, bool_t reduced, const double **shapearr)
 
 
 
-	arr[4] = MEMALLOC(3,double);	/* Tri single */
+	arr[4] = new double[3];	/* Tri single */
 	arr[4][0] = 1. - _dudley_V[2][0] - _dudley_V[2][1];
 	arr[4][1] = _dudley_V[2][0];
 	arr[4][2] = _dudley_V[2][1];
 
-	arr[5] = MEMALLOC(9,double);	/* Tri 3 */
+	arr[5] = new double[9];	/* Tri 3 */
 	for (i = 0; i < 3; ++i)
 	{
 	    arr[5][3 * i] = 1 - _dudley_V[3][2 * i] - _dudley_V[3][2 * i + 1];
 	    arr[5][3 * i + 1] = _dudley_V[3][2 * i];
 	    arr[5][3 * i + 2] = _dudley_V[3][2 * i + 1];
 	}
-	arr[6] = MEMALLOC(4, double);	/* Tet single */
+	arr[6] = new  double[4];	/* Tet single */
 	arr[6][0] = 1 - _dudley_V[4][0] - _dudley_V[4][1] - _dudley_V[4][2];
 	arr[6][1] = _dudley_V[4][0];
 	arr[6][2] = _dudley_V[4][1];
 	arr[6][3] = _dudley_V[4][2];
 
-	arr[7] = MEMALLOC(16,double);	/* Tet 4 */
+	arr[7] = new double[16];	/* Tet 4 */
 	for (i = 0; i < 4; ++i)
 	{
 	    double x = _dudley_V[5][3 * i];
