@@ -39,21 +39,21 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
   Finley_resetError();
   /*  allocate memory: */ 
   numNodes=in->numNodes;
-  Owner2=MEMALLOC(numElements,Esys_MPI_rank);
-  Id2=MEMALLOC(numElements,index_t);
-  Nodes2=MEMALLOC(numElements*in->numNodes,index_t);
-  Tag2=MEMALLOC(numElements,index_t);
-  Color2=MEMALLOC(numElements,index_t);
+  Owner2=new Esys_MPI_rank[numElements];
+  Id2=new index_t[numElements];
+  Nodes2=new index_t[numElements*in->numNodes];
+  Tag2=new index_t[numElements];
+  Color2=new index_t[numElements];
   
   /*  if fine, deallocate the old table and replace by new: */
   
   if ( Finley_checkPtr(Owner2) || Finley_checkPtr(Id2) || Finley_checkPtr(Nodes2) || 
                                                        Finley_checkPtr(Tag2) || Finley_checkPtr(Color2) ) {
-    MEMFREE(Owner2);	
-    MEMFREE(Nodes2);
-    MEMFREE(Id2);
-    MEMFREE(Tag2);
-    MEMFREE(Color2);
+    delete[] Owner2;	
+    delete[] Nodes2;
+    delete[] Id2;
+    delete[] Tag2;
+    delete[] Color2;
   } else { 
     Finley_ElementFile_freeTable(in);
     in->Owner=Owner2;
@@ -89,7 +89,7 @@ void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in)
     if (in !=NULL) {
        Finley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
        if (Finley_noError()) {
-          MEMFREE(in->tagsInUse);
+          delete[] in->tagsInUse;
           in->tagsInUse=tagsInUse;
           in->numTagsInUse=numTagsInUse;
        }
@@ -99,12 +99,12 @@ void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in)
 /*  deallocates the element table within an element file: */
 
 void Finley_ElementFile_freeTable(Finley_ElementFile* in) {
-  MEMFREE(in->Owner);
-  MEMFREE(in->Id);
-  MEMFREE(in->Nodes);
-  MEMFREE(in->Tag);
-  MEMFREE(in->Color);
-  MEMFREE(in->tagsInUse);
+  delete[] in->Owner;
+  delete[] in->Id;
+  delete[] in->Nodes;
+  delete[] in->Tag;
+  delete[] in->Color;
+  delete[] in->tagsInUse;
   in->numTagsInUse=0;
   in->numElements=0;
   in->maxColor=-1;

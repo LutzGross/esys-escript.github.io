@@ -47,17 +47,17 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
      NN=self->numNodes;
      if (size>1) {
          #ifdef ESYS_MPI
-            mpi_requests=TMPMEMALLOC(8*size, MPI_Request);
-            mpi_stati=TMPMEMALLOC(8*size, MPI_Status);
+            mpi_requests=new  MPI_Request[8*size];
+            mpi_stati=new  MPI_Status[8*size];
             Finley_checkPtr(mpi_requests);
             Finley_checkPtr(mpi_stati);
          #endif
 
         /* count the number of elements that have to be sent to each processor (send_count) 
            and define a new element owner as the processor with the largest number of DOFs and the smallest id */
-        send_count=TMPMEMALLOC(size,dim_t);
-        recv_count=TMPMEMALLOC(size,dim_t);
-        newOwner=TMPMEMALLOC(self->numElements,Esys_MPI_rank);
+        send_count=new dim_t[size];
+        recv_count=new dim_t[size];
+        newOwner=new Esys_MPI_rank[self->numElements];
         if ( !( Finley_checkPtr(send_count) || Finley_checkPtr(recv_count) || Finley_checkPtr(newOwner) ) ) {
            memset(send_count, 0, size_size);
            #pragma omp parallel private(p,loc_proc_mask,loc_send_count)
@@ -106,13 +106,13 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
            numElementsInBuffer=0;
            for (p=0;p<size;++p) numElementsInBuffer+=send_count[p];
            /* allocate buffers */
-           Id_buffer=TMPMEMALLOC(numElementsInBuffer,index_t);
-           Tag_buffer=TMPMEMALLOC(numElementsInBuffer,index_t);
-           Owner_buffer=TMPMEMALLOC(numElementsInBuffer,Esys_MPI_rank);
-           Nodes_buffer=TMPMEMALLOC(numElementsInBuffer*NN,index_t);
-           send_offset=TMPMEMALLOC(size,index_t);
-           recv_offset=TMPMEMALLOC(size,index_t);
-           proc_mask=TMPMEMALLOC(size,bool_t);
+           Id_buffer=new index_t[numElementsInBuffer];
+           Tag_buffer=new index_t[numElementsInBuffer];
+           Owner_buffer=new Esys_MPI_rank[numElementsInBuffer];
+           Nodes_buffer=new index_t[numElementsInBuffer*NN];
+           send_offset=new index_t[size];
+           recv_offset=new index_t[size];
+           proc_mask=new bool_t[size];
            if ( !( Finley_checkPtr(Id_buffer) || Finley_checkPtr(Tag_buffer) || Finley_checkPtr(Owner_buffer) ||
                    Finley_checkPtr(Nodes_buffer) || Finley_checkPtr(send_offset) || Finley_checkPtr(recv_offset) || 
                    Finley_checkPtr(proc_mask) )) {
@@ -199,21 +199,21 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
               #endif
            }
            /* clear buffer */
-           TMPMEMFREE(Id_buffer);
-           TMPMEMFREE(Tag_buffer);
-           TMPMEMFREE(Owner_buffer);
-           TMPMEMFREE(Nodes_buffer);
-           TMPMEMFREE(send_offset);
-           TMPMEMFREE(recv_offset);
-           TMPMEMFREE(proc_mask);
+           delete[] Id_buffer;
+           delete[] Tag_buffer;
+           delete[] Owner_buffer;
+           delete[] Nodes_buffer;
+           delete[] send_offset;
+           delete[] recv_offset;
+           delete[] proc_mask;
         }
         #ifdef ESYS_MPI
-            TMPMEMFREE(mpi_requests);
-            TMPMEMFREE(mpi_stati);
+            delete[] mpi_requests;
+            delete[] mpi_stati;
         #endif
-        TMPMEMFREE(send_count);
-        TMPMEMFREE(recv_count);
-        TMPMEMFREE(newOwner);
+        delete[] send_count;
+        delete[] recv_count;
+        delete[] newOwner;
      } else {
         #pragma omp for private(e,i) schedule(static)
         for (e=0;e<self->numElements;e++) {
