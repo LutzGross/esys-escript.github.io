@@ -50,7 +50,7 @@ typedef dim_t(Finley_Quad_getMacro)(dim_t numSubElements, int numQuadNodes, doub
 
 typedef struct Finley_QuadInfo {
   Finley_QuadTypeId TypeId;                  /* the id */
-  char* Name;                                /* the name in text form e.g. Line,Rec,... */
+  const char* Name;                                /* the name in text form e.g. Line,Rec,... */
   dim_t numDim;                              /* spatial dimension */
   dim_t numVertices;                         /* number of vertices of the element */
   Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points for a given order */
