@@ -550,6 +550,11 @@ public:
             const std::vector<int>& multiplier) const = 0;
 
     /**
+    */
+    virtual void writeBinaryGrid(const escript::Data& in,
+                                 std::string filename, int byteOrder) const = 0;
+
+    /**
        \brief
        returns true if this rank owns the sample id on given function space
     */
@@ -565,20 +570,20 @@ public:
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    virtual IndexVector getNumNodesPerDim() const = 0;
+    virtual const int* getNumNodesPerDim() const = 0;
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    virtual IndexVector getNumElementsPerDim() const = 0;
+    virtual const int* getNumElementsPerDim() const = 0;
 
     /**
        \brief
        returns the number of face elements in the order
        (left,right,bottom,top,[front,back]) on current MPI rank
     */
-    virtual IndexVector getNumFacesPerBoundary() const = 0;
+    virtual const int* getNumFacesPerBoundary() const = 0;
 
     /**
        \brief
@@ -590,14 +595,13 @@ public:
        \brief
        returns the number of spatial subdivisions in each dimension
     */
-    virtual IndexVector getNumSubdivisionsPerDim() const = 0;
+    virtual const int* getNumSubdivisionsPerDim() const = 0;
 
     /**
        \brief
-       returns the first coordinate value and the node spacing along given
-       dimension as a pair
+       returns the index'th coordinate value in given dimension for this rank
     */
-    virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const = 0;
+    virtual double getLocalCoordinate(int index, int dim) const = 0;
 
 protected:
     dim_t m_numDim;

@@ -29,7 +29,6 @@ headers = """
 	EsysAssert.h
 	EsysAssertException.h
 	EsysException.h
-	EsysTypes.h
 	Esys_MPI.h
 	error.h
 	esys_malloc.h
