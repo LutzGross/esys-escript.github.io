@@ -88,8 +88,8 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     {
 	/* Each CPU will get at most chunkSize nodes so the message has to be sufficiently large */
 	int chunkSize = numNodes / mpi_info->size + 1, totalNodes = 0, chunkNodes = 0, nextCPU = 1;
-	int *tempInts = TMPMEMALLOC(chunkSize * 3 + 1, index_t);	/* Stores the integer message data */
-	double *tempCoords = TMPMEMALLOC(chunkSize * numDim, double);	/* Stores the double message data */
+	int *tempInts = new  index_t[chunkSize * 3 + 1];	/* Stores the integer message data */
+	double *tempCoords = new  double[chunkSize * numDim];	/* Stores the double message data */
 
 	/*
 	   Read chunkSize nodes, send it in a chunk to worker CPU which copies chunk into its local mesh_p
@@ -187,8 +187,8 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		}
 	    }
 	}
-	TMPMEMFREE(tempInts);
-	TMPMEMFREE(tempCoords);
+	delete[] tempInts;
+	delete[] tempCoords;
     }
 
     /* ***********************************  read elements *************************************************************************************** */
@@ -234,7 +234,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     if (Dudley_noError())
     {
 	int chunkSize = numEle / mpi_info->size + 1, totalEle = 0, nextCPU = 1, chunkEle = 0;
-	int *tempInts = TMPMEMALLOC(chunkSize * (2 + numNodes) + 1, index_t);	/* Store Id + Tag + node list (+ one int at end for chunkEle) */
+	int *tempInts = new  index_t[chunkSize * (2 + numNodes) + 1];	/* Store Id + Tag + node list (+ one int at end for chunkEle) */
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0)	/* Master */
 	{
@@ -302,7 +302,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		}
 	    }
 	}
-	TMPMEMFREE(tempInts);
+	delete[] tempInts;
     }
     /* ******************** end of Read the element data ***************************************************** */
 
@@ -343,7 +343,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     if (Dudley_noError())
     {
 	int chunkSize = numEle / mpi_info->size + 1, totalEle = 0, nextCPU = 1, chunkEle = 0;
-	int *tempInts = TMPMEMALLOC(chunkSize * (2 + numNodes) + 1, index_t);	/* Store Id + Tag + node list (+ one int at end for chunkEle) */
+	int *tempInts = new  index_t[chunkSize * (2 + numNodes) + 1];	/* Store Id + Tag + node list (+ one int at end for chunkEle) */
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0)	/* Master */
 	{
@@ -411,7 +411,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    }
 	}
 
-	TMPMEMFREE(tempInts);
+	delete[] tempInts;
     }
     /* ************************************* end of Read the face element data *************************************** */
 
@@ -451,7 +451,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     if (Dudley_noError())
     {
 	int chunkSize = numEle / mpi_info->size + 1, totalEle = 0, nextCPU = 1, chunkEle = 0;
-	int *tempInts = TMPMEMALLOC(chunkSize * (2 + numNodes) + 1, index_t);	/* Store Id + Tag + node list (+ one int at end for chunkEle) */
+	int *tempInts = new  index_t[chunkSize * (2 + numNodes) + 1];	/* Store Id + Tag + node list (+ one int at end for chunkEle) */
 	/* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
 	if (mpi_info->rank == 0)	/* Master */
 	{
@@ -520,7 +520,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    }
 	}
 
-	TMPMEMFREE(tempInts);
+	delete[] tempInts;
     }
     /* ******************************** end of Read the nodal element data ************************************ */
  /******************  get the name tags *****************************************/
@@ -573,7 +573,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		fseek(fileHandle_p, 0L, SEEK_END);
 		end_pos = ftell(fileHandle_p);
 		fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
-		remainder = TMPMEMALLOC(end_pos - cur_pos + 1, char);
+		remainder = new  char[end_pos - cur_pos + 1];
 		if (!feof(fileHandle_p))
 		{
 		    scan_ret = fread(remainder, (size_t) end_pos - cur_pos, sizeof(char), fileHandle_p);
@@ -596,7 +596,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	len = (size_t) len_i;
 	if (mpi_info->rank != 0)
 	{
-	    remainder = TMPMEMALLOC(len + 1, char);
+	    remainder = new  char[len + 1];
 	    remainder[0] = 0;
 	}
 	if (MPI_Bcast(remainder, len + 1, MPI_CHAR, 0, mpi_info->comm) != MPI_SUCCESS)
@@ -616,7 +616,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	    while (NULL != (ptr = strchr(ptr, '\n')) && *ptr);
 	}
 	if (remainder)
-	    TMPMEMFREE(remainder);
+	    delete[] remainder;
     }
 
     /* close file */

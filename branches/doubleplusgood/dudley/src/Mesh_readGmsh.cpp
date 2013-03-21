@@ -149,11 +149,11 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 		scan_ret = fscanf(fileHandle_p, "%d", &totalNumElements);
 		FSCANF_CHECK(scan_ret, "fscanf: Dudley_Mesh_readGmsh");
 
-		id = TMPMEMALLOC(totalNumElements, index_t);
-		tag = TMPMEMALLOC(totalNumElements, index_t);
+		id = new  index_t[totalNumElements];
+		tag = new  index_t[totalNumElements];
 
-		element_type = TMPMEMALLOC(totalNumElements, Dudley_ElementTypeId);
-		vertices = TMPMEMALLOC(totalNumElements * MAX_numNodes_gmsh, index_t);
+		element_type = new  Dudley_ElementTypeId[totalNumElements];
+		vertices = new  index_t[totalNumElements * MAX_numNodes_gmsh];
 		if (!
 		    (Dudley_checkPtr(id) || Dudley_checkPtr(tag) || Dudley_checkPtr(element_type)
 		     || Dudley_checkPtr(vertices)))
@@ -358,10 +358,10 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 		    }
 		}
 		/* and clean up */
-		TMPMEMFREE(id);
-		TMPMEMFREE(tag);
-		TMPMEMFREE(element_type);
-		TMPMEMFREE(vertices);
+		delete[] id;
+		delete[] tag;
+		delete[] element_type;
+		delete[] vertices;
 	    }      
 	    /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
 	    else if (!strncmp(&line[1], "PhysicalNames", 13)) {

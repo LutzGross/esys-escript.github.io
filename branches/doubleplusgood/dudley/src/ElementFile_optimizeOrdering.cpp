@@ -37,8 +37,8 @@ void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in)
 	if ((*in)->numElements < 1)
 	    return;
 	NN = (*in)-> /*referenceElementSet-> */ numNodes;
-	item_list = TMPMEMALLOC((*in)->numElements, Dudley_Util_ValueAndIndex);
-	index = TMPMEMALLOC((*in)->numElements, index_t);
+	item_list = new  Dudley_Util_ValueAndIndex[(*in)->numElements];
+	index = new  index_t[(*in)->numElements];
 	if (!(Dudley_checkPtr(item_list) || Dudley_checkPtr(index)))
 	{
 
@@ -70,7 +70,7 @@ void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in)
 		}
 	    }
 	}
-	TMPMEMFREE(item_list);
-	TMPMEMFREE(index);
+	delete[] item_list;
+	delete[] index;
     }
 }
