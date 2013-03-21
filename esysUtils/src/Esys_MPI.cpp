@@ -34,7 +34,7 @@ Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
 
   Esys_MPIInfo *out=NULL;
 
-  out = MEMALLOC( 1, Esys_MPIInfo );
+  out = new Esys_MPIInfo;
   
   out->reference_counter = 0;
   out->msg_tag_counter = 0;
@@ -59,7 +59,7 @@ Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
 void Esys_MPIInfo_free( Esys_MPIInfo *in )
 {
   if( in!=NULL) {
-    if (!(--in->reference_counter) ) MEMFREE( in );
+    if (!(--in->reference_counter) ) delete in;
   }
 }
 
@@ -157,7 +157,7 @@ int Esys_MPIInfo_initialized( void )
 /* Append MPI rank to file name if multiple MPI processes */
 char *Esys_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
   /* Make plenty of room for the mpi_rank number and terminating '\0' */
-  char *newFileName = TMPMEMALLOC(strlen(fileName)+20,char);
+  char *newFileName = new char[strlen(fileName)+20];
   strncpy(newFileName, fileName, strlen(fileName)+1);
   if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
   return(newFileName);

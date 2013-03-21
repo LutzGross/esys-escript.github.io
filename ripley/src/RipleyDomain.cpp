@@ -984,8 +984,8 @@ Paso_Pattern* RipleyDomain::createPasoPattern(const IndexVector& ptr,
         const IndexVector& index, const dim_t M, const dim_t N) const
 {
     // paso will manage the memory
-    index_t* indexC = MEMALLOC(index.size(), index_t);
-    index_t* ptrC = MEMALLOC(ptr.size(), index_t);
+    index_t* indexC = new  index_t[index.size()];
+    index_t* ptrC = new  index_t[ptr.size()];
     copy(index.begin(), index.end(), indexC);
     copy(ptr.begin(), ptr.end(), ptrC);
     return Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC);

@@ -138,7 +138,7 @@ void Paso_test_matrix(Paso_SystemMatrix* A, double* b, Paso_Options* options ) {
    
    dim_t n=Paso_SystemMatrix_getTotalNumRows(A);
    double *out=NULL;
-   out=MEMALLOC(n,double);
+   out=new double[n];
    
    if (Paso_checkPtr(out)) {
       fprintf(stderr,"Cannot allocate memory\n");
@@ -146,7 +146,7 @@ void Paso_test_matrix(Paso_SystemMatrix* A, double* b, Paso_Options* options ) {
    }
    Paso_solve(A,out,b,options);
    
-   MEMFREE(out);
+   delete[] out;
    
 }
 
@@ -154,7 +154,7 @@ void Paso_test_data(char *fileName_p, double* b, Paso_Options* options ) {
    
    Paso_SystemMatrix* A=NULL;
    dim_t n=Paso_SystemMatrix_getTotalNumRows(A);
-   double *out=MEMALLOC(n,double);
+   double *out=new double[n];
    A=Paso_SystemMatrix_loadMM_toCSR(fileName_p);
 
    if (Paso_checkPtr(out)) {
@@ -164,6 +164,6 @@ void Paso_test_data(char *fileName_p, double* b, Paso_Options* options ) {
    Paso_solve(A,out,b,options);
    
    Paso_SystemMatrix_free(A);
-   MEMFREE(out);
+   delete[] out;
 }
 
