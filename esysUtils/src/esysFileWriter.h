@@ -141,7 +141,7 @@ public:
 #ifdef ESYS_MPI
             MPI_Status mpiStatus;
             std::string contents = oss.str();
-            int mpiErr = MPI_File_write_at_all(
+            int mpiErr = MPI_File_write_at(
                 fileHandle, offset, const_cast<char*>(contents.c_str()),
                 contents.length(), MPI_CHAR, &mpiStatus);
             oss.str(std::string());

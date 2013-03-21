@@ -27,6 +27,34 @@ using namespace boost::python;
 
 namespace ripley {
 
+void writeBinaryGrid(std::string filename, const escript::Data& d,
+        const char byteorder, const char datatype, const char datasize)
+{
+    const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(d.getDomain().get());
+    if (!dom)
+        throw RipleyException("Function space must be on a ripley domain");
+
+    if (datatype != 'f')
+        throw RipleyException("only float data supported");
+
+    if (datasize != '4')
+        throw RipleyException("only single-precision data supported");
+
+    switch (byteorder) {
+        case '=':
+            dom->writeBinaryGrid(d, filename, RIPLEY_BYTE_ORDER);
+            break;
+        case '<':
+            dom->writeBinaryGrid(d, filename, RIPLEY_LITTLE_ENDIAN);
+            break;
+        case '>':
+            dom->writeBinaryGrid(d, filename, RIPLEY_BIG_ENDIAN);
+            break;
+        default:
+            throw RipleyException("unrecognized byte order argument");
+    }
+}
+
 escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
         const object& pyFirst, const object& pyNum, const object& pyMultiplier,
         const object& pyShape, double fill=0.)
@@ -260,6 +288,8 @@ BOOST_PYTHON_MODULE(ripleycpp)
     def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
+
+    def("_writeBinaryGrid", &ripley::writeBinaryGrid);
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)

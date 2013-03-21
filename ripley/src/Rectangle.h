@@ -79,6 +79,11 @@ public:
             const std::vector<int>& multiplier) const;
 
     /**
+    */
+    virtual void writeBinaryGrid(const escript::Data& in,
+                                 std::string filename, int byteOrder) const;
+
+    /**
        \brief
        returns the array of reference numbers for a function space type
        \param fsType The function space type
@@ -110,7 +115,7 @@ public:
        \brief
        returns the number of data points summed across all MPI processes
     */
-    virtual int getNumDataPointsGlobal() const { return (m_gNE0+1)*(m_gNE1+1); }
+    virtual int getNumDataPointsGlobal() const;
 
     /**
        \brief
@@ -123,20 +128,20 @@ public:
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    virtual IndexVector getNumNodesPerDim() const;
+    virtual const int* getNumNodesPerDim() const { return m_NN; }
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    virtual IndexVector getNumElementsPerDim() const;
+    virtual const int* getNumElementsPerDim() const { return m_NE; }
 
     /**
        \brief
        returns the number of face elements in the order
-       (left,right,bottom,top,[front,back]) on current MPI rank
+       (left,right,bottom,top) on current MPI rank
     */
-    virtual IndexVector getNumFacesPerBoundary() const;
+    virtual const int* getNumFacesPerBoundary() const { return m_faceCount; }
 
     /**
        \brief
@@ -148,18 +153,17 @@ public:
        \brief
        returns the number of spatial subdivisions in each dimension
     */
-    virtual IndexVector getNumSubdivisionsPerDim() const;
+    virtual const int* getNumSubdivisionsPerDim() const { return m_NX; }
 
     /**
        \brief
-       returns the first coordinate value and the node spacing along given
-       dimension as a pair
+       returns the index'th coordinate value in given dimension for this rank
     */
-    virtual std::pair<double,double> getFirstCoordAndSpacing(dim_t dim) const;
+    virtual double getLocalCoordinate(int index, int dim) const;
 
 protected:
-    virtual dim_t getNumNodes() const { return m_N0*m_N1; }
-    virtual dim_t getNumElements() const { return m_NE0*m_NE1; }
+    virtual dim_t getNumNodes() const;
+    virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
@@ -210,28 +214,34 @@ private:
            bool addS, bool addF, index_t firstNode, dim_t nEq=1, dim_t nComp=1) const;
 
     /// total number of elements in each dimension
-    dim_t m_gNE0, m_gNE1;
+    dim_t m_gNE[2];
 
-    /// location of domain
-    double m_x0, m_y0;
+    /// origin of domain
+    double m_origin[2];
 
     /// side lengths of domain
-    double m_l0, m_l1;
+    double m_length[2];
+
+    /// grid spacings / cell sizes of domain
+    double m_dx[2];
 
     /// number of spatial subdivisions
-    int m_NX, m_NY;
+    int m_NX[2];
 
     /// number of elements for this rank in each dimension including shared
-    dim_t m_NE0, m_NE1;
+    dim_t m_NE[2];
 
     /// number of own elements for this rank in each dimension
-    dim_t m_ownNE0, m_ownNE1;
+    dim_t m_ownNE[2];
 
     /// number of nodes for this rank in each dimension
-    dim_t m_N0, m_N1;
+    dim_t m_NN[2];
 
     /// first node on this rank is at (offset0,offset1) in global mesh
-    dim_t m_offset0, m_offset1;
+    dim_t m_offset[2];
+
+    /// number of face elements per edge (left, right, bottom, top)
+    int m_faceCount[4];
 
     /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
@@ -256,6 +266,53 @@ private:
     // the Paso System Matrix pattern
     Paso_SystemMatrixPattern* m_pattern;
 };
+
+////////////////////////////// inline methods ////////////////////////////////
+
+inline int Rectangle::getNumDataPointsGlobal() const
+{
+    return (m_gNE[0]+1)*(m_gNE[1]+1);
+}
+
+inline double Rectangle::getLocalCoordinate(int index, int dim) const
+{
+    EsysAssert((dim>=0 && dim<=1), "'dim' out of bounds");
+    EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
+    return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
+}
+
+inline Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
+                                                   bool reducedColOrder) const
+{
+    // TODO: reduced
+    return m_pattern;
+}
+
+
+//protected
+inline dim_t Rectangle::getNumDOF() const
+{
+    return (m_gNE[0]+1)/m_NX[0]*(m_gNE[1]+1)/m_NX[1];
+}
+
+//protected
+inline dim_t Rectangle::getNumNodes() const
+{
+    return m_NN[0]*m_NN[1];
+}
+
+//protected
+inline dim_t Rectangle::getNumElements() const
+{
+    return m_NE[0]*m_NE[1];
+}
+
+//protected
+inline dim_t Rectangle::getNumFaceElements() const
+{
+    return m_faceCount[0] + m_faceCount[1] + m_faceCount[2] + m_faceCount[3];
+}
+
 
 } // end of namespace ripley
 
