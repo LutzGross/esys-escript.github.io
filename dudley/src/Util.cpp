@@ -690,11 +690,11 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
 
 	if (minFoundValue < INDEX_T_MAX)
 	{
-	    newValuesInUse = MEMALLOC(nv + 1, index_t);
+	    newValuesInUse = new index_t[nv + 1];
 	    if (*valuesInUse != NULL)
 	    {
 		memcpy(newValuesInUse, *valuesInUse, sizeof(index_t) * nv);
-		MEMFREE(*valuesInUse);
+		delete[] *valuesInUse;
 	    }
 	    newValuesInUse[nv] = minFoundValue;
 	    *valuesInUse = newValuesInUse;
