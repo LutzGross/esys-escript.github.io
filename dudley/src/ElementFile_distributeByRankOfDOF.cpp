@@ -49,24 +49,24 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
     if (size > 1)
     {
 #ifdef ESYS_MPI
-	mpi_requests = TMPMEMALLOC(8 * size, MPI_Request);
-	mpi_stati = TMPMEMALLOC(8 * size, MPI_Status);
+	mpi_requests = new  MPI_Request[8 * size];
+	mpi_stati = new  MPI_Status[8 * size];
 	Dudley_checkPtr(mpi_requests);
 	Dudley_checkPtr(mpi_stati);
 #endif
 
 	/* count the number elements that have to be send to each processor (send_count) 
 	   and define a new element owner as the processor with the largest number of DOFs and the smallest id */
-	send_count = TMPMEMALLOC(size, dim_t);
-	recv_count = TMPMEMALLOC(size, dim_t);
-	newOwner = TMPMEMALLOC(self->numElements, Esys_MPI_rank);
+	send_count = new  dim_t[size];
+	recv_count = new  dim_t[size];
+	newOwner = new  Esys_MPI_rank[self->numElements];
 	if (!(Dudley_checkPtr(send_count) || Dudley_checkPtr(recv_count) || Dudley_checkPtr(newOwner)))
 	{
 	    memset(send_count, 0, size_size);
 #pragma omp parallel private(p,loc_proc_mask,loc_send_count)
 	    {
-		loc_proc_mask = THREAD_MEMALLOC(size, dim_t);
-		loc_send_count = THREAD_MEMALLOC(size, dim_t);
+		loc_proc_mask = new  dim_t[size];
+		loc_send_count = new  dim_t[size];
 		memset(loc_send_count, 0, size_size);
 #pragma omp for private(e,j,loc_proc_mask_max) schedule(static)
 		for (e = 0; e < self->numElements; e++)
@@ -102,8 +102,8 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		    for (p = 0; p < size; ++p)
 			send_count[p] += loc_send_count[p];
 		}
-		THREAD_MEMFREE(loc_proc_mask);
-		THREAD_MEMFREE(loc_send_count);
+		delete[] loc_proc_mask;
+		delete[] loc_send_count;
 	    }
 #ifdef ESYS_MPI
 	    MPI_Alltoall(send_count, 1, MPI_INT, recv_count, 1, MPI_INT, self->MPIInfo->comm);
@@ -121,13 +121,13 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 	    for (p = 0; p < size; ++p)
 		numElementsInBuffer += send_count[p];
 	    /* allocate buffers */
-	    Id_buffer = TMPMEMALLOC(numElementsInBuffer, index_t);
-	    Tag_buffer = TMPMEMALLOC(numElementsInBuffer, index_t);
-	    Owner_buffer = TMPMEMALLOC(numElementsInBuffer, Esys_MPI_rank);
-	    Nodes_buffer = TMPMEMALLOC(numElementsInBuffer * NN, index_t);
-	    send_offset = TMPMEMALLOC(size, index_t);
-	    recv_offset = TMPMEMALLOC(size, index_t);
-	    proc_mask = TMPMEMALLOC(size, bool_t);
+	    Id_buffer = new  index_t[numElementsInBuffer];
+	    Tag_buffer = new  index_t[numElementsInBuffer];
+	    Owner_buffer = new  Esys_MPI_rank[numElementsInBuffer];
+	    Nodes_buffer = new  index_t[numElementsInBuffer * NN];
+	    send_offset = new  index_t[size];
+	    recv_offset = new  index_t[size];
+	    proc_mask = new  bool_t[size];
 	    if (!(Dudley_checkPtr(Id_buffer) || Dudley_checkPtr(Tag_buffer) || Dudley_checkPtr(Owner_buffer) ||
 		  Dudley_checkPtr(Nodes_buffer) || Dudley_checkPtr(send_offset) || Dudley_checkPtr(recv_offset) ||
 		  Dudley_checkPtr(proc_mask)))
@@ -226,21 +226,21 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 #endif
 	    }
 	    /* clear buffer */
-	    TMPMEMFREE(Id_buffer);
-	    TMPMEMFREE(Tag_buffer);
-	    TMPMEMFREE(Owner_buffer);
-	    TMPMEMFREE(Nodes_buffer);
-	    TMPMEMFREE(send_offset);
-	    TMPMEMFREE(recv_offset);
-	    TMPMEMFREE(proc_mask);
+	    delete[] Id_buffer;
+	    delete[] Tag_buffer;
+	    delete[] Owner_buffer;
+	    delete[] Nodes_buffer;
+	    delete[] send_offset;
+	    delete[] recv_offset;
+	    delete[] proc_mask;
 	}
 #ifdef ESYS_MPI
-	TMPMEMFREE(mpi_requests);
-	TMPMEMFREE(mpi_stati);
+	delete[] mpi_requests;
+	delete[] mpi_stati;
 #endif
-	TMPMEMFREE(send_count);
-	TMPMEMFREE(recv_count);
-	TMPMEMFREE(newOwner);
+	delete[] send_count;
+	delete[] recv_count;
+	delete[] newOwner;
     }
     else
     {

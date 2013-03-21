@@ -91,11 +91,11 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduce
     rcv_len = new  dim_t[mpiSize];
     snd_len = new  dim_t[mpiSize];
 #ifdef ESYS_MPI
-    mpi_requests = MEMALLOC(mpiSize * 2, MPI_Request);
-    mpi_stati = MEMALLOC(mpiSize * 2, MPI_Status);
+    mpi_requests = new  MPI_Request[mpiSize * 2];
+    mpi_stati = new  MPI_Status[mpiSize * 2];
 #else
-    mpi_requests = MEMALLOC(mpiSize * 2, int);
-    mpi_stati = MEMALLOC(mpiSize * 2, int);
+    mpi_requests = new  int[mpiSize * 2];
+    mpi_stati = new  int[mpiSize * 2];
 #endif
     wanted_DOFs = new  index_t[numNodes];
     nodeMask = new  index_t[numNodes];

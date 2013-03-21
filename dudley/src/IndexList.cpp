@@ -153,7 +153,7 @@ void Dudley_IndexList_insertIndex(Dudley_IndexList * in, index_t index)
 	/* if in->index is full check the extension */
 	if (in->extension == NULL)
 	{
-	    in->extension = TMPMEMALLOC(1, Dudley_IndexList);
+	    in->extension = new Dudley_IndexList;
 	    if (Dudley_checkPtr(in->extension))
 		return;
 	    in->extension->n = 0;
@@ -223,7 +223,7 @@ void Dudley_IndexList_free(Dudley_IndexList * in)
     if (in != NULL)
     {
 	Dudley_IndexList_free(in->extension);
-	TMPMEMFREE(in);
+	delete in;
     }
 }
 
@@ -236,7 +236,7 @@ Paso_Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList
     index_t *index = NULL;
     Paso_Pattern *out = NULL;
 
-    ptr = MEMALLOC(n + 1 - n0, index_t);
+    ptr = new index_t[n + 1 - n0];
     if (!Dudley_checkPtr(ptr))
     {
 	/* get the number of connections per row */
@@ -255,7 +255,7 @@ Paso_Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList
 	}
 	ptr[n - n0] = s;
 	/* fill index */
-	index = MEMALLOC(ptr[n - n0], index_t);
+	index = new index_t[ptr[n - n0]];
 	if (!Dudley_checkPtr(index))
 	{
 #pragma omp parallel for schedule(static)
@@ -268,8 +268,8 @@ Paso_Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList
     }
     if (!Dudley_noError())
     {
-	MEMFREE(ptr);
-	MEMFREE(index);
+	delete[] ptr;
+	delete[] index;
 	Paso_Pattern_free(out);
     }
     return out;

@@ -36,8 +36,8 @@ void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
 
     /* first step is to distribute the elements according to a global distribution of DOF */
 
-    distribution = TMPMEMALLOC(in->MPIInfo->size + 1, index_t);
-    node_distribution = TMPMEMALLOC(in->MPIInfo->size + 1, index_t);
+    distribution = new  index_t[in->MPIInfo->size + 1];
+    node_distribution = new  index_t[in->MPIInfo->size + 1];
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(node_distribution)))
     {
 	/* first we create dense labeling for the DOFs */
@@ -76,8 +76,8 @@ void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
     if (Dudley_noError())
     {
 
-	maskReducedNodes = TMPMEMALLOC(in->Nodes->numNodes, index_t);
-	indexReducedNodes = TMPMEMALLOC(in->Nodes->numNodes, index_t);
+	maskReducedNodes = new  index_t[in->Nodes->numNodes];
+	indexReducedNodes = new  index_t[in->Nodes->numNodes];
 	if (!(Dudley_checkPtr(maskReducedNodes) || Dudley_checkPtr(indexReducedNodes)))
 	{
 
@@ -108,12 +108,12 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 						   node_distribution);
 	}
 
-	TMPMEMFREE(maskReducedNodes);
-	TMPMEMFREE(indexReducedNodes);
+	delete[] maskReducedNodes;
+	delete[] indexReducedNodes;
     }
 
-    TMPMEMFREE(distribution);
-    TMPMEMFREE(node_distribution);
+    delete[] distribution;
+    delete[] node_distribution;
 
     Dudley_Mesh_setTagsInUse(in);
     return;

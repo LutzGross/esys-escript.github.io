@@ -37,22 +37,22 @@ void Dudley_ElementFile_allocTable(Dudley_ElementFile * in, dim_t numElements)
     Dudley_resetError();
     /*  allocate memory: */
     numNodes = in->numNodes;
-    Owner2 = MEMALLOC(numElements, Esys_MPI_rank);
-    Id2 = MEMALLOC(numElements, index_t);
-    Nodes2 = MEMALLOC(numElements * in->numNodes, index_t);
-    Tag2 = MEMALLOC(numElements, index_t);
-    Color2 = MEMALLOC(numElements, index_t);
+    Owner2 = new  Esys_MPI_rank[numElements];
+    Id2 = new  index_t[numElements];
+    Nodes2 = new  index_t[numElements * in->numNodes];
+    Tag2 = new  index_t[numElements];
+    Color2 = new  index_t[numElements];
 
     /*  if fine, deallocate the old table and replace by new: */
 
     if (Dudley_checkPtr(Owner2) || Dudley_checkPtr(Id2) || Dudley_checkPtr(Nodes2) ||
 	Dudley_checkPtr(Tag2) || Dudley_checkPtr(Color2))
     {
-	MEMFREE(Owner2);
-	MEMFREE(Nodes2);
-	MEMFREE(Id2);
-	MEMFREE(Tag2);
-	MEMFREE(Color2);
+	delete[] Owner2;
+	delete[] Nodes2;
+	delete[] Id2;
+	delete[] Tag2;
+	delete[] Color2;
     }
     else
     {
@@ -91,7 +91,7 @@ void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in)
 	Dudley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
 	if (Dudley_noError())
 	{
-	    MEMFREE(in->tagsInUse);
+	    delete[] in->tagsInUse;
 	    in->tagsInUse = tagsInUse;
 	    in->numTagsInUse = numTagsInUse;
 	}
@@ -102,12 +102,12 @@ void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in)
 
 void Dudley_ElementFile_freeTable(Dudley_ElementFile * in)
 {
-    MEMFREE(in->Owner);
-    MEMFREE(in->Id);
-    MEMFREE(in->Nodes);
-    MEMFREE(in->Tag);
-    MEMFREE(in->Color);
-    MEMFREE(in->tagsInUse);
+    delete[] in->Owner;
+    delete[] in->Id;
+    delete[] in->Nodes;
+    delete[] in->Tag;
+    delete[] in->Color;
+    delete[] in->tagsInUse;
     in->numTagsInUse = 0;
     in->numElements = 0;
     in->maxColor = -1;

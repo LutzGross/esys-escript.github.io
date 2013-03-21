@@ -25,7 +25,7 @@
 
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_Jacobeans_alloc(void)
 {
-    Dudley_ElementFile_Jacobeans *out = MEMALLOC(1, Dudley_ElementFile_Jacobeans);
+    Dudley_ElementFile_Jacobeans *out = new Dudley_ElementFile_Jacobeans;
     if (Dudley_checkPtr(out))
     {
 	return NULL;
@@ -49,9 +49,9 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans * in)
 {
     if (in != NULL)
     {
-	MEMFREE(in->DSDX);
-	MEMFREE(in->absD);
-	MEMFREE(in);
+	delete[] in->DSDX;
+	delete[] in->absD;
+	delete in;
     }
 }
 
@@ -79,9 +79,9 @@ Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementF
 	out->numShapes = self->numDim + 1;
 	out->numElements = self->numElements;
 	if (out->DSDX == NULL)
-	    out->DSDX = MEMALLOC((out->numElements) * (out->numShapes) * (out->numDim) * (out->numQuad), double);
+	    out->DSDX = new  double[(out->numElements) * (out->numShapes) * (out->numDim) * (out->numQuad)];
 	if (out->absD == NULL)
-	    out->absD = MEMALLOC(out->numElements, double);
+	    out->absD = new  double[out->numElements];
 	if (!(Dudley_checkPtr(out->DSDX) || Dudley_checkPtr(out->absD)))
 	{
 	  /*========================== dim = 1 ============================================== */

@@ -80,8 +80,8 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
        and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
        new local id of global node i) */
     len = (max_id >= min_id) ? max_id - min_id + 1 : 0;
-    globalToNewLocalNodeLabels = TMPMEMALLOC(len, index_t);	/* local mask for used nodes */
-    newLocalToGlobalNodeLabels = TMPMEMALLOC(len, index_t);
+    globalToNewLocalNodeLabels = new  index_t[len];	/* local mask for used nodes */
+    newLocalToGlobalNodeLabels = new  index_t[len];
     if (!((Dudley_checkPtr(globalToNewLocalNodeLabels) && Dudley_checkPtr(newLocalToGlobalNodeLabels))))
     {
 
@@ -139,8 +139,8 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 	    Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels, min_id, in);
 	}
     }
-    TMPMEMFREE(globalToNewLocalNodeLabels);
-    TMPMEMFREE(newLocalToGlobalNodeLabels);
+    delete[] globalToNewLocalNodeLabels;
+    delete[] newLocalToGlobalNodeLabels;
     if (!Dudley_noError())
     {
 	Dudley_NodeFile_free(newNodeFile);

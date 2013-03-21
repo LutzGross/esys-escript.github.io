@@ -34,7 +34,7 @@ Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo * MPIInfo)
 
     /*  allocate the return value */
 
-    out = MEMALLOC(1, Dudley_NodeFile);
+    out = new Dudley_NodeFile;
     if (Dudley_checkPtr(out))
 	return NULL;
     out->numNodes = 0;
@@ -77,7 +77,7 @@ void Dudley_NodeFile_free(Dudley_NodeFile * in)
     {
 	Dudley_NodeFile_freeTable(in);
 	Esys_MPIInfo_free(in->MPIInfo);
-	MEMFREE(in);
+	delete in;
     }
 }
 

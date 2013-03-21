@@ -211,7 +211,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    memset(new_distribution, 0, mpiSize_size);
 #pragma omp parallel private(loc_partition_count)
 	    {
-		loc_partition_count = THREAD_MEMALLOC(mpiSize, dim_t);
+		loc_partition_count = new  dim_t[mpiSize];
 		memset(loc_partition_count, 0, mpiSize_size);
 #pragma omp for private(i)
 		for (i = 0; i < myNumVertices; ++i)
@@ -221,7 +221,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 		    for (i = 0; i < mpiSize; ++i)
 			new_distribution[i] += loc_partition_count[i];
 		}
-		THREAD_MEMFREE(loc_partition_count);
+		delete[] loc_partition_count;
 	    }
 #ifdef ESYS_MPI
 	    /* recvbuf will be the concatenation of each CPU's contribution to new_distribution */

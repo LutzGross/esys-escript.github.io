@@ -36,7 +36,7 @@ Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, Esys_MP
 
     /*  allocate the return value */
 
-    out = MEMALLOC(1, Dudley_ElementFile);
+    out = new Dudley_ElementFile;
     if (Dudley_checkPtr(out))
 	return NULL;
     out->numElements = 0;
@@ -82,7 +82,7 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
 	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
 	Esys_MPIInfo_free(in->MPIInfo);
-	MEMFREE(in);
+	delete in;
     }
 }
 
@@ -135,12 +135,12 @@ dim_t Dudley_ElementFile_getGlobalNumElements(Dudley_ElementFile * in)
     else
     {
 	size = in->MPIInfo->size;
-	distribution = TMPMEMALLOC(size, dim_t);
+	distribution = new  dim_t[size];
 	Dudley_ElementFile_setElementDistribution(in, distribution);
 	out = 0;
 	for (p = 0; p < size; ++p)
 	    out += distribution[p];
-	TMPMEMFREE(distribution);
+	delete[] distribution;
 	return out;
     }
 }
@@ -155,10 +155,10 @@ dim_t Dudley_ElementFile_getMyNumElements(Dudley_ElementFile * in)
     else
     {
 	size = in->MPIInfo->size;
-	distribution = TMPMEMALLOC(size, dim_t);
+	distribution = new  dim_t[size];
 	Dudley_ElementFile_setElementDistribution(in, distribution);
 	out = distribution[in->MPIInfo->rank];
-	TMPMEMFREE(distribution);
+	delete[] distribution;
 	return out;
     }
 
@@ -174,12 +174,12 @@ index_t Dudley_ElementFile_getFirstElement(Dudley_ElementFile * in)
     else
     {
 	size = in->MPIInfo->size;
-	distribution = TMPMEMALLOC(size, dim_t);
+	distribution = new  dim_t[size];
 	Dudley_ElementFile_setElementDistribution(in, distribution);
 	out = 0;
 	for (p = 0; p < in->MPIInfo->rank; ++p)
 	    out += distribution[p];
-	TMPMEMFREE(distribution);
+	delete[] distribution;
 	return out;
     }
 }

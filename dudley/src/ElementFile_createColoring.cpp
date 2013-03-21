@@ -41,7 +41,7 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
     min_id = Dudley_Util_getMinInt(1, numNodes, degreeOfFreedom);
     max_id = Dudley_Util_getMaxInt(1, numNodes, degreeOfFreedom);
     len = max_id - min_id + 1;
-    maskDOF = TMPMEMALLOC(len, index_t);
+    maskDOF = new index_t[len];
     if (!Dudley_checkPtr(maskDOF))
     {
 #pragma omp parallel for private(e) schedule(static)
@@ -105,5 +105,5 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
 	}			/* end of while loop */
     }
     /* all done : */
-    TMPMEMFREE(maskDOF);
+    delete[] maskDOF;
 }
