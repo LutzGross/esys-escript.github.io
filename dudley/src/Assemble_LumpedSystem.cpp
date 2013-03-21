@@ -158,8 +158,8 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	      }
 	      #pragma omp parallel private(color, EM_lumpedMat, row_index, D_p, s, q, k, rtmp, diagS, m_t)
 	      {
-		  EM_lumpedMat = THREAD_MEMALLOC(len_EM_lumpedMat, double);
-		  row_index = THREAD_MEMALLOC(p.numShapes, index_t);
+		  EM_lumpedMat = new double[len_EM_lumpedMat];
+		  row_index = new index_t[p.numShapes];
 		  if (!Dudley_checkPtr(EM_lumpedMat) && !Dudley_checkPtr(row_index))
 		  {
 		      if (p.numEqu == 1)
@@ -382,8 +382,8 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 			  }
 		      }
 		  }			/* end of pointer check */
-		  THREAD_MEMFREE(EM_lumpedMat);
-		  THREAD_MEMFREE(row_index);
+		  delete[] EM_lumpedMat;
+		  delete[] row_index;
 	      }			/* end parallel region */
 	}
     }

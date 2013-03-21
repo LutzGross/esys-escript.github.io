@@ -32,15 +32,15 @@ Dudley_NodeMapping *Dudley_NodeMapping_alloc(dim_t numNodes, index_t * target, i
     /* now we assume min_target=0! */
     max_target = Dudley_Util_getFlaggedMaxInt(1, numNodes, target, unused);
     numTargets = min_target <= max_target ? max_target + 1 : 0;
-    out = MEMALLOC(1, Dudley_NodeMapping);
+    out = new Dudley_NodeMapping;
     if (!Dudley_checkPtr(out))
     {
 	out->reference_counter = 1;
 	out->unused = unused;
 	out->numNodes = numNodes;
 	out->numTargets = numTargets;
-	out->map = MEMALLOC(numTargets, index_t);
-	out->target = MEMALLOC(numNodes, index_t);
+	out->map = new  index_t[numTargets];
+	out->target = new  index_t[numNodes];
 	if (!(Dudley_checkPtr(out->target) || Dudley_checkPtr(out->map)))
 	{
 #pragma omp parallel
@@ -82,9 +82,9 @@ void Dudley_NodeMapping_free(Dudley_NodeMapping * in)
 	in->reference_counter--;
 	if (in->reference_counter <= 0)
 	{
-	    MEMFREE(in->target);
-	    MEMFREE(in->map);
-	    MEMFREE(in);
+	    delete[] in->target;
+	    delete[] in->map;
+	    delete in;
 	}
     }
 }

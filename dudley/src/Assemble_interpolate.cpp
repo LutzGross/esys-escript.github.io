@@ -124,7 +124,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 	{
 	    local_data = NULL;
 	    /* allocation of work arrays */
-	    local_data = THREAD_MEMALLOC(NS_DOF * numComps, double);
+	    local_data = new double[NS_DOF * numComps];
 	    if (!Dudley_checkPtr(local_data))
 	    {
 		numComps_size = (size_t) numComps *sizeof(double);
@@ -143,7 +143,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 						 NS_DOF, local_data, /*basis->S */ shapeFns);
 		}		/* end of element loop */
 	    }
-	    THREAD_MEMFREE(local_data);
+	    delete[] local_data;
 	}			/* end of parallel region */
     }
 }

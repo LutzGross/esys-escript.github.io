@@ -62,8 +62,8 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
            memset(send_count, 0, size_size);
            #pragma omp parallel private(p,loc_proc_mask,loc_send_count)
            {
-               loc_proc_mask=THREAD_MEMALLOC(size,dim_t);
-               loc_send_count=THREAD_MEMALLOC(size,dim_t);
+               loc_proc_mask=new dim_t[size];
+               loc_send_count=new dim_t[size];
                memset(loc_send_count, 0, size_size); 
                #pragma omp for private(e,j,loc_proc_mask_max) schedule(static)
                for (e=0;e<self->numElements;e++) {
@@ -90,8 +90,8 @@ void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI
                {
                  for (p=0;p<size;++p) send_count[p]+=loc_send_count[p];
                }
-               THREAD_MEMFREE(loc_proc_mask);
-               THREAD_MEMFREE(loc_send_count);
+               delete[] loc_proc_mask;
+               delete[] loc_send_count;
            }
            #ifdef ESYS_MPI
               MPI_Alltoall(send_count,1,MPI_INT,recv_count,1,MPI_INT,self->MPIInfo->comm);

@@ -52,8 +52,8 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     for (p = 0; p < mpiSize; ++p)
 	len = MAX(len, distribution[p + 1] - distribution[p]);
 
-    index_list = TMPMEMALLOC(myNumVertices, Dudley_IndexList);
-    newGlobalDOFID = TMPMEMALLOC(len, index_t);
+    index_list = new  Dudley_IndexList[myNumVertices];
+    newGlobalDOFID = new  index_t[len];
     /* create the adjacency structure xadj and adjncy */
     if (!(Dudley_checkPtr(index_list) || Dudley_checkPtr(newGlobalDOFID)))
     {
@@ -134,8 +134,8 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 	    }
 	}
     }
-    TMPMEMFREE(index_list);
-    TMPMEMFREE(newGlobalDOFID);
+    delete[] index_list;
+    delete[] newGlobalDOFID;
 #if 0
     for (i = 0; i < in->Nodes->numNodes; ++i)
 	printf("%d ", in->Nodes->globalDegreesOfFreedom[i]);

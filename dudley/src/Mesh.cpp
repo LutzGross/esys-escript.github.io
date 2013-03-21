@@ -31,7 +31,7 @@ Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info
 
     /*  allocate the return value */
 
-    out = MEMALLOC(1, Dudley_Mesh);
+    out = new Dudley_Mesh;
     if (Dudley_checkPtr(out))
 	return NULL;
     out->Name = NULL;
@@ -54,7 +54,7 @@ Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info
     }
     /*   copy name: */
 
-    out->Name = MEMALLOC(strlen(name) + 1, char);
+    out->Name = new  char[strlen(name) + 1];
     if (Dudley_checkPtr(out->Name))
     {
 	Dudley_Mesh_free(out);
@@ -99,7 +99,7 @@ void Dudley_Mesh_free(Dudley_Mesh * in)
 	in->reference_counter--;
 	if (in->reference_counter < 1)
 	{
-	    MEMFREE(in->Name);
+	    delete[] in->Name;
 	    Dudley_NodeFile_free(in->Nodes);
 	    Dudley_ElementFile_free(in->FaceElements);
 	    Dudley_ElementFile_free(in->Elements);
@@ -110,7 +110,7 @@ void Dudley_Mesh_free(Dudley_Mesh * in)
 	    Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
 	    Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
 	    Esys_MPIInfo_free(in->MPIInfo);
-	    MEMFREE(in);
+	    delete in;
 	}
     }
 }

@@ -124,7 +124,7 @@ Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool_t reduce_r
 	row_connector = mesh->Nodes->degreesOfFreedomConnector;
     }
 
-    index_list = TMPMEMALLOC(rowMap->numTargets, Dudley_IndexList);
+    index_list = new  Dudley_IndexList[rowMap->numTargets];
     if (!Dudley_checkPtr(index_list))
     {
 
@@ -174,7 +174,7 @@ Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool_t reduce_r
 	    for (i = 0; i < rowMap->numTargets; ++i)
 		Dudley_IndexList_free(index_list[i].extension);
 	}
-	TMPMEMFREE(index_list);
+	delete[] index_list;
 	Paso_Pattern_free(main_pattern);
 	Paso_Pattern_free(col_couple_pattern);
 	Paso_Pattern_free(row_couple_pattern);

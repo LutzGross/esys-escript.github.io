@@ -61,7 +61,7 @@ void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
 		out[q] = 0;
 #pragma omp parallel private(q,i,rtmp,data_array,out_local)
 	    {
-		out_local = THREAD_MEMALLOC(numComps, double);
+		out_local = new double[numComps];
 		if (!Dudley_checkPtr(out_local))
 		{
 		    /* initialize local result */
@@ -110,7 +110,7 @@ void Dudley_Assemble_integrate(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
 		    for (i = 0; i < numComps; i++)
 			out[i] += out_local[i];
 		}
-		THREAD_MEMFREE(out_local);
+		delete[] out_local;
 	    }
 	}
     }

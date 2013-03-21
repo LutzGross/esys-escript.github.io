@@ -95,10 +95,10 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile * nodes, Dudley_ElementFile *
 	Dudley_setError(TYPE_ERROR, error_msg);
 	return;
     }
-    X = TMPMEMALLOC(NN * numDim * faces->numElements, double);
-    center = TMPMEMALLOC(faces->numElements, Dudley_Mesh_findMatchingFaces_center);
-    a1 = TMPMEMALLOC(NN, int);
-    a2 = TMPMEMALLOC(NN, int);
+    X = new  double[NN * numDim * faces->numElements];
+    center = new  Dudley_Mesh_findMatchingFaces_center[faces->numElements];
+    a1 = new  int[NN];
+    a2 = new  int[NN];
     if (!(Dudley_checkPtr(X) || Dudley_checkPtr(center) || Dudley_checkPtr(a1) || Dudley_checkPtr(a2)))
     {
 	/* OMP */
@@ -249,10 +249,10 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile * nodes, Dudley_ElementFile *
 #endif
     }
     /* clean up */
-    TMPMEMFREE(X);
-    TMPMEMFREE(center);
-    TMPMEMFREE(a1);
-    TMPMEMFREE(a1);
+    delete[] X;
+    delete[] center;
+    delete[] a1;
+    delete[] a1;
 
 #undef getDist
 }

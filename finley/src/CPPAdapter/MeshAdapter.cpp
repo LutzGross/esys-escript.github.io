@@ -119,11 +119,11 @@ Finley_Mesh* MeshAdapter::getFinley_Mesh() const {
 
 void MeshAdapter::write(const string& fileName) const
 {
-   char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
+   char *fName = (fileName.size()+1>0) ? new char[fileName.size()+1] : (char*)NULL;
    strcpy(fName,fileName.c_str());
    Finley_Mesh_write(m_finleyMesh.get(),fName);
    checkFinleyError();
-   TMPMEMFREE(fName);
+   delete[] fName;
 }
 
 void MeshAdapter::Print_Mesh_Info(const bool full) const
@@ -491,7 +491,7 @@ void MeshAdapter::dump(const string& fileName) const
    if (num_Tags>0) {
 
       // Temp storage to gather node IDs
-      int *Tags_keys = TMPMEMALLOC(num_Tags, int);
+      int *Tags_keys = new  int[num_Tags];
       char name_temp[4096];
 
       /* Copy tag data into temp arrays */
@@ -527,7 +527,7 @@ void MeshAdapter::dump(const string& fileName) const
          }
       }
 
-      TMPMEMFREE(Tags_keys);
+      delete[] Tags_keys;
    }
 
 /* Send token to next MPI process so he can take his turn */
@@ -2419,8 +2419,8 @@ void MeshAdapter:: addDiracPoints(const std::vector<double>& points, const std::
       if  ( (numTags > 0) && ( numPoints !=  numTags ) )
 	 throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
       
-      double* points_ptr=TMPMEMALLOC(numPoints * dim, double);
-      int*    tags_ptr= TMPMEMALLOC(numPoints, int);
+      double* points_ptr=new  double[numPoints * dim];
+      int*    tags_ptr= new  int[numPoints];
       
       for (int i=0;i<numPoints;++i) {
 	   points_ptr[ i * dim     ] = points[i * dim ];
@@ -2432,8 +2432,8 @@ void MeshAdapter:: addDiracPoints(const std::vector<double>& points, const std::
       Finley_Mesh_addPoints(mesh, numPoints, points_ptr, tags_ptr);
       checkFinleyError();
       
-      TMPMEMFREE(points_ptr);
-      TMPMEMFREE(tags_ptr);
+      delete[] points_ptr;
+      delete[] tags_ptr;
 }
 
 

@@ -92,8 +92,8 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
 	{
 	    local_X = dVdv = NULL;
 	    /* allocation of work arrays */
-	    local_X = THREAD_MEMALLOC(NS * numDim, double);
-	    dVdv = THREAD_MEMALLOC(numQuad * numDim * numDim_local, double);
+	    local_X = new  double[NS * numDim];
+	    dVdv = new  double[numQuad * numDim * numDim_local];
 	    if (!(Dudley_checkPtr(local_X) || Dudley_checkPtr(dVdv)))
 	    {
 		/* open the element loop */
@@ -112,8 +112,8 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
 			normal_array[q] *= sign;
 		}
 	    }
-	    THREAD_MEMFREE(local_X);
-	    THREAD_MEMFREE(dVdv);
+	    delete[] local_X;
+	    delete[] dVdv;
 	}
     }
 }
