@@ -124,7 +124,7 @@ typedef enum {
 
 typedef struct Finley_ReferenceElementInfo {
   Finley_ElementTypeId TypeId;               /* the id */
-  char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
+  const char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
   dim_t numNodes;                            /* number of nodes defining the element*/
   dim_t numSubElements;                      /* number of subelements. >1 if macro elements are used. */
   dim_t numSides;							 /* specifies the number of sides the element supports. This =2 if contact elements are used
