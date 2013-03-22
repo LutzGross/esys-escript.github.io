@@ -161,6 +161,12 @@ public:
     */
     virtual double getLocalCoordinate(int index, int dim) const;
 
+    /**
+       \brief
+       returns the tuple (origin, spacing, number_of_elements)
+    */
+    virtual boost::python::tuple getGridParameters() const;
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
@@ -169,7 +175,7 @@ protected:
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
-    virtual void assembleIntegrate(std::vector<double>& integrals, escript::Data& arg) const;
+    virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const;
     virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
@@ -210,7 +216,7 @@ private:
     void populateSampleIds();
     void createPattern();
     void addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
-           const std::vector<double>& EM_S, const std::vector<double>& EM_F,
+           const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, index_t firstNode, dim_t nEq=1, dim_t nComp=1) const;
 
     /// total number of elements in each dimension
@@ -276,9 +282,17 @@ inline int Rectangle::getNumDataPointsGlobal() const
 
 inline double Rectangle::getLocalCoordinate(int index, int dim) const
 {
-    EsysAssert((dim>=0 && dim<=1), "'dim' out of bounds");
+    EsysAssert((dim>=0 && dim<2), "'dim' out of bounds");
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
+}
+
+inline boost::python::tuple Rectangle::getGridParameters() const
+{
+    return boost::python::make_tuple(
+            boost::python::make_tuple(m_origin[0], m_origin[1]),
+            boost::python::make_tuple(m_dx[0], m_dx[1]),
+            boost::python::make_tuple(m_gNE[0], m_gNE[1]));
 }
 
 inline Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,

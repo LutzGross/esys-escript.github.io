@@ -298,6 +298,12 @@ BOOST_PYTHON_MODULE(ripleycpp)
                 ":param full: whether to output additional data\n:type full: ``bool``")
         .def("dump", &ripley::RipleyDomain::dump, args("filename"),
                 "Dumps the mesh to a file with the given name.")
+        .def("getGridParameters", &ripley::RipleyDomain::getGridParameters,
+"Returns the tuple (origin, spacing, elements) where the entries are tuples:\n"
+"``origin``=the coordinates of the domain's global origin,\n"
+"``spacing``=the element size (=node spacing) of the domain,\n"
+"``elements``=the global number of elements in all dimensions\n\n"
+":rtype: ``tuple``")
         .def("getDescription", &ripley::RipleyDomain::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
         .def("getDim", &ripley::RipleyDomain::getDim, ":rtype: ``int``")
