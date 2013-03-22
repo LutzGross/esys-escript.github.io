@@ -49,6 +49,13 @@ def checkCompiler(env):
     if conf.CheckFunc('gethostname'):
         conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
 
+    if conf.CheckCHeader('byteswap.h'):
+        conf.env.Append(CPPDEFINES = ['HAVE_BYTESWAP_H'])
+    if conf.CheckCHeader('sys/endian.h'):
+        conf.env.Append(CPPDEFINES = ['HAVE_SYS_ENDIAN_H'])
+    if conf.CheckCHeader('libkern/OSByteOrder.h'):
+        conf.env.Append(CPPDEFINES = ['HAVE_OSBYTEORDER_H'])
+
     return conf.Finish()
 
 def checkPython(env):

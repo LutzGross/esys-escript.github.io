@@ -62,14 +62,25 @@ inline char* RIPLEY_BYTE_SWAP32(char* val)
 }
 
 #else
-#include <byteswap.h>
+
+#if HAVE_BYTESWAP_H
+#   include <byteswap.h>
+#elif HAVE_SYS_ENDIAN_H
+#   include <sys/endian.h>
+#elif HAVE_OSBYTEORDER_H
+#   include <libkern/OSByteOrder.h>
+#   define bswap_32 OSSwapInt32
+#else // uh oh, we can't swap bytes...
+#   define bswap_32(D) D
+#endif // header selection
+
 inline char* RIPLEY_BYTE_SWAP32(char* val)
 {
     unsigned int* v = reinterpret_cast<unsigned int*>(val);
     *v = bswap_32(*v);
     return val;
 }
-#endif
+#endif // WIN32
 
 #endif // __RIPLEY_SYSTEM_DEP_H__
 

@@ -73,7 +73,8 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
     return inc_path, lib_path
 
 def detectModule(env, module):
-    p=subprocess.call([env['pythoncmd'],'-c','import %s'%module])
+    from tempfile import TemporaryFile
+    p=subprocess.call([env['pythoncmd'],'-c','import %s'%module], stderr=TemporaryFile())
     if p != 0:
         env[module] = False
         return False
