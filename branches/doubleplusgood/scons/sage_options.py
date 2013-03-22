@@ -196,13 +196,13 @@ netcdf = True
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-#lapack = 'clapack'
+lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-#lapack_prefix = '/usr/local'
+lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
 
 # LAPACK library/libraries to link against
-#lapack_libs = ['lapack_atlas']
+lapack_libs = ['lapack_atlas', 'cblas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
