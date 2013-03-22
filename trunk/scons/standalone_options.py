@@ -13,6 +13,10 @@
 #
 ##############################################################################
 
+# This is a template configuration file for escript/finley on Linux.
+# Copy this file to <hostname>_options.py, where <hostname> is your machine's
+# short hostname, then customize to your needs.
+
 # PREFIXES:
 # There are two ways to specify where to find dependent headers and libraries
 # (via the <dependency>_prefix):
@@ -41,8 +45,6 @@ escript_opts_version = 201
 # DEFAULT: auto-detected
 #cc = 'gcc'
 
-dudley_assemble_flags = '-funroll-loops'
-
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
 #cxx = 'g++'
@@ -62,15 +64,15 @@ dudley_assemble_flags = '-funroll-loops'
 
 # Additional flags to add to the C compiler only
 # DEFAULT: '' (empty)
-#cc_extra = '--std=c99'
+cc_extra = ''
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-#cxx_extra = ''
+cxx_extra = '-I../pkg/netcdf/include/'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-#ld_extra = ''
+ld_extra = '-L../pkg/boost/lib/ -L../pkg/netcdf/lib/ -L../pkg/python/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -99,19 +101,31 @@ dudley_assemble_flags = '-funroll-loops'
 # Flavour of MPI implementation
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
-mpi = 'OPENMPI'
+#mpi = 'OPENMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/usr/lib/openmpi'
+#mpi_prefix = '/usr/lib/openmpi'
 
 # MPI libraries to link against
-mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
+#mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-#boost_prefix = '/usr/local'
+boost_prefix = ['../pkg/boost/include/boost-1_39/', '../pkg/boost/lib/']
+
 
 # boost-python library/libraries to link against
-boost_libs = ['libboost_python-mt-py26']
+boost_libs = ['boost_python']
+
+#if this is not 'python' the command will be used instead of the python
+#version scons is running on
+#pythoncmd='python'
+
+#Set to true to build with python3 [You will need to set pythoncmd as well]
+#usepython3=False
+
+#name of the python library to link against.  For Python2 you should not need
+#to set this
+#pythonlibname=''
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 #cppunit_prefix = '/usr/local'
@@ -124,7 +138,8 @@ boost_libs = ['libboost_python-mt-py26']
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
+netcdf_prefix = ['../pkg/netcdf/include/', '../pkg/netcdf/lib/']
+ 
 
 # netCDF library/libraries to link against
 #netcdf_libs = ['netcdf_c++', 'netcdf']
@@ -186,14 +201,13 @@ netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-lapack = 'clapack'
+#lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
-#lapack_prefix = ['/usr/include','/usr/lib/atlas']
-lapack_prefix = ['/usr/include/atlas', '/usr/lib/atlas-base']
+#lapack_prefix = '/usr/local'
 
 # LAPACK library/libraries to link against
-lapack_libs = ['lapack_atlas']
+#lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
@@ -222,7 +236,7 @@ lapack_libs = ['lapack_atlas']
 
 # Build dynamic libraries only
 #DEFAULT: False
-build_shared = True
+#build_shared = True
 
 
 ### ADVANCED OPTIONS ###
