@@ -16,6 +16,8 @@
 #ifndef __RIPLEY_DOMAIN_H__
 #define __RIPLEY_DOMAIN_H__
 
+#include <boost/python/tuple.hpp>
+
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
 #include <escript/AbstractContinuousDomain.h>
@@ -430,7 +432,7 @@ public:
        copies the integrals of the function defined by arg into integrals.
        arg has to be defined on this domain.
     */
-    virtual void setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const;
+    virtual void setToIntegrals(DoubleVector& integrals, const escript::Data& arg) const;
 
     /**
        \brief
@@ -603,6 +605,12 @@ public:
     */
     virtual double getLocalCoordinate(int index, int dim) const = 0;
 
+    /**
+       \brief
+       returns the tuple (origin, spacing, number_of_elements)
+    */
+    virtual boost::python::tuple getGridParameters() const = 0;
+
 protected:
     dim_t m_numDim;
     StatusType m_status;
@@ -640,7 +648,7 @@ protected:
 
     void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
             dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
-            const std::vector<double>& array) const;
+            const DoubleVector& array) const;
 
     /***********************************************************************/
 
@@ -667,7 +675,7 @@ protected:
     virtual void assembleGradient(escript::Data& out, escript::Data& in) const = 0;
 
     /// copies the integrals of the function defined by 'arg' into 'integrals'
-    virtual void assembleIntegrate(std::vector<double>& integrals, escript::Data& arg) const = 0;
+    virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const = 0;
 
     /// assembles a single PDE into the system matrix 'mat' and the right hand
     /// side 'rhs'
