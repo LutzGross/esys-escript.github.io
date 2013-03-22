@@ -25,8 +25,11 @@
       #include <mkl_lapack.h>
       #include <mkl_cblas.h>
    #else
+      extern "C"
+      {
       #include <clapack.h>
       #include <cblas.h>
+      }
    #endif
 #endif
 
