@@ -124,7 +124,7 @@ boost_libs = ['libboost_python-mt-py26']
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = ['/usr/include/netcdf-3', '/usr/lib']
+netcdf_prefix = ['/usr/include', '/usr/lib']
 
 # netCDF library/libraries to link against
 #netcdf_libs = ['netcdf_c++', 'netcdf']
