@@ -899,7 +899,8 @@ class SyntheticData(SyntheticDataBase):
                        B_b=None,
                        data_offset=0,
                        full_knowledge=False,
-                       spherical=False):
+                       spherical=False,
+                       s=0.):
         """
         :param data_type: data type indicator
         :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
@@ -950,6 +951,7 @@ class SyntheticData(SyntheticDataBase):
             else:
                 amplitude = 0.1
         self.__amplitude = amplitude
+        self.__s=s
 
     def getReferenceProperty(self, domain=None):
         """
@@ -969,7 +971,7 @@ class SyntheticData(SyntheticDataBase):
                x_i=x[i]
                min_x=inf(x_i)
                max_x=sup(x_i)
-               k*= sin(self.__n_length*np.pi*(x_i-min_x)/(max_x-min_x))
+               k*= sin(self.__n_length*np.pi*(x_i-min_x-self.__s)/(max_x-min_x))
             self._reference_data= k
         return self._reference_data
 

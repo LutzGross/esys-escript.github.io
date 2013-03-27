@@ -60,8 +60,27 @@ class InversionDriver(object):
         self.__solver=solverclass()
         self.initial_value = None
         self.m=None
+        self.fixGravityPotentialAtBottom()
+        self.fixMagneticPotentialAtBottom()
 
-
+    def fixGravityPotentialAtBottom(self, status=False):
+        """
+        indicates to fix the gravity potential at the bottom to zero (in addition to the top)
+        
+        :param status: if True gravity potential at the bottom is set to zero
+        :type status: ``bool``
+        """
+        self._fixGravityPotentialAtBottom=status
+    
+    def fixMagneticPotentialAtBottom(self, status=True):
+        """
+        indicates to fix the magnetic potential at the bottom to zero (in addition to the top)
+        
+        :param status: if True magnetic potential at the bottom is set to zero
+        :type status: ``bool``
+        """
+        self._fixMagneticPotentialAtBottom=status
+        
     def setCostFunction(self, costfunction):
         """
         sets the cost function of the inversion. This function needs to be called
@@ -270,7 +289,7 @@ class GravityInversion(InversionDriver):
         #====================================================================
 
         self.logger.info("Setting up model...")
-        forward_model=GravityModel(dom, w, g)
+        forward_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom)
         forward_model.rescaleWeights(rho_scale=scale_mapping)
 
         #====================================================================
@@ -380,7 +399,7 @@ class MagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
         #====================================================================
         self.logger.info("Setting up model...")
-        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity())
+        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom)
         forward_model.rescaleWeights(k_scale=scale_mapping)
 
         #====================================================================
@@ -530,7 +549,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up gravity model...")
-        gravity_model=GravityModel(dom, w, g)
+        gravity_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom)
         gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
@@ -552,7 +571,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up magnetic model...")
-        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity())
+        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom)
         magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
         #====================================================================
         self.logger.info("Setting cost function...")

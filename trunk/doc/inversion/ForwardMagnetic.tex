@@ -107,6 +107,7 @@ derivative of the density with respect to the level set function.
 
 \begin{classdesc}{MagneticModel}{domain, w, B, background_field,
         \optional{, useSphericalCoordinates=False}
+        \optional{, fixPotentialAtBottom=False},
         \optional{, tol=1e-8}}
 opens a magnetic forward model over the \Domain \member{domain} with 
 weighting factors \member{w} ($=\omega^{(s)}$) and measured magnetic flux
@@ -116,6 +117,8 @@ The weighting factors and the  measured magnetic flux density anomalies must be 
 as a vector with north, east and vertical components.
 If \member{useSphericalCoordinates} is \True spherical coordinates are used. 
 \member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
+If \member{fixPotentialAtBottom} is set to  \True, the gravitational potential 
+at the bottom is set to zero in addition to the potential on the top. 
 \end{classdesc}
 
 \begin{methoddesc}[MagneticModel]{rescaleWeights}{
