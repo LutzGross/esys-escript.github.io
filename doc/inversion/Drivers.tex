@@ -57,7 +57,9 @@ incurable break down in the iteration in which case a \exception{MinimizerIterat
 \subsection{Gravity Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:gravity inversion}.
 
-\begin{classdesc}{GravityInversion}{\optional{solverclass=None}}
+\begin{classdesc}{GravityInversion}{\optional{solverclass=None}
+\optional{, fixGravityPotentialAtBottom=False}
+}
 Driver class to perform an inversion of Gravity (Bouguer) anomaly data.
 This class is a sub-class of \class{InversionDriver}. The class uses the
 standard \class{Regularization} for a single level set function,
@@ -67,8 +69,13 @@ see Section~\ref{Chp:ref:mapping density}, and the gravity forward model
 \member{solverclass} set the solver class to be used for inversion,
 see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
-
+If \member{fixGravityPotentialAtBottom} is set \optional{, fixGravityPotentialAtBottom=False}to \True the gravity potential at the bottom is set to zero.
 \end{classdesc}
+
+\begin{methoddesc}[GravityInversion]{fixGravityPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the gravity potential at the bottom is set to zero. Otherwise  the gravity
+ potential at the top is set to zero only. 
+\end{methoddesc}
 
 \begin{methoddesc}[GravityInversion]{setup}{
 domainbuilder
@@ -103,7 +110,8 @@ sets an initial guess for the density anomaly. By default zero is used.
 \subsection{Magnetic Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:magnetic inversion}.
 
-\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}}
+\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}
+}
 Driver class to perform an inversion of magnetic anomaly data. This class
 is a sub-class of \class{InversionDriver}. The class uses the standard
 \class{Regularization} class for a single level set function, see Chapter~\ref{Chp:ref:regularization},
@@ -112,7 +120,14 @@ magnetic forward model \class{MagneticModel}, see Section~\ref{sec:forward magne
 \member{solverclass} set the solver class to be used for inversion,
 see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+
 \end{classdesc}
+
+\begin{methoddesc}[MagneticInversion]{fixMagneticPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the magnetic potential at the bottom is set to zero. Otherwise  the magnetic
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
 
 
 \begin{methoddesc}[MagneticInversion]{setup}{
@@ -148,7 +163,8 @@ sets an initial guess for the susceptibility anomaly. By default zero is used.
 \subsection{Gravity and Magnetic Joint Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:joint inversion}.
 
-\begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}}
+\begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}
+}
 Driver class to perform a joint inversion of Gravity (Bouguer) and magnetic anomaly data.
 This class is a sub-class of \class{InversionDriver}. 
 The class uses the standard \class{Regularization} for two level set functions
@@ -162,6 +178,16 @@ see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
 \end{classdesc}
 
+\begin{methoddesc}[JointGravityMagneticInversion]{fixGravityPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the gravity potential at the bottom is set to zero. Otherwise  the gravity
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
+
+\begin{methoddesc}[JointGravityMagneticInversion]{fixMagneticPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the magnetic potential at the bottom is set to zero. Otherwise  the magnetic
+ potential at the top is set to zero only. 
+\end{methoddesc}
 
 \begin{methoddesc}[JointGravityMagneticInversion]{setup}{
 domainbuilder

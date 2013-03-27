@@ -77,6 +77,7 @@ derivative of the density with respect to the level set function.
 \begin{classdesc}{GravityModel}{domain, 
 w, g,
 \optional{, useSphericalCoordinates=False}
+\optional{, fixPotentialAtBottom=False},
 \optional{, tol=1e-8}
 }
 opens a gravity forward model over the \Domain \member{domain} with 
@@ -84,6 +85,8 @@ weighting factors \member{w} ($=\omega^{(s)}$) and measured gravity acceleration
 The weighting factors and the  measured gravity acceleration anomalies\member must be vectors.
 If \member{useSphericalCoordinates} is \True spherical coordinates are used. 
 \member{tol} set the tolerance for the solution of the PDE~(\ref{ref:GRAV:EQU:100}).
+If \member{fixPotentialAtBottom} is set to  \True, the gravitational potential 
+at the bottom is set to zero in addition to the potential on the top. 
 \end{classdesc}
 
 \begin{methoddesc}[GravityModel]{rescaleWeights}{

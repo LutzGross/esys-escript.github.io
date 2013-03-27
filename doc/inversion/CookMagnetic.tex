@@ -44,6 +44,7 @@ dom.addSource(source0)
 inv=MagneticInversion()
 inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
+inv.fixMagneticPotentialAtBottom(False)
 inv.setup(dom)
 
 # Step 4: run inversion 
@@ -118,9 +119,13 @@ default for \file{scale_factor} for magnetic data is $nT$.}.
 Finally the inversion is created and run:
 \begin{verbatim}
 inv=MagneticInversion()
+inv.fixMagneticPotentialAtBottom(False)
 k = inv.run()
 \end{verbatim}
-The result for the susceptibility is named \member{k}. We then write the result
+The result for the susceptibility is named \member{k}. In this case the magnetic potential is
+not fixed at the bottom of the domain. The magnetic potential is still set zero at the top of the domain.
+
+We then write the result
 to a \VTK file using
 \begin{verbatim}
 saveVTK("result.vtu", susceptibility=k)
