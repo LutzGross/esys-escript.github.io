@@ -176,14 +176,23 @@ class DomainBuilder(object):
 
     def fixDensityBelow(self, depth=None):
         """
-        Defines the depth below which the density anomaly is set to zero.
+        Defines the depth below which the density anomaly is set to a given value.
+        if no value is given zero is assumed. 
+        
+        :param depth: depth below which the density is fixed. If not set , no constraint
+                      at depth is applied.
+        :type depth: ``float``
         """
         self.__fix_density_below=depth
 
     def fixSusceptibilityBelow(self, depth=None):
         """
-        Defines the depth below which the susceptibility anomaly is set to
-        zero.
+        Defines the depth below which the susceptibility anomaly is set to a given value.
+        if no value is given zero is assumed. 
+        
+        :param depth: depth below which the susceptibility is fixed. If not set , no constraint
+                      at depth is applied.
+        :type depth: ``float``
         """
         self.__fix_susceptibility_below=depth
 

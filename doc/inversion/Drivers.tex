@@ -77,7 +77,10 @@ domainbuilder
 \optional{, z0=\None}
 \optional{, beta=\None}
 \optional{, w0=\None}
-\optional{, w1=\None}}
+\optional{, w1=\None}
+\optional{, rho_at_depth=\None}
+}
+
 sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
 Only gravitational data attached to the \member{domainbuilder} are considered in the inversion.
 \member{rho0} defines a reference density anomaly (default is 0), 
@@ -89,6 +92,8 @@ see \class{DensityMapping} in Section~\ref{Chp:ref:mapping density}.
 $\omega^{(0)}$ and
 $\omega^{(1)}$, respectively (see Equation~\ref{EQU:REG:1}).
 By default \member{w0}=\None and \member{w1}=1 are used.
+\member{rho_at_depth} sets the value for density at depth. This is only used if density is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 \end{methoddesc}
 
 \begin{methoddesc}[GravityInversion]{setInitialGuess}{\optional{rho=\None}}
@@ -117,7 +122,9 @@ domainbuilder
 \optional{, z0=\None} 
 \optional{, beta=\None}
 \optional{, w0=\None}
-\optional{, w1=\None}}
+\optional{, w1=\None}
+\optional{, k_at_depth=\None}
+}
 
 sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
 Only magnetic data attached to the \member{domainbuilder} are considered in the inversion.
@@ -130,6 +137,8 @@ see \class{SusceptibilityMapping} in Section~\ref{Chp:ref:mapping susceptibility
 $\omega^{(0)}$ and
 $\omega^{(1)}$, respectively (see equation~\ref{EQU:REG:1}).
 By default \member{w0}=\None and \member{w1}=1 are used.
+\member{k_at_depth} sets the value for susceptibility at depth. This is only used if susceptibility is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 \end{methoddesc}
 
 \begin{methoddesc}[MagneticInversion]{setInitialGuess}{\optional{k=\None}}
@@ -167,7 +176,10 @@ domainbuilder
 \optional{, w0=\None}
 \optional{, w1=\None}
 \optional{, w_gc=\None}
+\optional{, rho_at_depth=\None}
+\optional{, k_at_depth=\None}
 }
+
 sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
 Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
 \member{rho0} defines a reference density anomaly (default is $0$),
@@ -185,6 +197,10 @@ $\omega^{(0)}$ and
 $\omega^{(1)}$, respectively (see Equation~\ref{EQU:REG:1}). 
 \member{w_gc} sets the weighting factor $\omega^{(c)}$ for the cross gradient term. 
 By default \member{w0}=\None, \member{w1}=1 and \member{w_gc}=1 are used.
+\member{k_at_depth} sets the value for susceptibility at depth. This is only used if susceptibility is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
+\member{rho_at_depth} sets the value for density at depth. This is only used if density is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 \end{methoddesc}
 
 \begin{methoddesc}[JointGravityMagneticInversion]{setInitialGuess}{\optional{rho=\None, } \optional{k=\None}}
