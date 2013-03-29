@@ -242,7 +242,7 @@ bool append)
     keys.sort();	// to get some predictable order to things
 
     // We need to interpret the samples correctly even if they are different types
-    // for this reason, we should interate over samples
+    // for this reason, we should iterate over samples
     for (int i=0;i<numdata;++i)
     {
 	names[i]=boost::python::extract<std::string>(keys[i]);

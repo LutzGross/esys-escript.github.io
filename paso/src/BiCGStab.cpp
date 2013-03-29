@@ -50,7 +50,7 @@
 *  A       (input) 
 *
 *  R       (input) DOUBLE PRECISION array, dimension N.
-*          On entry, residual of inital guess X
+*          On entry, residual of initial guess X
 *
 *  X       (input/output) DOUBLE PRECISION array, dimension N.
 *          On input, the initial guess. 
@@ -125,7 +125,7 @@ err_t Paso_Solver_BiCGStab(
     maxIterFlag=FALSE;
     breakFlag=FALSE;
 
-    /* initialize arrays */
+    /* initialise arrays */
  
     #pragma omp parallel for private(i0) schedule(static)
     for (i0 = 0; i0 < n; i0++) {

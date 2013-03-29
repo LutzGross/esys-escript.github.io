@@ -60,8 +60,27 @@ class InversionDriver(object):
         self.__solver=solverclass()
         self.initial_value = None
         self.m=None
+        self.fixGravityPotentialAtBottom()
+        self.fixMagneticPotentialAtBottom()
 
-
+    def fixGravityPotentialAtBottom(self, status=False):
+        """
+        indicates to fix the gravity potential at the bottom to zero (in addition to the top)
+        
+        :param status: if True gravity potential at the bottom is set to zero
+        :type status: ``bool``
+        """
+        self._fixGravityPotentialAtBottom=status
+    
+    def fixMagneticPotentialAtBottom(self, status=True):
+        """
+        indicates to fix the magnetic potential at the bottom to zero (in addition to the top)
+        
+        :param status: if True magnetic potential at the bottom is set to zero
+        :type status: ``bool``
+        """
+        self._fixMagneticPotentialAtBottom=status
+        
     def setCostFunction(self, costfunction):
         """
         sets the cost function of the inversion. This function needs to be called
@@ -200,13 +219,14 @@ class InversionDriver(object):
 
 class GravityInversion(InversionDriver):
     """
-     Driver class to perform an inversion of  Gravity (Bouguer) anomaly data. The class uses the standard
-     'Regularization` class for a single level set function, `DensityMapping` mapping,
-     and the gravity forward model `GravityModel`.
+     Driver class to perform an inversion of Gravity (Bouguer) anomaly data.
+     The class uses the standard `Regularization` class for a single level set
+     function, `DensityMapping` mapping, and the gravity forward model
+     `GravityModel`.
     """
     def setup(self, domainbuilder,
                     rho0=None, drho=None, z0=None, beta=None,
-                    w0=None, w1=None):
+                    w0=None, w1=None, rho_at_depth=None):
         """
         Sets up the inversion parameters from a `DomainBuilder`.
 
@@ -224,19 +244,29 @@ class GravityInversion(InversionDriver):
         :type w0: ``Scalar`` or ``float``
         :param w1: weighting factor for the gradient term in the regularization. If not set zero is assumed
         :type w1: ``Vector`` or list of ``float``
+        :param rho_at_depth: value for density at depth, see `DomainBuilder`.
+        :type rho_at_depth: ``float`` or ``None``
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
         DIM=dom.getDim()
+        rho_mask = domainbuilder.getSetDensityMask()
         #========================
         self.logger.info('Creating mapping...')
-        rho_mapping=DensityMapping(dom, rho0=rho0, drho=drho, z0=z0, beta=beta)
+        if rho_at_depth:
+	     rho2= rho_mask *  rho_at_depth + (1-rho_mask) * rho0
+	elif rho0:
+	     rho2= (1-rho_mask) * rho0 
+        else:
+	     rho2=0.
+	     
+        rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=z0, beta=beta)
         scale_mapping=rho_mapping.getTypicalDerivative()
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
             w1=[1.]*DIM
-        rho_mask = domainbuilder.getSetDensityMask()
+
         regularization=Regularization(dom, numLevelSets=1,\
                                w0=w0, w1=w1, location_of_set_m=rho_mask)
         #====================================================================
@@ -259,7 +289,7 @@ class GravityInversion(InversionDriver):
         #====================================================================
 
         self.logger.info("Setting up model...")
-        forward_model=GravityModel(dom, w, g)
+        forward_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom)
         forward_model.rescaleWeights(rho_scale=scale_mapping)
 
         #====================================================================
@@ -296,17 +326,18 @@ class GravityInversion(InversionDriver):
 
 class MagneticInversion(InversionDriver):
     """
-    Driver class to perform an inversion of magnetic anomaly data. The class uses the standard
-    `Regularization` class for a single level set function. 'SusceptibilityMapping` mapping
-    and the linear magnetic forward model `MagneticModel`
+    Driver class to perform an inversion of magnetic anomaly data. The class
+    uses the standard `Regularization` class for a single level set function,
+    `SusceptibilityMapping` mapping and the linear magnetic forward model
+    `MagneticModel`.
     """
     def setup(self, domainbuilder,
                     k0=None, dk=None, z0=None, beta=None,
-                    w0=None, w1=None):
+                    w0=None, w1=None,k_at_depth=None ):
         """
         Sets up the inversion from a `DomainBuilder`.
-        If magnetic data are given as scalar it is assumed that values are collected in direction of
-        the background magnetic field.
+        If magnetic data are given as scalar it is assumed that values are
+        collected in direction of the background magnetic field.
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
@@ -322,6 +353,8 @@ class MagneticInversion(InversionDriver):
         :type w0: ``Scalar`` or ``float``
         :param w1: weighting factor for the gradient term in the regularization. If not set zero is assumed
         :type w1: ``Vector`` or list of ``float``
+        :param k_at_depth: value for susceptibility at depth, see `DomainBuilder`.
+        :type k_at_depth: ``float`` or ``None``
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
@@ -329,13 +362,21 @@ class MagneticInversion(InversionDriver):
 
         #========================
         self.logger.info('Creating mapping ...')
-        k_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=z0, beta=beta)
+        k_mask = domainbuilder.getSetSusceptibilityMask()
+        if k_at_depth:
+	     k2= k_mask *  k_at_depth + (1-k_mask) * k0
+	elif k0:
+	     k2= (1-k_mask) * k0 
+	else:
+	     k2=0
+	     
+        k_mapping=SusceptibilityMapping(dom, k0=k2, dk=dk, z0=z0, beta=beta)
         scale_mapping=k_mapping.getTypicalDerivative()
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
             w1=[1.]*DIM
-        k_mask = domainbuilder.getSetSusceptibilityMask()
+        
         regularization=Regularization(dom, numLevelSets=1,w0=w0, w1=w1, location_of_set_m=k_mask)
 
         #====================================================================
@@ -358,7 +399,7 @@ class MagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
         #====================================================================
         self.logger.info("Setting up model...")
-        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity())
+        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom)
         forward_model.rescaleWeights(k_scale=scale_mapping)
 
         #====================================================================
@@ -395,10 +436,11 @@ class MagneticInversion(InversionDriver):
 
 class JointGravityMagneticInversion(InversionDriver):
     """
-     Driver class to perform a joint inversion of  Gravity (Bouguer) and magnetic anomaly data.  The class uses
-     the standard `Regularization` class for two level set functions with cross-gradient correlation. '
-     DensityMapping' and 'SusceptibilityMapping' mappings, the gravity forward model 'GravityModel'
-     and the linear magnetic forward model 'MagneticModel.
+    Driver class to perform a joint inversion of Gravity (Bouguer) and
+    magnetic anomaly data. The class uses the standard `Regularization` class
+    for two level set functions with cross-gradient correlation,
+    `DensityMapping` and `SusceptibilityMapping` mappings, the gravity forward
+    model `GravityModel` and the linear magnetic forward model `MagneticModel`.
     """
     DENSITY=0
     SUSCEPTIBILITY=1
@@ -406,16 +448,16 @@ class JointGravityMagneticInversion(InversionDriver):
     def setup(self, domainbuilder,
                     rho0=None, drho=None, rho_z0=None, rho_beta=None,
                     k0=None, dk=None, k_z0=None, k_beta=None, w0=None, w1=None,
-                    w_gc=None):
+                    w_gc=None,rho_at_depth=None, k_at_depth=None):
         """
-        Sets up the inversion from an instance ``domainbuilder`` of a `DomainBuilder`.
-        Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
-        If magnetic data are given as scalar it is assumed that values are collected in direction of
-        the background magnetic field.
+        Sets up the inversion from an instance ``domainbuilder`` of a
+        `DomainBuilder`. Gravity and magnetic data attached to the
+        ``domainbuilder`` are considered in the inversion.
+        If magnetic data are given as scalar it is assumed that values are
+        collected in direction of the background magnetic field.
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-
         :param rho0: reference density, see `DensityMapping`. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
         :param drho: density scale, see `DensityMapping`. If not specified, 2750kg/m^3 is used.
@@ -438,6 +480,10 @@ class JointGravityMagneticInversion(InversionDriver):
         :type w1: `Data` or ``ndarray`` of shape (2,DIM)
         :param w_gc: weighting factor for the cross gradient term in the regularization, see `Regularization`. If not set one is assumed
         :type w_gc: `Scalar` or `float`
+        :param k_at_depth: value for susceptibility at depth, see `DomainBuilder`.
+        :type k_at_depth: ``float`` or ``None``
+        :param rho_at_depth: value for density at depth, see `DomainBuilder`.
+        :type rho_at_depth: ``float`` or ``None``
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
@@ -445,10 +491,26 @@ class JointGravityMagneticInversion(InversionDriver):
 
         #========================
         self.logger.info('Creating mappings ...')
-        rho_mapping=DensityMapping(dom, rho0=rho0, drho=drho, z0=rho_z0, beta=rho_beta)
+        rho_mask=domainbuilder.getSetDensityMask()
+        if rho_at_depth:
+	     rho2= rho_mask *  rho_at_depth + (1-rho_mask) * rho0
+	elif rho0:
+	     rho2= (1-rho_mask) * rho0 
+	else:
+	     rho2=0
+        
+        k_mask = domainbuilder.getSetSusceptibilityMask()
+        if k_at_depth:
+	     k2= k_mask *  k_at_depth + (1-k_mask) * k0
+	elif k0:
+	     k2= (1-k_mask) * k0 
+	else:
+	     k2=0
+	     
+        rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=rho_z0, beta=rho_beta)
         rho_scale_mapping=rho_mapping.getTypicalDerivative()
         self.logger.debug("rho_scale_mapping = %s"%rho_scale_mapping)
-        k_mapping=SusceptibilityMapping(dom, k0=k0, dk=dk, z0=k_z0, beta=k_beta)
+        k_mapping=SusceptibilityMapping(dom, k0=k2, dk=dk, z0=k_z0, beta=k_beta)
         k_scale_mapping=k_mapping.getTypicalDerivative()
         self.logger.debug("k_scale_mapping = %s"%k_scale_mapping)
         #========================
@@ -464,8 +526,8 @@ class JointGravityMagneticInversion(InversionDriver):
             wc[0,1]=w_gc
 
         reg_mask=Data(0.,(2,), Solution(dom))
-        reg_mask[self.DENSITY] = domainbuilder.getSetDensityMask()
-        reg_mask[self.SUSCEPTIBILITY] = domainbuilder.getSetSusceptibilityMask()
+        reg_mask[self.DENSITY] = rho_mask
+        reg_mask[self.SUSCEPTIBILITY] = k_mask
         regularization=Regularization(dom, numLevelSets=2,\
                                w0=w0, w1=w1,wc=wc, location_of_set_m=reg_mask)
         #====================================================================
@@ -487,7 +549,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up gravity model...")
-        gravity_model=GravityModel(dom, w, g)
+        gravity_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom)
         gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
@@ -509,7 +571,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up magnetic model...")
-        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity())
+        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom)
         magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
         #====================================================================
         self.logger.info("Setting cost function...")

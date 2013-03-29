@@ -31,10 +31,6 @@ from esys.escript.util import *
 from math import pi as PI
 import numpy as np
 
-import sys
-if sys.version_info.major>2:
-  xrange=range
-
 
 class ForwardModel(object):
     """
@@ -67,7 +63,7 @@ class ForwardModelWithPotential(ForwardModel):
     It is assumed that the forward model is produced through postprocessing
     of the solution of a potential PDE.
     """
-    def __init__(self, domain, w, data,  useSphericalCoordinates=False, tol=1e-8):
+    def __init__(self, domain, w, data,  useSphericalCoordinates=False, fixPotentialAtBottom=False, tol=1e-8):
         """
         initializes a new forward model with potential.
 
@@ -81,6 +77,9 @@ class ForwardModelWithPotential(ForwardModel):
         :type useSphericalCoordinates: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
+        :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
+                                     in addition to the top.
+        :type fixPotentialAtBottom: ``bool``
         """
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
@@ -108,7 +107,9 @@ class ForwardModelWithPotential(ForwardModel):
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
         z=x[DIM-1]
-        self.__pde.setValue(q=whereZero(z-BX[DIM-1][1]))
+        q0=whereZero(z-BX[DIM-1][1])
+        if fixPotentialAtBottom: q0+=whereZero(z-BX[DIM-1][0])
+        self.__pde.setValue(q=q0)
 
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
@@ -122,11 +123,11 @@ class ForwardModelWithPotential(ForwardModel):
         if not scale > 0:
              raise ValueError("Value for scale must be positive.")
         A=0
-        for s in xrange(len(self.__weight)):
+        for s in range(len(self.__weight)):
             A += integrate( abs(inner(self.__weight[s], self.__data[s])*  inner(self.__weight[s], 1/self.edge_lengths) * fetch_factor))
         if A > 0:
             A=sqrt(scale/A)/self.diameter
-            for s in xrange(len(self.__weight)):  self.__weight[s]*=A
+            for s in range(len(self.__weight)):  self.__weight[s]*=A
         else:
             raise ValueError("Rescaling of weights failed.")
 
@@ -162,7 +163,7 @@ class ForwardModelWithPotential(ForwardModel):
         :rtype: ``float``
         """
         A=0.
-        for s in xrange(len(self.__weight)):
+        for s in range(len(self.__weight)):
             A += integrate( inner(self.__weight[s], self.__data[s]-result)**2 )
         return  A/2
 
@@ -192,7 +193,7 @@ class GravityModel(ForwardModelWithPotential):
     cookbook.
     """
     def __init__(self, domain, w, g,  gravity_constant=U.Gravitational_Constant,
-                 useSphericalCoordinates=False, tol=1e-8):
+                 useSphericalCoordinates=False, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
         surveys (w, g).
@@ -207,11 +208,14 @@ class GravityModel(ForwardModelWithPotential):
         :type useSphericalCoordinates: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
+        :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
+                                     in addition to the top.
+        :type fixPotentialAtBottom: ``bool``
 
 
         :note: It is advisable to call rescaleWeights() to rescale weights before start inversion.
         """
-        super(GravityModel, self).__init__(domain, w, g, useSphericalCoordinates, tol)
+        super(GravityModel, self).__init__(domain, w, g, useSphericalCoordinates, fixPotentialAtBottom, tol)
 
         self.__G = gravity_constant
         self.getPDE().setValue(A=kronecker(self.getDomain()))
@@ -297,7 +301,7 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, w, B, background_magnetic_flux_density,  useSphericalCoordinates=False, tol=1e-8):
+    def __init__(self, domain, w, B, background_magnetic_flux_density,  useSphericalCoordinates=False, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (w, B).
@@ -312,8 +316,11 @@ class MagneticModel(ForwardModelWithPotential):
         :type tol: positive ``float``
         :param useSphericalCoordinates: if set spherical coordinates are used
         :type useSphericalCoordinates: ``bool``
+        :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
+                                     in addition to the top.
+        :type fixPotentialAtBottom: ``bool``
         """
-        super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, tol)
+        super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, fixPotentialAtBottom, tol)
         self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
         self.getPDE().setValue(A=kronecker(self.getDomain()))
 

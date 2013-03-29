@@ -2843,8 +2843,11 @@ class Test_LinearPDE_noLumping(Test_linearPDEs):
         x=self.domain.getX()[0]
         f = pde.getFlux(x)
         self.assertEqual(f.getShape(),(self.domain.getDim(),),"wrong shape of result.")
-        FS=ReducedFunction
-        self.assertEqual(f.getFunctionSpace(),FS(self.domain),"wrong function space")
+        if self.specialInterpolationSupported():
+            FS=ReducedFunction
+        else:
+            FS=ReducedFunction
+        self.assertEqual(f.getFunctionSpace(),FS(self.domain),"wrong function space"+str(f.getFunctionSpace())+" expected "+str(FS(self.domain)))
         f_ref=Data(x*kronecker(self.domain)[1]*2+(5-1)*kronecker(self.domain)[0], ReducedFunction(self.domain))
         self.assertTrue(self.check(f, f_ref),"wrong result")
 

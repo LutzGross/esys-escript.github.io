@@ -281,12 +281,13 @@ class Primitive(object):
         raise NotImplementedError("collectPrimitiveBases is not implemented.")
 
     def isColocated(self,primitive):
-       """
-       Rreturns True if the two primitives are located at the same position.
+        """
+        Returns True if the two primitives are located at the same position.
 
-       :note: This method is overwritten by subclasses.
-       """
-       raise NotImplementedError("isColocated is not implemented.")
+        :note: This method is overwritten by subclasses.
+        """
+        raise NotImplementedError("isCollocated is not implemented.")
+
     def isReversed(self):
         """
         returns True is the primitive is a reversed primitive.
@@ -424,19 +425,19 @@ class Point(Primitive, PrimitiveBase):
 
     def getCoordinates(self):
        """
-       Returns the coodinates of the point as a ``numpy.ndarray`` object.
+       Returns the coordinates of the point as a ``numpy.ndarray`` object.
        """
        return self._x
 
     def getCoordinatesAsList(self):
        """
-       Returns the coodinates of the point as a ``list`` object.
+       Returns the coordinates of the point as a ``list`` object.
        """
        return [self._x[0], self._x[1], self._x[2] ]
 
     def setCoordinates(self,x):
        """
-       Sets the coodinates of the point from a ``numpy.ndarray`` object ``x``.
+       Sets the coordinates of the point from a ``numpy.ndarray`` object ``x``.
        """
        if not isinstance(x, numpy.ndarray):
           self._x=numpy.array(x,_TYPE)
@@ -451,7 +452,7 @@ class Point(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if the `Point` ``primitive`` is colocated (has the same
+       Returns True if the `Point` ``primitive`` is collocated (has the same
        coordinates) with self. That is, if
        *|self - primitive| <= tol * max(\|self\|,|primitive|)*.
        """
@@ -525,7 +526,7 @@ class Manifold1D(PrimitiveBase):
     def setElementDistribution(self,n,progression=1,createBump=False):
         """
         Defines the number of elements on the line. If set it overwrites the local length setting which would be applied.
-        The progression factor ``progression`` defines the change of element size between naighboured elements. If ``createBump`` is set
+        The progression factor ``progression`` defines the change of element size between neighboured elements. If ``createBump`` is set
         progression is applied towards the center of the line.
 
         :param n: number of elements on the line
@@ -768,9 +769,9 @@ class Arc(ArcBase, Primitive):
        if not isinstance(center,Point): raise TypeError("center needs to be a Point object.")
        if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
        if not isinstance(start,Point): raise TypeError("start needs to be a Point object.")
-       if center.isColocated(end): raise TypeError("center and start point are colocated.")
-       if center.isColocated(start): raise TypeError("center end end point are colocated.")
-       if start.isColocated(end): raise TypeError("start and end are colocated.")
+       if center.isColocated(end): raise TypeError("center and start point are collocated.")
+       if center.isColocated(start): raise TypeError("center end end point are collocated.")
+       if start.isColocated(end): raise TypeError("start and end are collocated.")
        # TODO: check length of circle.
        ArcBase.__init__(self)
        Primitive.__init__(self)
@@ -889,10 +890,10 @@ class Ellipse(EllipseBase, Primitive):
        if not isinstance(end,Point): raise TypeError("end needs to be a Point object.")
        if not isinstance(start,Point): raise TypeError("start needs to be a Point object.")
        if not isinstance(point_on_main_axis,Point): raise TypeError("point on main axis needs to be a Point object.")
-       if center.isColocated(end): raise TypeError("center and start point are colocated.")
-       if center.isColocated(start): raise TypeError("center end end point are colocated.")
+       if center.isColocated(end): raise TypeError("center and start point are collocated.")
+       if center.isColocated(start): raise TypeError("center end end point are collocated.")
        if center.isColocated(point_on_main_axis): raise TypeError("center and point on main axis are colocated.")
-       if start.isColocated(end): raise TypeError("start and end point are colocated.")
+       if start.isColocated(end): raise TypeError("start and end point are collocated.")
        # TODO: check length of circle.
        EllipseBase.__init__(self)
        Primitive.__init__(self)
@@ -1079,7 +1080,7 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in ``primitive``.
+       Returns True if each curve is collocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),CurveLoop):
@@ -1096,7 +1097,8 @@ class CurveLoop(Primitive, PrimitiveBase):
 
     def getPolygon(self):
        """
-       Returns a list of start/end points of the 1D mainfold form the loop. If not closed and exception is thrown.
+       Returns a list of start/end points of the 1D manifold from the loop.
+       If not closed an exception is thrown.
        """
        curves=self.getCurves()
        s=[curves[0].getStartPoint(), curves[0].getEndPoint()]
@@ -1150,9 +1152,9 @@ class Manifold2D(PrimitiveBase):
     """
     General two-dimensional manifold.
  
-    :ivar LEFT: left element orientation when meshing with transifinite meshing
-    :ivar RIGHT: right element orientation when meshing with transifinite meshing
-    :ivar ALTERNATE: alternate element orientation when meshing with transifinite meshing
+    :ivar LEFT: left element orientation when meshing with transfinite meshing
+    :ivar RIGHT: right element orientation when meshing with transfinite meshing
+    :ivar ALTERNATE: alternate element orientation when meshing with transfinite meshing
     """
     LEFT="Left"
     RIGHT="Right"
@@ -1298,7 +1300,7 @@ class Manifold2D(PrimitiveBase):
 
     def getTransfiniteMeshing(self):
         """
-        returns the transfinite meshing setings. If transfinite meshing is not set, ``None`` is returned.
+        returns the transfinite meshing settings. If transfinite meshing is not set, ``None`` is returned.
         
         :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as ``None``. If no transfinite meshing is not set, ``None`` is returned.
         :rtype: ``tuple`` of a ``tuple`` of `Point` s (or ``None``) and the orientation which is one of the values  `Manifold2D.LEFT` , `Manifold2D.RIGHT` , `Manifold2D.ALTERNATE`
@@ -1369,7 +1371,7 @@ class RuledSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in ``primitive``.
+       Returns True if each curve is collocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),RuledSurface):
@@ -1481,7 +1483,7 @@ class PlaneSurface(Primitive, Manifold2D):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in ``primitive``.
+       Returns True if each curve is collocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),PlaneSurface):
@@ -1625,7 +1627,7 @@ class SurfaceLoop(Primitive, PrimitiveBase):
 
     def isColocated(self,primitive):
        """
-       Returns True if each surface is colocated with a curve in ``primitive``
+       Returns True if each surface is collocated with a curve in ``primitive``
        and vice versa.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
@@ -1723,7 +1725,7 @@ class Manifold3D(PrimitiveBase):
         applies 3D transfinite meshing to the volume and all surface. It requires transfinite meshing
         on all faces which will be enforced (except if ``orientation`` is equal to ``None``).
         :param orientation: sets the orientation of the triangles on the surfaces. It is only relevant if recombination is not used.
-        If orientation is equal to ``None``, the transinite meshing is not applied to the surfaces but must be set by the user.
+        If orientation is equal to ``None``, the transfinite meshing is not applied to the surfaces but must be set by the user.
         :type orientation: `Manifold2D.LEFT`, `Manifold2D.RIGHT`, `Manifold2D.ALTERNATE`
         :note: Transfinite meshing can not be applied if holes are present.
         :note: only five or six surfaces may be used.
@@ -1783,7 +1785,7 @@ class Manifold3D(PrimitiveBase):
 
     def getTransfiniteMeshing(self):
         """
-        returns the transfinite meshing setings. If transfinite meshing is not set, ``None`` is returned.
+        returns the transfinite meshing settings. If transfinite meshing is not set, ``None`` is returned.
         
         :return: a tuple of the tuple of points used to define the transfinite meshing and the orientation. If no points are set the points tuple is returned as ``None``. If no transfinite meshing is not set, ``None`` is returned.
         :rtype: ``tuple`` of a ``tuple`` of `Point` s (or ``None``) and the orientation which is one of the values  `Manifold2D.LEFT` , `Manifold2D.RIGHT` , `Manifold2D.ALTERNATE`
@@ -1848,7 +1850,7 @@ class Volume(Manifold3D, Primitive):
 
     def isColocated(self,primitive):
        """
-       Returns True if each curve is colocated with a curve in ``primitive``.
+       Returns True if each curve is collocated with a curve in ``primitive``.
        """
        if hasattr(primitive,"getUnderlyingPrimitive"):
           if isinstance(primitive.getUnderlyingPrimitive(),Volume):

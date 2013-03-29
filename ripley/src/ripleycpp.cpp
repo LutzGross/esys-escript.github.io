@@ -27,12 +27,40 @@ using namespace boost::python;
 
 namespace ripley {
 
+void writeBinaryGrid(std::string filename, const escript::Data& d,
+        const char byteorder, const char datatype, const char datasize)
+{
+    const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(d.getDomain().get());
+    if (!dom)
+        throw RipleyException("Function space must be on a ripley domain");
+
+    if (datatype != 'f')
+        throw RipleyException("only float data supported");
+
+    if (datasize != '4')
+        throw RipleyException("only single-precision data supported");
+
+    switch (byteorder) {
+        case '=':
+            dom->writeBinaryGrid(d, filename, RIPLEY_BYTE_ORDER);
+            break;
+        case '<':
+            dom->writeBinaryGrid(d, filename, RIPLEY_LITTLE_ENDIAN);
+            break;
+        case '>':
+            dom->writeBinaryGrid(d, filename, RIPLEY_BIG_ENDIAN);
+            break;
+        default:
+            throw RipleyException("unrecognized byte order argument");
+    }
+}
+
 escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
-        const object& pyFirst, const object& pyNum, const object& pyShape,
-        double fill=0.)
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyShape, double fill=0.)
 {
     int dim=fs.getDim();
-    std::vector<int> first(dim), numValues(dim), shape;
+    std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
 
     if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
         if (len(pyFirst)==dim) {
@@ -61,6 +89,16 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     } else
         throw RipleyException("Argument 'shape' must be a tuple or list");
 
+    if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
+        if (len(pyMultiplier)==dim) {
+            for (int i=0; i<dim; i++) {
+                multiplier[i]=extract<int>(pyMultiplier[i]);
+            }
+        } else
+            throw RipleyException("Argument 'multiplier' has wrong length");
+    } else
+        throw RipleyException("Argument 'multiplier' must be a tuple or list");
+
     const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
     if (!dom)
         throw RipleyException("Function space must be on a ripley domain");
@@ -68,16 +106,16 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readBinaryGrid(res, filename, first, numValues);
+    dom->readBinaryGrid(res, filename, first, numValues, multiplier);
     return res;
 }
 
 escript::Data readNcGrid(std::string filename, std::string varname,
         escript::FunctionSpace fs, const object& pyFirst, const object& pyNum,
-        const object& pyShape, double fill=0.)
+        const object& pyMultiplier, const object& pyShape, double fill=0.)
 {
     int dim=fs.getDim();
-    std::vector<int> first(dim), numValues(dim), shape;
+    std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
 
     if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
         if (len(pyFirst)==dim) {
@@ -99,6 +137,16 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     } else
         throw RipleyException("Argument 'numValues' must be a tuple or list");
 
+    if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
+        if (len(pyMultiplier)==dim) {
+            for (int i=0; i<dim; i++) {
+                multiplier[i]=extract<int>(pyMultiplier[i]);
+            }
+        } else
+            throw RipleyException("Argument 'multiplier' has wrong length");
+    } else
+        throw RipleyException("Argument 'multiplier' must be a tuple or list");
+
     if (extract<tuple>(pyShape).check() || extract<list>(pyShape).check()) {
         for (int i=0; i<len(pyShape); i++) {
             shape.push_back(extract<int>(pyShape[i]));
@@ -113,7 +161,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readNcGrid(res, filename, varname, first, numValues);
+    dom->readNcGrid(res, filename, varname, first, numValues, multiplier);
     return res;
 }
 
@@ -236,26 +284,26 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
     def("_theculprit_", ripley::_who);
-    def("LoadMesh", ripley::RipleyDomain::loadMesh, (arg("filename")),
-           "Loads a ripley domain from a dump file" ":rtype: `Domain`");
 
-    def("ReadMesh", ripley::RipleyDomain::readMesh, (arg("filename")),
-            "Reads a ripley domain from a file created by write().\n\n"
-            ":rtype: `RipleyDomain`\n:param filename:\n:type filename: ``string``\n");
+    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
-    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("shape"), arg("fill")=0.));
+    def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
-    def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("shape"), arg("fill")=0.));
+    def("_writeBinaryGrid", &ripley::writeBinaryGrid);
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
-        .def("write", &ripley::RipleyDomain::write, args("filename"),
-                "Writes the current mesh to a file with the given name. It can subsequently be recovered using ReadMesh().")
         .def("print_mesh_info", &ripley::RipleyDomain::Print_Mesh_Info, (arg("full")=false),
                 "Prints out a summary about the mesh.\n"
                 ":param full: whether to output additional data\n:type full: ``bool``")
         .def("dump", &ripley::RipleyDomain::dump, args("filename"),
                 "Dumps the mesh to a file with the given name.")
+        .def("getGridParameters", &ripley::RipleyDomain::getGridParameters,
+"Returns the tuple (origin, spacing, elements) where the entries are tuples:\n"
+"``origin``=the coordinates of the domain's global origin,\n"
+"``spacing``=the element size (=node spacing) of the domain,\n"
+"``elements``=the global number of elements in all dimensions\n\n"
+":rtype: ``tuple``")
         .def("getDescription", &ripley::RipleyDomain::getDescription,
 ":return: a description for this domain\n:rtype: ``string``")
         .def("getDim", &ripley::RipleyDomain::getDim, ":rtype: ``int``")

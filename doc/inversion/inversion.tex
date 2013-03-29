@@ -23,6 +23,8 @@
 
 \input{defs}
 
+\makeindex
+
 \begin{document}
 
 \pagestyle{empty} %No headings for the first pages.
@@ -33,12 +35,23 @@
 The University of Queensland\\
 School of Earth Sciences\\
 St. Lucia, QLD 4072, Australia.}
-\release{3.3.1 pre-release}
+\release{Development}
 
 \maketitle
 
+\begin{center}
+Copyright (c) 2012--2013 by University of Queensland	\\
+\url{http://www.uq.edu.au}				\\
+Primary Business: Queensland, Australia			\\
+Licensed under the Open Software License version 3.0	\\
+\url{http://www.opensource.org/licenses/osl-3.0.php}	\\
 
+This work is supported by the AuScope National Collaborative Research Infrastructure Strategy, 
+the Queensland State Government and The University of Queensland.
 
+\end{center}
+
+\cleardoublepage\pdfbookmark[0]{Contents}{contents}%
 \tableofcontents %Table of contents
 \cleardoublepage %The first chapter should start on an odd page.
 
@@ -48,15 +61,12 @@ St. Lucia, QLD 4072, Australia.}
 
 
 \part{Inversion Cookbook}\label{part1}
-
 \include{CookGravity}
 \include{CookMagnetic}
-\include{CookJoint}
+\include{CookJointDUMMY}
 
 
 \part{Reference Guide}\label{part2}
-
-
 \include{IntroPart2}
 \include{Minimization}
 \include{CostFunctions}
@@ -75,12 +85,10 @@ St. Lucia, QLD 4072, Australia.}
 \addcontentsline{toc}{chapter}{\indexname}
 \printindex
 
-
 \bibliographystyle{plain}
 \cleardoublepage\phantomsection
 \addcontentsline{toc}{chapter}{Bibliography}
 \bibliography{inversion}
-
 
 \end{document}
 

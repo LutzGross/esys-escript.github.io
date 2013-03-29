@@ -16,16 +16,18 @@
 #include <weipa/EscriptDataset.h>
 #include <weipa/DataVar.h>
 #include <weipa/ElementData.h>
-#include <weipa/FileWriter.h>
 #include <weipa/FinleyDomain.h>
 #include <weipa/NodeData.h>
 #include <weipa/RipleyDomain.h>
 
 #ifndef VISIT_PLUGIN
+#include <esysUtils/esysFileWriter.h>
 #include <escript/Data.h>
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
 #include <ripley/RipleyDomain.h>
+
+using esysUtils::FileWriter;
 #endif
 
 #include <cstring>
@@ -528,6 +530,7 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
                                    const string& meshName,
                                    const VarVector& vars)
 {
+#ifndef VISIT_PLUGIN
     VarVector nodalVars, cellVars;
     VarVector::const_iterator viIt;
     for (viIt = vars.begin(); viIt != vars.end(); viIt++) {
@@ -744,6 +747,9 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     fw->close();
     delete fw;
     return true;
+#else // VISIT_PLUGIN
+    return false;
+#endif
 }
 
 //

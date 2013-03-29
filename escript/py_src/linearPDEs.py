@@ -1301,11 +1301,11 @@ class PDECoef(object):
                        defined by the number of PDE solutions
     :cvar BY_DIM: indicator that the dimension of the coefficient shape is
                   defined by the spatial dimension
-    :cvar OPERATOR: indicator that the the coefficient alters the operator of
+    :cvar OPERATOR: indicator that the coefficient alters the operator of
                     the PDE
-    :cvar RIGHTHANDSIDE: indicator that the the coefficient alters the right
+    :cvar RIGHTHANDSIDE: indicator that the coefficient alters the right
                          hand side of the PDE
-    :cvar BOTH: indicator that the the coefficient alters the operator as well
+    :cvar BOTH: indicator that the coefficient alters the operator as well
                 as the right hand side of the PDE
 
     """
@@ -1705,7 +1705,7 @@ class LinearProblem(object):
            self.trace("coefficient %s has been introduced."%name)
    def resetRightHandSideCoefficients(self):
        """
-       Resets all coefficients defining the the right hand side
+       Resets all coefficients defining the right hand side
        """
        for name in self.__COEFFICIENTS:
          if self.__COEFFICIENTS[name].altering == PDECoef.RIGHTHANDSIDE  :

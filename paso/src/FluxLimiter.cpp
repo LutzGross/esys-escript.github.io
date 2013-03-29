@@ -161,7 +161,7 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
 }
 
 /* starts to update a vector (not given yet) from the antidiffusion fluxes in flux_limiter->antidiffusive_fluxes
- (needes u_tilde and Q */
+ (needs u_tilde and Q */
 void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limiter) {
   
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
@@ -230,12 +230,12 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
       }
   } /* end parallel region */
   
-  /* now we kick off the distrribution of the R's */
+  /* now we kick off the distribution of the R's */
   Paso_Coupler_startCollect(flux_limiter->R_coupler,flux_limiter->R);
 } 
 
 
-/* completes the exchange of the R factors and adds the weighted antdiffusion fluxxes to the residual b */
+/* completes the exchange of the R factors and adds the weighted antidiffusion fluxxes to the residual b */
 void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_limiter, double* b) 
 {
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);

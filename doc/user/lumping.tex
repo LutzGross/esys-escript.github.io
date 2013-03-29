@@ -57,7 +57,7 @@ This equation can be interpreted as a PDE for the unknown value $a^{(n)}$,
 which must be solved at each time-step. 
 In the notation of equation~\ref{LINEARPDE.SINGLE.1} we thus set $D=1$ and 
 $X=-c^2 u^{(n-1)}_{,i}$. Furthermore, in order to maintain stability, 
-the time step size needs to fullfill the Courant–Friedrichs–Lewy condition 
+the time step size needs to fulfill the Courant–Friedrichs–Lewy condition 
 (CFL condition).
 \index{Courant condition}
 \index{explicit scheme!Courant condition} 
@@ -70,7 +70,7 @@ we use $f=\frac{1}{6}$.
 
 Figure~\ref{FIG LUMPING VALET A} depicts a temporal comparison between four 
 alternative solution algorithms: the exact solution; using a full mass matrix;
-using HRZ lumping; and row sum lumping. The domain utilsed rectangular order 1 
+using HRZ lumping; and row sum lumping. The domain utilised rectangular order 1 
 elements (element size is $0.01$) with observations taken at the point 
 $(\frac{1}{2},\frac{1}{2})$. 
 All four solutions appear to be identical for this example. This is not the case
@@ -84,14 +84,14 @@ when compared with the analytical solution.
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=7cm]{lumping_valet_a_1}}
-\caption{Amplitude at point $(\frac{1}{2},\frac{1}{2})$ using the accelaraton formulation~\ref{LUMPING WAVE VALET 2} of the 
+\caption{Amplitude at point $(\frac{1}{2},\frac{1}{2})$ using the acceleration formulation~\ref{LUMPING WAVE VALET 2} of the 
 Velet scheme with order $1$ elements, element size $dx=0.01$, and $c=1$.}
 \label{FIG LUMPING VALET A}
 \end{figure}
 
 \begin{figure}[ht]
 \centerline{\includegraphics[width=7cm]{lumping_valet_a_2}}
-\caption{Amplitude at point $(\frac{1}{2},\frac{1}{2})$ using the accelaraton formulation~\ref{LUMPING WAVE VALET 2} of the 
+\caption{Amplitude at point $(\frac{1}{2},\frac{1}{2})$ using the acceleration formulation~\ref{LUMPING WAVE VALET 2} of the 
 Velet scheme with order $2$ elements, element size $0.01$, and $c=1$.}
 \label{FIG LUMPING VALET B}
 \end{figure}
@@ -119,7 +119,7 @@ The displacement solution is depicted in Figure~\ref{FIG LUMPING VALET C}. The
 domain utilised order $1$ elements (for order $2$, both 
 lumping methods are unstable). The solutions for the exact and the full mass 
 matrix approximation are almost identical while the lumping solutions, whilst 
-identical to each other, exhibit a considerably faster wave-front propagration 
+identical to each other, exhibit a considerably faster wave-front propagation 
 and a decaying amplitude.
 
 \subsection{Advection equation}
@@ -231,8 +231,8 @@ The examples in this section have demonstrated the capabilities and limitations
 of both HRZ and row sum lumping with comparisons to the exact and full mass 
 matrix solutions. Wave propagation type problems that utilise lumping, produce 
 results simular the full mass matrix at significantly 
-lower computation cost. An accelleration based formulation, with HRZ lumping 
-should be implemented for such problems, and can be appied to both order $1$ and
+lower computation cost. An acceleration based formulation, with HRZ lumping 
+should be implemented for such problems, and can be applied to both order $1$ and
  order $2$ elements. 
 
 In transport type problems, it is essential that row sum lumping is used to 

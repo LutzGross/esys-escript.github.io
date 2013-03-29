@@ -31,10 +31,6 @@ from esys.escript.pdetools import ArithmeticTuple
 from esys.escript import Data
 import numpy as np
 
-import sys
-if sys.version_info.major>2:
-  xrange=range
-
 
 class InversionCostFunction(MeteredCostFunction):
     """
@@ -73,8 +69,8 @@ class InversionCostFunction(MeteredCostFunction):
 
          J=InversionCostFunction(Regularization(numLevelSets=2), mappings=[(m0,0), (m1,0)], forward_models=[(f0, 0), (f1,1)])
 
-    :var provides_inverse_Hessian_approximation: if true the class provides an
-         approximative inverse of the Hessian operator.
+    :cvar provides_inverse_Hessian_approximation: if true the class provides an
+          approximative inverse of the Hessian operator.
     """
     provides_inverse_Hessian_approximation=True
 
@@ -246,7 +242,7 @@ class InversionCostFunction(MeteredCostFunction):
         """
         m=self.regularization.getPDE().createSolution()
         if len(props) > 0:
-            for i in xrange(self.numMappings):
+            for i in range(self.numMappings):
                 if props[i]:
                     mm=self.mappings[i]
                     if isinstance(mm, Mapping):
@@ -269,7 +265,7 @@ class InversionCostFunction(MeteredCostFunction):
         :rtype: ``list`` of `Data`
         """
         props=[]
-        for i in xrange(self.numMappings):
+        for i in range(self.numMappings):
             mm=self.mappings[i]
             if isinstance(mm, Mapping):
                 p=mm.getValue(m)
@@ -311,7 +307,7 @@ class InversionCostFunction(MeteredCostFunction):
         # cache for physical parameters:
         props=self.getProperties(m, return_list=True)
         args_f=[]
-        for i in xrange(self.numModels):
+        for i in range(self.numModels):
             f=self.forward_models[i]
             if isinstance(f, ForwardModel):
                 aa=f.getArguments(props[0])
@@ -350,7 +346,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         J = self.regularization.getValue(m, *args_reg)
 
-        for i in xrange(self.numModels):
+        for i in range(self.numModels):
             f=self.forward_models[i]
             if isinstance(f, ForwardModel):
                 J_f = f.getValue(props[0],*args_f[i])
@@ -392,7 +388,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         g_J = self.regularization.getGradient(m, *args_reg)
         p_diffs=[]
-        for i in xrange(self.numMappings):
+        for i in range(self.numMappings):
             mm=self.mappings[i]
             if isinstance(mm, Mapping):
                 dpdm = mm.getDerivative(m)
@@ -403,7 +399,7 @@ class InversionCostFunction(MeteredCostFunction):
             p_diffs.append(dpdm)
 
         Y=g_J[0]
-        for i in xrange(self.numModels):
+        for i in range(self.numModels):
             mu=self.mu_model[i]
             f=self.forward_models[i]
             if isinstance(f, ForwardModel):
@@ -433,7 +429,7 @@ class InversionCostFunction(MeteredCostFunction):
                 else:
                     args = tuple( [ props[j] for j in idx] + args_f[i])
                     Ys = f.getGradient(*args)
-                    for ii in xrange(len(idx)):
+                    for ii in range(len(idx)):
                         Y[idx[ii]]+=Ys[ii]* p_diffs[idx[ii]] * mu
 
         return g_J

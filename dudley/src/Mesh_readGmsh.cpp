@@ -187,7 +187,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 			    break;
 			default:
 			    element_type[e] = Dudley_NoRef;
-			    sprintf(error_msg, "Unexected gmsh element type %d in mesh file %s.", gmsh_type, fname);
+			    sprintf(error_msg, "Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname);
 			    Dudley_setError(IO_ERROR, error_msg);
 			}
 			if (element_dim == numDim)
@@ -268,7 +268,7 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 
 		    if (Dudley_noError())
 		    {
-			/* first we have to identify the elements to define Elementis and FaceElements */
+			/* first we have to identify the elements to define Elements and FaceElements */
 			if (final_element_type == Dudley_NoRef)
 			{
 			    if (numDim == 1)
@@ -380,17 +380,17 @@ Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, in
 		    Dudley_Mesh_addTagMap(mesh_p,&name[1],tag_key);
 		}
 	      }
-	    /* serach for end of data block */
+	    /* search for end of data block */
 	    do
 	    {
 		if (!fgets(line, sizeof(line), fileHandle_p))
 		{
-		    sprintf(error_msg, "Unexected end of file in %s", fname);
+		    sprintf(error_msg, "Unexpected end of file in %s", fname);
 		    Dudley_setError(IO_ERROR, error_msg);
 		}
 		if (feof(fileHandle_p))
 		{
-		    sprintf(error_msg, "Unexected end of file in %s", fname);
+		    sprintf(error_msg, "Unexpected end of file in %s", fname);
 		    Dudley_setError(IO_ERROR, error_msg);
 		}
 		if (!Dudley_noError())

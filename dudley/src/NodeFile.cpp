@@ -17,7 +17,7 @@
 /*                                                             */
 /*   Dudley: Mesh : NodeFile */
 /*                                                             */
-/*   allocates and freeates node files                      */
+/*   allocates and frees node files                      */
 /*                                                             */
 /************************************************************************************/
 
@@ -26,7 +26,7 @@
 /************************************************************************************/
 
 /*   allocates a node file to hold nodes */
-/*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinatess). */
+/*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinates). */
 
 Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo * MPIInfo)
 {

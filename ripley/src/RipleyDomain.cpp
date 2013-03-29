@@ -27,16 +27,6 @@ using paso::TransportProblemAdapter;
 
 namespace ripley {
 
-escript::Domain_ptr RipleyDomain::loadMesh(const string& filename)
-{
-    throw RipleyException("loadMesh() not implemented");
-}
-
-escript::Domain_ptr RipleyDomain::readMesh(const string& filename)
-{
-    throw RipleyException("readMesh() not implemented");
-}
-
 RipleyDomain::RipleyDomain(dim_t dim) :
     m_numDim(dim),
     m_status(0)
@@ -1278,223 +1268,18 @@ void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
     }
 }
 
-//
-// the methods that follow have to be implemented by the subclasses
-//
-
-string RipleyDomain::getDescription() const
+bool RipleyDomain::probeInterpolationACross(int fsType_source,
+        const escript::AbstractDomain&, int fsType_target) const
 {
-    throw RipleyException("getDescription() not implemented");
-}
-
-void RipleyDomain::write(const string& filename) const
-{
-    throw RipleyException("write() not implemented");
-}
-
-void RipleyDomain::dump(const string& filename) const
-{
-    throw RipleyException("dump() not implemented");
-}
-
-void RipleyDomain::readBinaryGrid(escript::Data& out, string filename,
-            const vector<int>& first, const vector<int>& numValues) const
-{
-    throw RipleyException("readBinaryGrid() not implemented");
-}
-
-void RipleyDomain::readNcGrid(escript::Data& out, string filename,
-            string varname, const vector<int>& first,
-            const vector<int>& numValues) const
-{
-    throw RipleyException("readNcGrid() not implemented");
-}
-
-const int* RipleyDomain::borrowSampleReferenceIDs(int fsType) const
-{
-    throw RipleyException("borrowSampleReferenceIDs() not implemented");
+    //TODO
+    return false;
 }
 
 void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data& source) const
 {
-    throw RipleyException("interpolateACross() not implemented");
+    throw RipleyException("interpolateACross() not supported");
 }
 
-bool RipleyDomain::probeInterpolationACross(int fsType_source,
-        const escript::AbstractDomain&, int fsType_target) const
-{
-    throw RipleyException("probeInterpolationACross() not implemented");
-}
-
-void RipleyDomain::setToNormal(escript::Data& normal) const
-{
-    throw RipleyException("setToNormal() not implemented");
-}
-
-void RipleyDomain::setToSize(escript::Data& size) const
-{
-    throw RipleyException("setToSize() not implemented");
-}
-
-bool RipleyDomain::ownSample(int fsType, index_t id) const
-{
-    throw RipleyException("ownSample() not implemented");
-}
-
-Paso_SystemMatrixPattern* RipleyDomain::getPattern(bool reducedRowOrder,
-                                                   bool reducedColOrder) const
-{
-    throw RipleyException("getPattern() not implemented");
-}
-
-dim_t RipleyDomain::getNumDataPointsGlobal() const
-{
-    throw RipleyException("getNumDataPointsGlobal() not implemented");
-}
-
-IndexVector RipleyDomain::getNumNodesPerDim() const
-{
-    throw RipleyException("getNumNodesPerDim() not implemented");
-}
-
-IndexVector RipleyDomain::getNumElementsPerDim() const
-{
-    throw RipleyException("getNumElementsPerDim() not implemented");
-}
-
-IndexVector RipleyDomain::getNumFacesPerBoundary() const
-{
-    throw RipleyException("getNumFacesPerBoundary() not implemented");
-}
-
-IndexVector RipleyDomain::getNodeDistribution() const
-{
-    throw RipleyException("getNodeDistribution() not implemented");
-}
-
-IndexVector RipleyDomain::getNumSubdivisionsPerDim() const
-{
-    throw RipleyException("getNumSubdivisionsPerDim() not implemented");
-}
-
-pair<double,double> RipleyDomain::getFirstCoordAndSpacing(dim_t dim) const
-{
-    throw RipleyException("getFirstCoordAndSpacing() not implemented");
-}
-
-dim_t RipleyDomain::getNumFaceElements() const
-{
-    throw RipleyException("getNumFaceElements() not implemented");
-}
-
-dim_t RipleyDomain::getNumElements() const
-{
-    throw RipleyException("getNumElements() not implemented");
-}
-
-dim_t RipleyDomain::getNumNodes() const
-{
-    throw RipleyException("getNumNodes() not implemented");
-}
-
-dim_t RipleyDomain::getNumDOF() const
-{
-    throw RipleyException("getNumDOF() not implemented");
-}
-
-dim_t RipleyDomain::insertNeighbourNodes(IndexVector& index, index_t node) const
-{
-    throw RipleyException("insertNeighbourNodes() not implemented");
-}
-
-void RipleyDomain::assembleCoordinates(escript::Data& arg) const
-{
-    throw RipleyException("assembleCoordinates() not implemented");
-}
-
-void RipleyDomain::assembleGradient(escript::Data& out, escript::Data& in) const
-{
-    throw RipleyException("assembleGradient() not implemented");
-}
-
-void RipleyDomain::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
-{
-    throw RipleyException("assembleIntegrate() not implemented");
-}
-
-void RipleyDomain::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y) const
-{
-    throw RipleyException("assemblePDESingle() not implemented");
-}
-
-void RipleyDomain::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
-{
-    throw RipleyException("assemblePDEBoundarySingle() not implemented");
-}
-
-void RipleyDomain::assemblePDESingleReduced(Paso_SystemMatrix* mat,
-        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-        const escript::Data& C, const escript::Data& D, const escript::Data& X,
-        const escript::Data& Y) const
-{
-    throw RipleyException("assemblePDESingleReduced() not implemented");
-}
-
-void RipleyDomain::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
-{
-    throw RipleyException("assemblePDEBoundarySingleReduced() not implemented");
-}
-
-void RipleyDomain::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y) const
-{
-    throw RipleyException("assemblePDESystem() not implemented");
-}
-
-void RipleyDomain::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
-{
-    throw RipleyException("assemblePDEBoundarySystem() not implemented");
-}
-
-void RipleyDomain::assemblePDESystemReduced(Paso_SystemMatrix* mat,
-        escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-        const escript::Data& C, const escript::Data& D, const escript::Data& X,
-        const escript::Data& Y) const
-{
-    throw RipleyException("assemblePDESystemReduced() not implemented");
-}
-
-void RipleyDomain::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
-{
-    throw RipleyException("assemblePDEBoundarySystemReduced() not implemented");
-}
-
-void RipleyDomain::interpolateNodesOnElements(escript::Data& out, escript::Data& in, bool reduced) const
-{
-    throw RipleyException("interpolateNodesOnElements() not implemented");
-}
-
-void RipleyDomain::interpolateNodesOnFaces(escript::Data& out, escript::Data& in, bool reduced) const
-{
-    throw RipleyException("interpolateNodesOnFaces() not implemented");
-}
-
-void RipleyDomain::nodesToDOF(escript::Data& out, escript::Data& in) const
-{
-    throw RipleyException("nodesToDOF() not implemented");
-}
-
-void RipleyDomain::dofToNodes(escript::Data& out, escript::Data& in) const
-{
-    throw RipleyException("dofToNodes() not implemented");
-}
 
 } // end of namespace ripley
 

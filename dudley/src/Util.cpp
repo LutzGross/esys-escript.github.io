@@ -169,7 +169,7 @@ void Dudley_Util_SmallMatSetMult1(dim_t len, dim_t A1, dim_t A2, double *A, dim_
 }
 
 /*    inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
-/*    the determinante is returned. */
+/*    the determinant is returned. */
 
 void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, double *det)
 {

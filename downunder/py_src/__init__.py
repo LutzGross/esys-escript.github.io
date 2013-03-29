@@ -22,11 +22,15 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+from .costfunctions import *
 from .datasources import *
 from .domainbuilder import *
+from .forwardmodels import *
+from .inversioncostfunctions import *
 from .inversions import *
-from .costfunctions import *
+from .mappings import *
 from .minimizers import *
+from .regularizations import *
 
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)

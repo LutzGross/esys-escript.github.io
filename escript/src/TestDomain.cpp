@@ -164,22 +164,22 @@ std::pair<int,int> TestDomain::getDataShape(int functionSpaceCode) const
 int TestDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
   //
-  // return an arbitary value
-  // - In this case I have chosen to return the deafult tag
+  // return an arbitrary value
+  // - In this case I have chosen to return the default tag
   return 0; 
 }
 
 const int* TestDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
   //
-  // return an arbitary value
+  // return an arbitrary value
   return m_samplerefids;
 }
 
 int TestDomain::getDim() const
 {
   //
-  // return an arbitary value
+  // return an arbitrary value
   // Since this domain doesn't really have structure I guess 1 seems sensible
   return 1; 
 }

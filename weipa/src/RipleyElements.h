@@ -131,7 +131,6 @@ private:
     int numGhostElements;
     int nodesPerElement;
     ZoneType type;
-    IntVec NperDim; // num elements per dimension
     IntVec nodes;
     IntVec ID, tag, owner;
     QuadMaskInfo quadMask; // dummy

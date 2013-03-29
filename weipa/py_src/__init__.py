@@ -158,3 +158,92 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_mesh
     dataset.setSaveMeshData(write_meshdata)
     return dataset.saveVTK(filename)
 
+def saveVoxet(filename, **data):
+    """
+    Writes `Data` objects to a file using the GOCAD Voxet file format as
+    separate properties on the same grid.
+    At the moment only Data on a `ripley` domain can be saved in this format.
+    Note that this function will produce one header file (ending in .vo) and
+    a separate property file for each `Data` object.
+
+    :param filename: name of the output file ('.vo' is added if required)
+    :type filename: ``str``
+    :note: All data objects have to be defined on the same ripley domain and
+           either defined on reduced Function or on a `FunctionSpace` that
+           allows interpolation to reduced Function.
+    """
+
+    from esys.escript import ReducedFunction
+    from esys.escript.util import interpolate
+    from esys.ripley.ripleycpp import _writeBinaryGrid
+    new_data={}
+    domain=None
+    for n,d in list(data.items()):
+        if d.isEmpty():
+            continue
+        fs=d.getFunctionSpace()
+        if domain is None:
+            domain=fs.getDomain()
+        elif domain != fs.getDomain():
+            raise ValueError("saveVoxet: All Data must be on the same domain!")
+
+        try:
+            nd=interpolate(d, ReducedFunction(domain))
+        except:
+            raise ValueError("saveVoxet: Unable to interpolate all Data to reduced Function!")
+        new_data[n]=nd
+
+    if filename[-3:]=='.vo':
+        fileprefix=filename[:-3]+"_"
+    else:
+        fileprefix=filename+"_"
+        filename=filename+'.vo'
+
+    origin, spacing, NE = domain.getGridParameters()
+    # flip vertical origin
+    origin=origin[:-1]+(-origin[-1],)
+    axis_max=NE[:-1]+(-NE[-1],)
+    midpoint=tuple([n/2 for n in NE])
+
+    if domain.getDim() == 2:
+        origin=origin+(0.,)
+        spacing=spacing+(1.,)
+        NE=NE+(1,)
+        midpoint=midpoint+(0,)
+
+    mainvar=new_data.keys()[0]
+    f=open(filename,'w')
+    f.write("GOCAD Voxet 1\nHEADER {\nname: escriptdata\n")
+    f.write("sections: 3 1 1 %d 2 1 %d 3 1 %d\n"%midpoint)
+    f.write("painted: on\nascii: off\n*painted*variable: %s\n}"%mainvar)
+    f.write("""
+GOCAD_ORIGINAL_COORDINATE_SYSTEM
+NAME "gocad Local"
+AXIS_NAME X Y Z
+AXIS_UNIT m m m
+ZPOSITIVE Depth
+END_ORIGINAL_COORDINATE_SYSTEM\n""")
+
+    f.write("AXIS_O %0.2f %0.2f %0.2f\n"%origin)
+    f.write("AXIS_U %0.2f 0 0\n"%spacing[0])
+    f.write("AXIS_V 0 %0.2f 0\n"%spacing[1])
+    f.write("AXIS_W 0 0 %0.2f\n"%spacing[2])
+    f.write("AXIS_MIN 0 0 0\n")
+    f.write("AXIS_MAX %d %d %d\n"%axis_max)
+    f.write("AXIS_N %d %d %d\n"%NE)
+    f.write("\n")
+
+    num=0
+    for n,d in list(new_data.items()):
+        num=num+1
+        propfile=fileprefix+n
+        _writeBinaryGrid(propfile, d, '>', 'f', '4')
+        f.write("\nPROPERTY %d %s\n"%(num, n))
+        f.write("PROPERTY_SUBCLASS %d QUANTITY Float\n"%num)
+        f.write("PROP_ESIZE %d 4\n"%num)
+        f.write("PROP_ETYPE %d IEEE\n"%num)
+        f.write("PROP_FORMAT %d RAW\n"%num)
+        f.write("PROP_OFFSET %d 0\n"%num)
+        f.write("PROP_FILE %d %s\n"%(num,propfile))
+    f.close()
+

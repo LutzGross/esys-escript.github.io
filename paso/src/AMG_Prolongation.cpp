@@ -156,7 +156,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 	couple_p[i] = l;
      }
 
-     /* number of unknowns in the col-coupleBlock of the interplation matrix */
+     /* number of unknowns in the col-coupleBlock of the interpolation matrix */
      sum = 0;
      for (i=0;i<overlap_n;++i) {
 	if (counter_C[i+my_n] > -1) {
@@ -453,13 +453,13 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
             }
 
             if (counter_C[j+my_n]>=0) {
-                  /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */
+                  /* is i strongly connect with j? We serach for counter_C[j] in P[i,:] */
                   start_p=&(couple_pattern->index[couple_pattern->ptr[i]]);
                   where_p=(index_t*)bsearch(&(counter_C[j+my_n]), start_p,
                                             couple_pattern->ptr[i + 1] - couple_pattern->ptr[i],
                                             sizeof(index_t),
                                             Paso_comparIndex);
-                  if (! (where_p == NULL) ) { /* yes i stronly connect with j */
+                  if (! (where_p == NULL) ) { /* yes i strongly connect with j */
                         offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
                         couple_block->val[offset]=A_ij; /* will be modified later */
                         if (A_ij< 0)  {
@@ -611,13 +611,13 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
                   }
 
                   if (counter_C[j+my_n]>=0) {
-                     /* is i stronly connect with j? We serach for counter_C[j] in P[i,:] */
+                     /* is i strongly connect with j? We serach for counter_C[j] in P[i,:] */
                      start_p=&(couple_pattern->index[couple_pattern->ptr[i]]);
                      where_p=(index_t*)bsearch(&(counter_C[j+my_n]), start_p,
                                              couple_pattern->ptr[i + 1]-couple_pattern->ptr[i],
                                              sizeof(index_t),
                                              Paso_comparIndex);
-                     if (! (where_p == NULL) ) { /* yes i stronly connect with j */
+                     if (! (where_p == NULL) ) { /* yes i strongly connect with j */
                               offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
                               for (ib =0; ib<row_block_size; ++ib) {
                                  A_ij=A->col_coupleBlock->val[A_block*iPtr+ib+row_block_size*ib];
@@ -842,9 +842,9 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
                     /* is (i,j) a strong connection ?*/
 		    index_t t=j+my_n;
                     const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
-                    if (where_s == NULL) { /* weak connections are accummulated */
+                    if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;
-                    } else {   /* yes i stronly connect with j */
+                    } else {   /* yes i strongly connect with j */
                         if  (counter_C[t]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), Paso_comparIndex);
                                if (where_p == NULL)  {
@@ -1081,7 +1081,7 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
                     /* is (i,j) a strong connection ?*/
 		    index_t t=j+my_n;
 	            const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
-	            if (where_s == NULL) { /* weak connections are accummulated */
+	            if (where_s == NULL) { /* weak connections are accumulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[t]>=0)  { /* j is an interpolation point : add A_ij into P */

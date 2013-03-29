@@ -30,7 +30,7 @@ using namespace CppUnit;
 void TaipanTestCase::testN1() {
 
   // Arrays with N=1 are handled differently by the Taipan memory manager, these
-  // are never disposed of to maximise reusability, so they are tested seperately.
+  // are never disposed of to maximise reusability, so they are tested separately.
 
   cout << endl;
 
@@ -124,7 +124,7 @@ void TaipanTestCase::testN1() {
 void TaipanTestCase::testN0() {
 
   // Arrays with N=0 are handled differently by the Taipan memory manager, these
-  // are never disposed of to maximise reusability, so they are tested seperately.
+  // are never disposed of to maximise reusability, so they are tested separately.
 
   cout << endl;
 

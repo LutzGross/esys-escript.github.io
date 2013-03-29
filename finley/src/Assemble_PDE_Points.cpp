@@ -18,15 +18,15 @@
 
 /*    assembles the system of numEq PDEs into the stiffness matrix S and right hand side F  */
 
-/*      d_diarc_{k,m} u_m and y_diarc_k */
+/*      d_dirac_{k,m} u_m and y_dirac_k */
 
 /*    u has p.numComp components in a 3D domain. The shape functions for test and solution must be identical  */
 /*    and row_NS == row_NN                                                                                  */
 
 /*    Shape of the coefficients: */
 
-/*      d_diarc = p.numEqu x p.numComp  */
-/*      y_diarc = p.numEqu   */
+/*      d_dirac = p.numEqu x p.numComp  */
+/*      y_dirac = p.numEqu   */
 
 
 /************************************************************************************/

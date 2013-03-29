@@ -634,7 +634,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	Dudley_Mesh_addTagMap(out, "front", FRONTTAG);
 	Dudley_Mesh_addTagMap(out, "back", BACKTAG);
     }
-    /* prepare mesh for further calculatuions: */
+    /* prepare mesh for further calculations: */
     if (Dudley_noError())
     {
 	Dudley_Mesh_resolveNodeIds(out);

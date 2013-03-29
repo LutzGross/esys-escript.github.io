@@ -16,6 +16,7 @@
 #include <ripley/Rectangle.h>
 
 #include <paso/SystemMatrix.h>
+#include <esysUtils/esysFileWriter.h>
 
 
 #ifdef USE_NETCDF
@@ -32,16 +33,13 @@
 #include <iomanip>
 
 using namespace std;
+using esysUtils::FileWriter;
 
 namespace ripley {
 
 Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      double y1, int d0, int d1) :
-    RipleyDomain(2),
-    m_x0(x0),
-    m_y0(y0),
-    m_l0(x1-x0),
-    m_l1(y1-y0)
+    RipleyDomain(2)
 {
     // ignore subdivision parameters for serial run
     if (m_mpiInfo->size == 1) {
@@ -75,12 +73,9 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
         d1=m_mpiInfo->size/d0;
     }
 
-    m_NX=d0;
-    m_NY=d1;
-
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
-    if (m_NX*m_NY != m_mpiInfo->size)
+    if (d0*d1 != m_mpiInfo->size)
         throw RipleyException("Invalid number of spatial subdivisions");
 
     if (warn) {
@@ -88,51 +83,60 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
             << d1 << "). This may not be optimal!" << endl;
     }
 
-    if ((n0+1)%m_NX > 0) {
-        double Dx=m_l0/n0;
+    double l0 = x1-x0;
+    double l1 = y1-y0;
+    m_dx[0] = l0/n0;
+    m_dx[1] = l1/n1;
+
+    if ((n0+1)%d0 > 0) {
         n0=(int)round((float)(n0+1)/d0+0.5)*d0-1;
-        m_l0=Dx*n0;
+        l0=m_dx[0]*n0;
         cout << "Warning: Adjusted number of elements and length. N0="
-            << n0 << ", l0=" << m_l0 << endl;
+            << n0 << ", l0=" << l0 << endl;
     }
-    if ((n1+1)%m_NY > 0) {
-        double Dy=m_l1/n1;
+    if ((n1+1)%d1 > 0) {
         n1=(int)round((float)(n1+1)/d1+0.5)*d1-1;
-        m_l1=Dy*n1;
+        l1=m_dx[1]*n1;
         cout << "Warning: Adjusted number of elements and length. N1="
-            << n1 << ", l1=" << m_l1 << endl;
+            << n1 << ", l1=" << l1 << endl;
     }
 
-    m_gNE0=n0;
-    m_gNE1=n1;
-
-    if ((m_NX > 1 && (n0+1)/m_NX<2) || (m_NY > 1 && (n1+1)/m_NY<2))
+    if ((d0 > 1 && (n0+1)/d0<2) || (d1 > 1 && (n1+1)/d1<2))
         throw RipleyException("Too few elements for the number of ranks");
 
-    // local number of elements (with and without overlap)
-    m_NE0 = m_ownNE0 = (m_NX>1 ? (n0+1)/m_NX : n0);
-    if (m_mpiInfo->rank%m_NX>0 && m_mpiInfo->rank%m_NX<m_NX-1)
-        m_NE0++;
-    else if (m_NX>1 && m_mpiInfo->rank%m_NX==m_NX-1)
-        m_ownNE0--;
+    m_gNE[0] = n0;
+    m_gNE[1] = n1;
+    m_origin[0] = x0;
+    m_origin[1] = y0;
+    m_length[0] = l0;
+    m_length[1] = l1;
+    m_NX[0] = d0;
+    m_NX[1] = d1;
 
-    m_NE1 = m_ownNE1 = (m_NY>1 ? (n1+1)/m_NY : n1);
-    if (m_mpiInfo->rank/m_NX>0 && m_mpiInfo->rank/m_NX<m_NY-1)
-        m_NE1++;
-    else if (m_NY>1 && m_mpiInfo->rank/m_NX==m_NY-1)
-        m_ownNE1--;
+    // local number of elements (with and without overlap)
+    m_NE[0] = m_ownNE[0] = (d0>1 ? (n0+1)/d0 : n0);
+    if (m_mpiInfo->rank%d0>0 && m_mpiInfo->rank%d0<d0-1)
+        m_NE[0]++;
+    else if (d0>1 && m_mpiInfo->rank%d0==d0-1)
+        m_ownNE[0]--;
+
+    m_NE[1] = m_ownNE[1] = (d1>1 ? (n1+1)/d1 : n1);
+    if (m_mpiInfo->rank/d0>0 && m_mpiInfo->rank/d0<d1-1)
+        m_NE[1]++;
+    else if (d1>1 && m_mpiInfo->rank/d0==d1-1)
+        m_ownNE[1]--;
 
     // local number of nodes
-    m_N0 = m_NE0+1;
-    m_N1 = m_NE1+1;
+    m_NN[0] = m_NE[0]+1;
+    m_NN[1] = m_NE[1]+1;
 
     // bottom-left node is at (offset0,offset1) in global mesh
-    m_offset0 = (n0+1)/m_NX*(m_mpiInfo->rank%m_NX);
-    if (m_offset0 > 0)
-        m_offset0--;
-    m_offset1 = (n1+1)/m_NY*(m_mpiInfo->rank/m_NX);
-    if (m_offset1 > 0)
-        m_offset1--;
+    m_offset[0] = (n0+1)/d0*(m_mpiInfo->rank%d0);
+    if (m_offset[0] > 0)
+        m_offset[0]--;
+    m_offset[1] = (n1+1)/d1*(m_mpiInfo->rank/d0);
+    if (m_offset[1] > 0)
+        m_offset[1]--;
 
     populateSampleIds();
     createPattern();
@@ -154,28 +158,29 @@ bool Rectangle::operator==(const AbstractDomain& other) const
     const Rectangle* o=dynamic_cast<const Rectangle*>(&other);
     if (o) {
         return (RipleyDomain::operator==(other) &&
-                m_gNE0==o->m_gNE0 && m_gNE1==o->m_gNE1
-                && m_x0==o->m_x0 && m_y0==o->m_y0
-                && m_l0==o->m_l0 && m_l1==o->m_l1
-                && m_NX==o->m_NX && m_NY==o->m_NY);
+                m_gNE[0]==o->m_gNE[0] && m_gNE[1]==o->m_gNE[1]
+                && m_origin[0]==o->m_origin[0] && m_origin[1]==o->m_origin[1]
+                && m_length[0]==o->m_length[0] && m_length[1]==o->m_length[1]
+                && m_NX[0]==o->m_NX[0] && m_NX[1]==o->m_NX[1]);
     }
 
     return false;
 }
 
 void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
-            const vector<int>& first, const vector<int>& numValues) const
+            const vector<int>& first, const vector<int>& numValues,
+            const vector<int>& multiplier) const
 {
 #ifdef USE_NETCDF
     // check destination function space
     int myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
-        myN0 = m_N0;
-        myN1 = m_N1;
+        myN0 = m_NN[0];
+        myN1 = m_NN[1];
     } else if (out.getFunctionSpace().getTypeCode() == Elements ||
                 out.getFunctionSpace().getTypeCode() == ReducedElements) {
-        myN0 = m_NE0;
-        myN1 = m_NE1;
+        myN0 = m_NE[0];
+        myN1 = m_NE[1];
     } else
         throw RipleyException("readNcGrid(): invalid function space for output data object");
 
@@ -184,6 +189,12 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 
     if (numValues.size() != 2)
         throw RipleyException("readNcGrid(): argument 'numValues' must have 2 entries");
+
+    if (multiplier.size() != 2)
+        throw RipleyException("readNcGrid(): argument 'multiplier' must have 2 entries");
+    for (size_t i=0; i<multiplier.size(); i++)
+        if (multiplier[i]<1)
+            throw RipleyException("readNcGrid(): all multipliers must be positive");
 
     // check file existence and size
     NcFile f(filename.c_str(), NcFile::ReadOnly);
@@ -210,19 +221,19 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     }
 
     // check if this rank contributes anything
-    if (first[0] >= m_offset0+myN0 || first[0]+numValues[0] <= m_offset0 ||
-            first[1] >= m_offset1+myN1 || first[1]+numValues[1] <= m_offset1)
+    if (first[0] >= m_offset[0]+myN0 || first[0]+numValues[0]*multiplier[0] <= m_offset[0] ||
+            first[1] >= m_offset[1]+myN1 || first[1]+numValues[1]*multiplier[1] <= m_offset[1])
         return;
 
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, first[0]-m_offset0);
-    const int first1 = max(0, first[1]-m_offset1);
+    const int first0 = max(0, first[0]-m_offset[0]);
+    const int first1 = max(0, first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset0-first[0]);
-    const int idx1 = max(0, m_offset1-first[1]);
-    // number of values to write
+    const int idx0 = max(0, m_offset[0]-first[0]);
+    const int idx1 = max(0, m_offset[1]-first[1]);
+    // number of values to read
     const int num0 = min(numValues[0]-idx0, myN0-first0);
     const int num1 = min(numValues[1]-idx1, myN1-first1);
 
@@ -241,12 +252,18 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
         for (index_t x=0; x<num0; x++) {
-            const int dataIndex = (first1+y)*myN0+first0+x;
-            const int srcIndex=y*num0+x;
+            const int baseIndex = first0+x*multiplier[0]
+                                  +(first1+y*multiplier[1])*myN0;
+            const int srcIndex = y*num0+x;
             if (!isnan(values[srcIndex])) {
-                double* dest = out.getSampleDataRW(dataIndex);
-                for (index_t q=0; q<dpp; q++) {
-                    *dest++ = values[srcIndex];
+                for (index_t m1=0; m1<multiplier[1]; m1++) {
+                    for (index_t m0=0; m0<multiplier[0]; m0++) {
+                        const int dataIndex = baseIndex+m0+m1*myN0;
+                        double* dest = out.getSampleDataRW(dataIndex);
+                        for (index_t q=0; q<dpp; q++) {
+                            *dest++ = values[srcIndex];
+                        }
+                    }
                 }
             }
         }
@@ -257,17 +274,19 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 }
 
 void Rectangle::readBinaryGrid(escript::Data& out, string filename,
-            const vector<int>& first, const vector<int>& numValues) const
+                               const vector<int>& first,
+                               const vector<int>& numValues,
+                               const vector<int>& multiplier) const
 {
     // check destination function space
     int myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
-        myN0 = m_N0;
-        myN1 = m_N1;
+        myN0 = m_NN[0];
+        myN1 = m_NN[1];
     } else if (out.getFunctionSpace().getTypeCode() == Elements ||
                 out.getFunctionSpace().getTypeCode() == ReducedElements) {
-        myN0 = m_NE0;
-        myN1 = m_NE1;
+        myN0 = m_NE[0];
+        myN1 = m_NE[1];
     } else
         throw RipleyException("readBinaryGrid(): invalid function space for output data object");
 
@@ -286,8 +305,8 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     }
 
     // check if this rank contributes anything
-    if (first[0] >= m_offset0+myN0 || first[0]+numValues[0] <= m_offset0 ||
-            first[1] >= m_offset1+myN1 || first[1]+numValues[1] <= m_offset1) {
+    if (first[0] >= m_offset[0]+myN0 || first[0]+numValues[0] <= m_offset[0] ||
+            first[1] >= m_offset[1]+myN1 || first[1]+numValues[1] <= m_offset[1]) {
         f.close();
         return;
     }
@@ -295,12 +314,12 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, first[0]-m_offset0);
-    const int first1 = max(0, first[1]-m_offset1);
+    const int first0 = max(0, first[0]-m_offset[0]);
+    const int first1 = max(0, first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset0-first[0]);
-    const int idx1 = max(0, m_offset1-first[1]);
-    // number of values to write
+    const int idx0 = max(0, m_offset[0]-first[0]);
+    const int idx1 = max(0, m_offset[1]-first[1]);
+    // number of values to read
     const int num0 = min(numValues[0]-idx0, myN0-first0);
     const int num1 = min(numValues[1]-idx1, myN1-first1);
 
@@ -313,11 +332,18 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
         f.seekg(fileofs*sizeof(float));
         f.read((char*)&values[0], num0*numComp*sizeof(float));
         for (index_t x=0; x<num0; x++) {
-            double* dest = out.getSampleDataRW(first0+x+(first1+y)*myN0);
-            for (index_t c=0; c<numComp; c++) {
-                if (!isnan(values[x*numComp+c])) {
-                    for (index_t q=0; q<dpp; q++) {
-                        *dest++ = static_cast<double>(values[x*numComp+c]);
+            const int baseIndex = first0+x*multiplier[0]
+                                    +(first1+y*multiplier[1])*myN0;
+            for (index_t m1=0; m1<multiplier[1]; m1++) {
+                for (index_t m0=0; m0<multiplier[0]; m0++) {
+                    const int dataIndex = baseIndex+m0+m1*myN0;
+                    double* dest = out.getSampleDataRW(dataIndex);
+                    for (index_t c=0; c<numComp; c++) {
+                        if (!isnan(values[x*numComp+c])) {
+                            for (index_t q=0; q<dpp; q++) {
+                                *dest++ = static_cast<double>(values[x*numComp+c]);
+                            }
+                        }
                     }
                 }
             }
@@ -325,6 +351,58 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     }
 
     f.close();
+}
+
+void Rectangle::writeBinaryGrid(const escript::Data& in, string filename, int byteOrder) const
+{
+    // check function space and determine number of points
+    int myN0, myN1;
+    int totalN0, totalN1;
+    if (in.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NN[0];
+        myN1 = m_NN[1];
+        totalN0 = m_gNE[0]+1;
+        totalN1 = m_gNE[1]+1;
+    } else if (in.getFunctionSpace().getTypeCode() == Elements ||
+                in.getFunctionSpace().getTypeCode() == ReducedElements) {
+        myN0 = m_NE[0];
+        myN1 = m_NE[1];
+        totalN0 = m_gNE[0];
+        totalN1 = m_gNE[1];
+    } else
+        throw RipleyException("writeBinaryGrid(): invalid function space of data object");
+
+    const int numComp = in.getDataPointSize();
+    const int dpp = in.getNumDataPointsPerSample();
+    const int fileSize = sizeof(float)*numComp*dpp*totalN0*totalN1;
+
+    if (numComp > 1 || dpp > 1)
+        throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
+
+    escript::Data* _in = const_cast<escript::Data*>(&in);
+
+    // from here on we know that each sample consists of one value
+    FileWriter* fw = new FileWriter();
+    fw->openFile(filename, fileSize);
+    MPIBarrier();
+
+    for (index_t y=0; y<myN1; y++) {
+        const int fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0)*sizeof(float);
+        ostringstream oss;
+
+        for (index_t x=0; x<myN0; x++) {
+            const double* sample = _in->getSampleDataRO(y*myN0+x);
+            float fvalue = (float)(*sample);
+            if (byteOrder == RIPLEY_BYTE_ORDER) {
+                oss.write((char*)&fvalue, sizeof(fvalue));
+            } else {
+                char* value = reinterpret_cast<char*>(&fvalue);
+                oss.write(RIPLEY_BYTE_SWAP32(value), sizeof(fvalue));
+            }
+        }
+        fw->writeAt(oss, fileofs);
+    }
+    fw->close();
 }
 
 void Rectangle::dump(const string& fileName) const
@@ -389,36 +467,34 @@ void Rectangle::dump(const string& fileName) const
     }
     */
 
-    boost::scoped_ptr<double> x(new double[m_N0]);
-    boost::scoped_ptr<double> y(new double[m_N1]);
+    boost::scoped_ptr<double> x(new double[m_NN[0]]);
+    boost::scoped_ptr<double> y(new double[m_NN[1]]);
     double* coords[2] = { x.get(), y.get() };
-    pair<double,double> xdx = getFirstCoordAndSpacing(0);
-    pair<double,double> ydy = getFirstCoordAndSpacing(1);
 #pragma omp parallel
     {
 #pragma omp for nowait
-        for (dim_t i0 = 0; i0 < m_N0; i0++) {
-            coords[0][i0]=xdx.first+i0*xdx.second;
+        for (dim_t i0 = 0; i0 < m_NN[0]; i0++) {
+            coords[0][i0]=getLocalCoordinate(i0, 0);
         }
 #pragma omp for nowait
-        for (dim_t i1 = 0; i1 < m_N1; i1++) {
-            coords[1][i1]=ydy.first+i1*ydy.second;
+        for (dim_t i1 = 0; i1 < m_NN[1]; i1++) {
+            coords[1][i1]=getLocalCoordinate(i1, 1);
         }
     }
-    IndexVector dims = getNumNodesPerDim();
+    int* dims = const_cast<int*>(getNumNodesPerDim());
 
     // write mesh
-    DBPutQuadmesh(dbfile, "mesh", NULL, coords, &dims[0], 2, DB_DOUBLE,
+    DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 2, DB_DOUBLE,
             DB_COLLINEAR, NULL);
 
     // write node ids
-    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], &dims[0], 2,
+    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], dims, 2,
             NULL, 0, DB_INT, DB_NODECENT, NULL);
 
     // write element ids
-    dims = getNumElementsPerDim();
+    dims = const_cast<int*>(getNumElementsPerDim());
     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
-            &dims[0], 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            dims, 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
 
     // rank 0 writes multimesh and multivar
     if (m_mpiInfo->rank == 0) {
@@ -510,27 +586,26 @@ bool Rectangle::ownSample(int fsType, index_t id) const
         case Elements:
         case ReducedElements:
             // check ownership of element's bottom left node
-            return (m_dofMap[id%m_NE0+m_N0*(id/m_NE0)] < getNumDOF());
+            return (m_dofMap[id%m_NE[0]+m_NN[0]*(id/m_NE[0])] < getNumDOF());
         case FaceElements:
         case ReducedFaceElements:
             {
                 // determine which face the sample belongs to before
                 // checking ownership of corresponding element's first node
-                const IndexVector faces = getNumFacesPerBoundary();
                 dim_t n=0;
-                for (size_t i=0; i<faces.size(); i++) {
-                    n+=faces[i];
+                for (size_t i=0; i<4; i++) {
+                    n+=m_faceCount[i];
                     if (id<n) {
                         index_t k;
                         if (i==1)
-                            k=m_N0-2;
+                            k=m_NN[0]-2;
                         else if (i==3)
-                            k=m_N0*(m_N1-2);
+                            k=m_NN[0]*(m_NN[1]-2);
                         else
                             k=0;
                         // determine whether to move right or up
-                        const index_t delta=(i/2==0 ? m_N0 : 1);
-                        return (m_dofMap[k+(id-n+faces[i])*delta] < getNumDOF());
+                        const index_t delta=(i/2==0 ? m_NN[0] : 1);
+                        return (m_dofMap[k+(id-n+m_faceCount[i])*delta] < getNumDOF());
                     }
                 }
                 return false;
@@ -552,7 +627,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     // set vector at two quadrature points
                     *o++ = -1.;
@@ -564,7 +639,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     // set vector at two quadrature points
                     *o++ = 1.;
@@ -576,7 +651,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -588,7 +663,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -604,7 +679,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     *o++ = -1.;
                     *o = 0.;
@@ -613,7 +688,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     *o++ = 1.;
                     *o = 0.;
@@ -622,7 +697,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     *o++ = 0.;
                     *o = -1.;
@@ -631,7 +706,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     *o++ = 0.;
                     *o = 1.;
@@ -653,9 +728,7 @@ void Rectangle::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        const double hSize=getFirstCoordAndSpacing(0).second;
-        const double vSize=getFirstCoordAndSpacing(1).second;
-        const double size=sqrt(hSize*hSize+vSize*vSize);
+        const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]);
 #pragma omp parallel for
         for (index_t k = 0; k < getNumElements(); ++k) {
             double* o = out.getSampleDataRW(k);
@@ -665,39 +738,37 @@ void Rectangle::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        const double hSize=getFirstCoordAndSpacing(0).second;
-        const double vSize=getFirstCoordAndSpacing(1).second;
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
-                    fill(o, o+numQuad, vSize);
+                    fill(o, o+numQuad, m_dx[1]);
                 }
             }
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE1; ++k1) {
+                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
-                    fill(o, o+numQuad, vSize);
+                    fill(o, o+numQuad, m_dx[1]);
                 }
             }
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
-                    fill(o, o+numQuad, hSize);
+                    fill(o, o+numQuad, m_dx[0]);
                 }
             }
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE0; ++k0) {
+                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
-                    fill(o, o+numQuad, hSize);
+                    fill(o, o+numQuad, m_dx[0]);
                 }
             }
         } // end of parallel section
@@ -710,16 +781,6 @@ void Rectangle::setToSize(escript::Data& out) const
     }
 }
 
-Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
-                                                bool reducedColOrder) const
-{
-    /* FIXME: reduced
-    if (reducedRowOrder || reducedColOrder)
-        throw RipleyException("getPattern() not implemented for reduced order");
-    */
-    return m_pattern;
-}
-
 void Rectangle::Print_Mesh_Info(const bool full) const
 {
     RipleyDomain::Print_Mesh_Info(full);
@@ -727,83 +788,14 @@ void Rectangle::Print_Mesh_Info(const bool full) const
         cout << "     Id  Coordinates" << endl;
         cout.precision(15);
         cout.setf(ios::scientific, ios::floatfield);
-        pair<double,double> xdx = getFirstCoordAndSpacing(0);
-        pair<double,double> ydy = getFirstCoordAndSpacing(1);
         for (index_t i=0; i < getNumNodes(); i++) {
             cout << "  " << setw(5) << m_nodeId[i]
-                << "  " << xdx.first+(i%m_N0)*xdx.second
-                << "  " << ydy.first+(i/m_N0)*ydy.second << endl;
+                << "  " << getLocalCoordinate(i%m_NN[0], 0)
+                << "  " << getLocalCoordinate(i/m_NN[0], 1) << endl;
         }
     }
 }
 
-IndexVector Rectangle::getNumNodesPerDim() const
-{
-    IndexVector ret;
-    ret.push_back(m_N0);
-    ret.push_back(m_N1);
-    return ret;
-}
-
-IndexVector Rectangle::getNumElementsPerDim() const
-{
-    IndexVector ret;
-    ret.push_back(m_NE0);
-    ret.push_back(m_NE1);
-    return ret;
-}
-
-IndexVector Rectangle::getNumFacesPerBoundary() const
-{
-    IndexVector ret(4, 0);
-    //left
-    if (m_offset0==0)
-        ret[0]=m_NE1;
-    //right
-    if (m_mpiInfo->rank%m_NX==m_NX-1)
-        ret[1]=m_NE1;
-    //bottom
-    if (m_offset1==0)
-        ret[2]=m_NE0;
-    //top
-    if (m_mpiInfo->rank/m_NX==m_NY-1)
-        ret[3]=m_NE0;
-    return ret;
-}
-
-IndexVector Rectangle::getNumSubdivisionsPerDim() const
-{
-    IndexVector ret;
-    ret.push_back(m_NX);
-    ret.push_back(m_NY);
-    return ret;
-}
-
-pair<double,double> Rectangle::getFirstCoordAndSpacing(dim_t dim) const
-{
-    if (dim==0) {
-        return pair<double,double>(m_x0+(m_l0*m_offset0)/m_gNE0, m_l0/m_gNE0);
-    } else if (dim==1) {
-        return pair<double,double>(m_y0+(m_l1*m_offset1)/m_gNE1, m_l1/m_gNE1);
-    }
-    throw RipleyException("getFirstCoordAndSpacing: invalid argument");
-}
-
-//protected
-dim_t Rectangle::getNumDOF() const
-{
-    return (m_gNE0+1)/m_NX*(m_gNE1+1)/m_NY;
-}
-
-//protected
-dim_t Rectangle::getNumFaceElements() const
-{
-    const IndexVector faces = getNumFacesPerBoundary();
-    dim_t n=0;
-    for (size_t i=0; i<faces.size(); i++)
-        n+=faces[i];
-    return n;
-}
 
 //protected
 void Rectangle::assembleCoordinates(escript::Data& arg) const
@@ -815,15 +807,13 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     if (!numSamplesEqual(&x, 1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
-    pair<double,double> xdx = getFirstCoordAndSpacing(0);
-    pair<double,double> ydy = getFirstCoordAndSpacing(1);
     arg.requireWrite();
 #pragma omp parallel for
-    for (dim_t i1 = 0; i1 < m_N1; i1++) {
-        for (dim_t i0 = 0; i0 < m_N0; i0++) {
-            double* point = arg.getSampleDataRW(i0+m_N0*i1);
-            point[0] = xdx.first+i0*xdx.second;
-            point[1] = ydy.first+i1*ydy.second;
+    for (dim_t i1 = 0; i1 < m_NN[1]; i1++) {
+        for (dim_t i0 = 0; i0 < m_NN[0]; i0++) {
+            double* point = arg.getSampleDataRW(i0+m_NN[0]*i1);
+            point[0] = getLocalCoordinate(i0, 0);
+            point[1] = getLocalCoordinate(i1, 1);
         }
     }
 }
@@ -832,24 +822,22 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double cx0 = -1./h0;
-    const double cx1 = -.78867513459481288225/h0;
-    const double cx2 = -.5/h0;
-    const double cx3 = -.21132486540518711775/h0;
-    const double cx4 = .21132486540518711775/h0;
-    const double cx5 = .5/h0;
-    const double cx6 = .78867513459481288225/h0;
-    const double cx7 = 1./h0;
-    const double cy0 = -1./h1;
-    const double cy1 = -.78867513459481288225/h1;
-    const double cy2 = -.5/h1;
-    const double cy3 = -.21132486540518711775/h1;
-    const double cy4 = .21132486540518711775/h1;
-    const double cy5 = .5/h1;
-    const double cy6 = .78867513459481288225/h1;
-    const double cy7 = 1./h1;
+    const double cx0 = -1./m_dx[0];
+    const double cx1 = -.78867513459481288225/m_dx[0];
+    const double cx2 = -.5/m_dx[0];
+    const double cx3 = -.21132486540518711775/m_dx[0];
+    const double cx4 = .21132486540518711775/m_dx[0];
+    const double cx5 = .5/m_dx[0];
+    const double cx6 = .78867513459481288225/m_dx[0];
+    const double cx7 = 1./m_dx[0];
+    const double cy0 = -1./m_dx[1];
+    const double cy1 = -.78867513459481288225/m_dx[1];
+    const double cy2 = -.5/m_dx[1];
+    const double cy3 = -.21132486540518711775/m_dx[1];
+    const double cy4 = .21132486540518711775/m_dx[1];
+    const double cy5 = .5/m_dx[1];
+    const double cy6 = .78867513459481288225/m_dx[1];
+    const double cy7 = 1./m_dx[1];
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
@@ -860,13 +848,13 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE1; ++k1) {
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0)), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
+                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
                         o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
@@ -889,13 +877,13 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE1; ++k1) {
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0)), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
+                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
                         o[INDEX3(i,1,0,numComp,2)] = cy2*(f_00[i] + f_10[i]) + cy5*(f_01[i] + f_11[i]);
@@ -913,11 +901,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
@@ -929,11 +917,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
@@ -945,11 +933,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
@@ -961,11 +949,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
@@ -987,11 +975,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
@@ -1001,11 +989,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_N0-2,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_N0-2,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
@@ -1015,11 +1003,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
@@ -1029,11 +1017,11 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_N1-2, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_N1-2, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
@@ -1049,20 +1037,18 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
 void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
     const int fs=arg.getFunctionSpace().getTypeCode();
     if (fs == Elements && arg.actsExpanded()) {
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
-            const double w = h0*h1/4.;
+            const double w = m_dx[0]*m_dx[1]/4.;
 #pragma omp for nowait
-            for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
-                for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
-                    const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE0));
+            for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
+                for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
+                    const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
                         const double f0 = f[INDEX2(i,0,numComp)];
                         const double f1 = f[INDEX2(i,1,numComp)];
@@ -1078,14 +1064,14 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
         } // end of parallel section
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
-        const double w = h0*h1;
+        const double w = m_dx[0]*m_dx[1];
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
 #pragma omp for nowait
-            for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
-                for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
-                    const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE0));
+            for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
+                for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
+                    const double* f = arg.getSampleDataRO(INDEX2(k0, k1, m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
                         int_local[i]+=f[i]*w;
                     }
@@ -1100,11 +1086,11 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
-            const double w0 = h0/2.;
-            const double w1 = h1/2.;
+            const double w0 = m_dx[0]/2.;
+            const double w1 = m_dx[1]/2.;
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         const double f0 = f[INDEX2(i,0,numComp)];
@@ -1116,7 +1102,7 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         const double f0 = f[INDEX2(i,0,numComp)];
@@ -1128,7 +1114,7 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         const double f0 = f[INDEX2(i,0,numComp)];
@@ -1140,7 +1126,7 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         const double f0 = f[INDEX2(i,0,numComp)];
@@ -1160,40 +1146,40 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
             vector<double> int_local(numComp, 0);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*h1;
+                        int_local[i]+=f[i]*m_dx[1];
                     }
                 }
             }
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = bottom; k1 < bottom+m_ownNE1; ++k1) {
+                for (index_t k1 = bottom; k1 < bottom+m_ownNE[1]; ++k1) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*h1;
+                        int_local[i]+=f[i]*m_dx[1];
                     }
                 }
             }
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*h0;
+                        int_local[i]+=f[i]*m_dx[0];
                     }
                 }
             }
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = left; k0 < left+m_ownNE0; ++k0) {
+                for (index_t k0 = left; k0 < left+m_ownNE[0]; ++k0) {
                     const double* f = arg.getSampleDataRO(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        int_local[i]+=f[i]*h0;
+                        int_local[i]+=f[i]*m_dx[0];
                     }
                 }
             }
@@ -1208,8 +1194,8 @@ void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg)
 //protected
 dim_t Rectangle::insertNeighbourNodes(IndexVector& index, index_t node) const
 {
-    const dim_t nDOF0 = (m_gNE0+1)/m_NX;
-    const dim_t nDOF1 = (m_gNE1+1)/m_NY;
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const int x=node%nDOF0;
     const int y=node/nDOF0;
     dim_t num=0;
@@ -1239,14 +1225,14 @@ void Rectangle::nodesToDOF(escript::Data& out, escript::Data& in) const
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
 
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
-    const dim_t nDOF0 = (m_gNE0+1)/m_NX;
-    const dim_t nDOF1 = (m_gNE1+1)/m_NY;
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
 #pragma omp parallel for
     for (index_t i=0; i<nDOF1; i++) {
         for (index_t j=0; j<nDOF0; j++) {
-            const index_t n=j+left+(i+bottom)*m_N0;
+            const index_t n=j+left+(i+bottom)*m_NN[0];
             const double* src=in.getSampleDataRO(n);
             copy(src, src+numComp, out.getSampleDataRW(j+i*nDOF0));
         }
@@ -1278,10 +1264,15 @@ void Rectangle::dofToNodes(escript::Data& out, escript::Data& in) const
 //private
 void Rectangle::populateSampleIds()
 {
-    // identifiers are ordered from left to right, bottom to top globablly.
+    // degrees of freedom are numbered from left to right, bottom to top in
+    // each rank, continuing on the next rank (ranks also go left-right,
+    // bottom-top).
+    // This means rank 0 has id 0...n0-1, rank 1 has id n0...n1-1 etc. which
+    // helps when writing out data rank after rank.
 
     // build node distribution vector first.
-    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes
+    // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
+    // constant for all ranks in this implementation
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
     const dim_t numDOF=getNumDOF();
     for (dim_t k=1; k<m_mpiInfo->size; k++) {
@@ -1291,28 +1282,103 @@ void Rectangle::populateSampleIds()
     m_nodeId.resize(getNumNodes());
     m_dofId.resize(numDOF);
     m_elementId.resize(getNumElements());
+
+    // populate face element counts
+    //left
+    if (m_offset[0]==0)
+        m_faceCount[0]=m_NE[1];
+    else
+        m_faceCount[0]=0;
+    //right
+    if (m_mpiInfo->rank%m_NX[0]==m_NX[0]-1)
+        m_faceCount[1]=m_NE[1];
+    else
+        m_faceCount[1]=0;
+    //bottom
+    if (m_offset[1]==0)
+        m_faceCount[2]=m_NE[0];
+    else
+        m_faceCount[2]=0;
+    //top
+    if (m_mpiInfo->rank/m_NX[0]==m_NX[1]-1)
+        m_faceCount[3]=m_NE[0];
+    else
+        m_faceCount[3]=0;
+
     m_faceId.resize(getNumFaceElements());
+
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+
+#define globalNodeId(x,y) \
+    ((m_offset[0]+x)/nDOF0)*nDOF0*nDOF1+(m_offset[0]+x)%nDOF0 \
+    + ((m_offset[1]+y)/nDOF1)*nDOF0*nDOF1*m_NX[0]+((m_offset[1]+y)%nDOF1)*nDOF0
+
+    // set corner id's outside the parallel region
+    m_nodeId[0] = globalNodeId(0, 0);
+    m_nodeId[m_NN[0]-1] = globalNodeId(m_NN[0]-1, 0);
+    m_nodeId[m_NN[0]*(m_NN[1]-1)] = globalNodeId(0, m_NN[1]-1);
+    m_nodeId[m_NN[0]*m_NN[1]-1] = globalNodeId(m_NN[0]-1,m_NN[1]-1);
+#undef globalNodeId
 
 #pragma omp parallel
     {
-        // nodes
+        // populate degrees of freedom and own nodes (identical id)
 #pragma omp for nowait
-        for (dim_t i1=0; i1<m_N1; i1++) {
-            for (dim_t i0=0; i0<m_N0; i0++) {
-                m_nodeId[i0+i1*m_N0] = (m_offset1+i1)*(m_gNE0+1)+m_offset0+i0;
+        for (dim_t i=0; i<nDOF1; i++) {
+            for (dim_t j=0; j<nDOF0; j++) {
+                const index_t nodeIdx=j+left+(i+bottom)*m_NN[0];
+                const index_t dofIdx=j+i*nDOF0;
+                m_dofId[dofIdx] = m_nodeId[nodeIdx]
+                    = m_nodeDistribution[m_mpiInfo->rank]+dofIdx;
             }
         }
 
-        // degrees of freedom
+        // populate the rest of the nodes (shared with other ranks)
+        if (m_faceCount[0]==0) { // left column
 #pragma omp for nowait
-        for (dim_t k=0; k<numDOF; k++)
-            m_dofId[k] = m_nodeDistribution[m_mpiInfo->rank]+k;
+            for (dim_t i=0; i<nDOF1; i++) {
+                const index_t nodeIdx=(i+bottom)*m_NN[0];
+                const index_t dofId=(i+1)*nDOF0-1;
+                m_nodeId[nodeIdx]
+                    = m_nodeDistribution[m_mpiInfo->rank-1]+dofId;
+            }
+        }
+        if (m_faceCount[1]==0) { // right column
+#pragma omp for nowait
+            for (dim_t i=0; i<nDOF1; i++) {
+                const index_t nodeIdx=(i+bottom+1)*m_NN[0]-1;
+                const index_t dofId=i*nDOF0;
+                m_nodeId[nodeIdx]
+                    = m_nodeDistribution[m_mpiInfo->rank+1]+dofId;
+            }
+        }
+        if (m_faceCount[2]==0) { // bottom row
+#pragma omp for nowait
+            for (dim_t i=0; i<nDOF0; i++) {
+                const index_t nodeIdx=i+left;
+                const index_t dofId=nDOF0*(nDOF1-1)+i;
+                m_nodeId[nodeIdx]
+                    = m_nodeDistribution[m_mpiInfo->rank-m_NX[0]]+dofId;
+            }
+        }
+        if (m_faceCount[3]==0) { // top row
+#pragma omp for nowait
+            for (dim_t i=0; i<nDOF0; i++) {
+                const index_t nodeIdx=m_NN[0]*(m_NN[1]-1)+i+left;
+                const index_t dofId=i;
+                m_nodeId[nodeIdx]
+                    = m_nodeDistribution[m_mpiInfo->rank+m_NX[0]]+dofId;
+            }
+        }
 
-        // elements
+        // populate element id's
 #pragma omp for nowait
-        for (dim_t i1=0; i1<m_NE1; i1++) {
-            for (dim_t i0=0; i0<m_NE0; i0++) {
-                m_elementId[i0+i1*m_NE0]=(m_offset1+i1)*m_gNE0+m_offset0+i0;
+        for (dim_t i1=0; i1<m_NE[1]; i1++) {
+            for (dim_t i0=0; i0<m_NE[0]; i0++) {
+                m_elementId[i0+i1*m_NE[0]]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
             }
         }
 
@@ -1329,17 +1395,16 @@ void Rectangle::populateSampleIds()
     updateTagsInUse(Elements);
 
     // generate face offset vector and set face tags
-    const IndexVector facesPerEdge = getNumFacesPerBoundary();
     const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
     const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
-    m_faceOffset.assign(facesPerEdge.size(), -1);
+    m_faceOffset.assign(4, -1);
     m_faceTags.clear();
     index_t offset=0;
-    for (size_t i=0; i<facesPerEdge.size(); i++) {
-        if (facesPerEdge[i]>0) {
+    for (size_t i=0; i<4; i++) {
+        if (m_faceCount[i]>0) {
             m_faceOffset[i]=offset;
-            offset+=facesPerEdge[i];
-            m_faceTags.insert(m_faceTags.end(), facesPerEdge[i], faceTag[i]);
+            offset+=m_faceCount[i];
+            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
         }
     }
     setTagMap("left", LEFT);
@@ -1352,10 +1417,10 @@ void Rectangle::populateSampleIds()
 //private
 void Rectangle::createPattern()
 {
-    const dim_t nDOF0 = (m_gNE0+1)/m_NX;
-    const dim_t nDOF1 = (m_gNE1+1)/m_NY;
-    const index_t left = (m_offset0==0 ? 0 : 1);
-    const index_t bottom = (m_offset1==0 ? 0 : 1);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[1]==0 ? 0 : 1);
 
     // populate node->DOF mapping with own degrees of freedom.
     // The rest is assigned in the loop further down
@@ -1363,7 +1428,7 @@ void Rectangle::createPattern()
 #pragma omp parallel for
     for (index_t i=bottom; i<bottom+nDOF1; i++) {
         for (index_t j=left; j<left+nDOF0; j++) {
-            m_dofMap[i*m_N0+j]=(i-bottom)*nDOF0+j-left;
+            m_dofMap[i*m_NN[0]+j]=(i-bottom)*nDOF0+j-left;
         }
     }
 
@@ -1376,8 +1441,8 @@ void Rectangle::createPattern()
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
     int numShared=0;
-    const int x=m_mpiInfo->rank%m_NX;
-    const int y=m_mpiInfo->rank/m_NX;
+    const int x=m_mpiInfo->rank%m_NX[0];
+    const int y=m_mpiInfo->rank/m_NX[0];
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
             // skip this rank
@@ -1386,12 +1451,12 @@ void Rectangle::createPattern()
             // location of neighbour rank
             const int nx=x+i0;
             const int ny=y+i1;
-            if (nx>=0 && ny>=0 && nx<m_NX && ny<m_NY) {
-                neighbour.push_back(ny*m_NX+nx);
+            if (nx>=0 && ny>=0 && nx<m_NX[0] && ny<m_NX[1]) {
+                neighbour.push_back(ny*m_NX[0]+nx);
                 if (i0==0) {
                     // sharing top or bottom edge
                     const int firstDOF=(i1==-1 ? 0 : numDOF-nDOF0);
-                    const int firstNode=(i1==-1 ? left : m_N0*(m_N1-1)+left);
+                    const int firstNode=(i1==-1 ? left : m_NN[0]*(m_NN[1]-1)+left);
                     offsetInShared.push_back(offsetInShared.back()+nDOF0);
                     for (dim_t i=0; i<nDOF0; i++, numShared++) {
                         sendShared.push_back(firstDOF+i);
@@ -1406,7 +1471,7 @@ void Rectangle::createPattern()
                 } else if (i1==0) {
                     // sharing left or right edge
                     const int firstDOF=(i0==-1 ? 0 : nDOF0-1);
-                    const int firstNode=(i0==-1 ? bottom*m_N0 : (bottom+1)*m_N0-1);
+                    const int firstNode=(i0==-1 ? bottom*m_NN[0] : (bottom+1)*m_NN[0]-1);
                     offsetInShared.push_back(offsetInShared.back()+nDOF1);
                     for (dim_t i=0; i<nDOF1; i++, numShared++) {
                         sendShared.push_back(firstDOF+i*nDOF0);
@@ -1416,12 +1481,12 @@ void Rectangle::createPattern()
                         colIndices[firstDOF+i*nDOF0].push_back(numShared);
                         if (i<nDOF1-1)
                             colIndices[firstDOF+(i+1)*nDOF0].push_back(numShared);
-                        m_dofMap[firstNode+i*m_N0]=numDOF+numShared;
+                        m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
                     }
                 } else {
                     // sharing a node
                     const int dof=(i0+1)/2*(nDOF0-1)+(i1+1)/2*(numDOF-nDOF0);
-                    const int node=(i0+1)/2*(m_N0-1)+(i1+1)/2*m_N0*(m_N1-1);
+                    const int node=(i0+1)/2*(m_NN[0]-1)+(i1+1)/2*m_NN[0]*(m_NN[1]-1);
                     offsetInShared.push_back(offsetInShared.back()+1);
                     sendShared.push_back(dof);
                     recvShared.push_back(numDOF+numShared);
@@ -1531,8 +1596,8 @@ void Rectangle::addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
     IndexVector rowIndex;
     rowIndex.push_back(m_dofMap[firstNode]);
     rowIndex.push_back(m_dofMap[firstNode+1]);
-    rowIndex.push_back(m_dofMap[firstNode+m_N0]);
-    rowIndex.push_back(m_dofMap[firstNode+m_N0+1]);
+    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]]);
+    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]+1]);
     if (addF) {
         double *F_p=F.getSampleDataRW(0);
         for (index_t i=0; i<rowIndex.size(); i++) {
@@ -1563,13 +1628,13 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE1; ++k1) {
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0)), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
+                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i] + f_10[i] + f_11[i]);
                     } /* end of component loop i */
@@ -1588,13 +1653,13 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE1; ++k1) {
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_N0)), numComp*sizeof(double));
-                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE0));
+            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
+                    double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_10[i]) + c1*f_11[i] + c2*f_00[i];
                         o[INDEX2(i,numComp,1)] = c0*(f_00[i] + f_11[i]) + c1*f_01[i] + c2*f_10[i];
@@ -1623,9 +1688,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i]);
@@ -1634,9 +1699,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 0 */
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_10[i] + f_11[i]);
@@ -1645,9 +1710,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 1 */
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_10[i]);
@@ -1656,9 +1721,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 2 */
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_11[i]);
@@ -1678,9 +1743,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*f_01[i] + c1*f_00[i];
@@ -1690,9 +1755,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 0 */
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE1; ++k1) {
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_N0-1,k1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_N0-1,k1+1, m_N0)), numComp*sizeof(double));
+                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c1*f_10[i] + c0*f_11[i];
@@ -1702,9 +1767,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 1 */
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*f_10[i] + c1*f_00[i];
@@ -1714,9 +1779,9 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
             } /* end of face 2 */
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE0; ++k0) {
-                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_N1-1, m_N0)), numComp*sizeof(double));
-                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_N1-1, m_N0)), numComp*sizeof(double));
+                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                    memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
+                    memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
                         o[INDEX2(i,numComp,0)] = c0*f_11[i] + c1*f_01[i];
@@ -1734,97 +1799,95 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double w0 = -0.1555021169820365539*h1/h0;
+    const double w0 = -0.1555021169820365539*m_dx[1]/m_dx[0];
     const double w1 = 0.041666666666666666667;
     const double w2 = -0.15550211698203655390;
-    const double w3 = 0.041666666666666666667*h0/h1;
+    const double w3 = 0.041666666666666666667*m_dx[0]/m_dx[1];
     const double w4 = 0.15550211698203655390;
     const double w5 = -0.041666666666666666667;
-    const double w6 = -0.01116454968463011277*h1/h0;
+    const double w6 = -0.01116454968463011277*m_dx[1]/m_dx[0];
     const double w7 = 0.011164549684630112770;
     const double w8 = -0.011164549684630112770;
-    const double w9 = -0.041666666666666666667*h1/h0;
-    const double w10 = -0.041666666666666666667*h0/h1;
-    const double w11 = 0.1555021169820365539*h1/h0;
-    const double w12 = 0.1555021169820365539*h0/h1;
-    const double w13 = 0.01116454968463011277*h0/h1;
-    const double w14 = 0.01116454968463011277*h1/h0;
-    const double w15 = 0.041666666666666666667*h1/h0;
-    const double w16 = -0.01116454968463011277*h0/h1;
-    const double w17 = -0.1555021169820365539*h0/h1;
-    const double w18 = -0.33333333333333333333*h1/h0;
+    const double w9 = -0.041666666666666666667*m_dx[1]/m_dx[0];
+    const double w10 = -0.041666666666666666667*m_dx[0]/m_dx[1];
+    const double w11 = 0.1555021169820365539*m_dx[1]/m_dx[0];
+    const double w12 = 0.1555021169820365539*m_dx[0]/m_dx[1];
+    const double w13 = 0.01116454968463011277*m_dx[0]/m_dx[1];
+    const double w14 = 0.01116454968463011277*m_dx[1]/m_dx[0];
+    const double w15 = 0.041666666666666666667*m_dx[1]/m_dx[0];
+    const double w16 = -0.01116454968463011277*m_dx[0]/m_dx[1];
+    const double w17 = -0.1555021169820365539*m_dx[0]/m_dx[1];
+    const double w18 = -0.33333333333333333333*m_dx[1]/m_dx[0];
     const double w19 = 0.25;
     const double w20 = -0.25;
-    const double w21 = 0.16666666666666666667*h0/h1;
-    const double w22 = -0.16666666666666666667*h1/h0;
-    const double w23 = -0.16666666666666666667*h0/h1;
-    const double w24 = 0.33333333333333333333*h1/h0;
-    const double w25 = 0.33333333333333333333*h0/h1;
-    const double w26 = 0.16666666666666666667*h1/h0;
-    const double w27 = -0.33333333333333333333*h0/h1;
-    const double w28 = -0.032861463941450536761*h1;
-    const double w29 = -0.032861463941450536761*h0;
-    const double w30 = -0.12264065304058601714*h1;
-    const double w31 = -0.0023593469594139828636*h1;
-    const double w32 = -0.008805202725216129906*h0;
-    const double w33 = -0.008805202725216129906*h1;
-    const double w34 = 0.032861463941450536761*h1;
-    const double w35 = 0.008805202725216129906*h1;
-    const double w36 = 0.008805202725216129906*h0;
-    const double w37 = 0.0023593469594139828636*h1;
-    const double w38 = 0.12264065304058601714*h1;
-    const double w39 = 0.032861463941450536761*h0;
-    const double w40 = -0.12264065304058601714*h0;
-    const double w41 = -0.0023593469594139828636*h0;
-    const double w42 = 0.0023593469594139828636*h0;
-    const double w43 = 0.12264065304058601714*h0;
-    const double w44 = -0.16666666666666666667*h1;
-    const double w45 = -0.083333333333333333333*h0;
-    const double w46 = 0.083333333333333333333*h1;
-    const double w47 = 0.16666666666666666667*h1;
-    const double w48 = 0.083333333333333333333*h0;
-    const double w49 = -0.16666666666666666667*h0;
-    const double w50 = 0.16666666666666666667*h0;
-    const double w51 = -0.083333333333333333333*h1;
-    const double w52 = 0.025917019497006092316*h0*h1;
-    const double w53 = 0.0018607582807716854616*h0*h1;
-    const double w54 = 0.0069444444444444444444*h0*h1;
-    const double w55 = 0.09672363354357992482*h0*h1;
-    const double w56 = 0.00049858867864229740201*h0*h1;
-    const double w57 = 0.055555555555555555556*h0*h1;
-    const double w58 = 0.027777777777777777778*h0*h1;
-    const double w59 = 0.11111111111111111111*h0*h1;
-    const double w60 = -0.19716878364870322056*h1;
-    const double w61 = -0.19716878364870322056*h0;
-    const double w62 = -0.052831216351296779436*h0;
-    const double w63 = -0.052831216351296779436*h1;
-    const double w64 = 0.19716878364870322056*h1;
-    const double w65 = 0.052831216351296779436*h1;
-    const double w66 = 0.19716878364870322056*h0;
-    const double w67 = 0.052831216351296779436*h0;
-    const double w68 = -0.5*h1;
-    const double w69 = -0.5*h0;
-    const double w70 = 0.5*h1;
-    const double w71 = 0.5*h0;
-    const double w72 = 0.1555021169820365539*h0*h1;
-    const double w73 = 0.041666666666666666667*h0*h1;
-    const double w74 = 0.01116454968463011277*h0*h1;
-    const double w75 = 0.25*h0*h1;
+    const double w21 = 0.16666666666666666667*m_dx[0]/m_dx[1];
+    const double w22 = -0.16666666666666666667*m_dx[1]/m_dx[0];
+    const double w23 = -0.16666666666666666667*m_dx[0]/m_dx[1];
+    const double w24 = 0.33333333333333333333*m_dx[1]/m_dx[0];
+    const double w25 = 0.33333333333333333333*m_dx[0]/m_dx[1];
+    const double w26 = 0.16666666666666666667*m_dx[1]/m_dx[0];
+    const double w27 = -0.33333333333333333333*m_dx[0]/m_dx[1];
+    const double w28 = -0.032861463941450536761*m_dx[1];
+    const double w29 = -0.032861463941450536761*m_dx[0];
+    const double w30 = -0.12264065304058601714*m_dx[1];
+    const double w31 = -0.0023593469594139828636*m_dx[1];
+    const double w32 = -0.008805202725216129906*m_dx[0];
+    const double w33 = -0.008805202725216129906*m_dx[1];
+    const double w34 = 0.032861463941450536761*m_dx[1];
+    const double w35 = 0.008805202725216129906*m_dx[1];
+    const double w36 = 0.008805202725216129906*m_dx[0];
+    const double w37 = 0.0023593469594139828636*m_dx[1];
+    const double w38 = 0.12264065304058601714*m_dx[1];
+    const double w39 = 0.032861463941450536761*m_dx[0];
+    const double w40 = -0.12264065304058601714*m_dx[0];
+    const double w41 = -0.0023593469594139828636*m_dx[0];
+    const double w42 = 0.0023593469594139828636*m_dx[0];
+    const double w43 = 0.12264065304058601714*m_dx[0];
+    const double w44 = -0.16666666666666666667*m_dx[1];
+    const double w45 = -0.083333333333333333333*m_dx[0];
+    const double w46 = 0.083333333333333333333*m_dx[1];
+    const double w47 = 0.16666666666666666667*m_dx[1];
+    const double w48 = 0.083333333333333333333*m_dx[0];
+    const double w49 = -0.16666666666666666667*m_dx[0];
+    const double w50 = 0.16666666666666666667*m_dx[0];
+    const double w51 = -0.083333333333333333333*m_dx[1];
+    const double w52 = 0.025917019497006092316*m_dx[0]*m_dx[1];
+    const double w53 = 0.0018607582807716854616*m_dx[0]*m_dx[1];
+    const double w54 = 0.0069444444444444444444*m_dx[0]*m_dx[1];
+    const double w55 = 0.09672363354357992482*m_dx[0]*m_dx[1];
+    const double w56 = 0.00049858867864229740201*m_dx[0]*m_dx[1];
+    const double w57 = 0.055555555555555555556*m_dx[0]*m_dx[1];
+    const double w58 = 0.027777777777777777778*m_dx[0]*m_dx[1];
+    const double w59 = 0.11111111111111111111*m_dx[0]*m_dx[1];
+    const double w60 = -0.19716878364870322056*m_dx[1];
+    const double w61 = -0.19716878364870322056*m_dx[0];
+    const double w62 = -0.052831216351296779436*m_dx[0];
+    const double w63 = -0.052831216351296779436*m_dx[1];
+    const double w64 = 0.19716878364870322056*m_dx[1];
+    const double w65 = 0.052831216351296779436*m_dx[1];
+    const double w66 = 0.19716878364870322056*m_dx[0];
+    const double w67 = 0.052831216351296779436*m_dx[0];
+    const double w68 = -0.5*m_dx[1];
+    const double w69 = -0.5*m_dx[0];
+    const double w70 = 0.5*m_dx[1];
+    const double w71 = 0.5*m_dx[0];
+    const double w72 = 0.1555021169820365539*m_dx[0]*m_dx[1];
+    const double w73 = 0.041666666666666666667*m_dx[0]*m_dx[1];
+    const double w74 = 0.01116454968463011277*m_dx[0]*m_dx[1];
+    const double w75 = 0.25*m_dx[0]*m_dx[1];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
-                for (index_t k0=0; k0<m_NE0; ++k0)  {
+            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
                     bool add_EM_S=false;
                     bool add_EM_F=false;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
-                    const index_t e = k0 + m_NE0*k1;
+                    const index_t e = k0 + m_NE[0]*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -2430,7 +2493,7 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
                     }
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
-                    const index_t firstNode=m_N0*k1+k0;
+                    const index_t firstNode=m_NN[0]*k1+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 } // end k0 loop
             } // end k1 loop
@@ -2444,37 +2507,35 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double w0 = -.25*h1/h0;
+    const double w0 = -.25*m_dx[1]/m_dx[0];
     const double w1 = .25;
     const double w2 = -.25;
-    const double w3 = .25*h0/h1;
-    const double w4 = -.25*h0/h1;
-    const double w5 = .25*h1/h0;
-    const double w6 = -.125*h1;
-    const double w7 = -.125*h0;
-    const double w8 = .125*h1;
-    const double w9 = .125*h0;
-    const double w10 = .0625*h0*h1;
-    const double w11 = -.5*h1;
-    const double w12 = -.5*h0;
-    const double w13 = .5*h1;
-    const double w14 = .5*h0;
-    const double w15 = .25*h0*h1;
+    const double w3 = .25*m_dx[0]/m_dx[1];
+    const double w4 = -.25*m_dx[0]/m_dx[1];
+    const double w5 = .25*m_dx[1]/m_dx[0];
+    const double w6 = -.125*m_dx[1];
+    const double w7 = -.125*m_dx[0];
+    const double w8 = .125*m_dx[1];
+    const double w9 = .125*m_dx[0];
+    const double w10 = .0625*m_dx[0]*m_dx[1];
+    const double w11 = -.5*m_dx[1];
+    const double w12 = -.5*m_dx[0];
+    const double w13 = .5*m_dx[1];
+    const double w14 = .5*m_dx[0];
+    const double w15 = .25*m_dx[0]*m_dx[1];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
-                for (index_t k0=0; k0<m_NE0; ++k0)  {
+            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
                     bool add_EM_S=false;
                     bool add_EM_F=false;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
-                    const index_t e = k0 + m_NE0*k1;
+                    const index_t e = k0 + m_NE[0]*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -2620,7 +2681,7 @@ void Rectangle::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                     }
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
-                    const index_t firstNode=m_N0*k1+k0;
+                    const index_t firstNode=m_NN[0]*k1+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 } // end k0 loop
             } // end k1 loop
@@ -2634,8 +2695,6 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -2644,95 +2703,95 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
 
-    const double w0 = -0.1555021169820365539*h1/h0;
+    const double w0 = -0.1555021169820365539*m_dx[1]/m_dx[0];
     const double w1 = 0.041666666666666666667;
     const double w2 = -0.15550211698203655390;
-    const double w3 = 0.041666666666666666667*h0/h1;
+    const double w3 = 0.041666666666666666667*m_dx[0]/m_dx[1];
     const double w4 = 0.15550211698203655390;
     const double w5 = -0.041666666666666666667;
-    const double w6 = -0.01116454968463011277*h1/h0;
+    const double w6 = -0.01116454968463011277*m_dx[1]/m_dx[0];
     const double w7 = 0.011164549684630112770;
     const double w8 = -0.011164549684630112770;
-    const double w9 = -0.041666666666666666667*h1/h0;
-    const double w10 = -0.041666666666666666667*h0/h1;
-    const double w11 = 0.1555021169820365539*h1/h0;
-    const double w12 = 0.1555021169820365539*h0/h1;
-    const double w13 = 0.01116454968463011277*h0/h1;
-    const double w14 = 0.01116454968463011277*h1/h0;
-    const double w15 = 0.041666666666666666667*h1/h0;
-    const double w16 = -0.01116454968463011277*h0/h1;
-    const double w17 = -0.1555021169820365539*h0/h1;
-    const double w18 = -0.33333333333333333333*h1/h0;
+    const double w9 = -0.041666666666666666667*m_dx[1]/m_dx[0];
+    const double w10 = -0.041666666666666666667*m_dx[0]/m_dx[1];
+    const double w11 = 0.1555021169820365539*m_dx[1]/m_dx[0];
+    const double w12 = 0.1555021169820365539*m_dx[0]/m_dx[1];
+    const double w13 = 0.01116454968463011277*m_dx[0]/m_dx[1];
+    const double w14 = 0.01116454968463011277*m_dx[1]/m_dx[0];
+    const double w15 = 0.041666666666666666667*m_dx[1]/m_dx[0];
+    const double w16 = -0.01116454968463011277*m_dx[0]/m_dx[1];
+    const double w17 = -0.1555021169820365539*m_dx[0]/m_dx[1];
+    const double w18 = -0.33333333333333333333*m_dx[1]/m_dx[0];
     const double w19 = 0.25000000000000000000;
     const double w20 = -0.25000000000000000000;
-    const double w21 = 0.16666666666666666667*h0/h1;
-    const double w22 = -0.16666666666666666667*h1/h0;
-    const double w23 = -0.16666666666666666667*h0/h1;
-    const double w24 = 0.33333333333333333333*h1/h0;
-    const double w25 = 0.33333333333333333333*h0/h1;
-    const double w26 = 0.16666666666666666667*h1/h0;
-    const double w27 = -0.33333333333333333333*h0/h1;
-    const double w28 = -0.032861463941450536761*h1;
-    const double w29 = -0.032861463941450536761*h0;
-    const double w30 = -0.12264065304058601714*h1;
-    const double w31 = -0.0023593469594139828636*h1;
-    const double w32 = -0.008805202725216129906*h0;
-    const double w33 = -0.008805202725216129906*h1;
-    const double w34 = 0.032861463941450536761*h1;
-    const double w35 = 0.008805202725216129906*h1;
-    const double w36 = 0.008805202725216129906*h0;
-    const double w37 = 0.0023593469594139828636*h1;
-    const double w38 = 0.12264065304058601714*h1;
-    const double w39 = 0.032861463941450536761*h0;
-    const double w40 = -0.12264065304058601714*h0;
-    const double w41 = -0.0023593469594139828636*h0;
-    const double w42 = 0.0023593469594139828636*h0;
-    const double w43 = 0.12264065304058601714*h0;
-    const double w44 = -0.16666666666666666667*h1;
-    const double w45 = -0.083333333333333333333*h0;
-    const double w46 = 0.083333333333333333333*h1;
-    const double w47 = 0.16666666666666666667*h1;
-    const double w48 = 0.083333333333333333333*h0;
-    const double w49 = -0.16666666666666666667*h0;
-    const double w50 = 0.16666666666666666667*h0;
-    const double w51 = -0.083333333333333333333*h1;
-    const double w52 = 0.025917019497006092316*h0*h1;
-    const double w53 = 0.0018607582807716854616*h0*h1;
-    const double w54 = 0.0069444444444444444444*h0*h1;
-    const double w55 = 0.09672363354357992482*h0*h1;
-    const double w56 = 0.00049858867864229740201*h0*h1;
-    const double w57 = 0.055555555555555555556*h0*h1;
-    const double w58 = 0.027777777777777777778*h0*h1;
-    const double w59 = 0.11111111111111111111*h0*h1;
-    const double w60 = -0.19716878364870322056*h1;
-    const double w61 = -0.19716878364870322056*h0;
-    const double w62 = -0.052831216351296779436*h0;
-    const double w63 = -0.052831216351296779436*h1;
-    const double w64 = 0.19716878364870322056*h1;
-    const double w65 = 0.052831216351296779436*h1;
-    const double w66 = 0.19716878364870322056*h0;
-    const double w67 = 0.052831216351296779436*h0;
-    const double w68 = -0.5*h1;
-    const double w69 = -0.5*h0;
-    const double w70 = 0.5*h1;
-    const double w71 = 0.5*h0;
-    const double w72 = 0.1555021169820365539*h0*h1;
-    const double w73 = 0.041666666666666666667*h0*h1;
-    const double w74 = 0.01116454968463011277*h0*h1;
-    const double w75 = 0.25*h0*h1;
+    const double w21 = 0.16666666666666666667*m_dx[0]/m_dx[1];
+    const double w22 = -0.16666666666666666667*m_dx[1]/m_dx[0];
+    const double w23 = -0.16666666666666666667*m_dx[0]/m_dx[1];
+    const double w24 = 0.33333333333333333333*m_dx[1]/m_dx[0];
+    const double w25 = 0.33333333333333333333*m_dx[0]/m_dx[1];
+    const double w26 = 0.16666666666666666667*m_dx[1]/m_dx[0];
+    const double w27 = -0.33333333333333333333*m_dx[0]/m_dx[1];
+    const double w28 = -0.032861463941450536761*m_dx[1];
+    const double w29 = -0.032861463941450536761*m_dx[0];
+    const double w30 = -0.12264065304058601714*m_dx[1];
+    const double w31 = -0.0023593469594139828636*m_dx[1];
+    const double w32 = -0.008805202725216129906*m_dx[0];
+    const double w33 = -0.008805202725216129906*m_dx[1];
+    const double w34 = 0.032861463941450536761*m_dx[1];
+    const double w35 = 0.008805202725216129906*m_dx[1];
+    const double w36 = 0.008805202725216129906*m_dx[0];
+    const double w37 = 0.0023593469594139828636*m_dx[1];
+    const double w38 = 0.12264065304058601714*m_dx[1];
+    const double w39 = 0.032861463941450536761*m_dx[0];
+    const double w40 = -0.12264065304058601714*m_dx[0];
+    const double w41 = -0.0023593469594139828636*m_dx[0];
+    const double w42 = 0.0023593469594139828636*m_dx[0];
+    const double w43 = 0.12264065304058601714*m_dx[0];
+    const double w44 = -0.16666666666666666667*m_dx[1];
+    const double w45 = -0.083333333333333333333*m_dx[0];
+    const double w46 = 0.083333333333333333333*m_dx[1];
+    const double w47 = 0.16666666666666666667*m_dx[1];
+    const double w48 = 0.083333333333333333333*m_dx[0];
+    const double w49 = -0.16666666666666666667*m_dx[0];
+    const double w50 = 0.16666666666666666667*m_dx[0];
+    const double w51 = -0.083333333333333333333*m_dx[1];
+    const double w52 = 0.025917019497006092316*m_dx[0]*m_dx[1];
+    const double w53 = 0.0018607582807716854616*m_dx[0]*m_dx[1];
+    const double w54 = 0.0069444444444444444444*m_dx[0]*m_dx[1];
+    const double w55 = 0.09672363354357992482*m_dx[0]*m_dx[1];
+    const double w56 = 0.00049858867864229740201*m_dx[0]*m_dx[1];
+    const double w57 = 0.055555555555555555556*m_dx[0]*m_dx[1];
+    const double w58 = 0.027777777777777777778*m_dx[0]*m_dx[1];
+    const double w59 = 0.11111111111111111111*m_dx[0]*m_dx[1];
+    const double w60 = -0.19716878364870322056*m_dx[1];
+    const double w61 = -0.19716878364870322056*m_dx[0];
+    const double w62 = -0.052831216351296779436*m_dx[0];
+    const double w63 = -0.052831216351296779436*m_dx[1];
+    const double w64 = 0.19716878364870322056*m_dx[1];
+    const double w65 = 0.052831216351296779436*m_dx[1];
+    const double w66 = 0.19716878364870322056*m_dx[0];
+    const double w67 = 0.052831216351296779436*m_dx[0];
+    const double w68 = -0.5*m_dx[1];
+    const double w69 = -0.5*m_dx[0];
+    const double w70 = 0.5*m_dx[1];
+    const double w71 = 0.5*m_dx[0];
+    const double w72 = 0.1555021169820365539*m_dx[0]*m_dx[1];
+    const double w73 = 0.041666666666666666667*m_dx[0]*m_dx[1];
+    const double w74 = 0.01116454968463011277*m_dx[0]*m_dx[1];
+    const double w75 = 0.25*m_dx[0]*m_dx[1];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
-                for (index_t k0=0; k0<m_NE0; ++k0)  {
+            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
                     bool add_EM_S=false;
                     bool add_EM_F=false;
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
-                    const index_t e = k0 + m_NE0*k1;
+                    const index_t e = k0 + m_NE[0]*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -3381,7 +3440,7 @@ void Rectangle::assemblePDESystem(Paso_SystemMatrix* mat,
                     }
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
-                    const index_t firstNode=m_N0*k1+k0;
+                    const index_t firstNode=m_NN[0]*k1+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 } // end k0 loop
@@ -3396,8 +3455,6 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -3406,35 +3463,35 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
 
-    const double w0 = -.25*h1/h0;
+    const double w0 = -.25*m_dx[1]/m_dx[0];
     const double w1 = .25;
     const double w2 = -.25;
-    const double w3 = .25*h0/h1;
-    const double w4 = -.25*h0/h1;
-    const double w5 = .25*h1/h0;
-    const double w6 = -.125*h1;
-    const double w7 = -.125*h0;
-    const double w8 = .125*h1;
-    const double w9 = .125*h0;
-    const double w10 = .0625*h0*h1;
-    const double w11 = -.5*h1;
-    const double w12 = -.5*h0;
-    const double w13 = .5*h1;
-    const double w14 = .5*h0;
-    const double w15 = .25*h0*h1;
+    const double w3 = .25*m_dx[0]/m_dx[1];
+    const double w4 = -.25*m_dx[0]/m_dx[1];
+    const double w5 = .25*m_dx[1]/m_dx[0];
+    const double w6 = -.125*m_dx[1];
+    const double w7 = -.125*m_dx[0];
+    const double w8 = .125*m_dx[1];
+    const double w9 = .125*m_dx[0];
+    const double w10 = .0625*m_dx[0]*m_dx[1];
+    const double w11 = -.5*m_dx[1];
+    const double w12 = -.5*m_dx[0];
+    const double w13 = .5*m_dx[1];
+    const double w14 = .5*m_dx[0];
+    const double w15 = .25*m_dx[0]*m_dx[1];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
-                for (index_t k0=0; k0<m_NE0; ++k0)  {
+            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
                     bool add_EM_S=false;
                     bool add_EM_F=false;
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
-                    const index_t e = k0 + m_NE0*k1;
+                    const index_t e = k0 + m_NE[0]*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -3606,7 +3663,7 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                     }
 
                     // add to matrix (if add_EM_S) and RHS (if add_EM_F)
-                    const index_t firstNode=m_N0*k1+k0;
+                    const index_t firstNode=m_NN[0]*k1+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 } // end k0 loop
@@ -3619,24 +3676,22 @@ void Rectangle::assemblePDESystemReduced(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double w0 = 0.31100423396407310779*h1;
-    const double w1 = 0.022329099369260225539*h1;
-    const double w10 = 0.022329099369260225539*h0;
-    const double w11 = 0.16666666666666666667*h0;
-    const double w12 = 0.33333333333333333333*h0;
-    const double w13 = 0.39433756729740644113*h0;
-    const double w14 = 0.10566243270259355887*h0;
-    const double w15 = 0.5*h0;
-    const double w2 = 0.083333333333333333333*h1;
-    const double w3 = 0.33333333333333333333*h1;
-    const double w4 = 0.16666666666666666667*h1;
-    const double w5 = 0.39433756729740644113*h1;
-    const double w6 = 0.10566243270259355887*h1;
-    const double w7 = 0.5*h1;
-    const double w8 = 0.083333333333333333333*h0;
-    const double w9 = 0.31100423396407310779*h0;
+    const double w0 = 0.31100423396407310779*m_dx[1];
+    const double w1 = 0.022329099369260225539*m_dx[1];
+    const double w10 = 0.022329099369260225539*m_dx[0];
+    const double w11 = 0.16666666666666666667*m_dx[0];
+    const double w12 = 0.33333333333333333333*m_dx[0];
+    const double w13 = 0.39433756729740644113*m_dx[0];
+    const double w14 = 0.10566243270259355887*m_dx[0];
+    const double w15 = 0.5*m_dx[0];
+    const double w2 = 0.083333333333333333333*m_dx[1];
+    const double w3 = 0.33333333333333333333*m_dx[1];
+    const double w4 = 0.16666666666666666667*m_dx[1];
+    const double w5 = 0.39433756729740644113*m_dx[1];
+    const double w6 = 0.10566243270259355887*m_dx[1];
+    const double w7 = 0.5*m_dx[1];
+    const double w8 = 0.083333333333333333333*m_dx[0];
+    const double w9 = 0.31100423396407310779*m_dx[0];
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -3645,7 +3700,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = k1;
@@ -3698,7 +3753,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[2]+=tmp0_1;
                         }
                     }
-                    const index_t firstNode=m_N0*k1;
+                    const index_t firstNode=m_NN[0]*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
             } // end colouring
@@ -3707,7 +3762,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[1]+k1;
@@ -3760,7 +3815,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[3]+=tmp0_1;
                         }
                     }
-                    const index_t firstNode=m_N0*(k1+1)-2;
+                    const index_t firstNode=m_NN[0]*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
             } // end colouring
@@ -3769,7 +3824,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[2]+k0;
@@ -3831,7 +3886,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     const index_t e = m_faceOffset[3]+k0;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -3884,7 +3939,7 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                             EM_F[3]+=tmp0_1;
                         }
                     }
-                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
             } // end colouring
@@ -3896,12 +3951,10 @@ void Rectangle::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
-    const double w0 = 0.25*h1;
-    const double w1 = 0.5*h1;
-    const double w2 = 0.25*h0;
-    const double w3 = 0.5*h0;
+    const double w0 = 0.25*m_dx[1];
+    const double w1 = 0.5*m_dx[1];
+    const double w2 = 0.25*m_dx[0];
+    const double w3 = 0.5*m_dx[0];
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -3910,7 +3963,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = k1;
@@ -3935,7 +3988,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         EM_F[0]+=tmp0_1;
                         EM_F[2]+=tmp0_1;
                     }
-                    const index_t firstNode=m_N0*k1;
+                    const index_t firstNode=m_NN[0]*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
             } // end colouring
@@ -3944,7 +3997,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[1]+k1;
@@ -3969,7 +4022,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         EM_F[1]+=tmp0_1;
                         EM_F[3]+=tmp0_1;
                     }
-                    const index_t firstNode=m_N0*(k1+1)-2;
+                    const index_t firstNode=m_NN[0]*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
             } // end colouring
@@ -3978,7 +4031,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[2]+k0;
@@ -4011,7 +4064,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = m_faceOffset[3]+k0;
@@ -4035,7 +4088,7 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
                         EM_F[2]+=tmp0_1;
                         EM_F[3]+=tmp0_1;
                     }
-                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F, firstNode);
                 }
             } // end colouring
@@ -4047,8 +4100,6 @@ void Rectangle::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
     dim_t numEq, numComp;
     if (!mat) {
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -4056,22 +4107,22 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         numEq=mat->logical_row_block_size;
         numComp=mat->logical_col_block_size;
     }
-    const double w0 = 0.31100423396407310779*h1;
-    const double w1 = 0.022329099369260225539*h1;
-    const double w10 = 0.022329099369260225539*h0;
-    const double w11 = 0.16666666666666666667*h0;
-    const double w12 = 0.33333333333333333333*h0;
-    const double w13 = 0.39433756729740644113*h0;
-    const double w14 = 0.10566243270259355887*h0;
-    const double w15 = 0.5*h0;
-    const double w2 = 0.083333333333333333333*h1;
-    const double w3 = 0.33333333333333333333*h1;
-    const double w4 = 0.16666666666666666667*h1;
-    const double w5 = 0.39433756729740644113*h1;
-    const double w6 = 0.10566243270259355887*h1;
-    const double w7 = 0.5*h1;
-    const double w8 = 0.083333333333333333333*h0;
-    const double w9 = 0.31100423396407310779*h0;
+    const double w0 = 0.31100423396407310779*m_dx[1];
+    const double w1 = 0.022329099369260225539*m_dx[1];
+    const double w10 = 0.022329099369260225539*m_dx[0];
+    const double w11 = 0.16666666666666666667*m_dx[0];
+    const double w12 = 0.33333333333333333333*m_dx[0];
+    const double w13 = 0.39433756729740644113*m_dx[0];
+    const double w14 = 0.10566243270259355887*m_dx[0];
+    const double w15 = 0.5*m_dx[0];
+    const double w2 = 0.083333333333333333333*m_dx[1];
+    const double w3 = 0.33333333333333333333*m_dx[1];
+    const double w4 = 0.16666666666666666667*m_dx[1];
+    const double w5 = 0.39433756729740644113*m_dx[1];
+    const double w6 = 0.10566243270259355887*m_dx[1];
+    const double w7 = 0.5*m_dx[1];
+    const double w8 = 0.083333333333333333333*m_dx[0];
+    const double w9 = 0.31100423396407310779*m_dx[0];
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -4080,7 +4131,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
@@ -4145,7 +4196,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    const index_t firstNode=m_N0*k1;
+                    const index_t firstNode=m_NN[0]*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }
@@ -4155,7 +4206,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[1]+k1;
@@ -4220,7 +4271,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    const index_t firstNode=m_N0*(k1+1)-2;
+                    const index_t firstNode=m_NN[0]*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }
@@ -4230,7 +4281,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[2]+k0;
@@ -4305,7 +4356,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[3]+k0;
@@ -4370,7 +4421,7 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                             }
                         }
                     }
-                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }
@@ -4383,8 +4434,6 @@ void Rectangle::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
-    const double h0 = m_l0/m_gNE0;
-    const double h1 = m_l1/m_gNE1;
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -4392,10 +4441,10 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         numEq=mat->logical_row_block_size;
         numComp=mat->logical_col_block_size;
     }
-    const double w0 = 0.25*h1;
-    const double w1 = 0.5*h1;
-    const double w2 = 0.25*h0;
-    const double w3 = 0.5*h0;
+    const double w0 = 0.25*m_dx[1];
+    const double w1 = 0.5*m_dx[1];
+    const double w2 = 0.25*m_dx[0];
+    const double w3 = 0.5*m_dx[0];
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
     rhs.requireWrite();
@@ -4404,7 +4453,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
@@ -4435,7 +4484,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                             EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
                         }
                     }
-                    const index_t firstNode=m_N0*k1;
+                    const index_t firstNode=m_NN[0]*k1;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }
@@ -4445,7 +4494,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE1; k1+=2) {
+                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[1]+k1;
@@ -4476,7 +4525,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                             EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
                         }
                     }
-                    const index_t firstNode=m_N0*(k1+1)-2;
+                    const index_t firstNode=m_NN[0]*(k1+1)-2;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }
@@ -4486,7 +4535,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[2]+k0;
@@ -4527,7 +4576,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         if (m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE0; k0+=2) {
+                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = m_faceOffset[3]+k0;
@@ -4558,7 +4607,7 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
                             EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
                         }
                     }
-                    const index_t firstNode=m_N0*(m_N1-2)+k0;
+                    const index_t firstNode=m_NN[0]*(m_NN[1]-2)+k0;
                     addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S, add_EM_F,
                             firstNode, numEq, numComp);
                 }

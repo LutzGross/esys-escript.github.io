@@ -14,16 +14,19 @@
 
 """This example show how to display ER Mapper raster data with matplotlib"""
 
+import matplotlib
+# The following line is here to allow automated testing. Remove or comment if
+# you would like to display the final plot in a window instead.
+matplotlib.use('agg')
 from matplotlib import pyplot as plt
 import numpy as np
 import sys
-from scipy.io import netcdf_file
 
 # input filename
 if len(sys.argv)>1:
     FILENAME=sys.argv[1]
 else:
-    FILENAME='data/QLDWest_grav.ers'
+    FILENAME='data/QLDWestGravity.ers'
 
 
 if FILENAME[-4:]=='.ers': FILENAME=FILENAME[:-4]
@@ -101,11 +104,13 @@ x,y=np.meshgrid(longitude, latitude)
 plt.figure(figsize=(6*(spacingX*NX/(spacingY*NY))+1, 6), dpi=100)
 plt.pcolor(x, y, DATA)
 locs,_=plt.xticks()
-plt.xticks(locs, map(lambda x:"%g"%x, locs))
+plt.xticks(locs, list(map(lambda x:"%g"%x, locs)))
 plt.xlabel(labelX)
 plt.ylabel(labelY)
 plt.axis('tight')
 plt.title(FILENAME)
 plt.colorbar()
+
 plt.show()
+plt.savefig("ermapper_plot.png")
 

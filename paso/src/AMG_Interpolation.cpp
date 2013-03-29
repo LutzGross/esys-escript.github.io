@@ -30,7 +30,7 @@
 
 /************************************************************************************
 
-    Methods nessecary for AMG preconditioner
+    Methods necessary for AMG preconditioner
 
     construct n_C x n_C interpolation operator A_C from matrix A
     and prolongation matrix P.
@@ -39,10 +39,10 @@
 
 *************************************************************************************/
 
-/* Extend system matrix B with extra two sparse matrixes: 
+/* Extend system matrix B with extra two sparse matrices: 
 	B_ext_main and B_ext_couple
-   The combination of this two sparse matrixes represents  
-   the portion of B that is stored on neighbor procs and 
+   The combination of this two sparse matrices represents  
+   the portion of B that is stored on neighbour procs and 
    needed locally for triple matrix product (B^T) A B.
 
    FOR NOW, we assume that the system matrix B has a NULL 
@@ -432,7 +432,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
 
 /* As defined, sparse matrix (let's called it T) defined by T(ptr, idx, val) 
    has the same number of rows as P->col_coupleBlock->numCols. Now, we need 
-   to copy block of data in T to neighbor processors, defined by 
+   to copy block of data in T to neighbour processors, defined by 
 	P->col_coupler->connector->recv->neighbor[k] where k is in 
 	[0, P->col_coupler->connector->recv->numNeighbors).
    Rows to be copied to neighbor processor k is in the list defined by
@@ -577,7 +577,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
   #endif
   P->mpi_info->msg_tag_counter += size;
 
-  /* Clean up and return with recevied ptr, index and data arrays */
+  /* Clean up and return with received ptr, index and data arrays */
   delete[] ptr;
   delete[] idx;
   delete[] val;
@@ -631,21 +631,21 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 /*   if (!(P->type & MATRIX_FORMAT_DIAGONAL_BLOCK)) 
      return Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(A, P, R);*/
 
-   /* two sparse matrixes R_main and R_couple will be generate, as the 
+   /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
    R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
    if (size > 1) 
      R_couple = Paso_SparseMatrix_getTranspose(P->col_coupleBlock);
 
-   /* generate P_ext, i.e. portion of P that is tored on neighbor procs
+   /* generate P_ext, i.e. portion of P that is stored on neighbor procs
       and needed locally for triple matrix product RAP 
       to be specific, P_ext (on processor k) are group of rows in P, where 
       the list of rows from processor q is given by 
 	A->col_coupler->connector->send->shared[rPtr...] 
 	rPtr=A->col_coupler->connector->send->OffsetInShared[k]
       on q. 
-      P_ext is represented by two sparse matrixes P_ext_main and 
+      P_ext is represented by two sparse matrices P_ext_main and 
       P_ext_couple */
    Paso_Preconditioner_AMG_extendB(A, P);
 
@@ -726,7 +726,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      }
    }
 
-   /* alloc and initialize the makers */
+   /* alloc and initialise the makers */
    sum = num_Pext_cols + num_Pmain_cols;
    P_marker = new index_t[sum];
    A_marker = new index_t[num_A_cols];
@@ -1080,10 +1080,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
    /* Now we have part of RAP[r,c] where row "r" is the list of rows 
       which is given by the column list of P->col_coupleBlock, and 
-      column "c" is the list of columns which possiblely covers the
-      whole column range of systme martris P. This part of data is to
-      be passed to neighboring processors, and added to corresponding
-      RAP[r,c] entries in the neighboring processors */
+      column "c" is the list of columns which possibly covers the
+      whole column range of system matrix P. This part of data is to
+      be passed to neighbouring processors, and added to corresponding
+      RAP[r,c] entries in the neighbouring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
 		&RAP_ext_val, global_id_P, block_size);
 
@@ -1164,7 +1164,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      global_id_P = NULL;
    }
 
-   /* alloc and initialize the makers */
+   /* alloc and initialise the makers */
    sum = num_RAPext_cols + num_Pmain_cols;
    P_marker = new index_t[sum];
    #pragma omp parallel for private(i) schedule(static)
@@ -1712,7 +1712,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    delete[] P_marker;
 
    /******************************************************/
-   /* Start to create the coasre level System Matrix A_c */
+   /* Start to create the coarse level System Matrix A_c */
    /******************************************************/
    /* first, prepare the sender/receiver for the col_connector */
    dist = P->pattern->input_distribution->first_component;
@@ -1833,7 +1833,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      i2 = RAP_couple_ptr[i_r+1];
      if (i2 > i1) {
 	/* then row i_r will be in the sender of row_connector, now check
-	   how many neighbors i_r needs to be send to */
+	   how many neighbours i_r needs to be send to */
 	for (j=i1; j<i2; j++) {
 	  i_c = RAP_couple_idx[j];
 	  /* find out the corresponding neighbor "p" of column i_c */
@@ -2075,20 +2075,20 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      int *mpi_requests=NULL, *mpi_stati=NULL;
    #endif
 
-   /* two sparse matrixes R_main and R_couple will be generate, as the 
+   /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
    R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
    R_couple = Paso_SparseMatrix_getTranspose(P->col_coupleBlock);
 
-   /* generate P_ext, i.e. portion of P that is tored on neighbor procs
+   /* generate P_ext, i.e. portion of P that is stored on neighbor procs
       and needed locally for triple matrix product RAP 
       to be specific, P_ext (on processor k) are group of rows in P, where 
       the list of rows from processor q is given by 
 	A->col_coupler->connector->send->shared[rPtr...] 
 	rPtr=A->col_coupler->connector->send->OffsetInShared[k]
       on q. 
-      P_ext is represented by two sparse matrixes P_ext_main and 
+      P_ext is represented by two sparse matrices P_ext_main and 
       P_ext_couple */
    Paso_Preconditioner_AMG_extendB(A, P);
 
@@ -2161,7 +2161,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      }
    }
 
-   /* alloc and initialize the makers */
+   /* alloc and initialise the makers */
    sum = num_Pext_cols + num_Pmain_cols;
    P_marker = new index_t[sum];
    A_marker = new index_t[num_A_cols];
@@ -2516,10 +2516,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 
    /* Now we have part of RAP[r,c] where row "r" is the list of rows 
       which is given by the column list of P->col_coupleBlock, and 
-      column "c" is the list of columns which possiblely covers the
-      whole column range of systme martris P. This part of data is to
-      be passed to neighboring processors, and added to corresponding
-      RAP[r,c] entries in the neighboring processors */
+      column "c" is the list of columns which possibly covers the
+      whole column range of system matrix P. This part of data is to
+      be passed to neighbouring processors, and added to corresponding
+      RAP[r,c] entries in the neighbouring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
 		&RAP_ext_val, global_id_P, block_size);
 
@@ -2598,7 +2598,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      global_id_P = NULL;
    }
 
-   /* alloc and initialize the makers */
+   /* alloc and initialise the makers */
    sum = num_RAPext_cols + num_Pmain_cols;
    P_marker = new index_t[sum];
    #pragma omp parallel for private(i) schedule(static)
@@ -3139,7 +3139,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    delete[] P_marker;
 
    /******************************************************/
-   /* Start to create the coasre level System Matrix A_c */
+   /* Start to create the coarse level System Matrix A_c */
    /******************************************************/
    /* first, prepare the sender/receiver for the col_connector */
    dist = P->pattern->input_distribution->first_component;
@@ -3258,7 +3258,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      i2 = RAP_couple_ptr[i_r+1];
      if (i2 > i1) {
 	/* then row i_r will be in the sender of row_connector, now check
-	   how many neighbors i_r needs to be send to */
+	   how many neighbours i_r needs to be send to */
 	for (j=i1; j<i2; j++) {
 	  i_c = RAP_couple_idx[j];
 	  /* find out the corresponding neighbor "p" of column i_c */

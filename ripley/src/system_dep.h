@@ -44,5 +44,43 @@
 #   endif
 #endif
 
+
+// byte swapping / endianness:
+
+#include <boost/detail/endian.hpp>
+#define RIPLEY_BYTE_ORDER BOOST_BYTE_ORDER
+#define RIPLEY_LITTLE_ENDIAN 1234
+#define RIPLEY_BIG_ENDIAN 4321
+
+#ifdef _WIN32
+#include <stdlib.h>
+inline char* RIPLEY_BYTE_SWAP32(char* val)
+{
+    unsigned long* v = reinterpret_cast<unsigned long*>(val);
+    *v = _byteswap_ulong(*v);
+    return val;
+}
+
+#else
+
+#if HAVE_BYTESWAP_H
+#   include <byteswap.h>
+#elif HAVE_SYS_ENDIAN_H
+#   include <sys/endian.h>
+#elif HAVE_OSBYTEORDER_H
+#   include <libkern/OSByteOrder.h>
+#   define bswap_32 OSSwapInt32
+#else // uh oh, we can't swap bytes...
+#   define bswap_32(D) D
+#endif // header selection
+
+inline char* RIPLEY_BYTE_SWAP32(char* val)
+{
+    unsigned int* v = reinterpret_cast<unsigned int*>(val);
+    *v = bswap_32(*v);
+    return val;
+}
+#endif // WIN32
+
 #endif // __RIPLEY_SYSTEM_DEP_H__
 

@@ -1,6 +1,6 @@
-escript (3.3.1~pre1-1) wheezy; urgency=low
+escript (3.3.1-1) wheezy; urgency=low
   * Release 3.3.1
-  * Place holder for new release
+  * User guide has summary of changes
  -- Joel Fenwick <joelfenwick@uq.edu.au>  Thu, 1 November 2012 16:00:00 +1000
 
 escript (3.3-1) squeeze; urgency=low

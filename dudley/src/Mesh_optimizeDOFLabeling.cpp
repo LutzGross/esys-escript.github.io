@@ -65,7 +65,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 		index_list[i].extension = NULL;
 		index_list[i].n = 0;
 	    }
-	    /*  insert contributions from element matrices into colums index index_list: */
+	    /*  insert contributions from element matrices into columns index index_list: */
 	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
 								      in->Elements, in->Nodes->globalDegreesOfFreedom,
 								      in->Nodes->globalDegreesOfFreedom);

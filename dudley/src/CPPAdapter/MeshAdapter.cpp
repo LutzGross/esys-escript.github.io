@@ -1388,7 +1388,7 @@ ASM_ptr MeshAdapter::newSystemMatrix(
       throw DudleyAdapterException("Error - domain of row function space does not match the domain of matrix generator.");
    const MeshAdapter& col_domain=dynamic_cast<const MeshAdapter&>(*(column_functionspace.getDomain()));
    if (col_domain!=*this) 
-      throw DudleyAdapterException("Error - domain of columnn function space does not match the domain of matrix generator.");
+      throw DudleyAdapterException("Error - domain of column function space does not match the domain of matrix generator.");
    // is the function space type right 
    if (row_functionspace.getTypeCode()==DegreesOfFreedom) {
       reduceRowOrder=0;

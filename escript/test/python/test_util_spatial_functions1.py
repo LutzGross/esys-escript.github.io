@@ -15555,7 +15555,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the Function
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -15584,7 +15584,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the Function
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -15620,7 +15620,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the Function
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -15782,7 +15782,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the Function
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -15972,7 +15972,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the Function
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -16001,7 +16001,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the Function
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -16037,7 +16037,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the Function
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -16199,7 +16199,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the Function
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=self.order
       dim=self.domain.getDim()
@@ -16389,7 +16389,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the Function
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -16418,7 +16418,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the Function
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -16454,7 +16454,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the Function
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -16616,7 +16616,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the Function
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -16806,7 +16806,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the Function
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -16835,7 +16835,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the Function
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -16871,7 +16871,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the Function
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -17033,7 +17033,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the Function
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on Function
+                   self.domain supports gradient on Function
       """
       o=1
       dim=self.domain.getDim()
@@ -17223,7 +17223,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the ReducedFunction
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17252,7 +17252,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the ReducedFunction
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17288,7 +17288,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the ReducedFunction
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17450,7 +17450,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the ReducedFunction
 
       assumptions: ContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17640,7 +17640,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the ReducedFunction
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17669,7 +17669,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the ReducedFunction
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17705,7 +17705,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the ReducedFunction
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -17867,7 +17867,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the ReducedFunction
 
       assumptions: Solution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=self.order
       dim=self.domain.getDim()
@@ -18057,7 +18057,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the ReducedFunction
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18086,7 +18086,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the ReducedFunction
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18122,7 +18122,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the ReducedFunction
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18284,7 +18284,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the ReducedFunction
 
       assumptions: ReducedSolution(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18474,7 +18474,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 0 Data on the ReducedFunction
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18503,7 +18503,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 1 Data on the ReducedFunction
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18539,7 +18539,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 2 Data on the ReducedFunction
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()
@@ -18701,7 +18701,7 @@ class Test_Util_SpatialFunctions_noGradOnBoundary_noContact(unittest.TestCase):
       tests gradient for rank 3 Data on the ReducedFunction
 
       assumptions: ReducedContinuousFunction(self.domain) exists
-                   self.domain supports gardient on ReducedFunction
+                   self.domain supports gradient on ReducedFunction
       """
       o=1
       dim=self.domain.getDim()

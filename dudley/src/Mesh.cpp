@@ -23,7 +23,7 @@
 /************************************************************************************/
 
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
-/*   the most appropriate order is selected indepently. */
+/*   the most appropriate order is selected independently. */
 
 Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info)
 {

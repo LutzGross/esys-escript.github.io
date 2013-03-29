@@ -92,7 +92,7 @@ void DataTypesTestCase::testShapeFns()
   CPPUNIT_ASSERT_THROW(getRelIndex(s1,1,1), EsysException);
   CPPUNIT_ASSERT_THROW(getRelIndex(s2,1,1,1), EsysException);
   CPPUNIT_ASSERT_THROW(getRelIndex(s3,1,1,1,1), EsysException);
-  // too few inidicies
+  // too few indices
   cout << "\t\tInvalid index.(too few)" << endl;
   CPPUNIT_ASSERT_THROW(getRelIndex(s2,1), EsysException);
   CPPUNIT_ASSERT_THROW(getRelIndex(s3,1,1), EsysException);

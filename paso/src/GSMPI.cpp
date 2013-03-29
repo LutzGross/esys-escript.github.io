@@ -188,7 +188,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
   if (Paso_noError()) {
       if (verbose) {
          printf("GS_MPI: %d color used \n",out->num_colors);
-         printf("timing: GS_MPI: coloring/elemination : %e/%e\n",time_color,time_fac);
+         printf("timing: GS_MPI: coloring/elimination : %e/%e\n",time_color,time_fac);
      }
      return out;
   } else  {
@@ -374,7 +374,7 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
 
      /* step 1: forward iteration
                x{k} = D{-1}(b - E*x{k} - F*x{k-1}) */
-     /* One Guass-Seidel iteration
+     /* One Gauss-Seidel iteration
         In case of forward iteration x{k} = D{-1}(b - E*x{k} - F*x{k-1})
            => into a loop (without coloring):
             for i in [0,n-1] do     

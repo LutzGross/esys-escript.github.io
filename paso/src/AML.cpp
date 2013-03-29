@@ -188,7 +188,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
      return NULL;
   }
   out=new Paso_Solver_AMLI;
-  /* identify independend set of rows/columns */
+  /* identify independent set of rows/columns */
   mis_marker=new index_t[n];
   counter=new index_t[n];
   if ( !( Esys_checkPtr(mis_marker) || Esys_checkPtr(counter) || Esys_checkPtr(out)) ) {
@@ -440,7 +440,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
    x<-[x_F,x_C]
 
  should be called within a parallel region                                              
- barrier synconization should be performed to make sure that the input vector available 
+ barrier synchronisation should be performed to make sure that the input vector available 
 
 */
 
@@ -580,7 +580,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
 
 Paso: Coarsening strategies (no MPI)   
 
-the given matrix A is splitted in to the form 
+the given matrix A is split in to the form 
 
 
 [ A_FF A_FC ]
@@ -716,7 +716,7 @@ void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_
    index_t iptr,jptr;
    /*index_t *index,*where_p;*/
    double threshold,max_offdiagonal;
-   dim_t *lambda;   /*mesure of importance */
+   dim_t *lambda;   /*measure of importance */
    dim_t maxlambda=0;
    index_t index_maxlambda=0;
    double time0=0;
@@ -822,7 +822,7 @@ if(k==0) {
    
    k=0;
    time0=Esys_timer()-time0;
-   if (verbose) fprintf(stdout,"timing: Lambdas computations at the begining: %e\n",time0);
+   if (verbose) fprintf(stdout,"timing: Lambdas computations at the beginning: %e\n",time0);
    
    time0=Esys_timer();
    

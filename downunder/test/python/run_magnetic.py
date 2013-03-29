@@ -37,7 +37,7 @@ features=[SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
           SmoothAnomaly(lx=30*U.km, ly=20*U.km, lz=18.*U.km, \
      x=68*U.km, y=3*U.km, depth=5*U.km, v_inner=20., v_outer=1e-6)]
 
-B_b=simpleGeoMagneticFluxDensity(latitude=-28.5)
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 source=SyntheticFeatureData(DataSource.MAGNETIC, DIM=2, number_of_elements=30, length=100*U.km, features=features, B_b=B_b)
 

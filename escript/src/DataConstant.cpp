@@ -186,7 +186,7 @@ DataConstant::symmetric(DataAbstract* ev)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::symmetric: casting to DataConstant failed (probably a programming error).");
   }
   DataMaths::symmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
@@ -196,7 +196,7 @@ DataConstant::nonsymmetric(DataAbstract* ev)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::nonsymmetric: casting to DataConstant failed (probably a programming error).");
   }
   DataMaths::nonsymmetric(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
@@ -206,7 +206,7 @@ DataConstant::trace(DataAbstract* ev, int axis_offset)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::trace: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::trace: casting to DataConstant failed (probably a programming error).");
   }
   ValueType& evVec=temp_ev->getVectorRW();
   const ShapeType& evShape=temp_ev->getShape();
@@ -218,7 +218,7 @@ DataConstant::swapaxes(DataAbstract* ev, int axis0, int axis1)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::swapaxes: casting to DataConstant failed (probably a programming error).");
   }
   DataMaths::swapaxes(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,axis0,axis1);
 }
@@ -228,7 +228,7 @@ DataConstant::transpose(DataAbstract* ev, int axis_offset)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::transpose: casting to DataConstant failed (probably a programming error).");
   }
   DataMaths::transpose(m_data, getShape(),0, temp_ev->getVectorRW(),temp_ev->getShape(),0,axis_offset);
 }
@@ -238,7 +238,7 @@ DataConstant::eigenvalues(DataAbstract* ev)
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::eigenvalues: casting to DataConstant failed (probably a programming error).");
   }
   DataMaths::eigenvalues(m_data,getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0);
 }
@@ -247,11 +247,11 @@ DataConstant::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,cons
 {
   DataConstant* temp_ev=dynamic_cast<DataConstant*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (probably a programming error).");
   }
   DataConstant* temp_V=dynamic_cast<DataConstant*>(V);
   if (temp_V==0) {
-    throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (propably a programming error).");
+    throw DataException("Error - DataConstant::eigenvalues_and_eigenvectors: casting to DataConstant failed (probably a programming error).");
   }
   DataMaths::eigenvalues_and_eigenvectors(m_data, getShape(),0,temp_ev->getVectorRW(), temp_ev->getShape(),0,temp_V->getVectorRW(), temp_V->getShape(),0,tol);
 }
@@ -264,7 +264,7 @@ DataConstant::matrixInverse(DataAbstract* out) const
   DataConstant* temp=dynamic_cast<DataConstant*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (propably a programming error).");
+	throw DataException("Error - DataConstant::matrixInverse: casting to DataConstant failed (probably a programming error).");
   }
   if (getRank()!=2)
   {

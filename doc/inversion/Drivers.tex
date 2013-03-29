@@ -31,7 +31,7 @@ If the maximum number is reached, the iteration will be terminated and \exceptio
 \end{methoddesc}
 
 \begin{methoddesc}[InversionDriver]{setSolverTolerance}{\optional{m_tol=\None} \optional{, J_tol=\None}}
-set the tolerance for the the solver used to minimize the cost function. If \member{m_tol} is set the iteration is terminated 
+set the tolerance for the solver used to minimize the cost function. If \member{m_tol} is set the iteration is terminated 
 if the relative change of the level set function is less than or equal \member{m_tol}, see condition~\ref{EQU:MIN:3a}. 
 If \member{J_tol} is set the iteration is terminated if the change of the cost
 function relative to the initial value is less than or equal \member{J_tol}, , see condition~\ref{EQU:MIN:3b}.
@@ -57,7 +57,9 @@ incurable break down in the iteration in which case a \exception{MinimizerIterat
 \subsection{Gravity Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:gravity inversion}.
 
-\begin{classdesc}{GravityInversion}{\optional{solverclass=None}}
+\begin{classdesc}{GravityInversion}{\optional{solverclass=None}
+\optional{, fixGravityPotentialAtBottom=False}
+}
 Driver class to perform an inversion of Gravity (Bouguer) anomaly data.
 This class is a sub-class of \class{InversionDriver}. The class uses the
 standard \class{Regularization} for a single level set function,
@@ -67,8 +69,13 @@ see Section~\ref{Chp:ref:mapping density}, and the gravity forward model
 \member{solverclass} set the solver class to be used for inversion,
 see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
-
+If \member{fixGravityPotentialAtBottom} is set \optional{, fixGravityPotentialAtBottom=False}to \True the gravity potential at the bottom is set to zero.
 \end{classdesc}
+
+\begin{methoddesc}[GravityInversion]{fixGravityPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the gravity potential at the bottom is set to zero. Otherwise  the gravity
+ potential at the top is set to zero only. 
+\end{methoddesc}
 
 \begin{methoddesc}[GravityInversion]{setup}{
 domainbuilder
@@ -77,7 +84,10 @@ domainbuilder
 \optional{, z0=\None}
 \optional{, beta=\None}
 \optional{, w0=\None}
-\optional{, w1=\None}}
+\optional{, w1=\None}
+\optional{, rho_at_depth=\None}
+}
+
 sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
 Only gravitational data attached to the \member{domainbuilder} are considered in the inversion.
 \member{rho0} defines a reference density anomaly (default is 0), 
@@ -89,6 +99,8 @@ see \class{DensityMapping} in Section~\ref{Chp:ref:mapping density}.
 $\omega^{(0)}$ and
 $\omega^{(1)}$, respectively (see Equation~\ref{EQU:REG:1}).
 By default \member{w0}=\None and \member{w1}=1 are used.
+\member{rho_at_depth} sets the value for density at depth. This is only used if density is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 \end{methoddesc}
 
 \begin{methoddesc}[GravityInversion]{setInitialGuess}{\optional{rho=\None}}
@@ -98,7 +110,8 @@ sets an initial guess for the density anomaly. By default zero is used.
 \subsection{Magnetic Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:magnetic inversion}.
 
-\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}}
+\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}
+}
 Driver class to perform an inversion of magnetic anomaly data. This class
 is a sub-class of \class{InversionDriver}. The class uses the standard
 \class{Regularization} class for a single level set function, see Chapter~\ref{Chp:ref:regularization},
@@ -107,7 +120,14 @@ magnetic forward model \class{MagneticModel}, see Section~\ref{sec:forward magne
 \member{solverclass} set the solver class to be used for inversion,
 see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+
 \end{classdesc}
+
+\begin{methoddesc}[MagneticInversion]{fixMagneticPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the magnetic potential at the bottom is set to zero. Otherwise  the magnetic
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
 
 
 \begin{methoddesc}[MagneticInversion]{setup}{
@@ -117,7 +137,9 @@ domainbuilder
 \optional{, z0=\None} 
 \optional{, beta=\None}
 \optional{, w0=\None}
-\optional{, w1=\None}}
+\optional{, w1=\None}
+\optional{, k_at_depth=\None}
+}
 
 sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
 Only magnetic data attached to the \member{domainbuilder} are considered in the inversion.
@@ -130,6 +152,8 @@ see \class{SusceptibilityMapping} in Section~\ref{Chp:ref:mapping susceptibility
 $\omega^{(0)}$ and
 $\omega^{(1)}$, respectively (see equation~\ref{EQU:REG:1}).
 By default \member{w0}=\None and \member{w1}=1 are used.
+\member{k_at_depth} sets the value for susceptibility at depth. This is only used if susceptibility is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 \end{methoddesc}
 
 \begin{methoddesc}[MagneticInversion]{setInitialGuess}{\optional{k=\None}}
@@ -139,7 +163,8 @@ sets an initial guess for the susceptibility anomaly. By default zero is used.
 \subsection{Gravity and Magnetic Joint Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:joint inversion}.
 
-\begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}}
+\begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}
+}
 Driver class to perform a joint inversion of Gravity (Bouguer) and magnetic anomaly data.
 This class is a sub-class of \class{InversionDriver}. 
 The class uses the standard \class{Regularization} for two level set functions
@@ -153,6 +178,16 @@ see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
 \end{classdesc}
 
+\begin{methoddesc}[JointGravityMagneticInversion]{fixGravityPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the gravity potential at the bottom is set to zero. Otherwise  the gravity
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
+
+\begin{methoddesc}[JointGravityMagneticInversion]{fixMagneticPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the magnetic potential at the bottom is set to zero. Otherwise  the magnetic
+ potential at the top is set to zero only. 
+\end{methoddesc}
 
 \begin{methoddesc}[JointGravityMagneticInversion]{setup}{
 domainbuilder
@@ -167,7 +202,10 @@ domainbuilder
 \optional{, w0=\None}
 \optional{, w1=\None}
 \optional{, w_gc=\None}
+\optional{, rho_at_depth=\None}
+\optional{, k_at_depth=\None}
 }
+
 sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
 Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
 \member{rho0} defines a reference density anomaly (default is $0$),
@@ -185,6 +223,10 @@ $\omega^{(0)}$ and
 $\omega^{(1)}$, respectively (see Equation~\ref{EQU:REG:1}). 
 \member{w_gc} sets the weighting factor $\omega^{(c)}$ for the cross gradient term. 
 By default \member{w0}=\None, \member{w1}=1 and \member{w_gc}=1 are used.
+\member{k_at_depth} sets the value for susceptibility at depth. This is only used if susceptibility is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
+\member{rho_at_depth} sets the value for density at depth. This is only used if density is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 \end{methoddesc}
 
 \begin{methoddesc}[JointGravityMagneticInversion]{setInitialGuess}{\optional{rho=\None, } \optional{k=\None}}
