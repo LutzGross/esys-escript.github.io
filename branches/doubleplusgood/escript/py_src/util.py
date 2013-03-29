@@ -2314,7 +2314,7 @@ def tensor_transposed_mult(arg0,arg1):
 
     C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,r0,r1]}
 
-    In the first case the the second dimension of ``arg0`` and ``arg1`` must
+    In the first case the second dimension of ``arg0`` and ``arg1`` must
     match and in the second case the two last dimensions of ``arg0`` must match
     the two last dimensions of ``arg1``.
 
@@ -2662,7 +2662,7 @@ def longestEdge(domain):
 
     :param domain: a domain
     :type domain: `escript.Domain`
-    :return: longest edge of the domain parallel to the Cartisean axis 
+    :return: longest edge of the domain parallel to the Cartesian axis 
     :rtype: ``float``
     """
     return max(boundingBoxEdgeLength(domain))

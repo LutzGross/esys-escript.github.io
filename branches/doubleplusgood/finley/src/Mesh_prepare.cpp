@@ -42,7 +42,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
         newGlobalNumDOFs=Finley_NodeFile_createDenseDOFLabeling(in->Nodes);
 
         /* create a distribution of the global DOFs and determine
-           the MPI_rank controling the DOFs on this processor      */
+           the MPI_rank controlling the DOFs on this processor      */
         Esys_MPIInfo_setDistribution(in->MPIInfo,0,newGlobalNumDOFs-1,distribution);
 
         /* now the mesh is re-distributed according to the mpiRankOfDOF vector */
@@ -57,7 +57,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
          Finley_Mesh_optimizeDOFDistribution(in,distribution); 
          if (Finley_noError()) Finley_Mesh_distributeByRankOfDOF(in,distribution); 
      }
-     /* the local labeling of the degrees of freedom is optimized */
+     /* the local labelling of the degrees of freedom is optimized */
      if (Finley_noError() && optimize) {
        Finley_Mesh_optimizeDOFLabeling(in,distribution); 
      }

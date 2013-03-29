@@ -29,16 +29,13 @@ from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, 
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 
-import sys
-if sys.version_info.major>2:
-  xrange=range
 
 class Regularization(CostFunction):
     """
     The regularization term for the level set function ``m`` within the cost
     function J for an inversion:
 
-    *J(m)=1/2 * sum_k imtegrate( mu[k] * ( w0[k] * m_k**2 * w1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] wc[l,k] * | curl(m_k) x curl(m_l) |^2*
+    *J(m)=1/2 * sum_k integrate( mu[k] * ( w0[k] * m_k**2 * w1[k,i] * m_{k,i}**2) + sum_l<k mu_c[l,k] wc[l,k] * | curl(m_k) x curl(m_l) |^2*
 
     where w0[k], w1[k,i] and  wc[k,l] are non-negative weighting factors and
     mu[k] and mu_c[l,k] are trade-off factors which may be altered
@@ -140,7 +137,7 @@ class Regularization(CostFunction):
         else:
             scale_c=np.asarray(scale_c)
             if scale_c.shape == (numLevelSets,numLevelSets):
-                if not all( [ [ scale_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLevelSets) ]):
+                if not all( [ [ scale_c[l,k] > 0. for l in range(k) ] for k in range(1,numLevelSets) ]):
                         raise ValueError("All values in the lower triangle of scale_c must be positive.")
             else:
                  raise ValueError("Unexpected shape %s for scale."%scale_c.shape)
@@ -191,7 +188,7 @@ class Regularization(CostFunction):
                raise ValueError("Non-positive weighting factor detected.")
         else:
 
-             for k in xrange(numLevelSets):
+             for k in range(numLevelSets):
                  A=0
                  if w0 is not None:
                      A = integrate(w0[k])
@@ -208,7 +205,7 @@ class Regularization(CostFunction):
 
                  # and now the cross-gradient:
                  if wc is not None:
-                     for l in xrange(k):
+                     for l in range(k):
                         A = integrate(wc[l,k])/L4
                         if A > 0:
                            f = scale_c[l,k]/A
@@ -298,8 +295,8 @@ class Regularization(CostFunction):
         if mu.shape == (numTF,):
             self.setTradeOffFactorsForVariation(mu[:numLS])
             mu_c2=np.zeros((numLS,numLS))
-            for k in xrange(numLS):
-               for l in xrange(k):
+            for k in range(numLS):
+               for l in range(k):
                    mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2]
             self.setTradeOffFactorsForCrossGradient(mu_c2)
         elif mu.shape == () and numLS ==1:
@@ -360,7 +357,7 @@ class Regularization(CostFunction):
         else:
             mu_c=np.asarray(mu_c)
             if mu_c.shape == (numLS,numLS):
-                if not all( [ [ mu_c[l,k] > 0. for l in xrange(k) ] for k in xrange(1,numLS) ]):
+                if not all( [ [ mu_c[l,k] > 0. for l in range(k) ] for k in range(1,numLS) ]):
                      raise ValueError("All trade-off factors in the lower triangle of mu_c must be positive.")
                 else:
                      self.__mu_c =  mu_c
@@ -392,14 +389,14 @@ class Regularization(CostFunction):
             if numLS == 1:
                 A+=integrate(inner(grad_m**2, self.__w1))*mu
             else:
-                for k in xrange(numLS):
+                for k in range(numLS):
                     A+=mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
 
         if numLS > 1:
-            for k in xrange(numLS):
+            for k in range(numLS):
                 gk=grad_m[k,:]
                 len_gk=length(gk)
-                for l in xrange(k):
+                for l in range(k):
                     gl=grad_m[l,:]
                     A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
         return A/2
@@ -429,17 +426,17 @@ class Regularization(CostFunction):
             if numLS == 1:
                 X=grad_m* self.__w1*mu
             else:
-                for k in xrange(numLS):
+                for k in range(numLS):
                     X[k,:]*=mu[k]
         else:
             X = Data(0, grad_m.getShape(), grad_m.getFunctionSpace())
 
         # cross gradient terms:
         if numLS > 1:
-          for  k in xrange(numLS):
+          for  k in range(numLS):
              grad_m_k=grad_m[k,:]
              l2_grad_m_k = length(grad_m_k)**2
-             for  l in xrange(k):
+             for  l in range(k):
                grad_m_l=grad_m[l,:]
                l2_grad_m_l = length(grad_m_l)**2
                grad_m_lk = inner(grad_m_l, grad_m_k)
@@ -466,23 +463,23 @@ class Regularization(CostFunction):
                      D=self.__w0 * mu
                 else:
                      D=self.getPDE().createCoefficient("D")
-                     for k in xrange(numLS): D[k,k]=self.__w0[k] * mu[k]
+                     for k in range(numLS): D[k,k]=self.__w0[k] * mu[k]
                 self.getPDE().setValue(D=D)
 
             A=self.getPDE().createCoefficient("A")
             if self.__w1 is not None:
                if numLS == 1:
-                   for i in xrange(DIM): A[i,i]=self.__w1[i] * mu
+                   for i in range(DIM): A[i,i]=self.__w1[i] * mu
                else:
-                   for k in xrange(numLS):
-                        for i in xrange(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
+                   for k in range(numLS):
+                        for i in range(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
 
             if numLS > 1:
-               for  k in xrange(numLS):
+               for  k in range(numLS):
                  grad_m_k=grad_m[k,:]
                  l2_grad_m_k = length(grad_m_k)**2
                  o_kk=outer(grad_m_k, grad_m_k)
-                 for  l in xrange(k):
+                 for  l in range(k):
                     grad_m_l=grad_m[l,:]
                     l2_grad_m_l = length(grad_m_l)**2
                     i_lk = inner(grad_m_l, grad_m_k)

@@ -20,7 +20,7 @@
 /*  Copy mainBlock and col_coupleBlock in other ranks			*/
 /*  into remote_coupleBlock						*/
 /*									*/
-/*  WARNING: function uses mpi_reqests of the coupler attached to A.	*/
+/*  WARNING: function uses mpi_requests of the coupler attached to A.	*/
 /*									*/
 /**********************************************************************************************/
 

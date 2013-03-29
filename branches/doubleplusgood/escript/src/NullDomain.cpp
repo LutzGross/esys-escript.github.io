@@ -118,7 +118,7 @@ int NullDomain::getDiracDeltaFunctionsCode() const
 std::pair<int,int> NullDomain::getDataShape(int functionSpaceCode) const
 {
   //
-  // return an arbitary value
+  // return an arbitrary value
   // - I know it says arbitrary but its not a good idea to change it now.
   // - some tests assume that the null domain holds a single value
   return std::pair<int,int>(1,1);
@@ -127,7 +127,7 @@ std::pair<int,int> NullDomain::getDataShape(int functionSpaceCode) const
 int NullDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
   //
-  // return an arbitary value
+  // return an arbitrary value
   return 1; 
 }
 
@@ -136,14 +136,14 @@ int NullDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 const int* NullDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
   //
-  // return an arbitary value
+  // return an arbitrary value
   return &(referenceID);
 }
 
 int NullDomain::getDim() const
 {
   //
-  // return an arbitary value
+  // return an arbitrary value
   return 1; 
 }
 

@@ -15,7 +15,7 @@
 
 /************************************************************************************/
 
-/* Dudley: simple mapping fram names to tag keys via a linked list */
+/* Dudley: simple mapping from names to tag keys via a linked list */
 
 /************************************************************************************/
 

@@ -23,7 +23,7 @@
 
 /************************************************************************************/
 
-/*  writes the mesh to the external file fname unsing the Dudley file format: */
+/*  writes the mesh to the external file fname using the Dudley file format: */
 
 void Dudley_Mesh_write(Dudley_Mesh * in, char *fname)
 {

@@ -40,7 +40,7 @@ mu = 100.
 n_cells_in_data = 100
 full_knowledge = False
 spherical = False
-latitude = -28.5
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 #
 DIM = 2
 n_cells_in_data = max(n_humps_h*7, n_cells_in_data)
@@ -51,7 +51,6 @@ l_air = 20. * U.km
 n_cells_v = max(
         int((2*l_air+THICKNESS+depth_offset)/l_data*n_cells_in_data + 0.5), 25)
 
-B_b=simpleGeoMagneticFluxDensity(latitude=latitude)
 
 grav_data=SyntheticData(DataSource.GRAVITY, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,

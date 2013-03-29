@@ -82,7 +82,7 @@ void Paso_test_run(Paso_SystemMatrix* A,double* b,dim_t level) {
       options.method=PASO_TFQMR;
       Paso_test_matrix(A,b,&options); 
     }
- else if (level==2) /* Preconditiones only with default solver*/
+ else if (level==2) /* Preconditioners only with default solver*/
     {
       Paso_Options_setDefaults(&options);
       options.method=PASO_DEFAULT;

@@ -42,7 +42,7 @@ m_reason(exceptionReason)
 // Copy Constructor.
 // Do not call the parent copy constructor as it has
 // undefined effects. In particular, it mat call what() to
-// which will resuly on the parent storing a pointer to
+// which will result on the parent storing a pointer to
 // m_exceptionMessage's storage.... esp on winblows.
 EsysException::EsysException(const EsysException &other):
 Parent(),

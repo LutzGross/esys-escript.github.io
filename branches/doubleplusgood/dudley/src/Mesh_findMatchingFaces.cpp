@@ -134,7 +134,7 @@ void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile * nodes, Dudley_ElementFile *
 	printf("locking grid size is %e\n", Dudley_Mesh_lockingGridSize);
 	printf("absolute tolerance is %e.\n", h * tolerance);
 #endif
-	/* sort the elements by center center coordinates (lexigraphical) */
+	/* sort the elements by center center coordinates (lexicographical) */
 	qsort(center, faces->numElements, sizeof(Dudley_Mesh_findMatchingFaces_center),
 	      Dudley_Mesh_findMatchingFaces_compar);
 	/* find elements with matching center */

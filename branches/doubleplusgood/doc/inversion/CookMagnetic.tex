@@ -1,135 +1,203 @@
 \chapter{Magnetic Inversion}\label{Chp:cook:magnetic inversion}
 
-\section{Magnetic Data} 
-Although Magnetic and gravity methods are almost the same, Magnetic has its own complexity, elaboration and instability and it is very localized. Outer core of the Earth has a convection current which produce a magnetic field through the earth. Magnetic fields are not central and their directions vary with azimuth. Its north pole is in the south of the Earth and south pole is in north of the earth. Meantime magnetic poles and its axis are not exactly coinciding with geographical one. The lines of magnetic field come out from south magnetic pole and go into north magnetic field. Also poles are shifted continuously.
+\begin{figure}
+\centering
+\includegraphics[width=0.7\textwidth]{QLDWestMagneticDataPlot.png}
+\caption{Magnetic anomaly data in $nT$ from Western Queensland, Australia
+    (file \examplefile{data/QLDWestMagnetic.nc}). Data obtained from Geoscience Australia.}
+\label{FIG:P1:MAG:0}
+\end{figure}
 
-The basic magnetic field or magnetic flux density in any medium is $B$. Meanwhile $H$ is a parameter proportional to $B$ in non magnetizable material. In magnetizable material $H$ is describe how $B$ is changed with polarization or magnetization.
+Magnetic data report the observed magnetic flux density over a region above the
+surface of the Earth.
+Similar to the gravity case the data are given as deviation from an expected
+background magnetic flux density $B^b$ of the Earth.
+Example data in units of $nT$ (nano Tesla) are shown in Figure~\ref{FIG:P1:MAG:0}.
+It is the task of the inversion to recover the susceptibility distribution $k$
+from the magnetic data collected. The approach for inverting magnetic data is
+almost identical to the one used for gravity data. 
+In fact the \downunder script~\ref{code: magnetic1} used for the magnetic
+inversion is very similar to the script~\ref{code: gravity1} for gravity inversion.
 
-All material magnetic behavior, refer on magnetic moments of atoms or its ions, have a character. The ability of material to be magnetized in an external magnetic field, introduces as magnetic susceptibility. Based on their magnetic susceptibility, material is compartmented in three main classes: diamagnetism, paramagnetism and ferromagnetism.
+\begin{pyc}\label{code: magnetic1}
+\
+\begin{python}
+# Header:
+from esys.downunder import *
+from esys.weipa import *
+from esys.escript import unitsSI as U
 
-Increasing magnetic field anomalies over subsurface geological structure illustrate contrast between magnetization in neighboring rock properties.
 
-Some particular ions in atmosphere release electrical currents so this external magnetic field acquire in the surface of the magnetic observation. Also in day time sun heating cause more motion in these particle. This time related changes of magnetic field are the diurnal variation which depends on the latitude of observation point. 
+# Step 1: set up domain
+dom=DomainBuilder()
+dom.setVerticalExtents(depth=40.*U.km, air_layer=6.*U.km, num_cells=25)
+dom.setFractionalPadding(pad_x=0.2, pad_y=0.2)
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+dom.setBackgroundMagneticFluxDensity(B_b)
+dom.fixSusceptibilityBelow(depth=40.*U.km)
 
-Magnetic field intensity differs in latitude, longitude and altitude. The vertical gradient of magnetic field gives the elevation correction. It is varied from magnetic equator to magnetic poles which is generally small. Latitude correction is zero in magnetic poles and equator and reaches a maximum at intermediate latitude.
+# Step 2: read magnetic data
+source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', scale_factor=U.Nano * U.Tesla)
+dom.addSource(source0)
 
-The shape of the magnetic anomaly is distinguished with the form and the depth of the structure and depends on magnetization contrast and the objects orientation in the earth.
+# Step 3: set up inversion
+inv=MagneticInversion()
+inv.setSolverTolerance(1e-4)
+inv.setSolverMaxIterations(50)
+inv.fixMagneticPotentialAtBottom(False)
+inv.setup(dom)
 
-International Geomagnetic Reference Field (IGRF) is a mathematical description of Global magnetic field and it  is provided each 5 year.
+# Step 4: run inversion 
+inv.getCostFunction().setTradeOffFactorsModels(0.1) 
+k = inv.run()
 
-In comparison to the correction of gravity observation, magnetic survey needs very few corrections. After compensation of diurnal effect, latitude and elevation corrections are applied. Then global magnetic field should be subtracted from data. Finally magnetic anomaly is used in geophysical processing.
+# Step 5: write reconstructed susceptibility to file
+saveVTK("result.vtu", susceptibility=k)
+\end{python}
+\end{pyc}
 
 \begin{figure}
 \centering
-\includegraphics[width=\textwidth]{QLDMagMu100Contour.png}
-\caption{Contour image through a 3 dimensional magnetic inversion which presents discrepancy in susceptibility. The magnetic of padding area of the model is not defined. Increasing and decreasing in susceptibility are indicated with red color and blue color respectively.}
+\includegraphics[width=0.7\textwidth]{QLDMagContourMu01.png}
+\caption{Contour plot of the susceptibility from a three-dimensional magnetic inversion (with $\mu=0.1$).
+Colours represent values of susceptibility where high values are represented by
+    blue and low values are represented by red.}
+\label{FIG:P1:MAG:1}
 \end{figure}
 
-\begin{figure}
-\centering
-\includegraphics[width=\textwidth]{QLDMagMu100Slice.png}
-\caption{Depth image across previous 3D magnetic inversion which presents discrepancy in susceptibility. Diversity in susceptibility are detected with colors and contours.}
-\end{figure}
+The structure of the script is identical to the gravity case.
+Following the header section importing the necessary modules the domain of the
+inversion is defined in step one.
+In step two the data are read and added to the domain builder.
+Step three sets up the inversion and step four runs it.
+Finally in step five the result is written to the result file, here
+\file{result.vtu} in the \VTK format.
+Results are shown in Figure~\ref{FIG:P1:MAG:1}.
 
-\section{Input File} 
-This section of inversion package needs two input files which contain magnetic anomalies and some constraint factors. The firs file includes magnetic anomalies, in which all corrections were applied previously, the location (latitude and longitude) and elevation of the observed place precisely.
-
-The next file which consists some factors to figure the inversion escripts. Again in magnetic inversion, a padding area present around the real data to smooth the effects of cutting data in boundaries.
- 
-A small part of sample of run_mag2D:
-
+Although scripts for magnetic and gravity inversion are largely identical there
+are a few small differences which we are going to highlight now.
+The magnetic inversion requires data about the background magnetic flux density
+over the region of interest which is added to the domain by the statements 
 \begin{verbatim}
-mu=10
-THICKNESS=20.*U.km
-DATASET='NSW_east.nc'
-PAD_X = 0.2
-PAD_Y = 0.2
-l_air = 6. * U.km
-n_cells_v = 25
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+dom.setBackgroundMagneticFluxDensity(B_b)
 \end{verbatim}
+Here it is assumed that the background magnetic flux density is constant across
+the domain and is given as the list
+\begin{verbatim}
+B_b= [ B_N,  B_E, B_V ]
+\end{verbatim}
+in units of Tesla (T) where 
+\member{B_N}, \member{B_E} and \member{B_V} refer to the north, east and
+vertical component of the magnetic flux density, respectively.
+Values for the magnetic flux density can be obtained by the International
+Geomagnetic Reference Field (IGRF)~\cite{IGRF} (or the Australian Geomagnetic
+Reference Field (AGRF)~\cite{AGRF} via \url{http://www.ga.gov.au/oracle/geomag/agrfform.jsp}).
+Similar to the gravity case susceptibility below a certain depth can be set to
+zero via the statement
+\begin{verbatim}
+dom.fixSusceptibilityBelow(depth=40.*U.km)
+\end{verbatim}
+where here the susceptibility below $40km$ is prescribed (this has no effect as
+the depth of the domain is $40km$)\footnote{Notice that the method called is
+different from the one in the case of gravity inversion.}. 
 
-Almost all of constraints factors are the same as gravity instead of Mu factor.\\
+Magnetic data are read and added to the domain with the following statements:
+\begin{verbatim}
+source0=NetCdfData(NetCdfData.MAGNETIC, 'MagneticSmall.nc', \
+                   scale_factor=U.Nano * U.Tesla)
+dom.addSource(source0)
+\end{verbatim}
+The first argument \member{NetCdfData.MAGNETIC} identifies the data read from
+file \file{MagneticSmall.nc} (second argument) as magnetic data.The argument
+\file{scale_factor} specifies the units (here $nT$) of the magnetic flux
+density data in the file.
+If scalar data are given it is assumed that the magnetic flux density anomalies
+are measured in direction of the background magnetic flux density\footnote{The
+default for \file{scale_factor} for magnetic data is $nT$.}.
 
-\begin{description} 	
+Finally the inversion is created and run:
+\begin{verbatim}
+inv=MagneticInversion()
+inv.fixMagneticPotentialAtBottom(False)
+k = inv.run()
+\end{verbatim}
+The result for the susceptibility is named \member{k}. In this case the magnetic potential is
+not fixed at the bottom of the domain. The magnetic potential is still set zero at the top of the domain.
 
-\item[mu]
-It is defined in accordance with the noise of data and it has a wide range to select from 0.0001 to 100. Also its does not have same value for 2D and 3D inversion.
+We then write the result
+to a \VTK file using
+\begin{verbatim}
+saveVTK("result.vtu", susceptibility=k)
+\end{verbatim}
+where the result of the inversion is tagged with the name \member{susceptibility}
+as an identifier for the visualization software. 
 
-\end{description}
+\begin{figure}
+    \begin{center}
+        \subfigure[$\mu=0.001$]{%
+            \label{FIG:P1:MAG:10 MU0001}
+            \includegraphics[width=0.45\textwidth]{QLDMagContourMu0001.png}
+        }%
+        \subfigure[$\mu=0.01$]{%
+            \label{FIG:P1:MAG:10 MU001}
+            \includegraphics[width=0.45\textwidth]{QLDMagContourMu001.png}
+        }\\ %  ------- End of the first row ----------------------%
+        \subfigure[$\mu=0.1$]{%
+            \label{FIG:P1:MAG:10 MU01}
+            \includegraphics[width=0.45\textwidth]{QLDMagContourMu01.png}
+        }%
+        \subfigure[$\mu=1.$]{%
+            \label{FIG:P1:MAG:10 MU1}
+            \includegraphics[width=0.45\textwidth]{QLDMagContourMu1.png}
+        }\\ %  ------- End of the second row ----------------------%
+        \subfigure[$\mu=10.$]{%
+            \label{FIG:P1:MAG:10 MU10}
+            \includegraphics[width=0.45\textwidth]{QLDMagContourMu10.png}
+        }%
+    \end{center}
+    \caption{3-D contour plots of magnetic inversion results with data from
+    Figure~\ref{FIG:P1:MAG:0} for various values of the model trade-off
+    factor $\mu$. Visualization has been performed in \VisIt.}
+    \label{FIG:P1:MAG:10}
+\end{figure}
 
-\section{Output File}
-After inversion completion, an output file with silo extension is created, which is consisted inversion result. This file shows the input data as magnetic anomaly and inverted susceptibility separately. The objective is indeed to  predict a susceptibility model with having a best fit with input data. The inversion carry on to attain an acceptable volume for error in its mathematical function. 
+\begin{figure}
+    \begin{center}
+        \subfigure[$\mu=0.001$]{%
+            \label{FIG:P1:MAG:11 MU0001}
+            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu0001.png}
+        }%
+        \subfigure[$\mu=0.01$]{%
+            \label{FIG:P1:MAG:11 MU001}
+            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu001.png}
+        }\\ %  ------- End of the first row ----------------------%
+        \subfigure[$\mu=0.1$]{%
+            \label{FIG:P1:MAG:11 MU01}
+            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu01.png}
+        }%
+        \subfigure[$\mu=1.$]{%
+            \label{FIG:P1:MAG:11 MU1}
+            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu1.png}
+        }\\ %  ------- End of the second row ----------------------%
+        \subfigure[$\mu=10.$]{%
+            \label{FIG:P1:MAG:11 MU10}
+            \includegraphics[width=0.45\textwidth]{QLDMagDepthMu10.png}
+        }%
+    \end{center}
+    \caption{3-D slice plots of magnetic inversion results with data from
+    Figure~\ref{FIG:P1:MAG:0} for various values of the model trade-off
+    factor $\mu$. Visualization has been performed \VisIt.}
+    \label{FIG:P1:MAG:11}
+\end{figure}
 
-
-% \section{Reference}
-% 
-% As some examples there are several inversions which have ran in some synthetic magnetic data sets. Here comparisons between synthetic susceptibility and inverted one are shown.
-% 
-% Some of the presumptions are the same for all of the examples to simplify the situation to make a logical comparison between synthetic input and output. which is as followed:
-% 
-% \begin{verbatim}
-% depth_offset=0.*U.km
-% l_data = 100 * U.km
-% l_pad=40*U.km
-% THICKNESS=20.*U.km
-% l_air=6*U.km
-% \end{verbatim}
-% 
-% The others assumptions comes with each example.
-% 
-% \begin{enumerate}
-% \item A 2D magnetic susceptibility area is created with one maximum and one minimum in two sides. After inversion the inside of main boundary of our dataset have a desirable simulation.(\ref{fig:mag2D2}) 
-% \begin{verbatim}
-% n_cells_in_data=100
-% n_humbs_h= 2
-% n_humbs_v=1
-% mu=1.
-% \end{verbatim}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag2D2.png}
-% \caption{2D magnetic inversion up) the reference model  down)the inverted model}
-% \label{fig:mag2D2}
-% \end{figure}
-% 
-% \item A 2D magnetic area with two maximum and two minimum intermittent is suggested. In this initial model two of the humps are located in the padding area which is not important after inversion, is omitted then. so in the result just two humps in middle of the boundary is observable.(\ref{fig:mag2D4})
-% 
-% \begin{verbatim}
-% n_cells_in_data=100
-% n_humbs_h= 4
-% n_humbs_v=1
-% mu=1.
-% \end{verbatim}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag2D4.png}
-% \caption{2D magnetic model up) the reference model  down)the inverted model}
-% \label{fig:mag2D4}
-% \end{figure}
-% 
-% \item A 3D magnetic model with one humbs in the middle of the area is proposed that surrounded all main and padding. After inversion just the main area is objective which have a good result for inversion.(\ref{fig:mag3D1-ref} and \ref{fig:mag3D1})
-% 
-% \begin{verbatim}
-% n_humbs_h=4
-% n_humbs_v=1
-% mu=0.0001
-% n_cells_in_data=50
-% \end{verbatim}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag3D1-ref.png}
-% \caption{3D magnetic reference model with one maximum susceptibility}
-% \label{fig:mag3D1-ref}
-% \end{figure}
-% 
-% \begin{figure}
-% \centering
-% \includegraphics[width=\textwidth]{mag3D1.png}
-% \caption{3D magnetic inversion result}
-% \label{fig:mag3D1}
-% \end{figure}
-% \end{enumerate}
+Figures~\ref{FIG:P1:MAG:10} and~\ref{FIG:P1:MAG:11} show results from the
+inversion of the magnetic data shown in Figure~\ref{FIG:P1:MAG:0}.
+In Figure~\ref{FIG:P1:MAG:10} surface contours are used to represent the
+susceptibility while Figure~\ref{FIG:P1:MAG:11} uses contour lines
+on a lateral plane intercept and two vertical plane intercepts.
+The images show the strong impact of the trade-off factor $\mu$ on the result.
+Larger values give more emphasis to the misfit term in the cost function
+leading to rougher susceptibility distributions.
+The result for $\mu=0.1$ seems to be the most realistic.
 

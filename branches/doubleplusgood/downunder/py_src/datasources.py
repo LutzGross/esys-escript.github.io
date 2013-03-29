@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['simpleGeoMagneticFluxDensity', 'DataSource', 'ErMapperData', \
+__all__ = ['DataSource', 'ErMapperData', \
         'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
         'SmoothAnomaly']
 
@@ -33,11 +33,6 @@ from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 from esys.ripley import ripleycpp
-
-import sys
-if sys.version_info.major>2:
-  xrange=range
-
 
 try:
     from scipy.io.netcdf import netcdf_file
@@ -92,19 +87,6 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m'%(zone,south))
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
     return x,y,zone
-
-def simpleGeoMagneticFluxDensity(latitude, longitude=0.):
-    """
-    Returns an approximation of the geomagnetic flux density B at the given
-    `latitude`. The parameter `longitude` is currently ignored.
-
-    :rtype: ``tuple``
-    """
-    theta = (90-latitude)/180.*np.pi
-    B_0=U.Mu_0  * U.Magnetic_Dipole_Moment_Earth / (4 * np.pi *  U.R_Earth**3)
-    B_theta= B_0 * sin(theta)
-    B_r= 2 * B_0 * cos(theta)
-    return B_r, B_theta, 0.
 
 class DataSource(object):
     """
@@ -332,6 +314,10 @@ class ErMapperData(DataSource):
             self.logger.warn("Could not determine coordinate origin. Setting to (0.0, 0.0)")
             originX,originY = 0.0, 0.0
 
+        # data sets have origin in top-left corner so y runs top-down and
+        # we need to flip accordingly
+        originY-=NY*spacingY
+
         if 'GEODETIC' in md_dict['CoordinateSpace.Projection']:
             # it appears we have lat/lon coordinates so need to convert
             # origin and spacing. Try using gdal to get the wkt if available:
@@ -352,9 +338,6 @@ class ErMapperData(DataSource):
             originY=np.round(originY_UTM)
 
         self.__dataorigin=[originX, originY]
-        # data sets have origin in top-left corner so y runs top-down and
-        # we need to flip accordingly
-        originY-=(NY-1)*spacingY
         self.__delta = [spacingX, spacingY]
         self.__nPts = [NX, NY]
         self.__origin = [originX, originY]
@@ -384,16 +367,20 @@ class ErMapperData(DataSource):
         return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
+        FS = ReducedFunction(domain)
         nValues=self.__nPts
         # determine base location of this dataset within the domain
         first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
+        # determine the resolution difference between domain and data.
+        # If domain has twice the resolution we can double up the data etc.
+        multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
         if domain.getDim()==3:
             first.append(int((self.__altitude-origin[2])/spacing[2]))
+            multiplier=multiplier+[1]
             nValues=nValues+[1]
 
-        data=ripleycpp._readBinaryGrid(self.__datafile,
-                ReducedFunction(domain),
-                first, nValues, (), self.__null_value)
+        data = ripleycpp._readBinaryGrid(self.__datafile, FS, first, nValues,
+                                         multiplier, (), self.__null_value)
         sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
@@ -581,15 +568,20 @@ class NetCdfData(DataSource):
         nValues=self.__nPts
         # determine base location of this dataset within the domain
         first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(len(self.__nPts))]
+        # determine the resolution difference between domain and data.
+        # If domain has twice the resolution we can double up the data etc.
+        multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
         if domain.getDim()==3:
             first.append(int((self.__altitude-origin[2])/spacing[2]))
+            multiplier=multiplier+[1]
             nValues=nValues+[1]
 
         data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
-                                     first, nValues, (), self.__null_value)
+                                     first, nValues, multiplier, (),
+                                     self.__null_value)
         if self.__error_name is not None:
             sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
-                                          FS, first, nValues, (), 0.)
+                                          FS, first, nValues, multiplier, (),0.)
         else:
             sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
@@ -679,8 +671,8 @@ class SyntheticDataBase(DataSource):
     """
     Base class to define reference data based on a given property distribution
     (density or susceptibility). Data are collected from a square region of
-    vertical extent `length` on a grid with `number_of_elements` cells in each
-    direction.
+    vertical extent ``length`` on a grid with ``number_of_elements`` cells in
+    each direction.
 
     The synthetic data are constructed by solving the appropriate forward
     problem. Data can be sampled with an offset from the surface at z=0 or
@@ -907,7 +899,8 @@ class SyntheticData(SyntheticDataBase):
                        B_b=None,
                        data_offset=0,
                        full_knowledge=False,
-                       spherical=False):
+                       spherical=False,
+                       s=0.):
         """
         :param data_type: data type indicator
         :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
@@ -958,6 +951,7 @@ class SyntheticData(SyntheticDataBase):
             else:
                 amplitude = 0.1
         self.__amplitude = amplitude
+        self.__s=s
 
     def getReferenceProperty(self, domain=None):
         """
@@ -973,11 +967,11 @@ class SyntheticData(SyntheticDataBase):
             if dd is None: dd=inf(z)
             z2=(z+self.depth_offset)/(self.depth_offset-dd)
             k=sin(self.__n_depth * np.pi  * z2) * whereNonNegative(z2) * whereNonPositive(z2-1.) * self.__amplitude
-            for i in xrange(DIM-1):
+            for i in range(DIM-1):
                x_i=x[i]
                min_x=inf(x_i)
                max_x=sup(x_i)
-               k*= sin(self.__n_length*np.pi*(x_i-min_x)/(max_x-min_x))
+               k*= sin(self.__n_length*np.pi*(x_i-min_x-self.__s)/(max_x-min_x))
             self._reference_data= k
         return self._reference_data
 

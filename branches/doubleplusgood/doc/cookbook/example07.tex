@@ -119,7 +119,7 @@ is able to, and in general, needs to be much slower then the numerical wave.
 For example, a line 100m long is discretised into 1m intervals or 101 nodes. If
 a wave enters with a propagation velocity of 100m/s then the travel time for
 the wave between each node will be 0.01 seconds. The time step, must therefore
-be significantly less then this. Of the order $10E-4$ would be appropriate. 
+be significantly less than this. Of the order $10E-4$ would be appropriate. 
 This stability criterion is known as the Courant\textendash
 Friedrichs\textendash Lewy condition given by
 \begin{equation}
@@ -292,10 +292,10 @@ After each iteration the displacement is re-evaluated via;
 \end{equation}
 
 \subsection{Lumping}
-For \esc, the acceleration solution is prefered as it allows the use of matrix
+For \esc, the acceleration solution is preferred as it allows the use of matrix
 lumping. Lumping or mass lumping as it is sometimes known, is the process of
 aggressively approximating the density elements of a mass matrix into the main
-diagonal. The use of Lumping is motivaed by the simplicity of diagonal matrix
+diagonal. The use of Lumping is motivated by the simplicity of diagonal matrix
  inversion. As a result, Lumping can significantly reduce the computational
 requirements of a problem. Care should be taken however, as this
 function can only be used when the $A$, $B$ and $C$ coefficients of the

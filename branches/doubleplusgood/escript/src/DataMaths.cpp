@@ -71,7 +71,7 @@ namespace DataMaths
       if (outputRank < 0) {
          stringstream temp;
          temp << "Error - (matMult) LHS and RHS cannot be multiplied "
-              << "as they have incompatable rank.";
+              << "as they have incompatible rank.";
          throw DataException(temp.str());
       }
 

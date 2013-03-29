@@ -21,6 +21,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import sys, os, time, py_compile, re, subprocess
+from SCons.Defaults import Chmod, Copy
+from grouptest import *
 
 def findLibWithHeader(env, libs, header, paths, lang='c'):
     from SCons.Script.SConscript import Configure
@@ -71,16 +73,50 @@ def findLibWithHeader(env, libs, header, paths, lang='c'):
     return inc_path, lib_path
 
 def detectModule(env, module):
-    if env['pythoncmd']=='python':
-        try:
-            __import__(module)
-        except ImportError:
-            return False
-    else:
-        p=subprocess.call([env['pythoncmd'],'-c','import %s'%module])
-        if p!=0:
-            return False
+    from tempfile import TemporaryFile
+    p=subprocess.call([env['pythoncmd'],'-c','import %s'%module], stderr=TemporaryFile())
+    if p != 0:
+        env[module] = False
+        return False
+    env[module] = True
     return True
+
+def write_buildvars(env):
+    buildvars=open(os.path.join(env['libinstall'], 'buildvars'), 'w')
+    for k,v in sorted(env['buildvars'].items()):
+        buildvars.write("%s=%s\n"%(k,v))
+    buildvars.close()
+
+def generateTestScripts(env, TestGroups):
+    try:
+        utest=open('utest.sh','w')
+        utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], False))
+        for tests in TestGroups:
+            utest.write(tests.makeString())
+        utest.close()
+        env.Execute(Chmod('utest.sh', 0o755))
+        print("Generated utest.sh.")
+        # This version contains only python tests - I want this to be usable
+        # from a binary only install if you have the test files
+        utest=open('itest.sh','w')
+        utest.write(GroupTest.makeHeader(env['PLATFORM'], env['prefix'], True))
+        for tests in TestGroups:
+          if tests.exec_cmd=='$PYTHONRUNNER ':
+            utest.write(tests.makeString())
+        utest.close()
+        env.Execute(Chmod('itest.sh', 0o755))
+        print("Generated itest.sh.")        
+    except IOError:
+        env['warnings'].append("Error attempting to write unit test script(s).")
+
+    # delete scripts upon cleanup
+    env.Clean('target_init', 'utest.sh')
+    env.Clean('target_init', 'itest.sh')
+
+    # Make sure that the escript wrapper is in place
+    if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):
+        print("Copying escript wrapper.")
+        env.Execute(Copy(os.path.join(env['bininstall'],'run-escript'), 'bin/run-escript'))
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
@@ -90,7 +126,7 @@ def build_py(target, source, env):
     except py_compile.PyCompileError, e:
        print e
        return 1
-       
+
 
 # Code to run unit_test executables
 def runUnitTest(target, source, env):

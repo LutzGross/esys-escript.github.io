@@ -245,7 +245,7 @@ args("theta", "blocksize", "functionspace", "type"),
 )
       .def("getSystemMatrixTypeId",&finley::MeshAdapter::getSystemMatrixTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
-":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, perconditioner, and symmetric matrix is used.\n"
+":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, preconditioner, and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
 ":param solver:\n:type solver: ``int``\n"
 ":param preconditioner:\n:type preconditioner: ``int``\n"
@@ -254,7 +254,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 )
       .def("getTransportTypeId",&finley::MeshAdapter::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
-":return: the identifier of the transport problem type to be used when a particular solver, perconditioner, package and symmetric matrix is used.\n"
+":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
 ":rtype: ``int``\n"
 ":param solver:\n:type solver: ``int``\n"
 ":param preconditioner:\n:type preconditioner: ``int``\n"

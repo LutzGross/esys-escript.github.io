@@ -18,9 +18,9 @@
                    0 - default option just solves with default of specified parameters 
                    1 - test all solvers with default preconditioner
                    2 - test all preconditioners with default solver
-                   3 - compare solution obtained by using AMG and Jacobi precondioners
+                   3 - compare solution obtained by using AMG and Jacobi preconditioners
         coarsening method - YS, RS, AGG and STD.
-        threshold parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.25. For YS and AGG, please, use 0.05.            
+        threshold parameter for AMG - this is the threshold value used in AMG in the coarsening process. Default is 0.25. For YS and AGG, please, use 0.05.            
 */
 
 double Lsup(double* x, int n) {
@@ -151,7 +151,7 @@ int main (int argc, char *argv[]) {
             printf("\t\t 3 - compare solution obtained by using AMG and Jacobi precondioners\n");            
             printf("\trhs vector - right hand side vector in CSR Matrix Market format.\n");
             printf("\tcoarsening method - YS, RS, AGG and STD.\n");
-            printf("\tthreshold parameter for AMG - this is the threshold value used in AMG in courenening process. Default is 0.25. For YS and AGG, please, use 0.05.\n");            
+            printf("\tthreshold parameter for AMG - this is the threshold value used in AMG in the coarsening process. Default is 0.25. For YS and AGG, please, use 0.05.\n");            
             break;
         }
     }

@@ -8,18 +8,18 @@
 * Licensed under the Open Software License version 3.0
 * http://www.opensource.org/licenses/osl-3.0.php
 *
-* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development until 2012 by Earth Systems Science Computational Center (SUCCESS)
 * Development since 2012 by School of Earth Sciences
 *
 *****************************************************************************/
 
 /************************************************************************************/
 
-/*   Dudley: ElementFile */
+/*   Dudley: Element File */
 
-/*   gathers the ElementFile out from the  ElementFile in using index[0:out->numElements-1].  */
-/*   index has to be between 0 and in->numElements-1. */
-/*   a conservative assumtion on the coloring is made */
+/*   gathers the Element File out from the  Element File in using index[0:out->elements-1].  */
+/*   index has to be between 0 and in->elements-1. */
+/*   a conservative assumption on the coloring is made */
 
 /************************************************************************************/
 

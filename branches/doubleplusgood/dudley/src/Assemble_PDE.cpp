@@ -34,7 +34,7 @@
 
 /*    The coefficients A,B,C,D,X and Y have to be defined on the integartion points or not present (=NULL). */
 
-/*    S and F have to be initialized before the routine is called. S or F can be NULL. In this case the left or */
+/*    S and F have to be initialised before the routine is called. S or F can be NULL. In this case the left or */
 /*    the right hand side of the PDE is not processed.  */
 
 /*    The routine does not consider any boundary conditions. */

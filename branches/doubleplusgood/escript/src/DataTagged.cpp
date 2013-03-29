@@ -674,7 +674,7 @@ DataTagged::eigenvalues(DataAbstract* ev)
 {
   DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataTagged::eigenvalues casting to DataTagged failed (propably a programming error).");
+    throw DataException("Error - DataTagged::eigenvalues casting to DataTagged failed (probably a programming error).");
   }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -696,11 +696,11 @@ DataTagged::eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const 
 {
   DataTagged* temp_ev=dynamic_cast<DataTagged*>(ev);
   if (temp_ev==0) {
-    throw DataException("Error - DataTagged::eigenvalues_and_eigenvectors casting to DataTagged failed (propably a programming error).");
+    throw DataException("Error - DataTagged::eigenvalues_and_eigenvectors casting to DataTagged failed (probably a programming error).");
   }
   DataTagged* temp_V=dynamic_cast<DataTagged*>(V);
   if (temp_V==0) {
-    throw DataException("Error - DataTagged::eigenvalues_and_eigenvectors casting to DataTagged failed (propably a programming error).");
+    throw DataException("Error - DataTagged::eigenvalues_and_eigenvectors casting to DataTagged failed (probably a programming error).");
   }
   const DataTagged::DataMapType& thisLookup=getTagLookup();
   DataTagged::DataMapType::const_iterator i;
@@ -735,7 +735,7 @@ DataTagged::matrixInverse(DataAbstract* out) const
   DataTagged* temp=dynamic_cast<DataTagged*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (propably a programming error).");
+	throw DataException("Error - DataTagged::matrixInverse: casting to DataTagged failed (probably a programming error).");
   }
   if (getRank()!=2)
   {

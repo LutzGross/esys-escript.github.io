@@ -172,7 +172,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
         Paso_SystemMatrix_copyRemoteCoupleBlock(A_p, FALSE); 
 
 	/* 
-	      set splitting of unknows:
+	      set splitting of unknowns:
 	    
     	 */
 	 time0=Esys_timer();
@@ -202,7 +202,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	    for (i = 0; i < n; ++i) F_marker[i]=(F_marker[i] ==  PASO_AMG_IN_F);
 	 
 	    /*
-	       count number of unkowns to be eliminated:
+	       count number of unknowns to be eliminated:
 	    */
 	    my_n_F=Paso_Util_cumsum_maskedTrue(my_n,counter, F_marker);
 	    n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker); 
@@ -308,7 +308,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
                         }
 
 			/*
-			   constructe courser level:
+			   construct courser level:
 			   
 			*/
 			if ( Esys_noError()) {

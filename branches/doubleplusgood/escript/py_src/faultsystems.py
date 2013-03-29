@@ -368,11 +368,11 @@ class FaultSystem(object):
      if not dips == None:
         if not isinstance(dips, list): dips=[dips for i in range(n_segs) ]
         if n_segs != len(dips):
-           raise ValueError('length of dips must be one less then the length of top.')
+           raise ValueError('length of dips must be one less than the length of top.')
      if not depths == None:
         if not isinstance(depths, list): depths=[depths for i in range(n_segs+1) ]
         if n_segs+1 != len(depths):
-           raise ValueError('length of depths must be one less then the length of top.')
+           raise ValueError('length of depths must be one less than the length of top.')
      if w0_offsets != None:
        if len(w0_offsets) != n_segs+1:
           raise ValueError('expected length of w0_offsets is %s'%(n_segs))

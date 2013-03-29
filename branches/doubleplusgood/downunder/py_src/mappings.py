@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping', 'BoundedRangeMapping', 'LinearMapping']
 
-from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths
+from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip
 import esys.escript.unitsSI as U
 
 class Mapping(object):
@@ -132,7 +132,7 @@ class DensityMapping(LinearMapping):
         if z0 is not None:
             DIM=self.domain.getDim()
             l_z=boundingBoxEdgeLengths(domain)[DIM-1]
-            a = drho * ( (domain.getX()[DIM-1]-z0)/l_z )**(beta/2)
+            a = drho * ( clip(z0-domain.getX()[DIM-1], minval=0)/l_z )**(beta/2)
         else:
             a = drho
         super(DensityMapping,self).__init__(a=a, p0=rho0)
@@ -167,7 +167,7 @@ class SusceptibilityMapping(LinearMapping):
         if z0 is not None:
             DIM=self.domain.getDim()
             l_z=boundingBoxEdgeLengths(domain)[DIM-1]
-            a = dk * ( (domain.getX()[DIM-1]-z0)/l_z )**(beta/2)
+            a = dk * ( clip(z0-domain.getX()[DIM-1] , minval=0)/l_z )**(beta/2)
         else:
             a = dk
         super(SusceptibilityMapping,self).__init__(a=a, p0=k0)

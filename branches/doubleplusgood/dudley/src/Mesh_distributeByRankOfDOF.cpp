@@ -16,7 +16,7 @@
 /************************************************************************************/
 
 /*   Dudley: Mesh: this will redistribute the Nodes and Elements including overlap */
-/*   according to the dof_distribiution. It will create an element coloring but will not create any mappings. */
+/*   according to the dof_distribution. It will create an element coloring but will not create any mappings. */
 
 /************************************************************************************/
 

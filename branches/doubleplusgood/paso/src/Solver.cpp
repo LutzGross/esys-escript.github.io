@@ -86,7 +86,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
         Paso_SystemMatrix_solvePreconditioner(A,x,b);
         errorCode=Paso_Solver_NewtonGMRES(F,x,options,pp);
         if (errorCode!=NO_ERROR) {
-           Esys_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occured.");
+           Esys_setError(SYSTEM_ERROR,"Paso_Solver_NewtonGMRES: an error has occurred.");
         }
         Paso_Function_LinearSystem_free(F);
         return;
@@ -281,7 +281,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
                         if (errorCode==SOLVER_NO_ERROR) {
                            finalizeIteration = FALSE;
                         } else if (errorCode==SOLVER_MAXITER_REACHED) {
-                           Esys_setError(DIVERGED,"Paso_Solver: maximum number of iteration steps reached.\nReturned solution does not fulfill stopping criterion.");
+                           Esys_setError(DIVERGED,"Paso_Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
                            if (options->verbose) printf("Paso_Solver: Maximum number of iterations reached.\n");
                         } else if (errorCode == SOLVER_INPUT_ERROR ) {
                            Esys_setError(SYSTEM_ERROR,"Paso_Solver: illegal dimension in iterative solver.");

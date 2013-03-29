@@ -308,7 +308,7 @@ class DarcyFlow(object):
            u = self.__g - util.tensor_mult(self.__permeability, self.perm_scale * (util.grad(pp) + self.__permeability_invXg_ref))
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
             self.__pde_v.setValue(Y= self.__permeability_invXg - (util.grad(pp) + self.__permeability_invXg_ref))
-            print 
+
             if u0 == None:
                self.__pde_v.setValue(r=escore.Data())
             else:

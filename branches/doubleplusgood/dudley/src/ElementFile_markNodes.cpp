@@ -17,7 +17,7 @@
 
 /*   Dudley: ElementFile */
 
-/*   mark the used nodes with offeset: */
+/*   mark the used nodes with offset: */
 
 /************************************************************************************/
 

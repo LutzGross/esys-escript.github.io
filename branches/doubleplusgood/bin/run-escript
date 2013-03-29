@@ -7,7 +7,7 @@
 #Search for EXTRA_PATH=""
 
 #set to 1 if performing this is a standalone build and ../../pkg contains the relevant tools
-STANDALONE=0
+STANDALONE=1
 
 #set to 1 if this is part of a packaged build (.deb) and files will be installed in standard locations
 #rather than everything in a single directory
@@ -87,12 +87,12 @@ then
 fi
 
 
-BUILDINFO_FILE=$ESCRIPT_ROOT/lib/buildvars
+BUILDINFO_FILE="$ESCRIPT_ROOT/lib/buildvars"
 if [ "$STDLOCATION" = "1" ]
 then
     BUILDINFO_FILE=/usr/lib/escript/buildvars
 fi
-if [ ! -r $BUILDINFO_FILE ]; then
+if [ ! -r "$BUILDINFO_FILE" ]; then
     if [ "$1" = "-e" ]; then
         echo "export LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:\$LD_LIBRARY_PATH"
         echo "export PYTHONPATH=$EXTRA_PYTHONPATH:\$PYTHONPATH"
@@ -108,7 +108,7 @@ if [ ! -r $BUILDINFO_FILE ]; then
 fi
 
 get_buildvar () {
-    echo `grep "^$1=" $BUILDINFO_FILE |cut -d= -f2`
+    echo `grep "^$1=" "$BUILDINFO_FILE" |cut -d= -f2`
 }
 
 #
@@ -165,7 +165,7 @@ do
         ;;
       "f")  ESCRIPT_HOSTFILE=$OPTARG
         ;;
-      "c")  cat $BUILDINFO_FILE
+      "c")  cat "$BUILDINFO_FILE"
         exit 0
         ;;
       "V")  echo "escript-development(build "`get_buildvar svn_revision`")"
@@ -242,7 +242,7 @@ then
     then
         echo "Warning: MPI disabled but number of processors per node set. Option ignored."
     fi
-    if [ ! -z $ESCRIPT_HOSTFILE ]
+    if [ ! -z "$ESCRIPT_HOSTFILE" ]
     then
         echo "Warning: MPI disabled but host file is given. Option ignored."
     fi
@@ -250,17 +250,17 @@ then
     ESCRIPT_NUM_PROCS=1
 else
     # use the PBS_NODEFILE if not otherwise specified
-    if [ ! -z $PBS_NODEFILE ] && [ -z $ESCRIPT_HOSTFILE ]
+    if [ ! -z "$PBS_NODEFILE" ] && [ -z "$ESCRIPT_HOSTFILE" ]
     then
         ESCRIPT_HOSTFILE=$PBS_NODEFILE
     fi
 
-    if [ ! -z $ESCRIPT_HOSTFILE ] 
+    if [ ! -z "$ESCRIPT_HOSTFILE" ] 
     then
-        if [ -f $ESCRIPT_HOSTFILE ]
+        if [ -f "$ESCRIPT_HOSTFILE" ]
         then
-            cat $ESCRIPT_HOSTFILE | sort -u > $HOSTFILE
-            NUM_HOSTS=`cat $HOSTFILE | wc -l`
+            cat "$ESCRIPT_HOSTFILE" | sort -u > $HOSTFILE
+            NUM_HOSTS=`cat "$HOSTFILE" | wc -l`
             if [ ! -z $ESCRIPT_NUM_NODES ] 
             then
                 if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
@@ -338,7 +338,7 @@ fi
 
 if [ $TOTPROC -gt 1 ] 
 then
-    if [ "$ESCRIPT_CREATESTDFILES" = "yes" ]
+    if [ "$ESCRIPT_CREATESTDFILES" = "y" ]
     then
         PYTHON_MPI=$PYTHON_MPI_REDIRECT
     else
@@ -427,9 +427,9 @@ then
 #=============== OpenMPI ===================================
 elif [ "$MPI_FLAVOUR" = "OPENMPI" ] 
 then 
-   if [ ! -z $HOSTFILE ] 
+   if [ ! -z "$HOSTFILE" ] 
    then
-      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
+      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE"`
       CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --bynode -np $TOTPROC --bind-to-socket --cpus-per-rank $ESCRIPT_NUM_THREADS --host $HOST_LIST $EXEC_CMD"
    else
       CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --cpus-per-rank $ESCRIPT_NUM_THREADS -np $TOTPROC $EXEC_CMD"
@@ -448,9 +448,9 @@ then
        EXPORT_ENV="$EXPORT_ENV, I_MPI_PIN_DOMAIN"
    fi
 
-   if [ ! -z $HOSTFILE ] 
+   if [ ! -z "$HOSTFILE" ] 
    then
-      mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
+      mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
       if [ $? -ne 0 ] 
       then
          echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
@@ -479,9 +479,9 @@ elif [ "$MPI_FLAVOUR" = "MPT" ]
 then
    export MPI_NUM_MEMORY_REGIONS=0
    EXPORT_ENV="$EXPORT_ENV,MPI_NUM_MEMORY_REGIONS"
-   if [ ! -z $HOSTFILE ] 
+   if [ ! -z "$HOSTFILE" ] 
    then
-      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' $HOSTFILE`
+      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE"`
       CMD="mpirun $HOST_LIST -np $ESCRIPT_NUM_PROCS $EXEC_CMD"
    else
       CMD="mpirun -np $TOTPROC $EXEC_CMD"
@@ -492,11 +492,11 @@ then
 #=============== MPICH ===================================
 elif [ "$MPI_FLAVOUR" = "MPICH" ]
 then
-   if [ ! -z $HOSTFILE ] 
+   if [ ! -z "$HOSTFILE" ] 
    then
-      touch $HOSTFILE2
-      for (( i=1;i<=$ESCRIPT_NUM_PROCS;i+=1 )) ; do cat $HOSTFILE >> $HOSTFILE2  ; done
-      CMD="mpirun -machinefile $HOSTFILE2  -np $TOTPROC $EXEC_CMD"
+      touch "$HOSTFILE2"
+      for (( i=1;i<=$ESCRIPT_NUM_PROCS;i+=1 )) ; do cat "$HOSTFILE" >> "$HOSTFILE2"  ; done
+      CMD="mpirun -machinefile \"$HOSTFILE2\"  -np $TOTPROC $EXEC_CMD"
    else
       CMD="mpirun -np $TOTPROC $EXEC_CMD"
    fi 
@@ -506,9 +506,9 @@ then
 #=============== MPICH2 ===================================
 elif [ "$MPI_FLAVOUR" = "MPICH2" ]
 then
-   if [ ! -z $HOSTFILE ] 
+   if [ ! -z "$HOSTFILE" ] 
    then
-         mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f $HOSTFILE
+         mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
          if [ $? -ne 0 ] 
          then
             echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."

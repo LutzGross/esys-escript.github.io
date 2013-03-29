@@ -131,7 +131,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
 
 	Dudley_NodeFile_allocTable(out->Nodes, local_N0 * local_N1);
 
-	/* This code was oringinally copied from Finley's rec4 generator 
+	/* This code was originally copied from Finley's rec4 generator 
 	   We double these numbers because each "rectangle" will be split into
 	   two triangles. So the number of nodes is the same but the 
 	   number of elements will double */
@@ -299,7 +299,7 @@ INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); */
 	Dudley_Mesh_addTagMap(out, "left", LEFTTAG);
 	Dudley_Mesh_addTagMap(out, "right", RIGHTTAG);
     }
-    /* prepare mesh for further calculatuions: */
+    /* prepare mesh for further calculations: */
     if (Dudley_noError())
     {
 	Dudley_Mesh_resolveNodeIds(out);

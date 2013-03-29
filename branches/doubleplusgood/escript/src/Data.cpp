@@ -540,7 +540,7 @@ Data::getShapeTuple() const
 
 
 // The different name is needed because boost has trouble with overloaded functions.
-// It can't work out what type the function is based soley on its name.
+// It can't work out what type the function is based solely on its name.
 // There are ways to fix this involving creating function pointer variables for each form
 // but there doesn't seem to be a need given that the methods have the same name from the python point of view
 Data
@@ -614,7 +614,7 @@ void
 Data::copyWithMask(const Data& other,
                    const Data& mask)
 {
-    // 1. Interpolate if required so all Datas use the same FS as this
+    // 1. Interpolate if required so all Data use the same FS as this
     // 2. Tag or Expand so that all Data's are the same type
     // 3. Iterate over the data vectors copying values where mask is >0
     if (other.isEmpty() || mask.isEmpty())
@@ -714,7 +714,7 @@ Data::copyWithMask(const Data& other,
         }
 
         // We need to consider the possibility that tags are missing or in the wrong order
-        // My guiding assumption here is: All tagged Datas are assumed to have the default value for
+        // My guiding assumption here is: All tagged Data are assumed to have the default value for
         // all tags which are not explicitly defined
 
         const DataTagged* mptr=dynamic_cast<const DataTagged*>(mask2.m_data.get());
@@ -1077,9 +1077,9 @@ Data::getLength() const
 
 
 // There is no parallelism here ... elements need to be added in the correct order.
-//   If we could presize the list and then fill in the elements it might work
+//   If we could pre-size the list and then fill in the elements it might work
 //   This would need setting elements to be threadsafe.
-//   Having mulitple C threads calling into one interpreter is aparently a no-no.
+//   Having multiple C threads calling into one interpreter is apparently a no-no.
 const bp::object
 Data::toListOfTuples(bool scalarastuple)
 {
@@ -1095,7 +1095,7 @@ Data::toListOfTuples(bool scalarastuple)
     const DataTypes::ValueType& vec=getReady()->getVectorRO();
     bp::list temp;
     temp.append(bp::object());
-    bp::list res(temp*npoints);// presize the list by the "[None] * npoints"  trick
+    bp::list res(temp*npoints);// pre-size the list by the "[None] * npoints"  trick
     if (rank==0)
     {
         long count;
@@ -3836,7 +3836,7 @@ Data Data::nonuniforminterp(boost::python::object in, boost::python::object out,
 	    rdat[l]=(wout.getElt(i+1)-wout.getElt(i))/(win.getElt(i+1)-win.getElt(i)) * (sdat[l]-win.getElt(i)) + wout.getElt(i);
 	}
     }
-    if (error)	// we had an illegal value (below the start threwshold)
+    if (error)	// we had an illegal value (below the start threshold)
     {
         throw DataException("Data being interpolated contains a value outside the range given.");
     }
@@ -4282,7 +4282,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
     else if (mask.actsExpanded() && trueval.actsExpanded() && falseval.actsExpanded())
     {
         // Here is the code for all expanded objects
-        // this code will handle lazy data without expanding it just fine but lets allow people to lazyfy things
+        // this code will handle lazy data without expanding it just fine but lets allow people to lazify things
 
         if (mask.isLazy() || trueval.isLazy() || falseval.isLazy() || AUTOLAZYON)
         {
@@ -4302,7 +4302,7 @@ escript::condEval(escript::Data& mask, escript::Data& trueval, escript::Data& fa
 #else
             size_t i;
 #endif
-            DataVector& rvec=result.getReady()->getVectorRW();              // don't need to get aquireWrite since we made it
+            DataVector& rvec=result.getReady()->getVectorRW();      // don't need to get acquireWrite since we made it
             unsigned int psize=result.getDataPointSize();
                 
             size_t numsamples=result.getNumSamples();

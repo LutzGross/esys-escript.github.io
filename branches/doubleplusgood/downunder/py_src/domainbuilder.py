@@ -176,14 +176,23 @@ class DomainBuilder(object):
 
     def fixDensityBelow(self, depth=None):
         """
-        Defines the depth below which the density anomaly is set to zero.
+        Defines the depth below which the density anomaly is set to a given value.
+        if no value is given zero is assumed. 
+        
+        :param depth: depth below which the density is fixed. If not set , no constraint
+                      at depth is applied.
+        :type depth: ``float``
         """
         self.__fix_density_below=depth
 
     def fixSusceptibilityBelow(self, depth=None):
         """
-        Defines the depth below which the susceptibility anomaly is set to
-        zero.
+        Defines the depth below which the susceptibility anomaly is set to a given value.
+        if no value is given zero is assumed. 
+        
+        :param depth: depth below which the susceptibility is fixed. If not set , no constraint
+                      at depth is applied.
+        :type depth: ``float``
         """
         self.__fix_susceptibility_below=depth
 
@@ -203,7 +212,7 @@ class DomainBuilder(object):
 
     def setBackgroundMagneticFluxDensity(self, B):
         """
-        Sets the background magnetic flux density B=(B_r, B_theta, B_phi)
+        Sets the background magnetic flux density B=(B_North, B_East, B_Vertical)
         """
         self.__background_magnetic_field=B
 
@@ -214,9 +223,9 @@ class DomainBuilder(object):
         B = self.__background_magnetic_field
         # this is for Cartesian (FIXME ?)
         if self.__dim<3:
-            return np.array([-B[2], -B[0]])
+            return np.array([B[0], B[2]])
         else:
-            return np.array([-B[1], -B[2], -B[0]])
+            return np.array(B)
 
     def getSetDensityMask(self):
         """

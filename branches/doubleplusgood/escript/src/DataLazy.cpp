@@ -61,7 +61,7 @@ A special operation, IDENTITY, stores an instance of DataReady in the m_id membe
 This means that all "internal" nodes in the structure are instances of DataLazy.
 
 Each operation has a string representation as well as an opgroup - eg G_IDENTITY, G_BINARY, ...
-Note that IDENITY is not considered a unary operation.
+Note that IDENTITY is not considered a unary operation.
 
 I am avoiding calling the structure formed a tree because it is not guaranteed to be one (eg c=a+a). 
 It must however form a DAG (directed acyclic graph).
@@ -70,7 +70,7 @@ I will refer to individual DataLazy objects with the structure as nodes.
 Each node also stores:
 - m_readytype \in {'E','T','C','?'} ~ indicates what sort of DataReady would be produced if the expression was
 	evaluated.
-- m_buffsrequired ~ the larged number of samples which would need to be kept simultaneously in order to
+- m_buffsrequired ~ the large number of samples which would need to be kept simultaneously in order to
 	evaluate the expression.
 - m_samplesize ~ the number of doubles stored in a sample.
 
@@ -195,11 +195,12 @@ resultFS(DataAbstract_ptr left, DataAbstract_ptr right, ES_optype op)
   FunctionSpace r=right->getFunctionSpace();
   if (l!=r)
   {
-    if (r.probeInterpolation(l))
+    signed char res=r.getDomain()->preferredInterpolationOnDomain(r.getTypeCode(), l.getTypeCode());
+    if (res==1)
     {
 	return l;
     }
-    if (l.probeInterpolation(r))
+    if (res==-1)
     {
 	return r;
     }
@@ -1548,7 +1549,7 @@ LAZYDEBUG(cout << "Right res["<< rroffset<< "]=" << (*right)[rroffset] << endl;)
 
 
   roffset=m_samplesize*tid;
-  double* resultp=&(m_samples[roffset]);		// results are stored at the vector offset we recieved
+  double* resultp=&(m_samples[roffset]);		// results are stored at the vector offset we received
   switch(m_op)
   {
     case ADD:
@@ -1610,7 +1611,7 @@ LAZYDEBUG(cout << "m_samplesize=" << m_samplesize << endl;)
 LAZYDEBUG(cout << "outputshape=" << DataTypes::shapeToString(getShape()) << endl;)
 LAZYDEBUG(cout << "DPPS=" << m_right->getNumDPPSample() <<"."<<endl;)
 
-  double* resultp=&(m_samples[offset]);		// results are stored at the vector offset we recieved
+  double* resultp=&(m_samples[offset]);		// results are stored at the vector offset we received
   switch(m_op)
   {
     case PROD:

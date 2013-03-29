@@ -6,7 +6,7 @@ onto a physical parameter such as density and susceptibility.
 \section{Density Map}\label{Chp:ref:mapping density}
 For density we use the form 
 \begin{equation}\label{EQU:MAP:1}
-\rho =  \rho_{0} + \Delta \rho \cdot \left( \frac{x_2 - z_0}{l_z} \right)^{\frac{\beta}{2}}  \cdot m 
+\rho =  \rho_{0} + \Delta \rho \cdot \left( \frac{z_0-x_2}{l_z} \right)^{\frac{\beta}{2}}  \cdot m 
 \end{equation}  
 where $\rho_{0}$ is the reference density, $\Delta \rho$ is the density scaling, $z_0$ an offset, $l_z$ vertical expansion
 of the domain and $\beta$ is a suitable exponent. 
@@ -41,7 +41,7 @@ returns the value level set function $m$ for given density value $p$.
 \section{Susceptibility Map}\label{Chp:ref:mapping susceptibility}
 For the magnetic susceptibility $k$ the following mapping is used:
 \begin{equation}\label{EQU:MAP:2}
-k=  k_{0} + \Delta k \cdot \left( \frac{x_2 - z_0}{l_z} \right)^{\frac{\beta}{2}}  \cdot m 
+k=  k_{0} + \Delta k \cdot \left( \frac{z_0-x_2}{l_z} \right)^{\frac{\beta}{2}}  \cdot m 
 \end{equation}  
 where $k_{0}$ is the reference density and $\Delta k$ is the density scaling.
 

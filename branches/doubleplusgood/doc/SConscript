@@ -46,10 +46,10 @@ else:
     p.wait()
 
 if not haveMPL:
-    print("matplotlib not found, skipping some tests")
+    env['warnings'].append("matplotlib not found, will skip some unit tests")
 else:
     if mplversion<mplmagicversion:
-        print("matplotlib found, but version too early. Some tests skipped.")
+        env['warnings'].append("matplotlib found, but version too early. Some unit tests will be skipped.")
 
 example_files_allow_mpi = []
 example_files_no_mpi = []
@@ -131,8 +131,31 @@ sortOutExample('cookbook/example10m.py', needsMagicMPL=True, needsGMSH=True, all
 sortOutExample('cookbook/example11a.py', needsMagicMPL=True, allowsMPI=False)
 sortOutExample('cookbook/example11b.py', needsMagicMPL=True, allowsMPI=False)
 
+sortOutExample('inversion/create_netcdf.py')
+sortOutExample('inversion/grav_ermapper.py')
+sortOutExample('inversion/grav_netcdf.py')
+sortOutExample('inversion/gravmag_netcdf.py')
+sortOutExample('inversion/gravmag_nodriver.py')
+sortOutExample('inversion/mag_netcdf.py')
+sortOutExample('inversion/plot_ermapper.py', needsMPL=True, allowsMPI=False)
+sortOutExample('inversion/plot_netcdf.py', needsMPL=True, allowsMPI=False)
+example_deps.append('inversion/content.txt')
+example_deps.append('inversion/data/GravitySmall')
+example_deps.append('inversion/data/MagneticSmall')
+example_deps.append('inversion/data/QLDWestGravity')
+example_deps.append('inversion/data/QLDWestMagnetic')
+example_deps.append('inversion/data/GravitySmall.ers')
+example_deps.append('inversion/data/MagneticSmall.ers')
+example_deps.append('inversion/data/QLDWestGravity.ers')
+example_deps.append('inversion/data/QLDWestMagnetic.ers')
+example_deps.append('inversion/data/GravitySmall.nc')
+example_deps.append('inversion/data/MagneticSmall.nc')
+example_deps.append('inversion/data/QLDWestGravity.nc')
+example_deps.append('inversion/data/QLDWestMagnetic.nc')
+
+
 if len(skipped_tests)>0:
-    print("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
+    env['warnings'].append("gmsh not available. Skipping tests %s!"%' '.join(skipped_tests))
 
 example_files = example_files_allow_mpi + example_files_no_mpi + example_deps
 

@@ -25,7 +25,7 @@ testruns += ['run_temp.py']
 if env['gmsh']:
     testruns += ['run_domainreaders.py']
 else:
-    print("gmsh not available! Skipping domainreaders test.")
+    env['warnings'].append("gmsh not available! Skipping domainreaders test.")
 
 # files defining tests run locally (not as part of a release)
 localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
@@ -57,4 +57,3 @@ tgroup.makeDir("$BUILD_DIR/modellib/test")
 tgroup.makeDir("$BUILD_DIR/modellib/test/python")
 TestGroups.append(tgroup)
 
-print "End of block"

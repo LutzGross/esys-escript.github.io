@@ -220,7 +220,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
    return;
 }
 
-/*    sets the determinat of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
+/*    sets the determinant of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 
 void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
    dim_t q;

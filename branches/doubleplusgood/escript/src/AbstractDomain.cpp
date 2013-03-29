@@ -23,7 +23,7 @@ using namespace std;
 
 namespace escript {
 
-// Please see the discusion in DataAbstract's version of this method
+// Please see the discussion in DataAbstract's version of this method
 // and why I squash the exception
 Domain_ptr AbstractDomain::getPtr()
 {

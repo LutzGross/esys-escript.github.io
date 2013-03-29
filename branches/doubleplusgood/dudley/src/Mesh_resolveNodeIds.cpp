@@ -18,8 +18,8 @@
 /*   Dudley: Mesh */
 
 /*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
-/*   NodeFile. It is also not ensured that all nodes refered by an element is actually available */
-/*   on the process.  At the output, a local node labeling is used and all nodes are available */
+/*   NodeFile. It is also not ensured that all nodes referred by an element is actually available */
+/*   on the process.  At the output, a local node labelling is used and all nodes are available */
 /*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
 /*   The function does not create a distribution of the degrees of freedom. */
 
@@ -76,8 +76,8 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 	min_id = 0;
     }
 
-    /* allocate mappings for new local node labeling to global node labeling (newLocalToGlobalNodeLabels)
-       and global node labeling to the new local node labeling (globalToNewLocalNodeLabels[i-min_id] is the 
+    /* allocate mappings for new local node labelling to global node labelling (newLocalToGlobalNodeLabels)
+       and global node labelling to the new local node labelling (globalToNewLocalNodeLabels[i-min_id] is the 
        new local id of global node i) */
     len = (max_id >= min_id) ? max_id - min_id + 1 : 0;
     globalToNewLocalNodeLabels = new  index_t[len];	/* local mask for used nodes */
@@ -98,11 +98,11 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 	/*  mark the nodes referred by elements in globalToNewLocalNodeLabels which is currently used as a mask: */
 	Dudley_Mesh_markNodes(globalToNewLocalNodeLabels, min_id, in, FALSE);
 
-	/* create a local labeling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels */
+	/* create a local labelling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels */
 
 	newNumNodes = Dudley_Util_packMask(len, globalToNewLocalNodeLabels, newLocalToGlobalNodeLabels);
 
-	/* invert the new labeling and shift the index newLocalToGlobalNodeLabels to global node ids */
+	/* invert the new labelling and shift the index newLocalToGlobalNodeLabels to global node ids */
 #pragma omp parallel for private(n) schedule(static)
 	for (n = 0; n < newNumNodes; n++)
 	{
@@ -135,7 +135,7 @@ void Dudley_Mesh_resolveNodeIds(Dudley_Mesh * in)
 	{
 	    Dudley_NodeFile_free(in->Nodes);
 	    in->Nodes = newNodeFile;
-	    /*  relable nodes of the elements: */
+	    /*  relabel nodes of the elements: */
 	    Dudley_Mesh_relableElementNodes(globalToNewLocalNodeLabels, min_id, in);
 	}
     }

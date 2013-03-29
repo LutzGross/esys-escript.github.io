@@ -77,7 +77,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   }
 
   if (A->mpi_info->size == 1) {
-      /* initialization */
+      /* initialisation */
       main_num_rows=A->mainBlock->numRows;
       main_ptr=A->mainBlock->pattern->ptr;
       main_idx=A->mainBlock->pattern->index;
@@ -123,7 +123,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
     Paso_Coupler_startCollect(coupler, rows);
   }
 
-  /* initialization, including allocate arrays "ptr", "index" and "val" */
+  /* initialisation, including allocate arrays "ptr", "index" and "val" */
   main_ptr=A->mainBlock->pattern->ptr;
   main_idx=A->mainBlock->pattern->index;
   main_val=A->mainBlock->val;
@@ -193,7 +193,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
 
   block_size = A->block_size;
   if (A->mpi_info->size == 1) {
-      /* initialization */
+      /* initialisation */
       main_num_rows=A->mainBlock->numRows;
       main_ptr=A->mainBlock->pattern->ptr;
       main_idx=A->mainBlock->pattern->index;
@@ -240,7 +240,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
     Paso_Coupler_startCollect(coupler, rows);
   }
 
-  /* initalization, including allocate arrays "ptr", "index" and "val" */
+  /* initialisation, including allocate arrays "ptr", "index" and "val" */
   main_ptr=A->mainBlock->pattern->ptr;
   main_idx=A->mainBlock->pattern->index;
   main_val=A->mainBlock->val;

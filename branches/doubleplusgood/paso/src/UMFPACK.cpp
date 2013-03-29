@@ -82,8 +82,8 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
 	/* call LDU symbolic factorization: */
 	error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
 	if (error == UMFPACK_ERROR_out_of_memory ) {
-	    if (verbose) printf("UMFPACK: symbolic factorization failed because of memory overlow.\n");
-	   Esys_setError(MEMORY_ERROR,"UMFPACK: symbolic factorization failed because of memory overlow.");
+	    if (verbose) printf("UMFPACK: symbolic factorization failed because of memory overflow.\n");
+	   Esys_setError(MEMORY_ERROR,"UMFPACK: symbolic factorization failed because of memory overflow.");
 	   return;
 	} else if (error == UMFPACK_WARNING_singular_matrix ) {
 	   if (verbose) printf("UMFPACK: symbolic factorization failed because of singular matrix.\n");
@@ -101,8 +101,8 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
 	   /* call LDU factorization: */
 	    error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,pt->symbolic,&(pt->numeric),control,info);
 	    if (error == UMFPACK_ERROR_out_of_memory ) {
-		if (verbose) printf("UMFPACK: LDU factorization failed because of memory overlow.\n");
-	      Esys_setError(MEMORY_ERROR,"UMFPACK: LDU factorization failed because of memory overlow.");
+		if (verbose) printf("UMFPACK: LDU factorization failed because of memory overflow.\n");
+	      Esys_setError(MEMORY_ERROR,"UMFPACK: LDU factorization failed because of memory overflow.");
 	      return;
 	    } else if (error == UMFPACK_WARNING_singular_matrix ) {
 	      if (verbose) printf("UMFPACK: LDU factorization failed because of singular matrix.\n");
@@ -126,8 +126,8 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
 	time0=Esys_timer();
 	error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
 	if (error == UMFPACK_ERROR_out_of_memory ) {
-		if (verbose) printf("UMFPACK: forward/backward substitution failed because of memory overlow.\n");
-	      Esys_setError(MEMORY_ERROR,"UMFPACK: forward/backward substitution failed because of memory overlow.");
+		if (verbose) printf("UMFPACK: forward/backward substitution failed because of memory overflow.\n");
+	      Esys_setError(MEMORY_ERROR,"UMFPACK: forward/backward substitution failed because of memory overflow.");
 	      return;
 	} else if (error == UMFPACK_WARNING_singular_matrix ) {
 	      if (verbose) printf("UMFPACK: forward/backward substitution because of singular matrix.\n");
