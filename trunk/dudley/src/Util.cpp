@@ -32,7 +32,7 @@
 
 /************************************************************************************/
 
-/*   returns true if any of the values in the short array values is not equalt to Zero */
+/*   returns true if any of the values in the short array values is not equal to zero */
 
 bool_t Dudley_Util_anyNonZeroDouble(dim_t N, double *values)
 {
@@ -122,7 +122,7 @@ void Dudley_Util_SmallMatMult(dim_t A1, dim_t A2, double *A, dim_t B2, const dou
     }
 }
 
-/*    multiplies a two sets of matries: */
+/*    multiplies two sets of matrices: */
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2,i) i=1,len */
 
@@ -145,7 +145,7 @@ void Dudley_Util_SmallMatSetMult(dim_t len, dim_t A1, dim_t A2, double *A, dim_t
     }
 }
 
-/*    multiplies a set of matries with a single matrix: */
+/*    multiplies a set of matrices with a single matrix: */
 
 /*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) i=1,len */
 
@@ -262,7 +262,7 @@ void Dudley_Util_InvertSmallMat(dim_t len, dim_t dim, double *A, double *invA, d
     return;
 }
 
-/*    sets the derterminate of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
+/*    sets the derterminat of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
 
 void Dudley_Util_DetOfSmallMat(dim_t len, dim_t dim, double *A, double *det)
 {
@@ -602,7 +602,7 @@ bool_t Dudley_Util_isAny(dim_t N, index_t * array, index_t value)
     return out;
 }
 
-/* calculates the cummultative sum in array and returns the total sum */
+/* calculates the cummulative sum in array and returns the total sum */
 index_t Dudley_Util_cumsum(dim_t N, index_t * array)
 {
     index_t out = 0, tmp;

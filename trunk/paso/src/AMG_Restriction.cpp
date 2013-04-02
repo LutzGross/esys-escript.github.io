@@ -30,7 +30,7 @@
 
 /************************************************************************************
 
-    Methods nessecary for AMG preconditioner
+    Methods necessary for AMG preconditioner
 
     construct n_C x n the Restriction matrix R from A_p.
     
