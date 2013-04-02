@@ -16,12 +16,10 @@
 #include <weipa/FinleyNodes.h>
 
 #ifndef VISIT_PLUGIN
-extern "C" {
 #include <dudley/Mesh.h>
 #include <dudley/NodeFile.h>
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
-}
 #endif
 
 #if USE_NETCDF

@@ -24,7 +24,6 @@
 #include "DataBlocks2DTestCase.h"
 #include "DataVectorTestCase.h"
 #include "TaipanTestCase.h"
-#include "DataCTestCase.h"
 #include "DataAlgorithmAdapterTestCase.h"
 #include "FunctionSpaceTestCase.h"
 #include "DataTestCase.h"
@@ -40,9 +39,7 @@
 
 using namespace CppUnit;
 
-extern "C"{
 #include "esysUtils/Esys_MPI.h"
-}
 
 int main(int argc, char* argv[])
 {
@@ -68,7 +65,6 @@ int main(int argc, char* argv[])
 	runner.addTest(DataBlocks2DTestCase::suite());
 	runner.addTest(DataVectorTestCase::suite());
 	runner.addTest(TaipanTestCase::suite());
-	runner.addTest(DataCTestCase::suite());
  	runner.addTest(DataAlgorithmAdapterTestCase::suite());
 	runner.addTest(FunctionSpaceTestCase::suite());
 	runner.addTest(DataTestCase::suite());
