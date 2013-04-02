@@ -15,7 +15,6 @@
 
 #include "MeshAdapterFactory.h"
 #include "DudleyError.h"
-extern "C" {
 #include "esysUtils/blocktimer.h"
 #include "dudley/Dudley.h"
 #include "dudley/Mesh.h"
@@ -23,7 +22,6 @@ extern "C" {
 #ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
 #endif
-}
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>

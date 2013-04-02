@@ -30,10 +30,7 @@
 
 
 
-extern "C" {
 #include "DataC.h"
-//#include <omp.h>
-}
 
 #ifdef _OPENMP
 #include <omp.h>

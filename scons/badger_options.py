@@ -74,7 +74,7 @@ dudley_assemble_flags = '-funroll-loops'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
-#werror = False
+werror = False
 
 # Whether to build a debug version
 # DEFAULT: False

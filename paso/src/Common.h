@@ -47,7 +47,10 @@
    #ifdef MKL_LAPACK
      #include <mkl_lapack.h>
    #else	/* assuming clapack */
+    extern "C"
+    {
      #include <clapack.h>
+    }
    #endif
    
 #endif

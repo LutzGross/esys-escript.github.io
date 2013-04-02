@@ -23,9 +23,7 @@
 
 using namespace CppUnit;
 
-extern "C"{
 #include "esysUtils/Esys_MPI.h"
-}
 
 int main(int argc, char* argv[])
 {

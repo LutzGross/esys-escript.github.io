@@ -29,9 +29,7 @@
 #include "TestDomain.h"
 
 
-extern "C" {
 #include "esysUtils/blocktimer.h"
-}
 
 #include "esysUtils/esysExceptionTranslator.h"
 

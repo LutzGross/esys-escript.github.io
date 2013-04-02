@@ -14,9 +14,7 @@
 *****************************************************************************/
 
 #include <ripley/Rectangle.h>
-extern "C" {
 #include <paso/SystemMatrix.h>
-}
 #include <esysUtils/esysFileWriter.h>
 
 #ifdef USE_NETCDF

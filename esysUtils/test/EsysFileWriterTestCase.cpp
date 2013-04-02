@@ -20,9 +20,7 @@
 #include <fstream>
 #include <sstream>
 
-extern "C"{
 #include "esysUtils/Esys_MPI.h"
-}
 
 using namespace CppUnit;
 using namespace std;
