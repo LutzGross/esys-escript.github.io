@@ -489,7 +489,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
          time0=Esys_timer();
 	 Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,pre_sweeps,FALSE);
          time0=Esys_timer()-time0;
-         if (verbose) fprintf(stderr,"timing: Presmooting: %e\n",time0);
+         if (verbose) fprintf(stderr,"timing: Presmoothing: %e\n",time0);
         /* end of presmoothing */
         
         
@@ -706,7 +706,7 @@ Paso_Pattern* Paso_Coarsening_Local_getTranspose(Paso_Pattern* P){
 }
 
 
-/************** BLOCK COARSENENING *********************/
+/************** BLOCK COARSENING *********************/
 
 void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_F, double theta)
 {
@@ -819,15 +819,15 @@ if(k==0) {
 	 }
       }
    }
-   
+
    k=0;
    time0=Esys_timer()-time0;
-   if (verbose) fprintf(stdout,"timing: Lambdas computations at the beginning: %e\n",time0);
-   
+   if (verbose) fprintf(stdout,"timing: Lambda computations at the beginning: %e\n",time0);
+
    time0=Esys_timer();
-   
+
    /*Paso_Coarsening_Local_getReport(n,marker_F);*/
-   
+
    while (Paso_Util_isAny(n,marker_F,IS_AVAILABLE)) {
       
       if(index_maxlambda<0) {

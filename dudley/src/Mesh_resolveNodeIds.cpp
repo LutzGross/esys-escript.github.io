@@ -18,7 +18,7 @@
 /*   Dudley: Mesh */
 
 /*   at input the element nodes refers to the numbering defined the global Id assigned to the nodes in the */
-/*   NodeFile. It is also not ensured that all nodes referred by an element is actually available */
+/*   NodeFile. It is also not ensured that all nodes referred to by an element are actually available */
 /*   on the process.  At the output, a local node labelling is used and all nodes are available */
 /*   In particular the numbering of the element nodes is between 0 and in->NodeFile->numNodes */
 /*   The function does not create a distribution of the degrees of freedom. */

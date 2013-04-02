@@ -103,7 +103,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh,bool_t reduce_row
              index_list[i].extension=NULL;
              index_list[i].n=0;
         }
-        /*  insert contributions from element matrices into colums index index_list: */
+        /*  insert contributions from element matrices into columns index index_list: */
         Finley_IndexList_insertElements(index_list,mesh->Elements,
                                         reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
         Finley_IndexList_insertElements(index_list,mesh->FaceElements,
