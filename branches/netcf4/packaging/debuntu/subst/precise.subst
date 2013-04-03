@@ -1,0 +1,4 @@
+es:python=python2.7, libpython2.7
+es:boostpy=libboost-python1.46.1
+es:netcdf=libnetcdf6
+es:doc=python-sphinx

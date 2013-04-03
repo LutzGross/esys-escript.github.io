@@ -1,0 +1,140 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2013 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\documentclass{esysdoc}
+%%% Table of contents to list down to subsections and no further
+\setcounter{tocdepth}{3}
+%%% Number down to subsubsections only
+\setcounter{secnumdepth}{3}
+% grab the handy definitions and \usepackage statements etc
+\input{cookbook_defs}
+\usepackage{upquote}    %used to precent LaTeX from mucking up '
+
+
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (esys-Escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+
+% title, author, etc stuff
+\title{The \textit{escript} COOKBOOK}
+
+
+
+\author{Antony Hallam, Lutz Gross, et al.}
+\authoraddress{
+Earth Systems Science Computational Centre (ESSCC) \\
+School of Earth Sciences \\
+The University of Queensland \\
+Brisbane, Australia \\
+Email: \email{esys@esscc.uq.edu.au}
+}                                                                                         
+\date{\today}
+%\release{3.3.1 pre-release}      
+\release{development}
+% \setreleaseinfo{\\(r\RepVersion)}
+% \setshortversion{}
+
+\makeindex
+
+\begin{document}
+
+\maketitle
+
+% This must come after maketitle or you'll get latex in the pdf title
+\ifpdf
+\pdfinfo {
+/Author (Antony Hallam and Lutz Gross)
+/Title (escript COOKBOOK)
+/Keywords (escript, PDEs)
+}
+\fi
+
+\begin{center}
+Copyright (c) 2009--2013 by University of Queensland	\\
+\url{http://www.uq.edu.au}				\\
+Primary Business: Queensland, Australia			\\
+Licensed under the Open Software License version 3.0	\\
+\url{http://www.opensource.org/licenses/osl-3.0.php}	\\
+
+This work is supported by the AuScope National Collaborative Research Infrastructure Strategy, 
+the Queensland State Government and The University of Queensland.
+
+\end{center}
+
+\begin{abstract}
+\esc is a \pyt based environment that has been developed to solve complex mathematical models, particularly coupled, non-linear and time-dependent partial differential equations. The intention of this cookbook is to introduce new users to \esc and provide a set of examples which demonstrate the major concepts and can be adapted to new problems. Although most of the examples in this cookbook are focused on the disciplines of geophysics and geology, they provide a solid introduction to \esc and its capabilities.
+\end{abstract}
+\input{currentdev}
+
+\cleardoublepage\pdfbookmark[0]{Contents}{contents}%
+\tableofcontents
+
+\newpage
+
+\chapter{Introduction}
+ \label{CHAP INTRO}
+ \input{intro}
+% % % % 
+\chapter{Getting Started with Heat Diffusion}
+ \label{CHAP HEAT DIFF}
+ We start by examining a simple one dimensional heat diffusion equation. This
+ problem provides a good starting example to build our knowledge of \esc and
+ demonstrate how to solve simple partial differential equations
+ (PDEs)\footnote{Wikipedia provides an excellent and comprehensive
+ introduction to \textit{Partial Differential Equations}
+ \url{http://en.wikipedia.org/wiki/Partial_differential_equation}, however
+ their relevance to \esc and implementation should become much clearer as we
+ develop our understanding further into the cookbook.}
+ \input{example01}
+ \input{example02}
+ % % % 
+\chapter{Heat Diffusion in Two Dimensions}
+ \label{CHAP HEAT 2a}
+ \input{example03}
+% % % % 
+\chapter{Complex Geometries}
+ \label{CHAP HEAT 2}
+ \input{example04}
+ \input{example05}
+% % % % 
+% Moving into 2D and 3D wave propagations in next chapters.
+% not part of release 3.1
+\chapter{Acoustic Wave Propagation}
+\input{example07} %acoustic wave equation
+% 
+\chapter{Seismic Wave Propagation}
+ \input{example08}
+
+\chapter{3D Seismic Wave Propagation}
+ \input{example09}
+ 
+\chapter{Potential Fields - Newtonian Gravitation}
+ \input{example10}
+%  
+\chapter{Potential Fields - Electrical Resistivity}
+ \input{example11}
+
+
+\bibliography{cookbook}
+\bibliographystyle{plainnat}
+
+\appendix
+%\include{einsteinETA}
+\printindex
+\end{document}
