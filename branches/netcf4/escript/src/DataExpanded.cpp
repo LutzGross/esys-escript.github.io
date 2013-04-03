@@ -24,7 +24,7 @@
 #include "esysUtils/Esys_MPI.h"
 
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 #include <boost/python/extract.hpp>
@@ -684,12 +684,16 @@ void
 DataExpanded::dump(const std::string fileName) const
 {
    #ifdef USE_NETCDF
+
+   using namespace netCDF;
+
    const int ldims=2+DataTypes::maxRank;
-   const NcDim* ncdims[ldims];
-   NcVar *var, *ids;
+   ENCDF_DIMARR(ncdims,ldims)
+   ENCDF_VART var;
+   ENCDF_VART ids;
    int rank = getRank();
    int type=  getFunctionSpace().getTypeCode();
-   int ndims =0;
+   int ndims =0;   (void)ndims;		// to keep the compiler happy
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
    const DataTypes::ShapeType& shape = getShape();
@@ -705,59 +709,57 @@ DataExpanded::dump(const std::string fileName) const
 #endif
 
    // netCDF error handler
-   NcError err(NcError::verbose_nonfatal);
+   ENCDF_ERRSETUP
    // Create the file.
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::Replace);
+   boost::scoped_ptr<NcFile> dataFile(createNcFile(newFileName, false));
    // check if writing was successful
-   if (!dataFile.is_valid())
+   if (dataFile.get()==0)
         throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type_id",2) )
+   if (!ENCDF_ATTR(*dataFile,"type_id",2) )
         throw DataException("Error - DataExpanded:: appending data type to netCDF file failed.");
-   if (!dataFile.add_att("rank",rank) )
+   if (!ENCDF_ATTR(*dataFile,"rank",rank) )
         throw DataException("Error - DataExpanded:: appending rank attribute to netCDF file failed.");
-   if (!dataFile.add_att("function_space_type",type))
+   if (!ENCDF_ATTR(*dataFile,"function_space_type",type))
         throw DataException("Error - DataExpanded:: appending function space attribute to netCDF file failed.");
    ndims=rank+2;
    if ( rank >0 ) {
        dims[0]=shape[0];
-       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
+       if (! ((ncdims[0] = ENCDF_DIM(*dataFile,"d0",shape[0])),ENCDF_BADDIM(ncdims[0])) )
             throw DataException("Error - DataExpanded:: appending ncdimension 0 to netCDF file failed.");
    }
    if ( rank >1 ) {
        dims[1]=shape[1];
-       if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
+       if (! ((ncdims[1] = ENCDF_DIM(*dataFile,"d1",shape[1])),ENCDF_BADDIM(ncdims[1])) )
             throw DataException("Error - DataExpanded:: appending ncdimension 1 to netCDF file failed.");
    }
    if ( rank >2 ) {
        dims[2]=shape[2];
-       if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
+       if (! ((ncdims[2] = ENCDF_DIM(*dataFile,"d2", shape[2])),ENCDF_BADDIM(ncdims[2])) )
             throw DataException("Error - DataExpanded:: appending ncdimension 2 to netCDF file failed.");
    }
    if ( rank >3 ) {
        dims[3]=shape[3];
-       if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
+       if (! ((ncdims[3] = ENCDF_DIM(*dataFile,"d3", shape[3])),ENCDF_BADDIM(ncdims[3])) )
             throw DataException("Error - DataExpanded:: appending ncdimension 3 to netCDF file failed.");
    }
    dims[rank]=getFunctionSpace().getNumDataPointsPerSample();
-   if (! (ncdims[rank] = dataFile.add_dim("num_data_points_per_sample", dims[rank])) )
+   if (! ((ncdims[rank] = ENCDF_DIM(*dataFile,"num_data_points_per_sample", dims[rank])),ENCDF_BADDIM(ncdims[rank])) )
             throw DataException("Error - DataExpanded:: appending num_data_points_per_sample to netCDF file failed.");
    dims[rank+1]=getFunctionSpace().getNumSamples();
-   if (! (ncdims[rank+1] = dataFile.add_dim("num_samples", dims[rank+1])) )
+   if (! ((ncdims[rank+1] = ENCDF_DIM(*dataFile,"num_samples", dims[rank+1])),ENCDF_BADDIM(ncdims[rank+1]) ))
             throw DataException("Error - DataExpanded:: appending num_sample to netCDF file failed.");
 
    if (getFunctionSpace().getNumSamples()>0)
    {
 
-     if (! ( ids = dataFile.add_var("id", ncInt, ncdims[rank+1])) )
+     if (! (( ids = ENCDF_VARS(*dataFile,"id", ncInt, ncdims[rank+1])),ENCDF_BADVAR(ids)) )
         throw DataException("Error - DataExpanded:: appending reference id to netCDF file failed.");
      const int* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
-     if (! (ids->put(ids_p,dims[rank+1])) )
-        throw DataException("Error - DataExpanded:: copy reference id  to netCDF buffer failed.");
-     if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
+     ENCDF_PUT(ids,ids_p,dims[rank+1],"Error - DataExpanded:: copy reference id  to netCDF buffer failed.");
+     if (! (( var = ENCDF_VAR(*dataFile, "data", ncDouble, ndims, ncdims)),ENCDF_BADVAR(var)) )
         throw DataException("Error - DataExpanded:: appending variable to netCDF file failed.");
-     if (! (var->put(d_ptr,dims)) )
-        throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
+     ENCDF_PUT(var,d_ptr,dims,"Error - DataExpanded:: copy data to netCDF buffer failed.");
    }
 #ifdef ESYS_MPI
    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, MPI_COMM_WORLD);

@@ -41,6 +41,7 @@ headers = """
 	maths.h
 	system_dep.h
 	types.h
+	netcdf.h
 """.split()
 
 lib_name = 'esysUtils'

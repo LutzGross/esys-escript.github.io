@@ -28,7 +28,7 @@
 #include "EscriptParams.h"
 
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 #include <iomanip>		// for some fancy formatting in debug

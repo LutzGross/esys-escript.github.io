@@ -17,13 +17,15 @@
 #include "Data.h"
 #include "DataTagged.h"
 #include "esysUtils/esys_malloc.h"
+#include <boost/scoped_array.hpp>
+
 
 #include "DataConstant.h"
 #include "DataException.h"
 #include "esysUtils/Esys_MPI.h"
 
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 #include "DataMaths.h"
@@ -774,12 +776,13 @@ void
 DataTagged::dump(const std::string fileName) const
 {
    #ifdef USE_NETCDF
+   using namespace netCDF;
    const int ldims=DataTypes::maxRank+1;
-   const NcDim* ncdims[ldims];
-   NcVar *var, *tags_var;
+   ENCDF_DIMARR(ncdims,ldims);
+   ENCDF_VART var, tags_var;
    int rank = getRank();
    int type=  getFunctionSpace().getTypeCode();
-   int ndims =0;
+   int ndims =0;  (void)ndims;
    long dims[ldims];
    const double* d_ptr=&(m_data[0]);
    DataTypes::ShapeType shape = getShape();
@@ -795,38 +798,38 @@ DataTagged::dump(const std::string fileName) const
 #endif
 
    // netCDF error handler
-   NcError err(NcError::verbose_nonfatal);
+   ENCDF_ERRSETUP
    // Create the file.
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::Replace);
+   boost::scoped_ptr<NcFile> dataFile(createNcFile(newFileName, false));
    // check if writing was successful
-   if (!dataFile.is_valid())
-        throw DataException("Error - DataTagged:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type_id",1) )
+   if (dataFile.get()==0)
+        throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");
+   if (!ENCDF_ATTR(*dataFile,"type_id",1) )
         throw DataException("Error - DataTagged:: appending data type to netCDF file failed.");
-   if (!dataFile.add_att("rank",rank) )
+   if (!ENCDF_ATTR(*dataFile,"rank",rank) )
         throw DataException("Error - DataTagged:: appending rank attribute to netCDF file failed.");
-   if (!dataFile.add_att("function_space_type",type))
+   if (!ENCDF_ATTR(*dataFile,"function_space_type",type))
         throw DataException("Error - DataTagged:: appending function space attribute to netCDF file failed.");
    ndims=rank+1;
    if ( rank >0 ) {
        dims[0]=shape[0];
-       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
+       if (! ((ncdims[0] = ENCDF_DIM(*dataFile,"d0",shape[0])),ENCDF_BADDIM(ncdims[0])) )
             throw DataException("Error - DataTagged:: appending ncdimension 0 to netCDF file failed.");
    }
    if ( rank >1 ) {
        dims[1]=shape[1];
-       if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
+       if (! ((ncdims[1] = ENCDF_DIM(*dataFile, "d1",shape[1])), ENCDF_BADDIM(ncdims[1])) )
             throw DataException("Error - DataTagged:: appending ncdimension 1 to netCDF file failed.");
    }
    if ( rank >2 ) {
        dims[2]=shape[2];
-       if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
+       if (! ((ncdims[2] = ENCDF_DIM(*dataFile,"d2", shape[2])),ENCDF_BADDIM(ncdims[2])) )
             throw DataException("Error - DataTagged:: appending ncdimension 2 to netCDF file failed.");
    }
    if ( rank >3 ) {
        dims[3]=shape[3];
-       if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
+       if (! ((ncdims[3] = ENCDF_DIM(*dataFile, "d3", shape[3])), ENCDF_BADDIM(ncdims[3])) )
             throw DataException("Error - DataTagged:: appending ncdimension 3 to netCDF file failed.");
    }
    const DataTagged::DataMapType& thisLookup=getTagLookup();
@@ -834,36 +837,25 @@ DataTagged::dump(const std::string fileName) const
    DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
    int ntags=1;
    for (i=thisLookup.begin();i!=thisLookupEnd;i++) ntags++;
-   int* tags =(int*) esysUtils::malloc(ntags*sizeof(int));
+   boost::scoped_array<int> tags(new int[ntags]);
    int c=1;
    tags[0]=-1;
    for (i=thisLookup.begin();i!=thisLookupEnd;i++) tags[c++]=i->first;
    dims[rank]=ntags;
-   if (! (ncdims[rank] = dataFile.add_dim("num_tags", dims[rank])) )
+   if (! ((ncdims[rank] = ENCDF_DIM(*dataFile, "num_tags", dims[rank])), ENCDF_BADDIM(ncdims[rank])) )
    {
-	   esysUtils::free(tags);
            throw DataException("Error - DataTagged:: appending num_tags to netCDF file failed.");
    }
-   if (! ( tags_var = dataFile.add_var("tags", ncInt, ncdims[rank])) )
+   if (! (( tags_var = ENCDF_VARS(*dataFile,"tags", ncInt, ncdims[rank])), ENCDF_BADVAR(tags_var)) )
    {
-	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: appending tags to netCDF file failed.");
    }
-   if (! (tags_var->put(tags,dims[rank])) )
+   ENCDF_PUT(tags_var, tags.get(), dims[rank], "Error - DataTagged:: copy tags to netCDF buffer failed.");
+   if (! (( var = ENCDF_VAR(*dataFile, "data", ncDouble, ndims, ncdims)), ENCDF_BADVAR(var)) )
    {
-	esysUtils::free(tags);
-        throw DataException("Error - DataTagged:: copy tags to netCDF buffer failed.");
-   }
-   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
-   {
-	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: appending variable to netCDF file failed.");
    }
-   if (! (var->put(d_ptr,dims)) )
-   {
-	esysUtils::free(tags);
-        throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");
-   }
+   ENCDF_PUT(var, d_ptr, dims, "Error - DataTagged:: copy data to netCDF buffer failed.");
 #ifdef ESYS_MPI
    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81803, MPI_COMM_WORLD);
 #endif
