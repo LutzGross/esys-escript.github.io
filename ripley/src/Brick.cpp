@@ -18,7 +18,7 @@
 #include <esysUtils/esysFileWriter.h>
 
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 #if USE_SILO

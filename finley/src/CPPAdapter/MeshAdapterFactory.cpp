@@ -20,7 +20,7 @@
 #include "esysUtils/Esys_MPI.h"
 #endif
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 #include <boost/python/extract.hpp>

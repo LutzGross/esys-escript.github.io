@@ -24,7 +24,7 @@
 #include <boost/python/extract.hpp>
 #include <boost/scoped_ptr.hpp>
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 #include "DataMaths.h"
@@ -35,6 +35,7 @@
 
 using namespace std;
 using namespace boost::python;
+using namespace netCDF;
 
 namespace escript {
 
@@ -287,12 +288,12 @@ void
 DataConstant::dump(const std::string fileName) const
 {
    #ifdef USE_NETCDF
-   const NcDim* ncdims[DataTypes::maxRank];
-   NcVar* var;
+   ENCDF_DIMARR(ncdims, DataTypes::maxRank);
+   ENCDF_VART var;
    int rank = getRank();
    int type=  getFunctionSpace().getTypeCode();
-   int ndims =0;
-   long dims[DataTypes::maxRank];
+   int ndims =0;   (void)ndims;	// to keep the compiler happy
+   long dims[DataTypes::maxRank];  (void)dims;
    const double* d_ptr=&(m_data[0]);
    DataTypes::ShapeType shape = getShape();
    int mpi_iam=getFunctionSpace().getDomain()->getMPIRank();
@@ -307,51 +308,51 @@ DataConstant::dump(const std::string fileName) const
 #endif
 
    // netCDF error handler
-   NcError err(NcError::verbose_nonfatal);
+   ENCDF_ERRSETUP
    // Create the file.
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::Replace);
-   // check if writing was successful
-   if (!dataFile.is_valid())
-	throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
-   if (!dataFile.add_att("type_id",0) )
+   boost::scoped_ptr<NcFile> dataFile(createNcFile(newFileName, false));
+   if (dataFile.get()==0)
+   {
+      throw DataException("Error - DataConstant:: opening of netCDF file for output failed.");
+   }
+   if (!ENCDF_ATTR(*dataFile,"type_id",0) )
 	throw DataException("Error - DataConstant:: appending data type to netCDF file failed.");
-   if (!dataFile.add_att("rank",rank) )
+   if (!ENCDF_ATTR(*dataFile,"rank",rank) )
 	throw DataException("Error - DataConstant:: appending rank attribute to netCDF file failed.");
-   if (!dataFile.add_att("function_space_type",type))
+   if (!ENCDF_ATTR(*dataFile,"function_space_type",type))
 	throw DataException("Error - DataConstant:: appending function space attribute to netCDF file failed.");
 
    if (rank == 0) {
-      if( ! (ncdims[0] = dataFile.add_dim("l", 1)) )
+      if( ! ((ncdims[0] = ENCDF_DIM(*dataFile,"l", 1)),ENCDF_BADDIM(ncdims[0])) )
 		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
       dims[0]=1,
       ndims=1;
    } else {
        ndims=rank;
        dims[0]=shape[0];
-       if (! (ncdims[0] = dataFile.add_dim("d0",shape[0])) )
+       if (! ((ncdims[0] = ENCDF_DIM(*dataFile,"d0",shape[0])),ENCDF_BADDIM(ncdims[0])) )
 		throw DataException("Error - DataConstant:: appending ncdimension 0 to netCDF file failed.");
        if ( rank >1 ) {
            dims[1]=shape[1];
-           if (! (ncdims[1] = dataFile.add_dim("d1",shape[1])) )
+           if (! ((ncdims[1] = ENCDF_DIM(*dataFile,"d1",shape[1])),ENCDF_BADDIM(ncdims[1])) )
 		throw DataException("Error - DataConstant:: appending ncdimension 1 to netCDF file failed.");
        }
        if ( rank >2 ) {
            dims[2]=shape[2];
-           if (! (ncdims[2] = dataFile.add_dim("d2", shape[2])) )
+           if (! ((ncdims[2] = ENCDF_DIM(*dataFile,"d2", shape[2])),ENCDF_BADDIM(ncdims[2])) )
 		throw DataException("Error - DataConstant:: appending ncdimension 2 to netCDF file failed.");
        }
        if ( rank >3 ) {
            dims[3]=shape[3];
-           if (! (ncdims[3] = dataFile.add_dim("d3", shape[3])) )
+           if (! ((ncdims[3] = ENCDF_DIM(*dataFile,"d3", shape[3])),ENCDF_BADDIM(ncdims[3])) )
 		throw DataException("Error - DataConstant:: appending ncdimension 3 to netCDF file failed.");
        }
    }
 
-   if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
+   if (! (( var = ENCDF_VAR(*dataFile,"data", NC_DOUBLE, ndims, ncdims)),ENCDF_BADVAR(var)) )
 	throw DataException("Error - DataConstant:: appending variable to netCDF file failed.");
-   if (! (var->put(d_ptr,dims)) )
-         throw DataException("Error - DataConstant:: copy data to netCDF buffer failed.");
+    ENCDF_PUT(var,d_ptr,dims,"Error - DataConstant:: copy data to netCDF buffer failed.");
 #ifdef ESYS_MPI
    if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81802, MPI_COMM_WORLD);
 #endif

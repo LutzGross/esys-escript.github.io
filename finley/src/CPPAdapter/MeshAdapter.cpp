@@ -19,7 +19,7 @@
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 #include "esysUtils/blocktimer.h"
 

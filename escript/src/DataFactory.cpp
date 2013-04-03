@@ -19,10 +19,11 @@
 #include "esysUtils/Esys_MPI.h"
 
 #include <boost/python/extract.hpp>
+#include <boost/scoped_array.hpp>
 #include <iostream>
 #include <exception>
 #ifdef USE_NETCDF
-#include <netcdfcpp.h>
+#include "esysUtils/netcdf.h"
 #endif
 
 using namespace boost::python;
@@ -180,9 +181,10 @@ load(const std::string fileName,
      const AbstractDomain& domain)
 {
    #ifdef USE_NETCDF
-   NcAtt *type_att, *rank_att, *function_space_type_att;
+   using namespace netCDF;
+   ENCDF_ATTT type_att, rank_att, function_space_type_att;
    // netCDF error handler
-   NcError err(NcError::silent_nonfatal);
+   ENCDF_ERRSETUP
    int mpi_iam=0, mpi_num=1;
    // Create the file.
 #ifdef ESYS_MPI
@@ -190,28 +192,45 @@ load(const std::string fileName,
    MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
 #endif
    char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::ReadOnly);
-   if (!dataFile.is_valid())
+   boost::scoped_ptr<NcFile> dataFile(createNcFile(newFileName, true));
+   if (dataFile.get()==0)
         throw DataException("Error - load:: opening of netCDF file for input failed.");
    /* recover function space */
-   if (! (function_space_type_att=dataFile.get_att("function_space_type")) )
+   if (! ((function_space_type_att=ENCDF_GATT(*dataFile, "function_space_type")),ENCDF_BADATT(function_space_type_att) ))
         throw DataException("Error - load:: cannot recover function_space_type attribute from escript netCDF file.");
-   int function_space_type = function_space_type_att->as_int(0);
-   delete function_space_type_att;
+   int function_space_type; ENCDF_GETINT(function_space_type, function_space_type_att, 0);
+   ENCDF_FREE_ATT(function_space_type_att);
    /* test if function space id is valid and create function space instance */
    if (! domain.isValidFunctionSpaceType(function_space_type) ) 
         throw DataException("Error - load:: function space type code in netCDF file is invalid for given domain.");
    FunctionSpace function_space=FunctionSpace(domain.getPtr(), function_space_type);
    /* recover rank */
-   if (! (rank_att=dataFile.get_att("rank")) )
+   if (! ((rank_att=ENCDF_GATT(*dataFile,"rank")),ENCDF_BADATT(rank_att)) )
         throw DataException("Error - load:: cannot recover rank attribute from escript netCDF file.");
-   int rank = rank_att->as_int(0);
-   delete rank_att;
+   int rank; ENCDF_GETINT(rank, rank_att, 0);
+   ENCDF_FREE_ATT(rank_att);
    if (rank<0 || rank>DataTypes::maxRank)
         throw DataException("Error - load:: rank in escript netCDF file is greater than maximum rank.");
    /* recover type attribute */
    int type=-1;
-   if ((type_att=dataFile.get_att("type")) ) {
+   if (!((type_att=ENCDF_GATT(*dataFile,"type")),ENCDF_BADATT(type_att)) ) {
+#ifdef NETCDF_CPPV4
+       std::string tstr;
+       type_att.getValues(&tstr);
+       if (tstr=="constant")
+       {
+           type=0;
+       }
+       else if (tstr=="tagged")
+       {
+           type=1;
+       }
+       else if (tstr=="expanded")
+       {
+           type=2;
+       }
+
+#else
        char* type_str = type_att->as_string(0);
        if (strncmp(type_str, "constant", strlen("constant")) == 0 ) {
           type =0;
@@ -221,91 +240,87 @@ load(const std::string fileName,
            type =2;
        }
        esysUtils::free(type_str);
+#endif
    } else {
-      if (! (type_att=dataFile.get_att("type_id")) )
+      if (! ((type_att=ENCDF_GATT(*dataFile,"type_id")),ENCDF_BADATT(type_att)) )
   	throw DataException("Error - load:: cannot recover type attribute from escript netCDF file.");
-      type=type_att->as_int(0);
+      ENCDF_GETINT(type, type_att, 0);
    }
-   delete type_att;
+   ENCDF_FREE_ATT(type_att);
 
    /* recover dimension */
-   int ndims=dataFile.num_dims();
+   int ndims=ENCDF_DIMCOUNT(*dataFile);
    int ntags =0 , num_samples =0 , num_data_points_per_sample =0, d=0, len_data_point=1;
-   NcDim *d_dim, *tags_dim, *num_samples_dim, *num_data_points_per_sample_dim;
+   ENCDF_DIMTYPE d_dim, tags_dim, num_samples_dim, num_data_points_per_sample_dim;
    /* recover shape */
    DataTypes::ShapeType shape;
-   long dims[DataTypes::maxRank+2];
+   long dims[DataTypes::maxRank+2]; (void)dims;
    if (rank>0) {
-     if (! (d_dim=dataFile.get_dim("d0")) )
+     if (! ((d_dim=ENCDF_GETDIM(*dataFile,"d0")),ENCDF_BADDIM(d_dim)) )
           throw DataException("Error - load:: unable to recover d0 from netCDF file.");
-      d=d_dim->size();
+      d=ENCDF_SIZE(d_dim);
       shape.push_back(d);
       dims[0]=d;
       len_data_point*=d;
    }
    if (rank>1) {
-     if (! (d_dim=dataFile.get_dim("d1")) )
+     if (! ((d_dim=ENCDF_GETDIM(*dataFile,"d1")), ENCDF_BADDIM(d_dim)) )
           throw DataException("Error - load:: unable to recover d1 from netCDF file.");
-      d=d_dim->size();
+      d=ENCDF_SIZE(d_dim);
       shape.push_back(d);
       dims[1]=d;
       len_data_point*=d;
    }
    if (rank>2) {
-     if (! (d_dim=dataFile.get_dim("d2")) )
+     if (! ((d_dim=ENCDF_GETDIM(*dataFile,"d2")), ENCDF_BADDIM(d_dim)) )
           throw DataException("Error - load:: unable to recover d2 from netCDF file.");
-      d=d_dim->size();
+      d=ENCDF_SIZE(d_dim);
       shape.push_back(d);
       dims[2]=d;
       len_data_point*=d;
    }
    if (rank>3) {
-     if (! (d_dim=dataFile.get_dim("d3")) )
+     if (! ((d_dim=ENCDF_GETDIM(*dataFile,"d3")), ENCDF_BADDIM(d_dim)) )
           throw DataException("Error - load:: unable to recover d3 from netCDF file.");
-      d=d_dim->size();
+      d=ENCDF_SIZE(d_dim);
       shape.push_back(d);
       dims[3]=d;
       len_data_point*=d;
    }
    /* recover stuff */
    Data out;
-   NcVar *var, *ids_var, *tags_var;
+   ENCDF_VART var, ids_var, tags_var;
    if (type == 0) {
       /* constant data */
       if ( ! ( (ndims == rank && rank >0) || ( ndims ==1 && rank == 0 ) ) )
           throw DataException("Error - load:: illegal number of dimensions for constant data in netCDF file.");
       if (rank == 0) {
-          if (! (d_dim=dataFile.get_dim("l")) )
+          if (! ((d_dim=ENCDF_GETDIM(*dataFile,"l")), ENCDF_BADDIM(d_dim)) )
               throw DataException("Error - load:: unable to recover d0 for scalar constant data in netCDF file.");
-          int d0 = d_dim->size();
+          int d0 = ENCDF_SIZE(d_dim);
           if (! d0 == 1) 
               throw DataException("Error - load:: d0 is expected to be one for scalar constant data in netCDF file.");
           dims[0]=1;
       }
       out=Data(0,shape,function_space);
-      if (!(var = dataFile.get_var("data")))
+      if (!((var = ENCDF_GETVAR(*dataFile,"data")),ENCDF_BADVAR(var)))
               throw DataException("Error - load:: unable to find data in netCDF file.");
-      if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims) ) 
-              throw DataException("Error - load:: unable to recover data from netCDF file.");
+      ENCDF_VARGET(var,&(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims,"Error - load:: unable to recover data from netCDF file.");
    } else if (type == 1) { 
       /* tagged data */
       if ( ! (ndims == rank + 1) )
          throw DataException("Error - load:: illegal number of dimensions for tagged data in netCDF file.");
-      if (! (tags_dim=dataFile.get_dim("num_tags")) )
+      if (! ((tags_dim=ENCDF_GETDIM(*dataFile, "num_tags")),ENCDF_BADDIM(tags_dim)) )
          throw DataException("Error - load:: unable to recover number of tags from netCDF file.");
-      ntags=tags_dim->size();
+      ntags=ENCDF_SIZE(tags_dim);
       dims[rank]=ntags;
       int *tags = (int *) esysUtils::malloc(ntags*sizeof(int));
-      if (! ( tags_var = dataFile.get_var("tags")) )
+      if (! (( tags_var = ENCDF_GETVAR(*dataFile,"tags")),ENCDF_BADVAR(tags_var)) )
       {
          esysUtils::free(tags);
          throw DataException("Error - load:: unable to find tags in netCDF file.");
       }
-      if (! tags_var->get(tags, ntags) ) 
-      {
-         esysUtils::free(tags);
-         throw DataException("Error - load:: unable to recover tags from netCDF file.");
-      }
+      ENCDF_VARGET(tags_var, tags, ntags, "Error - load:: unable to recover tags from netCDF file.");
 
 // Current Version
 /*      DataVector data(len_data_point * ntags, 0., len_data_point * ntags);
@@ -334,18 +349,14 @@ load(const std::string fileName,
 	// D) copy tagged values into dt
 	// E) create a new Data based on dt
 
-      NcVar* var1;
+      ENCDF_VART var1;
       DataVector data1(len_data_point * ntags, 0., len_data_point * ntags);
-      if (!(var1 = dataFile.get_var("data")))
+      if (!((var1 = ENCDF_GETVAR(*dataFile,"data")),ENCDF_BADVAR(var1)) )
       {
          esysUtils::free(tags);
          throw DataException("Error - load:: unable to find data in netCDF file.");
       }
-      if (! var1->get(&(data1[0]), dims) ) 
-      {
-         esysUtils::free(tags);
-         throw DataException("Error - load:: unable to recover data from netCDF file.");
-      }
+      ENCDF_VARGET(var1, &(data1[0]), dims, "Error - load:: unable to recover data from netCDF file.");
       DataTagged* dt=new DataTagged(function_space, shape, tags,data1);
       out=Data(dt);
       esysUtils::free(tags);
@@ -353,12 +364,12 @@ load(const std::string fileName,
       /* expanded data */
       if ( ! (ndims == rank + 2) )
           throw DataException("Error - load:: illegal number of dimensions for expanded data in netCDF file.");
-      if ( ! (num_samples_dim = dataFile.get_dim("num_samples") ) )
+      if ( ! ((num_samples_dim = ENCDF_GETDIM(*dataFile, "num_samples")), ENCDF_BADDIM(num_samples_dim)) )
           throw DataException("Error - load:: unable to recover number of samples from netCDF file.");
-      num_samples = num_samples_dim->size();
-      if ( ! (num_data_points_per_sample_dim = dataFile.get_dim("num_data_points_per_sample") ) )
+      num_samples = ENCDF_SIZE(num_samples_dim);
+      if ( ! ((num_data_points_per_sample_dim = ENCDF_GETDIM(*dataFile,"num_data_points_per_sample")), ENCDF_BADDIM(num_data_points_per_sample_dim)) )
           throw DataException("Error - load:: unable to recover number of data points per sample from netCDF file.");
-      num_data_points_per_sample=num_data_points_per_sample_dim->size();
+      num_data_points_per_sample=ENCDF_SIZE(num_data_points_per_sample_dim);
       // check shape:
       if ( ! (num_samples == function_space.getNumSamples() && num_data_points_per_sample == function_space.getNumDataPointsPerSample()) )
           throw DataException("Error - load:: data sample layout of file does not match data layout of function space.");
@@ -367,15 +378,11 @@ load(const std::string fileName,
       }
       else {
 	// get ids
-	if (! ( ids_var = dataFile.get_var("id")) )
+	if (! (( ids_var = ENCDF_GETVAR(*dataFile,"id") ), ENCDF_BADVAR(ids_var)))
 		throw DataException("Error - load:: unable to find reference ids in netCDF file.");
 	const int* ids_p=function_space.borrowSampleReferenceIDs();
-	int *ids_of_nc = (int *)esysUtils::malloc(num_samples*sizeof(int));
-	if (! ids_var->get(ids_of_nc, (long) num_samples) ) 
-	{
-		esysUtils::free(ids_of_nc);
-		throw DataException("Error - load:: unable to recover ids from netCDF file.");
-	}
+	boost::scoped_array<int> ids_of_nc(new int[num_samples]);
+        ENCDF_VARGET(ids_var, ids_of_nc.get(), (long) num_samples, "Error - load:: unable to recover ids from netCDF file.");
 	// check order:
 	int failed=-1, local_failed=-1, i;
 	#pragma omp parallel private(local_failed)
@@ -397,23 +404,17 @@ load(const std::string fileName,
 	dims[rank]=num_data_points_per_sample;
 	dims[rank+1]=num_samples;
 	out=Data(0,shape,function_space,true);
-	if (!(var = dataFile.get_var("data")))
+	if (!((var = ENCDF_GETVAR(*dataFile, "data")), ENCDF_BADVAR(var)))
 	{
-		esysUtils::free(ids_of_nc);
 		throw DataException("Error - load:: unable to find data in netCDF file.");
 	}
-	if (! var->get(&(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims) ) 
-	{
-		esysUtils::free(ids_of_nc);
-		throw DataException("Error - load:: unable to recover data from netCDF file.");
-	}
+        ENCDF_VARGET(var, &(out.getDataAtOffsetRW(out.getDataOffset(0,0))), dims, "Error - load:: unable to recover data from netCDF file.");
 	if (failed>=0) {
 		try {
 		std::cout << "Information - load: start reordering data from netCDF file " << fileName << std::endl;
-		out.borrowData()->reorderByReferenceIDs(ids_of_nc);
+		out.borrowData()->reorderByReferenceIDs(ids_of_nc.get());
 		} 
 		catch (std::exception&) {
-		esysUtils::free(ids_of_nc);
 		throw DataException("Error - load:: unable to reorder data in netCDF file.");
 		}
 	}
