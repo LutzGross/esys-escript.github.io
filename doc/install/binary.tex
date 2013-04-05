@@ -1,0 +1,79 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2013 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+
+\chapter{Binary Installation}\label{chap:bin}
+
+Binary distributions (no compilation required) are available for Windows(Section~\ref{sec:binwin}) 
+and ``recent'' Debian and Ubuntu releases.
+
+Debian (i386 or amd64):
+\begin{itemize}
+ \item $6$ --- \emph{Squeeze}
+ \item $?$ --- \emph{Wheezy}
+\end{itemize}
+
+Ubuntu (i386 or amd64):
+\begin{itemize}
+ \item $11.10$ --- \emph{Oneiric} Ocelot
+ \item $12.04$ --- \emph{Precise} Pangolin (LTS)
+ \item $12.10$ --- \emph{Quantal} Queztal 
+ \item $13.04$ --- \emph{Raring} Rabbit
+\end{itemize}
+
+
+We produce \texttt{.deb}s for the i386 and amd64 architectures for Debian stable(``squeeze'') and the 
+following Ubuntu releases:
+\begin{itemize}
+ \item $11.10$ --- \emph{Oneiric} Ocelot
+ \item $12.04$ --- \emph{Precise} Pangolin (LTS)
+ \item $12.10$ --- \emph{Quantal} Queztal 
+\end{itemize}
+
+The package file will be named \file{escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} 
+is the distribution codename (eg ``\texttt{squeeze}'' or ``\texttt{oneric}'') and \texttt{A} is the architecture.
+For example, \file{escript-3.4-1-squeeze_amd64.deb} would be the file for squeeze for 64bit processors.
+To install \esfinley download the appropriate \file{.deb} file and execute the following 
+commands as root (you need to be in the directory containing the file):
+
+\begin{verse}
+\textbf{(For Ubuntu users)}\\
+You will need to either install \texttt{aptitude}\footnote{Unless you are short on disk space \texttt{aptitude} is recommended} or substitute \texttt{apt-get} where this guide uses \texttt{aptitude}.
+\begin{shellCode}
+sudo apt-get install aptitude
+\end{shellCode}
+\end{verse}
+
+\begin{shellCode}
+dpkg --unpack escript*.deb
+aptitude install escript
+\end{shellCode}
+
+Installing escript should not remove any packages from your system.
+If aptitude suggests removing escript, then choose 'N'.
+It should then suggest installing some dependencies choose 'Y' here.
+If it suggests removing \texttt{escript-noalias} then agree.
+
+If you use sudo (for example on Ubuntu) enter the following instead:
+\begin{shellCode}
+sudo dpkg --unpack escript*.deb
+sudo aptitude install escript
+\end{shellCode}
+
+This should install \esfinley and its dependencies on your system.
+Please notify the development team if something goes wrong.
+
+\input{binwin.tex}
+
+
