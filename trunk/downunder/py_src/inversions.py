@@ -254,12 +254,12 @@ class GravityInversion(InversionDriver):
         #========================
         self.logger.info('Creating mapping...')
         if rho_at_depth:
-	     rho2= rho_mask *  rho_at_depth + (1-rho_mask) * rho0
-	elif rho0:
-	     rho2= (1-rho_mask) * rho0 
+            rho2 = rho_mask * rho_at_depth + (1-rho_mask) * rho0
+        elif rho0:
+            rho2 = (1-rho_mask) * rho0 
         else:
-	     rho2=0.
-	     
+            rho2 = 0.
+             
         rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=z0, beta=beta)
         scale_mapping=rho_mapping.getTypicalDerivative()
         #========================
@@ -364,12 +364,12 @@ class MagneticInversion(InversionDriver):
         self.logger.info('Creating mapping ...')
         k_mask = domainbuilder.getSetSusceptibilityMask()
         if k_at_depth:
-	     k2= k_mask *  k_at_depth + (1-k_mask) * k0
-	elif k0:
-	     k2= (1-k_mask) * k0 
-	else:
-	     k2=0
-	     
+             k2= k_mask *  k_at_depth + (1-k_mask) * k0
+        elif k0:
+             k2= (1-k_mask) * k0 
+        else:
+             k2=0
+             
         k_mapping=SusceptibilityMapping(dom, k0=k2, dk=dk, z0=z0, beta=beta)
         scale_mapping=k_mapping.getTypicalDerivative()
         #========================
@@ -493,20 +493,20 @@ class JointGravityMagneticInversion(InversionDriver):
         self.logger.info('Creating mappings ...')
         rho_mask=domainbuilder.getSetDensityMask()
         if rho_at_depth:
-	     rho2= rho_mask *  rho_at_depth + (1-rho_mask) * rho0
-	elif rho0:
-	     rho2= (1-rho_mask) * rho0 
-	else:
-	     rho2=0
+             rho2= rho_mask *  rho_at_depth + (1-rho_mask) * rho0
+        elif rho0:
+             rho2= (1-rho_mask) * rho0 
+        else:
+             rho2=0
         
         k_mask = domainbuilder.getSetSusceptibilityMask()
         if k_at_depth:
-	     k2= k_mask *  k_at_depth + (1-k_mask) * k0
-	elif k0:
-	     k2= (1-k_mask) * k0 
-	else:
-	     k2=0
-	     
+             k2= k_mask *  k_at_depth + (1-k_mask) * k0
+        elif k0:
+             k2= (1-k_mask) * k0 
+        else:
+             k2=0
+             
         rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=rho_z0, beta=rho_beta)
         rho_scale_mapping=rho_mapping.getTypicalDerivative()
         self.logger.debug("rho_scale_mapping = %s"%rho_scale_mapping)
