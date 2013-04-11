@@ -16,10 +16,10 @@
 #ifndef __RIPLEY_RIPLEY_H__
 #define __RIPLEY_RIPLEY_H__
 
-/************************************************************************************ 
- *  Ripley is a FE domain library with hexagonal/rectangular
+/*****************************************************************************
+ *  Ripley is a FE domain library with regular hexagonal/rectangular
  *  elements
- ************************************************************************************/
+ ****************************************************************************/
 
 #include <ripley/system_dep.h>
 

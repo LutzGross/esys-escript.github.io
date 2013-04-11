@@ -27,34 +27,6 @@ using namespace boost::python;
 
 namespace ripley {
 
-void writeBinaryGrid(std::string filename, const escript::Data& d,
-        const char byteorder, const char datatype, const char datasize)
-{
-    const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(d.getDomain().get());
-    if (!dom)
-        throw RipleyException("Function space must be on a ripley domain");
-
-    if (datatype != 'f')
-        throw RipleyException("only float data supported");
-
-    if (datasize != '4')
-        throw RipleyException("only single-precision data supported");
-
-    switch (byteorder) {
-        case '=':
-            dom->writeBinaryGrid(d, filename, RIPLEY_BYTE_ORDER);
-            break;
-        case '<':
-            dom->writeBinaryGrid(d, filename, RIPLEY_LITTLE_ENDIAN);
-            break;
-        case '>':
-            dom->writeBinaryGrid(d, filename, RIPLEY_BIG_ENDIAN);
-            break;
-        default:
-            throw RipleyException("unrecognized byte order argument");
-    }
-}
-
 escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
         const object& pyFirst, const object& pyNum, const object& pyMultiplier,
         const object& pyShape, double fill=0.)
@@ -248,7 +220,7 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
 }
 std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
-} // end of namespace
+} // end of namespace ripley
 
 
 BOOST_PYTHON_MODULE(ripleycpp)
@@ -262,6 +234,12 @@ BOOST_PYTHON_MODULE(ripleycpp)
     register_exception_translator<ripley::RipleyException>(&(esysUtils::esysExceptionTranslator));
 
     scope().attr("__doc__") = "To use this module, please import esys.ripley";
+    scope().attr("BYTEORDER_NATIVE") = (int)ripley::BYTEORDER_NATIVE;
+    scope().attr("BYTEORDER_LITTLE_ENDIAN") = (int)ripley::BYTEORDER_LITTLE_ENDIAN;
+    scope().attr("BYTEORDER_BIG_ENDIAN") = (int)ripley::BYTEORDER_BIG_ENDIAN;
+    scope().attr("DATATYPE_INT32") = (int)ripley::DATATYPE_INT32;
+    scope().attr("DATATYPE_FLOAT32") = (int)ripley::DATATYPE_FLOAT32;
+    scope().attr("DATATYPE_FLOAT64") = (int)ripley::DATATYPE_FLOAT64;
 
     def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
@@ -289,13 +267,13 @@ BOOST_PYTHON_MODULE(ripleycpp)
 
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
-    def("_writeBinaryGrid", &ripley::writeBinaryGrid);
-
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
         .def("print_mesh_info", &ripley::RipleyDomain::Print_Mesh_Info, (arg("full")=false),
                 "Prints out a summary about the mesh.\n"
                 ":param full: whether to output additional data\n:type full: ``bool``")
+        .def("writeBinaryGrid", &ripley::RipleyDomain::writeBinaryGrid)
+
         .def("dump", &ripley::RipleyDomain::dump, args("filename"),
                 "Dumps the mesh to a file with the given name.")
         .def("getGridParameters", &ripley::RipleyDomain::getGridParameters,

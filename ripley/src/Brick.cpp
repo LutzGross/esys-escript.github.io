@@ -479,7 +479,29 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
     f.close();
 }
 
-void Brick::writeBinaryGrid(const escript::Data& in, string filename, int byteOrder) const
+void Brick::writeBinaryGrid(const escript::Data& in, string filename,
+                            int byteOrder, int dataType) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (dataType) {
+        case DATATYPE_INT32:
+            writeBinaryGridImpl<int>(in, filename, byteOrder);
+            break;
+        case DATATYPE_FLOAT32:
+            writeBinaryGridImpl<float>(in, filename, byteOrder);
+            break;
+        case DATATYPE_FLOAT64:
+            writeBinaryGridImpl<double>(in, filename, byteOrder);
+            break;
+        default:
+            throw RipleyException("writeBinaryGrid(): invalid or unsupported datatype");
+    }
+}
+
+template<typename ValueType>
+void Brick::writeBinaryGridImpl(const escript::Data& in,
+                                const string& filename, int byteOrder) const
 {
     // check function space and determine number of points
     int myN0, myN1, myN2;
@@ -504,7 +526,7 @@ void Brick::writeBinaryGrid(const escript::Data& in, string filename, int byteOr
 
     const int numComp = in.getDataPointSize();
     const int dpp = in.getNumDataPointsPerSample();
-    const int fileSize = sizeof(float)*numComp*dpp*totalN0*totalN1*totalN2;
+    const int fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1*totalN2;
 
     if (numComp > 1 || dpp > 1)
         throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
@@ -519,17 +541,17 @@ void Brick::writeBinaryGrid(const escript::Data& in, string filename, int byteOr
     for (index_t z=0; z<myN2; z++) {
         for (index_t y=0; y<myN1; y++) {
             const int fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
-                                +(m_offset[2]+z)*totalN0*totalN1)*sizeof(float);
+                                +(m_offset[2]+z)*totalN0*totalN1)*sizeof(ValueType);
             ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {
                 const double* sample = _in->getSampleDataRO(z*myN0*myN1+y*myN0+x);
-                float fvalue = (float)(*sample);
-                if (byteOrder == RIPLEY_BYTE_ORDER) {
+                ValueType fvalue = static_cast<ValueType>(*sample);
+                if (byteOrder == BYTEORDER_NATIVE) {
                     oss.write((char*)&fvalue, sizeof(fvalue));
                 } else {
                     char* value = reinterpret_cast<char*>(&fvalue);
-                    oss.write(RIPLEY_BYTE_SWAP32(value), sizeof(fvalue));
+                    oss.write(byte_swap32(value), sizeof(fvalue));
                 }
             }
             fw->writeAt(oss, fileofs);

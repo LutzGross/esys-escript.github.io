@@ -554,7 +554,8 @@ public:
     /**
     */
     virtual void writeBinaryGrid(const escript::Data& in,
-                                 std::string filename, int byteOrder) const = 0;
+                                 std::string filename,
+                                 int byteOrder, int dataType) const = 0;
 
     /**
        \brief

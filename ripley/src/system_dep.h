@@ -28,7 +28,7 @@
  */
 #   include <mathimf.h>
 #else
-#   include <math.h>
+#   include <cmath>
 #endif
 
 #define RIPLEY_DLL_API
@@ -48,13 +48,24 @@
 // byte swapping / endianness:
 
 #include <boost/detail/endian.hpp>
-#define RIPLEY_BYTE_ORDER BOOST_BYTE_ORDER
-#define RIPLEY_LITTLE_ENDIAN 1234
-#define RIPLEY_BIG_ENDIAN 4321
+
+namespace ripley {
+
+enum {
+    BYTEORDER_NATIVE = BOOST_BYTE_ORDER,
+    BYTEORDER_LITTLE_ENDIAN = 1234,
+    BYTEORDER_BIG_ENDIAN = 4321
+};
+
+enum {
+    DATATYPE_INT32 = 1,
+    DATATYPE_FLOAT32,
+    DATATYPE_FLOAT64
+};
 
 #ifdef _WIN32
 #include <stdlib.h>
-inline char* RIPLEY_BYTE_SWAP32(char* val)
+inline char* byte_swap32(char* val)
 {
     unsigned long* v = reinterpret_cast<unsigned long*>(val);
     *v = _byteswap_ulong(*v);
@@ -74,13 +85,16 @@ inline char* RIPLEY_BYTE_SWAP32(char* val)
 #   define bswap_32(D) D
 #endif // header selection
 
-inline char* RIPLEY_BYTE_SWAP32(char* val)
+inline char* byte_swap32(char* val)
 {
     unsigned int* v = reinterpret_cast<unsigned int*>(val);
     *v = bswap_32(*v);
     return val;
 }
 #endif // WIN32
+
+} // namespace ripley
+
 
 #endif // __RIPLEY_SYSTEM_DEP_H__
 
