@@ -175,7 +175,8 @@ def saveVoxet(filename, **data):
 
     from esys.escript import ReducedFunction
     from esys.escript.util import interpolate
-    from esys.ripley.ripleycpp import _writeBinaryGrid
+    from esys.ripley.ripleycpp import DATATYPE_FLOAT32, BYTEORDER_BIG_ENDIAN
+
     new_data={}
     domain=None
     for n,d in list(data.items()):
@@ -210,6 +211,7 @@ def saveVoxet(filename, **data):
         spacing=spacing+(1.,)
         NE=NE+(1,)
         midpoint=midpoint+(0,)
+        axis_max=axis_max+(0,)
 
     mainvar=new_data.keys()[0]
     f=open(filename,'w')
@@ -237,7 +239,7 @@ END_ORIGINAL_COORDINATE_SYSTEM\n""")
     for n,d in list(new_data.items()):
         num=num+1
         propfile=fileprefix+n
-        _writeBinaryGrid(propfile, d, '>', 'f', '4')
+        domain.writeBinaryGrid(d, propfile, BYTEORDER_BIG_ENDIAN, DATATYPE_FLOAT32)
         f.write("\nPROPERTY %d %s\n"%(num, n))
         f.write("PROPERTY_SUBCLASS %d QUANTITY Float\n"%num)
         f.write("PROP_ESIZE %d 4\n"%num)

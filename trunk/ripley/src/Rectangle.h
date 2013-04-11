@@ -81,7 +81,8 @@ public:
     /**
     */
     virtual void writeBinaryGrid(const escript::Data& in,
-                                 std::string filename, int byteOrder) const;
+                                 std::string filename,
+                                 int byteOrder, int dataType) const;
 
     /**
        \brief
@@ -218,6 +219,9 @@ private:
     void addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, index_t firstNode, dim_t nEq=1, dim_t nComp=1) const;
+    template<typename ValueType>
+    void writeBinaryGridImpl(const escript::Data& in,
+                             const std::string& filename, int byteOrder) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE[2];
