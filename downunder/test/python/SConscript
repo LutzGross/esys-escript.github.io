@@ -20,6 +20,7 @@ local_env = env.Clone()
 
 # files defining test runs (passing in a release)
 testruns = [ \
+            'run_coordinates.py',\
             'run_datasources.py',\
             'run_domainbuilder.py',\
             'run_mappings.py',\
