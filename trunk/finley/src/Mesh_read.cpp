@@ -643,9 +643,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 				}
 			#endif
 			len = strlen(remainder);
+			// trim the string
 			while ((len>1) && isspace(remainder[--len])) {remainder[len]=0;}
 			len = strlen(remainder);
-			TMPMEMREALLOC(remainder,remainder,len+1,char);
+			// shrink the allocation unit
+			//TMPMEMREALLOC(remainder,remainder,len+1,char);
         } /* Master */
 		#ifdef ESYS_MPI
 
