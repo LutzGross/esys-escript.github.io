@@ -587,7 +587,8 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 		remainder[len] = 0;
 	    }
 	    len = strlen(remainder);
-	    TMPMEMREALLOC(remainder, remainder, len + 1, char);
+	    // shrink the allocation unit
+//	    TMPMEMREALLOC(remainder, remainder, len + 1, char);
 	}			/* Master */
 #ifdef ESYS_MPI
 
