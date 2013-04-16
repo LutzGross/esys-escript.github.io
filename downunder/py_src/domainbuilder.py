@@ -64,7 +64,11 @@ class DomainBuilder(object):
         Adds a survey data provider to the domain builder.
         An exception is raised if the domain has already been built or if the
         UTM zone of `source` does not match the UTM zone of sources already
-        added to the domain builder.
+        added to the domain builder (see Inversion Cookbook for more
+        information). An exception is also raised if the dimensionality of the
+        data source is incompatible with this domain builder. That is, the
+        dimensionality of the data must be one less than the dimensionality
+        of the domain (specified in the constructor).
 
         :param source: The data source to be added
         :type source: `DataSource`
@@ -74,6 +78,9 @@ class DomainBuilder(object):
         if not isinstance(source, DataSource):
             raise TypeError("source is not a DataSource")
 
+        DATA_DIM = len(source.getDataExtents()[0])
+        if DATA_DIM != self.__dim-1:
+            raise ValueError("Data must be %d-dimensional."%(self.__dim-1))
         if len(self.__sources)>0:
             if self.__sources[0].getUtmZone() != source.getUtmZone():
                 raise ValueError("It is not possible to combine data sources located in different UTM zones at the moment.")
@@ -285,16 +292,16 @@ class DomainBuilder(object):
 
     def __getTotalExtentsWithPadding(self):
         """
-        Helper method that computes origin and number of elements
+        Helper method that computes origin and number of data elements
         after adding padding to the bounding box of all available survey data.
         """
         X0, NX, DX = self.__getTotalExtents()
-        DIM=len(X0)
+        DATA_DIM=len(X0)
         frac=[]
         # padding is applied to each side so multiply by 2 to get the total
         # amount of padding per dimension
         pad, pt = self._padding
-        for i in range(DIM):
+        for i in range(DATA_DIM):
             if pad[i] is None:
                 frac.append(0.)
                 continue
@@ -307,9 +314,9 @@ class DomainBuilder(object):
                 frac.append(2.*f/float(NX[i]))
 
         # calculate new number of elements
-        NX_padded=[int(round(NX[i]*(1+frac[i]))) for i in range(DIM)]
-        NXdiff=[NX_padded[i]-NX[i] for i in range(DIM)]
-        X0_padded=[X0[i]-NXdiff[i]/2.*DX[i] for i in range(DIM)]
+        NX_padded=[int(round(NX[i]*(1+frac[i]))) for i in range(DATA_DIM)]
+        NXdiff=[NX_padded[i]-NX[i] for i in range(DATA_DIM)]
+        X0_padded=[X0[i]-NXdiff[i]/2.*DX[i] for i in range(DATA_DIM)]
         return X0_padded, NX_padded, DX
 
     def __getTotalExtents(self):
