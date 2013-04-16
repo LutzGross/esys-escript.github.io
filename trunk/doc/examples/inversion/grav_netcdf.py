@@ -60,6 +60,7 @@ def work():
   print("density = %s"%density)
 
   g, w =  db.getGravitySurveys()[0]
+  saveVoxet("result.vo", density=density)
   saveSilo("result_gravity.silo", density=density, gravity_anomaly=g, gravity_weight=w)
   print("Results saved in result_gravity.silo")
 

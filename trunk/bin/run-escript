@@ -7,7 +7,7 @@
 #Search for EXTRA_PATH=""
 
 #set to 1 if performing this is a standalone build and ../../pkg contains the relevant tools
-STANDALONE=1
+STANDALONE=0
 
 #set to 1 if this is part of a packaged build (.deb) and files will be installed in standard locations
 #rather than everything in a single directory

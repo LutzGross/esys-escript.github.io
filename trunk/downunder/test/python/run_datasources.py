@@ -53,12 +53,120 @@ NC_REF = os.path.join(TEST_DATA_ROOT, 'netcdf_test.csv')
 NC_NULL = 0.
 NC_SIZE = [20,15]
 NC_ORIGIN = [403320.91466610413, 6414860.942530109]
+NUMPY_NULL = -123.4
 VMIN=-10000.
-VMAX=10000
+VMAX=10000.
 NE_V=15
 ALT=0.
 PAD_X=3
 PAD_Y=2
+
+class TestNumpyData(unittest.TestCase):
+    def test_numpy_argument_check(self):
+        # invalid data type
+        self.assertRaises(ValueError, NumpyData, '_mydatatype_', [1,2])
+        # invalid shape of data
+        self.assertRaises(ValueError, NumpyData, DataSource.GRAVITY, 42)
+        # invalid shape of data
+        self.assertRaises(ValueError, NumpyData, DataSource.GRAVITY, np.zeros((2,2,2,2)))
+        # invalid shape of error
+        self.assertRaises(ValueError, NumpyData, DataSource.GRAVITY, [1,2], [1,2,3])
+        # invalid shape of length
+        self.assertRaises(ValueError, NumpyData, DataSource.GRAVITY, [1,2], [1,2], [2,3,2])
+
+    def test_numpy_data_1d(self):
+        DIM=1
+        testdata = np.arange(20)
+        error = 1.*np.ones(testdata.shape)
+        source = NumpyData(DataSource.GRAVITY, testdata, null_value=NUMPY_NULL)
+        X0,NP,DX=source.getDataExtents()
+        for i in range(DIM):
+            self.assertAlmostEqual(X0[i], 0., msg="Data origin wrong")
+            self.assertEqual(NP[i], testdata.shape[DIM-i-1], msg="Wrong number of data points")
+            self.assertAlmostEqual(DX[i], 1000./testdata.shape[DIM-i-1], msg="Wrong cell size")
+
+        domainbuilder=DomainBuilder(dim=2)
+        domainbuilder.addSource(source)
+        domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
+        domainbuilder.setElementPadding(PAD_X)
+        dom=domainbuilder.getDomain()
+        g,s=domainbuilder.getGravitySurveys()[0]
+
+        outfn=os.path.join(WORKDIR, '_npdata1d.csv')
+        saveDataCSV(outfn, g=g, s=s)
+
+        DV=(VMAX-VMIN)/NE_V
+
+        # check data
+        nx=NP[0]+2*PAD_X
+        nz=NE_V
+        z_data=int(np.round((ALT-VMIN)/DV)-1)
+
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        # recompute nz since ripley might have adjusted number of elements
+        nz=len(out)/nx
+        g_out=out[:,0].reshape(nz,nx)
+        s_out=out[:,1].reshape(nz,nx)
+        self.assertAlmostEqual(np.abs(
+            g_out[z_data, PAD_X:PAD_X+NP[0]]-testdata).max(),
+            0., msg="Difference in gravity data area")
+
+        self.assertAlmostEqual(np.abs(
+            s_out[z_data, PAD_X:PAD_X+NP[0]]-error).max(),
+            0., msg="Difference in error data area")
+
+        # overwrite data -> should only be padding value left
+        g_out[z_data, PAD_X:PAD_X+NP[0]]=NUMPY_NULL
+        self.assertAlmostEqual(np.abs(g_out-NUMPY_NULL).max(), 0.,
+                msg="Wrong values in padding area")
+
+    def test_numpy_data_2d(self):
+        DIM=2
+        testdata = np.arange(20*21).reshape(20,21)
+        error = 1.*np.ones(testdata.shape)
+        source = NumpyData(DataSource.GRAVITY, testdata, null_value=NUMPY_NULL)
+        X0,NP,DX=source.getDataExtents()
+        for i in range(DIM):
+            self.assertAlmostEqual(X0[i], 0., msg="Data origin wrong")
+            self.assertEqual(NP[i], testdata.shape[DIM-i-1], msg="Wrong number of data points")
+            self.assertAlmostEqual(DX[i], 1000./testdata.shape[DIM-i-1], msg="Wrong cell size")
+
+        domainbuilder=DomainBuilder(dim=3)
+        domainbuilder.addSource(source)
+        domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
+        domainbuilder.setElementPadding(PAD_X, PAD_Y)
+        dom=domainbuilder.getDomain()
+        g,s=domainbuilder.getGravitySurveys()[0]
+
+        outfn=os.path.join(WORKDIR, '_npdata2d.csv')
+        saveDataCSV(outfn, g=g, s=s)
+
+        DV=(VMAX-VMIN)/NE_V
+
+        # check data
+        nx=NP[0]+2*PAD_X
+        ny=NP[1]+2*PAD_Y
+        nz=NE_V
+        z_data=int(np.round((ALT-VMIN)/DV)-1)
+
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        # recompute nz since ripley might have adjusted number of elements
+        nz=len(out)/(nx*ny)
+        g_out=out[:,0].reshape(nz,ny,nx)
+        s_out=out[:,1].reshape(nz,ny,nx)
+        self.assertAlmostEqual(np.abs(
+            g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]-testdata).max(),
+            0., msg="Difference in gravity data area")
+
+        self.assertAlmostEqual(np.abs(
+            s_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]-error).max(),
+            0., msg="Difference in error data area")
+
+        # overwrite data -> should only be padding value left
+        g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=NUMPY_NULL
+        self.assertAlmostEqual(np.abs(g_out-NUMPY_NULL).max(), 0.,
+                msg="Wrong values in padding area")
+
 
 class TestErMapperData(unittest.TestCase):
     def test_ers_with_padding(self):
@@ -173,6 +281,7 @@ class TestNetCdfData(unittest.TestCase):
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     if getMPISizeWorld()==1:
+        suite.addTest(unittest.makeSuite(TestNumpyData))
         try:
           import pyproj
           haveproj=True

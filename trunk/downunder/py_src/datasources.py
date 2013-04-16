@@ -22,12 +22,13 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['DataSource', 'ErMapperData', \
+__all__ = ['DataSource', 'ErMapperData', 'NumpyData',\
         'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
         'SmoothAnomaly']
 
 import logging
 import numpy as np
+import tempfile
 from esys.escript import ReducedFunction
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
@@ -974,4 +975,103 @@ class SyntheticData(SyntheticDataBase):
                k*= sin(self.__n_length*np.pi*(x_i-min_x-self.__s)/(max_x-min_x))
             self._reference_data= k
         return self._reference_data
+
+##############################################################################
+class NumpyData(DataSource):
+    """
+    """
+
+    def __init__(self, data_type, data, error=1., length=1.*U.km, null_value=-1.):
+        """
+        A data source that uses survey data from a ``numpy`` object or list
+        instead of a file.
+        The dimensionality is inferred from the shape of ``data`` (1- and
+        2-dimensional data is supported). The data origin is assumed to be
+        at the coordinate origin.
+
+        :param data_type: data type indicator
+        :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
+        :param data: the survey data array. Note that for a cartesian coordinate
+                     system the shape of the data is considered to be
+                     (nz,ny,nx).
+        :type data: ``numpy.array`` or ``list``
+        :param error: constant value to use for the data uncertainties or a
+                      numpy object with uncertainties for every data point.
+        :type error: ``float`` or ``list`` or ``ndarray``
+        :param length: side length(s) of the data slice/volume. This can be
+                       a scalar to indicate constant length in all dimensions
+                       or an array/list of values in each coordinate dimension.
+        :type length: ``float`` or ``list`` or ``ndarray``
+        :param null_value: value that is used in the undefined regions of the
+                           survey data object.
+        :type null_value: ``float``
+        """
+        super(NumpyData, self).__init__()
+        if not data_type in [self.GRAVITY, self.MAGNETIC]:
+            raise ValueError("Invalid value for data_type parameter")
+        self.__data_type = data_type
+        self.__data = np.asarray(data, dtype=np.float32)
+        DIM = len(self.__data.shape)
+        if DIM not in (1,2):
+            raise ValueError("NumpyData requires 1- or 2-dimensional data")
+        self.__error = np.asarray(error, dtype=np.float32)
+        if len(self.__error.shape) > 0 and \
+                self.__error.shape != self.__data.shape:
+            raise ValueError("error argument must be scalar or match the shape of the data")
+        if isinstance(length,float) or isinstance(length,int):
+            length = [float(length)] * DIM
+        else:
+            length=np.asarray(length, dtype=float)
+            if len(length.shape) != 1 or length.shape[0] != DIM:
+                raise ValueError("length must be scalar or an array with %d values"%DIM)
+            length=length.tolist()
+
+        self.__null_value = null_value
+        self.__nPts = list(reversed(self.__data.shape))
+        self.__delta = [length[i]/self.__nPts[i] for i in range(DIM)]
+        self.__origin = [0.] * DIM # this could be an optional argument
+
+    def getDataExtents(self):
+        return (self.__origin, self.__nPts, self.__delta)
+
+    def getDataType(self):
+        return self.__data_type
+
+    def getSurveyData(self, domain, origin, NE, spacing):
+        FS = ReducedFunction(domain)
+        nValues = self.__nPts
+        dataDIM = len(nValues)
+        # determine base location of this dataset within the domain
+        first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(dataDIM)]
+        # determine the resolution difference between domain and data.
+        # If domain has twice the resolution we can double up the data etc.
+        multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(dataDIM)]
+        if domain.getDim() > dataDIM:
+            first.append(int((-origin[-1])/spacing[-1]))
+            multiplier=multiplier+[1]
+            nValues=nValues+[1]
+
+        _handle, numpyfile = tempfile.mkstemp()
+        os.close(_handle)
+        self.__data.tofile(numpyfile)
+
+        data = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
+                                         multiplier, (), self.__null_value)
+        if len(self.__error.shape) > 0:
+            self.__error.tofile(numpyfile)
+            sigma = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
+                                             multiplier, (), 0.)
+        else:
+            sigma = self.__error.item() * whereNonZero(data-self.__null_value)
+
+        os.unlink(numpyfile)
+
+        return data, sigma
+
+    def getUtmZone(self):
+        """
+        returns a dummy UTM zone since this class does not use real coordinate
+        values.
+        """
+        return 0
 
