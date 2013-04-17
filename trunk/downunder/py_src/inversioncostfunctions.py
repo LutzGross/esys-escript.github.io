@@ -366,6 +366,49 @@ class InversionCostFunction(MeteredCostFunction):
 
         return J
 
+    def getComponentValues(self, m, *args):
+        return self._getComponentValues(m, *args)
+
+    def _getComponentValues(self, m, *args):
+        """
+        returns the values of the individual cost functions that make up *f(x)* 
+        using the precalculated values for *x*.
+
+        :param x: a solution approximation
+        :type x: x-type
+        :rtype: ``list<<float>>``
+        """
+        if len(args)==0:
+            args=self.getArguments(m)
+
+        props=args[0]
+        args_f=args[1]
+        args_reg=args[2]
+
+        J_reg = self.regularization.getValue(m, *args_reg)
+        result = [J_reg]
+
+        for i in range(self.numModels):
+            f=self.forward_models[i]
+            if isinstance(f, ForwardModel):
+                J_f = f.getValue(props[0],*args_f[i])
+            elif len(f) == 1:
+                J_f=f[0].getValue(props[0],*args_f[i])
+            else:
+                idx = f[1]
+                f=f[0]
+                if isinstance(idx, int):
+                    J_f = f.getValue(props[idx],*args_f[i])
+                else:
+                    args=tuple( [ props[j] for j in idx] + args_f[i])
+                    J_f = f.getValue(*args)
+            self.logger.debug("J_f[%d] = %e"%(i, J_f))
+            self.logger.debug("mu_model[%d] = %e"%(i, self.mu_model[i]))
+
+            result += [J_f] # self.mu_model[i] * ?? 
+
+        return result
+
     def _getGradient(self, m, *args):
         """
         returns the gradient of the cost function at *m*.
