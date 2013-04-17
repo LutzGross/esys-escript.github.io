@@ -63,14 +63,18 @@ enum {
     DATATYPE_FLOAT64
 };
 
+} // namespace
+
 #ifdef _WIN32
 #include <stdlib.h>
+namespace ripley {
 inline char* byte_swap32(char* val)
 {
     unsigned long* v = reinterpret_cast<unsigned long*>(val);
     *v = _byteswap_ulong(*v);
     return val;
 }
+} // namespace
 
 #else
 
@@ -85,15 +89,16 @@ inline char* byte_swap32(char* val)
 #   define bswap_32(D) D
 #endif // header selection
 
+namespace ripley {
 inline char* byte_swap32(char* val)
 {
     unsigned int* v = reinterpret_cast<unsigned int*>(val);
     *v = bswap_32(*v);
     return val;
 }
-#endif // WIN32
-
 } // namespace ripley
+
+#endif // WIN32
 
 
 #endif // __RIPLEY_SYSTEM_DEP_H__
