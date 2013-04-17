@@ -128,6 +128,7 @@ class TestNumpyData(unittest.TestCase):
         self.assertAlmostEqual(np.abs(g_out-NUMPY_NULL).max(), 0.,
                 msg="Wrong values in padding area")
 
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_numpy_data_2d(self):
         DIM=2
         testdata = np.arange(20*21).reshape(20,21)
@@ -178,6 +179,7 @@ class TestNumpyData(unittest.TestCase):
 
 @unittest.skipIf(not haveProj, 'pyproj not available')
 class TestErMapperData(unittest.TestCase):
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_ers_with_padding(self):
         source = ErMapperData(DataSource.GRAVITY, headerfile=ERS_DATA, 
                               altitude=ALT)
@@ -234,6 +236,7 @@ class TestErMapperData(unittest.TestCase):
 
 @unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestNetCdfData(unittest.TestCase):
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_cdf_with_padding(self):
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT)
         domainbuilder=DomainBuilder()
