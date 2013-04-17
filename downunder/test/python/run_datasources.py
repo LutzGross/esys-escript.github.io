@@ -29,6 +29,13 @@ from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
 
+try:
+    import pyproj
+    haveProj=True
+except ImportError:
+    haveProj=False
+mpisize = getMPISizeWorld()
+
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
@@ -74,6 +81,7 @@ class TestNumpyData(unittest.TestCase):
         # invalid shape of length
         self.assertRaises(ValueError, NumpyData, DataSource.GRAVITY, [1,2], [1,2], [2,3,2])
 
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_numpy_data_1d(self):
         DIM=1
         testdata = np.arange(20)
@@ -168,6 +176,7 @@ class TestNumpyData(unittest.TestCase):
                 msg="Wrong values in padding area")
 
 
+@unittest.skipIf(not haveProj, 'pyproj not available')
 class TestErMapperData(unittest.TestCase):
     def test_ers_with_padding(self):
         source = ErMapperData(DataSource.GRAVITY, headerfile=ERS_DATA, 
@@ -223,6 +232,7 @@ class TestErMapperData(unittest.TestCase):
         self.assertAlmostEqual(np.abs(g_out-ERS_NULL).max(), 0.,
                 msg="Wrong values in padding area")
 
+@unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestNetCdfData(unittest.TestCase):
     def test_cdf_with_padding(self):
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT)
@@ -280,21 +290,9 @@ class TestNetCdfData(unittest.TestCase):
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    if getMPISizeWorld()==1:
-        suite.addTest(unittest.makeSuite(TestNumpyData))
-        try:
-          import pyproj
-          haveproj=True
-        except ImportError:
-          haveproj=False
-        if haveproj:
-          suite.addTest(unittest.makeSuite(TestErMapperData))
-        if 'NetCdfData' in dir():
-            suite.addTest(unittest.makeSuite(TestNetCdfData))
-        else:
-            print("Skipping netCDF data source test since netCDF is not installed")
-    else:
-        print("Skipping data source tests since MPI size > 1")
+    suite.addTest(unittest.makeSuite(TestNumpyData))
+    suite.addTest(unittest.makeSuite(TestErMapperData))
+    suite.addTest(unittest.makeSuite(TestNetCdfData))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 
