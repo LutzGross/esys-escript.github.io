@@ -337,7 +337,7 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
                     const int dataIndex = baseIndex+m0+m1*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
                     for (index_t c=0; c<numComp; c++) {
-                        if (!::isnan(values[x*numComp+c])) {
+                        if (!std::isnan(values[x*numComp+c])) {
                             for (index_t q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(values[x*numComp+c]);
                             }
