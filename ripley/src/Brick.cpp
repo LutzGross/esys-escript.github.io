@@ -463,7 +463,7 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
                                            +m2*myN0*myN1;
                             double* dest = out.getSampleDataRW(dataIndex);
                             for (index_t c=0; c<numComp; c++) {
-                                if (!::isnan(values[x*numComp+c])) {
+                                if (!std::isnan(values[x*numComp+c])) {
                                     for (index_t q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(values[x*numComp+c]);
                                     }
