@@ -110,3 +110,4 @@ LapackInverseHelper::invert(double* matrix)
 	return SUCCESS;
 #endif
 }
+
