@@ -82,6 +82,9 @@ inline char* byte_swap32(char* val)
 #   include <byteswap.h>
 #elif HAVE_SYS_ENDIAN_H
 #   include <sys/endian.h>
+#   ifdef bswap32
+#     define bswap_32(D) bswap32((D))    
+#   endif
 #elif HAVE_OSBYTEORDER_H
 #   include <libkern/OSByteOrder.h>
 #   define bswap_32 OSSwapInt32

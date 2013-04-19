@@ -102,3 +102,4 @@ void Paso_SparseMatrix_copyToMainDiagonal(Paso_SparseMatrix * A_p, const double*
    }
 
 }
+
