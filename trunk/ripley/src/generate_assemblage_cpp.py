@@ -30,13 +30,13 @@ q0 = 1/sqrt(RealNumber(3))
 qD1 = [ (1-q0)/2,  (1+q0)/2 ]
 wD1 = [RealNumber(1)/2, RealNumber(1)/2 ]
 
-qD1_r = [ RealNumber(1)/2 ]
-wD1_r = [ RealNumber(1) ]
+##qD1_r = [ RealNumber(1)/2 ]
+##wD1_r = [ RealNumber(1) ]
 
 print("1D quadrature nodes = %s"%qD1)
 print("1D quadrature weights = %s"%wD1)
-print("1D reduced quadrature nodes = %s"%qD1_r)
-print("1D reduced quadrature weights = %s"%wD1_r)
+##print("1D reduced quadrature nodes = %s"%qD1_r)
+##print("1D reduced quadrature weights = %s"%wD1_r)
 
 def generateAll(DIM, filename):
    # variables
@@ -47,10 +47,6 @@ def generateAll(DIM, filename):
    GridOffset=[[]]
    GridOffsetText=[""]
    idx_full=[]
-   Q = [[]]
-   W = [1]
-   Q_r = [[]]
-   W_r = [1]
    for i in range(DIM):
        idx_full.append(i)
        S = [ s * (1-x[i]/h[i])  for s in S] + [ s * x[i]/h[i]  for s in S]
@@ -58,29 +54,28 @@ def generateAll(DIM, filename):
        GridOffsetText = [ s + "0"  for s in GridOffsetText] + [ s + "1"  for s in GridOffsetText]
 
        # generate quadrature points in element
-       Qnew, Wnew =[], []
+       Qnew, Wnew = [], []
        for j in range(len(qD1)):
               Qnew += [ q + [qD1[j]*h[i],] for q in Q ]
               Wnew += [ w * wD1[j]*h[i] for w in W ]
        Q, W=Qnew, Wnew
 
-       Qnew, Wnew =[], []
-       for j in range(len(qD1_r)):
-               Qnew += [ q + [qD1_r[j]*h[i],] for q in Q_r ]
-               Wnew += [ w * wD1_r[j]*h[i] for w in W_r ]
-       Q_r, W_r=Qnew, Wnew
+       # reduced parts are hand-optimized
+       ##Qnew, Wnew = [], []
+       ##for j in range(len(qD1_r)):
+       ##        Qnew += [ q + [qD1_r[j]*h[i],] for q in Q_r ]
+       ##        Wnew += [ w * wD1_r[j]*h[i] for w in W_r ]
+       ##Q_r, W_r=Qnew, Wnew
 
    # now the same thing for the faces:
    Q_faces=[]
    W_faces=[]
-   Q_r_faces=[]
-   W_r_faces=[]
+   ##Q_r_faces=[]
+   ##W_r_faces=[]
    idx_faces=[]
    for face in range(DIM):
        Q_left, W_left = [ [] ], [ 1 ]
-       Q_left_r, W_left_r = [ [] ], [ 1 ]
        Q_right, W_right = [ [] ], [ 1 ]
-       Q_right_r, W_right_r = [ [] ], [ 1 ]
        idx_left,idx_right=[],[]
        for i in range(DIM):
           # generate quadrature points in element
@@ -108,74 +103,53 @@ def generateAll(DIM, filename):
        W_faces=W_faces+[W_left, W_right]
        idx_faces=idx_faces + [ idx_left, idx_right ]
 
-       Q_left, W_left = [ [] ], [ 1 ]
-       Q_left_r, W_left_r = [ [] ], [ 1 ]
-       Q_right, W_right = [ [] ], [ 1 ]
-       Q_right_r, W_right_r = [ [] ], [ 1 ]
-       for i in range(DIM):
-          # generate quadrature points in element
-          Q_left_new, W_left_new =[], []
-          Q_right_new, W_right_new =[], []
-          if face == i :
-             Q_left_new += [ q + [0.,] for q in Q_left ]
-             W_left_new += [ w * 1. for w in W_left ]
-             Q_right_new += [ q + [ h[i], ] for q in Q_right ]
-             W_right_new += [ w * 1. for w in W_right ]
-          else:
-             for j in range(len(qD1_r)):
-                 Q_left_new += [ q + [qD1_r[j]*h[i],] for q in Q_left ]
-                 W_left_new += [ w * wD1_r[j]*h[i] for w in W_left ]
-                 Q_right_new += [ q + [qD1_r[j]*h[i],] for q in Q_right ]
-                 W_right_new += [ w * wD1_r[j]*h[i] for w in W_right ]
-          Q_left, W_left=Q_left_new, W_left_new
-          Q_right, W_right=Q_right_new, W_right_new
-       Q_r_faces=Q_r_faces+[Q_left, Q_right]
-       W_r_faces=W_r_faces+[W_left, W_right]
+       ##Q_left, W_left = [ [] ], [ 1 ]
+       ##Q_right, W_right = [ [] ], [ 1 ]
+       ##for i in range(DIM):
+       ##   # generate quadrature points in element
+       ##   Q_left_new, W_left_new =[], []
+       ##   Q_right_new, W_right_new =[], []
+       ##   if face == i :
+       ##      Q_left_new += [ q + [0.,] for q in Q_left ]
+       ##      W_left_new += [ w * 1. for w in W_left ]
+       ##      Q_right_new += [ q + [ h[i], ] for q in Q_right ]
+       ##      W_right_new += [ w * 1. for w in W_right ]
+       ##   else:
+       ##      for j in range(len(qD1_r)):
+       ##          Q_left_new += [ q + [qD1_r[j]*h[i],] for q in Q_left ]
+       ##          W_left_new += [ w * wD1_r[j]*h[i] for w in W_left ]
+       ##          Q_right_new += [ q + [qD1_r[j]*h[i],] for q in Q_right ]
+       ##          W_right_new += [ w * wD1_r[j]*h[i] for w in W_right ]
+       ##   Q_left, W_left=Q_left_new, W_left_new
+       ##   Q_right, W_right=Q_right_new, W_right_new
+       ##Q_r_faces=Q_r_faces+[Q_left, Q_right]
+       ##W_r_faces=W_r_faces+[W_left, W_right]
 
    #generate PDE assemblage
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
    insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
-   #CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
-   #insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
    CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
    insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
-   #CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=True)
-   #insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
+
+   ##CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
+   ##insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
+   ##CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=True)
+   ##insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
 
    #generate PDEBoundary assemblage
    #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
    #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
-   #CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
-   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM_REDUCED", CODE))
    #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
    #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE", CODE ))
-   #CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=False)
-   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE_REDUCED", CODE))
-
-   # integration to Quad points
-   #CODE="\nif (out_data_type==RIPLEY_ELEMENTS) {\n"
-   #CODE+=createIntegrationCode(Q, W, loopindex=idx_full)
-   #CODE+="} else if (out_data_type==RIPLEY_REDUCED_ELEMENTS) {\n"
-   #CODE+=createIntegrationCode(Q_r, W_r, loopindex=idx_full)
-   #CODE+="} else if (out_data_type==RIPLEY_BOUNDARY_ELEMENTS) {\n"
-   #for i in range(len(Q_faces)):
-   #     CODE+="if (face_offset(%s)>-1) {\n"%i
-   #     CODE+=createIntegrationCode(Q_faces[i], W_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
-   #     CODE+="\n} /* end of face %s */\n"%i
-   #CODE+="} else if (out_data_type==RIPLEY_REDUCED_BOUNDARY_ELEMENTS) {\n"
-   #for i in range(len(Q_r_faces)):
-   #     CODE+="if (face_offset(%s)>-1) {\n"%i
-   #     CODE+=createIntegrationCode(Q_r_faces[i], W_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
-   #     CODE+="\n} /* end of face %s */\n"%i
-   #CODE+="\n} /* end of out_data_type branching */\n"
-   #insertCode("Assemble_Integration_%sD.c"%DIM, { "SNIP" : CODE})
-   #1/0
+   ##CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
+   ##insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM_REDUCED", CODE))
+   ##CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=False)
+   ##insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_REDUCED_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE_REDUCED", CODE))
 
    # interpolation to Quad points
-   f_interpolation = 0
-   for i in range(len(GridOffsetText)):
-     f_interpolation = f_interpolation + S[i] * Symbol("f_%s"%GridOffsetText[i])
-
+   #f_interpolation = 0
+   #for i in range(len(GridOffsetText)):
+   #  f_interpolation=f_interpolation + S[i] * Symbol("f_%s"%GridOffsetText[i])
    #CODE=createInterpolationCode(f_interpolation, x, Q, loopindex=idx_full)
    #insertCode(filename, { "SNIP_INTERPOLATE_ELEMENTS" : CODE})
    #CODE=createInterpolationCode(f_interpolation, x, Q_r, loopindex=idx_full)
@@ -970,49 +944,6 @@ def createInterpolationCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
    for i in range(DIM):
            if loopindex[i]>-1 : TXT+="} /* end of k%i loop */\n"%loopindex[i]
    TXT+="} /* end of parallel section */\n"
-   return TXT
-
-def createIntegrationCode(Q, W, gridoffset="", loopindex=(0,1,2)):
-   DIM=len(loopindex)
-   CONST_COEFFS={}
-   LOCAL_TMP_E={}
-   TXT_E=""
-   for q in range(len(W)):
-        if not CONST_COEFFS.has_key(W[q]):
-             CONST_COEFFS[W[q]]=Symbol("w_%s"%len(CONST_COEFFS))
-        A=Symbol("f_%s"%q)
-        TXT_E+="const double %s = in[INDEX3(i,%s,e, NCOMP,%s)];\n"%(A,q,len(W))
-        if not LOCAL_TMP_E.has_key(CONST_COEFFS[W[q]]):
-             LOCAL_TMP_E[CONST_COEFFS[W[q]]]=0
-        LOCAL_TMP_E[CONST_COEFFS[W[q]]]=LOCAL_TMP_E[CONST_COEFFS[W[q]]]+A
-   for p in LOCAL_TMP_E.keys():
-        TXT_E+="const double %s = %s;\n"%( p, ccode(LOCAL_TMP_E[p]))
-   print TXT_E
-   print CONST_COEFFS
-   return ""
-   1/0
-   #=================
-
-   k3=""
-   for i in range(DIM-1,-1,-1):
-          if loopindex[i] > -1: k3+=",k%i"%loopindex[i]
-   TXT=""
-   for a,v in  consts.items():
-      TXT+="const double %s = %s;\n"%(ccode(a), ccode(v.evalf(n=DIGITS)))
-   TXT+="#pragma omp parallel for private(i%s)"%k3
-   for i in range(DIM-1,-1,-1):
-          if loopindex[i] > -1: TXT+="\nfor (k%i =k%i_0; k%i < N%i; ++k%i) {"%(loopindex[i],loopindex[i], loopindex[i],loopindex[i],loopindex[i])
-   TXT+="\nfor (i =0; i < NCOMP; ++i) {\n"
-   print TXT
-   1/0
-   #  interpolation to quadrature points
-   for q in range(len(Q)):
-      IDX2="INDEX%s(%s,%s)"%(DIM,k,N)
-      if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
-      TXT+="out[INDEX3(i,%s,%s,NCOMP,%s)] = %s;\n"%(q,IDX2,len(Q),ccode(F[q]))
-   TXT+="} /* close component loop i */\n"
-   for i in range(DIM):
-           if loopindex[i]>-1 : TXT+="} /* close k%i loop */\n"%loopindex[i]
    return TXT
 
 

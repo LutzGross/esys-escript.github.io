@@ -1095,9 +1095,6 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const double h0 = m_dx[0];
-    const double h1 = m_dx[1];
-    const double h2 = m_dx[2];
     const double C0 = .044658198738520451079;
     const double C1 = .16666666666666666667;
     const double C2 = .21132486540518711775;
@@ -1132,18 +1129,18 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                            const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                            const double V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
-                            const double V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
-                            const double V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                            const double V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                            const double V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
-                            const double V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
-                            const double V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
-                            const double V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                            const double V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
-                            const double V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
+                            const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
+                            const double V2=((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
+                            const double V3=((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
+                            const double V4=((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
+                            const double V5=((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
+                            const double V6=((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
+                            const double V7=((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
+                            const double V8=((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
+                            const double V9=((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
+                            const double V10=((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
+                            const double V11=((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = V4;
                             o[INDEX3(i,2,0,numComp,3)] = V8;
@@ -1199,9 +1196,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -1233,20 +1230,20 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / h1;
-                            const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / h1;
-                            const double V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / h2;
-                            const double V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / h2;
-                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / m_dx[1];
+                            const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / m_dx[1];
+                            const double V2=((f_001[i]-f_000[i])*C6 + (f_010[i]-f_011[i])*C2) / m_dx[2];
+                            const double V3=((f_001[i]-f_000[i])*C2 + (f_011[i]-f_010[i])*C6) / m_dx[2];
+                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = V0;
                             o[INDEX3(i,2,0,numComp,3)] = V2;
-                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,1,numComp,3)] = V0;
                             o[INDEX3(i,2,1,numComp,3)] = V3;
-                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,2,numComp,3)] = V1;
                             o[INDEX3(i,2,2,numComp,3)] = V2;
-                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,3,numComp,3)] = V1;
                             o[INDEX3(i,2,3,numComp,3)] = V3;
                         } // end of component loop i
@@ -1267,20 +1264,20 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
-                            const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
-                            const double V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
-                            const double V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
-                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
+                            const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
+                            const double V2=((f_101[i]-f_100[i])*C6 + (f_111[i]-f_110[i])*C2) / m_dx[2];
+                            const double V3=((f_101[i]-f_100[i])*C2 + (f_111[i]-f_110[i])*C6) / m_dx[2];
+                            o[INDEX3(i,0,0,numComp,3)] = ((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = V0;
                             o[INDEX3(i,2,0,numComp,3)] = V2;
-                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,0,1,numComp,3)] = ((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,1,numComp,3)] = V0;
                             o[INDEX3(i,2,1,numComp,3)] = V3;
-                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / h0;
+                            o[INDEX3(i,0,2,numComp,3)] = ((f_101[i]-f_001[i])*C5 + (f_110[i]-f_010[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,2,numComp,3)] = V1;
                             o[INDEX3(i,2,2,numComp,3)] = V2;
-                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / h0;
+                            o[INDEX3(i,0,3,numComp,3)] = ((f_111[i]-f_011[i])*C5 + (f_100[i]-f_000[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             o[INDEX3(i,1,3,numComp,3)] = V1;
                             o[INDEX3(i,2,3,numComp,3)] = V3;
                         } // end of component loop i
@@ -1301,20 +1298,20 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / h0;
-                            const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / h2;
-                            const double V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / h2;
+                            const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / m_dx[0];
+                            const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / m_dx[2];
+                            const double V2=((f_001[i]-f_000[i])*C2 + (f_101[i]-f_100[i])*C6) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
-                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,0,numComp,3)] = V1;
                             o[INDEX3(i,0,1,numComp,3)] = V0;
-                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,1,numComp,3)] = V2;
                             o[INDEX3(i,0,2,numComp,3)] = V0;
-                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,2,numComp,3)] = V1;
                             o[INDEX3(i,0,3,numComp,3)] = V0;
-                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,3,numComp,3)] = V2;
                         } // end of component loop i
                     } // end of k0 loop
@@ -1334,21 +1331,21 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
-                            const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
-                            const double V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / h2;
-                            const double V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / h2;
+                            const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
+                            const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
+                            const double V2=((f_011[i]-f_010[i])*C6 + (f_111[i]-f_110[i])*C2) / m_dx[2];
+                            const double V3=((f_011[i]-f_010[i])*C2 + (f_111[i]-f_110[i])*C6) / m_dx[2];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
-                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,1,0,numComp,3)] = ((f_010[i]-f_000[i])*C5 + (f_111[i]-f_101[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,0,numComp,3)] = V2;
                             o[INDEX3(i,0,1,numComp,3)] = V0;
-                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,1,1,numComp,3)] = ((f_110[i]-f_100[i])*C5 + (f_011[i]-f_001[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,1,numComp,3)] = V3;
                             o[INDEX3(i,0,2,numComp,3)] = V1;
-                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / h1;
+                            o[INDEX3(i,1,2,numComp,3)] = ((f_011[i]-f_001[i])*C5 + (f_110[i]-f_100[i])*C0 + (f_010[i]+f_111[i]-f_000[i]-f_101[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,2,numComp,3)] = V2;
                             o[INDEX3(i,0,3,numComp,3)] = V1;
-                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / h1;
+                            o[INDEX3(i,1,3,numComp,3)] = ((f_111[i]-f_101[i])*C5 + (f_010[i]-f_000[i])*C0 + (f_011[i]+f_110[i]-f_001[i]-f_100[i])*C1) / m_dx[1];
                             o[INDEX3(i,2,3,numComp,3)] = V3;
                         } // end of component loop i
                     } // end of k0 loop
@@ -1368,22 +1365,22 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / h0;
-                            const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / h0;
-                            const double V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / h1;
-                            const double V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / h1;
+                            const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / m_dx[0];
+                            const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / m_dx[0];
+                            const double V2=((f_010[i]-f_000[i])*C6 + (f_110[i]-f_100[i])*C2) / m_dx[1];
+                            const double V3=((f_010[i]-f_000[i])*C2 + (f_110[i]-f_100[i])*C6) / m_dx[1];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = V2;
-                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,1,numComp,3)] = V0;
                             o[INDEX3(i,1,1,numComp,3)] = V3;
-                            o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,2,1,numComp,3)] = ((f_101[i]-f_100[i])*C5 + (f_011[i]-f_010[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,2,numComp,3)] = V1;
                             o[INDEX3(i,1,2,numComp,3)] = V2;
-                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,3,numComp,3)] = V1;
                             o[INDEX3(i,1,3,numComp,3)] = V3;
-                            o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,2,3,numComp,3)] = ((f_111[i]-f_110[i])*C5 + (f_001[i]-f_000[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -1402,22 +1399,22 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / h0;
-                            const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / h0;
-                            const double V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / h1;
-                            const double V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / h1;
+                            const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
+                            const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
+                            const double V2=((f_011[i]-f_001[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
+                            const double V3=((f_011[i]-f_001[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
                             o[INDEX3(i,0,0,numComp,3)] = V0;
                             o[INDEX3(i,1,0,numComp,3)] = V2;
-                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,2,0,numComp,3)] = ((f_001[i]-f_000[i])*C5 + (f_111[i]-f_110[i])*C0 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,1,numComp,3)] = V0;
                             o[INDEX3(i,1,1,numComp,3)] = V3;
-                            o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,2,1,numComp,3)] = ((f_011[i]-f_010[i])*C0 + (f_101[i]-f_100[i])*C5 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,2,numComp,3)] = V1;
                             o[INDEX3(i,1,2,numComp,3)] = V2;
-                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / h2;
+                            o[INDEX3(i,2,2,numComp,3)] = ((f_011[i]-f_010[i])*C5 + (f_101[i]-f_100[i])*C0 + (f_001[i]+f_111[i]-f_000[i]-f_110[i])*C1) / m_dx[2];
                             o[INDEX3(i,0,3,numComp,3)] = V1;
                             o[INDEX3(i,1,3,numComp,3)] = V3;
-                            o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / h2;
+                            o[INDEX3(i,2,3,numComp,3)] = ((f_001[i]-f_000[i])*C0 + (f_111[i]-f_110[i])*C5 + (f_011[i]+f_101[i]-f_010[i]-f_100[i])*C1) / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -1449,9 +1446,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]-f_000[i]-f_010[i])*C4 / m_dx[2];
                         } // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -1470,9 +1467,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_101[i]+f_111[i]-f_100[i]-f_110[i])*C4 / m_dx[2];
                         } // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -1491,9 +1488,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_101[i]-f_000[i]-f_100[i])*C4 / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k2 loop
@@ -1512,9 +1509,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_011[i]+f_111[i]-f_010[i]-f_110[i])*C4 / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k2 loop
@@ -1533,9 +1530,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C4 / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -1554,9 +1551,9 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / h0;
-                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / h1;
-                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / h2;
+                            o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / m_dx[0];
+                            o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / m_dx[1];
+                            o[INDEX3(i,2,0,numComp,3)] = (f_001[i]+f_011[i]+f_101[i]+f_111[i]-f_000[i]-f_010[i]-f_100[i]-f_110[i])*C3 / m_dx[2];
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -1569,15 +1566,12 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
 void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
-    const double h0 = m_dx[0];
-    const double h1 = m_dx[1];
-    const double h2 = m_dx[2];
     const index_t left = (m_offset[0]==0 ? 0 : 1);
     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
     const index_t front = (m_offset[2]==0 ? 0 : 1);
     const int fs = arg.getFunctionSpace().getTypeCode();
     if (fs == Elements && arg.actsExpanded()) {
-        const double w_0 = h0*h1*h2/8.;
+        const double w_0 = m_dx[0]*m_dx[1]*m_dx[2]/8.;
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
@@ -1607,7 +1601,7 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
         } // end of parallel section
 
     } else if (fs==ReducedElements || (fs==Elements && !arg.actsExpanded())) {
-        const double w_0 = h0*h1*h2;
+        const double w_0 = m_dx[0]*m_dx[1]*m_dx[2];
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
@@ -1629,9 +1623,9 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
         } // end of parallel section
 
     } else if (fs == FaceElements && arg.actsExpanded()) {
-        const double w_0 = h1*h2/4.;
-        const double w_1 = h0*h2/4.;
-        const double w_2 = h0*h1/4.;
+        const double w_0 = m_dx[1]*m_dx[2]/4.;
+        const double w_1 = m_dx[0]*m_dx[2]/4.;
+        const double w_2 = m_dx[0]*m_dx[1]/4.;
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
@@ -1737,9 +1731,9 @@ void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) con
         } // end of parallel section
 
     } else if (fs==ReducedFaceElements || (fs==FaceElements && !arg.actsExpanded())) {
-        const double w_0 = h1*h2;
-        const double w_1 = h0*h2;
-        const double w_2 = h0*h1;
+        const double w_0 = m_dx[1]*m_dx[2];
+        const double w_1 = m_dx[0]*m_dx[2];
+        const double w_2 = m_dx[0]*m_dx[1];
 #pragma omp parallel
         {
             vector<double> int_local(numComp, 0);
@@ -2483,7 +2477,6 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
         out.requireWrite();
-        const double c0 = .125;
 #pragma omp parallel
         {
             vector<double> f_000(numComp);
@@ -2508,7 +2501,7 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i]);
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i] + f_100[i] + f_101[i] + f_110[i] + f_111[i])/8;
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -2567,7 +2560,6 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
         out.requireWrite();
-        const double c0 = .25;
 #pragma omp parallel
         {
             vector<double> f_000(numComp);
@@ -2588,7 +2580,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         memcpy(&f_011[0], in.getSampleDataRO(INDEX3(0,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_001[i] + f_010[i] + f_011[i]);
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_010[i] + f_011[i])/4;
                         } // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2603,7 +2595,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_100[i] + f_101[i] + f_110[i] + f_111[i]);
+                            o[INDEX2(i,numComp,0)] = (f_100[i] + f_101[i] + f_110[i] + f_111[i])/4;
                         } // end of component loop i
                     } // end of k1 loop
                 } // end of k2 loop
@@ -2618,7 +2610,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_001[i] + f_100[i] + f_101[i]);
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_001[i] + f_100[i] + f_101[i])/4;
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k2 loop
@@ -2633,7 +2625,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_010[i] + f_011[i] + f_110[i] + f_111[i]);
+                            o[INDEX2(i,numComp,0)] = (f_010[i] + f_011[i] + f_110[i] + f_111[i])/4;
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k2 loop
@@ -2648,7 +2640,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_000[i] + f_010[i] + f_100[i] + f_110[i]);
+                            o[INDEX2(i,numComp,0)] = (f_000[i] + f_010[i] + f_100[i] + f_110[i])/4;
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -2663,7 +2655,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
                         for (index_t i=0; i < numComp; ++i) {
-                            o[INDEX2(i,numComp,0)] = c0*(f_001[i] + f_011[i] + f_101[i] + f_111[i]);
+                            o[INDEX2(i,numComp,0)] = (f_001[i] + f_011[i] + f_101[i] + f_111[i])/4;
                         } // end of component loop i
                     } // end of k0 loop
                 } // end of k1 loop
@@ -4893,35 +4885,16 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
-    const double h0 = m_dx[0];
-    const double h1 = m_dx[1];
-    const double h2 = m_dx[2];
-    const double w0 = 0.0625*h1*h2/h0;
-    const double w1 = 0.0625*h2;
-    const double w2 = -0.0625*h1;
-    const double w3 = 0.0625*h0*h2/h1;
-    const double w4 = -0.0625*h0;
-    const double w5 = 0.0625*h1;
-    const double w6 = 0.0625*h0;
-    const double w7 = -0.0625*h0*h1/h2;
-    const double w8 = -0.0625*h1*h2/h0;
-    const double w9 = -0.0625*h2;
-    const double w10 = -0.0625*h0*h2/h1;
-    const double w11 = 0.0625*h0*h1/h2;
-    const double w12 = 0.03125*h1*h2;
-    const double w13 = 0.03125*h0*h2;
-    const double w14 = 0.03125*h0*h1;
-    const double w15 = -0.03125*h1*h2;
-    const double w16 = -0.03125*h0*h2;
-    const double w17 = -0.03125*h0*h1;
-    const double w18 = 0.015625*h0*h1*h2;
-    const double w19 = -0.25*h1*h2;
-    const double w20 = -0.25*h0*h2;
-    const double w21 = -0.25*h0*h1;
-    const double w22 = 0.25*h1*h2;
-    const double w23 = 0.25*h0*h2;
-    const double w24 = 0.25*h0*h1;
-    const double w25 = 0.125*h0*h1*h2;
+    const double w6 = 0.0625*m_dx[0];
+    const double w5 = 0.0625*m_dx[1];
+    const double w1 = 0.0625*m_dx[2];
+    const double w14 = 0.03125*m_dx[0]*m_dx[1];
+    const double w13 = 0.03125*m_dx[0]*m_dx[2];
+    const double w12 = 0.03125*m_dx[1]*m_dx[2];
+    const double w18 = 0.015625*m_dx[0]*m_dx[1]*m_dx[2];
+    const double w11 = 0.0625*m_dx[0]*m_dx[1]/m_dx[2];
+    const double w3 = 0.0625*m_dx[0]*m_dx[2]/m_dx[1];
+    const double w0 = 0.0625*m_dx[1]*m_dx[2]/m_dx[0];
 
     rhs.requireWrite();
 #pragma omp parallel
@@ -4942,106 +4915,79 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!A.isEmpty()) {
                             add_EM_S=true;
                             const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
-                            const double A_00 = A_p[INDEX2(0,0,3)];
-                            const double A_10 = A_p[INDEX2(1,0,3)];
-                            const double A_20 = A_p[INDEX2(2,0,3)];
-                            const double A_01 = A_p[INDEX2(0,1,3)];
-                            const double A_11 = A_p[INDEX2(1,1,3)];
-                            const double A_21 = A_p[INDEX2(2,1,3)];
-                            const double A_02 = A_p[INDEX2(0,2,3)];
-                            const double A_12 = A_p[INDEX2(1,2,3)];
-                            const double A_22 = A_p[INDEX2(2,2,3)];
-                            const double tmp0_0 = A_01 + A_10;
-                            const double tmp1_0 = A_02 + A_20;
-                            const double tmp2_0 = A_12 + A_21;
-                            const double tmp3_1 = A_22*w7;
-                            const double tmp10_1 = A_11*w10;
-                            const double tmp21_1 = A_02*w5;
-                            const double tmp2_1 = A_00*w0;
-                            const double tmp23_1 = tmp2_0*w6;
-                            const double tmp19_1 = A_20*w2;
-                            const double tmp4_1 = A_11*w3;
-                            const double tmp22_1 = tmp1_0*w5;
-                            const double tmp13_1 = A_21*w4;
-                            const double tmp5_1 = A_21*w6;
-                            const double tmp8_1 = A_00*w8;
-                            const double tmp7_1 = A_20*w5;
-                            const double tmp18_1 = tmp2_0*w4;
-                            const double tmp6_1 = A_02*w2;
-                            const double tmp9_1 = A_22*w11;
-                            const double tmp15_1 = tmp1_0*w2;
-                            const double tmp12_1 = A_01*w1;
-                            const double tmp0_1 = tmp0_0*w1;
-                            const double tmp20_1 = A_01*w9;
-                            const double tmp14_1 = A_12*w6;
-                            const double tmp1_1 = A_12*w4;
-                            const double tmp16_1 = A_10*w9;
-                            const double tmp11_1 = tmp0_0*w9;
-                            const double tmp17_1 = A_10*w1;
-                            EM_S[INDEX2(0,0,8)]+=tmp0_1 + tmp22_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(1,0,8)]+=tmp17_1 + tmp20_1 + tmp23_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp1_1 + tmp22_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp10_1 + tmp11_1 + tmp1_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp0_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp13_1 + tmp14_1 + tmp15_1 + tmp17_1 + tmp20_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(7,0,8)]+=tmp10_1 + tmp11_1 + tmp15_1 + tmp18_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp12_1 + tmp16_1 + tmp19_1 + tmp21_1 + tmp23_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp11_1 + tmp15_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1 + tmp10_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp5_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(3,1,8)]+=tmp10_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp20_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp16_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp11_1 + tmp13_1 + tmp14_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp0_1 + tmp10_1 + tmp18_1 + tmp22_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp10_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(0,2,8)]+=tmp10_1 + tmp13_1 + tmp14_1 + tmp17_1 + tmp20_1 + tmp22_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp14_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp11_1 + tmp18_1 + tmp22_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp12_1 + tmp16_1 + tmp18_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp10_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp23_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp0_1 + tmp10_1 + tmp15_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(6,2,8)]+=tmp11_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp12_1 + tmp15_1 + tmp16_1 + tmp1_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp10_1 + tmp11_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp10_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp15_1 + tmp18_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(4,3,8)]+=tmp10_1 + tmp11_1 + tmp22_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp23_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp17_1 + tmp1_1 + tmp20_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp17_1 + tmp1_1 + tmp20_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(2,4,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp23_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp10_1 + tmp11_1 + tmp22_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp0_1 + tmp15_1 + tmp18_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp17_1 + tmp18_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp10_1 + tmp12_1 + tmp13_1 + tmp14_1 + tmp15_1 + tmp16_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp10_1 + tmp11_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp12_1 + tmp15_1 + tmp16_1 + tmp1_1 + tmp3_1 + tmp4_1 + tmp5_1 + tmp8_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp11_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp0_1 + tmp10_1 + tmp15_1 + tmp23_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp10_1 + tmp17_1 + tmp19_1 + tmp20_1 + tmp21_1 + tmp23_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp12_1 + tmp16_1 + tmp18_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp11_1 + tmp18_1 + tmp22_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp0_1 + tmp10_1 + tmp13_1 + tmp14_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp10_1 + tmp13_1 + tmp14_1 + tmp17_1 + tmp20_1 + tmp22_1 + tmp2_1 + tmp9_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp10_1 + tmp17_1 + tmp18_1 + tmp20_1 + tmp2_1 + tmp3_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp0_1 + tmp10_1 + tmp18_1 + tmp22_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp11_1 + tmp13_1 + tmp14_1 + tmp2_1 + tmp3_1 + tmp4_1 + tmp6_1 + tmp7_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp12_1 + tmp13_1 + tmp14_1 + tmp16_1 + tmp22_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp10_1 + tmp15_1 + tmp17_1 + tmp1_1 + tmp20_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1 + tmp10_1 + tmp19_1 + tmp1_1 + tmp21_1 + tmp5_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp11_1 + tmp15_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp12_1 + tmp16_1 + tmp19_1 + tmp21_1 + tmp23_1 + tmp4_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp10_1 + tmp11_1 + tmp15_1 + tmp18_1 + tmp3_1 + tmp8_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp18_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp13_1 + tmp14_1 + tmp15_1 + tmp17_1 + tmp20_1 + tmp3_1 + tmp4_1 + tmp8_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp13_1 + tmp14_1 + tmp19_1 + tmp21_1 + tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp10_1 + tmp11_1 + tmp1_1 + tmp5_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp10_1 + tmp12_1 + tmp16_1 + tmp1_1 + tmp22_1 + tmp2_1 + tmp5_1 + tmp9_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp17_1 + tmp20_1 + tmp23_1 + tmp4_1 + tmp6_1 + tmp7_1 + tmp8_1 + tmp9_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp22_1 + tmp23_1 + tmp2_1 + tmp4_1 + tmp9_1;
+                            const double Aw00 = A_p[INDEX2(0,0,3)]*w0;
+                            const double Aw10 = A_p[INDEX2(1,0,3)]*w1;
+                            const double Aw20 = A_p[INDEX2(2,0,3)]*w5;
+                            const double Aw01 = A_p[INDEX2(0,1,3)]*w1;
+                            const double Aw11 = A_p[INDEX2(1,1,3)]*w3;
+                            const double Aw21 = A_p[INDEX2(2,1,3)]*w6;
+                            const double Aw02 = A_p[INDEX2(0,2,3)]*w5;
+                            const double Aw12 = A_p[INDEX2(1,2,3)]*w6;
+                            const double Aw22 = A_p[INDEX2(2,2,3)]*w11;
+                            EM_S[INDEX2(0,0,8)]+= Aw00 + Aw01 + Aw02 + Aw10 + Aw11 + Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(1,0,8)]+=-Aw00 - Aw01 - Aw02 + Aw10 + Aw11 + Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(2,0,8)]+= Aw00 + Aw01 + Aw02 - Aw10 - Aw11 - Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(3,0,8)]+=-Aw00 - Aw01 - Aw02 - Aw10 - Aw11 - Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(4,0,8)]+= Aw00 + Aw01 + Aw02 + Aw10 + Aw11 + Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(5,0,8)]+=-Aw00 - Aw01 - Aw02 + Aw10 + Aw11 + Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(6,0,8)]+= Aw00 + Aw01 + Aw02 - Aw10 - Aw11 - Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(7,0,8)]+=-Aw00 - Aw01 - Aw02 - Aw10 - Aw11 - Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(0,1,8)]+=-Aw00 + Aw01 + Aw02 - Aw10 + Aw11 + Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(1,1,8)]+= Aw00 - Aw01 - Aw02 - Aw10 + Aw11 + Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(2,1,8)]+=-Aw00 + Aw01 + Aw02 + Aw10 - Aw11 - Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(3,1,8)]+= Aw00 - Aw01 - Aw02 + Aw10 - Aw11 - Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(4,1,8)]+=-Aw00 + Aw01 + Aw02 - Aw10 + Aw11 + Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(5,1,8)]+= Aw00 - Aw01 - Aw02 - Aw10 + Aw11 + Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(6,1,8)]+=-Aw00 + Aw01 + Aw02 + Aw10 - Aw11 - Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(7,1,8)]+= Aw00 - Aw01 - Aw02 + Aw10 - Aw11 - Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(0,2,8)]+= Aw00 - Aw01 + Aw02 + Aw10 - Aw11 + Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(1,2,8)]+=-Aw00 + Aw01 - Aw02 + Aw10 - Aw11 + Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(2,2,8)]+= Aw00 - Aw01 + Aw02 - Aw10 + Aw11 - Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(3,2,8)]+=-Aw00 + Aw01 - Aw02 - Aw10 + Aw11 - Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(4,2,8)]+= Aw00 - Aw01 + Aw02 + Aw10 - Aw11 + Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(5,2,8)]+=-Aw00 + Aw01 - Aw02 + Aw10 - Aw11 + Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(6,2,8)]+= Aw00 - Aw01 + Aw02 - Aw10 + Aw11 - Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(7,2,8)]+=-Aw00 + Aw01 - Aw02 - Aw10 + Aw11 - Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(0,3,8)]+=-Aw00 - Aw01 + Aw02 - Aw10 - Aw11 + Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(1,3,8)]+= Aw00 + Aw01 - Aw02 - Aw10 - Aw11 + Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(2,3,8)]+=-Aw00 - Aw01 + Aw02 + Aw10 + Aw11 - Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(3,3,8)]+= Aw00 + Aw01 - Aw02 + Aw10 + Aw11 - Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(4,3,8)]+=-Aw00 - Aw01 + Aw02 - Aw10 - Aw11 + Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(5,3,8)]+= Aw00 + Aw01 - Aw02 - Aw10 - Aw11 + Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(6,3,8)]+=-Aw00 - Aw01 + Aw02 + Aw10 + Aw11 - Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(7,3,8)]+= Aw00 + Aw01 - Aw02 + Aw10 + Aw11 - Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(0,4,8)]+= Aw00 + Aw01 - Aw02 + Aw10 + Aw11 - Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(1,4,8)]+=-Aw00 - Aw01 + Aw02 + Aw10 + Aw11 - Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(2,4,8)]+= Aw00 + Aw01 - Aw02 - Aw10 - Aw11 + Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(3,4,8)]+=-Aw00 - Aw01 + Aw02 - Aw10 - Aw11 + Aw12 + Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(4,4,8)]+= Aw00 + Aw01 - Aw02 + Aw10 + Aw11 - Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(5,4,8)]+=-Aw00 - Aw01 + Aw02 + Aw10 + Aw11 - Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(6,4,8)]+= Aw00 + Aw01 - Aw02 - Aw10 - Aw11 + Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(7,4,8)]+=-Aw00 - Aw01 + Aw02 - Aw10 - Aw11 + Aw12 - Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(0,5,8)]+=-Aw00 + Aw01 - Aw02 - Aw10 + Aw11 - Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(1,5,8)]+= Aw00 - Aw01 + Aw02 - Aw10 + Aw11 - Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(2,5,8)]+=-Aw00 + Aw01 - Aw02 + Aw10 - Aw11 + Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(3,5,8)]+= Aw00 - Aw01 + Aw02 + Aw10 - Aw11 + Aw12 - Aw20 + Aw21 - Aw22;
+                            EM_S[INDEX2(4,5,8)]+=-Aw00 + Aw01 - Aw02 - Aw10 + Aw11 - Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(5,5,8)]+= Aw00 - Aw01 + Aw02 - Aw10 + Aw11 - Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(6,5,8)]+=-Aw00 + Aw01 - Aw02 + Aw10 - Aw11 + Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(7,5,8)]+= Aw00 - Aw01 + Aw02 + Aw10 - Aw11 + Aw12 + Aw20 - Aw21 + Aw22;
+                            EM_S[INDEX2(0,6,8)]+= Aw00 - Aw01 - Aw02 + Aw10 - Aw11 - Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(1,6,8)]+=-Aw00 + Aw01 + Aw02 + Aw10 - Aw11 - Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(2,6,8)]+= Aw00 - Aw01 - Aw02 - Aw10 + Aw11 + Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(3,6,8)]+=-Aw00 + Aw01 + Aw02 - Aw10 + Aw11 + Aw12 + Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(4,6,8)]+= Aw00 - Aw01 - Aw02 + Aw10 - Aw11 - Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(5,6,8)]+=-Aw00 + Aw01 + Aw02 + Aw10 - Aw11 - Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(6,6,8)]+= Aw00 - Aw01 - Aw02 - Aw10 + Aw11 + Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(7,6,8)]+=-Aw00 + Aw01 + Aw02 - Aw10 + Aw11 + Aw12 - Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(0,7,8)]+=-Aw00 - Aw01 - Aw02 - Aw10 - Aw11 - Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(1,7,8)]+= Aw00 + Aw01 + Aw02 - Aw10 - Aw11 - Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(2,7,8)]+=-Aw00 - Aw01 - Aw02 + Aw10 + Aw11 + Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(3,7,8)]+= Aw00 + Aw01 + Aw02 + Aw10 + Aw11 + Aw12 - Aw20 - Aw21 - Aw22;
+                            EM_S[INDEX2(4,7,8)]+=-Aw00 - Aw01 - Aw02 - Aw10 - Aw11 - Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(5,7,8)]+= Aw00 + Aw01 + Aw02 - Aw10 - Aw11 - Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(6,7,8)]+=-Aw00 - Aw01 - Aw02 + Aw10 + Aw11 + Aw12 + Aw20 + Aw21 + Aw22;
+                            EM_S[INDEX2(7,7,8)]+= Aw00 + Aw01 + Aw02 + Aw10 + Aw11 + Aw12 + Aw20 + Aw21 + Aw22;
                         }
                         ///////////////
                         // process B //
@@ -5049,79 +4995,73 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!B.isEmpty()) {
                             add_EM_S=true;
                             const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
-                            const double B_0 = B_p[0];
-                            const double B_1 = B_p[1];
-                            const double B_2 = B_p[2];
-                            const double tmp4_1 = B_0*w15;
-                            const double tmp3_1 = B_1*w16;
-                            const double tmp2_1 = B_0*w12;
-                            const double tmp5_1 = B_2*w17;
-                            const double tmp1_1 = B_2*w14;
-                            const double tmp0_1 = B_1*w13;
-                            EM_S[INDEX2(0,0,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,0,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,0,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,1,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,2,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,3,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,4,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp2_1 + tmp5_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp1_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp1_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
+                            const double wB0 = B_p[0]*w12;
+                            const double wB1 = B_p[1]*w13;
+                            const double wB2 = B_p[2]*w14;
+                            EM_S[INDEX2(0,0,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,1,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,2,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,3,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,4,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,5,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,6,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(0,7,8)]+=-wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,0,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,1,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,2,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,3,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,4,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,5,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,6,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(1,7,8)]+= wB0 - wB1 - wB2;
+                            EM_S[INDEX2(2,0,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,1,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,2,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,3,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,4,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,5,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,6,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(2,7,8)]+=-wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,0,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,1,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,2,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,3,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,4,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,5,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,6,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(3,7,8)]+= wB0 + wB1 - wB2;
+                            EM_S[INDEX2(4,0,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,1,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,2,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,3,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,4,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,5,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,6,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(4,7,8)]+=-wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,0,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,1,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,2,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,3,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,4,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,5,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,6,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(5,7,8)]+= wB0 - wB1 + wB2;
+                            EM_S[INDEX2(6,0,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,1,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,2,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,3,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,4,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,5,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,6,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(6,7,8)]+=-wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,0,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,1,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,2,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,3,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,4,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,5,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,6,8)]+= wB0 + wB1 + wB2;
+                            EM_S[INDEX2(7,7,8)]+= wB0 + wB1 + wB2;
                         }
                         ///////////////
                         // process C //
@@ -5129,79 +5069,73 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!C.isEmpty()) {
                             add_EM_S=true;
                             const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
-                            const double C_0 = C_p[0];
-                            const double C_1 = C_p[1];
-                            const double C_2 = C_p[2];
-                            const double tmp5_1 = C_0*w15;
-                            const double tmp2_1 = C_0*w12;
-                            const double tmp4_1 = C_1*w16;
-                            const double tmp1_1 = C_2*w17;
-                            const double tmp3_1 = C_2*w14;
-                            const double tmp0_1 = C_1*w13;
-                            EM_S[INDEX2(0,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,0,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(3,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                            EM_S[INDEX2(0,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(6,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(4,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(2,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
+                            const double wC0 = C_p[0]*w12;
+                            const double wC1 = C_p[1]*w13;
+                            const double wC2 = C_p[2]*w14;
+                            EM_S[INDEX2(0,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(1,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(2,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(3,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(4,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(5,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(6,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(7,0,8)]+=-wC0 - wC1 - wC2;
+                            EM_S[INDEX2(0,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(1,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(2,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(3,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(4,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(5,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(6,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(7,1,8)]+= wC0 - wC1 - wC2;
+                            EM_S[INDEX2(0,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(1,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(2,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(3,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(4,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(5,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(6,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(7,2,8)]+=-wC0 + wC1 - wC2;
+                            EM_S[INDEX2(0,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(1,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(2,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(3,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(4,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(5,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(6,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(7,3,8)]+= wC0 + wC1 - wC2;
+                            EM_S[INDEX2(0,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(1,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(2,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(3,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(4,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(5,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(6,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(7,4,8)]+=-wC0 - wC1 + wC2;
+                            EM_S[INDEX2(0,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(1,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(2,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(3,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(4,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(5,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(6,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(7,5,8)]+= wC0 - wC1 + wC2;
+                            EM_S[INDEX2(0,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(1,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(2,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(3,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(4,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(5,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(6,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(7,6,8)]+=-wC0 + wC1 + wC2;
+                            EM_S[INDEX2(0,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(1,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(2,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(3,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(4,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(5,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(6,7,8)]+= wC0 + wC1 + wC2;
+                            EM_S[INDEX2(7,7,8)]+= wC0 + wC1 + wC2;
                         }
                         ///////////////
                         // process D //
@@ -5209,71 +5143,70 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!D.isEmpty()) {
                             add_EM_S=true;
                             const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
-                            const double tmp0_1 = D_p[0]*w18;
-                            EM_S[INDEX2(0,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,0,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,1,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,2,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,3,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,4,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,5,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,6,8)]+=tmp0_1;
-                            EM_S[INDEX2(0,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(1,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(2,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(3,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(4,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(5,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(6,7,8)]+=tmp0_1;
-                            EM_S[INDEX2(7,7,8)]+=tmp0_1;
+                            EM_S[INDEX2(0,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,0,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,1,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,2,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,3,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,4,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,5,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,6,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(0,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(1,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(2,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(3,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(4,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(5,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(6,7,8)]+=D_p[0]*w18;
+                            EM_S[INDEX2(7,7,8)]+=D_p[0]*w18;
                         }
                         ///////////////
                         // process X //
@@ -5281,23 +5214,17 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!X.isEmpty()) {
                             add_EM_F=true;
                             const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
-                            const double X_0 = X_p[0];
-                            const double X_1 = X_p[1];
-                            const double X_2 = X_p[2];
-                            const double tmp0_1 = X_2*w21;
-                            const double tmp1_1 = X_0*w19;
-                            const double tmp2_1 = X_1*w20;
-                            const double tmp3_1 = X_0*w22;
-                            const double tmp4_1 = X_1*w23;
-                            const double tmp5_1 = X_2*w24;
-                            EM_F[0]+=tmp0_1 + tmp1_1 + tmp2_1;
-                            EM_F[1]+=tmp0_1 + tmp2_1 + tmp3_1;
-                            EM_F[2]+=tmp0_1 + tmp1_1 + tmp4_1;
-                            EM_F[3]+=tmp0_1 + tmp3_1 + tmp4_1;
-                            EM_F[4]+=tmp1_1 + tmp2_1 + tmp5_1;
-                            EM_F[5]+=tmp2_1 + tmp3_1 + tmp5_1;
-                            EM_F[6]+=tmp1_1 + tmp4_1 + tmp5_1;
-                            EM_F[7]+=tmp3_1 + tmp4_1 + tmp5_1;
+                            const double wX0 = 8*X_p[0]*w12;
+                            const double wX1 = 8*X_p[1]*w13;
+                            const double wX2 = 8*X_p[2]*w14;
+                            EM_F[0]+=-wX0 - wX1 - wX2;
+                            EM_F[1]+= wX0 - wX1 - wX2;
+                            EM_F[2]+=-wX0 + wX1 - wX2;
+                            EM_F[3]+= wX0 + wX1 - wX2;
+                            EM_F[4]+=-wX0 - wX1 + wX2;
+                            EM_F[5]+= wX0 - wX1 + wX2;
+                            EM_F[6]+=-wX0 + wX1 + wX2;
+                            EM_F[7]+= wX0 + wX1 + wX2;
                         }
                         ///////////////
                         // process Y //
@@ -5305,15 +5232,14 @@ void Brick::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         if (!Y.isEmpty()) {
                             add_EM_F=true;
                             const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
-                            const double tmp0_1 = Y_p[0]*w25;
-                            EM_F[0]+=tmp0_1;
-                            EM_F[1]+=tmp0_1;
-                            EM_F[2]+=tmp0_1;
-                            EM_F[3]+=tmp0_1;
-                            EM_F[4]+=tmp0_1;
-                            EM_F[5]+=tmp0_1;
-                            EM_F[6]+=tmp0_1;
-                            EM_F[7]+=tmp0_1;
+                            EM_F[0]+=8*Y_p[0]*w18;
+                            EM_F[1]+=8*Y_p[0]*w18;
+                            EM_F[2]+=8*Y_p[0]*w18;
+                            EM_F[3]+=8*Y_p[0]*w18;
+                            EM_F[4]+=8*Y_p[0]*w18;
+                            EM_F[5]+=8*Y_p[0]*w18;
+                            EM_F[6]+=8*Y_p[0]*w18;
+                            EM_F[7]+=8*Y_p[0]*w18;
                         }
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
@@ -7472,9 +7398,6 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
-    const double h0 = m_dx[0];
-    const double h1 = m_dx[1];
-    const double h2 = m_dx[2];
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -7483,16 +7406,16 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
         numComp=mat->logical_col_block_size;
     }
 
-    const double w0 = .0625*h0;
-    const double w1 = .0625*h1;
-    const double w2 = .0625*h2;
-    const double w3 = .03125*h0*h1;
-    const double w4 = .03125*h0*h2;
-    const double w5 = .03125*h1*h2;
-    const double w6 = .0625*h0*h1/h2;
-    const double w7 = .0625*h0*h2/h1;
-    const double w8 = .0625*h1*h2/h0;
-    const double w9 = .015625*h0*h1*h2;
+    const double w0 = .0625*m_dx[0];
+    const double w1 = .0625*m_dx[1];
+    const double w2 = .0625*m_dx[2];
+    const double w3 = .03125*m_dx[0]*m_dx[1];
+    const double w4 = .03125*m_dx[0]*m_dx[2];
+    const double w5 = .03125*m_dx[1]*m_dx[2];
+    const double w6 = .0625*m_dx[0]*m_dx[1]/m_dx[2];
+    const double w7 = .0625*m_dx[0]*m_dx[2]/m_dx[1];
+    const double w8 = .0625*m_dx[1]*m_dx[2]/m_dx[0];
+    const double w9 = .015625*m_dx[0]*m_dx[1]*m_dx[2];
 
     rhs.requireWrite();
 #pragma omp parallel
@@ -7692,76 +7615,70 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                                     const double tmp0 = C_p[INDEX3(k, m, 0, numEq, numComp)]*w5;
                                     const double tmp1 = C_p[INDEX3(k, m, 1, numEq, numComp)]*w4;
                                     const double tmp2 = C_p[INDEX3(k, m, 2, numEq, numComp)]*w3;
-                                    const double tmp2_1 = tmp0;
-                                    const double tmp5_1 = -tmp0;
-                                    const double tmp0_1 = tmp1;
-                                    const double tmp4_1 = -tmp1;
-                                    const double tmp3_1 = tmp2;
-                                    const double tmp1_1 = -tmp2;
-                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,0,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,1,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,2,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,7,0,numEq,numComp,8)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,5,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp1_1 + tmp2_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=tmp0_1 + tmp3_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,4,3,numEq,numComp,8)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                    EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                    EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+=tmp2_1 + tmp3_1 + tmp4_1;
-                                    EM_S[INDEX4(k,m,3,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
-                                    EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,7,0,numEq,numComp,8)]+=-tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,6,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+= tmp0 - tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,5,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=-tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,4,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+= tmp0 + tmp1 - tmp2;
+                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,3,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=-tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,2,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+= tmp0 - tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,1,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=-tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,0,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
+                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+= tmp0 + tmp1 + tmp2;
                                 }
                             }
                         }
@@ -7773,72 +7690,71 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                             const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
-                                    const double D_0 = D_p[INDEX2(k, m, numEq)];
-                                    const double tmp0_1 = D_0*w9;
-                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,0,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,5,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,4,3,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,3,4,numEq,numComp,8)]+=tmp0_1;
-                                    EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp0_1;
+                                    const double tmp0 = D_p[INDEX2(k, m, numEq)]*w9;
+                                    EM_S[INDEX4(k,m,0,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,0,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,1,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,2,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,3,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,4,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,5,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,6,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,0,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,1,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,2,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,3,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,4,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,5,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,6,7,numEq,numComp,8)]+=tmp0;
+                                    EM_S[INDEX4(k,m,7,7,numEq,numComp,8)]+=tmp0;
                                 }
                             }
                         }
@@ -7849,23 +7765,17 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                             add_EM_F=true;
                             const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                const double X_0 = X_p[INDEX2(k, 0, numEq)];
-                                const double X_1 = X_p[INDEX2(k, 1, numEq)];
-                                const double X_2 = X_p[INDEX2(k, 2, numEq)];
-                                const double tmp1_1 = -8*X_0*w5;
-                                const double tmp2_1 = -8*X_1*w4;
-                                const double tmp3_1 = 8*X_0*w5;
-                                const double tmp4_1 = 8*X_1*w4;
-                                const double tmp5_1 = 8*X_2*w3;
-                                const double tmp0_1 = -8*X_2*w3;
-                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1 + tmp1_1 + tmp2_1;
-                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1 + tmp2_1 + tmp3_1;
-                                EM_F[INDEX2(k,2,numEq)]+=tmp0_1 + tmp1_1 + tmp4_1;
-                                EM_F[INDEX2(k,3,numEq)]+=tmp0_1 + tmp3_1 + tmp4_1;
-                                EM_F[INDEX2(k,4,numEq)]+=tmp1_1 + tmp2_1 + tmp5_1;
-                                EM_F[INDEX2(k,5,numEq)]+=tmp2_1 + tmp3_1 + tmp5_1;
-                                EM_F[INDEX2(k,6,numEq)]+=tmp1_1 + tmp4_1 + tmp5_1;
-                                EM_F[INDEX2(k,7,numEq)]+=tmp3_1 + tmp4_1 + tmp5_1;
+                                const double tmp0 = 8*X_p[INDEX2(k, 0, numEq)]*w5;
+                                const double tmp1 = 8*X_p[INDEX2(k, 1, numEq)]*w4;
+                                const double tmp2 = 8*X_p[INDEX2(k, 2, numEq)]*w3;
+                                EM_F[INDEX2(k,0,numEq)]+=-tmp0 - tmp1 - tmp2;
+                                EM_F[INDEX2(k,1,numEq)]+= tmp0 - tmp1 - tmp2;
+                                EM_F[INDEX2(k,2,numEq)]+=-tmp0 + tmp1 - tmp2;
+                                EM_F[INDEX2(k,3,numEq)]+= tmp0 + tmp1 - tmp2;
+                                EM_F[INDEX2(k,4,numEq)]+=-tmp0 - tmp1 + tmp2;
+                                EM_F[INDEX2(k,5,numEq)]+= tmp0 - tmp1 + tmp2;
+                                EM_F[INDEX2(k,6,numEq)]+=-tmp0 + tmp1 + tmp2;
+                                EM_F[INDEX2(k,7,numEq)]+= tmp0 + tmp1 + tmp2;
                             }
                         }
                         ///////////////
@@ -7875,16 +7785,14 @@ void Brick::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                             add_EM_F=true;
                             const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
-                                const double Y_0 = Y_p[k];
-                                const double tmp0_1 = 8*Y_0*w9;
-                                EM_F[INDEX2(k,0,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,1,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,2,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,3,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,4,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,5,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,6,numEq)]+=tmp0_1;
-                                EM_F[INDEX2(k,7,numEq)]+=tmp0_1;
+                                EM_F[INDEX2(k,0,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,1,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,2,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,3,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,4,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,5,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,6,numEq)]+=8*Y_p[k]*w9;
+                                EM_F[INDEX2(k,7,numEq)]+=8*Y_p[k]*w9;
                             }
                         }
 
