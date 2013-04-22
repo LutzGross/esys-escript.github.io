@@ -50,8 +50,7 @@ PAD_Y = 0.2
 MU_GRAVITY = 10.
 MU_MAGNETIC = 0.1
 
-#COORDINATES=CartesianReferenceSystem()
-COORDINATES=GRS80ReferenceSystem()
+COORDINATES=WGS84ReferenceSystem()
 
 
 

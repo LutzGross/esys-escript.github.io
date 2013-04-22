@@ -42,8 +42,8 @@ l_air = 6. * U.km
 n_cells_v = 25
 mu_gravity = 10.
 mu_magnetic = 0.1
-#COORDINATES=CartesianReferenceSystem()
-COORDINATES=GRS80ReferenceSystem()
+COORDINATES=CartesianReferenceSystem()
+#COORDINATES=WGS84ReferenceSystem()
 
 
 def work():

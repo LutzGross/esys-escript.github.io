@@ -37,8 +37,8 @@ thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
 MU = 0.1
-#COORDINATES=CartesianReferenceSystem()
-COORDINATES=GRS80ReferenceSystem()
+COORDINATES=CartesianReferenceSystem()
+#COORDINATES=WGS84ReferenceSystem()
 
 def work():
   # Setup and run the inversion
