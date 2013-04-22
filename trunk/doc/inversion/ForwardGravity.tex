@@ -76,7 +76,7 @@ derivative of the density with respect to the level set function.
 
 \begin{classdesc}{GravityModel}{domain, 
 w, g,
-\optional{, reference=\None}
+\optional{, coordinates=\None}
 \optional{, fixPotentialAtBottom=False},
 \optional{, tol=1e-8}
 }
@@ -90,6 +90,8 @@ If \member{reference} defines the reference coordinate system to be used, see Se
 \member{tol} set the tolerance for the solution of the PDE~(\ref{ref:GRAV:EQU:100}).
 If \member{fixPotentialAtBottom} is set to  \True, the gravitational potential 
 at the bottom is set to zero in addition to the potential on the top. 
+\member{coordinates} set the reference coordinate system to be used. By the default the 
+Cartesian coordinate system is used.
 \end{classdesc}
 
 \begin{methoddesc}[GravityModel]{rescaleWeights}{
@@ -158,41 +160,41 @@ or
 \end{equation} 
 
 \subsection{Geodetic Coordinates }
-For geodetic coordinates $(\phi, \lambda, h)$, see Appendix~\ref{sec:geodetic}, the solution process needs to be slightly modified.
+For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
 Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
 have in equation~\ref{ref:GRAV:EQU:9}:
 \begin{equation}\label{ref:GRAV:EQU:300}
 \omega^{(s)}_i \cdot (g_{i}- g^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (g_{{\alpha}}- g^{(s)}_{\alpha}) 
 \end{equation} 
 where now $g^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
-fact that $g_{{\alpha}} = - \frac{1}{v_{\alpha \alpha}} \psi_{,\alpha}$ 
+fact that $g_{{\alpha}} = - d_{\alpha \alpha} \psi_{,\alpha}$ 
 equation~\ref{ref:GRAV:EQU:10} translates to 
 \begin{equation}\label{ref:GRAV:EQU:301}
 J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
-( \omega^{(s)}_{\alpha} \cdot (\frac{1}{v_{\alpha \alpha}}  \psi_{,\alpha} + g^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
+( \omega^{(s)}_{\alpha} \cdot (d_{\alpha \alpha}  \psi_{,\alpha} + g^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
 \end{equation} 
 where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
 \begin{equation}\label{ref:GRAV:EQU:301}
 J^{grav}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
-(  \frac{\omega^{(s)}_{\alpha} v^{\frac{1}{2}}}{v_{\alpha \alpha}} \cdot ( \psi_{,\alpha} + v_{\alpha \alpha} g^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+(  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( \psi_{,\alpha} + \frac{1}{d_{\alpha \alpha}} g^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
 =\frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
 (  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( \psi_{,\alpha} + \widehat{g}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
 \end{equation} 
 with 
 \begin{equation}\label{ref:GRAV:EQU:301b}
- \widehat{\omega}^{(s)}_{\alpha} = \frac{\omega^{(s)}_{\alpha} v^{\frac{1}{2}}}{v_{\alpha \alpha}} \mbox{ and }
+ \widehat{\omega}^{(s)}_{\alpha} =\omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \mbox{ and }
 \widehat{ g}^{(s)}_{\alpha}=
-v_{\alpha \alpha} g^{(s)}_{\alpha}
+\frac{1}{d_{\alpha \alpha}} g^{(s)}_{\alpha}
 \end{equation} 
 which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
 The gravity potential is calculated from 
 \begin{equation}\label{ref:GRAV:EQU:302}
-\int_{\widehat{\Omega}} \frac{v}{v_{\alpha \alpha}^2} q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
+\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
 = - \int_{\widehat{\Omega}}  (4\pi G v) \cdot q \rho\;  d\widehat{x} 
 \end{equation} 
 see equation~\ref{ref:GRAV:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_{\alpha}[\psi]$ is given from
 \begin{equation}\label{ref:GRAV:EQU:303}
-\int_{\widehat{\Omega}} \frac{v}{v_{\alpha \alpha}^2} q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
+\int_{\widehat{\Omega}} v  \; d_{\alpha \alpha}^2 q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
   \int_{\widehat{\Omega}} q_{,\alpha} Y_{\alpha}[\psi]  \; d\widehat{x} 
 \end{equation} 
 and finally 

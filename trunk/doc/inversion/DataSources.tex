@@ -37,10 +37,10 @@ holds a reference to the \escript domain as well as associated \Data objects for
 the input data used for the inversion.
 The class has the following public methods:
 
-\begin{classdesc}{DomainBuilder}{\optional{dim=3, }\optional{reference_system=None}}
+\begin{classdesc}{DomainBuilder}{\optional{dim=3, }\optional{reference_system=\None}}
 Constructor for the domain builder. \member{dim} sets the dimensionality of the
 target domain and must be 2 or 3. By default a 3-dimensional domain is created.
-\member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:referencesystem}.
+\member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
 If not present the Cartesian reference coordinate system is used.
 \end{classdesc}
 
@@ -48,7 +48,8 @@ If not present the Cartesian reference coordinate system is used.
 adds survey data \member{source} (a \class{DataSource} object) to the domain
 builder. The dimensionality of the data must be less than or equal to the
 domain dimensionality. The reference coordinate system of the \class{DataSource}
-must match the reference coordinate system of this class.
+must match the reference coordinate system of this class. 
+The \member{source} must be defined for the same reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
 \end{methoddesc}
 
 \begin{methoddesc}[DomainBuilder]{setVerticalExtents}{%
@@ -84,7 +85,7 @@ domains.
 \optional{pad_lat=\None}%
 \optional{, pad_lon=\None}}
 sets the amount of padding around the dataset as a fraction of the dataset side
-lengths if the the reference coordinate system is not Cartesian.
+lengths if the reference coordinate system is not Cartesian.
 For example, calling \member{setFractionalPadding(0.2, 0.1)} with a data source
 of size $10 \times 20$ degree will result in the padded data set size $14 \times 24$ degree
 (that is $10 \times (1+2 \times 0.2)$ and $20 \times (1+2 \times 0.1)$).
@@ -99,7 +100,7 @@ sets the amount of padding around the dataset in absolute length units.
 The final domain size will be the length in x (in y) of the dataset plus twice
 the value of \member{pad_x} (\member{pad_y}). The arguments must be non-negative.
 By default no padding is applied and \member{pad_y} is ignored for 2-dimensional
-domains.
+domains. This function can be used for Cartesian reference coordinate system  only.
 \end{methoddesc}
 
 \begin{methoddesc}[DomainBuilder]{setElementPadding}{%
@@ -196,17 +197,19 @@ Data sources added to a \class{DomainBuilder} must provide an implementation for
 a few methods as described in the class template \class{DataSource} from
 the \module{esys.downunder.datasources} module:
 
-\begin{classdesc}{DataSource}{}
+\begin{classdesc}{DataSource}{\optional{reference_system=\None}}
 Base constructor which initializes members and should therefore be invoked by
 subclasses. Subclasses may then use the member \member{logger} to print any
-output.
+output. \member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
+If not present the Cartesian reference coordinate system is used.
 \end{classdesc}
 
 \begin{methoddesc}[DataSource]{getDataExtents}{}
 This method should be implemented to return a tuple of tuples
 ( (x0, y0), (nx, ny), (dx, dy) ), where (x0, y0) denote the UTM coordinates of
 the data origin, (nx, ny) the number of data points, and (dx, dy) the spacing
-of data points.
+of data points in a Cartesian reference system is used. Otherwise 
+the data origin and the spacing refer to latitudinal and longitudinal coordinates.
 \end{methoddesc}
 
 \begin{methoddesc}[DataSource]{getDataType}{}
@@ -248,6 +251,10 @@ Note that data sources may choose to ignore the subsampling factor if they
 don't support it.
 \end{methoddesc}
 
+\begin{methoddesc}[DataSource]{getReferenceSystem}{}
+returns the reference coordinate system
+\end{methoddesc}
+
 \vspace{1em}\noindent The \module{esys.downunder.datasources} module contains the following helper
 functions:
 
@@ -264,7 +271,8 @@ for the input values as a \emph{Well-known Text} (WKT) string.
 \subsection{ER Mapper Raster Data}\label{sec:ref:DataSource:ERM}
 \emph{ER Mapper} files that contain 2-dimensional raster data may be used for
 inversions through the \class{ErMapperData} class which is derived from
-\class{DataSource}.
+\class{DataSource}. Date are given in latitudinal and longitudinal coordinates and if
+a Cartesian reference coordinate system is used are mapped using the appropriate  (UTM) projection. 
 Generally, these datasets contain two files~\cite{ERMAPPER}, a header file and a data file.
 The former usually has the \texttt{.ers} file extension and is a text file that
 describes the data format, size, coordinate system used etc.
@@ -278,7 +286,8 @@ To run inversions on a \emph{ER Mapper} dataset use the following constructor:
 \optional{, altitude=0.}%
 \optional{, error=\None}%
 \optional{, scale_factor=\None}%
-\optional{, null_value=\None}}
+\optional{, null_value=\None}
+\optional{, reference_system=\None}}
 Creates a new data source from \emph{ER Mapper} data.
 The parameter \member{data_type} must be one of
 \class{DataSource}.\member{GRAVITY} or \class{DataSource}.\member{MAGNETIC}
@@ -298,6 +307,9 @@ magnetic data is assumed to be given in $nT$.
 Finally, the \member{null_value} parameter can be used to override the value
 for the areas to be ignored (see Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES})
 which is usually provided in the ER Mapper header file.
+\member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
+If not present the Cartesian reference coordinate system is used. In the current implementation any
+coordinate system specified in the file is ignored.
 \end{classdesc}
 
 \subsection{NetCDF Data}\label{sec:ref:DataSource:NETCDF}
@@ -320,7 +332,8 @@ The interface to \class{NetCdfData} looks as follows:
 \optional{, data_variable=\None}%
 \optional{, error=\None}%
 \optional{, scale_factor=\None}%
-\optional{, null_value=\None}}
+\optional{, null_value=\None}
+\optional{, reference_system=\None}}
 Creates a new data source from compatible \netcdf data.
 The two required parameters are \member{datatype}, which must be one of
 \class{DataSource}.\member{GRAVITY} or \class{DataSource}.\member{MAGNETIC}
@@ -342,7 +355,9 @@ If not set, gravity data is assumed to be given in $\frac{\mu m}{sec^2}$ while
 magnetic data is assumed to be given in $nT$.
 Finally, the \member{null_value} parameter can be used to override the value
 for the areas to be ignored (see Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES})
-which is usually provided in the \netcdf file.
+which is usually provided in the \netcdf file. \member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
+If not present the Cartesian reference coordinate system is used. In the current implementation any
+coordinate system specified in the file is ignored.
 \end{classdesc}
 
 \subsection{Synthetic Data}
@@ -358,11 +373,10 @@ has the following interface:
 \begin{classdesc}{SyntheticDataBase}{datatype%
 \optional{, DIM=2}
 \optional{, number_of_elements=10}
-\optional{, length=1*U.km}
+\optional{, length=1*U.km}def SphericalReferenceSystem(R=6378137.0*U.m):
 \optional{, B_b=\None}
 \optional{, data_offset=0}
-\optional{, full_knowledge=\False}
-\optional{, spherical=\False}}
+\optional{, full_knowledge=\False}}
 Base class to define reference data based on a given property distribution
 (density or susceptibility). Data are collected from a square region of
 vertical extent \member{length} on a grid with \member{number_of_elements}
