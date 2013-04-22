@@ -40,10 +40,14 @@ MU = 0.1
 # background magnetic field components (B_North, B_East, B_Vertical)
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
+#COORDINATES=CartesianReferenceSystem()
+COORDINATES=GRS80ReferenceSystem()
+
+
 def work():
   # Setup and run the inversion
-  source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS)
-  db=DomainBuilder(dim=3)
+  source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS, reference_system=COORDINATES)
+  db=DomainBuilder(dim=3, reference_system=COORDINATES)
   db.addSource(source)
   db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
   db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)

@@ -37,11 +37,13 @@ thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
 MU = 0.1
+#COORDINATES=CartesianReferenceSystem()
+COORDINATES=GRS80ReferenceSystem()
 
 def work():
   # Setup and run the inversion
-  source=ErMapperData(DataSource.GRAVITY, DATASET, scale_factor=DATA_UNITS)
-  db=DomainBuilder(dim=3)
+  source=ErMapperData(DataSource.GRAVITY, DATASET, scale_factor=DATA_UNITS, reference_system=COORDINATES)
+  db=DomainBuilder(dim=3, reference_system=COORDINATES)
   db.addSource(source)
   db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
   db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)

@@ -30,15 +30,22 @@ from esys.escript.util import *
 from esys.escript import unitsSI as U
 from esys.ripley import Brick, Rectangle
 from .datasources import DataSource
+from .coordinates import ReferenceSystem, CartesianReferenceSystem
 
 class DomainBuilder(object):
     """
     This class is responsible for constructing an escript Domain object with
     suitable extents and resolution for survey data (`DataSource` objects)
     that is added to it.
+    
+    
+    Domain covers a region above and below the Earth surface. The North-South direction is used as the 
+    x- or latitudinal or x[0] direction, the East-West direction as the y- or longitudinal or x[1] 
+    direction. The vertical direction is denoted by z- or radial or x[2] direction. The corresponding terms
+    are used synonymously. 
     """
 
-    def __init__(self, dim=3):
+    def __init__(self, dim=3, reference_system=None):
         """
         Constructor.
 
@@ -46,19 +53,34 @@ class DomainBuilder(object):
                     This has implications for the survey data than can be
                     added. By default a 3D domain is created.
         :type dim: ``int``
+        :param reference_system: reference coordinate system. By default the 
+                                 Cartesian coordinate system is used.
+        :type reference_system: `ReferenceSystem`
         """
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         if dim not in (2,3):
             raise ValueError("Number of dimensions must be 2 or 3")
+	if not reference_system:
+	    self.__reference_system=CartesianReferenceSystem()
+	else:
+	    self.__reference_system=reference_system 
         self.__domain=None
         self.__dim=dim
         self.__sources=[]
         self.__background_magnetic_field=None
-        self.setPadding()
+        self.setElementPadding()
         self.setVerticalExtents()
         self.fixDensityBelow()
         self.fixSusceptibilityBelow()
-
+        
+    def getReferenceSystem(self):
+        """
+        returns the reference coordinate system
+        
+        :rtype: `ReferenceSystem`
+        """
+        return self.__reference_system
+        
     def addSource(self, source):
         """
         Adds a survey data provider to the domain builder.
@@ -70,13 +92,16 @@ class DomainBuilder(object):
         dimensionality of the data must be one less than the dimensionality
         of the domain (specified in the constructor).
 
-        :param source: The data source to be added
+        :param source: The data source to be added. Its reference system needs
+                       to match the reference system of the DomainBuilder.
         :type source: `DataSource`
         """
         if self.__domain is not None:
             raise RuntimeError("Invalid call to addSource(). Domain is already built.")
         if not isinstance(source, DataSource):
             raise TypeError("source is not a DataSource")
+	if not source.getReferenceSystem() == self.getReferenceSystem():
+	   raise ValueError("Source reference system does not match.")
 
         DATA_DIM = len(source.getDataExtents()[0])
         if DATA_DIM != self.__dim-1:
@@ -87,7 +112,7 @@ class DomainBuilder(object):
 
         self.__sources.append(source)
 
-    def setFractionalPadding(self, pad_x=None, pad_y=None):
+    def setFractionalPadding(self, pad_x=None, pad_y=None, pad_lat=None, pad_lon=None):
         """
         Sets the amount of padding around the dataset as a fraction of the
         dataset side lengths.
@@ -100,8 +125,22 @@ class DomainBuilder(object):
         :type pad_x: ``float``
         :param pad_y: Padding per side in y direction (default: no padding)
         :type pad_y: ``float``
-        :note: `pad_y` is ignored for 2-dimensional domains.
+        :param pad_lat: Padding per side in latitudinal direction (default: no padding)
+        :type pad_lat: ``float``
+        :param pad_lon: Padding per side in longitudinal direction (default: no padding)
+        :type pad_lon: ``float``        
+        :note: `pad_y` is ignored for 2-dimensional domains. 
         """
+        if not pad_lat == None:
+	    if not pad_x == None:
+	       raise ValueError("Either pad_lat or pad_x can be set.")
+	    else:
+	      pad_x = pad_lat
+        if not pad_lon == None:
+	    if not pad_y == None:
+	      raise ValueError("Either pad_lon or pad_y can be set.")
+	    else:
+	      pad_y = pad_lan	      
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setFractionalPadding(). Domain is already built.")
         if pad_x is not None:
@@ -125,11 +164,14 @@ class DomainBuilder(object):
         non-negative.
 
         :param pad_x: Padding per side in x direction (default: no padding)
-        :type pad_x: ``float``
+        :type pad_x: ``float`` in units of length (meter)
         :param pad_y: Padding per side in y direction (default: no padding)
-        :type pad_y: ``float``
+        :type pad_y: ``float`` in units of length (meter)
         :note: `pad_y` is ignored for 2-dimensional domains.
+        :note: this function can only be used if the reference system is Cartesian
         """
+        if not self.getReferenceSystem().isCartesian():
+	    raise RuntimeError("setPadding can be called for the Cartesian reference system only.")
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setPadding(). Domain is already built.")
         if pad_x is not None:
@@ -139,8 +181,35 @@ class DomainBuilder(object):
             if pad_y < 0:
                 raise ValueError("setPadding: Arguments must be non-negative")
         self._padding = [pad_x,pad_y], 'l'
+        
+    def setGeoPadding(self, pad_lat=None, pad_lon=None):
+        """
+        Sets the amount of padding around the dataset in longitude and latitude.
 
-    def setElementPadding(self, pad_x=None, pad_y=None):
+        The final domain size will be the extend in the latitudinal (in longitudinal) 
+        direction of the dataset plus twice the value of `pad_lat` (`pad_lon`).
+        The arguments must be non-negative.
+
+        :param pad_lat: Padding per side in latitudinal direction (default: no padding)
+        :type pad_lat: ``float`` in units of degree 
+        :param pad_lon: Padding per side in longitudinal direction (default: no padding)
+        :type pad_lon: ``float``  in units of degree  
+        :note: `pad_lon` is ignored for 2-dimensional domains.
+        :note: this function can only be used if the reference system is not Cartesian
+        """
+        if self.getReferenceSystem().isCartesian():
+	    raise RuntimeError("setGeoPadding can be called for non-Cartesian reference systems only.")
+        if self.__domain is not None:
+            raise RuntimeError("Invalid call to setPadding(). Domain is already built.")
+        if pad_lat is not None:
+            if pad_lat < 0:
+                raise ValueError("setPadding: Arguments must be non-negative")
+        if pad_lon is not None:
+            if pad_lon < 0:
+                raise ValueError("setPadding: Arguments must be non-negative")
+        self._padding = [pad_lat,pad_lon], 'd'
+        
+    def setElementPadding(self, pad_x=None, pad_y=None, pad_lat=None, pad_lon=None):
         """
         Sets the amount of padding around the dataset in number of elements
         (cells).
@@ -155,6 +224,17 @@ class DomainBuilder(object):
         :type pad_y: ``int``
         :note: `pad_y` is ignored for 2-dimensional datasets.
         """
+        if not pad_lat == None:
+	    if not pad_x == None:
+	      raise ValueError("Either pad_lat or pad_x can be set.")
+	    else:
+	      pad_x = pad_lat
+        if not pad_lon == None:
+	    if not pad_y == None:
+	      raise ValueError("Either pad_lon or pad_y can be set.")
+	    else:
+	      pad_y = pad_lan
+	      
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setElementPadding(). Domain is already built.")
         if pad_x is not None:
@@ -228,7 +308,6 @@ class DomainBuilder(object):
         Returns the background magnetic flux density.
         """
         B = self.__background_magnetic_field
-        # this is for Cartesian (FIXME ?)
         if self.__dim<3:
             return np.array([B[0], B[2]])
         else:
@@ -305,7 +384,7 @@ class DomainBuilder(object):
             if pad[i] is None:
                 frac.append(0.)
                 continue
-            if pt == 'f': # fraction of side length
+            if pt == 'f' : # fraction of side length
                 frac.append(2.*pad[i])
             elif pt == 'e': # number of elements
                 frac.append(2.*pad[i]/float(NX[i]))
@@ -327,6 +406,7 @@ class DomainBuilder(object):
         if len(self.__sources)==0:
             raise ValueError("No data")
         X0, NE, DX = self.__sources[0].getDataExtents()
+        print "X", X0, NE, DX
         XN=[X0[i]+NE[i]*DX[i] for i in range(len(NE))]
 
         for src in self.__sources[1:]:
@@ -359,9 +439,10 @@ class DomainBuilder(object):
         self._dom_origin = [np.floor(oi) for oi in origin]
 
         # cell size / point spacing
-        spacing = DX + [(self._v_depth+self._v_air_layer)/self._v_num_cells]
-        self._spacing = [float(np.floor(si)) for si in spacing]
-
+        spacing = DX + [np.floor((self._v_depth+self._v_air_layer)/self._v_num_cells)]
+        #self._spacing = [float(np.floor(si)) for si in spacing]
+        self._spacing = spacing
+        
         lo=[(self._dom_origin[i], self._dom_origin[i]+NE[i]*self._spacing[i]) for i in range(self.__dim)]
         if self.__dim==3:
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])

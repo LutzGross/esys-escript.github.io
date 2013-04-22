@@ -28,6 +28,7 @@ import unittest
 from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
+from esys.downunder.coordinates import WGS84ReferenceSystem
 
 try:
     import pyproj
@@ -60,6 +61,7 @@ NC_REF = os.path.join(TEST_DATA_ROOT, 'netcdf_test.csv')
 NC_NULL = 0.
 NC_SIZE = [20,15]
 NC_ORIGIN = [403320.91466610413, 6414860.942530109]
+NC_ORIGIN_WGS84 = [115.97200299999747, -32.399100000001042]
 NUMPY_NULL = -123.4
 VMIN=-10000.
 VMAX=10000.
@@ -255,6 +257,7 @@ class TestNetCdfData(unittest.TestCase):
         # check metadata
         self.assertEqual(NP, NC_SIZE, msg="Wrong number of data points")
         # this only works if gdal is available
+
         try:
             import osgeo.osr
             for i in range(len(NC_ORIGIN)):
@@ -267,14 +270,16 @@ class TestNetCdfData(unittest.TestCase):
         ny=NP[1]+2*PAD_Y
         nz=NE_V
         z_data=int(np.round((ALT-VMIN)/DV)-1)
-
+    
         ref=np.genfromtxt(NC_REF, delimiter=',', dtype=float)
         g_ref=ref[:,0].reshape((NP[1],NP[0]))
         s_ref=ref[:,1].reshape((NP[1],NP[0]))
 
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
         # recompute nz since ripley might have adjusted number of elements
+
         nz=len(out)/(nx*ny)
+        print nz,ny,nx
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
 
@@ -290,7 +295,62 @@ class TestNetCdfData(unittest.TestCase):
         g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=NC_NULL
         self.assertAlmostEqual(np.abs(g_out-NC_NULL).max(), 0.,
                 msg="Wrong values in padding area")
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+    def test_cdf_with_padding_ellipsoid(self):
+        ref=WGS84ReferenceSystem()
+        
+        source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, reference_system=ref)
+        domainbuilder=DomainBuilder(reference_system=ref)
+        domainbuilder.addSource(source)
+        domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
+        domainbuilder.setElementPadding(PAD_X,PAD_Y)
+        dom=domainbuilder.getDomain()
+        g,s=domainbuilder.getGravitySurveys()[0]
 
+        outfn=os.path.join(WORKDIR, '_ncdata.csv')
+        saveDataCSV(outfn, g=g, s=s)
+
+        X0,NP,DX=source.getDataExtents()
+        DV=(VMAX-VMIN)/NE_V
+
+        # check metadata
+        self.assertEqual(NP, NC_SIZE, msg="Wrong number of data points")
+
+        for i in range(len(NC_ORIGIN)):
+                self.assertAlmostEqual(X0[i], NC_ORIGIN_WGS84[i], msg="Data origin wrong")
+
+        # check data
+        nx=NP[0]+2*PAD_X
+        ny=NP[1]+2*PAD_Y
+        nz=NE_V
+        z_data=int(np.round((ALT-VMIN)/DV)-1)
+
+        ref=np.genfromtxt(NC_REF, delimiter=',', dtype=float)
+        g_ref=ref[:,0].reshape((NP[1],NP[0]))
+        s_ref=ref[:,1].reshape((NP[1],NP[0]))
+
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        
+        print NP
+        # recompute nz since ripley might have adjusted number of elements
+        nz=len(out)/(nx*ny)
+        print nz,ny,nx
+        g_out=out[:,0].reshape(nz,ny,nx)
+        s_out=out[:,1].reshape(nz,ny,nx)
+
+        self.assertAlmostEqual(np.abs(
+            g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]-g_ref).max(),
+            0., msg="Difference in gravity data area")
+
+        self.assertAlmostEqual(np.abs(
+            s_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]-s_ref).max(),
+            0., msg="Difference in error data area")
+
+        # overwrite data -> should only be padding value left
+        g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=NC_NULL
+        self.assertAlmostEqual(np.abs(g_out-NC_NULL).max(), 0.,
+                msg="Wrong values in padding area")
+                
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestNumpyData))

@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = [ 'ReferenceSystem', 'CartesianReferenceSystem', 'GeodeticReferenceSystem', 'SphericalReferenceSystem',
              'WGS84ReferenceSystem', 'GRS80ReferenceSystem', 'SpatialCoordinateTransformation',
-             'GeodeticCoordinateTransformation', 'CartesianCoordinateTransformation']
+             'GeodeticCoordinateTransformation', 'CartesianCoordinateTransformation', 'makeTranformation']
 
 from esys.escript import unitsSI as U
 from esys.escript import *
@@ -69,6 +69,14 @@ class ReferenceSystem(object):
         """
         raise NotImplementedError()
 
+    def isCartesian(self):
+        """
+        returns if the reference system is Cartesian
+        :rtype: ``bool``
+\       :note: needs to be overwritten by a particular reference system
+        """
+        raise NotImplementedError()
+      
     def createTransformation(self, domain):
         """
         creates an appropriate coordinate transformation on a given domain
@@ -111,7 +119,14 @@ class CartesianReferenceSystem(ReferenceSystem):
         :rtype: `SpatialCoordinateTransformation`
         """
         return SpatialCoordinateTransformation(domain, reference=self)
-
+        
+      def isCartesian(self):
+        """
+        returns if the reference system is Cartesian
+        :rtype: ``bool``
+        """
+        return True
+      
 class GeodeticReferenceSystem(ReferenceSystem):
       """
       Identifies a Geodetic coordinate system
@@ -139,7 +154,13 @@ class GeodeticReferenceSystem(ReferenceSystem):
            self.__a=a
            self.__f=f
            self.__angular_unit=angular_unit
-
+      def isCartesian(self):
+        """
+        returns if the reference system is Cartesian
+        :rtype: ``bool``
+        """
+        return False
+        
       def getAngularUnit(self):
            """
            returns the angular unit
@@ -214,7 +235,7 @@ def WGS84ReferenceSystem():
 
 def GRS80ReferenceSystem():
      """
-     returns the `GeodeticReferenceSystem` for the GRS80 Ellipsoid
+     returns the `GeodeticReferenceSystem` for the GRS80 Ellipsoid eg. used by Geocentric Datum of Australia GDA94 
      """
      return GeodeticReferenceSystem( a=6378137.0 *U.m, f=1/298.257222101, angular_unit=1*U.DEG, name="GRS80")
 
@@ -240,9 +261,7 @@ class SpatialCoordinateTransformation(object):
          self.__domain = domain
          self.__reference_system=reference
          self._volumefactor=Scalar(1., Function(domain))
-         self._scaling_factors = [Scalar(1., Function(domain)) ]*domain.getDim()
-         self._is_cartesian = isinstance(reference, CartesianReferenceSystem)
-
+         self._scaling_factors = Vector(1., Function(domain))
      def __eq__(self, other):
           return self.isTheSame(other)
 
@@ -272,7 +291,7 @@ class SpatialCoordinateTransformation(object):
          returns ``True`` if the scaling factors (and the volume factor) are equal to 1
          :rtype: ``bool``
          """
-         return self._is_cartesian
+         return self.__reference_system.isCartesian()
 
      def getDomain(self):
          """
@@ -298,7 +317,7 @@ class SpatialCoordinateTransformation(object):
      def getScalingFactors(self):
          """
          returns the scaling factors
-         :rtype: ``list`` of `esys.escript.Scalar'
+         :rtype: `esys.escript.Vector'
          """
          return self._scaling_factors
 
@@ -331,19 +350,44 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
          h=x[DIM-1]
 
          e = sqrt(2*f-f**2)
-         N = a/sqrt(1 - e**2 * sin(phi) )
-         M = ( a*(1-e**2) ) /sqrt(1 - e**2 * sin(phi) )**3
+         N = a/sqrt(1 - e**2 * sin(phi)**2 )
+         M = ( a*(1-e**2) ) /sqrt(1 - e**2 * sin(phi)**2 )**3
          v_phi = (M + h)
          v_lam = (N + h) * cos(phi)
-
+         s= Vector(1., Function(domain)) 
          if DIM == 2:
              v= v_phi
-             s = [ 1/v_phi, Scalar(1., Function(domain)) ]
+             s=Vector(1., Function(domain)) 
+             s[0]=1/v_phi
          else:
-
              v= v_phi * v_lam
-             s = [ 1/v_phi, 1/v_lam, Scalar(1., Function(domain)) ]
-
+             s[0]=1/v_phi
+             s[1]=1/v_lam
+         print "v =",v_phi
+         print "v =",v_lam
          self._volumefactor=v
          self._scaling_factors = s
 
+def makeTranformation(domain, coordinates=None):
+    """
+    returns a `SpatialCoordinateTransformation` for the given domain
+    
+    :param domain: domain in the domain of the coordinate transformation
+    :type domain: `esys.escript.AbstractDomain'
+    :param coordinates: the reference system or spatial coordinate system.
+    :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
+    :return: the spatial coordinate system for the given domain of the specified 
+                   reference system ``coordinates``. If ``coordinates`` is already spatial coordinate system based on the 
+                   riven domain ``coordinates`` is returned. Otherwise an appropriate spatial coordinate system 
+               is created.
+    :rtype: `SpatialCoordinateTransformation` 
+    """
+    if coordinates == None:
+         return CartesianCoordinateTransformation(domain)
+    elif isinstance(coordinates, ReferenceSystem):
+         return coordinates.createTransformation(domain)
+    else:
+         if not coordinates.getDomain() ==  domain:
+	      raise ValueError("Domain of spatial coordinate system and given domain don't match.")
+	 else:
+	      return coordinates

@@ -28,6 +28,7 @@ import numpy as np
 from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
+from .coordinates import makeTranformation
 
 
 class Regularization(CostFunction):
@@ -50,6 +51,7 @@ class Regularization(CostFunction):
                        w0=None, w1=None, wc=None,
                        location_of_set_m=Data(),
                        useDiagonalHessianApproximation=False, tol=1e-8,
+                       coordinates=None,
                        scale=None, scale_c=None):
         """
         initialization.
@@ -84,6 +86,8 @@ class Regularization(CostFunction):
                     Hessian Operator
         :type tol: positive ``float``
 
+        :param coordinates: defines coordinate system to be used
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param scale: weighting factor for level set function variation terms. If not set one is used.
         :type scale: ``Scalar`` if ``numLevelSets`` == 1 or `Data` object of shape
                   (``numLevelSets`` ,) if ``numLevelSets`` > 1
@@ -102,6 +106,7 @@ class Regularization(CostFunction):
         self.__domain=domain
         DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
+        self.__trafo=makeTranformation(domain, coordinates)
 
         self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
@@ -151,17 +156,24 @@ class Regularization(CostFunction):
               else:
                    if not s0 == (numLevelSets,):
                       raise ValueError("Unexpected shape %s for weight w0."%s0)
-
+              if not self.__trafo.isCartesian():
+		   w0*=self.__trafo.getVolumeFactor()
         if not w1 is None:
               w1 = interpolate(w1,self.__pde.getFunctionSpaceForCoefficient('A'))
               s1=w1.getShape()
-              if numLevelSets is 1 :
+              if numLevelSets == 1 :
                    if not s1 == (DIM,) :
                       raise ValueError("Unexpected shape %s for weight w1."%s1)
               else:
                    if not s1 == (numLevelSets,DIM):
                       raise ValueError("Unexpected shape %s for weight w1."%s1)
-
+              if not self.__trafo.isCartesian():
+		   f= self.__trafo.getScalingFactors()**2*self.__trafo.getVolumeFactor()
+		   if numLevelSets == 1 : 
+		      w1*=f
+		   else:
+		      for i in range(numLevelSets): w1[i,:]*=f
+		   
         if numLevelSets == 1:
              wc=None
         else:
@@ -169,6 +181,8 @@ class Regularization(CostFunction):
              sc=wc.getShape()
              if not sc == (numLevelSets, numLevelSets):
                 raise ValueError("Unexpected shape %s for weight wc."%(sc,))
+	     if not self.__trafo.isCartesian():
+	        raise ValueError("Non-cartesian coordinates for cross gradient term is not supported yet.")
         # ============= now we rescale weights: =============================
         L2s=np.asarray(boundingBoxEdgeLengths(domain))**2
         L4=1/np.sum(1/L2s)**2
@@ -235,7 +249,15 @@ class Regularization(CostFunction):
         :rtype: ``Domain``
         """
         return self.__domain
+    
+    def getCoordinateTransformation(self):
+        """
+        returns the coordinate transformation being used
 
+        :rtype: ``CoordinateTransformation``
+        """
+        return self.__trafo
+        
     def getNumLevelSets(self):
         """
         returns the number of level set functions
@@ -390,6 +412,7 @@ class Regularization(CostFunction):
                 A+=integrate(inner(grad_m**2, self.__w1))*mu
             else:
                 for k in range(numLS):
+                    print "C = ",integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
                     A+=mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
 
         if numLS > 1:
@@ -398,7 +421,9 @@ class Regularization(CostFunction):
                 len_gk=length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
+                    print "CC =",integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
                     A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
+        print "A =",A
         return A/2
 
     def getGradient(self, m,  grad_m):

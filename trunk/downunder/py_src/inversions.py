@@ -37,6 +37,7 @@ from .mappings import *
 from .minimizers import *
 from .regularizations import Regularization
 from .datasources import DataSource
+from .coordinates import makeTranformation
 
 class InversionDriver(object):
     """
@@ -249,6 +250,7 @@ class GravityInversion(InversionDriver):
         """
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
+        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
         DIM=dom.getDim()
         rho_mask = domainbuilder.getSetDensityMask()
         #========================
@@ -268,7 +270,8 @@ class GravityInversion(InversionDriver):
             w1=[1.]*DIM
 
         regularization=Regularization(dom, numLevelSets=1,\
-                               w0=w0, w1=w1, location_of_set_m=rho_mask)
+                               w0=w0, w1=w1, location_of_set_m=rho_mask,
+                               coordinates=trafo)
         #====================================================================
         self.logger.info("Retrieving gravity surveys...")
         surveys=domainbuilder.getGravitySurveys()
@@ -289,7 +292,7 @@ class GravityInversion(InversionDriver):
         #====================================================================
 
         self.logger.info("Setting up model...")
-        forward_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom)
+        forward_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom, coordinates=trafo)
         forward_model.rescaleWeights(rho_scale=scale_mapping)
 
         #====================================================================
@@ -359,7 +362,7 @@ class MagneticInversion(InversionDriver):
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
         DIM=dom.getDim()
-
+        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
         #========================
         self.logger.info('Creating mapping ...')
         k_mask = domainbuilder.getSetSusceptibilityMask()
@@ -377,7 +380,7 @@ class MagneticInversion(InversionDriver):
         if w1 is None:
             w1=[1.]*DIM
         
-        regularization=Regularization(dom, numLevelSets=1,w0=w0, w1=w1, location_of_set_m=k_mask)
+        regularization=Regularization(dom, numLevelSets=1,w0=w0, w1=w1, location_of_set_m=k_mask, coordinates=trafo)
 
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
@@ -399,7 +402,7 @@ class MagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
         #====================================================================
         self.logger.info("Setting up model...")
-        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom)
+        forward_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         forward_model.rescaleWeights(k_scale=scale_mapping)
 
         #====================================================================
@@ -488,7 +491,7 @@ class JointGravityMagneticInversion(InversionDriver):
         self.logger.info('Retrieving domain...')
         dom=domainbuilder.getDomain()
         DIM=dom.getDim()
-
+        trafo=makeTranformation(dom, domainbuilder.getReferenceSystem())
         #========================
         self.logger.info('Creating mappings ...')
         rho_mask=domainbuilder.getSetDensityMask()
@@ -529,7 +532,7 @@ class JointGravityMagneticInversion(InversionDriver):
         reg_mask[self.DENSITY] = rho_mask
         reg_mask[self.SUSCEPTIBILITY] = k_mask
         regularization=Regularization(dom, numLevelSets=2,\
-                               w0=w0, w1=w1,wc=wc, location_of_set_m=reg_mask)
+                               w0=w0, w1=w1,wc=wc, location_of_set_m=reg_mask, coordinates=trafo)
         #====================================================================
         self.logger.info("Retrieving gravity surveys...")
         surveys=domainbuilder.getGravitySurveys()
@@ -549,7 +552,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up gravity model...")
-        gravity_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom)
+        gravity_model=GravityModel(dom, w, g, fixPotentialAtBottom=self._fixGravityPotentialAtBottom, coordinates=trafo)
         gravity_model.rescaleWeights(rho_scale=rho_scale_mapping)
         #====================================================================
         self.logger.info("Retrieving magnetic field surveys...")
@@ -571,7 +574,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up magnetic model...")
-        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom)
+        magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
         #====================================================================
         self.logger.info("Setting cost function...")

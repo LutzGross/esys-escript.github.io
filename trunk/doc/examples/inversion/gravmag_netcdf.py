@@ -42,12 +42,15 @@ l_air = 6. * U.km
 n_cells_v = 25
 mu_gravity = 10.
 mu_magnetic = 0.1
+#COORDINATES=CartesianReferenceSystem()
+COORDINATES=GRS80ReferenceSystem()
+
 
 def work():
   # Setup and run the inversion
-  grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS)
-  mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS)
-  db=DomainBuilder(dim=3)
+  grav_source=NetCdfData(NetCdfData.GRAVITY, GRAVITY_DATASET, scale_factor=GRAV_UNITS, reference_system=COORDINATES)
+  mag_source=NetCdfData(NetCdfData.MAGNETIC, MAGNETIC_DATASET, scale_factor=MAG_UNITS, reference_system=COORDINATES)
+  db=DomainBuilder(dim=3, reference_system=COORDINATES)
   db.addSource(grav_source)
   db.addSource(mag_source)
   db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)

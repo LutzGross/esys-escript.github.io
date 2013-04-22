@@ -40,7 +40,6 @@ mu_gravity = 10.
 mu_magnetic = 0.1
 n_cells_in_data = 30
 full_knowledge = False
-spherical = False
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 #
 DIM = 3
@@ -56,12 +55,12 @@ n_cells_v = max(
 grav_data=SyntheticData(DataSource.GRAVITY, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,
         DIM=DIM, number_of_elements=n_cells_in_data, length=l_data,
-        data_offset=0, full_knowledge=full_knowledge, spherical=spherical)
+        data_offset=0, full_knowledge=full_knowledge)
 
 mag_data=SyntheticData(DataSource.MAGNETIC, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,
         DIM=DIM, number_of_elements=n_cells_in_data, length=l_data, B_b=B_b,
-        data_offset=0, full_knowledge=full_knowledge, spherical=spherical)
+        data_offset=0, full_knowledge=full_knowledge)
 
 domainbuilder=DomainBuilder(dim=DIM)
 domainbuilder.addSource(grav_data)

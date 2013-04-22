@@ -157,21 +157,14 @@ class TestCoordinates(unittest.TestCase):
          self.assertTrue(error<=RTOL, "volume factor")
          
          s=tf.getScalingFactors()
-         self.assertTrue(isinstance(s, list), "scaling factor type")
-         self.assertEqual(len(s), dom.getDim(), "scaling factor length")
-         
-         self.assertTrue(isinstance(s[0], esys.escript.Data), "wrong 0-th scaling factor ")
-         self.assertEqual(s[0].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
+         self.assertTrue(isinstance(s, esys.escript.Data), "scaling factor type")
+         self.assertEqual(s.getShape(), (dom.getDim(),), "scaling factor length")
+         self.assertEqual(s.getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
+
          error=Lsup(s[0]-1.)
          self.assertTrue(error<=RTOL, "0-th scaling factor")         
-         
-         self.assertTrue(isinstance(s[1], esys.escript.Data), "wrong 1-th scaling factor ")
-         self.assertEqual(s[1].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          error=Lsup(s[1]-1.)
          self.assertTrue(error<=RTOL, "1-th scaling factor")  
-         
-         self.assertTrue(isinstance(s[2], esys.escript.Data), "wrong 2-th scaling factor ")
-         self.assertEqual(s[2].getFunctionSpace(), esys.escript.Function(dom), "wrong 2-th scaling factor type")
          error=Lsup(s[2]-1.)
          self.assertTrue(error<=RTOL, "2-th scaling factor")   
          
@@ -194,16 +187,13 @@ class TestCoordinates(unittest.TestCase):
          self.assertTrue(error<=RTOL, "volume factor")
          
          s=tf.getScalingFactors()
-         self.assertTrue(isinstance(s, list), "scaling factor type")
-         self.assertEqual(len(s), dom.getDim(), "scaling factor length")
+         self.assertTrue(isinstance(s, esys.escript.Data), "scaling factor type")
+         self.assertEqual(s.getShape(), (dom.getDim(),), "scaling factor length")
+         self.assertEqual(s.getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          
-         self.assertTrue(isinstance(s[0], esys.escript.Data), "wrong 0-th scaling factor ")
-         self.assertEqual(s[0].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          error=Lsup(s[0]-1.)
          self.assertTrue(error<=RTOL, "0-th scaling factor")         
          
-         self.assertTrue(isinstance(s[1], esys.escript.Data), "wrong 1-th scaling factor ")
-         self.assertEqual(s[1].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          error=Lsup(s[1]-1.)
          self.assertTrue(error<=RTOL, "1-th scaling factor")  
          
@@ -234,21 +224,16 @@ class TestCoordinates(unittest.TestCase):
          self.assertTrue(error<=RTOL * R*R , "volume factor")
          
          s=tf.getScalingFactors()
-         self.assertTrue(isinstance(s, list), "scaling factor type")
-         self.assertEqual(len(s), dom.getDim(), "scaling factor length")
+         self.assertTrue(isinstance(s, esys.escript.Data), "scaling factor type")
+         self.assertEqual(s.getShape(), (dom.getDim(),), "scaling factor length")
+         self.assertEqual(s.getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          
-         self.assertTrue(isinstance(s[0], esys.escript.Data), "wrong 0-th scaling factor ")
-         self.assertEqual(s[0].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          error=Lsup(s[0]-1/r)
          self.assertTrue(error<=RTOL/R, "0-th scaling factor")         
          
-         self.assertTrue(isinstance(s[1], esys.escript.Data), "wrong 1-th scaling factor ")
-         self.assertEqual(s[1].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          error=Lsup(s[1]-1/(r*sin(phi)))
          self.assertTrue(error<=RTOL/R, "1-th scaling factor")  
          
-         self.assertTrue(isinstance(s[2], esys.escript.Data), "wrong 2-th scaling factor ")
-         self.assertEqual(s[2].getFunctionSpace(), esys.escript.Function(dom), "wrong 2-th scaling factor type")
          error=Lsup(s[2]-1.)
          self.assertTrue(error<=RTOL, "2-th scaling factor")   
          
@@ -276,20 +261,14 @@ class TestCoordinates(unittest.TestCase):
          self.assertTrue(error<=RTOL*R, "volume factor")
          
          s=tf.getScalingFactors()
-         self.assertTrue(isinstance(s, list), "scaling factor type")
-         self.assertEqual(len(s), dom.getDim(), "scaling factor length")
-         
-         self.assertTrue(isinstance(s[0], esys.escript.Data), "wrong 0-th scaling factor ")
-         self.assertEqual(s[0].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
+         self.assertTrue(isinstance(s, esys.escript.Data), "scaling factor type")
+         self.assertEqual(s.getShape(), (dom.getDim(),), "scaling factor length")
+         self.assertEqual(s.getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
+
          error=Lsup(s[0]-1./r)
          self.assertTrue(error<=RTOL/R, "0-th scaling factor")         
-         
-         self.assertTrue(isinstance(s[1], esys.escript.Data), "wrong 1-th scaling factor ")
-         self.assertEqual(s[1].getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          error=Lsup(s[1]-1.)
          self.assertTrue(error<=RTOL, "1-th scaling factor")  
-         
-                 
          
          
 if __name__ == "__main__":

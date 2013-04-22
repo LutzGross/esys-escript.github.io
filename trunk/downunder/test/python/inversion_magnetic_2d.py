@@ -54,7 +54,7 @@ n_cells_v = max(
 source=SyntheticData(DataSource.MAGNETIC, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,
         DIM=DIM, number_of_elements=n_cells_in_data, length=l_data, B_b=B_b,
-        data_offset=0, full_knowledge=full_knowledge, spherical=False)
+        data_offset=0, full_knowledge=full_knowledge)
 
 domainbuilder=DomainBuilder(dim=DIM)
 domainbuilder.addSource(source)

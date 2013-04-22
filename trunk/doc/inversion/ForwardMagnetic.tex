@@ -47,9 +47,9 @@ B_i = - \psi_{,i}  + k \cdot B^b_i
 \end{equation}
 As the $B^s$ magnetic flux density anomaly we obtain the PDE
 \begin{equation}\label{ref:MAG:EQU:8}
-- \psi_{,ii} = - (k B^b_i)_{,i} 
+- \psi_{,ii} = - (k B^r_i)_{,i} 
 \end{equation} 
-which needs to be solved for a given susceptibility $k$.
+with $B^r_i=B^b_i$ which needs to be solved for a given susceptibility $k$.
 The magnetic scalar potential is set to zero at the top of the domain
 $\Gamma_{0}$.
 On all other faces the normal component of the magnetic flux density anomaly
@@ -101,6 +101,7 @@ where $\alpha$ defines a scaling factor which is typically set to one and $L$ is
 $k'$ is considering the 
 derivative of the density with respect to the level set function. 
 
+
 \subsection{Usage}
 
 \LG{Add example}
@@ -138,7 +139,7 @@ respect to the susceptibility $k$ is calculated.  We follow the concept as outli
 
 The magnetic potential $\psi$ from PDE~(\ref{ref:MAG:EQU:8}) is solved in weak form:
 \begin{equation}\label{ref:MAG:EQU:201}
-\int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^b_i \; dx 
+\int_{\Omega} q_{,i} \psi_{,i} \; dx  = \int_{\Omega}  k \cdot q_{,i}  B^r_i \; dx 
 \end{equation} 
 for all $q$ with $q=0$ on $\Gamma_{0}$.
 In the following we set $\Psi[k]=\psi$ for a given susceptibility $k$ as
@@ -160,29 +161,81 @@ This is written as
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
 Y_i[\psi] \Psi[p]_{,i} - p \cdot Y_i[\psi]B^b_i   \; dx  
 \end{equation} 
-We then set $Y^*[\psi]$ as the solution of the equation 
+We then set adjoint function $Y^*[\psi]$ as the solution of the equation 
 \begin{equation}\label{ref:MAG:EQU:202d}
 \int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
 \end{equation} 
 with $Y^*[\psi]=0$ on $\Gamma_{0}$. With $r=\Psi[p]$ we get
 \begin{equation}\label{ref:MAG:EQU:202dd}
-\int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx
+\int_{\Omega} \Psi[p]_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} \Psi[p]_{,i} Y_i[\psi]  \; dx
 \end{equation} 
 and from Equation~(\ref{ref:MAG:EQU:201}) with $q=Y^*[\psi]$ we get
 \begin{equation}\label{ref:MAG:EQU:20e}
-\int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^b_i \; dx  
+\int_{\Omega} Y^*[\psi]_{,i}  \Psi[p]_{,i} \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^r_i \; dx  
 \end{equation}
 which leads to 
 \begin{equation}\label{ref:MAG:EQU:20ee}
-\int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^b_i \; dx  
+\int_{\Omega} \Psi[p]_{,i} ,Y_i[\psi]  \; dx  = \int_{\Omega}  p \cdot Y^*[\psi]_{,i}  B^r_i \; dx  
 \end{equation}
 and finally
 \begin{equation}\label{ref:MAG:EQU:201a}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
-p \cdot (Y_i[\psi] - Y^*[\psi]_{,i})  B^b_i \; dx  
+p \cdot (Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i) \; dx  
 \end{equation} 
 or 
 \begin{equation}\label{ref:MAG:EQU:201b}
-\frac{\partial J^{mag}}{\partial k} = (Y^*[\psi]_{,i}-Y_i[\psi])  B^b_i
+\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i
 \end{equation}
+
+\subsection{Geodetic Coordinates }
+For geodetic coordinates $(\phi, \lambda, h)$, see Appendix~\ref{sec:geodetic}, the solution process needs to be slightly modified.
+Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
+have in equation~\ref{ref:MAG:EQU:9}:
+\begin{equation}\label{ref:MAG:EQU:300}
+\omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (B_{{\alpha}}- B^{(s)}_{\alpha}) 
+\end{equation} 
+where now $B^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
+fact that $B_{{\alpha}} = k \cdot B^b_{{\alpha}} - \frac{1}{v_{\alpha \alpha}} \psi_{,\alpha}$ 
+equation~\ref{ref:MAG:EQU:10} translates to 
+\begin{equation}\label{ref:MAG:EQU:301}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+( \omega^{(s)}_{\alpha} \cdot (\frac{1}{v_{\alpha \alpha}}  \psi_{,\alpha} - k \cdot B^b_{{\alpha}}  + B^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
+\end{equation} 
+where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
+\begin{equation}\label{ref:MAG:EQU:301}
+J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  \frac{\omega^{(s)}_{\alpha} v^{\frac{1}{2}}}{v_{\alpha \alpha}} \cdot ( 
+ \psi_{,\alpha} -  k \cdot v_{\alpha \alpha} B^b_{{\alpha}} + v_{\alpha \alpha} B^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+=\frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+(  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( \psi_{,\alpha} -  k \cdot \widehat{B}^b_{{\alpha}}+  \widehat{B}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+\end{equation} 
+with 
+\begin{equation}\label{ref:MAG:EQU:301b}
+ \widehat{\omega}^{(s)}_{\alpha} = \frac{\omega^{(s)}_{\alpha} v^{\frac{1}{2}}}{v_{\alpha \alpha}} \mbox{ , }
+\widehat{B}^{(s)}_{\alpha}=
+v_{\alpha \alpha} B^{(s)}_{\alpha}  \mbox{ and } \widehat{B}^b_{{\alpha}} = v_{\alpha \alpha} B^b_{{\alpha}} 
+\end{equation} 
+which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
+
+
+The magnetic potential is calculated from 
+\begin{equation}\label{ref:MAG:EQU:302}
+\int_{\widehat{\Omega}} \frac{v}{v_{\alpha \alpha}^2} q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
+=  \int_{\widehat{\Omega}}  \frac{v}{v_{\alpha \alpha}} k \cdot q_{,\alpha}  B^r_{\alpha} \; d\widehat{x}   
+=  \int_{\widehat{\Omega}}  k \cdot q_{,\alpha}  \widehat{B}^r_{\alpha} \; d\widehat{x}   
+\end{equation} 
+with 
+\begin{equation}\label{ref:MAG:EQU:302b}
+\widehat{B}^r_{\alpha}  = \frac{v}{v_{\alpha \alpha}} \widehat{B}^r_{\alpha}
+\end{equation} 
+see equation~\ref{ref:MAG:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_{\alpha}[\psi]$ is given from
+\begin{equation}\label{ref:MAG:EQU:303}
+\int_{\widehat{\Omega}} \frac{v}{v_{\alpha \alpha}^2} q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
+\int_{\widehat{\Omega}} r_{,{\alpha}} ,Y_{\alpha}[\psi]  \;d\widehat{x}
+\end{equation} 
+and finally 
+\begin{equation}\label{ref:GRAV:EQU:201a}
+\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,{\alpha}}  B^r_{\alpha} - Y_i[\psi] B^b_{\alpha}
+\end{equation} 
+
 

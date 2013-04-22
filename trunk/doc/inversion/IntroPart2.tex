@@ -78,6 +78,7 @@ an \escript domain to define an appropriate
 costs function to be minimized. The driver class also run the minimization solver.
 The \escript domain~\cite{ESCRIPT} is created using the \class{DomainBuilder}, see Chapter~\ref{Chp:ref:domain builder},
 which builds an appropriate domain and mesh based on the geophysical data used in the inversion. 
+\class{ReferenceSystem} defines the coordinate system to be used. 
 Based on the inversion to be performed (gravity, magnetic, joint) the 
 driver class builds an appropriate cost function $J$ including the regularization term $J^{reg}$, see
 \class{Regularization} class in Chapter~\ref{Chp:ref:regularization}, 
@@ -91,41 +92,6 @@ more general cases can be implemented in an easy way. Script \examplefile{nodriv
 on how to implement an inversion without using one of the driver classes.   
 
 
-\section{Domains}
-
-
-\begin{figure}[ht]
-    \centering\includegraphics{cartesian}
-    \caption{Illustration of domain extents, mapping and padding area}
-    \label{fig:cartesianDomain}
-\end{figure}
-
-\subsection{Cartesian Domain}
-For the Cartesian domain\index{Cartesian Domain} $\Omega$ we assume a flat Earth in the form
-\begin{equation} \label{REF:EQU:INTRO 8}
-\Omega = [x^{min}_0, x^{max}_0] \times
- [x^{min}_1, x^{max}_1] \times
- [x^{min}_2, x^{max}_2] 
-\end{equation} 
-and use the Universal Transverse Mercator (UTM) coordinate system\footnote{See
-    e.g. \url{http://en.wikipedia.org/wiki/Universal_Transverse_Mercator_coordinate_system}.}
-where $x_0$ represents the easting, $x_1$ the northing and $x_2$ the altitude.
-In this way, all three coordinates can be given in meters with minimal
-distortion when visualizing the domain.
-The origin in vertical direction (altitude 0) corresponds to sea level.
-A proper inversion set up requires a buffer zone in all dimensions.
-Figure~\ref{fig:cartesianDomain} depicts these as areas shaded in red (padding
-area) and blue (air buffer).
-While the inversion results contain values for the entire domain the buffer zone
-should be disregarded when performing any analysis.
-In other words, only the region labeled \emph{data area} in
-Figure~\ref{fig:cartesianDomain} contains useful information.
-Both the thickness of the air layer and the amount of padding in the $x_0$/$x_1$
-dimension is configurable when setting up an inversion.
-
-
-\subsection{Sphere Shell Segment}
-This is not supported yet.
 
 
 

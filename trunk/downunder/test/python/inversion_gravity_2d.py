@@ -32,6 +32,10 @@ try:
 except KeyError:
     WORKDIR='.'
 
+import logging
+logger=logging.getLogger('inv')
+logger.setLevel(logging.INFO)
+
 # interesting parameters:
 n_humps_h = 3
 n_humps_v = 1
@@ -54,7 +58,7 @@ n_cells_v = max(
 source=SyntheticData(DataSource.GRAVITY, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,
         DIM=DIM, number_of_elements=n_cells_in_data, length=l_data,
-        data_offset=0, full_knowledge=full_knowledge, spherical=False)
+        data_offset=0, full_knowledge=full_knowledge)
 
 domainbuilder=DomainBuilder(dim=DIM)
 domainbuilder.addSource(source)
@@ -68,6 +72,7 @@ inv.setSolverTolerance(1e-4)
 inv.setSolverMaxIterations(50)
 inv.setup(domainbuilder)
 inv.getCostFunction().setTradeOffFactorsModels(mu)
+
 
 rho_new = inv.run()
 rho_ref = source.getReferenceProperty()
