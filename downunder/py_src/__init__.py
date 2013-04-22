@@ -31,6 +31,7 @@ from .inversions import *
 from .mappings import *
 from .minimizers import *
 from .regularizations import *
+from .coordinates import *
 
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)

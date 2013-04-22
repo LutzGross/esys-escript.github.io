@@ -34,6 +34,7 @@ from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
 from esys.ripley import ripleycpp
+from .coordinates import ReferenceSystem,  CartesianReferenceSystem
 
 try:
     from scipy.io.netcdf import netcdf_file
@@ -100,13 +101,25 @@ class DataSource(object):
 
     GRAVITY, MAGNETIC = list(range(2))
 
-    def __init__(self):
+    def __init__(self, reference_system=None):
         """
         Constructor. Sets some defaults and initializes logger.
         """
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__subsampling_factor=1
-
+        if not reference_system:
+	     self.__reference_system = CartesianReferenceSystem()
+        else:
+             self.__reference_system = reference_system
+             
+    def getReferenceSystem(self):
+        """
+        returns the reference coordinate system
+        
+        :rtype: `ReferenceSystem`
+        """
+        return self.__reference_system
+        
     def getDataExtents(self):
         """
         returns a tuple of tuples ``( (x0, y0), (nx, ny), (dx, dy) )``, where
@@ -183,7 +196,7 @@ class ErMapperData(DataSource):
     input and will raise an exception if other data is found.
     """
     def __init__(self, data_type, headerfile, datafile=None, altitude=0.,
-                 error=None, scale_factor=None, null_value=None):
+                 error=None, scale_factor=None, null_value=None, reference_system=None):
         """
         :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
         :type data_type: ``int``
@@ -209,8 +222,14 @@ class ErMapperData(DataSource):
                            areas. This information is usually included in the
                            file.
         :type null_value: ``float``
+        :param reference_system: reference coordinate system to be used. For a Cartesian
+                                 reference the appropriate UTM transformation is applied.
+                                 By default the Cartesian coordinate system is used.
+        :type reference_system: `ReferenceSystem`
+        :note: consistence in the reference coordinate system and the reference coordinate system  
+               used in the data source is not checked.
         """
-        super(ErMapperData, self).__init__()
+        super(ErMapperData, self).__init__(reference_system)
         self.__headerfile=headerfile
         if datafile is None:
             self.__datafile=headerfile[:-4]
@@ -329,15 +348,26 @@ class ErMapperData(DataSource):
             except:
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
                 self.logger.warn('GDAL not available or file read error, assuming GDA94 data')
-            originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
-            op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+            if self.getReferenceSystem().isCartesian():
+                originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
+                op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+                # we are rounding to avoid interpolation issues
+                spacingX=np.round(op1X-originX_UTM)
+                spacingY=np.round(op1Y-originY_UTM)
+                originX=np.round(originX_UTM)
+                originY=np.round(originY_UTM)
+            else:
+	        _,_,zone=LatLonToUTM(originX, originY, wkt)
+	        originX_UTM,originY_UTM= originX, originY
+	        op1X, op1Y= originX+spacingX, originY+spacingY
+	        spacingX=np.round(op1X-originX_UTM,2)
+                spacingY=np.round(op1Y-originY_UTM,2)
+                originX=np.round(originX_UTM,2)
+                originY=np.round(originY_UTM,2)
             self.__utm_zone = zone
-            # we are rounding to avoid interpolation issues
-            spacingX=np.round(op1X-originX_UTM)
-            spacingY=np.round(op1Y-originY_UTM)
-            originX=np.round(originX_UTM)
-            originY=np.round(originY_UTM)
 
+
+        print originX, originY, spacingX, spacingY
         self.__dataorigin=[originX, originY]
         self.__delta = [spacingX, spacingY]
         self.__nPts = [NX, NY]
@@ -398,7 +428,7 @@ class NetCdfData(DataSource):
     Data Source for gridded netCDF data that use CF/COARDS conventions.
     """
     def __init__(self, data_type, filename, altitude=0., data_variable=None,
-                       error=None, scale_factor=None, null_value=None):
+                       error=None, scale_factor=None, null_value=None, reference_system=None):
         """
         :param filename: file name for survey data in netCDF format
         :type filename: ``str``
@@ -427,8 +457,14 @@ class NetCdfData(DataSource):
                            areas. This information is usually included in the
                            file.
         :type null_value: ``float``
+        :param reference_system: reference coordinate system to be used. For a Cartesian
+                                 reference the appropriate UTM transformation is applied.
+                                 By default the Cartesian coordinate system is used.
+        :type reference_system: `ReferenceSystem`
+        :note: consistence in the reference coordinate system and the reference coordinate system  
+               used in the data source is not checked.
         """
-        super(NetCdfData,self).__init__()
+        super(NetCdfData,self).__init__(reference_system)
         self.__filename=filename
         if not data_type in [self.GRAVITY,self.MAGNETIC]:
             raise ValueError("Invalid value for data_type parameter")
@@ -545,7 +581,11 @@ class NetCdfData(DataSource):
         # values so we have to obtain the min/max in a less efficient way:
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
-        lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+        if self.getReferenceSystem().isCartesian():
+             lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+        else:
+	     _,_,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+	     
         self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         f.close()
@@ -553,7 +593,11 @@ class NetCdfData(DataSource):
         self.__nPts=[NX, NY]
         self.__origin=[lon_range[0],lat_range[0]]
         # we are rounding to avoid interpolation issues
-        self.__delta=[np.round(lengths[i]/self.__nPts[i]) for i in range(2)]
+        if self.getReferenceSystem().isCartesian():
+	     r=0
+	else:
+	     r=2
+        self.__delta=[np.round(lengths[i]/self.__nPts[i],r) for i in range(2)]
 
     def getDataExtents(self):
         """
@@ -685,8 +729,7 @@ class SyntheticDataBase(DataSource):
                  length=1*U.km,
                  B_b=None,
                  data_offset=0,
-                 full_knowledge=False,
-                 spherical=False):
+                 full_knowledge=False):
         """
         :param data_type: data type indicator
         :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
@@ -704,9 +747,6 @@ class SyntheticDataBase(DataSource):
         :param full_knowledge: if ``True`` data are collected from the entire
                                subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` spherical coordinates are used. This is
-                          not supported yet and should be set to ``False``.
-        :type spherical: ``Bool``
         """
         super(SyntheticDataBase, self).__init__()
         if not data_type in [self.GRAVITY, self.MAGNETIC]:
@@ -715,19 +755,15 @@ class SyntheticDataBase(DataSource):
         self.number_of_elements=number_of_elements
         self.length=length
         self.__data_type = data_type
-
-        if spherical:
-            raise ValueError("Spherical coordinates are not supported yet")
-        self.__spherical = spherical
         self.__full_knowledge= full_knowledge
         self.__data_offset=data_offset
         self.__B_b =None
         # this is for Cartesian (FIXME ?)
         if data_type  ==  self.MAGNETIC:
             if self.DIM < 3:
-                self.__B_b = np.array([-B_b[2], -B_b[0]])
+                self.__B_b = np.array([B_b[0], B_b[2]])
             else:
-                self.__B_b = ([-B_b[1], -B_b[2], -B_b[0]])
+                self.__B_b = ([B_b[0], B_b[1],B_b[2]])
         self.__origin = [0]*(DIM-1)
         self.__delta = [float(length)/number_of_elements]*(DIM-1)
         self.__nPts = [number_of_elements]*(DIM-1)
@@ -831,8 +867,7 @@ class SyntheticFeatureData(SyntheticDataBase):
                        length=1*U.km,
                        B_b=None,
                        data_offset=0,
-                       full_knowledge=False,
-                       spherical=False):
+                       full_knowledge=False):
         """
         :param data_type: data type indicator
         :type data_type: `DataSource.GRAVITY`, `DataSource.MAGNETIC`
@@ -852,16 +887,13 @@ class SyntheticFeatureData(SyntheticDataBase):
         :type data_offset: ``float``
         :param full_knowledge: if ``True`` data are collected from the entire subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` spherical coordinates are used.
-        :type spherical: ``Bool``
         """
         super(SyntheticFeatureData,self).__init__(
                                  data_type=data_type, DIM=DIM,
                                  number_of_elements=number_of_elements,
                                  length=length, B_b=B_b,
                                  data_offset=data_offset,
-                                 full_knowledge=full_knowledge,
-                                 spherical=spherical)
+                                 full_knowledge=full_knowledge)
         self._features = features
 
 
@@ -900,7 +932,6 @@ class SyntheticData(SyntheticDataBase):
                        B_b=None,
                        data_offset=0,
                        full_knowledge=False,
-                       spherical=False,
                        s=0.):
         """
         :param data_type: data type indicator
@@ -932,16 +963,13 @@ class SyntheticData(SyntheticDataBase):
         :param full_knowledge: if ``True`` data are collected from the entire
                                subsurface region. This is mainly for testing.
         :type full_knowledge: ``Bool``
-        :param spherical: if ``True`` spherical coordinates are used
-        :type spherical: ``Bool``
         """
         super(SyntheticData,self).__init__(
                                  data_type=data_type, DIM=DIM,
                                  number_of_elements=number_of_elements,
                                  length=length, B_b=B_b,
                                  data_offset=data_offset,
-                                 full_knowledge=full_knowledge,
-                                 spherical=spherical)
+                                 full_knowledge=full_knowledge)
         self.__n_length = n_length
         self.__n_depth = n_depth
         self.depth = depth

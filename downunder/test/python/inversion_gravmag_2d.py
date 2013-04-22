@@ -33,13 +33,12 @@ except KeyError:
     WORKDIR='.'
 
 # interesting parameters:
-depth_offset = 0. * U.km
-n_humps_h = 3
-n_humps_v = 1
+depth_offset = 10 * U.km
+n_humps_h = 10
+n_humps_v = 2
 mu = 100.
 n_cells_in_data = 100
 full_knowledge = False
-spherical = False
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 #
 DIM = 2
@@ -55,12 +54,12 @@ n_cells_v = max(
 grav_data=SyntheticData(DataSource.GRAVITY, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,
         DIM=DIM, number_of_elements=n_cells_in_data, length=l_data,
-        data_offset=0, full_knowledge=full_knowledge, spherical=spherical)
+        data_offset=0, full_knowledge=full_knowledge)
 
 mag_data=SyntheticData(DataSource.MAGNETIC, n_length=n_humps_h, n_depth=n_humps_v,
         depth=THICKNESS+depth_offset, depth_offset=depth_offset,
         DIM=DIM, number_of_elements=n_cells_in_data, length=l_data, B_b=B_b,
-        data_offset=0, full_knowledge=full_knowledge, spherical=spherical)
+        data_offset=0, full_knowledge=full_knowledge, s=l_data/n_humps_h*0.1)
 
 domainbuilder=DomainBuilder(dim=DIM)
 domainbuilder.addSource(grav_data)
@@ -74,11 +73,11 @@ domainbuilder.setBackgroundMagneticFluxDensity(B_b)
 
 inv=JointGravityMagneticInversion()
 inv.setSolverTolerance(1e-4)
-inv.setSolverMaxIterations(50)
+inv.setSolverMaxIterations(500)
 inv.setup(domainbuilder)
 
-inv.getCostFunction().setTradeOffFactorsModels([10., 1.])
-inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.,1.], mu_c=1.)
+inv.getCostFunction().setTradeOffFactorsModels([1., 0.01])
+inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.e-4,1.e-4], mu_c=1000.)
 
 rho_new, k_new = inv.run()
 rho_ref = grav_data.getReferenceProperty()

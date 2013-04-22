@@ -83,20 +83,20 @@ With the coordinate vectors $(u_{\alpha})$ defined as
 \end{equation}
 and scaling factors 
 \begin{equation}
-s_{\phi \phi} = (M + h) \; , 
-s_{\lambda \lambda} =  (N + h) \cdot \cos(\phi) \mbox{ and }
-s_{h h} = 1
+v_{\phi \phi} = (M + h) \; , 
+v_{\lambda \lambda} =  (N + h) \cdot \cos(\phi) \mbox{ and }
+v_{h h} = 1
 \end{equation}
 we get 
 \begin{equation}
- x_{i,\alpha} =  u_{\alpha i} s_{\alpha \alpha} \mbox{ and }   g_{,\alpha}   =    g_{,i} u_{\alpha i} s_{\alpha \alpha} 
+ x_{i,\alpha} =  u_{\alpha i} v_{\alpha \alpha} \mbox{ and }   g_{,\alpha}   =    g_{,i} u_{\alpha i} v_{\alpha \alpha} 
 \end{equation}
 With the fact that 
 \begin{equation}
  u_{\alpha i} u_{\alpha j} = \delta_{ij} \mbox{ and }  u_{\alpha i} u_{\beta i} = \delta_{\alpha \beta}
 \end{equation}
 \begin{equation}
-g_{,i} = \frac{1}{ s_{\alpha \alpha}} g_{,\alpha}  u_{\alpha i} 
+g_{,i} = \frac{1}{ v_{\alpha \alpha}} g_{,\alpha}  u_{\alpha i} 
 \end{equation}
 or 
 \begin{equation}
@@ -106,8 +106,9 @@ g_{,h}  u_{h i}
 \end{equation} 
 Moreover for integrals we get by substitution rule 
 \begin{equation}
-dx_0 \; dx_1  \;  dx_2 =\det((x_{i,\alpha}))  \;  d \phi  \;   d\lambda   \;  dh 
-=  (M + h) \cdot (N + h) \cdot \cos(\phi)  \;  d \phi  \;  d\lambda  \;  dh 
+dx_0 \; dx_1  \;  dx_2 =\det((x_{i,\alpha}))  \;  d \phi  \;   d\lambda   \;  dh = v \;  d \phi  \;   d\lambda   \;  dh
 \end{equation} 
+with  $v= (M + h) \cdot (N + h) \cdot \cos(\phi)$.
+
 Notice that for a spherical Earth $e=0$ for which $M=N$ is the radius of the Earth and $M+h$ is the distance from
 the center.  

@@ -116,6 +116,11 @@ class InversionCostFunction(MeteredCostFunction):
             self.forward_models = [ forward_models ]
         else:
             self.forward_models=forward_models
+    
+        trafo =  regularization.getCoordinateTransformation()
+        for m in self.forward_models :
+	     if not m.getCoordinateTransformation() == trafo:
+	       raise ValueError("Coordinate transformation for regularization and model %m don't match.") 
 
         self.numMappings=len(self.mappings)
         self.numModels=len(self.forward_models)

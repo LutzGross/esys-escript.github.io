@@ -27,6 +27,7 @@ __all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticMo
 from esys.escript import unitsSI as U
 from esys.escript import Data, Vector, Scalar, Function
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
+from .coordinates import makeTranformation
 from esys.escript.util import *
 from math import pi as PI
 import numpy as np
@@ -36,7 +37,7 @@ class ForwardModel(object):
     """
     An abstract forward model that can be plugged into a cost function.
     Subclasses need to implement `getValue()`, `getGradient()`, and possibly
-    `getArguments()`.
+    `getArguments()` and 'getCoordinateTransformation'.
     """
     def __init__(self):
         pass
@@ -49,7 +50,10 @@ class ForwardModel(object):
 
     def getGradient(self, x, *args):
         raise NotImplementedError
-
+    
+    def getCoordinateTransformation(self):
+        return None
+        
 
 class ForwardModelWithPotential(ForwardModel):
     """
@@ -63,7 +67,9 @@ class ForwardModelWithPotential(ForwardModel):
     It is assumed that the forward model is produced through postprocessing
     of the solution of a potential PDE.
     """
-    def __init__(self, domain, w, data,  useSphericalCoordinates=False, fixPotentialAtBottom=False, tol=1e-8):
+    def __init__(self, domain, w, data,  coordinates=None,
+                                 fixPotentialAtBottom=False,                                  
+                                 tol=1e-8):
         """
         initializes a new forward model with potential.
 
@@ -73,8 +79,8 @@ class ForwardModelWithPotential(ForwardModel):
         :type w: ``Vector`` or list of ``Vector``
         :param data: data
         :type data: ``Vector`` or list of ``Vector``
-        :param useSphericalCoordinates: if set spherical coordinates are used
-        :type useSphericalCoordinates: ``bool``
+        :param coordinates: defines coordinate system to be used
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
@@ -83,12 +89,8 @@ class ForwardModelWithPotential(ForwardModel):
         """
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
-
-
-        if useSphericalCoordinates:
-             raise ValueError("Spherical coordinates are not supported yet.")
-        else:
-             self.__useSphericalCoordinates=useSphericalCoordinates
+        self.__trafo=makeTranformation(domain, coordinates)
+        
         try:
             n=len(w)
             m=len(data)
@@ -113,7 +115,16 @@ class ForwardModelWithPotential(ForwardModel):
 
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
+        
+        if not  self.__trafo.isCartesian():
+	     fd=1./self.__trafo().getScalingFactors()
+	     fw=self.__trafo().getScalingFactors()*sqrt(self.__trafo().getVolumeFactor())
+	     
+	     for s in range(len(self.__weight)):
+	         self.__weight[s] = fw * self.__weight[s]
+                 self.__data[s]   = fd * self.__data[s]
 
+                 
     def _rescaleWeights(self, scale=1., fetch_factor=1.):
         """
         rescales the weights such that
@@ -131,13 +142,6 @@ class ForwardModelWithPotential(ForwardModel):
         else:
             raise ValueError("Rescaling of weights failed.")
 
-    def useSphericalCoordinates(self):
-        """
-        Returns ``True`` if spherical coordinates are used.
-        """
-        return self.__useSphericalCoordinates
-
-
     def getDomain(self):
         """
         Returns the domain of the forward model.
@@ -145,6 +149,14 @@ class ForwardModelWithPotential(ForwardModel):
         :rtype: `Domain`
         """
         return self.__domain
+        
+    def getCoordinateTransformation(self):
+        """
+        returns the coordinate transformation being used
+
+        :rtype: ``CoordinateTransformation``
+        """
+        return self.__trafo
 
     def getPDE(self):
         """
@@ -193,7 +205,7 @@ class GravityModel(ForwardModelWithPotential):
     cookbook.
     """
     def __init__(self, domain, w, g,  gravity_constant=U.Gravitational_Constant,
-                 useSphericalCoordinates=False, fixPotentialAtBottom=False, tol=1e-8):
+                  coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new gravity model on the given domain with one or more
         surveys (w, g).
@@ -204,8 +216,8 @@ class GravityModel(ForwardModelWithPotential):
         :type w: ``Vector`` or list of ``Vector``
         :param g: gravity anomaly data
         :type g: ``Vector`` or list of ``Vector``
-        :param useSphericalCoordinates: if set spherical coordinates are used.
-        :type useSphericalCoordinates: ``bool``
+        :param coordinates: defines coordinate system to be used
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
@@ -215,10 +227,19 @@ class GravityModel(ForwardModelWithPotential):
 
         :note: It is advisable to call rescaleWeights() to rescale weights before start inversion.
         """
-        super(GravityModel, self).__init__(domain, w, g, useSphericalCoordinates, fixPotentialAtBottom, tol)
+        super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
-        self.__G = gravity_constant
-        self.getPDE().setValue(A=kronecker(self.getDomain()))
+        if not  self.getCoordinateTransformation().isCartesian():
+	     self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
+	     
+	     fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+	     A=self.getPDE().createCoeffiecient("A")
+	     for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+	     self.getPDE().setValue(A=A)
+             
+        else:         
+            self.__G = 4*PI*gravity_constant
+            self.getPDE().setValue(A=kronecker(self.getDomain()))
 
     def rescaleWeights(self, scale=1., rho_scale=1.):
         """
@@ -231,7 +252,7 @@ class GravityModel(ForwardModelWithPotential):
         :param rho_scale: scale of density.
         :type rho_scale: ``Scalar``
         """
-        self._rescaleWeights(scale, 4.*PI*self.__G*rho_scale)
+        self._rescaleWeights(scale, self.__G*rho_scale)
 
     def getArguments(self, rho):
         """
@@ -258,7 +279,7 @@ class GravityModel(ForwardModelWithPotential):
         pde=self.getPDE()
 
         pde.resetRightHandSideCoefficients()
-        pde.setValue(Y=-4.*PI*self.__G*rho)
+        pde.setValue(Y=-self.__G*rho)
         phi=pde.getSolution()
 
         return phi
@@ -293,7 +314,7 @@ class GravityModel(ForwardModelWithPotential):
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=self.getDefectGradient(gravity_force))
         ZT=pde.getSolution()
-        return ZT*(-4*PI*self.__G)
+        return ZT*(-self.__G)
 
 
 class MagneticModel(ForwardModelWithPotential):
@@ -301,7 +322,7 @@ class MagneticModel(ForwardModelWithPotential):
     Forward Model for magnetic inversion as described in the inversion
     cookbook.
     """
-    def __init__(self, domain, w, B, background_magnetic_flux_density,  useSphericalCoordinates=False, fixPotentialAtBottom=False, tol=1e-8):
+    def __init__(self, domain, w, B, background_magnetic_flux_density, coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
         """
         Creates a new magnetic model on the given domain with one or more
         surveys (w, B).
@@ -314,15 +335,29 @@ class MagneticModel(ForwardModelWithPotential):
         :type B: ``Vector`` or list of ``Vector``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param useSphericalCoordinates: if set spherical coordinates are used
-        :type useSphericalCoordinates: ``bool``
+        :param coordinates: defines coordinate system to be used
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
                                      in addition to the top.
         :type fixPotentialAtBottom: ``bool``
         """
-        super(MagneticModel, self).__init__(domain, w, B, useSphericalCoordinates, fixPotentialAtBottom, tol)
-        self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
-        self.getPDE().setValue(A=kronecker(self.getDomain()))
+        super(MagneticModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
+        self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, 
+                                                                         B[0].getFunctionSpace())
+        if not  self.getCoordinateTransformation().isCartesian():
+ 	     self.__F = self.getCoordinateTransformation().getVolumeFactor()
+             self.__B_r=self.__background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
+             self.__B_b=self.__background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
+    
+	     A=self.getPDE().createCoeffiecient("A")
+      	     fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+	     for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+	     self.getPDE().setValue(A=A)
+             
+        else:         
+            self.getPDE().setValue(A=kronecker(self.getDomain()))
+            self.__B_r=self.__background_magnetic_flux_density
+            self.__B_b=self.__background_magnetic_flux_density
 
     def rescaleWeights(self, scale=1., k_scale=1.):
         """
@@ -347,7 +382,7 @@ class MagneticModel(ForwardModelWithPotential):
         :rtype: ``Scalar``, ``Vector``
         """
         phi = self.getPotential(k)
-        magnetic_flux_density = k * self.__background_magnetic_flux_density -grad(phi)
+        magnetic_flux_density = k * self.__B_b -grad(phi)
         return phi, magnetic_flux_density
 
     def getPotential(self, k):
@@ -362,7 +397,7 @@ class MagneticModel(ForwardModelWithPotential):
         pde=self.getPDE()
 
         pde.resetRightHandSideCoefficients()
-        pde.setValue(X = k* self.__background_magnetic_flux_density)
+        pde.setValue(X = k* self.__B_r)
         phi=pde.getSolution()
 
         return phi
@@ -398,5 +433,5 @@ class MagneticModel(ForwardModelWithPotential):
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=Y)
         YT=pde.getSolution()
-        return inner(grad(YT)-Y,self.__background_magnetic_flux_density)
+        return inner(grad(YT),self.__B_r) -inner(Y,self.__B_b)
 

@@ -37,15 +37,18 @@ holds a reference to the \escript domain as well as associated \Data objects for
 the input data used for the inversion.
 The class has the following public methods:
 
-\begin{classdesc}{DomainBuilder}{\optional{dim=3}}
+\begin{classdesc}{DomainBuilder}{\optional{dim=3, }\optional{reference_system=None}}
 Constructor for the domain builder. \member{dim} sets the dimensionality of the
 target domain and must be 2 or 3. By default a 3-dimensional domain is created.
+\member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:referencesystem}.
+If not present the Cartesian reference coordinate system is used.
 \end{classdesc}
 
 \begin{methoddesc}[DomainBuilder]{addSource}{source}
 adds survey data \member{source} (a \class{DataSource} object) to the domain
 builder. The dimensionality of the data must be less than or equal to the
-domain dimensionality.
+domain dimensionality. The reference coordinate system of the \class{DataSource}
+must match the reference coordinate system of this class.
 \end{methoddesc}
 
 \begin{methoddesc}[DomainBuilder]{setVerticalExtents}{%
@@ -69,11 +72,23 @@ compute resources when setting this value.
 \optional{pad_x=\None}%
 \optional{, pad_y=\None}}
 sets the amount of padding around the dataset as a fraction of the dataset side
-lengths.  
+lengths if the reference coordinate system is Cartesian. 
 For example, calling \member{setFractionalPadding(0.2, 0.1)} with a data source
-of size $10 \times 20$ will result in the padded data set size $14 \times 24$
-(that is $10 \times (1+2 \times 0.2)$ and $20 \times (1+2 \times 0.1)$).
+of size $10000 \times 20000$ meters will result in the padded data set size $14000 \times 24000$ meters
+(that is $10000 \times (1+2 \times 0.2)$ and $20000 \times (1+2 \times 0.1)$).
 By default no padding is applied and \member{pad_y} is ignored for 2-dimensional
+domains.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{setFractionalPadding}{%
+\optional{pad_lat=\None}%
+\optional{, pad_lon=\None}}
+sets the amount of padding around the dataset as a fraction of the dataset side
+lengths if the the reference coordinate system is not Cartesian.
+For example, calling \member{setFractionalPadding(0.2, 0.1)} with a data source
+of size $10 \times 20$ degree will result in the padded data set size $14 \times 24$ degree
+(that is $10 \times (1+2 \times 0.2)$ and $20 \times (1+2 \times 0.1)$).
+By default no padding is applied and \member{pad_lon} is ignored for 2-dimensional
 domains.
 \end{methoddesc}
 
@@ -90,10 +105,21 @@ domains.
 \begin{methoddesc}[DomainBuilder]{setElementPadding}{%
 \optional{pad_x=\None}%
 \optional{, pad_y=\None}}
-sets the amount of padding around the dataset in number of elements (cells).
+sets the amount of padding around the dataset in number of elements (cells),
+if the reference coordinate system is Cartesian. 
 When the domain is constructed \member{pad_x} (\member{pad_y}) elements are
-added on each side of the x- (y-) dimension. The arguments must be non-negative.
+added on each side of the x- (y-) dimension in case of a Cartesian reference system. The arguments must be non-negative integers.
 By default no padding is applied and \member{pad_y} is ignored for 2-dimensional
+domains.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{setElementPadding}{%
+\optional{pad_lat=\None}%
+\optional{, pad_lon=\None}}
+sets the amount of padding around the dataset in number of elements (cells) if the the reference coordinate system is not Cartesian.
+When the domain is constructed \member{pad_lat} (\member{pad_lon}) elements are
+added on each side of the latitudinal (longitudinal) dimension. The arguments must be non-negative integers.
+By default no padding is applied and \member{pad_lon} is ignored for 2-dimensional
 domains.
 \end{methoddesc}
 
@@ -134,6 +160,10 @@ extents and number of elements) are computed, and the domain is created.
 Subsequent calls return the same domain instance so calls to
 \member{setPadding()}, \member{addSource()} and other methods that influence
 the domain will fail once \member{getDomain()} is called the first time.
+\end{methoddesc}
+
+\begin{methoddesc}[DomainBuilder]{getReferenceSystem}{}
+returns the reference coordinate system
 \end{methoddesc}
 
 \begin{methoddesc}[DomainBuilder]{setBackgroundMagneticFluxDensity}{B}
