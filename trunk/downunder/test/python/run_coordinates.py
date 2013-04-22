@@ -50,15 +50,15 @@ class TestCoordinates(unittest.TestCase):
          self.assertEqual(cs.getName(), "CARTESIAN", "wrong name")
          self.assertTrue(str(cs).startswith("CARTESIAN (id"), "wrong str")
          self.assertTrue(cs == cs, "wrong cs == cs")
-	 self.assertFalse(cs != cs, "wrong cs == cs")
+         self.assertFalse(cs != cs, "wrong cs == cs")
          self.assertFalse(cs == None, "wrong cs == None")
-	 self.assertTrue(cs != None, "wrong cs == None")
+         self.assertTrue(cs != None, "wrong cs == None")
 
          cs2=CartesianReferenceSystem()
          self.assertTrue(cs == cs2, "wrong cs == cs2")
-	 self.assertFalse(cs != cs2, "wrong cs == cs2")
+         self.assertFalse(cs != cs2, "wrong cs == cs2")
          self.assertTrue(cs2 == cs, "wrong cs2 == cs")
-	 self.assertFalse(cs2 != cs, "wrong cs2 == cs")
+         self.assertFalse(cs2 != cs, "wrong cs2 == cs")
 
     def test_GeodeticReferenceSystem(self):
 
@@ -69,9 +69,9 @@ class TestCoordinates(unittest.TestCase):
          self.assertEqual(cs.getSemiMajorAxis(), 4., "wrong SemiMajorAxis")
          self.assertEqual(cs.getSemiMinorAxis(), 1., "wrong SemiMinorAxis")
          self.assertTrue(cs == cs, "wrong cs == cs")
-	 self.assertFalse(cs != cs, "wrong cs == cs")
+         self.assertFalse(cs != cs, "wrong cs == cs")
          self.assertFalse(cs == None, "wrong cs == None")
-	 self.assertTrue(cs != None, "wrong cs == None")
+         self.assertTrue(cs != None, "wrong cs == None")
 
          # lets try a few stupid things:
          self.assertRaises(ValueError, GeodeticReferenceSystem, a= -4)
@@ -82,58 +82,58 @@ class TestCoordinates(unittest.TestCase):
          # cs == CartesianReferenceSystem() ?
          cs2=CartesianReferenceSystem()
          self.assertFalse(cs == cs2, "wrong cs == cs2")
-	 self.assertTrue(cs != cs2, "wrong cs == cs2")
+         self.assertTrue(cs != cs2, "wrong cs == cs2")
          self.assertFalse(cs2 == cs, "wrong cs2 == cs")
-	 self.assertTrue(cs2 != cs, "wrong cs2 == cs")         
+         self.assertTrue(cs2 != cs, "wrong cs2 == cs")         
          
          cs2 = GeodeticReferenceSystem(a= 4*U.m, f=0.75, angular_unit=0.1, name="A2")
          self.assertTrue(cs == cs2, "wrong cs == cs2")
-	 self.assertFalse(cs != cs2, "wrong cs == cs2")
+         self.assertFalse(cs != cs2, "wrong cs == cs2")
          self.assertTrue(cs2 == cs, "wrong cs2 == cs")
-	 self.assertFalse(cs2 != cs, "wrong cs2 == cs")
-	 
-	 # different semi majr axis?
+         self.assertFalse(cs2 != cs, "wrong cs2 == cs")
+         
+         # different semi majr axis?
          cs2 = GeodeticReferenceSystem(a= 2*U.m, f=0.75, angular_unit=0.1, name="A2")
          self.assertFalse(cs == cs2, "wrong cs == cs2")
-	 self.assertTrue(cs != cs2, "wrong cs == cs2")
+         self.assertTrue(cs != cs2, "wrong cs == cs2")
          self.assertFalse(cs2 == cs, "wrong cs2 == cs")
-	 self.assertTrue(cs2 != cs, "wrong cs2 == cs")
-	  
-	 # different flattening
+         self.assertTrue(cs2 != cs, "wrong cs2 == cs")
+          
+         # different flattening
          cs2 = GeodeticReferenceSystem(a= 4*U.m, f=0.7, angular_unit=0.1, name="A2")
          self.assertFalse(cs == cs2, "wrong cs == cs2")
-	 self.assertTrue(cs != cs2, "wrong cs == cs2")
+         self.assertTrue(cs != cs2, "wrong cs == cs2")
          self.assertFalse(cs2 == cs, "wrong cs2 == cs")
-	 self.assertTrue(cs2 != cs, "wrong cs2 == cs")
-	 
-	 # different angular_unit
+         self.assertTrue(cs2 != cs, "wrong cs2 == cs")
+         
+         # different angular_unit
          cs2 = GeodeticReferenceSystem(a= 4*U.m, f=0.75, angular_unit=0.2, name="A2")
          self.assertFalse(cs == cs2, "wrong cs == cs2")
-	 self.assertTrue(cs != cs2, "wrong cs == cs2")
+         self.assertTrue(cs != cs2, "wrong cs == cs2")
          self.assertFalse(cs2 == cs, "wrong cs2 == cs")
-	 self.assertTrue(cs2 != cs, "wrong cs2 == cs")	 
-	 
-	 sp=SphericalReferenceSystem(R=1*U.km)
+         self.assertTrue(cs2 != cs, "wrong cs2 == cs")   
+         
+         sp=SphericalReferenceSystem(R=1*U.km)
          self.assertEqual(sp.getName(), "SPHERE", "wrong name")
          self.assertAlmostEqual(sp.getAngularUnit(), 1*U.DEG, msg="wrong angular_unit")
          self.assertAlmostEqual(sp.getFlattening(), 0., msg="wrong flattening")
          self.assertAlmostEqual(sp.getSemiMajorAxis(), 1000.,msg= "wrong SemiMajorAxis")
          
-	 sp=SphericalReferenceSystem()
-	 self.assertEqual(sp.getName(), "SPHERE", msg= "wrong name")
+         sp=SphericalReferenceSystem()
+         self.assertEqual(sp.getName(), "SPHERE", msg= "wrong name")
          self.assertAlmostEqual(sp.getAngularUnit(), 1*U.DEG, msg="wrong angular_unit")
          self.assertAlmostEqual(sp.getFlattening(), 0., msg="wrong flattening")
          self.assertAlmostEqual(sp.getSemiMajorAxis(), 6378137, msg="wrong SemiMajorAxis")
-	   
-	   
-	 sp=WGS84ReferenceSystem()
-	 self.assertEqual(sp.getName(), "WGS84", msg= "wrong name")
+           
+           
+         sp=WGS84ReferenceSystem()
+         self.assertEqual(sp.getName(), "WGS84", msg= "wrong name")
          self.assertAlmostEqual(sp.getAngularUnit(), 1*U.DEG, msg="wrong angular_unit")
          self.assertAlmostEqual(sp.getFlattening(), 0.0033528106647474805, msg="wrong flattening")
          self.assertAlmostEqual(sp.getSemiMajorAxis(), 6378137, msg="wrong SemiMajorAxis")
          
-	 sp=GRS80ReferenceSystem()
-	 self.assertEqual(sp.getName(), "GRS80", msg= "wrong name")
+         sp=GRS80ReferenceSystem()
+         self.assertEqual(sp.getName(), "GRS80", msg= "wrong name")
          self.assertAlmostEqual(sp.getAngularUnit(), 1*U.DEG, msg="wrong angular_unit")
          self.assertAlmostEqual(sp.getFlattening(), 0.003352810681182319, msg="wrong flattening")
          self.assertAlmostEqual(sp.getSemiMajorAxis(), 6378137, msg="wrong SemiMajorAxis")
