@@ -842,22 +842,12 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const double cx0 = -1./m_dx[0];
-    const double cx1 = -.78867513459481288225/m_dx[0];
-    const double cx2 = -.5/m_dx[0];
-    const double cx3 = -.21132486540518711775/m_dx[0];
-    const double cx4 = .21132486540518711775/m_dx[0];
-    const double cx5 = .5/m_dx[0];
-    const double cx6 = .78867513459481288225/m_dx[0];
-    const double cx7 = 1./m_dx[0];
-    const double cy0 = -1./m_dx[1];
-    const double cy1 = -.78867513459481288225/m_dx[1];
-    const double cy2 = -.5/m_dx[1];
-    const double cy3 = -.21132486540518711775/m_dx[1];
-    const double cy4 = .21132486540518711775/m_dx[1];
-    const double cy5 = .5/m_dx[1];
-    const double cy6 = .78867513459481288225/m_dx[1];
-    const double cy7 = 1./m_dx[1];
+    const double cx0 = .21132486540518711775/m_dx[0];
+    const double cx1 = .78867513459481288225/m_dx[0];
+    const double cx2 = 1./m_dx[0];
+    const double cy0 = .21132486540518711775/m_dx[1];
+    const double cy1 = .78867513459481288225/m_dx[1];
+    const double cy2 = 1./m_dx[1];
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
@@ -876,14 +866,14 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
-                        o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
-                        o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
-                        o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
-                        o[INDEX3(i,0,2,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
-                        o[INDEX3(i,1,2,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
-                        o[INDEX3(i,0,3,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
-                        o[INDEX3(i,1,3,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
+                        o[INDEX3(i,0,2,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
+                        o[INDEX3(i,1,2,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
+                        o[INDEX3(i,0,3,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
+                        o[INDEX3(i,1,3,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of k1 loop
@@ -905,8 +895,8 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(INDEX2(k0,k1,m_NE[0]));
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
-                        o[INDEX3(i,1,0,numComp,2)] = cy2*(f_00[i] + f_10[i]) + cy5*(f_01[i] + f_11[i]);
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2/2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2/2;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of k1 loop
@@ -928,10 +918,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
-                        o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy0 + f_01[i]*cy7;
-                        o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
-                        o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy0 + f_01[i]*cy7;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy2;
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy2;
                     } // end of component loop i
                 } // end of k1 loop
             } // end of face 0
@@ -944,10 +934,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx1 + f_01[i]*cx3 + f_10[i]*cx6 + f_11[i]*cx4;
-                        o[INDEX3(i,1,0,numComp,2)] = f_10[i]*cy0 + f_11[i]*cy7;
-                        o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx3 + f_01[i]*cx1 + f_10[i]*cx4 + f_11[i]*cx6;
-                        o[INDEX3(i,1,1,numComp,2)] = f_10[i]*cy0 + f_11[i]*cy7;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx1 + (f_11[i]-f_01[i])*cx0;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy2;
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx0 + (f_11[i]-f_01[i])*cx1;
+                        o[INDEX3(i,1,1,numComp,2)] = (f_11[i]-f_10[i])*cy2;
                     } // end of component loop i
                 } // end of k1 loop
             } // end of face 1
@@ -960,10 +950,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
-                        o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
-                        o[INDEX3(i,0,1,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
-                        o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
+                        o[INDEX3(i,0,1,numComp,2)] = (f_10[i]-f_00[i])*cx2;
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of face 2
@@ -976,10 +966,10 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
-                        o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy1 + f_01[i]*cy6 + f_10[i]*cy3 + f_11[i]*cy4;
-                        o[INDEX3(i,0,1,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
-                        o[INDEX3(i,1,1,numComp,2)] = f_00[i]*cy3 + f_01[i]*cy4 + f_10[i]*cy1 + f_11[i]*cy6;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy1 + (f_11[i]-f_10[i])*cy0;
+                        o[INDEX3(i,0,1,numComp,2)] = (f_11[i]-f_01[i])*cx2;
+                        o[INDEX3(i,1,1,numComp,2)] = (f_01[i]-f_00[i])*cy0 + (f_11[i]-f_10[i])*cy1;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of face 3
@@ -1002,8 +992,8 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
-                        o[INDEX3(i,1,0,numComp,2)] = f_00[i]*cy0 + f_01[i]*cy7;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2/2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i]-f_00[i])*cy2;
                     } // end of component loop i
                 } // end of k1 loop
             } // end of face 0
@@ -1016,8 +1006,8 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = cx5*(f_10[i] + f_11[i]) + cx2*(f_00[i] + f_01[i]);
-                        o[INDEX3(i,1,0,numComp,2)] = f_10[i]*cy0 + f_11[i]*cy7;
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i] + f_11[i] - f_00[i] - f_01[i])*cx2/2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_11[i]-f_10[i])*cy2;
                     } // end of component loop i
                 } // end of k1 loop
             } // end of face 1
@@ -1030,8 +1020,8 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_00[i]*cx0 + f_10[i]*cx7;
-                        o[INDEX3(i,1,0,numComp,2)] = cy2*(f_00[i] + f_10[i]) + cy5*(f_01[i] + f_11[i]);
+                        o[INDEX3(i,0,0,numComp,2)] = (f_10[i]-f_00[i])*cx2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2/2;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of face 2
@@ -1044,8 +1034,8 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX3(i,0,0,numComp,2)] = f_01[i]*cx0 + f_11[i]*cx7;
-                        o[INDEX3(i,1,0,numComp,2)] = cy5*(f_01[i] + f_11[i]) + cy2*(f_00[i] + f_10[i]);
+                        o[INDEX3(i,0,0,numComp,2)] = (f_11[i]-f_01[i])*cx2;
+                        o[INDEX3(i,1,0,numComp,2)] = (f_01[i] + f_11[i] - f_00[i] - f_10[i])*cy2/2;
                     } // end of component loop i
                 } // end of k0 loop
             } // end of face 3
@@ -1699,7 +1689,6 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
         out.requireWrite();
-        const double c0 = 0.5;
 #pragma omp parallel
         {
             vector<double> f_00(numComp);
@@ -1713,7 +1702,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_01[i]);
+                        o[INDEX2(i,numComp,0)] = (f_00[i] + f_01[i])/2;
                     } /* end of component loop i */
                 } /* end of k1 loop */
             } /* end of face 0 */
@@ -1724,7 +1713,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*(f_10[i] + f_11[i]);
+                        o[INDEX2(i,numComp,0)] = (f_10[i] + f_11[i])/2;
                     } /* end of component loop i */
                 } /* end of k1 loop */
             } /* end of face 1 */
@@ -1735,7 +1724,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*(f_00[i] + f_10[i]);
+                        o[INDEX2(i,numComp,0)] = (f_00[i] + f_10[i])/2;
                     } /* end of component loop i */
                 } /* end of k0 loop */
             } /* end of face 2 */
@@ -1746,7 +1735,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     for (index_t i=0; i < numComp; ++i) {
-                        o[INDEX2(i,numComp,0)] = c0*(f_01[i] + f_11[i]);
+                        o[INDEX2(i,numComp,0)] = (f_01[i] + f_11[i])/2;
                     } /* end of component loop i */
                 } /* end of k0 loop */
             } /* end of face 3 */
@@ -1829,7 +1818,7 @@ void Rectangle::assemblePDESingle(Paso_SystemMatrix* mat,
     const double w6 = -0.041666666666666666667*m_dx[1]/m_dx[0];
     const double w7 = 0.1555021169820365539*m_dx[0]/m_dx[1];
     const double w8 = 0.01116454968463011277*m_dx[0]/m_dx[1];
-    const double w9 = -0.25000000000000000000;
+    const double w9 = -1./4;
     const double w10 = -0.16666666666666666667*m_dx[0]/m_dx[1];
     const double w11 = -0.032861463941450536761*m_dx[1];
     const double w12 = -0.032861463941450536761*m_dx[0];
