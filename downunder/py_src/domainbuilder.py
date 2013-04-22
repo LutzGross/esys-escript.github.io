@@ -155,7 +155,7 @@ class DomainBuilder(object):
                 raise ValueError("setFractionalPadding: Argument too large")
         self._padding = [pad_x,pad_y], 'f'
 
-    def setPadding(self, pad_x=None, pad_y=None):
+    def setPadding(self, pad_x=None, pad_y=None,  pad_lat=None, pad_lon=None):
         """
         Sets the amount of padding around the dataset in absolute length units.
 

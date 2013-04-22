@@ -363,8 +363,6 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
              v= v_phi * v_lam
              s[0]=1/v_phi
              s[1]=1/v_lam
-         print "v =",v_phi
-         print "v =",v_lam
          self._volumefactor=v
          self._scaling_factors = s
 
