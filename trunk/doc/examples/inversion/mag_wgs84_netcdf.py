@@ -13,7 +13,7 @@
 #
 ##############################################################################
 
-"""3D gravity inversion example using netCDF data"""
+"""3D magnetic inversion example using netCDF data"""
 
 __copyright__="""Copyright (c) 2009-2013 by University of Queensland
 http://www.uq.edu.au
@@ -28,50 +28,50 @@ from esys.weipa import *
 from esys.escript import unitsSI as U
 from esys.escript import saveDataCSV
 
-
-
-
 # Set parameters
-DATASET = 'data/GravitySmall.nc'
-DATA_UNITS = 1e-6 * U.m/(U.sec**2)
+DATASET = 'data/MagneticSmall.nc'
+DATA_UNITS = U.Nano * U.Tesla
 PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
 MU = 0.1
+# background magnetic field components (B_North, B_East, B_Vertical)
+B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
-COORDINATES=CartesianReferenceSystem()
-#COORDINATES=WGS84ReferenceSystem()
+COORDINATES=WGS84ReferenceSystem()
 
-# Setup and run the inversion
+
 def work():
-  source=NetCdfData(NetCdfData.GRAVITY, DATASET, scale_factor=DATA_UNITS, reference_system=COORDINATES)
+  # Setup and run the inversion
+  source=NetCdfData(NetCdfData.MAGNETIC, DATASET, scale_factor=DATA_UNITS, reference_system=COORDINATES)
   db=DomainBuilder(dim=3, reference_system=COORDINATES)
   db.addSource(source)
   db.setVerticalExtents(depth=thickness, air_layer=l_air, num_cells=n_cells_v)
   db.setFractionalPadding(pad_x=PAD_X, pad_y=PAD_Y)
-  db.fixDensityBelow(depth=thickness)
+  db.setBackgroundMagneticFluxDensity(B_b)
+  db.fixSusceptibilityBelow(depth=thickness)
 
-  inv=GravityInversion()
+  inv=MagneticInversion()
   inv.setSolverTolerance(1e-4)
   inv.setSolverMaxIterations(50)
+  inv.fixMagneticPotentialAtBottom(False)
   inv.setup(db)
   inv.getCostFunction().setTradeOffFactorsModels(MU)
 
-  density = inv.run()
-  print("density = %s"%density)
+  susceptibility = inv.run()
+  print("susceptibility = %s"%susceptibility)
 
-  g, w =  db.getGravitySurveys()[0]
-  saveVoxet("result.vo", density=density)
-  saveSilo("result_gravity.silo", density=density, gravity_anomaly=g, gravity_weight=w)
-  print("Results saved in result_gravity.silo")
+  B, w =  db.getMagneticSurveys()[0]
+  saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
+  print("Results saved in result_magnetic.silo")
 
-  saveVTK("result_gravity.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
-  print("Results saved in result_gravity.vtu")
+  saveVTK("result_magnetic.vtu", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
+  print("Results saved in result_magnetic.vtu")
 
-  saveDataCSV("result_gravity.csv", density=density, x=density.getFunctionSpace().getX())
-  print("Results saved in result_gravity.csv")
+  saveDataCSV("result_magnetic.csv", susceptibility=susceptibility, x=susceptibility.getFunctionSpace().getX())
+  print("Results saved in result_magnetic.csv")
 
   print("All done. Have a nice day!")
 
