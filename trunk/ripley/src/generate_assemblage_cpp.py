@@ -47,6 +47,8 @@ def generateAll(DIM, filename):
    GridOffset=[[]]
    GridOffsetText=[""]
    idx_full=[]
+   Q = [ [] ]
+   W = [ 1 ]
    for i in range(DIM):
        idx_full.append(i)
        S = [ s * (1-x[i]/h[i])  for s in S] + [ s * x[i]/h[i]  for s in S]
@@ -85,10 +87,10 @@ def generateAll(DIM, filename):
           if face == i :
              idx_left.append(-1)
              idx_right.append(-2)
-             Q_left_new += [ q + [0.,] for q in Q_left ]
-             W_left_new += [ w * 1. for w in W_left ]
+             Q_left_new += [ q + [0,] for q in Q_left ]
+             W_left_new += [ w * 1 for w in W_left ]
              Q_right_new += [ q + [ h[i], ] for q in Q_right ]
-             W_right_new += [ w * 1. for w in W_right ]
+             W_right_new += [ w * 1 for w in W_right ]
           else:
              idx_left.append(i)
              idx_right.append(i)
@@ -126,10 +128,10 @@ def generateAll(DIM, filename):
        ##W_r_faces=W_r_faces+[W_left, W_right]
 
    #generate PDE assemblage
-   CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
-   insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
-   CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
-   insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
+   #CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
+   #insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
+   #CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
+   #insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
 
    ##CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
    ##insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
@@ -137,8 +139,8 @@ def generateAll(DIM, filename):
    ##insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
 
    #generate PDEBoundary assemblage
-   #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
-   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
+   CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
+   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
    #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
    #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE", CODE ))
    ##CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
@@ -196,7 +198,7 @@ def generatePDECode(DATA_A, EM, CONST_COEFFS, system=False):
         for a in DATA_A:
             c=collect(EM[p], a, evaluate=False)
             if c.has_key(a):
-                const_expr = c[a].simplify()
+                const_expr = c[a].simplify().subs(sqrt(3),Symbol('SQRT3'))
                 if CONST_COEFFS.has_key(const_expr):
                     coeffsym = CONST_COEFFS[const_expr]
                     A_sym = a
@@ -234,6 +236,7 @@ def generatePDECode(DATA_A, EM, CONST_COEFFS, system=False):
                 em_new.append(LOCAL_TMP[tt])
         EM[p]=em_new
 
+    #####
     OUT=""
     tmp_key=lambda x: int(x[1].name[3:])
     for k, v in sorted(LOCAL_TMP.iteritems(), key=tmp_key):
@@ -644,7 +647,7 @@ def makePDEBC(S, x, Q, W, DIM, system=True):
    print("Generating PDE BC code (%dD, %s)..."%(DIM, "System" if system else "Single"))
    CONST_COEFFS={}
    GLOBAL_N=0
-   PRECODE=""
+   PRECODE="const double SQRT3 = %0.20f;\n"%sqrt(3)
    CODE_OUT=[]
     
    for n in range(len(Q)):
@@ -656,32 +659,32 @@ if (add_EM_S) {
 const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
 """
         if len(Q[n]) > 1:
-              CODE+="if (d.actsExpanded()) {\n"
-              if system: CODE+= """for (index_t k=0; k<numEq; k++) {
+            CODE+="if (d.actsExpanded()) {\n"
+            if system: CODE+= """for (index_t k=0; k<numEq; k++) {
 for (index_t m=0; m<numComp; m++) {
 """
-              DATA_D=[]
-              CODE2=""
-              EM = {}
-              for i in range(len(S)):
-                  for j in range(len(S)):
-                      EM[(i,j)] = 0
+            DATA_D=[]
+            CODE2=""
+            EM = {}
+            for i in range(len(S)):
+                for j in range(len(S)):
+                    EM[(i,j)] = 0
 
-              for q in range(len(Q[n])):
-                        A_name="d_%d"%(q,)
-                        A=Symbol(A_name)
-                        DATA_D.append(A)
-                        if system:
-                            CODE2+="const double %s = d_p[INDEX3(k,m,%s,numEq,numComp)];\n"%(A_name, q)
-                        else:
-                            CODE2+="const double %s = d_p[%s];\n"%(A_name, q)
-                        for i in range(len(S)):
-                            for j in range(len(S)):
-                                EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
-              CODE+=CODE2+generatePDECode(DATA_D, EM, CONST_COEFFS, system)
+            for q in range(len(Q[n])):
+                A_name="d_%d"%(q,)
+                A=Symbol(A_name)
+                DATA_D.append(A)
+                if system:
+                    CODE2+="const double %s = d_p[INDEX3(k,m,%s,numEq,numComp)];\n"%(A_name, q)
+                else:
+                    CODE2+="const double %s = d_p[%s];\n"%(A_name, q)
+                for i in range(len(S)):
+                    for j in range(len(S)):
+                        EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
+            CODE+=CODE2+generatePDECode(DATA_D, EM, CONST_COEFFS, system)
 
-              if system: CODE+="}\n }\n"
-              CODE+="} else { // constant data\n"
+            if system: CODE+="}\n }\n"
+            CODE+="} else { // constant data\n"
         if system:
             CODE+= """for (index_t k=0; k<numEq; k++) {
 for (index_t m=0; m<numComp; m++) {
@@ -692,18 +695,18 @@ for (index_t m=0; m<numComp; m++) {
         for i in range(len(S)):
             for j in range(len(S)):
                 EM[(i,j)] = 0
-        if 1:
-                  A_name="d_0"
-                  A=Symbol(A_name)
-                  DATA_D.append(A)
-                  if system:
-                            CODE2+="const double %s = d_p[INDEX2(k, m, numEq)];\n"%(A_name,)
-                  else:
-                            CODE2+="const double %s = d_p[0];\n"%(A_name,)
-                  for q in range(len(Q[n])):
-                        for i in range(len(S)):
-                            for j in range(len(S)):
-                                EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i] ).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
+
+        A_name="d_0"
+        A=Symbol(A_name)
+        DATA_D.append(A)
+        if system:
+            CODE2+="const double %s = d_p[INDEX2(k, m, numEq)];\n"%(A_name,)
+        else:
+            CODE2+="const double %s = d_p[0];\n"%(A_name,)
+        for q in range(len(Q[n])):
+            for i in range(len(S)):
+                for j in range(len(S)):
+                    EM[(i,j)] = EM[(i,j)] + (A * W[n][q] * S[j] * S[i] ).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_D, EM, CONST_COEFFS, system)
         if system: CODE+="}\n}\n"
         if len(Q[n]) > 1: CODE+="}\n"
@@ -723,18 +726,18 @@ const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
               CODE2=""
               EM = {}
               for i in range(len(S)):
-                      EM[i] = 0
+                  EM[i] = 0
 
               for q in range(len(Q[n])):
-                        A_name="y_%d"%(q,)
-                        A=Symbol(A_name)
-                        DATA_Y.append(A)
-                        if system:
-                            CODE2+="const double %s = y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
-                        else:
-                            CODE2+="const double %s = y_p[%s];\n"%(A_name, q)
-                        for i in range(len(S)):
-                                EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
+                  A_name="y_%d"%(q,)
+                  A=Symbol(A_name)
+                  DATA_Y.append(A)
+                  if system:
+                      CODE2+="const double %s = y_p[INDEX2(k, %s, numEq)];\n"%(A_name, q)
+                  else:
+                      CODE2+="const double %s = y_p[%s];\n"%(A_name, q)
+                  for i in range(len(S)):
+                      EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
               CODE+=CODE2+generatePDECode(DATA_Y, EM, CONST_COEFFS, system)
 
               if system: CODE+="}\n"
@@ -746,27 +749,37 @@ const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
         EM = {}
         for i in range(len(S)):
                 EM[i] = 0
-        if 1:
-                  A_name="y_0"
-                  A=Symbol(A_name)
-                  DATA_Y.append(A)
-                  if system:
-                            CODE2+="const double %s = y_p[k];\n"%(A_name,)
-                  else:
-                            CODE2+="const double %s = y_p[0];\n"%(A_name,)
-                  for q in range(len(Q[n])):
-                        for i in range(len(S)):
-                                EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
+
+        if system:
+            A_name="y_p[k]"
+            #CODE2+="const double %s = y_p[k];\n"%(A_name,)
+        else:
+            A_name="y_p[0]"
+            #CODE2+="const double %s = y_p[0];\n"%(A_name,)
+        A=Symbol(A_name)
+        DATA_Y.append(A)
+        for q in range(len(Q[n])):
+            for i in range(len(S)):
+                EM[i] = EM[i] + (A * W[n][q] * S[i]).subs( [ (x[jj], Q[n][q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_Y, EM, CONST_COEFFS, system)
         if system:  CODE+="}\n"
         if len(Q[n]) > 1: CODE+="}\n"
         CODE+="}\n"
           
         CODE_OUT.append(CODE)
-   import operator
-   for k,v in sorted(CONST_COEFFS.iteritems(), key=operator.itemgetter(1)):
-       PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS)))
-        
+
+   w_key=lambda x: int(x[1].name[1:])
+   # sort the constants in a special order...
+   def num_oper(x):
+        n=len(x[0].atoms())
+        for s in x[0].free_symbols:
+            if 'm_dx' in s.name:
+                n+=(int(s.name.translate(None, 'm_dx[]'))+1)*10
+        return n
+
+   for k,v in sorted(CONST_COEFFS.iteritems(), key=num_oper):
+       #PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS, chop=True)))
+       PRECODE+="const double %s = %s;\n"%(v,ccode(k))
    return CODE_OUT, PRECODE
     
 def optimizeEvaluate(F, x, Q):
