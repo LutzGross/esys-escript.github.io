@@ -190,7 +190,7 @@ or
 \end{equation}
 
 \subsection{Geodetic Coordinates }
-For geodetic coordinates $(\phi, \lambda, h)$, see Appendix~\ref{sec:geodetic}, the solution process needs to be slightly modified.
+For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
 Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
 have in equation~\ref{ref:MAG:EQU:9}:
 \begin{equation}\label{ref:MAG:EQU:300}
@@ -204,7 +204,7 @@ J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}}
 ( \omega^{(s)}_{\alpha} \cdot (d_{\alpha \alpha}  \psi_{,\alpha} - k \cdot B^b_{{\alpha}}  + B^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
 \end{equation} 
 where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
-\begin{equation}\label{ref:MAG:EQU:301}
+\begin{equation}\label{ref:MAG:EQU:301bb}
 J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
 (  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( 
  \psi_{,\alpha} -  k \cdot v_{\alpha \alpha} B^b_{{\alpha}} + v_{\alpha \alpha} B^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
@@ -236,7 +236,7 @@ see equation~\ref{ref:MAG:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_
 \int_{\widehat{\Omega}} r_{,{\alpha}} ,Y_{\alpha}[\psi]  \;d\widehat{x}
 \end{equation} 
 and finally 
-\begin{equation}\label{ref:MAG:EQU:201a}
+\begin{equation}\label{ref:MAG:EQU:310}
 \frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,{\alpha}}  B^r_{\alpha} - Y_i[\psi] B^b_{\alpha}
 \end{equation} 
 
