@@ -70,6 +70,7 @@ using namespace boost::python;
  *
  */
 
+/*
 namespace escript
 {
   
@@ -82,7 +83,7 @@ namespace escript
   
   
 }
-
+*/
 
 
 BOOST_PYTHON_MODULE(escriptcpp)

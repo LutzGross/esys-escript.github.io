@@ -28,6 +28,13 @@ using namespace boost;
 
 namespace escript {
 
+  bool canInterpolate(FunctionSpace src, FunctionSpace dest)
+  {
+      return src.getDomain()->probeInterpolationOnDomain(src.getTypeCode(), dest.getTypeCode());
+  }
+
+
+
 namespace
 {
 //

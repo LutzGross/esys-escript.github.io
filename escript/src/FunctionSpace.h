@@ -371,6 +371,9 @@ public:
 
 };
 
+ESCRIPT_DLL_API
+  bool canInterpolate(FunctionSpace src, FunctionSpace dest);
+
 } // end of namespace
 
 #endif
