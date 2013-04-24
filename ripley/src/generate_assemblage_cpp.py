@@ -50,24 +50,24 @@ def generateAll(DIM, filename):
    Q = [ [] ]
    W = [ 1 ]
    for i in range(DIM):
-       idx_full.append(i)
-       S = [ s * (1-x[i]/h[i])  for s in S] + [ s * x[i]/h[i]  for s in S]
-       GridOffset = [ s + [0]  for s in GridOffset] + [ s + [1]  for s in GridOffset]
-       GridOffsetText = [ s + "0"  for s in GridOffsetText] + [ s + "1"  for s in GridOffsetText]
+        idx_full.append(i)
+        S = [ s * (1-x[i]/h[i])  for s in S] + [ s * x[i]/h[i]  for s in S]
+        GridOffset = [ s + [0]  for s in GridOffset] + [ s + [1]  for s in GridOffset]
+        GridOffsetText = [ s + "0"  for s in GridOffsetText] + [ s + "1"  for s in GridOffsetText]
 
-       # generate quadrature points in element
-       Qnew, Wnew = [], []
-       for j in range(len(qD1)):
-              Qnew += [ q + [qD1[j]*h[i],] for q in Q ]
-              Wnew += [ w * wD1[j]*h[i] for w in W ]
-       Q, W=Qnew, Wnew
+        # generate quadrature points in element
+        Qnew, Wnew = [], []
+        for j in range(len(qD1)):
+            Qnew += [ q + [qD1[j]*h[i],] for q in Q ]
+            Wnew += [ w * wD1[j]*h[i] for w in W ]
+        Q, W=Qnew, Wnew
 
-       # reduced parts are hand-optimized
-       ##Qnew, Wnew = [], []
-       ##for j in range(len(qD1_r)):
-       ##        Qnew += [ q + [qD1_r[j]*h[i],] for q in Q_r ]
-       ##        Wnew += [ w * wD1_r[j]*h[i] for w in W_r ]
-       ##Q_r, W_r=Qnew, Wnew
+        # reduced parts are hand-optimized
+        ##Qnew, Wnew = [], []
+        ##for j in range(len(qD1_r)):
+        ##        Qnew += [ q + [qD1_r[j]*h[i],] for q in Q_r ]
+        ##        Wnew += [ w * wD1_r[j]*h[i] for w in W_r ]
+        ##Q_r, W_r=Qnew, Wnew
 
    # now the same thing for the faces:
    Q_faces=[]
@@ -76,62 +76,62 @@ def generateAll(DIM, filename):
    ##W_r_faces=[]
    idx_faces=[]
    for face in range(DIM):
-       Q_left, W_left = [ [] ], [ 1 ]
-       Q_right, W_right = [ [] ], [ 1 ]
-       idx_left,idx_right=[],[]
-       for i in range(DIM):
-          # generate quadrature points in element
-          Q_left_new, W_left_new =[], []
-          Q_right_new, W_right_new =[], []
+        Q_left, W_left = [ [] ], [ 1 ]
+        Q_right, W_right = [ [] ], [ 1 ]
+        idx_left,idx_right=[],[]
+        for i in range(DIM):
+            # generate quadrature points in element
+            Q_left_new, W_left_new =[], []
+            Q_right_new, W_right_new =[], []
 
-          if face == i :
-             idx_left.append(-1)
-             idx_right.append(-2)
-             Q_left_new += [ q + [0,] for q in Q_left ]
-             W_left_new += [ w * 1 for w in W_left ]
-             Q_right_new += [ q + [ h[i], ] for q in Q_right ]
-             W_right_new += [ w * 1 for w in W_right ]
-          else:
-             idx_left.append(i)
-             idx_right.append(i)
-             for j in range(len(qD1)):
-                 Q_left_new += [ q + [qD1[j]*h[i],] for q in Q_left ]
-                 W_left_new += [ w * wD1[j]*h[i] for w in W_left ]
-                 Q_right_new += [ q + [qD1[j]*h[i],] for q in Q_right ]
-                 W_right_new += [ w * wD1[j]*h[i] for w in W_right ]
-          Q_left, W_left=Q_left_new, W_left_new
-          Q_right, W_right=Q_right_new, W_right_new
-       Q_faces=Q_faces+[Q_left, Q_right]
-       W_faces=W_faces+[W_left, W_right]
-       idx_faces=idx_faces + [ idx_left, idx_right ]
+            if face == i :
+                idx_left.append(-1)
+                idx_right.append(-2)
+                Q_left_new += [ q + [0,] for q in Q_left ]
+                W_left_new += [ w * 1 for w in W_left ]
+                Q_right_new += [ q + [ h[i], ] for q in Q_right ]
+                W_right_new += [ w * 1 for w in W_right ]
+            else:
+                idx_left.append(i)
+                idx_right.append(i)
+                for j in range(len(qD1)):
+                    Q_left_new += [ q + [qD1[j]*h[i],] for q in Q_left ]
+                    W_left_new += [ w * wD1[j]*h[i] for w in W_left ]
+                    Q_right_new += [ q + [qD1[j]*h[i],] for q in Q_right ]
+                    W_right_new += [ w * wD1[j]*h[i] for w in W_right ]
+            Q_left, W_left=Q_left_new, W_left_new
+            Q_right, W_right=Q_right_new, W_right_new
+        Q_faces=Q_faces+[Q_left, Q_right]
+        W_faces=W_faces+[W_left, W_right]
+        idx_faces=idx_faces + [ idx_left, idx_right ]
 
-       ##Q_left, W_left = [ [] ], [ 1 ]
-       ##Q_right, W_right = [ [] ], [ 1 ]
-       ##for i in range(DIM):
-       ##   # generate quadrature points in element
-       ##   Q_left_new, W_left_new =[], []
-       ##   Q_right_new, W_right_new =[], []
-       ##   if face == i :
-       ##      Q_left_new += [ q + [0.,] for q in Q_left ]
-       ##      W_left_new += [ w * 1. for w in W_left ]
-       ##      Q_right_new += [ q + [ h[i], ] for q in Q_right ]
-       ##      W_right_new += [ w * 1. for w in W_right ]
-       ##   else:
-       ##      for j in range(len(qD1_r)):
-       ##          Q_left_new += [ q + [qD1_r[j]*h[i],] for q in Q_left ]
-       ##          W_left_new += [ w * wD1_r[j]*h[i] for w in W_left ]
-       ##          Q_right_new += [ q + [qD1_r[j]*h[i],] for q in Q_right ]
-       ##          W_right_new += [ w * wD1_r[j]*h[i] for w in W_right ]
-       ##   Q_left, W_left=Q_left_new, W_left_new
-       ##   Q_right, W_right=Q_right_new, W_right_new
-       ##Q_r_faces=Q_r_faces+[Q_left, Q_right]
-       ##W_r_faces=W_r_faces+[W_left, W_right]
+        ##Q_left, W_left = [ [] ], [ 1 ]
+        ##Q_right, W_right = [ [] ], [ 1 ]
+        ##for i in range(DIM):
+        ##   # generate quadrature points in element
+        ##   Q_left_new, W_left_new =[], []
+        ##   Q_right_new, W_right_new =[], []
+        ##   if face == i :
+        ##      Q_left_new += [ q + [0.,] for q in Q_left ]
+        ##      W_left_new += [ w * 1. for w in W_left ]
+        ##      Q_right_new += [ q + [ h[i], ] for q in Q_right ]
+        ##      W_right_new += [ w * 1. for w in W_right ]
+        ##   else:
+        ##      for j in range(len(qD1_r)):
+        ##          Q_left_new += [ q + [qD1_r[j]*h[i],] for q in Q_left ]
+        ##          W_left_new += [ w * wD1_r[j]*h[i] for w in W_left ]
+        ##          Q_right_new += [ q + [qD1_r[j]*h[i],] for q in Q_right ]
+        ##          W_right_new += [ w * wD1_r[j]*h[i] for w in W_right ]
+        ##   Q_left, W_left=Q_left_new, W_left_new
+        ##   Q_right, W_right=Q_right_new, W_right_new
+        ##Q_r_faces=Q_r_faces+[Q_left, Q_right]
+        ##W_r_faces=W_r_faces+[W_left, W_right]
 
    #generate PDE assemblage
    #CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=False)
    #insertCode(filename, { "SNIP_PDE_SINGLE" : CODE , "SNIP_PDE_SINGLE_PRE" : PRECODE })
-   #CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
-   #insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
+   CODE,PRECODE = makePDE(S, x, Q, W, DIM=DIM, system=True)
+   insertCode(filename, { "SNIP_PDE_SYSTEM" : CODE , "SNIP_PDE_SYSTEM_PRE" : PRECODE } )
 
    ##CODE,PRECODE = makePDE(S, x, Q_r, W_r, DIM=DIM, system=False)
    ##insertCode(filename, { "SNIP_PDE_SINGLE_REDUCED" : CODE , "SNIP_PDE_SINGLE_REDUCED_PRE" : PRECODE })
@@ -139,8 +139,8 @@ def generateAll(DIM, filename):
    ##insertCode(filename, { "SNIP_PDE_SYSTEM_REDUCED" : CODE , "SNIP_PDE_SYSTEM_REDUCED_PRE" : PRECODE })
 
    #generate PDEBoundary assemblage
-   CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
-   insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
+   #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=True)
+   #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SYSTEM_PRE" : PRECODE }, "SNIP_PDEBC_SYSTEM", CODE))
    #CODE,PRECODE = makePDEBC(S, x, Q_faces, W_faces, DIM=DIM, system=False)
    #insertCode(filename, extendDictionary( { "SNIP_PDEBC_SINGLE_PRE" : PRECODE }, "SNIP_PDEBC_SINGLE", CODE ))
    ##CODE,PRECODE = makePDEBC(S, x, Q_r_faces, W_r_faces, DIM=DIM, system=True)
@@ -211,9 +211,14 @@ def generatePDECode(DATA_A, EM, CONST_COEFFS, system=False):
                     A_sym = 0
                     for f in CONST_COEFFS.keys():
                         mult = f.extract_multiplicatively(const_expr)
-                        if mult is not None and (mult.is_Integer or (1/mult).is_Integer):
+                        if mult is not None and mult.is_Integer:
                             coeffsym = CONST_COEFFS[f]
                             A_sym = a/mult
+                            break
+                        mult = const_expr.extract_multiplicatively(f)
+                        if mult is not None and mult.is_Integer:
+                            coeffsym = CONST_COEFFS[f]
+                            A_sym = a*mult
                             break
                     if A_sym == 0:
                         coeffsym = Symbol("w%s"%len(CONST_COEFFS))
@@ -260,11 +265,13 @@ def generatePDECode(DATA_A, EM, CONST_COEFFS, system=False):
 
     return OUT
 
+##############################################################################
+##############################################################################
 def makePDE(S, x, Q, W, DIM=2, system=False):
    print("Generating PDE code (%dD, %s)..."%(DIM, "System" if system else "Single"))
    CONST_COEFFS={}
    GLOBAL_N=0
-   PRECODE=""
+   PRECODE="const double SQRT3 = %0.20f;\n"%sqrt(3)
 
    print("  Coefficient A...")
    CODE="""
@@ -637,12 +644,22 @@ const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
    CODE+="}\n"
 
    w_key=lambda x: int(x[1].name[1:])
-   for k,v in sorted(CONST_COEFFS.iteritems(), key=w_key):
-       PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS, chop=True)))
-       #PRECODE+="const double %s = %s;\n"%(v,ccode(k))
+   # sort the constants in a special order...
+   def num_oper(x):
+        n=len(x[0].atoms())
+        for s in x[0].free_symbols:
+            if 'm_dx' in s.name:
+                n+=(int(s.name.translate(None, 'm_dx[]'))+1)*10
+        return n
+
+   for k,v in sorted(CONST_COEFFS.iteritems(), key=num_oper):
+       #PRECODE+="const double %s = %s;\n"%(v,ccode(k.evalf(n=DIGITS, chop=True)))
+       PRECODE+="const double %s = %s;\n"%(v,ccode(k))
    return CODE, PRECODE
 
 
+##############################################################################
+##############################################################################
 def makePDEBC(S, x, Q, W, DIM, system=True):
    print("Generating PDE BC code (%dD, %s)..."%(DIM, "System" if system else "Single"))
    CONST_COEFFS={}
@@ -782,6 +799,8 @@ const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
        PRECODE+="const double %s = %s;\n"%(v,ccode(k))
    return CODE_OUT, PRECODE
     
+##############################################################################
+##############################################################################
 def optimizeEvaluate(F, x, Q):
   F2=[]
   for f in F:
@@ -1024,6 +1043,7 @@ def insertCode(fn, replacement):
 
 if __name__ == "__main__":
     filenames={2:"Rectangle.cpp", 3:"Brick.cpp"}
+    filenames={3:"Brick.cpp"}
     for d in filenames.keys():
          Process(target=generateAll, args=(d, filenames[d])).start()
 
