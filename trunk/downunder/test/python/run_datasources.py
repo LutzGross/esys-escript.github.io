@@ -184,7 +184,7 @@ class TestErMapperData(unittest.TestCase):
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_ers_with_padding(self):
         source = ErMapperData(DataSource.GRAVITY, headerfile=ERS_DATA, 
-                              altitude=ALT)
+                              altitude=ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()
         domainbuilder.addSource(source)
         domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
@@ -240,7 +240,7 @@ class TestErMapperData(unittest.TestCase):
 class TestNetCdfData(unittest.TestCase):
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_cdf_with_padding(self):
-        source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT)
+        source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()
         domainbuilder.addSource(source)
         domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
@@ -295,11 +295,13 @@ class TestNetCdfData(unittest.TestCase):
         g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=NC_NULL
         self.assertAlmostEqual(np.abs(g_out-NC_NULL).max(), 0.,
                 msg="Wrong values in padding area")
+
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_cdf_with_padding_ellipsoid(self):
         ref=WGS84ReferenceSystem()
         
-        source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, reference_system=ref)
+        source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT,
+                            reference_system=ref, scale_factor=1e-6)
         domainbuilder=DomainBuilder(reference_system=ref)
         domainbuilder.addSource(source)
         domainbuilder.setVerticalExtents(depth=-VMIN, air_layer=VMAX, num_cells=NE_V)
