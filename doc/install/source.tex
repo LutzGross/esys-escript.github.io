@@ -1,0 +1,180 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2012-2013 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development since 2012 by School of Earth Sciences
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+% Notes about compilers
+
+\chapter{Installing from Source}\label{chap:source}
+
+Some initial questions:
+\begin{enumerate}
+\item Are you using MacOS?
+\item Which parallel technologies do you wish to use?
+\item Which packaging system are you using?
+\end{enumerate}
+
+
+\section{MacOS and compilers}
+\emph{This information is as accurate as far as we can tell at time of writing but things may change.}
+
+In order to install \escript from source, you need a compiler.
+This is a bit harder on MacOS than on other systems which either provide a compiler as part of the base install (BSD) or allow 
+people to download one as part of the install process (Linux).
+In earlier releases of its operating system (``Snow Leopard'' and earlier), Apple included an optional ``developer tools'' package (\texttt{XCode}) on the install media.
+For more recent releases, \texttt{XCode} is available for ``free'' from Apple's application store.
+Why ``free''? 
+The only way to access the application store is with an AppleID which requires either:
+\begin{itemize}
+ \item purchasing an iTunes gift card.
+ \item giving Apple access to your credit card.
+ \item signing up as an Apple developer\footnote{If you do this you can download a ``command line tools'' package
+ which installs the relevant compilers without needing to install all of \texttt{XCode}.}  and giving up personal information.
+\end{itemize}
+
+If you install \texttt{XCode}, you will need to download the ``command line tools'' optional package [see \texttt{XCode} documentation for details].
+
+There are a number of projects on the net which aim to deliver compilers for MacOS.
+For example:
+\begin{itemize}
+ \item \url{http://hpc.sourceforge.net}
+ \item \url{http://kennethreitz.org/experiments/xcode-gcc-and-homebrew}
+\end{itemize}
+Use at your own risk.
+
+
+
+\section{Parallel Technologies}
+It is extremely likely that the computer you run \escript on, will have more than one processor core.
+\escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
+but this functionality must be enabled at compile time.
+
+There are two technologies which \escript can employ here.
+\begin{itemize}
+ \item OpenMP -- more efficient of the two [thread level parallelism].
+ \item MPI -- Uses multiple processes (less efficient), needs less help from the compiler.
+\end{itemize}
+
+Escript is primarily tested on recent versions of the GNU or Intel suites (``gcc, g++'' / ``icc, icpc'').
+However, it also passes our tests when compiled using ``clang, clang++''.
+The table below shows what methods are available with which compilers.
+
+\begin{center}
+\begin{tabular}{|l|c|c|c|}\hline
+ & Serial & OpenMP & MPI \\\hline
+ $\leq$ gcc-4.2.1 & \checkmark & \raisebox{-0.1cm}{\footnotemark}& \checkmark \\\hline
+ gcc (recent $\geq 4.3.2$)  & \checkmark& \checkmark& \checkmark \\\hline
+ icc(10) & \checkmark& \checkmark& \checkmark \\\hline
+ icc(11) & \checkmark& \raisebox{-0.1cm}{\footnotemark}  &\checkmark \\\hline
+ icc(12) & \checkmark& \checkmark&\checkmark \\\hline
+ clang & \checkmark& & \checkmark\\\hline
+\end{tabular}
+\end{center}
+\addtocounter{footnote}{-1}
+\footnotetext{The \openmp support in gcc-4.2.1 is buggy/non-functional.}
+\addtocounter{footnote}{1}
+\footnotetext{There is a subtle bug in icc-11 when \openmp and c++ exception handling 
+are combined.}
+
+\noindent Where both \openmp and \mpi are marked, \escript can be compiled with either or both.
+A \checkmark mark means that combination passes our tests.
+
+
+
+\section{Packaging System}
+The packaging system (also known as the package manager) is the tool you use to search for and install new open source software.
+For Linux, there will be one set up by default: the apt tools on Debian and Ubuntu, yast on Suse, yum on the RedHat family.
+On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
+
+For MacOS, this is a bit more tricky.
+There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, but we have not experimented with that.}, but they do not come pre-installed so you will need to install one.
+
+Packaging systems will make changes to your computer based on programs configured by other people from 
+various places around the internet.
+It is important to satisfy yourself as to the security of those systems.
+
+If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{}
+
+\subsection{Changing Compilers on MacOS and BSD}
+\emph{Not for the faint-hearted.}
+
+In order to use OpenMP, your compiler must support it.
+The compilers provided in Apple's package and BSD do not support OpenMP.
+\texttt{Clang} has no support for it at all, while \texttt{GCC4.2.1} has some, but it does not work very well\footnote{Rejects valid code, crashes etc}.
+You can use the packaging system to install a more up to date version of \texttt{gcc}.
+However, you will need to install a number of other dependencies in order for escript to operate.
+If these dependencies end up fighting over which versions of libraries to use, there will be problems
+\footnote{For example: Trying to use two versions of \texttt{Python} in the same program or two versions of the \texttt{c++} standard library.}
+To avoid this, if you are intend to change the compiler or python versions, you should install the new compiler first,
+then the new version of python.
+After this, you can install the other dependencies.
+\emph{Please note that none of the Mac based packages nor BSD recommend changing the default $C$ compiler so
+do so at your own risk.  If you want OpenMP though, there does not seem to be a choice.}
+
+\subsubsection*{Changing compiler on FreeBSD(9.1)}
+The following sequence passes our unit tests under OpenMP.
+\begin{itemize}
+ \item Install \texttt{gcc46} from ports.
+ \item Modify \texttt{/etc/make.conf} to set the default compiler to be \texttt{gcc46}
+ \item Install the remaining dependencies. 
+ \item Configure \escript to build with \openmp.
+\end{itemize}
+
+We chose version $4.6$ rather than a later one because one of the optional dependencies (scipy) will try to install it anyway.
+
+\subsection*{Changing compiler on MacPorts}
+The following sequence passes our unit tests under OpenMP.
+\begin{itemize}
+ \item \texttt{port install gcc47}
+ \item Set the default compiler for the command line with: \texttt{port select --set gcc mp-gcc47}
+ \item Set the default compiler for macports by adding the following line to \linebreak[2] \file{/opt/local/etc/macports/macports.conf}:
+\begin{shellCode} 
+#Added by user to coerce macports into using a newer compiler
+default_compiler	macports-gcc-4.7 
+\end{shellCode}
+\item Now install the remainder of the dependencies using \texttt{port -s install X}.
+This will build them from source rather than downloading precompiled versions.
+(This will unfortunately mean larger downloads.).
+In some cases, some dependencies will not build properly from source.
+In those cases(where XYZ is the dependency that fails to build), \texttt{port clean XYZ} then \texttt{port install XYZ}.
+Then \emph{try to install the rest from source}.
+
+Installing from source via macports is necessary to convince macports to link against the libraries provided by 
+your new compiler rather than the default one.
+\end{itemize}
+
+
+
+
+\subsection*{Changing compiler on Homebrew}
+There is no configuration file that needs to be changed in order to use a different compiler.
+You do need to do things in the correct order and make sure that you have made any required changes to 
+your environment variables before moving on to the next step.
+In particular, the compiler must be installed before anything else and then python.
+
+
+
+\section{Compiling on OSX}
+Older versions of OSX (eg ``Leopard'') come with an optional ``developer tools'' package on their install media.
+Newer versions (eg ``Lion'') require users to have an iTunes account to be able to download XCode.
+Alternatively, there is at least one project\footnote{\url{http://hpc.sourceforge.net/} --- 
+the escript development team has no connection with this project} which offers builds of gcc for OSX for download.
+
+At this time,  the best (although not simplest) option seems to be to use either of the compilers 
+provided by Apple to build a more up to date version of gcc ($4.7$ at time of writing).
+If you already use a package management system such as MacPorts you may be able to get updated compilers using them.
+If you do not already use a package manager then it may be simpler just to build it yourself from source.
+This actually turns out to be pretty easy, see Section~\ref{sec:gccbuilding} for instructions.
+
+
+
+
+
