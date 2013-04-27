@@ -161,18 +161,149 @@ your environment variables before moving on to the next step.
 In particular, the compiler must be installed before anything else and then python.
 
 
+% make it clear that escript can be customised to use whatever you have
 
-\section{Compiling on OSX}
-Older versions of OSX (eg ``Leopard'') come with an optional ``developer tools'' package on their install media.
-Newer versions (eg ``Lion'') require users to have an iTunes account to be able to download XCode.
-Alternatively, there is at least one project\footnote{\url{http://hpc.sourceforge.net/} --- 
-the escript development team has no connection with this project} which offers builds of gcc for OSX for download.
+%Should include optional customisation
 
-At this time,  the best (although not simplest) option seems to be to use either of the compilers 
-provided by Apple to build a more up to date version of gcc ($4.7$ at time of writing).
-If you already use a package management system such as MacPorts you may be able to get updated compilers using them.
-If you do not already use a package manager then it may be simpler just to build it yourself from source.
-This actually turns out to be pretty easy, see Section~\ref{sec:gccbuilding} for instructions.
+%Talk about options_files and the ability to specify them
+
+%talk about -j1 and replacing it with more ops
+%Talk about installation prefix
+
+%also note that this doesn't build the doco but we do have downloads for that or you can install extra packages
+
+\section{Linux}
+%The aim here is absolutely minimal customisation
+
+\subsection{Debian}
+
+
+\subsection{Ubuntu}
+
+\subsection{OpenSuse}
+These instructions were prepared using release $12.3$.
+
+Install packages from the main distribution:
+\begin{shellCode}
+sudo yast2 --install libboost_python1_49_0 python-devel python-numpy 
+sudo yast2 --install python-scipy python-sympy python-matplotlib libnetcdf_c++-devel
+sudo yast2 --install gcc-c++ scons boost-devel netcdf-devel
+\end{shellCode}
+These will allow you to use most features except some parts of the \downunder inversion library.
+If you wish to use those, you will need some additional packages [python-pyproj, python-gdal].
+This can be done after Escript installation.
+
+\begin{optionalstep}
+Add \url{http://ftp.suse.de/pub/opensuse/repositories/Application:/Geo/openSUSE_12.3/}
+to your repositories in \texttt{YaST}.
+\begin{shellCode}
+sudo yast2 --install python-pyproj, python-gdal
+\end{shellCode}
+\end{optionalstep}
+
+Now to build escript itself.
+In the escript source directory:
+\begin{shellCode}
+scons -j1 options_file=scons/os/opensuse12.3_options.py
+\end{shellCode}
+
+If you wish to test your build, you can use the following:
+\begin{shellCode}
+scons -j1 py_tests options_file=scons/os/opensuse12.3_options.py 
+\end{shellCode}
+
+Now go to Section~\ref{sec:cleanup} for cleanup.
+
+\subsection{Centos}
+These instructions were prepared using release $6.4$.
+
+Install packages from the main distribution:
+\begin{shellCode}
+yum install python-devel numpy scipy scons boost-devel
+yum install python-matplotlib gcc-g++
+yum install boost-python 
+\end{shellCode}
+
+The above packages will allow you to use most features except saving and loading files in \texttt{netCDF} 
+format and the \downunder inversion library.
+If you wish to use those features, you will need to install some additional packages.
+NetCDF needs to be installed when you compile if you wish to use it.
+\begin{optionalstep}
+Add the \texttt{EPEL} repository.
+\begin{shellCode}
+rpm -U http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
+\end{shellCode}
+
+\begin{shellCode}
+yum install netcdf-devel sympy gdal-python
+\end{shellCode}
+
+For some coordinate transformations, \downunder can also make use of the python interface to a tool called \texttt{proj}.
+There does not seem to be an obvious centos repository for this though.
+If it turns out to be necessary for your particular application, the source can be downloaded. 
+\end{optionalstep}
+
+Now to build escript itself.
+In the escript source directory:
+\begin{shellCode}
+scons -j1 options_file=scons/os/centos6.4_options.py
+\end{shellCode}
+
+If you wish to test your build, you can use the following:
+\begin{shellCode}
+scons -j1 py_tests options_file=scons/os/centos6.4_options.py 
+\end{shellCode}
+
+Now go to Section~\ref{sec:cleanup} for cleanup.
+
+\subsection{Fedora}
+These instructions were prepared using release $18$.
+
+Install packages
+\begin{shellCode}
+yum install netcdf-cxx-devel gcc-c++ scipy 
+yum install sympy scons pyproj gdal python-matplotlib 
+yum install boost-devel
+\end{shellCode}
+
+Now to build escript itself.
+In the escript source directory:
+\begin{shellCode}
+scons -j1 options_file=scons/os/fedora18_options.py
+\end{shellCode}
+
+If you wish to test your build, you can use the following:
+\begin{shellCode}
+scons -j1 py_tests options_file=scons/os/fedora18_options.py 
+\end{shellCode}
+
+Now go to Section~\ref{sec:cleanup} for cleanup.
+
+\section{Cleaning up}
+\label{sec:cleanup}
+
+Once the build (and optional testing) is complete, you can remove everything except:
+\begin{itemize}
+ \item bin
+ \item esys
+ \item lib
+ \item doc
+ \item CREDITS.TXT
+ \item README_LICENSE
+\end{itemize}
+The last two aren't strictly required for operation.
+The \texttt{doc} directory is not required either but does contain examples of escript scripts.
+
+You can run escript using \texttt{\textit{path_to_escript_files}/bin/run-escript}.
+Where \texttt{\textit{path_to_escript_files}} is replaced with the real path.
+
+\begin{optionalstep}
+You can add the escript \texttt{bin} directory to your \texttt{PATH} variable.
+The launcher will then take care of the rest of the environment.
+\end{optionalstep}
+
+\section{packages you need to download}
+%Need a better title but this is stuff like visit and silo (for non-debian distros)
 
 
 
