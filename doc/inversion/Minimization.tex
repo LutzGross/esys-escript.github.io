@@ -39,8 +39,8 @@ The method used here is the limited-memory Broyden-Fletcher-Goldfarb-Shanno
 (\emph{L-BFGS}) method, see~\cite{Nocedal1980}.
 This method is a quasi-Newton method.
 To implement the method one needs to provide the evaluation of the cost
-function $J$ and its gradient $\nabla J$ and dual product $<.,.>$\footnote{A
-dual product $<.,.>$ defines a function which assigns a pair $(p,g)$ of a level
+function $J$ and its gradient $\nabla J$ and dual product $<\cdot,\cdot>$\footnote{A
+dual product $<\cdot,\cdot>$ defines a function which assigns a pair $(p,g)$ of a level
 set increment $p$ and a gradient $g$ a real number $<p,g>$. It is linear
 in the first and linear in the second argument.}
 such that for $\alpha \to$ 0 
