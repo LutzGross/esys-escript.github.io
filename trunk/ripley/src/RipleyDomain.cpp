@@ -708,7 +708,7 @@ void RipleyDomain::Print_Mesh_Info(const bool full) const
     cout << "Print_Mesh_Info for " << getDescription() << " running on CPU "
         << m_mpiInfo->rank << ". MPI size: " << m_mpiInfo->size << endl;
     cout << "Number of dimensions: " << m_numDim << endl;
-
+    cout << "Number of elements per rank: " << getNumElements() << endl;
     // write tags
     if (m_tagMap.size() > 0) {
         cout << "Tags:" << endl;
