@@ -1,4 +1,5 @@
 
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2013 by University of Queensland
@@ -406,7 +407,7 @@ class DomainBuilder(object):
         if len(self.__sources)==0:
             raise ValueError("No data")
         X0, NE, DX = self.__sources[0].getDataExtents()
-        print "X", X0, NE, DX
+        print("X", X0, NE, DX)
         XN=[X0[i]+NE[i]*DX[i] for i in range(len(NE))]
 
         for src in self.__sources[1:]:
