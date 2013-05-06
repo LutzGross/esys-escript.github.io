@@ -72,8 +72,10 @@ def work():
 
   g, wg = db.getGravitySurveys()[0]
   B, wB = db.getMagneticSurveys()[0]
-  saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB)
-  print("Results saved in result_gravmag.silo")
+  if saveSilo("result_gravmag.silo", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB):
+      print("Results saved in result_gravmag.silo")
+  else:
+      print("Failed to save result_gravmag.silo. Possibly no Silo support.")
 
   saveVTK("result_gravmag.vtu", density=density, gravity_anomaly=g, gravity_weight=wg, susceptibility=susceptibility, magnetic_anomaly=B,   magnetic_weight=wB)
   print("Results saved in result_gravmag.vtu")
