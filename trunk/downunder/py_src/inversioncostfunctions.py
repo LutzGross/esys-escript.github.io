@@ -44,7 +44,6 @@ class InversionCostFunction(MeteredCostFunction):
     defect cost functions involving a physical forward model using the
     physical parameter(s) *p* and *mu_f* is the trade-off factor for model f.
 
-
     A forward model depends on a set of physical parameters *p* which are
     constructed from components of the level set function *m* via mappings.
 
@@ -61,7 +60,7 @@ class InversionCostFunction(MeteredCostFunction):
 
          J=InversionCostFunction(Regularization(), mappings=[m0, m1], forward_models=[(f0, 0), (f1,1)])
 
-     Example 2 (two forward models on 2-valued level set)
+    Example 3 (two forward models on 2-valued level set)
          m0=Mapping()
          m1=Mapping()
          f0=ForwardModel()
@@ -86,23 +85,20 @@ class InversionCostFunction(MeteredCostFunction):
                          where the first component map defines a `Mapping` and
                          the second component *i* defines the index of the
                          component of level set function to be used to
-                         calculate the mapping. An item in the list can be just
-                         a `Mapping` object then the entire level set function
-                         function is fed into the `Mapping` (typically used for
-                         a single-component level set function.
-        :type mappings: ``list`` where each item is a ``tuple`` of `Mapping`
-                        and ``int`` or just a `Mapping`
+                         calculate the mapping. Items in the list may also be
+                         just `Mapping` objects in which case the entire level
+                         set function is fed into the `Mapping` (typically used
+                         for a single-component level set function.
+        :type mappings: `Mapping` or ``list``
         :param forward_models: the forward models involved in the calculation
                                of the cost function. This is a list of 2-tuples
                                *(f, ii)* where the first component f defines a
                                `ForwardModel` and the second component *ii* a
                                list of indexes referring to the physical
                                parameters in the `mappings` list. The 2-tuple
-                               can be replaced by a `ForwardModel` if a
-                               `mappings` list as a single entry.
-        :param forward_models: ``list`` where each item is ``tuple`` of
-                               `ForwardModel` and ``list`` of ``int`` or is
-                               `ForwardModel`.
+                               can be replaced by a `ForwardModel` if the
+                               `mappings` list has a single entry.
+        :param forward_models: `ForwardModel` or ``list``
         """
         super(InversionCostFunction, self).__init__()
         self.regularization=regularization
@@ -112,15 +108,19 @@ class InversionCostFunction(MeteredCostFunction):
         else:
              self.mappings = mappings
 
-        if  isinstance(forward_models, ForwardModel):
+        if isinstance(forward_models, ForwardModel):
             self.forward_models = [ forward_models ]
         else:
             self.forward_models=forward_models
     
-        trafo =  regularization.getCoordinateTransformation()
-        for m in self.forward_models :
-	     if not m[0].getCoordinateTransformation() == trafo:
-	       raise ValueError("Coordinate transformation for regularization and model %m don't match.") 
+        trafo = regularization.getCoordinateTransformation()
+        for m in self.forward_models:
+            if isinstance(m, ForwardModel):
+                F=m
+            else:
+                F=m[0]
+            if not F.getCoordinateTransformation() == trafo:
+                raise ValueError("Coordinate transformation for regularization and model don't match.") 
 
         self.numMappings=len(self.mappings)
         self.numModels=len(self.forward_models)
