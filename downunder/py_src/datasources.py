@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['DataSource', 'ErMapperData', 'NumpyData', 'NetCdfData', \
+__all__ = ['DataSource', 'ErMapperData', 'NumpyData', \
         'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
         'SmoothAnomaly']
 
@@ -108,7 +108,7 @@ class DataSource(object):
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__subsampling_factor=1
         if not reference_system:
-	     self.__reference_system = CartesianReferenceSystem()
+             self.__reference_system = CartesianReferenceSystem()
         else:
              self.__reference_system = reference_system
              
@@ -357,10 +357,10 @@ class ErMapperData(DataSource):
                 originX=np.round(originX_UTM)
                 originY=np.round(originY_UTM)
             else:
-	        _,_,zone=LatLonToUTM(originX, originY, wkt)
-	        originX_UTM,originY_UTM= originX, originY
-	        op1X, op1Y= originX+spacingX, originY+spacingY
-	        spacingX=np.round(op1X-originX_UTM,2)
+                _,_,zone=LatLonToUTM(originX, originY, wkt)
+                originX_UTM,originY_UTM= originX, originY
+                op1X, op1Y= originX+spacingX, originY+spacingY
+                spacingX=np.round(op1X-originX_UTM,2)
                 spacingY=np.round(op1Y-originY_UTM,2)
                 originX=np.round(originX_UTM,2)
                 originY=np.round(originY_UTM,2)
@@ -584,8 +584,8 @@ class NetCdfData(DataSource):
         if self.getReferenceSystem().isCartesian():
              lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
         else:
-	     _,_,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
-	     
+             _,_,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+             
         self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         f.close()
@@ -594,9 +594,9 @@ class NetCdfData(DataSource):
         self.__origin=[lon_range[0],lat_range[0]]
         # we are rounding to avoid interpolation issues
         if self.getReferenceSystem().isCartesian():
-	     r=0
-	else:
-	     r=2
+             r=0
+        else:
+             r=2
         self.__delta=[np.round(lengths[i]/self.__nPts[i],r) for i in range(2)]
 
     def getDataExtents(self):
