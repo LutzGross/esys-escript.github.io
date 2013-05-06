@@ -64,8 +64,10 @@ def work():
   print("susceptibility = %s"%susceptibility)
 
   B, w =  db.getMagneticSurveys()[0]
-  saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
-  print("Results saved in result_magnetic.silo")
+  if saveSilo("result_magnetic.silo", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w):
+      print("Results saved in result_magnetic.silo")
+  else:
+      print("Failed to save result_magnetic.silo. Possibly no Silo support.")
 
   saveVTK("result_magnetic.vtu", susceptibility=susceptibility, magnetic_anomaly=B, magnetic_weight=w)
   print("Results saved in result_magnetic.vtu")

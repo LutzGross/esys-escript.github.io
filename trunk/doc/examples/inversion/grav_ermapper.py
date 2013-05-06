@@ -59,8 +59,10 @@ def work():
   print("density = %s"%density)
 
   g, w =  db.getGravitySurveys()[0]
-  saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w)
-  print("Results saved in result0.silo")
+  if saveSilo("result0.silo", density=density, gravity_anomaly=g, gravity_weight=w):
+      print("Results saved in result0.silo")
+  else:
+      print("Failed to save result0.silo. Possibly no Silo support.")
 
   saveVTK("result0.vtu", density=density, gravity_anomaly=g, gravity_weight=w)
   print("Results saved in result0.vtu")
