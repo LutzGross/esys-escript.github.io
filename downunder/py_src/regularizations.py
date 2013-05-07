@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 ##############################################################################
 #
 # Copyright (c) 2003-2013 by University of Queensland
@@ -413,7 +413,7 @@ class Regularization(CostFunction):
                 A+=integrate(inner(grad_m**2, self.__w1))*mu
             else:
                 for k in range(numLS):
-                    print("C = ",integrate(inner(grad_m[k,:]**2,self.__w1[k,:])))
+                    #print("C = %s"%integrate(inner(grad_m[k,:]**2,self.__w1[k,:])))
                     A+=mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
 
         if numLS > 1:
@@ -422,9 +422,9 @@ class Regularization(CostFunction):
                 len_gk=length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
-                    print("CC =",integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ))
+                    #print("CC = %s"%integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ))
                     A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
-        print("A =",A)
+        #print("A = %s"%A)
         return A/2
 
     def getGradient(self, m,  grad_m):

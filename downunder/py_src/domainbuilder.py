@@ -1,5 +1,4 @@
 
-from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2013 by University of Queensland
@@ -61,10 +60,10 @@ class DomainBuilder(object):
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         if dim not in (2,3):
             raise ValueError("Number of dimensions must be 2 or 3")
-	if not reference_system:
-	    self.__reference_system=CartesianReferenceSystem()
-	else:
-	    self.__reference_system=reference_system 
+        if not reference_system:
+            self.__reference_system=CartesianReferenceSystem()
+        else:
+            self.__reference_system=reference_system 
         self.__domain=None
         self.__dim=dim
         self.__sources=[]
@@ -101,8 +100,8 @@ class DomainBuilder(object):
             raise RuntimeError("Invalid call to addSource(). Domain is already built.")
         if not isinstance(source, DataSource):
             raise TypeError("source is not a DataSource")
-	if not source.getReferenceSystem() == self.getReferenceSystem():
-	   raise ValueError("Source reference system does not match.")
+        if not source.getReferenceSystem() == self.getReferenceSystem():
+           raise ValueError("source reference system does not match.")
 
         DATA_DIM = len(source.getDataExtents()[0])
         if DATA_DIM != self.__dim-1:
@@ -133,15 +132,15 @@ class DomainBuilder(object):
         :note: `pad_y` is ignored for 2-dimensional domains. 
         """
         if not pad_lat == None:
-	    if not pad_x == None:
-	       raise ValueError("Either pad_lat or pad_x can be set.")
-	    else:
-	      pad_x = pad_lat
+            if not pad_x == None:
+               raise ValueError("Either pad_lat or pad_x can be set.")
+            else:
+              pad_x = pad_lat
         if not pad_lon == None:
-	    if not pad_y == None:
-	      raise ValueError("Either pad_lon or pad_y can be set.")
-	    else:
-	      pad_y = pad_lan	      
+            if not pad_y == None:
+              raise ValueError("Either pad_lon or pad_y can be set.")
+            else:
+              pad_y = pad_lan         
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setFractionalPadding(). Domain is already built.")
         if pad_x is not None:
@@ -172,7 +171,7 @@ class DomainBuilder(object):
         :note: this function can only be used if the reference system is Cartesian
         """
         if not self.getReferenceSystem().isCartesian():
-	    raise RuntimeError("setPadding can be called for the Cartesian reference system only.")
+            raise RuntimeError("setPadding can be called for the Cartesian reference system only.")
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setPadding(). Domain is already built.")
         if pad_x is not None:
@@ -199,7 +198,7 @@ class DomainBuilder(object):
         :note: this function can only be used if the reference system is not Cartesian
         """
         if self.getReferenceSystem().isCartesian():
-	    raise RuntimeError("setGeoPadding can be called for non-Cartesian reference systems only.")
+            raise RuntimeError("setGeoPadding can be called for non-Cartesian reference systems only.")
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setPadding(). Domain is already built.")
         if pad_lat is not None:
@@ -226,16 +225,16 @@ class DomainBuilder(object):
         :note: `pad_y` is ignored for 2-dimensional datasets.
         """
         if not pad_lat == None:
-	    if not pad_x == None:
-	      raise ValueError("Either pad_lat or pad_x can be set.")
-	    else:
-	      pad_x = pad_lat
+            if not pad_x == None:
+              raise ValueError("Either pad_lat or pad_x can be set.")
+            else:
+              pad_x = pad_lat
         if not pad_lon == None:
-	    if not pad_y == None:
-	      raise ValueError("Either pad_lon or pad_y can be set.")
-	    else:
-	      pad_y = pad_lan
-	      
+            if not pad_y == None:
+              raise ValueError("Either pad_lon or pad_y can be set.")
+            else:
+              pad_y = pad_lan
+              
         if self.__domain is not None:
             raise RuntimeError("Invalid call to setElementPadding(). Domain is already built.")
         if pad_x is not None:
@@ -407,7 +406,6 @@ class DomainBuilder(object):
         if len(self.__sources)==0:
             raise ValueError("No data")
         X0, NE, DX = self.__sources[0].getDataExtents()
-        print("X", X0, NE, DX)
         XN=[X0[i]+NE[i]*DX[i] for i in range(len(NE))]
 
         for src in self.__sources[1:]:
@@ -437,7 +435,12 @@ class DomainBuilder(object):
 
         # origin of domain
         origin = X0 + [-self._v_depth]
-        self._dom_origin = [np.floor(oi) for oi in origin]
+        if self.getReferenceSystem().isCartesian():
+            # rounding will give us about meter-accuracy with UTM coordinates
+            self._dom_origin = [np.floor(oi) for oi in origin]
+        else:
+            # this should give us about meter-accuracy with lat/lon coords
+            self._dom_origin = [1e-5*np.floor(oi*1e5) for oi in origin]
 
         # cell size / point spacing
         spacing = DX + [np.floor((self._v_depth+self._v_air_layer)/self._v_num_cells)]
