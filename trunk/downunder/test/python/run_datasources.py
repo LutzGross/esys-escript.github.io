@@ -279,7 +279,6 @@ class TestNetCdfData(unittest.TestCase):
         # recompute nz since ripley might have adjusted number of elements
 
         nz=len(out)/(nx*ny)
-        print nz,ny,nx
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
 
@@ -299,7 +298,7 @@ class TestNetCdfData(unittest.TestCase):
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_cdf_with_padding_ellipsoid(self):
         ref=WGS84ReferenceSystem()
-        
+
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT,
                             reference_system=ref, scale_factor=1e-6)
         domainbuilder=DomainBuilder(reference_system=ref)
@@ -319,7 +318,7 @@ class TestNetCdfData(unittest.TestCase):
         self.assertEqual(NP, NC_SIZE, msg="Wrong number of data points")
 
         for i in range(len(NC_ORIGIN)):
-                self.assertAlmostEqual(X0[i], NC_ORIGIN_WGS84[i], msg="Data origin wrong")
+            self.assertAlmostEqual(X0[i], NC_ORIGIN_WGS84[i], msg="Data origin wrong")
 
         # check data
         nx=NP[0]+2*PAD_X
@@ -333,10 +332,8 @@ class TestNetCdfData(unittest.TestCase):
 
         out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
         
-        print NP
         # recompute nz since ripley might have adjusted number of elements
         nz=len(out)/(nx*ny)
-        print nz,ny,nx
         g_out=out[:,0].reshape(nz,ny,nx)
         s_out=out[:,1].reshape(nz,ny,nx)
 

@@ -358,16 +358,13 @@ class ErMapperData(DataSource):
                 originY=np.round(originY_UTM)
             else:
                 _,_,zone=LatLonToUTM(originX, originY, wkt)
-                originX_UTM,originY_UTM= originX, originY
                 op1X, op1Y= originX+spacingX, originY+spacingY
-                spacingX=np.round(op1X-originX_UTM,2)
-                spacingY=np.round(op1Y-originY_UTM,2)
-                originX=np.round(originX_UTM,2)
-                originY=np.round(originY_UTM,2)
+                spacingX=np.round(op1X-originX,5)
+                spacingY=np.round(op1Y-originY,5)
+                originX=np.round(originX,5)
+                originY=np.round(originY,5)
             self.__utm_zone = zone
 
-
-        print originX, originY, spacingX, spacingY
         self.__dataorigin=[originX, originY]
         self.__delta = [spacingX, spacingY]
         self.__nPts = [NX, NY]
@@ -594,9 +591,11 @@ class NetCdfData(DataSource):
         self.__origin=[lon_range[0],lat_range[0]]
         # we are rounding to avoid interpolation issues
         if self.getReferenceSystem().isCartesian():
-             r=0
+            # rounding will give us about meter-accuracy with UTM coordinates
+            r=0
         else:
-             r=2
+            # this should give us about meter-accuracy with lat/lon coords
+            r=5
         self.__delta=[np.round(lengths[i]/self.__nPts[i],r) for i in range(2)]
 
     def getDataExtents(self):
