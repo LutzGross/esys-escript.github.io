@@ -36,9 +36,9 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 from . import escriptcpp
 escore=escriptcpp
 from . import util
-from .linearPDEs import TransportPDE
+import linearPDEs as lpe
 
-class TemperatureCartesian(TransportPDE):
+class TemperatureCartesian(lpe.TransportPDE):
     """
     Represents and solves the temperature advection-diffusion problem
 
@@ -68,7 +68,7 @@ class TemperatureCartesian(TransportPDE):
         :param domain: domain of the problem
         :note: the approximation order is switched to reduced if the approximation order is nnot linear (equal to 1).
         """
-        TransportPDE.__init__(self,domain,numEquations=1, **kwargs)
+        lpe.TransportPDE.__init__(self,domain,numEquations=1, **kwargs)
         order=escore.Solution(domain).getApproximationOrder()
         if order>1:
             if escore.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError("Reduced order needs to be equal to 1.")
@@ -109,7 +109,7 @@ class TemperatureCartesian(TransportPDE):
         return self.getSolution(dt,**kwargs)
 
 
-class Tracer(TransportPDE):
+class Tracer(lpe.TransportPDE):
     """
     Represents and solves the tracer problem
 
@@ -141,7 +141,7 @@ class Tracer(TransportPDE):
         :type useBackwardEuler: ``bool``
         :note: the approximation order is switched to reduced if the approximation order is nnot linear (equal to 1).
         """
-        TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
+        lpe.TransportPDE.__init__(self,domain,numEquations=1,useBackwardEuler=useBackwardEuler,**kwargs)
         order=escore.Solution(domain).getApproximationOrder()
         if order>1:
             if escore.ReducedSolution(domain).getApproximationOrder()>1: raise ValueError("Reduced order needs to be equal to 1.")

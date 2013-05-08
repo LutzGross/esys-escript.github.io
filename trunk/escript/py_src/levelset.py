@@ -20,9 +20,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript.linearPDEs import LinearPDE, SingleTransportPDE
-from esys.escript.pdetools import Projector
-from esys.escript import inf, sign, Function, grad, length, whereNegative, inner, Lsup, ReducedFunction, interpolate, whereNonNegative
+import esys.escript.linearPDEs as lpe
+import esys.escript as es
 import math
 
 class LevelSet(object):
@@ -47,13 +46,13 @@ class LevelSet(object):
     self.__phi = phi
 
 
-    self.__transport=SingleTransportPDE(self.__domain)
+    self.__transport=lpe.SingleTransportPDE(self.__domain)
     if useReducedOrder: self.__transport.setReducedOrderOn()
     self.__transport.setValue(M=1.0)
     self.__transport.setInitialSolution(phi)
 
 
-    self.__reinitPDE = LinearPDE(self.__domain, numEquations=1)
+    self.__reinitPDE = lpe.LinearPDE(self.__domain, numEquations=1)
     self.__reinitPDE.getSolverOptions().setSolverMethod(self.__reinitPDE.getSolverOptions().LUMPING)
     if useReducedOrder: self.__reinitPDE.setReducedOrderOn()
     self.__reinitPDE.setValue(D=1.0)
@@ -61,7 +60,7 @@ class LevelSet(object):
     # revise:
     self.__reinit_max = reinit_max
     self.__reinit_after = reinitialize_after
-    self.__h = inf(self.__domain.getSize())
+    self.__h = es.inf(self.__domain.getSize())
     self.__smooth = smooth
     self.__n_step=0
 
@@ -128,7 +127,7 @@ class LevelSet(object):
 
     :return: reinitialized level set
     """
-    fs=ReducedFunction(self.__domain)
+    fs=es.ReducedFunction(self.__domain)
     dtau = 0.2*self.__h
     n =0
     #g=grad(phi,fs)
@@ -136,10 +135,10 @@ class LevelSet(object):
     #print(("LevelSet:reinitialization: iteration :", n, " error:", error))
     #mask = whereNegative(abs(phi)-1.*self.__h)
     #self.__reinitPDE.setValue(q=mask, r=phi)
-    s= sign(phi.interpolate(fs)) 
+    s= es.sign(phi.interpolate(fs)) 
     while (n<=self.__reinit_max):
-      g_phi=grad(phi, fs)
-      self.__reinitPDE.setValue(Y =  dtau* s * (1 - length(g_phi) ), X = - dtau**2/2 * g_phi) 
+      g_phi=es.grad(phi, fs)
+      self.__reinitPDE.setValue(Y =  dtau* s * (1 - es.length(g_phi) ), X = - dtau**2/2 * g_phi) 
       phi = phi + self.__reinitPDE.getSolution()
       
 
@@ -154,7 +153,7 @@ class LevelSet(object):
       """
       Returns the volume of the *phi(x)<0* region.
       """
-      return integrate(whereNegative(self.__phi.interpolate(Function(self.__domain))))
+      return integrate(es.whereNegative(self.__phi.interpolate(es.Function(self.__domain))))
 
 
   def getJumpingParameter(self, param_neg=-1, param_pos=1, phi=None):
@@ -167,8 +166,8 @@ class LevelSet(object):
       :param phi: level set function to be used. If not present the current
                   level set is used.
       """
-      mask_neg = whereNegative(self.__phi)
-      mask_pos = whereNonNegative(self.__phi)
+      mask_neg = es.whereNegative(self.__phi)
+      mask_pos = es.whereNonNegative(self.__phi)
       param = param_pos*mask_pos + param_neg*mask_neg
       return param
 
@@ -196,9 +195,9 @@ class LevelSet(object):
       if smoothing_width==None: smoothing_width = self.__smooth
       if phi==None: phi = self.__phi
       s=smoothing_width*self.__h
-      phi_on_h=interpolate(phi,Function(self.__domain))
-      mask_neg = whereNonNegative(-s-phi_on_h)
-      mask_pos = whereNonNegative(phi_on_h-s)
+      phi_on_h=es.interpolate(phi,es.Function(self.__domain))
+      mask_neg = es.whereNonNegative(-s-phi_on_h)
+      mask_pos = es.whereNonNegative(phi_on_h-s)
       mask_interface = 1.-mask_neg-mask_pos
       interface=phi_on_h/s
       return - mask_neg + mask_pos + mask_interface * interface
@@ -211,8 +210,8 @@ class LevelSet(object):
       if smoothing_width==None: smoothing_width = self.__smooth
       if phi==None: phi = self.__phi
       s=smoothing_width*self.__h 
-      phi_on_h=interpolate(phi,Function(self.__domain))
-      return whereNegative(abs(phi_on_h)-s)
+      phi_on_h=es.interpolate(phi,es.Function(self.__domain))
+      return es.whereNegative(abs(phi_on_h)-s)
       
   def makeCharacteristicFunction(self, contour=0, phi=None, positiveSide=True, smoothing_width=None):
       """

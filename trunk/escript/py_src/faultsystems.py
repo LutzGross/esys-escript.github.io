@@ -19,8 +19,9 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from esys.escript import sqrt, EPSILON, cos, sin, Lsup, atan, length, matrixmult, wherePositive, matrix_mult, inner, Scalar, whereNonNegative, whereNonPositive, maximum, minimum, sign, whereNegative, whereZero
-from esys.escript.pdetools import Locator
+#from esys.escript import sqrt, EPSILON, cos, sin, Lsup, atan, length, matrixmult, wherePositive, matrix_mult, inner, Scalar, whereNonNegative, whereNonPositive, maximum, minimum, sign, whereNegative, whereZero
+import esys.escript.pdetools as pdt
+import esys.escript as es
 import numpy
 import math
 
@@ -268,7 +269,7 @@ class FaultSystem(object):
           else:
              d=V[:,1]
           if abs(d[0])>0.:
-             self.__orientation=atan(d[1]/d[0])
+             self.__orientation=es.atan(d[1]/d[0])
           else:
              self.__orientation=math.pi/2
       return self.__orientation 
@@ -282,9 +283,9 @@ class FaultSystem(object):
      :type shift: ``numpy.array`` of size 2 or 3
      """
      if self.getDim() == 2:
-        mat=numpy.array([[cos(rot), -sin(rot)], [sin(rot), cos(rot)] ])
+        mat=numpy.array([[es.cos(rot), -es.sin(rot)], [es.sin(rot), es.cos(rot)] ])
      else:
-        mat=numpy.array([[cos(rot), -sin(rot),0.], [sin(rot), cos(rot),0.], [0.,0.,1.] ])
+        mat=numpy.array([[es.cos(rot), -es.sin(rot),0.], [es.sin(rot), es.cos(rot),0.], [0.,0.,1.] ])
 
      for t in self.getTags():
          strikes=[ s+ rot for s in self.getStrikes(t) ]
@@ -401,8 +402,8 @@ class FaultSystem(object):
      total_length=0
      for i in range(n_segs):
          v=numpy.zeros((self.getDim(),))
-         v[0]=cos(strikes[i])
-         v[1]=sin(strikes[i])
+         v[0]=es.cos(strikes[i])
+         v[1]=es.sin(strikes[i])
          strike_vectors.append(v)
          top_polyline.append(top_polyline[-1]+ls[i]*v)
          total_length+=ls[i]
@@ -412,7 +413,7 @@ class FaultSystem(object):
      if self.getDim()==3:
         normals=[]
         for i in range(n_segs):
-           normals.append(numpy.array([sin(dips[i])*strike_vectors[i][1],-sin(dips[i])*strike_vectors[i][0], cos(dips[i])]) )
+           normals.append(numpy.array([es.sin(dips[i])*strike_vectors[i][1],-es.sin(dips[i])*strike_vectors[i][0], es.cos(dips[i])]) )
   
         d=numpy.cross(strike_vectors[0],normals[0])
         if d[2]>0:
@@ -474,7 +475,7 @@ class FaultSystem(object):
      self.__w0_max[tag]=w0_max
      self.__w1_max[tag]=w1_max
 
-  def getMaxValue(self,f, tol=sqrt(EPSILON)):
+  def getMaxValue(self,f, tol=es.sqrt(es.EPSILON)):
      """
      returns the tag of the fault of where ``f`` takes the maximum value and a `Locator` object which can be used to collect values from `Data` class objects at the location where the minimum is taken.
 
@@ -484,7 +485,7 @@ class FaultSystem(object):
      :type tol: ``tol``
      :return: the fault tag the maximum is taken, and a `Locator` object to collect the value at location of maximum value.
      """
-     ref=-Lsup(f)*2
+     ref=-es.Lsup(f)*2
      f_max=ref
      t_max=None
      loc_max=None
@@ -501,9 +502,9 @@ class FaultSystem(object):
      if loc_max == None:
          return None, None
      else:
-         return t_max, Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_max))
+         return t_max, pdt.Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_max))
 
-  def getMinValue(self,f, tol=sqrt(EPSILON)):
+  def getMinValue(self,f, tol=es.sqrt(es.EPSILON)):
      """
      returns the tag of the fault of where ``f`` takes the minimum value and a `Locator` object which can be used to collect values from `Data` class objects at the location where the minimum is taken.
 
@@ -513,7 +514,7 @@ class FaultSystem(object):
      :type tol: ``tol``
      :return: the fault tag the minimum is taken, and a `Locator` object to collect the value at location of minimum value.
      """
-     ref=Lsup(f)*2
+     ref=es.Lsup(f)*2
      f_min=ref
      t_min=None
      loc_min=None
@@ -530,9 +531,9 @@ class FaultSystem(object):
      if loc_min == None:
          return None, None
      else:
-         return t_min, Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_min))
+         return t_min, pdt.Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_min))
 
-  def getParametrization(self,x,tag=None, tol=sqrt(EPSILON), outsider=None):
+  def getParametrization(self,x,tag=None, tol=es.sqrt(es.EPSILON), outsider=None):
     """
     returns the parametrization of the fault ``tag`` in the fault system. In fact the values of the parametrization for at given coordinates ``x`` is returned. In addition to the value of the parametrization a mask is returned indicating if the given location is on the fault with given tolerance ``tol``.
 
@@ -561,7 +562,7 @@ class FaultSystem(object):
     w1_range=self.getW1Range(tag)
     w0_range=self.getW0Range(tag)[1]-self.getW0Range(tag)[0]
     if outsider == None:
-       outsider=min(self.getW0Range(tag)[0],self.getW0Range(tag)[1])-abs(w0_range)/sqrt(EPSILON)
+       outsider=min(self.getW0Range(tag)[0],self.getW0Range(tag)[1])-abs(w0_range)/es.sqrt(es.EPSILON)
         
     if isinstance(x,list): x=numpy.array(x, numpy.double)
     updated=x[0]*0 
@@ -574,13 +575,13 @@ class FaultSystem(object):
         for i in range(1,len(top)):
            d=top[i]-top[i-1]
            h=x-top[i-1]
-           h_l=length(h)
-           d_l=length(d)
-           s=inner(h,d)/d_l**2
-           s=s*whereNonPositive(s-1.-tol)*whereNonNegative(s+tol)
-           m=whereNonPositive(length(h-s*d)-tol*maximum(h_l,d_l))*(1.-updated)
+           h_l=es.length(h)
+           d_l=es.length(d)
+           s=es.inner(h,d)/d_l**2
+           s=s*es.whereNonPositive(s-1.-tol)*es.whereNonNegative(s+tol)
+           m=es.whereNonPositive(es.length(h-s*d)-tol*es.maximum(h_l,d_l))*(1.-updated)
            p=(1.-m)*p+m*(offsets[i-1]+(offsets[i]-offsets[i-1])*s)
-           updated=wherePositive(updated+m)
+           updated=es.wherePositive(updated+m)
     else:
         p=x[:2]*0 + outsider
         top=self.getTopPolyline(tag)
@@ -592,20 +593,20 @@ class FaultSystem(object):
             r=bottom[i+1]-bottom[i]
             D0=bottom[i]-top[i]
             D1=bottom[i+1]-top[i+1]
-            s_upper=matrix_mult(numpy.linalg.pinv(numpy.vstack((R,D1)).T),h)
-            s_lower=matrix_mult(numpy.linalg.pinv(numpy.vstack((r,D0)).T),h)
-            m_ul=wherePositive(s_upper[0]-s_upper[1])
+            s_upper=es.matrix_mult(numpy.linalg.pinv(numpy.vstack((R,D1)).T),h)
+            s_lower=es.matrix_mult(numpy.linalg.pinv(numpy.vstack((r,D0)).T),h)
+            m_ul=es.wherePositive(s_upper[0]-s_upper[1])
             s=s_upper*m_ul+s_lower*(1-m_ul)
             s0=s[0]
             s1=s[1]
-            m=whereNonNegative(s0+tol)*whereNonPositive(s0-1.-tol)*whereNonNegative(s1+tol)*whereNonPositive(s1-1.-tol)
+            m=es.whereNonNegative(s0+tol)*es.whereNonPositive(s0-1.-tol)*es.whereNonNegative(s1+tol)*es.whereNonPositive(s1-1.-tol)
             s0=s0*m
             s1=s1*m
-            atol=tol*maximum(length(h),length(top[i]-bottom[i+1]))
-            m=whereNonPositive(length(h-s0*R-s1*D1)*m_ul+(1-m_ul)*length(h-s0*r-s1*D0)-atol)
+            atol=tol*es.maximum(es.length(h),es.length(top[i]-bottom[i+1]))
+            m=es.whereNonPositive(es.length(h-s0*R-s1*D1)*m_ul+(1-m_ul)*es.length(h-s0*r-s1*D0)-atol)
             p[0]=(1.-m)*p[0]+m*(offsets[i]+(offsets[i+1]-offsets[i])*s0)
             p[1]=(1.-m)*p[1]+m*(w1_range[1]+(w1_range[0]-w1_range[1])*s1)
-            updated=wherePositive(updated+m)
+            updated=es.wherePositive(updated+m)
     
     return p, updated
  
@@ -626,19 +627,19 @@ class FaultSystem(object):
         for i in range(1,len(s)):
            q=(s[i]-s[i-1])
            h=x-s[i-1]
-           q_l=length(q)
-           qt=matrixmult(mat,q)   # orthogonal direction
-           t=inner(q,h)/q_l**2
-           t=maximum(minimum(t,1,),0.)
+           q_l=es.length(q)
+           qt=es.matrixmult(mat,q)   # orthogonal direction
+           t=es.inner(q,h)/q_l**2
+           t=es.maximum(es.minimum(t,1,),0.)
            p=h-t*q
-           dist=length(p)
-           lside=sign(inner(p,qt))
+           dist=es.length(p)
+           lside=es.sign(es.inner(p,qt))
            if d == None:
                d=dist
                side=lside
            else:
-               m=whereNegative(d-dist)
-               m2=wherePositive(whereZero(abs(lside))+m)
+               m=es.whereNegative(d-dist)
+               m2=es.wherePositive(es.whereZero(abs(lside))+m)
                d=dist*(1-m)+d*m
                side=lside*(1-m2)+side*m2
     else:
@@ -651,20 +652,20 @@ class FaultSystem(object):
             r=bottom[i+1]-bottom[i]
             D0=bottom[i]-top[i]
             D1=bottom[i+1]-top[i+1]
-            s_upper=matrix_mult(numpy.linalg.pinv(numpy.vstack((R,D1)).T),h)
-            s_lower=matrix_mult(numpy.linalg.pinv(numpy.vstack((r,D0)).T),h)
-            m_ul=wherePositive(s_upper[0]-s_upper[1])
+            s_upper=es.matrix_mult(numpy.linalg.pinv(numpy.vstack((R,D1)).T),h)
+            s_lower=es.matrix_mult(numpy.linalg.pinv(numpy.vstack((r,D0)).T),h)
+            m_ul=es.wherePositive(s_upper[0]-s_upper[1])
             s=s_upper*m_ul+s_lower*(1-m_ul)
-            s=maximum(minimum(s,1.),0)
+            s=es.maximum(es.minimum(s,1.),0)
             p=h-(m_ul*R+(1-m_ul)*r)*s[0]-(m_ul*D1+(1-m_ul)*D0)*s[1]
-            dist=length(p)
-            lside=sign(inner(p,ns[i]))
+            dist=es.length(p)
+            lside=es.sign(es.inner(p,ns[i]))
             if d == None:
                d=dist
                side=lside
             else:
-               m=whereNegative(d-dist)
-               m2=wherePositive(whereZero(abs(lside))+m)
+               m=es.whereNegative(d-dist)
+               m2=es.wherePositive(es.whereZero(abs(lside))+m)
                d=dist*(1-m)+d*m
                side=lside*(1-m2)+side*m2
 
