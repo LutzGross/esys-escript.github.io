@@ -29,7 +29,9 @@ def dumpPackage(mname, ignorelist, modset):
   clist=[]
   flist=[]
   vlist=[]
+  # esys.escript.models does not get picked up by this loop
   for (name, mem) in inspect.getmembers(PP):
+      print "    "+name
       if inspect.ismodule(mem):
         if not name in ignorelist:
            try:
@@ -40,9 +42,10 @@ def dumpPackage(mname, ignorelist, modset):
            ppdir=ppfile[:ppfile.rfind(os.path.sep)]
            memdir=memfile[:memfile.rfind(os.path.sep)]
            if ppdir==memdir:
-              print "About to dump "+name
-              dumpPackage(mem.__name__, [], modset)
-              print "Dump of "+mname+" complete"
+              if not mem.__name__ in modset:
+                print "About to dump "+name+"("+mem.__name__+")"
+                dumpPackage(mem.__name__, [], modset)
+                print "Dump of "+mname+" complete"
 	#pack.write('Module '+name+'\n')
       elif inspect.isclass(mem):
 	clist+=[(name, mem)]
@@ -91,6 +94,7 @@ def listmods():
   modset=set()
   for z in W:
     if z[0].endswith('__pycache__'): continue
+    #if z[0].find('escript')==-1: continue
     print "Beginning ",z[0]
     # Now make the package name
     n=startpackage+'.'.join(z[0][len(startdir):].split(os.path.sep))
@@ -100,6 +104,8 @@ def listmods():
     for m in z[2]:	#This will list the files
       if m.split('.')[1]=='pyc' and m!='__init__.pyc':
 	print ".."+n+"."+m
+	print ".."+(n+'.'+m)[:-4]
+	dumpPackage((n+'.'+m)[:-4],[],modset)
   l=list(modset)
   l.sort()
   for n in l:

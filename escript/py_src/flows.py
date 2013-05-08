@@ -37,8 +37,8 @@ from . import escriptcpp
 escore=escriptcpp
 #from . import escript
 from . import util
-from .linearPDEs import LinearPDE, LinearPDESystem, LinearSinglePDE, SolverOptions
-from .pdetools import HomogeneousSaddlePointProblem,Projector, ArithmeticTuple, PCG, NegativeNorm, GMRES
+import linearPDEs as lpe
+import pdetools as pdt
 
 class DarcyFlow(object):
    """
@@ -84,7 +84,7 @@ class DarcyFlow(object):
       self.l=None
       self.w=None
      
-      self.__pde_p=LinearSinglePDE(domain)
+      self.__pde_p=lpe.LinearSinglePDE(domain)
       self.__pde_p.setSymmetryOn()
       if self.useReduced: self.__pde_p.setReducedOrderOn()
 
@@ -96,7 +96,7 @@ class DarcyFlow(object):
          if util.inf(w)<0.:
             raise ValueError("Weighting factor must be non-negative.") 
          if self.verbose: print("DarcyFlow: global postprocessing of flux is used.")
-         self.__pde_v=LinearPDESystem(domain)
+         self.__pde_v=lpe.LinearPDESystem(domain)
          self.__pde_v.setSymmetryOn()
          if self.useReduced: self.__pde_v.setReducedOrderOn()
          self.w=w
@@ -105,7 +105,7 @@ class DarcyFlow(object):
          #self.l=util.vol(self.domain)**(1./self.domain.getDim()) # length scale
 
       elif self.solver  == self.SMOOTH:
-         self.__pde_v=LinearPDESystem(domain)
+         self.__pde_v=lpe.LinearPDESystem(domain)
          self.__pde_v.setSymmetryOn()
          if self.useReduced: self.__pde_v.setReducedOrderOn()
          if self.verbose: print("DarcyFlow: flux smoothing is used.")
@@ -317,7 +317,7 @@ class DarcyFlow(object):
             u= self.__pde_v.getSolution() * self.perm_scale
         return u
 	  
-class StokesProblemCartesian(HomogeneousSaddlePointProblem):
+class StokesProblemCartesian(pdt.HomogeneousSaddlePointProblem):
      """
      solves
 
@@ -349,16 +349,16 @@ class StokesProblemCartesian(HomogeneousSaddlePointProblem):
          :param domain: domain of the problem.
          :type domain: `Domain`
          """
-         HomogeneousSaddlePointProblem.__init__(self,**kwargs)
+         pdt.HomogeneousSaddlePointProblem.__init__(self,**kwargs)
          self.domain=domain
-         self.__pde_v=LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
+         self.__pde_v=lpe.LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_v.setSymmetryOn()
 	 
-         self.__pde_prec=LinearPDE(domain)
+         self.__pde_prec=lpe.LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
          self.__pde_prec.setSymmetryOn()
 
-         self.__pde_proj=LinearPDE(domain)
+         self.__pde_proj=lpe.LinearPDE(domain)
          self.__pde_proj.setReducedOrderOn()
          self.__pde_proj.setValue(D=1)
          self.__pde_proj.setSymmetryOn()
