@@ -36,7 +36,6 @@ except KeyError:
 depth_offset = 10 * U.km
 n_humps_h = 10
 n_humps_v = 2
-mu = 100.
 n_cells_in_data = 100
 full_knowledge = False
 B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
@@ -77,11 +76,13 @@ inv.setSolverMaxIterations(500)
 inv.setup(domainbuilder)
 
 inv.getCostFunction().setTradeOffFactorsModels([1., 0.01])
-inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.e-4,1.e-4], mu_c=1000.)
+inv.getCostFunction().setTradeOffFactorsRegularization(mu = [1.e-2,1.e-2], mu_c=1000.)
 
-rho_new, k_new = inv.run()
 rho_ref = grav_data.getReferenceProperty()
 k_ref = mag_data.getReferenceProperty()
+
+rho_new, k_new = inv.run()
+
 print("rho_new = %s"%rho_new)
 print("rho = %s"%rho_ref)
 print("k_new = %s"%k_new)
@@ -92,6 +93,6 @@ B, chi = inv.getCostFunction().getForwardModel(inv.SUSCEPTIBILITY).getSurvey(0)
 
 saveSilo(os.path.join(WORKDIR, 'results_joint_2d'),
          density=rho_new, density_ref=rho_ref,
-         susceptability=k_new, susceptability_ref=k_ref,
+         susceptibility=k_new, susceptibility_ref=k_ref,
          g_data=g, B_data=B, chi=chi)
 
