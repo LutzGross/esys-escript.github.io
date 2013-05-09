@@ -44,11 +44,11 @@ import warnings
 warnings.simplefilter('default', category=DeprecationWarning)
 from . import escriptcpp
 escore=escriptcpp
-from esys.escript import C_GeneralTensorProduct
-from esys.escript import getVersion, getMPIRankWorld, getMPIWorldMax
-from esys.escript import printParallelThreadCounts
-from esys.escript import listEscriptParams
-from esys.escript.symbolic import *
+from .escriptcpp import C_GeneralTensorProduct
+from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
+from .escriptcpp import printParallelThreadCounts
+from .escriptcpp import listEscriptParams
+from .symbolic import *
 
 #=========================================================
 #   some helpers:

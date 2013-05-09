@@ -33,7 +33,7 @@ import pickle
 import os
 import shutil
 from . import util
-from esys.escript import getMPIRankWorld, MPIBarrierWorld, load
+from .escriptcpp import getMPIRankWorld, MPIBarrierWorld, load
 
 class DataManager(object):
     """
