@@ -31,3 +31,4 @@ from .finleycpp import *
 from .factorywrappers import *
 from .readers import *
 
+__nodocorecursion=['finleycpp', 'factorywrappers', 'readers']

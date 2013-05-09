@@ -28,3 +28,4 @@ import esys.pasowrap	#if you don't import this, you won't be able to see methods
 from .dudleycpp import *
 from .readers import *
 
+__nodocorecursion=['dudleycpp', 'readers']

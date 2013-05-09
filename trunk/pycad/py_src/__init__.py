@@ -38,3 +38,5 @@ from .primitives import *
 from .shapes import *
 from .design import TagMap
 from . import gmsh
+
+__nodocorecursion=['transformations', 'primitives', 'shapes']

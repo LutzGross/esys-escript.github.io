@@ -36,3 +36,6 @@ from .coordinates import *
 import logging
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
 
+#prevents our doc script from processing these packages since they are already incorporated into this one
+__nodocorecursion=['costfunctions', 'datasources', ' domainbuilder', 'forwardmodels', 'inversioncostfunctions',
+'inversions', 'mappings', 'minimizers', 'regularizations', 'coordinates']

@@ -22,6 +22,8 @@ __url__="https://launchpad.net/escript-finley"
 
 from .weipacpp import visitInitialize, visitPublishData
 
+__nodocorecursion=['weipacpp']
+
 def interpolateEscriptData(domain, data):
     """
     esys.weipa does not support the function spaces Solution and
