@@ -67,15 +67,18 @@ class ReferenceSystem(object):
         :type other: `ReferenceSystem`
         :returns: ``True`` if other defines the same reference system
         :rtype: ``bool``
-        :note: needs to be overwritten by a particular reference system
+        
+        .. note:: needs to be overwritten by a particular reference system
         """
         raise NotImplementedError()
 
     def isCartesian(self):
         """
         returns if the reference system is Cartesian
+        
+        .. note:: needs to be overwritten by a particular reference system
+        
         :rtype: ``bool``
-\       :note: needs to be overwritten by a particular reference system
         """
         raise NotImplementedError()
       
@@ -83,10 +86,11 @@ class ReferenceSystem(object):
         """
         creates an appropriate coordinate transformation on a given domain
 
+        .. note:: needs to be overwritten by a particular reference system
+                
         :param domain: domain of transformation
-        :type domain: `esys.escript.AbstractDomain'
+        :type domain: `esys.escript.AbstractDomain`
         :rtype: `SpatialCoordinateTransformation`
-        :note: needs to be overwritten by a particular reference system
         """
         raise NotImplementedError()
 
@@ -118,7 +122,7 @@ class CartesianReferenceSystem(ReferenceSystem):
         creates an appropriate coordinate transformation on a given domain
 
         :param domain: domain of transformation
-        :type domain: `esys.escript.AbstractDomain'
+        :type domain: `esys.escript.AbstractDomain`
         :rtype: `SpatialCoordinateTransformation`
         """
         return SpatialCoordinateTransformation(domain, reference=self)
@@ -126,6 +130,7 @@ class CartesianReferenceSystem(ReferenceSystem):
     def isCartesian(self):
         """
         returns if the reference system is Cartesian
+        
         :rtype: ``bool``
         """
         return True
@@ -162,6 +167,7 @@ class GeodeticReferenceSystem(ReferenceSystem):
     def isCartesian(self):
         """
         returns if the reference system is Cartesian
+        
         :rtype: ``bool``
         """
         return False
@@ -200,7 +206,8 @@ class GeodeticReferenceSystem(ReferenceSystem):
         :type other: `ReferenceSystem`
         :returns: ``True`` if other defines then same reference system
         :rtype: ``bool``
-        :note: two `GeodeticReferenceSystem` are considered to be the same
+        
+        .. note:: two `GeodeticReferenceSystem` are considered to be the same
                if the use the same semi major axis, the same flattening
                and the same angular unit.
         """
@@ -219,7 +226,7 @@ class GeodeticReferenceSystem(ReferenceSystem):
         creates an appropriate coordinate transformation on a given domain
 
         :param domain: domain of transformation
-        :type domain:`esys.escript.AbstractDomain'
+        :type domain: `esys.escript.AbstractDomain`
         :rtype: `SpatialCoordinateTransformation`
         """
         return GeodeticCoordinateTransformation(domain, reference=self)
@@ -259,7 +266,7 @@ class SpatialCoordinateTransformation(object):
         set up the orthogonal coordinate transformation.
 
         :param domain: domain in the domain of the coordinate transformation
-        :type domain: `esys.escript.AbstractDomain'
+        :type domain: `esys.escript.AbstractDomain`
         :param reference: the reference system
         :type reference: `ReferenceSystem`
         """
@@ -293,6 +300,7 @@ class SpatialCoordinateTransformation(object):
     def isCartesian(self):
         """
         returns ``True`` if the scaling factors (and the volume factor) are equal to 1
+        
         :rtype: ``bool``
         """
         return self.__reference_system.isCartesian()
@@ -300,13 +308,15 @@ class SpatialCoordinateTransformation(object):
     def getDomain(self):
         """
         returns the domain of the coordinate transformation.
-        :rtype: `esys.escript.AbstractDomain'
+        
+        :rtype: `esys.escript.AbstractDomain`
         """
         return self.__domain
 
     def getReferenceSystem(self):
         """
         returns the reference system used to to define the coordinate transformation
+        
         :rtype: `ReferenceSystem`
         """
         return self.__reference_system
@@ -314,14 +324,16 @@ class SpatialCoordinateTransformation(object):
     def getVolumeFactor(self):
         """
         returns the volume factor for the coordinate transformation
-        :rtype:  `esys.escript.Scalar'
+        
+        :rtype:  `esys.escript.Scalar`
         """
         return self._volumefactor
 
     def getScalingFactors(self):
         """
         returns the scaling factors
-        :rtype: `esys.escript.Vector'
+        
+        :rtype: `esys.escript.Vector`
         """
         return self._scaling_factors
 
@@ -338,7 +350,7 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
         set up the orthogonal coordinate transformation.
 
         :param domain: domain in the domain of the coordinate transformation
-        :type domain: `esys.escript.AbstractDomain'
+        :type domain: `esys.escript.AbstractDomain`
         :param reference: the reference system
         :type reference: `ReferenceSystem`
 
@@ -375,7 +387,7 @@ def makeTranformation(domain, coordinates=None):
     returns a `SpatialCoordinateTransformation` for the given domain
     
     :param domain: domain in the domain of the coordinate transformation
-    :type domain: `esys.escript.AbstractDomain'
+    :type domain: `esys.escript.AbstractDomain`
     :param coordinates: the reference system or spatial coordinate system.
     :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
     :return: the spatial coordinate system for the given domain of the specified 

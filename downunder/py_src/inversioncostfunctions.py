@@ -131,7 +131,8 @@ class InversionCostFunction(MeteredCostFunction):
     def getDomain(self):
         """
         returns the domain of the cost function
-        :rtype: 'Domain`
+        
+        :rtype: `Domain`
         """
         self.regularization.getDomain()
 
