@@ -52,4 +52,6 @@ try:
         atexit.register(escriptLogMemoryStatusNow)
 except:
     pass
+  
+__nodocorecursion=['escriptcpp', 'util']
 

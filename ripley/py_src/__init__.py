@@ -27,3 +27,4 @@ import esys.escript		# This is just to ensure required libraries are loaded
 from .ripleycpp import *
 
 
+__nodocorecursion=['ripleycpp']

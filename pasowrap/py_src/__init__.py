@@ -21,3 +21,5 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from .pasowrap import *
+
+__nodocorecursion=['pasowrapcpp', 'pasowrap']

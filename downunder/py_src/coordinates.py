@@ -29,7 +29,7 @@ __all__ = ['ReferenceSystem', 'CartesianReferenceSystem',
     'CartesianCoordinateTransformation', 'makeTranformation']
 
 from esys.escript import unitsSI as U
-from esys.escript import *
+import esys.escript as esc
 
 class ReferenceSystem(object):
     """
@@ -272,8 +272,8 @@ class SpatialCoordinateTransformation(object):
         """
         self.__domain = domain
         self.__reference_system=reference
-        self._volumefactor=Scalar(1., Function(domain))
-        self._scaling_factors = Vector(1., Function(domain))
+        self._volumefactor=esc.Scalar(1., esc.Function(domain))
+        self._scaling_factors = esc.Vector(1., esc.Function(domain))
 
     def __eq__(self, other):
          return self.isTheSame(other)
@@ -361,19 +361,19 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
         a=reference.getSemiMajorAxis()
         f=reference.getFlattening()
 
-        x=Function(domain).getX()
+        x=esc.Function(domain).getX()
         phi=x[0] * reference.getAngularUnit()
         h=x[DIM-1]
 
-        e = sqrt(2*f-f**2)
-        N = a/sqrt(1 - e**2 * sin(phi)**2 )
-        M = ( a*(1-e**2) ) /sqrt(1 - e**2 * sin(phi)**2 )**3
+        e = esc.sqrt(2*f-f**2)
+        N = a/esc.sqrt(1 - e**2 * esc.sin(phi)**2 )
+        M = ( a*(1-e**2) ) /esc.sqrt(1 - e**2 * esc.sin(phi)**2 )**3
         v_phi = (M + h)
-        v_lam = (N + h) * cos(phi)
-        s= Vector(1., Function(domain)) 
+        v_lam = (N + h) * esc.cos(phi)
+        s= esc.Vector(1., esc.Function(domain)) 
         if DIM == 2:
             v= v_phi
-            s=Vector(1., Function(domain)) 
+            s=esc.Vector(1., esc.Function(domain)) 
             s[0]=1/v_phi
         else:
             v= v_phi * v_lam
