@@ -172,12 +172,12 @@ class InversionDriver(object):
             m_tol=1e-4
         self.getSolver().setTolerance(m_tol=m_tol, J_tol=J_tol)
 
-    def setInitialGuess(self, *args):
+    def setInitialGuess(self, *props):
         """
         Sets the initial guess for the inversion iteration.
         By default zero is used.
         """
-        self.initial_value=self.getCostFunction().createLevelSetFunction(*args)
+        self.initial_value=self.getCostFunction().createLevelSetFunction(*props)
 
     def run(self):
         """

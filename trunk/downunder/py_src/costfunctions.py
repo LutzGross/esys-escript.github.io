@@ -68,6 +68,12 @@ class CostFunction(object):
         *f(x)* and *grad f(x)* and the Hessian operator. The default
         implementation returns an empty tuple.
 
+        .. note:: The tuple returned by this call will be passed back to this `CostFunction` in other
+           calls(eg: `getGradient`). Its contents are not specified at this level because no code, 
+           other than the `CostFunction`
+           which created it, will be interacting with it.
+           That is, the implementor can put whatever information they find useful in it.        
+        
         :param x: location of derivative
         :type x: x-type
         :rtype: ``tuple``
@@ -269,8 +275,14 @@ class MeteredCostFunction(CostFunction):
         returns precalculated values that are shared in the calculation of
         *f(x)* and *grad f(x)* and the Hessian operator
 
+        .. note:: The tuple returned by this call will be passed back to this `CostFunction` in other
+           calls(eg: ``getGradient``). Its contents are not specified at this level because no code, other than the `CostFunction`
+           which created it, will be interacting with it.
+           That is, the implementor can put whatever information they find useful in it.
+        
         :param x: location of derivative
         :type x: x-type
+        :rtype: ``tuple``
         """
         self.Arguments_calls+=1
         return self._getArguments(x)
@@ -278,11 +290,12 @@ class MeteredCostFunction(CostFunction):
     def _getArguments(self, x):
         """
         returns precalculated values that are shared in the calculation of
-        *f(x)* and *grad f(x)* and the Hessian operator
+        *f(x)* and *grad f(x)* and the Hessian operator.
+        
+
 
         :param x: location of derivative
         :type x: x-type
-        :note: Overwrite this function to implement a specific cost function
         """
         return ()
 
@@ -292,16 +305,18 @@ class MeteredCostFunction(CostFunction):
         operator of the cost function for a given gradient *r* at a given
         location *x*: *H(x) p = r*
 
+        .. note:: In general it is assumed that the Hessian *H(x)* needs to be
+           calculate in each call for a new location *x*. However, the
+           solver may suggest that this is not required, typically when
+           the iteration is close to completeness.
+           
         :param x: location of Hessian operator to be evaluated.
         :type x: x-type
         :param r: a given gradient
         :type r: r-type
         :param args: pre-calculated values for ``x`` from `getArguments()`
         :rtype: x-type
-        :note: In general it is assumed that the Hessian *H(x)* needs to be
-               calculate in each call for a new location *x*. However, the
-               solver may suggest that this is not required, typically when
-               the iteration is close to completeness.
+
         """
         self.InverseHessianApproximation_calls+=1
         return self._getInverseHessianApproximation(x, r, *args)

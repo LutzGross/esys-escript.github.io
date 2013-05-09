@@ -293,6 +293,12 @@ class MinimizerLBFGS(AbstractMinimizer):
                 raise KeyError("Invalid option '%s'"%o)
 
     def run(self, x):
+        """
+        :param x: Level set function representing our initial guess
+        :type x: `Data`
+        :return: Level set function representing the solution
+        :rtype: `Data`
+        """
         if self.getCostFunction().provides_inverse_Hessian_approximation:
             self.getCostFunction().updateHessian()
             invH_scale = None
