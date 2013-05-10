@@ -386,7 +386,7 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 k+=1
                 n_iter+=1
-                self._doCallback(k, x, Jx, g_Jx)
+                self._doCallback(n_iter, x, Jx, g_Jx)
 
                 # delete oldest vector pair
                 if k>self._truncation: s_and_y.pop(0)
