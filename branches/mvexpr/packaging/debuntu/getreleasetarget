@@ -1,0 +1,12 @@
+
+#this bash script chooses the name of the release preparation target
+#We need this to handle the transition from epydoc to sphinx
+
+distr=`lsb_release -sc`
+
+case "$distr" in
+    "squeeze") op="release_prep_old";;
+    "lucid") op="release_prep_old";;
+    *) op="release_prep"
+esac
+echo $op
