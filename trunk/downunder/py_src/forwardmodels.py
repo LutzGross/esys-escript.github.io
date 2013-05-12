@@ -117,12 +117,11 @@ class ForwardModelWithPotential(ForwardModel):
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
         
         if not  self.__trafo.isCartesian():
-	     fd=1./self.__trafo().getScalingFactors()
-	     fw=self.__trafo().getScalingFactors()*sqrt(self.__trafo().getVolumeFactor())
-	     
-	     for s in range(len(self.__weight)):
-	         self.__weight[s] = fw * self.__weight[s]
-                 self.__data[s]   = fd * self.__data[s]
+            fd=1./self.__trafo().getScalingFactors()
+            fw=self.__trafo().getScalingFactors()*sqrt(self.__trafo().getVolumeFactor())
+            for s in range(len(self.__weight)):
+                self.__weight[s] = fw * self.__weight[s]
+                self.__data[s]   = fd * self.__data[s]
 
                  
     def _rescaleWeights(self, scale=1., fetch_factor=1.):
@@ -230,12 +229,12 @@ class GravityModel(ForwardModelWithPotential):
         super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
         if not  self.getCoordinateTransformation().isCartesian():
-	     self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
-	     
-	     fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
-	     A=self.getPDE().createCoeffiecient("A")
-	     for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
-	     self.getPDE().setValue(A=A)
+             self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
+             
+             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+             A=self.getPDE().createCoeffiecient("A")
+             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+             self.getPDE().setValue(A=A)
              
         else:         
             self.__G = 4*PI*gravity_constant
@@ -345,14 +344,14 @@ class MagneticModel(ForwardModelWithPotential):
         self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, 
                                                                          B[0].getFunctionSpace())
         if not  self.getCoordinateTransformation().isCartesian():
- 	     self.__F = self.getCoordinateTransformation().getVolumeFactor()
+             self.__F = self.getCoordinateTransformation().getVolumeFactor()
              self.__B_r=self.__background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
              self.__B_b=self.__background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
     
-	     A=self.getPDE().createCoeffiecient("A")
-      	     fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
-	     for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
-	     self.getPDE().setValue(A=A)
+             A=self.getPDE().createCoeffiecient("A")
+             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+             self.getPDE().setValue(A=A)
              
         else:         
             self.getPDE().setValue(A=kronecker(self.getDomain()))
