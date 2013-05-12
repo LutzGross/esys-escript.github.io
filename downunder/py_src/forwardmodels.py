@@ -50,10 +50,10 @@ class ForwardModel(object):
 
     def getGradient(self, x, *args):
         raise NotImplementedError
-    
+
     def getCoordinateTransformation(self):
         return None
-        
+
 
 class ForwardModelWithPotential(ForwardModel):
     """
@@ -68,7 +68,7 @@ class ForwardModelWithPotential(ForwardModel):
     of the solution of a potential PDE.
     """
     def __init__(self, domain, w, data,  coordinates=None,
-                                 fixPotentialAtBottom=False,                                  
+                                 fixPotentialAtBottom=False,
                                  tol=1e-8):
         """
         initializes a new forward model with potential.
@@ -90,7 +90,7 @@ class ForwardModelWithPotential(ForwardModel):
         super(ForwardModelWithPotential, self).__init__()
         self.__domain = domain
         self.__trafo=makeTranformation(domain, coordinates)
-        
+
         try:
             n=len(w)
             m=len(data)
@@ -115,7 +115,7 @@ class ForwardModelWithPotential(ForwardModel):
 
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
-        
+
         if not  self.__trafo.isCartesian():
             fd=1./self.__trafo().getScalingFactors()
             fw=self.__trafo().getScalingFactors()*sqrt(self.__trafo().getVolumeFactor())
@@ -123,7 +123,6 @@ class ForwardModelWithPotential(ForwardModel):
                 self.__weight[s] = fw * self.__weight[s]
                 self.__data[s]   = fd * self.__data[s]
 
-                 
     def _rescaleWeights(self, scale=1., fetch_factor=1.):
         """
         rescales the weights such that
@@ -148,7 +147,7 @@ class ForwardModelWithPotential(ForwardModel):
         :rtype: `Domain`
         """
         return self.__domain
-        
+
     def getCoordinateTransformation(self):
         """
         returns the coordinate transformation being used
@@ -228,15 +227,14 @@ class GravityModel(ForwardModelWithPotential):
         """
         super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
-        if not  self.getCoordinateTransformation().isCartesian():
-             self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
-             
-             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
-             A=self.getPDE().createCoeffiecient("A")
-             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
-             self.getPDE().setValue(A=A)
-             
-        else:         
+        if not self.getCoordinateTransformation().isCartesian():
+            self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
+
+            fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+            A=self.getPDE().createCoeffiecient("A")
+            for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+            self.getPDE().setValue(A=A)
+        else: # cartesian
             self.__G = 4*PI*gravity_constant
             self.getPDE().setValue(A=kronecker(self.getDomain()))
 
@@ -341,19 +339,18 @@ class MagneticModel(ForwardModelWithPotential):
         :type fixPotentialAtBottom: ``bool``
         """
         super(MagneticModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
-        self.__background_magnetic_flux_density=interpolate(background_magnetic_flux_density, 
-                                                                         B[0].getFunctionSpace())
+        self.__background_magnetic_flux_density = \
+                interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
         if not  self.getCoordinateTransformation().isCartesian():
-             self.__F = self.getCoordinateTransformation().getVolumeFactor()
-             self.__B_r=self.__background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
-             self.__B_b=self.__background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
-    
-             A=self.getPDE().createCoeffiecient("A")
-             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
-             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
-             self.getPDE().setValue(A=A)
-             
-        else:         
+            self.__F = self.getCoordinateTransformation().getVolumeFactor()
+            self.__B_r=self.__background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
+            self.__B_b=self.__background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
+
+            A=self.getPDE().createCoeffiecient("A")
+            fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+            for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
+            self.getPDE().setValue(A=A)
+        else: # cartesian
             self.getPDE().setValue(A=kronecker(self.getDomain()))
             self.__B_r=self.__background_magnetic_flux_density
             self.__B_b=self.__background_magnetic_flux_density
