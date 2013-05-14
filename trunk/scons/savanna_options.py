@@ -204,11 +204,6 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.6.0/2.6.0/linux-x86_64/l
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
-# Whether to enable the deprecated PyVisi interface (requires the VTK python
-# modules)
-# DEFAULT: False
-#pyvisi = True
-
 # Build dynamic libraries only
 #DEFAULT: False
 #build_shared = True
