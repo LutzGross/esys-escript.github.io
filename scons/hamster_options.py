@@ -98,7 +98,7 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['libboost_python-mt-py27']
+boost_libs = ['libboost_python-py27']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 #cppunit_prefix = '/usr/local'
@@ -200,11 +200,6 @@ visit_prefix = '/opt/visit/2.6.0/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
-
-# Whether to enable the deprecated PyVisi interface (requires the VTK python
-# modules)
-# DEFAULT: False
-#pyvisi = True
 
 # Build dynamic libraries only
 #DEFAULT: False

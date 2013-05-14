@@ -209,11 +209,6 @@ visit_prefix = '/opt/visit/2.3.1/2.3.1/linux-x86_64/libsim/V2'
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
-# Whether to enable the deprecated PyVisi interface (requires the VTK python
-# modules)
-# DEFAULT: False
-#pyvisi = True
-
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
 #boomeramg = True

@@ -227,11 +227,6 @@ netcdf_prefix = '/usr/local'
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
 
-# Whether to enable the deprecated PyVisi interface (requires the VTK python
-# modules)
-# DEFAULT: False
-#pyvisi = True
-
 # Build dynamic libraries only
 #DEFAULT: False
 #build_shared = True
