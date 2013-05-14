@@ -42,8 +42,7 @@ import numpy
 import os
 import warnings
 warnings.simplefilter('default', category=DeprecationWarning)
-from . import escriptcpp
-escore=escriptcpp
+from . import escriptcpp as escore
 from .escriptcpp import C_GeneralTensorProduct
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts

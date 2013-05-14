@@ -37,7 +37,7 @@ in tables for instance in HTML
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os,socket,time,sys,traceback
-from esys.escript import setNumberOfThreads
+from . import escriptcpp as esc
 
 class BenchmarkSuite(object):
    """
@@ -235,7 +235,7 @@ class Benchmark(object):
               t0=time.time()
               print(("%s with %s threads started."%(r.__class__,s)))
               for p in self.__options:
-                  setNumberOfThreads(s)
+                  esc.setNumberOfThreads(s)
                   try:
                      row.append(r.run(p))
                   except:
