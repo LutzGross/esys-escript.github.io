@@ -969,6 +969,8 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
                     break;
                 case ContactElementsZero:
                 case ReducedContactElementsZero:
+                case ContactElementsOne:
+                case ReducedContactElementsOne:
                     Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
                     break;
                 default:
