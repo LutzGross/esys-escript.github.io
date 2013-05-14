@@ -26,7 +26,7 @@
 
 /*  writes the mesh to the external file fname using the Finley file format: */
 
-void Finley_Mesh_write(Finley_Mesh *in,char* fname) {
+void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
   char error_msg[LenErrorMsg_MAX];
   FILE *f;
   int NN,i,j,numDim;
