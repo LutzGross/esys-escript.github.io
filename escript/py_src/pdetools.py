@@ -1588,7 +1588,13 @@ class ArithmeticTuple(object):
         return d.isEmpty()
     else:
         return False
-
+                
+   def __str__(self):
+    s="("
+    for i in self:
+      s=s+str(i)+", "
+    s=s+")"
+    return s
 
 class HomogeneousSaddlePointProblem(object):
       """
