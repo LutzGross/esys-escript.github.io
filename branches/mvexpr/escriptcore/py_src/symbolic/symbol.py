@@ -29,12 +29,13 @@ __author__="Cihan Altinay"
 :var __version__: version
 :var __date__: date of the version
 """
-
+from esys.escriptcore.start import HAVE_SYMBOLS
 import numpy
-from esys.escript import Data, FunctionSpace, HAVE_SYMBOLS
+from esys.escriptcore.escriptcpp import Data, FunctionSpace
 if HAVE_SYMBOLS:
     import sympy
 
+__all__= ['Symbol']
    
 class Symbol(object):
     """

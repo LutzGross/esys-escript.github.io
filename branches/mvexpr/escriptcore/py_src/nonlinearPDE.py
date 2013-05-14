@@ -29,11 +29,12 @@ __url__="https://launchpad.net/escript-finley"
 :var __version__: version
 :var __date__: date of the version
 """
-
+from .start import HAVE_SYMBOLS
 import numpy
 from time import time
-from esys.escript.linearPDEs import LinearPDE, IllegalCoefficient, IllegalCoefficientValue
-from esys.escript import util, Data, HAVE_SYMBOLS
+from . import linearPDEs as lpe
+from . import util
+from .escriptcpp import Data
 
 if HAVE_SYMBOLS:
     import sympy
@@ -193,7 +194,7 @@ class NonlinearPDE(object):
         else:
             numEquations=u.getShape()[0]
         numSolutions=numEquations
-        self._lpde=LinearPDE(domain,numEquations,numSolutions,self._debug > self.DEBUG4 )
+        self._lpde=lpe.LinearPDE(domain,numEquations,numSolutions,self._debug > self.DEBUG4 )
 
     def __str__(self):
         """
@@ -584,7 +585,7 @@ class NonlinearPDE(object):
             else:
                 return ()
         else:
-            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
 
     def createCoefficient(self, name):
         """
@@ -618,11 +619,11 @@ class NonlinearPDE(object):
              if hasattr(self, "_r"):
                  return self._r
              else:
-                 raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+                 raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
         elif name == "q":
              return self._lpde.getCoefficient("q")
         else:
-            raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
     def setValue(self,**coefficients):
         """
@@ -654,7 +655,7 @@ class NonlinearPDE(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
+                raise lpe.IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
             rank=len(shape)
             if name == "q":
                 self._lpde.setValue(q=val)
@@ -662,7 +663,7 @@ class NonlinearPDE(object):
                 self._r=val
             elif name=="X" or name=="X_reduced":
                 if rank != u.getRank()+1:
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
+                    raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
                 T0=time()
                 B,A=getTotalDifferential(val, u, 1)
                 if name=='X_reduced':
@@ -677,7 +678,7 @@ class NonlinearPDE(object):
                     self._set_coeffs['X']=val
             elif name=="Y" or name=="Y_reduced":
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                    raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 T0=time()
                 D,C=getTotalDifferential(val, u, 1)
                 if name=='Y_reduced':
@@ -694,7 +695,7 @@ class NonlinearPDE(object):
                     "y_dirac"):
                 y=val
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                    raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 if not hasattr(y, 'diff'):
                     d=numpy.zeros(u.getShape())
                 else:
@@ -702,7 +703,7 @@ class NonlinearPDE(object):
                 self._set_coeffs[name]=y
                 self._set_coeffs['d'+name[1:]]=d
             else:
-                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+                raise lpe.IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
 
     def getSensitivity(self, f, g=None, **subs):
         """
@@ -1220,7 +1221,7 @@ class VariationalProblem(object):
         elif name=="h_dirac":
                 return ()
         else:
-            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
 
     def createCoefficient(self, name):
         """
@@ -1243,7 +1244,7 @@ class VariationalProblem(object):
             if numParams > 0:
                 return self.getNonlinearPDE().createCoefficient("q")[:numParams]
             else:
-                raise IllegalCoefficient("Attempt to request coefficient %s"%name)
+                raise lpe.IllegalCoefficient("Attempt to request coefficient %s"%name)
         else:
            s=self.getShapeOfCoefficient(name)
            return Symbol(name, s, dim=self.dim)
@@ -1261,7 +1262,7 @@ class VariationalProblem(object):
         if self._set_coeffs.has_key(name):
             return self._set_coeffs[name]
         else:
-            raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
     def __getNonlinearPDECoefficient(self, extension, capson=False, order=0):
         """
@@ -1345,14 +1346,14 @@ class VariationalProblem(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
+                raise lpe.IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
             if name == "q":
                 self._q = val
                 update.append("q")
 
             elif name == "qp":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._qp = val
                 update.append("q")
 
@@ -1362,31 +1363,31 @@ class VariationalProblem(object):
 
             elif name == "rp":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._rp = val
                 update.append("r")
 
             elif name=="X":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['X']=val
                 update.append("Y")
 
             elif name=="X_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['X_reduced']=val
                 update.append("Y_reduced")
 
             elif name=="Y":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['Y']=val
                 update.append("Y")
 
             elif name=="Y_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['Y_reduced']=val
                 update.append("Y_reduced")
 
@@ -1400,13 +1401,13 @@ class VariationalProblem(object):
 
             elif name=="y":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y']=val
                 update.append("y")
 
             elif name=="y_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_reduced']=val
                 update.append("y_reduced")
 
@@ -1420,13 +1421,13 @@ class VariationalProblem(object):
 
             elif name=="y_contact":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_contact']=val
                 update.append("y_contact")
 
             elif name=="y_contact_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_contact_reduced']=val
                 update.append("y_contact_reduced")
 
@@ -1440,7 +1441,7 @@ class VariationalProblem(object):
 
             elif name=="y_dirac":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_dirac']=val
                 update.append("y_dirac")
 
@@ -1448,7 +1449,7 @@ class VariationalProblem(object):
                 self._set_coeffs['h_diract']=val
                 update.append("y_dirac")
             else:
-                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+                raise lpe.IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
 
         # now we can update the coefficients of the nonlinear PDE:
         coeff2={}
