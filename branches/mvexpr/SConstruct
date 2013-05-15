@@ -488,9 +488,11 @@ Export(
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
-env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
 env.SConscript(dirs = ['escript/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
-env.SConscript(dirs = ['escript/test'], variant_dir='$BUILD_DIR/$PLATFORM/escript/test', duplicate=0)
+
+#This will pull in the escriptcore/py_src and escriptcore/test
+env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
+#env.SConscript(dirs = ['escript/test'], variant_dir='$BUILD_DIR/$PLATFORM/escript/test', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)

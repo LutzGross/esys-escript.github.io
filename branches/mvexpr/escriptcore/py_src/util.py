@@ -43,7 +43,7 @@ import os
 import warnings
 warnings.simplefilter('default', category=DeprecationWarning)
 from . import escriptcpp as escore
-from .escriptcpp import C_GeneralTensorProduct
+from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams

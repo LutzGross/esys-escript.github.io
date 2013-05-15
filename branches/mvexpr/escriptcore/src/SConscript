@@ -152,5 +152,5 @@ env.Alias('install_escriptcpp_lib', mod_inst)
 local_env.SConscript(dirs = ['#/escriptcore/py_src'], variant_dir='py', duplicate=0)
 
 # configure unit tests
-#local_env.SConscript(dirs = ['#/escript/test'], variant_dir='test', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/escriptcore/test'], variant_dir='test', duplicate=0, exports=['py_wrapper_lib'])
 
