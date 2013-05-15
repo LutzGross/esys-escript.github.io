@@ -54,7 +54,7 @@ alltestruns = testruns + localtestruns
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
-local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escriptcore/test/python').abspath)
 local_env['ENV']['DUDLEY_TEST_DATA']=Dir('.').srcnode().abspath
 local_env['ENV']['DUDLEY_WORKDIR']=Dir('.').abspath
 # needed for a test from the util base class in escript
