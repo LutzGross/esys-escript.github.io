@@ -136,7 +136,7 @@ class Mountains(object):
     if H==None: 
        self.__H=escript.Scalar(0.0, fs)
     else:
-       self.__H=util.iterpolate(H, fs)
+       self.__H=util.interpolate(H, fs)
        
   def getTopography(self):
      """
@@ -153,7 +153,7 @@ class Mountains(object):
       """
       if self.__dt == None:
            h=self.getDomain().getSize()
-           self.__dt=0.5*util.inf(h/util.length(util.iterpolate(self.getVelocity(),h.getFunctionSpace())))
+           self.__dt=0.5*util.inf(h/util.length(util.interpolate(self.getVelocity(),h.getFunctionSpace())))
       return self.__dt
   def update(self,dt=None, allow_substeps=True):
       """
