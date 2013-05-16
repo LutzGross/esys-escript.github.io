@@ -14,75 +14,59 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: copies data between elements       */
+  Assemblage routines: copies data between elements.
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "Assemble.h"
 #include "Util.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-/****************************************************************************************************************************/
 
-
-void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,escriptDataC* out,escriptDataC* in) {
-    dim_t n,q, numElements, numQuad;
-    __const double *in_array;
-    double *out_array;
-    dim_t numComps=getDataPointSize(out);
-    size_t len_size;
-
+void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,
+                                     escriptDataC* out, escriptDataC* in)
+{
     Finley_resetError();
-    if( elements == NULL )
-    {
-       return;
-    }
+    if (!elements)
+        return;
 
-    numElements=elements->numElements;
+    dim_t numQuad;
     if (Finley_Assemble_reducedIntegrationOrder(in)) {
-       numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
+        numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
     } else {
-       numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
+        numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
     }
 
-    /* check out and in */
+    // check out and in
+    const dim_t numElements=elements->numElements;
+    const dim_t numComps=getDataPointSize(out);
+
     if (numComps!=getDataPointSize(in)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: number of components of input and output Data do not match.");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!numSamplesEqual(in,numQuad,numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of input Data object");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!numSamplesEqual(out,numQuad,numElements)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of output Data object");
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!isExpanded(out)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: expanded Data object is expected for output data.");
-    }
-
-    /* now we can start */
-
-    if (Finley_noError()) {
-         if (isExpanded(in)) {
-             len_size=numComps*numQuad*sizeof(double);
-	     requireWrite(out);
-	     #pragma omp parallel private(n)
-	     {
-               # pragma omp for schedule(static)
-               for (n=0;n<numElements;n++) 
-                 memcpy(getSampleDataRW(out,n),getSampleDataRO(in,n), len_size);
-	     }
+        Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: expanded Data object is expected for output data.");
+    } else {
+        // now we can start
+        if (isExpanded(in)) {
+            const size_t len_size=numComps*numQuad*sizeof(double);
+            requireWrite(out);
+#pragma omp parallel for schedule(static)
+            for (dim_t n=0; n<numElements; n++) 
+                memcpy(getSampleDataRW(out,n), getSampleDataRO(in,n), len_size);
          } else {
-             len_size=numComps*sizeof(double);
-	     requireWrite(out);
-	     #pragma omp parallel private(q,n,out_array,in_array)
-	     {
-               # pragma omp for schedule(static)
-               for (n=0;n<numElements;n++) {
-                 in_array=getSampleDataRO(in,n);
-                 out_array=getSampleDataRW(out,n);
-                 for (q=0;q<numQuad;q++) memcpy(out_array+q*numComps,in_array,len_size);
-               }
-	     }
+            const size_t len_size=numComps*sizeof(double);
+            requireWrite(out);
+#pragma omp parallel for schedule(static)
+            for (dim_t n=0; n<numElements; n++) {
+                const double *in_array = getSampleDataRO(in,n);
+                double *out_array = getSampleDataRW(out,n);
+                for (dim_t q=0; q<numQuad; q++)
+                    memcpy(out_array+q*numComps, in_array, len_size);
+            }
          }
     }
     return;
