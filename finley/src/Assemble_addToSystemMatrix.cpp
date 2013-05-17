@@ -55,13 +55,13 @@ void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,
     // call the right function depending on storage type
     if (in->type & MATRIX_FORMAT_CSC) {
         Finley_Assemble_addToSystemMatrix_CSC(in, NN_Equa, Nodes_Equa,
-                                  num_Equa, NN_Sol, Nodes_Sol, numSol, array);
+                                  num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
     } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
         Finley_Assemble_addToSystemMatrix_Trilinos(in, NN_Equa, Nodes_Equa,
-                                  num_Equa, NN_Sol, Nodes_Sol, numSol, array);
+                                  num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
     } else { // type == CSR
         Finley_Assemble_addToSystemMatrix_CSR(in, NN_Equa, Nodes_Equa,
-                                  num_Equa, NN_Sol, Nodes_Sol, numSol, array);
+                                  num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
     }
 }
 
@@ -88,7 +88,7 @@ void Finley_Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in,
     const index_t *col_coupleBlock_ptr=in->col_coupleBlock->pattern->ptr;
     const index_t *col_coupleBlock_index=in->col_coupleBlock->pattern->index;
     double *col_coupleBlock_val=in->col_coupleBlock->val;
-    const index_t *row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
+    //const index_t *row_coupleBlock_ptr=in->row_coupleBlock->pattern->ptr;
     const index_t *row_coupleBlock_index=in->row_coupleBlock->pattern->index;
     double *row_coupleBlock_val=in->row_coupleBlock->val;
 
