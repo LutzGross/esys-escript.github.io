@@ -36,7 +36,7 @@ import numpy as np
 class ForwardModel(object):
     """
     An abstract forward model that can be plugged into a cost function.
-    Subclasses need to implement `getValue()`, `getGradient()`, and possibly
+    Subclasses need to implement `getDefect()`, `getGradient()`, and possibly
     `getArguments()` and 'getCoordinateTransformation'.
     """
     def __init__(self):
@@ -45,7 +45,7 @@ class ForwardModel(object):
     def getArguments(self, x):
         return ()
 
-    def getValue(self, x, *args):
+    def getDefect(self, x, *args):
         raise NotImplementedError
 
     def getGradient(self, x, *args):
@@ -164,7 +164,7 @@ class ForwardModelWithPotential(ForwardModel):
         """
         return self.__pde
 
-    def getDefect(self, result):
+    def _getDefect(self, result):
         """
         Returns the defect value.
 
@@ -253,7 +253,7 @@ class GravityModel(ForwardModelWithPotential):
 
     def getArguments(self, rho):
         """
-        Returns precomputed values shared by `getValue()` and `getGradient()`.
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
 
         :param rho: a suggestion for the density distribution
         :type rho: ``Scalar``
@@ -281,7 +281,7 @@ class GravityModel(ForwardModelWithPotential):
 
         return phi
 
-    def getValue(self, rho, phi, gravity_force):
+    def getDefect(self, rho, phi, gravity_force):
         """
         Returns the value of the defect
 
@@ -293,7 +293,7 @@ class GravityModel(ForwardModelWithPotential):
         :type gravity_force: ``Vector``
         :rtype: ``float``
         """
-        return self.getDefect(gravity_force)
+        return self._getDefect(gravity_force)
 
     def getGradient(self, rho, phi, gravity_force):
         """
@@ -370,7 +370,7 @@ class MagneticModel(ForwardModelWithPotential):
 
     def getArguments(self, k):
         """
-        Returns precomputed values shared by `getValue()` and `getGradient()`.
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
 
         :param k: susceptibility
         :type k: ``Scalar``
@@ -398,7 +398,7 @@ class MagneticModel(ForwardModelWithPotential):
 
         return phi
 
-    def getValue(self, k, phi, magnetic_flux_density):
+    def getDefect(self, k, phi, magnetic_flux_density):
         """
         Returns the value of the defect.
 
@@ -410,7 +410,7 @@ class MagneticModel(ForwardModelWithPotential):
         :type magnetic_flux_density: ``Vector``
         :rtype: ``float``
         """
-        return self.getDefect(magnetic_flux_density)
+        return self._getDefect(magnetic_flux_density)
 
     def getGradient(self, k, phi, magnetic_flux_density):
         """

@@ -338,7 +338,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         :param m: current approximation of the level set function
         :type m: `Data`
-        :param args: tuple of of values of the parameters, pre-computed values
+        :param args: tuple of values of the parameters, pre-computed values
                      for the forward model and pre-computed values for the
                      regularization
         :rtype: ``float``
@@ -355,17 +355,17 @@ class InversionCostFunction(MeteredCostFunction):
         for i in range(self.numModels):
             f=self.forward_models[i]
             if isinstance(f, ForwardModel):
-                J_f = f.getValue(props[0],*args_f[i])
+                J_f = f.getDefect(props[0],*args_f[i])
             elif len(f) == 1:
-                J_f=f[0].getValue(props[0],*args_f[i])
+                J_f=f[0].getDefect(props[0],*args_f[i])
             else:
                 idx = f[1]
                 f=f[0]
                 if isinstance(idx, int):
-                    J_f = f.getValue(props[idx],*args_f[i])
+                    J_f = f.getDefect(props[idx],*args_f[i])
                 else:
                     args=tuple( [ props[j] for j in idx] + args_f[i])
-                    J_f = f.getValue(*args)
+                    J_f = f.getDefect(*args)
             self.logger.debug("J_f[%d] = %e"%(i, J_f))
             self.logger.debug("mu_model[%d] = %e"%(i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
@@ -427,6 +427,9 @@ class InversionCostFunction(MeteredCostFunction):
                      regularization
 
         :rtype: `ArithmeticTuple`
+        
+        :note: returns (Y^,X) where Y^ is gradient from regularisation plus gradients of fwd models.
+               X is the gradient of the regularisation wrt gradient of m.
         """
         if len(args)==0:
             args = self.getArguments(m)
@@ -447,7 +450,7 @@ class InversionCostFunction(MeteredCostFunction):
                 dpdm = mm[0].getDerivative(m[mm[1]])
             p_diffs.append(dpdm)
 
-        Y=g_J[0]
+        Y=g_J[0]      # Beacause g_J==(Y,X)  Y_k=dKer/dm_k
         for i in range(self.numModels):
             mu=self.mu_model[i]
             f=self.forward_models[i]

@@ -87,9 +87,10 @@ def work():
   # get data with deviation
   g,sigma_g=db.getGravitySurveys()[0]
   # turn the scalars into vectors (vertical direction)
-  d=kronecker(DIM)[DIM-1]
+  d=kronecker(DIM)[DIM-1]    # == (0 0 1)
   w=safeDiv(1., sigma_g)
 
+  # multipling by d extracts only the z component (since we only measure in vertical)
   gravity_model=GravityModel(dom, w*d, g*d, coordinates=COORDINATES)
   gravity_model.rescaleWeights(rho_scale=rho_mapping.getTypicalDerivative())
 
