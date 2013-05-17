@@ -396,6 +396,7 @@ class Regularization(CostFunction):
     def getValue(self, m, grad_m):
         """
         returns the value of the cost function J with respect to m.
+        This equation is specified in the inversion cookbook.
 
         :rtype: ``float``
         """
@@ -430,7 +431,8 @@ class Regularization(CostFunction):
     def getGradient(self, m,  grad_m):
         """
         returns the gradient of the cost function J with respect to m.
-        The function returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj
+        
+        :note: This implementation  returns Y_k=dPsi/dm_k and X_kj=dPsi/dm_kj
         """
 
         mu=self.__mu
