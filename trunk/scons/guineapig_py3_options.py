@@ -95,16 +95,10 @@ mpi_prefix = '/usr/lib/openmpi'
 mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/usr/local/py3.2/boost1.53/'
+boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python3']
-
-usepython3=True
-
-pythoncmd='python3'
-pythonlibname='python3.2mu'
-pythonincpath='/usr/include/python3.2/'
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 #cppunit_prefix = '/usr/local'
@@ -224,12 +218,13 @@ silo_libs = ['siloh5', 'hdf5']
 
 # Additional environmental variables to export to the tools
 #env_export = []
-
 #tools_names = ['default']
-
 #iknowwhatimdoing = False
-
 #forcelazy = 'leave_alone'
-
 #forcecollres = 'leave_alone'
+
+usepython3=True
+pythoncmd='python3'
+pythonlibname='python3.2mu'
+pythonincpath='/usr/include/python3.2'
 
