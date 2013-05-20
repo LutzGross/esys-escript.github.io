@@ -87,7 +87,7 @@ def checkPython(env):
         initstring='from __future__ import print_function;from distutils import sysconfig;'
         if env['pythonlibname']!='':
             python_libs=env['pythonlibname']
-        else:	# work it out by calling python    
+        else:	# work it out by calling python
             if ['IS_WINDOWS']:
                 cmd='print("python%s%s"%(sys.version_info[0], sys.version_info[1]))'
             else:
@@ -99,16 +99,15 @@ def checkPython(env):
             p.wait()
             python_libs=python_libs.strip()
 
-       
         # Now we know whether we are using python3 or not
         p=Popen([env['pythoncmd'], '-c',  initstring+'print(sysconfig.get_python_inc())'], stdout=PIPE)
         python_inc_path=p.stdout.readline()
         if env['usepython3']:
              python_inc_path=python_inc_path.encode()
-        p.wait()   
+        p.wait()
         python_inc_path=python_inc_path.strip()
-        if ['IS_WINDOWS']:
-            cmd="os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
+        if env['IS_WINDOWS']:
+            cmd="import os;os.path.join(sysconfig.get_config_var('prefix'), 'libs')"
         elif env['PLATFORM']=='darwin':
             cmd="sysconfig.get_config_var(\"LIBPL\")"
         else:
