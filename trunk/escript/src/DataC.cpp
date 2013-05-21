@@ -26,7 +26,7 @@ int getFunctionSpaceType(struct escriptDataC* data)
 }
 
 
-int isDataPointShapeEqual(struct escriptDataC* data, int rank, int* dimensions)
+int isDataPointShapeEqual(struct escriptDataC* data, int rank, const int* dimensions)
 {
   if (data == (struct escriptDataC*)0) {
        return true;
