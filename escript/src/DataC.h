@@ -70,7 +70,7 @@ ESCRIPT_DLL_API int isEmpty(escriptDataC* data);
    \param rank Input - number of dimensions.
    \param dimensions Input - 
 */
-ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, int* dimensions);
+ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, const int* dimensions);
 /**
    \brief
    Return true if the number of data points per sample and the number 
