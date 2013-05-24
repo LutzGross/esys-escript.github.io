@@ -14,40 +14,41 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*    assemblage routines: copies node coordinates into an expanded Data Object */
+  Assemblage routines: copies node coordinates into an expanded Data object.
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "Util.h"
 #include "Assemble.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
-/************************************************************************************/
+#include <sstream>
 
-void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes,escriptDataC* x) {
-  char error_msg[LenErrorMsg_MAX];
-  dim_t n;
-  size_t dim_size;
-  Finley_resetError();
-  if (nodes==NULL) return;
-  if (! numSamplesEqual(x,1,nodes->numNodes)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: illegal number of samples of Data object");
-  } else if (getFunctionSpaceType(x)!=FINLEY_NODES) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
-  } else if (! isExpanded(x)) {
-       Finley_setError(TYPE_ERROR,"Finley_Assemble_NodeCoordinates: expanded Data object expected");
-  } else if (! isDataPointShapeEqual(x,1, &(nodes->numDim))) {
-       sprintf(error_msg,"Finley_Assemble_NodeCoordinates: Data object of shape (%d,) expected",nodes->numDim);
-       Finley_setError(TYPE_ERROR,error_msg);
-  } else {
-       dim_size=nodes->numDim*sizeof(double);
-       requireWrite(x);
-       #pragma omp parallel for private(n)
-       for (n=0;n<nodes->numNodes;n++) 
-          memcpy(getSampleDataRWFast(x,n),&(nodes->Coordinates[INDEX2(0,n,nodes->numDim)]),dim_size);
-  }
+void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes, escriptDataC* x)
+{
+    Finley_resetError();
+    if (!nodes) return;
+
+    if (!numSamplesEqual(x, 1, nodes->numNodes)) {
+        Finley_setError(TYPE_ERROR, "Finley_Assemble_NodeCoordinates: illegal number of samples of Data object");
+    } else if (getFunctionSpaceType(x) != FINLEY_NODES) {
+        Finley_setError(TYPE_ERROR, "Finley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
+    } else if (!isExpanded(x)) {
+        Finley_setError(TYPE_ERROR, "Finley_Assemble_NodeCoordinates: expanded Data object expected");
+    } else if (!isDataPointShapeEqual(x, 1, &(nodes->numDim))) {
+        std::stringstream ss;
+        ss << "Finley_Assemble_NodeCoordinates: Data object of shape ("
+            << nodes->numDim << ",) expected.";
+        std::string errorMsg = ss.str();
+        Finley_setError(TYPE_ERROR, errorMsg.c_str());
+    } else {
+        const size_t dim_size = nodes->numDim*sizeof(double);
+        requireWrite(x);
+#pragma omp parallel for
+        for (int n=0; n<nodes->numNodes; n++)
+            memcpy(getSampleDataRWFast(x,n),
+                    &(nodes->Coordinates[INDEX2(0,n,nodes->numDim)]), dim_size);
+    }
 }
+

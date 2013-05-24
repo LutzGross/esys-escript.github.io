@@ -45,7 +45,7 @@ sources = """
     Assemble_gradient.cpp
     Assemble_integrate.cpp
     Assemble_interpolate.cpp
-    Assemble_jacobeans.cpp
+    Assemble_jacobians.cpp
     Assemble_setNormal.cpp
     ElementFile.cpp
     ElementFile_allocTable.cpp
@@ -53,7 +53,7 @@ sources = """
     ElementFile_createColoring.cpp
     ElementFile_distributeByRankOfDOF.cpp
     ElementFile_gather.cpp
-    ElementFile_jacobeans.cpp
+    ElementFile_jacobians.cpp
     ElementFile_markNodes.cpp
     ElementFile_optimizeOrdering.cpp
     ElementFile_relableNodes.cpp
