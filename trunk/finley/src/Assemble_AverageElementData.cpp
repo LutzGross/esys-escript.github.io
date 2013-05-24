@@ -64,7 +64,7 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,
             for (dim_t q=0; q< numQuad_in;++q) vol+=wq[q];
             const double volinv=1./vol;
             requireWrite(out);
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
             for (dim_t n=0; n<numElements; n++) {
                 const double *in_array = getSampleDataRO(in,n);
                 double *out_array = getSampleDataRW(out,n);
@@ -77,10 +77,10 @@ void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,
                         out_array[INDEX2(i,q,numComps)]=rtmp;
                 }
             }
-        } else { // not expanded
+        } else { // constant data
             const size_t numComps_size=numComps*sizeof(double);
             requireWrite(out);
-#pragma omp parallel for schedule(static)
+#pragma omp parallel for
             for (dim_t n=0; n<numElements; n++) {
                 const double *in_array = getSampleDataRO(in,n);
                 double *out_array = getSampleDataRW(out,n);

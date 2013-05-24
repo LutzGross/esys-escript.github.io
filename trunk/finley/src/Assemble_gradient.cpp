@@ -63,7 +63,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         return;
     }
 
-    Finley_ElementFile_Jacobeans *jac = Finley_ElementFile_borrowJacobeans(
+    Finley_ElementFile_Jacobians *jac = Finley_ElementFile_borrowJacobians(
             elements, nodes, reducedShapefunction, reducedIntegrationOrder);
     Finley_ReferenceElement *refElement =
         Finley_ReferenceElementSet_borrowReferenceElement(
@@ -107,17 +107,17 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         }
     }
 
-    // now we can start
     if (!Finley_noError())
         return;
 
+    // now we can start
     const size_t localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
     requireWrite(grad_data);
 #pragma omp parallel
     {
         if (data_type==FINLEY_NODES) {
             if (numDim==1) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -135,7 +135,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==2) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -154,7 +154,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==3) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e); 
                     memset(grad_data_e,0, localGradSize);
@@ -176,7 +176,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
             }
         } else if (data_type==FINLEY_REDUCED_NODES) {
             if (numDim==1) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -194,7 +194,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==2) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -213,7 +213,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==3) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0;e<elements->numElements;e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -234,9 +234,8 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             }
         } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
-
             if (numDim==1) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -254,7 +253,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==2) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -273,7 +272,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==3) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -295,7 +294,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
             }
         } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             if (numDim==1) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
@@ -313,7 +312,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                     }
                 }
             } else if (numDim==2) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0;e<elements->numElements;e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
@@ -333,7 +332,7 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
 
             } else if (numDim==3) {
-#pragma omp for schedule(static)
+#pragma omp for
                 for (dim_t e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
@@ -356,3 +355,4 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         } // data_type
     } // end parallel region
 }
+

@@ -45,14 +45,14 @@ void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p,
 
 #pragma omp parallel
     {
-        for (index_t color=elements->minColor;color<=elements->maxColor;color++) {
+        for (int color=elements->minColor; color<=elements->maxColor; color++) {
             // loop over all elements
-#pragma omp for schedule(static)
-            for(index_t e=0; e<elements->numElements; e++) {
+#pragma omp for
+            for (int e=0; e<elements->numElements; e++) {
                 if (elements->Color[e]==color) {
                     const double *d_dirac_p=getSampleDataRO(d_dirac, e);
                     const double *y_dirac_p=getSampleDataRO(y_dirac, e);
-                    index_t row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
+                    int row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (NULL != y_dirac_p) {
                         Finley_Util_AddScatter(1, &row_index, p.numEqu,
                                          y_dirac_p, F_p, p.row_DOF_UpperBound);
@@ -61,9 +61,9 @@ void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p,
                         Finley_Assemble_addToSystemMatrix(S, 1, &row_index,
                                 p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
                     }
-                } /* end color check */
-            } /* end element loop */
-        } /* end color loop */
-    } /* end parallel region */
+                } // end color check
+            } // end element loop
+        } // end color loop
+    } // end parallel section
 }
 

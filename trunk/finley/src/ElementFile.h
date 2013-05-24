@@ -27,7 +27,7 @@
 #endif
 
 
-struct Finley_ElementFile_Jacobeans {
+struct Finley_ElementFile_Jacobians {
   Finley_Status_t status;               /* status of mesh when jacobians were updated last time */
   dim_t numDim;                         /* spatial dimension */
   Finley_ShapeFunction* BasisFunctions; /* basis function used */
@@ -42,7 +42,7 @@ struct Finley_ElementFile_Jacobeans {
   double* DSDX;                         /* derivatives of shape functions in global coordinates at quadrature points*/
 };
 
-typedef struct Finley_ElementFile_Jacobeans Finley_ElementFile_Jacobeans;
+typedef struct Finley_ElementFile_Jacobians Finley_ElementFile_Jacobians;
 
 struct Finley_ElementFile {
   Esys_MPIInfo *MPIInfo;
@@ -84,10 +84,10 @@ struct Finley_ElementFile {
                                                  At anytime Color must provide a valid value. In any case one can set  
                                                  Color[e]=e for all e */
 
-  Finley_ElementFile_Jacobeans* jacobeans;           /* jacobians of the shape function used for solution approximation */
-  Finley_ElementFile_Jacobeans* jacobeans_reducedS;  /* jacobians of the shape function used for solution approximation for reduced order of shape function*/
-  Finley_ElementFile_Jacobeans* jacobeans_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order*/
-  Finley_ElementFile_Jacobeans* jacobeans_reducedS_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order and reduced order of shape function*/
+  Finley_ElementFile_Jacobians* jacobians;           /* jacobians of the shape function used for solution approximation */
+  Finley_ElementFile_Jacobians* jacobians_reducedS;  /* jacobians of the shape function used for solution approximation for reduced order of shape function*/
+  Finley_ElementFile_Jacobians* jacobians_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order*/
+  Finley_ElementFile_Jacobians* jacobians_reducedS_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order and reduced order of shape function*/
 
 };
 
@@ -113,9 +113,9 @@ void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_E
 void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Finley_ElementFile*in ,bool_t useLinear);
 
 void Finley_ElementFile_setTags(Finley_ElementFile* ,const int, escriptDataC*);
-Finley_ElementFile_Jacobeans* Finley_ElementFile_Jacobeans_alloc(Finley_ShapeFunction* );
-void Finley_ElementFile_Jacobeans_dealloc(Finley_ElementFile_Jacobeans*);
-Finley_ElementFile_Jacobeans* Finley_ElementFile_borrowJacobeans(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
+Finley_ElementFile_Jacobians* Finley_ElementFile_Jacobians_alloc(Finley_ShapeFunction* );
+void Finley_ElementFile_Jacobians_dealloc(Finley_ElementFile_Jacobians*);
+Finley_ElementFile_Jacobians* Finley_ElementFile_borrowJacobians(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
 void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in);
 
 

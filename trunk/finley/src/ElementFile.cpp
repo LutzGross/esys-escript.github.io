@@ -46,10 +46,10 @@ Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referen
   out->Color=NULL;
   out->minColor=0;
   out->maxColor=-1;
-  out->jacobeans=NULL;
-  out->jacobeans_reducedQ=NULL;
-  out->jacobeans_reducedS=NULL;
-  out->jacobeans_reducedS_reducedQ=NULL;
+  out->jacobians=NULL;
+  out->jacobians_reducedQ=NULL;
+  out->jacobians_reducedS=NULL;
+  out->jacobians_reducedS_reducedQ=NULL;
 
   out->Owner=NULL;                
   out->numTagsInUse=0;
@@ -57,10 +57,10 @@ Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referen
 
   out->MPIInfo = Esys_MPIInfo_getReference( MPIInfo );
  
-  out->jacobeans=Finley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->BasisFunctions);
-  out->jacobeans_reducedQ=Finley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
-  out->jacobeans_reducedS=Finley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElement->LinearBasisFunctions);
-  out->jacobeans_reducedS_reducedQ=Finley_ElementFile_Jacobeans_alloc(referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
+  out->jacobians=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElement->BasisFunctions);
+  out->jacobians_reducedQ=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
+  out->jacobians_reducedS=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElement->LinearBasisFunctions);
+  out->jacobians_reducedS_reducedQ=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
 
 
 
@@ -78,10 +78,10 @@ void Finley_ElementFile_free(Finley_ElementFile* in) {
   if (in!=NULL) {
      Finley_ElementFile_freeTable(in);   
      Finley_ReferenceElementSet_dealloc(in->referenceElementSet);
-     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans);
-     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS);
-     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
-     Finley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedS_reducedQ);
+     Finley_ElementFile_Jacobians_dealloc(in->jacobians);
+     Finley_ElementFile_Jacobians_dealloc(in->jacobians_reducedS);
+     Finley_ElementFile_Jacobians_dealloc(in->jacobians_reducedQ);
+     Finley_ElementFile_Jacobians_dealloc(in->jacobians_reducedS_reducedQ);
      Esys_MPIInfo_free( in->MPIInfo );
      delete in;      
   }

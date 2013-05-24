@@ -31,8 +31,8 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
     if (!nodes)
         return;
 
-    const dim_t mpiSize = nodes->MPIInfo->size;
-    const dim_t numComps = getDataPointSize(out);
+    const int mpiSize = nodes->MPIInfo->size;
+    const int numComps = getDataPointSize(out);
     const type_t in_data_type=getFunctionSpaceType(in);
     const type_t out_data_type=getFunctionSpaceType(out);
 
@@ -101,12 +101,12 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
         requireWrite(out);
         if (out_data_type == FINLEY_NODES) {
 #pragma omp parallel for
-            for (dim_t n=0; n<nodes->nodesMapping->numNodes; n++) {
+            for (int n=0; n<nodes->nodesMapping->numNodes; n++) {
                 memcpy(getSampleDataRWFast(out,n), getSampleDataROFast(in,n), numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
 #pragma omp parallel for
-            for (dim_t n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
+            for (int n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
                 memcpy(getSampleDataRWFast(out,n),
                        getSampleDataROFast(in,nodes->reducedNodesMapping->map[n]),
                        numComps_size);
@@ -114,7 +114,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 #pragma omp parallel for
-            for (dim_t n=0; n<nComps; n++) {
+            for (int n=0; n<nComps; n++) {
                 memcpy(getSampleDataRWFast(out,n),
                        getSampleDataROFast(in,nodes->degreesOfFreedomMapping->map[n]),
                        numComps_size);
@@ -122,7 +122,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
 #pragma omp parallel for
-            for (dim_t n=0; n<nComps; n++) {
+            for (int n=0; n<nComps; n++) {
                 memcpy(getSampleDataRWFast(out,n),
                        getSampleDataROFast(in,nodes->reducedDegreesOfFreedomMapping->map[n]),
                        numComps_size);
@@ -136,7 +136,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
 #pragma omp parallel for
-            for (dim_t n=0; n<nodes->reducedNodesMapping->numNodes; n++) {
+            for (int n=0; n<nodes->reducedNodesMapping->numNodes; n++) {
                 memcpy(getSampleDataRWFast(out,n),getSampleDataROFast(in,n),numComps_size);
             }
        } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
@@ -144,8 +144,8 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
        } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
 #pragma omp parallel for
-            for (dim_t n=0; n<nComps; n++) {
-               const dim_t k = nodes->reducedDegreesOfFreedomMapping->map[n];
+            for (int n=0; n<nComps; n++) {
+               const int k = nodes->reducedDegreesOfFreedomMapping->map[n];
                memcpy(getSampleDataRWFast(out,n),
                       getSampleDataROFast(in,nodes->reducedNodesMapping->target[k]),
                       numComps_size);
@@ -167,8 +167,8 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
                 const index_t upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 #pragma omp parallel for
-                for (dim_t n=0; n<nodes->numNodes; n++) {
-                    const dim_t k=nodes->degreesOfFreedomMapping->target[n];
+                for (int n=0; n<nodes->numNodes; n++) {
+                    const int k=nodes->degreesOfFreedomMapping->target[n];
                     if (k < upperBound) {
                         memcpy(getSampleDataRWFast(out,n),
                                getSampleDataROFast(in,k),
@@ -191,9 +191,9 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
                 requireWrite(out);
 
 #pragma omp parallel for
-                for (dim_t n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
-                    const dim_t l=nodes->reducedNodesMapping->map[n];
-                    const dim_t k=nodes->degreesOfFreedomMapping->target[l];
+                for (int n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
+                    const int l=nodes->reducedNodesMapping->map[n];
+                    const int k=nodes->degreesOfFreedomMapping->target[l];
                     if (k < upperBound) {
                         memcpy(getSampleDataRWFast(out,n),
                                getSampleDataROFast(in,k),
@@ -210,7 +210,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
             const int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
             requireWrite(out);
 #pragma omp parallel for
-            for (dim_t n=0; n<nComps; n++) {
+            for (int n=0; n<nComps; n++) {
                 memcpy(getSampleDataRWFast(out,n), getSampleDataROFast(in,n),
                        numComps_size);
             }
@@ -218,8 +218,8 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
             const int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
             requireWrite(out);
 #pragma omp parallel for
-            for (dim_t n=0; n<nComps; n++) {
-                const dim_t k=nodes->reducedDegreesOfFreedomMapping->map[n];
+            for (int n=0; n<nComps; n++) {
+                const int k=nodes->reducedDegreesOfFreedomMapping->map[n];
                 memcpy(getSampleDataRWFast(out,n),
                        getSampleDataROFast(in,nodes->degreesOfFreedomMapping->target[k]),
                        numComps_size);
@@ -239,9 +239,9 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
                 requireWrite(out);
 #pragma omp parallel for
-                for (dim_t n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
-                    const dim_t l=nodes->reducedNodesMapping->map[n];
-                    const dim_t k=nodes->reducedDegreesOfFreedomMapping->target[l];
+                for (int n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
+                    const int l=nodes->reducedNodesMapping->map[n];
+                    const int k=nodes->reducedDegreesOfFreedomMapping->target[l];
                     if (k < upperBound) {
                         memcpy(getSampleDataRWFast(out,n),
                                getSampleDataROFast(in,k),
@@ -258,7 +258,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
             const int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
             requireWrite(out);
 #pragma omp parallel for
-            for (dim_t n=0; n<nComps; n++) {
+            for (int n=0; n<nComps; n++) {
                 memcpy(getSampleDataRWFast(out,n), getSampleDataROFast(in,n), numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM ) {

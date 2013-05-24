@@ -30,18 +30,17 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,
     if (!elements)
         return;
 
-    dim_t numQuad;
+    int numQuad;
     if (Finley_Assemble_reducedIntegrationOrder(in)) {
         numQuad=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
     } else {
         numQuad=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
     }
 
-    // check out and in
-    const dim_t numElements=elements->numElements;
-    const dim_t numComps=getDataPointSize(out);
+    const int numElements=elements->numElements;
+    const int numComps=getDataPointSize(out);
 
-    if (numComps!=getDataPointSize(in)) {
+    if (numComps != getDataPointSize(in)) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!numSamplesEqual(in,numQuad,numElements)) {
         Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyElementData: illegal number of samples of input Data object");
@@ -54,20 +53,20 @@ void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,
         if (isExpanded(in)) {
             const size_t len_size=numComps*numQuad*sizeof(double);
             requireWrite(out);
-#pragma omp parallel for schedule(static)
-            for (dim_t n=0; n<numElements; n++) 
+#pragma omp parallel for
+            for (int n=0; n<numElements; n++) 
                 memcpy(getSampleDataRW(out,n), getSampleDataRO(in,n), len_size);
-         } else {
+        } else {
             const size_t len_size=numComps*sizeof(double);
             requireWrite(out);
-#pragma omp parallel for schedule(static)
-            for (dim_t n=0; n<numElements; n++) {
+#pragma omp parallel for
+            for (int n=0; n<numElements; n++) {
                 const double *in_array = getSampleDataRO(in,n);
                 double *out_array = getSampleDataRW(out,n);
-                for (dim_t q=0; q<numQuad; q++)
+                for (int q=0; q<numQuad; q++)
                     memcpy(out_array+q*numComps, in_array, len_size);
             }
-         }
+        }
     }
-    return;
 }
+
