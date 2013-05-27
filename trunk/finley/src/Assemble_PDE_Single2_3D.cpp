@@ -89,7 +89,7 @@ void Finley_Assemble_PDE_Single2_3D(Finley_Assemble_Parameters p,
                                 const double *A_q=&(A_p[INDEX4(0,0,0,isub, DIM,DIM,p.numQuadSub)]);
                                 for (int s=0; s<p.row_numShapes; s++) {
                                     for (int r=0; r<p.col_numShapes; r++) {
-                                        double f=0;
+                                        double f=0.;
                                         for (int q=0; q<p.numQuadSub; q++) {
                                             f+=Vol[q]*(DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(0,0,q,DIM,DIM)]*DSDX[INDEX3(r,0,q,p.row_numShapesTotal,DIM)]
                                                    + DSDX[INDEX3(s,0,q,p.row_numShapesTotal,DIM)]*A_q[INDEX3(0,1,q,DIM,DIM)]*DSDX[INDEX3(r,1,q,p.row_numShapesTotal,DIM)]
