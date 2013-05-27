@@ -130,9 +130,8 @@ void Finley_Assemble_PDE_System2_C(Finley_Assemble_Parameters p,
                                     for (int q=0; q<p.numQuadSub; q++)
                                         f+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
                                     for (int k=0; k<p.numEqu; k++) {
-                                        const double fD=f*Y_p[k];
-                                        EM_F[INDEX2(k,s,p.numEqu)]=-fD;
-                                        EM_F[INDEX2(k,s+p.row_numShapes,p.numEqu)]=fD;
+                                        EM_F[INDEX2(k,s,p.numEqu)]=-f*Y_p[k];
+                                        EM_F[INDEX2(k,s+p.row_numShapes,p.numEqu)]=f*Y_p[k];
                                     }
                                 }
                             }
