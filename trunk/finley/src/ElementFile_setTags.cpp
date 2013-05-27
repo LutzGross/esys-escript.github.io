@@ -14,63 +14,56 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*	 Finley: Mesh: ElementFile */
+  Finley Mesh: ElementFile
 
-/*	set tags to newTag where mask>0 */
+  Sets tags to newTag where mask>0
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "ElementFile.h"
 #include "Util.h"
 #include "Assemble.h"
 
-/************************************************************************************/
+void Finley_ElementFile_setTags(Finley_ElementFile* self, const int newTag,
+                                escriptDataC* mask)
+{
+    Finley_resetError();
+    if (!self)
+        return;
 
+    const int numElements=self->numElements;
+    const int numQuad=Finley_ReferenceElementSet_borrowReferenceElement(
+        self->referenceElementSet, Finley_Assemble_reducedIntegrationOrder(mask))
+        ->Parametrization->numQuadNodes;
 
-void Finley_ElementFile_setTags(Finley_ElementFile* self,const int newTag, escriptDataC* mask) {
-	register dim_t n,q;
-	dim_t numElements, numQuad;
-	register __const double *mask_array;
-	register bool_t check;
-	Finley_resetError();
-	if (self==NULL) return;
-	numElements=self->numElements;
+    if (1 != getDataPointSize(mask)) {
+        Finley_setError(TYPE_ERROR, "Finley_ElementFile_setTags: number of components of mask must be 1.");
+        return;
+    } else if (!numSamplesEqual(mask, numQuad, numElements)) {
+        Finley_setError(TYPE_ERROR, "Finley_ElementFile_setTags: illegal number of samples of mask Data object");
+        return;
+    }
 
-	numQuad= Finley_ReferenceElementSet_borrowReferenceElement(self->referenceElementSet,Finley_Assemble_reducedIntegrationOrder(mask))->Parametrization->numQuadNodes;
-	
-	if (1!=getDataPointSize(mask)) {
-	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: number of components of mask must be 1.");
-	} else if (!numSamplesEqual(mask,numQuad,numElements)) {
-	   Finley_setError(TYPE_ERROR,"Finley_ElementFile_setTags: illegal number of samples of mask Data object");
-	}
-
-	/* now we can start */
-
-	if (Finley_noError()) {
-		if (isExpanded(mask)) {
-			#pragma omp parallel private(n,check,mask_array)
-			{
-				#pragma omp for schedule(static)
-				for (n=0;n<numElements;n++) {
-					mask_array=getSampleDataRO(mask,n);
-					if (mask_array[0]>0) self->Tag[n]=newTag;
-				}
-			}
-		} else {
-			#pragma omp parallel private(q,n,check,mask_array)
-			{
-				#pragma omp for schedule(static)
-				for (n=0;n<numElements;n++) {
-					mask_array=getSampleDataRO(mask,n);
-					check=FALSE;
-					for (q=0;q<numQuad;q++) check=check || mask_array[q];
-					if (check) self->Tag[n]=newTag;
-				}
-			}
-		}
-		Finley_ElementFile_setTagsInUse(self);
-	}
+    if (isExpanded(mask)) {
+#pragma omp parallel for
+        for (int n=0; n<numElements; n++) {
+            const double *mask_array=getSampleDataRO(mask,n);
+            if (mask_array[0]>0)
+                self->Tag[n]=newTag;
+        }
+    } else {
+#pragma omp parallel for
+        for (int n=0; n<numElements; n++) {
+            const double *mask_array=getSampleDataRO(mask,n);
+            bool check=false;
+            for (int q=0; q<numQuad; q++)
+                check = (check || mask_array[q]);
+            if (check)
+                self->Tag[n]=newTag;
+        }
+    }
+    Finley_ElementFile_setTagsInUse(self);
 }
 
