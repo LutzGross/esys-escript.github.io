@@ -55,8 +55,9 @@ void Finley_ElementFile_Jacobians_dealloc(Finley_ElementFile_Jacobians* in)
 /************************************************************************************/
 
 
-Finley_ElementFile_Jacobians* Finley_ElementFile_borrowJacobians(Finley_ElementFile* self, Finley_NodeFile* nodes, 
-                                                                 bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
+Finley_ElementFile_Jacobians* Finley_ElementFile_borrowJacobians(
+        Finley_ElementFile* self, finley::NodeFile* nodes, 
+        bool_t reducedShapefunction, bool_t reducedIntegrationOrder) {
   Finley_ElementFile_Jacobians *out = NULL;
   Finley_ShapeFunction *shape=NULL, *basis;
   Finley_ReferenceElement*  refElement=NULL;

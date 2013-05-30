@@ -32,29 +32,36 @@
 #include "paso/SystemMatrix.h"
 
 struct Finley_Assemble_Parameters {
-    dim_t numQuadTotal; // total number of quadrature nodes = numQuadSub * numQuadSub
-    dim_t numQuadSub;   // number of quadrature nodes per subelements
-    dim_t numSides;     // number of sides
-    dim_t numSub;       // number of sub-elements
-    dim_t numDim;       // spatial dimension
-    dim_t NN;           // leading dimension of element node table
-    dim_t numElements;  // number of elements
+    /// total number of quadrature nodes = numQuadSub * numQuadSub
+    int numQuadTotal;
+    /// number of quadrature nodes per subelements
+    int numQuadSub;
+    /// number of sides
+    int numSides;
+    /// number of sub-elements
+    int numSub;
+    /// spatial dimension
+    int numDim;
+    /// leading dimension of element node table
+    int NN;
+    /// number of elements
+    int numElements;
 
-    dim_t numEqu;
-    index_t* row_DOF;
-    dim_t row_DOF_UpperBound;
+    int numEqu;
+    int* row_DOF;
+    int row_DOF_UpperBound;
     Finley_ElementFile_Jacobians* row_jac;
-    index_t* row_node;
-    dim_t row_numShapesTotal;
-    dim_t row_numShapes;
+    int* row_node;
+    int row_numShapesTotal;
+    int row_numShapes;
  
-    dim_t numComp;
-    index_t * col_DOF;
-    dim_t col_DOF_UpperBound;
+    int numComp;
+    int* col_DOF;
+    int col_DOF_UpperBound;
     Finley_ElementFile_Jacobians* col_jac;
-    index_t* col_node;
-    dim_t col_numShapesTotal;
-    dim_t col_numShapes;
+    int* col_node;
+    int col_numShapesTotal;
+    int col_numShapes;
 };
 
 typedef struct Finley_Assemble_Parameters Finley_Assemble_Parameters;
@@ -62,11 +69,11 @@ typedef struct Finley_Assemble_Parameters Finley_Assemble_Parameters;
 
 #define Finley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == FINLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_FACE_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_1) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_2) )
 
-void Finley_Assemble_PDE(Finley_NodeFile*, Finley_ElementFile*,
+void Finley_Assemble_PDE(finley::NodeFile*, Finley_ElementFile*,
         Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*,
         escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
 
-void Finley_Assemble_getAssembleParameters(Finley_NodeFile*,
+void Finley_Assemble_getAssembleParameters(finley::NodeFile*,
         Finley_ElementFile*, Paso_SystemMatrix*, escriptDataC*, bool_t,
         Finley_Assemble_Parameters*);
 
@@ -112,47 +119,47 @@ void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters,
         Finley_ElementFile*, Paso_SystemMatrix*, escriptDataC*,
         escriptDataC*, escriptDataC*);
 
-void Finley_Assemble_NodeCoordinates(Finley_NodeFile*, escriptDataC*);
+void Finley_Assemble_NodeCoordinates(finley::NodeFile*, escriptDataC*);
 
-void Finley_Assemble_setNormal(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*);
-void Finley_Assemble_interpolate(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*, escriptDataC*);
-void Finley_Assemble_gradient(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*, escriptDataC*);
-void Finley_Assemble_integrate(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*, double*);
-void Finley_Assemble_getSize(Finley_NodeFile*, Finley_ElementFile*, escriptDataC*);
-void Finley_Assemble_CopyNodalData(Finley_NodeFile*, escriptDataC*, escriptDataC*);
+void Finley_Assemble_setNormal(finley::NodeFile*, Finley_ElementFile*, escriptDataC*);
+void Finley_Assemble_interpolate(finley::NodeFile*, Finley_ElementFile*, escriptDataC*, escriptDataC*);
+void Finley_Assemble_gradient(finley::NodeFile*, Finley_ElementFile*, escriptDataC*, escriptDataC*);
+void Finley_Assemble_integrate(finley::NodeFile*, Finley_ElementFile*, escriptDataC*, double*);
+void Finley_Assemble_getSize(finley::NodeFile*, Finley_ElementFile*, escriptDataC*);
+void Finley_Assemble_CopyNodalData(finley::NodeFile*, escriptDataC*, escriptDataC*);
 void Finley_Assemble_CopyElementData(Finley_ElementFile*, escriptDataC*, escriptDataC*);
 void Finley_Assemble_AverageElementData(Finley_ElementFile*, escriptDataC*, escriptDataC*);
 
-void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*, const dim_t NN_Equa,
-        const index_t* Nodes_Equa, const dim_t num_Equa, const dim_t NN_Sol,
-        const index_t* Nodes_Sol, const dim_t num_Sol, const double* array);
+void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*, const int NN_Equa,
+        const int* Nodes_Equa, const int num_Equa, const int NN_Sol,
+        const int* Nodes_Sol, const int num_Sol, const double* array);
 
-void Finley_Assemble_LumpedSystem(Finley_NodeFile*, Finley_ElementFile*,
+void Finley_Assemble_LumpedSystem(finley::NodeFile*, Finley_ElementFile*,
         escriptDataC* lumpedMat, escriptDataC* D, const bool_t useHRZ);
 
-void Finley_Assemble_jacobians_1D(double*, dim_t, double*, dim_t, dim_t, dim_t,
-        index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_2D(double*, dim_t, double*, dim_t, dim_t, dim_t,
-        index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_2D_M1D_E2D(double*, dim_t, double*, dim_t, dim_t,
-        dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_2D_M1D_E2D_C(double*, dim_t, double*, dim_t,
-        dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*,
-        index_t*);
-void Finley_Assemble_jacobians_2D_M1D_E1D(double*, dim_t, double*, dim_t, dim_t,
-        dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_2D_M1D_E1D_C(double*, dim_t, double*, dim_t,
-        dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_3D(double*, dim_t, double*, dim_t, dim_t, dim_t,
-        index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_3D_M2D_E3D(double*, dim_t, double*, dim_t, dim_t,
-        dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_3D_M2D_E3D_C(double*, dim_t, double*, dim_t,
-        dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_3D_M2D_E2D(double*, dim_t, double*, dim_t, dim_t,
-        dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
-void Finley_Assemble_jacobians_3D_M2D_E2D_C(double*, dim_t, double*, dim_t,
-        dim_t, dim_t, index_t*, double*, dim_t, double*, double*, double*, index_t*);
+void Finley_Assemble_jacobians_1D(double*, int, double*, int, int, int,
+        int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_2D(double*, int, double*, int, int, int,
+        int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_2D_M1D_E2D(double*, int, double*, int, int,
+        int, int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_2D_M1D_E2D_C(double*, int, double*, int,
+        int, int, int*, double*, int, double*, double*, double*,
+        int*);
+void Finley_Assemble_jacobians_2D_M1D_E1D(double*, int, double*, int, int,
+        int, int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_2D_M1D_E1D_C(double*, int, double*, int,
+        int, int, int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_3D(double*, int, double*, int, int, int,
+        int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_3D_M2D_E3D(double*, int, double*, int, int,
+        int, int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_3D_M2D_E3D_C(double*, int, double*, int,
+        int, int, int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_3D_M2D_E2D(double*, int, double*, int, int,
+        int, int*, double*, int, double*, double*, double*, int*);
+void Finley_Assemble_jacobians_3D_M2D_E2D_C(double*, int, double*, int,
+        int, int, int*, double*, int, double*, double*, double*, int*);
 
 #endif // #ifndef INC_FINLEY_ASSEMBLE
 

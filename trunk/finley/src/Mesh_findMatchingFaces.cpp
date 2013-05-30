@@ -52,7 +52,7 @@ int Finley_Mesh_findMatchingFaces_compar(const void *arg1 , const void *arg2 ) {
    }
 }
 
-void Finley_Mesh_findMatchingFaces(Finley_NodeFile *nodes, Finley_ElementFile *faces, double safety_factor,double tolerance,
+void Finley_Mesh_findMatchingFaces(finley::NodeFile *nodes, Finley_ElementFile *faces, double safety_factor,double tolerance,
                                    dim_t* numPairs, index_t* elem0,index_t* elem1,index_t* matching_nodes_in_elem1) {
 #define getDist(_dist_,_e0_,_i0_,_e1_,_i1_) \
       {dim_t i;   \

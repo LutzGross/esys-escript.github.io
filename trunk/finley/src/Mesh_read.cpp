@@ -158,7 +158,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 		}   /* Worker */
 
 		/* Copy node data from tempMem to mesh_p */
-        Finley_NodeFile_allocTable(mesh_p->Nodes, chunkNodes);
+        mesh_p->Nodes->allocTable(chunkNodes);
         
 		if (Finley_noError()) {
 			#pragma omp parallel for private (i0, i1) schedule(static)

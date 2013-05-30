@@ -649,7 +649,7 @@ int MeshAdapter::getDim() const
 //
 int MeshAdapter::getNumDataPointsGlobal() const
 {
-    return Finley_NodeFile_getGlobalNumNodes(m_finleyMesh.get()->Nodes);
+    return m_finleyMesh.get()->Nodes->getGlobalNumNodes();
 }
 
 //
@@ -664,11 +664,11 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
     switch (functionSpaceCode) {
         case Nodes:
             numDataPointsPerSample=1;
-            numSamples=Finley_NodeFile_getNumNodes(mesh->Nodes);
+            numSamples=mesh->Nodes->getNumNodes();
             break;
         case ReducedNodes:
             numDataPointsPerSample=1;
-            numSamples=Finley_NodeFile_getNumReducedNodes(mesh->Nodes);
+            numSamples=mesh->Nodes->getNumReducedNodes();
             break;
         case Elements:
             if (mesh->Elements!=NULL) {
@@ -727,13 +727,13 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
         case DegreesOfFreedom:
             if (mesh->Nodes!=NULL) {
                 numDataPointsPerSample=1;
-                numSamples=Finley_NodeFile_getNumDegreesOfFreedom(mesh->Nodes);
+                numSamples=mesh->Nodes->getNumDegreesOfFreedom();
             }
             break;
         case ReducedDegreesOfFreedom:
             if (mesh->Nodes!=NULL) {
                 numDataPointsPerSample=1;
-                numSamples=Finley_NodeFile_getNumReducedDegreesOfFreedom(mesh->Nodes);
+                numSamples=mesh->Nodes->getNumReducedDegreesOfFreedom();
             }
             break;
         default:
@@ -1445,18 +1445,15 @@ void MeshAdapter::setToSize(escript::Data& size) const
 void MeshAdapter::setNewX(const escript::Data& new_x)
 {
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC tmp;
     const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));
     if (newDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of new point locations");
     if (new_x.getFunctionSpace() == continuousFunction(*this)) {
-        tmp = new_x.getDataC();
-        Finley_Mesh_setCoordinates(mesh,&tmp);
+        Finley_Mesh_setCoordinates(mesh, new_x);
     } else {
         throw FinleyAdapterException("As of escript version 3.3 SetX() only accepts ContinuousFunction arguments. Please interpolate.");
-        //escript::Data new_x_inter=escript::Data( new_x,  continuousFunction(*this) );
-        //tmp = new_x_inter.getDataC();
-        //Finley_Mesh_setCoordinates(mesh,&tmp);
+        //escript::Data new_x_inter=escript::Data(new_x, continuousFunction(*this));
+        //Finley_Mesh_setCoordinates(mesh, new_x_inter);
     }
     checkFinleyError();
 }
@@ -1478,9 +1475,9 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
         } else
         */
         if (fs_code == FINLEY_NODES) {
-            myFirstNode = Finley_NodeFile_getFirstNode(mesh_p->Nodes);
-            myLastNode = Finley_NodeFile_getLastNode(mesh_p->Nodes);
-            globalNodeIndex = Finley_NodeFile_borrowGlobalNodesIndex(mesh_p->Nodes);
+            myFirstNode = mesh_p->Nodes->getFirstNode();
+            myLastNode = mesh_p->Nodes->getLastNode();
+            globalNodeIndex = mesh_p->Nodes->borrowGlobalNodesIndex();
         } else {
             throw FinleyAdapterException("Unsupported function space type for ownSample()");
         }
@@ -2035,7 +2032,7 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
     escriptDataC tmp=mask.getDataC();
     switch(functionSpaceType) {
         case Nodes:
-            Finley_NodeFile_setTags(mesh->Nodes,newTag,&tmp);
+            mesh->Nodes->setTags(newTag, mask);
             break;
         case ReducedNodes:
             throw FinleyAdapterException("Error - ReducedNodes does not support tags");
@@ -2108,85 +2105,68 @@ string MeshAdapter::showTagNames() const
 int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
 {
     Finley_Mesh* mesh=m_finleyMesh.get();
-    dim_t numTags=0;
     switch(functionSpaceCode) {
         case Nodes:
-            numTags=mesh->Nodes->numTagsInUse;
-            break;
+            return mesh->Nodes->tagsInUse.size();
         case ReducedNodes:
             throw FinleyAdapterException("Error - ReducedNodes does not support tags");
-            break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
-            break;
         case ReducedDegreesOfFreedom:
             throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
-            break;
         case Elements:
         case ReducedElements:
-            numTags=mesh->Elements->numTagsInUse;
-            break;
+            return mesh->Elements->tagsInUse.size();
         case FaceElements:
         case ReducedFaceElements:
-            numTags=mesh->FaceElements->numTagsInUse;
-            break;
+            return mesh->FaceElements->tagsInUse.size();
         case Points:
-            numTags=mesh->Points->numTagsInUse;
-            break;
+            return mesh->Points->tagsInUse.size();
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            numTags=mesh->ContactElements->numTagsInUse;
-            break;
+            return mesh->ContactElements->tagsInUse.size();
         default:
-            stringstream temp;
-            temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
-            throw FinleyAdapterException(temp.str());
+            stringstream ss;
+            ss << "Finley does not know anything about function space type "
+                 << functionSpaceCode;
+            throw FinleyAdapterException(ss.str());
     }
-    return numTags;
+    return 0;
 }
 
 const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
 {
     Finley_Mesh* mesh=m_finleyMesh.get();
-    index_t* tags=NULL;
     switch(functionSpaceCode) {
         case Nodes:
-            tags=mesh->Nodes->tagsInUse;
-            break;
+            return &mesh->Nodes->tagsInUse[0];
         case ReducedNodes:
             throw FinleyAdapterException("Error - ReducedNodes does not support tags");
-            break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
-            break;
         case ReducedDegreesOfFreedom:
             throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
-            break;
         case Elements:
         case ReducedElements:
-            tags=mesh->Elements->tagsInUse;
-            break;
+            return &mesh->Elements->tagsInUse[0];
         case FaceElements:
         case ReducedFaceElements:
-            tags=mesh->FaceElements->tagsInUse;
-            break;
+            return &mesh->FaceElements->tagsInUse[0];
         case Points:
-            tags=mesh->Points->tagsInUse;
-            break;
+            return &mesh->Points->tagsInUse[0];
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            tags=mesh->ContactElements->tagsInUse;
-            break;
+            return &mesh->ContactElements->tagsInUse[0];
         default:
             stringstream temp;
             temp << "Error - Finley does not know anything about function space type " << functionSpaceCode;
             throw FinleyAdapterException(temp.str());
     }
-    return tags;
+    return NULL;
 }
 
 

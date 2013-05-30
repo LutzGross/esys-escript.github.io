@@ -36,7 +36,7 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   index_t min_id, max_id,  min_id2, max_id2, global_min_id, global_max_id, 
           *globalToNewLocalNodeLabels=NULL, *newLocalToGlobalNodeLabels=NULL;
   dim_t len, n, newNumNodes, numDim;
-  Finley_NodeFile *newNodeFile=NULL;
+  finley::NodeFile *newNodeFile=NULL;
   #ifdef ESYS_MPI
   index_t id_range[2], global_id_range[2];
   #endif 
@@ -112,15 +112,15 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
               newLocalToGlobalNodeLabels[n]+=min_id;
         }
         /* create a new table */
-        newNodeFile=Finley_NodeFile_alloc(numDim,in->MPIInfo);
+        newNodeFile=new finley::NodeFile(numDim, in->MPIInfo);
         if (Finley_noError()) {
-           Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
+           newNodeFile->allocTable(newNumNodes);
         }
         if (Finley_noError()) {
-            Finley_NodeFile_gather_global(newLocalToGlobalNodeLabels,in->Nodes, newNodeFile);
+            newNodeFile->gather_global(newLocalToGlobalNodeLabels, in->Nodes);
         }
         if (Finley_noError()) {
-           Finley_NodeFile_free(in->Nodes);
+           delete in->Nodes;
            in->Nodes=newNodeFile;
            /*  relabel nodes of the elements: */
            Finley_Mesh_relableElementNodes(globalToNewLocalNodeLabels,min_id,in);
@@ -129,6 +129,6 @@ void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
   delete[] globalToNewLocalNodeLabels;
   delete[] newLocalToGlobalNodeLabels;
   if (! Finley_noError()) {
-       Finley_NodeFile_free(newNodeFile);
+       delete newNodeFile;
   }
 }

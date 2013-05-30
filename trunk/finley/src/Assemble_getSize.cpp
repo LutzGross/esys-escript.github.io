@@ -26,7 +26,7 @@
 
 #include <vector>
 
-void Finley_Assemble_getSize(Finley_NodeFile* nodes,
+void Finley_Assemble_getSize(finley::NodeFile* nodes,
                              Finley_ElementFile* elements,
                              escriptDataC* element_size)
 {
@@ -40,11 +40,11 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes,
                 elements->referenceElementSet,
                 Finley_Assemble_reducedIntegrationOrder(element_size));
 
-    const dim_t numDim=nodes->numDim;
-    const dim_t numQuad=refElement->Parametrization->numQuadNodes;
-    const dim_t NN=elements->numNodes;
-    const dim_t NS=refElement->Parametrization->Type->numShapes;
-    const dim_t NVertices=refElement->Parametrization->Type->numVertices;
+    const int numDim=nodes->numDim;
+    const int numQuad=refElement->Parametrization->numQuadNodes;
+    const int NN=elements->numNodes;
+    const int NS=refElement->Parametrization->Type->numShapes;
+    const int NVertices=refElement->Parametrization->Type->numVertices;
 
     // check the dimensions of element_size
     if (!numSamplesEqual(element_size, numQuad, elements->numElements)) {
@@ -81,10 +81,10 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes,
                     numDim, nodes->Coordinates, &local_X[0]);
             // calculate minimal differences:
             double max_diff=0.;
-            for (dim_t n0=0; n0<NVertices; n0++) {
-                for (dim_t n1=n0+1; n1<NVertices; n1++) {
+            for (int n0=0; n0<NVertices; n0++) {
+                for (int n1=n0+1; n1<NVertices; n1++) {
                     double diff=0;
-                    for (dim_t i=0; i<numDim; i++) {
+                    for (int i=0; i<numDim; i++) {
                         const double d=local_X[INDEX2(i,n0,numDim)]-local_X[INDEX2(i,n1,numDim)];
                         diff += d*d;
                     }
@@ -94,7 +94,7 @@ void Finley_Assemble_getSize(Finley_NodeFile* nodes,
             max_diff=sqrt(max_diff)*f;
             // set all values to max_diff
             double *element_size_array=getSampleDataRW(element_size,e);
-            for (dim_t q=0; q<numQuad; q++)
+            for (int q=0; q<numQuad; q++)
                 element_size_array[q]=max_diff;
         }
     } // end of parallel region

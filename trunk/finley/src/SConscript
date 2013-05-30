@@ -89,14 +89,6 @@ sources = """
     Mesh_addPoints.cpp
     Mesh_write.cpp
     NodeFile.cpp
-    NodeFile_allocTable.cpp
-    NodeFile_copyTable.cpp
-    NodeFile_createDenseLabelings.cpp
-    NodeFile_gather.cpp
-    NodeFile_scatter.cpp
-    NodeFile_setCoordinates.cpp
-    NodeFile_setIdRange.cpp
-    NodeFile_setTags.cpp
     NodeMapping.cpp
     Quadrature.cpp
     ReferenceElements.cpp

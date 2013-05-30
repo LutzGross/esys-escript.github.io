@@ -25,7 +25,7 @@
 
 #include <vector>
 
-void Finley_Assemble_integrate(Finley_NodeFile* nodes,
+void Finley_Assemble_integrate(finley::NodeFile* nodes,
                                Finley_ElementFile* elements,
                                escriptDataC* data, double* out)
 {
@@ -38,17 +38,17 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes,
             elements, nodes, FALSE,
             Finley_Assemble_reducedIntegrationOrder(data));
     if (Finley_noError()) {
-        const dim_t numQuadTotal = jac->numQuadTotal;
+        const int numQuadTotal = jac->numQuadTotal;
         // check the shape of the data
         if (!numSamplesEqual(data,numQuadTotal,elements->numElements)) {
             Finley_setError(TYPE_ERROR, "Finley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
             return;
         }
 
-        const dim_t numComps = getDataPointSize(data);
+        const int numComps = getDataPointSize(data);
 
         // now we can start
-        for (dim_t q=0; q<numComps; q++)
+        for (int q=0; q<numComps; q++)
             out[q]=0;
 
 #pragma omp parallel
@@ -59,31 +59,31 @@ void Finley_Assemble_integrate(Finley_NodeFile* nodes,
             // open the element loop
             if (isExpanded(data)) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     if (elements->Owner[e] == my_mpi_rank) {
                         const double *data_array=getSampleDataRO(data, e);
-                        for (dim_t q=0; q<numQuadTotal; q++) {
-                            for (dim_t i=0; i<numComps; i++)
+                        for (int q=0; q<numQuadTotal; q++) {
+                            for (int i=0; i<numComps; i++)
                                 out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
                         }
                     }
                 }
             } else {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     if (elements->Owner[e] == my_mpi_rank) {
                         const double *data_array=getSampleDataRO(data,e);
                         double rtmp=0.;
-                        for (dim_t q=0; q<numQuadTotal; q++)
+                        for (int q=0; q<numQuadTotal; q++)
                             rtmp+=jac->volume[INDEX2(q,e,numQuadTotal)];
-                        for (dim_t i=0; i<numComps; i++)
+                        for (int i=0; i<numComps; i++)
                             out_local[i]+=data_array[i]*rtmp;
                     }
                 }
             }
             // add local results to global result
 #pragma omp critical
-            for (dim_t i=0; i<numComps; i++)
+            for (int i=0; i<numComps; i++)
                 out[i]+=out_local[i];
         }
     }

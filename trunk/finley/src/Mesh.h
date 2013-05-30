@@ -64,11 +64,14 @@
 #include "TagMap.h"
 #include "Util.h"
 #include "paso/SystemMatrixPattern.h"
-#include "escript/DataC.h"
 
 #ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
 #endif
+
+namespace escript {
+    class Data;
+}
 
 /************************************************************************************/
 
@@ -81,7 +84,7 @@ struct Finley_Mesh {
   dim_t reducedApproximationOrder;                
   dim_t integrationOrder;                
   dim_t reducedIntegrationOrder;           
-  Finley_NodeFile* Nodes;               /* the table of the nodes */
+  finley::NodeFile* Nodes;              /* the table of the nodes */
   Finley_ElementFile* Elements;         /* the table of the elements */
   Finley_ElementFile* FaceElements;     /* the table of the face elements */
   Finley_ElementFile* ContactElements;  /* the table of the contact elements */
@@ -129,7 +132,7 @@ Finley_Mesh* Finley_Mesh_read(char*,index_t, index_t, bool_t);
 Finley_Mesh* Finley_Mesh_readGmsh(char*,index_t, index_t, index_t, bool_t, bool_t);
 void Finley_Mesh_setOrders(Finley_Mesh *in);
 
-void Finley_Mesh_setCoordinates(Finley_Mesh*,escriptDataC*);
+void Finley_Mesh_setCoordinates(Finley_Mesh*, const escript::Data& newX);
 void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements);
 void Finley_Mesh_setContactElements(Finley_Mesh* self,Finley_ElementFile *elements);
@@ -156,7 +159,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
 void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t);
 
 int Finley_Mesh_findMatchingFaces_compar(const void*,const void*);
-void Finley_Mesh_findMatchingFaces(Finley_NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
+void Finley_Mesh_findMatchingFaces(finley::NodeFile*,Finley_ElementFile *,double,double, int*, int*,int*,int*);
 void Finley_Mesh_print(Finley_Mesh *in);
 void Finley_Mesh_optimizeNodeLabeling(Finley_Mesh* mesh_p);
 dim_t Finley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern* pattern_p,index_t* available,index_t indicator);

@@ -25,7 +25,7 @@
 
 #include <sstream>
 
-void Finley_Assemble_NodeCoordinates(Finley_NodeFile* nodes, escriptDataC* x)
+void Finley_Assemble_NodeCoordinates(finley::NodeFile* nodes, escriptDataC* x)
 {
     Finley_resetError();
     if (!nodes) return;

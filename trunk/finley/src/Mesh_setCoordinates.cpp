@@ -22,12 +22,10 @@
 
 #include "Mesh.h"
 
-/************************************************************************************/
+#include <escript/Data.h>
 
-
-void Finley_Mesh_setCoordinates(Finley_Mesh* self,escriptDataC* newX) {
-  Finley_NodeFile_setCoordinates(self->Nodes,newX);
+void Finley_Mesh_setCoordinates(Finley_Mesh* self, const escript::Data& newX)
+{
+    self->Nodes->setCoordinates(newX);
 }
-/*
-* $Log$
-*/
+

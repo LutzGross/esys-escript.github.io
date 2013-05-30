@@ -21,127 +21,234 @@
 
 #include "Finley.h"
 #include "NodeMapping.h"
-#include "escript/DataC.h"
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 #include "esysUtils/Esys_MPI.h"
 
-struct Finley_NodeFile {
-  Esys_MPIInfo *MPIInfo;              /* MPI information */
+#include <vector>
 
-  dim_t numNodes;                      /* number of nodes */
-  dim_t numDim;                        /* spatial dimension */
-  index_t *Id;                         /* Id[i] is the id number of node i. It needs to be unique. */
-  index_t *Tag;                        /* Tag[i] is the tag of node i. */
-  index_t *tagsInUse;                  /* array of tags which are actually used */
-  dim_t     numTagsInUse;               /* number of tags used */
+namespace escript {
+    class Data;
+}
 
-  index_t* globalDegreesOfFreedom;      /* globalDegreesOfFreedom[i] is the global degree of freedom assigned to node i */
-                                       /* this index is used to consider periodic boundary conditions by assigning */
-                                       /* the same degreesOfFreedom to the same node */
-  double *Coordinates;                 /* Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of the */
-                                       /* node i. */
-  index_t *globalReducedDOFIndex;    /* assigns each local node a global unique Id in a dense labeling of reduced DOF*/
-                                     /* value <0 indicates that the DOF is not used */
-  index_t *globalReducedNodesIndex;    /* assigns each local node a global unique Id in a dense labeling */
-                                     /* value <0 indicates that the DOF is not used */
-  index_t *globalNodesIndex;           /* assigns each local reduced node a global unique Id in a dense labeling */
+namespace finley {
 
+class NodeFile
+{
+public:
+    NodeFile(int nDim, Esys_MPIInfo *mpiInfo);
+    ~NodeFile();
 
- Finley_NodeMapping *nodesMapping;
- Finley_NodeMapping *reducedNodesMapping;
- Finley_NodeMapping *degreesOfFreedomMapping;
- Finley_NodeMapping *reducedDegreesOfFreedomMapping;
+    void allocTable(int numNodes);
+    void freeTable();
+
+    inline int getFirstReducedNode();
+    inline int getLastReducedNode();
+    inline int getGlobalNumReducedNodes();
+    inline int* borrowGlobalReducedNodesIndex();
+
+    inline int getFirstNode();
+    inline int getLastNode();
+    inline int getGlobalNumNodes();
+    inline int* borrowGlobalNodesIndex();
+
+    inline int getNumReducedNodes();
+    inline int getNumDegreesOfFreedom();
+    inline int getNumNodes();
+    inline int getNumReducedDegreesOfFreedom();
+
+    inline int* borrowTargetReducedNodes();
+    inline int* borrowTargetDegreesOfFreedom();
+    inline int* borrowTargetNodes();
+    inline int* borrowTargetReducedDegreesOfFreedom();
+
+    inline int* borrowReducedNodesTarget();
+    inline int* borrowDegreesOfFreedomTarget();
+    inline int* borrowNodesTarget();
+    inline int* borrowReducedDegreesOfFreedomTarget();
+
+    int createDenseDOFLabeling();
+    int createDenseNodeLabeling(int* node_distribution, const int* dof_distribution);
+    int createDenseReducedLabeling(int* reducedMask, bool useNodes);
+    void assignMPIRankToDOFs(int* mpiRankOfDOF, int *distribution);
+
+    void copyTable(int offset, int idOffset, int dofOffset, const NodeFile* in);
+    void gather(int* index, const NodeFile* in);
+    void gather_global(int* index, const NodeFile* in);
+    void scatter(int* index, const NodeFile* in);
+
+    void setCoordinates(const escript::Data& newX);
+    void setTags(const int newTag, const escript::Data& mask);
+    void updateTagList();
+
+    std::pair<int,int> getDOFRange() const;
+
+private:
+    std::pair<int,int> getGlobalIdRange() const;
+    std::pair<int,int> getGlobalDOFRange() const;
+    std::pair<int,int> getGlobalNodeIDIndexRange() const;
+    int prepareLabeling(int* mask, std::vector<int>& buffer,
+                        std::vector<int>& distribution, bool useNodes);
+
+public:
+    ///////////////////////////////////////
+
+    /// MPI information
+    Esys_MPIInfo *MPIInfo;
+    /// number of nodes
+    int numNodes;
+    /// number of spatial dimensions
+    int numDim;
+    /// Id[i] is the id number of node i. It needs to be unique.
+    int *Id;
+    /// Tag[i] is the tag of node i.
+    int *Tag;
+    /// vector of tags which are actually used
+    std::vector<int> tagsInUse;
+    /// globalDegreesOfFreedom[i] is the global degree of freedom assigned
+    /// to node i. This index is used to consider periodic boundary conditions
+    /// by assigning the same degreesOfFreedom to the same node.
+    int* globalDegreesOfFreedom;
+    /// Coordinates[INDEX2(k,i,numDim)] is the k-th coordinate of node i
+    double *Coordinates;
+    /// assigns each local node a global unique Id in a dense labeling of
+    /// reduced DOF. Value <0 indicates that the DOF is not used.
+    int *globalReducedDOFIndex;
+    /// assigns each local node a global unique Id in a dense labeling.
+    /// Value <0 indicates that the DOF is not used
+    int *globalReducedNodesIndex;
+    /// assigns each local reduced node a global unique Id in a dense labeling
+    int *globalNodesIndex;
+
+    Finley_NodeMapping *nodesMapping;
+    Finley_NodeMapping *reducedNodesMapping;
+    Finley_NodeMapping *degreesOfFreedomMapping;
+    Finley_NodeMapping *reducedDegreesOfFreedomMapping;
  
- Paso_Distribution *nodesDistribution;
- Paso_Distribution *reducedNodesDistribution;
- Paso_Distribution *degreesOfFreedomDistribution;
- Paso_Distribution *reducedDegreesOfFreedomDistribution;
+    Paso_Distribution *nodesDistribution;
+    Paso_Distribution *reducedNodesDistribution;
+    Paso_Distribution *degreesOfFreedomDistribution;
+    Paso_Distribution *reducedDegreesOfFreedomDistribution;
 
- Paso_Connector* degreesOfFreedomConnector;
- Paso_Connector *reducedDegreesOfFreedomConnector;
+    Paso_Connector* degreesOfFreedomConnector;
+    Paso_Connector *reducedDegreesOfFreedomConnector;
   
-                     /* these are the packed versions of Id */
- index_t *reducedNodesId;        
- index_t *degreesOfFreedomId;
- index_t *reducedDegreesOfFreedomId;
+    /// these are the packed versions of Id
+    int *reducedNodesId;        
+    int *degreesOfFreedomId;
+    int *reducedDegreesOfFreedomId;
 
-
- int status; /* the status counts the updates done on the node coordinates */
-              /* the value of status is increased by 1 when the node coordinates are updated.*/
+    /// the status counts the updates done on the node coordinates.
+    /// The value is increased by 1 when the node coordinates are updated.
+    int status;
 };
 
-typedef struct Finley_NodeFile Finley_NodeFile;
+//
+// implementation of inline methods
+//
+
+inline int NodeFile::getFirstReducedNode()
+{
+    return Paso_Distribution_getFirstComponent(reducedNodesDistribution);
+}
+
+inline int NodeFile::getLastReducedNode()
+{
+    return Paso_Distribution_getLastComponent(reducedNodesDistribution);
+}
+
+inline int NodeFile::getGlobalNumReducedNodes()
+{
+    return Paso_Distribution_getGlobalNumComponents(reducedNodesDistribution);
+}
+
+inline int* NodeFile::borrowGlobalReducedNodesIndex()
+{
+    return globalReducedNodesIndex;
+}
+
+inline int NodeFile::getFirstNode()
+{
+    return Paso_Distribution_getFirstComponent(nodesDistribution);
+}
+
+inline int NodeFile::getLastNode()
+{
+    return Paso_Distribution_getLastComponent(nodesDistribution);
+}
+
+inline int NodeFile::getGlobalNumNodes()
+{
+    return Paso_Distribution_getGlobalNumComponents(nodesDistribution);
+}
+
+inline int* NodeFile::borrowGlobalNodesIndex()
+{
+    return globalNodesIndex;
+}
+
+inline int NodeFile::getNumReducedNodes()
+{
+    return reducedNodesMapping->numTargets;
+}
+
+inline int NodeFile::getNumDegreesOfFreedom()
+{
+    return Paso_Distribution_getMyNumComponents(degreesOfFreedomDistribution);
+}
+
+inline int NodeFile::getNumNodes()
+{
+    return nodesMapping->numNodes;
+}
+
+inline int NodeFile::getNumReducedDegreesOfFreedom()
+{
+    return Paso_Distribution_getMyNumComponents(reducedDegreesOfFreedomDistribution);
+}
+
+inline int* NodeFile::borrowTargetReducedNodes()
+{
+    return reducedNodesMapping->target;
+}
+
+inline int* NodeFile::borrowTargetDegreesOfFreedom()
+{
+    return degreesOfFreedomMapping->target;
+}
+
+inline int* NodeFile::borrowTargetNodes()
+{
+    return nodesMapping->target;
+}
+
+inline int* NodeFile::borrowTargetReducedDegreesOfFreedom()
+{
+    return reducedDegreesOfFreedomMapping->target;
+}
+
+inline int* NodeFile::borrowReducedNodesTarget()
+{
+    return reducedNodesMapping->map;
+}
+
+inline int* NodeFile::borrowDegreesOfFreedomTarget()
+{
+    return degreesOfFreedomMapping->map;
+}
+
+inline int* NodeFile::borrowNodesTarget()
+{
+    return nodesMapping->map;
+}
+
+inline int* NodeFile::borrowReducedDegreesOfFreedomTarget()
+{
+    return reducedDegreesOfFreedomMapping->map;
+}
 
 
-
-Finley_NodeFile* Finley_NodeFile_alloc(dim_t, Esys_MPIInfo *MPIInfo);
-index_t Finley_NodeFile_getFirstReducedNode(Finley_NodeFile* in);
-index_t Finley_NodeFile_getLastReducedNode(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getGlobalNumReducedNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowGlobalReducedNodesIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_maxGlobalNodeIDIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_maxGlobalReducedNodeIDIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_GlobalDegreeOfFreedomIndex(Finley_NodeFile* in);
-index_t Finley_NodeFile_GlobalReducedDegreeOfFreedomIndex(Finley_NodeFile* in);
-
-index_t Finley_NodeFile_getFirstNode(Finley_NodeFile* in);
-index_t Finley_NodeFile_getLastNode(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getGlobalNumNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowGlobalNodesIndex(Finley_NodeFile* in);
-
-/* returns the number of target */
-dim_t Finley_NodeFile_getNumReducedNodes(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getNumDegreesOfFreedom(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getNumNodes(Finley_NodeFile* in);
-dim_t Finley_NodeFile_getNumReducedDegreesOfFreedom(Finley_NodeFile* in);
-
-/* returns the mapping from local nodes to a target */
-index_t* Finley_NodeFile_borrowTargetReducedNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowTargetDegreesOfFreedom(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowTargetNodes(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowTargetReducedDegreesOfFreedom(Finley_NodeFile* in);
-/* returns the mapping from target to the local nodes */
-index_t* Finley_NodeFile_borrowReducedNodesTarget(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowDegreesOfFreedomTarget(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowNodesTarget(Finley_NodeFile* in);
-index_t* Finley_NodeFile_borrowReducedDegreesOfFreedomTarget(Finley_NodeFile* in);
-
-void Finley_NodeFile_allocTable(Finley_NodeFile*,dim_t);
-void Finley_NodeFile_free(Finley_NodeFile*);
-void Finley_NodeFile_freeTable(Finley_NodeFile*);
-void Finley_NodeFile_setIdGlobalRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setIdRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setDOFGlobalRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setDOFRange(index_t*,index_t*,Finley_NodeFile*);
-
-
-void Finley_NodeFile_setGlobalDOFRange(index_t*,index_t*,Finley_NodeFile*);
-void Finley_NodeFile_setGlobalIdRange(index_t*,index_t*,Finley_NodeFile*);
-index_t Finley_NodeFile_maxGlobalDegreeOfFreedomIndex(Finley_NodeFile*);
-index_t Finley_NodeFile_maxGlobalReducedDegreeOfFreedomIndex(Finley_NodeFile*);
-
-void Finley_NodeFile_setReducedDOFRange(index_t*,index_t*,Finley_NodeFile*);
-dim_t Finley_NodeFile_createDenseDOFLabeling(Finley_NodeFile*);
-dim_t Finley_NodeFile_createDenseNodeLabeling(Finley_NodeFile* in, index_t* node_distribution, const index_t* dof_distribution);
-dim_t Finley_NodeFile_createDenseReducedNodeLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
-dim_t Finley_NodeFile_createDenseReducedDOFLabeling(Finley_NodeFile* in, index_t* reducedNodeMask);
-void Finley_NodeFile_assignMPIRankToDOFs(Finley_NodeFile* in,Esys_MPI_rank* mpiRankOfDOF, index_t *distribution);
-void Finley_NodeFile_gather(index_t*,Finley_NodeFile*,Finley_NodeFile*);
-void Finley_NodeFile_gather_global(index_t*,Finley_NodeFile*,Finley_NodeFile*);
-void Finley_NodeFile_gatherEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
-void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-void Finley_NodeFile_scatter(index_t*,Finley_NodeFile*,Finley_NodeFile*);
-void Finley_NodeFile_scatterEntries(dim_t, index_t*, index_t, index_t, index_t*, index_t*, index_t*, index_t*, index_t*, index_t*, dim_t numDim, double*, double*);
-void Finley_NodeFile_copyTable(dim_t,Finley_NodeFile*,dim_t,dim_t,Finley_NodeFile*);
-void Finley_NodeFile_setGlobalReducedDegreeOfFreedomRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
-void Finley_NodeFile_setGlobalNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
-void Finley_NodeFile_setGlobalReducedNodeIDIndexRange(index_t* min_id,index_t* max_id,Finley_NodeFile* in);
-
-/* ===================== */
-void Finley_NodeFile_setCoordinates(Finley_NodeFile*,escriptDataC*);
-void Finley_NodeFile_setTags(Finley_NodeFile*,const int,escriptDataC*);
-void Finley_NodeFile_setTagsInUse(Finley_NodeFile* in);
+} // namespace
 
 #endif
 

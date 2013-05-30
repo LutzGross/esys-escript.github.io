@@ -39,7 +39,7 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      if (! (Finley_checkPtr(distribution) || Finley_checkPtr(node_distribution))) {
         /* first we create dense labeling for the DOFs */
 
-        newGlobalNumDOFs=Finley_NodeFile_createDenseDOFLabeling(in->Nodes);
+        newGlobalNumDOFs=in->Nodes->createDenseDOFLabeling();
 
         /* create a distribution of the global DOFs and determine
            the MPI_rank controlling the DOFs on this processor      */
@@ -76,9 +76,9 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
 /* useful DEBUG:
 {index_t MIN_id,MAX_id;
 printf("Mesh_prepare: global DOF : %d\n",newGlobalNumDOFs);
-Finley_NodeFile_setGlobalIdRange(&MIN_id,&MAX_id,in->Nodes);
+in->Nodes->setGlobalIdRange(&MIN_id,&MAX_id);
 printf("Mesh_prepare: global node id range = %d :%d\n", MIN_id,MAX_id);
-Finley_NodeFile_setIdRange(&MIN_id,&MAX_id,in->Nodes);
+in->Nodes->setIdRange(&MIN_id,&MAX_id);
 printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 }
 */
@@ -89,11 +89,13 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
    
           numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
 
-          Finley_NodeFile_createDenseNodeLabeling(in->Nodes, node_distribution, distribution); 
-          Finley_NodeFile_createDenseReducedDOFLabeling(in->Nodes,maskReducedNodes); 
-          Finley_NodeFile_createDenseReducedNodeLabeling(in->Nodes,maskReducedNodes);
-          /* create the missing mappings */
+          in->Nodes->createDenseNodeLabeling(node_distribution, distribution); 
+          // created reduced DOF labeling
+          in->Nodes->createDenseReducedLabeling(maskReducedNodes, false); 
+          // created reduced node labeling
+          in->Nodes->createDenseReducedLabeling(maskReducedNodes, true);
 
+          /* create the missing mappings */
           if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution, node_distribution);
         }
 
@@ -105,7 +107,6 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
      delete[] node_distribution;
 
      Finley_Mesh_setTagsInUse(in);
-     return;
 }
 
 /*                                                      */
@@ -127,13 +128,12 @@ void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in) {
   if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->ContactElements));
 }
 
-/*                                                                    */
-/*  redistribute elements to minimize communication during assemblage */
 void Finley_Mesh_setTagsInUse(Finley_Mesh* in)
 {
-    if (Finley_noError()) Finley_NodeFile_setTagsInUse(in->Nodes);
+    if (Finley_noError()) in->Nodes->updateTagList();
     if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Elements);
     if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->FaceElements);
     if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Points);
     if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->ContactElements);
 }
+

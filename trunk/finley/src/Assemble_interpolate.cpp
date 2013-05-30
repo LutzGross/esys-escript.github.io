@@ -26,7 +26,7 @@
 
 #include <vector>
 
-void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
+void Finley_Assemble_interpolate(finley::NodeFile *nodes,
                                  Finley_ElementFile *elements,
                                  escriptDataC *data,
                                  escriptDataC *interpolated_data)
@@ -35,24 +35,23 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
     if (!nodes || !elements)
         return;
 
-    // set some parameters
     const type_t data_type=getFunctionSpaceType(data);
     const bool_t reduced_integration = Finley_Assemble_reducedIntegrationOrder(interpolated_data);
     Finley_ReferenceElement *reference_element =
         Finley_ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet, reduced_integration);
 
-    index_t *resort_nodes = NULL, *map = NULL;
-    dim_t numSub = 0, numNodes = 0;
+    int *resort_nodes = NULL, *map = NULL;
+    int numSub = 0, numNodes = 0;
     Finley_ShapeFunction *basis = NULL;
-    index_t dof_offset = 0;
+    int dof_offset = 0;
 
     if (data_type==FINLEY_NODES) {
         numSub=reference_element->Type->numSubElements;
         resort_nodes=reference_element->Type->subElementNodes;
         basis=reference_element->BasisFunctions;
-        numNodes=Finley_NodeFile_getNumNodes(nodes);
-        map=Finley_NodeFile_borrowTargetNodes(nodes);
+        numNodes=nodes->getNumNodes();
+        map=nodes->borrowTargetNodes();
         if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->Type->offsets[1];
         } else {
@@ -62,8 +61,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
         numSub=1;
         resort_nodes=reference_element->Type->linearNodes;
         basis=reference_element->LinearBasisFunctions;
-        numNodes=Finley_NodeFile_getNumReducedNodes(nodes);
-        map=Finley_NodeFile_borrowTargetReducedNodes(nodes);
+        numNodes=nodes->getNumReducedNodes();
+        map=nodes->borrowTargetReducedNodes();
         if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->LinearType->offsets[1];
         } else {
@@ -77,8 +76,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
         numSub=reference_element->Type->numSubElements;
         resort_nodes=reference_element->Type->subElementNodes;
         basis=reference_element->BasisFunctions;
-        numNodes=Finley_NodeFile_getNumDegreesOfFreedom(nodes);
-        map=Finley_NodeFile_borrowTargetDegreesOfFreedom(nodes);
+        numNodes=nodes->getNumDegreesOfFreedom();
+        map=nodes->borrowTargetDegreesOfFreedom();
         if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->Type->offsets[1];
         } else {
@@ -92,8 +91,8 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
         numSub=1;
         resort_nodes=reference_element->Type->linearNodes;
         basis=reference_element->LinearBasisFunctions;
-        numNodes=Finley_NodeFile_getNumReducedDegreesOfFreedom(nodes);
-        map=Finley_NodeFile_borrowTargetReducedDegreesOfFreedom(nodes);
+        numNodes=nodes->getNumReducedDegreesOfFreedom();
+        map=nodes->borrowTargetReducedDegreesOfFreedom();
         if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->LinearType->offsets[1];
         } else {
@@ -104,11 +103,11 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
         return;
     }
 
-    const dim_t numComps=getDataPointSize(data);
-    const dim_t numQuad=basis->numQuadNodes;
-    const dim_t numShapesTotal=basis->Type->numShapes*reference_element->Type->numSides;
-    const dim_t NN=elements->numNodes;
-    const dim_t NS_DOF=basis->Type->numShapes;
+    const int numComps=getDataPointSize(data);
+    const int numQuad=basis->numQuadNodes;
+    const int numShapesTotal=basis->Type->numShapes*reference_element->Type->numSides;
+    const int NN=elements->numNodes;
+    const int NS_DOF=basis->Type->numShapes;
 
     // check the dimensions of interpolated_data and data
     if (!numSamplesEqual(interpolated_data, numQuad*numSub, elements->numElements)) {
@@ -131,10 +130,10 @@ void Finley_Assemble_interpolate(Finley_NodeFile *nodes,
             const size_t numComps_size=numComps*sizeof(double);
             // open the element loop
 #pragma omp for
-            for (dim_t e=0; e<elements->numElements; e++) {
-                for (dim_t isub=0; isub<numSub; isub++) {
-                    for (dim_t q=0; q<NS_DOF; q++) {
-                        const dim_t i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
+            for (int e=0; e<elements->numElements; e++) {
+                for (int isub=0; isub<numSub; isub++) {
+                    for (int q=0; q<NS_DOF; q++) {
+                        const int i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
                         const double *data_array=getSampleDataRO(data, map[i]);
                         memcpy(&(local_data[INDEX3(0,q,isub, numComps,NS_DOF)]), data_array, numComps_size);
                     }

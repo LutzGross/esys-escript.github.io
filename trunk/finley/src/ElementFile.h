@@ -26,6 +26,7 @@
 #include "esysUtils/Esys_MPI.h"
 #endif
 
+#include <vector>
 
 struct Finley_ElementFile_Jacobians {
   Finley_Status_t status;               /* status of mesh when jacobians were updated last time */
@@ -64,9 +65,7 @@ struct Finley_ElementFile {
 
   index_t *Tag;                                /* Tag[i] is the tag of element i. */
 
-  index_t *tagsInUse;                  /* array of tags which are actually used */
-  dim_t     numTagsInUse;               /* number of tags used */
-
+  std::vector<int> tagsInUse;                  /* array of tags which are actually used */
 
   dim_t numNodes;                              /* number of nodes per element */
   index_t *Nodes;                              /* Nodes[INDEX(k, i, numNodes)]
@@ -115,7 +114,7 @@ void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,in
 void Finley_ElementFile_setTags(Finley_ElementFile* ,const int, escriptDataC*);
 Finley_ElementFile_Jacobians* Finley_ElementFile_Jacobians_alloc(Finley_ShapeFunction* );
 void Finley_ElementFile_Jacobians_dealloc(Finley_ElementFile_Jacobians*);
-Finley_ElementFile_Jacobians* Finley_ElementFile_borrowJacobians(Finley_ElementFile*, Finley_NodeFile*, bool_t, bool_t);
+Finley_ElementFile_Jacobians* Finley_ElementFile_borrowJacobians(Finley_ElementFile*, finley::NodeFile*, bool_t, bool_t);
 void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in);
 
 

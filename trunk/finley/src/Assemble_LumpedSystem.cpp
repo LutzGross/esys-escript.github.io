@@ -29,7 +29,7 @@
 #include <sstream>
 #include <vector>
 
-void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,
+void Finley_Assemble_LumpedSystem(finley::NodeFile* nodes,
                                   Finley_ElementFile* elements,
                                   escriptDataC* lumpedMat, escriptDataC* D,
                                   const bool_t useHRZ)
@@ -77,13 +77,13 @@ void Finley_Assemble_LumpedSystem(Finley_NodeFile* nodes,
 
     // check the dimensions:
     if (p.numEqu==1) {
-        const dim_t dimensions = 0; //dummy
+        const int dimensions = 0; //dummy
         if (!isDataPointShapeEqual(D, 0, &dimensions)) {
             Finley_setError(TYPE_ERROR, "Finley_Assemble_LumpedSystem: coefficient D, rank 0 expected.");
             return;
         }
     } else {
-        const dim_t dimensions = p.numEqu;
+        const int dimensions = p.numEqu;
         if (!isDataPointShapeEqual(D, 1, &dimensions)) {
             std::stringstream ss;
             ss << "Finley_Assemble_LumpedSystem: coefficient D does not have "

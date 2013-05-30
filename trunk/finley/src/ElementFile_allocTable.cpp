@@ -62,8 +62,7 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
     in->Nodes=Nodes2;
     in->Tag=Tag2;
     in->Color=Color2;
-    in->tagsInUse=NULL;
-    in->numTagsInUse=0;
+    in->tagsInUse.clear();
     
 
     /* this initialization makes sure that data are located on the right processor */
@@ -84,15 +83,8 @@ void Finley_ElementFile_allocTable(Finley_ElementFile* in,dim_t numElements)
 
 void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in)
 {
-    index_t *tagsInUse=NULL;
-    dim_t numTagsInUse;
     if (in !=NULL) {
-       Finley_Util_setValuesInUse(in->Tag, in->numElements, &numTagsInUse, &tagsInUse, in->MPIInfo);
-       if (Finley_noError()) {
-          delete[] in->tagsInUse;
-          in->tagsInUse=tagsInUse;
-          in->numTagsInUse=numTagsInUse;
-       }
+       Finley_Util_setValuesInUse(in->Tag, in->numElements, in->tagsInUse, in->MPIInfo);
     }
 }
 
@@ -104,8 +96,7 @@ void Finley_ElementFile_freeTable(Finley_ElementFile* in) {
   delete[] in->Nodes;
   delete[] in->Tag;
   delete[] in->Color;
-  delete[] in->tagsInUse;
-  in->numTagsInUse=0;
+  in->tagsInUse.clear();
   in->numElements=0;
   in->maxColor=-1;
   in->minColor=0;

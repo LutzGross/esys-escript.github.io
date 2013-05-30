@@ -22,12 +22,12 @@
 
 #include "Assemble.h"
 
-void Finley_Assemble_getAssembleParameters(Finley_NodeFile* nodes,
+void Finley_Assemble_getAssembleParameters(finley::NodeFile* nodes,
         Finley_ElementFile* elements, Paso_SystemMatrix* S,
         escriptDataC* F, bool_t reducedIntegrationOrder,
         Finley_Assemble_Parameters *parm)
 {
-    dim_t numSub, numQuadSub;
+    int numSub, numQuadSub;
     Finley_resetError();
 
     if (!isEmpty(F) && !isExpanded(F) ) {

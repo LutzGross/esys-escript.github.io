@@ -178,7 +178,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   }
   /*  allocate tables: */
   if (Finley_noError()) {
-	  Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1*local_N2);
+	  out->Nodes->allocTable(local_N0*local_N1*local_N2);
 	  Finley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1*local_NE2);
 	  Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
   }
