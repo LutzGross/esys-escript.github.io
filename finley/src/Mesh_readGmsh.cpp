@@ -96,7 +96,7 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
          scan_ret = fscanf(fileHandle_p, "%d", &numNodes);
 	 FSCANF_CHECK(scan_ret, "fscanf: Finley_Mesh_readGmsh");
          if (! Finley_noError()) break;
-         Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
+         mesh_p->Nodes->allocTable(numNodes);
          if (! Finley_noError()) break;
          for (i0 = 0; i0 < numNodes; i0++) {
             if (1 == numDim) {

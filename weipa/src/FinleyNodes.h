@@ -21,7 +21,9 @@
 class DBfile;
 class NcFile;
 struct Dudley_NodeFile;
-struct Finley_NodeFile;
+namespace finley {
+    class NodeFile;
+}
 
 namespace weipa {
 
@@ -32,7 +34,7 @@ typedef boost::shared_ptr<FinleyNodes> FinleyNodes_ptr;
 ///
 /// This class provides functionality to manipulate a finley node file.
 /// It is able to load node data from dump files or retrieve it from a
-/// Finley_NodeFile instance.
+/// finley::NodeFile instance.
 class FinleyNodes : public NodeData
 {
 public:
@@ -52,7 +54,7 @@ public:
     bool initFromDudley(const Dudley_NodeFile* dudleyFile);
 
     /// \brief Initialises with finley node file.
-    bool initFromFinley(const Finley_NodeFile* finleyFile);
+    bool initFromFinley(const finley::NodeFile* finleyFile);
 
     /// \brief Reads node data from a NetCDF file.
     bool readFromNc(NcFile* ncFile);

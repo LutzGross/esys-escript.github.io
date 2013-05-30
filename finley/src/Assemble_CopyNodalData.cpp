@@ -24,7 +24,7 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
+void Finley_Assemble_CopyNodalData(finley::NodeFile* nodes,
                                    escriptDataC* out, escriptDataC* in)
 {
     Finley_resetError();
@@ -45,22 +45,22 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
 
     // more sophisticated test needed for overlapping node/DOF counts
     if (in_data_type == FINLEY_NODES) {
-        if (!numSamplesEqual(in, 1, Finley_NodeFile_getNumNodes(nodes))) {
+        if (!numSamplesEqual(in, 1, nodes->getNumNodes())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == FINLEY_REDUCED_NODES) {
-        if (! numSamplesEqual(in,1,Finley_NodeFile_getNumReducedNodes(nodes))) {
+        if (!numSamplesEqual(in, 1, nodes->getNumReducedNodes())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-        if (! numSamplesEqual(in,1,Finley_NodeFile_getNumDegreesOfFreedom(nodes))) {
+        if (! numSamplesEqual(in, 1, nodes->getNumDegreesOfFreedom())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if ( (((out_data_type == FINLEY_NODES) || (out_data_type == FINLEY_DEGREES_OF_FREEDOM)) && !isExpanded(in) && (mpiSize>1))) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: FINLEY_DEGREES_OF_FREEDOM to FINLEY_NODES or FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
         }
     } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-        if (! numSamplesEqual(in,1,Finley_NodeFile_getNumReducedDegreesOfFreedom(nodes))) {
+        if (! numSamplesEqual(in, 1, nodes->getNumReducedDegreesOfFreedom())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if ( (out_data_type == FINLEY_DEGREES_OF_FREEDOM) && !isExpanded(in) && (mpiSize>1)) {
@@ -72,19 +72,19 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
     }
 
     if (out_data_type == FINLEY_NODES) {
-        if (! numSamplesEqual(out,1,Finley_NodeFile_getNumNodes(nodes))) {
+        if (! numSamplesEqual(out, 1, nodes->getNumNodes())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else if (out_data_type == FINLEY_REDUCED_NODES) {
-        if (! numSamplesEqual(out,1,Finley_NodeFile_getNumReducedNodes(nodes))) {
+        if (! numSamplesEqual(out, 1, nodes->getNumReducedNodes())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-        if (! numSamplesEqual(out,1,Finley_NodeFile_getNumDegreesOfFreedom(nodes))) {
+        if (! numSamplesEqual(out, 1, nodes->getNumDegreesOfFreedom())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-        if (! numSamplesEqual(out,1,Finley_NodeFile_getNumReducedDegreesOfFreedom(nodes))) {
+        if (! numSamplesEqual(out, 1, nodes->getNumReducedDegreesOfFreedom())) {
             Finley_setError(TYPE_ERROR,"Finley_Assemble_CopyNodalData: illegal number of samples of output Data object");
         }
     } else {
@@ -165,7 +165,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
                 requireWrite(in);
                 Paso_Coupler_startCollect(coupler, getDataRW(in));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
-                const index_t upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+                const int upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 #pragma omp parallel for
                 for (int n=0; n<nodes->numNodes; n++) {
                     const int k=nodes->degreesOfFreedomMapping->target[n];
@@ -187,7 +187,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
                 requireWrite(in); // See comment above about coupler and const
                 Paso_Coupler_startCollect(coupler, getDataRW(in));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
-                const index_t upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+                const int upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
                 requireWrite(out);
 
 #pragma omp parallel for
@@ -233,7 +233,7 @@ void Finley_Assemble_CopyNodalData(Finley_NodeFile* nodes,
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             Paso_Coupler *coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
             if (Esys_noError()) {
-                const index_t upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+                const int upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
                 requireWrite(in); // See comment about coupler and const
                 Paso_Coupler_startCollect(coupler, getDataRW(in));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);

@@ -29,7 +29,7 @@
 
 void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize) { 
    char error_msg[LenErrorMsg_MAX];
-   Finley_NodeFile *newNodeFile=NULL;
+   finley::NodeFile *newNodeFile=NULL;
    Finley_ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
    index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL, *faceNodes=NULL;
@@ -97,10 +97,10 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          }
          for (n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=new_node_mask[new_node_label[n]];
          /* allocate new node and element files */
-         newNodeFile=Finley_NodeFile_alloc(numDim, self->MPIInfo); 
+         newNodeFile=new finley::NodeFile(numDim, self->MPIInfo); 
 
          if (Finley_noError()) {
-             Finley_NodeFile_allocTable(newNodeFile,newNumNodes);
+             newNodeFile->allocTable(newNumNodes);
              if (Finley_noError()) {
                 newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
                 if (Finley_noError()) {
@@ -111,9 +111,9 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          if (Finley_noError()) 
          {
             /* get the new nodes */
-            Finley_NodeFile_gather(new_node_list,self->Nodes,newNodeFile);
+            newNodeFile->gather(new_node_list, self->Nodes);
             /* they are the new nodes */
-            Finley_NodeFile_free(self->Nodes);
+            delete self->Nodes;
             self->Nodes=newNodeFile;
             /* get the face elements which are still in use */
             Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
@@ -128,7 +128,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          } 
          else 
          {
-            Finley_NodeFile_free(newNodeFile);
+            delete newNodeFile;
             Finley_ElementFile_free(newFaceElementsFile);
          }
        

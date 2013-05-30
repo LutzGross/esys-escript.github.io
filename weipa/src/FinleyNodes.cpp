@@ -191,7 +191,7 @@ bool FinleyNodes::initFromDudley(const Dudley_NodeFile* dudleyFile)
 //
 //
 //
-bool FinleyNodes::initFromFinley(const Finley_NodeFile* finleyFile)
+bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 {
 #ifndef VISIT_PLUGIN
     numDims = finleyFile->numDim;

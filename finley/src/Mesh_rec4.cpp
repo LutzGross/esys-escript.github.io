@@ -128,7 +128,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   	/*  allocate tables: */
 
 
-	Finley_NodeFile_allocTable(out->Nodes,local_N0*local_N1);
+	out->Nodes->allocTable(local_N0*local_N1);
 	Finley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1);
 	Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
 

@@ -126,11 +126,11 @@ namespace finley {
     TMPMEMFREE(fName);
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
+    mesh_p = Finley_Mesh_alloc(name, numDim, mpi_info);
     if (Finley_noError()) {
 
         /* read nodes */
-        Finley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
+        mesh_p->Nodes->allocTable(numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
             cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Id)");
@@ -166,11 +166,11 @@ namespace finley {
             cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Coordinates)");
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
             cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
-        Finley_NodeFile_setTagsInUse(mesh_p->Nodes);
+        mesh_p->Nodes->updateTagList();
 
         /* read elements */
         if (Finley_noError()) {
-            Finley_ReferenceElementSet  *refElements=     Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Elements_TypeId,order, reduced_order);
+            Finley_ReferenceElementSet *refElements=Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Elements_TypeId,order, reduced_order);
             if (Finley_noError())  {
                 mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
             }

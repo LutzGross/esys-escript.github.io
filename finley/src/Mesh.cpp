@@ -62,7 +62,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info)
   strcpy(out->Name,name);
   
   /*   allocate node table: */
-  out->Nodes=Finley_NodeFile_alloc( numDim, mpi_info );
+  out->Nodes = new finley::NodeFile(numDim, mpi_info);
   if (! Finley_noError()) {
       Finley_Mesh_free(out);
       return NULL;
@@ -94,7 +94,7 @@ void Finley_Mesh_free(Finley_Mesh* in) {
      in->reference_counter--;
      if (in->reference_counter<1) {
        delete[] in->Name;
-       Finley_NodeFile_free(in->Nodes);
+       delete in->Nodes;
        Finley_ElementFile_free(in->FaceElements);
        Finley_ElementFile_free(in->Elements);   
        Finley_ElementFile_free(in->ContactElements);

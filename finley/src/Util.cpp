@@ -29,8 +29,9 @@
 
 #include "esysUtils/mem.h"
 #include "esysUtils/index.h"
-#include <string.h>   /* for memcpy */
+#include <cstring> // for memcpy
 
+#include <limits>
 
 /************************************************************************************/
 
@@ -85,7 +86,7 @@ void Finley_Util_AddScatter(const dim_t len, const index_t* index, const dim_t n
        for(i=0;i<numData;i++) {
           if( index[s]<upperBound ) {
             out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
-	  }
+      }
        }
    }
 }
@@ -101,7 +102,7 @@ void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, 
           for (j=0;j<A2;j++) {
              rtmp=0;
              for (s=0;s<B2;s++) rtmp+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];
-			 A[INDEX2(i,j,A1)]=rtmp;
+             A[INDEX2(i,j,A1)]=rtmp;
           }
        }
 }
@@ -185,7 +186,7 @@ void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, doub
          break;
 
       case 3: 
-	 for (q=0;q<len;q++) {
+     for (q=0;q<len;q++) {
             A11=A[INDEX3(0,0,q,3,3)];
             A21=A[INDEX3(1,0,q,3,3)];
             A31=A[INDEX3(2,0,q,3,3)];
@@ -245,7 +246,7 @@ void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
          break;
 
       case 3: 
-	 for (q=0;q<len;q++) {
+     for (q=0;q<len;q++) {
             A11=A[INDEX3(0,0,q,3,3)];
             A21=A[INDEX3(1,0,q,3,3)];
             A31=A[INDEX3(2,0,q,3,3)];
@@ -387,10 +388,8 @@ void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array) {
 }
 
 
-/************************************************************************************/
-
+/*****************************************************************************/
 /* calculates the minimum value from a dim X N integer array */
-
 index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values) {
    dim_t i,j;
    index_t out,out_local;
@@ -410,9 +409,7 @@ index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values) {
    }
    return out;
 }
-                                                                                                                                                   
 /* calculates the maximum value from a dim X N integer array */
-
 index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
    dim_t i,j;
    index_t out,out_local;
@@ -432,6 +429,32 @@ index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values) {
    }
    return out;
 }
+
+std::pair<int,int> Finley_Util_getMinMaxInt(int dim, int N, int* values)
+{
+    int vmin = std::numeric_limits<int>::max();
+    int vmax = std::numeric_limits<int>::min();
+    if (values && dim*N > 0) {
+        vmin = vmax = values[0];
+#pragma omp parallel
+        {
+            int vmin_local=vmin;
+            int vmax_local=vmax;
+#pragma omp for
+            for (int j=0; j<N; j++) {
+                for (int i=0; i<dim; i++) {
+                    vmin_local=std::min(vmin_local, values[INDEX2(i,j,dim)]);
+                    vmax_local=std::max(vmax_local, values[INDEX2(i,j,dim)]);
+                }
+            }
+#pragma omp critical
+            vmin=std::min(vmin_local, vmin);
+            vmax=std::max(vmax_local, vmax);
+        }
+    }
+    return std::pair<int,int>(vmin,vmax);
+}
+                                                                                                                                                   
 /************************************************************************************/
 
 /* calculates the minimum value from a dim X N integer array */
@@ -545,55 +568,46 @@ index_t Finley_Util_cumsum(dim_t N,index_t* array) {
    return out;
 }
 
-void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Esys_MPIInfo* mpiinfo)
+void Finley_Util_setValuesInUse(const int *values, const int numValues,
+                                std::vector<int>& valuesInUse,
+                                Esys_MPIInfo* mpiinfo)
 {
-   dim_t i;
-   index_t lastFoundValue=INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse=NULL;
-   register index_t itmp;
-   bool_t allFound=FALSE;
-   dim_t nv=0;
+    int lastFoundValue=INDEX_T_MIN;
+    bool allFound=false;
 
-   while (! allFound) {
-       /* 
-        *  find smallest value bigger than lastFoundValue 
-        */
-        minFoundValue=INDEX_T_MAX;
-        #pragma omp parallel private(local_minFoundValue)
+    valuesInUse.clear();
+
+    while (!allFound) {
+        // find smallest value bigger than lastFoundValue 
+        int minFoundValue = INDEX_T_MAX;
+#pragma omp parallel
         {
-            local_minFoundValue=minFoundValue;
-            #pragma omp for private(i,itmp) schedule(static)
-            for (i=0;i< numValues;i++) {
-               itmp=values[i];
-               if ((itmp>lastFoundValue) && (itmp<local_minFoundValue)) local_minFoundValue=itmp;
+            int local_minFoundValue=minFoundValue;
+#pragma omp for
+            for (int i=0; i<numValues; i++) {
+                const int val=values[i];
+                if ((val>lastFoundValue) && (val<local_minFoundValue))
+                    local_minFoundValue=val;
             }
-            #pragma omp critical
+#pragma omp critical
             {
-               if (local_minFoundValue<minFoundValue) minFoundValue=local_minFoundValue;
+                if (local_minFoundValue<minFoundValue)
+                    minFoundValue=local_minFoundValue;
             }
+        }
+#ifdef ESYS_MPI
+        int local_minFoundValue=minFoundValue;
+        MPI_Allreduce(&local_minFoundValue, &minFoundValue, 1, MPI_INT, MPI_MIN, mpiinfo->comm);
+#endif
 
-         }
-         #ifdef ESYS_MPI
-         local_minFoundValue=minFoundValue;
-         MPI_Allreduce(&local_minFoundValue,&minFoundValue, 1, MPI_INT, MPI_MIN, mpiinfo->comm );
-         #endif
-         /* if we found a new tag we need to add this to the valuesInUseList */
-
+         // if we found a new value we need to add this to valuesInUse
          if (minFoundValue < INDEX_T_MAX) {
-             newValuesInUse=new index_t[nv+1];
-             if (*valuesInUse!=NULL) {
-                 memcpy(newValuesInUse,*valuesInUse,sizeof(index_t)*nv);
-                 delete[] *valuesInUse;
-             }
-             newValuesInUse[nv]=minFoundValue;
-             *valuesInUse=newValuesInUse;
-             newValuesInUse=NULL;
-             nv++;
+             valuesInUse.push_back(minFoundValue);
              lastFoundValue=minFoundValue;
          } else {
-             allFound=TRUE;
+             allFound=true;
          }
-   }
-   *numValuesInUse=nv;
+    }
 }
 
 

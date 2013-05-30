@@ -14,11 +14,11 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Some utility routines: */
+  Some utility routines
 
-/************************************************************************************/
+*****************************************************************************/
 
 #ifndef INC_FINLEY_UTIL
 #define INC_FINLEY_UTIL
@@ -26,7 +26,7 @@
 #include "Finley.h"
 #include "esysUtils/Esys_MPI.h"
 
-/************************************************************************************/
+#include <vector>
 
 void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in,double * out);
 void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData,index_t* in,index_t * out);
@@ -41,13 +41,16 @@ void Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,dou
 void Finley_Util_InvertMap(dim_t, index_t*,dim_t, index_t*);
 index_t Finley_Util_getMaxInt(dim_t dim,dim_t N,index_t* values);
 index_t Finley_Util_getMinInt(dim_t dim,dim_t N,index_t* values);
+std::pair<int,int> Finley_Util_getMinMaxInt(int dim, int N, int* values);
 index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values,index_t ignore);
 index_t Finley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values,index_t ignore);
 dim_t Finley_Util_packMask(dim_t N,bool_t* mask,index_t* index);
 bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value);
 index_t Finley_Util_cumsum(dim_t,index_t*);
 bool_t Finley_Util_anyNonZeroDouble(dim_t N,double* values);
-void Finley_Util_setValuesInUse(const index_t *values, const dim_t numValues, dim_t *numValuesInUse, index_t **valuesInUse, Esys_MPIInfo* mpiinfo);
+void Finley_Util_setValuesInUse(const int *values, const int numValues,
+                                std::vector<int>& valuesInUse,
+                                Esys_MPIInfo* mpiinfo);
 
 #ifdef ESYS_MPI
 void Finley_printDoubleArray( FILE *fid, dim_t n, double *array, char *name  );

@@ -16,16 +16,16 @@
 /*
   input: 
     double* coordinates[DIM*(*)]
-    dim_t numQuad
+    int numQuad
     double* QuadWeights[numQuad]
-    dim_t numShape
-    dim_t numElements
-    dim_t numNodes
-    index_t* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
+    int numShape
+    int numElements
+    int numNodes
+    int* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
     double* DSDv[numShape*DIM*numQuad]
-    dim_t numTest
+    int numTest
     double* DTDv[LOCDIM*numTest*numQuad] 
-    index_t* element_id[numElements]
+    int* element_id[numElements]
 
   output:
     double* dTdX[DIM*numTest*NUMSIDES*numQuad*numElements]
@@ -41,12 +41,12 @@
 //
 //  Jacobian 1D
 //
-void Finley_Assemble_jacobians_1D(double* coordinates, dim_t numQuad,
-                                  double* QuadWeights, dim_t numShape,
-                                  dim_t numElements, dim_t numNodes,
-                                  index_t* nodes, double* DSDv, dim_t numTest,
+void Finley_Assemble_jacobians_1D(double* coordinates, int numQuad,
+                                  double* QuadWeights, int numShape,
+                                  int numElements, int numNodes,
+                                  int* nodes, double* DSDv, int numTest,
                                   double* DTDv, double* dTdX, double* volume,
-                                  index_t* element_id)
+                                  int* element_id)
 {
     const int DIM=1;
     const int LOCDIM=1;
@@ -79,12 +79,12 @@ void Finley_Assemble_jacobians_1D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 2D with area element
 //
-void Finley_Assemble_jacobians_2D(double* coordinates, dim_t numQuad,
-                                  double* QuadWeights, dim_t numShape,
-                                  dim_t numElements, dim_t numNodes,
-                                  index_t* nodes, double* DSDv, dim_t numTest,
+void Finley_Assemble_jacobians_2D(double* coordinates, int numQuad,
+                                  double* QuadWeights, int numShape,
+                                  int numElements, int numNodes,
+                                  int* nodes, double* DSDv, int numTest,
                                   double* DTDv, double* dTdX, double* volume,
-                                  index_t* element_id)
+                                  int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -134,13 +134,13 @@ void Finley_Assemble_jacobians_2D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 1D manifold in 2D and 1D elements
 //
-void Finley_Assemble_jacobians_2D_M1D_E1D(double* coordinates, dim_t numQuad,
-                                          double* QuadWeights, dim_t numShape,
-                                          dim_t numElements, dim_t numNodes,
-                                          index_t* nodes, double* DSDv,
-                                          dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
+                                          double* QuadWeights, int numShape,
+                                          int numElements, int numNodes,
+                                          int* nodes, double* DSDv,
+                                          int numTest, double* DTDv,
                                           double* dTdX, double* volume,
-                                          index_t* element_id)
+                                          int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=1;
@@ -182,13 +182,13 @@ void Finley_Assemble_jacobians_2D_M1D_E1D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 1D manifold in 2D and 1D elements with contact
 //
-void Finley_Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,
-                                            double* QuadWeights, dim_t numShape,
-                                            dim_t numElements, dim_t numNodes,
-                                            index_t* nodes, double* DSDv,
-                                            dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
+                                            double* QuadWeights, int numShape,
+                                            int numElements, int numNodes,
+                                            int* nodes, double* DSDv,
+                                            int numTest, double* DTDv,
                                             double* dTdX, double* volume,
-                                            index_t* element_id)
+                                            int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=1;
@@ -244,13 +244,13 @@ void Finley_Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 1D manifold in 2D and 2D elements
 //
-void Finley_Assemble_jacobians_2D_M1D_E2D(double* coordinates, dim_t numQuad,
-                                          double* QuadWeights, dim_t numShape,
-                                          dim_t numElements, dim_t numNodes,
-                                          index_t* nodes, double* DSDv,
-                                          dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
+                                          double* QuadWeights, int numShape,
+                                          int numElements, int numNodes,
+                                          int* nodes, double* DSDv,
+                                          int numTest, double* DTDv,
                                           double* dTdX, double* volume,
-                                          index_t* element_id)
+                                          int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -300,13 +300,13 @@ void Finley_Assemble_jacobians_2D_M1D_E2D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 1D manifold in 2D and 2D elements with contact
 //
-void Finley_Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,
-                                            double* QuadWeights, dim_t numShape,
-                                            dim_t numElements, dim_t numNodes,
-                                            index_t* nodes, double* DSDv,
-                                            dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
+                                            double* QuadWeights, int numShape,
+                                            int numElements, int numNodes,
+                                            int* nodes, double* DSDv,
+                                            int numTest, double* DTDv,
                                             double* dTdX, double* volume,
-                                            index_t* element_id)
+                                            int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -378,12 +378,12 @@ void Finley_Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 3D
 //
-void Finley_Assemble_jacobians_3D(double* coordinates, dim_t numQuad,
-                                  double* QuadWeights, dim_t numShape,
-                                  dim_t numElements, dim_t numNodes,
-                                  index_t* nodes, double* DSDv, dim_t numTest,
+void Finley_Assemble_jacobians_3D(double* coordinates, int numQuad,
+                                  double* QuadWeights, int numShape,
+                                  int numElements, int numNodes,
+                                  int* nodes, double* DSDv, int numTest,
                                   double* DTDv, double* dTdX, double* volume,
-                                  index_t* element_id)
+                                  int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -455,13 +455,13 @@ void Finley_Assemble_jacobians_3D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 2D manifold in 3D with 3D elements
 //
-void Finley_Assemble_jacobians_3D_M2D_E3D(double* coordinates, dim_t numQuad,
-                                          double* QuadWeights, dim_t numShape,
-                                          dim_t numElements, dim_t numNodes,
-                                          index_t* nodes, double* DSDv,
-                                          dim_t numTest,double* DTDv,
+void Finley_Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
+                                          double* QuadWeights, int numShape,
+                                          int numElements, int numNodes,
+                                          int* nodes, double* DSDv,
+                                          int numTest,double* DTDv,
                                           double* dTdX, double* volume,
-                                          index_t* element_id)
+                                          int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -538,13 +538,13 @@ void Finley_Assemble_jacobians_3D_M2D_E3D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 2D manifold in 3D with 3D elements on contact
 //
-void Finley_Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,
-                                            double* QuadWeights, dim_t numShape,
-                                            dim_t numElements, dim_t numNodes,
-                                            index_t* nodes, double* DSDv,
-                                            dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
+                                            double* QuadWeights, int numShape,
+                                            int numElements, int numNodes,
+                                            int* nodes, double* DSDv,
+                                            int numTest, double* DTDv,
                                             double* dTdX, double* volume,
-                                            index_t* element_id)
+                                            int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -673,13 +673,13 @@ void Finley_Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 2D manifold in 3D with 2D elements
 //
-void Finley_Assemble_jacobians_3D_M2D_E2D(double* coordinates, dim_t numQuad,
-                                          double* QuadWeights, dim_t numShape,
-                                          dim_t numElements, dim_t numNodes,
-                                          index_t* nodes, double* DSDv,
-                                          dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
+                                          double* QuadWeights, int numShape,
+                                          int numElements, int numNodes,
+                                          int* nodes, double* DSDv,
+                                          int numTest, double* DTDv,
                                           double* dTdX, double* volume,
-                                          index_t* element_id)
+                                          int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=2;
@@ -742,13 +742,13 @@ void Finley_Assemble_jacobians_3D_M2D_E2D(double* coordinates, dim_t numQuad,
 //
 //  Jacobian 2D manifold in 3D with 2D elements with contact
 //
-void Finley_Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, dim_t numQuad,
-                                            double* QuadWeights, dim_t numShape,
-                                            dim_t numElements, dim_t numNodes,
-                                            index_t* nodes, double* DSDv,
-                                            dim_t numTest, double* DTDv,
+void Finley_Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
+                                            double* QuadWeights, int numShape,
+                                            int numElements, int numNodes,
+                                            int* nodes, double* DSDv,
+                                            int numTest, double* DTDv,
                                             double* dTdX, double* volume,
-                                            index_t* element_id)
+                                            int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=2;

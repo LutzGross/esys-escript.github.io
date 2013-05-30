@@ -78,7 +78,7 @@ inline void setShapeError(const char* c, int num, const int *dims)
     Finley_setError(TYPE_ERROR, errorMsg.c_str());
 }
 
-void Finley_Assemble_PDE(Finley_NodeFile* nodes, Finley_ElementFile* elements,
+void Finley_Assemble_PDE(finley::NodeFile* nodes, Finley_ElementFile* elements,
                          Paso_SystemMatrix* S, escriptDataC* F,
                          escriptDataC* A, escriptDataC* B, escriptDataC* C,
                          escriptDataC* D, escriptDataC* X, escriptDataC* Y)
@@ -177,7 +177,7 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes, Finley_ElementFile* elements,
     if (p.numEqu != p. numComp) {
         Finley_setError(VALUE_ERROR, "Finley_Assemble_PDE requires number of equations == number of solutions.");
     } else if (p.numEqu==1) {
-        const dim_t dimensions[2] = { p.numDim, p.numDim };
+        const int dimensions[2] = { p.numDim, p.numDim };
         if (!isDataPointShapeEqual(A, 2, dimensions)) {
             setShapeError("A", 2, dimensions);
         } else if (!isDataPointShapeEqual(B, 1, dimensions)) {
@@ -192,8 +192,8 @@ void Finley_Assemble_PDE(Finley_NodeFile* nodes, Finley_ElementFile* elements,
             Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: coefficient Y must be rank 0.");
         }
     } else {
-        const dim_t dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
-        const dim_t dimCD[3] = { p.numEqu, p.numComp, p.numDim };
+        const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
+        const int dimCD[3] = { p.numEqu, p.numComp, p.numDim };
         if (!isDataPointShapeEqual(A, 4, dimAB)) {
             setShapeError("A", 4, dimAB);
         } else if (!isDataPointShapeEqual(B, 3, dimAB)) {

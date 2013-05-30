@@ -24,7 +24,7 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_gradient(Finley_NodeFile* nodes,
+void Finley_Assemble_gradient(finley::NodeFile* nodes,
                               Finley_ElementFile* elements,
                               escriptDataC* grad_data,
                               escriptDataC* data)
@@ -33,13 +33,13 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
     if (!nodes || !elements)
         return;
 
-    const dim_t numComps=getDataPointSize(data);
-    const dim_t NN=elements->numNodes;
+    const int numComps=getDataPointSize(data);
+    const int NN=elements->numNodes;
     const bool_t reducedIntegrationOrder=Finley_Assemble_reducedIntegrationOrder(grad_data);
 
     const type_t data_type=getFunctionSpaceType(data);
     bool_t reducedShapefunction = FALSE;
-    dim_t numNodes = 0;
+    int numNodes = 0;
     if (data_type == FINLEY_NODES) {
         numNodes = nodes->nodesMapping->numTargets;
     } else if (data_type==FINLEY_REDUCED_NODES) { 
@@ -68,13 +68,13 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
     Finley_ReferenceElement *refElement =
         Finley_ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet, reducedIntegrationOrder);
-    const dim_t numDim=jac->numDim;
-    const dim_t numShapes=jac->BasisFunctions->Type->numShapes;
-    const dim_t numShapesTotal=jac->numShapesTotal;
-    const dim_t numSub=jac->numSub;
-    const dim_t numQuad=jac->numQuadTotal/numSub;
-    dim_t numShapesTotal2=0;
-    index_t s_offset=0, *nodes_selector=NULL;
+    const int numDim=jac->numDim;
+    const int numShapes=jac->BasisFunctions->Type->numShapes;
+    const int numShapesTotal=jac->numShapesTotal;
+    const int numSub=jac->numSub;
+    const int numQuad=jac->numQuadTotal/numSub;
+    int numShapesTotal2=0;
+    int s_offset=0, *nodes_selector=NULL;
   
     if (Finley_noError()) {
         const type_t grad_data_type=getFunctionSpaceType(grad_data);
@@ -118,16 +118,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         if (data_type==FINLEY_NODES) {
             if (numDim==1) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,n);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
                             }
@@ -136,16 +136,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==2) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,n);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
@@ -155,16 +155,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==3) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e); 
                     memset(grad_data_e,0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,n);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,2,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
@@ -177,16 +177,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         } else if (data_type==FINLEY_REDUCED_NODES) {
             if (numDim==1) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0;s<numShapes;s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0;s<numShapes;s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);            
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {                              
+                                for (int l=0; l<numComps; l++) {                              
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
                             }
@@ -195,16 +195,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==2) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
@@ -214,16 +214,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==3) {
 #pragma omp for
-                for (dim_t e=0;e<elements->numElements;e++) {
+                for (int e=0;e<elements->numElements;e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {   
+                            for (int q=0; q<numQuad; q++) {   
 #pragma ivdep
-                                for (dim_t l=0;l<numComps;l++) {
+                                for (int l=0;l<numComps;l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,2,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
@@ -236,16 +236,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
             if (numDim==1) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
                             }
@@ -254,16 +254,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==2) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
@@ -273,16 +273,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==3) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,2,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
@@ -295,16 +295,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
         } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             if (numDim==1) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
                             }
@@ -313,16 +313,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
                 }
             } else if (numDim==2) {
 #pragma omp for
-                for (dim_t e=0;e<elements->numElements;e++) {
+                for (int e=0;e<elements->numElements;e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e, 0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                 }
@@ -333,16 +333,16 @@ void Finley_Assemble_gradient(Finley_NodeFile* nodes,
 
             } else if (numDim==3) {
 #pragma omp for
-                for (dim_t e=0; e<elements->numElements; e++) {
+                for (int e=0; e<elements->numElements; e++) {
                     double *grad_data_e=getSampleDataRW(grad_data,e);
                     memset(grad_data_e,0, localGradSize);
-                    for (dim_t isub=0; isub<numSub; isub++) {
-                        for (dim_t s=0; s<numShapes; s++) {
-                            const dim_t n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
+                    for (int isub=0; isub<numSub; isub++) {
+                        for (int s=0; s<numShapes; s++) {
+                            const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
                             const double *data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
-                            for (dim_t q=0; q<numQuad; q++) {
+                            for (int q=0; q<numQuad; q++) {
 #pragma ivdep
-                                for (dim_t l=0; l<numComps; l++) {
+                                for (int l=0; l<numComps; l++) {
                                     grad_data_e[INDEX4(l,0,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,0,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,1,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,1,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];
                                     grad_data_e[INDEX4(l,2,q,isub,numComps,numDim,numQuad)]+=data_array[l]*jac->DSDX[INDEX5(s_offset+s,2,q,isub,e,numShapesTotal,numDim,numQuad,numSub)];

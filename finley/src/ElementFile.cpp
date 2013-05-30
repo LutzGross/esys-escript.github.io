@@ -52,9 +52,6 @@ Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referen
   out->jacobians_reducedS_reducedQ=NULL;
 
   out->Owner=NULL;                
-  out->numTagsInUse=0;
-  out->tagsInUse=NULL;
-
   out->MPIInfo = Esys_MPIInfo_getReference( MPIInfo );
  
   out->jacobians=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElement->BasisFunctions);
