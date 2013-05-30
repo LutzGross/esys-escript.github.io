@@ -572,7 +572,7 @@ int NodeFile::createDenseDOFLabeling()
     for (int n=0; n<myDOFs; ++n)
         DOF_buffer[n]+=loc_offsets[MPIInfo->rank];
 
-    std::vector<bool> set_new_DOF(numNodes, true);
+    std::vector<bool_t> set_new_DOF(numNodes, TRUE);
 
     // now entries are collected from the buffer again by sending them around
     // in a circle
@@ -586,11 +586,11 @@ int NodeFile::createDenseDOFLabeling()
         const int dof1=distribution[buffer_rank+1];
 #pragma omp parallel for
         for (int n=0; n<numNodes; n++) {
-              const int k=globalDegreesOfFreedom[n];
-              if (set_new_DOF[n] && dof0<=k && k<dof1) {
-                  globalDegreesOfFreedom[n]=DOF_buffer[k-dof0];
-                  set_new_DOF[n]=false;
-              }
+            const int k=globalDegreesOfFreedom[n];
+            if (set_new_DOF[n] && dof0<=k && k<dof1) {
+                globalDegreesOfFreedom[n]=DOF_buffer[k-dof0];
+                set_new_DOF[n]=FALSE;
+            }
         }
         if (p<MPIInfo->size-1) { // the last send can be skipped
 #ifdef ESYS_MPI
@@ -652,17 +652,12 @@ int NodeFile::createDenseNodeLabeling(int* node_distribution,
     Node_buffer[1]=max_id;
 
     // mark and count the nodes in use
-#pragma omp parallel 
-    {
-#pragma omp for nowait
-        for (int n=0; n<numNodes; n++)
-            globalNodesIndex[n]=-1;
-#pragma omp for
-        for (int n=0; n<numNodes; n++) {
-            const int dof=globalDegreesOfFreedom[n];
-            if (myFirstDOF<=dof && dof<myLastDOF)
-                Node_buffer[Id[n]-min_id+header_len]=SET_ID;
-        }
+#pragma omp parallel for
+    for (int n=0; n<numNodes; n++) {
+        globalNodesIndex[n]=-1;
+        const int dof=globalDegreesOfFreedom[n];
+        if (myFirstDOF<=dof && dof<myLastDOF)
+            Node_buffer[Id[n]-min_id+header_len]=SET_ID;
     }
     int myNewNumNodes=0;
     for (int n=0; n<my_buffer_len; n++) {
@@ -688,7 +683,7 @@ int NodeFile::createDenseNodeLabeling(int* node_distribution,
     node_distribution[MPIInfo->size]=globalNumNodes;
 
     // offset node buffer
-#pragma omp for
+#pragma omp parallel for
     for (int n=0; n<my_buffer_len; n++)
         Node_buffer[n+header_len]+=node_distribution[MPIInfo->rank];
 
@@ -704,7 +699,7 @@ int NodeFile::createDenseNodeLabeling(int* node_distribution,
         const int dof0=dof_distribution[buffer_rank];
         const int dof1=dof_distribution[buffer_rank+1];
         if (nodeID_0 <= nodeID_1) {
-#pragma omp for
+#pragma omp parallel for
             for (int n=0; n<numNodes; n++) {
                 const int dof=globalDegreesOfFreedom[n];
                 const int id=Id[n]-nodeID_0;
