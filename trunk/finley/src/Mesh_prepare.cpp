@@ -113,27 +113,27 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 /*  tries to reduce the coloring for all element files: */
 /*                                                      */
 void Finley_Mesh_createColoring(Finley_Mesh* in, index_t *node_localDOF_map) {
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->Elements,in->Nodes->numNodes,node_localDOF_map);
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->FaceElements,in->Nodes->numNodes,node_localDOF_map);
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->Points,in->Nodes->numNodes,node_localDOF_map);
-  if (Finley_noError()) Finley_ElementFile_createColoring(in->ContactElements,in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) in->Elements->createColoring(in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) in->FaceElements->createColoring(in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) in->Points->createColoring(in->Nodes->numNodes,node_localDOF_map);
+  if (Finley_noError()) in->ContactElements->createColoring(in->Nodes->numNodes,node_localDOF_map);
 }
 /*                                                                    */
 /*  redistribute elements to minimize communication during assemblage */
 /*                                                                    */
 void Finley_Mesh_optimizeElementOrdering(Finley_Mesh* in) {
-  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->Elements));
-  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->FaceElements));
-  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->Points));
-  if (Finley_noError()) Finley_ElementFile_optimizeOrdering(&(in->ContactElements));
+  if (Finley_noError()) in->Elements->optimizeOrdering();
+  if (Finley_noError()) in->FaceElements->optimizeOrdering();
+  if (Finley_noError()) in->Points->optimizeOrdering();
+  if (Finley_noError()) in->ContactElements->optimizeOrdering();
 }
 
 void Finley_Mesh_setTagsInUse(Finley_Mesh* in)
 {
     if (Finley_noError()) in->Nodes->updateTagList();
-    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Elements);
-    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->FaceElements);
-    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->Points);
-    if (Finley_noError()) Finley_ElementFile_setTagsInUse(in->ContactElements);
+    if (Finley_noError()) in->Elements->updateTagList();
+    if (Finley_noError()) in->FaceElements->updateTagList();
+    if (Finley_noError()) in->Points->updateTagList();
+    if (Finley_noError()) in->ContactElements->updateTagList();
 }
 

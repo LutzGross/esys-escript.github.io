@@ -13,9 +13,8 @@
 *
 *****************************************************************************/
 
-
-#ifndef INC_FINLEY_NODEFILE
-#define INC_FINLEY_NODEFILE
+#ifndef __FINLEY_NODEFILE_H__
+#define __FINLEY_NODEFILE_H__
 
 #define MAX_numDim 3
 
@@ -248,7 +247,7 @@ inline int* NodeFile::borrowReducedDegreesOfFreedomTarget()
 }
 
 
-} // namespace
+} // namespace finley
 
-#endif
+#endif // __FINLEY_NODEFILE_H__
 

@@ -23,7 +23,7 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_CopyElementData(Finley_ElementFile* elements,
+void Finley_Assemble_CopyElementData(ElementFile* elements,
                                      escriptDataC* out, escriptDataC* in)
 {
     Finley_resetError();

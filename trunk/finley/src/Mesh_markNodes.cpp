@@ -27,10 +27,10 @@
 /************************************************************************************/
 
 void Finley_Mesh_markNodes(index_t* mask,index_t offset,Finley_Mesh* in,bool_t useLinear) {
-          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->Elements,useLinear);
-          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->FaceElements,useLinear);
-          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->ContactElements,useLinear);
-          Finley_ElementFile_markNodes(mask,offset,in->Nodes->numNodes,in->Points,useLinear);
+    in->Elements->markNodes(mask, offset, useLinear);
+    in->FaceElements->markNodes(mask, offset, useLinear);
+    in->ContactElements->markNodes(mask, offset, useLinear);
+    in->Points->markNodes(mask, offset, useLinear);
 }
 
 void Finley_Mesh_markDOFsConnectedToRange(index_t* mask, index_t offset, index_t marker, 
@@ -42,8 +42,8 @@ void Finley_Mesh_markDOFsConnectedToRange(index_t* mask, index_t offset, index_t
    } else {
        dofIndex=in->Nodes->globalDegreesOfFreedom;
    }
-   Finley_ElementFile_markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,in->Elements,useLinear);
-   Finley_ElementFile_markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,in->FaceElements,useLinear);
-   Finley_ElementFile_markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,in->ContactElements,useLinear);
-   Finley_ElementFile_markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,in->Points,useLinear);
+   in->Elements->markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,useLinear);
+   in->FaceElements->markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,useLinear);
+   in->ContactElements->markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,useLinear);
+   in->Points->markDOFsConnectedToRange(mask,offset,marker,firstDOF,lastDOF,dofIndex,useLinear);
 }

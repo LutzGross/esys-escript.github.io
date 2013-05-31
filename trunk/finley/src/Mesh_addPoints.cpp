@@ -42,7 +42,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints,
                            const double* points_ptr, const index_t* tags_ptr)
 {
     Esys_MPIInfo *mpi_info = Esys_MPIInfo_getReference(mesh->MPIInfo);
-    Finley_ElementFile *oldPoints=mesh->Points;
+    ElementFile *oldPoints=mesh->Points;
     Finley_ReferenceElementSet *refPoints=NULL;
     dim_t numOldPoints;
     if (oldPoints == NULL) {
@@ -53,7 +53,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints,
         refPoints=Finley_ReferenceElementSet_reference(oldPoints->referenceElementSet);
         numOldPoints=mesh->Points->numElements;
     }
-    Finley_ElementFile *newPoints=Finley_ElementFile_alloc(refPoints, mpi_info);
+    ElementFile *newPoints=new ElementFile(refPoints, mpi_info);
 
     // first we find the node which is the closest on this processor:
     double *dist_p = new double[numPoints];
@@ -223,7 +223,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints,
     }
 
     // now we are ready to create the new Point table
-    Finley_ElementFile_allocTable(newPoints, numOldPoints+numNewPoints);
+    newPoints->allocTable(numOldPoints+numNewPoints);
     if (numOldPoints > 0) {
 #pragma omp parallel for schedule(static)
         for(dim_t n=0; n<numOldPoints; n++) {
@@ -252,10 +252,10 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints,
     Finley_ReferenceElementSet_dealloc(refPoints);
     Esys_MPIInfo_free(mpi_info);
     if (Finley_noError()) {
-        Finley_ElementFile_free(oldPoints);
+        delete oldPoints;
         mesh->Points=newPoints;
     } else {
-        Finley_ElementFile_free(newPoints);
+        delete newPoints;
     }
 }
 

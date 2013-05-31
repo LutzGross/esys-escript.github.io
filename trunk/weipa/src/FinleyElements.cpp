@@ -196,7 +196,7 @@ bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
 //
 //
 //
-bool FinleyElements::initFromFinley(const Finley_ElementFile* finleyFile)
+bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
 {
 #ifndef VISIT_PLUGIN
     numElements = finleyFile->numElements;

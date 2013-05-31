@@ -26,8 +26,8 @@
 
 #include <vector>
 
-void Finley_Assemble_getSize(finley::NodeFile* nodes,
-                             Finley_ElementFile* elements,
+void Finley_Assemble_getSize(NodeFile* nodes,
+                             ElementFile* elements,
                              escriptDataC* element_size)
 {
     Finley_resetError();

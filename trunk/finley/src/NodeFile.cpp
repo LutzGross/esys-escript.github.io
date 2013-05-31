@@ -114,7 +114,7 @@ NodeFile::~NodeFile()
     Esys_MPIInfo_free(MPIInfo);
 }
 
-/// allocates the node table within a node file to hold NN nodes.
+/// allocates the node table within this node file to hold NN nodes.
 void NodeFile::allocTable(int NN) 
 {
     if (numNodes>0)
@@ -150,8 +150,7 @@ void NodeFile::allocTable(int NN)
     }
 }
 
-/*  frees the node table within a node file: */
-
+/// frees the node table within this node file
 void NodeFile::freeTable()
 {
     delete[] Id;

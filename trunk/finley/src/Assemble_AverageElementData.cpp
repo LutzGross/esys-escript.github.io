@@ -23,7 +23,7 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_AverageElementData(Finley_ElementFile* elements,
+void Finley_Assemble_AverageElementData(ElementFile* elements,
                                         escriptDataC* out, escriptDataC* in)
 {
     Finley_resetError();

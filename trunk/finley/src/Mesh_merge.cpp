@@ -140,19 +140,19 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
         refPoints=Finley_ReferenceElementSet_alloc(pointTypeId, order,reduced_order);
     }
     if (Finley_noError()) {
-      out->Elements=Finley_ElementFile_alloc(refElements,mpi_info);
-      out->FaceElements=Finley_ElementFile_alloc(refFaceElements,mpi_info);
-      out->Points=Finley_ElementFile_alloc(refPoints,mpi_info);
-      out->ContactElements=Finley_ElementFile_alloc(refContactElements,mpi_info);
+      out->Elements=new ElementFile(refElements,mpi_info);
+      out->FaceElements=new ElementFile(refFaceElements,mpi_info);
+      out->Points=new ElementFile(refPoints,mpi_info);
+      out->ContactElements=new ElementFile(refContactElements,mpi_info);
 
     }
     /* allocate new tables */
     if (Finley_noError()) {
         out->Nodes->allocTable(numNodes);
-        Finley_ElementFile_allocTable(out->Elements,numElements);
-        Finley_ElementFile_allocTable(out->FaceElements,numFaceElements);
-        Finley_ElementFile_allocTable(out->ContactElements,numContactElements);
-        Finley_ElementFile_allocTable(out->Points,numPoints);       
+        out->Elements->allocTable(numElements);
+        out->FaceElements->allocTable(numFaceElements);
+        out->ContactElements->allocTable(numContactElements);
+        out->Points->allocTable(numPoints);       
     }
 
     /* copy tables :*/
@@ -166,10 +166,10 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
         for (i=0; i<numMsh; i++) {
             out->Nodes->copyTable(numNodes, maxNodeID, maxDOF, msh[i]->Nodes); 
-            Finley_ElementFile_copyTable(numElements,out->Elements,numNodes,maxElementID,msh[i]->Elements); 
-            Finley_ElementFile_copyTable(numFaceElements,out->FaceElements,numNodes,maxElementID,msh[i]->FaceElements); 
-            Finley_ElementFile_copyTable(numContactElements,out->ContactElements,numNodes,maxElementID,msh[i]->ContactElements); 
-            Finley_ElementFile_copyTable(numPoints,out->Points,numNodes,maxElementID,msh[i]->Points); 
+            out->Elements->copyTable(numElements,numNodes,maxElementID,msh[i]->Elements); 
+            out->FaceElements->copyTable(numFaceElements,numNodes,maxElementID,msh[i]->FaceElements); 
+            out->ContactElements->copyTable(numContactElements,numNodes,maxElementID,msh[i]->ContactElements); 
+            out->Points->copyTable(numPoints,numNodes,maxElementID,msh[i]->Points); 
 
             numNodes=+msh[i]->Nodes->numNodes;
             numElements=+msh[i]->Elements->numElements;

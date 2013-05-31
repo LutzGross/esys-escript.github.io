@@ -24,8 +24,8 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_gradient(finley::NodeFile* nodes,
-                              Finley_ElementFile* elements,
+void Finley_Assemble_gradient(NodeFile* nodes,
+                              ElementFile* elements,
                               escriptDataC* grad_data,
                               escriptDataC* data)
 {
@@ -63,8 +63,8 @@ void Finley_Assemble_gradient(finley::NodeFile* nodes,
         return;
     }
 
-    Finley_ElementFile_Jacobians *jac = Finley_ElementFile_borrowJacobians(
-            elements, nodes, reducedShapefunction, reducedIntegrationOrder);
+    ElementFile_Jacobians *jac = elements->borrowJacobians(nodes,
+            reducedShapefunction, reducedIntegrationOrder);
     Finley_ReferenceElement *refElement =
         Finley_ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet, reducedIntegrationOrder);

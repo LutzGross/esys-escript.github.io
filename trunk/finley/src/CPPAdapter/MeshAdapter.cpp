@@ -2029,36 +2029,32 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const
 {
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC tmp=mask.getDataC();
     switch(functionSpaceType) {
         case Nodes:
             mesh->Nodes->setTags(newTag, mask);
             break;
         case ReducedNodes:
             throw FinleyAdapterException("Error - ReducedNodes does not support tags");
-            break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - DegreesOfFreedom does not support tags");
-            break;
         case ReducedDegreesOfFreedom:
             throw FinleyAdapterException("Error - ReducedDegreesOfFreedom does not support tags");
-            break;
         case Elements:
         case ReducedElements:
-            Finley_ElementFile_setTags(mesh->Elements,newTag,&tmp);
+            mesh->Elements->setTags(newTag, mask);
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Finley_ElementFile_setTags(mesh->FaceElements,newTag,&tmp);
+            mesh->FaceElements->setTags(newTag, mask);
             break;
         case Points:
-            Finley_ElementFile_setTags(mesh->Points,newTag,&tmp);
+            mesh->Points->setTags(newTag, mask);
             break;
         case ContactElementsZero:
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            Finley_ElementFile_setTags(mesh->ContactElements,newTag,&tmp);
+            mesh->ContactElements->setTags(newTag, mask);
             break;
         default:
             stringstream temp;

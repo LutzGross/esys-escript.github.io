@@ -26,8 +26,8 @@
 
 #include <vector>
 
-void Finley_Assemble_setNormal(finley::NodeFile* nodes,
-                               Finley_ElementFile* elements,
+void Finley_Assemble_setNormal(NodeFile* nodes,
+                               ElementFile* elements,
                                escriptDataC* normal)
 {
   Finley_resetError();

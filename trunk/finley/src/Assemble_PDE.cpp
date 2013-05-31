@@ -78,7 +78,7 @@ inline void setShapeError(const char* c, int num, const int *dims)
     Finley_setError(TYPE_ERROR, errorMsg.c_str());
 }
 
-void Finley_Assemble_PDE(finley::NodeFile* nodes, Finley_ElementFile* elements,
+void Finley_Assemble_PDE(NodeFile* nodes, ElementFile* elements,
                          Paso_SystemMatrix* S, escriptDataC* F,
                          escriptDataC* A, escriptDataC* B, escriptDataC* C,
                          escriptDataC* D, escriptDataC* X, escriptDataC* Y)

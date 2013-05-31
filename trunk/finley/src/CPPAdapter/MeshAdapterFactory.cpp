@@ -172,11 +172,11 @@ namespace finley {
         if (Finley_noError()) {
             Finley_ReferenceElementSet *refElements=Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Elements_TypeId,order, reduced_order);
             if (Finley_noError())  {
-                mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
+                mesh_p->Elements=new ElementFile(refElements, mpi_info);
             }
             Finley_ReferenceElementSet_dealloc(refElements);
             if (Finley_noError())
-                Finley_ElementFile_allocTable(mesh_p->Elements, num_Elements);
+                mesh_p->Elements->allocTable(num_Elements);
             if (Finley_noError()) {
                 mesh_p->Elements->minColor=0;
                 mesh_p->Elements->maxColor=num_Elements-1;
@@ -228,7 +228,7 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(Elements_Nodes);
-                   Finley_ElementFile_setTagsInUse(mesh_p->Elements);
+                   mesh_p->Elements->updateTagList();
                 } /* num_Elements>0 */
             }
         }
@@ -238,11 +238,11 @@ namespace finley {
             Finley_ReferenceElementSet *refFaceElements =
                 Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)FaceElements_TypeId, order, reduced_order);
             if (Finley_noError())  {
-                mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
+                mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
             }
             Finley_ReferenceElementSet_dealloc(refFaceElements);  
             if (Finley_noError())
-                Finley_ElementFile_allocTable(mesh_p->FaceElements, num_FaceElements);
+                mesh_p->FaceElements->allocTable(num_FaceElements);
             if (Finley_noError()) {
                 mesh_p->FaceElements->minColor=0;
                 mesh_p->FaceElements->maxColor=num_FaceElements-1;
@@ -292,7 +292,7 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(FaceElements_Nodes);
-                   Finley_ElementFile_setTagsInUse(mesh_p->FaceElements);
+                   mesh_p->FaceElements->updateTagList();
                 } /* num_FaceElements>0 */
             }
         }
@@ -302,11 +302,11 @@ namespace finley {
             Finley_ReferenceElementSet *refContactElements =
                 Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)ContactElements_TypeId, order, reduced_order);
             if (Finley_noError()) {
-                mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
+                mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
             }
             Finley_ReferenceElementSet_dealloc(refContactElements);       
             if (Finley_noError())
-                Finley_ElementFile_allocTable(mesh_p->ContactElements, num_ContactElements);
+                mesh_p->ContactElements->allocTable(num_ContactElements);
             if (Finley_noError()) {
                 mesh_p->ContactElements->minColor=0;
                 mesh_p->ContactElements->maxColor=num_ContactElements-1;
@@ -356,7 +356,7 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(ContactElements_Nodes);
-                   Finley_ElementFile_setTagsInUse(mesh_p->ContactElements);
+                   mesh_p->ContactElements->updateTagList();
                } /* num_ContactElements>0 */
            }
         }
@@ -366,11 +366,11 @@ namespace finley {
             Finley_ReferenceElementSet *refPoints =
                 Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Points_TypeId,order, reduced_order);
             if (Finley_noError())  {
-                mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
+                mesh_p->Points=new ElementFile(refPoints, mpi_info);
             }
             Finley_ReferenceElementSet_dealloc(refPoints);
             if (Finley_noError())
-                Finley_ElementFile_allocTable(mesh_p->Points, num_Points);
+                mesh_p->Points->allocTable(num_Points);
             if (Finley_noError()) {
                 mesh_p->Points->minColor=0;
                 mesh_p->Points->maxColor=num_Points-1;
@@ -418,7 +418,7 @@ namespace finley {
                        mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
                    }
                    TMPMEMFREE(Points_Nodes);
-                   Finley_ElementFile_setTagsInUse(mesh_p->Points);
+                   mesh_p->Points->updateTagList();
                 } /* num_Points>0 */
             }
         }
@@ -713,7 +713,7 @@ namespace finley {
     {
         Finley_Mesh_addTagMap(out, it->first.c_str(), it->second);
     }
-    Finley_ElementFile_setTagsInUse(out->Points);
+    out->Points->updateTagList();
     return temp->getPtr();
   }
 

@@ -14,144 +14,547 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: ElementFile */
+  Finley: ElementFile
 
-/*   allocates an element file to hold elements of type id and with integration order order. */
-/*   use Finley_Mesh_allocElementTable to allocate the element table (Id,Nodes,Tag,Owner). */
-
-/************************************************************************************/
+*****************************************************************************/
 
 #include "ElementFile.h"
+#include "Util.h"
+#include <escript/Data.h>
 
-/************************************************************************************/
+#include <algorithm> // std::swap
 
-Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Esys_MPIInfo *MPIInfo)
+namespace finley {
+
+inline bool hasReducedIntegrationOrder(const escript::Data& in)
 {
-  Finley_ElementFile *out;
-  
-  
-  if (! Finley_noError()) return NULL;
-  
-  /*  allocate the return value */
-  
-  out=new Finley_ElementFile;
-  if (Finley_checkPtr(out)) return NULL;
-  out->referenceElementSet=Finley_ReferenceElementSet_reference(referenceElementSet);
-  out->numElements=0;
-  out->Id=NULL;
-  out->Nodes=NULL;
-  out->Tag=NULL;
-  out->Color=NULL;
-  out->minColor=0;
-  out->maxColor=-1;
-  out->jacobians=NULL;
-  out->jacobians_reducedQ=NULL;
-  out->jacobians_reducedS=NULL;
-  out->jacobians_reducedS_reducedQ=NULL;
+    const int fs = in.getFunctionSpace().getTypeCode();
+    return (fs == FINLEY_REDUCED_ELEMENTS || fs == FINLEY_REDUCED_FACE_ELEMENTS
+                || fs == FINLEY_REDUCED_CONTACT_ELEMENTS_1
+                || fs == FINLEY_REDUCED_CONTACT_ELEMENTS_2);
+}
 
-  out->Owner=NULL;                
-  out->MPIInfo = Esys_MPIInfo_getReference( MPIInfo );
  
-  out->jacobians=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElement->BasisFunctions);
-  out->jacobians_reducedQ=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
-  out->jacobians_reducedS=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElement->LinearBasisFunctions);
-  out->jacobians_reducedS_reducedQ=Finley_ElementFile_Jacobians_alloc(referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
+/// constructor
+/// use ElementFile::allocTable to allocate the element table
+ElementFile::ElementFile(Finley_ReferenceElementSet* refSet,
+                         Esys_MPIInfo *mpiInfo)
+{
+    referenceElementSet=Finley_ReferenceElementSet_reference(refSet);
+    numElements=0;
+    Id=NULL;
+    Nodes=NULL;
+    Tag=NULL;
+    Color=NULL;
+    minColor=0;
+    maxColor=-1;
+    Owner=NULL;                
+    MPIInfo=Esys_MPIInfo_getReference(mpiInfo);
+ 
+    jacobians=new ElementFile_Jacobians(
+            referenceElementSet->referenceElement->BasisFunctions);
+    jacobians_reducedQ=new ElementFile_Jacobians(
+            referenceElementSet->referenceElementReducedQuadrature->BasisFunctions);
+    jacobians_reducedS=new ElementFile_Jacobians(
+            referenceElementSet->referenceElement->LinearBasisFunctions);
+    jacobians_reducedS_reducedQ=new ElementFile_Jacobians(
+            referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
 
-
-
-  if (! Finley_noError()) {
-     Finley_ElementFile_free(out);
-     return NULL;
-  }
-  out->numNodes=out->referenceElementSet->numNodes;
-  return out;
+    numNodes=referenceElementSet->numNodes;
 }
 
-/*  deallocates an element file: */
-
-void Finley_ElementFile_free(Finley_ElementFile* in) {
-  if (in!=NULL) {
-     Finley_ElementFile_freeTable(in);   
-     Finley_ReferenceElementSet_dealloc(in->referenceElementSet);
-     Finley_ElementFile_Jacobians_dealloc(in->jacobians);
-     Finley_ElementFile_Jacobians_dealloc(in->jacobians_reducedS);
-     Finley_ElementFile_Jacobians_dealloc(in->jacobians_reducedQ);
-     Finley_ElementFile_Jacobians_dealloc(in->jacobians_reducedS_reducedQ);
-     Esys_MPIInfo_free( in->MPIInfo );
-     delete in;      
-  }
+/// destructor
+ElementFile::~ElementFile()
+{
+    freeTable();   
+    Finley_ReferenceElementSet_dealloc(referenceElementSet);
+    delete jacobians;
+    delete jacobians_reducedS;
+    delete jacobians_reducedQ;
+    delete jacobians_reducedS_reducedQ;
+    Esys_MPIInfo_free(MPIInfo);
 }
-void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution) {
-  dim_t local_num_elements,e,num_elements=0;
-  Esys_MPI_rank myRank;
-  if (in == NULL) {
-      distribution[0]=num_elements;
-  } else {
-      if (in->MPIInfo->size>1) {
-         num_elements=0;
-         myRank=in->MPIInfo->rank;
-         #pragma omp parallel private(local_num_elements)
-         {
-            local_num_elements=0;
-            #pragma omp for private(e)
-            for (e=0;e<in->numElements;e++) {
-               if (in->Owner[e] == myRank) local_num_elements++;
+
+/// allocates the element table within this element file to hold NE elements.
+void ElementFile::allocTable(int NE) 
+{
+    if (numElements>0)
+        freeTable();
+
+    numElements=NE;
+    Owner=new int[numElements];
+    Id=new int[numElements];
+    Nodes=new int[numElements*numNodes];
+    Tag=new int[numElements];
+    Color=new int[numElements];
+  
+    // this initialization makes sure that data are located on the right
+    // processor
+#pragma omp parallel for
+    for (int e=0; e<numElements; e++) {
+        for (int i=0; i<numNodes; i++)
+            Nodes[INDEX2(i,e,numNodes)]=-1;
+        Owner[e]=-1;
+        Id[e]=-1;
+        Tag[e]=-1;
+        Color[e]=-1;
+    }
+}
+
+/// deallocates the element table within this element file
+void ElementFile::freeTable()
+{
+    delete[] Owner;
+    delete[] Id;
+    delete[] Nodes;
+    delete[] Tag;
+    delete[] Color;
+    tagsInUse.clear();
+    numElements=0;
+    maxColor=-1;
+    minColor=0;
+}
+
+/// copies element file 'in' into this element file starting from 'offset'.
+/// The elements offset to in->numElements+offset-1 will be overwritten
+void ElementFile::copyTable(int offset, int nodeOffset, int idOffset,
+                            const ElementFile* in)
+{
+    const int NN_in=in->numNodes;
+    if (NN_in > numNodes) {
+        Finley_setError(TYPE_ERROR, "ElementFile::copyTable: dimensions of element files don't match.");
+        return;
+    }
+
+#pragma omp parallel for
+    for (int n=0; n<in->numElements; n++) {
+          Owner[offset+n]=in->Owner[n];
+          Id[offset+n]=in->Id[n]+idOffset;
+          Tag[offset+n]=in->Tag[n];
+          for (int i=0; i<numNodes; i++)
+              Nodes[INDEX2(i,offset+n,numNodes)] =
+                            in->Nodes[INDEX2(i,n,NN_in)]+nodeOffset;
+    }
+}
+
+void ElementFile::gather(int* index, const ElementFile* in)
+{
+    const int NN_in=in->numNodes;
+#pragma omp parallel for
+    for (int e=0; e<numElements; e++) {
+        const int k=index[e];
+        Id[e]=in->Id[k];
+        Tag[e]=in->Tag[k];
+        Owner[e]=in->Owner[k];
+        Color[e]=in->Color[k]+maxColor+1;
+        for (int j=0; j<std::min(numNodes,NN_in); j++)
+            Nodes[INDEX2(j,e,numNodes)]=in->Nodes[INDEX2(j,k,NN_in)];
+    }
+    minColor=std::min(minColor, in->minColor+maxColor+1);
+    maxColor=std::max(maxColor, in->maxColor+maxColor+1);
+}
+
+/// scatters the ElementFile in into this ElementFile.
+/// A conservative assumption on the coloring is made.
+void ElementFile::scatter(int* index, const ElementFile* in)
+{
+    const int NN_in=in->numNodes;
+#pragma omp parallel for
+    for (int e=0; e<in->numElements; e++) {
+        const int k=index[e];
+        Owner[k]=in->Owner[e];
+        Id[k]=in->Id[e];
+        Tag[k]=in->Tag[e];
+        Color[k]=in->Color[e]+maxColor+1;
+        for (int j=0; j<std::min(numNodes,NN_in); j++)
+            Nodes[INDEX2(j,k,numNodes)]=in->Nodes[INDEX2(j,e,NN_in)];
+    }
+    minColor=std::min(minColor, in->minColor+maxColor+1);
+    maxColor=std::max(maxColor, in->maxColor+maxColor+1);
+}
+
+void ElementFile::swapTable(ElementFile* other)
+{
+    std::swap(numElements, other->numElements);
+    std::swap(Owner, other->Owner);
+    std::swap(Id, other->Id);
+    std::swap(Nodes, other->Nodes);
+    std::swap(Tag, other->Tag);
+    std::swap(Color, other->Color);
+    std::swap(minColor, other->minColor);
+    std::swap(maxColor, other->maxColor);
+    std::swap(tagsInUse, other->tagsInUse);
+}
+
+void ElementFile::optimizeOrdering()
+{
+    if (numElements<1)
+        return;
+
+    const int NN=referenceElementSet->numNodes;
+    Finley_Util_ValueAndIndex* item_list=new Finley_Util_ValueAndIndex[numElements];
+    int *index=new int[numElements];
+    ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
+    out->allocTable(numElements);
+    if (Finley_noError()) {
+#pragma omp parallel for
+        for (int e=0; e<numElements; e++) {
+            item_list[e].index=e;
+            item_list[e].value=Nodes[INDEX2(0,e,NN)];
+            for (int i=1; i<NN; i++)
+                item_list[e].value=std::min(item_list[e].value, Nodes[INDEX2(i,e,NN)]);
+        }
+        Finley_Util_sortValueAndIndex(numElements, item_list);
+#pragma omp parallel for
+        for (int e=0; e<numElements; e++)
+            index[e]=item_list[e].index;
+        out->gather(index, this);
+        swapTable(out);
+    }
+    delete out;
+    delete[] item_list;
+    delete[] index;
+}
+
+/// assigns new node reference numbers to the elements.
+/// If k is the old node, the new node is newNode[k-offset].
+void ElementFile::relabelNodes(int* newNode, int offset)
+{
+#pragma omp parallel for
+    for (int j=0; j<numElements; j++) {
+        for (int i=0; i<numNodes; i++) {
+            Nodes[INDEX2(i,j,numNodes)]=
+                        newNode[Nodes[INDEX2(i,j,numNodes)]-offset];
+        }
+    }
+}
+
+void ElementFile::setTags(const int newTag, const escript::Data& cMask)
+{
+    Finley_resetError();
+
+    const int numQuad=Finley_ReferenceElementSet_borrowReferenceElement(
+            referenceElementSet, hasReducedIntegrationOrder(cMask))
+            ->Parametrization->numQuadNodes; 
+    if (1 != cMask.getDataPointSize()) {
+        Finley_setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
+        return;
+    } else if (cMask.getNumDataPointsPerSample() != numQuad ||
+            cMask.getNumSamples() != numElements) {
+        Finley_setError(TYPE_ERROR, "ElementFile::setTags: illegal number of samples of mask Data object");
+        return;
+    }
+
+    escript::Data& mask = *const_cast<escript::Data*>(&cMask);
+
+    if (mask.actsExpanded()) {
+#pragma omp parallel for
+        for (int n=0; n<numElements; n++) {
+            if (mask.getSampleDataRO(n)[0] > 0)
+                Tag[n]=newTag;
+        }
+    } else {
+#pragma omp parallel for
+        for (int n=0; n<numElements; n++) {
+            const double *mask_array=mask.getSampleDataRO(n);
+            bool check=false;
+            for (int q=0; q<numQuad; q++)
+                check = (check || mask_array[q]);
+            if (check)
+                Tag[n]=newTag;
+        }
+    }
+    updateTagList();
+}
+
+/// Tries to reduce the number of colours used to colour the elements
+void ElementFile::createColoring(int nodeCount, int* degreeOfFreedom)
+{
+    if (numElements < 1)
+        return;
+
+    const int NN = numNodes;
+    const std::pair<int,int> idRange(
+            Finley_Util_getMinMaxInt(1, nodeCount, degreeOfFreedom));
+    const int len=idRange.second-idRange.first+1;
+
+    // reset color vector
+#pragma omp parallel for
+    for (int e=0; e<numElements; e++)
+        Color[e]=-1;
+
+    int numUncoloredElements=numElements;
+    minColor=0;
+    maxColor=-1;
+    while (numUncoloredElements>0) {
+        // initialize the mask marking nodes used by a color
+        std::vector<int> maskDOF(len, -1);
+        numUncoloredElements=0;
+
+        // TODO: OMP
+        for (int e=0; e<numElements; e++) {
+            if (Color[e] < 0) {
+                // find out if element e is independent from the elements
+                // already coloured:
+                bool independent = true; 
+                for (int i=0; i<NN; i++) {
+#ifdef BOUNDS_CHECK
+if (Nodes[INDEX2(i,e,NN)] < 0 || Nodes[INDEX2(i,e,NN)] >= nodeCount) {
+    printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d Nodes[INDEX2...]=%d\n",
+            __FILE__, __LINE__, i, e, NN, idRange.first, Nodes[INDEX2(i,e,NN)]);
+    exit(1);
+}
+if ((degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) >= len ||
+        (degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) < 0) {
+    printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d dof=%d\n",
+            __FILE__, __LINE__, i, e, NN, idRange.first, degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first);
+    exit(1);
+}
+#endif
+                    if (maskDOF[degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first]>0) {
+                        independent=false;
+                        break;
+                    }
+                }
+                // if e is independent a new color is assigned and the nodes
+                // are marked as being used
+                if (independent) {
+                    for (int i=0; i<NN; i++)
+                        maskDOF[degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first] = 1;
+                    Color[e]=maxColor+1;
+                } else {
+                    numUncoloredElements++;
+                }
+            } // if no colour yet
+        } // for all elements
+        maxColor++;
+    } // end of while loop
+}
+
+void ElementFile::markNodes(int* mask, int offset, bool useLinear)
+{
+    const Finley_ReferenceElement* refElement =
+        Finley_ReferenceElementSet_borrowReferenceElement(referenceElementSet, FALSE);     
+    if (useLinear) {
+        const int NN=refElement->numLinearNodes;
+        const int *lin_nodes=refElement->Type->linearNodes;
+#pragma omp parallel for
+        for (int e=0; e<numElements; e++) {
+            for (int i=0; i<NN; i++) {
+                mask[Nodes[INDEX2(lin_nodes[i],e,numNodes)]-offset]=1;
             }
-            #pragma omp critical
-            num_elements+=local_num_elements;
-         }
-         #ifdef ESYS_MPI
-           MPI_Allgather(&num_elements,1,MPI_INT,distribution,1,MPI_INT,in->MPIInfo->comm);
-         #else
-           distribution[0]=num_elements;
-         #endif
-      } else {
-        distribution[0]=in->numElements;
-      }
-  }
+        }
+    } else {
+        const int NN=refElement->Type->numNodes;
+#pragma omp parallel for
+        for (int e=0; e<numElements; e++) {
+            for (int i=0; i<NN; i++) {
+                mask[Nodes[INDEX2(i,e,numNodes)]-offset]=1;
+            }
+        }
+    }
 }
 
-dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in) {
-  dim_t size, *distribution=NULL, out, p;
-  if (in == NULL) {
-      return 0;
-  } else {
-    size=in->MPIInfo->size;
-    distribution=new dim_t[size];
-    Finley_ElementFile_setElementDistribution(in,distribution);
-    out=0;
-    for (p=0;p<size;++p) out+=distribution[p];
-    delete[] distribution;
-    return out;
-  }
+void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
+        int firstDOF, int lastDOF, int *dofIndex, bool useLinear) 
+{
+    const Finley_ReferenceElement* refElement =
+        Finley_ReferenceElementSet_borrowReferenceElement(referenceElementSet, FALSE);
+    if (useLinear) {
+        const int NN=refElement->numLinearNodes;
+        const int *lin_nodes=refElement->Type->linearNodes;
+        for (int color=minColor; color<=maxColor; color++) {
+#pragma omp parallel for
+            for (int e=0; e<numElements; e++) {
+                if (Color[e]==color) {
+                    for (int i=0; i<NN; i++) {
+                        const int k=dofIndex[Nodes[INDEX2(lin_nodes[i],e,numNodes)]];
+                        if (firstDOF<=k && k<lastDOF) {
+                            for (int j=0; j<NN; j++)
+                                mask[dofIndex[Nodes[INDEX2(lin_nodes[j],e,numNodes)]]-offset]=marker;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        const int NN=refElement->Type->numNodes;
+        for (int color=minColor; color<=maxColor; color++) {
+#pragma omp parallel for
+            for (int e=0; e<numElements; e++) {
+                if (Color[e]==color) {
+                    for (int i=0; i<NN; i++) {
+                        const int k=dofIndex[Nodes[INDEX2(i,e,numNodes)]];
+                        if (firstDOF<=k && k<lastDOF) {
+                            for (int j=0; j<NN; j++)
+                                mask[dofIndex[Nodes[INDEX2(j,e,numNodes)]]-offset]=marker;
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
-dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in) {
-  dim_t size, *distribution=NULL, out;
-  if (in == NULL) {
-      return 0;
-  } else {
-    size=in->MPIInfo->size;
-    distribution=new dim_t[size];
-    Finley_ElementFile_setElementDistribution(in,distribution);
-    out=distribution[in->MPIInfo->rank];
-    delete[] distribution;
-    return out;
-  }
 
+/// redistributes the elements including overlap by rank
+void ElementFile::distributeByRankOfDOF(int* mpiRankOfDOF, int* index)
+{
+    const int size=MPIInfo->size;
+
+    if (size > 1) {
+#ifdef ESYS_MPI
+        int myRank=MPIInfo->rank;
+        int numRequests=0;
+        std::vector<MPI_Request> mpi_requests(8*size);
+        std::vector<MPI_Status> mpi_stati(8*size);
+
+        // count the number of elements that have to be sent to each processor
+        // (send_count) and define a new element owner as the processor with
+        // the largest number of DOFs and the smallest id
+        std::vector<int> send_count(size);
+        std::vector<int> recv_count(size);
+        std::vector<int> newOwner(numElements);
+#pragma omp parallel
+        {
+            std::vector<int> loc_send_count(size);
+#pragma omp for
+            for (int e=0; e<numElements; e++) {
+                if (Owner[e] == myRank) {
+                    newOwner[e]=myRank;
+                    std::vector<int> loc_proc_mask(size);
+                    for (int j=0; j<numNodes; j++) {
+                        const int p=mpiRankOfDOF[Nodes[INDEX2(j,e,numNodes)]];
+                        loc_proc_mask[p]++;
+                    }
+                    int loc_proc_mask_max=0;
+                    for (int p=0; p<size; ++p) {
+                        if (loc_proc_mask[p] > 0)
+                            loc_send_count[p]++;
+                        if (loc_proc_mask[p] > loc_proc_mask_max) {
+                            newOwner[e]=p;
+                            loc_proc_mask_max=loc_proc_mask[p];
+                        }
+                    }
+                } else {
+                    newOwner[e]=-1;
+                }
+            }
+#pragma omp critical
+            {
+                for (int p=0; p<size; ++p)
+                    send_count[p]+=loc_send_count[p];
+            }
+        }
+        MPI_Alltoall(&send_count[0], 1, MPI_INT, &recv_count[0], 1, MPI_INT,
+                     MPIInfo->comm);
+        // get the new number of elements for this processor
+        int newNumElements=0;
+        int numElementsInBuffer=0;
+        for (int p=0; p<size; ++p) {
+            newNumElements+=recv_count[p];
+            numElementsInBuffer+=send_count[p];
+        }
+
+        std::vector<int> Id_buffer(numElementsInBuffer);
+        std::vector<int> Tag_buffer(numElementsInBuffer);
+        std::vector<int> Owner_buffer(numElementsInBuffer);
+        std::vector<int> Nodes_buffer(numElementsInBuffer*numNodes);
+        std::vector<int> send_offset(size);
+        std::vector<int> recv_offset(size);
+        std::vector<bool_t> proc_mask(size);
+
+        // calculate the offsets for the processor buffers
+        for (int p=0; p<size-1; ++p) {
+            recv_offset[p+1]=recv_offset[p]+recv_count[p];
+            send_offset[p+1]=send_offset[p]+send_count[p];
+        }
+
+        send_count.assign(size, 0);
+        // copy element into buffers. proc_mask makes sure that an element is
+        // copied once only for each processor
+        for (int e=0; e<numElements; e++) {
+            if (Owner[e] == myRank) {
+                proc_mask.assign(size, TRUE);
+                for (int j=0; j<numNodes; j++) {
+                    const int p=mpiRankOfDOF[Nodes[INDEX2(j,e,numNodes)]];
+                    if (proc_mask[p]) {
+                        int k=send_offset[p]+send_count[p];
+                        Id_buffer[k]=Id[e];
+                        Tag_buffer[k]=Tag[e];
+                        Owner_buffer[k]=newOwner[e];
+                        for (int i=0; i<numNodes; i++)
+                            Nodes_buffer[INDEX2(i,k,numNodes)]=
+                                    index[Nodes[INDEX2(i,e,numNodes)]];
+                        send_count[p]++;
+                        proc_mask[p]=FALSE;
+                    }
+                }
+            }
+        }
+        // allocate new tables
+        allocTable(newNumElements);
+
+        // start to receive new elements
+        for (int p=0; p<size; ++p) {
+            if (recv_count[p] > 0) {
+                MPI_Irecv(&Id[recv_offset[p]], recv_count[p], MPI_INT, p,
+                        MPIInfo->msg_tag_counter+myRank, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Irecv(&Tag[recv_offset[p]], recv_count[p], MPI_INT, p,
+                        MPIInfo->msg_tag_counter+size+myRank, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Irecv(&Owner[recv_offset[p]], recv_count[p], MPI_INT, p,
+                        MPIInfo->msg_tag_counter+2*size+myRank, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Irecv(&Nodes[recv_offset[p]*numNodes],
+                        recv_count[p]*numNodes, MPI_INT, p,
+                        MPIInfo->msg_tag_counter+3*size+myRank, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+            }
+        }
+        // now the buffers can be sent away
+        for (int p=0; p<size; ++p) {
+            if (send_count[p] > 0) {
+                MPI_Issend(&Id_buffer[send_offset[p]], send_count[p], MPI_INT,
+                        p, MPIInfo->msg_tag_counter+p, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Issend(&Tag_buffer[send_offset[p]], send_count[p], MPI_INT,
+                        p, MPIInfo->msg_tag_counter+size+p, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Issend(&Owner_buffer[send_offset[p]], send_count[p],
+                        MPI_INT, p, MPIInfo->msg_tag_counter+2*size+p,
+                        MPIInfo->comm, &mpi_requests[numRequests]);
+                numRequests++;
+                MPI_Issend(&Nodes_buffer[send_offset[p]*numNodes],
+                        send_count[p]*numNodes, MPI_INT, p,
+                        MPIInfo->msg_tag_counter+3*size+p, MPIInfo->comm,
+                        &mpi_requests[numRequests]);
+                numRequests++;
+            }
+        }
+        MPIInfo->msg_tag_counter+=4*size;
+        // wait for the requests to be finalized
+        MPI_Waitall(numRequests, &mpi_requests[0], &mpi_stati[0]);
+#endif
+    } else { // single rank
+#pragma omp parallel for
+        for (int e=0; e<numElements; e++) {
+            Owner[e]=0;
+            for (int i=0; i<numNodes; i++)
+                Nodes[INDEX2(i,e,numNodes)]=index[Nodes[INDEX2(i,e,numNodes)]];
+        }
+    }
 }
-index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in){
-  dim_t size, *distribution=NULL, out, p;
-  if (in == NULL) {
-      return 0;
-  } else {
-    size=in->MPIInfo->size;
-    distribution=new dim_t[size];
-    Finley_ElementFile_setElementDistribution(in,distribution);
-    out=0;
-    for (p=0;p<in->MPIInfo->rank;++p) out+=distribution[p];
-    delete[] distribution;
-    return out;
-  }
-}
+
+} // namespace finley
+

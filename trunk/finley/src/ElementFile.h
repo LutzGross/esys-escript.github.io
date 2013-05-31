@@ -13,110 +13,150 @@
 *
 *****************************************************************************/
 
-
-#ifndef INC_FINLEY_ELEMENTFILE
-#define INC_FINLEY_ELEMENTFILE
+#ifndef __FINLEY_ELEMENTFILE_H__
+#define __FINLEY_ELEMENTFILE_H__
 
 #include "Finley.h"
 #include "NodeFile.h"
 #include "ReferenceElementSets.h"
-#include "escript/DataC.h"
-
-#ifdef ESYS_MPI
+#include "Util.h"
 #include "esysUtils/Esys_MPI.h"
-#endif
 
 #include <vector>
 
-struct Finley_ElementFile_Jacobians {
-  Finley_Status_t status;               /* status of mesh when jacobians were updated last time */
-  dim_t numDim;                         /* spatial dimension */
-  Finley_ShapeFunction* BasisFunctions; /* basis function used */
-  dim_t numQuadTotal;           /* total number of quadrature nodes used to calculate jacobians = numSub * BasisFunctions->numQuadNodes*/
-  dim_t numSides;                   /* number of sides (=1 normal, =2 contact) */
-  index_t* offsets;         /* offset to sides (borrowed reference) */
-  dim_t numSub;         /* number of subelements        */
-  dim_t numShapesTotal;         /* total number of shape functions =  BasisFunctions->numShapes * numSides */
-  index_t* node_selection;      /* local node selection list of length numSub * numShapesTotal  (borrowed reference)  */
-  dim_t numElements;            /* number of elements */
-  double* volume;                       /* local volume */
-  double* DSDX;                         /* derivatives of shape functions in global coordinates at quadrature points*/
+namespace escript {
+    class Data;
+}
+
+namespace finley {
+
+struct ElementFile_Jacobians {
+    ElementFile_Jacobians(Finley_ShapeFunction*);
+    ~ElementFile_Jacobians();
+
+    /// status of mesh when jacobians were updated last time
+    Finley_Status_t status;
+    /// number of spatial dimensions
+    int numDim;
+    /// basis function used
+    Finley_ShapeFunction* BasisFunctions;
+    /// total number of quadrature nodes used to calculate jacobians
+    /// = numSub * BasisFunctions->numQuadNodes
+    int numQuadTotal;
+    /// number of sides (=1 normal, =2 contact)
+    int numSides;
+    /// offset to sides (borrowed reference)
+    int* offsets;
+    /// number of subelements
+    int numSub;
+    /// total number of shape functions = BasisFunctions->numShapes * numSides
+    int numShapesTotal;
+    /// local node selection list of length numSub*numShapesTotal
+    /// (borrowed reference)
+    int* node_selection;
+    /// number of elements
+    int numElements;
+    /// local volume
+    double* volume;
+    /// derivatives of shape functions in global coordinates at quadrature
+    /// points
+    double* DSDX;
 };
 
-typedef struct Finley_ElementFile_Jacobians Finley_ElementFile_Jacobians;
+class ElementFile
+{
+public:
+    ElementFile(Finley_ReferenceElementSet* referenceElementSet,
+                Esys_MPIInfo *mpiInfo);
+    ~ElementFile();
 
-struct Finley_ElementFile {
-  Esys_MPIInfo *MPIInfo;
-  Esys_MPI_rank *Owner;
+    void allocTable(int numElements);
+    void freeTable();
 
-  Finley_ReferenceElementSet *referenceElementSet; /* the reference element to be used */
+    void distributeByRankOfDOF(int* mpiRankOfDOF, int *Id);
+    void createColoring(int nodeCount, int* degreeOfFreedom);
+    /// reorders the elements so that they are stored close to the nodes
+    void optimizeOrdering();
+    /// assigns new node reference numbers to the elements
+    void relabelNodes(int* newNode, int offset);
+    void markNodes(int* mask, int offset, bool useLinear);
+    void scatter(int* index, const ElementFile* in);
+    void gather(int* index, const ElementFile* in);
+    void copyTable(int offset, int nodeOffset, int idOffset,
+                   const ElementFile* in);
 
-  dim_t numElements;                             /* number of elements. */
-  
-  index_t *Id;                                 /* Id[i] is the id number of
-                                                node i. this number is not
-                                                used but useful when
-                                                elements are resorted. In
-                                                the entire code the term
-                                                'element id' refers to i
-                                                and not to Id[i] unless
-                                                explicitly stated
-                                                otherwise. */
+    void markDOFsConnectedToRange(int* mask, int offset, int marker,
+                                  int firstDOF, int lastDOF, int *dofIndex,
+                                  bool useLinear);
 
-  index_t *Tag;                                /* Tag[i] is the tag of element i. */
+    void setTags(const int newTag, const escript::Data& mask);
+    ElementFile_Jacobians* borrowJacobians(NodeFile*, bool_t, bool_t);
+    /// returns the minimum and maximum reference number of nodes describing
+    /// the elements
+    inline std::pair<int,int> getNodeRange() const;
+    inline void updateTagList();
 
-  std::vector<int> tagsInUse;                  /* array of tags which are actually used */
+private:
+    void swapTable(ElementFile* other);
 
-  dim_t numNodes;                              /* number of nodes per element */
-  index_t *Nodes;                              /* Nodes[INDEX(k, i, numNodes)]
-                                                is the k-the node in the
-                                                i-the element. Note that
-                                                in the way the nodes are
-                                                ordered Nodes[INDEX(k, i, numNodes)
-                                                is the k-th node of element i
-                                                when referring to the
-                                                linear version of the mesh. */
-  index_t minColor;                           /* minimum color */
-  index_t maxColor;                           /* maximum color */
-  index_t *Color;                             /* assigns each element a color. Elements with the same color     
-                                                 don't share a node so they can be processed simultaneously.
-                                                 At anytime Color must provide a valid value. In any case one can set  
-                                                 Color[e]=e for all e */
+public:
+    Esys_MPIInfo *MPIInfo;
 
-  Finley_ElementFile_Jacobians* jacobians;           /* jacobians of the shape function used for solution approximation */
-  Finley_ElementFile_Jacobians* jacobians_reducedS;  /* jacobians of the shape function used for solution approximation for reduced order of shape function*/
-  Finley_ElementFile_Jacobians* jacobians_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order*/
-  Finley_ElementFile_Jacobians* jacobians_reducedS_reducedQ;  /* jacobians of the shape function used for solution approximation for reduced integration order and reduced order of shape function*/
-
+    /// the reference element to be used
+    Finley_ReferenceElementSet *referenceElementSet;
+    /// number of elements
+    int numElements;
+    /// Id[i] is the id number of node i. This number is used when elements
+    /// are resorted. In the entire code the term 'element id' refers to i and
+    /// not to Id[i] unless explicitly stated otherwise.
+    int *Id;
+    /// Tag[i] is the tag of element i
+    int *Tag;
+    /// Owner[i] contains the rank that owns element i
+    int *Owner;
+    /// array of tags which are actually used
+    std::vector<int> tagsInUse;
+    /// number of nodes per element
+    int numNodes;
+    /// Nodes[INDEX(k, i, numNodes)] is the k-th node in the i-th element.
+    /// Note that in the way the nodes are ordered Nodes[INDEX(k, i, numNodes)
+    /// is the k-th node of element i when referring to the linear version of
+    /// the mesh.
+    int *Nodes;
+    /// minimum color
+    int minColor;
+    /// maximum color
+    int maxColor;
+    /// assigns each element a color. Elements with the same color don't share
+    /// a node so they can be processed simultaneously.
+    /// At any time Color must provide a valid value. In any case one can set
+    /// Color[e]=e for all e
+    int *Color;
+    /// jacobians of the shape function used for solution approximation
+    ElementFile_Jacobians* jacobians;
+    /// jacobians of the shape function used for solution approximation for
+    /// reduced order of shape function
+    ElementFile_Jacobians* jacobians_reducedS;
+    /// jacobians of the shape function used for solution approximation for
+    /// reduced integration order
+    ElementFile_Jacobians* jacobians_reducedQ;
+    /// jacobians of the shape function used for solution approximation for
+    /// reduced integration order and reduced order of shape function
+    ElementFile_Jacobians* jacobians_reducedS_reducedQ;
 };
 
-typedef struct Finley_ElementFile Finley_ElementFile;
-Finley_ElementFile* Finley_ElementFile_alloc(Finley_ReferenceElementSet* referenceElementSet, Esys_MPIInfo *MPIInfo);
-void Finley_ElementFile_free(Finley_ElementFile*);
-void Finley_ElementFile_allocTable(Finley_ElementFile*,dim_t);
-void Finley_ElementFile_freeTable(Finley_ElementFile*);
-void Finley_ElementFile_setElementDistribution(Finley_ElementFile* in, dim_t* distribution);
-dim_t Finley_ElementFile_getGlobalNumElements(Finley_ElementFile* in);
-dim_t Finley_ElementFile_getMyNumElements(Finley_ElementFile* in);
-index_t Finley_ElementFile_getFirstElement(Finley_ElementFile* in); 
-void Finley_ElementFile_distributeByRankOfDOF(Finley_ElementFile* self, Esys_MPI_rank* mpiRankOfDOF, index_t *Id);
-
-void Finley_ElementFile_createColoring(Finley_ElementFile* in,dim_t numNodes,dim_t* degreeOfFreedom);
-void Finley_ElementFile_optimizeOrdering(Finley_ElementFile** in);
-void Finley_ElementFile_setNodeRange(dim_t*,dim_t*,Finley_ElementFile*);
-void Finley_ElementFile_relableNodes(dim_t*,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_markNodes(dim_t*,dim_t,dim_t,Finley_ElementFile*,dim_t);
-void Finley_ElementFile_scatter(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
-void Finley_ElementFile_gather(dim_t*,Finley_ElementFile*,Finley_ElementFile*);
-void Finley_ElementFile_copyTable(dim_t,Finley_ElementFile*,dim_t,dim_t,Finley_ElementFile*);
-void Finley_ElementFile_markDOFsConnectedToRange(index_t* mask,index_t offset,index_t marker,index_t firstDOF,index_t lastDOF,index_t *dofIndex,Finley_ElementFile*in ,bool_t useLinear);
-
-void Finley_ElementFile_setTags(Finley_ElementFile* ,const int, escriptDataC*);
-Finley_ElementFile_Jacobians* Finley_ElementFile_Jacobians_alloc(Finley_ShapeFunction* );
-void Finley_ElementFile_Jacobians_dealloc(Finley_ElementFile_Jacobians*);
-Finley_ElementFile_Jacobians* Finley_ElementFile_borrowJacobians(Finley_ElementFile*, finley::NodeFile*, bool_t, bool_t);
-void Finley_ElementFile_setTagsInUse(Finley_ElementFile* in);
+inline std::pair<int,int> ElementFile::getNodeRange() const
+{
+    return Finley_Util_getMinMaxInt(numNodes, numElements, Nodes);
+}
 
 
-#endif /* #ifndef INC_FINLEY_ELEMENTFILE */
+inline void ElementFile::updateTagList()
+{
+    Finley_Util_setValuesInUse(Tag, numElements, tagsInUse, MPIInfo);
+}
+
+} // namespace finley
+
+#endif // __FINLEY_ELEMENTFILE_H__
 
