@@ -25,8 +25,8 @@
 
 #include <vector>
 
-void Finley_Assemble_integrate(finley::NodeFile* nodes,
-                               Finley_ElementFile* elements,
+void Finley_Assemble_integrate(NodeFile* nodes,
+                               ElementFile* elements,
                                escriptDataC* data, double* out)
 {
     Finley_resetError();
@@ -34,8 +34,7 @@ void Finley_Assemble_integrate(finley::NodeFile* nodes,
         return;
 
     Esys_MPI_rank my_mpi_rank = nodes->MPIInfo->rank;
-    Finley_ElementFile_Jacobians *jac = Finley_ElementFile_borrowJacobians(
-            elements, nodes, FALSE,
+    ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, FALSE,
             Finley_Assemble_reducedIntegrationOrder(data));
     if (Finley_noError()) {
         const int numQuadTotal = jac->numQuadTotal;

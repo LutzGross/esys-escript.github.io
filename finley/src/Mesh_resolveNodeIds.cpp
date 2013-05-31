@@ -31,48 +31,48 @@
 
 /************************************************************************************/
 
-void  Finley_Mesh_resolveNodeIds(Finley_Mesh* in) {
-
-  index_t min_id, max_id,  min_id2, max_id2, global_min_id, global_max_id, 
+void Finley_Mesh_resolveNodeIds(Finley_Mesh* in)
+{
+  index_t min_id, max_id, global_min_id, global_max_id, 
           *globalToNewLocalNodeLabels=NULL, *newLocalToGlobalNodeLabels=NULL;
   dim_t len, n, newNumNodes, numDim;
   finley::NodeFile *newNodeFile=NULL;
-  #ifdef ESYS_MPI
+#ifdef ESYS_MPI
   index_t id_range[2], global_id_range[2];
-  #endif 
+#endif 
   numDim=Finley_Mesh_getDim(in);
   /*  find the minimum and maximum id used by elements: */
   min_id=INDEX_T_MAX;
   max_id=-INDEX_T_MAX;
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Elements);
-  max_id=MAX(max_id,max_id2);
-  min_id=MIN(min_id,min_id2);
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->FaceElements);
-  max_id=MAX(max_id,max_id2);
-  min_id=MIN(min_id,min_id2);
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->ContactElements);
-  max_id=MAX(max_id,max_id2);
-  min_id=MIN(min_id,min_id2);
-  Finley_ElementFile_setNodeRange(&min_id2,&max_id2,in->Points);
-  max_id=MAX(max_id,max_id2);
-  min_id=MIN(min_id,min_id2);
-  #ifdef ESYS_MPI
+  std::pair<int,int> range(in->Elements->getNodeRange());
+  max_id=std::max(max_id,range.second);
+  min_id=std::min(min_id,range.first);
+  range=in->FaceElements->getNodeRange();
+  max_id=std::max(max_id,range.second);
+  min_id=std::min(min_id,range.first);
+  range=in->ContactElements->getNodeRange();
+  max_id=std::max(max_id,range.second);
+  min_id=std::min(min_id,range.first);
+  range=in->Points->getNodeRange();
+  max_id=std::max(max_id,range.second);
+  min_id=std::min(min_id,range.first);
+#ifdef ESYS_MPI
      id_range[0]=-min_id;
      id_range[1]=max_id;
      MPI_Allreduce( id_range, global_id_range, 2, MPI_INT, MPI_MAX, in->MPIInfo->comm );
      global_min_id=-global_id_range[0];
      global_max_id=global_id_range[1];
-  #else
+#else
      global_min_id=min_id;
      global_max_id=max_id;
-  #endif
-  #ifdef Finley_TRACE
+#endif
+#ifdef Finley_TRACE
   printf("Node id range used by elements is %d:%d\n",global_min_id,global_max_id);
-  #else
+#else
   /* avoid unused var warning if Dudley_TRACE is not defined */
   (void)global_min_id;
   (void)global_max_id;
-  #endif
+#endif
   if (min_id>max_id) {
      max_id=-1;
      min_id=0;

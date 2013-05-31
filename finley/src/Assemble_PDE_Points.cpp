@@ -36,7 +36,7 @@
 #include "Util.h"
 
 void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p,
-                                Finley_ElementFile* elements,
+                                ElementFile* elements,
                                 Paso_SystemMatrix* S, escriptDataC* F,
                                 escriptDataC* d_dirac, escriptDataC* y_dirac)
 {

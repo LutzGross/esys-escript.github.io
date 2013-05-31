@@ -26,8 +26,8 @@
 
 #include <vector>
 
-void Finley_Assemble_interpolate(finley::NodeFile *nodes,
-                                 Finley_ElementFile *elements,
+void Finley_Assemble_interpolate(NodeFile *nodes,
+                                 ElementFile *elements,
                                  escriptDataC *data,
                                  escriptDataC *interpolated_data)
 {

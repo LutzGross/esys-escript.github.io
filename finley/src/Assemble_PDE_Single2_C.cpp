@@ -36,7 +36,7 @@
 #include <vector>
 
 void Finley_Assemble_PDE_Single2_C(Finley_Assemble_Parameters p,
-                                   Finley_ElementFile* elements,
+                                   ElementFile* elements,
                                    Paso_SystemMatrix* Mat, escriptDataC* F,
                                    escriptDataC* D, escriptDataC* Y)
 {

@@ -62,7 +62,7 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info)
   strcpy(out->Name,name);
   
   /*   allocate node table: */
-  out->Nodes = new finley::NodeFile(numDim, mpi_info);
+  out->Nodes = new NodeFile(numDim, mpi_info);
   if (! Finley_noError()) {
       Finley_Mesh_free(out);
       return NULL;
@@ -95,17 +95,17 @@ void Finley_Mesh_free(Finley_Mesh* in) {
      if (in->reference_counter<1) {
        delete[] in->Name;
        delete in->Nodes;
-       Finley_ElementFile_free(in->FaceElements);
-       Finley_ElementFile_free(in->Elements);   
-       Finley_ElementFile_free(in->ContactElements);
-       Finley_ElementFile_free(in->Points);
+       delete in->FaceElements;
+       delete in->Elements;
+       delete in->ContactElements;
+       delete in->Points;
        Finley_TagMap_free(in->TagMap);
        Paso_SystemMatrixPattern_free(in->FullFullPattern);
        Paso_SystemMatrixPattern_free(in->FullReducedPattern);
        Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
        Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
-       Esys_MPIInfo_free( in->MPIInfo );
-       delete in;      
+       Esys_MPIInfo_free(in->MPIInfo);
+       delete in;
      }
   }
 }
@@ -118,20 +118,20 @@ dim_t Finley_Mesh_getDim(Finley_Mesh *in) {
   return in->Nodes->numDim;
 }
 
-void Finley_Mesh_setElements(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->Elements);
+void Finley_Mesh_setElements(Finley_Mesh* self, ElementFile *elements) {
+    delete self->Elements;
     self->Elements=elements;
 }
-void Finley_Mesh_setFaceElements(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->FaceElements);
+void Finley_Mesh_setFaceElements(Finley_Mesh* self, ElementFile *elements) {
+    delete self->FaceElements;
     self->FaceElements=elements;
 }
-void Finley_Mesh_setContactElements(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->ContactElements);
+void Finley_Mesh_setContactElements(Finley_Mesh* self, ElementFile *elements) {
+    delete self->ContactElements;
     self->ContactElements=elements;
 }
-void Finley_Mesh_setPoints(Finley_Mesh* self,Finley_ElementFile *elements) {
-    Finley_ElementFile_free(self->Points);
+void Finley_Mesh_setPoints(Finley_Mesh* self, ElementFile *elements) {
+    delete self->Points;
     self->Points=elements;
 }
 int  Finley_Mesh_getStatus(Finley_Mesh* in) {

@@ -42,10 +42,10 @@ void Finley_Mesh_distributeByRankOfDOF(Finley_Mesh* self, int *dof_distribution)
         /* first the elements are redistributed according to mpiRankOfDOF */
         /* at the input the Node tables refer to the local labeling of the nodes */
         /* while at the output they refer to the global labeling which is rectified in the next step */
-        if (Finley_noError()) Finley_ElementFile_distributeByRankOfDOF(self->Elements,mpiRankOfDOF, self->Nodes->Id);
-        if (Finley_noError()) Finley_ElementFile_distributeByRankOfDOF(self->FaceElements,mpiRankOfDOF, self->Nodes->Id);
-        if (Finley_noError()) Finley_ElementFile_distributeByRankOfDOF(self->ContactElements,mpiRankOfDOF, self->Nodes->Id);
-        if (Finley_noError()) Finley_ElementFile_distributeByRankOfDOF(self->Points,mpiRankOfDOF, self->Nodes->Id);
+        if (Finley_noError()) self->Elements->distributeByRankOfDOF(mpiRankOfDOF, self->Nodes->Id);
+        if (Finley_noError()) self->FaceElements->distributeByRankOfDOF(mpiRankOfDOF, self->Nodes->Id);
+        if (Finley_noError()) self->ContactElements->distributeByRankOfDOF(mpiRankOfDOF, self->Nodes->Id);
+        if (Finley_noError()) self->Points->distributeByRankOfDOF(mpiRankOfDOF, self->Nodes->Id);
    
         /* resolve the node ids */
         if (Finley_noError()) Finley_Mesh_resolveNodeIds(self);

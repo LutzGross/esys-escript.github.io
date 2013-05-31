@@ -40,7 +40,7 @@
 #include <vector>
 
 void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
-                                    Finley_ElementFile* elements,
+                                    ElementFile* elements,
                                     Paso_SystemMatrix* Mat, escriptDataC* F,
                                     escriptDataC* A, escriptDataC* B,
                                     escriptDataC* C, escriptDataC* D,

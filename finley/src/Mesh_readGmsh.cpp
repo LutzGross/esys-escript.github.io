@@ -322,15 +322,15 @@ Finley_Mesh* Finley_Mesh_readGmsh(char* fname ,index_t numDim, index_t order, in
 			  refFaceElements=Finley_ReferenceElementSet_alloc(final_face_element_type,order, reduced_order);
 			  refContactElements= Finley_ReferenceElementSet_alloc(contact_element_type,order, reduced_order);
 			  refPoints= Finley_ReferenceElementSet_alloc(Finley_Point1,order, reduced_order);
-              mesh_p->Elements=Finley_ElementFile_alloc(refElements, mpi_info);
-              mesh_p->FaceElements=Finley_ElementFile_alloc(refFaceElements, mpi_info);
-              mesh_p->ContactElements=Finley_ElementFile_alloc(refContactElements, mpi_info);
-              mesh_p->Points=Finley_ElementFile_alloc(refPoints, mpi_info);
+              mesh_p->Elements=new ElementFile(refElements, mpi_info);
+              mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
+              mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
+              mesh_p->Points=new ElementFile(refPoints, mpi_info);
               if (Finley_noError()) {
-                  Finley_ElementFile_allocTable(mesh_p->Elements, numElements);
-                  Finley_ElementFile_allocTable(mesh_p->FaceElements, numFaceElements);
-                  Finley_ElementFile_allocTable(mesh_p->ContactElements, 0);
-                  Finley_ElementFile_allocTable(mesh_p->Points, 0);
+                  mesh_p->Elements->allocTable(numElements);
+                  mesh_p->FaceElements->allocTable(numFaceElements);
+                  mesh_p->ContactElements->allocTable(0);
+                  mesh_p->Points->allocTable(0);
                   if (Finley_noError()) {
                       mesh_p->Elements->minColor=0;
                       mesh_p->Elements->maxColor=numElements-1;

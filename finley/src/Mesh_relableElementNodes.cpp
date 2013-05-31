@@ -28,9 +28,10 @@
 
 /************************************************************************************/
 
-void Finley_Mesh_relableElementNodes(index_t* newNode,index_t offset,Finley_Mesh* in) {
-      Finley_ElementFile_relableNodes(newNode,offset,in->Elements);
-      Finley_ElementFile_relableNodes(newNode,offset,in->FaceElements);
-      Finley_ElementFile_relableNodes(newNode,offset,in->ContactElements);
-      Finley_ElementFile_relableNodes(newNode,offset,in->Points);
+void Finley_Mesh_relableElementNodes(index_t* newNode, index_t offset, Finley_Mesh* in)
+{
+    in->Elements->relabelNodes(newNode, offset);
+    in->FaceElements->relabelNodes(newNode, offset);
+    in->ContactElements->relabelNodes(newNode, offset);
+    in->Points->relabelNodes(newNode, offset);
 }

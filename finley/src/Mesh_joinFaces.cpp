@@ -30,7 +30,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
 
    char error_msg[LenErrorMsg_MAX];
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
-   Finley_ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
+   ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
    dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
    Finley_ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
 
@@ -90,18 +90,18 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
              }
          }
          /*  allocate new face element and Contact element files */
-         newContactElementsFile=Finley_ElementFile_alloc(self->ContactElements->referenceElementSet, self->MPIInfo);
-         newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
+         newContactElementsFile=new ElementFile(self->ContactElements->referenceElementSet, self->MPIInfo);
+         newFaceElementsFile=new ElementFile(self->FaceElements->referenceElementSet, self->MPIInfo);
          if (Finley_noError()) {
-               Finley_ElementFile_allocTable(newContactElementsFile,numPairs+self->ContactElements->numElements);
-               Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
+               newContactElementsFile->allocTable(numPairs+self->ContactElements->numElements);
+               newFaceElementsFile->allocTable(new_numFaceElements);
          }
          /* copy the old elements over */
          if (Finley_noError()) {
             /* get the face elements which are still in use:*/
-            Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
+            newFaceElementsFile->gather(elem_mask, self->FaceElements);
             /* get the Contact elements which are still in use:*/
-            Finley_ElementFile_copyTable(0,newContactElementsFile,0,0,self->ContactElements);
+            newContactElementsFile->copyTable(0, 0, 0, self->ContactElements);
             c=self->ContactElements->numElements;
             /* OMP */
             for (e=0;e<numPairs;e++) {
@@ -120,15 +120,15 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
          /* set new face and Contact elements */
          if (Finley_noError()) {
 
-            Finley_ElementFile_free(self->FaceElements);
+            delete self->FaceElements;
             self->FaceElements=newFaceElementsFile;
-            Finley_ElementFile_free(self->ContactElements);
+            delete self->ContactElements;
             self->ContactElements=newContactElementsFile;
             Finley_Mesh_prepare(self, optimize);
 
          } else {
-            Finley_ElementFile_free(newFaceElementsFile);
-            Finley_ElementFile_free(newContactElementsFile);
+            delete newFaceElementsFile;
+            delete newContactElementsFile;
          }
       }
    }

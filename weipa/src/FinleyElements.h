@@ -26,7 +26,10 @@ class DBfile;
 class NcFile;
 
 struct Dudley_ElementFile;
-struct Finley_ElementFile;
+
+namespace finley {
+    class ElementFile;
+}
 
 namespace weipa {
  
@@ -71,7 +74,7 @@ public:
     bool initFromDudley(const Dudley_ElementFile* dudleyFile);
 
     /// \brief Initialises with data from a Finley_ElementFile instance.
-    bool initFromFinley(const Finley_ElementFile* finleyFile);
+    bool initFromFinley(const finley::ElementFile* finleyFile);
 
     /// \brief Reads element data from escript/finley NetCDF file.
     bool readFromNc(NcFile* ncfile);

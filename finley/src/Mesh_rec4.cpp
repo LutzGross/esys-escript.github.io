@@ -83,10 +83,10 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   
   if ( Finley_noError()) {
   
-	  Finley_Mesh_setPoints(out,Finley_ElementFile_alloc(refPoints, mpi_info));
-	  Finley_Mesh_setContactElements(out,Finley_ElementFile_alloc(refContactElements, mpi_info));
-	  Finley_Mesh_setFaceElements(out,Finley_ElementFile_alloc(refFaceElements, mpi_info));
-	  Finley_Mesh_setElements(out,Finley_ElementFile_alloc(refElements, mpi_info));
+	  Finley_Mesh_setPoints(out, new ElementFile(refPoints, mpi_info));
+	  Finley_Mesh_setContactElements(out, new ElementFile(refContactElements, mpi_info));
+	  Finley_Mesh_setFaceElements(out, new ElementFile(refFaceElements, mpi_info));
+	  Finley_Mesh_setElements(out, new ElementFile(refElements, mpi_info));
  
   	/* work out the largest dimension */
 	if (N1==MAX(N0,N1)) {
@@ -129,8 +129,8 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
 
 
 	out->Nodes->allocTable(local_N0*local_N1);
-	Finley_ElementFile_allocTable(out->Elements,local_NE0*local_NE1);
-	Finley_ElementFile_allocTable(out->FaceElements,NFaceElements);
+	out->Elements->allocTable(local_NE0*local_NE1);
+	out->FaceElements->allocTable(NFaceElements);
 
   }
   if (Finley_noError()) {

@@ -29,7 +29,7 @@
    into the row index col. If symmetric is set, only the upper
    triangle of the matrix is stored. */
 
-void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_ElementFile* elements,
+void Finley_IndexList_insertElements(Finley_IndexList* index_list, ElementFile* elements,
                                        bool_t reduce_row_order, index_t* row_map,
                                        bool_t reduce_col_order, index_t* col_map) {
   /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
@@ -82,7 +82,7 @@ void Finley_IndexList_insertElements(Finley_IndexList* index_list, Finley_Elemen
 
 
 void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
-                                                 Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
+                                                 ElementFile* elements, index_t* row_map, index_t* col_map)
 {
 /* this does not resolve macro elements */
 	index_t color;
@@ -109,7 +109,7 @@ void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, i
   }
 }
 void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList* index_list, index_t firstRow, index_t lastRow,
-                                                              Finley_ElementFile* elements, index_t* row_map, index_t* col_map)
+                                                              ElementFile* elements, index_t* row_map, index_t* col_map)
 {
   /* this does not resolve macro elements */
   index_t color;

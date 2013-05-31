@@ -30,7 +30,7 @@
 void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize) { 
    char error_msg[LenErrorMsg_MAX];
    finley::NodeFile *newNodeFile=NULL;
-   Finley_ElementFile *newFaceElementsFile=NULL;
+   ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
    index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL, *faceNodes=NULL;
    Finley_ReferenceElement*  faceRefElement=NULL;
@@ -102,9 +102,9 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          if (Finley_noError()) {
              newNodeFile->allocTable(newNumNodes);
              if (Finley_noError()) {
-                newFaceElementsFile=Finley_ElementFile_alloc(self->FaceElements->referenceElementSet, self->MPIInfo);
+                newFaceElementsFile=new ElementFile(self->FaceElements->referenceElementSet, self->MPIInfo);
                 if (Finley_noError()) {
-                   Finley_ElementFile_allocTable(newFaceElementsFile,new_numFaceElements);
+                   newFaceElementsFile->allocTable(new_numFaceElements);
                  }
               }
          }
@@ -116,9 +116,9 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
             delete self->Nodes;
             self->Nodes=newNodeFile;
             /* get the face elements which are still in use */
-            Finley_ElementFile_gather(elem_mask,self->FaceElements,newFaceElementsFile);
+            newFaceElementsFile->gather(elem_mask, self->FaceElements);
             /* they are the new face elements */
-            Finley_ElementFile_free(self->FaceElements);
+            delete self->FaceElements;
             self->FaceElements=newFaceElementsFile;
             
             /* assign new node ids to elements */
@@ -129,7 +129,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
          else 
          {
             delete newNodeFile;
-            Finley_ElementFile_free(newFaceElementsFile);
+            delete newFaceElementsFile;
          }
        
       }

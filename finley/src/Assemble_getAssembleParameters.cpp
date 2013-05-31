@@ -23,7 +23,7 @@
 #include "Assemble.h"
 
 void Finley_Assemble_getAssembleParameters(finley::NodeFile* nodes,
-        Finley_ElementFile* elements, Paso_SystemMatrix* S,
+        ElementFile* elements, Paso_SystemMatrix* S,
         escriptDataC* F, bool_t reducedIntegrationOrder,
         Finley_Assemble_Parameters *parm)
 {
@@ -74,11 +74,11 @@ void Finley_Assemble_getAssembleParameters(finley::NodeFile* nodes,
         if (Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
             parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
             parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-            parm->row_jac=Finley_ElementFile_borrowJacobians(elements,nodes,FALSE,reducedIntegrationOrder);
+            parm->row_jac=elements->borrowJacobians(nodes,FALSE,reducedIntegrationOrder);
         } else if (Paso_Distribution_getMyNumComponents(S->row_distribution)*S->row_block_size==parm->numEqu* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
             parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
             parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-            parm->row_jac=Finley_ElementFile_borrowJacobians(elements, nodes, TRUE, reducedIntegrationOrder);
+            parm->row_jac=elements->borrowJacobians(nodes, TRUE, reducedIntegrationOrder);
         } else {
             Finley_setError(TYPE_ERROR, "Finley_Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
         }
@@ -87,11 +87,11 @@ void Finley_Assemble_getAssembleParameters(finley::NodeFile* nodes,
         if (Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
             parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
             parm->col_DOF=nodes->degreesOfFreedomMapping->target;
-            parm->col_jac=Finley_ElementFile_borrowJacobians(elements,nodes,FALSE,reducedIntegrationOrder);
+            parm->col_jac=elements->borrowJacobians(nodes,FALSE,reducedIntegrationOrder);
         } else if ( Paso_Distribution_getMyNumComponents(S->col_distribution)*S->col_block_size==parm->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
             parm->col_DOF_UpperBound =  Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
             parm->col_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-            parm->col_jac=Finley_ElementFile_borrowJacobians(elements,nodes,TRUE,reducedIntegrationOrder);
+            parm->col_jac=elements->borrowJacobians(nodes,TRUE,reducedIntegrationOrder);
         } else {
             Finley_setError(TYPE_ERROR, "Finley_Assemble_getAssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
         }
@@ -105,11 +105,11 @@ void Finley_Assemble_getAssembleParameters(finley::NodeFile* nodes,
         if (numSamplesEqual(F, 1, Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution))) {
             parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
             parm->row_DOF=nodes->degreesOfFreedomMapping->target;
-            parm->row_jac=Finley_ElementFile_borrowJacobians(elements,nodes,FALSE,reducedIntegrationOrder);
+            parm->row_jac=elements->borrowJacobians(nodes,FALSE,reducedIntegrationOrder);
         } else if (numSamplesEqual(F, 1, Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))) {
             parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
             parm->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
-            parm->row_jac=Finley_ElementFile_borrowJacobians(elements, nodes, TRUE, reducedIntegrationOrder);
+            parm->row_jac=elements->borrowJacobians(nodes, TRUE, reducedIntegrationOrder);
         } else {
             Finley_setError(TYPE_ERROR, "Finley_Assemble_getAssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
         }

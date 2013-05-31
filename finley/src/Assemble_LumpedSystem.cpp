@@ -29,8 +29,8 @@
 #include <sstream>
 #include <vector>
 
-void Finley_Assemble_LumpedSystem(finley::NodeFile* nodes,
-                                  Finley_ElementFile* elements,
+void Finley_Assemble_LumpedSystem(NodeFile* nodes,
+                                  ElementFile* elements,
                                   escriptDataC* lumpedMat, escriptDataC* D,
                                   const bool_t useHRZ)
 {

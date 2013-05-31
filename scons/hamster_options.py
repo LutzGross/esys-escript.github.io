@@ -53,7 +53,7 @@ cc_extra = '-Wextra -Wno-unused-parameter'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = '-Wextra -Wno-unused-parameter'
+cxx_extra = '-Wextra -Wno-unused-parameter -g'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
@@ -196,7 +196,7 @@ silo_libs = ['siloh5']
 visit = True
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/opt/visit/2.6.0/linux-x86_64/libsim/V2'
+visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
