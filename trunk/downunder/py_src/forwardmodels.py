@@ -117,8 +117,8 @@ class ForwardModelWithPotential(ForwardModel):
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
 
         if not  self.__trafo.isCartesian():
-            fd=1./self.__trafo().getScalingFactors()
-            fw=self.__trafo().getScalingFactors()*sqrt(self.__trafo().getVolumeFactor())
+            fd=1./self.__trafo.getScalingFactors()
+            fw=self.__trafo.getScalingFactors()*sqrt(self.__trafo.getVolumeFactor())
             for s in range(len(self.__weight)):
                 self.__weight[s] = fw * self.__weight[s]
                 self.__data[s]   = fd * self.__data[s]
@@ -231,7 +231,7 @@ class GravityModel(ForwardModelWithPotential):
             self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
 
             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
-            A=self.getPDE().createCoeffiecient("A")
+            A=self.getPDE().createCoefficient("A")
             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
             self.getPDE().setValue(A=A)
         else: # cartesian
@@ -332,6 +332,8 @@ class MagneticModel(ForwardModelWithPotential):
         :type B: ``Vector`` or list of ``Vector``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
+        :param background_magnetic_flux_density: background magnetic flux density (in Teslar) with components (B_east, B_north, B_vertical)
+        :type background_magnetic_flux_density: ``Vector`` or list of `float`
         :param coordinates: defines coordinate system to be used
         :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
@@ -346,7 +348,7 @@ class MagneticModel(ForwardModelWithPotential):
             self.__B_r=self.__background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
             self.__B_b=self.__background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
 
-            A=self.getPDE().createCoeffiecient("A")
+            A=self.getPDE().createCoefficient("A")
             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
             self.getPDE().setValue(A=A)

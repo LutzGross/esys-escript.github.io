@@ -28,6 +28,8 @@ import unittest
 from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
+from esys.downunder import WGS84ReferenceSystem
+
 
 # this is mainly to avoid warning messages
 logging.basicConfig(format='%(name)s: %(message)s', level=logging.INFO)
@@ -65,6 +67,29 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         _=db.getDomain()
         source1b = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=2.)
         self.assertRaises(Exception, db.addSource, source1b)
+
+    def test_cartesian_domain(self):
+        db=DomainBuilder()
+        source1a = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=1.)
+        db.addSource(source1a)
+        db.setVerticalExtents(depth=20000., air_layer=30000., num_cells=10)
+        dom=db.getDomain()
+
+    def test_geodetic_domain(self):
+        COORDINATES=WGS84ReferenceSystem()
+        db=DomainBuilder(reference_system=COORDINATES)
+        source1a = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=1., reference_system=COORDINATES)
+        db.addSource(source1a)
+        db.setVerticalExtents(depth=20000., air_layer=30000., num_cells=10)
+        dom=db.getDomain()
+        x=dom.getX()
+        self.assertAlmostEqual(inf(x[0]), 120.2, delta=0.001, msg="phi range wrong")
+        self.assertAlmostEqual(sup(x[0]), 120.3, delta=0.001, msg="phi range wrong")
+        self.assertAlmostEqual(inf(x[1]), -29.2 , delta=0.0001, msg="lambda range wrong")
+        self.assertAlmostEqual(sup(x[1]), -29.13333333333333, delta=0.0001, msg="lambda range wrong")
+        self.assertAlmostEqual(inf(x[2]), -20., msg="h range wrong")
+        self.assertAlmostEqual(sup(x[2]), 30., msg="h range wrong")
+        
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()

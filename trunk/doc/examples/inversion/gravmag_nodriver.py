@@ -36,8 +36,8 @@ MAGNETIC_DATASET = 'data/MagneticSmall.nc'
 MAG_UNITS = U.Nano * U.V * U.sec / (U.m**2)
 GRAVITY_DATASET = 'data/GravitySmall.nc'
 GRAV_UNITS = 1e-6 * U.m/(U.sec**2)
-# background magnetic field components (B_North, B_East, B_Vertical)
-B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+# background magnetic field components (B_East, B_North, B_Vertical)
+B_b = [2201.*U.Nano*U.Tesla, 31232.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 thickness = 40. * U.km # below surface
 l_air = 6. * U.km      # above surface

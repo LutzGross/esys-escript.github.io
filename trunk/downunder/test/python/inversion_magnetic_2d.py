@@ -39,7 +39,7 @@ n_humps_v = 1
 mu = 1.
 n_cells_in_data = 200
 full_knowledge = False
-B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+B_b = [2201.*U.Nano*U.Tesla, 31232.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 #
 DIM = 2
 n_cells_in_data = max(n_humps_h*7, n_cells_in_data)

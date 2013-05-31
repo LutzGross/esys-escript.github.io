@@ -32,7 +32,7 @@ from esys.escript import unitsSI as U
 dom=DomainBuilder()
 dom.setVerticalExtents(depth=40.*U.km, air_layer=6.*U.km, num_cells=25)
 dom.setFractionalPadding(pad_x=0.2, pad_y=0.2)
-B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+B_b = [2201.*U.Nano*U.Tesla,  31232.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 dom.fixSusceptibilityBelow(depth=40.*U.km)
 
@@ -79,13 +79,13 @@ are a few small differences which we are going to highlight now.
 The magnetic inversion requires data about the background magnetic flux density
 over the region of interest which is added to the domain by the statements 
 \begin{verbatim}
-B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+B_b = [2201.*U.Nano*U.Tesla, 31232.*U.Nano*U.Tesla,  -41405.*U.Nano*U.Tesla]
 dom.setBackgroundMagneticFluxDensity(B_b)
 \end{verbatim}
 Here it is assumed that the background magnetic flux density is constant across
 the domain and is given as the list
 \begin{verbatim}
-B_b= [ B_N,  B_E, B_V ]
+B_b= [ B_E,  B_N, B_V ]
 \end{verbatim}
 in units of Tesla (T) where 
 \member{B_N}, \member{B_E} and \member{B_V} refer to the north, east and

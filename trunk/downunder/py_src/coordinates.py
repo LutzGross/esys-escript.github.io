@@ -139,7 +139,7 @@ class GeodeticReferenceSystem(ReferenceSystem):
     """
     Identifies a Geodetic coordinate system
     """
-    def __init__(self, a=6378137.0 *U.m, f=1/298.257223563, angular_unit=1.*U.DEG, name="WGS84"):
+    def __init__(self, a=6378137.0 *U.m, f=1/298.257223563, angular_unit=1.*U.DEG, height_unit=1.*U.km, name="WGS84"):
         """
         initializes a geodetic reference system
 
@@ -152,6 +152,9 @@ class GeodeticReferenceSystem(ReferenceSystem):
         :param angular_unit: factor to scale the unit of latitude and
                              longitude to radians.
         :type  angular_unit: positive ``double``
+        :param height_unit: factor to scale the unit of latitude and
+                             longitude to radians.
+        :type  height_unit: positive ``double``
         """
         if not a>0:
             raise ValueError("length of semi-major axis a must be positive.")
@@ -159,10 +162,15 @@ class GeodeticReferenceSystem(ReferenceSystem):
             raise ValueError("flattening f must be non-negative and less than one.")
         if not angular_unit > 0:
             raise ValueError("angular_unit must be positive.")
+	if not height_unit > 0:
+            raise ValueError("height_unit must be positive.")  
         super(GeodeticReferenceSystem, self).__init__(name)
+      
         self.__a=a
         self.__f=f
         self.__angular_unit=angular_unit
+        self.__height_unit=height_unit
+        
 
     def isCartesian(self):
         """
@@ -177,7 +185,13 @@ class GeodeticReferenceSystem(ReferenceSystem):
         returns the angular unit
         """
         return self.__angular_unit
-
+        
+    def getHeightUnit(self):
+        """
+        returns the height unit
+        """
+        return self.__height_unit
+        
     def getSemiMajorAxis(self):
         """
         returns the length of semi major axis
@@ -237,19 +251,19 @@ def SphericalReferenceSystem(R=6378137.0*U.m):
     :param R: sphere radius
     :type R: positive ``double``
     """
-    return GeodeticReferenceSystem(a=R, f=0, angular_unit=1*U.DEG, name="SPHERE")
+    return GeodeticReferenceSystem(a=R, f=0, angular_unit=1*U.DEG,  height_unit=1.*U.km, name="SPHERE")
 
 def WGS84ReferenceSystem():
     """
     returns the `GeodeticReferenceSystem` for the WGS84 Ellipsoid
     """
-    return GeodeticReferenceSystem(a=6378137.0 *U.m, f=1/298.257223563, angular_unit=1*U.DEG, name="WGS84")
+    return GeodeticReferenceSystem(a=6378137.0 *U.m, f=1/298.257223563, angular_unit=1*U.DEG,  height_unit=1.*U.km, name="WGS84")
 
 def GRS80ReferenceSystem():
     """
     returns the `GeodeticReferenceSystem` for the GRS80 Ellipsoid eg. used by Geocentric Datum of Australia GDA94 
     """
-    return GeodeticReferenceSystem(a=6378137.0 *U.m, f=1/298.257222101, angular_unit=1*U.DEG, name="GRS80")
+    return GeodeticReferenceSystem(a=6378137.0 *U.m, f=1/298.257222101, angular_unit=1*U.DEG,  height_unit=1.*U.km, name="GRS80")
 
 
 class SpatialCoordinateTransformation(object):
@@ -360,25 +374,34 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
 
         a=reference.getSemiMajorAxis()
         f=reference.getFlattening()
+        f_a=reference.getAngularUnit()
+        f_h=reference.getHeightUnit()
 
         x=esc.Function(domain).getX()
-        phi=x[0] * reference.getAngularUnit()
-        h=x[DIM-1]
+        if DIM == 2:
+	   phi=0.
+	else:
+           phi=x[1] * f_a
+        h=x[DIM-1] * f_h
 
+        
         e = esc.sqrt(2*f-f**2)
         N = a/esc.sqrt(1 - e**2 * esc.sin(phi)**2 )
         M = ( a*(1-e**2) ) /esc.sqrt(1 - e**2 * esc.sin(phi)**2 )**3
-        v_phi = (M + h)
-        v_lam = (N + h) * esc.cos(phi)
+        v_phi = f_a * (M + h) 
+        v_lam = f_a * (N + h) * esc.cos(phi)
+        v_h = f_h
         s= esc.Vector(1., esc.Function(domain)) 
         if DIM == 2:
-            v= v_phi
-            s=esc.Vector(1., esc.Function(domain)) 
-            s[0]=1/v_phi
+            v= v_phi * v_h 
+            s[0]=1/v_lam
+            s[1]=1/v_h
         else:
-            v= v_phi * v_lam
-            s[0]=1/v_phi
-            s[1]=1/v_lam
+            v= v_phi * v_lam * v_h
+            s[0]=1/v_lam
+            s[1]=1/v_phi
+            s[2]=1/v_h
+
         self._volumefactor=v
         self._scaling_factors = s
 
