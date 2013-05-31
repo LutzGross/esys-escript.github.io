@@ -448,8 +448,10 @@ std::pair<int,int> Finley_Util_getMinMaxInt(int dim, int N, int* values)
                 }
             }
 #pragma omp critical
-            vmin=std::min(vmin_local, vmin);
-            vmax=std::max(vmax_local, vmax);
+	    {
+            	vmin=std::min(vmin_local, vmin);
+            	vmax=std::max(vmax_local, vmax);
+	    }
         }
     }
     return std::pair<int,int>(vmin,vmax);
