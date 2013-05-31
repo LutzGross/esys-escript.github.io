@@ -37,8 +37,8 @@ thickness = 40. * U.km
 l_air = 6. * U.km
 n_cells_v = 25
 MU = 0.1
-# background magnetic field components (B_North, B_East, B_Vertical)
-B_b = [31232.*U.Nano*U.Tesla, 2201.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
+# background magnetic field components (B_East, B_North, B_Vertical)
+B_b = [2201.*U.Nano*U.Tesla, 31232.*U.Nano*U.Tesla, -41405.*U.Nano*U.Tesla]
 
 COORDINATES=CartesianReferenceSystem()
 #COORDINATES=WGS84ReferenceSystem()

@@ -299,7 +299,7 @@ class DomainBuilder(object):
 
     def setBackgroundMagneticFluxDensity(self, B):
         """
-        Sets the background magnetic flux density B=(B_North, B_East, B_Vertical)
+        Sets the background magnetic flux density B=(B_East, B_North, B_Vertical)
         """
         self.__background_magnetic_field=B
 
@@ -308,7 +308,7 @@ class DomainBuilder(object):
         Returns the background magnetic flux density.
         """
         B = self.__background_magnetic_field
-        if self.__dim<3:
+        if self.__dim < 3 :
             return np.array([B[0], B[2]])
         else:
             return np.array(B)
@@ -438,24 +438,27 @@ class DomainBuilder(object):
         if self.getReferenceSystem().isCartesian():
             # rounding will give us about meter-accuracy with UTM coordinates
             self._dom_origin = [np.floor(oi) for oi in origin]
+            f=[1.,1.,1.] 
         else:
             # this should give us about meter-accuracy with lat/lon coords
             self._dom_origin = [1e-5*np.floor(oi*1e5) for oi in origin]
-
+            f=[1.,1.,  1./self.getReferenceSystem().getHeightUnit() ] 
         # cell size / point spacing
         spacing = DX + [np.floor((self._v_depth+self._v_air_layer)/self._v_num_cells)]
         #self._spacing = [float(np.floor(si)) for si in spacing]
         self._spacing = spacing
         
-        lo=[(self._dom_origin[i], self._dom_origin[i]+NE[i]*self._spacing[i]) for i in range(self.__dim)]
+
+        lo=[(self._dom_origin[i] * f[i], (self._dom_origin[i]+NE[i]*self._spacing[i]) * f[i]) for i in range(self.__dim)]
+        
         if self.__dim==3:
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])
         else:
-            dom=Rectangle(*NE, l0=lo[0], l1=lo[1])
+            dom=Rectangle(*NE, l0=lo[0], l1=lo[2])
 
         # ripley may internally adjust NE and length, so recompute
         self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self.__dim)]
-        self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(self.__dim)]
+        self._dom_NE=[int(self._dom_len[i]/(self._spacing[i]* f[i])) for i in range(self.__dim)]
 
         self.logger.debug("Domain size: "+str(self._dom_NE))
         self.logger.debug("     length: "+str(self._dom_len))

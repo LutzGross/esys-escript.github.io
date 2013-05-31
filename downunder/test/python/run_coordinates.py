@@ -201,7 +201,7 @@ class TestCoordinates(unittest.TestCase):
 
     def test_SpericalTransformation3D(self):
       
-         dom=Brick(NE,NE,NE, l0=90, l1=45, l2=1000.)
+         dom=Brick(NE,NE,NE, l0=90, l1=45, l2=10.)
          
          cs=SphericalReferenceSystem()
          tf=cs.createTransformation(dom)
@@ -212,34 +212,34 @@ class TestCoordinates(unittest.TestCase):
          
          R=6378137.0
          x=esys.escript.Function(dom).getX()
-         phi=(90.-x[0])/180.*pi
-         lam=x[1]/180.*pi
-         h=x[2]
+         phi=(90.-x[1])/180.*pi
+         lam=x[0]/180.*pi
+         h=x[2]*1000.
          r=h+R
          
          v=tf.getVolumeFactor()
          self.assertTrue(isinstance(v, esys.escript.Data), "wrong volume factor type")
          self.assertEqual(v.getFunctionSpace(), esys.escript.Function(dom), "wrong volume factor type")
-         error=Lsup(v- r**2*sin(phi) )
-         self.assertTrue(error<=RTOL * R*R , "volume factor")
+         error=Lsup(v- r**2*sin(phi)*(pi/180.)**2*1000. )
+         self.assertTrue(error<=RTOL * R*R*(pi/180.)**2*1000., "volume factor")
          
          s=tf.getScalingFactors()
          self.assertTrue(isinstance(s, esys.escript.Data), "scaling factor type")
          self.assertEqual(s.getShape(), (dom.getDim(),), "scaling factor length")
          self.assertEqual(s.getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
          
-         error=Lsup(s[0]-1/r)
-         self.assertTrue(error<=RTOL/R, "0-th scaling factor")         
+         error=Lsup(s[1]-1/r/pi*180.)
+         self.assertTrue(error<=RTOL/R/pi*180., "0-th scaling factor")         
          
-         error=Lsup(s[1]-1/(r*sin(phi)))
-         self.assertTrue(error<=RTOL/R, "1-th scaling factor")  
+         error=Lsup(s[0]-1/(r*sin(phi))/pi*180.)
+         self.assertTrue(error<=RTOL/R/pi*180., "1-th scaling factor")  
          
-         error=Lsup(s[2]-1.)
-         self.assertTrue(error<=RTOL, "2-th scaling factor")   
+         error=Lsup(s[2]-1./1000.)
+         self.assertTrue(error<=RTOL/1000., "2-th scaling factor")   
          
     def test_SpericalTransformation2D(self):
       
-         dom=Rectangle(NE,NE, l0=45., l1=1000.)
+         dom=Rectangle(NE,NE, l0=45., l1=10.)
          
          cs=SphericalReferenceSystem()
          tf=cs.createTransformation(dom)
@@ -251,13 +251,13 @@ class TestCoordinates(unittest.TestCase):
          R=6378137.0
          x=esys.escript.Function(dom).getX()
          phi=(90.-x[0])/180.*pi
-         h=x[1]
+         h=x[1]*1000.
          r=h+R
          
          v=tf.getVolumeFactor()
          self.assertTrue(isinstance(v, esys.escript.Data), "wrong volume factor type")
          self.assertEqual(v.getFunctionSpace(), esys.escript.Function(dom), "wrong volume factor type")
-         error=Lsup(v-r)
+         error=Lsup(v-r*pi/180.*1000.)
          self.assertTrue(error<=RTOL*R, "volume factor")
          
          s=tf.getScalingFactors()
@@ -265,10 +265,10 @@ class TestCoordinates(unittest.TestCase):
          self.assertEqual(s.getShape(), (dom.getDim(),), "scaling factor length")
          self.assertEqual(s.getFunctionSpace(), esys.escript.Function(dom), "wrong 0-th scaling factor type")
 
-         error=Lsup(s[0]-1./r)
-         self.assertTrue(error<=RTOL/R, "0-th scaling factor")         
-         error=Lsup(s[1]-1.)
-         self.assertTrue(error<=RTOL, "1-th scaling factor")  
+         error=Lsup(s[0]-1./r/pi*180.)
+         self.assertTrue(error<=RTOL/R/pi*180., "0-th scaling factor")         
+         error=Lsup(s[1]-1./1000)
+         self.assertTrue(error<=RTOL/1000., "1-th scaling factor")  
          
          
 if __name__ == "__main__":
