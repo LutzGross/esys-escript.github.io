@@ -48,19 +48,7 @@ sources = """
     Assemble_jacobians.cpp
     Assemble_setNormal.cpp
     ElementFile.cpp
-    ElementFile_allocTable.cpp
-    ElementFile_copyTable.cpp
-    ElementFile_createColoring.cpp
-    ElementFile_distributeByRankOfDOF.cpp
-    ElementFile_gather.cpp
     ElementFile_jacobians.cpp
-    ElementFile_markNodes.cpp
-    ElementFile_optimizeOrdering.cpp
-    ElementFile_relableNodes.cpp
-    ElementFile_scatter.cpp
-    ElementFile_setCoordinates.cpp
-    ElementFile_setNodeRange.cpp
-    ElementFile_setTags.cpp
     Finley.cpp
     IndexList.cpp
     Mesh.cpp
