@@ -257,7 +257,7 @@ def WGS84ReferenceSystem():
     """
     returns the `GeodeticReferenceSystem` for the WGS84 Ellipsoid
     """
-    return GeodeticReferenceSystem(a=6378137.0 *U.m, f=1/298.257223563, angular_unit=1*U.DEG,  height_unit=1.*U.km, name="WGS84")
+    return GeodeticReferenceSystem(a=6378137.0 *U.m, f=1/298.257223563, angular_unit=1*U.DEG,  height_unit=100.*U.km, name="WGS84")
 
 def GRS80ReferenceSystem():
     """
