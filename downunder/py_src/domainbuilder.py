@@ -36,13 +36,13 @@ class DomainBuilder(object):
     """
     This class is responsible for constructing an escript Domain object with
     suitable extents and resolution for survey data (`DataSource` objects)
-    that is added to it.
-    
-    
-    Domain covers a region above and below the Earth surface. The North-South direction is used as the 
-    x- or latitudinal or x[0] direction, the East-West direction as the y- or longitudinal or x[1] 
-    direction. The vertical direction is denoted by z- or radial or x[2] direction. The corresponding terms
-    are used synonymously. 
+    that are added to it.
+
+    The domain covers a region above and below the Earth surface. The
+    East-West direction is used as the x- or longitudinal or x[0] direction,
+    the North-South direction is used as the y- or latitudinal or x[1]
+    direction, the vertical direction is denoted by z or radial or x[2]
+    direction. The corresponding terms are used synonymously. 
     """
 
     def __init__(self, dim=3, reference_system=None):
@@ -64,6 +64,8 @@ class DomainBuilder(object):
             self.__reference_system=CartesianReferenceSystem()
         else:
             self.__reference_system=reference_system 
+
+        self.__v_scale=1./self.getReferenceSystem().getHeightUnit()
         self.__domain=None
         self.__dim=dim
         self.__sources=[]
@@ -186,13 +188,13 @@ class DomainBuilder(object):
         """
         Sets the amount of padding around the dataset in longitude and latitude.
 
-        The final domain size will be the extend in the latitudinal (in longitudinal) 
-        direction of the dataset plus twice the value of `pad_lat` (`pad_lon`).
-        The arguments must be non-negative.
+        The final domain size will be the extent in the latitudinal (in
+        longitudinal) direction of the dataset plus twice the value of
+        `pad_lat` (`pad_lon`). The arguments must be non-negative.
 
-        :param pad_lat: Padding per side in latitudinal direction (default: no padding)
+        :param pad_lat: Padding per side in latitudinal direction (default: 0)
         :type pad_lat: ``float`` in units of degree 
-        :param pad_lon: Padding per side in longitudinal direction (default: no padding)
+        :param pad_lon: Padding per side in longitudinal direction (default: 0)
         :type pad_lon: ``float``  in units of degree  
         :note: `pad_lon` is ignored for 2-dimensional domains.
         :note: this function can only be used if the reference system is not Cartesian
@@ -263,22 +265,22 @@ class DomainBuilder(object):
 
     def fixDensityBelow(self, depth=None):
         """
-        Defines the depth below which the density anomaly is set to a given value.
-        if no value is given zero is assumed. 
+        Defines the depth below which the density anomaly is set to a given
+        value. If no value is given zero is assumed. 
         
-        :param depth: depth below which the density is fixed. If not set , no constraint
-                      at depth is applied.
+        :param depth: depth below which the density is fixed. If not set, no
+                      constraint at depth is applied.
         :type depth: ``float``
         """
         self.__fix_density_below=depth
 
     def fixSusceptibilityBelow(self, depth=None):
         """
-        Defines the depth below which the susceptibility anomaly is set to a given value.
-        if no value is given zero is assumed. 
+        Defines the depth below which the susceptibility anomaly is set to a
+        given value. If no value is given zero is assumed. 
         
-        :param depth: depth below which the susceptibility is fixed. If not set , no constraint
-                      at depth is applied.
+        :param depth: depth below which the susceptibility is fixed. If not
+                      set, no constraint at depth is applied.
         :type depth: ``float``
         """
         self.__fix_susceptibility_below=depth
@@ -321,7 +323,7 @@ class DomainBuilder(object):
         z=self.getDomain().getX()[self.__dim-1]
         m = whereNonNegative(z)
         if self.__fix_density_below:
-            m += whereNonPositive(z+self.__fix_density_below)
+            m += whereNonPositive(z+self.__v_scale*self.__fix_density_below)
         return m
 
     def getSetSusceptibilityMask(self):
@@ -332,7 +334,7 @@ class DomainBuilder(object):
         z=self.getDomain().getX()[self.__dim-1]
         m = whereNonNegative(z)
         if self.__fix_susceptibility_below:
-            m += whereNonPositive(z+self.__fix_susceptibility_below)
+            m += whereNonPositive(z+self.__v_scale*self.__fix_susceptibility_below)
         return m
 
     def getDomain(self):
@@ -434,25 +436,21 @@ class DomainBuilder(object):
         NE = NX + [self._v_num_cells]
 
         # origin of domain
-        origin = X0 + [-self._v_depth]
+        origin = X0 + [-self._v_depth*self.__v_scale]
+
         if self.getReferenceSystem().isCartesian():
             # rounding will give us about meter-accuracy with UTM coordinates
             self._dom_origin = [np.floor(oi) for oi in origin]
-            f=[1.,1.,1.] 
         else:
             # this should give us about meter-accuracy with lat/lon coords
             self._dom_origin = [1e-5*np.floor(oi*1e5) for oi in origin]
-            if self.__dim==3:
-                f=[1.,1.,  1./self.getReferenceSystem().getHeightUnit()]
-            else:
-                f=[1., 1./self.getReferenceSystem().getHeightUnit()]
+
         # cell size / point spacing
-        spacing = DX + [np.floor((self._v_depth+self._v_air_layer)/self._v_num_cells)]
+        spacing = DX + [self.__v_scale*np.floor((self._v_depth+self._v_air_layer)/self._v_num_cells)]
         #self._spacing = [float(np.floor(si)) for si in spacing]
         self._spacing = spacing
-        
 
-        lo=[(self._dom_origin[i] * f[i], (self._dom_origin[i]+NE[i]*self._spacing[i]) * f[i]) for i in range(self.__dim)]
+        lo=[(self._dom_origin[i], self._dom_origin[i]+NE[i]*self._spacing[i]) for i in range(self.__dim)]
         
         if self.__dim==3:
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])
@@ -461,7 +459,7 @@ class DomainBuilder(object):
 
         # ripley may internally adjust NE and length, so recompute
         self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self.__dim)]
-        self._dom_NE=[int(self._dom_len[i]/(self._spacing[i]* f[i])) for i in range(self.__dim)]
+        self._dom_NE=[int(self._dom_len[i]/self._spacing[i]) for i in range(self.__dim)]
 
         self.logger.debug("Domain size: "+str(self._dom_NE))
         self.logger.debug("     length: "+str(self._dom_len))
