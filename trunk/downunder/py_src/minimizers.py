@@ -314,7 +314,7 @@ class MinimizerLBFGS(AbstractMinimizer):
         converged = False
         args=self.getCostFunction().getArguments(x)
         g_Jx=self.getCostFunction().getGradient(x, *args)
-        Jx=self.getCostFunction()(x, *args)	# equivalent to getValue() for Downunder CostFunctions
+        Jx=self.getCostFunction()(x, *args) # equivalent to getValue() for Downunder CostFunctions
         Jx_0=Jx
 
         while not converged and not non_curable_break_down and n_iter < self._imax:
