@@ -442,7 +442,10 @@ class DomainBuilder(object):
         else:
             # this should give us about meter-accuracy with lat/lon coords
             self._dom_origin = [1e-5*np.floor(oi*1e5) for oi in origin]
-            f=[1.,1.,  1./self.getReferenceSystem().getHeightUnit() ] 
+            if self.__dim==3:
+                f=[1.,1.,  1./self.getReferenceSystem().getHeightUnit()]
+            else:
+                f=[1., 1./self.getReferenceSystem().getHeightUnit()]
         # cell size / point spacing
         spacing = DX + [np.floor((self._v_depth+self._v_air_layer)/self._v_num_cells)]
         #self._spacing = [float(np.floor(si)) for si in spacing]
@@ -454,7 +457,7 @@ class DomainBuilder(object):
         if self.__dim==3:
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])
         else:
-            dom=Rectangle(*NE, l0=lo[0], l1=lo[2])
+            dom=Rectangle(*NE, l0=lo[0], l1=lo[1])
 
         # ripley may internally adjust NE and length, so recompute
         self._dom_len=[sup(dom.getX()[i])-inf(dom.getX()[i]) for i in range(self.__dim)]

@@ -162,7 +162,7 @@ class GeodeticReferenceSystem(ReferenceSystem):
             raise ValueError("flattening f must be non-negative and less than one.")
         if not angular_unit > 0:
             raise ValueError("angular_unit must be positive.")
-	if not height_unit > 0:
+        if not height_unit > 0:
             raise ValueError("height_unit must be positive.")  
         super(GeodeticReferenceSystem, self).__init__(name)
       
@@ -379,9 +379,9 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
 
         x=esc.Function(domain).getX()
         if DIM == 2:
-	   phi=0.
-	else:
-           phi=x[1] * f_a
+            phi=0.
+        else:
+            phi=x[1] * f_a
         h=x[DIM-1] * f_h
 
         
