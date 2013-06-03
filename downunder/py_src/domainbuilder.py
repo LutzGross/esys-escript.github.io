@@ -65,7 +65,11 @@ class DomainBuilder(object):
         else:
             self.__reference_system=reference_system 
 
-        self.__v_scale=1./self.getReferenceSystem().getHeightUnit()
+        if self.__reference_system.isCartesian():
+            self.__v_scale=1.
+        else:
+            self.__v_scale=1./self.getReferenceSystem().getHeightUnit()
+
         self.__domain=None
         self.__dim=dim
         self.__sources=[]
