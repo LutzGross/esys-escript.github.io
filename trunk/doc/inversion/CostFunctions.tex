@@ -4,7 +4,7 @@ The general form of the cost function minimized in the inversion is given in the
 J(m) = J^{reg}(m) + \sum_{f} \mu^{data}_{f} \cdot J^{f}(p^f)
 \end{equation} 
 where $m$ represents the level set function, $J^{reg}$ is the regularization term, see Chapter~\ref{Chp:ref:regularization},
-and $J^{f}$ are a set of forward problems, see Chapter~\ref{Chp:ref:forward models} depending of 
+and $J^{f}$ are a set of cost functions for forward models, (see Chapter~\ref{Chp:ref:forward models}) depending on 
 physical parameters $p^f$.  The physical parameters $p^f$ are known functions 
 of the  level set function $m$ which is the unknown to be calculated by the optimization process. 
 $\mu^{data}_{f}$ are trade-off factors. It is pointed out that the regularization term includes additional trade-off factors 
@@ -255,7 +255,7 @@ which is solved using \escript \class{LinearPDE} class. In the \escript notation
 \end{array}
 \end{equation} 
 The calculation of the gradient of the forward model component is more complicated:
-the data defect $J^{f}$ for forward model $f$ is expressed use a cost function kernel $K^{f}$ 
+the data defect $J^{f}$ for forward model $f$ is expressed using a cost function kernel $K^{f}$ 
 \begin{equation}\label{REF:EQU:INTRO 2bb}
 J^{f}(p^f) = \int_{\Omega} K^{f} \; dx
 \end{equation} 
