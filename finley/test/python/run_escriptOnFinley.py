@@ -35,6 +35,7 @@ try:
 except KeyError:
      FINLEY_WORKDIR='.'
 
+mpisize=getMPISizeWorld()
 NE=4 # number elements, must be even
 
 class Test_SharedOnFinley(Test_Shared):
@@ -208,32 +209,29 @@ class Test_CSVOnFinley(Test_saveCSV):
     def tearDown(self):
         del self.domain
 
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_csv_multiFS(self):
-        if getMPISizeWorld() == 1:
-            fname=os.path.join(FINLEY_WORKDIR, "test_multifs.csv")
-            sol=Data(8,Solution(self.domain))
-            ctsfn=Data(9,ContinuousFunction(self.domain))
-            #test line 0
-            dirac=Data(-1,DiracDeltaFunctions(self.domain))
-            saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
-            #test line 1
-            fun=Data(5,Function(self.domain))
-            rfun=Data(3,ReducedFunction(self.domain))
-            saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
-            #test line 2
-            bound=Data(1,FunctionOnBoundary(self.domain))
-            rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
-            saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
-            #test line 3
-            conzz=Data(7,FunctionOnContactZero(self.domain))
-            rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
-            saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
-            #check for cross line exceptions
-            self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
-            self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
-        else:
-            print("Skipping CSV multiFS tests on finley since MPI size > 1")
-
+        fname=os.path.join(FINLEY_WORKDIR, "test_multifs.csv")
+        sol=Data(8,Solution(self.domain))
+        ctsfn=Data(9,ContinuousFunction(self.domain))
+        #test line 0
+        dirac=Data(-1,DiracDeltaFunctions(self.domain))
+        saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
+        #test line 1
+        fun=Data(5,Function(self.domain))
+        rfun=Data(3,ReducedFunction(self.domain))
+        saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
+        #test line 2
+        bound=Data(1,FunctionOnBoundary(self.domain))
+        rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
+        saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+        #test line 3
+        conzz=Data(7,FunctionOnContactZero(self.domain))
+        rconz=Data(8,ReducedFunctionOnContactZero(self.domain))
+        saveDataCSV(fname,A=sol,B=ctsfn, C=conzz, D=rconz)
+        #check for cross line exceptions
+        self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
+        self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()

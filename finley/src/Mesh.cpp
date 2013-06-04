@@ -40,7 +40,6 @@ Finley_Mesh* Finley_Mesh_alloc(char* name,dim_t numDim, Esys_MPIInfo *mpi_info)
   out->FaceElements=NULL; 
   out->Points=NULL;      
   out->ContactElements=NULL;      
-  out->TagMap=NULL;      
   out->reference_counter=0;
 
   out->FullFullPattern=NULL;
@@ -99,7 +98,7 @@ void Finley_Mesh_free(Finley_Mesh* in) {
        delete in->Elements;
        delete in->ContactElements;
        delete in->Points;
-       Finley_TagMap_free(in->TagMap);
+       in->tagMap.clear();
        Paso_SystemMatrixPattern_free(in->FullFullPattern);
        Paso_SystemMatrixPattern_free(in->FullReducedPattern);
        Paso_SystemMatrixPattern_free(in->ReducedFullPattern);

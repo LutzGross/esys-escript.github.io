@@ -129,7 +129,6 @@ void MeshAdapter::dump(const string& fileName) const
     NcVar *ids;
     int *int_ptr;
     Finley_Mesh *mesh = m_finleyMesh.get();
-    Finley_TagMap* tag_map;
     int num_Tags = 0;
     int mpi_size                         = mesh->MPIInfo->size;
     int mpi_rank                         = mesh->MPIInfo->rank;
@@ -157,12 +156,7 @@ void MeshAdapter::dump(const string& fileName) const
                                                      mpi_size, mpi_rank);
 
     // Figure out how much storage is required for tags
-    tag_map = mesh->TagMap;
-    num_Tags = 0;
-    while (tag_map) {
-        num_Tags++;
-        tag_map=tag_map->next;
-    }
+    num_Tags = mesh->tagMap.size();
 
     // NetCDF error handler
     NcError err(NcError::verbose_nonfatal);
@@ -470,10 +464,9 @@ void MeshAdapter::dump(const string& fileName) const
         vector<int> Tags_keys;
 
         // Copy tag data into temp arrays
-        tag_map = mesh->TagMap;
-        while (tag_map) {
-            Tags_keys.push_back(tag_map->tag_key);
-            tag_map=tag_map->next;
+        TagMap::const_iterator it;
+        for (it=mesh->tagMap.begin(); it!=mesh->tagMap.end(); it++) {
+            Tags_keys.push_back(it->second);
         }
 
         // Tags_keys
@@ -487,16 +480,13 @@ void MeshAdapter::dump(const string& fileName) const
         // This is an array of strings, it should be stored as an array but
         // instead I have hacked in one attribute per string because the NetCDF
         // manual doesn't tell how to do an array of strings
-        tag_map = mesh->TagMap;
         int i = 0;
-        while (tag_map) {
+        for (it=mesh->tagMap.begin(); it!=mesh->tagMap.end(); it++, i++) {
             stringstream tagnamestream;
             tagnamestream << "Tags_name_" << i;
             const string tagname = tagnamestream.str();
-            if (!dataFile.add_att(tagname.c_str(), tag_map->name) )
-                throw FinleyAdapterException(msgPrefix+"add_att(Tags_names_XX)");
-            tag_map=tag_map->next;
-            i++;
+            if (!dataFile.add_att(tagname.c_str(), it->first.c_str()))
+                throw FinleyAdapterException(msgPrefix+"add_att(Tags_names_X)");
         }
     }
 
@@ -2089,11 +2079,12 @@ string MeshAdapter::showTagNames() const
 {
     stringstream temp;
     Finley_Mesh* mesh=m_finleyMesh.get();
-    Finley_TagMap* tag_map=mesh->TagMap;
-    while (tag_map) {
-        temp << tag_map->name;
-        tag_map=tag_map->next;
-        if (tag_map) temp << ", ";
+    TagMap::const_iterator it = mesh->tagMap.begin();
+    while (it != mesh->tagMap.end()) {
+        temp << it->first;
+        ++it;
+        if (it != mesh->tagMap.end())
+            temp << ", ";
     }
     return temp.str();
 }

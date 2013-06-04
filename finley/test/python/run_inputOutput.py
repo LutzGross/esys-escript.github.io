@@ -54,7 +54,8 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 REL_TOL=1.e-6
 
 # Number of elements scales up with number of MPI processes
-NE0 = 7 * getMPISizeWorld()
+mpisize = getMPISizeWorld()
+NE0 = 7 * mpisize
 NE1 = 11
 NE2 = 5
 
@@ -144,8 +145,8 @@ class InputOutput(unittest.TestCase):
           mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
      def test_gmshTags(self):
-       if getEscriptParamInt('MPIBUILD',0)==0:
         dom=ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH, "tagtest.msh"),2)
         tags=dom.showTagNames().split(', ')
         self.assertEqual(tags,['tag1', 'tag2', 'tag3'],'error with tags')
@@ -154,12 +155,10 @@ class InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
         self.assertRaises(RuntimeError, dom.getTag, 'tag4')
         
-       else:
-        print("Test supressed due to MPI build")
      def test_flyTags(self):
         dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH, "rectangle_8x10.fly"))
-        tags=dom.showTagNames().split(', ')
-        self.assertEqual(tags,['top', 'bottom', 'left', 'right'])
+        tags=sorted(dom.showTagNames().split(', '))
+        self.assertEqual(tags,sorted(['top', 'bottom', 'left', 'right']))
         self.assertEqual(dom.getTag('top'),20,'error with top')
         self.assertEqual(dom.getTag('bottom'),10,'error with bottom,')
         self.assertEqual(dom.getTag('left'),1,'error with left')
@@ -175,20 +174,20 @@ class InputOutput(unittest.TestCase):
           mydomain2=LoadMesh(dumpfile)
           self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(mpisize>15, "more than 15 MPI ranks")
      def test_mesh_read_rectangle_from_finley_file(self):
-        if getMPISizeWorld() < 16:
-          mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
-          mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
-          self.domainsEqual(mydomain1, mydomain2)
+         mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
+         mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
+         self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(mpisize>15, "more than 15 MPI ranks")
      def test_mesh_read_brick_from_finley_file(self):
-        if getMPISizeWorld() < 16:
           mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
           mydomain2 = ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
           self.domainsEqual(mydomain1, mydomain2)
-          
+
+     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
      def test_GetMeshFromFile(self):
-        if getMPISizeWorld() <2:
            m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3)
            del m
            m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH, 'tet10.fly'))

@@ -22,15 +22,28 @@
 
 #include "Mesh.h"
 
-/************************************************************************************/
+#include <sstream>
 
-void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p,const char* name, index_t tag_key) 
+void Finley_Mesh_addTagMap(Finley_Mesh *mesh_p, const char* name, int tag_key) 
 {
-   Finley_TagMap_insert(&(mesh_p->TagMap),name,tag_key);
+   mesh_p->tagMap[std::string(name)]=tag_key;
 }
-index_t Finley_Mesh_getTag(Finley_Mesh *mesh_p,const char* name) {
-   return Finley_TagMap_getTag(mesh_p->TagMap,name);
+
+int Finley_Mesh_getTag(Finley_Mesh *mesh_p, const char* name)
+{
+    TagMap::iterator it = mesh_p->tagMap.find(name);
+    if (it == mesh_p->tagMap.end()) {
+        std::stringstream ss;
+        ss << "getTag: unknown tag name " << name << ".";
+        const std::string errorMsg(ss.str());
+        Finley_setError(VALUE_ERROR, errorMsg.c_str());
+        return -1;
+    }
+    return it->second;
 }
-bool_t Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p,const char* name) {
-   return Finley_TagMap_isValidTagName(mesh_p->TagMap,name);
+
+bool Finley_Mesh_isValidTagName(Finley_Mesh *mesh_p, const char* name)
+{
+   return (mesh_p->tagMap.count(std::string(name)) > 0);
 }
+

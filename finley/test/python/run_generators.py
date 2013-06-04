@@ -30,6 +30,8 @@ import unittest
 from esys.escript import *
 from esys.finley import Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
 
+mpisize = getMPISizeWorld()
+
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
 except KeyError:
@@ -46,22 +48,37 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 FINLEY_WORKDIR_PATH=FINLEY_WORKDIR
 
 TEST_FILE_PRE="test_"
+
+@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
 class Test_Generators(unittest.TestCase):
 
-   def checker(self,dom,reference):
-      dom_file=os.path.join(FINLEY_WORKDIR_PATH,TEST_FILE_PRE+reference)
+   def checker(self, dom, reference):
+      dom_file=os.path.join(FINLEY_WORKDIR_PATH, TEST_FILE_PRE+reference)
       dom.write(dom_file)
 # Uncomment this section to dump the files for regression testing
-#      if True:
-#         dom.write(os.path.join(FINLEY_TEST_MESH_PATH,reference))
+      #if True:
+      #   dom.write(os.path.join(FINLEY_TEST_MESH_PATH,reference))
       dom_string=open(dom_file).read().splitlines() 
       ref_string=open(os.path.join(FINLEY_TEST_MESH_PATH,reference)).read().splitlines()
       self.assertEqual(len(dom_string),len(ref_string),"number of lines in mesh files does not match reference")
-      for l in range(1,len(ref_string)):
+      taglist=[]
+      taglist_ref=[]
+      reading_tags=False
+      # compare files but ignore tags for now since they might be in different
+      # order
+      for l in range(1, len(ref_string)):
          line=dom_string[l].strip()
          if os.name == "nt":
                line=line.replace("e+00","e+0").replace("e-00","e-0")
-         self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh files does not match reference (%s)"%(l,ref_string[l].strip(),line))
+         if not reading_tags:
+             self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in mesh file does not match reference (%s)"%(l,ref_string[l].strip(),line))
+         else:
+             taglist.append(line)
+             taglist_ref.append(ref_string[l].strip())
+         if line=='Tags':
+             reading_tags=True
+      # now compare tag lists disregarding order
+      self.assertEqual(sorted(taglist),sorted(taglist_ref),"list of tags in mesh file does not match reference.")
 
    def test_hex_2D_order1(self):
       file="hex_2D_order1.msh"
@@ -177,6 +194,7 @@ class Test_Generators(unittest.TestCase):
       my_dom=JoinFaces([ms1,ms2],optimize=False)
       self.checker(my_dom,file)
 
+@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
 class Test_GMSHReader(unittest.TestCase):
    def compare(self, test_file, reference_file):
       dom_string=open(test_file).read().splitlines()
@@ -236,6 +254,7 @@ class Test_GMSHReader(unittest.TestCase):
          dom.write(test)
          self.compare(test, os.path.join(FINLEY_TEST_MESH_PATH,ref))
 
+@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
 class Test_Reader(unittest.TestCase):
    def test_ReadWriteTagNames(self):
        file="hex_2D_order2.msh"
@@ -796,22 +815,9 @@ class Test_Integration(unittest.TestCase):
 
 if __name__ == '__main__':
    suite = unittest.TestSuite()
-
-   if getMPISizeWorld() == 1: 
-        suite.addTest(unittest.makeSuite(Test_Generators))
-   else:
-        print("Test_Generators is dropped as number of processors >1")
-
-   if getMPISizeWorld() == 1: 
-        suite.addTest(unittest.makeSuite(Test_GMSHReader))
-   else:
-        print("Test_GMSHReader is dropped as number of processors >1")
-
-   if getMPISizeWorld() == 1: 
-        suite.addTest(unittest.makeSuite(Test_Reader))
-   else:
-        print("Test_Reader is dropped as number of processors >1")
-
+   suite.addTest(unittest.makeSuite(Test_Generators))
+   suite.addTest(unittest.makeSuite(Test_GMSHReader))
+   suite.addTest(unittest.makeSuite(Test_Reader))
    suite.addTest(unittest.makeSuite(Test_Integration))
    s=unittest.TextTestRunner(verbosity=2).run(suite)
    if not s.wasSuccessful(): sys.exit(1)
