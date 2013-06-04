@@ -81,7 +81,6 @@ sources = """
     Quadrature.cpp
     ReferenceElements.cpp
     ShapeFunctions.cpp
-    TagMap.cpp
     Util.cpp
     ReferenceElementSets.cpp
     CPPAdapter/FinleyAdapterException.cpp
@@ -103,7 +102,6 @@ headers = """
     RectangularMesh.h
     ReferenceElements.h
     ShapeFunctions.h
-    TagMap.h
     Util.h
     ReferenceElementSets.h
 """.split()

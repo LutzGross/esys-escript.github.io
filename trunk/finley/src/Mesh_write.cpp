@@ -30,7 +30,6 @@ void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
   char error_msg[LenErrorMsg_MAX];
   FILE *f;
   int NN,i,j,numDim;
-  Finley_TagMap* tag_map=in->TagMap;
 
   if (in->MPIInfo->size >1 ) {
     Finley_setError(IO_ERROR,"Mesh_write: only single processor runs are supported.");
@@ -113,23 +112,23 @@ void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
     fprintf(f,"Point1 0\n");
   }
 
-  /*  write tags:*/
-  if (tag_map) {
-     fprintf(f,"Tags\n");
-     while (tag_map) {
-        fprintf(f,"%s %d\n",tag_map->name,tag_map->tag_key);
-        tag_map=tag_map->next;
-     }
-  }
-  fclose(f);
-  #ifdef Finley_TRACE
-  printf("mesh %s has been written to file %s\n",in->Name,fname);
-  #endif
+    /*  write tags:*/
+    if (in->tagMap.size()>0) {
+        fprintf(f, "Tags\n");
+        TagMap::const_iterator it;
+        for (it=in->tagMap.begin(); it!=in->tagMap.end(); it++) {
+            fprintf(f, "%s %d\n", it->first.c_str(), it->second);
+        }
+    }
+    fclose(f);
+#ifdef Finley_TRACE
+    printf("mesh %s has been written to file %s\n", in->Name, fname);
+#endif
 }
 
-void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
+void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full)
+{
   int NN,i,j,numDim;
-  Finley_TagMap* tag_map=in->TagMap;
 
   fprintf(stdout, "Finley_PrintMesh_Info running on CPU %d of %d\n",in->MPIInfo->rank, in->MPIInfo->size);
   fprintf(stdout, "\tMesh name '%s'\n",in->Name);
@@ -235,14 +234,14 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full) {
     fprintf(stdout, "\tPoints: Point1 0\n");
   }
 
-  /* write tags:*/
-  if (tag_map) {
-     fprintf(stdout, "\tTags:\n");
-     while (tag_map) {
-        fprintf(stdout, "\t  %5d %s\n", tag_map->tag_key, tag_map->name);
-        tag_map=tag_map->next;
-     }
-  }
+    /* write tags:*/
+    if (in->tagMap.size()>0) {
+        fprintf(stdout, "\tTags:\n");
+        TagMap::const_iterator it;
+        for (it=in->tagMap.begin(); it!=in->tagMap.end(); it++) {
+            fprintf(stdout, "\t  %5d %s\n", it->second, it->first.c_str());
+        }
+    }
 }
 
 /*
