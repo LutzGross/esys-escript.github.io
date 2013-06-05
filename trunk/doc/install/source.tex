@@ -15,6 +15,8 @@
 
 \chapter{Installing from Source}\label{chap:source}
 
+\section{Intro}
+
 Some initial questions:
 \begin{enumerate}
 \item Are you using MacOS?
@@ -23,7 +25,8 @@ Some initial questions:
 \end{enumerate}
 
 
-\section{MacOS and compilers}
+
+\subsection{MacOS and compilers}
 \emph{This information is as accurate as far as we can tell at time of writing but things may change.}
 
 In order to install \escript from source, you need a compiler.
@@ -52,7 +55,7 @@ Use at your own risk.
 
 
 
-\section{Parallel Technologies}
+\subsection{Parallel Technologies}
 It is extremely likely that the computer you run \escript on, will have more than one processor core.
 \escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
 but this functionality must be enabled at compile time.
@@ -89,7 +92,7 @@ A \checkmark mark means that combination passes our tests.
 
 
 
-\section{Packaging System}
+\subsection{Packaging System}
 The packaging system (also known as the package manager) is the tool you use to search for and install new open source software.
 For Linux, there will be one set up by default: the apt tools on Debian and Ubuntu, yast on Suse, yum on the RedHat family.
 On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
@@ -103,7 +106,7 @@ It is important to satisfy yourself as to the security of those systems.
 
 If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{}
 
-\subsection{Changing Compilers on MacOS and BSD}
+\subsubsection{Changing Compilers on MacOS and BSD}
 \emph{Not for the faint-hearted.}
 
 In order to use OpenMP, your compiler must support it.
@@ -172,15 +175,58 @@ In particular, the compiler must be installed before anything else and then pyth
 
 %also note that this doesn't build the doco but we do have downloads for that or you can install extra packages
 
-\section{Linux}
-%The aim here is absolutely minimal customisation
+\section{Building}
 
-\subsection{Debian}
+To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
+systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
+Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
+If your particular system is not in the above list, or if you want a more customised build, 
+see Section~\ref{sec:othersrc} for instructions.
+\begin{itemize}
+ \item Debian - \ref{sec:debsrc}
+ \item Ubuntu - \ref{sec:ubsrc}
+ \item OpenSuse - \ref{sec:susesrc}
+ \item Centos - \ref{sec:centossrc}
+ \item Fedora - \ref{sec:fedorasrc}
+ \item MacOS (macports) - \ref{sec:macportsrc}
+ \item MacOS (homebrew) - \ref{sec:homebrewsrc}
+ \item FreeBSD - \ref{sec:freebsdsrc}
+\end{itemize}
+
+Once these are done proceed to Section~\ref{sec:cleanup} for cleanup steps.
+
+All of these instructions assume that you have obtained the source (uncompressed it if necessary).
+\subsection{Debian}\label{sec:debsrc}
+
+\begin{shellCode}
+sudo aptitude install python-dev python-numpy libboost-python-dev libnetcdf-dev
+sudo aptitude scons lsb-release
+sudo aptitude install python-sympy python-matplotlib python-scipy
+sudo aptitude install python-pyproj python-gdal 
+\end{shellCode}
 
 
-\subsection{Ubuntu}
+\begin{optionalstep}
+If for some reason, you wish to rebuild the documentation, you would also need the following:
+\begin{shellCode}
+sudo aptitude install python-sphinx doxygen python-docutils texlive 
+sudo aptitude install ghostscript texlive-latex-extra latex-xcolor 
+\end{shellCode}
+\end{optionalstep}
 
-\subsection{OpenSuse}
+In the source directory execute the following (substitute squeeze or wheezy as appropriate for XXXX):
+\begin{shellCode}
+scons -j1 options_file=scons/os/XXXX_options.py
+\end{shellCode}
+
+If you wish to test your build, you can use the following:
+\begin{shellCode}
+scons -j1 py_tests options_file=scons/os/XXXX_options.py 
+\end{shellCode}
+
+\subsection{Ubuntu}\label{sec:ubsrc}
+
+\subsection{OpenSuse}\label{sec:susesrc}
 These instructions were prepared using release $12.3$.
 
 Install packages from the main distribution:
@@ -214,7 +260,7 @@ scons -j1 py_tests options_file=scons/os/opensuse12.3_options.py
 
 Now go to Section~\ref{sec:cleanup} for cleanup.
 
-\subsection{Centos}
+\subsection{Centos}\label{sec:centossrc}
 These instructions were prepared using release $6.4$.
 
 Install packages from the main distribution:
@@ -256,7 +302,7 @@ scons -j1 py_tests options_file=scons/os/centos6.4_options.py
 
 Now go to Section~\ref{sec:cleanup} for cleanup.
 
-\subsection{Fedora}
+\subsection{Fedora}\label{sec:fedorasrc}
 These instructions were prepared using release $18$.
 
 Install packages
@@ -278,6 +324,16 @@ scons -j1 py_tests options_file=scons/os/fedora18_options.py
 \end{shellCode}
 
 Now go to Section~\ref{sec:cleanup} for cleanup.
+
+\subsection{MacOS (macports)}\label{sec:macportsrc}
+
+\subsection{MacOS (homebrew)}\label{sec:homebrewsrc}
+
+\subsection{FreeBSD}\label{sec:freebsdsrc}
+
+
+
+\subsection{Other Systems / Custom Builds}\label{sec:othersrc}
 
 \section{Cleaning up}
 \label{sec:cleanup}
@@ -302,8 +358,9 @@ You can add the escript \texttt{bin} directory to your \texttt{PATH} variable.
 The launcher will then take care of the rest of the environment.
 \end{optionalstep}
 
-\section{packages you need to download}
+\section{Optional Extras}
 %Need a better title but this is stuff like visit and silo (for non-debian distros)
+%Perhaps - optional extras
 
 
 
