@@ -38,14 +38,13 @@
 
 namespace finley {
 
-void Assemble_PDE_System2_C(AssembleParameters p, ElementFile* elements,
-                            Paso_SystemMatrix* Mat, escript::Data& F,
-                            escript::Data& D, escript::Data& Y)
+void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
+                           escript::Data& Y)
 {
     bool expandedD=D.actsExpanded();
     bool expandedY=Y.actsExpanded();
-    F.requireWrite();
-    double *F_p=F.getSampleDataRW(0);
+    p.F.requireWrite();
+    double *F_p=p.F.getSampleDataRW(0);
     const double *S=p.row_jac->BasisFunctions->S;
 
 #pragma omp parallel
@@ -53,11 +52,11 @@ void Assemble_PDE_System2_C(AssembleParameters p, ElementFile* elements,
         std::vector<double> EM_S(p.row_numShapesTotal*p.col_numShapesTotal*p.numEqu*p.numComp);
         std::vector<double> EM_F(p.row_numShapesTotal*p.numEqu);
 
-        for (int color=elements->minColor; color<=elements->maxColor; color++) {
+        for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
             // loop over all elements:
 #pragma omp for
-            for (int e=0; e<elements->numElements; e++) {
-                if (elements->Color[e]==color) {
+            for (int e=0; e<p.elements->numElements; e++) {
+                if (p.elements->Color[e]==color) {
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
                         bool add_EM_F=false;
@@ -138,14 +137,14 @@ void Assemble_PDE_System2_C(AssembleParameters p, ElementFile* elements,
                         // right hand side
                         std::vector<int> row_index(p.row_numShapesTotal);
                         for (int q=0; q<p.row_numShapesTotal; q++)
-                            row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
+                            row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
                
                         if (add_EM_F)
                             util::addScatter(p.row_numShapesTotal,
                                     &row_index[0], p.numEqu, &EM_F[0], F_p,
                                     p.row_DOF_UpperBound);
                         if (add_EM_S)
-                            Assemble_addToSystemMatrix(Mat,
+                            Assemble_addToSystemMatrix(p.S,
                                     p.row_numShapesTotal, &row_index[0],
                                     p.numEqu, p.col_numShapesTotal,
                                     &row_index[0], p.numComp, &EM_S[0]);

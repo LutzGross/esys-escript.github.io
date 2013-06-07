@@ -37,8 +37,8 @@ ElementFile_Jacobians::~ElementFile_Jacobians()
 }
 
 
-ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile, 
-        bool_t reducedShapefunction, bool_t reducedIntegrationOrder)
+ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile, 
+        bool reducedShapefunction, bool reducedIntegrationOrder) const
 {
     ElementFile_Jacobians *out = NULL;
   

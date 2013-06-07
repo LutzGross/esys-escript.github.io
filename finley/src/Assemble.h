@@ -32,6 +32,16 @@
 namespace finley {
 
 struct AssembleParameters {
+    AssembleParameters(const NodeFile* nodes, const ElementFile* ef,
+                       Paso_SystemMatrix* sm, escript::Data& rhs,
+                       bool reducedOrder);
+
+    /// element file these parameters apply to
+    const ElementFile* elements;
+    /// system matrix to be updated
+    Paso_SystemMatrix* S;
+    /// right-hand side to be updated
+    escript::Data& F;
     /// total number of quadrature nodes = numQuadSub * numQuadSub
     int numQuadTotal;
     /// number of quadrature nodes per subelements
@@ -40,7 +50,7 @@ struct AssembleParameters {
     int numSides;
     /// number of sub-elements
     int numSub;
-    /// spatial dimension
+    /// number of spatial dimensions
     int numDim;
     /// leading dimension of element node table
     int NN;
@@ -63,98 +73,88 @@ struct AssembleParameters {
     int col_numShapes;
 };
 
-void Assemble_PDE(NodeFile*, ElementFile*, Paso_SystemMatrix*,
+
+/// Entry point for PDE assembly. Checks arguments, populates an
+/// AssembleParameters structure and calls appropriate method for the actual
+/// work.
+void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
         escript::Data& F, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D, const escript::Data& X,
         const escript::Data& Y);
 
-void Assemble_getAssembleParameters(NodeFile*, ElementFile*,
-        Paso_SystemMatrix* S, const escript::Data& F, bool,
-        AssembleParameters*);
+void Assemble_PDE_Points(const AssembleParameters& p, escript::Data& d_dirac,
+                         escript::Data& y_dirac);
 
-void Assemble_PDE_System2_3D(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_Single_1D(const AssembleParameters& p, escript::Data& A,
+        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
+        escript::Data& Y);
 
-void Assemble_PDE_System2_2D(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_Single_2D(const AssembleParameters& p, escript::Data& A,
+        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
+        escript::Data& Y);
 
-void Assemble_PDE_System2_1D(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_Single_3D(const AssembleParameters& p, escript::Data& A,
+        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
+        escript::Data& Y);
 
-void Assemble_PDE_System2_C(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_Single_C(const AssembleParameters& p, escript::Data& D,
+                           escript::Data& Y);
 
-void Assemble_PDE_Single2_3D(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_System_1D(const AssembleParameters& p, escript::Data& A,
+        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
+        escript::Data& Y);
 
-void Assemble_PDE_Single2_2D(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_System_2D(const AssembleParameters& p, escript::Data& A,
+        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
+        escript::Data& Y);
 
-void Assemble_PDE_Single2_1D(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
-        escript::Data&, escript::Data&);
+void Assemble_PDE_System_3D(const AssembleParameters& p, escript::Data& A,
+        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
+        escript::Data& Y);
 
-void Assemble_PDE_Single2_C(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&);
-
-void Assemble_PDE_Points(AssembleParameters,
-        ElementFile*, Paso_SystemMatrix*, escript::Data&,
-        escript::Data&, escript::Data&);
-
-void Assemble_NodeCoordinates(NodeFile*, escript::Data&);
-
-void Assemble_setNormal(NodeFile*, ElementFile*, escript::Data&);
-void Assemble_interpolate(NodeFile*, ElementFile*, const escript::Data&, escript::Data&);
-void Assemble_gradient(NodeFile*, ElementFile*, escript::Data&, const escript::Data&);
-void Assemble_integrate(NodeFile*, ElementFile*, const escript::Data&, double*);
-void Assemble_getSize(NodeFile*, ElementFile*, escript::Data&);
-void Assemble_CopyNodalData(NodeFile*, escript::Data&, const escript::Data&);
-void Assemble_CopyElementData(ElementFile*, escript::Data&, const escript::Data&);
-void Assemble_AverageElementData(ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
+                           escript::Data& Y);
 
 void Assemble_addToSystemMatrix(Paso_SystemMatrix*, const int NN_Equa,
         const int* Nodes_Equa, const int num_Equa, const int NN_Sol,
         const int* Nodes_Sol, const int num_Sol, const double* array);
 
-void Assemble_LumpedSystem(NodeFile*, ElementFile*,
+void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
         escript::Data& lumpedMat, const escript::Data& D, bool useHRZ);
 
-void Assemble_jacobians_1D(double*, int, double*, int, int, int,
-        int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D(double*, int, double*, int, int, int,
-        int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E2D(double*, int, double*, int, int,
-        int, int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E2D_C(double*, int, double*, int,
-        int, int, int*, double*, int, double*, double*, double*,
-        int*);
-void Assemble_jacobians_2D_M1D_E1D(double*, int, double*, int, int,
-        int, int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E1D_C(double*, int, double*, int,
-        int, int, int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D(double*, int, double*, int, int, int,
-        int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E3D(double*, int, double*, int, int,
-        int, int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E3D_C(double*, int, double*, int,
-        int, int, int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E2D(double*, int, double*, int, int,
-        int, int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E2D_C(double*, int, double*, int,
-        int, int, int*, double*, int, double*, double*, double*, int*);
+void Assemble_AverageElementData(ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_CopyElementData(ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_CopyNodalData(NodeFile*, escript::Data&, const escript::Data&);
+void Assemble_NodeCoordinates(NodeFile*, escript::Data&);
+
+void Assemble_gradient(NodeFile*, ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_integrate(NodeFile*, ElementFile*, const escript::Data&, double*);
+void Assemble_interpolate(NodeFile*, ElementFile*, const escript::Data&, escript::Data&);
+void Assemble_setNormal(NodeFile*, ElementFile*, escript::Data&);
+void Assemble_getSize(NodeFile*, ElementFile*, escript::Data&);
+
+void Assemble_jacobians_1D(double*, int, double*, int, int, int, int*, double*,
+                           int, double*, double*, double*, int*);
+void Assemble_jacobians_2D(double*, int, double*, int, int, int, int*, double*,
+                           int, double*, double*, double*, int*);
+void Assemble_jacobians_2D_M1D_E2D(double*, int, double*, int, int, int, int*,
+                                double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_2D_M1D_E2D_C(double*, int, double*, int, int, int,
+                          int*, double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_2D_M1D_E1D(double*, int, double*, int, int, int, int*,
+                                double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_2D_M1D_E1D_C(double*, int, double*, int, int, int,
+                          int*, double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_3D(double*, int, double*, int, int, int, int*, double*,
+                           int, double*, double*, double*, int*);
+void Assemble_jacobians_3D_M2D_E3D(double*, int, double*, int, int, int, int*,
+                                double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_3D_M2D_E3D_C(double*, int, double*, int, int, int,
+                          int*, double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_3D_M2D_E2D(double*, int, double*, int, int, int, int*,
+                                double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_3D_M2D_E2D_C(double*, int, double*, int, int, int,
+                          int*, double*, int, double*, double*, double*, int*);
 
 } // namespace finley
 

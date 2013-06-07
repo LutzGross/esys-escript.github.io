@@ -37,21 +37,20 @@
 
 namespace finley {
 
-void Assemble_PDE_Points(AssembleParameters p, ElementFile* elements,
-                         Paso_SystemMatrix* S, escript::Data& F,
-                         escript::Data& d_dirac, escript::Data& y_dirac)
+void Assemble_PDE_Points(const AssembleParameters& p, escript::Data& d_dirac,
+                         escript::Data& y_dirac)
 {
-    F.requireWrite();
-    double *F_p=F.getSampleDataRW(0);
+    p.F.requireWrite();
+    double *F_p=p.F.getSampleDataRW(0);
 
 #pragma omp parallel
     {
-        for (int color=elements->minColor; color<=elements->maxColor; color++) {
+        for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
             // loop over all elements
 #pragma omp for
-            for (int e=0; e<elements->numElements; e++) {
-                if (elements->Color[e]==color) {
-                    int row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
+            for (int e=0; e<p.elements->numElements; e++) {
+                if (p.elements->Color[e]==color) {
+                    int row_index=p.row_DOF[p.elements->Nodes[INDEX2(0,e,p.NN)]];
                     if (!y_dirac.isEmpty()) {
                         const double *y_dirac_p=y_dirac.getSampleDataRO(e);
                         util::addScatter(1, &row_index, p.numEqu,
@@ -59,7 +58,7 @@ void Assemble_PDE_Points(AssembleParameters p, ElementFile* elements,
                     }
                     if (!d_dirac.isEmpty()) {
                         const double *d_dirac_p=d_dirac.getSampleDataRO(e);
-                        Assemble_addToSystemMatrix(S, 1, &row_index,
+                        Assemble_addToSystemMatrix(p.S, 1, &row_index,
                                 p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
                     }
                 } // end color check
