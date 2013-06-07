@@ -40,27 +40,25 @@ void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
         return;
 
     const int funcspace=D.getFunctionSpace().getTypeCode();
-    bool reducedIntegrationOrder;
+    bool reducedOrder;
     // check function space of D
     if (funcspace==FINLEY_ELEMENTS) {
-        reducedIntegrationOrder=false;
+        reducedOrder=false;
     } else if (funcspace==FINLEY_FACE_ELEMENTS)  {
-        reducedIntegrationOrder=false;
+        reducedOrder=false;
     } else if (funcspace==FINLEY_REDUCED_ELEMENTS) {
-        reducedIntegrationOrder=true;
+        reducedOrder=true;
     } else if (funcspace==FINLEY_REDUCED_FACE_ELEMENTS)  {
-        reducedIntegrationOrder=true;
+        reducedOrder=true;
     } else if (funcspace==FINLEY_POINTS)  {
-        reducedIntegrationOrder=true;
+        reducedOrder=true;
     } else {
         Finley_setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
         return;
     }
 
-    // set all parameters in p
-    AssembleParameters p;
-    Assemble_getAssembleParameters(nodes, elements, NULL, lumpedMat,
-                                   reducedIntegrationOrder, &p);
+    // initialize parameters
+    AssembleParameters p(nodes, elements, NULL, lumpedMat, reducedOrder);
     if (!Finley_noError())
         return;
 

@@ -84,7 +84,7 @@ public:
                                   bool useLinear);
 
     void setTags(const int newTag, const escript::Data& mask);
-    ElementFile_Jacobians* borrowJacobians(NodeFile*, bool_t, bool_t);
+    ElementFile_Jacobians* borrowJacobians(const NodeFile*, bool, bool) const;
     /// returns the minimum and maximum reference number of nodes describing
     /// the elements
     inline std::pair<int,int> getNodeRange() const;

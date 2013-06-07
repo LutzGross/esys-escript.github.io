@@ -34,7 +34,7 @@
       Y = numEqu
 
   The coefficients A,B,C,D,X and Y have to be defined on the integration
-  points or not present (=NULL).
+  points or not present (i.e. empty).
 
   S and F have to be initialized before the routine is called. S or F can
   be NULL. In this case the left or the right hand side of the PDE is not
@@ -153,9 +153,7 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
     }
 
     // get assemblage parameters
-    AssembleParameters p;
-    Assemble_getAssembleParameters(nodes, elements, S, F,
-                                   reducedIntegrationOrder, &p);
+    AssembleParameters p(nodes, elements, S, F, reducedIntegrationOrder);
     if (!Finley_noError())
         return;
 
@@ -227,25 +225,25 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
                 Finley_setError(TYPE_ERROR, "Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
-                Assemble_PDE_Points(p, elements, S, F, _D, _Y);
+                Assemble_PDE_Points(p, _D, _Y);
             }
         } else if (p.numEqu > 1) { // system of PDEs
             if (p.numDim==3) {
-                Assemble_PDE_System2_3D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
+                Assemble_PDE_System_3D(p, _A, _B, _C, _D, _X, _Y);
             } else if (p.numDim==2) {
-                Assemble_PDE_System2_2D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
+                Assemble_PDE_System_2D(p, _A, _B, _C, _D, _X, _Y);
             } else if (p.numDim==1) {
-                Assemble_PDE_System2_1D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
+                Assemble_PDE_System_1D(p, _A, _B, _C, _D, _X, _Y);
             } else {
                 Finley_setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         } else { // single PDE
             if (p.numDim==3) {
-                Assemble_PDE_Single2_3D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
+                Assemble_PDE_Single_3D(p, _A, _B, _C, _D, _X, _Y);
             } else if (p.numDim==2) {
-                Assemble_PDE_Single2_2D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
+                Assemble_PDE_Single_2D(p, _A, _B, _C, _D, _X, _Y);
             } else if (p.numDim==1) {
-                Assemble_PDE_Single2_1D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
+                Assemble_PDE_Single_1D(p, _A, _B, _C, _D, _X, _Y);
             } else {
                 Finley_setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
@@ -254,9 +252,9 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
             Finley_setError(TYPE_ERROR, "Assemble_PDE: Contact elements require A, B, C and X to be empty.");
         } else if (p.numEqu > 1) { // system of PDEs
-            Assemble_PDE_System2_C(p, elements, S, F, _D, _Y);
+            Assemble_PDE_System_C(p, _D, _Y);
         } else { // single PDE
-            Assemble_PDE_Single2_C(p, elements, S, F, _D, _Y);
+            Assemble_PDE_Single_C(p, _D, _Y);
         }
     } else {
         Finley_setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
