@@ -27,47 +27,47 @@
 #include "Util.h"
 
 #include <sstream>
-#include <vector>
 
-void Finley_Assemble_LumpedSystem(NodeFile* nodes,
-                                  ElementFile* elements,
-                                  escriptDataC* lumpedMat, escriptDataC* D,
-                                  const bool_t useHRZ)
+namespace finley {
+
+void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
+                           escript::Data& lumpedMat, const escript::Data& D,
+                           bool useHRZ)
 {
     Finley_resetError();
 
-    if (!nodes || !elements || isEmpty(lumpedMat) || isEmpty(D))
+    if (!nodes || !elements || lumpedMat.isEmpty() || D.isEmpty())
         return;
 
-    const type_t funcspace=getFunctionSpaceType(D);
-    bool_t reducedIntegrationOrder;
+    const int funcspace=D.getFunctionSpace().getTypeCode();
+    bool reducedIntegrationOrder;
     // check function space of D
     if (funcspace==FINLEY_ELEMENTS) {
-        reducedIntegrationOrder=FALSE;
+        reducedIntegrationOrder=false;
     } else if (funcspace==FINLEY_FACE_ELEMENTS)  {
-        reducedIntegrationOrder=FALSE;
+        reducedIntegrationOrder=false;
     } else if (funcspace==FINLEY_REDUCED_ELEMENTS) {
-        reducedIntegrationOrder=TRUE;
+        reducedIntegrationOrder=true;
     } else if (funcspace==FINLEY_REDUCED_FACE_ELEMENTS)  {
-        reducedIntegrationOrder=TRUE;
+        reducedIntegrationOrder=true;
     } else if (funcspace==FINLEY_POINTS)  {
-        reducedIntegrationOrder=TRUE;
+        reducedIntegrationOrder=true;
     } else {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_LumpedSystem: assemblage failed because of illegal function space.");
+        Finley_setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
         return;
     }
 
     // set all parameters in p
-    Finley_Assemble_Parameters p;
-    Finley_Assemble_getAssembleParameters(nodes, elements, NULL, lumpedMat,
-                                          reducedIntegrationOrder, &p);
+    AssembleParameters p;
+    Assemble_getAssembleParameters(nodes, elements, NULL, lumpedMat,
+                                   reducedIntegrationOrder, &p);
     if (!Finley_noError())
         return;
 
     // check if all function spaces are the same
-    if (!numSamplesEqual(D, p.numQuadTotal, elements->numElements) ) {
+    if (!D.numSamplesEqual(p.numQuadTotal, elements->numElements) ) {
         std::stringstream ss;
-        ss << "Finley_Assemble_LumpedSystem: sample points of coefficient D "
+        ss << "Assemble_LumpedSystem: sample points of coefficient D "
             "don't match (" << p.numQuadSub << "," << elements->numElements
             << ").";
         std::string errorMsg = ss.str();
@@ -77,16 +77,16 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
 
     // check the dimensions:
     if (p.numEqu==1) {
-        const int dimensions = 0; //dummy
-        if (!isDataPointShapeEqual(D, 0, &dimensions)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_LumpedSystem: coefficient D, rank 0 expected.");
+        const escript::DataTypes::ShapeType dimensions; //dummy
+        if (D.getDataPointShape() != dimensions) {
+            Finley_setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficient D, rank 0 expected.");
             return;
         }
     } else {
-        const int dimensions = p.numEqu;
-        if (!isDataPointShapeEqual(D, 1, &dimensions)) {
+        const escript::DataTypes::ShapeType dimensions(1, p.numEqu);
+        if (D.getDataPointShape() != dimensions) {
             std::stringstream ss;
-            ss << "Finley_Assemble_LumpedSystem: coefficient D does not have "
+            ss << "Assemble_LumpedSystem: coefficient D does not have "
                 "expected shape (" << p.numEqu << ",).";
             std::string errorMsg = ss.str();
             Finley_setError(TYPE_ERROR, errorMsg.c_str());
@@ -94,8 +94,9 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
         }
     }
 
-    requireWrite(lumpedMat);
-    double *lumpedMat_p=getSampleDataRW(lumpedMat, 0);
+    escript::Data& _D(*const_cast<escript::Data*>(&D));
+    lumpedMat.requireWrite();
+    double *lumpedMat_p=lumpedMat.getSampleDataRW(0);
     if (funcspace==FINLEY_POINTS) {
 #pragma omp parallel
         {
@@ -104,8 +105,8 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
                     if (elements->Color[e]==color) {
-                        const double *D_p=getSampleDataRO(D, e);
-                        Finley_Util_AddScatter(1,
+                        const double *D_p=_D.getSampleDataRO(e);
+                        util::addScatter(1,
                                 &(p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]]),
                                 p.numEqu, D_p, lumpedMat_p,
                                 p.row_DOF_UpperBound);
@@ -114,7 +115,7 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
             } // end color loop
         } // end parallel region
     } else { // function space not points
-        bool expandedD=isExpanded(D);
+        bool expandedD=D.actsExpanded();
         const double *S=p.row_jac->BasisFunctions->S;
 
 #pragma omp parallel
@@ -130,7 +131,7 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                                    const double *D_p=getSampleDataRO(D,e);
+                                    const double *D_p=_D.getSampleDataRO(e);
                                     if (useHRZ) {
                                         double m_t=0; // mass of the element
                                         double diagS=0; // diagonal sum
@@ -166,10 +167,10 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                                     }
                                     for (int q=0; q<p.row_numShapesTotal; q++)
                                         row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
-                                    Finley_Util_AddScatter(p.row_numShapesTotal,
-                                            &row_index[0], p.numEqu,
-                                            &EM_lumpedMat[0], lumpedMat_p,
-                                            p.row_DOF_UpperBound);
+                                    util::addScatter(p.row_numShapesTotal,
+                                                &row_index[0], p.numEqu,
+                                                &EM_lumpedMat[0], lumpedMat_p,
+                                                p.row_DOF_UpperBound);
                                 } // end of isub loop
                             } // end color check
                         } // end element loop
@@ -183,7 +184,7 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                                    const double *D_p=getSampleDataRO(D,e);
+                                    const double *D_p=_D.getSampleDataRO(e);
                                     if (useHRZ) { // HRZ lumping
                                         double m_t=0; // mass of the element
                                         double diagS=0; // diagonal sum
@@ -218,10 +219,10 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                                     }
                                     for (int q=0; q<p.row_numShapesTotal; q++)
                                         row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
-                                    Finley_Util_AddScatter(p.row_numShapesTotal,
-                                            &row_index[0], p.numEqu,
-                                            &EM_lumpedMat[0], lumpedMat_p,
-                                            p.row_DOF_UpperBound);
+                                    util::addScatter(p.row_numShapesTotal,
+                                                &row_index[0], p.numEqu,
+                                                &EM_lumpedMat[0], lumpedMat_p,
+                                                p.row_DOF_UpperBound);
                                 } // end of isub loop
                             } // end color check
                         } // end element loop
@@ -237,7 +238,7 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
-                                    const double *D_p=getSampleDataRO(D,e);
+                                    const double *D_p=_D.getSampleDataRO(e);
 
                                     if (useHRZ) { // HRZ lumping
                                         for (int k=0; k<p.numEqu; k++) {
@@ -279,10 +280,10 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                                     }
                                     for (int q=0; q<p.row_numShapesTotal; q++)
                                         row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
-                                    Finley_Util_AddScatter(p.row_numShapesTotal,
-                                            &row_index[0], p.numEqu,
-                                            &EM_lumpedMat[0], lumpedMat_p,
-                                            p.row_DOF_UpperBound);
+                                    util::addScatter(p.row_numShapesTotal,
+                                                &row_index[0], p.numEqu,
+                                                &EM_lumpedMat[0], lumpedMat_p,
+                                                p.row_DOF_UpperBound);
                                 } // end of isub loop
                             } // end color check
                         } // end element loop
@@ -296,7 +297,7 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                                    const double *D_p=getSampleDataRO(D,e);
+                                    const double *D_p=_D.getSampleDataRO(e);
 
                                     if (useHRZ) { // HRZ lumping
                                         double m_t=0.; // mass of the element
@@ -338,10 +339,10 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
                                     }
                                     for (int q=0; q<p.row_numShapesTotal; q++)
                                         row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
-                                    Finley_Util_AddScatter(p.row_numShapesTotal,
-                                            &row_index[0], p.numEqu,
-                                            &EM_lumpedMat[0], lumpedMat_p,
-                                            p.row_DOF_UpperBound);
+                                    util::addScatter(p.row_numShapesTotal,
+                                                &row_index[0], p.numEqu,
+                                                &EM_lumpedMat[0], lumpedMat_p,
+                                                p.row_DOF_UpperBound);
                                 } // end of isub loop
                             } // end color check
                         } // end element loop
@@ -351,4 +352,6 @@ void Finley_Assemble_LumpedSystem(NodeFile* nodes,
         } // end parallel region
     } // function space
 }
+
+} // namespace finley
 

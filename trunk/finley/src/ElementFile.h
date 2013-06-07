@@ -22,12 +22,6 @@
 #include "Util.h"
 #include "esysUtils/Esys_MPI.h"
 
-#include <vector>
-
-namespace escript {
-    class Data;
-}
-
 namespace finley {
 
 struct ElementFile_Jacobians {
@@ -147,13 +141,13 @@ public:
 
 inline std::pair<int,int> ElementFile::getNodeRange() const
 {
-    return Finley_Util_getMinMaxInt(numNodes, numElements, Nodes);
+    return util::getMinMaxInt(numNodes, numElements, Nodes);
 }
 
 
 inline void ElementFile::updateTagList()
 {
-    Finley_Util_setValuesInUse(Tag, numElements, tagsInUse, MPIInfo);
+    util::setValuesInUse(Tag, numElements, tagsInUse, MPIInfo);
 }
 
 } // namespace finley

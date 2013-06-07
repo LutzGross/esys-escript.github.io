@@ -22,346 +22,217 @@
 
 #include "Finley.h"
 #include "Util.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
-#include "esysUtils/mem.h"
 #include "esysUtils/index.h"
+
+#include <algorithm> // std::sort
 #include <limits>
 
+namespace finley {
+namespace util {
 
-/*   returns true if any of the values in the short array values is not equal to Zero */
-bool_t Finley_Util_anyNonZeroDouble(dim_t N, double* values) {
-   dim_t q;
-   for (q=0;q<N;++q) if (ABS(values[q])>0) return TRUE;
-   return FALSE;
-}
-
-/*   gathers double values out from in by index: */
-/*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
-void Finley_Util_Gather_double(dim_t len,index_t* index,dim_t numData,double* in, double * out){
-    dim_t s,i;
-    for (s=0;s<len;s++) {
-       for (i=0;i<numData;i++) {
-          out[INDEX2(i,s,numData)]=in[INDEX2(i,index[s],numData)];
-       }
-    }
-}
-
-
-/*   gathers integer values out from in by index: */
-/*        out(1:numData,1:len)=in(1:numData,index(1:len)) */
-void Finley_Util_Gather_int(dim_t len,index_t* index,dim_t numData, index_t* in, index_t * out){
-    dim_t s,i;
-    for (s=0;s<len;s++) {
-       for (i=0;i<numData;i++) {
-          out[INDEX2(i,s,numData)]=in[INDEX2(i,index[s],numData)];
-       }
-    }
-}
-
-
-/*   adds a vector in into out using an index. */
-/*        out(1:numData,index[p])+=in(1:numData,p) where p = {k=1...len , index[k]<upperBound}*/
-void Finley_Util_AddScatter(const dim_t len, const index_t* index, const dim_t numData, const  double* in,double * out, const index_t upperBound){
-   dim_t i,s;
-   for (s=0;s<len;s++) {
-       for(i=0;i<numData;i++) {
-          if( index[s]<upperBound ) {
-            out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
-      }
-       }
-   }
-}
-
-/*    multiplies two matrices */
-/*          A(1:A1,1:A2)=B(1:A1,1:B2)*C(1:B2,1:A2) */
-void Finley_Util_SmallMatMult(dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
-    dim_t i,j,s;
-    register double rtmp;
-       for (i=0;i<A1;i++) {
-          for (j=0;j<A2;j++) {
-             rtmp=0;
-             for (s=0;s<B2;s++) rtmp+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];
-             A[INDEX2(i,j,A1)]=rtmp;
-          }
-       }
-}
-
-/*    multiplies two sets of matrices: */
-/*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2,i) i=1,len */
-void Finley_Util_SmallMatSetMult(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
-    dim_t q,i,j,s;
-    register double rtmp;
-    for (q=0;q<len;q++) {
-       for (i=0;i<A1;i++) {
-          for (j=0;j<A2;j++) {
-             rtmp=0;
-             for (s=0;s<B2;s++) rtmp+=B[INDEX3(i,s,q,A1,B2)]*C[INDEX3(s,j,q,B2,A2)];
-             A[INDEX3(i,j,q, A1,A2)]=rtmp;
-          }
-       }
-    }
-}
-
-/*    multiplies a set of matrices with a single matrix: */
-/*        A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) i=1,len */
-void Finley_Util_SmallMatSetMult1(dim_t len,dim_t A1,dim_t A2, double* A, dim_t B2, double*B, double* C) {
-    dim_t q,i,j,s;
-    register double rtmp;
-    for (q=0;q<len;q++) {
-       for (i=0;i<A1;i++) {
-          for (j=0;j<A2;j++) {
-             rtmp=0;
-             for (s=0;s<B2;s++) rtmp+=B[INDEX3(i,s,q, A1,B2)]*C[INDEX2(s,j,B2)];
-             A[INDEX3(i,j,q,A1,A2)]=rtmp;
-          }
-       }
-    }
-}
-
-/* inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
-/* the determinant is returned. */
-void Finley_Util_InvertSmallMat(dim_t len,dim_t dim,double* A,double *invA, double* det){
-   dim_t q;
-   register double D,A11,A12,A13,A21,A22,A23,A31,A32,A33;
-
-   switch(dim) {
-      case 1:
-         for (q=0;q<len;q++) {
-            D=A[q];
-            if (ABS(D) > 0 ){
-               det[q]=D;
-               D=1./D;
-               invA[q]=D;
-            } else {
-               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
-               return;
-            }
-         }
-         break;
-
-      case 2:
-         for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,2,2)];
-            A12=A[INDEX3(0,1,q,2,2)];
-            A21=A[INDEX3(1,0,q,2,2)];
-            A22=A[INDEX3(1,1,q,2,2)];
-
-            D = A11*A22-A12*A21;
-            if (ABS(D) > 0 ){
-               det[q]=D;
-               D=1./D;
-               invA[INDEX3(0,0,q,2,2)]= A22*D;
-               invA[INDEX3(1,0,q,2,2)]=-A21*D;
-               invA[INDEX3(0,1,q,2,2)]=-A12*D;
-               invA[INDEX3(1,1,q,2,2)]= A11*D;
-            } else {
-               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
-               return;
-            }
-         }
-         break;
-
-      case 3:
-     for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,3,3)];
-            A21=A[INDEX3(1,0,q,3,3)];
-            A31=A[INDEX3(2,0,q,3,3)];
-            A12=A[INDEX3(0,1,q,3,3)];
-            A22=A[INDEX3(1,1,q,3,3)];
-            A32=A[INDEX3(2,1,q,3,3)];
-            A13=A[INDEX3(0,2,q,3,3)];
-            A23=A[INDEX3(1,2,q,3,3)];
-            A33=A[INDEX3(2,2,q,3,3)];
-
-            D = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-            if (ABS(D) > 0 ){
-               det[q]    =D;
-               D=1./D;
-               invA[INDEX3(0,0,q,3,3)]=(A22*A33-A23*A32)*D;
-               invA[INDEX3(1,0,q,3,3)]=(A31*A23-A21*A33)*D;
-               invA[INDEX3(2,0,q,3,3)]=(A21*A32-A31*A22)*D;
-               invA[INDEX3(0,1,q,3,3)]=(A13*A32-A12*A33)*D;
-               invA[INDEX3(1,1,q,3,3)]=(A11*A33-A31*A13)*D;
-               invA[INDEX3(2,1,q,3,3)]=(A12*A31-A11*A32)*D;
-               invA[INDEX3(0,2,q,3,3)]=(A12*A23-A13*A22)*D;
-               invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)*D;
-               invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)*D;
-            } else {
-               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": Non-regular matrix");
-               return;
-            }
-         }
-         break;
-   }
-}
-
-/* sets the determinant of a set of dim x dim matrices A(:,:,1:len) with dim=1,2,3 */
-void Finley_Util_DetOfSmallMat(dim_t len,dim_t dim,double* A, double* det){
-   dim_t q;
-   register double A11,A12,A13,A21,A22,A23,A31,A32,A33;
-
-   switch(dim) {
-      case 1:
-         for (q=0;q<len;q++) {
-            det[q]=A[q];
-         }
-         break;
-
-      case 2:
-         for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,2,2)];
-            A12=A[INDEX3(0,1,q,2,2)];
-            A21=A[INDEX3(1,0,q,2,2)];
-            A22=A[INDEX3(1,1,q,2,2)];
-
-            det[q] = A11*A22-A12*A21;
-         }
-         break;
-
-      case 3:
-     for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,3,3)];
-            A21=A[INDEX3(1,0,q,3,3)];
-            A31=A[INDEX3(2,0,q,3,3)];
-            A12=A[INDEX3(0,1,q,3,3)];
-            A22=A[INDEX3(1,1,q,3,3)];
-            A32=A[INDEX3(2,1,q,3,3)];
-            A13=A[INDEX3(0,2,q,3,3)];
-            A23=A[INDEX3(1,2,q,3,3)];
-            A33=A[INDEX3(2,2,q,3,3)];
-
-            det[q] = A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);
-         }
-         break;
-
-   }
-}
-
-/* returns the normalized vector Normal[dim,len] orthogonal to A(:,0,q) and A(:,1,q) in the case of dim=3  */
-/* or the vector A(:,0,q) in the case of dim=2 */
-void  Finley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* Normal) {
-   dim_t q;
-   register double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33,length,invlength;
-
-   switch(dim) {
-      case 1:
-         for (q=0;q<len;q++) Normal[q]    =1;
-         break;
-      case 2:
-         for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,2,dim1)];
-            A21=A[INDEX3(1,0,q,2,dim1)];
-            length = sqrt(A11*A11+A21*A21);
-            if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
-               return;
-            } else {
-               invlength=1./length;
-               Normal[INDEX2(0,q,2)]=A21*invlength;
-               Normal[INDEX2(1,q,2)]=-A11*invlength;
-            }
-         }
-         break;
-      case 3:
-         for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,3,dim1)];
-            A21=A[INDEX3(1,0,q,3,dim1)];
-            A31=A[INDEX3(2,0,q,3,dim1)];
-            A12=A[INDEX3(0,1,q,3,dim1)];
-            A22=A[INDEX3(1,1,q,3,dim1)];
-            A32=A[INDEX3(2,1,q,3,dim1)];
-            CO_A13=A21*A32-A31*A22;
-            CO_A23=A31*A12-A11*A32;
-            CO_A33=A11*A22-A21*A12;
-            length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
-            if (! length>0) {
-               Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
-               return;
-            } else {
-               invlength=1./length;
-               Normal[INDEX2(0,q,3)]=CO_A13*invlength;
-               Normal[INDEX2(1,q,3)]=CO_A23*invlength;
-               Normal[INDEX2(2,q,3)]=CO_A33*invlength;
-           }
-      }
-      break;
-  }
-}
-
-/* return the length of the vector which is orthogonal to the vectors A(:,0,q) and A(:,1,q) in the case of dim=3 */
-/* or the vector A(:,0,q) in the case of dim=2 */
-void Finley_LengthOfNormalVector(dim_t len, dim_t dim, dim_t dim1, double* A,double* length) {
-   dim_t q;
-   double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33;
-
-   switch(dim) {
-      case 1:
-         for (q=0;q<len;q++) length[q]    =1;
-         break;
-      case 2:
-         for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,2,dim1)];
-            A21=A[INDEX3(1,0,q,2,dim1)];
-            length[q] = sqrt(A11*A11+A21*A21);
-         }
-         break;
-      case 3:
-         for (q=0;q<len;q++) {
-            A11=A[INDEX3(0,0,q,3,dim1)];
-            A21=A[INDEX3(1,0,q,3,dim1)];
-            A31=A[INDEX3(2,0,q,3,dim1)];
-            A12=A[INDEX3(0,1,q,3,dim1)];
-            A22=A[INDEX3(1,1,q,3,dim1)];
-            A32=A[INDEX3(2,1,q,3,dim1)];
-            CO_A13=A21*A32-A31*A22;
-            CO_A23=A31*A12-A11*A32;
-            CO_A33=A11*A22-A21*A12;
-            length[q]=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
-      }
-      break;
-  }
-}
-
-/* inverts a map of length len */
-/* there is no range checking! */
-/* output: Map[invMap[i]]=i for i=0:lenInvMap */
-void Finley_Util_InvertMap(dim_t lenInvMap, index_t* invMap,dim_t lenMap, index_t* Map) {
-   dim_t i;
-   for (i=0;i<lenInvMap;i++) invMap[i]=0;
-   for (i=0;i<lenMap;i++) {
-      if (Map[i]>=0) invMap[Map[i]]=i;
-   }
-}
-
-/* orders a Finley_Util_ValueAndIndex array by value */
-/* it is assumed that n is large */
-int Finley_Util_ValueAndIndex_compar(const void *arg1 , const void *arg2) {
-   Finley_Util_ValueAndIndex *e1,*e2;
-   e1=(Finley_Util_ValueAndIndex*) arg1;
-   e2=(Finley_Util_ValueAndIndex*) arg2;
-   if (e1->value < e2->value) return -1;
-   if (e1->value > e2->value) return  1;
-   if (e1->index < e2->index) return -1;
-   if (e1->index > e2->index) return  1;
-   return 0;
-}
-
-void Finley_Util_sortValueAndIndex(dim_t n,Finley_Util_ValueAndIndex* array)
+/// comparision function for sortValueandIndex
+bool ValueAndIndexCompare(const std::pair<int,int> &i, const std::pair<int, int> &j)
 {
-    /* TODO: needs OpenMP parallelization !*/
-    qsort(array,n,sizeof(Finley_Util_ValueAndIndex),Finley_Util_ValueAndIndex_compar);
+   if (i.first < j.first) return true;
+   if (i.first > j.first) return false;
+   if (i.second < j.second) return true;
+   if (i.second > j.second) return false;
+   return true;
 }
 
+/// orders a ValueAndIndexList by value
+void sortValueAndIndex(ValueAndIndexList& array)
+{
+    std::sort(array.begin(), array.end(), ValueAndIndexCompare);
+}
+
+/// gathers values into vector out from vector in using index:
+///   out(1:numData, 1:len) := in(1:numData, index(1:len))
+void gather(int len, const int* index, int numData, const double* in, double* out)
+{
+    for (int s=0; s<len; s++) {
+        for (int i=0; i<numData; i++) {
+            out[INDEX2(i,s,numData)] = in[INDEX2(i,index[s],numData)];
+        }
+    }
+}
+
+/// adds a vector in into out using an index:
+///   out(1:numData,index[p])+=in(1:numData,p) where
+///   p={k=1...len, index[k]<upperBound}
+void addScatter(const int len, const int* index, const int numData, const double* in, double* out, const int upperBound)
+{
+    for (int s=0; s<len; s++) {
+        for (int i=0; i<numData; i++) {
+            if (index[s] < upperBound) {
+                out[INDEX2(i,index[s],numData)]+=in[INDEX2(i,s,numData)];
+            }
+        }
+    }
+}
+
+/// multiplies two matrices: A(1:A1,1:A2) := B(1:A1,1:B2)*C(1:B2,1:A2)
+void smallMatMult(int A1, int A2, double* A, int B2, const double* B, const double* C)
+{
+    for (int i=0; i<A1; i++) {
+        for (int j=0; j<A2; j++) {
+            double sum=0.;
+            for (int s=0; s<B2; s++)
+                sum+=B[INDEX2(i,s,A1)]*C[INDEX2(s,j,B2)];
+            A[INDEX2(i,j,A1)]=sum;
+        }
+    }
+}
+
+/// multiplies a set of matrices with a single matrix:
+///   A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) for i=1,len
+void smallMatSetMult1(int len, int A1, int A2, double* A, int B2, const double* B, const double* C)
+{
+    for (int q=0; q<len; q++) {
+        for (int i=0; i<A1; i++) {
+            for (int j=0; j<A2; j++) {
+                double sum=0.;
+                for (int s=0; s<B2; s++)
+                    sum+=B[INDEX3(i,s,q,A1,B2)]*C[INDEX2(s,j,B2)];
+                A[INDEX3(i,j,q,A1,A2)]=sum;
+            }
+        }
+    }
+}
+
+/// inverts the set of dim x dim matrices A(:,:,1:len) with dim=1,2,3
+/// the inverse and determinant are returned.
+void invertSmallMat(int len, int dim, const double* A, double *invA, double* det)
+{
+    switch(dim) {
+        case 1:
+            for (int q=0; q<len; q++) {
+                const double D=A[q];
+                if (ABS(D) > 0) {
+                    det[q]=D;
+                    invA[q]=1./D;
+                } else {
+                    Finley_setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
+                    break;
+                }
+            }
+            break;
+
+        case 2:
+            for (int q=0; q<len; q++) {
+                const double A11=A[INDEX3(0,0,q,2,2)];
+                const double A12=A[INDEX3(0,1,q,2,2)];
+                const double A21=A[INDEX3(1,0,q,2,2)];
+                const double A22=A[INDEX3(1,1,q,2,2)];
+
+                const double D = A11*A22-A12*A21;
+                if (ABS(D) > 0) {
+                    det[q]=D;
+                    invA[INDEX3(0,0,q,2,2)]= A22/D;
+                    invA[INDEX3(1,0,q,2,2)]=-A21/D;
+                    invA[INDEX3(0,1,q,2,2)]=-A12/D;
+                    invA[INDEX3(1,1,q,2,2)]= A11/D;
+                } else {
+                    Finley_setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
+                    break;
+                }
+            }
+            break;
+
+        case 3:
+            for (int q=0; q<len; q++) {
+                const double A11=A[INDEX3(0,0,q,3,3)];
+                const double A21=A[INDEX3(1,0,q,3,3)];
+                const double A31=A[INDEX3(2,0,q,3,3)];
+                const double A12=A[INDEX3(0,1,q,3,3)];
+                const double A22=A[INDEX3(1,1,q,3,3)];
+                const double A32=A[INDEX3(2,1,q,3,3)];
+                const double A13=A[INDEX3(0,2,q,3,3)];
+                const double A23=A[INDEX3(1,2,q,3,3)];
+                const double A33=A[INDEX3(2,2,q,3,3)];
+
+                const double D = A11*(A22*A33-A23*A32) + A12*(A31*A23-A21*A33) + A13*(A21*A32-A31*A22);
+                if (ABS(D) > 0) {
+                    det[q]=D;
+                    invA[INDEX3(0,0,q,3,3)]=(A22*A33-A23*A32)/D;
+                    invA[INDEX3(1,0,q,3,3)]=(A31*A23-A21*A33)/D;
+                    invA[INDEX3(2,0,q,3,3)]=(A21*A32-A31*A22)/D;
+                    invA[INDEX3(0,1,q,3,3)]=(A13*A32-A12*A33)/D;
+                    invA[INDEX3(1,1,q,3,3)]=(A11*A33-A31*A13)/D;
+                    invA[INDEX3(2,1,q,3,3)]=(A12*A31-A11*A32)/D;
+                    invA[INDEX3(0,2,q,3,3)]=(A12*A23-A13*A22)/D;
+                    invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)/D;
+                    invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)/D;
+                } else {
+                    Finley_setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
+                    break;
+                }
+            }
+            break;
+
+        default:
+            Finley_setError(VALUE_ERROR, "InvertSmallMat: dim must be <=3");
+            break;
+    }
+}
+
+/// returns the normalized vector Normal[dim,len] orthogonal to A(:,0,q) and
+/// A(:,1,q) in the case of dim=3, or the vector A(:,0,q) in the case of dim=2
+void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
+{
+    int q;
+    double A11,A12,CO_A13,A21,A22,CO_A23,A31,A32,CO_A33,length,invlength;
+
+    switch(dim) {
+        case 1:
+            for (q=0;q<len;q++) Normal[q]=1;
+            break;
+        case 2:
+            for (q=0;q<len;q++) {
+                A11=A[INDEX3(0,0,q,2,dim1)];
+                A21=A[INDEX3(1,0,q,2,dim1)];
+                length = sqrt(A11*A11+A21*A21);
+                if (! length>0) {
+                    Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
+                    return;
+                } else {
+                    invlength=1./length;
+                    Normal[INDEX2(0,q,2)]=A21*invlength;
+                    Normal[INDEX2(1,q,2)]=-A11*invlength;
+                }
+            }
+            break;
+        case 3:
+            for (q=0;q<len;q++) {
+                A11=A[INDEX3(0,0,q,3,dim1)];
+                A21=A[INDEX3(1,0,q,3,dim1)];
+                A31=A[INDEX3(2,0,q,3,dim1)];
+                A12=A[INDEX3(0,1,q,3,dim1)];
+                A22=A[INDEX3(1,1,q,3,dim1)];
+                A32=A[INDEX3(2,1,q,3,dim1)];
+                CO_A13=A21*A32-A31*A22;
+                CO_A23=A31*A12-A11*A32;
+                CO_A33=A11*A22-A21*A12;
+                length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
+                if (! length>0) {
+                    Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
+                    return;
+                } else {
+                    invlength=1./length;
+                    Normal[INDEX2(0,q,3)]=CO_A13*invlength;
+                    Normal[INDEX2(1,q,3)]=CO_A23*invlength;
+                    Normal[INDEX2(2,q,3)]=CO_A33*invlength;
+                }
+            }
+            break;
+    }
+}
 
 /// calculates the minimum value from a dim X N integer array
-int Finley_Util_getMinInt(int dim, int N, const int* values)
+int getMinInt(int dim, int N, const int* values)
 {
     int out = std::numeric_limits<int>::max();
-    if (values && dim*N>0) {
+    if (values && dim*N > 0) {
         out=values[0];
 #pragma omp parallel
         {
@@ -379,10 +250,10 @@ int Finley_Util_getMinInt(int dim, int N, const int* values)
 }
 
 /// calculates the maximum value from a dim X N integer array
-int Finley_Util_getMaxInt(int dim, int N, const int* values)
+int getMaxInt(int dim, int N, const int* values)
 {
     int out = std::numeric_limits<int>::min();
-    if (values && dim*N>0) {
+    if (values && dim*N > 0) {
         out=values[0];
 #pragma omp parallel
         {
@@ -399,7 +270,7 @@ int Finley_Util_getMaxInt(int dim, int N, const int* values)
     return out;
 }
 
-std::pair<int,int> Finley_Util_getMinMaxInt(int dim, int N, const int* values)
+std::pair<int,int> getMinMaxInt(int dim, int N, const int* values)
 {
     int vmin = std::numeric_limits<int>::max();
     int vmax = std::numeric_limits<int>::min();
@@ -426,118 +297,68 @@ std::pair<int,int> Finley_Util_getMinMaxInt(int dim, int N, const int* values)
     return std::pair<int,int>(vmin,vmax);
 }
 
-
-/* calculates the minimum value from a dim X N integer array */
-index_t Finley_Util_getFlaggedMinInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
-   dim_t i,j;
-   index_t out,out_local;
-   out=INDEX_T_MAX;
-   if (values!=NULL && dim*N>0 ) {
-     out=values[0];
-#pragma omp parallel private(out_local)
-     {
-         out_local=out;
-#pragma omp for private(i,j) schedule(static)
-         for (j=0;j<N;j++) {
-           for (i=0;i<dim;i++) if (values[INDEX2(i,j,dim)]!=ignore) out_local=MIN(out_local,values[INDEX2(i,j,dim)]);
-         }
-#pragma omp critical
-         out=MIN(out_local,out);
-     }
-   }
-   return out;
-}
-
-/* calculates the maximum value from a dim X N integer array */
-index_t Finley_Util_getFlaggedMaxInt(dim_t dim,dim_t N,index_t* values, index_t ignore) {
-   dim_t i,j;
-   index_t out,out_local;
-   out=-INDEX_T_MAX;
-   if (values!=NULL && dim*N>0 ) {
-     out=values[0];
-#pragma omp parallel private(out_local)
-     {
-         out_local=out;
-#pragma omp for private(i,j) schedule(static)
-         for (j=0;j<N;j++) {
-             for (i=0;i<dim;i++) if (values[INDEX2(i,j,dim)]!=ignore) out_local=MAX(out_local,values[INDEX2(i,j,dim)]);
-         }
-#pragma omp critical
-         out=MAX(out_local,out);
-      }
-   }
-   return out;
-}
-
-/* set the index of the positive entries in mask. The length of index is returned. */
-dim_t Finley_Util_packMask(dim_t N,index_t* mask,index_t* index) {
-      dim_t out,k;
-      out=0;
-      /* TODO: OMP */
-      for (k=0;k<N;k++) {
-        if (mask[k]>=0) {
-          index[out]=k;
-          out++;
-        }
-      }
-      return out;
-}
-
-/* returns true if array contains value */
-bool_t Finley_Util_isAny(dim_t N,index_t* array,index_t value) {
-   bool_t out=FALSE;
-   dim_t i;
-#pragma omp parallel for private(i) schedule(static) reduction(||:out)
-   for (i=0;i<N;i++) out = out || (array[i]==value);
-   return out;
-}
-
-/* calculates the cumulative sum in array and returns the total sum */
-index_t Finley_Util_cumsum(dim_t N,index_t* array) {
-   index_t out=0,tmp;
-   dim_t i;
-#ifdef _OPENMP
-      index_t *partial_sums=NULL, sum;
-      partial_sums=new index_t[omp_get_max_threads()];
-#pragma omp parallel private(sum,i,tmp)
-      {
-        sum=0;
-#pragma omp for schedule(static)
-        for (i=0;i<N;++i) sum+=array[i];
-        partial_sums[omp_get_thread_num()]=sum;
-#pragma omp barrier
-#pragma omp master
+/// calculates the minimum value from a dim X N integer array
+int getFlaggedMinInt(int dim, int N, const int* values, int ignore)
+{
+    int out = std::numeric_limits<int>::max();
+    if (values && dim*N > 0) {
+        out=values[0];
+#pragma omp parallel
         {
-          out=0;
-          for (i=0;i<omp_get_max_threads();++i) {
-             tmp=out;
-             out+=partial_sums[i];
-             partial_sums[i]=tmp;
-           }
+            int out_local=out;
+#pragma omp for
+            for (int j=0;j<N;j++) {
+                for (int i=0; i<dim; i++) {
+                    if (values[INDEX2(i,j,dim)] != ignore)
+                        out_local=std::min(out_local, values[INDEX2(i,j,dim)]);
+                }
+            }
+#pragma omp critical
+            out=std::min(out_local, out);
         }
-#pragma omp barrier
-        sum=partial_sums[omp_get_thread_num()];
-#pragma omp for schedule(static)
-        for (i=0;i<N;++i) {
-          tmp=sum;
-          sum+=array[i];
-          array[i]=tmp;
-        }
-      }
-      delete[] partial_sums;
-#else // serial version
-      for (i=0;i<N;++i) {
-         tmp=out;
-         out+=array[i];
-         array[i]=tmp;
-      }
-#endif
-   return out;
+    }
+    return out;
 }
 
-void Finley_Util_setValuesInUse(const int *values, const int numValues,
-                                std::vector<int>& valuesInUse,
-                                Esys_MPIInfo* mpiinfo)
+/// calculates the maximum value from a dim X N integer array
+int getFlaggedMaxInt(int dim, int N, const int* values, int ignore)
+{
+    int out = std::numeric_limits<int>::min();
+    if (values && dim*N > 0) {
+        out=values[0];
+#pragma omp parallel
+        {
+            int out_local=out;
+#pragma omp for
+            for (int j=0; j<N; j++) {
+                for (int i=0; i<dim; i++) {
+                    if (values[INDEX2(i,j,dim)] != ignore)
+                        out_local=std::max(out_local, values[INDEX2(i,j,dim)]);
+                }
+            }
+#pragma omp critical
+            out=std::max(out_local, out);
+        }
+    }
+    return out;
+}
+
+/// determines the indices of the positive entries in mask returning the
+/// length of index.
+int packMask(int N, const int* mask, int* index)
+{
+    int out=0;
+    for (int k=0; k<N; k++) {
+        if (mask[k] >= 0) {
+            index[out]=k;
+            out++;
+        }
+    }
+    return out;
+}
+
+void setValuesInUse(const int *values, const int numValues,
+                    std::vector<int>& valuesInUse, Esys_MPIInfo* mpiinfo)
 {
     int lastFoundValue=INDEX_T_MIN;
     bool allFound=false;
@@ -577,54 +398,6 @@ void Finley_Util_setValuesInUse(const int *values, const int numValues,
     }
 }
 
-
-#ifdef ESYS_MPI
-void Finley_printDoubleArray(FILE *fid, dim_t n, double *array, char *name)
-{
-  index_t i;
-
-  if( name )
-    fprintf( fid, "%s [ ", name );
-  else
-    fprintf( fid, "[ " );
-  for( i=0; i<(n<60 ? n : 60); i++ )
-    fprintf( fid, "%g ", array[i] );
-  if( n>=30 )
-    fprintf( fid, "... " );
-  fprintf( fid, "]\n" );
-}
-
-void Finley_printIntArray(FILE *fid, dim_t n, int *array, char *name)
-{
-  index_t i;
-
-  if( name )
-    fprintf( fid, "%s [ ", name );
-  else
-    fprintf( fid, "[ " );
-  for( i=0; i<(n<60 ? n : 60); i++ )
-    fprintf( fid, "%d ", array[i] );
-  if( n>=30 )
-    fprintf( fid, "... " );
-  fprintf( fid, "]\n" );
-}
-
-void Finley_printMaskArray(FILE *fid, dim_t n, int *array, char *name)
-{
-  index_t i;
-
-  if( name )
-    fprintf( fid, "%s [ ", name );
-  else
-    fprintf( fid, "[ " );
-  for( i=0; i<(n<60 ? n : 60); i++ )
-    if( array[i]!=-1 )
-      fprintf( fid, "%3d ", array[i] );
-    else
-      fprintf( fid, "  * " );
-  if( n>=30 )
-    fprintf( fid, "... " );
-  fprintf( fid, "]\n" );
-}
-#endif // ESYS_MPI
+} // namespace util
+} // namespace finley
 

@@ -20,15 +20,10 @@
 
 #include "Finley.h"
 #include "NodeMapping.h"
+#include "Util.h"
 #include "paso/Distribution.h"
 #include "paso/Coupler.h"
 #include "esysUtils/Esys_MPI.h"
-
-#include <vector>
-
-namespace escript {
-    class Data;
-}
 
 namespace finley {
 
@@ -78,7 +73,7 @@ public:
 
     void setCoordinates(const escript::Data& newX);
     void setTags(const int newTag, const escript::Data& mask);
-    void updateTagList();
+    inline void updateTagList();
 
     std::pair<int,int> getDOFRange() const;
 
@@ -244,6 +239,11 @@ inline int* NodeFile::borrowNodesTarget()
 inline int* NodeFile::borrowReducedDegreesOfFreedomTarget()
 {
     return reducedDegreesOfFreedomMapping->map;
+}
+
+inline void NodeFile::updateTagList()
+{
+    util::setValuesInUse(Tag, numNodes, tagsInUse, MPIInfo);
 }
 
 

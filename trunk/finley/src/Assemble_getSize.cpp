@@ -17,18 +17,16 @@
 /****************************************************************************
 
   Assemblage routines: calculates the minimum distance between two vertices
-  of elements and assigns the value to each quadrature point in element_size.
+  of elements and assigns the value to each quadrature point in out.
 
 *****************************************************************************/
 
 #include "Assemble.h"
 #include "Util.h"
 
-#include <vector>
+namespace finley {
 
-void Finley_Assemble_getSize(NodeFile* nodes,
-                             ElementFile* elements,
-                             escriptDataC* element_size)
+void Assemble_getSize(NodeFile* nodes, ElementFile* elements, escript::Data& out)
 {
     Finley_resetError();
 
@@ -38,7 +36,7 @@ void Finley_Assemble_getSize(NodeFile* nodes,
     Finley_ReferenceElement *refElement =
         Finley_ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet,
-                Finley_Assemble_reducedIntegrationOrder(element_size));
+                util::hasReducedIntegrationOrder(out));
 
     const int numDim=nodes->numDim;
     const int numQuad=refElement->Parametrization->numQuadNodes;
@@ -46,13 +44,13 @@ void Finley_Assemble_getSize(NodeFile* nodes,
     const int NS=refElement->Parametrization->Type->numShapes;
     const int NVertices=refElement->Parametrization->Type->numVertices;
 
-    // check the dimensions of element_size
-    if (!numSamplesEqual(element_size, numQuad, elements->numElements)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_getSize: illegal number of samples of element_size Data object");
-    } else if (!isDataPointShapeEqual(element_size, 0, &numDim)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_getSize: illegal data point shape of element_size Data object");
-    } else if (!isExpanded(element_size)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_getSize: expanded Data object is expected for element size.");
+    // check the dimensions of out
+    if (!out.numSamplesEqual(numQuad, elements->numElements)) {
+        Finley_setError(TYPE_ERROR, "Assemble_getSize: illegal number of samples of out Data object");
+    } else if (!out.isDataPointShapeEqual(0, &numDim)) {
+        Finley_setError(TYPE_ERROR, "Assemble_getSize: illegal data point shape of out Data object");
+    } else if (!out.actsExpanded()) {
+        Finley_setError(TYPE_ERROR, "Assemble_getSize: expanded Data object is expected for element size.");
     }
 
     if (!Finley_noError())
@@ -60,7 +58,7 @@ void Finley_Assemble_getSize(NodeFile* nodes,
 
     // now we can start
     int node_offset;
-    if (getFunctionSpaceType(element_size)==FINLEY_CONTACT_ELEMENTS_2) {
+    if (out.getFunctionSpace().getTypeCode()==FINLEY_CONTACT_ELEMENTS_2) {
         node_offset=refElement->Type->offsets[1];
     } else {
         node_offset=refElement->Type->offsets[0];
@@ -68,7 +66,7 @@ void Finley_Assemble_getSize(NodeFile* nodes,
     const double f=pow(0.5, pow((double)(refElement->Type->numSubElements),
                 1./(double)(numDim))-1);
 
-    requireWrite(element_size);
+    out.requireWrite();
 #pragma omp parallel
     {
         std::vector<double> local_X(NN*numDim);
@@ -76,9 +74,8 @@ void Finley_Assemble_getSize(NodeFile* nodes,
         for (int e=0; e<elements->numElements; e++) {
             // gather local coordinates of nodes into
             // local_X(numDim,NN):
-            Finley_Util_Gather_double(NS,
-                    &(elements->Nodes[INDEX2(node_offset,e,NN)]),
-                    numDim, nodes->Coordinates, &local_X[0]);
+            util::gather(NS, &(elements->Nodes[INDEX2(node_offset,e,NN)]),
+                         numDim, nodes->Coordinates, &local_X[0]);
             // calculate minimal differences:
             double max_diff=0.;
             for (int n0=0; n0<NVertices; n0++) {
@@ -88,15 +85,17 @@ void Finley_Assemble_getSize(NodeFile* nodes,
                         const double d=local_X[INDEX2(i,n0,numDim)]-local_X[INDEX2(i,n1,numDim)];
                         diff += d*d;
                     }
-                    max_diff=MAX(max_diff,diff);
+                    max_diff=std::max(max_diff,diff);
                 }
             }
             max_diff=sqrt(max_diff)*f;
             // set all values to max_diff
-            double *element_size_array=getSampleDataRW(element_size,e);
+            double *out_array=out.getSampleDataRW(e);
             for (int q=0; q<numQuad; q++)
-                element_size_array[q]=max_diff;
+                out_array[q]=max_diff;
         }
     } // end of parallel region
 }
+
+} // namespace finley
 

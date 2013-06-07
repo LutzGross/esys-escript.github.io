@@ -24,22 +24,21 @@
 #include "Assemble.h"
 #include "Util.h"
 
-#include <vector>
+namespace finley {
 
-void Finley_Assemble_interpolate(NodeFile *nodes,
-                                 ElementFile *elements,
-                                 escriptDataC *data,
-                                 escriptDataC *interpolated_data)
+void Assemble_interpolate(NodeFile* nodes, ElementFile* elements,
+                          const escript::Data& data,
+                          escript::Data& interpolated_data)
 {
     Finley_resetError();
     if (!nodes || !elements)
         return;
 
-    const type_t data_type=getFunctionSpaceType(data);
-    const bool_t reduced_integration = Finley_Assemble_reducedIntegrationOrder(interpolated_data);
+    const int data_type=data.getFunctionSpace().getTypeCode();
+    const bool reducedOrder = util::hasReducedIntegrationOrder(interpolated_data);
     Finley_ReferenceElement *reference_element =
         Finley_ReferenceElementSet_borrowReferenceElement(
-                elements->referenceElementSet, reduced_integration);
+                elements->referenceElementSet, reducedOrder);
 
     int *resort_nodes = NULL, *map = NULL;
     int numSub = 0, numNodes = 0;
@@ -52,7 +51,7 @@ void Finley_Assemble_interpolate(NodeFile *nodes,
         basis=reference_element->BasisFunctions;
         numNodes=nodes->getNumNodes();
         map=nodes->borrowTargetNodes();
-        if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
+        if (interpolated_data.getFunctionSpace().getTypeCode()==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->Type->offsets[1];
         } else {
             dof_offset=reference_element->Type->offsets[0];
@@ -63,14 +62,14 @@ void Finley_Assemble_interpolate(NodeFile *nodes,
         basis=reference_element->LinearBasisFunctions;
         numNodes=nodes->getNumReducedNodes();
         map=nodes->borrowTargetReducedNodes();
-        if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
+        if (interpolated_data.getFunctionSpace().getTypeCode()==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->LinearType->offsets[1];
         } else {
             dof_offset=reference_element->LinearType->offsets[0];
         }
     } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
+            Finley_setError(TYPE_ERROR,"Assemble_interpolate: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
         numSub=reference_element->Type->numSubElements;
@@ -78,14 +77,14 @@ void Finley_Assemble_interpolate(NodeFile *nodes,
         basis=reference_element->BasisFunctions;
         numNodes=nodes->getNumDegreesOfFreedom();
         map=nodes->borrowTargetDegreesOfFreedom();
-        if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
+        if (interpolated_data.getFunctionSpace().getTypeCode()==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->Type->offsets[1];
         } else {
             dof_offset=reference_element->Type->offsets[0];
         }
     } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
+            Finley_setError(TYPE_ERROR, "Assemble_interpolate: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
         numSub=1;
@@ -93,36 +92,36 @@ void Finley_Assemble_interpolate(NodeFile *nodes,
         basis=reference_element->LinearBasisFunctions;
         numNodes=nodes->getNumReducedDegreesOfFreedom();
         map=nodes->borrowTargetReducedDegreesOfFreedom();
-        if (getFunctionSpaceType(interpolated_data)==FINLEY_CONTACT_ELEMENTS_2) {
+        if (interpolated_data.getFunctionSpace().getTypeCode()==FINLEY_CONTACT_ELEMENTS_2) {
             dof_offset=reference_element->LinearType->offsets[1];
         } else {
             dof_offset=reference_element->LinearType->offsets[0];
         }
     } else {
-        Finley_setError(TYPE_ERROR,"Finley_Assemble_interpolate: Cannot interpolate data");
+        Finley_setError(TYPE_ERROR,"Assemble_interpolate: Cannot interpolate data");
         return;
     }
 
-    const int numComps=getDataPointSize(data);
+    const int numComps=data.getDataPointSize();
     const int numQuad=basis->numQuadNodes;
     const int numShapesTotal=basis->Type->numShapes*reference_element->Type->numSides;
     const int NN=elements->numNodes;
     const int NS_DOF=basis->Type->numShapes;
 
     // check the dimensions of interpolated_data and data
-    if (!numSamplesEqual(interpolated_data, numQuad*numSub, elements->numElements)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_interpolate: illegal number of samples of output Data object");
-    } else if (! numSamplesEqual(data,1,numNodes)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_interpolate: illegal number of samples of input Data object");
-    } else if (numComps!=getDataPointSize(interpolated_data)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_interpolate: number of components of input and interpolated Data do not match.");
-    }  else if (!isExpanded(interpolated_data)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_interpolate: expanded Data object is expected for output data.");
+    if (!interpolated_data.numSamplesEqual(numQuad*numSub, elements->numElements)) {
+        Finley_setError(TYPE_ERROR, "Assemble_interpolate: illegal number of samples of output Data object");
+    } else if (!data.numSamplesEqual(1,numNodes)) {
+        Finley_setError(TYPE_ERROR, "Assemble_interpolate: illegal number of samples of input Data object");
+    } else if (numComps != interpolated_data.getDataPointSize()) {
+        Finley_setError(TYPE_ERROR, "Assemble_interpolate: number of components of input and interpolated Data do not match.");
+    }  else if (!interpolated_data.actsExpanded()) {
+        Finley_setError(TYPE_ERROR, "Assemble_interpolate: expanded Data object is expected for output data.");
     }
 
-    // now we can start
     if (Finley_noError()) {
-        requireWrite(interpolated_data);
+        escript::Data& in(*const_cast<escript::Data*>(&data));
+        interpolated_data.requireWrite();
 #pragma omp parallel
         {
             // allocation of work array
@@ -134,16 +133,18 @@ void Finley_Assemble_interpolate(NodeFile *nodes,
                 for (int isub=0; isub<numSub; isub++) {
                     for (int q=0; q<NS_DOF; q++) {
                         const int i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
-                        const double *data_array=getSampleDataRO(data, map[i]);
+                        const double *data_array=in.getSampleDataRO(map[i]);
                         memcpy(&(local_data[INDEX3(0,q,isub, numComps,NS_DOF)]), data_array, numComps_size);
                     }
                 }
                 // calculate interpolated_data=local_data*S
-                Finley_Util_SmallMatSetMult1(numSub, numComps, numQuad,
-                      getSampleDataRW(interpolated_data,e),
-                      NS_DOF, &local_data[0], basis->S);
+                util::smallMatSetMult1(numSub, numComps, numQuad,
+                      interpolated_data.getSampleDataRW(e), NS_DOF,
+                      &local_data[0], basis->S);
             } // end of element loop
         } // end of parallel region
     } // no error
 }
+
+} // namespace finley
 

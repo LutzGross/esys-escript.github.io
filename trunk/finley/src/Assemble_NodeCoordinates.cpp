@@ -25,30 +25,36 @@
 
 #include <sstream>
 
-void Finley_Assemble_NodeCoordinates(finley::NodeFile* nodes, escriptDataC* x)
+namespace finley {
+
+void Assemble_NodeCoordinates(NodeFile* nodes, escript::Data& x)
 {
     Finley_resetError();
     if (!nodes) return;
 
-    if (!numSamplesEqual(x, 1, nodes->numNodes)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_NodeCoordinates: illegal number of samples of Data object");
-    } else if (getFunctionSpaceType(x) != FINLEY_NODES) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_NodeCoordinates: Data object is not defined on nodes.");
-    } else if (!isExpanded(x)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_NodeCoordinates: expanded Data object expected");
-    } else if (!isDataPointShapeEqual(x, 1, &(nodes->numDim))) {
+    const escript::DataTypes::ShapeType expectedShape(1, nodes->numDim);
+
+    if (!x.numSamplesEqual(1, nodes->numNodes)) {
+        Finley_setError(TYPE_ERROR, "Assemble_NodeCoordinates: illegal number of samples of Data object");
+    } else if (x.getFunctionSpace().getTypeCode() != FINLEY_NODES) {
+        Finley_setError(TYPE_ERROR, "Assemble_NodeCoordinates: Data object is not defined on nodes.");
+    } else if (!x.actsExpanded()) {
+        Finley_setError(TYPE_ERROR, "Assemble_NodeCoordinates: expanded Data object expected");
+    } else if (x.getDataPointShape() != expectedShape) {
         std::stringstream ss;
-        ss << "Finley_Assemble_NodeCoordinates: Data object of shape ("
+        ss << "Assemble_NodeCoordinates: Data object of shape ("
             << nodes->numDim << ",) expected.";
         std::string errorMsg = ss.str();
         Finley_setError(TYPE_ERROR, errorMsg.c_str());
     } else {
         const size_t dim_size = nodes->numDim*sizeof(double);
-        requireWrite(x);
+        x.requireWrite();
 #pragma omp parallel for
         for (int n=0; n<nodes->numNodes; n++)
-            memcpy(getSampleDataRWFast(x,n),
+            memcpy(x.getSampleDataRW(n),
                     &(nodes->Coordinates[INDEX2(0,n,nodes->numDim)]), dim_size);
     }
 }
+
+} // namespace finley
 

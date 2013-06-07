@@ -20,21 +20,18 @@
 
 *****************************************************************************/
 
-#ifndef INC_FINLEY_ASSEMBLE
-#define INC_FINLEY_ASSEMBLE
+#ifndef __FINLEY_ASSEMBLE_H__
+#define __FINLEY_ASSEMBLE_H__
 
 #include "ReferenceElements.h"
 #include "Finley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
-#include "escript/DataC.h"
 #include "paso/SystemMatrix.h"
 
-using finley::NodeFile;
-using finley::ElementFile;
-using finley::ElementFile_Jacobians;
+namespace finley {
 
-struct Finley_Assemble_Parameters {
+struct AssembleParameters {
     /// total number of quadrature nodes = numQuadSub * numQuadSub
     int numQuadTotal;
     /// number of quadrature nodes per subelements
@@ -66,99 +63,100 @@ struct Finley_Assemble_Parameters {
     int col_numShapes;
 };
 
-#define Finley_Assemble_reducedIntegrationOrder(__in__) ( (getFunctionSpaceType(__in__) == FINLEY_REDUCED_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_FACE_ELEMENTS) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_1) || (getFunctionSpaceType(__in__) == FINLEY_REDUCED_CONTACT_ELEMENTS_2) )
+void Assemble_PDE(NodeFile*, ElementFile*, Paso_SystemMatrix*,
+        escript::Data& F, const escript::Data& A, const escript::Data& B,
+        const escript::Data& C, const escript::Data& D, const escript::Data& X,
+        const escript::Data& Y);
 
-void Finley_Assemble_PDE(NodeFile*, ElementFile*,
-        Paso_SystemMatrix*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*);
+void Assemble_getAssembleParameters(NodeFile*, ElementFile*,
+        Paso_SystemMatrix* S, const escript::Data& F, bool,
+        AssembleParameters*);
 
-void Finley_Assemble_getAssembleParameters(NodeFile*,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*, bool_t,
-        Finley_Assemble_Parameters*);
+void Assemble_PDE_System2_3D(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_System2_3D(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_System2_2D(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_System2_2D(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_System2_1D(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_System2_1D(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_System2_C(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_System2_C(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_Single2_3D(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_Single2_3D(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_Single2_2D(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_Single2_1D(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&, escript::Data&, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_Single2_1D(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*, escriptDataC*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_Single2_C(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_Single2_C(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_PDE_Points(AssembleParameters,
+        ElementFile*, Paso_SystemMatrix*, escript::Data&,
+        escript::Data&, escript::Data&);
 
-void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters,
-        ElementFile*, Paso_SystemMatrix*, escriptDataC*,
-        escriptDataC*, escriptDataC*);
+void Assemble_NodeCoordinates(NodeFile*, escript::Data&);
 
-void Finley_Assemble_NodeCoordinates(NodeFile*, escriptDataC*);
+void Assemble_setNormal(NodeFile*, ElementFile*, escript::Data&);
+void Assemble_interpolate(NodeFile*, ElementFile*, const escript::Data&, escript::Data&);
+void Assemble_gradient(NodeFile*, ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_integrate(NodeFile*, ElementFile*, const escript::Data&, double*);
+void Assemble_getSize(NodeFile*, ElementFile*, escript::Data&);
+void Assemble_CopyNodalData(NodeFile*, escript::Data&, const escript::Data&);
+void Assemble_CopyElementData(ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_AverageElementData(ElementFile*, escript::Data&, const escript::Data&);
 
-void Finley_Assemble_setNormal(NodeFile*, ElementFile*, escriptDataC*);
-void Finley_Assemble_interpolate(NodeFile*, ElementFile*, escriptDataC*, escriptDataC*);
-void Finley_Assemble_gradient(NodeFile*, ElementFile*, escriptDataC*, escriptDataC*);
-void Finley_Assemble_integrate(NodeFile*, ElementFile*, escriptDataC*, double*);
-void Finley_Assemble_getSize(NodeFile*, ElementFile*, escriptDataC*);
-void Finley_Assemble_CopyNodalData(NodeFile*, escriptDataC*, escriptDataC*);
-void Finley_Assemble_CopyElementData(ElementFile*, escriptDataC*, escriptDataC*);
-void Finley_Assemble_AverageElementData(ElementFile*, escriptDataC*, escriptDataC*);
-
-void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix*, const int NN_Equa,
+void Assemble_addToSystemMatrix(Paso_SystemMatrix*, const int NN_Equa,
         const int* Nodes_Equa, const int num_Equa, const int NN_Sol,
         const int* Nodes_Sol, const int num_Sol, const double* array);
 
-void Finley_Assemble_LumpedSystem(NodeFile*, ElementFile*,
-        escriptDataC* lumpedMat, escriptDataC* D, const bool_t useHRZ);
+void Assemble_LumpedSystem(NodeFile*, ElementFile*,
+        escript::Data& lumpedMat, const escript::Data& D, bool useHRZ);
 
-void Finley_Assemble_jacobians_1D(double*, int, double*, int, int, int,
+void Assemble_jacobians_1D(double*, int, double*, int, int, int,
         int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_2D(double*, int, double*, int, int, int,
+void Assemble_jacobians_2D(double*, int, double*, int, int, int,
         int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_2D_M1D_E2D(double*, int, double*, int, int,
+void Assemble_jacobians_2D_M1D_E2D(double*, int, double*, int, int,
         int, int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_2D_M1D_E2D_C(double*, int, double*, int,
+void Assemble_jacobians_2D_M1D_E2D_C(double*, int, double*, int,
         int, int, int*, double*, int, double*, double*, double*,
         int*);
-void Finley_Assemble_jacobians_2D_M1D_E1D(double*, int, double*, int, int,
+void Assemble_jacobians_2D_M1D_E1D(double*, int, double*, int, int,
         int, int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_2D_M1D_E1D_C(double*, int, double*, int,
+void Assemble_jacobians_2D_M1D_E1D_C(double*, int, double*, int,
         int, int, int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_3D(double*, int, double*, int, int, int,
+void Assemble_jacobians_3D(double*, int, double*, int, int, int,
         int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_3D_M2D_E3D(double*, int, double*, int, int,
+void Assemble_jacobians_3D_M2D_E3D(double*, int, double*, int, int,
         int, int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_3D_M2D_E3D_C(double*, int, double*, int,
+void Assemble_jacobians_3D_M2D_E3D_C(double*, int, double*, int,
         int, int, int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_3D_M2D_E2D(double*, int, double*, int, int,
+void Assemble_jacobians_3D_M2D_E2D(double*, int, double*, int, int,
         int, int*, double*, int, double*, double*, double*, int*);
-void Finley_Assemble_jacobians_3D_M2D_E2D_C(double*, int, double*, int,
+void Assemble_jacobians_3D_M2D_E2D_C(double*, int, double*, int,
         int, int, int*, double*, int, double*, double*, double*, int*);
 
-#endif // #ifndef INC_FINLEY_ASSEMBLE
+} // namespace finley
+
+#endif // __FINLEY_ASSEMBLE_H__
 

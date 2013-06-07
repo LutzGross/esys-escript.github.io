@@ -22,7 +22,7 @@
 
 #include "Mesh.h"
 
-/************************************************************************************/
+using namespace finley;
 
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      dim_t newGlobalNumDOFs=0, numReducedNodes=0,i;
@@ -87,7 +87,7 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 
           Finley_Mesh_markNodes(maskReducedNodes,0,in,TRUE);
    
-          numReducedNodes=Finley_Util_packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
+          numReducedNodes=util::packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
 
           in->Nodes->createDenseNodeLabeling(node_distribution, distribution); 
           // created reduced DOF labeling

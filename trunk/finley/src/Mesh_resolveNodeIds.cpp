@@ -29,7 +29,7 @@
 #include "Mesh.h"
 #include "Util.h"
 
-/************************************************************************************/
+using namespace finley;
 
 void Finley_Mesh_resolveNodeIds(Finley_Mesh* in)
 {
@@ -99,7 +99,7 @@ void Finley_Mesh_resolveNodeIds(Finley_Mesh* in)
 
        /* create a local labeling newLocalToGlobalNodeLabels of the local nodes by packing the mask globalToNewLocalNodeLabels*/
 
-       newNumNodes=Finley_Util_packMask(len,globalToNewLocalNodeLabels,newLocalToGlobalNodeLabels);
+       newNumNodes=util::packMask(len,globalToNewLocalNodeLabels,newLocalToGlobalNodeLabels);
 
        /* invert the new labeling and shift the index newLocalToGlobalNodeLabels to global node ids */
        #pragma omp parallel for private(n) schedule(static)

@@ -35,13 +35,14 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p,
-                                ElementFile* elements,
-                                Paso_SystemMatrix* S, escriptDataC* F,
-                                escriptDataC* d_dirac, escriptDataC* y_dirac)
+namespace finley {
+
+void Assemble_PDE_Points(AssembleParameters p, ElementFile* elements,
+                         Paso_SystemMatrix* S, escript::Data& F,
+                         escript::Data& d_dirac, escript::Data& y_dirac)
 {
-    requireWrite(F);
-    double *F_p=getSampleDataRW(F,0);
+    F.requireWrite();
+    double *F_p=F.getSampleDataRW(0);
 
 #pragma omp parallel
     {
@@ -50,15 +51,15 @@ void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p,
 #pragma omp for
             for (int e=0; e<elements->numElements; e++) {
                 if (elements->Color[e]==color) {
-                    const double *d_dirac_p=getSampleDataRO(d_dirac, e);
-                    const double *y_dirac_p=getSampleDataRO(y_dirac, e);
                     int row_index=p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]];
-                    if (NULL != y_dirac_p) {
-                        Finley_Util_AddScatter(1, &row_index, p.numEqu,
+                    if (!y_dirac.isEmpty()) {
+                        const double *y_dirac_p=y_dirac.getSampleDataRO(e);
+                        util::addScatter(1, &row_index, p.numEqu,
                                          y_dirac_p, F_p, p.row_DOF_UpperBound);
                     }
-                    if (NULL != d_dirac_p) {
-                        Finley_Assemble_addToSystemMatrix(S, 1, &row_index,
+                    if (!d_dirac.isEmpty()) {
+                        const double *d_dirac_p=d_dirac.getSampleDataRO(e);
+                        Assemble_addToSystemMatrix(S, 1, &row_index,
                                 p.numEqu, 1, &row_index, p.numComp, d_dirac_p);
                     }
                 } // end color check
@@ -66,4 +67,6 @@ void Finley_Assemble_PDE_Points(Finley_Assemble_Parameters p,
         } // end color loop
     } // end parallel section
 }
+
+} // namespace finley
 

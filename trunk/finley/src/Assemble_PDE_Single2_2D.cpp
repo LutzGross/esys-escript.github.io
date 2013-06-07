@@ -37,24 +37,23 @@
 #include "Assemble.h"
 #include "Util.h"
 
-#include <vector>
+namespace finley {
 
-void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
-                                    ElementFile* elements,
-                                    Paso_SystemMatrix* Mat, escriptDataC* F,
-                                    escriptDataC* A, escriptDataC* B,
-                                    escriptDataC* C, escriptDataC* D,
-                                    escriptDataC* X, escriptDataC* Y)
+void Assemble_PDE_Single2_2D(AssembleParameters p, ElementFile* elements,
+                             Paso_SystemMatrix* Mat, escript::Data& F,
+                             escript::Data& A, escript::Data& B,
+                             escript::Data& C, escript::Data& D,
+                             escript::Data& X, escript::Data& Y)
 {
     const int DIM = 2;
-    bool_t expandedA=isExpanded(A);
-    bool_t expandedB=isExpanded(B);
-    bool_t expandedC=isExpanded(C);
-    bool_t expandedD=isExpanded(D);
-    bool_t expandedX=isExpanded(X);
-    bool_t expandedY=isExpanded(Y);
-    requireWrite(F);
-    double *F_p=getSampleDataRW(F,0);
+    bool expandedA=A.actsExpanded();
+    bool expandedB=B.actsExpanded();
+    bool expandedC=C.actsExpanded();
+    bool expandedD=D.actsExpanded();
+    bool expandedX=X.actsExpanded();
+    bool expandedY=Y.actsExpanded();
+    F.requireWrite();
+    double *F_p=F.getSampleDataRW(0);
     const double *S=p.row_jac->BasisFunctions->S;
     const int len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal;
     const int len_EM_F=p.row_numShapesTotal;
@@ -66,13 +65,6 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
 #pragma omp for
             for (int e=0; e<elements->numElements; e++) {
                 if (elements->Color[e]==color) {
-                    const double *A_p=getSampleDataRO(A,e);
-                    const double *B_p=getSampleDataRO(B,e);
-                    const double *C_p=getSampleDataRO(C,e);
-                    const double *D_p=getSampleDataRO(D,e);
-                    const double *X_p=getSampleDataRO(X,e);
-                    const double *Y_p=getSampleDataRO(Y,e);
-
                     for (int isub=0; isub<p.numSub; isub++) {
                         const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
                         const double *DSDX=&(p.row_jac->DSDX[INDEX5(0,0,0,isub,e, p.row_numShapesTotal,DIM,p.numQuadSub,p.numSub)]);
@@ -83,7 +75,8 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                         ///////////////
                         // process A //
                         ///////////////
-                        if (NULL!=A_p) {
+                        if (!A.isEmpty()) {
+                            const double *A_p=A.getSampleDataRO(e);
                             add_EM_S=true;
                             if (expandedA) {
                                 const double *A_q=&(A_p[INDEX4(0,0,0,isub,DIM,DIM,p.numQuadSub)]);
@@ -126,7 +119,8 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                         ///////////////
                         // process B //
                         ///////////////
-                        if (NULL!=B_p) {
+                        if (!B.isEmpty()) {
+                            const double *B_p=B.getSampleDataRO(e);
                             add_EM_S=true;
                             if (expandedB) {
                                 const double *B_q=&(B_p[INDEX3(0,0,isub,DIM,p.numQuadSub)]);
@@ -158,7 +152,8 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                         ///////////////
                         // process C //
                         ///////////////
-                        if (NULL!=C_p) {
+                        if (!C.isEmpty()) {
+                            const double *C_p=C.getSampleDataRO(e);
                             add_EM_S=true;
                             if (expandedC) {
                                 const double *C_q=&(C_p[INDEX3(0,0,isub,DIM,p.numQuadSub)]);
@@ -190,7 +185,8 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                         ///////////////
                         // process D //
                         ///////////////
-                        if (NULL!=D_p) {
+                        if (!D.isEmpty()) {
+                            const double *D_p=D.getSampleDataRO(e);
                             add_EM_S=true;
                             if (expandedD) {
                                 const double *D_q=&(D_p[INDEX2(0,isub,p.numQuadSub)]);
@@ -218,7 +214,8 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                         ///////////////
                         // process X //
                         ///////////////
-                        if (NULL!=X_p) {
+                        if (!X.isEmpty()) {
+                            const double *X_p=X.getSampleDataRO(e);
                             add_EM_F=true;
                             if (expandedX) {
                                 const double *X_q=&(X_p[INDEX3(0,0,isub,DIM,p.numQuadSub)]);
@@ -245,7 +242,8 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                         ///////////////
                         // process Y //
                         ///////////////
-                        if (NULL!=Y_p) {
+                        if (!Y.isEmpty()) {
+                            const double *Y_p=Y.getSampleDataRO(e);
                             add_EM_F=true;
                             if (expandedY) {
                                 const double *Y_q=&(Y_p[INDEX2(0,isub,p.numQuadSub)]);
@@ -273,11 +271,11 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
                             row_index[q]=p.row_DOF[elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
 
                         if (add_EM_F)
-                            Finley_Util_AddScatter(p.row_numShapesTotal,
+                            util::addScatter(p.row_numShapesTotal,
                                     &row_index[0], p.numEqu, &EM_F[0], F_p,
                                     p.row_DOF_UpperBound);
                         if (add_EM_S)
-                            Finley_Assemble_addToSystemMatrix(Mat,
+                            Assemble_addToSystemMatrix(Mat,
                                     p.row_numShapesTotal, &row_index[0],
                                     p.numEqu, p.col_numShapesTotal,
                                     &row_index[0], p.numComp, &EM_S[0]);
@@ -288,4 +286,6 @@ void Finley_Assemble_PDE_Single2_2D(Finley_Assemble_Parameters p,
         } // end color loop
     } // end parallel region
 }
+
+} // namespace finley
 

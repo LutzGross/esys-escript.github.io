@@ -23,11 +23,10 @@
 #include "Assemble.h"
 #include "Util.h"
 
-#include <vector>
+namespace finley {
 
-void Finley_Assemble_integrate(NodeFile* nodes,
-                               ElementFile* elements,
-                               escriptDataC* data, double* out)
+void Assemble_integrate(NodeFile* nodes, ElementFile* elements,
+                        const escript::Data& data, double* out)
 {
     Finley_resetError();
     if (!nodes || !elements)
@@ -35,32 +34,30 @@ void Finley_Assemble_integrate(NodeFile* nodes,
 
     Esys_MPI_rank my_mpi_rank = nodes->MPIInfo->rank;
     ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, FALSE,
-            Finley_Assemble_reducedIntegrationOrder(data));
+                                    util::hasReducedIntegrationOrder(data));
     if (Finley_noError()) {
         const int numQuadTotal = jac->numQuadTotal;
         // check the shape of the data
-        if (!numSamplesEqual(data,numQuadTotal,elements->numElements)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_integrate: illegal number of samples of integrant kernel Data object");
+        if (!data.numSamplesEqual(numQuadTotal, elements->numElements)) {
+            Finley_setError(TYPE_ERROR, "Assemble_integrate: illegal number of samples of integrant kernel Data object");
             return;
         }
 
-        const int numComps = getDataPointSize(data);
+        const int numComps = data.getDataPointSize();
+        escript::Data& in(*const_cast<escript::Data*>(&data));
 
-        // now we can start
         for (int q=0; q<numComps; q++)
             out[q]=0;
 
 #pragma omp parallel
         {
-            // initialize local result
             std::vector<double> out_local(numComps);
 
-            // open the element loop
-            if (isExpanded(data)) {
+            if (data.actsExpanded()) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
                     if (elements->Owner[e] == my_mpi_rank) {
-                        const double *data_array=getSampleDataRO(data, e);
+                        const double *data_array=in.getSampleDataRO(e);
                         for (int q=0; q<numQuadTotal; q++) {
                             for (int i=0; i<numComps; i++)
                                 out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
@@ -71,7 +68,7 @@ void Finley_Assemble_integrate(NodeFile* nodes,
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
                     if (elements->Owner[e] == my_mpi_rank) {
-                        const double *data_array=getSampleDataRO(data,e);
+                        const double *data_array=in.getSampleDataRO(e);
                         double rtmp=0.;
                         for (int q=0; q<numQuadTotal; q++)
                             rtmp+=jac->volume[INDEX2(q,e,numQuadTotal)];
@@ -87,4 +84,6 @@ void Finley_Assemble_integrate(NodeFile* nodes,
         }
     }
 }
+
+} // namespace finley
 

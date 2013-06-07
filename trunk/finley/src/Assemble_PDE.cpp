@@ -50,10 +50,12 @@
 
 #include <sstream>
 
+namespace finley {
+
 inline void setNumSamplesError(const char* c, int n0, int n1)
 {
     std::stringstream ss;
-    ss << "Finley_Assemble_PDE: number of sample points of coefficient " << c
+    ss << "Assemble_PDE: number of sample points of coefficient " << c
         << " don't match (" << n0 << "," << n1 << ").";
     std::string errorMsg(ss.str());
     Finley_setError(TYPE_ERROR, errorMsg.c_str());
@@ -62,7 +64,7 @@ inline void setNumSamplesError(const char* c, int n0, int n1)
 inline void setShapeError(const char* c, int num, const int *dims)
 {
     std::stringstream ss;
-    ss << "Finley_Assemble_PDE: shape of coefficient " << c
+    ss << "Assemble_PDE: shape of coefficient " << c
         << " does not match (" << dims[0] << ",";
     if (num > 1) {
        ss << dims[1];
@@ -78,96 +80,97 @@ inline void setShapeError(const char* c, int num, const int *dims)
     Finley_setError(TYPE_ERROR, errorMsg.c_str());
 }
 
-void Finley_Assemble_PDE(NodeFile* nodes, ElementFile* elements,
-                         Paso_SystemMatrix* S, escriptDataC* F,
-                         escriptDataC* A, escriptDataC* B, escriptDataC* C,
-                         escriptDataC* D, escriptDataC* X, escriptDataC* Y)
+void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
+                  escript::Data& F, const escript::Data& A,
+                  const escript::Data& B, const escript::Data& C,
+                  const escript::Data& D, const escript::Data& X,
+                  const escript::Data& Y)
 {
     Finley_resetError();
-    if (!nodes || !elements || (S==NULL && isEmpty(F)))
+    if (!nodes || !elements || (S==NULL && F.isEmpty()))
         return;
 
-    if (isEmpty(F) && (!isEmpty(X) || !isEmpty(Y))) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
+    if (F.isEmpty() && (!X.isEmpty() || !Y.isEmpty())) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
         return;
     }
 
-    if (S==NULL && !isEmpty(A) && !isEmpty(B) && !isEmpty(C) && !isEmpty(D)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: coefficients are non-zero but no matrix is given.");
+    if (S==NULL && !A.isEmpty() && !B.isEmpty() && !C.isEmpty() && !D.isEmpty()) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: coefficients are non-zero but no matrix is given.");
         return;
     }
 
     // get the function space for this assemblage call
-    type_t funcspace = UNKNOWN;
-    updateFunctionSpaceType(funcspace,A);
-    updateFunctionSpaceType(funcspace,B);
-    updateFunctionSpaceType(funcspace,C);
-    updateFunctionSpaceType(funcspace,D);
-    updateFunctionSpaceType(funcspace,X);
-    updateFunctionSpaceType(funcspace,Y);
+    int funcspace = UNKNOWN;
+    if (!A.isEmpty()) funcspace=A.getFunctionSpace().getTypeCode();
+    if (!B.isEmpty()) funcspace=B.getFunctionSpace().getTypeCode();
+    if (!C.isEmpty()) funcspace=C.getFunctionSpace().getTypeCode();
+    if (!D.isEmpty()) funcspace=D.getFunctionSpace().getTypeCode();
+    if (!X.isEmpty()) funcspace=X.getFunctionSpace().getTypeCode();
+    if (!Y.isEmpty()) funcspace=Y.getFunctionSpace().getTypeCode();
     if (funcspace==UNKNOWN)
         return; // all data are empty
 
     // check if all function spaces are the same
-    if (!functionSpaceTypeEqual(funcspace, A)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: unexpected function space type for coefficient A");
-    } else if (!functionSpaceTypeEqual(funcspace, B)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: unexpected function space type for coefficient B");
-    } else if (!functionSpaceTypeEqual(funcspace, C)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: unexpected function space type for coefficient C");
-    } else if (!functionSpaceTypeEqual(funcspace, D)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: unexpected function space type for coefficient D");
-    } else if (!functionSpaceTypeEqual(funcspace, X)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: unexpected function space type for coefficient X");
-    } else if (!functionSpaceTypeEqual(funcspace, Y)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: unexpected function space type for coefficient Y");
+    if (!A.isEmpty() && A.getFunctionSpace().getTypeCode()!=funcspace) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient A");
+    } else if (!B.isEmpty() && B.getFunctionSpace().getTypeCode()!=funcspace) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient B");
+    } else if (!C.isEmpty() && C.getFunctionSpace().getTypeCode()!=funcspace) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient C");
+    } else if (!D.isEmpty() && D.getFunctionSpace().getTypeCode()!=funcspace) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient D");
+    } else if (!X.isEmpty() && X.getFunctionSpace().getTypeCode()!=funcspace) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient X");
+    } else if (!Y.isEmpty() && Y.getFunctionSpace().getTypeCode()!=funcspace) {
+        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient Y");
     }
     if (!Finley_noError())
         return;
 
-    bool_t reducedIntegrationOrder;
+    bool reducedIntegrationOrder;
     if (funcspace==FINLEY_ELEMENTS) {
-       reducedIntegrationOrder=FALSE;
+       reducedIntegrationOrder=false;
     } else if (funcspace==FINLEY_FACE_ELEMENTS)  {
-       reducedIntegrationOrder=FALSE;
+       reducedIntegrationOrder=false;
     } else if (funcspace==FINLEY_CONTACT_ELEMENTS_1)  {
-       reducedIntegrationOrder=FALSE;
+       reducedIntegrationOrder=false;
     } else if (funcspace==FINLEY_CONTACT_ELEMENTS_2)  {
-       reducedIntegrationOrder=FALSE;
+       reducedIntegrationOrder=false;
     } else if (funcspace==FINLEY_REDUCED_ELEMENTS) {
-       reducedIntegrationOrder=TRUE;
+       reducedIntegrationOrder=true;
     } else if (funcspace==FINLEY_REDUCED_FACE_ELEMENTS)  {
-       reducedIntegrationOrder=TRUE;
+       reducedIntegrationOrder=true;
     } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_1)  {
-       reducedIntegrationOrder=TRUE;
+       reducedIntegrationOrder=true;
     } else if (funcspace==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
-       reducedIntegrationOrder=TRUE;
+       reducedIntegrationOrder=true;
     } else if (funcspace==FINLEY_POINTS)  {
-       reducedIntegrationOrder=FALSE;
+       reducedIntegrationOrder=false;
     } else {
-       Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: assemblage failed because of illegal function space.");
+       Finley_setError(TYPE_ERROR, "Assemble_PDE: assemblage failed because of illegal function space.");
        return;
     }
 
     // get assemblage parameters
-    Finley_Assemble_Parameters p;
-    Finley_Assemble_getAssembleParameters(nodes, elements, S, F,
-                                          reducedIntegrationOrder, &p);
+    AssembleParameters p;
+    Assemble_getAssembleParameters(nodes, elements, S, F,
+                                   reducedIntegrationOrder, &p);
     if (!Finley_noError())
         return;
 
     // check if sample numbers are the same
-    if (!numSamplesEqual(A, p.numQuadTotal, elements->numElements)) {
+    if (!A.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("A", p.numQuadTotal, elements->numElements);
-    } else if (!numSamplesEqual(B, p.numQuadTotal, elements->numElements)) {
+    } else if (!B.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("B", p.numQuadTotal, elements->numElements);
-    } else if (!numSamplesEqual(C, p.numQuadTotal, elements->numElements)) {
+    } else if (!C.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("C", p.numQuadTotal, elements->numElements);
-    } else if (!numSamplesEqual(D, p.numQuadTotal, elements->numElements)) {
+    } else if (!D.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("D", p.numQuadTotal, elements->numElements);
-    } else if (!numSamplesEqual(X, p.numQuadTotal, elements->numElements)) {
+    } else if (!X.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("X", p.numQuadTotal, elements->numElements);
-    } else if (!numSamplesEqual(Y, p.numQuadTotal, elements->numElements)) {
+    } else if (!Y.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("Y", p.numQuadTotal, elements->numElements);
     }
     if (!Finley_noError())
@@ -175,84 +178,92 @@ void Finley_Assemble_PDE(NodeFile* nodes, ElementFile* elements,
 
     // check the dimensions:
     if (p.numEqu != p. numComp) {
-        Finley_setError(VALUE_ERROR, "Finley_Assemble_PDE requires number of equations == number of solutions.");
+        Finley_setError(VALUE_ERROR, "Assemble_PDE requires number of equations == number of solutions.");
     } else if (p.numEqu==1) {
         const int dimensions[2] = { p.numDim, p.numDim };
-        if (!isDataPointShapeEqual(A, 2, dimensions)) {
+        if (!A.isDataPointShapeEqual(2, dimensions)) {
             setShapeError("A", 2, dimensions);
-        } else if (!isDataPointShapeEqual(B, 1, dimensions)) {
+        } else if (!B.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("B", 1, dimensions);
-        } else if (!isDataPointShapeEqual(C, 1, dimensions)) {
+        } else if (!C.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("C", 1, dimensions);
-        } else if (!isDataPointShapeEqual(D, 0, dimensions)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: coefficient D must be rank 0.");
-        } else if (!isDataPointShapeEqual(X, 1, dimensions)) {
+        } else if (!D.isDataPointShapeEqual(0, dimensions)) {
+            Finley_setError(TYPE_ERROR, "Assemble_PDE: coefficient D must be rank 0.");
+        } else if (!X.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("X", 1, dimensions);
-        } else if (!isDataPointShapeEqual(Y, 0, dimensions)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: coefficient Y must be rank 0.");
+        } else if (!Y.isDataPointShapeEqual(0, dimensions)) {
+            Finley_setError(TYPE_ERROR, "Assemble_PDE: coefficient Y must be rank 0.");
         }
     } else {
         const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
         const int dimCD[3] = { p.numEqu, p.numComp, p.numDim };
-        if (!isDataPointShapeEqual(A, 4, dimAB)) {
+        if (!A.isDataPointShapeEqual(4, dimAB)) {
             setShapeError("A", 4, dimAB);
-        } else if (!isDataPointShapeEqual(B, 3, dimAB)) {
+        } else if (!B.isDataPointShapeEqual(3, dimAB)) {
             setShapeError("B", 3, dimAB);
-        } else if (!isDataPointShapeEqual(C, 3, dimCD)) {
+        } else if (!C.isDataPointShapeEqual(3, dimCD)) {
             setShapeError("C", 3, dimCD);
-        } else if (!isDataPointShapeEqual(D, 2, dimCD)) {
+        } else if (!D.isDataPointShapeEqual(2, dimCD)) {
             setShapeError("D", 2, dimCD);
-        } else if (!isDataPointShapeEqual(X, 2, dimAB)) {
+        } else if (!X.isDataPointShapeEqual(2, dimAB)) {
             setShapeError("X", 2, dimAB);
-        } else if (!isDataPointShapeEqual(Y, 1, dimAB)) {
+        } else if (!Y.isDataPointShapeEqual(1, dimAB)) {
             setShapeError("Y", 1, dimAB);
         }
     }
     if (!Finley_noError())
         return;
 
+    escript::Data& _A(*const_cast<escript::Data*>(&A));
+    escript::Data& _B(*const_cast<escript::Data*>(&B));
+    escript::Data& _C(*const_cast<escript::Data*>(&C));
+    escript::Data& _D(*const_cast<escript::Data*>(&D));
+    escript::Data& _X(*const_cast<escript::Data*>(&X));
+    escript::Data& _Y(*const_cast<escript::Data*>(&Y));
     double blocktimer_start = blocktimer_time();
 
     if (p.numSides == 1) {
         if (funcspace==FINLEY_POINTS) {
-            if (!isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X)) {
-                Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE: Point elements require A, B, C and X to be empty.");
+            if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
+                Finley_setError(TYPE_ERROR, "Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
-                Finley_Assemble_PDE_Points(p, elements, S, F, D, Y);
+                Assemble_PDE_Points(p, elements, S, F, _D, _Y);
             }
         } else if (p.numEqu > 1) { // system of PDEs
             if (p.numDim==3) {
-                Finley_Assemble_PDE_System2_3D(p,elements,S,F,A,B,C,D,X,Y);
+                Assemble_PDE_System2_3D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
             } else if (p.numDim==2) {
-                Finley_Assemble_PDE_System2_2D(p,elements,S,F,A,B,C,D,X,Y);
+                Assemble_PDE_System2_2D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
             } else if (p.numDim==1) {
-                Finley_Assemble_PDE_System2_1D(p,elements,S,F,A,B,C,D,X,Y);
+                Assemble_PDE_System2_1D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
             } else {
-                Finley_setError(VALUE_ERROR, "Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+                Finley_setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         } else { // single PDE
             if (p.numDim==3) {
-                Finley_Assemble_PDE_Single2_3D(p,elements,S,F,A,B,C,D,X,Y);
+                Assemble_PDE_Single2_3D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
             } else if (p.numDim==2) {
-                Finley_Assemble_PDE_Single2_2D(p,elements,S,F,A,B,C,D,X,Y);
+                Assemble_PDE_Single2_2D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
             } else if (p.numDim==1) {
-                Finley_Assemble_PDE_Single2_1D(p,elements,S,F,A,B,C,D,X,Y);
+                Assemble_PDE_Single2_1D(p, elements, S, F,_A,_B,_C,_D,_X,_Y);
             } else {
-                Finley_setError(VALUE_ERROR, "Finley_Assemble_PDE supports spatial dimensions 1,2,3 only.");
+                Finley_setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         }
     } else if (p.numSides == 2) {
-        if (!isEmpty(A) || !isEmpty(B) || !isEmpty(C) || !isEmpty(X)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+        if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
+            Finley_setError(TYPE_ERROR, "Assemble_PDE: Contact elements require A, B, C and X to be empty.");
         } else if (p.numEqu > 1) { // system of PDEs
-            Finley_Assemble_PDE_System2_C(p, elements, S, F, D, Y);
+            Assemble_PDE_System2_C(p, elements, S, F, _D, _Y);
         } else { // single PDE
-            Finley_Assemble_PDE_Single2_C(p, elements, S, F, D, Y);
+            Assemble_PDE_Single2_C(p, elements, S, F, _D, _Y);
         }
     } else {
-        Finley_setError(TYPE_ERROR,"Finley_Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+        Finley_setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
     }
 
-    blocktimer_increment("Finley_Assemble_PDE()", blocktimer_start);
+    blocktimer_increment("Assemble_PDE()", blocktimer_start);
 }
+
+} // namespace finley
 

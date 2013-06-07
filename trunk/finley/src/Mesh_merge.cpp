@@ -26,9 +26,7 @@
 #include "Mesh.h"
 #include "Util.h"
 
-/************************************************************************************/
-
-/*static double  Finley_Mesh_lockingGridSize=0;*/
+using namespace finley;
 
 Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   Esys_MPIInfo *mpi_info=NULL;
@@ -178,17 +176,17 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
             numPoints=+msh[i]->Points->numElements;
 
             if (msh[i]->Nodes->numNodes>0) 
-              maxNodeID+=Finley_Util_getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->Id)+1;
-              maxDOF+=Finley_Util_getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->globalDegreesOfFreedom)+1;
+              maxNodeID+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->Id)+1;
+              maxDOF+=util::getMaxInt(1,msh[i]->Nodes->numNodes,msh[i]->Nodes->globalDegreesOfFreedom)+1;
             maxElementID2=0;
             if (msh[i]->Elements->numElements>0) 
-              maxElementID2=MAX(maxElementID2,Finley_Util_getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
+              maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Elements->numElements,msh[i]->Elements->Id));
             if (msh[i]->FaceElements->numElements>0) 
-              maxElementID2=MAX(maxElementID2,Finley_Util_getMaxInt(1,msh[i]->FaceElements->numElements,msh[i]->FaceElements->Id));
+              maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->FaceElements->numElements,msh[i]->FaceElements->Id));
             if (msh[i]->ContactElements->numElements>0) 
-              maxElementID2=MAX(maxElementID2,Finley_Util_getMaxInt(1,msh[i]->ContactElements->numElements,msh[i]->ContactElements->Id));
+              maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->ContactElements->numElements,msh[i]->ContactElements->Id));
             if (msh[i]->Points->numElements) 
-              maxElementID2=MAX(maxElementID2,Finley_Util_getMaxInt(1,msh[i]->Points->numElements,msh[i]->Points->Id));
+              maxElementID2=MAX(maxElementID2, util::getMaxInt(1,msh[i]->Points->numElements,msh[i]->Points->Id));
             maxElementID+=maxElementID2+1;
         }
     }
