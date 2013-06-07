@@ -553,6 +553,32 @@ contains datapoints.
     return m_data->getNumDPPSample();
   }
 
+  /**
+     \brief
+     Returns true if the number of data points per sample and the number of
+     samples match the respective argument. DataEmpty always returns true.
+  */
+  ESCRIPT_DLL_API
+  inline
+  bool numSamplesEqual(int numDataPointsPerSample, int numSamples) const
+  {
+    return (isEmpty() ||
+            (numDataPointsPerSample==getNumDataPointsPerSample() && numSamples==getNumSamples()));
+  }
+
+  /**
+     \brief
+     Returns true if the shape matches the vector (dimensions[0],...,
+     dimensions[rank-1]). DataEmpty always returns true.
+  */
+  inline
+  bool isDataPointShapeEqual(int rank, const int* dimensions) const
+  {
+    if (isEmpty())
+      return true;
+    const DataTypes::ShapeType givenShape(&dimensions[0],&dimensions[rank]);
+    return (getDataPointShape()==givenShape);
+  }
 
   /**
 	\brief

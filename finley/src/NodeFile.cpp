@@ -21,7 +21,6 @@
 *****************************************************************************/
 
 #include "NodeFile.h"
-#include "Util.h"
 #include <escript/Data.h>
 
 #include <limits>
@@ -188,11 +187,6 @@ void NodeFile::freeTable()
     numNodes=0;
 }
 
-void NodeFile::updateTagList()
-{
-    Finley_Util_setValuesInUse(Tag, numNodes, tagsInUse, MPIInfo);
-}
-
 /// copies the array newX into this->coordinates
 void NodeFile::setCoordinates(const escript::Data& cNewX)
 {
@@ -245,8 +239,8 @@ void NodeFile::setTags(const int newTag, const escript::Data& cMask)
 
 std::pair<int,int> NodeFile::getDOFRange() const
 {
-    std::pair<int,int> result(
-            Finley_Util_getMinMaxInt(1, numNodes, globalDegreesOfFreedom));
+    std::pair<int,int> result(util::getMinMaxInt(
+                                        1, numNodes, globalDegreesOfFreedom));
     if (result.second < result.first) {
         result.first = -1;
         result.second = 0;
@@ -256,7 +250,7 @@ std::pair<int,int> NodeFile::getDOFRange() const
 
 std::pair<int,int> NodeFile::getGlobalIdRange() const
 {
-    std::pair<int,int> result(Finley_Util_getMinMaxInt(1, numNodes, Id));
+    std::pair<int,int> result(util::getMinMaxInt(1, numNodes, Id));
 
 #ifdef ESYS_MPI
     int global_id_range[2];
@@ -274,8 +268,8 @@ std::pair<int,int> NodeFile::getGlobalIdRange() const
 
 std::pair<int,int> NodeFile::getGlobalDOFRange() const
 {
-    std::pair<int,int> result(
-            Finley_Util_getMinMaxInt(1, numNodes, globalDegreesOfFreedom));
+    std::pair<int,int> result(util::getMinMaxInt(
+                                        1, numNodes, globalDegreesOfFreedom));
 
 #ifdef ESYS_MPI
     int global_id_range[2];
@@ -293,8 +287,7 @@ std::pair<int,int> NodeFile::getGlobalDOFRange() const
 
 std::pair<int,int> NodeFile::getGlobalNodeIDIndexRange() const
 {
-    std::pair<int,int> result(
-            Finley_Util_getMinMaxInt(1, numNodes, globalNodesIndex));
+    std::pair<int,int> result(util::getMinMaxInt(1, numNodes, globalNodesIndex));
 
 #ifdef ESYS_MPI
     int global_id_range[2];

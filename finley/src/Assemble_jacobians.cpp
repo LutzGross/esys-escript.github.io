@@ -37,16 +37,17 @@
 
 #include <sstream>
 
+namespace finley {
+
 /****************************************************************************/
 //
 //  Jacobian 1D
 //
-void Finley_Assemble_jacobians_1D(double* coordinates, int numQuad,
-                                  double* QuadWeights, int numShape,
-                                  int numElements, int numNodes,
-                                  int* nodes, double* DSDv, int numTest,
-                                  double* DTDv, double* dTdX, double* volume,
-                                  int* element_id)
+void Assemble_jacobians_1D(double* coordinates, int numQuad,
+                           double* QuadWeights, int numShape, int numElements,
+                           int numNodes, int* nodes, double* DSDv, int numTest,
+                           double* DTDv, double* dTdX, double* volume,
+                           int* element_id)
 {
     const int DIM=1;
     const int LOCDIM=1;
@@ -60,7 +61,7 @@ void Finley_Assemble_jacobians_1D(double* coordinates, int numQuad,
             }
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_1D: element " << e
+                ss << "Assemble_jacobians_1D: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -79,12 +80,11 @@ void Finley_Assemble_jacobians_1D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D with area element
 //
-void Finley_Assemble_jacobians_2D(double* coordinates, int numQuad,
-                                  double* QuadWeights, int numShape,
-                                  int numElements, int numNodes,
-                                  int* nodes, double* DSDv, int numTest,
-                                  double* DTDv, double* dTdX, double* volume,
-                                  int* element_id)
+void Assemble_jacobians_2D(double* coordinates, int numQuad,
+                           double* QuadWeights, int numShape, int numElements,
+                           int numNodes, int* nodes, double* DSDv, int numTest,
+                           double* DTDv, double* dTdX, double* volume,
+                           int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -106,7 +106,7 @@ void Finley_Assemble_jacobians_2D(double* coordinates, int numQuad,
             const double D = dXdv00*dXdv11 - dXdv01*dXdv10;
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_2D: element " << e
+                ss << "Assemble_jacobians_2D: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -134,13 +134,11 @@ void Finley_Assemble_jacobians_2D(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 1D elements
 //
-void Finley_Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
-                                          double* QuadWeights, int numShape,
-                                          int numElements, int numNodes,
-                                          int* nodes, double* DSDv,
-                                          int numTest, double* DTDv,
-                                          double* dTdX, double* volume,
-                                          int* element_id)
+void Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
+                                   double* QuadWeights, int numShape,
+                                   int numElements, int numNodes, int* nodes,
+                                   double* DSDv, int numTest, double* DTDv,
+                                   double* dTdX, double* volume,int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=1;
@@ -158,7 +156,7 @@ void Finley_Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
             const double D = dXdv00*dXdv00 + dXdv10*dXdv10;
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_2D_M1D_E1D: element " << e
+                ss << "Assemble_jacobians_2D_M1D_E1D: element " << e
                    << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -182,13 +180,12 @@ void Finley_Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 1D elements with contact
 //
-void Finley_Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
-                                            double* QuadWeights, int numShape,
-                                            int numElements, int numNodes,
-                                            int* nodes, double* DSDv,
-                                            int numTest, double* DTDv,
-                                            double* dTdX, double* volume,
-                                            int* element_id)
+void Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
+                                     double* QuadWeights, int numShape,
+                                     int numElements, int numNodes, int* nodes,
+                                     double* DSDv, int numTest, double* DTDv,
+                                     double* dTdX, double* volume,
+                                     int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=1;
@@ -213,7 +210,7 @@ void Finley_Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
             const double D_1 = dXdv00_1*dXdv00_1 + dXdv10_1*dXdv10_1;
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_2D_M1D_E1D_C: element " << e
+                ss << "Assemble_jacobians_2D_M1D_E1D_C: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -244,13 +241,11 @@ void Finley_Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 2D elements
 //
-void Finley_Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
-                                          double* QuadWeights, int numShape,
-                                          int numElements, int numNodes,
-                                          int* nodes, double* DSDv,
-                                          int numTest, double* DTDv,
-                                          double* dTdX, double* volume,
-                                          int* element_id)
+void Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
+                                   double* QuadWeights, int numShape,
+                                   int numElements, int numNodes, int* nodes,
+                                   double* DSDv, int numTest, double* DTDv,
+                                   double* dTdX, double* volume,int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -272,7 +267,7 @@ void Finley_Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
             const double D = dXdv00*dXdv11 - dXdv01*dXdv10;
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_2D_M1D_E2D: element " << e
+                ss << "Assemble_jacobians_2D_M1D_E2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -300,13 +295,12 @@ void Finley_Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 2D elements with contact
 //
-void Finley_Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
-                                            double* QuadWeights, int numShape,
-                                            int numElements, int numNodes,
-                                            int* nodes, double* DSDv,
-                                            int numTest, double* DTDv,
-                                            double* dTdX, double* volume,
-                                            int* element_id)
+void Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
+                                     double* QuadWeights, int numShape,
+                                     int numElements, int numNodes, int* nodes,
+                                     double* DSDv, int numTest, double* DTDv,
+                                     double* dTdX, double* volume,
+                                     int* element_id)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -339,7 +333,7 @@ void Finley_Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
             const double D_1 = dXdv00_1*dXdv11_1 - dXdv01_1*dXdv10_1;
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_2D_M1D_E2D_C: element " << e
+                ss << "Assemble_jacobians_2D_M1D_E2D_C: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -378,12 +372,11 @@ void Finley_Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
 //
 //  Jacobian 3D
 //
-void Finley_Assemble_jacobians_3D(double* coordinates, int numQuad,
-                                  double* QuadWeights, int numShape,
-                                  int numElements, int numNodes,
-                                  int* nodes, double* DSDv, int numTest,
-                                  double* DTDv, double* dTdX, double* volume,
-                                  int* element_id)
+void Assemble_jacobians_3D(double* coordinates, int numQuad,
+                           double* QuadWeights, int numShape, int numElements,
+                           int numNodes, int* nodes, double* DSDv, int numTest,
+                           double* DTDv, double* dTdX, double* volume,
+                           int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -416,7 +409,7 @@ void Finley_Assemble_jacobians_3D(double* coordinates, int numQuad,
             const double D = dXdv00*(dXdv11*dXdv22-dXdv12*dXdv21)+ dXdv01*(dXdv20*dXdv12-dXdv10*dXdv22)+dXdv02*(dXdv10*dXdv21-dXdv20*dXdv11);
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_3D: element " << e
+                ss << "Assemble_jacobians_3D: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -455,13 +448,11 @@ void Finley_Assemble_jacobians_3D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 3D elements
 //
-void Finley_Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
-                                          double* QuadWeights, int numShape,
-                                          int numElements, int numNodes,
-                                          int* nodes, double* DSDv,
-                                          int numTest,double* DTDv,
-                                          double* dTdX, double* volume,
-                                          int* element_id)
+void Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
+                                   double* QuadWeights, int numShape,
+                                   int numElements, int numNodes, int* nodes,
+                                   double* DSDv, int numTest, double* DTDv,
+                                   double* dTdX, double* volume,int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -496,7 +487,7 @@ void Finley_Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
                              dXdv02*(dXdv10*dXdv21-dXdv20*dXdv11);
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_M2D_E3D: element " << e
+                ss << "Assemble_jacobians_M2D_E3D: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -538,13 +529,12 @@ void Finley_Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 3D elements on contact
 //
-void Finley_Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
-                                            double* QuadWeights, int numShape,
-                                            int numElements, int numNodes,
-                                            int* nodes, double* DSDv,
-                                            int numTest, double* DTDv,
-                                            double* dTdX, double* volume,
-                                            int* element_id)
+void Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
+                                     double* QuadWeights, int numShape,
+                                     int numElements, int numNodes, int* nodes,
+                                     double* DSDv, int numTest, double* DTDv,
+                                     double* dTdX, double* volume,
+                                     int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -604,7 +594,7 @@ void Finley_Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
                              dXdv02_1*(dXdv10_1*dXdv21_1-dXdv20_1*dXdv11_1);
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_M2D_E3D_C: element " << e
+                ss << "Assemble_jacobians_M2D_E3D_C: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -673,13 +663,11 @@ void Finley_Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 2D elements
 //
-void Finley_Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
-                                          double* QuadWeights, int numShape,
-                                          int numElements, int numNodes,
-                                          int* nodes, double* DSDv,
-                                          int numTest, double* DTDv,
-                                          double* dTdX, double* volume,
-                                          int* element_id)
+void Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
+                                   double* QuadWeights, int numShape,
+                                   int numElements, int numNodes, int* nodes,
+                                   double* DSDv, int numTest, double* DTDv,
+                                   double* dTdX, double* volume,int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=2;
@@ -709,7 +697,7 @@ void Finley_Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
             const double D=m00*m11-m01*m01;
             if (D==0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_3D_M2D_E2D: element " << e
+                ss << "Assemble_jacobians_3D_M2D_E2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -742,13 +730,12 @@ void Finley_Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 2D elements with contact
 //
-void Finley_Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
-                                            double* QuadWeights, int numShape,
-                                            int numElements, int numNodes,
-                                            int* nodes, double* DSDv,
-                                            int numTest, double* DTDv,
-                                            double* dTdX, double* volume,
-                                            int* element_id)
+void Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
+                                     double* QuadWeights, int numShape,
+                                     int numElements, int numNodes, int* nodes,
+                                     double* DSDv, int numTest, double* DTDv,
+                                     double* dTdX, double* volume,
+                                     int* element_id)
 {
     const int DIM=3;
     const int LOCDIM=2;
@@ -797,7 +784,7 @@ void Finley_Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
             const double D_1=m00_1*m11_1-m01_1*m01_1;
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
-                ss << "Finley_Assemble_jacobians_3D_M2D_E2D_C: element " << e
+                ss << "Assemble_jacobians_3D_M2D_E2D_C: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
@@ -841,4 +828,6 @@ void Finley_Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
         }
     }
 }
+
+} // namespace finley
 

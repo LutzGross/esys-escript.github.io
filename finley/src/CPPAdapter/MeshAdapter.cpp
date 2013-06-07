@@ -751,37 +751,23 @@ void MeshAdapter::addPDEToSystem(
     if (!smat)
         throw FinleyAdapterException("finley only supports Paso system matrices.");
 
-    escriptDataC _rhs=rhs.getDataC();
-    escriptDataC _A  =A.getDataC();
-    escriptDataC _B=B.getDataC();
-    escriptDataC _C=C.getDataC();
-    escriptDataC _D=D.getDataC();
-    escriptDataC _X=X.getDataC();
-    escriptDataC _Y=Y.getDataC();
-    escriptDataC _d=d.getDataC();
-    escriptDataC _y=y.getDataC();
-    escriptDataC _d_contact=d_contact.getDataC();
-    escriptDataC _y_contact=y_contact.getDataC();
-    escriptDataC _d_dirac=d_dirac.getDataC();
-    escriptDataC _y_dirac=y_dirac.getDataC();
-
     Finley_Mesh* mesh=m_finleyMesh.get();
     Paso_SystemMatrix* S = smat->getPaso_SystemMatrix();
-
-    Finley_Assemble_PDE(mesh->Nodes, mesh->Elements, S, &_rhs, &_A, &_B, &_C,
-                        &_D, &_X, &_Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, &_rhs, 0, 0, 0,
-                        &_d, 0, &_y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs,
+            escript::Data(), escript::Data(), escript::Data(), d,
+            escript::Data(), y);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->ContactElements, S, &_rhs, 0, 0, 0,
-            &_d_contact, 0, &_y_contact);
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, S, rhs,
+            escript::Data(), escript::Data(), escript::Data(), d_contact,
+            escript::Data(), y_contact);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->Points, S, &_rhs, 0, 0, 0,
-                        &_d_dirac, 0, &_y_dirac );
+    Assemble_PDE(mesh->Nodes, mesh->Points, S, rhs, escript::Data(),
+            escript::Data(), escript::Data(), d_dirac, escript::Data(), y_dirac);
     checkFinleyError();
 }
 
@@ -789,20 +775,14 @@ void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
         const escript::Data& D, const escript::Data& d,
         const escript::Data& d_dirac, const bool useHRZ) const
 {
-    escriptDataC _mat=mat.getDataC();
-    escriptDataC _D=D.getDataC();
-    escriptDataC _d=d.getDataC();
-    escriptDataC _d_dirac=d_dirac.getDataC();
-
     Finley_Mesh* mesh=m_finleyMesh.get();
-
-    Finley_Assemble_LumpedSystem(mesh->Nodes, mesh->Elements, &_mat, &_D, useHRZ);
+    Assemble_LumpedSystem(mesh->Nodes, mesh->Elements, mat, D, useHRZ);
     checkFinleyError();
 
-    Finley_Assemble_LumpedSystem(mesh->Nodes, mesh->FaceElements, &_mat, &_d, useHRZ);
+    Assemble_LumpedSystem(mesh->Nodes, mesh->FaceElements, mat, d, useHRZ);
     checkFinleyError();
 
-    Finley_Assemble_LumpedSystem(mesh->Nodes, mesh->Points, &_mat, &_d_dirac, useHRZ);
+    Assemble_LumpedSystem(mesh->Nodes, mesh->Points, mat, d_dirac, useHRZ);
     checkFinleyError();
 }
 
@@ -814,24 +794,24 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
     Finley_Mesh* mesh=m_finleyMesh.get();
-
-    escriptDataC _rhs=rhs.getDataC();
-    escriptDataC _X=X.getDataC();
-    escriptDataC _Y=Y.getDataC();
-    escriptDataC _y=y.getDataC();
-    escriptDataC _y_contact=y_contact.getDataC();
-    escriptDataC _y_dirac=y_dirac.getDataC();
-
-    Finley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, 0, rhs,
+            escript::Data(), escript::Data(), escript::Data(), escript::Data(),
+            X, Y);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, 0, rhs,
+            escript::Data(), escript::Data(), escript::Data(), escript::Data(),
+            escript::Data(), y);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes,mesh->ContactElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y_contact);
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, 0, rhs,
+            escript::Data(), escript::Data(), escript::Data(),
+            escript::Data(), escript::Data(), y_contact);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes,mesh->Points, 0, &_rhs, 0, 0, 0, 0, 0, &_y_dirac);
+    Assemble_PDE(mesh->Nodes, mesh->Points, 0, rhs,
+            escript::Data(), escript::Data(), escript::Data(), escript::Data(),
+            escript::Data(), y_dirac);
     checkFinleyError();
 }
 
@@ -851,42 +831,33 @@ void MeshAdapter::addPDEToTransportProblem(
         throw FinleyAdapterException("finley only supports Paso transport problems.");
 
     source.expand();
-    escriptDataC _source=source.getDataC();
-    escriptDataC _M=M.getDataC();
-    escriptDataC _A=A.getDataC();
-    escriptDataC _B=B.getDataC();
-    escriptDataC _C=C.getDataC();
-    escriptDataC _D=D.getDataC();
-    escriptDataC _X=X.getDataC();
-    escriptDataC _Y=Y.getDataC();
-    escriptDataC _d=d.getDataC();
-    escriptDataC _y=y.getDataC();
-    escriptDataC _d_contact=d_contact.getDataC();
-    escriptDataC _y_contact=y_contact.getDataC();
-    escriptDataC _d_dirac=d_dirac.getDataC();
-    escriptDataC _y_dirac=y_dirac.getDataC();
 
     Finley_Mesh* mesh=m_finleyMesh.get();
     Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->mass_matrix,
-                        &_source, 0, 0, 0, &_M, 0, 0);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->mass_matrix, source,
+                        escript::Data(), escript::Data(), escript::Data(),
+                        M, escript::Data(), escript::Data());
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->transport_matrix,
-                        &_source, &_A, &_B, &_C, &_D, &_X, &_Y);
+    Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->transport_matrix,
+                        source, A, B, C, D, X, Y);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->FaceElements, _tp->transport_matrix,
-                        &_source, 0, 0, 0, &_d, 0, &_y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, _tp->transport_matrix,
+                        source, escript::Data(), escript::Data(),
+                        escript::Data(), d, escript::Data(), y);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->ContactElements,
-                        _tp->transport_matrix, &_source, 0, 0, 0, &_d_contact, 0, &_y_contact);
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements,
+                        _tp->transport_matrix, source, escript::Data(),
+                        escript::Data(), escript::Data(), d_contact,
+                        escript::Data(), y_contact);
     checkFinleyError();
 
-    Finley_Assemble_PDE(mesh->Nodes, mesh->Points, _tp->transport_matrix,
-                        &_source, 0, 0, 0, &_d_dirac, 0, &_y_dirac);
+    Assemble_PDE(mesh->Nodes, mesh->Points, _tp->transport_matrix,
+                        source, escript::Data(), escript::Data(),
+                        escript::Data(), d_dirac, escript::Data(), y_dirac);
     checkFinleyError();
 }
 
@@ -903,8 +874,6 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
         throw FinleyAdapterException("Error - Illegal domain of interpolation target.");
 
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC _target=target.getDataC();
-    escriptDataC _in=in.getDataC();
     switch(in.getFunctionSpace().getTypeCode()) {
         case Nodes:
             switch(target.getFunctionSpace().getTypeCode()) {
@@ -912,24 +881,24 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
                 case ReducedNodes:
                 case DegreesOfFreedom:
                 case ReducedDegreesOfFreedom:
-                    Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+                    Assemble_CopyNodalData(mesh->Nodes, target, in);
                     break;
                 case Elements:
                 case ReducedElements:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->Elements, in,target);
                     break;
                 case FaceElements:
                 case ReducedFaceElements:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in, target);
                     break;
                 case Points:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->Points, in, target);
                     break;
                 case ContactElementsZero:
                 case ReducedContactElementsZero:
                 case ContactElementsOne:
                 case ReducedContactElementsOne:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->ContactElements, in, target);
                     break;
                 default:
                     stringstream temp;
@@ -944,24 +913,24 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
                 case ReducedNodes:
                 case DegreesOfFreedom:
                 case ReducedDegreesOfFreedom:
-                    Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+                    Assemble_CopyNodalData(mesh->Nodes, target, in);
                     break;
                 case Elements:
                 case ReducedElements:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->Elements, in, target);
                     break;
                 case FaceElements:
                 case ReducedFaceElements:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in, target);
                     break;
                 case Points:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->Points, in, target);
                     break;
                 case ContactElementsZero:
                 case ReducedContactElementsZero:
                 case ContactElementsOne:
                 case ReducedContactElementsOne:
-                    Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+                    Assemble_interpolate(mesh->Nodes, mesh->ContactElements, in, target);
                     break;
                 default:
                     stringstream temp;
@@ -972,39 +941,39 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
             break;
         case Elements:
             if (target.getFunctionSpace().getTypeCode()==Elements) {
-                Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
+                Assemble_CopyElementData(mesh->Elements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-                Finley_Assemble_AverageElementData(mesh->Elements,&_target,&_in);
+                Assemble_AverageElementData(mesh->Elements, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on elements possible.");
             }
             break;
         case ReducedElements:
             if (target.getFunctionSpace().getTypeCode()==ReducedElements) {
-                Finley_Assemble_CopyElementData(mesh->Elements,&_target,&_in);
+                Assemble_CopyElementData(mesh->Elements, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on elements with reduced integration order possible.");
             }
             break;
         case FaceElements:
             if (target.getFunctionSpace().getTypeCode()==FaceElements) {
-                Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
+                Assemble_CopyElementData(mesh->FaceElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
-                Finley_Assemble_AverageElementData(mesh->FaceElements,&_target,&_in);
+                Assemble_AverageElementData(mesh->FaceElements, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on face elements possible.");
             }
             break;
         case ReducedFaceElements:
             if (target.getFunctionSpace().getTypeCode()==ReducedFaceElements) {
-                Finley_Assemble_CopyElementData(mesh->FaceElements,&_target,&_in);
+                Assemble_CopyElementData(mesh->FaceElements, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on face elements with reduced integration order possible.");
             }
             break;
         case Points:
             if (target.getFunctionSpace().getTypeCode()==Points) {
-                Finley_Assemble_CopyElementData(mesh->Points,&_target,&_in);
+                Assemble_CopyElementData(mesh->Points, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on points possible.");
             }
@@ -1012,9 +981,9 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
         case ContactElementsZero:
         case ContactElementsOne:
             if (target.getFunctionSpace().getTypeCode()==ContactElementsZero || target.getFunctionSpace().getTypeCode()==ContactElementsOne) {
-                Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
+                Assemble_CopyElementData(mesh->ContactElements, target, in);
             } else if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
-                Finley_Assemble_AverageElementData(mesh->ContactElements,&_target,&_in);
+                Assemble_AverageElementData(mesh->ContactElements, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on contact elements possible.");
             }
@@ -1022,7 +991,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
         case ReducedContactElementsZero:
         case ReducedContactElementsOne:
             if (target.getFunctionSpace().getTypeCode()==ReducedContactElementsZero || target.getFunctionSpace().getTypeCode()==ReducedContactElementsOne) {
-                Finley_Assemble_CopyElementData(mesh->ContactElements,&_target,&_in);
+                Assemble_CopyElementData(mesh->ContactElements, target, in);
             } else {
                 throw FinleyAdapterException("Error - No interpolation with data on contact elements with reduced integration order possible.");
             }
@@ -1031,46 +1000,42 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
             switch(target.getFunctionSpace().getTypeCode()) {
                 case ReducedDegreesOfFreedom:
                 case DegreesOfFreedom:
-                    Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+                    Assemble_CopyNodalData(mesh->Nodes, target, in);
                     break;
 
                 case Nodes:
                 case ReducedNodes:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in);
-                        temp.expand();
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
+                        escript::Data in2=escript::Data(in);
+                        in2.expand();
+                        Assemble_CopyNodalData(mesh->Nodes, target, in2);
                     } else {
-                        Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+                        Assemble_CopyNodalData(mesh->Nodes, target, in);
                     }
                     break;
                 case Elements:
                 case ReducedElements:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, continuousFunction(*this));
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, continuousFunction(*this));
+                        Assemble_interpolate(mesh->Nodes, mesh->Elements, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->Elements, in, target);
                     }
                     break;
                 case FaceElements:
                 case ReducedFaceElements:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, continuousFunction(*this));
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, continuousFunction(*this));
+                        Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in, target);
                     }
                     break;
                 case Points:
                     if (getMPISize()>1) {
-                        //escript::Data temp=escript::Data(in, continuousFunction(*this) );
-                        //escriptDataC _in2 = temp.getDataC();
+                        //escript::Data in2=escript::Data(in, continuousFunction(*this) );
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->Points, in, target);
                     }
                     break;
                 case ContactElementsZero:
@@ -1078,68 +1043,61 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
                 case ReducedContactElementsZero:
                 case ReducedContactElementsOne:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, continuousFunction(*this));
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, continuousFunction(*this));
+                        Assemble_interpolate(mesh->Nodes, mesh->ContactElements, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->ContactElements, in, target);
                     }
                     break;
                 default:
                     stringstream temp;
                     temp << "Error - Interpolation On Domain: Finley does not know anything about function space type " << target.getFunctionSpace().getTypeCode();
                     throw FinleyAdapterException(temp.str());
-                    break;
             }
             break;
         case ReducedDegreesOfFreedom:
             switch(target.getFunctionSpace().getTypeCode()) {
                 case Nodes:
                     throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to mesh nodes.");
-                    break;
                 case ReducedNodes:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in);
-                        temp.expand();
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in2);
+                        escript::Data in2=escript::Data(in);
+                        in2.expand();
+                        Assemble_CopyNodalData(mesh->Nodes, target, in2);
                     } else {
-                        Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+                        Assemble_CopyNodalData(mesh->Nodes, target, in);
                     }
                     break;
                 case DegreesOfFreedom:
                     throw FinleyAdapterException("Error - Finley does not support interpolation from reduced degrees of freedom to degrees of freedom");
                     break;
                 case ReducedDegreesOfFreedom:
-                    Finley_Assemble_CopyNodalData(mesh->Nodes,&_target,&_in);
+                    Assemble_CopyNodalData(mesh->Nodes, target, in);
                     break;
                 case Elements:
                 case ReducedElements:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, reducedContinuousFunction(*this) );
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, reducedContinuousFunction(*this) );
+                        Assemble_interpolate(mesh->Nodes, mesh->Elements, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Elements,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->Elements, in, target);
                     }
                     break;
                 case FaceElements:
                 case ReducedFaceElements:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, reducedContinuousFunction(*this) );
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, reducedContinuousFunction(*this) );
+                        Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->FaceElements,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->FaceElements, in, target);
                     }
                     break;
                 case Points:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, reducedContinuousFunction(*this));
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, reducedContinuousFunction(*this));
+                        Assemble_interpolate(mesh->Nodes, mesh->Points, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->Points,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->Points, in, target);
                     }
                     break;
                 case ContactElementsZero:
@@ -1147,11 +1105,10 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
                 case ReducedContactElementsZero:
                 case ReducedContactElementsOne:
                     if (getMPISize()>1) {
-                        escript::Data temp=escript::Data(in, reducedContinuousFunction(*this));
-                        escriptDataC _in2 = temp.getDataC();
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in2,&_target);
+                        escript::Data in2=escript::Data(in, reducedContinuousFunction(*this));
+                        Assemble_interpolate(mesh->Nodes, mesh->ContactElements, in2, target);
                     } else {
-                        Finley_Assemble_interpolate(mesh->Nodes,mesh->ContactElements,&_in,&_target);
+                        Assemble_interpolate(mesh->Nodes, mesh->ContactElements, in, target);
                     }
                     break;
                 default:
@@ -1181,12 +1138,10 @@ void MeshAdapter::setToX(escript::Data& arg) const
     Finley_Mesh* mesh=m_finleyMesh.get();
     // in case of appropriate function space we can do the job directly:
     if (arg.getFunctionSpace().getTypeCode()==Nodes) {
-        escriptDataC _arg=arg.getDataC();
-        Finley_Assemble_NodeCoordinates(mesh->Nodes, &_arg);
+        Assemble_NodeCoordinates(mesh->Nodes, arg);
     } else {
         escript::Data tmp_data=Vector(0., continuousFunction(*this), true);
-        escriptDataC _tmp_data=tmp_data.getDataC();
-        Finley_Assemble_NodeCoordinates(mesh->Nodes, &_tmp_data);
+        Assemble_NodeCoordinates(mesh->Nodes, tmp_data);
         // this is then interpolated onto arg:
         interpolateOnDomain(arg, tmp_data);
     }
@@ -1202,7 +1157,6 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
     if (normalDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of normal locations");
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC _normal=normal.getDataC();
     switch(normal.getFunctionSpace().getTypeCode()) {
         case Nodes:
             throw FinleyAdapterException("Error - Finley does not support surface normal vectors for nodes");
@@ -1218,7 +1172,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Finley_Assemble_setNormal(mesh->Nodes,mesh->FaceElements,&_normal);
+            Assemble_setNormal(mesh->Nodes, mesh->FaceElements, normal);
             break;
         case Points:
             throw FinleyAdapterException("Error - Finley does not support surface normal vectors for point elements");
@@ -1227,7 +1181,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
         case ContactElementsZero:
         case ReducedContactElementsOne:
         case ReducedContactElementsZero:
-            Finley_Assemble_setNormal(mesh->Nodes,mesh->ContactElements,&_normal);
+            Assemble_setNormal(mesh->Nodes, mesh->ContactElements, normal);
             break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - Finley does not support surface normal vectors for degrees of freedom.");
@@ -1247,14 +1201,9 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 //
 // interpolates data to other domain
 //
-void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& source) const
+void MeshAdapter::interpolateACross(escript::Data& target, const escript::Data& source) const
 {
-    escript::const_Domain_ptr targetDomain_p=target.getFunctionSpace().getDomain();
-    const MeshAdapter* targetDomain=dynamic_cast<const MeshAdapter*>(targetDomain_p.get());
-    if (targetDomain!=this)
-        throw FinleyAdapterException("Error - Illegal domain of interpolation target");
-
-    throw FinleyAdapterException("Error - Finley does not allow interpolation across domains yet.");
+    throw FinleyAdapterException("Error - Finley does not allow interpolation across domains.");
 }
 
 //
@@ -1268,27 +1217,26 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
 
     double blocktimer_start = blocktimer_time();
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC _temp;
-    escript::Data temp;
-    escriptDataC _arg=arg.getDataC();
     switch(arg.getFunctionSpace().getTypeCode()) {
         case Nodes:
-            temp=escript::Data(arg, escript::function(*this));
-            _temp=temp.getDataC();
-            Finley_Assemble_integrate(mesh->Nodes, mesh->Elements, &_temp, &integrals[0]);
+            {
+                escript::Data temp(arg, escript::function(*this));
+                Assemble_integrate(mesh->Nodes, mesh->Elements, temp, &integrals[0]);
+            }
             break;
         case ReducedNodes:
-            temp=escript::Data( arg, escript::function(*this) );
-            _temp=temp.getDataC();
-            Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
+            {
+                escript::Data temp(arg, escript::function(*this));
+                Assemble_integrate(mesh->Nodes, mesh->Elements, temp, &integrals[0]);
+            }
             break;
         case Elements:
         case ReducedElements:
-            Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_arg,&integrals[0]);
+            Assemble_integrate(mesh->Nodes, mesh->Elements, arg, &integrals[0]);
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Finley_Assemble_integrate(mesh->Nodes,mesh->FaceElements,&_arg,&integrals[0]);
+            Assemble_integrate(mesh->Nodes, mesh->FaceElements, arg, &integrals[0]);
             break;
         case Points:
             throw FinleyAdapterException("Error - Integral of data on points is not supported.");
@@ -1297,13 +1245,14 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            Finley_Assemble_integrate(mesh->Nodes,mesh->ContactElements,&_arg,&integrals[0]);
+            Assemble_integrate(mesh->Nodes, mesh->ContactElements, arg, &integrals[0]);
             break;
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
-            temp=escript::Data(arg, escript::function(*this));
-            _temp=temp.getDataC();
-            Finley_Assemble_integrate(mesh->Nodes,mesh->Elements,&_temp,&integrals[0]);
+            {
+                escript::Data temp(arg, escript::function(*this));
+                Assemble_integrate(mesh->Nodes, mesh->Elements, temp, &integrals[0]);
+            }
             break;
         default:
             stringstream temp;
@@ -1328,21 +1277,17 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
         throw FinleyAdapterException("Error - Illegal domain of gradient");
 
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC _grad=grad.getDataC();
-    escriptDataC nodeDataC;
-    escript::Data temp;
+    escript::Data nodeData;
     if (getMPISize()>1) {
         if (arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
-            temp=escript::Data(arg, continuousFunction(*this));
-            nodeDataC = temp.getDataC();
+            nodeData=escript::Data(arg, continuousFunction(*this));
         } else if(arg.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
-            temp=escript::Data(arg, reducedContinuousFunction(*this));
-            nodeDataC = temp.getDataC();
+            nodeData=escript::Data(arg, reducedContinuousFunction(*this));
         } else {
-            nodeDataC = arg.getDataC();
+            nodeData = arg;
         }
     } else {
-        nodeDataC = arg.getDataC();
+        nodeData = arg;
     }
     switch(grad.getFunctionSpace().getTypeCode()) {
         case Nodes:
@@ -1353,11 +1298,11 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
             break;
         case Elements:
         case ReducedElements:
-            Finley_Assemble_gradient(mesh->Nodes,mesh->Elements,&_grad,&nodeDataC);
+            Assemble_gradient(mesh->Nodes, mesh->Elements, grad, nodeData);
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Finley_Assemble_gradient(mesh->Nodes,mesh->FaceElements,&_grad,&nodeDataC);
+            Assemble_gradient(mesh->Nodes, mesh->FaceElements, grad, nodeData);
             break;
         case Points:
             throw FinleyAdapterException("Error - Gradient at points is not supported.");
@@ -1366,7 +1311,7 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
         case ReducedContactElementsZero:
         case ContactElementsOne:
         case ReducedContactElementsOne:
-            Finley_Assemble_gradient(mesh->Nodes,mesh->ContactElements,&_grad,&nodeDataC);
+            Assemble_gradient(mesh->Nodes, mesh->ContactElements, grad, nodeData);
             break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - Gradient at degrees of freedom is not supported.");
@@ -1389,7 +1334,6 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
 void MeshAdapter::setToSize(escript::Data& size) const
 {
     Finley_Mesh* mesh=m_finleyMesh.get();
-    escriptDataC tmp=size.getDataC();
     switch(size.getFunctionSpace().getTypeCode()) {
         case Nodes:
             throw FinleyAdapterException("Error - Size of nodes is not supported.");
@@ -1399,11 +1343,11 @@ void MeshAdapter::setToSize(escript::Data& size) const
             break;
         case Elements:
         case ReducedElements:
-            Finley_Assemble_getSize(mesh->Nodes,mesh->Elements,&tmp);
+            Assemble_getSize(mesh->Nodes, mesh->Elements, size);
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Finley_Assemble_getSize(mesh->Nodes,mesh->FaceElements,&tmp);
+            Assemble_getSize(mesh->Nodes, mesh->FaceElements, size);
             break;
         case Points:
             throw FinleyAdapterException("Error - Size of point elements is not supported.");
@@ -1412,7 +1356,7 @@ void MeshAdapter::setToSize(escript::Data& size) const
         case ContactElementsOne:
         case ReducedContactElementsZero:
         case ReducedContactElementsOne:
-            Finley_Assemble_getSize(mesh->Nodes,mesh->ContactElements,&tmp);
+            Assemble_getSize(mesh->Nodes,mesh->ContactElements,size);
             break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - Size of degrees of freedom is not supported.");
@@ -1442,8 +1386,6 @@ void MeshAdapter::setNewX(const escript::Data& new_x)
         Finley_Mesh_setCoordinates(mesh, new_x);
     } else {
         throw FinleyAdapterException("As of escript version 3.3 SetX() only accepts ContinuousFunction arguments. Please interpolate.");
-        //escript::Data new_x_inter=escript::Data(new_x, continuousFunction(*this));
-        //Finley_Mesh_setCoordinates(mesh, new_x_inter);
     }
     checkFinleyError();
 }
@@ -1452,8 +1394,8 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 {
     if (getMPISize() > 1) {
 #ifdef ESYS_MPI
-        index_t myFirstNode=0, myLastNode=0, k=0;
-        index_t* globalNodeIndex=0;
+        int myFirstNode=0, myLastNode=0, k=0;
+        int* globalNodeIndex=0;
         Finley_Mesh* mesh_p=m_finleyMesh.get();
         /*
          * this method is only used by saveDataCSV which would use the returned
@@ -1473,7 +1415,7 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
         }
 
         k=globalNodeIndex[id];
-        return static_cast<bool>( (myFirstNode <= k) && (k < myLastNode) );
+        return ((myFirstNode <= k) && (k < myLastNode));
 #endif
     }
     return true;

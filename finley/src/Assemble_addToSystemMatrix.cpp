@@ -30,49 +30,46 @@
 *****************************************************************************/
 
 #include "Assemble.h"
-#include "IndexList.h"
 
-void Finley_Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in,
+namespace finley {
+
+void Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array);
 
-void Finley_Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array);
 
-void Finley_Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array);
 
-void Finley_Assemble_addToSystemMatrix(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix(Paso_SystemMatrix* in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array)
 {
     // call the right function depending on storage type
     if (in->type & MATRIX_FORMAT_CSC) {
-        Finley_Assemble_addToSystemMatrix_CSC(in, NN_Equa, Nodes_Equa,
+        Assemble_addToSystemMatrix_CSC(in, NN_Equa, Nodes_Equa,
                                   num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
     } else if (in->type & MATRIX_FORMAT_TRILINOS_CRS) {
-        Finley_Assemble_addToSystemMatrix_Trilinos(in, NN_Equa, Nodes_Equa,
+        Assemble_addToSystemMatrix_Trilinos(in, NN_Equa, Nodes_Equa,
                                   num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
     } else { // type == CSR
-        Finley_Assemble_addToSystemMatrix_CSR(in, NN_Equa, Nodes_Equa,
+        Assemble_addToSystemMatrix_CSR(in, NN_Equa, Nodes_Equa,
                                   num_Equa, NN_Sol, Nodes_Sol, num_Sol, array);
     }
 }
 
-void Finley_Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in,
-                                           const int NN_Equa,
-                                           const int* Nodes_Equa,
-                                           const int num_Equa,
-                                           const int NN_Sol,
-                                           const int* Nodes_Sol,
-                                           const int num_Sol,
-                                           const double* array)
+void Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in, const int NN_Equa,
+                                    const int* Nodes_Equa, const int num_Equa,
+                                    const int NN_Sol, const int* Nodes_Sol,
+                                    const int num_Sol, const double* array)
 {
     const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const int row_block_size=in->row_block_size;
@@ -163,14 +160,14 @@ void Finley_Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in,
     }
 }
 
-void Finley_Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
-                                                const int NN_Equa,
-                                                const int* Nodes_Equa,
-                                                const int num_Equa,
-                                                const int NN_Sol,
-                                                const int* Nodes_Sol,
-                                                const int num_Sol,
-                                                const double* array)
+void Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
+                                         const int NN_Equa,
+                                         const int* Nodes_Equa,
+                                         const int num_Equa,
+                                         const int NN_Sol,
+                                         const int* Nodes_Sol,
+                                         const int num_Sol,
+                                         const double* array)
 {
     // FIXME: this needs to be modified
 #ifdef TRILINOS
@@ -198,14 +195,10 @@ void Finley_Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
 #endif
 }
 
-void Finley_Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in,
-                                           const int NN_Equa,
-                                           const int* Nodes_Equa,
-                                           const int num_Equa,
-                                           const int NN_Sol,
-                                           const int* Nodes_Sol,
-                                           const int num_Sol,
-                                           const double* array)
+void Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in, const int NN_Equa,
+                                    const int* Nodes_Equa, const int num_Equa,
+                                    const int NN_Sol, const int* Nodes_Sol,
+                                    const int num_Sol, const double* array)
 {
     const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const int row_block_size=in->row_block_size;
@@ -302,4 +295,6 @@ void Finley_Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in,
         }
     }
 }
+
+} // namespace finley
 

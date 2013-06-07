@@ -24,11 +24,9 @@
 #include "Assemble.h"
 #include "Util.h"
 
-#include <vector>
+namespace finley {
 
-void Finley_Assemble_setNormal(NodeFile* nodes,
-                               ElementFile* elements,
-                               escriptDataC* normal)
+void Assemble_setNormal(NodeFile* nodes, ElementFile* elements, escript::Data& normal)
 {
   Finley_resetError();
   if (!nodes || !elements)
@@ -37,7 +35,7 @@ void Finley_Assemble_setNormal(NodeFile* nodes,
     Finley_ReferenceElement* reference_element =
         Finley_ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet,
-                Finley_Assemble_reducedIntegrationOrder(normal));
+                util::hasReducedIntegrationOrder(normal));
     const int NN=elements->numNodes;
     const int numDim=nodes->numDim;
     const int numQuad=reference_element->Parametrization->numQuadNodes;
@@ -45,7 +43,7 @@ void Finley_Assemble_setNormal(NodeFile* nodes,
     const int NS=reference_element->Parametrization->Type->numShapes;
   
     int sign, node_offset;
-    if (getFunctionSpaceType(normal)==FINLEY_CONTACT_ELEMENTS_2) {
+    if (normal.getFunctionSpace().getTypeCode()==FINLEY_CONTACT_ELEMENTS_2) {
         node_offset=reference_element->Type->offsets[1];
         sign=-1;
     } else {
@@ -55,17 +53,17 @@ void Finley_Assemble_setNormal(NodeFile* nodes,
 
     // check the dimensions of normal
     if (!(numDim==numDim_local || numDim-1==numDim_local)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_setNormal: Cannot calculate normal vector");
-    } else if (!numSamplesEqual(normal, numQuad, elements->numElements)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_setNormal: illegal number of samples of normal Data object");
-    } else if (! isDataPointShapeEqual(normal,1,&(numDim))) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_setNormal: illegal point data shape of normal Data object");
-    } else if (!isExpanded(normal)) {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_setNormal: expanded Data object is expected for normal.");
+        Finley_setError(TYPE_ERROR, "Assemble_setNormal: Cannot calculate normal vector");
+    } else if (!normal.numSamplesEqual(numQuad, elements->numElements)) {
+        Finley_setError(TYPE_ERROR, "Assemble_setNormal: illegal number of samples of normal Data object");
+    } else if (!normal.isDataPointShapeEqual(1, &numDim)) {
+        Finley_setError(TYPE_ERROR, "Assemble_setNormal: illegal point data shape of normal Data object");
+    } else if (!normal.actsExpanded()) {
+        Finley_setError(TYPE_ERROR, "Assemble_setNormal: expanded Data object is expected for normal.");
     }
    
     if (Finley_noError()) {
-        requireWrite(normal);
+        normal.requireWrite();
 #pragma omp parallel
         {
             std::vector<double> local_X(NS*numDim); 
@@ -74,13 +72,14 @@ void Finley_Assemble_setNormal(NodeFile* nodes,
 #pragma omp for
             for (int e=0; e<elements->numElements; e++) {
                 // gather local coordinates of nodes into local_X:
-                Finley_Util_Gather_double(NS, &(elements->Nodes[INDEX2(node_offset,e,NN)]), numDim, nodes->Coordinates, &local_X[0]);
+                util::gather(NS, &(elements->Nodes[INDEX2(node_offset,e,NN)]),
+                             numDim, nodes->Coordinates, &local_X[0]);
                 // calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q)
-                Finley_Util_SmallMatMult(numDim, numDim_local*numQuad, &dVdv[0], NS,
+                util::smallMatMult(numDim, numDim_local*numQuad, &dVdv[0], NS,
                         &local_X[0], reference_element->Parametrization->dSdv);
-                double *normal_array=getSampleDataRW(normal,e);
-                Finley_NormalVector(numQuad, numDim, numDim_local, &dVdv[0],
-                                    normal_array);
+                double *normal_array=normal.getSampleDataRW(e);
+                util::normalVector(numQuad, numDim, numDim_local, &dVdv[0],
+                                   normal_array);
                 for (int q=0; q<numQuad*numDim; q++)
                     normal_array[q]*=sign;
             }
@@ -88,3 +87,4 @@ void Finley_Assemble_setNormal(NodeFile* nodes,
     }
 }
 
+} // namespace finley

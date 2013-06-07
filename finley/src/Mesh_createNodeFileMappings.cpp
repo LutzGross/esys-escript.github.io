@@ -26,6 +26,8 @@
 
 /************************************************************************************/
 
+using namespace finley;
+
 void Finley_Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced_elements) 
 {
   index_t min_DOF, max_DOF, *shared=NULL, *offsetInShared=NULL, *locDOFMask=NULL, i, k, myFirstDOF, myLastDOF, *nodeMask=NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs=NULL;
@@ -58,8 +60,8 @@ void Finley_Mesh_createDOFMappingAndCoupling(Finley_Mesh* in, bool_t use_reduced
   mpiSize=mpi_info->size;
   myRank=mpi_info->rank;
 
-  min_DOF=Finley_Util_getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
-  max_DOF=Finley_Util_getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
+  min_DOF=util::getFlaggedMinInt(1,numNodes,globalDOFIndex,-1);
+  max_DOF=util::getFlaggedMaxInt(1,numNodes,globalDOFIndex,-1);
 
   if (max_DOF < min_DOF) {
       min_DOF=myFirstDOF;
@@ -267,7 +269,7 @@ void Finley_Mesh_createMappings(Finley_Mesh* mesh, index_t* dof_distribution, in
     for (i=0;i<mesh->Nodes->numNodes;++i) maskReducedNodes[i]=-1;
     Finley_Mesh_markNodes(maskReducedNodes,0,mesh,TRUE);
 
-    numReducedNodes=Finley_Util_packMask(mesh->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
+    numReducedNodes=util::packMask(mesh->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
     if (Finley_noError()) Finley_Mesh_createNodeFileMappings(mesh,numReducedNodes,indexReducedNodes,dof_distribution, node_distribution);
   }
 
@@ -324,8 +326,8 @@ void Finley_Mesh_createNodeFileMappings(Finley_Mesh* in, dim_t numReducedNodes, 
                }
             }
         }
-        myNumReducedNodes=Finley_Util_packMask(myNumNodes,maskMyReducedNodes,indexMyReducedNodes);
-        myNumReducedDOF=Finley_Util_packMask(myNumDOF,maskMyReducedDOF,indexMyReducedDOF);
+        myNumReducedNodes=util::packMask(myNumNodes,maskMyReducedNodes,indexMyReducedNodes);
+        myNumReducedDOF=util::packMask(myNumDOF,maskMyReducedDOF,indexMyReducedDOF);
         
         #ifdef ESYS_MPI
            MPI_Allgather(&myNumReducedNodes,1,MPI_INT,reduced_nodes_first_component,1,MPI_INT,in->Nodes->MPIInfo->comm);

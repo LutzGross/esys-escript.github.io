@@ -29,19 +29,14 @@ int getFunctionSpaceType(struct escriptDataC* data)
 int isDataPointShapeEqual(struct escriptDataC* data, int rank, const int* dimensions)
 {
   if (data == (struct escriptDataC*)0) {
-       return true;
+       return 1;
   } else {
      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
-        return true;
-     } else {
-          escript::DataTypes::ShapeType givenShape(&dimensions[0],&dimensions[rank]);
-          return (temp->getDataPointShape()==givenShape);
-     }
+     return temp->isDataPointShapeEqual(rank, dimensions);
   }
 }
 
-int  getNumDataPointsPerSample(struct escriptDataC* data) 
+int getNumDataPointsPerSample(struct escriptDataC* data) 
 {
   if (data == (struct escriptDataC*)0) {
        return 0;
@@ -59,16 +54,10 @@ int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
 		    int numSamples)
 {
   if (data == (struct escriptDataC*)0) {
-       return true;
+     return 1;
   } else {
      escript::Data* temp=(escript::Data*)(data->m_dataPtr);
-     if (temp->isEmpty()) {
-        return true;
-     } else {
-        int result=(numDataPointsPerSample==temp->getNumDataPointsPerSample());
-        result=result && (numSamples==temp->getNumSamples());
-        return result;
-     }
+     return temp->numSamplesEqual(numDataPointsPerSample, numSamples);
   }
 }
 

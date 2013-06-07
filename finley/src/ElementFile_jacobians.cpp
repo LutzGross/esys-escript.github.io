@@ -105,7 +105,7 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
                 // nothing to be done
             } else if (refElement->numLocalDim==1) {
                 if (out->numSides==1) {
-                    Finley_Assemble_jacobians_1D(nodefile->Coordinates,
+                    Assemble_jacobians_1D(nodefile->Coordinates,
                             out->numQuadTotal, shape->QuadWeights,
                             shape->Type->numShapes, numElements, numNodes,
                             Nodes, shape->dSdv, basis->Type->numShapes, dBdv,
@@ -123,14 +123,14 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
             } else if (refElement->numLocalDim==1) {
                 if (out->BasisFunctions->Type->numDim==2) {
                     if (out->numSides==1) {
-                        Finley_Assemble_jacobians_2D_M1D_E2D(
+                        Assemble_jacobians_2D_M1D_E2D(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
-                        Finley_Assemble_jacobians_2D_M1D_E2D_C(
+                        Assemble_jacobians_2D_M1D_E2D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
@@ -141,14 +141,14 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
                     }
                 } else if (out->BasisFunctions->Type->numDim==1) {
                     if (out->numSides==1) {
-                        Finley_Assemble_jacobians_2D_M1D_E1D(
+                        Assemble_jacobians_2D_M1D_E1D(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
-                        Finley_Assemble_jacobians_2D_M1D_E1D_C(
+                        Assemble_jacobians_2D_M1D_E1D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
@@ -162,7 +162,7 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
                 }
             } else if (refElement->numLocalDim==2) {
                 if (out->numSides==1) {
-                    Finley_Assemble_jacobians_2D(nodefile->Coordinates,
+                    Assemble_jacobians_2D(nodefile->Coordinates,
                             out->numQuadTotal, shape->QuadWeights,
                             shape->Type->numShapes, numElements, numNodes,
                             Nodes, shape->dSdv, basis->Type->numShapes, dBdv,
@@ -180,14 +180,14 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
             } else if (refElement->numLocalDim==2) {
                 if (out->BasisFunctions->Type->numDim==3) {
                     if (out->numSides==1) {
-                        Finley_Assemble_jacobians_3D_M2D_E3D(
+                        Assemble_jacobians_3D_M2D_E3D(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
-                        Finley_Assemble_jacobians_3D_M2D_E3D_C(
+                        Assemble_jacobians_3D_M2D_E3D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
@@ -198,14 +198,14 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
                     }
                 } else if (out->BasisFunctions->Type->numDim==2) {
                     if (out->numSides==1) {
-                        Finley_Assemble_jacobians_3D_M2D_E2D(
+                        Assemble_jacobians_3D_M2D_E2D(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
-                        Finley_Assemble_jacobians_3D_M2D_E2D_C(
+                        Assemble_jacobians_3D_M2D_E2D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
                                 shape->QuadWeights, shape->Type->numShapes,
                                 numElements, numNodes, Nodes, shape->dSdv,
@@ -219,7 +219,7 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(NodeFile* nodefile,
                 }
             } else if (refElement->numLocalDim==3) {
                 if (out->numSides==1) {
-                    Finley_Assemble_jacobians_3D(nodefile->Coordinates,
+                    Assemble_jacobians_3D(nodefile->Coordinates,
                             out->numQuadTotal, shape->QuadWeights,
                             shape->Type->numShapes, numElements, numNodes,
                             Nodes, shape->dSdv, basis->Type->numShapes, dBdv,

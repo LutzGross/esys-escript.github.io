@@ -24,50 +24,50 @@
 #include "Assemble.h"
 #include "Util.h"
 
-void Finley_Assemble_gradient(NodeFile* nodes,
-                              ElementFile* elements,
-                              escriptDataC* grad_data,
-                              escriptDataC* data)
+namespace finley {
+
+void Assemble_gradient(NodeFile* nodes, ElementFile* elements,
+                       escript::Data& grad_data, const escript::Data& data)
 {
     Finley_resetError();
     if (!nodes || !elements)
         return;
 
-    const int numComps=getDataPointSize(data);
+    const int numComps=data.getDataPointSize();
     const int NN=elements->numNodes;
-    const bool_t reducedIntegrationOrder=Finley_Assemble_reducedIntegrationOrder(grad_data);
+    const bool reducedOrder=util::hasReducedIntegrationOrder(grad_data);
+    const int data_type=data.getFunctionSpace().getTypeCode();
 
-    const type_t data_type=getFunctionSpaceType(data);
-    bool_t reducedShapefunction = FALSE;
+    bool reducedShapefunction = false;
     int numNodes = 0;
     if (data_type == FINLEY_NODES) {
         numNodes = nodes->nodesMapping->numTargets;
     } else if (data_type==FINLEY_REDUCED_NODES) { 
-        reducedShapefunction = TRUE;
+        reducedShapefunction = true;
         numNodes = nodes->reducedNodesMapping->numTargets;
     } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
+            Finley_setError(TYPE_ERROR, "Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
         numNodes = nodes->degreesOfFreedomMapping->numTargets;
     } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
+            Finley_setError(TYPE_ERROR, "Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
-        reducedShapefunction = TRUE;
+        reducedShapefunction = true;
         numNodes = nodes->reducedDegreesOfFreedomMapping->numTargets;
     } else {
-        Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
+        Finley_setError(TYPE_ERROR, "Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
         return;
     }
 
     ElementFile_Jacobians *jac = elements->borrowJacobians(nodes,
-            reducedShapefunction, reducedIntegrationOrder);
+            reducedShapefunction, reducedOrder);
     Finley_ReferenceElement *refElement =
         Finley_ReferenceElementSet_borrowReferenceElement(
-                elements->referenceElementSet, reducedIntegrationOrder);
+                elements->referenceElementSet, reducedOrder);
     const int numDim=jac->numDim;
     const int numShapes=jac->BasisFunctions->Type->numShapes;
     const int numShapesTotal=jac->numShapesTotal;
@@ -77,7 +77,7 @@ void Finley_Assemble_gradient(NodeFile* nodes,
     int s_offset=0, *nodes_selector=NULL;
   
     if (Finley_noError()) {
-        const type_t grad_data_type=getFunctionSpaceType(grad_data);
+        const int grad_data_type=grad_data.getFunctionSpace().getTypeCode();
         if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
             s_offset=jac->offsets[1];
             s_offset=jac->offsets[1];
@@ -94,37 +94,37 @@ void Finley_Assemble_gradient(NodeFile* nodes,
         }
 
         // check the dimensions of data
-        if (!numSamplesEqual(grad_data, numQuad*numSub, elements->numElements)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: illegal number of samples in gradient Data object");
-        } else if (!numSamplesEqual(data, 1, numNodes)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: illegal number of samples of input Data object");
-        } else if (numDim*numComps != getDataPointSize(grad_data)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: illegal number of components in gradient data object.");
-        } else if (!isExpanded(grad_data)) {
-            Finley_setError(TYPE_ERROR, "Finley_Assemble_gradient: expanded Data object is expected for output data.");
+        if (!grad_data.numSamplesEqual(numQuad*numSub, elements->numElements)) {
+            Finley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples in gradient Data object");
+        } else if (!data.numSamplesEqual(1, numNodes)) {
+            Finley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples of input Data object");
+        } else if (numDim*numComps != grad_data.getDataPointSize()) {
+            Finley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of components in gradient data object.");
+        } else if (!grad_data.actsExpanded()) {
+            Finley_setError(TYPE_ERROR, "Assemble_gradient: expanded Data object is expected for output data.");
         } else if (!(s_offset+numShapes <= numShapesTotal)) {
-            Finley_setError(SYSTEM_ERROR, "Finley_Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
+            Finley_setError(SYSTEM_ERROR, "Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
         }
     }
 
     if (!Finley_noError())
         return;
 
-    // now we can start
     const size_t localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
-    requireWrite(grad_data);
+    escript::Data& in(*const_cast<escript::Data*>(&data));
+    grad_data.requireWrite();
 #pragma omp parallel
     {
         if (data_type==FINLEY_NODES) {
             if (numDim==1) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,n);
+                            const double *data_array=in.getSampleDataRO(n);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -137,12 +137,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==2) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,n);
+                            const double *data_array=in.getSampleDataRO(n);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -156,12 +156,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==3) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e); 
+                    double *grad_data_e=grad_data.getSampleDataRW(e); 
                     memset(grad_data_e,0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,n);
+                            const double *data_array=in.getSampleDataRO(n);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -178,12 +178,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             if (numDim==1) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0;s<numShapes;s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);            
+                            const double *data_array=in.getSampleDataRO(nodes->reducedNodesMapping->target[n]);            
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {                              
@@ -196,12 +196,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==2) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->reducedNodesMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -215,12 +215,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==3) {
 #pragma omp for
                 for (int e=0;e<elements->numElements;e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->reducedNodesMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->reducedNodesMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {   
 #pragma ivdep
                                 for (int l=0;l<numComps;l++) {
@@ -237,12 +237,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             if (numDim==1) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->degreesOfFreedomMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -255,12 +255,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==2) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->degreesOfFreedomMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -274,12 +274,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==3) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->degreesOfFreedomMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->degreesOfFreedomMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -296,12 +296,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             if (numDim==1) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e,0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->reducedDegreesOfFreedomMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -313,13 +313,13 @@ void Finley_Assemble_gradient(NodeFile* nodes,
                 }
             } else if (numDim==2) {
 #pragma omp for
-                for (int e=0;e<elements->numElements;e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                for (int e=0; e<elements->numElements; e++) {
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e, 0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->reducedDegreesOfFreedomMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -334,12 +334,12 @@ void Finley_Assemble_gradient(NodeFile* nodes,
             } else if (numDim==3) {
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
-                    double *grad_data_e=getSampleDataRW(grad_data,e);
+                    double *grad_data_e=grad_data.getSampleDataRW(e);
                     memset(grad_data_e,0, localGradSize);
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=getSampleDataRO(data,nodes->reducedDegreesOfFreedomMapping->target[n]);
+                            const double *data_array=in.getSampleDataRO(nodes->reducedDegreesOfFreedomMapping->target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -355,4 +355,6 @@ void Finley_Assemble_gradient(NodeFile* nodes,
         } // data_type
     } // end parallel region
 }
+
+} // namespace finley
 

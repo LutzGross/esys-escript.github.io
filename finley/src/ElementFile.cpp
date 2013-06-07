@@ -21,22 +21,12 @@
 *****************************************************************************/
 
 #include "ElementFile.h"
-#include "Util.h"
 #include <escript/Data.h>
 
 #include <algorithm> // std::swap
 
 namespace finley {
 
-inline bool hasReducedIntegrationOrder(const escript::Data& in)
-{
-    const int fs = in.getFunctionSpace().getTypeCode();
-    return (fs == FINLEY_REDUCED_ELEMENTS || fs == FINLEY_REDUCED_FACE_ELEMENTS
-                || fs == FINLEY_REDUCED_CONTACT_ELEMENTS_1
-                || fs == FINLEY_REDUCED_CONTACT_ELEMENTS_2);
-}
-
- 
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
 ElementFile::ElementFile(Finley_ReferenceElementSet* refSet,
@@ -194,27 +184,26 @@ void ElementFile::optimizeOrdering()
         return;
 
     const int NN=referenceElementSet->numNodes;
-    Finley_Util_ValueAndIndex* item_list=new Finley_Util_ValueAndIndex[numElements];
+    util::ValueAndIndexList item_list(numElements);
     int *index=new int[numElements];
     ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
     out->allocTable(numElements);
     if (Finley_noError()) {
 #pragma omp parallel for
         for (int e=0; e<numElements; e++) {
-            item_list[e].index=e;
-            item_list[e].value=Nodes[INDEX2(0,e,NN)];
+            std::pair<int,int> entry(Nodes[INDEX2(0,e,NN)], e);
             for (int i=1; i<NN; i++)
-                item_list[e].value=std::min(item_list[e].value, Nodes[INDEX2(i,e,NN)]);
+                entry.first=std::min(entry.first, Nodes[INDEX2(i,e,NN)]);
+            item_list[e] = entry;
         }
-        Finley_Util_sortValueAndIndex(numElements, item_list);
+        util::sortValueAndIndex(item_list);
 #pragma omp parallel for
         for (int e=0; e<numElements; e++)
-            index[e]=item_list[e].index;
+            index[e]=item_list[e].second;
         out->gather(index, this);
         swapTable(out);
     }
     delete out;
-    delete[] item_list;
     delete[] index;
 }
 
@@ -236,7 +225,7 @@ void ElementFile::setTags(const int newTag, const escript::Data& cMask)
     Finley_resetError();
 
     const int numQuad=Finley_ReferenceElementSet_borrowReferenceElement(
-            referenceElementSet, hasReducedIntegrationOrder(cMask))
+            referenceElementSet, util::hasReducedIntegrationOrder(cMask))
             ->Parametrization->numQuadNodes; 
     if (1 != cMask.getDataPointSize()) {
         Finley_setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
@@ -276,8 +265,8 @@ void ElementFile::createColoring(int nodeCount, int* degreeOfFreedom)
         return;
 
     const int NN = numNodes;
-    const std::pair<int,int> idRange(
-            Finley_Util_getMinMaxInt(1, nodeCount, degreeOfFreedom));
+    const std::pair<int,int> idRange(util::getMinMaxInt(
+                                            1, nodeCount, degreeOfFreedom));
     const int len=idRange.second-idRange.first+1;
 
     // reset color vector
