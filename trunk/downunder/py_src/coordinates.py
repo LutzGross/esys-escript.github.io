@@ -384,7 +384,6 @@ class GeodeticCoordinateTransformation(SpatialCoordinateTransformation):
             phi=x[1] * f_a
         h=x[DIM-1] * f_h
 
-        
         e = esc.sqrt(2*f-f**2)
         N = a/esc.sqrt(1 - e**2 * esc.sin(phi)**2 )
         M = ( a*(1-e**2) ) /esc.sqrt(1 - e**2 * esc.sin(phi)**2 )**3
