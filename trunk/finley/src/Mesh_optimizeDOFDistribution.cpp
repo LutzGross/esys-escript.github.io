@@ -14,58 +14,52 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: Mesh: optimizes the distribution of DOFs across processors */
-/*   using ParMETIS. On return a new distribution is given and the globalDOF */
-/*   are relabeled accordingly but the mesh is not redistributed yet. */
+  Finley: Mesh: optimizes the distribution of DOFs across processors
+  using ParMETIS. On return a new distribution is given and the globalDOF
+  are relabeled accordingly but the mesh is not redistributed yet.
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "Mesh.h"
 #include "IndexList.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 #ifdef USE_PARMETIS
 #include "parmetis.h"
 #endif
 
-/************************************************************************************
+/****************************************************************************
    Check whether there is any node which has no vertex. In case 
    such a node exists, we don't use parmetis since parmetis requires
    that every node has at least 1 vertex (at line 129 of file
    "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
    any node has no vertex).
- ************************************************************************************/
+ ****************************************************************************/
 #ifdef USE_PARMETIS
-int Check_Inputs_For_Parmetis(dim_t mpiSize, dim_t rank, dim_t *distribution, MPI_Comm *comm)
+int Check_Inputs_For_Parmetis(int mpiSize, int rank, int *distribution, MPI_Comm *comm)
 {
-  dim_t i, len;
-  int ret_val = 1;
+    int ret_val = 1;
 
-  if (rank == 0){
-    for (i=0; i<mpiSize; i++){
-      len = distribution[i+1] - distribution[i];
-      if (len == 0){
-        ret_val = 0;
-        break;
-      }
+    if (rank == 0) {
+        for (int i=0; i<mpiSize; i++) {
+            if (distribution[i+1] == distribution[i]) {
+                ret_val = 0;
+                break;
+            }
+        }
+        if (ret_val == 0) 
+            printf("INFO: Parmetis is not used since some nodes have no vertex!\n");
     }
-  } 
-  MPI_Bcast(&ret_val, 1, MPI_INTEGER, 0, *comm);
-  if (ret_val == 0) 
-    printf("INFO: Parmetis is not used since some nodes have no vertex!\n");
-  return ret_val;
+    MPI_Bcast(&ret_val, 1, MPI_INTEGER, 0, *comm);
+    return ret_val;
 }
 #endif
 
 
+/****************************************************************************/
 
-/************************************************************************************/
-
-void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
-
+void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution)
+{
      dim_t dim, i,j,k, myNumVertices,p, mpiSize, len, globalNumVertices,*partition_count=NULL, *new_distribution=NULL, *loc_partition_count=NULL;
      bool_t *setNewDOFId=NULL;
      index_t myFirstVertex, myLastVertex, firstVertex, lastVertex, *newGlobalDOFID=NULL;
@@ -73,7 +67,6 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      index_t* partition=NULL;
      Paso_Pattern *pattern=NULL;
      Esys_MPI_rank myRank,current_rank, rank;
-     Finley_IndexList* index_list=NULL;
      float *xyz=NULL;
      int c;
      
@@ -116,46 +109,33 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
              }
          }
 
-         index_list=new Finley_IndexList[myNumVertices];
+        IndexList* index_list=new IndexList[myNumVertices];
 	 /* ksteube CSR of DOF IDs */
          /* create the adjacency structure xadj and adjncy */
          if (! Finley_checkPtr(index_list)) {
-            #pragma omp parallel private(i)
+#pragma omp parallel
             {
-              #pragma omp for schedule(static)
-              for(i=0;i<myNumVertices;++i) {
-                   index_list[i].extension=NULL;
-                   index_list[i].n=0;
-              }
 	      /* ksteube build CSR format */
               /*  insert contributions from element matrices into columns index index_list: */
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->Elements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->FaceElements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->ContactElements,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
-              Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
+              IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
                                                                         in->Points,in->Nodes->globalDegreesOfFreedom,
                                                                         in->Nodes->globalDegreesOfFreedom);
            }
            
            /* create the local matrix pattern */
-           pattern=Finley_IndexList_createPattern(0,myNumVertices,index_list,0,globalNumVertices,0);
-
-           /* clean up index list */
-           if (index_list!=NULL) {
-              #pragma omp parallel for private(i) 
-              for(i=0;i<myNumVertices;++i) Finley_IndexList_free(index_list[i].extension);
-           }
+           pattern=IndexList_createPattern(0,myNumVertices,index_list,0,globalNumVertices,0);
 
            if (Finley_noError()) {
-
 #ifdef USE_PARMETIS
-
 	      if (mpiSize>1 && 
 		  Check_Inputs_For_Parmetis(mpiSize, myRank, distribution, &(in->MPIInfo->comm))>0 ) {
 		 int i;
@@ -279,5 +259,5 @@ void Finley_Mesh_optimizeDOFDistribution(Finley_Mesh* in,dim_t *distribution) {
      delete[] partition_count;
      delete[] partition;
      delete[] xyz;
-     return;
 }
+

@@ -14,42 +14,46 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/* Finley: Converting an element list into a matrix shape     */
+  Finley: Converting an element list into a matrix shape
 
-/************************************************************************************/
+*****************************************************************************/
 
-#ifndef INC_FINLEY_INDEXLIST
-#define INC_FINLEY_INDEXLIST
+#ifndef __FINLEY_INDEXLIST_H__
+#define __FINLEY_INDEXLIST_H__
 
 #include "Finley.h"
-#include "ElementFile.h"
-#include "Mesh.h"
 
-/* structure to build system matrix */
+#include <list>
 
-#define INDEXLIST_LENGTH 85
+struct Paso_Pattern;
 
-typedef struct Finley_IndexList {
-  int index[INDEXLIST_LENGTH];
-  int n;
-  struct Finley_IndexList *extension;
-} Finley_IndexList;
+// helpers to build system matrix
 
-void Finley_IndexList_insertElements(Finley_IndexList* index_list, ElementFile* elements,
-                                     bool_t reduce_row_order, int* row_map,
-                                     bool_t reduce_col_order, int* col_map);
-void Finley_IndexList_insertIndex(Finley_IndexList*, int);
-void Finley_IndexList_toArray(Finley_IndexList*, int*, int, int, int);
-dim_t Finley_IndexList_count(Finley_IndexList*,  int, int);
-void Finley_IndexList_free(Finley_IndexList*);
-Paso_Pattern* Finley_IndexList_createPattern(int n0, int n, Finley_IndexList* index_list, int range_min, int range_max, int index_offset);
-void Finley_IndexList_insertElementsWithRowRange(Finley_IndexList* index_list, int firstRow, int lastRow,
-                                                 ElementFile* elements, int* row_map, int* col_map);
-void Finley_IndexList_insertElementsWithRowRangeNoMainDiagonal(Finley_IndexList* index_list, int firstRow, int lastRow,
-                                                               ElementFile* elements, int* row_map, int* col_map);
+namespace finley {
 
+class ElementFile;
 
-#endif /* #ifndef INC_FINLEY_INDEXLIST */
+typedef std::list<int> IndexList;
+
+void IndexList_insertIndex(IndexList&, int);
+void IndexList_toArray(const IndexList&, int*, int, int, int);
+int IndexList_count(const IndexList&,  int, int);
+
+Paso_Pattern* IndexList_createPattern(int n0, int n,
+        const IndexList* index_list, int range_min, int range_max,
+        int index_offset);
+
+void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
+                              bool reduce_row_order, int* row_map,
+                              bool reduce_col_order, int* col_map);
+
+void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* index_list,
+        int firstRow, int lastRow, ElementFile* elements, int* row_map,
+        int* col_map);
+
+} // namespace finley
+
+#endif // __FINLEY_INDEXLIST_H__
 
