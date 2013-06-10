@@ -87,8 +87,8 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         self.assertAlmostEqual(sup(x[0]), 120.3, delta=0.001, msg="phi range wrong")
         self.assertAlmostEqual(inf(x[1]), -29.2 , delta=0.0001, msg="lambda range wrong")
         self.assertAlmostEqual(sup(x[1]), -29.13333333333333, delta=0.0001, msg="lambda range wrong")
-        self.assertAlmostEqual(inf(x[2]), -20., msg="h range wrong")
-        self.assertAlmostEqual(sup(x[2]), 30., msg="h range wrong")
+        self.assertAlmostEqual(inf(x[2]), -0.2, msg="h range wrong")
+        self.assertAlmostEqual(sup(x[2]), 0.3, msg="h range wrong")
         
 
 if __name__ == "__main__":
