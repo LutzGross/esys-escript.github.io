@@ -33,10 +33,9 @@ Some models for heat advection-diffusion
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from . import escriptcpp
-escore=escriptcpp
+from . import escriptcpp as escore
+from . import linearPDEs as lpe
 from . import util
-import linearPDEs as lpe
 
 class TemperatureCartesian(lpe.TransportPDE):
     """

@@ -35,7 +35,7 @@ invoke this by doing ./runmodel.py <filename.xml>
 __author__="Elspeth Thorne, e.thorne@uq.edu.au"
 
 
-from esys.escript import modelframe
+from . import modelframe
 import optparse
 
 parser = optparse.OptionParser(usage="%prog [options] <ESySXML files>")

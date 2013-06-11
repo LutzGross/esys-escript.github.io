@@ -36,7 +36,7 @@ in tables for instance in HTML
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import os,socket,time,sys,traceback
+import os, socket, sys, time, traceback
 from esys.escript import setNumberOfThreads
 
 class BenchmarkSuite(object):
