@@ -48,6 +48,7 @@ except KeyError:
 NC_DATA1 = os.path.join(TEST_DATA_ROOT, 'zone51.nc')
 NC_DATA2 = os.path.join(TEST_DATA_ROOT, 'zone52.nc')
 
+@unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestDomainBuilderWithNetCdf(unittest.TestCase):
     def test_add_garbage(self):
         db=DomainBuilder()
@@ -84,19 +85,19 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         dom=db.getDomain()
         x=dom.getX()
         self.assertAlmostEqual(inf(x[0]), 120.2, delta=0.001, msg="phi range wrong")
-        self.assertAlmostEqual(sup(x[0]), 120.3, delta=0.001, msg="phi range wrong")
         self.assertAlmostEqual(inf(x[1]), -29.2 , delta=0.0001, msg="lambda range wrong")
-        self.assertAlmostEqual(sup(x[1]), -29.13333333333333, delta=0.0001, msg="lambda range wrong")
-        self.assertAlmostEqual(inf(x[2]), -0.2, msg="h range wrong")
-        self.assertAlmostEqual(sup(x[2]), 0.3, msg="h range wrong")
+        self.assertAlmostEqual(inf(x[2]), -0.2, msg="h range wrong"+str(x[2]))
+        # Cannot check upper bounds of coordinates with more than 1 rank
+        # because ripley may adjust internally.
+        if getMPISizeWorld()==1:
+            self.assertAlmostEqual(sup(x[0]), 120.3, delta=0.001, msg="phi range wrong")
+            self.assertAlmostEqual(sup(x[1]), -29.13333333333333, delta=0.0001, msg="lambda range wrong")
+            self.assertAlmostEqual(sup(x[2]), 0.3, msg="h range wrong: "+str(x[2]))
         
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    if 'NetCdfData' in dir():
-        suite.addTest(unittest.makeSuite(TestDomainBuilderWithNetCdf))
-    else:
-        print("Skipping tests that require netCDF.")
+    suite.addTest(unittest.makeSuite(TestDomainBuilderWithNetCdf))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 
