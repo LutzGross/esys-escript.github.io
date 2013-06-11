@@ -32,8 +32,7 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from . import escriptcpp
-escore=escriptcpp
+from . import escriptcpp as escore
 from . import util
 from .flows import StokesProblemCartesian
 from .pdetools import MaxIterReached

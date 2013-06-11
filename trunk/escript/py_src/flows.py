@@ -33,12 +33,10 @@ Some models for flow
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-from . import escriptcpp
-escore=escriptcpp
-#from . import escript
+from . import escriptcpp as escore
 from . import util
-import linearPDEs as lpe
-import pdetools as pdt
+from . import linearPDEs as lpe
+from . import pdetools as pdt
 
 class DarcyFlow(object):
    """

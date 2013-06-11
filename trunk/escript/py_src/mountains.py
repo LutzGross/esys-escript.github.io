@@ -21,7 +21,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escript as escript
-import esys.escript.linearPDEs as lpe
+from . import linearPDEs as lpe
 
 import math
 import sys

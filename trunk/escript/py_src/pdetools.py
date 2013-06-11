@@ -40,13 +40,11 @@ Currently includes:
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 
-#from . import escript
-from . import escriptcpp
-escore=escriptcpp
+from . import escriptcpp as escore
 from . import linearPDEs
-import numpy
 from . import util
 import math
+import numpy
 
 class TimeIntegrationManager(object):
   """

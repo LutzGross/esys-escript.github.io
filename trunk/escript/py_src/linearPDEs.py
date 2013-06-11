@@ -38,10 +38,9 @@ by its advective terms.
 :var __date__: date of the version
 """
 
-import math
-from . import escriptcpp
-escore=escriptcpp
+from . import escriptcpp as escore
 from . import util
+import math
 import numpy
 
 __author__="Lutz Gross, l.gross@uq.edu.au"

@@ -33,23 +33,14 @@ Environment for implementing models in escript
 """
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-
-import sys
+import collections
+import itertools
 import numpy
 import operator
-import itertools
-import time
 import os
-import collections
+import sys
+import time
 from functools import reduce
-
-
-# import the 'set' module if it's not defined (python2.3/2.4 difference)
-try:
-    set
-except NameError:
-    from sets import Set as set
-
 from xml.dom import minidom
 
 
