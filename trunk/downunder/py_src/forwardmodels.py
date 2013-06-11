@@ -116,7 +116,12 @@ class ForwardModelWithPotential(ForwardModel):
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
         self.diameter=1./sqrt(sum(1./self.edge_lengths**2))
 
-        if not  self.__trafo.isCartesian():
+        self.__origweight=[]
+        for s in range(len(self.__weight)):
+            # save a copy of the original weights in case of rescaling
+            self.__origweight.append(1.*self.__weight[s])
+
+        if not self.__trafo.isCartesian():
             fd=1./self.__trafo.getScalingFactors()
             fw=self.__trafo.getScalingFactors()*sqrt(self.__trafo.getVolumeFactor())
             for s in range(len(self.__weight)):
@@ -132,11 +137,17 @@ class ForwardModelWithPotential(ForwardModel):
         if not scale > 0:
              raise ValueError("Value for scale must be positive.")
         A=0
+        # copy back original weights before rescaling
+        self.__weight=[1.*ow for ow in self.__origweight]
+
         for s in range(len(self.__weight)):
-            A += integrate( abs(inner(self.__weight[s], self.__data[s])*  inner(self.__weight[s], 1/self.edge_lengths) * fetch_factor))
+            A += integrate(abs(inner(self.__weight[s], self.__data[s]) * inner(self.__weight[s], 1/self.edge_lengths) * fetch_factor))
         if A > 0:
             A=sqrt(scale/A)/self.diameter
-            for s in range(len(self.__weight)):  self.__weight[s]*=A
+            if not self.__trafo.isCartesian():
+                A*=self.__trafo.getScalingFactors()*sqrt(self.__trafo.getVolumeFactor())
+            for s in range(len(self.__weight)):
+                self.__weight[s]*=A
         else:
             raise ValueError("Rescaling of weights failed.")
 
