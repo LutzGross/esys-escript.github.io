@@ -75,7 +75,7 @@ class Test_util_base(unittest.TestCase):
         f.close()
         self.assertTrue(f.closed,"file shuold be closed.")
         self.__checkContent(fn,["line1", "line2", "line3"])
-        os.unlink(fn)
+        if getMPIRankWorld()==0: os.unlink(fn)
 
    def test_FileWriter_A(self):
         fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_a.txt")
@@ -93,7 +93,7 @@ class Test_util_base(unittest.TestCase):
         f.close()
         self.assertTrue(f.closed,"file shuold be closed.")
         self.__checkContent(fn,["line1", "line2", "line3", "line4"])
-        os.unlink(fn)
+        if getMPIRankWorld()==0: os.unlink(fn)
 
    def test_FileWriter_A_loc(self):
         fn=os.path.join(ESCRIPT_WORKDIR, "filewriter_a_loc.txt")
