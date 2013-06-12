@@ -2736,29 +2736,33 @@ class FileWriter(object):
          """
          error=None
          errno=0
-         self.name=fn
-         if append:
-             self.mode='a'
+         if len(fn)==0:
+             errno=1
+             error="No filename provided"
          else:
-             self.mode='w'
-         self.__file=None
-         self.closed=False
-         self.newlines=os.linesep
-         # if not the master:
-         if getMPIRankWorld()>0:
-              if createLocalFiles:
-                  fn2=fn+".%s"%getMPIRankWorld()
+             self.name=fn
+             if append:
+                 self.mode='a'
+             else:
+                 self.mode='w'
+             self.__file=None
+             self.closed=False
+             self.newlines=os.linesep
+             # if not the master:
+             if getMPIRankWorld()>0:
+                  if createLocalFiles:
+                      fn2=fn+".%s"%getMPIRankWorld()
+                      try:
+                         self.__file=open(fn2,self.mode)
+                      except Exception as e:
+                         errno=1
+                         error=e
+             else:
                   try:
-                     self.__file=open(fn2,self.mode)
+                      self.__file=open(fn,self.mode)
                   except Exception as e:
-                     errno=1
-                     error=e
-         else:
-              try:
-                  self.__file=open(fn,self.mode)
-              except Exception as e:
-                  errno=1
-                  error=e
+                      errno=1
+                      error=e
          self.__handelerror(errno, error, "opening")
 
     def __handelerror(self,errno,e,operation):
