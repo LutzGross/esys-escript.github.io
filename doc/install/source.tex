@@ -108,16 +108,18 @@ It is important to satisfy yourself as to the security of those systems.
 
 If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{sec:build}.
 
-\subsubsection{Changing Compilers on MacOS and BSD}
+\subsubsection*{Changing Compilers on MacOS and BSD}
 \emph{Not for the faint-hearted.}
 
 In order to use OpenMP, your compiler must support it.
 The compilers provided in Apple's package and BSD do not support OpenMP.
-\texttt{Clang} has no support for it at all, while \texttt{GCC4.2.1} has some, but it does not work very well\footnote{Rejects valid code, crashes etc}.
+\texttt{Clang} has no support for it at all, while \texttt{GCC4.2.1} has some, 
+but it does not work very well\footnote{Rejects valid code, crashes etc}.
 You can use the packaging system to install a more up to date version of \texttt{gcc}.
 However, you will need to install a number of other dependencies in order for escript to operate.
 If these dependencies end up fighting over which versions of libraries to use, there will be problems
-\footnote{For example: Trying to use two versions of \texttt{Python} in the same program or two versions of the \texttt{c++} standard library.}
+\footnote{For example: Trying to use two versions of \texttt{Python} in the same program 
+or two versions of the \texttt{c++} standard library.}
 To avoid this, if you are intend to change the compiler or python versions, you should install the new compiler first,
 then the new version of python.
 After this, you can install the other dependencies.
@@ -140,7 +142,7 @@ The following sequence passes our unit tests under OpenMP.
 \begin{itemize}
  \item \texttt{port install gcc47}
  \item Set the default compiler for the command line with: \texttt{port select --set gcc mp-gcc47}
- \item Set the default compiler for macports by adding the following line to \linebreak[2] \file{/opt/local/etc/macports/macports.conf}:
+ \item Set the default compiler for macports by adding the following line to \hfill~\linebreak[4] \file{/opt/local/etc/macports/macports.conf}:
 \begin{shellCode} 
 #Added by user to coerce macports into using a newer compiler
 default_compiler	macports-gcc-4.7 
