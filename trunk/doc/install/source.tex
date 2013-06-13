@@ -362,6 +362,43 @@ Now go to Section~\ref{sec:cleanup} for cleanup.
 \subsection{MacOS (homebrew)}\label{sec:homebrewsrc}
 
 \subsection{FreeBSD}\label{sec:freebsdsrc}
+The following was tested on the $9.1$ release of FreeBSD.
+It passes the majority of tests but there is an issue related to some features in the inversion library.
+The following set of installations ``works'' but is not guaranteed to be minimal\footnote{Depending on your needs you might be able to
+get by with a smaller set of packages.}.
+
+Install the following packages:
+\begin{itemize}
+ \item subversion
+ \item scons
+ \item boost-python-libs
+ \item bash
+\end{itemize}
+
+Now install the following ports:
+\begin{itemize}
+ \item science/py-scipy
+ \item science/py-netCDF4
+ \item math/sympy
+ \item graphics/py-pyproj
+ \item graphics/py-gdal
+ \item net/openmpi
+\end{itemize}
+
+You will need to add \texttt{/usr/local/mpi/openmpi/bin} to your path if you wish to build with MPI.
+
+Next choose (or create) your options file.
+In this case we have three prepared in the \texttt{scons/os} directory:
+\begin{itemize}
+ \item \texttt{freebsd91_options.py}
+ \item \texttt{freebsd91_mpi_options.py}     If you would like to use MPI.
+ \item \texttt{freebsd91_gcc46_options.py}   Use this if you have managed to change compilers to gcc4.6 (and would like to use OpenMP).
+\end{itemize}
+
+In the escript source directory (where ZZZ is your options file):
+\begin{shellCode}
+scons -j1 options_file=ZZZ
+\end{shellCode}
 
 
 
