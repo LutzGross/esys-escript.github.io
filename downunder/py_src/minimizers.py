@@ -116,7 +116,6 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
         except:
             args=()
         return args
-    print("JJ start_line %f"%time.time())
     old_alpha=0.
     # we assume g_Jx is properly scaled so alpha=1 is a reasonable starting value
     alpha=1.
@@ -126,9 +125,7 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
     else:
         phi0=Jx
     lslogger.debug("phi(0)=%e"%(phi0))
-    print("JJ start_dual %f"%time.time())
     gphi0=f.getDualProduct(p, g_Jx) #gradphi(0., *args0)
-    print("JJ end_dual %f"%time.time())    
     lslogger.debug("grad phi(0)=%e"%(gphi0))
     old_phi_a=phi0
     i=1
@@ -153,7 +150,6 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
         alpha=2.*alpha
         old_phi_a=phi_a
         i+=1
-    print("JJ end_line %f"%time.time())
     return alpha, phi_a, g_Jx_new[0]
 
 
