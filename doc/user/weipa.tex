@@ -130,6 +130,13 @@ the simulation is still running without the need to save any files.
     methods of the \class{EscriptDataset} class for details.
 \end{funcdesc}
 
+\begin{funcdesc}{saveVoxet}{filename, **data}
+    saves \Data objects defined on a {\it ripley} grid in the \Voxet file
+    format suitable for import into \GOCAD\cite{GOCAD}.
+    A \Voxet dataset consists of a header file (extension \verb|.vo|) and
+    one property file (with no file extension) for each \Data object.
+\end{funcdesc}
+
 \begin{funcdesc}{visitInitialize}{simFile \optional{, comment=""}}
     initializes the \VisIt simulation interface which is responsible for the
     communication with a \VisIt client.

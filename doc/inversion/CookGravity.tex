@@ -53,7 +53,7 @@ However, it is pointed out that \VisIt is the preferred visualization tool for
 \includegraphics[width=0.7\textwidth]{QLDWestGravityDataPlot.png}
 \caption{Gravity Anomaly Data in $mgal$ from Western Queensland, Australia
     (file \examplefile{data/QLDWestGravity.nc}). Data obtained from Geoscience Australia.}
-%\AZADEH{Tracey R, Bacchin M, \& Wynne P. 2008. In preparation. AAGD07: A new absolute gravity datum for Australian gravity and new standards for the Australian National Gravity Database. Exploration Geophysics.}}
+%\AZADEH{Tracey R, Bacchin M, \& Wynne P. 2008. In preparation. AAGD07: A new absolute gravity datum for Australian gravity and new standards for the Australian National Gravity Database. Exploration Geophysics.}
 \label{FIG:P1:GRAV:0}
 \end{figure}
 
@@ -534,6 +534,17 @@ replacing the \verb|saveVTK(...)| statement.
 Similar to \VTK files the result \verb|rho| is tagged with the name
 \verb|density| so it can be identified in the visualization program.
 
+Another useful output option is the \Voxet format which is understood by the
+\GOCAD\cite{GOCAD} geologic modelling software.
+In order to write inversion results to \Voxet files use the statement
+\begin{verbatim}
+saveVoxet("result.vo", density=rho)
+\end{verbatim}
+Unlike the other output formats \Voxet data consists of a header file with the
+file extension \verb|.vo| and separate \emph{property} files without file
+extension. The call to \verb|saveVoxet(...)| above would produce the files
+\file{result.vo} and \file{result_density}.
+
 \begin{figure}
     \begin{center}
         \subfigure[$\mu=0.1$]{%
@@ -559,8 +570,7 @@ Similar to \VTK files the result \verb|rho| is tagged with the name
     \end{center}
     \caption{3-D contour plots of gravity inversion results with data from
     Figure~\ref{FIG:P1:GRAV:0} for various values of the model trade-off
-    factor $\mu$. Visualization has been performed in \VisIt.
-    \AZADEH{check images.}}
+    factor $\mu$. Visualization has been performed in \VisIt.}
     \label{FIG:P1:GRAV:10}
 \end{figure}
 
@@ -589,8 +599,9 @@ Similar to \VTK files the result \verb|rho| is tagged with the name
     \end{center}
     \caption{3-D slice plots of gravity inversion results with data from
     Figure~\ref{FIG:P1:GRAV:0} for various values of the model trade-off
-    factor $\mu$. Visualization has been performed \VisIt.
-    \AZADEH{check images.}}
+    factor $\mu$. Visualization has been performed \VisIt.%
+    }
+%    \AZADEH{check images.}
     \label{FIG:P1:GRAV:11}
 \end{figure}
 
