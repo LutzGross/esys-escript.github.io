@@ -218,6 +218,7 @@ class Test_saveCSV(unittest.TestCase):
         saveDataCSV(fname, sep="|",csep="/", U=X, V=X0)
         line=open(fname,'r').readline()
         self.assertEquals(line, 'U/0|U/1|V\n')
+        if getMPIRankWorld()==0: os.unlink(fname)
 
    def test_saveCSV_functionspaces(self):
         for i in range(len(self.functionspaces)):
@@ -270,6 +271,7 @@ class Test_saveCSV(unittest.TestCase):
                 line=f.readline()
             self.assertEquals(linecount, self.linecounts_masked[i])
             f.close()
+            if getMPIRankWorld()==0: os.unlink(fname)
 
 
 class Test_Domain(unittest.TestCase):
