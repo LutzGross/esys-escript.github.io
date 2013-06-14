@@ -134,13 +134,13 @@ cppunit_prefix = '/opt/local'
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
-#netcdf = True
+netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-#netcdf_prefix = '/usr/local'
+netcdf_prefix = '/opt/local'
 
 # netCDF library/libraries to link against
-#netcdf_libs = ['netcdf_c++', 'netcdf']
+netcdf_libs = ['netcdf_c++', 'netcdf']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
