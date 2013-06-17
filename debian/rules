@@ -6,6 +6,15 @@ WORK=$(CURDIR)/debian/tmp
 
 .PHONY: build clean install binary binary-arch binary-indep
 
+#thanks to the debian manual
+ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    parbuild=$(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
+    sflags=-j$(parbuild)
+else
+    sflags=""
+endif
+
+
 clean:
 	rm -rf build condif.log esys include lib release .sconf_tmp .sconsign.dblite config.log .sconf_temp
 	rm -rf debian/tmp
@@ -15,7 +24,7 @@ clean:
 install:	
 	mkdir -p $(WORK)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons SVN_VERSION=`cat svn_version` build_dir=$(WORK) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` `packaging/debuntu/getreleasetarget`
+	scons --debug=explain --tree=all,status $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(WORK) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` `packaging/debuntu/getreleasetarget`
 	sed -e "s%STDLOCATION=0%STDLOCATION=1%" < bin/run-escript > $(WORK)/bin/run-escript
 
 binary:	binary-arch binary-indep
