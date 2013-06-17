@@ -33,7 +33,7 @@ from esys.weipa import *
 
 # Set parameters
 MAGNETIC_DATASET = 'data/MagneticSmall.nc'
-MAG_UNITS = U.Nano * U.V * U.sec / (U.m**2)
+MAG_UNITS = U.Nano * U.Tesla
 GRAVITY_DATASET = 'data/GravitySmall.nc'
 GRAV_UNITS = 1e-6 * U.m/(U.sec**2)
 # background magnetic field components (B_East, B_North, B_Vertical)
