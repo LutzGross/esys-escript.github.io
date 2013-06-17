@@ -37,19 +37,15 @@ holds a reference to the \escript domain as well as associated \Data objects for
 the input data used for the inversion.
 The class has the following public methods:
 
-\begin{classdesc}{DomainBuilder}{\optional{dim=3, }\optional{reference_system=\None}}
+\begin{classdesc}{DomainBuilder}{\optional{dim=3}}
 Constructor for the domain builder. \member{dim} sets the dimensionality of the
 target domain and must be 2 or 3. By default a 3-dimensional domain is created.
-\member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
-If not present the Cartesian reference coordinate system is used.
 \end{classdesc}
 
 \begin{methoddesc}[DomainBuilder]{addSource}{source}
 adds survey data \member{source} (a \class{DataSource} object) to the domain
 builder. The dimensionality of the data must be less than or equal to the
-domain dimensionality. The reference coordinate system of the \class{DataSource}
-must match the reference coordinate system of this class. 
-The \member{source} must be defined for the same reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
+domain dimensionality.
 \end{methoddesc}
 
 \begin{methoddesc}[DomainBuilder]{setVerticalExtents}{%
@@ -163,10 +159,6 @@ Subsequent calls return the same domain instance so calls to
 the domain will fail once \member{getDomain()} is called the first time.
 \end{methoddesc}
 
-\begin{methoddesc}[DomainBuilder]{getReferenceSystem}{}
-returns the reference coordinate system
-\end{methoddesc}
-
 \begin{methoddesc}[DomainBuilder]{setBackgroundMagneticFluxDensity}{B}
 sets the background magnetic flux density $B=(B_{North},B_{East},B_{Vertical})$
 which is required for magnetic inversions.
@@ -197,19 +189,17 @@ Data sources added to a \class{DomainBuilder} must provide an implementation for
 a few methods as described in the class template \class{DataSource} from
 the \module{esys.downunder.datasources} module:
 
-\begin{classdesc}{DataSource}{\optional{reference_system=\None}}
+\begin{classdesc}{DataSource}{}
 Base constructor which initializes members and should therefore be invoked by
 subclasses. Subclasses may then use the member \member{logger} to print any
-output. \member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
-If not present the Cartesian reference coordinate system is used.
+output.
 \end{classdesc}
 
 \begin{methoddesc}[DataSource]{getDataExtents}{}
 This method should be implemented to return a tuple of tuples
 ( (x0, y0), (nx, ny), (dx, dy) ), where (x0, y0) denote the UTM coordinates of
 the data origin, (nx, ny) the number of data points, and (dx, dy) the spacing
-of data points in a Cartesian reference system is used. Otherwise 
-the data origin and the spacing refer to latitudinal and longitudinal coordinates.
+of data points in a Cartesian reference system.
 \end{methoddesc}
 
 \begin{methoddesc}[DataSource]{getDataType}{}
@@ -251,10 +241,6 @@ Note that data sources may choose to ignore the subsampling factor if they
 don't support it.
 \end{methoddesc}
 
-\begin{methoddesc}[DataSource]{getReferenceSystem}{}
-returns the reference coordinate system
-\end{methoddesc}
-
 \vspace{1em}\noindent The \module{esys.downunder.datasources} module contains the following helper
 functions:
 
@@ -286,8 +272,7 @@ To run inversions on a \emph{ER Mapper} dataset use the following constructor:
 \optional{, altitude=0.}%
 \optional{, error=\None}%
 \optional{, scale_factor=\None}%
-\optional{, null_value=\None}
-\optional{, reference_system=\None}}
+\optional{, null_value=\None}}
 Creates a new data source from \emph{ER Mapper} data.
 The parameter \member{data_type} must be one of
 \class{DataSource}.\member{GRAVITY} or \class{DataSource}.\member{MAGNETIC}
@@ -307,9 +292,6 @@ magnetic data is assumed to be given in $nT$.
 Finally, the \member{null_value} parameter can be used to override the value
 for the areas to be ignored (see Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES})
 which is usually provided in the ER Mapper header file.
-\member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
-If not present the Cartesian reference coordinate system is used. In the current implementation any
-coordinate system specified in the file is ignored.
 \end{classdesc}
 
 \subsection{NetCDF Data}\label{sec:ref:DataSource:NETCDF}
@@ -332,8 +314,7 @@ The interface to \class{NetCdfData} looks as follows:
 \optional{, data_variable=\None}%
 \optional{, error=\None}%
 \optional{, scale_factor=\None}%
-\optional{, null_value=\None}
-\optional{, reference_system=\None}}
+\optional{, null_value=\None}}
 Creates a new data source from compatible \netcdf data.
 The two required parameters are \member{datatype}, which must be one of
 \class{DataSource}.\member{GRAVITY} or \class{DataSource}.\member{MAGNETIC}
@@ -355,9 +336,7 @@ If not set, gravity data is assumed to be given in $\frac{\mu m}{sec^2}$ while
 magnetic data is assumed to be given in $nT$.
 Finally, the \member{null_value} parameter can be used to override the value
 for the areas to be ignored (see Section~\ref{SEC:P1:GRAV:REMARK:DATAHOLES})
-which is usually provided in the \netcdf file. \member{reference_system} defines the reference coordinate system to be used, see Section~\ref{sec:ref:reference systems}.
-If not present the Cartesian reference coordinate system is used. In the current implementation any
-coordinate system specified in the file is ignored.
+which is usually provided in the \netcdf file.
 \end{classdesc}
 
 \subsection{Synthetic Data}
@@ -373,7 +352,7 @@ has the following interface:
 \begin{classdesc}{SyntheticDataBase}{datatype%
 \optional{, DIM=2}
 \optional{, number_of_elements=10}
-\optional{, length=1*U.km}def SphericalReferenceSystem(R=6378137.0*U.m):
+\optional{, length=1*U.km}
 \optional{, B_b=\None}
 \optional{, data_offset=0}
 \optional{, full_knowledge=\False}}

@@ -105,7 +105,6 @@ derivative of the density with respect to the level set function.
 \subsection{Usage}
 
 \begin{classdesc}{MagneticModel}{domain, w, B, background_field,
-        \optional{, coordinates=\None}
         \optional{, fixPotentialAtBottom=False},
         \optional{, tol=1e-8},
 }
@@ -118,8 +117,6 @@ as a vector with north, east and vertical components.
 \member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
 If \member{fixPotentialAtBottom} is set to  \True, the gravitational potential 
 at the bottom is set to zero in addition to the potential on the top. 
-\member{coordinates} set the reference coordinate system to be used. By the default the 
-Cartesian coordinate system is used.
 \end{classdesc}
 
 \begin{methoddesc}[MagneticModel]{rescaleWeights}{
@@ -187,55 +184,55 @@ or
 \frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i
 \end{equation}
 
-\subsection{Geodetic Coordinates }
-For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
-Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
-have in equation~\ref{ref:MAG:EQU:9}:
-\begin{equation}\label{ref:MAG:EQU:300}
-\omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (B_{{\alpha}}- B^{(s)}_{\alpha}) 
-\end{equation} 
-where now $B^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
-fact that $B_{{\alpha}} = k \cdot B^b_{{\alpha}} -d_{\alpha \alpha} \psi_{,\alpha}$ 
-equation~\ref{ref:MAG:EQU:10} translates to 
-\begin{equation}\label{ref:MAG:EQU:301}
-J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
-( \omega^{(s)}_{\alpha} \cdot (d_{\alpha \alpha}  \psi_{,\alpha} - k \cdot B^b_{{\alpha}}  + B^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
-\end{equation} 
-where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
-\begin{equation}\label{ref:MAG:EQU:301bb}
-J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
-(  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( 
- \psi_{,\alpha} -  k \cdot v_{\alpha \alpha} B^b_{{\alpha}} + v_{\alpha \alpha} B^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
-=\frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
-(  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( \psi_{,\alpha} -  k \cdot \widehat{B}^b_{{\alpha}}+  \widehat{B}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
-\end{equation} 
-with 
-\begin{equation}\label{ref:MAG:EQU:301b}
- \widehat{\omega}^{(s)}_{\alpha} = \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \mbox{ , }
-\widehat{B}^{(s)}_{\alpha}=
-\frac{1}{d_{\alpha \alpha}} B^{(s)}_{\alpha}  \mbox{ and } \widehat{B}^b_{{\alpha}} = \frac{1}{d_{\alpha \alpha}}  B^b_{{\alpha}} 
-\end{equation} 
-which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
-
-
-The magnetic potential is calculated from 
-\begin{equation}\label{ref:MAG:EQU:302}
-\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
-=  \int_{\widehat{\Omega}} v \; d_{\alpha \alpha} k \cdot q_{,\alpha}  B^r_{\alpha} \; d\widehat{x}   
-=  \int_{\widehat{\Omega}}  k \cdot q_{,\alpha}  \widehat{B}^r_{\alpha} \; d\widehat{x}   
-\end{equation} 
-with 
-\begin{equation}\label{ref:MAG:EQU:302b}
-\widehat{B}^r_{\alpha}  =v \; d_{\alpha \alpha} \widehat{B}^r_{\alpha}
-\end{equation} 
-see equation~\ref{ref:MAG:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_{\alpha}[\psi]$ is given from
-\begin{equation}\label{ref:MAG:EQU:303}
-\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
-\int_{\widehat{\Omega}} r_{,{\alpha}} ,Y_{\alpha}[\psi]  \;d\widehat{x}
-\end{equation} 
-and finally 
-\begin{equation}\label{ref:MAG:EQU:310}
-\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,{\alpha}}  B^r_{\alpha} - Y_i[\psi] B^b_{\alpha}
-\end{equation} 
+%\subsection{Geodetic Coordinates }
+%For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
+%Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
+%have in equation~\ref{ref:MAG:EQU:9}:
+%\begin{equation}\label{ref:MAG:EQU:300}
+%\omega^{(s)}_i \cdot (B_{i}- B^{(s)}_i) = \omega^{(s)}_{\alpha} \cdot (B_{{\alpha}}- B^{(s)}_{\alpha}) 
+%\end{equation} 
+%where now $B^{(s)}_{\alpha}$ are the observational data with weighting factors $\omega^{(s)}_{\alpha}$.  Using the 
+%fact that $B_{{\alpha}} = k \cdot B^b_{{\alpha}} -d_{\alpha \alpha} \psi_{,\alpha}$ 
+%equation~\ref{ref:MAG:EQU:10} translates to 
+%\begin{equation}\label{ref:MAG:EQU:301}
+%J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+%( \omega^{(s)}_{\alpha} \cdot (d_{\alpha \alpha}  \psi_{,\alpha} - k \cdot B^b_{{\alpha}}  + B^{(s)}_{\alpha} ) ) ^2 \; v \; d\widehat{x}
+%\end{equation} 
+%where $\widehat{\Omega}$ and $d\widehat{x}$ refer to integration over the geodetic coordinates axes. This can be rearranged to 
+%\begin{equation}\label{ref:MAG:EQU:301bb}
+%J^{mag}(k) = \frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+%(  \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \cdot ( 
+% \psi_{,\alpha} -  k \cdot v_{\alpha \alpha} B^b_{{\alpha}} + v_{\alpha \alpha} B^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+%=\frac{1}{2}\sum_{s} \int_{\widehat{\Omega}} 
+%(  {\widehat{\omega}}^{(s)}_{\alpha}\cdot ( \psi_{,\alpha} -  k \cdot \widehat{B}^b_{{\alpha}}+  \widehat{B}^{(s)}_{\alpha} ) ) ^2 \; d\widehat{x}
+%\end{equation} 
+%with 
+%\begin{equation}\label{ref:MAG:EQU:301b}
+% \widehat{\omega}^{(s)}_{\alpha} = \omega^{(s)}_{\alpha} v^{\frac{1}{2}} d_{\alpha \alpha} \mbox{ , }
+%\widehat{B}^{(s)}_{\alpha}=
+%\frac{1}{d_{\alpha \alpha}} B^{(s)}_{\alpha}  \mbox{ and } \widehat{B}^b_{{\alpha}} = \frac{1}{d_{\alpha \alpha}}  B^b_{{\alpha}} 
+%\end{equation} 
+%which means one can apply the Cartesian formulation to the geodetic coordinates using modified data. 
+%
+%
+%The magnetic potential is calculated from 
+%\begin{equation}\label{ref:MAG:EQU:302}
+%\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} \psi_{,\alpha} \;  d\widehat{x}  
+%=  \int_{\widehat{\Omega}} v \; d_{\alpha \alpha} k \cdot q_{,\alpha}  B^r_{\alpha} \; d\widehat{x}   
+%=  \int_{\widehat{\Omega}}  k \cdot q_{,\alpha}  \widehat{B}^r_{\alpha} \; d\widehat{x}   
+%\end{equation} 
+%with 
+%\begin{equation}\label{ref:MAG:EQU:302b}
+%\widehat{B}^r_{\alpha}  =v \; d_{\alpha \alpha} \widehat{B}^r_{\alpha}
+%\end{equation} 
+%see equation~\ref{ref:MAG:EQU:201}, and the adjoint function $Y^*[\psi]$ for $Y_{\alpha}[\psi]$ is given from
+%\begin{equation}\label{ref:MAG:EQU:303}
+%\int_{\widehat{\Omega}} v \; d_{\alpha \alpha}^2 q_{,\alpha} Y^*[\psi]_{,\alpha } \;d\widehat{x}  =
+%\int_{\widehat{\Omega}} r_{,{\alpha}} ,Y_{\alpha}[\psi]  \;d\widehat{x}
+%\end{equation} 
+%and finally 
+%\begin{equation}\label{ref:MAG:EQU:310}
+%\frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,{\alpha}}  B^r_{\alpha} - Y_i[\psi] B^b_{\alpha}
+%\end{equation} 
 
 
