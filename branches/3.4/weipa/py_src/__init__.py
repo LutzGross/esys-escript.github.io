@@ -215,7 +215,7 @@ def saveVoxet(filename, **data):
         midpoint=midpoint+(0,)
         axis_max=axis_max+(0,)
 
-    mainvar=new_data.keys()[0]
+    mainvar=list(new_data.keys())[0]
     f=open(filename,'w')
     f.write("GOCAD Voxet 1\nHEADER {\nname: escriptdata\n")
     f.write("sections: 3 1 1 %d 2 1 %d 3 1 %d\n"%midpoint)
