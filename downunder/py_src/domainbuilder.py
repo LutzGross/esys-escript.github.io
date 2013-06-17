@@ -314,6 +314,9 @@ class DomainBuilder(object):
         Returns the background magnetic flux density.
         """
         B = self.__background_magnetic_field
+        if B is None:
+            raise ValueError("No background magnetic flux density set!")
+
         if self.__dim < 3 :
             return np.array([B[0], B[2]])
         else:
