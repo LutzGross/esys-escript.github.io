@@ -2,7 +2,9 @@
 
 BDEST=$(CURDIR)/debian/escript
 DDEST=$(CURDIR)/debian/escript-doc
-WORK=$(CURDIR)/debian/tmp
+BUILD=$(CURDIR)/debian/tmp
+WORK=$(CURDIR)/debian/stage
+
 
 .PHONY: build clean install binary binary-arch binary-indep
 
@@ -17,14 +19,15 @@ endif
 
 clean:
 	rm -rf build condif.log esys include lib release .sconf_tmp .sconsign.dblite config.log .sconf_temp
-	rm -rf debian/tmp
-	rm -rf debian/escript
-	rm -rf debian/escript-doc
+	rm -rf $(BDEST)
+	rm -rf $(DDEST)
+	rm -rf $(BUILD)
+	rm -rf $(WORK)
 
 install:	
 	mkdir -p $(WORK)
 	if [ ! -f svn_version ];then echo "No svn_version file found"; exit 3;fi
-	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(WORK)/build verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` `packaging/debuntu/getreleasetarget`
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst`
 	sed -e "s%STDLOCATION=0%STDLOCATION=1%" < bin/run-escript > $(WORK)/bin/run-escript
 
 binary:	binary-arch binary-indep
@@ -52,6 +55,7 @@ binary-indep: install
 	mkdir -p $(DDEST)
 	mkdir -p $(DDEST)/usr/share/doc/escript-doc/
 	mkdir -p debian/escript-doc/DEBIAN
+	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` docs
 	install --mode=644 debian/copyright $(DDEST)/usr/share/doc/escript-doc
 	gzip -f9 $(DDEST)/usr/share/doc/escript-doc/copyright
 	install --mode=644 debian/changelog $(DDEST)/usr/share/doc/escript-doc/changelog.Debian
