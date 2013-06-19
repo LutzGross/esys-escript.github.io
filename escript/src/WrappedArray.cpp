@@ -300,7 +300,7 @@ WrappedArray::~WrappedArray()
 {
 	if (dat!=0)
 	{
-	    delete dat;
+	    delete[] dat;
 	}
 }
 
