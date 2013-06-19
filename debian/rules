@@ -13,7 +13,7 @@ ifneq (,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
     parbuild=$(patsubst parallel=%,%,$(filter parallel=%,$(DEB_BUILD_OPTIONS)))
     sflags=-j$(parbuild)
 else
-    sflags=""
+    sflags=
 endif
 
 
