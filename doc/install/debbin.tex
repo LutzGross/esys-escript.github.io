@@ -32,10 +32,10 @@ Ubuntu (i386 or amd64):
 
 Two packages make up the \escript system:
 The main package which contains all system itself and the (optional) documentation package.
-The main package will be named \file{escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} 
+The main package will be named \file{python-escript-X-D_A.deb} where \texttt{X} is the version, \texttt{D} 
 is the distribution codename (eg ``\texttt{wheezy}'' or ``\texttt{precise}'') and \texttt{A} is the architecture.
-For example, \file{escript-3.4-1-precise_amd64.deb} would be the file for Ubuntu $12.04$ for 64bit processors.
-There is a common documentation for all distributions called \file{escript-doc-X_all.deb}.
+For example, \file{python-escript-3.4-1-precise_amd64.deb} would be the file for Ubuntu $12.04$ for 64bit processors.
+There is a common documentation for all distributions called \file{python-escript-doc-X_all.deb}.
 To install \esfinley, download the appropriate \file{.deb} file(s) and execute the following 
 commands as root (you need to be in the directory containing the file):
 
@@ -50,7 +50,7 @@ sudo apt-get install aptitude
 
 \begin{shellCode}
 dpkg --unpack escript*.deb
-aptitude install escript escript-doc
+aptitude install python-escript python-escript-doc
 \end{shellCode}
 
 Installing escript should not remove any packages from your system.
@@ -61,7 +61,7 @@ If it suggests removing \texttt{escript-noalias} then agree.
 If you use sudo (for example on Ubuntu) enter the following instead:
 \begin{shellCode}
 sudo dpkg --unpack escript*.deb
-sudo aptitude install escript escript-doc
+sudo aptitude install python-escript python-escript-doc
 \end{shellCode}
 
 This should install \esfinley and its dependencies on your system.

@@ -1,7 +1,7 @@
 #!/usr/bin/make -f
 
-BDEST=$(CURDIR)/debian/escript
-DDEST=$(CURDIR)/debian/escript-doc
+BDEST=$(CURDIR)/debian/python-escript
+DDEST=$(CURDIR)/debian/python-escript-doc
 BUILD=$(CURDIR)/debian/tmp
 WORK=$(CURDIR)/debian/stage
 
@@ -33,41 +33,41 @@ install:
 binary:	binary-arch binary-indep
 
 binary-arch: install
-	mkdir -p $(BDEST)/usr/share/doc/escript/
+	mkdir -p $(BDEST)/usr/share/doc/python-escript/
 	mkdir -p $(BDEST)/usr/share/man/man1
-	mkdir -p $(BDEST)/usr/lib/escript
+	mkdir -p $(BDEST)/usr/lib/python-escript
 	mkdir -p $(BDEST)/usr/bin
-	cp $(WORK)/lib/* $(BDEST)/usr/lib/escript
-	cp -r $(WORK)/esys $(BDEST)/usr/lib/escript
+	cp $(WORK)/lib/* $(BDEST)/usr/lib/python-escript
+	cp -r $(WORK)/esys $(BDEST)/usr/lib/python-escript
 	cp $(WORK)/bin/* $(BDEST)/usr/bin	
 	cp doc/manpage/man1/run-escript.1 $(BDEST)/usr/share/man/man1
-	install --mode=644 debian/changelog $(BDEST)/usr/share/doc/escript/changelog.Debian
-	gzip -f9 $(BDEST)/usr/share/doc/escript/changelog.Debian
-	install --mode=644 debian/copyright $(BDEST)/usr/share/doc/escript
-	gzip -f9 $(BDEST)/usr/share/doc/escript/copyright
-	mkdir -p debian/escript/DEBIAN
+	install --mode=644 debian/changelog $(BDEST)/usr/share/doc/python-escript/changelog.Debian
+	gzip -f9 $(BDEST)/usr/share/doc/python-escript/changelog.Debian
+	install --mode=644 debian/copyright $(BDEST)/usr/share/doc/python-escript
+	gzip -f9 $(BDEST)/usr/share/doc/python-escript/copyright
+	mkdir -p debian/python-escript/DEBIAN
 	#Thanks to Krafft's book for this
-	cd debian/escript && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-gencontrol -Pdebian/escript -pescript
-	dpkg-deb --build debian/escript ..
+	cd debian/python-escript && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
+	dpkg-gencontrol -Pdebian/python-escript -ppython-escript
+	dpkg-deb --build debian/python-escript ..
 
 binary-indep: install
 	mkdir -p $(DDEST)
-	mkdir -p $(DDEST)/usr/share/doc/escript-doc/
-	mkdir -p debian/escript-doc/DEBIAN
+	mkdir -p $(DDEST)/usr/share/doc/python-escript-doc/
+	mkdir -p debian/python-escript-doc/DEBIAN
 	scons $(sflags) SVN_VERSION=`cat svn_version` build_dir=$(BUILD) verbose=on prefix=$(WORK) options_file=`packaging/debuntu/getsubst` docs
-	install --mode=644 debian/copyright $(DDEST)/usr/share/doc/escript-doc
-	gzip -f9 $(DDEST)/usr/share/doc/escript-doc/copyright
-	install --mode=644 debian/changelog $(DDEST)/usr/share/doc/escript-doc/changelog.Debian
-	gzip -f9 $(DDEST)/usr/share/doc/escript-doc/changelog.Debian
-	cp $(WORK)/release/doc/escript_examples.tar.gz $(DDEST)/usr/share/doc/escript-doc/
-	cp $(WORK)/release/doc/install/install.pdf $(DDEST)/usr/share/doc/escript-doc
-	cp $(WORK)/release/doc/user/user.pdf $(DDEST)/usr/share/doc/escript-doc
-	cp $(WORK)/release/doc/cookbook/cookbook.pdf $(DDEST)/usr/share/doc/escript-doc
-	cp $(WORK)/release/doc/inversion/inversion.pdf $(DDEST)/usr/share/doc/escript-doc/
-	cp -r $(WORK)/release/doc/sphinx_api $(DDEST)/usr/share/doc/escript-doc/python_html
-	cp -r $(WORK)/release/doc/doxygen $(DDEST)/usr/share/doc/escript-doc/doxygen	
-	cd debian/escript-doc && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
-	dpkg-gencontrol -Pdebian/escript-doc -pescript-doc
-	dpkg-deb --build debian/escript-doc ..
+	install --mode=644 debian/copyright $(DDEST)/usr/share/doc/python-escript-doc
+	gzip -f9 $(DDEST)/usr/share/doc/python-escript-doc/copyright
+	install --mode=644 debian/changelog $(DDEST)/usr/share/doc/python-escript-doc/changelog.Debian
+	gzip -f9 $(DDEST)/usr/share/doc/python-escript-doc/changelog.Debian
+	cp $(WORK)/release/doc/escript_examples.tar.gz $(DDEST)/usr/share/doc/python-escript-doc/
+	cp $(WORK)/release/doc/install/install.pdf $(DDEST)/usr/share/doc/python-escript-doc
+	cp $(WORK)/release/doc/user/user.pdf $(DDEST)/usr/share/doc/python-escript-doc
+	cp $(WORK)/release/doc/cookbook/cookbook.pdf $(DDEST)/usr/share/doc/python-escript-doc
+	cp $(WORK)/release/doc/inversion/inversion.pdf $(DDEST)/usr/share/doc/python-escript-doc/
+	cp -r $(WORK)/release/doc/sphinx_api $(DDEST)/usr/share/doc/python-escript-doc/python_html
+	cp -r $(WORK)/release/doc/doxygen $(DDEST)/usr/share/doc/python-escript-doc/doxygen	
+	cd debian/python-escript-doc && find * -path DEBIAN -prune -o -type f -print | xargs md5sum > DEBIAN/md5sums
+	dpkg-gencontrol -Pdebian/python-escript-doc -ppython-escript-doc
+	dpkg-deb --build debian/python-escript-doc ..
 	
