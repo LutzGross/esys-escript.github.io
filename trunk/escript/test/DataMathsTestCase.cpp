@@ -221,11 +221,6 @@ void DataMathsTestCase::testUnaryOp()
 
 void DataMathsTestCase::testBinaryOp()
 {
-
-  // This typedef allows function names to be cast to pointers
-  // to binary functions of the appropriate type.
-  typedef double (*BinaryDFunPtr)(double,double);
-
   {
     cout << endl;
     cout << "\tTest binaryOp on scalar Data.";

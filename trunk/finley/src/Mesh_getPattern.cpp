@@ -128,6 +128,7 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh, bool_t reduce_ro
                 col_couple_pattern, row_couple_pattern,
                 col_connector, row_connector);
     }
+    delete[] index_list;
     Paso_Pattern_free(main_pattern);
     Paso_Pattern_free(col_couple_pattern);
     Paso_Pattern_free(row_couple_pattern);
