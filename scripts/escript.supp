@@ -1,0 +1,220 @@
+{
+   OpenMPI-setAffinity
+   Memcheck:Param
+   sched_setaffinity(mask)
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init_thread
+   fun:main
+}
+{
+   OpenMPI-writev
+   Memcheck:Param
+   writev(vector[...])
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init_thread
+   fun:main
+}
+{
+   OpenMPI-OPAL-ifcount
+   Memcheck:Leak
+   fun:malloc
+   obj:*/libopen-pal.so*
+   fun:opal_ifcount
+   ...
+   fun:PMPI_Init_thread
+}
+{
+   OpenMPI-OPAL-init
+   Memcheck:Leak
+   fun:malloc
+   fun:opal_class_initialize
+   ...
+   obj:*/libmpi.so*
+}
+{
+   OpenMPI-proc_all
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_proc_all
+   ...
+   obj:*/libmpi.so*
+   fun:main
+}
+{
+   OpenMPI-OPAL-dirpath_create
+   Memcheck:Addr4
+   fun:opal_os_dirpath_create
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init_thread
+   fun:main
+}
+{
+   OpenMPI-PMPI_Init_thread
+   Memcheck:Leak
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init_thread
+   fun:main
+}
+{
+   OpenMPI-orte
+   Memcheck:Leak
+   ...
+   obj:*/libopen-pal.so*
+   fun:orte_*
+}
+{
+   OpenMPI-mca
+   Memcheck:Leak
+   ...
+   obj:*/libopen-pal.so*
+   fun:mca_*
+}
+{
+   Python-GC_Resize
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GC_Resize
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Call
+   Memcheck:Leak
+   ...
+   obj:*/libpython2.?.so*
+   fun:PyObject_Call
+   ...
+}
+{
+   Python-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Free-Addr4
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Free-Cond
+   Memcheck:Cond
+   fun:PyObject_Free
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Free-Value8
+   Memcheck:Value8
+   fun:PyObject_Free
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Realloc-Addr4
+   Memcheck:Addr4
+   fun:PyObject_Realloc
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Realloc-Cond
+   Memcheck:Cond
+   fun:PyObject_Realloc
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Realloc-Value8
+   Memcheck:Value8
+   fun:PyObject_Realloc
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyImport_GetDynLoadFunc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:_PyImport_GetDynLoadFunc
+}
+{
+   Python-PyImport_LoadDynamicModule
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:_PyImport_LoadDynamicModule
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyTuple_New
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:PyTuple_New
+   obj:*/libpython2.?.so*
+   ...
+   fun:PyMarshal_ReadLastObjectFromFile
+}
+{
+   Python-PyList_Append
+   Memcheck:Leak
+   fun:realloc
+   fun:PyList_Append
+   obj:*/libpython2.?.so*
+   ...
+   fun:main
+}
+{
+   Python-PyImport_ImportModuleLevel2
+   Memcheck:Leak
+   fun:realloc
+   obj:*/libpython2.?.so*
+   ...
+   fun:PyImport_ImportModuleLevel
+}
+{
+   Python-PyImport_ImportModuleLevel1
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:PyImport_ImportModuleLevel
+}
+{
+   libdl-error
+   Memcheck:Leak
+   fun:?alloc
+   ...
+   fun:openaux
+   fun:_dl_catch_error
+   ...
+}
+{
+   boost-python-demangle
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   obj:*/libstdc++.so*
+   obj:*/libstdc++.so*
+   fun:__cxa_demangle
+   fun:_ZN5boost6python6detail12gcc_demangleEPKc
+   ...
+}
+{
+   Python-initft2font
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:initft2font
+   fun:_PyImport_LoadDynamicModule
+   obj:*/libpython2.?.so*
+   obj:*/libpython2.?.so*
+}
+
