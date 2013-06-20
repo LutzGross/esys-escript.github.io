@@ -797,8 +797,9 @@ DataTagged::dump(const std::string fileName) const
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::Replace);
+   const std::string newFileName(esysUtils::appendRankToFileName(fileName,
+                                                            mpi_num, mpi_iam));
+   NcFile dataFile(newFileName.c_str(), NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataTagged:: opening of netCDF file for output failed.");
