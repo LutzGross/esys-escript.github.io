@@ -82,7 +82,8 @@ ESYSUTILS_DLL_API
 inline std::string appendRankToFileName(const std::string &fileName,
                                         int mpiSize, int mpiRank)
 {
-    std::stringstream ss(fileName);
+    std::stringstream ss;
+    ss << fileName;
     if (mpiSize > 1) {
         ss << '.';
         ss.fill('0');
