@@ -60,6 +60,15 @@
    fun:main
 }
 {
+   OpenMPI-PMPI_File_open
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_File_open
+   ...
+}
+{
    OpenMPI-orte
    Memcheck:Leak
    ...
@@ -217,4 +226,20 @@
    obj:*/libpython2.?.so*
    obj:*/libpython2.?.so*
 }
-
+{
+   Python-PyString_Format
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyString_Resize
+   fun:PyString_Format
+   ...
+}
+{
+   Python-PyString_FromStringAndSize
+   Memcheck:Leak
+   fun:realloc
+   fun:PyObject_Malloc
+   fun:PyString_FromStringAndSize
+   obj:*/libpython2.?.so*
+   ...
+}
