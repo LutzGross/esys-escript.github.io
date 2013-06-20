@@ -20,6 +20,8 @@
 #include "system_dep.h"
 #include "types.h"
 
+#include <sstream>
+
 #ifdef ESYS_MPI
    #include "mpi_C.h"
 #else
@@ -73,7 +75,25 @@ void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t
 ESYSUTILS_DLL_API
 bool_t Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info);
 
+namespace esysUtils {
+
+/// Appends MPI rank to a file name if MPI size > 1
 ESYSUTILS_DLL_API
-char *Esys_MPI_appendRankToFileName(const char *, int, int);
+inline std::string appendRankToFileName(const std::string &fileName,
+                                        int mpiSize, int mpiRank)
+{
+    std::stringstream ss(fileName);
+    if (mpiSize > 1) {
+        ss << '.';
+        ss.fill('0');
+        ss.width(4);
+        ss << mpiRank;
+    }
+    std::string result(ss.str());
+    return result;
+}
+
+} // namespace esysUtils
 
 #endif /* INC_ESYS_MPI */
+

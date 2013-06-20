@@ -154,15 +154,6 @@ int Esys_MPIInfo_initialized( void )
   #endif
 }
 
-/* Append MPI rank to file name if multiple MPI processes */
-char *Esys_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
-  /* Make plenty of room for the mpi_rank number and terminating '\0' */
-  char *newFileName = new char[strlen(fileName)+20];
-  strncpy(newFileName, fileName, strlen(fileName)+1);
-  if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
-  return(newFileName);
-}
-
 #ifndef _OPENMP 
 int serial_get_max_threads(void) {
    return 1;

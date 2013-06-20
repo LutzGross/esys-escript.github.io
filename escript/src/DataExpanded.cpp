@@ -671,15 +671,6 @@ DataExpanded::setToZero(){
   }
 }
 
-/* Append MPI rank to file name if multiple MPI processes */
-char *Escript_MPI_appendRankToFileName(const char *fileName, int mpi_size, int mpi_rank) {
-  /* Make plenty of room for the mpi_rank number and terminating '\0' */
-  char *newFileName = (char *)malloc(strlen(fileName)+20);
-  strncpy(newFileName, fileName, strlen(fileName)+1);
-  if (mpi_size>1) sprintf(newFileName+strlen(newFileName), ".%04d", mpi_rank);
-  return(newFileName);
-}
-
 void
 DataExpanded::dump(const std::string fileName) const
 {
@@ -707,8 +698,9 @@ DataExpanded::dump(const std::string fileName) const
    // netCDF error handler
    NcError err(NcError::verbose_nonfatal);
    // Create the file.
-   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::Replace);
+   std::string newFileName(esysUtils::appendRankToFileName(fileName,
+                                                           mpi_num, mpi_iam));
+   NcFile dataFile(newFileName.c_str(), NcFile::Replace);
    // check if writing was successful
    if (!dataFile.is_valid())
         throw DataException("Error - DataExpanded:: opening of netCDF file for output failed.");

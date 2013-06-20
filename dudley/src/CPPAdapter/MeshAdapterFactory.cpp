@@ -38,11 +38,12 @@ namespace dudley {
 
 #ifdef USE_NETCDF
   // A convenience method to retrieve an integer attribute from a NetCDF file
-  int NetCDF_Get_Int_Attribute(NcFile *dataFile, char *fName, char *attr_name) {
+  int NetCDF_Get_Int_Attribute(NcFile *dataFile, const std::string &fName, char *attr_name)
+  {
     NcAtt *attr;
     char error_msg[LenErrorMsg_MAX];
     if (! (attr=dataFile->get_att(attr_name)) ) {
-      sprintf(error_msg,"loadMesh: Error retrieving integer attribute '%s' from NetCDF file '%s'", attr_name, fName);
+      sprintf(error_msg,"loadMesh: Error retrieving integer attribute '%s' from NetCDF file '%s'", attr_name, fName.c_str());
       throw DataException(error_msg);
     }
     int temp = attr->as_int(0);
@@ -67,9 +68,8 @@ namespace dudley {
     Dudley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
-    char *fName = Esys_MPI_appendRankToFileName(fileName.c_str(),
-                                                mpi_info->size,
-                                                mpi_info->rank);
+    std::string fName(esysUtils::appendRankToFileName(fileName, mpi_info->size,
+                                                      mpi_info->rank));
 
     double blocktimer_start = blocktimer_time();
     Dudley_resetError();
@@ -81,9 +81,9 @@ namespace dudley {
     // netCDF error handler
     NcError err(NcError::silent_nonfatal);
     // Create the NetCDF file.
-    NcFile dataFile(fName, NcFile::ReadOnly);
+    NcFile dataFile(fName.c_str(), NcFile::ReadOnly);
     if (!dataFile.is_valid()) {
-      sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName);
+      sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
       Dudley_setError(IO_ERROR,error_msg);
       Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
@@ -106,23 +106,21 @@ namespace dudley {
 
     // Verify size and rank
     if (mpi_info->size != mpi_size) {
-      sprintf(error_msg, "loadMesh: The NetCDF file '%s' can only be read on %d CPUs instead of %d", fName, mpi_size, mpi_info->size);
+      sprintf(error_msg, "loadMesh: The NetCDF file '%s' can only be read on %d CPUs instead of %d", fName.c_str(), mpi_size, mpi_info->size);
       throw DataException(error_msg);
     }
     if (mpi_info->rank != mpi_rank) {
-      sprintf(error_msg, "loadMesh: The NetCDF file '%s' should be read on CPU #%d instead of %d", fName, mpi_rank, mpi_info->rank);
+      sprintf(error_msg, "loadMesh: The NetCDF file '%s' should be read on CPU #%d instead of %d", fName.c_str(), mpi_rank, mpi_info->rank);
       throw DataException(error_msg);
     }
 
     // Read mesh name
     if (! (attr=dataFile.get_att("Name")) ) {
-      sprintf(error_msg,"loadMesh: Error retrieving mesh name from NetCDF file '%s'", fName);
+      sprintf(error_msg,"loadMesh: Error retrieving mesh name from NetCDF file '%s'", fName.c_str());
       throw DataException(error_msg);
     }
     char *name = attr->as_string(0);
     delete attr;
-
-    TMPMEMFREE(fName);
 
     /* allocate mesh */
     mesh_p = Dudley_Mesh_alloc(name,numDim,mpi_info);

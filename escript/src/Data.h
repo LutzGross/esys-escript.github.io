@@ -1979,13 +1979,6 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo)
    return getReady()->getSampleDataRO(sampleNo);
 }
 
-
-
-/**
-   Modify a filename for MPI parallel output to multiple files
-*/
-char *Escript_MPI_appendRankToFileName(const char *, int, int);
-
 /**
    Binary Data object operators.
 */

@@ -189,8 +189,9 @@ load(const std::string fileName,
    MPI_Comm_rank(MPI_COMM_WORLD, &mpi_iam);
    MPI_Comm_size(MPI_COMM_WORLD, &mpi_num);
 #endif
-   char *newFileName = Escript_MPI_appendRankToFileName(fileName.c_str(), mpi_num, mpi_iam);
-   NcFile dataFile(newFileName, NcFile::ReadOnly);
+   const std::string newFileName(esysUtils::appendRankToFileName(fileName,
+                                                            mpi_num, mpi_iam));
+   NcFile dataFile(newFileName.c_str(), NcFile::ReadOnly);
    if (!dataFile.is_valid())
         throw DataException("Error - load:: opening of netCDF file for input failed.");
    /* recover function space */

@@ -152,8 +152,8 @@ void MeshAdapter::dump(const string& fileName) const
     }
 #endif
 
-    char *newFileName = Esys_MPI_appendRankToFileName(fileName.c_str(),
-                                                     mpi_size, mpi_rank);
+    const std::string newFileName(esysUtils::appendRankToFileName(fileName,
+                                                     mpi_size, mpi_rank));
 
     // Figure out how much storage is required for tags
     num_Tags = mesh->tagMap.size();
@@ -161,7 +161,7 @@ void MeshAdapter::dump(const string& fileName) const
     // NetCDF error handler
     NcError err(NcError::verbose_nonfatal);
     // Create the file.
-    NcFile dataFile(newFileName, NcFile::Replace);
+    NcFile dataFile(newFileName.c_str(), NcFile::Replace);
     string msgPrefix("Error in MeshAdapter::dump: NetCDF operation failed - ");
     // check if writing was successful
     if (!dataFile.is_valid())
