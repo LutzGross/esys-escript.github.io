@@ -354,8 +354,8 @@ class MagneticModel(ForwardModelWithPotential):
         super(MagneticModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
         self.__background_magnetic_flux_density = \
                 interpolate(background_magnetic_flux_density, B[0].getFunctionSpace())
-        if not  self.getCoordinateTransformation().isCartesian():
-            self.__F = self.getCoordinateTransformation().getVolumeFactor()
+        if not self.getCoordinateTransformation().isCartesian():
+            #self.__F = self.getCoordinateTransformation().getVolumeFactor()
             self.__B_r=self.__background_magnetic_flux_density*self.getCoordinateTransformation().getScalingFactors()*self.getCoordinateTransformation().getVolumeFactor()
             self.__B_b=self.__background_magnetic_flux_density/self.getCoordinateTransformation().getScalingFactors()
 

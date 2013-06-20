@@ -199,7 +199,7 @@ class TestCoordinates(unittest.TestCase):
          
          
 
-    def test_SpericalTransformation3D(self):
+    def test_SphericalTransformation3D(self):
       
          dom=Brick(NE,NE,NE, l0=90, l1=45, l2=10.)
          
@@ -237,7 +237,7 @@ class TestCoordinates(unittest.TestCase):
          error=Lsup(s[2]-1./1000.)
          self.assertTrue(error<=RTOL/1000., "2-th scaling factor")   
          
-    def test_SpericalTransformation2D(self):
+    def test_SphericalTransformation2D(self):
       
          dom=Rectangle(NE,NE, l0=45., l1=10.)
          

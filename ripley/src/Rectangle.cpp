@@ -17,6 +17,8 @@
 #include <paso/SystemMatrix.h>
 #include <esysUtils/esysFileWriter.h>
 
+#include <boost/scoped_array.hpp>
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -209,7 +211,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
         throw RipleyException("readNcGrid(): only scalar data supported");
 
     const int dims = var->num_dims();
-    const long *edges = var->edges();
+    boost::scoped_array<long> edges(var->edges());
 
     // is this a slice of the data object (dims!=2)?
     // note the expected ordering of edges (as in numpy: y,x)

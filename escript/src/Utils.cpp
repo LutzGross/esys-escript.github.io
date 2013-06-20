@@ -19,7 +19,7 @@
 
 // added for saveCSV
 #include <boost/python.hpp>
-#include <boost/scoped_ptr.hpp>
+#include <boost/scoped_array.hpp>
 #include "Data.h"
 
 #include "Utils.h"
@@ -477,9 +477,8 @@ bool append)
     MPI_File mpi_fileHandle_p;
     MPI_Status mpi_status;
     MPI_Info mpi_info = MPI_INFO_NULL;
-    char* fname_c=new char[filename.size()+1];
-    strcpy(fname_c,filename.c_str());
-    boost::scoped_ptr<char> fname_p(fname_c);
+    boost::scoped_array<char> fname_p(new char[filename.size()+1]);
+    strcpy(fname_p.get(), filename.c_str());
      
     int amode = MPI_MODE_CREATE|MPI_MODE_WRONLY|MPI_MODE_UNIQUE_OPEN;
     if (append)
@@ -527,9 +526,8 @@ bool append)
     }
 
     std::string contents=os.str();
-    char* con=new char[contents.size()+1];
-    strcpy(con, contents.c_str());
-    boost::scoped_ptr<char> buff(con);
+    boost::scoped_array<char> buff(new char[contents.size()+1]);
+    strcpy(buff.get(), contents.c_str());
     ierr=MPI_File_write_ordered(mpi_fileHandle_p, buff.get(), contents.size(), MPI_CHAR, &mpi_status);
     if (ierr != MPI_SUCCESS)
     {
