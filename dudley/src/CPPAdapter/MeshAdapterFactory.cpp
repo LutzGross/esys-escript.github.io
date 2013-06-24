@@ -28,6 +28,7 @@
 #endif
 
 #include <boost/python/extract.hpp>
+#include <boost/scoped_array.hpp>
 
 #include <sstream>
 
@@ -119,11 +120,11 @@ namespace dudley {
       sprintf(error_msg,"loadMesh: Error retrieving mesh name from NetCDF file '%s'", fName.c_str());
       throw DataException(error_msg);
     }
-    char *name = attr->as_string(0);
+    boost::scoped_array<char> name(attr->as_string(0));
     delete attr;
 
     /* allocate mesh */
-    mesh_p = Dudley_Mesh_alloc(name,numDim,mpi_info);
+    mesh_p = Dudley_Mesh_alloc(name.get(), numDim, mpi_info);
     if (Dudley_noError()) {
 
         /* read nodes */
@@ -344,9 +345,9 @@ namespace dudley {
                   sprintf(error_msg,"get_att(%s)", name_temp);
                   cleanupAndThrow(mesh_p, mpi_info, error_msg);
               }
-              char *name = attr->as_string(0);
+              boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
-              Dudley_Mesh_addTagMap(mesh_p, name, Tags_keys[i]);
+              Dudley_Mesh_addTagMap(mesh_p, name.get(), Tags_keys[i]);
             }
             TMPMEMFREE(Tags_keys);
           }
@@ -390,6 +391,7 @@ namespace dudley {
         Dudley_Mesh_free(mesh_p);
     }
 
+    Esys_MPIInfo_free(mpi_info);
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom->getPtr();
 #else

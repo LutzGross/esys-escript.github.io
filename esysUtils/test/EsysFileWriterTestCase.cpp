@@ -74,6 +74,7 @@ void EsysFileWriterTestCase::testAll()
     CPPUNIT_ASSERT(oss.str().length() == 0);
     fw->close();
     CPPUNIT_ASSERT(fileSize(filename) == 16*mpisize+4);
+    delete fw;
 }
 
 long EsysFileWriterTestCase::fileSize(string filename)

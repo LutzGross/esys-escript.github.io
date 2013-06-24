@@ -4,7 +4,7 @@
    sched_setaffinity(mask)
    ...
    obj:*/libmpi.so*
-   fun:PMPI_Init_thread
+   fun:PMPI_Init*
    fun:main
 }
 {
@@ -13,7 +13,7 @@
    writev(vector[...])
    ...
    obj:*/libmpi.so*
-   fun:PMPI_Init_thread
+   fun:PMPI_Init*
    fun:main
 }
 {
@@ -23,7 +23,7 @@
    obj:*/libopen-pal.so*
    fun:opal_ifcount
    ...
-   fun:PMPI_Init_thread
+   fun:PMPI_Init*
 }
 {
    OpenMPI-OPAL-init
@@ -48,15 +48,15 @@
    fun:opal_os_dirpath_create
    ...
    obj:*/libmpi.so*
-   fun:PMPI_Init_thread
+   fun:PMPI_Init*
    fun:main
 }
 {
-   OpenMPI-PMPI_Init_thread
+   OpenMPI-PMPI_Init
    Memcheck:Leak
    ...
    obj:*/libmpi.so*
-   fun:PMPI_Init_thread
+   fun:PMPI_Init*
    fun:main
 }
 {
@@ -83,6 +83,70 @@
    fun:mca_*
 }
 {
+   gomp-gomp_team_start
+   Memcheck:Leak
+   fun:malloc
+   fun:gomp_malloc
+   fun:gomp_team_start
+   ...
+}
+{
+   libdl-error
+   Memcheck:Leak
+   fun:?alloc
+   ...
+   fun:openaux
+   fun:_dl_catch_error
+   ...
+}
+{
+   boost-python-demangle
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   obj:*/libstdc++.so*
+   obj:*/libstdc++.so*
+   fun:__cxa_demangle
+   fun:_ZN5boost6python6detail12gcc_demangleEPKc
+   ...
+}
+{
+   boost-init_module
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
+   boost-init_module-cond
+   Memcheck:Cond
+   fun:PyObject_Free
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
+   boost-init_module-addr4
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
+   boost-init_module-value8
+   Memcheck:Value8
+   fun:PyObject_Free
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
    Python-GC_Resize
    Memcheck:Leak
    fun:realloc
@@ -106,42 +170,42 @@
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyObject_Free-Addr4
+   Python-PyObject_Free-addr4
    Memcheck:Addr4
    fun:PyObject_Free
    ...
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyObject_Free-Cond
+   Python-PyObject_Free-cond
    Memcheck:Cond
    fun:PyObject_Free
    ...
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyObject_Free-Value8
+   Python-PyObject_Free-value8
    Memcheck:Value8
    fun:PyObject_Free
    ...
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyObject_Realloc-Addr4
+   Python-PyObject_Realloc-addr4
    Memcheck:Addr4
    fun:PyObject_Realloc
    ...
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyObject_Realloc-Cond
+   Python-PyObject_Realloc-cond
    Memcheck:Cond
    fun:PyObject_Realloc
    ...
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyObject_Realloc-Value8
+   Python-PyObject_Realloc-value8
    Memcheck:Value8
    fun:PyObject_Realloc
    ...
@@ -197,26 +261,6 @@
    fun:PyImport_ImportModuleLevel
 }
 {
-   libdl-error
-   Memcheck:Leak
-   fun:?alloc
-   ...
-   fun:openaux
-   fun:_dl_catch_error
-   ...
-}
-{
-   boost-python-demangle
-   Memcheck:Leak
-   fun:malloc
-   fun:realloc
-   obj:*/libstdc++.so*
-   obj:*/libstdc++.so*
-   fun:__cxa_demangle
-   fun:_ZN5boost6python6detail12gcc_demangleEPKc
-   ...
-}
-{
    Python-initft2font
    Memcheck:Leak
    fun:_Znwm
@@ -227,19 +271,32 @@
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyString_Format
+   Python-PyString_Resize
    Memcheck:Leak
    fun:realloc
    fun:_PyString_Resize
-   fun:PyString_Format
    ...
 }
 {
-   Python-PyString_FromStringAndSize
+   Python-PyFloat_FromString
+   Memcheck:Addr4
+   fun:PyFloat_FromString
+   obj:*/libpython2.?.so*
+   ...
+}
+{
+   Python-PyObject_Malloc
    Memcheck:Leak
    fun:realloc
    fun:PyObject_Malloc
-   fun:PyString_FromStringAndSize
+   ...
    obj:*/libpython2.?.so*
    ...
+}
+{
+   Python-numpy-cond
+   Memcheck:Cond
+   obj:*/numpy/core/multiarray.so
+   ...
+   fun:PyEval_EvalFrameEx
 }
