@@ -343,7 +343,7 @@ load(const std::string fileName,
       {
          throw DataException("Error - load:: unable to recover data from netCDF file.");
       }
-      DataTagged* dt=new DataTagged(function_space, shape, tags, data1);
+      DataTagged* dt=new DataTagged(function_space, shape, &tags[0], data1);
       out=Data(dt);
    } else if (type == 2) {
       /* expanded data */
