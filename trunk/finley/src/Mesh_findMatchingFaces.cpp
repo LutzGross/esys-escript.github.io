@@ -203,6 +203,7 @@ void Finley_Mesh_findMatchingFaces(NodeFile *nodes, ElementFile *faces,
     delete[] X;
     delete[] center;
     delete[] a1;
+    delete[] a2;
 #undef getDist
 }
 

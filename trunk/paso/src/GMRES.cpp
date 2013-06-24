@@ -608,7 +608,7 @@ err_t Paso_Solver_GMRES(
 	       Status = SOLVER_BREAKDOWN;
 	}
     }
-    for (i=0;i<Length_of_recursion;i++) {
+    for (i=0; i<Length_of_mem; i++) {
        delete[] X_PRES[i];
        delete[] R_PRES[i];
        delete[] P_PRES[i];

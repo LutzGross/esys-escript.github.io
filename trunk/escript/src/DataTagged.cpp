@@ -833,36 +833,29 @@ DataTagged::dump(const std::string fileName) const
    const DataTagged::DataMapType& thisLookup=getTagLookup();
    DataTagged::DataMapType::const_iterator i;
    DataTagged::DataMapType::const_iterator thisLookupEnd=thisLookup.end();
-   int ntags=1;
-   for (i=thisLookup.begin();i!=thisLookupEnd;i++) ntags++;
-   int* tags =(int*) esysUtils::malloc(ntags*sizeof(int));
-   int c=1;
-   tags[0]=-1;
-   for (i=thisLookup.begin();i!=thisLookupEnd;i++) tags[c++]=i->first;
-   dims[rank]=ntags;
+   std::vector<int> tags;
+   tags.push_back(-1);
+   for (i=thisLookup.begin();i!=thisLookupEnd;i++)
+       tags.push_back(i->first);
+   dims[rank]=tags.size();
    if (! (ncdims[rank] = dataFile.add_dim("num_tags", dims[rank])) )
    {
-	   esysUtils::free(tags);
            throw DataException("Error - DataTagged:: appending num_tags to netCDF file failed.");
    }
    if (! ( tags_var = dataFile.add_var("tags", ncInt, ncdims[rank])) )
    {
-	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: appending tags to netCDF file failed.");
    }
-   if (! (tags_var->put(tags,dims[rank])) )
+   if (! (tags_var->put(&tags[0], dims[rank])) )
    {
-	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: copy tags to netCDF buffer failed.");
    }
    if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
    {
-	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: appending variable to netCDF file failed.");
    }
    if (! (var->put(d_ptr,dims)) )
    {
-	esysUtils::free(tags);
         throw DataException("Error - DataTagged:: copy data to netCDF buffer failed.");
    }
 #ifdef ESYS_MPI
