@@ -536,8 +536,8 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
     escript::Data* _in = const_cast<escript::Data*>(&in);
 
     // from here on we know that each sample consists of one value
-    FileWriter* fw = new FileWriter();
-    fw->openFile(filename, fileSize);
+    FileWriter fw;
+    fw.openFile(filename, fileSize);
     MPIBarrier();
 
     for (index_t z=0; z<myN2; z++) {
@@ -556,10 +556,10 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
                     oss.write(byte_swap32(value), sizeof(fvalue));
                 }
             }
-            fw->writeAt(oss, fileofs);
+            fw.writeAt(oss, fileofs);
         }
     }
-    fw->close();
+    fw.close();
 }
 
 void Brick::dump(const string& fileName) const

@@ -69,11 +69,37 @@
    ...
 }
 {
+   OpenMPI-PMPI_Attr_put
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Attr_put
+   ...
+}
+{
+   OpenMPI-ADIO_Open
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:ADIO_Open
+   ...
+}
+{
    OpenMPI-orte
    Memcheck:Leak
    ...
    obj:*/libopen-pal.so*
    fun:orte_*
+}
+{
+   OpenMPI-orte_init-hash_table
+   Memcheck:Leak
+   fun:*alloc
+   fun:opal_hash_table*
+   ...
+   fun:orte_init
+   obj:*/libmpi.so*
 }
 {
    OpenMPI-mca
@@ -91,11 +117,29 @@
    ...
 }
 {
-   libdl-error
+   libdl-error1
+   Memcheck:Leak
+   fun:?alloc
+   fun:local_strdup
+   ...
+   fun:_dl_catch_error
+   ...
+}
+{
+   libdl-error2
    Memcheck:Leak
    fun:?alloc
    ...
    fun:openaux
+   fun:_dl_catch_error
+   ...
+}
+{
+   libdl-error3
+   Memcheck:Leak
+   fun:?alloc
+   ...
+   fun:dl_open_worker
    fun:_dl_catch_error
    ...
 }
@@ -275,6 +319,14 @@
    Memcheck:Leak
    fun:realloc
    fun:_PyString_Resize
+   ...
+}
+{
+   Python-PyUnicodeUCS4_Format
+   Memcheck:Leak
+   fun:realloc
+   obj:*/libpython2.?.so*
+   fun:PyUnicodeUCS4_Format
    ...
 }
 {
