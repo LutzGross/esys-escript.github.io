@@ -404,8 +404,8 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
     const int fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1;
 
     // from here on we know that each sample consists of one value
-    FileWriter* fw = new FileWriter();
-    fw->openFile(filename, fileSize);
+    FileWriter fw;
+    fw.openFile(filename, fileSize);
     MPIBarrier();
 
     for (index_t y=0; y<myN1; y++) {
@@ -422,9 +422,9 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
                 oss.write(byte_swap32(value), sizeof(fvalue));
             }
         }
-        fw->writeAt(oss, fileofs);
+        fw.writeAt(oss, fileofs);
     }
-    fw->close();
+    fw.close();
 }
 
 void Rectangle::dump(const string& fileName) const

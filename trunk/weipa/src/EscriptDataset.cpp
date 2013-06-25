@@ -563,11 +563,11 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     int gNumCells = 0;
     int gCellSizeAndType[2] = { 0, 0 };
 
-    FileWriter* fw = NULL;
+    boost::scoped_ptr<FileWriter> fw(NULL);
 
     if (mpiSize > 1) {
 #if HAVE_MPI
-        fw = new FileWriter(mpiComm);
+        fw.reset(new FileWriter(mpiComm));
         domainChunks[0]->removeGhostZones(mpiRank);
         ElementData_ptr elements = domainChunks[0]->getElementsByName(meshName);
         int myNumCells = 0;
@@ -589,7 +589,7 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
                 0, mpiComm);
 #endif
     } else {
-        fw = new FileWriter();
+        fw.reset(new FileWriter());
         int idx = 0;
         for (domIt = domainChunks.begin(); domIt != domainChunks.end(); domIt++, idx++) {
             if (domainChunks.size() > 1)
@@ -745,7 +745,6 @@ bool EscriptDataset::saveVTKsingle(const string& fileName,
     }
 
     fw->close();
-    delete fw;
     return true;
 #else // VISIT_PLUGIN
     return false;
