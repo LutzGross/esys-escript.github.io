@@ -71,7 +71,7 @@ EXTRA_PYTHONPATH=$ESCRIPT_ROOT
 
 if [ $STDLOCATION -eq 1 ]
 then
-    EXTRA_LD_LIBRARY_PATH=/usr/lib/escript
+    EXTRA_LD_LIBRARY_PATH=/usr/lib/python-escript
 else
     EXTRA_LD_LIBRARY_PATH=$ESCRIPT_ROOT/lib
 fi
@@ -90,7 +90,7 @@ fi
 BUILDINFO_FILE="$ESCRIPT_ROOT/lib/buildvars"
 if [ "$STDLOCATION" = "1" ]
 then
-    BUILDINFO_FILE=/usr/lib/escript/buildvars
+    BUILDINFO_FILE=/usr/lib/python-escript/buildvars
 fi
 if [ ! -r "$BUILDINFO_FILE" ]; then
     if [ "$1" = "-e" ]; then
