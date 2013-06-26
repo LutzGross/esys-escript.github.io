@@ -49,19 +49,19 @@ sudo apt-get install aptitude
 \end{verse}
 
 \begin{shellCode}
-dpkg --unpack escript*.deb
-aptitude install python-escript python-escript-doc
+dpkg --unpack python-escript*.deb
+aptitude install -r python-escript python-escript-doc
 \end{shellCode}
 
-Installing escript should not remove any packages from your system.
-If aptitude suggests removing escript, then choose 'N'.
+Installing escript should not remove any (non-escript) packages from your system.
+If aptitude suggests removing \texttt{python-escript} then choose 'N'.
+If it wants to remove \texttt{escript-noalias} or \texttt{escript}, then choose 'Y'.
 It should then suggest installing some dependencies choose 'Y' here.
-If it suggests removing \texttt{escript-noalias} then agree.
 
 If you use sudo (for example on Ubuntu) enter the following instead:
 \begin{shellCode}
-sudo dpkg --unpack escript*.deb
-sudo aptitude install python-escript python-escript-doc
+sudo dpkg --unpack python-escript*.deb
+sudo aptitude install -r python-escript python-escript-doc
 \end{shellCode}
 
 This should install \esfinley and its dependencies on your system.
