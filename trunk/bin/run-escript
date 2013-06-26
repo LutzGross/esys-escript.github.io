@@ -140,6 +140,7 @@ Usage: run-escript [options] script.py [arguments...]
 	-o		redirect output from MPI to files
 	-v		print diagnostics
 	-x		run in new xterm instance
+	-m		run with valgrind memcheck
 	script.py	Your python script
 	arguments...	The optional command-line arguments to your script
 "
@@ -151,11 +152,12 @@ fi
 #==============================================================================
 
 # Parse the command-line options
-# option e should not be followed by a :
-while getopts 'bn:p:t:f:hecVviox' option
+while getopts 'bn:p:t:f:echimoVvx' option
 do
     case "$option" in
       "b")  DO_BINARY=y
+        ;;
+      "m")  DO_VALGRIND=y
         ;;
       "n")  ESCRIPT_NUM_NODES=$OPTARG
         ;;
@@ -361,11 +363,29 @@ then
 fi
 
 #==============================================================================
+
 if [ ! -z $DO_XTERM ]
 then
     EXEC_CMD="xterm -e"
 else
     EXEC_CMD=""
+fi
+
+if [ ! -z "$DO_VALGRIND" ]
+then
+    VALGRIND_BIN=`which valgrind 2>/dev/null`
+    if [ $? -eq 0 ]; then
+        LOGDIR=$ESCRIPT_ROOT/memcheck_logs
+        [ -d $LOGDIR ] || mkdir $LOGDIR
+        LAST_N=`ls -1 $LOGDIR|grep "^memcheck"|tail -1|cut -d. -f2`
+        NEW_N=`printf "%04d" $((10#$LAST_N + 1))`
+        LOGFILE=${LOGDIR}/memcheck.${NEW_N}.xml
+        VALGRIND="valgrind --xml=yes --show-reachable=yes --error-limit=no --gen-suppressions=all --suppressions=$ESCRIPT_ROOT/scripts/escript.supp --leak-check=full --xml-file=$LOGFILE"
+        EXEC_CMD="$EXEC_CMD $VALGRIND"
+    else
+        echo "Valgrind memcheck requested but valgrind not in path!"
+        exit 1
+    fi
 fi
 
 if [ ! -z $DO_BINARY ]
