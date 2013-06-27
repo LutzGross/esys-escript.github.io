@@ -28,7 +28,7 @@ HOSTFILE2=/tmp/escript2.$USER.$$
 #Begin finding ESCRIPT_ROOT
 if [ $STDLOCATION -ne 0 ]
 then
-    ESCRIPT_ROOT=/usr/lib/escript
+    ESCRIPT_ROOT=/usr/lib/python-escript
 else
   # We don't know the escript root so we need to work it out from the invocation
   # Need to match if the name contains /
