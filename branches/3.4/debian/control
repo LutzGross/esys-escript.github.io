@@ -14,7 +14,8 @@ Section: main
 Priority: extra
 Essential: no
 Depends: ${es:python}, python-numpy, ${es:boostpy}, ${es:netcdf}, libgomp1
-Recommends: python-sympy, python-matplotlib, python-scipy, python-pyproj, python-gdal
+Recommends: python-sympy, python-matplotlib, python-scipy
+Suggests: python-pyproj, python-gdal
 Conflicts: escript-noalias, escript
 Replaces: escript-noalias, escript
 Homepage: https://launchpad.net/escript-finley
