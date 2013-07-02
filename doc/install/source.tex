@@ -21,7 +21,7 @@ This chapter assumes you are using a unix/posix like system.
 
 Some initial questions:
 \begin{enumerate}
-\item Are you using MacOS?
+\item Are you using MacOS? (If not, then skip to Section~\ref{sec:par}).
 \item Which parallel technologies do you wish to use?
 \item Which packaging system are you using?
 \end{enumerate}
@@ -47,17 +47,16 @@ The only way to access the application store is with an AppleID which requires e
 
 If you install \texttt{XCode}, you will need to download the ``command line tools'' optional package [see \texttt{XCode} documentation for details].
 
-There are a number of projects on the net which aim to deliver compilers for MacOS.
+There are also a number of projects on the net which aim to deliver compilers for MacOS.
+Use at your own risk.
 For example:
 \begin{itemize}
  \item \url{http://hpc.sourceforge.net}
  \item \url{http://kennethreitz.org/experiments/xcode-gcc-and-homebrew}
 \end{itemize}
-Use at your own risk.
 
 
-
-\subsection{Parallel Technologies}
+\subsection{Parallel Technologies}\label{sec:par}
 It is extremely likely that the computer you run \escript on, will have more than one processor core.
 \escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
 but this functionality must be enabled at compile time.
@@ -100,7 +99,9 @@ For Linux, there will be one set up by default: the apt tools on Debian and Ubun
 On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
 
 For MacOS, this is a bit more tricky.
-There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, but we have not experimented with that.}, but they do not come pre-installed so you will need to install one.
+There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, 
+but we have not experimented with that.}, but they do not come pre-installed so if you want to make use of one you will need
+you will need to install it.
 
 Packaging systems will make changes to your computer based on programs configured by other people from 
 various places around the internet.
@@ -117,14 +118,16 @@ The compilers provided in Apple's package and BSD do not support OpenMP.
 but it does not work very well\footnote{Rejects valid code, crashes etc}.
 You can use the packaging system to install a more up to date version of \texttt{gcc}.
 However, you will need to install a number of other dependencies in order for escript to operate.
-If these dependencies end up fighting over which versions of libraries to use, there will be problems
+If these dependencies end up fighting over which versions of libraries to use, there will be problems.
 \footnote{For example: Trying to use two versions of \texttt{Python} in the same program 
 or two versions of the \texttt{c++} standard library.}
 To avoid this, if you are intend to change the compiler or python versions, you should install the new compiler first,
 then the new version of python.
 After this, you can install the other dependencies.
-\emph{Please note that none of the Mac based packages nor BSD recommend changing the default $C$ compiler so
+\emph{Please note that none of the Mac based package managers nor BSD recommend changing the default $C$ compiler so
 do so at your own risk.  If you want OpenMP though, there does not seem to be a choice.}
+
+The following steps seemed to work when we tested them but we cannot make guarantees.
 
 \subsubsection*{Changing compiler on FreeBSD(9.1)}
 The following sequence passes our unit tests under OpenMP.
@@ -165,7 +168,7 @@ your new compiler rather than the default one.
 There is no configuration file that needs to be changed in order to use a different compiler.
 You do need to do things in the correct order and make sure that you have made any required changes to 
 your environment variables before moving on to the next step.
-In particular, the compiler must be installed before anything else and then python.
+In particular, the compiler must be installed before anything else, followed by Python.
 
 
 % make it clear that escript can be customised to use whatever you have
@@ -219,12 +222,12 @@ sudo aptitude install ghostscript texlive-latex-extra latex-xcolor
 \end{shellCode}
 \end{optionalstep}
 
-In the source directory execute the following (substitute squeeze or wheezy as appropriate for XXXX):
+\noindent In the source directory execute the following (substitute squeeze or wheezy as appropriate for XXXX):
 \begin{shellCode}
 scons -j1 options_file=scons/os/XXXX_options.py
 \end{shellCode}
 
-If you wish to test your build, you can use the following:
+\noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
 scons -j1 py_tests options_file=scons/os/XXXX_options.py 
 \end{shellCode}
@@ -248,12 +251,12 @@ sudo aptitude install ghostscript texlive-latex-extra latex-xcolor
 \end{shellCode}
 \end{optionalstep}
 
-In the source directory execute the following (substitute precise, quantal or raring as appropriate for XXXX):
+\noindent In the source directory execute the following (substitute precise, quantal or raring as appropriate for XXXX):
 \begin{shellCode}
 scons -j1 options_file=scons/os/XXXX_options.py
 \end{shellCode}
 
-If you wish to test your build, you can use the following:
+\noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
 scons -j1 py_tests options_file=scons/os/XXXX_options.py 
 \end{shellCode}
@@ -263,7 +266,7 @@ scons -j1 py_tests options_file=scons/os/XXXX_options.py
 \subsection{OpenSuse}\label{sec:susesrc}
 These instructions were prepared using release $12.3$.
 
-Install packages from the main distribution:
+\noindent Install packages from the main distribution:
 \begin{shellCode}
 sudo yast2 --install libboost_python1_49_0 python-devel python-numpy 
 sudo yast2 --install python-scipy python-sympy python-matplotlib libnetcdf_c++-devel
@@ -287,17 +290,17 @@ In the escript source directory:
 scons -j1 options_file=scons/os/opensuse12.3_options.py
 \end{shellCode}
 
-If you wish to test your build, you can use the following:
+\noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
 scons -j1 py_tests options_file=scons/os/opensuse12.3_options.py 
 \end{shellCode}
 
-Now go to Section~\ref{sec:cleanup} for cleanup.
+\noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Centos}\label{sec:centossrc}
 These instructions were prepared using release $6.4$.
 
-Install packages from the main distribution:
+\noindent Install packages from the main distribution:
 \begin{shellCode}
 yum install python-devel numpy scipy scons boost-devel
 yum install python-matplotlib gcc-g++
@@ -309,7 +312,7 @@ format and the \downunder inversion library.
 If you wish to use those features, you will need to install some additional packages.
 NetCDF needs to be installed when you compile if you wish to use it.
 \begin{optionalstep}
-Add the \texttt{EPEL} repository.
+\noindent Add the \texttt{EPEL} repository.
 \begin{shellCode}
 rpm -U http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noarch.rpm
 \end{shellCode}
@@ -317,51 +320,101 @@ rpm -U http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noar
 \begin{shellCode}
 yum install netcdf-devel sympy gdal-python
 \end{shellCode}
-
-For some coordinate transformations, \downunder can also make use of the python interface to a tool called \texttt{proj}.
-There does not seem to be an obvious centos repository for this though.
-If it turns out to be necessary for your particular application, the source can be downloaded. 
 \end{optionalstep}
 
-Now to build escript itself.
+\noindent For some coordinate transformations, \downunder can also make use of the python interface to a tool called \texttt{proj}.
+There does not seem to be an obvious centos repository for this though.
+If it turns out to be necessary for your particular application, the source can be downloaded. 
+
+\noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
 scons -j1 options_file=scons/os/centos6.4_options.py
 \end{shellCode}
 
-If you wish to test your build, you can use the following:
+\noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
 scons -j1 py_tests options_file=scons/os/centos6.4_options.py 
 \end{shellCode}
 
-Now go to Section~\ref{sec:cleanup} for cleanup.
+\noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Fedora}\label{sec:fedorasrc}
 These instructions were prepared using release $18$.
 
-Install packages
+\noindent Install packages
 \begin{shellCode}
 yum install netcdf-cxx-devel gcc-c++ scipy 
 yum install sympy scons pyproj gdal python-matplotlib 
 yum install boost-devel
 \end{shellCode}
 
-Now to build escript itself.
+\noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
 scons -j1 options_file=scons/os/fedora18_options.py
 \end{shellCode}
 
-If you wish to test your build, you can use the following:
+\noindent If you wish to test your build, you can use the following:
 \begin{shellCode}
 scons -j1 py_tests options_file=scons/os/fedora18_options.py 
 \end{shellCode}
 
-Now go to Section~\ref{sec:cleanup} for cleanup.
+\noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{MacOS (macports)}\label{sec:macportsrc}
 
+\begin{shellCode}
+port install python27
+port select --set python python27
+port install scons
+port install openmpi
+port install py27-numpy
+port install boost
+port install py27-sympy
+port select --set py-sympy py27-sympy
+install py27-scipy
+install py27-pyproj
+install py27-gdal
+install py27-netcdf4
+install netcdf-cxx
+\end{shellCode}
+
+\begin{shellCode}
+scons -j1 options_file=scons/os/macports_options.py 
+\end{shellCode}
+
+
 \subsection{MacOS (homebrew)}\label{sec:homebrewsrc}
+
+Note that these steps add ``non-official'' packages.
+You will also want to make sure that the homebrew Python is executed in preference to the system 
+Python\footnote{Putting \texttt{/usr/local/bin} at the front of your PATH is one way to do this.}.
+
+\begin{shellCode}
+brew install scons
+brew install python
+brew install boost
+brew tap samueljohn/python
+brew tap homebrew/science
+pip install nose
+brew install gfortran
+brew install samueljohn/python/numpy
+brew install scipy
+brew install gdal
+brew install openmpi
+brew install matplotlib
+brew install netcdf --enable-cxx-compat
+\end{shellCode}
+
+There do not appear to be formulae for \texttt{sympy} or \texttt{pyproj} so if you wish to use those features, then
+you will need to install them separately.
+
+
+\begin{shellCode}
+scons -j1 options_file=scons/os/homebrew_options.py
+\end{shellCode}
+
 
 \subsection{FreeBSD}\label{sec:freebsdsrc}
 The following was tested on the $9.1$ release of FreeBSD.
@@ -436,9 +489,9 @@ A common need for this would be using a more recent version of the boostpython l
 You can also change the compiler or the options passed to it by modifying the relevant lines.
 
 \subsubsection*{MPI}
-We distribute options files with MPI disabled by default\footnote{This way is more freindly for interactive use and doesn't impose a choice of MPI implementation.} but, once you have an MPI implementation installed, 
-\escript can use it fairly simply.
-You will need to change the \texttt{mpi = 'none'} line to one of the supported types.
+If you wish to enable or disable MPI, or if you wish to use a different implementation of MPI, you can use the \texttt{mpi}
+configuration variable.
+To disable MPI use, \verb|mpi = 'none'|.
 You will also need to ensure that the \texttt{mpi_prefix} and \texttt{mpi_libs} variables are uncommented and set correctly.
 
 \subsubsection{Python3}
