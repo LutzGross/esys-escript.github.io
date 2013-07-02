@@ -191,12 +191,57 @@
    ...
 }
 {
-   Python-GC_Resize
+   Python-malloc
    Memcheck:Leak
-   fun:realloc
-   fun:_PyObject_GC_Resize
+   fun:malloc
    ...
    obj:*/libpython2.?.so*
+}
+{
+   Python-PyFloat_FromString
+   Memcheck:Addr4
+   fun:PyFloat_FromString
+   obj:*/libpython2.?.so*
+   ...
+}
+{
+   Python-PyImport_GetDynLoadFunc
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:_PyImport_GetDynLoadFunc
+}
+{
+   Python-PyImport_LoadDynamicModule
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:_PyImport_LoadDynamicModule
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyImport_ImportModuleLevel2
+   Memcheck:Leak
+   fun:realloc
+   obj:*/libpython2.?.so*
+   ...
+   fun:PyImport_ImportModuleLevel
+}
+{
+   Python-PyImport_ImportModuleLevel1
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:PyImport_ImportModuleLevel
+}
+{
+   Python-PyList_Append
+   Memcheck:Leak
+   fun:realloc
+   fun:PyList_Append
+   obj:*/libpython2.?.so*
+   ...
+   fun:main
 }
 {
    Python-PyObject_Call
@@ -205,13 +250,6 @@
    obj:*/libpython2.?.so*
    fun:PyObject_Call
    ...
-}
-{
-   Python-malloc
-   Memcheck:Leak
-   fun:malloc
-   ...
-   obj:*/libpython2.?.so*
 }
 {
    Python-PyObject_Free-addr4
@@ -231,6 +269,14 @@
    Python-PyObject_Free-value8
    Memcheck:Value8
    fun:PyObject_Free
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_GC_Resize
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GC_Resize
    ...
    obj:*/libpython2.?.so*
 }
@@ -256,19 +302,46 @@
    obj:*/libpython2.?.so*
 }
 {
-   Python-PyImport_GetDynLoadFunc
+   Python-PyObject_Malloc
    Memcheck:Leak
-   fun:calloc
+   fun:realloc
+   fun:PyObject_Malloc
    ...
-   fun:_PyImport_GetDynLoadFunc
+   obj:*/libpython2.?.so*
+   ...
 }
 {
-   Python-PyImport_LoadDynamicModule
-   Memcheck:Leak
-   fun:calloc
+   Python-PyString_Format-value8
+   Memcheck:Value8
+   fun:doubletype_str
+   fun:_PyObject_Str
+   fun:PyString_Format
    ...
-   fun:_PyImport_LoadDynamicModule
-   obj:*/libpython2.?.so*
+}
+{
+   Python-string_new-value8
+   Memcheck:Value8
+   ...
+   fun:_PyObject_Str
+   fun:PyObject_Str
+   fun:string_new
+   ...
+}
+{
+   Python-PyString_Format-cond
+   Memcheck:Cond
+   fun:__intel_sse2_strlen
+   fun:doubletype_str
+   fun:_PyObject_Str
+   fun:PyString_Format
+   ...
+}
+{
+   Python-PyString_Resize
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyString_Resize
+   ...
 }
 {
    Python-PyTuple_New
@@ -281,28 +354,12 @@
    fun:PyMarshal_ReadLastObjectFromFile
 }
 {
-   Python-PyList_Append
-   Memcheck:Leak
-   fun:realloc
-   fun:PyList_Append
-   obj:*/libpython2.?.so*
-   ...
-   fun:main
-}
-{
-   Python-PyImport_ImportModuleLevel2
+   Python-PyUnicodeUCS4_Format
    Memcheck:Leak
    fun:realloc
    obj:*/libpython2.?.so*
+   fun:PyUnicodeUCS4_Format
    ...
-   fun:PyImport_ImportModuleLevel
-}
-{
-   Python-PyImport_ImportModuleLevel1
-   Memcheck:Leak
-   fun:_Znwm
-   ...
-   fun:PyImport_ImportModuleLevel
 }
 {
    Python-initft2font
@@ -313,37 +370,6 @@
    fun:_PyImport_LoadDynamicModule
    obj:*/libpython2.?.so*
    obj:*/libpython2.?.so*
-}
-{
-   Python-PyString_Resize
-   Memcheck:Leak
-   fun:realloc
-   fun:_PyString_Resize
-   ...
-}
-{
-   Python-PyUnicodeUCS4_Format
-   Memcheck:Leak
-   fun:realloc
-   obj:*/libpython2.?.so*
-   fun:PyUnicodeUCS4_Format
-   ...
-}
-{
-   Python-PyFloat_FromString
-   Memcheck:Addr4
-   fun:PyFloat_FromString
-   obj:*/libpython2.?.so*
-   ...
-}
-{
-   Python-PyObject_Malloc
-   Memcheck:Leak
-   fun:realloc
-   fun:PyObject_Malloc
-   ...
-   obj:*/libpython2.?.so*
-   ...
 }
 {
    Python-numpy-cond
