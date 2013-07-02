@@ -77,7 +77,6 @@ sources = """
     Mesh_addPoints.cpp
     Mesh_write.cpp
     NodeFile.cpp
-    NodeMapping.cpp
     Quadrature.cpp
     ReferenceElements.cpp
     ShapeFunctions.cpp

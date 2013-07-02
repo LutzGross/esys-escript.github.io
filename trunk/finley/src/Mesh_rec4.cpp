@@ -41,7 +41,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   dim_t N0,N1,NE0,NE1,i0,i1,k,Nstride0=0,Nstride1=0, local_NE0, local_NE1, local_N0=0, local_N1=0, global_i0, global_i1;
   index_t offset0=0, offset1=0, e_offset0=0, e_offset1=0;
   dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements,NN;
-  Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+  ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
   index_t node0, myRank;
   Finley_Mesh* out;
   Esys_MPIInfo *mpi_info = NULL;
@@ -71,15 +71,15 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
       Esys_MPIInfo_free( mpi_info );
       return NULL;
   }
-  refElements= Finley_ReferenceElementSet_alloc(Finley_Rec4,order,reduced_order);
+  refElements= ReferenceElementSet_alloc(Rec4,order,reduced_order);
   if (useElementsOnFace) {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Rec4Face, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Finley_Rec4Face_Contact, order, reduced_order);
+	  	refFaceElements=ReferenceElementSet_alloc(Rec4Face, order, reduced_order);
+		refContactElements=ReferenceElementSet_alloc(Rec4Face_Contact, order, reduced_order);
   } else {
-	  	refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Line2, order, reduced_order);
-		refContactElements=Finley_ReferenceElementSet_alloc(Finley_Line2_Contact, order, reduced_order);
+	  	refFaceElements=ReferenceElementSet_alloc(Line2, order, reduced_order);
+		refContactElements=ReferenceElementSet_alloc(Line2_Contact, order, reduced_order);
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Finley_Point1, order, reduced_order);
+  refPoints=ReferenceElementSet_alloc(Point1, order, reduced_order);
   
   if ( Finley_noError()) {
   
@@ -289,10 +289,10 @@ Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t* numElements,
   }
 
   /* free up memory */
-  Finley_ReferenceElementSet_dealloc(refPoints);
-  Finley_ReferenceElementSet_dealloc(refContactElements);
-  Finley_ReferenceElementSet_dealloc(refFaceElements);
-  Finley_ReferenceElementSet_dealloc(refElements);
+  ReferenceElementSet_dealloc(refPoints);
+  ReferenceElementSet_dealloc(refContactElements);
+  ReferenceElementSet_dealloc(refFaceElements);
+  ReferenceElementSet_dealloc(refElements);
   Esys_MPIInfo_free( mpi_info );  
 
   return out;

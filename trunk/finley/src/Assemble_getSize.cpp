@@ -33,8 +33,7 @@ void Assemble_getSize(NodeFile* nodes, ElementFile* elements, escript::Data& out
     if (!nodes || !elements)
         return;
 
-    Finley_ReferenceElement *refElement =
-        Finley_ReferenceElementSet_borrowReferenceElement(
+    ReferenceElement *refElement = ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet,
                 util::hasReducedIntegrationOrder(out));
 

@@ -44,7 +44,7 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   index_t node0, myRank, e_offset0, e_offset1, e_offset2, offset0=0, offset1=0, offset2=0, global_i0, global_i1, global_i2;
   Finley_Mesh* out;
   Esys_MPIInfo *mpi_info = NULL;
-  Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+  ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
   char name[50];
   bool_t generateAllNodes= useFullElementOrder || useMacroElements;
   #ifdef Finley_TRACE
@@ -78,34 +78,34 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
   if (generateAllNodes) {
      /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
      if (useMacroElements) {
-		  refElements= Finley_ReferenceElementSet_alloc(Finley_Hex27Macro,order,reduced_order);
+		  refElements= ReferenceElementSet_alloc(Hex27Macro,order,reduced_order);
      } else {
-		  refElements=Finley_ReferenceElementSet_alloc(Finley_Hex27, order,reduced_order);
+		  refElements=ReferenceElementSet_alloc(Hex27, order,reduced_order);
      }
      if (useElementsOnFace) {
          Finley_setError(SYSTEM_ERROR,"rich elements for Hex27 elements is not supported yet.");
      } else {
          if (useMacroElements) { 
-			 refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Rec9Macro, order, reduced_order);
+			 refFaceElements=ReferenceElementSet_alloc(Rec9Macro, order, reduced_order);
          } else {
-			 refFaceElements=Finley_ReferenceElementSet_alloc(Finley_Rec9, order, reduced_order);
+			 refFaceElements=ReferenceElementSet_alloc(Rec9, order, reduced_order);
          }
-		 refContactElements=Finley_ReferenceElementSet_alloc(Finley_Rec9_Contact, order, reduced_order);
+		 refContactElements=ReferenceElementSet_alloc(Rec9_Contact, order, reduced_order);
      }
 
   } else  {
-	 refElements= Finley_ReferenceElementSet_alloc(Finley_Hex20,order, reduced_order);
+	 refElements= ReferenceElementSet_alloc(Hex20,order, reduced_order);
      if (useElementsOnFace) {
-		 refFaceElements = Finley_ReferenceElementSet_alloc(Finley_Hex20Face, order, reduced_order);
-		 refContactElements=Finley_ReferenceElementSet_alloc(Finley_Hex20Face_Contact, order, reduced_order);
+		 refFaceElements = ReferenceElementSet_alloc(Hex20Face, order, reduced_order);
+		 refContactElements=ReferenceElementSet_alloc(Hex20Face_Contact, order, reduced_order);
 
      } else {
-		 refFaceElements = Finley_ReferenceElementSet_alloc(Finley_Rec8, order, reduced_order);
-		 refContactElements=Finley_ReferenceElementSet_alloc(Finley_Rec8_Contact, order, reduced_order);
+		 refFaceElements = ReferenceElementSet_alloc(Rec8, order, reduced_order);
+		 refContactElements=ReferenceElementSet_alloc(Rec8_Contact, order, reduced_order);
 
      }
   }
-  refPoints=Finley_ReferenceElementSet_alloc(Finley_Point1, order, reduced_order);
+  refPoints=ReferenceElementSet_alloc(Point1, order, reduced_order);
 
   if ( Finley_noError()) {
   
@@ -616,10 +616,10 @@ Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t* numElements,
       Finley_Mesh_free(out);
   }
     /* free up memory */
-  Finley_ReferenceElementSet_dealloc(refPoints);
-  Finley_ReferenceElementSet_dealloc(refContactElements);
-  Finley_ReferenceElementSet_dealloc(refFaceElements);
-  Finley_ReferenceElementSet_dealloc(refElements);
+  ReferenceElementSet_dealloc(refPoints);
+  ReferenceElementSet_dealloc(refContactElements);
+  ReferenceElementSet_dealloc(refFaceElements);
+  ReferenceElementSet_dealloc(refElements);
   Esys_MPIInfo_free( mpi_info );  
 
   return out;

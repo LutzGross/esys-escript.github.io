@@ -169,11 +169,11 @@ namespace finley {
 
         /* read elements */
         if (Finley_noError()) {
-            Finley_ReferenceElementSet *refElements=Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Elements_TypeId,order, reduced_order);
+            ReferenceElementSet *refElements=ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
             if (Finley_noError())  {
                 mesh_p->Elements=new ElementFile(refElements, mpi_info);
             }
-            Finley_ReferenceElementSet_dealloc(refElements);
+            ReferenceElementSet_dealloc(refElements);
             if (Finley_noError())
                 mesh_p->Elements->allocTable(num_Elements);
             if (Finley_noError()) {
@@ -234,12 +234,12 @@ namespace finley {
 
         /* get the face elements */
         if (Finley_noError()) {
-            Finley_ReferenceElementSet *refFaceElements =
-                Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)FaceElements_TypeId, order, reduced_order);
+            ReferenceElementSet *refFaceElements =
+                ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId, order, reduced_order);
             if (Finley_noError())  {
                 mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
             }
-            Finley_ReferenceElementSet_dealloc(refFaceElements);  
+            ReferenceElementSet_dealloc(refFaceElements);  
             if (Finley_noError())
                 mesh_p->FaceElements->allocTable(num_FaceElements);
             if (Finley_noError()) {
@@ -298,12 +298,12 @@ namespace finley {
 
         /* get the Contact elements */
         if (Finley_noError()) {
-            Finley_ReferenceElementSet *refContactElements =
-                Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)ContactElements_TypeId, order, reduced_order);
+            ReferenceElementSet *refContactElements =
+                ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId, order, reduced_order);
             if (Finley_noError()) {
                 mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
             }
-            Finley_ReferenceElementSet_dealloc(refContactElements);       
+            ReferenceElementSet_dealloc(refContactElements);       
             if (Finley_noError())
                 mesh_p->ContactElements->allocTable(num_ContactElements);
             if (Finley_noError()) {
@@ -362,12 +362,12 @@ namespace finley {
 
         /* get the Points (nodal elements) */
         if (Finley_noError()) {
-            Finley_ReferenceElementSet *refPoints =
-                Finley_ReferenceElementSet_alloc((Finley_ElementTypeId)Points_TypeId,order, reduced_order);
+            ReferenceElementSet *refPoints =
+                ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
             if (Finley_noError())  {
                 mesh_p->Points=new ElementFile(refPoints, mpi_info);
             }
-            Finley_ReferenceElementSet_dealloc(refPoints);
+            ReferenceElementSet_dealloc(refPoints);
             if (Finley_noError())
                 mesh_p->Points->allocTable(num_Points);
             if (Finley_noError()) {

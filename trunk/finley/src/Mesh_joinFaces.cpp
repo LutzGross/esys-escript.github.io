@@ -32,7 +32,7 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
    index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
    ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
    dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
-   Finley_ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
+   ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
 
    if (self->MPIInfo->size>1) {
      Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: MPI is not supported yet.");
@@ -43,8 +43,8 @@ void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double toleran
      return;
    }
    if (self->FaceElements==NULL) return;
-   faceRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
-   contactRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
+   faceRefElement= ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
+   contactRefElement= ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
    
 
    NN=self->FaceElements->numNodes;

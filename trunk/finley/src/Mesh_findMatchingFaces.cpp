@@ -64,7 +64,7 @@ void Finley_Mesh_findMatchingFaces(NodeFile *nodes, ElementFile *faces,
    _dist_=0;\
    for (int i=0;i<numDim;i++) _dist_=MAX(_dist_,ABS(X[INDEX3(i,_i0_,_e0_,numDim,NN)]-X[INDEX3(i,_i1_,_e1_,numDim,NN)]));\
   }
-    Finley_ReferenceElement* refElement=NULL;
+    ReferenceElement* refElement=NULL;
     char error_msg[LenErrorMsg_MAX];
     double h=DBLE(HUGE_VAL),h_local,dist,*X=NULL;
     Finley_Mesh_findMatchingFaces_center *center;
@@ -73,7 +73,7 @@ void Finley_Mesh_findMatchingFaces(NodeFile *nodes, ElementFile *faces,
 
     dim_t numDim=nodes->numDim;
 
-    refElement= Finley_ReferenceElementSet_borrowReferenceElement(faces->referenceElementSet, FALSE);
+    refElement= ReferenceElementSet_borrowReferenceElement(faces->referenceElementSet, FALSE);
     NN=faces->numNodes;
 
     numNodesOnFace=refElement->Type->numNodesOnFace;

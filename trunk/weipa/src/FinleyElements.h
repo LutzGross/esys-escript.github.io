@@ -20,7 +20,7 @@
 #include <weipa/FinleyNodes.h>
 
 #include <dudley/ElementType.h> // for Dudley_ElementTypeId
-#include <finley/ReferenceElements.h> // for Finley_ElementTypeId
+#include <finley/ReferenceElements.h> // for finley::ElementTypeId
 
 class DBfile;
 class NcFile;
@@ -53,7 +53,7 @@ typedef boost::shared_ptr<FinleyElements> FinleyElements_ptr;
 ///
 /// This class provides functionality to manipulate a finley element file.
 /// It is able to load element data from NetCDF files or retrieve it from
-/// a Finley_ElementFile instance.
+/// a finley::ElementFile instance.
 ///
 /// \note The corresponding mesh nodes are not part of this class but are
 ///       stored in a NodeData instance.
@@ -117,7 +117,7 @@ public:
     virtual ZoneType getType() const { return type; }
 
     /// \brief Returns the original type id of the Finley reference elements.
-    Finley_ElementTypeId getFinleyTypeId() const { return finleyTypeId; }
+    finley::ElementTypeId getFinleyTypeId() const { return finleyTypeId; }
 
     /// \brief Returns a vector of the node IDs used by the elements.
     virtual const IntVec& getNodeList() const { return nodes; }
@@ -147,7 +147,7 @@ public:
 private:
     FinleyElements() {}
     FinleyElementInfo getDudleyTypeInfo(Dudley_ElementTypeId typeId);
-    FinleyElementInfo getFinleyTypeInfo(Finley_ElementTypeId typeId);
+    FinleyElementInfo getFinleyTypeInfo(finley::ElementTypeId typeId);
     void buildMeshes();
     void buildReducedElements(const FinleyElementInfo& f);
     IntVec prepareGhostIndices(int ownIndex);
@@ -162,7 +162,7 @@ private:
     int numGhostElements;
     int nodesPerElement;
     ZoneType type;
-    Finley_ElementTypeId finleyTypeId;
+    finley::ElementTypeId finleyTypeId;
     IntVec nodes;
     IntVec color, ID, tag;
     IntVec owner;

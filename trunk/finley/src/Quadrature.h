@@ -14,90 +14,96 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line, Point */
+  Finley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line, 
+          Point
 
-/************************************************************************************/
+*****************************************************************************/
 
-#ifndef INC_FINLEY_QUADRATURE
-#define INC_FINLEY_QUADRATURE
-
-/************************************************************************************/
+#ifndef __FINLEY_QUADRATURE_H__
+#define __FINLEY_QUADRATURE_H__
 
 #include "Finley.h"
 
-/************************************************************************************/
-
 #define MAX_numQuadNodesLine 10
 
+namespace finley {
+
 typedef enum {
-  PointQuad,
-  LineQuad,
-  TriQuad,
-  RecQuad,
-  TetQuad,
-  HexQuad,
-  NoQuad   /* marks end of list */
-} Finley_QuadTypeId;
+    PointQuad,
+    LineQuad,
+    TriQuad,
+    RecQuad,
+    TetQuad,
+    HexQuad,
+    NoQuad   // marks end of list
+} QuadTypeId;
 
-typedef void (Finley_Quad_getNodes) (dim_t,double*,double*);
-typedef dim_t (Finley_Quad_getNumNodes) (dim_t);
-typedef dim_t(Finley_Quad_getMacro)(dim_t numSubElements, int numQuadNodes, double* quadNodes, double* quadWeights, 
-                                        dim_t numF, double* dFdv, 
-					dim_t new_len, double* new_quadNodes, double* new_quadWeights,
-                                        double* new_dFfv );
+typedef void (Quad_getNodes) (int, double*, double*);
+typedef int (Quad_getNumNodes) (int);
+typedef int (Quad_getMacro) (int numSubElements, int numQuadNodes,
+                             double* quadNodes, double* quadWeights, 
+                             int numF, double* dFdv, 
+                             int new_len, double* new_quadNodes,
+                             double* new_quadWeights, double* new_dFfv);
 
-typedef struct Finley_QuadInfo {
-  Finley_QuadTypeId TypeId;                  /* the id */
-  const char* Name;                                /* the name in text form e.g. Line,Rec,... */
-  dim_t numDim;                              /* spatial dimension */
-  dim_t numVertices;                         /* number of vertices of the element */
-  Finley_Quad_getNodes* getQuadNodes;        /* function to set the quadrature points for a given order */
-  Finley_Quad_getNumNodes* getNumQuadNodes;  /* function selects the number of quadrature nodes for a given accuracy order */
-  Finley_Quad_getMacro *getMacro;         		 /* transfers a given quadrature scheme to a macro element structure */
-}  Finley_QuadInfo;
-
-/************************************************************************************/
-
-/*     Interfaces: */
-
-
-Finley_Quad_getMacro Finley_Quad_MacroPoint;
-Finley_Quad_getMacro Finley_Quad_MacroLine;
-Finley_Quad_getMacro Finley_Quad_MacroTri;
-Finley_Quad_getMacro Finley_Quad_MacroRec;
-Finley_Quad_getMacro Finley_Quad_MacroTet;
-Finley_Quad_getMacro Finley_Quad_MacroHex;
+struct QuadInfo {
+    /// quadrature type id
+    QuadTypeId TypeId;
+    /// the name in text form e.g. "Line", "Rec", ...
+    const char* Name;
+    /// number of spatial dimensions
+    int numDim;
+    /// number of vertices of the element
+    int numVertices;
+    /// function that returns the quadrature points for a given order
+    Quad_getNodes* getQuadNodes;
+    /// function that returns the number of quadrature nodes for a given
+    /// accuracy order
+    Quad_getNumNodes* getNumQuadNodes;
+    /// transfers a given quadrature scheme to a macro element structure
+    Quad_getMacro *getMacro;
+};
 
 
-Finley_Quad_getNodes Finley_Quad_getNodesTri;
-Finley_Quad_getNodes Finley_Quad_getNodesTet;
-Finley_Quad_getNodes Finley_Quad_getNodesRec;
-Finley_Quad_getNodes Finley_Quad_getNodesHex;
-Finley_Quad_getNodes Finley_Quad_getNodesLine;
-Finley_Quad_getNodes Finley_Quad_getNodesPoint;
-Finley_Quad_getNodes Finley_Quad_getNodesTriOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesRecOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesLineOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesPointOnFace;
-Finley_Quad_getNodes Finley_Quad_getNodesTriMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesTetMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesRecMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesHexMacro;
-Finley_Quad_getNodes Finley_Quad_getNodesLineMacro;
+/****** Interfaces ******/
+
+Quad_getMacro Quad_MacroPoint;
+Quad_getMacro Quad_MacroLine;
+Quad_getMacro Quad_MacroTri;
+Quad_getMacro Quad_MacroRec;
+Quad_getMacro Quad_MacroTet;
+Quad_getMacro Quad_MacroHex;
+
+Quad_getNodes Quad_getNodesTri;
+Quad_getNodes Quad_getNodesTet;
+Quad_getNodes Quad_getNodesRec;
+Quad_getNodes Quad_getNodesHex;
+Quad_getNodes Quad_getNodesLine;
+Quad_getNodes Quad_getNodesPoint;
+Quad_getNodes Quad_getNodesTriOnFace;
+Quad_getNodes Quad_getNodesRecOnFace;
+Quad_getNodes Quad_getNodesLineOnFace;
+Quad_getNodes Quad_getNodesPointOnFace;
+Quad_getNodes Quad_getNodesTriMacro;
+Quad_getNodes Quad_getNodesTetMacro;
+Quad_getNodes Quad_getNodesRecMacro;
+Quad_getNodes Quad_getNodesHexMacro;
+Quad_getNodes Quad_getNodesLineMacro;
 
 
+Quad_getNumNodes Quad_getNumNodesPoint;
+Quad_getNumNodes Quad_getNumNodesLine;
+Quad_getNumNodes Quad_getNumNodesTri;
+Quad_getNumNodes Quad_getNumNodesRec;
+Quad_getNumNodes Quad_getNumNodesTet;
+Quad_getNumNodes Quad_getNumNodesHex;
 
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesPoint;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesLine;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesTri;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesRec;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesTet;
-Finley_Quad_getNumNodes Finley_Quad_getNumNodesHex;
+void Quad_makeNodesOnFace(int, int, double*, double*, Quad_getNodes);
+QuadInfo* QuadInfo_getInfo(QuadTypeId id);
 
-void Finley_Quad_makeNodesOnFace(dim_t, dim_t,double*,double*, Finley_Quad_getNodes);
-Finley_QuadInfo* Finley_QuadInfo_getInfo(Finley_QuadTypeId id);
+} // namespace finley
 
-#endif /* #ifndef INC_FINLEY_QUADRATURE */
+#endif // __FINLEY_QUADRATURE_H__
 

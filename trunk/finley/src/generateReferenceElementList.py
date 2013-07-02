@@ -12,7 +12,7 @@
 #
 #******************************************************/
 #
-#  this code generates the Finley_ReferenceElement_InfoList in ReferenceElements.c
+#  this code generates the ReferenceElement_InfoList in ReferenceElements.cpp
 #
 GEOBASE = {
 "Point": (1, 1, "Point", [0] ),
@@ -127,7 +127,7 @@ def LENLEN(l):
    else:
       return len(l)
 
-outall="Finley_ReferenceElementInfo Finley_ReferenceElement_InfoList[]={\n"
+outall="ReferenceElementInfo ReferenceElement_InfoList[]={\n"
 
 for name in ["Point1", "Line2", "Line3", "Line4", "Tri3", "Tri6", "Tri9", "Tri10", "Rec4", "Rec8", "Rec9", "Rec12", "Rec16", "Tet4", "Tet10", "Tet16", "Hex8", "Hex20", "Hex27", "Hex32", "Line2Face", "Line3Face", "Line4Face", "Tri3Face", "Tri6Face", "Tri9Face", "Tri10Face", "Rec4Face", "Rec8Face", "Rec9Face", "Rec12Face", "Rec16Face", "Tet4Face", "Tet10Face", "Tet16Face", "Hex8Face", "Hex20Face", "Hex27Face", "Hex32Face", "Point1_Contact", "Line2_Contact", "Line3_Contact", "Line4_Contact", "Tri3_Contact", "Tri6_Contact", "Tri9_Contact", "Tri10_Contact", "Rec4_Contact", "Rec8_Contact", "Rec9_Contact", "Rec12_Contact", "Rec16_Contact", "Line2Face_Contact", "Line3Face_Contact", "Line4Face_Contact", "Tri3Face_Contact", "Tri6Face_Contact", "Tri9Face_Contact", "Tri10Face_Contact", "Rec4Face_Contact", "Rec8Face_Contact", "Rec9Face_Contact", "Rec12Face_Contact", "Rec16Face_Contact", "Tet4Face_Contact", "Tet10Face_Contact", "Tet16Face_Contact", "Hex8Face_Contact", "Hex20Face_Contact", "Hex27Face_Contact", "Hex32Face_Contact", "Line3Macro", "Tri6Macro", "Rec9Macro", "Tet10Macro", "Hex27Macro" ]:
         isFace=False

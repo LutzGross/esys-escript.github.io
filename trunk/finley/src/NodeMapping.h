@@ -13,28 +13,71 @@
 *
 *****************************************************************************/
 
+/*
+  NodeMapping provides a mapping from the local nodes typically to the
+  degrees of freedom, the reduced degrees of freedom or the reduced node set.
+*/
 
-/* NodeMapping provides a mapping from the local nodes typically to the     */
-/* degrees of freedom, the reduced degrees of freedom or the reduced node set */
+#ifndef __FINLEY_NODEMAPPING_H__
+#define __FINLEY_NODEMAPPING_H__
 
-#ifndef INC_FINLEY_NODEMAPPING
-#define INC_FINLEY_NODEMAPPING
+#include "Util.h"
 
-#include "esysUtils/Esys_MPI.h"
+#include <vector>
 
+namespace finley {
 
-struct Finley_NodeMapping {
-  dim_t numNodes; /* number of FEM nodes */
-  index_t *target; /* target[i] defines the target if FEM node i =0,...,numNodes */
-  index_t unused;  /* target[i]=unused defines that no target is defined for FEM  node i */
-  dim_t numTargets; /* number of targets */
-  index_t *map;  /* maps the target nodes back to the FEM nodes: target[map[i]]=i */
-  dim_t reference_counter;
+struct NodeMapping {
+    /// resets both map and target.
+    void clear()
+    {
+        target.clear();
+        map.clear();
+    }
+
+    /// initializes a node mapping. The target array is copied and a reverse
+    /// map created.
+    /// theTarget[i]=unused means that no target is defined for FEM node i.
+    void assign(const std::vector<int>& theTarget, int unused)
+    {
+        std::pair<int,int> range(
+            util::getFlaggedMinMaxInt(theTarget.size(), &theTarget[0], unused));
+        if (range.first < 0) {
+            Finley_setError(VALUE_ERROR, "NodeMapping: target has negative entry.");
+            return;
+        }
+        // now we assume min(target)=0!
+        const int numTargets = range.first<=range.second ? range.second+1 : 0;
+        target.assign(theTarget.begin(), theTarget.end());
+        map.assign(numTargets, -1);
+
+#pragma omp parallel
+        {
+#pragma omp for
+            for (int i=0; i<target.size(); ++i) {
+                if (target[i] != unused)
+                    map[target[i]]=i;
+            }
+            // sanity check
+#pragma omp for
+            for (int i=0; i<numTargets; ++i) {
+                if (map[i]==-1) {
+                    Finley_setError(VALUE_ERROR, "NodeMapping: target does not define a continuous labeling.");
+                }
+            }
+        }
+    }
+
+    /// returns the number of target nodes (number of items in the map array)
+    int getNumTargets() const { return map.size(); }
+
+    /// target[i] defines the target of FEM node i=0,...,numNodes-1
+    std::vector<int> target;
+    /// maps the target nodes back to the FEM nodes: target[map[i]]=i
+    std::vector<int> map;
 };
-typedef struct Finley_NodeMapping Finley_NodeMapping;
 
-Finley_NodeMapping* Finley_NodeMapping_alloc(dim_t numNodes, index_t* target, index_t unused);
-void Finley_NodeMapping_free(Finley_NodeMapping*);
-Finley_NodeMapping* Finley_NodeMapping_getReference(Finley_NodeMapping *in );
+} // namespace finley
 
-#endif
+#endif // __FINLEY_NODEMAPPING_H__
+

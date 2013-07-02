@@ -33,7 +33,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    ElementFile *newFaceElementsFile=NULL;
    dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
    index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL, *faceNodes=NULL;
-   Finley_ReferenceElement*  faceRefElement=NULL;
+   ReferenceElement*  faceRefElement=NULL;
    
    if (self->MPIInfo->size>1) {
      Finley_setError(TYPE_ERROR,"Finley_Mesh_glueFaces: MPI is not supported yet.");
@@ -41,7 +41,7 @@ void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double toleran
    }
        
    if (self->FaceElements==NULL) return;
-   faceRefElement= Finley_ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
+   faceRefElement= ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
    NNFace=faceRefElement->Type->numNodesOnFace;
    NN=self->FaceElements->numNodes;
    numDim=self->Nodes->numDim;

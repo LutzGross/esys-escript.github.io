@@ -30,7 +30,7 @@ using namespace finley;
 
 Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   Esys_MPIInfo *mpi_info=NULL;
-  Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+  ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
   Finley_Mesh* out=NULL;
   dim_t numNodes=0;
   dim_t numElements=0;
@@ -40,10 +40,10 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
   dim_t i;
   index_t order, reduced_order;
   dim_t numDim;
-  Finley_ElementTypeId elementTypeId=Finley_NoRef;
-  Finley_ElementTypeId faceElementTypeId=Finley_NoRef;
-  Finley_ElementTypeId pointTypeId=Finley_NoRef;
-  Finley_ElementTypeId contactTypeId=Finley_NoRef;
+  ElementTypeId elementTypeId=NoRef;
+  ElementTypeId faceElementTypeId=NoRef;
+  ElementTypeId pointTypeId=NoRef;
+  ElementTypeId contactTypeId=NoRef;
   index_t maxNodeID=0;
   index_t maxDOF=0;
   index_t maxElementID=0;
@@ -77,7 +77,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
        if (msh[i]->Elements!=NULL) {
           numElements+=msh[i]->Elements->numElements;
-          if (elementTypeId==Finley_NoRef) {
+          if (elementTypeId==NoRef) {
              elementTypeId=msh[i]->Elements->referenceElementSet->referenceElement->Type->TypeId;
           } else {
              if (elementTypeId!=msh[i]->Elements->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -88,7 +88,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
        if (msh[i]->FaceElements!=NULL) {
           numFaceElements+=msh[i]->FaceElements->numElements;
-          if (faceElementTypeId==Finley_NoRef) {
+          if (faceElementTypeId==NoRef) {
              faceElementTypeId=msh[i]->FaceElements->referenceElementSet->referenceElement->Type->TypeId;
           } else {
              if (faceElementTypeId!=msh[i]->FaceElements->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -99,7 +99,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
        if (msh[i]->ContactElements!=NULL) {
           numContactElements+=msh[i]->ContactElements->numElements;
-          if (contactTypeId==Finley_NoRef) {
+          if (contactTypeId==NoRef) {
              contactTypeId=msh[i]->ContactElements->referenceElementSet->referenceElement->Type->TypeId;
           } else {
              if (contactTypeId!=msh[i]->ContactElements->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -110,7 +110,7 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
 
        if (msh[i]->Points!=NULL) {
           numPoints+=msh[i]->Points->numElements;
-          if (pointTypeId==Finley_NoRef) {
+          if (pointTypeId==NoRef) {
              pointTypeId=msh[i]->Points->referenceElementSet->referenceElement->Type->TypeId;
           } else {
              if (pointTypeId!=msh[i]->Points->referenceElementSet->referenceElement->Type->TypeId ) {
@@ -132,10 +132,10 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
       out=Finley_Mesh_alloc(newName,numDim,mpi_info);
     }
     if (Finley_noError()) {
-        refElements= Finley_ReferenceElementSet_alloc(elementTypeId,order,reduced_order);
-        refFaceElements=Finley_ReferenceElementSet_alloc(faceElementTypeId, order,reduced_order);
-        refContactElements=Finley_ReferenceElementSet_alloc(contactTypeId, order,reduced_order);
-        refPoints=Finley_ReferenceElementSet_alloc(pointTypeId, order,reduced_order);
+        refElements= ReferenceElementSet_alloc(elementTypeId,order,reduced_order);
+        refFaceElements=ReferenceElementSet_alloc(faceElementTypeId, order,reduced_order);
+        refContactElements=ReferenceElementSet_alloc(contactTypeId, order,reduced_order);
+        refPoints=ReferenceElementSet_alloc(pointTypeId, order,reduced_order);
     }
     if (Finley_noError()) {
       out->Elements=new ElementFile(refElements,mpi_info);
@@ -191,10 +191,10 @@ Finley_Mesh* Finley_Mesh_merge(dim_t numMsh, Finley_Mesh** msh) {
         }
     }
     /* all done  */
-    Finley_ReferenceElementSet_dealloc(refPoints);
-    Finley_ReferenceElementSet_dealloc(refContactElements);
-    Finley_ReferenceElementSet_dealloc(refFaceElements);
-    Finley_ReferenceElementSet_dealloc(refElements);
+    ReferenceElementSet_dealloc(refPoints);
+    ReferenceElementSet_dealloc(refContactElements);
+    ReferenceElementSet_dealloc(refFaceElements);
+    ReferenceElementSet_dealloc(refElements);
     if (! Finley_noError()) {
        Finley_Mesh_free(out);
     } else {

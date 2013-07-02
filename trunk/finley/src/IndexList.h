@@ -46,8 +46,8 @@ Paso_Pattern* IndexList_createPattern(int n0, int n,
         int index_offset);
 
 void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
-                              bool reduce_row_order, int* row_map,
-                              bool reduce_col_order, int* col_map);
+                              bool reduce_row_order, const int* row_map,
+                              bool reduce_col_order, const int* col_map);
 
 void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* index_list,
         int firstRow, int lastRow, ElementFile* elements, int* row_map,

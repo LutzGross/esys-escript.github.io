@@ -18,10 +18,10 @@
 
 namespace finley {
 
-ElementFile_Jacobians::ElementFile_Jacobians(Finley_ShapeFunction* basis)
+ElementFile_Jacobians::ElementFile_Jacobians(ShapeFunction* basis)
 {
     status=FINLEY_INITIAL_STATUS-1;
-    BasisFunctions=Finley_ShapeFunction_reference(basis);
+    BasisFunctions=ShapeFunction_reference(basis);
     numDim=0;
     numQuadTotal=0;
     numElements=0;
@@ -31,7 +31,7 @@ ElementFile_Jacobians::ElementFile_Jacobians(Finley_ShapeFunction* basis)
 
 ElementFile_Jacobians::~ElementFile_Jacobians()
 {
-    Finley_ShapeFunction_dealloc(BasisFunctions);  
+    ShapeFunction_dealloc(BasisFunctions);  
     delete[] volume;
     delete[] DSDX;
 }
@@ -57,11 +57,11 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
     }
 
     if (out->status < nodefile->status) {
-        Finley_ShapeFunction *basis = out->BasisFunctions;
-        Finley_ShapeFunction *shape =
-            Finley_ReferenceElementSet_borrowParametrization(referenceElementSet, reducedIntegrationOrder);
-        Finley_ReferenceElement *refElement =
-            Finley_ReferenceElementSet_borrowReferenceElement(referenceElementSet, reducedIntegrationOrder);
+        ShapeFunction *basis = out->BasisFunctions;
+        ShapeFunction *shape =
+            ReferenceElementSet_borrowParametrization(referenceElementSet, reducedIntegrationOrder);
+        ReferenceElement *refElement =
+            ReferenceElementSet_borrowReferenceElement(referenceElementSet, reducedIntegrationOrder);
 
         out->numDim=nodefile->numDim;
         out->numQuadTotal=shape->numQuadNodes; 

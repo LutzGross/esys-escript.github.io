@@ -49,7 +49,7 @@ typedef struct Paso_Distribution Paso_Distribution;
 
 
 PASO_DLL_API
-Paso_Distribution*  Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, index_t* first_component, index_t m, index_t b);
+Paso_Distribution*  Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, const index_t* first_component, index_t m, index_t b);
 
 PASO_DLL_API
 void                Paso_Distribution_free( Paso_Distribution *in );

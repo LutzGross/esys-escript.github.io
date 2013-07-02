@@ -297,50 +297,33 @@ std::pair<int,int> getMinMaxInt(int dim, int N, const int* values)
     return std::pair<int,int>(vmin,vmax);
 }
 
-/// calculates the minimum value from a dim X N integer array
-int getFlaggedMinInt(int dim, int N, const int* values, int ignore)
+/// calculates the minimum and maximum value from an integer array of length N
+/// disregarding the value 'ignore'
+std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore)
 {
-    int out = std::numeric_limits<int>::max();
-    if (values && dim*N > 0) {
-        out=values[0];
+    int vmin = std::numeric_limits<int>::max();
+    int vmax = std::numeric_limits<int>::min();
+    if (values && N > 0) {
+        vmin = vmax = values[0];
 #pragma omp parallel
         {
-            int out_local=out;
+            int vmin_local=vmin;
+            int vmax_local=vmax;
 #pragma omp for
-            for (int j=0;j<N;j++) {
-                for (int i=0; i<dim; i++) {
-                    if (values[INDEX2(i,j,dim)] != ignore)
-                        out_local=std::min(out_local, values[INDEX2(i,j,dim)]);
+            for (int i=0; i<N; i++) {
+                if (values[i] != ignore) {
+                    vmin_local=std::min(vmin_local, values[i]);
+                    vmax_local=std::max(vmax_local, values[i]);
                 }
             }
 #pragma omp critical
-            out=std::min(out_local, out);
-        }
-    }
-    return out;
-}
-
-/// calculates the maximum value from a dim X N integer array
-int getFlaggedMaxInt(int dim, int N, const int* values, int ignore)
-{
-    int out = std::numeric_limits<int>::min();
-    if (values && dim*N > 0) {
-        out=values[0];
-#pragma omp parallel
-        {
-            int out_local=out;
-#pragma omp for
-            for (int j=0; j<N; j++) {
-                for (int i=0; i<dim; i++) {
-                    if (values[INDEX2(i,j,dim)] != ignore)
-                        out_local=std::max(out_local, values[INDEX2(i,j,dim)]);
-                }
+            {
+                vmin=std::min(vmin_local, vmin);
+                vmax=std::max(vmax_local, vmax);
             }
-#pragma omp critical
-            out=std::max(out_local, out);
         }
     }
-    return out;
+    return std::pair<int,int>(vmin,vmax);
 }
 
 /// determines the indices of the positive entries in mask returning the

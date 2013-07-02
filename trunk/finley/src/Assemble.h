@@ -58,17 +58,17 @@ struct AssembleParameters {
     int numElements;
 
     int numEqu;
-    int* row_DOF;
+    const int* row_DOF;
     int row_DOF_UpperBound;
     ElementFile_Jacobians* row_jac;
-    int* row_node;
+    const int* row_node;
     int row_numShapesTotal;
     int row_numShapes;
     int numComp;
-    int* col_DOF;
+    const int* col_DOF;
     int col_DOF_UpperBound;
     ElementFile_Jacobians* col_jac;
-    int* col_node;
+    const int* col_node;
     int col_numShapesTotal;
     int col_numShapes;
 };
@@ -124,12 +124,12 @@ void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
 
 void Assemble_AverageElementData(ElementFile*, escript::Data&, const escript::Data&);
 void Assemble_CopyElementData(ElementFile*, escript::Data&, const escript::Data&);
-void Assemble_CopyNodalData(NodeFile*, escript::Data&, const escript::Data&);
+void Assemble_CopyNodalData(const NodeFile*, escript::Data&, const escript::Data&);
 void Assemble_NodeCoordinates(NodeFile*, escript::Data&);
 
-void Assemble_gradient(NodeFile*, ElementFile*, escript::Data&, const escript::Data&);
+void Assemble_gradient(const NodeFile*, const ElementFile*, escript::Data&, const escript::Data&);
 void Assemble_integrate(NodeFile*, ElementFile*, const escript::Data&, double*);
-void Assemble_interpolate(NodeFile*, ElementFile*, const escript::Data&, escript::Data&);
+void Assemble_interpolate(const NodeFile*, const ElementFile*, const escript::Data&, escript::Data&);
 void Assemble_setNormal(NodeFile*, ElementFile*, escript::Data&);
 void Assemble_getSize(NodeFile*, ElementFile*, escript::Data&);
 
