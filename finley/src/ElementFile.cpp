@@ -29,10 +29,9 @@ namespace finley {
 
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
-ElementFile::ElementFile(Finley_ReferenceElementSet* refSet,
-                         Esys_MPIInfo *mpiInfo)
+ElementFile::ElementFile(ReferenceElementSet* refSet, Esys_MPIInfo *mpiInfo)
 {
-    referenceElementSet=Finley_ReferenceElementSet_reference(refSet);
+    referenceElementSet=ReferenceElementSet_reference(refSet);
     numElements=0;
     Id=NULL;
     Nodes=NULL;
@@ -59,7 +58,7 @@ ElementFile::ElementFile(Finley_ReferenceElementSet* refSet,
 ElementFile::~ElementFile()
 {
     freeTable();   
-    Finley_ReferenceElementSet_dealloc(referenceElementSet);
+    ReferenceElementSet_dealloc(referenceElementSet);
     delete jacobians;
     delete jacobians_reducedS;
     delete jacobians_reducedQ;
@@ -224,7 +223,7 @@ void ElementFile::setTags(const int newTag, const escript::Data& cMask)
 {
     Finley_resetError();
 
-    const int numQuad=Finley_ReferenceElementSet_borrowReferenceElement(
+    const int numQuad=ReferenceElementSet_borrowReferenceElement(
             referenceElementSet, util::hasReducedIntegrationOrder(cMask))
             ->Parametrization->numQuadNodes; 
     if (1 != cMask.getDataPointSize()) {
@@ -324,8 +323,8 @@ if ((degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) >= len ||
 
 void ElementFile::markNodes(int* mask, int offset, bool useLinear)
 {
-    const Finley_ReferenceElement* refElement =
-        Finley_ReferenceElementSet_borrowReferenceElement(referenceElementSet, FALSE);     
+    const ReferenceElement* refElement =
+        ReferenceElementSet_borrowReferenceElement(referenceElementSet, false);
     if (useLinear) {
         const int NN=refElement->numLinearNodes;
         const int *lin_nodes=refElement->Type->linearNodes;
@@ -349,8 +348,8 @@ void ElementFile::markNodes(int* mask, int offset, bool useLinear)
 void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
         int firstDOF, int lastDOF, int *dofIndex, bool useLinear) 
 {
-    const Finley_ReferenceElement* refElement =
-        Finley_ReferenceElementSet_borrowReferenceElement(referenceElementSet, FALSE);
+    const ReferenceElement* refElement =
+        ReferenceElementSet_borrowReferenceElement(referenceElementSet, false);
     if (useLinear) {
         const int NN=refElement->numLinearNodes;
         const int *lin_nodes=refElement->Type->linearNodes;

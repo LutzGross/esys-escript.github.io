@@ -21,9 +21,10 @@
 #include "Finley.h"
 #include "NodeMapping.h"
 #include "Util.h"
-#include "paso/Distribution.h"
-#include "paso/Coupler.h"
-#include "esysUtils/Esys_MPI.h"
+#include <paso/Distribution.h>
+
+struct Esys_MPIInfo;
+struct Paso_Connector;
 
 namespace finley {
 
@@ -36,31 +37,37 @@ public:
     void allocTable(int numNodes);
     void freeTable();
 
-    inline int getFirstReducedNode();
-    inline int getLastReducedNode();
-    inline int getGlobalNumReducedNodes();
-    inline int* borrowGlobalReducedNodesIndex();
+    void print() const;
+    inline int getFirstNode() const;
+    inline int getLastNode() const;
+    inline int getGlobalNumNodes() const;
+    inline int* borrowGlobalNodesIndex() const;
 
-    inline int getFirstNode();
-    inline int getLastNode();
-    inline int getGlobalNumNodes();
-    inline int* borrowGlobalNodesIndex();
+    inline int getFirstReducedNode() const;
+    inline int getLastReducedNode() const;
+    inline int getGlobalNumReducedNodes() const;
+    inline int* borrowGlobalReducedNodesIndex() const;
 
-    inline int getNumReducedNodes();
-    inline int getNumDegreesOfFreedom();
-    inline int getNumNodes();
-    inline int getNumReducedDegreesOfFreedom();
+    /// returns the number of FEM nodes
+    inline int getNumNodes() const;
+    inline int getNumReducedNodes() const;
+    inline int getNumDegreesOfFreedom() const;
+    inline int getNumReducedDegreesOfFreedom() const;
 
-    inline int* borrowTargetReducedNodes();
-    inline int* borrowTargetDegreesOfFreedom();
-    inline int* borrowTargetNodes();
-    inline int* borrowTargetReducedDegreesOfFreedom();
+    inline const std::vector<int>& borrowReducedNodesTarget() const;
+    inline const std::vector<int>& borrowDegreesOfFreedomTarget() const;
+    inline const std::vector<int>& borrowNodesTarget() const;
+    inline const std::vector<int>& borrowReducedDegreesOfFreedomTarget() const;
 
-    inline int* borrowReducedNodesTarget();
-    inline int* borrowDegreesOfFreedomTarget();
-    inline int* borrowNodesTarget();
-    inline int* borrowReducedDegreesOfFreedomTarget();
+    inline const int* borrowTargetReducedNodes() const;
+    inline const int* borrowTargetDegreesOfFreedom() const;
+    inline const int* borrowTargetNodes() const;
+    inline const int* borrowTargetReducedDegreesOfFreedom() const;
 
+    void createNodeMappings(int numReducedNodes,
+                            const std::vector<int>& indexReducedNodes,
+                            const int* dofDistribution,
+                            const int* nodeDistribution);
     int createDenseDOFLabeling();
     int createDenseNodeLabeling(int* node_distribution, const int* dof_distribution);
     int createDenseReducedLabeling(int* reducedMask, bool useNodes);
@@ -83,9 +90,17 @@ private:
     std::pair<int,int> getGlobalNodeIDIndexRange() const;
     int prepareLabeling(int* mask, std::vector<int>& buffer,
                         std::vector<int>& distribution, bool useNodes);
+    void createDOFMappingAndCoupling(bool reduced);
 
+    NodeMapping nodesMapping;
+ 
 public:
     ///////////////////////////////////////
+    // these should be private as well.
+
+    NodeMapping reducedNodesMapping;
+    NodeMapping degreesOfFreedomMapping;
+    NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
     Esys_MPIInfo *MPIInfo;
@@ -114,11 +129,6 @@ public:
     /// assigns each local reduced node a global unique Id in a dense labeling
     int *globalNodesIndex;
 
-    Finley_NodeMapping *nodesMapping;
-    Finley_NodeMapping *reducedNodesMapping;
-    Finley_NodeMapping *degreesOfFreedomMapping;
-    Finley_NodeMapping *reducedDegreesOfFreedomMapping;
- 
     Paso_Distribution *nodesDistribution;
     Paso_Distribution *reducedNodesDistribution;
     Paso_Distribution *degreesOfFreedomDistribution;
@@ -141,104 +151,104 @@ public:
 // implementation of inline methods
 //
 
-inline int NodeFile::getFirstReducedNode()
-{
-    return Paso_Distribution_getFirstComponent(reducedNodesDistribution);
-}
-
-inline int NodeFile::getLastReducedNode()
-{
-    return Paso_Distribution_getLastComponent(reducedNodesDistribution);
-}
-
-inline int NodeFile::getGlobalNumReducedNodes()
-{
-    return Paso_Distribution_getGlobalNumComponents(reducedNodesDistribution);
-}
-
-inline int* NodeFile::borrowGlobalReducedNodesIndex()
-{
-    return globalReducedNodesIndex;
-}
-
-inline int NodeFile::getFirstNode()
+inline int NodeFile::getFirstNode() const
 {
     return Paso_Distribution_getFirstComponent(nodesDistribution);
 }
 
-inline int NodeFile::getLastNode()
+inline int NodeFile::getLastNode() const
 {
     return Paso_Distribution_getLastComponent(nodesDistribution);
 }
 
-inline int NodeFile::getGlobalNumNodes()
+inline int NodeFile::getGlobalNumNodes() const
 {
     return Paso_Distribution_getGlobalNumComponents(nodesDistribution);
 }
 
-inline int* NodeFile::borrowGlobalNodesIndex()
+inline int* NodeFile::borrowGlobalNodesIndex() const
 {
     return globalNodesIndex;
 }
 
-inline int NodeFile::getNumReducedNodes()
+inline int NodeFile::getFirstReducedNode() const
 {
-    return reducedNodesMapping->numTargets;
+    return Paso_Distribution_getFirstComponent(reducedNodesDistribution);
 }
 
-inline int NodeFile::getNumDegreesOfFreedom()
+inline int NodeFile::getLastReducedNode() const
+{
+    return Paso_Distribution_getLastComponent(reducedNodesDistribution);
+}
+
+inline int NodeFile::getGlobalNumReducedNodes() const
+{
+    return Paso_Distribution_getGlobalNumComponents(reducedNodesDistribution);
+}
+
+inline int* NodeFile::borrowGlobalReducedNodesIndex() const
+{
+    return globalReducedNodesIndex;
+}
+
+inline int NodeFile::getNumNodes() const
+{
+    return numNodes;
+}
+
+inline int NodeFile::getNumReducedNodes() const
+{
+    return reducedNodesMapping.getNumTargets();
+}
+
+inline int NodeFile::getNumDegreesOfFreedom() const
 {
     return Paso_Distribution_getMyNumComponents(degreesOfFreedomDistribution);
 }
 
-inline int NodeFile::getNumNodes()
-{
-    return nodesMapping->numNodes;
-}
-
-inline int NodeFile::getNumReducedDegreesOfFreedom()
+inline int NodeFile::getNumReducedDegreesOfFreedom() const
 {
     return Paso_Distribution_getMyNumComponents(reducedDegreesOfFreedomDistribution);
 }
 
-inline int* NodeFile::borrowTargetReducedNodes()
+inline const std::vector<int>& NodeFile::borrowNodesTarget() const
 {
-    return reducedNodesMapping->target;
+    return nodesMapping.map;
 }
 
-inline int* NodeFile::borrowTargetDegreesOfFreedom()
+inline const std::vector<int>& NodeFile::borrowReducedNodesTarget() const
 {
-    return degreesOfFreedomMapping->target;
+    return reducedNodesMapping.map;
 }
 
-inline int* NodeFile::borrowTargetNodes()
+inline const std::vector<int>& NodeFile::borrowDegreesOfFreedomTarget() const
 {
-    return nodesMapping->target;
+    return degreesOfFreedomMapping.map;
 }
 
-inline int* NodeFile::borrowTargetReducedDegreesOfFreedom()
+inline const std::vector<int>& NodeFile::borrowReducedDegreesOfFreedomTarget() const
 {
-    return reducedDegreesOfFreedomMapping->target;
+    return reducedDegreesOfFreedomMapping.map;
 }
 
-inline int* NodeFile::borrowReducedNodesTarget()
+inline const int* NodeFile::borrowTargetNodes() const
 {
-    return reducedNodesMapping->map;
+    return &nodesMapping.target[0];
 }
 
-inline int* NodeFile::borrowDegreesOfFreedomTarget()
+inline const int* NodeFile::borrowTargetReducedNodes() const
 {
-    return degreesOfFreedomMapping->map;
+    return &reducedNodesMapping.target[0];
 }
 
-inline int* NodeFile::borrowNodesTarget()
+inline const int* NodeFile::borrowTargetDegreesOfFreedom() const
 {
-    return nodesMapping->map;
+    return &degreesOfFreedomMapping.target[0];
 }
 
-inline int* NodeFile::borrowReducedDegreesOfFreedomTarget()
+inline const int* NodeFile::borrowTargetReducedDegreesOfFreedom() const
 {
-    return reducedDegreesOfFreedomMapping->map;
+    return &reducedDegreesOfFreedomMapping.target[0];
 }
 
 inline void NodeFile::updateTagList()

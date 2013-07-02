@@ -14,184 +14,202 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: Reference elements */
+  Finley: Reference elements
 
-/************************************************************************************/
+*****************************************************************************/
 
-#ifndef INC_FINLEY_REFERENCEELEMENTS
-#define INC_FINLEY_REFERENCEELEMENTS
-
-
-/************************************************************************************/
+#ifndef __FINLEY_REFERENCEELEMENTS_H__
+#define __FINLEY_REFERENCEELEMENTS_H__
 
 #include "Finley.h"
 #include "ShapeFunctions.h"
 #include "Quadrature.h"
 
-/************************************************************************************/
-
-/*     The ids of the allowed reference elements: */
-
+//  The ids of the allowed reference elements:
 #define MAX_numNodes 64
 #define MAX_numSubElements 8
 #define MAX_numSides 2
 
+namespace finley {
+
 typedef enum {
-  Finley_Point1,
-  Finley_Line2,
-  Finley_Line3,
-  Finley_Line4,
-  Finley_Tri3,
-  Finley_Tri6,
-  Finley_Tri9,
-  Finley_Tri10,
-  Finley_Rec4,
-  Finley_Rec8,
-  Finley_Rec9,
-  Finley_Rec12,
-  Finley_Rec16,
-  Finley_Tet4,
-  Finley_Tet10,
-  Finley_Tet16,
-  Finley_Hex8,
-  Finley_Hex20,
-  Finley_Hex27,
-  Finley_Hex32,
-  Finley_Line2Face,
-  Finley_Line3Face,
-  Finley_Line4Face,
-  Finley_Tri3Face,
-  Finley_Tri6Face,
-  Finley_Tri9Face,
-  Finley_Tri10Face,
-  Finley_Rec4Face,
-  Finley_Rec8Face,
-  Finley_Rec9Face,
-  Finley_Rec12Face,
-  Finley_Rec16Face,
-  Finley_Tet4Face, 
-  Finley_Tet10Face, 
-  Finley_Tet16Face,
-  Finley_Hex8Face,
-  Finley_Hex20Face, 
-  Finley_Hex27Face, 
-  Finley_Hex32Face, 
-  Finley_Point1_Contact,
-  Finley_Line2_Contact,
-  Finley_Line3_Contact,
-  Finley_Line4_Contact,
-  Finley_Tri3_Contact,
-  Finley_Tri6_Contact,
-  Finley_Tri9_Contact,
-  Finley_Tri10_Contact,
-  Finley_Rec4_Contact,
-  Finley_Rec8_Contact,
-  Finley_Rec9_Contact,
-  Finley_Rec12_Contact,
-  Finley_Rec16_Contact,
-  Finley_Line2Face_Contact,
-  Finley_Line3Face_Contact,
-  Finley_Line4Face_Contact,
-  Finley_Tri3Face_Contact,
-  Finley_Tri6Face_Contact,
-  Finley_Tri9Face_Contact,
-  Finley_Tri10Face_Contact,
-  Finley_Rec4Face_Contact,
-  Finley_Rec8Face_Contact,
-  Finley_Rec9Face_Contact,
-  Finley_Rec12Face_Contact,
-  Finley_Rec16Face_Contact,
-  Finley_Tet4Face_Contact, 
-  Finley_Tet10Face_Contact, 
-  Finley_Tet16Face_Contact,
-  Finley_Hex8Face_Contact,
-  Finley_Hex20Face_Contact,
-  Finley_Hex27Face_Contact, 
-  Finley_Hex32Face_Contact, 
-  Finley_Line3Macro, 
-  Finley_Tri6Macro, 
-  Finley_Rec9Macro,
-  Finley_Tet10Macro,
-  Finley_Hex27Macro,
-  Finley_NoRef   /* marks end of list */
-} Finley_ElementTypeId;
-
-/************************************************************************************/
-
-/*  this struct holds the definition of the reference element: */
-
-typedef struct Finley_ReferenceElementInfo {
-  Finley_ElementTypeId TypeId;               /* the id */
-  const char* Name;                                /* the name in text form e.g. Line1,Rec12,... */
-  dim_t numNodes;                            /* number of nodes defining the element*/
-  dim_t numSubElements;                      /* number of subelements. >1 if macro elements are used. */
-  dim_t numSides;							 /* specifies the number of sides the element supports. This =2 if contact elements are used
-                                                otherwise =1. */
-                                                
-
-  index_t offsets[MAX_numSides+1];			 /* offset to the side nodes: offsets[s]...offset[s+1]-1 refers to the nodes to be used for side s*/								
-
-  
-  Finley_ElementTypeId LinearTypeId;         /* id of the linear version of the element */
-  
-  index_t linearNodes[MAX_numNodes*MAX_numSides];  /* gives the list of nodes defining the linear or macro element */
-  
-  Finley_QuadTypeId Quadrature;                /* quadrature scheme */
-  Finley_ShapeFunctionTypeId Parametrization;  /* shape function for parametrization of the element */
-  Finley_ShapeFunctionTypeId BasisFunctions;   /* shape function for the basis functions */ 
-
-  index_t subElementNodes[MAX_numNodes*MAX_numSides*MAX_numSubElements];         /* gives the list of nodes defining the subelements:
-																		subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is the i-th node in the s-th subelement.*/ 
-/********************************************************************************************************************************************************* */  
-  dim_t numRelevantGeoNodes;                 /* number of nodes used to describe the geometry of the geometrically relevant part of the element
-                                                typically this is numNodes but for 'Face' elements where the quadrature points are defined on face of the element 
-						this is the number of nodes on the particular face. */
-  index_t relevantGeoNodes[MAX_numNodes];    /* list to gather the geometrically relevant nodes (length used is numRelevantGeoNodes)
-                                                this list is used for the VTK interface */
-  
-  dim_t numNodesOnFace;                       /* if the element is allowed as a face element, numNodesOnFace defines the number of nodes defining the face */
-                                              /* the following lists are only used for face elements defined by numNodesOnFace>0 */
-  index_t faceNodes[MAX_numNodes];             /* list of the nodes defining the face */
-  index_t shiftNodes[MAX_numNodes];           /* defines a permutation of the nodes which rotates the nodes on the face */
-  index_t reverseNodes[MAX_numNodes];         /* reverses the order of the nodes on a face. The permutation has to keep 0 fixed. */
-                                              /* shiftNodes={-1} or reverseNodes={-1} are ignored. */
-}  Finley_ReferenceElementInfo;
+  Point1,
+  Line2,
+  Line3,
+  Line4,
+  Tri3,
+  Tri6,
+  Tri9,
+  Tri10,
+  Rec4,
+  Rec8,
+  Rec9,
+  Rec12,
+  Rec16,
+  Tet4,
+  Tet10,
+  Tet16,
+  Hex8,
+  Hex20,
+  Hex27,
+  Hex32,
+  Line2Face,
+  Line3Face,
+  Line4Face,
+  Tri3Face,
+  Tri6Face,
+  Tri9Face,
+  Tri10Face,
+  Rec4Face,
+  Rec8Face,
+  Rec9Face,
+  Rec12Face,
+  Rec16Face,
+  Tet4Face, 
+  Tet10Face, 
+  Tet16Face,
+  Hex8Face,
+  Hex20Face, 
+  Hex27Face, 
+  Hex32Face, 
+  Point1_Contact,
+  Line2_Contact,
+  Line3_Contact,
+  Line4_Contact,
+  Tri3_Contact,
+  Tri6_Contact,
+  Tri9_Contact,
+  Tri10_Contact,
+  Rec4_Contact,
+  Rec8_Contact,
+  Rec9_Contact,
+  Rec12_Contact,
+  Rec16_Contact,
+  Line2Face_Contact,
+  Line3Face_Contact,
+  Line4Face_Contact,
+  Tri3Face_Contact,
+  Tri6Face_Contact,
+  Tri9Face_Contact,
+  Tri10Face_Contact,
+  Rec4Face_Contact,
+  Rec8Face_Contact,
+  Rec9Face_Contact,
+  Rec12Face_Contact,
+  Rec16Face_Contact,
+  Tet4Face_Contact, 
+  Tet10Face_Contact, 
+  Tet16Face_Contact,
+  Hex8Face_Contact,
+  Hex20Face_Contact,
+  Hex27Face_Contact, 
+  Hex32Face_Contact, 
+  Line3Macro, 
+  Tri6Macro, 
+  Rec9Macro,
+  Tet10Macro,
+  Hex27Macro,
+  NoRef   /* marks end of list */
+} ElementTypeId;
 
 
-/************************************************************************************/
+/// this struct holds the definition of the reference element
+struct ReferenceElementInfo {
+    /// the type
+    ElementTypeId TypeId;
+    /// the name in text form e.g. "Line1", "Rec12", ...
+    const char* Name;
+    /// number of nodes defining the element
+    int numNodes;
+    /// number of subelements (>1 if macro elements are used)
+    int numSubElements;
+    /// the number of sides the element supports (=2 if contact elements are
+    /// used, otherwise =1)
+    int numSides;
+    /// offset to the side nodes: offsets[s]...offsets[s+1]-1 refer to the
+    /// nodes to be used for side s
+    int offsets[MAX_numSides+1];
 
-/*  this struct holds the realization of a reference element */
+    /// type id of the linear version of the element
+    ElementTypeId LinearTypeId;
+    /// stores the list of nodes defining the linear or macro element
+    int linearNodes[MAX_numNodes*MAX_numSides];
+    /// quadrature scheme
+    QuadTypeId Quadrature;
+    /// shape function for parametrization of the element
+    ShapeFunctionTypeId Parametrization;
+    /// shape function for the basis functions
+    ShapeFunctionTypeId BasisFunctions;
 
-typedef struct Finley_ReferenceElement {
-	Finley_ReferenceElementInfo* Type;     /* type of the reference element */
-	Finley_ReferenceElementInfo* LinearType;     /* type of the linear reference element */
-	index_t reference_counter;	       /* reference counter */
-        dim_t integrationOrder;                /* used integration order */
-	dim_t numNodes;
-        dim_t numLocalDim;
-	dim_t numLinearNodes;
-	Finley_ShapeFunction* Parametrization;
-	Finley_ShapeFunction* BasisFunctions;
-	Finley_ShapeFunction* LinearBasisFunctions;
-        double* DBasisFunctionDv;                              /* pointer to derivatives to basis function corresponding to the Parametrization quad points */
-        bool_t DBasisFunctionDvShared;                /* TRUE to indicate that DBasisFunctionDv is shared with another object which is managing it */
+    /// the list of nodes defining the subelements, i.e.
+    /// subElementNodes[INDEX2(i,s,BasisFunctions->numShape*numSides)] is
+    /// the i-th node in the s-th subelement
+    int subElementNodes[MAX_numNodes*MAX_numSides*MAX_numSubElements];
 
-}  Finley_ReferenceElement;
+    /// deprecated
+    int numRelevantGeoNodes;
+    int relevantGeoNodes[MAX_numNodes];
 
-/************************************************************************************/
+    /// if the element is allowed as a face element, numNodesOnFace defines
+    /// the number of nodes defining the face
+    int numNodesOnFace;
 
-/*    interfaces: */
+    // the following lists are only used for face elements defined by
+    // numNodesOnFace>0:
 
-Finley_ReferenceElement* Finley_ReferenceElement_alloc(Finley_ElementTypeId,int);
-void Finley_ReferenceElement_dealloc(Finley_ReferenceElement*);
-Finley_ElementTypeId Finley_ReferenceElement_getTypeId(char*);
-Finley_ReferenceElement* Finley_ReferenceElement_reference(Finley_ReferenceElement* in);
-Finley_ReferenceElementInfo* Finley_ReferenceElement_getInfo(Finley_ElementTypeId id);
+    /// list of the nodes defining the face
+    int faceNodes[MAX_numNodes];
+
+    // shiftNodes={-1} or reverseNodes={-1} are ignored.
+    /// defines a permutation of the nodes which rotates the nodes on the face
+    int shiftNodes[MAX_numNodes];
+    /// reverses the order of the nodes on a face. The permutation has to keep
+    /// 0 fixed.
+    int reverseNodes[MAX_numNodes];
+};
 
 
-#define Finley_ReferenceElement_getNumNodes(__in__) (__in__)->Type->numNodes
+/// this struct holds the realization of a reference element
+struct ReferenceElement {
+    /// type of the reference element
+    ReferenceElementInfo* Type;
+    /// type of the linear reference element
+    ReferenceElementInfo* LinearType;
+    /// reference counter
+    int reference_counter;
+    /// used integration order
+    int integrationOrder;
+    int numNodes;
+    int numLocalDim;
+    int numLinearNodes;
+    ShapeFunction* Parametrization;
+    ShapeFunction* BasisFunctions;
+    ShapeFunction* LinearBasisFunctions;
+    /// pointer to derivatives to basis function corresponding to the
+    /// Parametrization of quad points
+    double* DBasisFunctionDv;
+    /// TRUE to indicate that DBasisFunctionDv is shared with another object
+    /// which is managing it
+    bool_t DBasisFunctionDvShared;
+};
 
-#endif /* #ifndef INC_FINLEY_REFERENCEELEMENTS */
+
+/****** interfaces ******/
+
+ReferenceElement* ReferenceElement_alloc(ElementTypeId,int);
+void ReferenceElement_dealloc(ReferenceElement*);
+ElementTypeId ReferenceElement_getTypeId(char*);
+ReferenceElement* ReferenceElement_reference(ReferenceElement* in);
+ReferenceElementInfo* ReferenceElement_getInfo(ElementTypeId id);
+
+inline int ReferenceElement_getNumNodes(const ReferenceElement* in)
+{
+    return in->Type->numNodes;
+}
+
+} // namespace finley
+
+#endif // __FINLEY_REFERENCEELEMENTS_H__
 

@@ -27,29 +27,14 @@
 /*  prints the mesh to standard output: */
 
 void Finley_Mesh_print(Finley_Mesh *in) {
-  dim_t NN,i,j,numDim,NN2;
+  dim_t NN,i,j,NN2;
 
   /* write header */
 
   printf("Mesh name: %s\n",in->Name);
   
   /*  write nodes: */
-  
-  if (in->Nodes!=NULL) {
-    numDim=in->Nodes->numDim;
-    printf("=== %1dD-Nodes:\nnumber of nodes=%d\n", numDim,in->Nodes->numNodes);
-    printf("Id,Tag,globalDegreesOfFreedom,degreesOfFreedom,reducedDegreesOfFeedom,node,reducedNode,Coordinates\n");
-    for (i=0;i<in->Nodes->numNodes;i++) {
-      printf("%d,%d,%d,%d,%d,%d,%d ",
-            in->Nodes->Id[i],in->Nodes->Tag[i],in->Nodes->globalDegreesOfFreedom[i],
-            in->Nodes->degreesOfFreedomMapping->target[i],
-            in->Nodes->reducedDegreesOfFreedomMapping->target[i],
-            in->Nodes->nodesMapping->target[i],
-            in->Nodes->reducedNodesMapping->target[i]);
-      for (j=0;j<numDim;j++) printf(" %20.15e",in->Nodes->Coordinates[INDEX2(j,i,numDim)]);
-      printf("\n");
-    }
-  }
+  in->Nodes->print();
   
   /*  write elements: */
 

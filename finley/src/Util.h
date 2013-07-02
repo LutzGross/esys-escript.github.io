@@ -71,9 +71,7 @@ int getMaxInt(int dim, int N, const int* values);
 
 std::pair<int,int> getMinMaxInt(int dim, int N, const int* values);
 
-int getFlaggedMinInt(int dim, int N, const int* values, int ignore);
-
-int getFlaggedMaxInt(int dim, int N, const int* values, int ignore);
+std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore);
 
 int packMask(int N, const bool_t* mask, int* index);
 

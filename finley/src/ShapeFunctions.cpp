@@ -23,32 +23,32 @@
 #include "ShapeFunctions.h"
 #include "esysUtils/mem.h"
 #include "esysUtils/index.h"
-#include <string.h>
+#include <cstring>
 
+namespace finley {
 
-
-Finley_ShapeFunctionInfo Finley_ShapeFunction_InfoList[]={
-	{Point1Shape, "Point1", 0,  1, 1, 1,	Finley_Shape_Point1 } ,
-        {Line2Shape,  "Line2",  1,  2, 1, 2,	Finley_Shape_Line2  } ,
-	{Line3Shape,  "Line3",  1,  3, 2, 2,	Finley_Shape_Line3  },
-	{Line4Shape,  "Line4",  1,  4, 3, 2,	Finley_Shape_Line4  },
-	{Tri3Shape,   "Tri3",   2,  3, 1, 3,	Finley_Shape_Tri3   },
-	{Tri6Shape,   "Tri6",   2,  6, 2, 3,	Finley_Shape_Tri6   },
-	{Tri9Shape,   "Tri9",   2,  9, 3, 3,	Finley_Shape_Tri9   },
-	{Tri10Shape,  "Tri10",  2, 10, 3, 3,	Finley_Shape_Tri10, },
-	{Rec4Shape,   "Rec4",   2,  4, 1, 4,	Finley_Shape_Rec4,  },
-	{Rec8Shape,   "Rec8",   2,  8, 2, 4,	Finley_Shape_Rec8,  },
-	{Rec9Shape,   "Rec9",   2,  9, 2, 4,	Finley_Shape_Rec9,  }, 
-	{Rec12Shape,  "Rec12",  2, 12, 3, 4,	Finley_Shape_Rec12, },
-	{Rec16Shape,  "Rec16",  2, 16, 3, 4,	Finley_Shape_Rec16, },
-	{Tet4Shape,   "Tet4",   3,  4, 1, 4,	Finley_Shape_Tet4,  },
-	{Tet10Shape,  "Tet10",  3, 10, 2, 4,	Finley_Shape_Tet10, },
-	{Tet16Shape,  "Tet16",  3, 16, 3, 4,	Finley_Shape_Tet16, },
-	{Hex8Shape,   "Hex8",   3,  8, 1, 8,	Finley_Shape_Hex8,  },
-	{Hex20Shape,  "Hex20",  3, 20, 2, 8,	Finley_Shape_Hex20, },
-	{Hex27Shape,  "Hex27",  3, 27, 2, 8,	Finley_Shape_Hex27, },
-	{Hex32Shape,  "Hex32",  3, 32, 3, 8,	Finley_Shape_Hex32, },
-	{NoShape, "NoType", 0,  1, 1, 1,	Finley_Shape_Point1  }
+ShapeFunctionInfo ShapeFunction_InfoList[]={
+	{Point1Shape, "Point1", 0,  1, 1, 1,	Shape_Point1 } ,
+        {Line2Shape,  "Line2",  1,  2, 1, 2,	Shape_Line2  } ,
+	{Line3Shape,  "Line3",  1,  3, 2, 2,	Shape_Line3  },
+	{Line4Shape,  "Line4",  1,  4, 3, 2,	Shape_Line4  },
+	{Tri3Shape,   "Tri3",   2,  3, 1, 3,	Shape_Tri3   },
+	{Tri6Shape,   "Tri6",   2,  6, 2, 3,	Shape_Tri6   },
+	{Tri9Shape,   "Tri9",   2,  9, 3, 3,	Shape_Tri9   },
+	{Tri10Shape,  "Tri10",  2, 10, 3, 3,	Shape_Tri10, },
+	{Rec4Shape,   "Rec4",   2,  4, 1, 4,	Shape_Rec4,  },
+	{Rec8Shape,   "Rec8",   2,  8, 2, 4,	Shape_Rec8,  },
+	{Rec9Shape,   "Rec9",   2,  9, 2, 4,	Shape_Rec9,  }, 
+	{Rec12Shape,  "Rec12",  2, 12, 3, 4,	Shape_Rec12, },
+	{Rec16Shape,  "Rec16",  2, 16, 3, 4,	Shape_Rec16, },
+	{Tet4Shape,   "Tet4",   3,  4, 1, 4,	Shape_Tet4,  },
+	{Tet10Shape,  "Tet10",  3, 10, 2, 4,	Shape_Tet10, },
+	{Tet16Shape,  "Tet16",  3, 16, 3, 4,	Shape_Tet16, },
+	{Hex8Shape,   "Hex8",   3,  8, 1, 8,	Shape_Hex8,  },
+	{Hex20Shape,  "Hex20",  3, 20, 2, 8,	Shape_Hex20, },
+	{Hex27Shape,  "Hex27",  3, 27, 2, 8,	Shape_Hex27, },
+	{Hex32Shape,  "Hex32",  3, 32, 3, 8,	Shape_Hex32, },
+	{NoShape, "NoType", 0,  1, 1, 1,	Shape_Point1  }
 };
 
 
@@ -61,25 +61,25 @@ Finley_ShapeFunctionInfo Finley_ShapeFunction_InfoList[]={
     nodes. Otherwise it is assumed that a quadrature scheme is given on this array and a copy is created within the structure.
 
 */
-Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights) {
-	Finley_ShapeFunction *out=NULL;
+ShapeFunction* ShapeFunction_alloc(ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights) {
+	ShapeFunction *out=NULL;
 	int numDim, numShapes, i, q;
   
-	numDim=Finley_ShapeFunction_InfoList[id].numDim;
-        numShapes=Finley_ShapeFunction_InfoList[id].numShapes;
+	numDim=ShapeFunction_InfoList[id].numDim;
+        numShapes=ShapeFunction_InfoList[id].numShapes;
   
     if (numQuadDim>numDim) {    
-	    Finley_setError(VALUE_ERROR,"Finley_ShapeFunction_alloc: spatial dimension of quadrature scheme is bigger then spatial dimension of shape function.");
+	    Finley_setError(VALUE_ERROR,"ShapeFunction_alloc: spatial dimension of quadrature scheme is bigger then spatial dimension of shape function.");
 	    return NULL;
     }
 	
-	/*  allocate the Finley_ShapeFunction to be returned: */
+	/*  allocate the ShapeFunction to be returned: */
   
-	out=new Finley_ShapeFunction;
+	out=new ShapeFunction;
 	if (Finley_checkPtr(out)) return NULL;
 
   
-	out->Type=Finley_ShapeFunction_getInfo(id);
+	out->Type=ShapeFunction_getInfo(id);
 	out->numQuadNodes=numQuadNodes;
 	out->QuadNodes=NULL;
 	out->QuadWeights=NULL;
@@ -94,7 +94,7 @@ Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,i
 	out->S=new double[numShapes*numQuadNodes];
 	out->dSdv=new double[numShapes*numDim*numQuadNodes];
 	if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
-         Finley_ShapeFunction_dealloc(out);
+         ShapeFunction_dealloc(out);
          return NULL;
 	}
   
@@ -111,7 +111,7 @@ Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,i
 	out->Type->getValues(numQuadNodes,out->QuadNodes,out->S,out->dSdv);
 
 	if (! Finley_noError()) {
-         Finley_ShapeFunction_dealloc(out);
+         ShapeFunction_dealloc(out);
          return NULL;
 	} 
   
@@ -120,13 +120,13 @@ Finley_ShapeFunction* Finley_ShapeFunction_alloc(Finley_ShapeFunctionTypeId id,i
 	return out;
 }
 
-Finley_ShapeFunction* Finley_ShapeFunction_reference(Finley_ShapeFunction* in) {
+ShapeFunction* ShapeFunction_reference(ShapeFunction* in) {
      if (in!=NULL) ++(in->reference_counter);
      return in;
 }
 /************************************************************************************/
 
-void Finley_ShapeFunction_dealloc(Finley_ShapeFunction* in) {
+void ShapeFunction_dealloc(ShapeFunction* in) {
   if (in!=NULL) { 
 	  in->reference_counter--;
 	  if (in->reference_counter<1) {
@@ -141,27 +141,27 @@ void Finley_ShapeFunction_dealloc(Finley_ShapeFunction* in) {
 
 /************************************************************************************/
 
-Finley_ShapeFunctionTypeId Finley_ShapeFunction_getTypeId(char* element_type) 
+ShapeFunctionTypeId ShapeFunction_getTypeId(char* element_type) 
 {
     int ptr=0;
-    Finley_ShapeFunctionTypeId out=NoShape;
-    while (Finley_ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NoShape) {
-       if (strcmp(element_type,Finley_ShapeFunction_InfoList[ptr].Name)==0) out=Finley_ShapeFunction_InfoList[ptr].TypeId;
+    ShapeFunctionTypeId out=NoShape;
+    while (ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NoShape) {
+       if (strcmp(element_type,ShapeFunction_InfoList[ptr].Name)==0) out=ShapeFunction_InfoList[ptr].TypeId;
        ptr++;
     }
     return out;
 }
 
-Finley_ShapeFunctionInfo* Finley_ShapeFunction_getInfo(Finley_ShapeFunctionTypeId id)
+ShapeFunctionInfo* ShapeFunction_getInfo(ShapeFunctionTypeId id)
 {
     int ptr=0;
-    Finley_ShapeFunctionInfo* out=NULL;
-    while (Finley_ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NULL) {
-       if (Finley_ShapeFunction_InfoList[ptr].TypeId==id) out=&(Finley_ShapeFunction_InfoList[ptr]);
+    ShapeFunctionInfo* out=NULL;
+    while (ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NULL) {
+       if (ShapeFunction_InfoList[ptr].TypeId==id) out=&(ShapeFunction_InfoList[ptr]);
        ptr++;
     }
     if (out==NULL) {
-        Finley_setError(VALUE_ERROR,"Finley_ShapeFunctionInfo_getInfo: cannot find requested shape function");
+        Finley_setError(VALUE_ERROR,"ShapeFunctionInfo_getInfo: cannot find requested shape function");
     }
     return out;
 }
@@ -174,7 +174,7 @@ Finley_ShapeFunctionInfo* Finley_ShapeFunction_getInfo(Finley_ShapeFunctionTypeI
 
 /************************************************************************************/
 
-void Finley_Shape_Point1(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Point1(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 1
   #define DIM 0
   int i;
@@ -188,7 +188,7 @@ void Finley_Shape_Point1(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Line2(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Line2(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 2
   #define DIM 1
   register double x;
@@ -207,7 +207,7 @@ void Finley_Shape_Line2(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Line3(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Line3(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 3
   #define DIM 1
   register double x;
@@ -228,7 +228,7 @@ void Finley_Shape_Line3(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Line4(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Line4(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 4
   #define DIM 1
   register double x;
@@ -251,7 +251,7 @@ void Finley_Shape_Line4(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tri3(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tri3(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 3
   #define DIM 2
   register double x,y;
@@ -276,7 +276,7 @@ void Finley_Shape_Tri3(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tri6(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tri6(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 6
   #define DIM 2
   register double x,y;
@@ -310,7 +310,7 @@ void Finley_Shape_Tri6(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tri9(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tri9(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 9
   #define DIM 2
   register double x,y;
@@ -353,7 +353,7 @@ void Finley_Shape_Tri9(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tri10(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tri10(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 10
   #define DIM 2
   register double x,y;
@@ -399,7 +399,7 @@ void Finley_Shape_Tri10(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Rec4(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Rec4(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 4
   #define DIM 2
   register double x,y;
@@ -427,7 +427,7 @@ void Finley_Shape_Rec4(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Rec8(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Rec8(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 8
   #define DIM 2
   register double x,y;
@@ -467,7 +467,7 @@ void Finley_Shape_Rec8(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Rec9(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Rec9(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 9
   #define DIM 2
   register double x,y;
@@ -510,7 +510,7 @@ void Finley_Shape_Rec9(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Rec12(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Rec12(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 12
   #define DIM 2
   register double x,y;
@@ -562,7 +562,7 @@ void Finley_Shape_Rec12(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Rec16(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Rec16(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 16
   #define DIM 2
   register double x,y;
@@ -626,7 +626,7 @@ void Finley_Shape_Rec16(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tet4(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tet4(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 4
   #define DIM 3
   register double x,y,z;
@@ -659,7 +659,7 @@ void Finley_Shape_Tet4(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 10
   #define DIM 3
   register double x,y,z;
@@ -727,7 +727,7 @@ void Finley_Shape_Tet10(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Tet16(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Tet16(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 16
   #define DIM 3
   register double x,y,z;
@@ -808,7 +808,7 @@ void Finley_Shape_Tet16(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Hex8(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Hex8(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 8
   #define DIM 3
   register double x,y,z;
@@ -857,7 +857,7 @@ void Finley_Shape_Hex8(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Hex20(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Hex20(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 20
   #define DIM 3
   register double x,y,z;
@@ -954,7 +954,7 @@ void Finley_Shape_Hex20(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Hex27(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Hex27(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 27
   #define DIM 3
   register double x,y,z;
@@ -1079,7 +1079,7 @@ void Finley_Shape_Hex27(int NumV,double* v,double* s,double* dsdv) {
 
 /************************************************************************************/
 
-void Finley_Shape_Hex32(int NumV,double* v,double* s,double* dsdv) {
+void Shape_Hex32(int NumV,double* v,double* s,double* dsdv) {
   #define NUMSHAPES 32
   #define DIM 3
   register double x,y,z;
@@ -1225,4 +1225,5 @@ void Finley_Shape_Hex32(int NumV,double* v,double* s,double* dsdv) {
 #undef S
 #undef DSDV
 
+} // namespace finley
 

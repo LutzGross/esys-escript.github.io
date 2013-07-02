@@ -71,33 +71,33 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
             this->numComp=sm->logical_col_block_size;
         }
     }
-    this->col_DOF=nodes->degreesOfFreedomMapping->target;
-    this->row_DOF=nodes->degreesOfFreedomMapping->target;
+    this->col_DOF=nodes->borrowTargetDegreesOfFreedom();
+    this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
     // get the information for the labeling of the degrees of freedom from
     // the matrix
     if (sm!=NULL) {
         // Make sure # rows in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
-        if (Paso_Distribution_getMyNumComponents(sm->row_distribution)*sm->row_block_size==this->numEqu* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
-            this->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-            this->row_DOF=nodes->degreesOfFreedomMapping->target;
+        if (Paso_Distribution_getMyNumComponents(sm->row_distribution)*sm->row_block_size==this->numEqu*nodes->getNumDegreesOfFreedom()) {
+            this->row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
+            this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
             this->row_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if (Paso_Distribution_getMyNumComponents(sm->row_distribution)*sm->row_block_size==this->numEqu* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
-            this->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-            this->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
+        } else if (Paso_Distribution_getMyNumComponents(sm->row_distribution)*sm->row_block_size==this->numEqu*nodes->getNumReducedDegreesOfFreedom()) {
+            this->row_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
+            this->row_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
             this->row_jac=ef->borrowJacobians(nodes, true, reducedOrder);
         } else {
             Finley_setError(TYPE_ERROR, "AssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
         }
         // Make sure # cols in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
-        if (Paso_Distribution_getMyNumComponents(sm->col_distribution)*sm->col_block_size==this->numComp* Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)) {
-            this->col_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-            this->col_DOF=nodes->degreesOfFreedomMapping->target;
+        if (Paso_Distribution_getMyNumComponents(sm->col_distribution)*sm->col_block_size==this->numComp*nodes->getNumDegreesOfFreedom()) {
+            this->col_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
+            this->col_DOF=nodes->borrowTargetDegreesOfFreedom();
             this->col_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if ( Paso_Distribution_getMyNumComponents(sm->col_distribution)*sm->col_block_size==this->numComp* Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)) {
-            this->col_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-            this->col_DOF=nodes->reducedDegreesOfFreedomMapping->target;
+        } else if (Paso_Distribution_getMyNumComponents(sm->col_distribution)*sm->col_block_size==this->numComp*nodes->getNumReducedDegreesOfFreedom()) {
+            this->col_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
+            this->col_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
             this->col_jac=ef->borrowJacobians(nodes, true, reducedOrder);
         } else {
             Finley_setError(TYPE_ERROR, "AssembleParameters: number of columns in matrix does not match the number of degrees of freedom in mesh");
@@ -109,13 +109,13 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
 
     // get the information from right hand side
     if (!rhs.isEmpty()) {
-        if (rhs.numSamplesEqual(1, Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution))) {
-            this->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
-            this->row_DOF=nodes->degreesOfFreedomMapping->target;
+        if (rhs.numSamplesEqual(1, nodes->getNumDegreesOfFreedom())) {
+            this->row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
+            this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
             this->row_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if (rhs.numSamplesEqual(1, Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))) {
-            this->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
-            this->row_DOF=nodes->reducedDegreesOfFreedomMapping->target;
+        } else if (rhs.numSamplesEqual(1, nodes->getNumReducedDegreesOfFreedom())) {
+            this->row_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
+            this->row_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
             this->row_jac=ef->borrowJacobians(nodes, true, reducedOrder);
         } else {
             Finley_setError(TYPE_ERROR, "AssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
@@ -127,7 +127,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         }
     }
 
-    numSub=MIN(this->row_jac->numSub, this->col_jac->numSub);
+    numSub=std::min(this->row_jac->numSub, this->col_jac->numSub);
     numQuadSub=this->row_jac->numQuadTotal/numSub;
     if (this->row_jac->numSides != this->col_jac->numSides) {
         Finley_setError(TYPE_ERROR, "AssembleParameters: number of sides for row and column shape functions must match.");

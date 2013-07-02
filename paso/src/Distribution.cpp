@@ -29,7 +29,7 @@
 #include "esysUtils/error.h"  /* For checkPtr */
 
 Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, 
-                                            index_t *first_component,
+                                            const index_t *first_component,
                                             index_t m, index_t b) 
 {
   int i;

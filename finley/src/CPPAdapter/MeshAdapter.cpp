@@ -2163,15 +2163,15 @@ bool MeshAdapter::supportsContactElements() const
     return true;
 }
 
-ReferenceElementSetWrapper::ReferenceElementSetWrapper(Finley_ElementTypeId id,
+ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id,
         index_t order, index_t reducedOrder)
 {
-    m_refSet = Finley_ReferenceElementSet_alloc(id, order, reducedOrder);
+    m_refSet = ReferenceElementSet_alloc(id, order, reducedOrder);
 }
 
 ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
 {
-    Finley_ReferenceElementSet_dealloc(m_refSet);
+    ReferenceElementSet_dealloc(m_refSet);
 }
 
 void MeshAdapter::addDiracPoints(const vector<double>& points,

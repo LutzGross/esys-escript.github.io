@@ -25,7 +25,7 @@
 namespace finley {
 
 struct ElementFile_Jacobians {
-    ElementFile_Jacobians(Finley_ShapeFunction*);
+    ElementFile_Jacobians(ShapeFunction*);
     ~ElementFile_Jacobians();
 
     /// status of mesh when jacobians were updated last time
@@ -33,7 +33,7 @@ struct ElementFile_Jacobians {
     /// number of spatial dimensions
     int numDim;
     /// basis function used
-    Finley_ShapeFunction* BasisFunctions;
+    ShapeFunction* BasisFunctions;
     /// total number of quadrature nodes used to calculate jacobians
     /// = numSub * BasisFunctions->numQuadNodes
     int numQuadTotal;
@@ -60,8 +60,7 @@ struct ElementFile_Jacobians {
 class ElementFile
 {
 public:
-    ElementFile(Finley_ReferenceElementSet* referenceElementSet,
-                Esys_MPIInfo *mpiInfo);
+    ElementFile(ReferenceElementSet* refElementSet, Esys_MPIInfo *mpiInfo);
     ~ElementFile();
 
     void allocTable(int numElements);
@@ -97,7 +96,7 @@ public:
     Esys_MPIInfo *MPIInfo;
 
     /// the reference element to be used
-    Finley_ReferenceElementSet *referenceElementSet;
+    ReferenceElementSet *referenceElementSet;
     /// number of elements
     int numElements;
     /// Id[i] is the id number of node i. This number is used when elements

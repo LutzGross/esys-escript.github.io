@@ -43,14 +43,14 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints,
 {
     Esys_MPIInfo *mpi_info = Esys_MPIInfo_getReference(mesh->MPIInfo);
     ElementFile *oldPoints=mesh->Points;
-    Finley_ReferenceElementSet *refPoints=NULL;
+    ReferenceElementSet *refPoints=NULL;
     dim_t numOldPoints;
     if (oldPoints == NULL) {
-        refPoints=Finley_ReferenceElementSet_alloc(Finley_Point1,
+        refPoints=ReferenceElementSet_alloc(Point1,
                         mesh->integrationOrder, mesh->reducedIntegrationOrder);
         numOldPoints=0;
     } else {
-        refPoints=Finley_ReferenceElementSet_reference(oldPoints->referenceElementSet);
+        refPoints=ReferenceElementSet_reference(oldPoints->referenceElementSet);
         numOldPoints=mesh->Points->numElements;
     }
     ElementFile *newPoints=new ElementFile(refPoints, mpi_info);
@@ -249,7 +249,7 @@ void Finley_Mesh_addPoints(Finley_Mesh* mesh, const dim_t numPoints,
     // all done, clean up
     delete[] node_id_p;
     delete[] point_index_p;
-    Finley_ReferenceElementSet_dealloc(refPoints);
+    ReferenceElementSet_dealloc(refPoints);
     Esys_MPIInfo_free(mpi_info);
     if (Finley_noError()) {
         delete oldPoints;

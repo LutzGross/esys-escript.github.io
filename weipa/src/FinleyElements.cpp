@@ -106,7 +106,7 @@ namespace weipa {
 FinleyElements::FinleyElements(const string& elementName, FinleyNodes_ptr nodeData)
     : originalMesh(nodeData), name(elementName), numElements(0),
       numGhostElements(0), nodesPerElement(0),
-      type(ZONETYPE_UNKNOWN), finleyTypeId(Finley_NoRef), elementFactor(1)
+      type(ZONETYPE_UNKNOWN), finleyTypeId(finley::NoRef), elementFactor(1)
 {
     nodeMesh.reset(new FinleyNodes(name));
 }
@@ -242,7 +242,7 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
         if (f.useQuadNodes) {
             CoordArray quadNodes;
             int numQuadNodes;
-            Finley_ShapeFunction* sf = finleyFile->referenceElementSet
+            finley::ShapeFunction* sf = finleyFile->referenceElementSet
                 ->referenceElement->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
@@ -325,7 +325,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
         var->get(&tag[0], numElements);
 
         att = ncfile->get_att((name + string("_TypeId")).c_str());
-        finleyTypeId = (Finley_ElementTypeId)att->as_int(0);
+        finleyTypeId = (finley::ElementTypeId)att->as_int(0);
         FinleyElementInfo f = getFinleyTypeInfo(finleyTypeId);
         type = f.elementType;
         elementFactor = f.elementFactor;
@@ -342,11 +342,11 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
             int reduced_order = att->as_int(0);
             finley::ReferenceElementSetWrapper wrapper(finleyTypeId, order,
                     reduced_order);
-            Finley_ReferenceElementSet* refElements = wrapper.getElementSet();
+            finley::ReferenceElementSet* refElements = wrapper.getElementSet();
 
             CoordArray quadNodes;
             int numQuadNodes;
-            Finley_ShapeFunction* sf = refElements->referenceElement
+            finley::ShapeFunction* sf = refElements->referenceElement
                 ->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
@@ -830,7 +830,7 @@ FinleyElementInfo FinleyElements::getDudleyTypeInfo(Dudley_ElementTypeId typeId)
 //
 //
 //
-FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
+FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId)
 {
     FinleyElementInfo ret;
     ret.multiCellIndices = NULL;
@@ -839,102 +839,102 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
     ret.quadDim = 0;
 
     switch (typeId) {
-        case Finley_Point1_Contact://untested
-        case Finley_Line2Face_Contact://untested
-        case Finley_Line3Face_Contact://untested
-        case Finley_Line2Face://untested
-        case Finley_Line3Face://untested
-        case Finley_Point1://untested
+        case finley::Point1_Contact://untested
+        case finley::Line2Face_Contact://untested
+        case finley::Line3Face_Contact://untested
+        case finley::Line2Face://untested
+        case finley::Line3Face://untested
+        case finley::Point1://untested
             cerr << "WARNING: Finley type " <<typeId<< " is untested!" << endl;
             ret.elementSize = 1;
             ret.elementType = ZONETYPE_POLYGON;
             break;
 
-        case Finley_Tri3Face://untested
+        case finley::Tri3Face://untested
             cerr << "WARNING: Finley type " <<typeId<< " is untested!" << endl;
-        case Finley_Tri3Face_Contact:
-        case Finley_Line2_Contact:
-        case Finley_Rec4Face_Contact:
-        case Finley_Rec4Face:
-        case Finley_Line2:
+        case finley::Tri3Face_Contact:
+        case finley::Line2_Contact:
+        case finley::Rec4Face_Contact:
+        case finley::Rec4Face:
+        case finley::Line2:
             ret.elementSize = ret.reducedElementSize = 2;
             ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
             break;
 
-        case Finley_Line3Macro:
+        case finley::Line3Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 1;
             // fall through
-        case Finley_Line3:
+        case finley::Line3:
             ret.multiCellIndices = line3indices;
             ret.elementFactor = 2;
             // fall through
-        case Finley_Line3_Contact:
-        case Finley_Tri6Face_Contact://untested
-        case Finley_Rec8Face_Contact:
-        case Finley_Tri6Face://untested
-        case Finley_Rec8Face:
+        case finley::Line3_Contact:
+        case finley::Tri6Face_Contact://untested
+        case finley::Rec8Face_Contact:
+        case finley::Tri6Face://untested
+        case finley::Rec8Face:
             //VTK_QUADRATIC_EDGE
             ret.elementSize = ret.reducedElementSize = 2;
             ret.elementType = ret.reducedElementType = ZONETYPE_BEAM;
             break;
 
-        case Finley_Tet4Face_Contact://untested
-        case Finley_Tet4Face://untested
+        case finley::Tet4Face_Contact://untested
+        case finley::Tet4Face://untested
             cerr << "WARNING: Finley type " <<typeId<< " is untested!" << endl;
-        case Finley_Tri3_Contact:
-        case Finley_Tri3:
+        case finley::Tri3_Contact:
+        case finley::Tri3:
             ret.elementSize = ret.reducedElementSize = 3;
             ret.elementType = ret.reducedElementType = ZONETYPE_TRIANGLE;
             break;
 
-        case Finley_Rec4_Contact:
-        case Finley_Hex8Face_Contact:
-        case Finley_Hex8Face:
-        case Finley_Rec4:
+        case finley::Rec4_Contact:
+        case finley::Hex8Face_Contact:
+        case finley::Hex8Face:
+        case finley::Rec4:
             ret.elementSize = ret.reducedElementSize = 4;
             ret.elementType = ret.reducedElementType = ZONETYPE_QUAD;
             break;
 
-        case Finley_Rec9:
-        case Finley_Rec9Macro:
+        case finley::Rec9:
+        case finley::Rec9Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 2;
             ret.multiCellIndices = rec9indices;
             ret.elementFactor = 4;
             // fall through
-        case Finley_Rec9_Contact:
+        case finley::Rec9_Contact:
             ret.elementSize = ret.reducedElementSize = 4;
             ret.elementType = ret.reducedElementType = ZONETYPE_QUAD;
             break;
 
-        case Finley_Tet4:
+        case finley::Tet4:
             ret.elementSize = ret.reducedElementSize = 4;
             ret.elementType = ret.reducedElementType = ZONETYPE_TET;
             break;
 
-        case Finley_Tri6:
-        case Finley_Tri6Macro:
+        case finley::Tri6:
+        case finley::Tri6Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 2;
             ret.multiCellIndices = tri6indices;
             ret.elementFactor = 4;
             // fall through
-        case Finley_Tri6_Contact:
-        case Finley_Tet10Face_Contact://untested
-        case Finley_Tet10Face://untested
+        case finley::Tri6_Contact:
+        case finley::Tet10Face_Contact://untested
+        case finley::Tet10Face://untested
             //VTK_QUADRATIC_TRIANGLE
             ret.elementSize = ret.reducedElementSize = 3;
             ret.elementType = ret.reducedElementType = ZONETYPE_TRIANGLE;
             break;
 
-        case Finley_Rec8:
+        case finley::Rec8:
             ret.multiCellIndices = rec8indices;
             ret.elementFactor = 6;
             // fall through
-        case Finley_Hex20Face:
-        case Finley_Rec8_Contact:
-        case Finley_Hex20Face_Contact:
+        case finley::Hex20Face:
+        case finley::Rec8_Contact:
+        case finley::Hex20Face_Contact:
             //VTK_QUADRATIC_QUAD
             ret.elementSize = 3;
             ret.elementType = ZONETYPE_TRIANGLE; 
@@ -942,8 +942,8 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
             ret.reducedElementType = ZONETYPE_QUAD;
             break;
 
-        case Finley_Tet10:
-        case Finley_Tet10Macro:
+        case finley::Tet10:
+        case finley::Tet10Macro:
             //VTK_QUADRATIC_TETRA
             ret.useQuadNodes = true;
             ret.quadDim = 3;
@@ -953,7 +953,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
             ret.elementType = ret.reducedElementType = ZONETYPE_TET;
             break;
 
-        case Finley_Hex20:
+        case finley::Hex20:
             //VTK_QUADRATIC_HEXAHEDRON
             ret.multiCellIndices = hex20indices;
             ret.elementFactor = 36;
@@ -963,14 +963,14 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(Finley_ElementTypeId typeId)
             ret.reducedElementType = ZONETYPE_HEX;
             break;
 
-        case Finley_Hex27:
-        case Finley_Hex27Macro:
+        case finley::Hex27:
+        case finley::Hex27Macro:
             ret.useQuadNodes = true;
             ret.quadDim = 3;
             ret.multiCellIndices = hex27indices;
             ret.elementFactor = 8;
             // fall through
-        case Finley_Hex8:
+        case finley::Hex8:
             ret.elementSize = ret.reducedElementSize = 8;
             ret.elementType = ret.reducedElementType = ZONETYPE_HEX;
             break;
@@ -1099,7 +1099,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
     if (numQNodes == 0)
         return qmi;
 
-    if (finleyTypeId == Finley_Line3Macro) {
+    if (finleyTypeId == finley::Line3Macro) {
         for (int i=0; i<elementFactor; i++) {
             const float bounds[] = { .25, .75 };
             IntVec m(numQNodes, 0);
@@ -1116,7 +1116,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
             else
                 qmi.factor.push_back(hits);
         }
-    } else if ((finleyTypeId == Finley_Tri6) || (finleyTypeId == Finley_Tri6Macro)) {
+    } else if ((finleyTypeId == finley::Tri6) || (finleyTypeId == finley::Tri6Macro)) {
         for (int i=0; i<elementFactor; i++) {
             const float bounds[][2] = { { 0., 0. }, { 1., 0. },
                                         { 0., 1. }, { .5, 0. },
@@ -1143,7 +1143,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
             }
             qmi.mask.push_back(m);
         }
-    } else if ((finleyTypeId == Finley_Tet10) || (finleyTypeId == Finley_Tet10Macro)) {
+    } else if ((finleyTypeId == finley::Tet10) || (finleyTypeId == finley::Tet10Macro)) {
         for (int i=0; i<elementFactor; i++) {
             const float bounds[][3] = {
                 { 0., 0., 0. },
@@ -1181,7 +1181,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
             }
             qmi.mask.push_back(m);
         }
-    } else if ((finleyTypeId == Finley_Rec9) || (finleyTypeId == Finley_Rec9Macro)) {
+    } else if ((finleyTypeId == finley::Rec9) || (finleyTypeId == finley::Rec9Macro)) {
         for (int i=0; i<elementFactor; i++) {
             const float bounds[][2] = { { 0.25, 0.25 }, { 0.75, 0.25 },
                                         { 0.25, 0.75 }, { 0.75, 0.75 } };
@@ -1200,7 +1200,7 @@ QuadMaskInfo FinleyElements::buildQuadMask(const CoordArray& qnodes, int numQNod
             else
                 qmi.factor.push_back(hits);
         }
-    } else if ((finleyTypeId == Finley_Hex27) || (finleyTypeId == Finley_Hex27Macro) ){
+    } else if ((finleyTypeId == finley::Hex27) || (finleyTypeId == finley::Hex27Macro) ){
         for (int i=0; i<elementFactor; i++) {
             const float bounds[][3] = {
                 { 0.25, 0.25, 0.25 }, { 0.75, 0.25, 0.25 },

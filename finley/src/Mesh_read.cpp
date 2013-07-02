@@ -31,11 +31,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     Esys_MPIInfo *mpi_info = NULL;
     dim_t numNodes, numDim, numEle, i0, i1;
     Finley_Mesh *mesh_p=NULL;
-    Finley_ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+    ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
     char name[LenString_MAX],element_type[LenString_MAX],frm[20];
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
-    Finley_ElementTypeId typeID=Finley_NoRef;
+    ElementTypeId typeID=NoRef;
     int scan_ret;
 
     Finley_resetError();
@@ -182,7 +182,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         if (mpi_info->rank == 0) {
             scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
             FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=Finley_ReferenceElement_getTypeId(element_type);
+            typeID=ReferenceElement_getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -194,11 +194,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                     Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
                     return NULL;
                 }
-                typeID = (Finley_ElementTypeId) temp1[0];
+                typeID = (ElementTypeId) temp1[0];
                 numEle = temp1[1];
             }
         #endif
-        if (typeID==Finley_NoRef) {
+        if (typeID==NoRef) {
             sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
           }
@@ -206,7 +206,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     /* Allocate the ElementFile */
     if (Finley_noError()) {
-        refElements= Finley_ReferenceElementSet_alloc(typeID, order, reduced_order);
+        refElements= ReferenceElementSet_alloc(typeID, order, reduced_order);
         mesh_p->Elements=new ElementFile(refElements, mpi_info);
         numNodes = mesh_p->Elements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
     }
@@ -288,7 +288,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         if (mpi_info->rank == 0) {
              scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
              FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-             typeID=Finley_ReferenceElement_getTypeId(element_type);
+             typeID=ReferenceElement_getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -296,17 +296,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                 temp1[0] = (int) typeID;
                 temp1[1] = numEle;
                 MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-                typeID = (Finley_ElementTypeId) temp1[0];
+                typeID = (ElementTypeId) temp1[0];
                 numEle = temp1[1];
             }
         #endif
-        if (typeID==Finley_NoRef) {
+        if (typeID==NoRef) {
             sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
         }
         if (Finley_noError()) {
             /* Allocate the ElementFile */
-            refFaceElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+            refFaceElements= ReferenceElementSet_alloc(typeID,order, reduced_order);
             mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
             numNodes = mesh_p->FaceElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
         }
@@ -390,7 +390,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         if (mpi_info->rank == 0) {
             scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
             FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=Finley_ReferenceElement_getTypeId(element_type);
+            typeID=ReferenceElement_getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -398,11 +398,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                 temp1[0] = (int) typeID;
                 temp1[1] = numEle;
                 MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-                typeID = (Finley_ElementTypeId) temp1[0];
+                typeID = (ElementTypeId) temp1[0];
                 numEle = temp1[1];
             }
         #endif
-        if (typeID==Finley_NoRef) {
+        if (typeID==NoRef) {
             sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
          }
@@ -410,7 +410,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     if (Finley_noError()) {
         /* Allocate the ElementFile */
-        refContactElements= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+        refContactElements= ReferenceElementSet_alloc(typeID,order, reduced_order);
         mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
         numNodes = mesh_p->ContactElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
     }
@@ -487,7 +487,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         if (mpi_info->rank == 0) {
             scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
             FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=Finley_ReferenceElement_getTypeId(element_type);
+            typeID=ReferenceElement_getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -495,11 +495,11 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                 temp1[0] = (int) typeID;
                 temp1[1] = numEle;
                 MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-                typeID = (Finley_ElementTypeId) temp1[0];
+                typeID = (ElementTypeId) temp1[0];
                 numEle = temp1[1];
             }
         #endif
-        if (typeID==Finley_NoRef) {
+        if (typeID==NoRef) {
             sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
             Finley_setError(VALUE_ERROR, error_msg);
          }
@@ -507,7 +507,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
     if (Finley_noError()) {
         /* Allocate the ElementFile */
-        refPoints= Finley_ReferenceElementSet_alloc(typeID,order, reduced_order);
+        refPoints= ReferenceElementSet_alloc(typeID,order, reduced_order);
         mesh_p->Points=new ElementFile(refPoints, mpi_info);
         numNodes = mesh_p->Points->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
     }
@@ -687,10 +687,10 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         Finley_Mesh_free(mesh_p);
     }
     /* free up memory */
-    Finley_ReferenceElementSet_dealloc(refPoints);
-    Finley_ReferenceElementSet_dealloc(refContactElements);
-    Finley_ReferenceElementSet_dealloc(refFaceElements);
-    Finley_ReferenceElementSet_dealloc(refElements);
+    ReferenceElementSet_dealloc(refPoints);
+    ReferenceElementSet_dealloc(refContactElements);
+    ReferenceElementSet_dealloc(refFaceElements);
+    ReferenceElementSet_dealloc(refElements);
     Esys_MPIInfo_free( mpi_info );
     return mesh_p;
 }

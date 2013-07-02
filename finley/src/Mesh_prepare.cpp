@@ -26,7 +26,7 @@ using namespace finley;
 
 void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
      dim_t newGlobalNumDOFs=0, numReducedNodes=0,i;
-     index_t* distribution=NULL, *maskReducedNodes=NULL, *indexReducedNodes=NULL, *node_distribution=NULL;
+     index_t* distribution=NULL, *maskReducedNodes=NULL, *node_distribution=NULL;
      if (in==NULL) return;
      if (in->Nodes == NULL) return;
 
@@ -70,8 +70,8 @@ void Finley_Mesh_prepare(Finley_Mesh* in, bool_t optimize) {
 
 
         maskReducedNodes=new index_t[in->Nodes->numNodes];
-        indexReducedNodes=new index_t[in->Nodes->numNodes];
-        if (! ( Finley_checkPtr(maskReducedNodes) ||  Finley_checkPtr(indexReducedNodes) ) ) {
+        std::vector<int> indexReducedNodes(in->Nodes->numNodes);
+        if (!Finley_checkPtr(maskReducedNodes)) {
 
 /* useful DEBUG:
 {index_t MIN_id,MAX_id;
@@ -87,7 +87,7 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
 
           Finley_Mesh_markNodes(maskReducedNodes,0,in,TRUE);
    
-          numReducedNodes=util::packMask(in->Nodes->numNodes,maskReducedNodes,indexReducedNodes);
+          numReducedNodes=util::packMask(in->Nodes->numNodes,maskReducedNodes,&indexReducedNodes[0]);
 
           in->Nodes->createDenseNodeLabeling(node_distribution, distribution); 
           // created reduced DOF labeling
@@ -96,11 +96,11 @@ printf("Mesh_prepare: local node id range = %d :%d\n", MIN_id,MAX_id);
           in->Nodes->createDenseReducedLabeling(maskReducedNodes, true);
 
           /* create the missing mappings */
-          if (Finley_noError()) Finley_Mesh_createNodeFileMappings(in,numReducedNodes,indexReducedNodes,distribution, node_distribution);
+          if (Finley_noError())
+                in->Nodes->createNodeMappings(numReducedNodes,indexReducedNodes,distribution, node_distribution);
         }
 
         delete[] maskReducedNodes;
-        delete[] indexReducedNodes;
      }
 
      delete[] distribution;

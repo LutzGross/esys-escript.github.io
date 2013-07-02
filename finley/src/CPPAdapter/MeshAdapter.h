@@ -750,14 +750,14 @@ friend   escript::Domain_ptr  finley::rectangle(int n0,int n1,int order,
 // Do not use this class. It is a convenience wrapper for the dataexporter.
 class FINLEY_DLL_API ReferenceElementSetWrapper {
  public:
-  ReferenceElementSetWrapper(Finley_ElementTypeId id, index_t order,
+  ReferenceElementSetWrapper(ElementTypeId id, index_t order,
                              index_t reducedOrder);
   ~ReferenceElementSetWrapper();
 
-  Finley_ReferenceElementSet* getElementSet() const { return m_refSet; }
+  ReferenceElementSet* getElementSet() const { return m_refSet; }
 
  private:
-  Finley_ReferenceElementSet* m_refSet;
+  ReferenceElementSet* m_refSet;
 };
 
 

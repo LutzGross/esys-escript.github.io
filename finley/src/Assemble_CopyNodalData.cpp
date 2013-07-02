@@ -26,7 +26,7 @@
 
 namespace finley {
 
-void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
+void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                             const escript::Data& in)
 {
     Finley_resetError();
@@ -72,24 +72,30 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
         Finley_setError(TYPE_ERROR, "Assemble_CopyNodalData: illegal function space type for target object");
     }
 
-    if (out_data_type == FINLEY_NODES) {
-        if (!out.numSamplesEqual(1, nodes->getNumNodes())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
-        }
-    } else if (out_data_type == FINLEY_REDUCED_NODES) {
-        if (!out.numSamplesEqual(1, nodes->getNumReducedNodes())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
-        }
-    } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-        if (!out.numSamplesEqual(1, nodes->getNumDegreesOfFreedom())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
-        }
-    } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-        if (!out.numSamplesEqual(1, nodes->getNumReducedDegreesOfFreedom())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
-        }
-    } else {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal function space type for source object");
+    int numOut=0;
+    switch (out_data_type) {
+        case FINLEY_NODES:
+            numOut=nodes->getNumNodes();
+            break;
+
+        case FINLEY_REDUCED_NODES:
+            numOut=nodes->getNumReducedNodes();
+            break;
+
+        case FINLEY_DEGREES_OF_FREEDOM:
+            numOut=nodes->getNumDegreesOfFreedom();
+            break;
+
+        case FINLEY_REDUCED_DEGREES_OF_FREEDOM:
+            numOut=nodes->getNumReducedDegreesOfFreedom();
+            break;
+
+        default:
+            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal function space type for source object");
+    }
+
+    if (!out.numSamplesEqual(1, numOut)) {
+        Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
     }
 
     if (!Finley_noError())
@@ -103,54 +109,52 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
         out.requireWrite();
         if (out_data_type == FINLEY_NODES) {
 #pragma omp parallel for
-            for (int n=0; n<nodes->nodesMapping->numNodes; n++) {
+            for (int n=0; n<numOut; n++) {
                 memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
+            const std::vector<int>& map = nodes->borrowReducedNodesTarget();
 #pragma omp parallel for
-            for (int n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
-                memcpy(out.getSampleDataRW(n),
-                       _in.getSampleDataRO(nodes->reducedNodesMapping->map[n]),
+            for (int n=0; n<map.size(); n++) {
+                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(map[n]),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-            int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+            const std::vector<int>& map = nodes->borrowDegreesOfFreedomTarget();
 #pragma omp parallel for
-            for (int n=0; n<nComps; n++) {
-                memcpy(out.getSampleDataRW(n),
-                       _in.getSampleDataRO(nodes->degreesOfFreedomMapping->map[n]),
+            for (int n=0; n<numOut; n++) {
+                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(map[n]),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-            int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+            const std::vector<int>& map = nodes->borrowReducedDegreesOfFreedomTarget();
 #pragma omp parallel for
-            for (int n=0; n<nComps; n++) {
-                memcpy(out.getSampleDataRW(n),
-                       _in.getSampleDataRO(nodes->reducedDegreesOfFreedomMapping->map[n]),
+            for (int n=0; n<numOut; n++) {
+                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(map[n]),
                        numComps_size);
             }
         }
 
     /*********************** FINLEY_REDUCED_NODES ***************************/
     } else if (in_data_type == FINLEY_REDUCED_NODES) {
-        out.requireWrite();
         if (out_data_type == FINLEY_NODES) {
             Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
+            out.requireWrite();
 #pragma omp parallel for
-            for (int n=0; n<nodes->reducedNodesMapping->numNodes; n++) {
+            for (int n=0; n<nodes->getNumNodes(); n++) {
                 memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
             }
        } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
        } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-            int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+            out.requireWrite();
+            const int* target = nodes->borrowTargetReducedNodes();
+            const std::vector<int>& map = nodes->borrowReducedDegreesOfFreedomTarget();
 #pragma omp parallel for
-            for (int n=0; n<nComps; n++) {
-               const int k = nodes->reducedDegreesOfFreedomMapping->map[n];
+            for (int n=0; n<numOut; n++) {
                memcpy(out.getSampleDataRW(n),
-                      _in.getSampleDataRO(nodes->reducedNodesMapping->target[k]),
-                      numComps_size);
+                      _in.getSampleDataRO(target[map[n]]), numComps_size);
             }
         }
 
@@ -167,10 +171,11 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
                 _in.requireWrite();
                 Paso_Coupler_startCollect(coupler, _in.getSampleDataRW(0));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
-                const int upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+                const int upperBound=nodes->getNumDegreesOfFreedom();
+                const int* target = nodes->borrowTargetDegreesOfFreedom();
 #pragma omp parallel for
                 for (int n=0; n<nodes->numNodes; n++) {
-                    const int k=nodes->degreesOfFreedomMapping->target[n];
+                    const int k=target[n];
                     if (k < upperBound) {
                         memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(k),
                                numComps_size);
@@ -188,12 +193,13 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
                 _in.requireWrite(); // See comment above about coupler and const
                 Paso_Coupler_startCollect(coupler, _in.getSampleDataRW(0));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
-                const int upperBound=Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+                const int upperBound=nodes->getNumDegreesOfFreedom();
+                const std::vector<int>& map = nodes->borrowReducedNodesTarget();
+                const int* target = nodes->borrowTargetDegreesOfFreedom();
 
 #pragma omp parallel for
-                for (int n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
-                    const int l=nodes->reducedNodesMapping->map[n];
-                    const int k=nodes->degreesOfFreedomMapping->target[l];
+                for (int n=0; n<map.size(); n++) {
+                    const int k=target[map[n]];
                     if (k < upperBound) {
                         memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(k),
                                numComps_size);
@@ -206,20 +212,18 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
             }
             Paso_Coupler_free(coupler);
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-            const int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 #pragma omp parallel for
-            for (int n=0; n<nComps; n++) {
+            for (int n=0; n<numOut; n++) {
                 memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-            const int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+            const std::vector<int>& map = nodes->borrowReducedDegreesOfFreedomTarget();
+            const int* target = nodes->borrowTargetDegreesOfFreedom();
 #pragma omp parallel for
-            for (int n=0; n<nComps; n++) {
-                const int k=nodes->reducedDegreesOfFreedomMapping->map[n];
+            for (int n=0; n<numOut; n++) {
                 memcpy(out.getSampleDataRW(n),
-                       _in.getSampleDataRO(nodes->degreesOfFreedomMapping->target[k]),
-                       numComps_size);
+                       _in.getSampleDataRO(target[map[n]]), numComps_size);
             }
         }
 
@@ -230,15 +234,16 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             Paso_Coupler *coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
             if (Esys_noError()) {
-                const int upperBound=Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
                 _in.requireWrite(); // See comment about coupler and const
                 Paso_Coupler_startCollect(coupler, _in.getSampleDataRW(0));
-                const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
                 out.requireWrite();
+                const int upperBound=nodes->getNumReducedDegreesOfFreedom();
+                const std::vector<int>& map=nodes->borrowReducedNodesTarget();
+                const int* target=nodes->borrowTargetReducedDegreesOfFreedom();
+                const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
 #pragma omp parallel for
-                for (int n=0; n<nodes->reducedNodesMapping->numTargets; n++) {
-                    const int l=nodes->reducedNodesMapping->map[n];
-                    const int k=nodes->reducedDegreesOfFreedomMapping->target[l];
+                for (int n=0; n<map.size(); n++) {
+                    const int k=target[map[n]];
                     if (k < upperBound) {
                         memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(k),
                                numComps_size);
@@ -251,10 +256,9 @@ void Assemble_CopyNodalData(NodeFile* nodes, escript::Data& out,
             }
             Paso_Coupler_free(coupler);
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
-            const int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
             out.requireWrite();
 #pragma omp parallel for
-            for (int n=0; n<nComps; n++) {
+            for (int n=0; n<numOut; n++) {
                 memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM ) {

@@ -25,7 +25,7 @@
 
 
 /// returns a reference to the matrix pattern
-Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh, bool_t reduce_row_order, bool_t reduce_col_order)
+Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh, bool reduce_row_order, bool reduce_col_order)
 {
     Paso_SystemMatrixPattern *out=NULL;
     Finley_resetError();
@@ -65,61 +65,71 @@ Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh, bool_t reduce_row
     return out;
 }
 
-Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh, bool_t reduce_row_order, bool_t reduce_col_order)
+Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh, bool reduce_row_order, bool reduce_col_order)
 {
     Paso_SystemMatrixPattern* out=NULL;
     Paso_Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
     Paso_Connector *col_connector, *row_connector;
-    Finley_NodeMapping *colMap=NULL, *rowMap=NULL;
     Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
   
     Finley_resetError();
 
+    int myNumColTargets, myNumRowTargets;
+    int numColTargets, numRowTargets;
+    const int *colTarget, *rowTarget;
+
     if (reduce_col_order) {
-        colMap=mesh->Nodes->reducedDegreesOfFreedomMapping;
+        myNumColTargets=mesh->Nodes->getNumReducedDegreesOfFreedom();
+        numColTargets=mesh->Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        colTarget=mesh->Nodes->borrowTargetReducedDegreesOfFreedom();
         colDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
         col_connector=mesh->Nodes->reducedDegreesOfFreedomConnector;
     } else {
-        colMap=mesh->Nodes->degreesOfFreedomMapping;
+        myNumColTargets=mesh->Nodes->getNumDegreesOfFreedom();
+        numColTargets=mesh->Nodes->degreesOfFreedomMapping.getNumTargets();
+        colTarget=mesh->Nodes->borrowTargetDegreesOfFreedom();
         colDistribution=mesh->Nodes->degreesOfFreedomDistribution;
         col_connector=mesh->Nodes->degreesOfFreedomConnector;
     }
-     
+
     if (reduce_row_order) {
-        rowMap=mesh->Nodes->reducedDegreesOfFreedomMapping;
+        myNumRowTargets=mesh->Nodes->getNumReducedDegreesOfFreedom();
+        numRowTargets=mesh->Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        rowTarget=mesh->Nodes->borrowTargetReducedDegreesOfFreedom();
         rowDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
         row_connector=mesh->Nodes->reducedDegreesOfFreedomConnector;
     } else {
-        rowMap=mesh->Nodes->degreesOfFreedomMapping;
+        myNumRowTargets=mesh->Nodes->getNumDegreesOfFreedom();
+        numRowTargets=mesh->Nodes->degreesOfFreedomMapping.getNumTargets();
+        rowTarget=mesh->Nodes->borrowTargetDegreesOfFreedom();
         rowDistribution=mesh->Nodes->degreesOfFreedomDistribution;
         row_connector=mesh->Nodes->degreesOfFreedomConnector;
     }
-
-    IndexList* index_list=new IndexList[rowMap->numTargets];
+    IndexList* index_list=new IndexList[numRowTargets];
   
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns index index_list:
-        IndexList_insertElements(index_list,mesh->Elements,
-                                        reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        IndexList_insertElements(index_list,mesh->FaceElements,
-                                        reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        IndexList_insertElements(index_list,mesh->ContactElements,
-                                        reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
-        IndexList_insertElements(index_list,mesh->Points,
-                                        reduce_row_order,rowMap->target,reduce_col_order,colMap->target);
+        IndexList_insertElements(index_list, mesh->Elements, reduce_row_order,
+                                 rowTarget, reduce_col_order, colTarget);
+        IndexList_insertElements(index_list, mesh->FaceElements,
+                                 reduce_row_order, rowTarget, reduce_col_order,
+                                 colTarget);
+        IndexList_insertElements(index_list, mesh->ContactElements,
+                                 reduce_row_order, rowTarget, reduce_col_order,
+                                 colTarget);
+        IndexList_insertElements(index_list, mesh->Points, reduce_row_order,
+                                 rowTarget, reduce_col_order, colTarget);
     }
  
     /* create pattern */
-    main_pattern=IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
-                                                 0,Paso_Distribution_getMyNumComponents(colDistribution),
-                                                 0);
-    col_couple_pattern=IndexList_createPattern(0,Paso_Distribution_getMyNumComponents(rowDistribution),index_list,
-                                                 Paso_Distribution_getMyNumComponents(colDistribution),colMap->numTargets,
-                                                 -Paso_Distribution_getMyNumComponents(colDistribution));
-    row_couple_pattern=IndexList_createPattern(Paso_Distribution_getMyNumComponents(rowDistribution),rowMap->numTargets,index_list,
-                                                       0,Paso_Distribution_getMyNumComponents(colDistribution),
-                                                       0);
+    main_pattern=IndexList_createPattern(0, myNumRowTargets, index_list, 0,
+                                         myNumColTargets, 0);
+    col_couple_pattern=IndexList_createPattern(0, myNumRowTargets, index_list,
+                                               myNumColTargets, numColTargets,
+                                               -myNumColTargets);
+    row_couple_pattern=IndexList_createPattern(myNumRowTargets, numRowTargets,
+                                            index_list, 0, myNumColTargets, 0);
 
     /* if everything is in order we can create the return value */
     if (Finley_noError()) {

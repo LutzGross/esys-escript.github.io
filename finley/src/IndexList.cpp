@@ -36,8 +36,8 @@
 namespace finley {
 
 void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
-                              bool reduce_row_order, int* row_map,
-                              bool reduce_col_order, int* col_map)
+                              bool reduce_row_order, const int* row_map,
+                              bool reduce_col_order, const int* col_map)
 {
     // index_list is an array of linked lists. Each entry is a row (DOF) and
     // contains the indices to the non-zero columns
@@ -45,8 +45,8 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
         return;
 
     const int NN=elements->numNodes;
-    Finley_ReferenceElement* refElement =
-        Finley_ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, false);
+    ReferenceElement* refElement =
+        ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, false);
 
     int NN_row, NN_col, *row_node=NULL, *col_node=NULL, numSub;
     if (reduce_col_order) {

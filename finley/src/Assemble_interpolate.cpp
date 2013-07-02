@@ -26,7 +26,7 @@
 
 namespace finley {
 
-void Assemble_interpolate(NodeFile* nodes, ElementFile* elements,
+void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                           const escript::Data& data,
                           escript::Data& interpolated_data)
 {
@@ -36,13 +36,12 @@ void Assemble_interpolate(NodeFile* nodes, ElementFile* elements,
 
     const int data_type=data.getFunctionSpace().getTypeCode();
     const bool reducedOrder = util::hasReducedIntegrationOrder(interpolated_data);
-    Finley_ReferenceElement *reference_element =
-        Finley_ReferenceElementSet_borrowReferenceElement(
+    ReferenceElement *reference_element = ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet, reducedOrder);
 
-    int *resort_nodes = NULL, *map = NULL;
+    const int *resort_nodes = NULL, *map = NULL;
     int numSub = 0, numNodes = 0;
-    Finley_ShapeFunction *basis = NULL;
+    ShapeFunction *basis = NULL;
     int dof_offset = 0;
 
     if (data_type==FINLEY_NODES) {

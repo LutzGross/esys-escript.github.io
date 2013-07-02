@@ -32,8 +32,8 @@ void Assemble_setNormal(NodeFile* nodes, ElementFile* elements, escript::Data& n
   if (!nodes || !elements)
       return;
 
-    Finley_ReferenceElement* reference_element =
-        Finley_ReferenceElementSet_borrowReferenceElement(
+    ReferenceElement* reference_element =
+        ReferenceElementSet_borrowReferenceElement(
                 elements->referenceElementSet,
                 util::hasReducedIntegrationOrder(normal));
     const int NN=elements->numNodes;
