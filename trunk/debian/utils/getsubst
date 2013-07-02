@@ -10,8 +10,9 @@ case "$distr" in
     "squeeze") opf="squeeze";;
     "lucid") opf="lucid";;
     "oneiric") opf="oneiric";;
+    "raring") opf="raring";;
     *) echo "No file found" >&2; exit 1;;
 esac
 rm -f debian/substvars
-ln packaging/debuntu/subst/$distr.subst debian/substvars
-echo scons/TEMPLATE_${distr}.py
+ln debian/utils/subst/$distr.subst debian/substvars
+echo scons/os/${distr}_options.py
