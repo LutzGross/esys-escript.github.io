@@ -1106,7 +1106,7 @@ void NodeFile::createNodeMappings(int numReducedNodes,
 
     // get the Ids for DOFs and reduced nodes
     if (Finley_noError()) {
-#pragma omp parallel private(i)
+#pragma omp parallel
         {
 #pragma omp for
          for (int i=0; i<reducedNodesMapping.getNumTargets(); ++i)
