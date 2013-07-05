@@ -58,10 +58,17 @@ for i in range(start, len(metadata)):
             md_dict[fullkey]=value
 
 try:
-    if md_dict['RasterInfo.CellType'] != 'IEEE4ByteReal':
+    if md_dict['RasterInfo.CellType'] == 'IEEE4ByteReal':
+        datatype=np.float32
+    elif md_dict['RasterInfo.CellType'] == 'IEEE8ByteReal':
+        datatype=np.float64
+    elif md_dict['RasterInfo.CellType'] == 'Signed32BitInteger':
+        datatype=np.int32
+    else:
         raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
 except KeyError:
     print("Cell type not specified. Assuming IEEE4ByteReal.")
+    datatype=np.float32
 
 try:
     NX = int(md_dict['RasterInfo.NrOfCellsPerLine'])
@@ -96,7 +103,7 @@ f=open(FILENAME,'r')
 
 longitude=np.linspace(originX, originX+spacingX*NX, NX, endpoint=True)
 latitude=np.linspace(originY, originY-spacingY*NY, NY, endpoint=True)
-DATA=np.fromfile(FILENAME, dtype=np.float32).reshape(NY, NX)
+DATA=np.fromfile(FILENAME, dtype=datatype).reshape(NY, NX)
 # flip data in y-direction since ER Mapper stores data bottom up
 DATA=np.flipud(DATA)
 

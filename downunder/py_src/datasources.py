@@ -222,12 +222,12 @@ class ErMapperData(DataSource):
                            areas. This information is usually included in the
                            file.
         :type null_value: ``float``
-        :param reference_system: reference coordinate system to be used. For a Cartesian
-                                 reference the appropriate UTM transformation is applied.
-                                 By default the Cartesian coordinate system is used.
+        :param reference_system: reference coordinate system to be used.
+                                 For a Cartesian reference (default) the
+                                 appropriate UTM transformation is applied.
         :type reference_system: `ReferenceSystem`
-        :note: consistence in the reference coordinate system and the reference coordinate system  
-               used in the data source is not checked.
+        :note: consistence in the reference coordinate system and the reference
+               coordinate system used in the data source is not checked.
         """
         super(ErMapperData, self).__init__(reference_system)
         self.__headerfile=headerfile
@@ -285,10 +285,17 @@ class ErMapperData(DataSource):
             self.logger.warn("Data type not specified. Assuming raster data.")
 
         try:
-            if md_dict['RasterInfo.CellType'] != 'IEEE4ByteReal':
+            if md_dict['RasterInfo.CellType'] == 'IEEE4ByteReal':
+                self.__celltype = ripleycpp.DATATYPE_FLOAT32
+            elif md_dict['RasterInfo.CellType'] == 'IEEE8ByteReal':
+                self.__celltype = ripleycpp.DATATYPE_FLOAT64
+            elif md_dict['RasterInfo.CellType'] == 'Signed32BitInteger':
+                self.__celltype = ripleycpp.DATATYPE_INT32
+            else:
                 raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
         except KeyError:
             self.logger.warn("Cell type not specified. Assuming IEEE4ByteReal.")
+            self.__celltype = ripleycpp.DATATYPE_FLOAT32
 
         try:
             fileOffset = int(md_dict['HeaderOffset'])
@@ -407,8 +414,10 @@ class ErMapperData(DataSource):
             multiplier=multiplier+[1]
             nValues=nValues+[1]
 
+        byteorder=ripleycpp.BYTEORDER_NATIVE
         data = ripleycpp._readBinaryGrid(self.__datafile, FS, first, nValues,
-                                         multiplier, (), self.__null_value)
+                                         multiplier, (), self.__null_value,
+                                         byteorder, self.__celltype)
         sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
@@ -1037,11 +1046,11 @@ class NumpyData(DataSource):
         if not data_type in [self.GRAVITY, self.MAGNETIC]:
             raise ValueError("Invalid value for data_type parameter")
         self.__data_type = data_type
-        self.__data = np.asarray(data, dtype=np.float32)
+        self.__data = np.asarray(data, dtype=np.float64)
         DIM = len(self.__data.shape)
         if DIM not in (1,2):
             raise ValueError("NumpyData requires 1- or 2-dimensional data")
-        self.__error = np.asarray(error, dtype=np.float32)
+        self.__error = np.asarray(error, dtype=np.float64)
         if len(self.__error.shape) > 0 and \
                 self.__error.shape != self.__data.shape:
             raise ValueError("error argument must be scalar or match the shape of the data")
@@ -1082,12 +1091,16 @@ class NumpyData(DataSource):
         os.close(_handle)
         self.__data.tofile(numpyfile)
 
+        byteorder=ripleycpp.BYTEORDER_NATIVE
+        datatype=ripleycpp.DATATYPE_FLOAT64
         data = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
-                                         multiplier, (), self.__null_value)
+                                         multiplier, (), self.__null_value,
+                                         byteorder, datatype)
         if len(self.__error.shape) > 0:
             self.__error.tofile(numpyfile)
             sigma = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
-                                             multiplier, (), 0.)
+                                             multiplier, (), 0., byteorder,
+                                             datatype)
         else:
             sigma = self.__error.item() * whereNonZero(data-self.__null_value)
 

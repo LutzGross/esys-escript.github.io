@@ -276,8 +276,39 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 void Rectangle::readBinaryGrid(escript::Data& out, string filename,
                                const vector<int>& first,
                                const vector<int>& numValues,
-                               const vector<int>& multiplier) const
+                               const std::vector<int>& multiplier,
+                               int byteOrder, int dataType) const
 {
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridImpl<int>(out, filename, first, numValues,
+                                    multiplier, byteOrder);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridImpl<float>(out, filename, first, numValues,
+                                      multiplier, byteOrder);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridImpl<double>(out, filename, first, numValues,
+                                       multiplier, byteOrder);
+            break;
+        default:
+            throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
+    }
+}
+
+template<typename ValueType>
+void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
+                                   const vector<int>& first,
+                                   const vector<int>& numValues,
+                                   const std::vector<int>& multiplier,
+                                   int byteOrder) const
+{
+    if (byteOrder != BYTEORDER_NATIVE)
+        throw RipleyException("readBinaryGrid(): only native byte order supported at the moment.");
+
     // check destination function space
     int myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
@@ -298,7 +329,7 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
     const int filesize = f.tellg();
-    const int reqsize = numValues[0]*numValues[1]*numComp*sizeof(float);
+    const int reqsize = numValues[0]*numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
         throw RipleyException("readBinaryGrid(): not enough data in file");
@@ -324,23 +355,23 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     const int num1 = min(numValues[1]-idx1, myN1-first1);
 
     out.requireWrite();
-    vector<float> values(num0*numComp);
+    vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
     for (index_t y=0; y<num1; y++) {
         const int fileofs = numComp*(idx0+(idx1+y)*numValues[0]);
-        f.seekg(fileofs*sizeof(float));
-        f.read((char*)&values[0], num0*numComp*sizeof(float));
-        for (index_t x=0; x<num0; x++) {
+        f.seekg(fileofs*sizeof(ValueType));
+        f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+        for (int x=0; x<num0; x++) {
             const int baseIndex = first0+x*multiplier[0]
                                     +(first1+y*multiplier[1])*myN0;
             for (index_t m1=0; m1<multiplier[1]; m1++) {
                 for (index_t m0=0; m0<multiplier[0]; m0++) {
                     const int dataIndex = baseIndex+m0+m1*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
-                    for (index_t c=0; c<numComp; c++) {
+                    for (int c=0; c<numComp; c++) {
                         if (!std::isnan(values[x*numComp+c])) {
-                            for (index_t q=0; q<dpp; q++) {
+                            for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(values[x*numComp+c]);
                             }
                         }

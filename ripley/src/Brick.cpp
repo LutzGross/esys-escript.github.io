@@ -378,8 +378,39 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 void Brick::readBinaryGrid(escript::Data& out, string filename,
                            const vector<int>& first,
                            const vector<int>& numValues,
-                           const vector<int>& multiplier) const
+                           const std::vector<int>& multiplier,
+                           int byteOrder, int dataType) const
 {
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridImpl<int>(out, filename, first, numValues,
+                                    multiplier, byteOrder);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridImpl<float>(out, filename, first, numValues,
+                                      multiplier, byteOrder);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridImpl<double>(out, filename, first, numValues,
+                                       multiplier, byteOrder);
+            break;
+        default:
+            throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
+    }
+}
+
+template<typename ValueType>
+void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
+                               const vector<int>& first,
+                               const vector<int>& numValues,
+                               const vector<int>& multiplier,
+                               int byteOrder) const
+{
+    if (byteOrder != BYTEORDER_NATIVE)
+        throw RipleyException("readBinaryGrid(): only native byte order supported at the moment.");
+
     // check destination function space
     int myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
@@ -414,7 +445,7 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
     const int filesize = f.tellg();
-    const int reqsize = numValues[0]*numValues[1]*numValues[2]*numComp*sizeof(float);
+    const int reqsize = numValues[0]*numValues[1]*numValues[2]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
         throw RipleyException("readBinaryGrid(): not enough data in file");
@@ -444,14 +475,14 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
     const int num2 = min(numValues[2]-idx2, myN2-first2);
 
     out.requireWrite();
-    vector<float> values(num0*numComp);
+    vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
     for (index_t z=0; z<num2; z++) {
         for (index_t y=0; y<num1; y++) {
             const int fileofs = numComp*(idx0+(idx1+y)*numValues[0]+(idx2+z)*numValues[0]*numValues[1]);
-            f.seekg(fileofs*sizeof(float));
-            f.read((char*)&values[0], num0*numComp*sizeof(float));
+            f.seekg(fileofs*sizeof(ValueType));
+            f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
 
             for (index_t x=0; x<num0; x++) {
                 const int baseIndex = first0+x*multiplier[0]

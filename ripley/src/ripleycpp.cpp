@@ -29,7 +29,7 @@ namespace ripley {
 
 escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
         const object& pyFirst, const object& pyNum, const object& pyMultiplier,
-        const object& pyShape, double fill=0.)
+        const object& pyShape, double fill, int byteOrder, int dataType)
 {
     int dim=fs.getDim();
     std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
@@ -78,7 +78,8 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readBinaryGrid(res, filename, first, numValues, multiplier);
+    dom->readBinaryGrid(res, filename, first, numValues, multiplier,
+                        byteOrder, dataType);
     return res;
 }
 
@@ -263,7 +264,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
     def("_theculprit_", ripley::_who);
 
-    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
+    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0., arg("byteOrder"), arg("dataType")));
 
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
 
