@@ -66,17 +66,18 @@ public:
 
     /**
     */
-    virtual void readBinaryGrid(escript::Data& out, std::string filename,
-                                const std::vector<int>& first,
-                                const std::vector<int>& numValues,
-                                const std::vector<int>& multiplier) const;
-
-    /**
-    */
     virtual void readNcGrid(escript::Data& out, std::string filename,
             std::string varname, const std::vector<int>& first,
             const std::vector<int>& numValues,
             const std::vector<int>& multiplier) const;
+
+    /**
+    */
+    virtual void readBinaryGrid(escript::Data& out, std::string filename,
+                                const std::vector<int>& first,
+                                const std::vector<int>& numValues,
+                                const std::vector<int>& multiplier,
+                                int byteOrder, int dataType) const;
 
     /**
     */
@@ -218,7 +219,15 @@ private:
     void createPattern();
     void addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
-           bool addS, bool addF, index_t firstNode, dim_t nEq=1, dim_t nComp=1) const;
+           bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
+
+    template<typename ValueType>
+    void readBinaryGridImpl(escript::Data& out, const std::string& filename,
+                            const std::vector<int>& first,
+                            const std::vector<int>& numValues,
+                            const std::vector<int>& multiplier,
+                            int byteOrder) const;
+
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
