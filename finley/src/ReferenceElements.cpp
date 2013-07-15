@@ -568,43 +568,36 @@ ReferenceElementInfo ReferenceElement_InfoList[]={
   -1, { 0 },
     { 0 },
     { 0 } }
-
 };
   
 
 /// creates a ReferenceElement of type id and a given integration order
-ReferenceElement* ReferenceElement_alloc(ElementTypeId id, int order) 
+ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
+    integrationOrder(-1),
+    DBasisFunctionDv(NULL),
+    DBasisFunctionDvShared(true)
+
 {
-    ReferenceElementInfo* type = ReferenceElement_getInfo(id);
-    if (type == NULL) { 
-        Finley_setError(VALUE_ERROR,"ReferenceElement_alloc: unable to identify element type.");
-        return NULL;
+    Type = getInfo(id);
+    if (!Type) { 
+        setError(VALUE_ERROR, "ReferenceElement: unable to identify element type.");
+        return;
     }
-    ReferenceElementInfo *linear_type = ReferenceElement_getInfo(type->LinearTypeId);
-    if (linear_type == NULL) {
-        Finley_setError(VALUE_ERROR,"ReferenceElement_alloc: unable to identify linear element type.");
-        return NULL;
+    LinearType = getInfo(Type->LinearTypeId);
+    if (!LinearType) {
+        setError(VALUE_ERROR, "ReferenceElement: unable to identify linear element type.");
+        return;
     }
 
-    ReferenceElement *out=new ReferenceElement;
-    out->reference_counter=0;
-    out->Parametrization=NULL;
-    out->BasisFunctions=NULL;
-    out->LinearBasisFunctions=NULL;
-    out->Type=type;
-    out->numNodes=out->Type->numNodes;
-    out->LinearType=linear_type;
-    out->numLinearNodes=out->LinearType->numNodes;
-    out->integrationOrder=-1;
-    out->DBasisFunctionDv=NULL;
-    out->DBasisFunctionDvShared=TRUE;
+    numNodes=Type->numNodes;
+    numLinearNodes=LinearType->numNodes;
 
-    QuadInfo* quadscheme=QuadInfo_getInfo(out->Type->Quadrature);
-    ShapeFunctionInfo* parametrization=ShapeFunction_getInfo(out->Type->Parametrization);
-    ShapeFunctionInfo* basisfunction=ShapeFunction_getInfo(out->Type->BasisFunctions);
-    ShapeFunctionInfo* linearbasisfunction=ShapeFunction_getInfo(ReferenceElement_InfoList[out->Type->LinearTypeId].BasisFunctions);
-    int nsub = out->Type->numSubElements;
-    out->numLocalDim=quadscheme->numDim;
+    QuadInfo* quadscheme=QuadInfo_getInfo(Type->Quadrature);
+    const ShapeFunctionInfo* parametrization=ShapeFunction::getInfo(Type->Parametrization);
+    const ShapeFunctionInfo* basisfunction=ShapeFunction::getInfo(Type->BasisFunctions);
+    const ShapeFunctionInfo* linearbasisfunction=ShapeFunction::getInfo(ReferenceElement_InfoList[Type->LinearTypeId].BasisFunctions);
+    int nsub = Type->numSubElements;
+    numLocalDim=quadscheme->numDim;
 
     // set up the basic integration scheme.
     // Note that quadscheme->numDim is not necessarily the dimension of the
@@ -613,7 +606,7 @@ ReferenceElement* ReferenceElement_alloc(ElementTypeId id, int order)
     if (order < 0)
         order=std::max(2*basisfunction->numOrder, 0);
 
-    out->integrationOrder=order;
+    integrationOrder=order;
     int numQuadNodes=quadscheme->getNumQuadNodes(order);
     double *quadNodes=new double[numQuadNodes*quadscheme->numDim*nsub];
     double *quadWeights=new double[numQuadNodes*nsub];  
@@ -621,63 +614,49 @@ ReferenceElement* ReferenceElement_alloc(ElementTypeId id, int order)
     quadscheme->getQuadNodes(numQuadNodes, quadNodes, quadWeights);
 
     // Set the basis functions on the quadrature points.
-    // Note: ShapeFunction_alloc will introduce 0 if the dimensions of the
-    // quadrature scheme and the dimensions of the element don't match.
+    // Note: ShapeFunction constructor will introduce 0 if the dimensions of
+    // the quadrature scheme and the dimensions of the element don't match.
     // Before we can set the shape function for the parametrization the
     // quadrature scheme needs to be replicated:
 
     if (nsub > 1) {
-        out->DBasisFunctionDv=new  double [numQuadNodes*nsub* (basisfunction->numShapes) * (basisfunction->numDim)];
-        out->DBasisFunctionDvShared=FALSE;
-        out->BasisFunctions=ShapeFunction_alloc(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights);
+        DBasisFunctionDv=new double[numQuadNodes*nsub* (basisfunction->numShapes) * (basisfunction->numDim)];
+        DBasisFunctionDvShared=false;
+        BasisFunctions.reset(new ShapeFunction(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));
         double *quadNodes2=new double[numQuadNodes*quadscheme->numDim*nsub];
         double *quadWeights2=new double[numQuadNodes*nsub];
         int numQuadNodes2=quadscheme->getMacro(nsub,
-                out->BasisFunctions->numQuadNodes,
-                out->BasisFunctions->QuadNodes,
-                out->BasisFunctions->QuadWeights,
-                out->BasisFunctions->Type->numShapes,
-                out->BasisFunctions->dSdv,
+                BasisFunctions->numQuadNodes,
+                BasisFunctions->QuadNodes,
+                BasisFunctions->QuadWeights,
+                BasisFunctions->Type->numShapes,
+                BasisFunctions->dSdv,
                 numQuadNodes*nsub, quadNodes2, quadWeights2,
-                out->DBasisFunctionDv);
-        if (Finley_noError()) {
-            out->Parametrization=ShapeFunction_alloc(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2);
-            out->LinearBasisFunctions=ShapeFunction_alloc(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2); 
+                DBasisFunctionDv);
+        if (noError()) {
+            Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
+            LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes2, quadNodes2, quadWeights2));
         }
         delete[] quadNodes2;
         delete[] quadWeights2;
     } else {
-        out->Parametrization=ShapeFunction_alloc(parametrization->TypeId, quadscheme->numDim, numQuadNodes*nsub, quadNodes, quadWeights);
-        out->BasisFunctions=ShapeFunction_alloc(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights);
-        out->LinearBasisFunctions=ShapeFunction_alloc(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights);
-        out->DBasisFunctionDv=out->BasisFunctions->dSdv;
-        out->DBasisFunctionDvShared=TRUE;
+        Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes*nsub, quadNodes, quadWeights));
+        BasisFunctions.reset(new ShapeFunction(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));
+        LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));
+        DBasisFunctionDv=BasisFunctions->dSdv;
+        DBasisFunctionDvShared=true;
     }
     delete[] quadNodes;
     delete[] quadWeights;
-    if (Finley_noError()) {
-        return ReferenceElement_reference(out);
-    } else {
-        ReferenceElement_dealloc(out);
-        return NULL;
-    }
 }
 
-void ReferenceElement_dealloc(ReferenceElement* in)
+ReferenceElement::~ReferenceElement()
 {
-    if (in!=NULL) {
-        in->reference_counter--;
-        if (in->reference_counter<1) {
-            ShapeFunction_dealloc(in->Parametrization);
-            ShapeFunction_dealloc(in->BasisFunctions);
-            ShapeFunction_dealloc(in->LinearBasisFunctions);
-            if (!in->DBasisFunctionDvShared) delete[] in->DBasisFunctionDv;
-            delete in;
-        }
-    }
+    if (!DBasisFunctionDvShared)
+        delete[] DBasisFunctionDv;
 }
 
-ElementTypeId ReferenceElement_getTypeId(char* element_type)
+ElementTypeId ReferenceElement::getTypeId(const char* element_type)
 {
     int ptr=0;
     ElementTypeId out=NoRef;
@@ -689,13 +668,7 @@ ElementTypeId ReferenceElement_getTypeId(char* element_type)
     return out;
 }
 
-ReferenceElement* ReferenceElement_reference(ReferenceElement* in)
-{
-    if (in!=NULL) ++(in->reference_counter);
-    return in;
-}
-
-ReferenceElementInfo* ReferenceElement_getInfo(ElementTypeId id)
+const ReferenceElementInfo* ReferenceElement::getInfo(ElementTypeId id)
 {
     int ptr=0;
     ReferenceElementInfo* out=NULL;
@@ -705,7 +678,7 @@ ReferenceElementInfo* ReferenceElement_getInfo(ElementTypeId id)
         ptr++;
     }
     if (out==NULL) {
-        Finley_setError(VALUE_ERROR, "ReferenceElement_getInfo: cannot find requested reference element.");
+        setError(VALUE_ERROR, "ReferenceElement::getInfo: cannot find requested reference element.");
     }
     return out;
 }

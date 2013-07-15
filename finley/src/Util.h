@@ -24,7 +24,6 @@
 #define __FINLEY_UTIL_H__
 
 #include "Finley.h"
-#include "esysUtils/Esys_MPI.h"
 
 #include <escript/Data.h>
 #include <vector>
@@ -73,7 +72,7 @@ std::pair<int,int> getMinMaxInt(int dim, int N, const int* values);
 
 std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore);
 
-int packMask(int N, const bool_t* mask, int* index);
+std::vector<int> packMask(const std::vector<short>& mask);
 
 void setValuesInUse(const int *values, const int numValues,
                     std::vector<int>& valuesInUse, Esys_MPIInfo* mpiinfo);

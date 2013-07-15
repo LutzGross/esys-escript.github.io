@@ -13,17 +13,12 @@
 *
 *****************************************************************************/
 
-
-/****************************************************************************
-
-  Finley: Shape functions header file
-
-*****************************************************************************/
-
 #ifndef __FINLEY_SHAPEFUNCTIONS_H__
 #define __FINLEY_SHAPEFUNCTIONS_H__
 
 #include "Finley.h"
+
+#include <boost/shared_ptr.hpp>
 
 #define S_INDEX(_J_,_I_,_NUMNODES_) INDEX2(_J_,_I_,_NUMNODES_)
 #define DSDV_INDEX(_J_,_K_,_I_,_NUMNODES_,_DIM_) INDEX3(_J_,_K_,_I_,_NUMNODES_,_DIM_)
@@ -78,8 +73,17 @@ struct ShapeFunctionInfo {
 
 /// this struct holds the evaluation of a shape function on a quadrature scheme
 struct ShapeFunction {
+    ShapeFunction(ShapeFunctionTypeId id, int numQuadDim, int numQuadNodes,
+                  const double *QuadNodes, const double *QuadWeights);
+
+    ~ShapeFunction();
+
+    ShapeFunctionTypeId getTypeId(const char*);
+
+    static const ShapeFunctionInfo* getInfo(ShapeFunctionTypeId id);
+
     /// shape function information
-    ShapeFunctionInfo* Type;
+    const ShapeFunctionInfo* Type;
     /// number of quadrature points
     int numQuadNodes;
     /// coordinates of quadrature nodes
@@ -90,11 +94,9 @@ struct ShapeFunction {
     double *S;
     /// derivative of the shape functions at quadrature nodes
     double *dSdv;
-    /// reference counter
-    int reference_counter;
 };
 
-/****** Interfaces ******/
+typedef boost::shared_ptr<const ShapeFunction> const_ShapeFunction_ptr;
 
 ShapeFunction_Evaluation Shape_Point1;
 ShapeFunction_Evaluation Shape_Line2;
@@ -116,18 +118,6 @@ ShapeFunction_Evaluation Shape_Hex8;
 ShapeFunction_Evaluation Shape_Hex20;
 ShapeFunction_Evaluation Shape_Hex27;
 ShapeFunction_Evaluation Shape_Hex32;
-
-ShapeFunction* ShapeFunction_alloc(ShapeFunctionTypeId id, int numQuadDim,
-                                   int numQuadNodes, double *QuadNodes,
-                                   double *QuadWeights);
-
-void ShapeFunction_dealloc(ShapeFunction*);
-
-ShapeFunctionTypeId ShapeFunction_getTypeId(char*);
-
-ShapeFunction* ShapeFunction_reference(ShapeFunction* in);
-
-ShapeFunctionInfo* ShapeFunction_getInfo(ShapeFunctionTypeId id);
 
 } // namespace finley
 

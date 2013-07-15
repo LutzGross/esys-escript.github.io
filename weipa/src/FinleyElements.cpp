@@ -242,8 +242,8 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
         if (f.useQuadNodes) {
             CoordArray quadNodes;
             int numQuadNodes;
-            finley::ShapeFunction* sf = finleyFile->referenceElementSet
-                ->referenceElement->Parametrization;
+            finley::const_ShapeFunction_ptr sf = finleyFile->
+                referenceElementSet->referenceElement->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
                 double* srcPtr = sf->QuadNodes+i;
@@ -340,13 +340,13 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
             int order = att->as_int(0);
             att = ncfile->get_att("reduced_order");
             int reduced_order = att->as_int(0);
-            finley::ReferenceElementSetWrapper wrapper(finleyTypeId, order,
-                    reduced_order);
-            finley::ReferenceElementSet* refElements = wrapper.getElementSet();
+            finley::const_ReferenceElementSet_ptr refElements(
+                    new finley::ReferenceElementSet(finleyTypeId, order,
+                        reduced_order));
 
             CoordArray quadNodes;
             int numQuadNodes;
-            finley::ShapeFunction* sf = refElements->referenceElement
+            finley::const_ShapeFunction_ptr sf = refElements->referenceElement
                 ->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {

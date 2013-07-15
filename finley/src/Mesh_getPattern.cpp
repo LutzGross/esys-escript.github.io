@@ -23,102 +23,103 @@
 #include "Mesh.h"
 #include "IndexList.h"
 
+namespace finley {
 
 /// returns a reference to the matrix pattern
-Paso_SystemMatrixPattern* Finley_getPattern(Finley_Mesh *mesh, bool reduce_row_order, bool reduce_col_order)
+Paso_SystemMatrixPattern* Mesh::getPattern(bool reduce_row_order, bool reduce_col_order)
 {
     Paso_SystemMatrixPattern *out=NULL;
-    Finley_resetError();
+    resetError();
     /* make sure that the requested pattern is available */
     if (reduce_row_order) {
         if (reduce_col_order) {
-            if (mesh->ReducedReducedPattern==NULL)
-                mesh->ReducedReducedPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+            if (ReducedReducedPattern==NULL)
+                ReducedReducedPattern=makePattern(reduce_row_order,reduce_col_order);
         } else {
-            if (mesh->ReducedFullPattern==NULL)
-                mesh->ReducedFullPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+            if (ReducedFullPattern==NULL)
+                ReducedFullPattern=makePattern(reduce_row_order,reduce_col_order);
         }
     } else {
         if (reduce_col_order) {
-            if (mesh->FullReducedPattern==NULL)
-                mesh->FullReducedPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+            if (FullReducedPattern==NULL)
+                FullReducedPattern=makePattern(reduce_row_order,reduce_col_order);
         } else {
-            if (mesh->FullFullPattern==NULL)
-                mesh->FullFullPattern=Finley_makePattern(mesh,reduce_row_order,reduce_col_order);
+            if (FullFullPattern==NULL)
+                FullFullPattern=makePattern(reduce_row_order,reduce_col_order);
         }
     }
-    if (Finley_noError()) {
+    if (noError()) {
         if (reduce_row_order) {
             if (reduce_col_order) {
-                out=Paso_SystemMatrixPattern_getReference(mesh->ReducedReducedPattern);
+                out=Paso_SystemMatrixPattern_getReference(ReducedReducedPattern);
             } else {
-                out=Paso_SystemMatrixPattern_getReference(mesh->ReducedFullPattern);
+                out=Paso_SystemMatrixPattern_getReference(ReducedFullPattern);
             }
         } else {
             if (reduce_col_order) {
-                out=Paso_SystemMatrixPattern_getReference(mesh->FullReducedPattern);
+                out=Paso_SystemMatrixPattern_getReference(FullReducedPattern);
             } else {
-                out=Paso_SystemMatrixPattern_getReference(mesh->FullFullPattern);
+                out=Paso_SystemMatrixPattern_getReference(FullFullPattern);
             }
         }
     }  
     return out;
 }
 
-Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh, bool reduce_row_order, bool reduce_col_order)
+Paso_SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_col_order)
 {
     Paso_SystemMatrixPattern* out=NULL;
     Paso_Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
     Paso_Connector *col_connector, *row_connector;
     Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
   
-    Finley_resetError();
+    resetError();
 
     int myNumColTargets, myNumRowTargets;
     int numColTargets, numRowTargets;
     const int *colTarget, *rowTarget;
 
     if (reduce_col_order) {
-        myNumColTargets=mesh->Nodes->getNumReducedDegreesOfFreedom();
-        numColTargets=mesh->Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
-        colTarget=mesh->Nodes->borrowTargetReducedDegreesOfFreedom();
-        colDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
-        col_connector=mesh->Nodes->reducedDegreesOfFreedomConnector;
+        myNumColTargets=Nodes->getNumReducedDegreesOfFreedom();
+        numColTargets=Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        colTarget=Nodes->borrowTargetReducedDegreesOfFreedom();
+        colDistribution=Nodes->reducedDegreesOfFreedomDistribution;
+        col_connector=Nodes->reducedDegreesOfFreedomConnector;
     } else {
-        myNumColTargets=mesh->Nodes->getNumDegreesOfFreedom();
-        numColTargets=mesh->Nodes->degreesOfFreedomMapping.getNumTargets();
-        colTarget=mesh->Nodes->borrowTargetDegreesOfFreedom();
-        colDistribution=mesh->Nodes->degreesOfFreedomDistribution;
-        col_connector=mesh->Nodes->degreesOfFreedomConnector;
+        myNumColTargets=Nodes->getNumDegreesOfFreedom();
+        numColTargets=Nodes->degreesOfFreedomMapping.getNumTargets();
+        colTarget=Nodes->borrowTargetDegreesOfFreedom();
+        colDistribution=Nodes->degreesOfFreedomDistribution;
+        col_connector=Nodes->degreesOfFreedomConnector;
     }
 
     if (reduce_row_order) {
-        myNumRowTargets=mesh->Nodes->getNumReducedDegreesOfFreedom();
-        numRowTargets=mesh->Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
-        rowTarget=mesh->Nodes->borrowTargetReducedDegreesOfFreedom();
-        rowDistribution=mesh->Nodes->reducedDegreesOfFreedomDistribution;
-        row_connector=mesh->Nodes->reducedDegreesOfFreedomConnector;
+        myNumRowTargets=Nodes->getNumReducedDegreesOfFreedom();
+        numRowTargets=Nodes->reducedDegreesOfFreedomMapping.getNumTargets();
+        rowTarget=Nodes->borrowTargetReducedDegreesOfFreedom();
+        rowDistribution=Nodes->reducedDegreesOfFreedomDistribution;
+        row_connector=Nodes->reducedDegreesOfFreedomConnector;
     } else {
-        myNumRowTargets=mesh->Nodes->getNumDegreesOfFreedom();
-        numRowTargets=mesh->Nodes->degreesOfFreedomMapping.getNumTargets();
-        rowTarget=mesh->Nodes->borrowTargetDegreesOfFreedom();
-        rowDistribution=mesh->Nodes->degreesOfFreedomDistribution;
-        row_connector=mesh->Nodes->degreesOfFreedomConnector;
+        myNumRowTargets=Nodes->getNumDegreesOfFreedom();
+        numRowTargets=Nodes->degreesOfFreedomMapping.getNumTargets();
+        rowTarget=Nodes->borrowTargetDegreesOfFreedom();
+        rowDistribution=Nodes->degreesOfFreedomDistribution;
+        row_connector=Nodes->degreesOfFreedomConnector;
     }
     IndexList* index_list=new IndexList[numRowTargets];
   
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns index index_list:
-        IndexList_insertElements(index_list, mesh->Elements, reduce_row_order,
+        IndexList_insertElements(index_list, Elements, reduce_row_order,
                                  rowTarget, reduce_col_order, colTarget);
-        IndexList_insertElements(index_list, mesh->FaceElements,
+        IndexList_insertElements(index_list, FaceElements,
                                  reduce_row_order, rowTarget, reduce_col_order,
                                  colTarget);
-        IndexList_insertElements(index_list, mesh->ContactElements,
+        IndexList_insertElements(index_list, ContactElements,
                                  reduce_row_order, rowTarget, reduce_col_order,
                                  colTarget);
-        IndexList_insertElements(index_list, mesh->Points, reduce_row_order,
+        IndexList_insertElements(index_list, Points, reduce_row_order,
                                  rowTarget, reduce_col_order, colTarget);
     }
  
@@ -131,8 +132,8 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh, bool reduce_row_
     row_couple_pattern=IndexList_createPattern(myNumRowTargets, numRowTargets,
                                             index_list, 0, myNumColTargets, 0);
 
-    /* if everything is in order we can create the return value */
-    if (Finley_noError()) {
+    // if everything is in order we can create the return value
+    if (noError()) {
         out=Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
                 rowDistribution, colDistribution, main_pattern,
                 col_couple_pattern, row_couple_pattern,
@@ -142,7 +143,9 @@ Paso_SystemMatrixPattern* Finley_makePattern(Finley_Mesh *mesh, bool reduce_row_
     Paso_Pattern_free(main_pattern);
     Paso_Pattern_free(col_couple_pattern);
     Paso_Pattern_free(row_couple_pattern);
-    Esys_MPIInfo_noError(mesh->MPIInfo);
+    Esys_MPIInfo_noError(MPIInfo);
     return out;
 }
+
+} // namespace finley
 

@@ -46,7 +46,7 @@ const int MeshAdapter::ReducedContactElementsZero=FINLEY_REDUCED_CONTACT_ELEMENT
 const int MeshAdapter::ContactElementsOne=FINLEY_CONTACT_ELEMENTS_2;
 const int MeshAdapter::ReducedContactElementsOne=FINLEY_REDUCED_CONTACT_ELEMENTS_2;
 
-MeshAdapter::MeshAdapter(Finley_Mesh* finleyMesh)
+MeshAdapter::MeshAdapter(Mesh* finleyMesh)
 {
     setFunctionSpaceTypeNames();
     // need to use a null_deleter as Finley_Mesh_free deletes the pointer
@@ -66,7 +66,7 @@ MeshAdapter::~MeshAdapter()
 {
     // I hope the case for the pointer being zero has been taken care of
     if (m_finleyMesh.unique()) {
-        Finley_Mesh_free(m_finleyMesh.get());
+        delete m_finleyMesh.get();
     }
 }
 
@@ -106,20 +106,20 @@ MeshAdapter::getMPIComm() const
 #endif
 }
 
-Finley_Mesh* MeshAdapter::getFinley_Mesh() const
+Mesh* MeshAdapter::getFinley_Mesh() const
 {
     return m_finleyMesh.get();
 }
 
 void MeshAdapter::write(const string& fileName) const
 {
-    Finley_Mesh_write(m_finleyMesh.get(), fileName.c_str());
+    m_finleyMesh.get()->write(fileName);
     checkFinleyError();
 }
 
 void MeshAdapter::Print_Mesh_Info(const bool full) const
 {
-    Finley_PrintMesh_Info(m_finleyMesh.get(), full);
+    m_finleyMesh.get()->printInfo(full);
 }
 
 void MeshAdapter::dump(const string& fileName) const
@@ -128,7 +128,7 @@ void MeshAdapter::dump(const string& fileName) const
     const NcDim* ncdims[12] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
     NcVar *ids;
     int *int_ptr;
-    Finley_Mesh *mesh = m_finleyMesh.get();
+    Mesh *mesh = m_finleyMesh.get();
     int num_Tags = 0;
     int mpi_size                         = mesh->MPIInfo->size;
     int mpi_rank                         = mesh->MPIInfo->rank;
@@ -201,29 +201,29 @@ void MeshAdapter::dump(const string& fileName) const
             throw FinleyAdapterException(msgPrefix+"add_dim(dim_Tags)");
 
     // Attributes: MPI size, MPI rank, Name, order, reduced_order
-    if (!dataFile.add_att("mpi_size", mpi_size) )
+    if (!dataFile.add_att("mpi_size", mpi_size))
         throw FinleyAdapterException(msgPrefix+"add_att(mpi_size)");
-    if (!dataFile.add_att("mpi_rank", mpi_rank) )
+    if (!dataFile.add_att("mpi_rank", mpi_rank))
         throw FinleyAdapterException(msgPrefix+"add_att(mpi_rank)");
-    if (!dataFile.add_att("Name",mesh->Name) )
+    if (!dataFile.add_att("Name",mesh->m_name.c_str()))
         throw FinleyAdapterException(msgPrefix+"add_att(Name)");
-    if (!dataFile.add_att("numDim",numDim) )
+    if (!dataFile.add_att("numDim",numDim))
         throw FinleyAdapterException(msgPrefix+"add_att(order)");
-    if (!dataFile.add_att("order",mesh->integrationOrder) )
+    if (!dataFile.add_att("order",mesh->integrationOrder))
         throw FinleyAdapterException(msgPrefix+"add_att(order)");
-    if (!dataFile.add_att("reduced_order",mesh->reducedIntegrationOrder) )
+    if (!dataFile.add_att("reduced_order",mesh->reducedIntegrationOrder))
         throw FinleyAdapterException(msgPrefix+"add_att(reduced_order)");
-    if (!dataFile.add_att("numNodes",numNodes) )
+    if (!dataFile.add_att("numNodes",numNodes))
         throw FinleyAdapterException(msgPrefix+"add_att(numNodes)");
-    if (!dataFile.add_att("num_Elements",num_Elements) )
+    if (!dataFile.add_att("num_Elements",num_Elements))
         throw FinleyAdapterException(msgPrefix+"add_att(num_Elements)");
-    if (!dataFile.add_att("num_FaceElements",num_FaceElements) )
+    if (!dataFile.add_att("num_FaceElements",num_FaceElements))
         throw FinleyAdapterException(msgPrefix+"add_att(num_FaceElements)");
-    if (!dataFile.add_att("num_ContactElements",num_ContactElements) )
+    if (!dataFile.add_att("num_ContactElements",num_ContactElements))
         throw FinleyAdapterException(msgPrefix+"add_att(num_ContactElements)");
-    if (!dataFile.add_att("num_Points",num_Points) )
+    if (!dataFile.add_att("num_Points",num_Points))
         throw FinleyAdapterException(msgPrefix+"add_att(num_Points)");
-    if (!dataFile.add_att("num_Elements_numNodes",num_Elements_numNodes) )
+    if (!dataFile.add_att("num_Elements_numNodes",num_Elements_numNodes))
         throw FinleyAdapterException(msgPrefix+"add_att(num_Elements_numNodes)");
     if (!dataFile.add_att("num_FaceElements_numNodes",num_FaceElements_numNodes) )
         throw FinleyAdapterException(msgPrefix+"add_att(num_FaceElements_numNodes)");
@@ -628,10 +628,8 @@ int MeshAdapter::getDiracDeltaFunctionsCode() const
 //
 int MeshAdapter::getDim() const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
-    int numDim=Finley_Mesh_getDim(mesh);
-    checkFinleyError();
-    return numDim;
+    Mesh* mesh=m_finleyMesh.get();
+    return mesh->getDim();
 }
 
 //
@@ -650,7 +648,7 @@ pair<int,int> MeshAdapter::getDataShape(int functionSpaceCode) const
 {
     int numDataPointsPerSample=0;
     int numSamples=0;
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch (functionSpaceCode) {
         case Nodes:
             numDataPointsPerSample=1;
@@ -751,7 +749,7 @@ void MeshAdapter::addPDEToSystem(
     if (!smat)
         throw FinleyAdapterException("finley only supports Paso system matrices.");
 
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     Paso_SystemMatrix* S = smat->getPaso_SystemMatrix();
     Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
     checkFinleyError();
@@ -775,7 +773,7 @@ void MeshAdapter::addPDEToLumpedSystem(escript::Data& mat,
         const escript::Data& D, const escript::Data& d,
         const escript::Data& d_dirac, const bool useHRZ) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     Assemble_LumpedSystem(mesh->Nodes, mesh->Elements, mat, D, useHRZ);
     checkFinleyError();
 
@@ -793,7 +791,7 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         const escript::Data& Y, const escript::Data& y,
         const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     Assemble_PDE(mesh->Nodes, mesh->Elements, 0, rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             X, Y);
@@ -832,7 +830,7 @@ void MeshAdapter::addPDEToTransportProblem(
 
     source.expand();
 
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
 
     Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->mass_matrix, source,
@@ -873,7 +871,7 @@ void MeshAdapter::interpolateOnDomain(escript::Data& target, const escript::Data
     if (targetDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of interpolation target.");
 
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(in.getFunctionSpace().getTypeCode()) {
         case Nodes:
             switch(target.getFunctionSpace().getTypeCode()) {
@@ -1135,7 +1133,7 @@ void MeshAdapter::setToX(escript::Data& arg) const
     const MeshAdapter& argDomain=dynamic_cast<const MeshAdapter&>(*(arg.getFunctionSpace().getDomain()));
     if (argDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of data point locations");
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     // in case of appropriate function space we can do the job directly:
     if (arg.getFunctionSpace().getTypeCode()==Nodes) {
         Assemble_NodeCoordinates(mesh->Nodes, arg);
@@ -1156,7 +1154,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
     const MeshAdapter& normalDomain=dynamic_cast<const MeshAdapter&>(*(normal.getFunctionSpace().getDomain()));
     if (normalDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of normal locations");
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(normal.getFunctionSpace().getTypeCode()) {
         case Nodes:
             throw FinleyAdapterException("Error - Finley does not support surface normal vectors for nodes");
@@ -1172,7 +1170,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
             break;
         case FaceElements:
         case ReducedFaceElements:
-            Assemble_setNormal(mesh->Nodes, mesh->FaceElements, normal);
+            Assemble_getNormal(mesh->Nodes, mesh->FaceElements, normal);
             break;
         case Points:
             throw FinleyAdapterException("Error - Finley does not support surface normal vectors for point elements");
@@ -1181,7 +1179,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
         case ContactElementsZero:
         case ReducedContactElementsOne:
         case ReducedContactElementsZero:
-            Assemble_setNormal(mesh->Nodes, mesh->ContactElements, normal);
+            Assemble_getNormal(mesh->Nodes, mesh->ContactElements, normal);
             break;
         case DegreesOfFreedom:
             throw FinleyAdapterException("Error - Finley does not support surface normal vectors for degrees of freedom.");
@@ -1216,7 +1214,7 @@ void MeshAdapter::setToIntegrals(vector<double>& integrals, const escript::Data&
         throw FinleyAdapterException("Error - Illegal domain of integration kernel");
 
     double blocktimer_start = blocktimer_time();
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(arg.getFunctionSpace().getTypeCode()) {
         case Nodes:
             {
@@ -1276,7 +1274,7 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
     if (gradDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of gradient");
 
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     escript::Data nodeData;
     if (getMPISize()>1) {
         if (arg.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
@@ -1333,7 +1331,7 @@ void MeshAdapter::setToGradient(escript::Data& grad, const escript::Data& arg) c
 //
 void MeshAdapter::setToSize(escript::Data& size) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(size.getFunctionSpace().getTypeCode()) {
         case Nodes:
             throw FinleyAdapterException("Error - Size of nodes is not supported.");
@@ -1378,12 +1376,12 @@ void MeshAdapter::setToSize(escript::Data& size) const
 //
 void MeshAdapter::setNewX(const escript::Data& new_x)
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     const MeshAdapter& newDomain=dynamic_cast<const MeshAdapter&>(*(new_x.getFunctionSpace().getDomain()));
     if (newDomain!=*this)
         throw FinleyAdapterException("Error - Illegal domain of new point locations");
     if (new_x.getFunctionSpace() == continuousFunction(*this)) {
-        Finley_Mesh_setCoordinates(mesh, new_x);
+        mesh->setCoordinates(new_x);
     } else {
         throw FinleyAdapterException("As of escript version 3.3 SetX() only accepts ContinuousFunction arguments. Please interpolate.");
     }
@@ -1396,14 +1394,14 @@ bool MeshAdapter::ownSample(int fs_code, index_t id) const
 #ifdef ESYS_MPI
         int myFirstNode=0, myLastNode=0, k=0;
         int* globalNodeIndex=0;
-        Finley_Mesh* mesh_p=m_finleyMesh.get();
+        Mesh* mesh_p=m_finleyMesh.get();
         /*
          * this method is only used by saveDataCSV which would use the returned
          * values for reduced nodes wrongly so this case is disabled for now
         if (fs_code == FINLEY_REDUCED_NODES) {
-            myFirstNode = Finley_NodeFile_getFirstReducedNode(mesh_p->Nodes);
-            myLastNode = Finley_NodeFile_getLastReducedNode(mesh_p->Nodes);
-            globalNodeIndex = Finley_NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
+            myFirstNode = NodeFile_getFirstReducedNode(mesh_p->Nodes);
+            myLastNode = NodeFile_getLastReducedNode(mesh_p->Nodes);
+            globalNodeIndex = NodeFile_borrowGlobalReducedNodesIndex(mesh_p->Nodes);
         } else
         */
         if (fs_code == FINLEY_NODES) {
@@ -1454,8 +1452,8 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
     }
 
     // generate matrix:
-    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(
-            getFinley_Mesh(), reduceRowOrder, reduceColOrder);
+    Paso_SystemMatrixPattern* fsystemMatrixPattern=
+        getFinley_Mesh()->getPattern(reduceRowOrder, reduceColOrder);
     checkFinleyError();
     Paso_SystemMatrix* fsystemMatrix;
     const int trilinos = 0;
@@ -1493,8 +1491,8 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
     }
 
     // generate transport problem:
-    Paso_SystemMatrixPattern* fsystemMatrixPattern=Finley_getPattern(
-            getFinley_Mesh(), reduceOrder, reduceOrder);
+    Paso_SystemMatrixPattern* fsystemMatrixPattern=
+        getFinley_Mesh()->getPattern(reduceOrder, reduceOrder);
     checkFinleyError();
     Paso_TransportProblem* transportProblem;
     transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern, blocksize);
@@ -1845,14 +1843,14 @@ bool MeshAdapter::operator!=(const escript::AbstractDomain& other) const
 
 int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
                package, symmetry, mesh->MPIInfo);
 }
 
 int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
                 package, symmetry, mesh->MPIInfo);
 }
@@ -1875,7 +1873,7 @@ escript::Data MeshAdapter::getSize() const
 const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
 {
     int *out = NULL;
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch (functionSpaceType) {
         case Nodes:
             out=mesh->Nodes->Id;
@@ -1917,7 +1915,7 @@ const int* MeshAdapter::borrowSampleReferenceIDs(int functionSpaceType) const
 int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 {
     int out=0;
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch (functionSpaceType) {
         case Nodes:
             out=mesh->Nodes->Tag[sampleNo];
@@ -1960,7 +1958,7 @@ int MeshAdapter::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
 
 void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(functionSpaceType) {
         case Nodes:
             mesh->Nodes->setTags(newTag, mask);
@@ -1998,29 +1996,29 @@ void MeshAdapter::setTags(const int functionSpaceType, const int newTag, const e
 
 void MeshAdapter::setTagMap(const string& name, int tag)
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
-    Finley_Mesh_addTagMap(mesh, name.c_str(), tag);
+    Mesh* mesh=m_finleyMesh.get();
+    mesh->addTagMap(name.c_str(), tag);
     checkFinleyError();
 }
 
 int MeshAdapter::getTag(const string& name) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
-    int tag = Finley_Mesh_getTag(mesh, name.c_str());
+    Mesh* mesh=m_finleyMesh.get();
+    int tag = mesh->getTag(name.c_str());
     checkFinleyError();
     return tag;
 }
 
 bool MeshAdapter::isValidTagName(const string& name) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
-    return Finley_Mesh_isValidTagName(mesh, name.c_str());
+    Mesh* mesh=m_finleyMesh.get();
+    return mesh->isValidTagName(name.c_str());
 }
 
 string MeshAdapter::showTagNames() const
 {
     stringstream temp;
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     TagMap::const_iterator it = mesh->tagMap.begin();
     while (it != mesh->tagMap.end()) {
         temp << it->first;
@@ -2033,7 +2031,7 @@ string MeshAdapter::showTagNames() const
 
 int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(functionSpaceCode) {
         case Nodes:
             return mesh->Nodes->tagsInUse.size();
@@ -2067,7 +2065,7 @@ int MeshAdapter::getNumberOfTagsInUse(int functionSpaceCode) const
 
 const int* MeshAdapter::borrowListOfTagsInUse(int functionSpaceCode) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     switch(functionSpaceCode) {
         case Nodes:
             return &mesh->Nodes->tagsInUse[0];
@@ -2120,13 +2118,13 @@ bool MeshAdapter::canTag(int functionSpaceCode) const
 
 escript::AbstractDomain::StatusType MeshAdapter::getStatus() const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
-    return Finley_Mesh_getStatus(mesh);
+    Mesh* mesh=m_finleyMesh.get();
+    return mesh->getStatus();
 }
 
 int MeshAdapter::getApproximationOrder(const int functionSpaceCode) const
 {
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
     int order =-1;
     switch(functionSpaceCode) {
         case Nodes:
@@ -2163,17 +2161,6 @@ bool MeshAdapter::supportsContactElements() const
     return true;
 }
 
-ReferenceElementSetWrapper::ReferenceElementSetWrapper(ElementTypeId id,
-        index_t order, index_t reducedOrder)
-{
-    m_refSet = ReferenceElementSet_alloc(id, order, reducedOrder);
-}
-
-ReferenceElementSetWrapper::~ReferenceElementSetWrapper()
-{
-    ReferenceElementSet_dealloc(m_refSet);
-}
-
 void MeshAdapter::addDiracPoints(const vector<double>& points,
                                  const vector<int>& tags) const
 {
@@ -2181,7 +2168,7 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
     const int dim = getDim();
     int numPoints=points.size()/dim;
     int numTags=tags.size();
-    Finley_Mesh* mesh=m_finleyMesh.get();
+    Mesh* mesh=m_finleyMesh.get();
 
     if ( points.size() % dim != 0 ) {
         throw FinleyAdapterException("Error - number of coords does not appear to be a multiple of dimension.");
@@ -2190,7 +2177,7 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
     if ((numTags > 0) && (numPoints != numTags))
         throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
 
-    Finley_Mesh_addPoints(mesh, numPoints, &points[0], &tags[0]);
+    mesh->addPoints(numPoints, &points[0], &tags[0]);
     checkFinleyError();
 }
 
@@ -2199,7 +2186,7 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 //       const int dim = getDim();
 //       int numPoints=boost::python::extract<int>(points.attr("__len__")());
 //       int numTags=boost::python::extract<int>(tags.attr("__len__")());
-//       Finley_Mesh* mesh=m_finleyMesh.get();
+//       Mesh* mesh=m_finleyMesh.get();
 //
 //       if  ( (numTags > 0) && ( numPoints !=  numTags ) )
 //       throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");

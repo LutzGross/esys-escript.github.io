@@ -164,7 +164,7 @@ BOOST_PYTHON_MODULE(finleycpp)
 
 
   class_<finley::MeshAdapter, bases<escript::AbstractContinuousDomain> >
-      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <Finley_Mesh*> >())
+      ("MeshAdapter","A concrete class representing a domain. For more details, please consult the c++ documentation.",init<optional <finley::Mesh*> >())
       .def(init<const finley::MeshAdapter&>())
       .def("write",&finley::MeshAdapter::write,args("filename"),
 "Write the current mesh to a file with the given name.")

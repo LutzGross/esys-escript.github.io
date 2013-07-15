@@ -62,7 +62,7 @@ namespace finley {
    escript::Domain_ptr readMesh(const std::string& fileName,
                                      int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
-                                     int optimize=0);
+                                     bool optimize=false);
   /**
      \brief
      Read a gmsh mesh file
@@ -81,8 +81,8 @@ namespace finley {
                                int numDim, 
                                int integrationOrder=-1,
                                int reducedIntegrationOrder=-1, 
-                               int optimize=0,
-                               int useMacroElements=0);
+                               bool optimize=false,
+                               bool useMacroElements=false);
 
   /**
      \brief
@@ -109,13 +109,13 @@ namespace finley {
 FINLEY_DLL_API
 escript::Domain_ptr brick(int n0=1, int n1=1, int n2=1, int order=1,
                     double l0=1.0, double l1=1.0, double l2=1.0,
-                    int periodic0=0, int periodic1=0,
-                    int periodic2=0,
+                    bool periodic0=false, bool periodic1=false,
+                    bool periodic2=false,
                     int integrationOrder=-1,
                     int reducedIntegrationOrder=-1,
-                    int useElementsOnFace=0,
-                    int useFullElementOrder=0,
-                    int optimize=0, 
+                    bool useElementsOnFace=false,
+                    bool useFullElementOrder=false,
+                    bool optimize=false,
                     const std::vector<double>& points=std::vector<double>(),
                     const std::vector<int>& tags=std::vector<int>(),
                     const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>()
@@ -163,12 +163,12 @@ escript::Domain_ptr brick(int n0=1, int n1=1, int n2=1, int order=1,
 FINLEY_DLL_API
   escript::Domain_ptr rectangle(int n0=1, int n1=1, int order=1,
                                 double l0=1.0, double l1=1.0,
-                                int periodic0=false, int periodic1=false,
+                                bool periodic0=false, bool periodic1=false,
                                 int integrationOrder=-1,
                                 int reducedIntegrationOrder=-1, 
-                                int useElementsOnFace=0,
-                                int useFullElementOrder=0,
-                                int optimize=0,
+                                bool useElementsOnFace=false,
+                                bool useFullElementOrder=false,
+                                bool optimize=false,
                                 const std::vector<double>& points=std::vector<double>(),
                                 const std::vector<int>& tags=std::vector<int>(),
                                 const std::map<std::string, int>& tagnamestonums=std::map<std::string, int>()
@@ -195,7 +195,7 @@ FINLEY_DLL_API
   escript::Domain_ptr glueFaces(const boost::python::list& meshList,
                            double safetyFactor=0.2, 
                            double tolerance=1.e-8,
-                           int optimize=0);
+                           bool optimize=false);
   /**
      \brief
      Detects matching faces in the mesh and replaces them by joint elements.
@@ -209,7 +209,7 @@ FINLEY_DLL_API
   escript::Domain_ptr joinFaces(const boost::python::list& meshList,
                         double safetyFactor=0.2, 
                         double tolerance=1.e-8,
-                        int optimize=0);
+                        bool optimize=false);
  
 } // end of namespace
 #endif

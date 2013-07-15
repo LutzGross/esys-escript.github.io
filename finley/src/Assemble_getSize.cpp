@@ -26,16 +26,17 @@
 
 namespace finley {
 
-void Assemble_getSize(NodeFile* nodes, ElementFile* elements, escript::Data& out)
+void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
+                      escript::Data& out)
 {
-    Finley_resetError();
+    resetError();
 
     if (!nodes || !elements)
         return;
 
-    ReferenceElement *refElement = ReferenceElementSet_borrowReferenceElement(
-                elements->referenceElementSet,
-                util::hasReducedIntegrationOrder(out));
+    const_ReferenceElement_ptr refElement(elements->referenceElementSet->
+            borrowReferenceElement(
+                util::hasReducedIntegrationOrder(out)));
 
     const int numDim=nodes->numDim;
     const int numQuad=refElement->Parametrization->numQuadNodes;
@@ -45,14 +46,14 @@ void Assemble_getSize(NodeFile* nodes, ElementFile* elements, escript::Data& out
 
     // check the dimensions of out
     if (!out.numSamplesEqual(numQuad, elements->numElements)) {
-        Finley_setError(TYPE_ERROR, "Assemble_getSize: illegal number of samples of out Data object");
+        setError(TYPE_ERROR, "Assemble_getSize: illegal number of samples of out Data object");
     } else if (!out.isDataPointShapeEqual(0, &numDim)) {
-        Finley_setError(TYPE_ERROR, "Assemble_getSize: illegal data point shape of out Data object");
+        setError(TYPE_ERROR, "Assemble_getSize: illegal data point shape of out Data object");
     } else if (!out.actsExpanded()) {
-        Finley_setError(TYPE_ERROR, "Assemble_getSize: expanded Data object is expected for element size.");
+        setError(TYPE_ERROR, "Assemble_getSize: expanded Data object is expected for element size.");
     }
 
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     // now we can start

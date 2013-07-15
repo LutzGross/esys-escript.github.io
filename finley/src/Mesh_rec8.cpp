@@ -14,46 +14,42 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: generates rectangular meshes */
+  Finley: generates rectangular meshes
 
-/*   Generates a numElements[0] x numElements[1] mesh with second order elements (Rec8) in the rectangle */
-/*   [0,Length[0]] x [0,Length[1]]. order is the desired accuracy of the integration scheme. */
+  Generates a numElements[0] x numElements[1] mesh with second order elements
+  (Rec8) in the rectangle [0,Length[0]] x [0,Length[1]].
+  order is the desired accuracy of the integration scheme.
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "RectangularMesh.h"
 
+namespace finley {
 
-Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
-                                          double* Length,
-                                          bool_t* periodic,
-                                          index_t order, 
-                                          index_t reduced_order, 
-                                          bool_t useElementsOnFace,
-                                          bool_t useFullElementOrder,
-                                          bool_t useMacroElements,
-                                          bool_t optimize) 
+Mesh* RectangularMesh_Rec8(const int* numElements, const double* Length,
+                           const bool* periodic, int order, int reduced_order,
+                           bool useElementsOnFace, bool useFullElementOrder,
+                           bool useMacroElements, bool optimize)
 {
-  #define N_PER_E 2
-  #define DIM 2
-  dim_t N0,N1,NE0,NE1,i0,i1,k,Nstride0=0,Nstride1=0;
-  dim_t totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements,NN, local_NE0, local_NE1, local_N0=0, local_N1=0;
-  index_t e_offset1, e_offset0, offset0=0, offset1=0, global_i0, global_i1;
-  ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
-  index_t node0, myRank;
-  Finley_Mesh* out;
+#define N_PER_E 2
+#define DIM 2
+  int N0,N1,NE0,NE1,i0,i1,k,Nstride0=0,Nstride1=0;
+  int totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements,NN, local_NE0, local_NE1, local_N0=0, local_N1=0;
+  int e_offset1, e_offset0, offset0=0, offset1=0, global_i0, global_i1;
+  int node0, myRank;
+  const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
   Esys_MPIInfo *mpi_info = NULL;
   char name[50];
-  bool_t generateAllNodes= useFullElementOrder || useMacroElements;
-  #ifdef Finley_TRACE
-  double time0=Finley_timer();
-  #endif
+  bool generateAllNodes = useFullElementOrder || useMacroElements;
+#ifdef Finley_TRACE
+  double time0=timer();
+#endif
 
   /* get MPI information */
-  mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
-  if (! Finley_noError()) {
+  mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+  if (!noError()) {
         return NULL;
   }
   myRank=mpi_info->rank;
@@ -65,101 +61,95 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
   N0=N_PER_E*NE0+1;
   N1=N_PER_E*NE1+1;
 
-  /*  allocate mesh: */  
+  /*  allocate mesh: */
   sprintf(name,"Rectangular %d x %d mesh",N0,N1);
-  out=Finley_Mesh_alloc(name,DIM, mpi_info);
-  if (! Finley_noError()) { 
-      Esys_MPIInfo_free( mpi_info );
-      return NULL;
-  }
+  Mesh* out = new Mesh(name, DIM, mpi_info);
   if (generateAllNodes) {
-     /* Finley_setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
+     /* setError(SYSTEM_ERROR,"full element order for Hex elements is not supported yet."); */
      if (useMacroElements) {
-		  refElements= ReferenceElementSet_alloc(Rec9Macro,order,reduced_order);
+          refElements.reset(new ReferenceElementSet(Rec9Macro, order, reduced_order));
      } else {
-		  refElements=ReferenceElementSet_alloc(Rec9, order,reduced_order);
+          refElements.reset(new ReferenceElementSet(Rec9, order, reduced_order));
      }
      if (useElementsOnFace) {
-         Finley_setError(SYSTEM_ERROR,"rich elements for Finley_Rec9 elements is not supported yet.");
+         setError(SYSTEM_ERROR,"rich elements for Rec9 elements are not supported yet.");
      } else {
-         if (useMacroElements) { 
-			 refFaceElements=ReferenceElementSet_alloc(Line3Macro, order, reduced_order);
+         if (useMacroElements) {
+             refFaceElements.reset(new ReferenceElementSet(Line3Macro, order, reduced_order));
          } else {
-			 refFaceElements=ReferenceElementSet_alloc(Line3, order, reduced_order);
+             refFaceElements.reset(new ReferenceElementSet(Line3, order, reduced_order));
          }
-		 refContactElements=ReferenceElementSet_alloc(Line3_Contact, order, reduced_order);
+         refContactElements.reset(new ReferenceElementSet(Line3_Contact, order, reduced_order));
      }
 
   } else  {
-     refElements= ReferenceElementSet_alloc(Rec8,order,reduced_order);
+     refElements.reset(new ReferenceElementSet(Rec8, order, reduced_order));
      if (useElementsOnFace) {
-		 refFaceElements= ReferenceElementSet_alloc(Rec8Face ,order,reduced_order);
-		 refContactElements=ReferenceElementSet_alloc(Rec8Face_Contact, order, reduced_order);
+         refFaceElements.reset(new ReferenceElementSet(Rec8Face, order, reduced_order));
+         refContactElements.reset(new ReferenceElementSet(Rec8Face_Contact, order, reduced_order));
 
      } else {
-		 refFaceElements= ReferenceElementSet_alloc(Line3 ,order,reduced_order);
-		 refContactElements=ReferenceElementSet_alloc(Line3_Contact, order, reduced_order);
+         refFaceElements.reset(new ReferenceElementSet(Line3, order, reduced_order));
+         refContactElements.reset(new ReferenceElementSet(Line3_Contact, order, reduced_order));
 
      }
   }
-  refPoints=ReferenceElementSet_alloc(Point1, order, reduced_order);
+  refPoints.reset(new ReferenceElementSet(Point1, order, reduced_order));
 
 
-  if ( Finley_noError()) {
-  
-	  Finley_Mesh_setPoints(out, new ElementFile(refPoints, mpi_info));
-	  Finley_Mesh_setContactElements(out, new ElementFile(refContactElements, mpi_info));
-	  Finley_Mesh_setFaceElements(out, new ElementFile(refFaceElements, mpi_info));
-	  Finley_Mesh_setElements(out, new ElementFile(refElements, mpi_info));
+  if (noError()) {
 
-	  /* work out the largest dimension */
-	  if (N1==MAX(N0,N1)) {
-		  Nstride0=1;
-		  Nstride1=N0;
-		  local_NE0=NE0;
-		  e_offset0=0;
-		  Esys_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
-	  } else {
-		  Nstride0=N1;
-		  Nstride1=1;
-		  Esys_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
-		  local_NE1=NE1;
-		  e_offset1=0;
-	  }
-	  offset0=e_offset0*N_PER_E;
-	  offset1=e_offset1*N_PER_E;
-	  local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
-	  local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
+      out->setPoints(new ElementFile(refPoints, mpi_info));
+      out->setContactElements(new ElementFile(refContactElements, mpi_info));
+      out->setFaceElements(new ElementFile(refFaceElements, mpi_info));
+      out->setElements(new ElementFile(refElements, mpi_info));
 
-	  /* get the number of surface elements */
+      /* work out the largest dimension */
+      if (N1==MAX(N0,N1)) {
+          Nstride0=1;
+          Nstride1=N0;
+          local_NE0=NE0;
+          e_offset0=0;
+          Esys_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
+      } else {
+          Nstride0=N1;
+          Nstride1=1;
+          Esys_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
+          local_NE1=NE1;
+          e_offset1=0;
+      }
+      offset0=e_offset0*N_PER_E;
+      offset1=e_offset1*N_PER_E;
+      local_N0=local_NE0>0 ? local_NE0*N_PER_E+1 : 0;
+      local_N1=local_NE1>0 ? local_NE1*N_PER_E+1 : 0;
 
-	  NFaceElements=0;
-	  if (!periodic[0] &&  (local_NE0>0)) {
-		  NDOF0=N0;
-		  if (e_offset0 == 0) NFaceElements+=local_NE1;
-		  if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1;
-	  } else {
-		  NDOF0=N0-1;
-	  }
-	  if (!periodic[1] && (local_NE1>0)) {
-		  NDOF1=N1;
-		  if (e_offset1 == 0) NFaceElements+=local_NE0;
-		  if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0;
-	  } else {
-		  NDOF1=N1-1;
-	  }
-  
-	  /*  allocate tables: */
+      /* get the number of surface elements */
 
-	  out->Nodes->allocTable(local_N0*local_N1);
-	  out->Elements->allocTable(local_NE0*local_NE1);
-	  out->FaceElements->allocTable(NFaceElements);
+      NFaceElements=0;
+      if (!periodic[0] &&  (local_NE0>0)) {
+          NDOF0=N0;
+          if (e_offset0 == 0) NFaceElements+=local_NE1;
+          if (local_NE0+e_offset0 == NE0) NFaceElements+=local_NE1;
+      } else {
+          NDOF0=N0-1;
+      }
+      if (!periodic[1] && (local_NE1>0)) {
+          NDOF1=N1;
+          if (e_offset1 == 0) NFaceElements+=local_NE0;
+          if (local_NE1+e_offset1 == NE1) NFaceElements+=local_NE0;
+      } else {
+          NDOF1=N1-1;
+      }
+
+      /*  allocate tables: */
+      out->Nodes->allocTable(local_N0*local_N1);
+      out->Elements->allocTable(local_NE0*local_NE1);
+      out->FaceElements->allocTable(NFaceElements);
   }
-	  
-  if (Finley_noError()) {
+
+  if (noError()) {
      /* create nodes */
-   
-     #pragma omp parallel for private(i0,i1,k,global_i0,global_i1)
+#pragma omp parallel for private(i0,i1,k,global_i0,global_i1)
      for (i1=0;i1<local_N1;i1++) {
        for (i0=0;i0<local_N0;i0++) {
            k=i0+local_N0*i1;
@@ -169,17 +159,17 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
            out->Nodes->Coordinates[INDEX2(1,k,DIM)]=DBLE(global_i1)/DBLE(N1-1)*Length[1];
            out->Nodes->Id[k]=Nstride0*global_i0+Nstride1*global_i1;
            out->Nodes->Tag[k]=0;
-           out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0) 
+           out->Nodes->globalDegreesOfFreedom[k]=Nstride0*(global_i0%NDOF0)
                                                +Nstride1*(global_i1%NDOF1);
        }
      }
      /*   set the elements: */
      NN=out->Elements->numNodes;
-     #pragma omp parallel for private(i0,i1,k,node0) 
+#pragma omp parallel for private(i0,i1,k,node0)
      for (i1=0;i1<local_NE1;i1++) {
          for (i0=0;i0<local_NE0;i0++) {
-           
-           k=i0+local_NE0*i1;        
+
+           k=i0+local_NE0*i1;
            node0=Nstride0*N_PER_E*(i0+e_offset0)+Nstride1*N_PER_E*(i1+e_offset1);
 
            out->Elements->Id[k]=(i0+e_offset0)+NE0*(i1+e_offset1);
@@ -205,11 +195,9 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
      faceNECount=0;
      if (!periodic[0] && (local_NE0>0)) {
         /* **  elements on boundary 001 (x1=0): */
-     
         if (e_offset0 == 0) {
-           #pragma omp parallel for private(i1,k,node0) 
+#pragma omp parallel for private(i1,k,node0)
            for (i1=0;i1<local_NE1;i1++) {
-      
                k=i1+faceNECount;
                node0=Nstride1*N_PER_E*(i1+e_offset1);
 
@@ -236,7 +224,7 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
         totalNECount+=NE1;
         /* **  elements on boundary 002 (x1=1): */
         if (local_NE0+e_offset0 == NE0) {
-           #pragma omp parallel for private(i1,k,node0) 
+#pragma omp parallel for private(i1,k,node0)
            for (i1=0;i1<local_NE1;i1++) {
                k=i1+faceNECount;
                node0=Nstride0*N_PER_E*(NE0-1)+Nstride1*N_PER_E*(i1+e_offset1);
@@ -267,15 +255,15 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
      if (!periodic[1] && (local_NE1>0)) {
         /* **  elements on boundary 010 (x2=0): */
         if (e_offset1 == 0) {
-           #pragma omp parallel for private(i0,k,node0) 
+#pragma omp parallel for private(i0,k,node0)
            for (i0=0;i0<local_NE0;i0++) {
                k=i0+faceNECount;
                node0=Nstride0*N_PER_E*(i0+e_offset0);
-         
+
                out->FaceElements->Id[k]=e_offset0+i0+totalNECount;
                out->FaceElements->Tag[k]=10;
                out->FaceElements->Owner[k]=myRank;
-       
+
                if (useElementsOnFace) {
                    out->FaceElements->Nodes[INDEX2(0,k,NN)]=node0;
                    out->FaceElements->Nodes[INDEX2(1,k,NN)]=node0+2*Nstride0;
@@ -296,11 +284,11 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
         totalNECount+=NE0;
         /* **  elements on boundary 020 (x2=1): */
         if (local_NE1+e_offset1 == NE1) {
-           #pragma omp parallel for private(i0,k,node0) 
+#pragma omp parallel for private(i0,k,node0)
            for (i0=0;i0<local_NE0;i0++) {
                k=i0+faceNECount;
                node0=Nstride0*N_PER_E*(i0+e_offset0)+Nstride1*N_PER_E*(NE1-1);
-   
+
                out->FaceElements->Id[k]=i0+e_offset0+totalNECount;
                out->FaceElements->Tag[k]=20;
                out->FaceElements->Owner[k]=myRank;
@@ -324,29 +312,28 @@ Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t* numElements,
         totalNECount+=NE0;
      }
   }
-  if (Finley_noError()) {
+  if (noError()) {
      /* add tag names */
-     Finley_Mesh_addTagMap(out,"top", 20);
-     Finley_Mesh_addTagMap(out,"bottom", 10);
-     Finley_Mesh_addTagMap(out,"left", 1);
-     Finley_Mesh_addTagMap(out,"right", 2);
+     out->addTagMap("top", 20);
+     out->addTagMap("bottom", 10);
+     out->addTagMap("left", 1);
+     out->addTagMap("right", 2);
    }
-   /* prepare mesh for further calculations:*/
-   if (Finley_noError()) {
-         Finley_Mesh_resolveNodeIds(out);
-   }
-   if (Finley_noError()) {
-         Finley_Mesh_prepare(out, optimize);
-   }
-   if (!Finley_noError()) {
-      Finley_Mesh_free(out);
-   }
-    /* free up memory */
-	ReferenceElementSet_dealloc(refPoints);
-	ReferenceElementSet_dealloc(refContactElements);
-	ReferenceElementSet_dealloc(refFaceElements);
-	ReferenceElementSet_dealloc(refElements);
-	Esys_MPIInfo_free( mpi_info );  
+    // prepare mesh for further calculations
+    if (noError()) {
+        out->resolveNodeIds();
+    }
+    if (noError()) {
+        out->prepare(optimize);
+    }
+    if (!noError()) {
+        delete out;
+        out=NULL;
+    }
+    Esys_MPIInfo_free(mpi_info);
 
-   return out;
+    return out;
 }
+
+} // namespace finley
+

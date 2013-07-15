@@ -27,374 +27,328 @@
 
 namespace finley {
 
-ShapeFunctionInfo ShapeFunction_InfoList[]={
-	{Point1Shape, "Point1", 0,  1, 1, 1,	Shape_Point1 } ,
-        {Line2Shape,  "Line2",  1,  2, 1, 2,	Shape_Line2  } ,
-	{Line3Shape,  "Line3",  1,  3, 2, 2,	Shape_Line3  },
-	{Line4Shape,  "Line4",  1,  4, 3, 2,	Shape_Line4  },
-	{Tri3Shape,   "Tri3",   2,  3, 1, 3,	Shape_Tri3   },
-	{Tri6Shape,   "Tri6",   2,  6, 2, 3,	Shape_Tri6   },
-	{Tri9Shape,   "Tri9",   2,  9, 3, 3,	Shape_Tri9   },
-	{Tri10Shape,  "Tri10",  2, 10, 3, 3,	Shape_Tri10, },
-	{Rec4Shape,   "Rec4",   2,  4, 1, 4,	Shape_Rec4,  },
-	{Rec8Shape,   "Rec8",   2,  8, 2, 4,	Shape_Rec8,  },
-	{Rec9Shape,   "Rec9",   2,  9, 2, 4,	Shape_Rec9,  }, 
-	{Rec12Shape,  "Rec12",  2, 12, 3, 4,	Shape_Rec12, },
-	{Rec16Shape,  "Rec16",  2, 16, 3, 4,	Shape_Rec16, },
-	{Tet4Shape,   "Tet4",   3,  4, 1, 4,	Shape_Tet4,  },
-	{Tet10Shape,  "Tet10",  3, 10, 2, 4,	Shape_Tet10, },
-	{Tet16Shape,  "Tet16",  3, 16, 3, 4,	Shape_Tet16, },
-	{Hex8Shape,   "Hex8",   3,  8, 1, 8,	Shape_Hex8,  },
-	{Hex20Shape,  "Hex20",  3, 20, 2, 8,	Shape_Hex20, },
-	{Hex27Shape,  "Hex27",  3, 27, 2, 8,	Shape_Hex27, },
-	{Hex32Shape,  "Hex32",  3, 32, 3, 8,	Shape_Hex32, },
-	{NoShape, "NoType", 0,  1, 1, 1,	Shape_Point1  }
+const ShapeFunctionInfo ShapeFunction_InfoList[] = {
+    { Point1Shape, "Point1", 0,  1, 1, 1, Shape_Point1 },
+    { Line2Shape,  "Line2",  1,  2, 1, 2, Shape_Line2  },
+    { Line3Shape,  "Line3",  1,  3, 2, 2, Shape_Line3  },
+    { Line4Shape,  "Line4",  1,  4, 3, 2, Shape_Line4  },
+    { Tri3Shape,   "Tri3",   2,  3, 1, 3, Shape_Tri3   },
+    { Tri6Shape,   "Tri6",   2,  6, 2, 3, Shape_Tri6   },
+    { Tri9Shape,   "Tri9",   2,  9, 3, 3, Shape_Tri9   },
+    { Tri10Shape,  "Tri10",  2, 10, 3, 3, Shape_Tri10, },
+    { Rec4Shape,   "Rec4",   2,  4, 1, 4, Shape_Rec4,  },
+    { Rec8Shape,   "Rec8",   2,  8, 2, 4, Shape_Rec8,  },
+    { Rec9Shape,   "Rec9",   2,  9, 2, 4, Shape_Rec9,  }, 
+    { Rec12Shape,  "Rec12",  2, 12, 3, 4, Shape_Rec12, },
+    { Rec16Shape,  "Rec16",  2, 16, 3, 4, Shape_Rec16, },
+    { Tet4Shape,   "Tet4",   3,  4, 1, 4, Shape_Tet4,  },
+    { Tet10Shape,  "Tet10",  3, 10, 2, 4, Shape_Tet10, },
+    { Tet16Shape,  "Tet16",  3, 16, 3, 4, Shape_Tet16, },
+    { Hex8Shape,   "Hex8",   3,  8, 1, 8, Shape_Hex8,  },
+    { Hex20Shape,  "Hex20",  3, 20, 2, 8, Shape_Hex20, },
+    { Hex27Shape,  "Hex27",  3, 27, 2, 8, Shape_Hex27, },
+    { Hex32Shape,  "Hex32",  3, 32, 3, 8, Shape_Hex32, },
+    { NoShape,     "NoType", 0,  1, 1, 1, Shape_Point1 }
 };
 
 
-/****************************************************************************************************************************************************
+/*****************************************************************************
    
-    Creates an evaluation of the ShapeFunction on the given quadrature scheme. 
-    if the spatial dimension of the scheme and the shape functions don't match
+  Creates an evaluation of the ShapeFunction on the given quadrature scheme. 
+  if the spatial dimension of the scheme and the shape functions don't match
     
-    if QuadNodes==Null or QuadWeights==Null the shape functions method is used to generate a quadrature scheme with numQuadNodes
-    nodes. Otherwise it is assumed that a quadrature scheme is given on this array and a copy is created within the structure.
-
+  if QuadNodes==Null or QuadWeights==Null the shape functions method is used
+  to generate a quadrature scheme with numQuadNodes nodes. Otherwise it is
+  assumed that a quadrature scheme is given on this array and a copy is
+  created within the structure.
 */
-ShapeFunction* ShapeFunction_alloc(ShapeFunctionTypeId id,int numQuadDim, int numQuadNodes, double *QuadNodes, double *QuadWeights) {
-	ShapeFunction *out=NULL;
-	int numDim, numShapes, i, q;
-  
-	numDim=ShapeFunction_InfoList[id].numDim;
-        numShapes=ShapeFunction_InfoList[id].numShapes;
-  
-    if (numQuadDim>numDim) {    
-	    Finley_setError(VALUE_ERROR,"ShapeFunction_alloc: spatial dimension of quadrature scheme is bigger then spatial dimension of shape function.");
-	    return NULL;
-    }
-	
-	/*  allocate the ShapeFunction to be returned: */
-  
-	out=new ShapeFunction;
-	if (Finley_checkPtr(out)) return NULL;
-
-  
-	out->Type=ShapeFunction_getInfo(id);
-	out->numQuadNodes=numQuadNodes;
-	out->QuadNodes=NULL;
-	out->QuadWeights=NULL;
-	out->S=NULL;
-	out->dSdv=NULL;
-	out->reference_counter=0;
-  
-	/*  allocate memory: */
-  
-	out->QuadNodes=new double[numQuadNodes*numDim];
-	out->QuadWeights=new double[numQuadNodes];
-	out->S=new double[numShapes*numQuadNodes];
-	out->dSdv=new double[numShapes*numDim*numQuadNodes];
-	if ( Finley_checkPtr(out->QuadNodes) || Finley_checkPtr(out->QuadWeights) || Finley_checkPtr(out->S) || Finley_checkPtr(out->dSdv) ) {
-         ShapeFunction_dealloc(out);
-         return NULL;
-	}
-  
-	/*  set the quadrature nodes (missing values are filled with 0): */
-
-    for (q=0;q<numQuadNodes;q++) {
-       for (i=0;i<numQuadDim;i++) 	 out->QuadNodes[INDEX2(i,q,numDim)]=QuadNodes[INDEX2(i,q,numQuadDim)];
-       for (i=numQuadDim;i<numDim;i++) out->QuadNodes[INDEX2(i,q,numDim)]=0;
-       out->QuadWeights[q]=QuadWeights[q];
-    }
-	
-	/*  eval shape functions on quadrature node: */
-  
-	out->Type->getValues(numQuadNodes,out->QuadNodes,out->S,out->dSdv);
-
-	if (! Finley_noError()) {
-         ShapeFunction_dealloc(out);
-         return NULL;
-	} 
-  
-	/*  all done: */
-	out->reference_counter=1;
-	return out;
-}
-
-ShapeFunction* ShapeFunction_reference(ShapeFunction* in) {
-     if (in!=NULL) ++(in->reference_counter);
-     return in;
-}
-/************************************************************************************/
-
-void ShapeFunction_dealloc(ShapeFunction* in) {
-  if (in!=NULL) { 
-	  in->reference_counter--;
-	  if (in->reference_counter<1) {
-		  delete[] in->QuadNodes;
-		  delete[] in->QuadWeights;
-		  delete[] in->S;
-		  delete[] in->dSdv;
-		  delete in;
-	  }
-  }
-}
-
-/************************************************************************************/
-
-ShapeFunctionTypeId ShapeFunction_getTypeId(char* element_type) 
+ShapeFunction::ShapeFunction(ShapeFunctionTypeId id, int numQDim,
+                             int numQNodes, const double *qNodes,
+                             const double *qWeights)
 {
-    int ptr=0;
+    const int numDim=ShapeFunction_InfoList[id].numDim;
+    const int numShapes=ShapeFunction_InfoList[id].numShapes;
+  
+    if (numQDim>numDim) {    
+        setError(VALUE_ERROR, "ShapeFunction: number of spatial dimensions of quadrature scheme is larger than the spatial dimensionality of shape function.");
+        return;
+    }
+    
+    Type=getInfo(id);
+    numQuadNodes=numQNodes;
+    QuadNodes=NULL;
+    QuadWeights=NULL;
+    S=NULL;
+    dSdv=NULL;
+  
+    // allocate memory
+    QuadNodes=new double[numQuadNodes*numDim];
+    QuadWeights=new double[numQuadNodes];
+    S=new double[numShapes*numQuadNodes];
+    dSdv=new double[numShapes*numDim*numQuadNodes];
+  
+    // set the quadrature nodes (missing values are filled with 0)
+    for (int q=0; q<numQuadNodes; q++) {
+       for (int i=0; i<numQDim; i++)
+           QuadNodes[INDEX2(i,q,numDim)]=qNodes[INDEX2(i,q,numQDim)];
+       for (int i=numQDim; i<numDim; i++)
+           QuadNodes[INDEX2(i,q,numDim)]=0;
+       QuadWeights[q]=qWeights[q];
+    }
+    
+    // evaluate shape functions on quadrature nodes
+    Type->getValues(numQuadNodes, QuadNodes, S, dSdv);
+}
+
+/****************************************************************************/
+ShapeFunction::~ShapeFunction()
+{
+    delete[] QuadNodes;
+    delete[] QuadWeights;
+    delete[] S;
+    delete[] dSdv;
+}
+
+/****************************************************************************/
+ShapeFunctionTypeId ShapeFunction::getTypeId(const char* element_type) 
+{
+    int idx=0;
     ShapeFunctionTypeId out=NoShape;
-    while (ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NoShape) {
-       if (strcmp(element_type,ShapeFunction_InfoList[ptr].Name)==0) out=ShapeFunction_InfoList[ptr].TypeId;
-       ptr++;
+    while (ShapeFunction_InfoList[idx].TypeId!=NoShape && out==NoShape) {
+        if (!strcmp(element_type, ShapeFunction_InfoList[idx].Name))
+            out=ShapeFunction_InfoList[idx].TypeId;
+        idx++;
     }
     return out;
 }
 
-ShapeFunctionInfo* ShapeFunction_getInfo(ShapeFunctionTypeId id)
+const ShapeFunctionInfo* ShapeFunction::getInfo(ShapeFunctionTypeId id)
 {
-    int ptr=0;
-    ShapeFunctionInfo* out=NULL;
-    while (ShapeFunction_InfoList[ptr].TypeId!=NoShape && out==NULL) {
-       if (ShapeFunction_InfoList[ptr].TypeId==id) out=&(ShapeFunction_InfoList[ptr]);
-       ptr++;
+    int idx=0;
+    const ShapeFunctionInfo* out=NULL;
+    while (ShapeFunction_InfoList[idx].TypeId!=NoShape && out==NULL) {
+       if (ShapeFunction_InfoList[idx].TypeId==id)
+           out=&ShapeFunction_InfoList[idx];
+       idx++;
     }
     if (out==NULL) {
-        Finley_setError(VALUE_ERROR,"ShapeFunctionInfo_getInfo: cannot find requested shape function");
+        setError(VALUE_ERROR, "ShapeFunction::getInfo: cannot find requested shape function");
     }
     return out;
 }
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define V(_K_,_I_) v[INDEX2((_K_)-1,(_I_),DIM)]
 #define S(_J_,_I_) s[S_INDEX((_J_)-1,(_I_),NUMSHAPES)]
 #define DSDV(_J_,_K_,_I_) dsdv[DSDV_INDEX((_J_)-1,(_K_)-1,(_I_),NUMSHAPES,DIM)]
 
-/************************************************************************************/
-
-void Shape_Point1(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 1
-  #define DIM 0
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    S(1,i)=1.;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Point1(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 1
+#define DIM 0
+  for (int i=0; i<NumV; i++)
+        S(1,i)=1.;
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Line2(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 2
-  #define DIM 1
-  register double x;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    S(1,i)=1.-x;
-    S(2,i)=   x;
-    DSDV(1,1,i)=-1.;
-    DSDV(2,1,i)= 1.;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Line2(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 2
+#define DIM 1
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        S(1,i)=1.-x;
+        S(2,i)=   x;
+        DSDV(1,1,i)=-1.;
+        DSDV(2,1,i)= 1.;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Line3(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 3
-  #define DIM 1
-  register double x;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    S(1,i)=(2.*x -1. )*(x -1.);
-    S(2,i)=(2.*x -1.)*x;
-    S(3,i)=  4.*x*(1. -x );
-    DSDV(1,1,i)= 4.*x -3.;
-    DSDV(2,1,i)= 4.*x -1.;
-    DSDV(3,1,i)=-8.*x+4.;
- }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Line3(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 3
+#define DIM 1
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        S(1,i)=(2.*x -1.)*(x-1.);
+        S(2,i)=(2.*x -1.)*x;
+        S(3,i)= 4.*x*(1.-x);
+        DSDV(1,1,i)= 4.*x-3.;
+        DSDV(2,1,i)= 4.*x-1.;
+        DSDV(3,1,i)=-8.*x+4.;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Line4(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 4
-  #define DIM 1
-  register double x;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    S(1,i)=(10.)+(-5.5)*x+(9.)*x*x+(-4.5)*x*x*x ;
-    S(2,i)=(10.)*x+(-4.5)*x*x+(4.5)*x*x*x  ;
-    S(3,i)=(9.)*x+(-22.5)*x*x+(13.5)*x*x*x ;
-    S(4,i)=(-4.5)*x+(18.)*x*x+(-13.5)*x*x*x;
-    DSDV(1,1,i)=(-5.5)+(18.)*x+(-13.5)*x*x;
-    DSDV(2,1,i)=(10.)+(-9.)*x+(13.5)*x*x;
-    DSDV(3,1,i)=(9.)+(-45.)*x+(0.405e2)*x*x;
-    DSDV(4,1,i)=(-4.5)+(36.)*x+(-0.405e2)*x*x;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Line4(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 4
+#define DIM 1
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        S(1,i)=(10.)+(-5.5)*x+(9.)*x*x+(-4.5)*x*x*x ;
+        S(2,i)=(10.)*x+(-4.5)*x*x+(4.5)*x*x*x  ;
+        S(3,i)=(9.)*x+(-22.5)*x*x+(13.5)*x*x*x ;
+        S(4,i)=(-4.5)*x+(18.)*x*x+(-13.5)*x*x*x;
+        DSDV(1,1,i)=(-5.5)+(18.)*x+(-13.5)*x*x;
+        DSDV(2,1,i)=(10.)+(-9.)*x+(13.5)*x*x;
+        DSDV(3,1,i)=(9.)+(-45.)*x+(0.405e2)*x*x;
+        DSDV(4,1,i)=(-4.5)+(36.)*x+(-0.405e2)*x*x;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Tri3(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 3
-  #define DIM 2
-  register double x,y;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    y=V(2,i);
-    S(1,i)=1.-x-y;
-    S(2,i)=   x;
-    S(3,i)=   y;
-    DSDV(1,1,i)=-1.;
-    DSDV(1,2,i)=-1.;
-    DSDV(2,1,i)= 1.;
-    DSDV(2,2,i)= 0.;
-    DSDV(3,1,i)= 0.;
-    DSDV(3,2,i)= 1.;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Tri3(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 3
+#define DIM 2
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        const double y=V(2,i);
+        S(1,i)=1.-x-y;
+        S(2,i)=   x;
+        S(3,i)=   y;
+        DSDV(1,1,i)=-1.;
+        DSDV(1,2,i)=-1.;
+        DSDV(2,1,i)= 1.;
+        DSDV(2,2,i)= 0.;
+        DSDV(3,1,i)= 0.;
+        DSDV(3,2,i)= 1.;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Tri6(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 6
-  #define DIM 2
-  register double x,y;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    y=V(2,i);
-    S(1,i)=  (1. -x -y)*(1. -2.*x -2.* y);
-    S(2,i)=  x*(2.* x -1.);
-    S(3,i)=  y*(2.* y -1.);
-    S(4,i)=  (1. -x -y)*4.* x;
-    S(5,i)=  4.*x*y;
-    S(6,i)=  (1. -x -y)*4.* y;
-    DSDV(1,1,i)= -3.+4.*x+4.*y;
-    DSDV(1,2,i)= -3.+4.*x+4.*y;
-    DSDV(2,1,i)= -1.+4.*x;
-    DSDV(2,2,i)=     0.;
-    DSDV(3,1,i)=     0.;
-    DSDV(3,2,i)= -1.           +4.*y;
-    DSDV(4,1,i)=     4. -8.*x -4.*y;
-    DSDV(4,2,i)=        -4.*x;
-    DSDV(5,1,i)=                     4.*y;
-    DSDV(5,2,i)=          4.*x;
-    DSDV(6,1,i)=                   -4.*y;
-    DSDV(6,2,i)=     4. -4.*x -8.*y;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Tri6(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 6
+#define DIM 2
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        const double y=V(2,i);
+        S(1,i)=  (1. -x -y)*(1. -2.*x -2.* y);
+        S(2,i)=  x*(2.* x -1.);
+        S(3,i)=  y*(2.* y -1.);
+        S(4,i)=  (1. -x -y)*4.* x;
+        S(5,i)=  4.*x*y;
+        S(6,i)=  (1. -x -y)*4.* y;
+        DSDV(1,1,i)= -3.+4.*x+4.*y;
+        DSDV(1,2,i)= -3.+4.*x+4.*y;
+        DSDV(2,1,i)= -1.+4.*x;
+        DSDV(2,2,i)=  0.;
+        DSDV(3,1,i)=  0.;
+        DSDV(3,2,i)= -1.          +4.*y;
+        DSDV(4,1,i)=     4. -8.*x -4.*y;
+        DSDV(4,2,i)=        -4.*x;
+        DSDV(5,1,i)=               4.*y;
+        DSDV(5,2,i)=         4.*x;
+        DSDV(6,1,i)=              -4.*y;
+        DSDV(6,2,i)=     4. -4.*x -8.*y;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Tri9(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 9
-  #define DIM 2
-  register double x,y;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    y=V(2,i);
-    S(1,i)=(10.)+(-5.5)*x+(-5.5)*y+(9.)*x*x+(-4.5)*x*x*x+(9.)*y*y+(-4.5)*y*y*y+(4.5)*x*y*y+(4.5)*x*x*y;
-    S(2,i)=(10.)*x+(-4.5)*x*x+(4.5)*x*x*x;
-    S(3,i)=(10.)*y+(-4.5)*y*y+(4.5)*y*y*y;
-    S(4,i)=(9.)*x+(-22.5)*x*x+(13.5)*x*x*x+(-9.)*x*y*y+(4.5)*x*x*y;
-    S(5,i)=(-4.5)*x+(18.)*x*x+(-13.5)*x*x*x+(4.5)*x*y*y+(-9.)*x*x*y;
-    S(6,i)=(-4.5)*x*y*y+(9.)*x*x*y;
-    S(7,i)=(9.)*x*y*y+(-4.5)*x*x*y;
-    S(8,i)=(-4.5)*y+(18.)*y*y+(-13.5)*y*y*y+(-9.)*x*y*y+(4.5)*x*x*y;
-    S(9,i)=(9.)*y+(-22.5)*y*y+(13.5)*y*y*y+(4.5)*x*y*y+(-9.)*x*x*y;
-    DSDV(1, 1,i)=(-5.5)+(18.)*x+(-13.5)*x*x+(4.5)*y*y+(9.)*x*y;
-    DSDV(2, 1,i)=(10.)+(-9.)*x+(13.5)*x*x;
-    DSDV(3, 1,i)=           0.;
-    DSDV(4, 1,i)=(9.)+(-45.)*x+(0.405e2)*x*x+(-9.)*y*y+(9.)*x*y;
-    DSDV(5, 1,i)=(-4.5)+(36.)*x+(-0.405e2)*x*x+(4.5)*y*y+(-18.)*x*y;
-    DSDV(6, 1,i)=(-4.5)*y*y+(18.)*x*y;
-    DSDV(7, 1,i)=(9.)*y*y+(-9.)*x*y;
-    DSDV(8, 1,i)=(-9.)*y*y+(9.)*x*y;
-    DSDV(9, 1,i)=(4.5)*y*y+(-18.)*x*y;
-    DSDV(1, 2,i)=(-5.5)+(18.)*y+(-13.5)*y*y+(9.)*x*y+(4.5)*x*x;
-    DSDV(2, 2,i)=           0.;
-    DSDV(3, 2,i)=(10.)+(-9.)*y+(13.5)*y*y;
-    DSDV(4, 2,i)=(-18.)*x*y+(4.5)*x*x;
-    DSDV(5, 2,i)=(9.)*x*y+(-9.)*x*x;
-    DSDV(6, 2,i)=(-9.)*x*y+(9.)*x*x;
-    DSDV(7, 2,i)=(18.)*x*y+(-4.5)*x*x;
-    DSDV(8, 2,i)=(-4.5)+(36.)*y+(-0.405e2)*y*y+(-18.)*x*y+(4.5)*x*x;
-    DSDV(9, 2,i)=(9.)+(-45.)*y+(0.405e2)*y*y+(9.)*x*y+(-9.)*x*x;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Tri9(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 9
+#define DIM 2
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        const double y=V(2,i);
+        S(1,i)=(10.)+(-5.5)*x+(-5.5)*y+(9.)*x*x+(-4.5)*x*x*x+(9.)*y*y+(-4.5)*y*y*y+(4.5)*x*y*y+(4.5)*x*x*y;
+        S(2,i)=(10.)*x+(-4.5)*x*x+(4.5)*x*x*x;
+        S(3,i)=(10.)*y+(-4.5)*y*y+(4.5)*y*y*y;
+        S(4,i)=(9.)*x+(-22.5)*x*x+(13.5)*x*x*x+(-9.)*x*y*y+(4.5)*x*x*y;
+        S(5,i)=(-4.5)*x+(18.)*x*x+(-13.5)*x*x*x+(4.5)*x*y*y+(-9.)*x*x*y;
+        S(6,i)=(-4.5)*x*y*y+(9.)*x*x*y;
+        S(7,i)=(9.)*x*y*y+(-4.5)*x*x*y;
+        S(8,i)=(-4.5)*y+(18.)*y*y+(-13.5)*y*y*y+(-9.)*x*y*y+(4.5)*x*x*y;
+        S(9,i)=(9.)*y+(-22.5)*y*y+(13.5)*y*y*y+(4.5)*x*y*y+(-9.)*x*x*y;
+        DSDV(1, 1,i)=(-5.5)+(18.)*x+(-13.5)*x*x+(4.5)*y*y+(9.)*x*y;
+        DSDV(2, 1,i)=(10.)+(-9.)*x+(13.5)*x*x;
+        DSDV(3, 1,i)=           0.;
+        DSDV(4, 1,i)=(9.)+(-45.)*x+(0.405e2)*x*x+(-9.)*y*y+(9.)*x*y;
+        DSDV(5, 1,i)=(-4.5)+(36.)*x+(-0.405e2)*x*x+(4.5)*y*y+(-18.)*x*y;
+        DSDV(6, 1,i)=(-4.5)*y*y+(18.)*x*y;
+        DSDV(7, 1,i)=(9.)*y*y+(-9.)*x*y;
+        DSDV(8, 1,i)=(-9.)*y*y+(9.)*x*y;
+        DSDV(9, 1,i)=(4.5)*y*y+(-18.)*x*y;
+        DSDV(1, 2,i)=(-5.5)+(18.)*y+(-13.5)*y*y+(9.)*x*y+(4.5)*x*x;
+        DSDV(2, 2,i)=           0.;
+        DSDV(3, 2,i)=(10.)+(-9.)*y+(13.5)*y*y;
+        DSDV(4, 2,i)=(-18.)*x*y+(4.5)*x*x;
+        DSDV(5, 2,i)=(9.)*x*y+(-9.)*x*x;
+        DSDV(6, 2,i)=(-9.)*x*y+(9.)*x*x;
+        DSDV(7, 2,i)=(18.)*x*y+(-4.5)*x*x;
+        DSDV(8, 2,i)=(-4.5)+(36.)*y+(-0.405e2)*y*y+(-18.)*x*y+(4.5)*x*x;
+        DSDV(9, 2,i)=(9.)+(-45.)*y+(0.405e2)*y*y+(9.)*x*y+(-9.)*x*x;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
-/************************************************************************************/
-
-void Shape_Tri10(int NumV,double* v,double* s,double* dsdv) {
-  #define NUMSHAPES 10
-  #define DIM 2
-  register double x,y;
-  int i;
-  #pragma ivdep
-  for (i=0;i<NumV;i++) {
-    x=V(1,i);
-    y=V(2,i);
-    S(1,i)=(10.)+(-5.5)*x+(-5.5)*y+(9.)*x*x+(-4.5)*x*x*x+(9.)*y*y+(-4.5)*y*y*y+(-13.5)*x*y*y+(-13.5)*x*x*y+(18.)*x*y;
-    S(2,i)=(10.)*x+(-4.5)*x*x+(4.5)*x*x*x;
-    S(3,i)=(10.)*y+(-4.5)*y*y+(4.5)*y*y*y;
-    S(4,i)=(9.)*x+(-22.5)*x*x+(13.5)*x*x*x+(13.5)*x*y*y+(0.27e2)*x*x*y+(-22.5)*x*y;
-    S(5,i)=(-4.5)*x+(18.)*x*x+(-13.5)*x*x*x+(-13.5)*x*x*y+(4.5)*x*y;
-    S(6,i)=(13.5)*x*x*y+(-4.5)*x*y;
-    S(7,i)=(13.5)*x*y*y+(-4.5)*x*y;
-    S(8,i)=(-4.5)*y+(18.)*y*y+(-13.5)*y*y*y+(-13.5)*x*y*y+(4.5)*x*y;
-    S(9,i)=(9.)*y+(-22.5)*y*y+(13.5)*y*y*y+(0.27e2)*x*y*y+(13.5)*x*x*y+(-22.5)*x*y;
-    S(10,i)=(-0.27e2)*x*y*y+(-0.27e2)*x*x*y+(0.27e2)*x*y;
-    DSDV(1, 1,i)=(-5.5)+(18.)*x+(-13.5)*x*x+(-13.5)*y*y+(-0.27e2)*x*y+(18.)*y;
-    DSDV(2, 1,i)=(10.)+(-9.)*x+(13.5)*x*x;
-    DSDV(3, 1,i)=            0.;
-    DSDV(4, 1,i)=(9.)+(-45.)*x+(0.405e2)*x*x+(13.5)*y*y+(0.54e2)*x*y+(-22.5)*y;
-    DSDV(5, 1,i)=(-4.5)+(36.)*x+(-0.405e2)*x*x+(-0.27e2)*x*y+(4.5)*y;
-    DSDV(6, 1,i)=(0.27e2)*x*y+(-4.5)*y;
-    DSDV(7, 1,i)=(13.5)*y*y+(-4.5)*y;
-    DSDV(8, 1,i)=(-13.5)*y*y+(4.5)*y;
-    DSDV(9, 1,i)=(0.27e2)*y*y+(0.27e2)*x*y+(-22.5)*y;
-    DSDV(10, 1,i)=(-0.27e2)*y*y+(-0.54e2)*x*y+(0.27e2)*y;
-    DSDV(1, 2,i)=(-5.5)+(18.)*y+(-13.5)*y*y+(-0.27e2)*x*y+(-13.5)*x*x+(18.)*x;
-    DSDV(2, 2,i)=0.;
-    DSDV(3, 2,i)=(10.)+(-9.)*y+(13.5)*y*y;
-    DSDV(4, 2,i)=(0.27e2)*x*y+(0.27e2)*x*x+(-22.5)*x;
-    DSDV(5, 2,i)=(-13.5)*x*x+(4.5)*x;
-    DSDV(6, 2,i)=(13.5)*x*x+(-4.5)*x;
-    DSDV(7, 2,i)=(0.27e2)*x*y+(-4.5)*x;
-    DSDV(8, 2,i)=(-4.5)+(36.)*y+(-0.405e2)*y*y+(-0.27e2)*x*y+(4.5)*x;
-    DSDV(9, 2,i)=(9.)+(-45.)*y+(0.405e2)*y*y+(0.54e2)*x*y+(13.5)*x*x+(-22.5)*x;
-    DSDV(10, 2,i)=(-0.54e2)*x*y+(-0.27e2)*x*x+(0.27e2)*x;
-  }
-  #undef NUMSHAPES
-  #undef DIM
+/****************************************************************************/
+void Shape_Tri10(int NumV, double* v, double* s, double* dsdv)
+{
+#define NUMSHAPES 10
+#define DIM 2
+    #pragma ivdep
+    for (int i=0; i<NumV; i++) {
+        const double x=V(1,i);
+        const double y=V(2,i);
+        S(1,i)=(10.)+(-5.5)*x+(-5.5)*y+(9.)*x*x+(-4.5)*x*x*x+(9.)*y*y+(-4.5)*y*y*y+(-13.5)*x*y*y+(-13.5)*x*x*y+(18.)*x*y;
+        S(2,i)=(10.)*x+(-4.5)*x*x+(4.5)*x*x*x;
+        S(3,i)=(10.)*y+(-4.5)*y*y+(4.5)*y*y*y;
+        S(4,i)=(9.)*x+(-22.5)*x*x+(13.5)*x*x*x+(13.5)*x*y*y+(0.27e2)*x*x*y+(-22.5)*x*y;
+        S(5,i)=(-4.5)*x+(18.)*x*x+(-13.5)*x*x*x+(-13.5)*x*x*y+(4.5)*x*y;
+        S(6,i)=(13.5)*x*x*y+(-4.5)*x*y;
+        S(7,i)=(13.5)*x*y*y+(-4.5)*x*y;
+        S(8,i)=(-4.5)*y+(18.)*y*y+(-13.5)*y*y*y+(-13.5)*x*y*y+(4.5)*x*y;
+        S(9,i)=(9.)*y+(-22.5)*y*y+(13.5)*y*y*y+(0.27e2)*x*y*y+(13.5)*x*x*y+(-22.5)*x*y;
+        S(10,i)=(-0.27e2)*x*y*y+(-0.27e2)*x*x*y+(0.27e2)*x*y;
+        DSDV(1, 1,i)=(-5.5)+(18.)*x+(-13.5)*x*x+(-13.5)*y*y+(-0.27e2)*x*y+(18.)*y;
+        DSDV(2, 1,i)=(10.)+(-9.)*x+(13.5)*x*x;
+        DSDV(3, 1,i)=            0.;
+        DSDV(4, 1,i)=(9.)+(-45.)*x+(0.405e2)*x*x+(13.5)*y*y+(0.54e2)*x*y+(-22.5)*y;
+        DSDV(5, 1,i)=(-4.5)+(36.)*x+(-0.405e2)*x*x+(-0.27e2)*x*y+(4.5)*y;
+        DSDV(6, 1,i)=(0.27e2)*x*y+(-4.5)*y;
+        DSDV(7, 1,i)=(13.5)*y*y+(-4.5)*y;
+        DSDV(8, 1,i)=(-13.5)*y*y+(4.5)*y;
+        DSDV(9, 1,i)=(0.27e2)*y*y+(0.27e2)*x*y+(-22.5)*y;
+        DSDV(10, 1,i)=(-0.27e2)*y*y+(-0.54e2)*x*y+(0.27e2)*y;
+        DSDV(1, 2,i)=(-5.5)+(18.)*y+(-13.5)*y*y+(-0.27e2)*x*y+(-13.5)*x*x+(18.)*x;
+        DSDV(2, 2,i)=0.;
+        DSDV(3, 2,i)=(10.)+(-9.)*y+(13.5)*y*y;
+        DSDV(4, 2,i)=(0.27e2)*x*y+(0.27e2)*x*x+(-22.5)*x;
+        DSDV(5, 2,i)=(-13.5)*x*x+(4.5)*x;
+        DSDV(6, 2,i)=(13.5)*x*x+(-4.5)*x;
+        DSDV(7, 2,i)=(0.27e2)*x*y+(-4.5)*x;
+        DSDV(8, 2,i)=(-4.5)+(36.)*y+(-0.405e2)*y*y+(-0.27e2)*x*y+(4.5)*x;
+        DSDV(9, 2,i)=(9.)+(-45.)*y+(0.405e2)*y*y+(0.54e2)*x*y+(13.5)*x*x+(-22.5)*x;
+        DSDV(10, 2,i)=(-0.54e2)*x*y+(-0.27e2)*x*x+(0.27e2)*x;
+    }
+#undef NUMSHAPES
+#undef DIM
 }
 
 /************************************************************************************/

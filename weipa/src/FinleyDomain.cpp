@@ -88,7 +88,7 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
     cleanup();
 
     if (dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
-        const Finley_Mesh* finleyMesh =
+        const finley::Mesh* finleyMesh =
             dynamic_cast<const finley::MeshAdapter*>(escriptDomain)
                 ->getFinley_Mesh();
 

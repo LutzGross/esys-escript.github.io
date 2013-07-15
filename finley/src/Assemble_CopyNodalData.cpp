@@ -29,7 +29,7 @@ namespace finley {
 void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                             const escript::Data& in)
 {
-    Finley_resetError();
+    resetError();
     if (!nodes)
         return;
 
@@ -40,36 +40,36 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 
     // check out and in
     if (numComps != in.getDataPointSize()) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: number of components of input and output Data do not match.");
+        setError(TYPE_ERROR,"Assemble_CopyNodalData: number of components of input and output Data do not match.");
     } else if (!out.actsExpanded()) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: expanded Data object is expected for output data.");
+        setError(TYPE_ERROR,"Assemble_CopyNodalData: expanded Data object is expected for output data.");
     }
 
     // more sophisticated test needed for overlapping node/DOF counts
     if (in_data_type == FINLEY_NODES) {
         if (!in.numSamplesEqual(1, nodes->getNumNodes())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == FINLEY_REDUCED_NODES) {
         if (!in.numSamplesEqual(1, nodes->getNumReducedNodes())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
         if (!in.numSamplesEqual(1, nodes->getNumDegreesOfFreedom())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if (((out_data_type == FINLEY_NODES) || (out_data_type == FINLEY_DEGREES_OF_FREEDOM)) && !in.actsExpanded() && (mpiSize>1)) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: FINLEY_DEGREES_OF_FREEDOM to FINLEY_NODES or FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: FINLEY_DEGREES_OF_FREEDOM to FINLEY_NODES or FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
         }
     } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (!in.numSamplesEqual(1, nodes->getNumReducedDegreesOfFreedom())) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of input Data object");
         }
         if ((out_data_type == FINLEY_DEGREES_OF_FREEDOM) && !in.actsExpanded() && (mpiSize>1)) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: FINLEY_REDUCED_DEGREES_OF_FREEDOM to FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: FINLEY_REDUCED_DEGREES_OF_FREEDOM to FINLEY_DEGREES_OF_FREEDOM requires expanded input data on more than one processor.");
         }
     } else {
-        Finley_setError(TYPE_ERROR, "Assemble_CopyNodalData: illegal function space type for target object");
+        setError(TYPE_ERROR, "Assemble_CopyNodalData: illegal function space type for target object");
     }
 
     int numOut=0;
@@ -91,14 +91,14 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             break;
 
         default:
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal function space type for source object");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal function space type for source object");
     }
 
     if (!out.numSamplesEqual(1, numOut)) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
+        setError(TYPE_ERROR,"Assemble_CopyNodalData: illegal number of samples of output Data object");
     }
 
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     const size_t numComps_size = numComps*sizeof(double);
@@ -138,7 +138,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     /*********************** FINLEY_REDUCED_NODES ***************************/
     } else if (in_data_type == FINLEY_REDUCED_NODES) {
         if (out_data_type == FINLEY_NODES) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             out.requireWrite();
 #pragma omp parallel for
@@ -146,7 +146,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
             }
        } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
-            Finley_setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
+            setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
        } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             out.requireWrite();
             const int* target = nodes->borrowTargetReducedNodes();
@@ -230,7 +230,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     /**************** FINLEY_REDUCED_DEGREES_OF_FREEDOM *****************/
     } else if (in_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (out_data_type == FINLEY_NODES) {
-            Finley_setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
+            setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             Paso_Coupler *coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
             if (Esys_noError()) {
@@ -262,7 +262,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM ) {
-            Finley_setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
+            setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
         }
     } // in_data_type
 }

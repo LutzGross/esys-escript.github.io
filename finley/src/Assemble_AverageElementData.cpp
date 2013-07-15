@@ -25,10 +25,10 @@
 
 namespace finley {
 
-void Assemble_AverageElementData(ElementFile* elements, escript::Data& out,
-                                 const escript::Data& in)
+void Assemble_AverageElementData(const ElementFile* elements,
+                                 escript::Data& out, const escript::Data& in)
 {
-    Finley_resetError();
+    resetError();
     if (!elements)
         return;
 
@@ -52,13 +52,13 @@ void Assemble_AverageElementData(ElementFile* elements, escript::Data& out,
     const int numComps=out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
-        Finley_setError(TYPE_ERROR, "Assemble_AverageElementData: number of components of input and output data do not match.");
+        setError(TYPE_ERROR, "Assemble_AverageElementData: number of components of input and output data do not match.");
     } else if (!in.numSamplesEqual(numQuad_in,numElements)) {
-        Finley_setError(TYPE_ERROR, "Assemble_AverageElementData: illegal number of samples of input Data object");
+        setError(TYPE_ERROR, "Assemble_AverageElementData: illegal number of samples of input Data object");
     } else if (!out.numSamplesEqual(numQuad_out,numElements)) {
-        Finley_setError(TYPE_ERROR, "Assemble_AverageElementData: illegal number of samples of output Data object");
+        setError(TYPE_ERROR, "Assemble_AverageElementData: illegal number of samples of output Data object");
     } else if (!out.actsExpanded()) {
-        Finley_setError(TYPE_ERROR, "Assemble_AverageElementData: expanded Data object is expected for output data.");
+        setError(TYPE_ERROR, "Assemble_AverageElementData: expanded Data object is expected for output data.");
     } else {
         escript::Data& _in(*const_cast<escript::Data*>(&in));
         if (in.actsExpanded()) {

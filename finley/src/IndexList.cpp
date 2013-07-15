@@ -45,10 +45,11 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
         return;
 
     const int NN=elements->numNodes;
-    ReferenceElement* refElement =
-        ReferenceElementSet_borrowReferenceElement(elements->referenceElementSet, false);
+    const_ReferenceElement_ptr refElement(elements->referenceElementSet->
+                                            borrowReferenceElement(false));
 
-    int NN_row, NN_col, *row_node=NULL, *col_node=NULL, numSub;
+    int NN_row, NN_col, numSub;
+    const int *row_node=NULL, *col_node=NULL;
     if (reduce_col_order) {
         numSub=1;
         col_node=refElement->Type->linearNodes;
@@ -174,7 +175,7 @@ Paso_Pattern* IndexList_createPattern(int n0, int n,
     }
 
     Paso_Pattern* out=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n-n0, range_max+index_offset, ptr, index);
-    if (!Finley_noError()) {
+    if (!noError()) {
         delete[] ptr;
         delete[] index;
         Paso_Pattern_free(out);

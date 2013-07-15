@@ -25,10 +25,10 @@
 
 namespace finley {
 
-void Assemble_CopyElementData(ElementFile* elements, escript::Data& out,
+void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
                               const escript::Data& in)
 {
-    Finley_resetError();
+    resetError();
     if (!elements)
         return;
 
@@ -43,13 +43,13 @@ void Assemble_CopyElementData(ElementFile* elements, escript::Data& out,
     const int numComps=out.getDataPointSize();
 
     if (numComps != in.getDataPointSize()) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyElementData: number of components of input and output Data do not match.");
+        setError(TYPE_ERROR,"Assemble_CopyElementData: number of components of input and output Data do not match.");
     } else if (!in.numSamplesEqual(numQuad,numElements)) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyElementData: illegal number of samples of input Data object");
+        setError(TYPE_ERROR,"Assemble_CopyElementData: illegal number of samples of input Data object");
     } else if (!out.numSamplesEqual(numQuad,numElements)) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyElementData: illegal number of samples of output Data object");
+        setError(TYPE_ERROR,"Assemble_CopyElementData: illegal number of samples of output Data object");
     } else if (!out.actsExpanded()) {
-        Finley_setError(TYPE_ERROR,"Assemble_CopyElementData: expanded Data object is expected for output data.");
+        setError(TYPE_ERROR,"Assemble_CopyElementData: expanded Data object is expected for output data.");
     } else {
         escript::Data& _in(*const_cast<escript::Data*>(&in));
         if (in.actsExpanded()) {

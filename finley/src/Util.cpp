@@ -30,14 +30,14 @@
 namespace finley {
 namespace util {
 
-/// comparision function for sortValueandIndex
+/// comparison function for sortValueAndIndex
 bool ValueAndIndexCompare(const std::pair<int,int> &i, const std::pair<int, int> &j)
 {
-   if (i.first < j.first) return true;
-   if (i.first > j.first) return false;
-   if (i.second < j.second) return true;
-   if (i.second > j.second) return false;
-   return true;
+    if (i.first < j.first) return true;
+    if (i.first > j.first) return false;
+    if (i.second < j.second) return true;
+    if (i.second > j.second) return false;
+    return true;
 }
 
 /// orders a ValueAndIndexList by value
@@ -112,7 +112,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                     det[q]=D;
                     invA[q]=1./D;
                 } else {
-                    Finley_setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
+                    setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
                     break;
                 }
             }
@@ -133,7 +133,7 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                     invA[INDEX3(0,1,q,2,2)]=-A12/D;
                     invA[INDEX3(1,1,q,2,2)]= A11/D;
                 } else {
-                    Finley_setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
+                    setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
                     break;
                 }
             }
@@ -164,14 +164,14 @@ void invertSmallMat(int len, int dim, const double* A, double *invA, double* det
                     invA[INDEX3(1,2,q,3,3)]=(A13*A21-A11*A23)/D;
                     invA[INDEX3(2,2,q,3,3)]=(A11*A22-A12*A21)/D;
                 } else {
-                    Finley_setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
+                    setError(ZERO_DIVISION_ERROR, "InvertSmallMat: Non-regular matrix");
                     break;
                 }
             }
             break;
 
         default:
-            Finley_setError(VALUE_ERROR, "InvertSmallMat: dim must be <=3");
+            setError(VALUE_ERROR, "InvertSmallMat: dim must be <=3");
             break;
     }
 }
@@ -193,7 +193,7 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
                 A21=A[INDEX3(1,0,q,2,dim1)];
                 length = sqrt(A11*A11+A21*A21);
                 if (! length>0) {
-                    Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
+                    setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                     return;
                 } else {
                     invlength=1./length;
@@ -215,7 +215,7 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
                 CO_A33=A11*A22-A21*A12;
                 length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
                 if (! length>0) {
-                    Finley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
+                    setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                     return;
                 } else {
                     invlength=1./length;
@@ -328,16 +328,15 @@ std::pair<int,int> getFlaggedMinMaxInt(int N, const int* values, int ignore)
 
 /// determines the indices of the positive entries in mask returning the
 /// length of index.
-int packMask(int N, const int* mask, int* index)
+std::vector<int> packMask(const std::vector<short>& mask)
 {
-    int out=0;
-    for (int k=0; k<N; k++) {
+    std::vector<int> index;
+    for (int k=0; k<mask.size(); k++) {
         if (mask[k] >= 0) {
-            index[out]=k;
-            out++;
+            index.push_back(k);
         }
     }
-    return out;
+    return index;
 }
 
 void setValuesInUse(const int *values, const int numValues,

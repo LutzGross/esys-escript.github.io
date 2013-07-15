@@ -14,22 +14,25 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: header file for generating rectangular meshes in 1D,2D,3D. */
+  Finley: declaration of rectangular mesh generators in 1D, 2D, 3D.
 
-/************************************************************************************/
+*****************************************************************************/
 
-#ifndef INC_FINLEY_RECTANGULARMESH
-#define INC_FINLEY_RECTANGULARMESH
-
-/************************************************************************************/
+#ifndef __FINLEY_RECTANGULARMESH_H__
+#define __FINLEY_RECTANGULARMESH_H__
 
 #include "Mesh.h"
 
-Finley_Mesh* Finley_RectangularMesh_Hex20(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t, bool_t);
-Finley_Mesh* Finley_RectangularMesh_Hex8(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t);
-Finley_Mesh* Finley_RectangularMesh_Rec8(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t, bool_t);
-Finley_Mesh* Finley_RectangularMesh_Rec4(dim_t*,double*,bool_t*,index_t,index_t,bool_t, bool_t, bool_t);
+namespace finley {
 
-#endif /* #ifndef INC_FINLEY_RECTANGULARMESH */
+Mesh* RectangularMesh_Hex20(const int*, const double*, const bool*, int, int, bool, bool, bool, bool);
+Mesh* RectangularMesh_Hex8(const int*, const double*, const bool*, int, int, bool, bool, bool);
+Mesh* RectangularMesh_Rec8(const int*, const double*, const bool*, int, int, bool, bool, bool, bool);
+Mesh* RectangularMesh_Rec4(const int*, const double*, const bool*, int, int, bool, bool, bool);
+
+}
+
+#endif // __FINLEY_RECTANGULARMESH_H__
+

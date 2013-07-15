@@ -25,7 +25,7 @@
   The routine has to be called from a parallel region.
   This routine assumes that in->Equa=in->Sol=1, i.e. array is fully packed.
   TODO: the case in->Equa!=1
-  WARNING: MATRIX_FORMAT_CSC does not support MPI!!
+  WARNING: MATRIX_FORMAT_CSC is not supported under MPI!
 
 *****************************************************************************/
 

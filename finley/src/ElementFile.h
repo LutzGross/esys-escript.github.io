@@ -20,34 +20,33 @@
 #include "NodeFile.h"
 #include "ReferenceElementSets.h"
 #include "Util.h"
-#include "esysUtils/Esys_MPI.h"
 
 namespace finley {
 
 struct ElementFile_Jacobians {
-    ElementFile_Jacobians(ShapeFunction*);
+    ElementFile_Jacobians(const_ShapeFunction_ptr basis);
     ~ElementFile_Jacobians();
 
     /// status of mesh when jacobians were updated last time
-    Finley_Status_t status;
+    int status;
     /// number of spatial dimensions
     int numDim;
     /// basis function used
-    ShapeFunction* BasisFunctions;
+    const_ShapeFunction_ptr BasisFunctions;
     /// total number of quadrature nodes used to calculate jacobians
     /// = numSub * BasisFunctions->numQuadNodes
     int numQuadTotal;
     /// number of sides (=1 normal, =2 contact)
     int numSides;
     /// offset to sides (borrowed reference)
-    int* offsets;
+    const int* offsets;
     /// number of subelements
     int numSub;
     /// total number of shape functions = BasisFunctions->numShapes * numSides
     int numShapesTotal;
     /// local node selection list of length numSub*numShapesTotal
     /// (borrowed reference)
-    int* node_selection;
+    const int* node_selection;
     /// number of elements
     int numElements;
     /// local volume
@@ -60,27 +59,28 @@ struct ElementFile_Jacobians {
 class ElementFile
 {
 public:
-    ElementFile(ReferenceElementSet* refElementSet, Esys_MPIInfo *mpiInfo);
+    ElementFile(const_ReferenceElementSet_ptr refElementSet,
+                Esys_MPIInfo *mpiInfo);
     ~ElementFile();
 
     void allocTable(int numElements);
     void freeTable();
 
-    void distributeByRankOfDOF(int* mpiRankOfDOF, int *Id);
-    void createColoring(int nodeCount, int* degreeOfFreedom);
+    void distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, int *Id);
+    void createColoring(const std::vector<int>& dofMap);
     /// reorders the elements so that they are stored close to the nodes
     void optimizeOrdering();
     /// assigns new node reference numbers to the elements
-    void relabelNodes(int* newNode, int offset);
-    void markNodes(int* mask, int offset, bool useLinear);
+    void relabelNodes(const std::vector<int>& newNode, int offset);
+    void markNodes(std::vector<short>& mask, int offset, bool useLinear);
     void scatter(int* index, const ElementFile* in);
     void gather(int* index, const ElementFile* in);
     void copyTable(int offset, int nodeOffset, int idOffset,
                    const ElementFile* in);
 
     void markDOFsConnectedToRange(int* mask, int offset, int marker,
-                                  int firstDOF, int lastDOF, int *dofIndex,
-                                  bool useLinear);
+                                  int firstDOF, int lastDOF,
+                                  const int *dofIndex, bool useLinear);
 
     void setTags(const int newTag, const escript::Data& mask);
     ElementFile_Jacobians* borrowJacobians(const NodeFile*, bool, bool) const;
@@ -96,7 +96,7 @@ public:
     Esys_MPIInfo *MPIInfo;
 
     /// the reference element to be used
-    ReferenceElementSet *referenceElementSet;
+    const_ReferenceElementSet_ptr referenceElementSet;
     /// number of elements
     int numElements;
     /// Id[i] is the id number of node i. This number is used when elements
@@ -116,15 +116,15 @@ public:
     /// is the k-th node of element i when referring to the linear version of
     /// the mesh.
     int *Nodes;
-    /// minimum color
-    int minColor;
-    /// maximum color
-    int maxColor;
     /// assigns each element a color. Elements with the same color don't share
     /// a node so they can be processed simultaneously.
     /// At any time Color must provide a valid value. In any case one can set
     /// Color[e]=e for all e
     int *Color;
+    /// minimum color
+    int minColor;
+    /// maximum color
+    int maxColor;
     /// jacobians of the shape function used for solution approximation
     ElementFile_Jacobians* jacobians;
     /// jacobians of the shape function used for solution approximation for
