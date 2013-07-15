@@ -65,7 +65,6 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
 {
     // these two are not const because of parmetis call
     int mpiSize=MPIInfo->size;
-    int dim=Nodes->numDim;
     const int myRank=MPIInfo->rank;
     const int myFirstVertex=distribution[myRank];
     const int myLastVertex=distribution[myRank+1];
@@ -81,6 +80,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
 #ifdef USE_PARMETIS
     if (mpiSize>1 && allRanksHaveNodes(MPIInfo, distribution)) {
         IndexList* index_list=new IndexList[myNumVertices];
+        int dim=Nodes->numDim;
         // create the adjacency structure xadj and adjncy
 #pragma omp parallel
         {
