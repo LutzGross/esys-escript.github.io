@@ -58,7 +58,7 @@ inline void setNumSamplesError(const char* c, int n0, int n1)
     ss << "Assemble_PDE: number of sample points of coefficient " << c
         << " don't match (" << n0 << "," << n1 << ").";
     std::string errorMsg(ss.str());
-    Finley_setError(TYPE_ERROR, errorMsg.c_str());
+    setError(TYPE_ERROR, errorMsg.c_str());
 }
 
 inline void setShapeError(const char* c, int num, const int *dims)
@@ -77,26 +77,26 @@ inline void setShapeError(const char* c, int num, const int *dims)
     }
     ss << ").";
     std::string errorMsg(ss.str());
-    Finley_setError(TYPE_ERROR, errorMsg.c_str());
+    setError(TYPE_ERROR, errorMsg.c_str());
 }
 
-void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
-                  escript::Data& F, const escript::Data& A,
-                  const escript::Data& B, const escript::Data& C,
-                  const escript::Data& D, const escript::Data& X,
-                  const escript::Data& Y)
+void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
+                  Paso_SystemMatrix* S, escript::Data& F,
+                  const escript::Data& A, const escript::Data& B,
+                  const escript::Data& C, const escript::Data& D,
+                  const escript::Data& X, const escript::Data& Y)
 {
-    Finley_resetError();
+    resetError();
     if (!nodes || !elements || (S==NULL && F.isEmpty()))
         return;
 
     if (F.isEmpty() && (!X.isEmpty() || !Y.isEmpty())) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
+        setError(TYPE_ERROR, "Assemble_PDE: right hand side coefficients are non-zero but no right hand side vector given.");
         return;
     }
 
     if (S==NULL && !A.isEmpty() && !B.isEmpty() && !C.isEmpty() && !D.isEmpty()) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: coefficients are non-zero but no matrix is given.");
+        setError(TYPE_ERROR, "Assemble_PDE: coefficients are non-zero but no matrix is given.");
         return;
     }
 
@@ -113,19 +113,19 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
 
     // check if all function spaces are the same
     if (!A.isEmpty() && A.getFunctionSpace().getTypeCode()!=funcspace) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient A");
+        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient A");
     } else if (!B.isEmpty() && B.getFunctionSpace().getTypeCode()!=funcspace) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient B");
+        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient B");
     } else if (!C.isEmpty() && C.getFunctionSpace().getTypeCode()!=funcspace) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient C");
+        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient C");
     } else if (!D.isEmpty() && D.getFunctionSpace().getTypeCode()!=funcspace) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient D");
+        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient D");
     } else if (!X.isEmpty() && X.getFunctionSpace().getTypeCode()!=funcspace) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient X");
+        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient X");
     } else if (!Y.isEmpty() && Y.getFunctionSpace().getTypeCode()!=funcspace) {
-        Finley_setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient Y");
+        setError(TYPE_ERROR, "Assemble_PDE: unexpected function space type for coefficient Y");
     }
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     bool reducedIntegrationOrder;
@@ -148,13 +148,13 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
     } else if (funcspace==FINLEY_POINTS)  {
        reducedIntegrationOrder=false;
     } else {
-       Finley_setError(TYPE_ERROR, "Assemble_PDE: assemblage failed because of illegal function space.");
+       setError(TYPE_ERROR, "Assemble_PDE: assemblage failed because of illegal function space.");
        return;
     }
 
     // get assemblage parameters
     AssembleParameters p(nodes, elements, S, F, reducedIntegrationOrder);
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     // check if sample numbers are the same
@@ -171,12 +171,12 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
     } else if (!Y.numSamplesEqual(p.numQuadTotal, elements->numElements)) {
         setNumSamplesError("Y", p.numQuadTotal, elements->numElements);
     }
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     // check the dimensions:
     if (p.numEqu != p. numComp) {
-        Finley_setError(VALUE_ERROR, "Assemble_PDE requires number of equations == number of solutions.");
+        setError(VALUE_ERROR, "Assemble_PDE requires number of equations == number of solutions.");
     } else if (p.numEqu==1) {
         const int dimensions[2] = { p.numDim, p.numDim };
         if (!A.isDataPointShapeEqual(2, dimensions)) {
@@ -186,11 +186,11 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
         } else if (!C.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("C", 1, dimensions);
         } else if (!D.isDataPointShapeEqual(0, dimensions)) {
-            Finley_setError(TYPE_ERROR, "Assemble_PDE: coefficient D must be rank 0.");
+            setError(TYPE_ERROR, "Assemble_PDE: coefficient D must be rank 0.");
         } else if (!X.isDataPointShapeEqual(1, dimensions)) {
             setShapeError("X", 1, dimensions);
         } else if (!Y.isDataPointShapeEqual(0, dimensions)) {
-            Finley_setError(TYPE_ERROR, "Assemble_PDE: coefficient Y must be rank 0.");
+            setError(TYPE_ERROR, "Assemble_PDE: coefficient Y must be rank 0.");
         }
     } else {
         const int dimAB[4] = { p.numEqu, p.numDim, p.numComp, p.numDim };
@@ -209,7 +209,7 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
             setShapeError("Y", 1, dimAB);
         }
     }
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     escript::Data& _A(*const_cast<escript::Data*>(&A));
@@ -223,7 +223,7 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
     if (p.numSides == 1) {
         if (funcspace==FINLEY_POINTS) {
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
-                Finley_setError(TYPE_ERROR, "Assemble_PDE: Point elements require A, B, C and X to be empty.");
+                setError(TYPE_ERROR, "Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
                 Assemble_PDE_Points(p, _D, _Y);
             }
@@ -235,7 +235,7 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
             } else if (p.numDim==1) {
                 Assemble_PDE_System_1D(p, _A, _B, _C, _D, _X, _Y);
             } else {
-                Finley_setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
+                setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         } else { // single PDE
             if (p.numDim==3) {
@@ -245,19 +245,19 @@ void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
             } else if (p.numDim==1) {
                 Assemble_PDE_Single_1D(p, _A, _B, _C, _D, _X, _Y);
             } else {
-                Finley_setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
+                setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         }
     } else if (p.numSides == 2) {
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
-            Finley_setError(TYPE_ERROR, "Assemble_PDE: Contact elements require A, B, C and X to be empty.");
+            setError(TYPE_ERROR, "Assemble_PDE: Contact elements require A, B, C and X to be empty.");
         } else if (p.numEqu > 1) { // system of PDEs
             Assemble_PDE_System_C(p, _D, _Y);
         } else { // single PDE
             Assemble_PDE_Single_C(p, _D, _Y);
         }
     } else {
-        Finley_setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
+        setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");
     }
 
     blocktimer_increment("Assemble_PDE()", blocktimer_start);

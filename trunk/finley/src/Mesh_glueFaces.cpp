@@ -14,131 +14,111 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: Mesh */
+  Finley: Mesh
 
-/* removes matching face elements from self */
+  removes matching face elements from the mesh
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "Mesh.h"
 
-/************************************************************************************/
+namespace finley {
 
+void Mesh::glueFaces(double safety_factor, double tolerance, bool optimize)
+{
+    if (MPIInfo->size > 1) {
+        setError(TYPE_ERROR, "Mesh::glueFaces: MPI is not supported yet.");
+        return;
+    }
+    if (!FaceElements)
+        return;
 
-void Finley_Mesh_glueFaces(Finley_Mesh* self,double safety_factor,double tolerance,  bool_t optimize) { 
-   char error_msg[LenErrorMsg_MAX];
-   finley::NodeFile *newNodeFile=NULL;
-   ElementFile *newFaceElementsFile=NULL;
-   dim_t numPairs,e,i,n, NNFace, NN, numDim, new_numFaceElements, newNumNodes;
-   index_t face_node, *elem1=NULL,*elem0=NULL,*elem_mask=NULL,*new_node_label=NULL,*new_node_list=NULL,*new_node_mask=NULL,*matching_nodes_in_elem1=NULL, *faceNodes=NULL;
-   ReferenceElement*  faceRefElement=NULL;
+    char error_msg[LenErrorMsg_MAX];
+    const_ReferenceElement_ptr faceRefElement(FaceElements->
+                        referenceElementSet->borrowReferenceElement(false));
+    const int NNFace=faceRefElement->Type->numNodesOnFace;
+    const int NN=FaceElements->numNodes;
+    const int numDim=Nodes->numDim;
+    const int* faceNodes=faceRefElement->Type->faceNodes;
    
-   if (self->MPIInfo->size>1) {
-     Finley_setError(TYPE_ERROR,"Finley_Mesh_glueFaces: MPI is not supported yet.");
-     return;
-   }
-       
-   if (self->FaceElements==NULL) return;
-   faceRefElement= ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
-   NNFace=faceRefElement->Type->numNodesOnFace;
-   NN=self->FaceElements->numNodes;
-   numDim=self->Nodes->numDim;
-   faceNodes=faceRefElement->Type->faceNodes;
-   
-   if (NNFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_glueFaces: glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
-     Finley_setError(TYPE_ERROR,error_msg);
-     return;
-   }
+    if (NNFace <= 0) {
+        sprintf(error_msg, "Mesh::glueFaces: glueing faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+        setError(TYPE_ERROR, error_msg);
+        return;
+    }
 
-   /* allocate work arrays */
-   elem1=new index_t[self->FaceElements->numElements];
-   elem0=new index_t[self->FaceElements->numElements];
-   elem_mask=new index_t[self->FaceElements->numElements];
-   matching_nodes_in_elem1=new index_t[self->FaceElements->numElements*NN];
-   new_node_label=new index_t[self->Nodes->numNodes];
-   new_node_list=new index_t[self->Nodes->numNodes];
-   new_node_mask=new index_t[self->Nodes->numNodes];
-   if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(new_node_label) || Finley_checkPtr(new_node_list) || Finley_checkPtr(new_node_mask) || Finley_checkPtr(matching_nodes_in_elem1)) ) {
-      /* find the matching face elements */
-      Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
-      if (Finley_noError()) {
-         for(e=0;e<self->FaceElements->numElements;e++) elem_mask[e]=0;
-         for(n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=n;
-         /* mark matching face elements to be removed */
-         for(e=0;e<numPairs;e++) {
-             elem_mask[elem0[e]]=1;
-             elem_mask[elem1[e]]=1;
-             for (i=0;i<NNFace;i++) {
-                face_node=faceNodes[i];
-                new_node_label[matching_nodes_in_elem1[INDEX2(face_node,e,NN)]]=self->FaceElements->Nodes[INDEX2(face_node,elem0[e],NN)];
-             }
-         }
-         /* create an index of face elements */
-         new_numFaceElements=0;
-         for(e=0;e<self->FaceElements->numElements;e++) {
-             if (elem_mask[e]<1) {
-               elem_mask[new_numFaceElements]=e;
-               new_numFaceElements++;
-             }
-         }
-         /* get the new number of nodes */
-         newNumNodes=0;
-         for (n=0;n<self->Nodes->numNodes;n++) new_node_mask[n]=-1;
-         for (n=0;n<self->Nodes->numNodes;n++) new_node_mask[new_node_label[n]]=1;
-         for (n=0;n<self->Nodes->numNodes;n++) {
-               if (new_node_mask[n]>0) {
-                   new_node_mask[n]=newNumNodes;
-                   new_node_list[newNumNodes]=n;
-                   newNumNodes++;
-               }
-         }
-         for (n=0;n<self->Nodes->numNodes;n++) new_node_label[n]=new_node_mask[new_node_label[n]];
-         /* allocate new node and element files */
-         newNodeFile=new finley::NodeFile(numDim, self->MPIInfo); 
-
-         if (Finley_noError()) {
-             newNodeFile->allocTable(newNumNodes);
-             if (Finley_noError()) {
-                newFaceElementsFile=new ElementFile(self->FaceElements->referenceElementSet, self->MPIInfo);
-                if (Finley_noError()) {
-                   newFaceElementsFile->allocTable(new_numFaceElements);
-                 }
-              }
-         }
-         if (Finley_noError()) 
-         {
-            /* get the new nodes */
-            newNodeFile->gather(new_node_list, self->Nodes);
-            /* they are the new nodes */
-            delete self->Nodes;
-            self->Nodes=newNodeFile;
-            /* get the face elements which are still in use */
-            newFaceElementsFile->gather(elem_mask, self->FaceElements);
-            /* they are the new face elements */
-            delete self->FaceElements;
-            self->FaceElements=newFaceElementsFile;
-            
-            /* assign new node ids to elements */
-            Finley_Mesh_relableElementNodes(new_node_label,0,self);
-
-            Finley_Mesh_prepare(self, optimize);
-         } 
-         else 
-         {
-            delete newNodeFile;
-            delete newFaceElementsFile;
-         }
-       
-      }
-   }
-   delete[] elem1;
-   delete[] elem0;
-   delete[] elem_mask;
-   delete[] new_node_label;
-   delete[] new_node_list;
-   delete[] new_node_mask;
-   delete[] matching_nodes_in_elem1;
+    // allocate work arrays
+    int* elem1=new int[FaceElements->numElements];
+    int* elem0=new int[FaceElements->numElements];
+    std::vector<int> elem_mask(FaceElements->numElements, 0);
+    int* matching_nodes_in_elem1=new int[FaceElements->numElements*NN];
+    std::vector<int> new_node_label(Nodes->numNodes);
+    // find the matching face elements
+    int numPairs;
+    findMatchingFaces(safety_factor, tolerance, &numPairs, elem0, elem1,
+                      matching_nodes_in_elem1);
+    if (noError()) {
+        for (int n=0; n<Nodes->numNodes; n++)
+            new_node_label[n]=n;
+        // mark matching face elements to be removed
+        for (int e=0; e<numPairs; e++) {
+            elem_mask[elem0[e]]=1;
+            elem_mask[elem1[e]]=1;
+            for (int i=0; i<NNFace; i++) {
+                const int face_node=faceNodes[i];
+                new_node_label[matching_nodes_in_elem1[INDEX2(face_node,e,NN)]]=FaceElements->Nodes[INDEX2(face_node,elem0[e],NN)];
+            }
+        }
+        // create an index of face elements
+        int new_numFaceElements=0;
+        for (int e=0; e<FaceElements->numElements; e++) {
+            if (elem_mask[e] < 1) {
+                elem_mask[new_numFaceElements]=e;
+                new_numFaceElements++;
+            }
+        }
+        // get the new number of nodes
+        std::vector<int> new_node_mask(Nodes->numNodes, -1);
+        std::vector<int> new_node_list;
+        int newNumNodes=0;
+        for (int n=0; n<Nodes->numNodes; n++)
+            new_node_mask[new_node_label[n]]=1;
+        for (int n=0; n<Nodes->numNodes; n++) {
+            if (new_node_mask[n]>0) {
+                new_node_mask[n]=newNumNodes;
+                new_node_list.push_back(n);
+                newNumNodes++;
+            }
+        }
+        for (int n=0; n<Nodes->numNodes; n++)
+            new_node_label[n]=new_node_mask[new_node_label[n]];
+        // allocate new node and element files
+        NodeFile *newNodeFile=new NodeFile(numDim, MPIInfo); 
+        newNodeFile->allocTable(newNumNodes);
+        ElementFile *newFaceElementsFile=new ElementFile(
+                FaceElements->referenceElementSet, MPIInfo);
+        newFaceElementsFile->allocTable(new_numFaceElements);
+        // get the new nodes
+        newNodeFile->gather(&new_node_list[0], Nodes);
+        // they are the new nodes
+        delete Nodes;
+        Nodes=newNodeFile;
+        // get the face elements which are still in use
+        newFaceElementsFile->gather(&elem_mask[0], FaceElements);
+        // they are the new face elements
+        delete FaceElements;
+        FaceElements=newFaceElementsFile;
+    
+        // assign new node ids to elements
+        relabelElementNodes(new_node_label, 0);
+        prepare(optimize);
+    }
+    delete[] elem1;
+    delete[] elem0;
+    delete[] matching_nodes_in_elem1;
 }
+
+} // namespace finley
+

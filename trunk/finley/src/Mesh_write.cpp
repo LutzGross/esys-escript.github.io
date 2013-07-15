@@ -22,40 +22,40 @@
 
 #include "Mesh.h"
 
-/************************************************************************************/
+namespace finley {
 
-/*  writes the mesh to the external file fname using the Finley file format: */
-
-void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
+/// writes the mesh to the external file fname using the Finley file format
+void Mesh::write(const std::string fname) const
+{
   char error_msg[LenErrorMsg_MAX];
   FILE *f;
   int NN,i,j,numDim;
 
-  if (in->MPIInfo->size >1 ) {
-    Finley_setError(IO_ERROR,"Mesh_write: only single processor runs are supported.");
+  if (MPIInfo->size >1 ) {
+    setError(IO_ERROR,"Mesh_write: only single processor runs are supported.");
     return;
 
   }
   /* open file */
-  f=fopen(fname,"w");
+  f=fopen(fname.c_str(), "w");
   if (f==NULL) {
-    sprintf(error_msg,"Mesh_write: Opening file %s for writing failed.",fname);
-    Finley_setError(IO_ERROR,error_msg);
+    sprintf(error_msg,"Mesh_write: Opening file %s for writing failed.",fname.c_str());
+    setError(IO_ERROR,error_msg);
     return;
   }
 
   /* write header */
 
-  fprintf(f,"%s\n",in->Name);
+  fprintf(f, "%s\n", m_name.c_str());
   
   /*  write nodes: */
   
-  if (in->Nodes!=NULL) {
-    numDim=Finley_Mesh_getDim(in);
-    fprintf(f,"%1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
-    for (i=0;i<in->Nodes->numNodes;i++) {
-      fprintf(f,"%d %d %d",in->Nodes->Id[i],in->Nodes->globalDegreesOfFreedom[i],in->Nodes->Tag[i]);
-      for (j=0;j<numDim;j++) fprintf(f," %20.15e",in->Nodes->Coordinates[INDEX2(j,i,numDim)]);
+  if (Nodes!=NULL) {
+    numDim=getDim();
+    fprintf(f,"%1dD-Nodes %d\n", numDim, Nodes->numNodes);
+    for (i=0;i<Nodes->numNodes;i++) {
+      fprintf(f,"%d %d %d",Nodes->Id[i],Nodes->globalDegreesOfFreedom[i],Nodes->Tag[i]);
+      for (j=0;j<numDim;j++) fprintf(f," %20.15e",Nodes->Coordinates[INDEX2(j,i,numDim)]);
       fprintf(f,"\n");
     }
   } else {
@@ -64,12 +64,12 @@ void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
   
   /*  write elements: */
 
-  if (in->Elements!=NULL) {
-    fprintf(f, "%s %d\n",in->Elements->referenceElementSet->referenceElement->Type->Name,in->Elements->numElements);
-    NN=in->Elements->numNodes; 
-    for (i=0;i<in->Elements->numElements;i++) {
-      fprintf(f,"%d %d",in->Elements->Id[i],in->Elements->Tag[i]);
-      for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->Elements->Nodes[INDEX2(j,i,NN)]]);
+  if (Elements!=NULL) {
+    fprintf(f, "%s %d\n",Elements->referenceElementSet->referenceElement->Type->Name,Elements->numElements);
+    NN=Elements->numNodes; 
+    for (i=0;i<Elements->numElements;i++) {
+      fprintf(f,"%d %d",Elements->Id[i],Elements->Tag[i]);
+      for (j=0;j<NN;j++) fprintf(f," %d",Nodes->Id[Elements->Nodes[INDEX2(j,i,NN)]]);
       fprintf(f,"\n");
     }
   } else {
@@ -77,12 +77,12 @@ void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
   }
 
   /*  write face elements: */
-  if (in->FaceElements!=NULL) {
-    fprintf(f, "%s %d\n", in->FaceElements->referenceElementSet->referenceElement->Type->Name,in->FaceElements->numElements);
-    NN=in->FaceElements->numNodes;
-    for (i=0;i<in->FaceElements->numElements;i++) {
-      fprintf(f,"%d %d",in->FaceElements->Id[i],in->FaceElements->Tag[i]);
-      for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->FaceElements->Nodes[INDEX2(j,i,NN)]]);
+  if (FaceElements!=NULL) {
+    fprintf(f, "%s %d\n", FaceElements->referenceElementSet->referenceElement->Type->Name,FaceElements->numElements);
+    NN=FaceElements->numNodes;
+    for (i=0;i<FaceElements->numElements;i++) {
+      fprintf(f,"%d %d",FaceElements->Id[i],FaceElements->Tag[i]);
+      for (j=0;j<NN;j++) fprintf(f," %d",Nodes->Id[FaceElements->Nodes[INDEX2(j,i,NN)]]);
       fprintf(f,"\n");
     }
   } else {
@@ -90,12 +90,12 @@ void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
   }
 
   /*  write Contact elements : */
-  if (in->ContactElements!=NULL) {
-    fprintf(f, "%s %d\n",in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements);
-    NN=in->ContactElements->numNodes;
-    for (i=0;i<in->ContactElements->numElements;i++) {
-      fprintf(f,"%d %d",in->ContactElements->Id[i],in->ContactElements->Tag[i]);
-      for (j=0;j<NN;j++) fprintf(f," %d",in->Nodes->Id[in->ContactElements->Nodes[INDEX2(j,i,NN)]]);
+  if (ContactElements!=NULL) {
+    fprintf(f, "%s %d\n",ContactElements->referenceElementSet->referenceElement->Type->Name,ContactElements->numElements);
+    NN=ContactElements->numNodes;
+    for (i=0;i<ContactElements->numElements;i++) {
+      fprintf(f,"%d %d",ContactElements->Id[i],ContactElements->Tag[i]);
+      for (j=0;j<NN;j++) fprintf(f," %d",Nodes->Id[ContactElements->Nodes[INDEX2(j,i,NN)]]);
       fprintf(f,"\n");
     }
   } else {
@@ -103,49 +103,49 @@ void Finley_Mesh_write(Finley_Mesh *in, const char* fname) {
   }
   
   /*  write points: */
-  if (in->Points!=NULL) {
-    fprintf(f, "%s %d\n",in->Points->referenceElementSet->referenceElement->Type->Name,in->Points->numElements);
-    for (i=0;i<in->Points->numElements;i++) {
-      fprintf(f,"%d %d %d\n",in->Points->Id[i],in->Points->Tag[i],in->Nodes->Id[in->Points->Nodes[INDEX2(0,i,1)]]);
+  if (Points!=NULL) {
+    fprintf(f, "%s %d\n",Points->referenceElementSet->referenceElement->Type->Name,Points->numElements);
+    for (i=0;i<Points->numElements;i++) {
+      fprintf(f,"%d %d %d\n",Points->Id[i],Points->Tag[i],Nodes->Id[Points->Nodes[INDEX2(0,i,1)]]);
     }
   } else {
     fprintf(f,"Point1 0\n");
   }
 
     /*  write tags:*/
-    if (in->tagMap.size()>0) {
+    if (tagMap.size()>0) {
         fprintf(f, "Tags\n");
         TagMap::const_iterator it;
-        for (it=in->tagMap.begin(); it!=in->tagMap.end(); it++) {
+        for (it=tagMap.begin(); it!=tagMap.end(); it++) {
             fprintf(f, "%s %d\n", it->first.c_str(), it->second);
         }
     }
     fclose(f);
 #ifdef Finley_TRACE
-    printf("mesh %s has been written to file %s\n", in->Name, fname);
+    printf("mesh %s has been written to file %s\n", m_name, fname.c_str());
 #endif
 }
 
-void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full)
+void Mesh::printInfo(bool full)
 {
   int NN,i,j,numDim;
 
-  fprintf(stdout, "Finley_PrintMesh_Info running on CPU %d of %d\n",in->MPIInfo->rank, in->MPIInfo->size);
-  fprintf(stdout, "\tMesh name '%s'\n",in->Name);
-  fprintf(stdout, "\tApproximation order %d\n",in->approximationOrder);
-  fprintf(stdout, "\tReduced Approximation order %d\n",in->reducedApproximationOrder);
-  fprintf(stdout, "\tIntegration order %d\n",in->integrationOrder);
-  fprintf(stdout, "\tReduced Integration order %d\n",in->reducedIntegrationOrder);
+  fprintf(stdout, "PrintMesh_Info running on CPU %d of %d\n",MPIInfo->rank, MPIInfo->size);
+  fprintf(stdout, "\tMesh name '%s'\n", m_name.c_str());
+  fprintf(stdout, "\tApproximation order %d\n",approximationOrder);
+  fprintf(stdout, "\tReduced Approximation order %d\n",reducedApproximationOrder);
+  fprintf(stdout, "\tIntegration order %d\n",integrationOrder);
+  fprintf(stdout, "\tReduced Integration order %d\n",reducedIntegrationOrder);
 
   /* write nodes: */
-  if (in->Nodes!=NULL) {
-    numDim=Finley_Mesh_getDim(in);
-    fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, in->Nodes->numNodes);
+  if (Nodes!=NULL) {
+    numDim=getDim();
+    fprintf(stdout, "\tNodes: %1dD-Nodes %d\n", numDim, Nodes->numNodes);
     if (full) {
       fprintf(stdout, "\t     Id   Tag  gDOF   gNI grDfI  grNI:  Coordinates\n");
-      for (i=0;i<in->Nodes->numNodes;i++) {
-        fprintf(stdout, "\t  %5d %5d %5d %5d %5d %5d: ", in->Nodes->Id[i], in->Nodes->Tag[i], in->Nodes->globalDegreesOfFreedom[i], in->Nodes->globalNodesIndex[i], in->Nodes->globalReducedDOFIndex[i], in->Nodes->globalReducedNodesIndex[i]);
-        for (j=0;j<numDim;j++) fprintf(stdout," %20.15e",in->Nodes->Coordinates[INDEX2(j,i,numDim)]);
+      for (i=0;i<Nodes->numNodes;i++) {
+        fprintf(stdout, "\t  %5d %5d %5d %5d %5d %5d: ", Nodes->Id[i], Nodes->Tag[i], Nodes->globalDegreesOfFreedom[i], Nodes->globalNodesIndex[i], Nodes->globalReducedDOFIndex[i], Nodes->globalReducedNodesIndex[i]);
+        for (j=0;j<numDim;j++) fprintf(stdout," %20.15e",Nodes->Coordinates[INDEX2(j,i,numDim)]);
         fprintf(stdout,"\n");
       }
     }
@@ -154,19 +154,19 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full)
   }
 
   /* write elements: */
-  if (in->Elements!=NULL) {
+  if (Elements!=NULL) {
     int mine=0, overlap=0;
-    for (i=0;i<in->Elements->numElements;i++) {
-      if (in->Elements->Owner[i] == in->MPIInfo->rank) mine++;
+    for (i=0;i<Elements->numElements;i++) {
+      if (Elements->Owner[i] == MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tElements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Elements->referenceElementSet->referenceElement->Type->Name,in->Elements->numElements,in->Elements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
-    NN=in->Elements->numNodes;
+    fprintf(stdout, "\tElements: %s %d (TypeId=%d) owner=%d overlap=%d\n",Elements->referenceElementSet->referenceElement->Type->Name,Elements->numElements,Elements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
+    NN=Elements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-      for (i=0;i<in->Elements->numElements;i++) {
-        fprintf(stdout, "\t  %5d %5d %5d %5d: ",in->Elements->Id[i],in->Elements->Tag[i],in->Elements->Owner[i],in->Elements->Color[i]);
-        for (j=0;j<NN;j++) fprintf(stdout," %5d",in->Nodes->Id[in->Elements->Nodes[INDEX2(j,i,NN)]]);
+      for (i=0;i<Elements->numElements;i++) {
+        fprintf(stdout, "\t  %5d %5d %5d %5d: ",Elements->Id[i],Elements->Tag[i],Elements->Owner[i],Elements->Color[i]);
+        for (j=0;j<NN;j++) fprintf(stdout," %5d",Nodes->Id[Elements->Nodes[INDEX2(j,i,NN)]]);
         fprintf(stdout,"\n");
       }
     }
@@ -175,19 +175,19 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full)
   }
 
   /* write face elements: */
-  if (in->FaceElements!=NULL) {
+  if (FaceElements!=NULL) {
     int mine=0, overlap=0;
-    for (i=0;i<in->FaceElements->numElements;i++) {
-      if (in->FaceElements->Owner[i] == in->MPIInfo->rank) mine++;
+    for (i=0;i<FaceElements->numElements;i++) {
+      if (FaceElements->Owner[i] == MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tFace elements: %s %d (TypeId=%d) owner=%d overlap=%d\n", in->FaceElements->referenceElementSet->referenceElement->Type->Name,in->FaceElements->numElements,in->FaceElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
-    NN=in->FaceElements->numNodes;
+    fprintf(stdout, "\tFace elements: %s %d (TypeId=%d) owner=%d overlap=%d\n", FaceElements->referenceElementSet->referenceElement->Type->Name,FaceElements->numElements,FaceElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
+    NN=FaceElements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-      for (i=0;i<in->FaceElements->numElements;i++) {
-        fprintf(stdout, "\t  %5d %5d %5d %5d: ",in->FaceElements->Id[i],in->FaceElements->Tag[i],in->FaceElements->Owner[i],in->FaceElements->Color[i]);
-        for (j=0;j<NN;j++) fprintf(stdout," %5d",in->Nodes->Id[in->FaceElements->Nodes[INDEX2(j,i,NN)]]);
+      for (i=0;i<FaceElements->numElements;i++) {
+        fprintf(stdout, "\t  %5d %5d %5d %5d: ",FaceElements->Id[i],FaceElements->Tag[i],FaceElements->Owner[i],FaceElements->Color[i]);
+        for (j=0;j<NN;j++) fprintf(stdout," %5d",Nodes->Id[FaceElements->Nodes[INDEX2(j,i,NN)]]);
         fprintf(stdout,"\n");
       }
     }
@@ -196,19 +196,19 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full)
   }
 
   /* write Contact elements : */
-  if (in->ContactElements!=NULL) {
+  if (ContactElements!=NULL) {
     int mine=0, overlap=0;
-    for (i=0;i<in->ContactElements->numElements;i++) {
-      if (in->ContactElements->Owner[i] == in->MPIInfo->rank) mine++;
+    for (i=0;i<ContactElements->numElements;i++) {
+      if (ContactElements->Owner[i] == MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->ContactElements->referenceElementSet->referenceElement->Type->Name,in->ContactElements->numElements,in->ContactElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
-    NN=in->ContactElements->numNodes;
+    fprintf(stdout, "\tContact elements: %s %d (TypeId=%d) owner=%d overlap=%d\n",ContactElements->referenceElementSet->referenceElement->Type->Name,ContactElements->numElements,ContactElements->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
+    NN=ContactElements->numNodes;
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-      for (i=0;i<in->ContactElements->numElements;i++) {
-        fprintf(stdout, "\t  %5d %5d %5d %5d: ",in->ContactElements->Id[i],in->ContactElements->Tag[i],in->ContactElements->Owner[i],in->ContactElements->Color[i]);
-        for (j=0;j<NN;j++) fprintf(stdout," %5d",in->Nodes->Id[in->ContactElements->Nodes[INDEX2(j,i,NN)]]);
+      for (i=0;i<ContactElements->numElements;i++) {
+        fprintf(stdout, "\t  %5d %5d %5d %5d: ",ContactElements->Id[i],ContactElements->Tag[i],ContactElements->Owner[i],ContactElements->Color[i]);
+        for (j=0;j<NN;j++) fprintf(stdout," %5d",Nodes->Id[ContactElements->Nodes[INDEX2(j,i,NN)]]);
         fprintf(stdout,"\n");
       }
     }
@@ -217,47 +217,32 @@ void Finley_PrintMesh_Info(Finley_Mesh *in, bool_t full)
   }
 
   /* write points: */
-  if (in->Points!=NULL) {
+  if (Points!=NULL) {
     int mine=0, overlap=0;
-    for (i=0;i<in->Points->numElements;i++) {
-      if (in->Points->Owner[i] == in->MPIInfo->rank) mine++;
+    for (i=0;i<Points->numElements;i++) {
+      if (Points->Owner[i] == MPIInfo->rank) mine++;
       else overlap++;
     }
-    fprintf(stdout, "\tPoints: %s %d (TypeId=%d) owner=%d overlap=%d\n",in->Points->referenceElementSet->referenceElement->Type->Name,in->Points->numElements,in->Points->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
+    fprintf(stdout, "\tPoints: %s %d (TypeId=%d) owner=%d overlap=%d\n",Points->referenceElementSet->referenceElement->Type->Name,Points->numElements,Points->referenceElementSet->referenceElement->Type->TypeId, mine, overlap);
     if (full) {
       fprintf(stdout, "\t     Id   Tag Owner Color:  Nodes\n");
-      for (i=0;i<in->Points->numElements;i++) {
-        fprintf(stdout, "\t  %5d %5d %5d %5d %5d\n",in->Points->Id[i],in->Points->Tag[i],in->Points->Owner[i],in->Points->Color[i],in->Nodes->Id[in->Points->Nodes[INDEX2(0,i,1)]]);
+      for (i=0;i<Points->numElements;i++) {
+        fprintf(stdout, "\t  %5d %5d %5d %5d %5d\n",Points->Id[i],Points->Tag[i],Points->Owner[i],Points->Color[i],Nodes->Id[Points->Nodes[INDEX2(0,i,1)]]);
       }
     }
   } else {
     fprintf(stdout, "\tPoints: Point1 0\n");
   }
 
-    /* write tags:*/
-    if (in->tagMap.size()>0) {
+    // write tags
+    if (tagMap.size()>0) {
         fprintf(stdout, "\tTags:\n");
         TagMap::const_iterator it;
-        for (it=in->tagMap.begin(); it!=in->tagMap.end(); it++) {
+        for (it=tagMap.begin(); it!=tagMap.end(); it++) {
             fprintf(stdout, "\t  %5d %s\n", it->second, it->first.c_str());
         }
     }
 }
 
-/*
-* $Log$
-* Revision 1.2  2005/09/15 03:44:23  jgs
-* Merge of development branch dev-02 back to main trunk on 2005-09-15
-*
-* Revision 1.1.1.1.6.1  2005/09/07 06:26:20  gross
-* the solver from finley are put into the standalone package paso now
-*
-* Revision 1.1.1.1  2004/10/26 06:53:57  jgs
-* initial import of project esys2
-*
-* Revision 1.1.1.1  2004/06/24 04:00:40  johng
-* Initial version of eys using boost-python.
-*
-*
-*/
+} // namespace finley
 

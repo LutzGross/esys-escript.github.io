@@ -49,7 +49,7 @@ QuadInfo* QuadInfo_getInfo(QuadTypeId id)
        ptr++;
     }
     if (out==NULL) {
-        Finley_setError(VALUE_ERROR,"QuadInfo_getInfo: cannot find requested quadrature scheme.");
+        setError(VALUE_ERROR,"QuadInfo_getInfo: cannot find requested quadrature scheme.");
     }
     return out;
 }
@@ -351,7 +351,7 @@ void Quad_getNodesTri(int numQuadNodes,double* quadNodes,double* quadWeights) {
     
     /*  get scheme on [0.1]^2 */
     Quad_getNodesRec(numQuadNodes,quadNodes,quadWeights);
-    if (! Finley_noError()) return;
+    if (!noError()) return;
     
     /*  squeeze it: */
     
@@ -970,7 +970,7 @@ void Quad_getNodesTet(int numQuadNodes,double* quadNodes,double* quadWeights) {
     /*  get scheme on [0.1]^3 */
     
     Quad_getNodesHex(numQuadNodes,quadNodes,quadWeights);
-    if (! Finley_noError()) return;
+    if (!noError()) return;
     
     /*  squeeze it: */
     for (i=0;i<numQuadNodes;i++) {
@@ -1011,8 +1011,7 @@ void Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeights) {
   
   quadNodes1d=new double[numQuadNodes];
   quadWeights1d=new double[numQuadNodes];
-  if (! ( Finley_checkPtr(quadNodes1d) || Finley_checkPtr(quadWeights1d) ) ) {
-     /*  find numQuadNodes1d with numQuadNodes1d**2==numQuadNodes: */
+  /*  find numQuadNodes1d with numQuadNodes1d**2==numQuadNodes: */
      
      for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
        if (numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
@@ -1023,7 +1022,7 @@ void Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeights) {
       
          /*  make 2D scheme: */
       
-         if (Finley_noError()) {
+         if (noError()) {
            l=0;
            for (i=0;i<numQuadNodes1d;i++) {
              for (j=0;j<numQuadNodes1d;j++) {
@@ -1040,12 +1039,12 @@ void Quad_getNodesRec(int numQuadNodes,double* quadNodes,double* quadWeights) {
      }
      if (!set) {
          sprintf(error_msg,"Quad_getNodesRec: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
-         Finley_setError(VALUE_ERROR,error_msg);
+         setError(VALUE_ERROR,error_msg);
      }
      delete[] quadNodes1d;
      delete[] quadWeights1d;
-   }
-   #undef DIM
+
+#undef DIM
 }
 
 /************************************************************************************/
@@ -1064,7 +1063,6 @@ void Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeights) {
   
   quadNodes1d=new double[numQuadNodes];
   quadWeights1d=new double[numQuadNodes];
-  if (! ( Finley_checkPtr(quadNodes1d) || Finley_checkPtr(quadWeights1d) ) ) {
      for (numQuadNodes1d=1;numQuadNodes1d<=MAX_numQuadNodesLine;numQuadNodes1d++) {
        if (numQuadNodes1d*numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
       
@@ -1074,7 +1072,7 @@ void Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeights) {
       
          /*  make 3D scheme: */
       
-         if (Finley_noError()) {
+         if (noError()) {
            l=0;
            for (i=0;i<numQuadNodes1d;i++) {
              for (j=0;j<numQuadNodes1d;j++) {
@@ -1094,11 +1092,10 @@ void Quad_getNodesHex(int numQuadNodes,double* quadNodes,double* quadWeights) {
      }
      if (!set) {
           sprintf(error_msg,"Quad_getNodesHex: Illegal number of quadrature nodes %d on hexahedron.",numQuadNodes);
-          Finley_setError(VALUE_ERROR,error_msg);
+          setError(VALUE_ERROR,error_msg);
      }
      delete[] quadNodes1d;
      delete[] quadWeights1d;
-  }
   #undef DIM
 }
 
@@ -1112,7 +1109,7 @@ void Quad_getNodesPoint(int numQuadNodes,double* quadNodes,double* quadWeights) 
   if (numQuadNodes>=0) {
         return;
   } else {
-       Finley_setError(VALUE_ERROR,"Quad_getNodesPoint: Illegal number of quadrature nodes.");
+       setError(VALUE_ERROR,"Quad_getNodesPoint: Illegal number of quadrature nodes.");
   }
 }
 
@@ -1264,7 +1261,7 @@ void Quad_getNodesLine(int numQuadNodes,double* quadNodes,double* quadWeights) {
         break;
 
       default:
-        Finley_setError(VALUE_ERROR,"Quad_getNodesLine: Negative integration order.");
+        setError(VALUE_ERROR,"Quad_getNodesLine: Negative integration order.");
         break;
   }
 }
@@ -1284,16 +1281,16 @@ int Quad_getNumNodesPoint(int order) {
 int Quad_getNumNodesLine(int order) {
   char error_msg[LenErrorMsg_MAX];
   if (order <0 ) {
-    Finley_setError(VALUE_ERROR,"Quad_getNumNodesLine: Negative integration order.");
+    setError(VALUE_ERROR,"Quad_getNumNodesLine: Negative integration order.");
     return -1;
   } else { 
     if (order > 2*MAX_numQuadNodesLine-1) {
       sprintf(error_msg,"Quad_getNumNodesLine: requested integration order %d on line is too large (>%d).",
                                                            order,2*MAX_numQuadNodesLine-1);
-      Finley_setError(VALUE_ERROR,error_msg);
+      setError(VALUE_ERROR,error_msg);
       return -1;
     } else { 
-       Finley_resetError();
+       resetError();
        return order/2+1;
     }
   }
@@ -1321,7 +1318,7 @@ int Quad_getNumNodesTri(int order) {
      return 19;
   } else {
       numQuadNodesLine=Quad_getNumNodesLine(order+1);
-      if (Finley_noError()) {
+      if (noError()) {
          return numQuadNodesLine*numQuadNodesLine;
       } else {
          return -1;
@@ -1332,7 +1329,7 @@ int Quad_getNumNodesTri(int order) {
 int Quad_getNumNodesRec(int order) {
   int numQuadNodesLine;
   numQuadNodesLine=Quad_getNumNodesLine(order);
-  if (Finley_noError()) {
+  if (noError()) {
       return numQuadNodesLine*numQuadNodesLine;
   } else {
       return -1;
@@ -1359,7 +1356,7 @@ int Quad_getNumNodesTet(int order) {
       return 45;
   } else {
      numQuadNodesLine=Quad_getNumNodesLine(order+2);
-     if (Finley_noError()) {
+     if (noError()) {
          return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
      } else {
          return -1;
@@ -1370,7 +1367,7 @@ int Quad_getNumNodesTet(int order) {
 int Quad_getNumNodesHex(int order) {
   int numQuadNodesLine;
   numQuadNodesLine=Quad_getNumNodesLine(order);
-  if (Finley_noError()) {
+  if (noError()) {
       return numQuadNodesLine*numQuadNodesLine*numQuadNodesLine;
   } else {
       return -1;
@@ -1391,7 +1388,7 @@ dim_t Quad_MacroLine(dim_t numSubElements, int numQuadNodes, double* quadNodes, 
     const double f=1./((double)numSubElements);
     
     if (new_len < numSubElements*numQuadNodes) {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroLine: array for new quadrature scheme is too small");
+        setError(MEMORY_ERROR,"Quad_MacroLine: array for new quadrature scheme is too small");
     }
     for (q=0; q<numQuadNodes; ++q) {
             
@@ -1419,7 +1416,7 @@ dim_t Quad_MacroTri(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
     register double x0, x1, w, df0, df1;
     
     if (new_len < numSubElements*numQuadNodes) {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroTri: array for new quadrature scheme is too small");
+        setError(MEMORY_ERROR,"Quad_MacroTri: array for new quadrature scheme is too small");
         return -1;
     }
     if (numSubElements==1) {
@@ -1484,7 +1481,7 @@ dim_t Quad_MacroTri(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
 
         }
     } else {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroTri: unable to create quadrature scheme for macro element.");
+        setError(MEMORY_ERROR,"Quad_MacroTri: unable to create quadrature scheme for macro element.");
         return -1;
     }
     #undef DIM
@@ -1500,7 +1497,7 @@ dim_t Quad_MacroRec(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
     register double x0, x1, w, df0, df1;
     
     if (new_len < numSubElements*numQuadNodes) {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroRec: array for new quadrature scheme is too small");
+        setError(MEMORY_ERROR,"Quad_MacroRec: array for new quadrature scheme is too small");
         return -1;
     }
     if (numSubElements==1) {
@@ -1564,7 +1561,7 @@ dim_t Quad_MacroRec(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
 
         }
     } else {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroRec: unable to create quadrature scheme for macro element.");
+        setError(MEMORY_ERROR,"Quad_MacroRec: unable to create quadrature scheme for macro element.");
         return -1;
     }
     #undef DIM
@@ -1580,7 +1577,7 @@ dim_t Quad_MacroTet(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
     register double x0, x1, x2, w, df0, df1, df2;
     
     if (new_len < numSubElements*numQuadNodes) {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroTet: array for new quadrature scheme is too small");
+        setError(MEMORY_ERROR,"Quad_MacroTet: array for new quadrature scheme is too small");
         return -1;
     }
     if (numSubElements==1) {
@@ -1693,7 +1690,7 @@ dim_t Quad_MacroTet(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
 
         }
     } else {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroTet: unable to create quadrature scheme for macro element.");
+        setError(MEMORY_ERROR,"Quad_MacroTet: unable to create quadrature scheme for macro element.");
         return -1;
     }
     #undef DIM
@@ -1710,7 +1707,7 @@ dim_t Quad_MacroHex(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
     register double x0, x1, x2, w, df0, df1, df2;
     
     if (new_len < numSubElements*numQuadNodes) {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroHex: array for new quadrature scheme is too small");
+        setError(MEMORY_ERROR,"Quad_MacroHex: array for new quadrature scheme is too small");
         return -1;
     }
     if (numSubElements==1) {
@@ -1823,7 +1820,7 @@ dim_t Quad_MacroHex(dim_t numSubElements, int numQuadNodes, double* quadNodes, d
 
         }
     } else {
-        Finley_setError(MEMORY_ERROR,"Quad_MacroHex: unable to create quadrature scheme for macro element.");
+        setError(MEMORY_ERROR,"Quad_MacroHex: unable to create quadrature scheme for macro element.");
         return -1;
     }
     #undef DIM

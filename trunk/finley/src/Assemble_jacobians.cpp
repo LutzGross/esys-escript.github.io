@@ -64,7 +64,7 @@ void Assemble_jacobians_1D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_1D: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 for (int s=0; s<numTest; s++)
@@ -109,7 +109,7 @@ void Assemble_jacobians_2D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_2D: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00 = dXdv11*invD;
@@ -159,7 +159,7 @@ void Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_2D_M1D_E1D: element " << e
                    << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00 = dXdv00*invD;
@@ -213,7 +213,7 @@ void Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_2D_M1D_E1D_C: element " << e
                     << " (id " << element_id[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD_0 = 1./D_0;
                 const double dvdX00_0=dXdv00_0*invD_0;
@@ -270,7 +270,7 @@ void Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_2D_M1D_E2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00 = dXdv11*invD;
@@ -336,7 +336,7 @@ void Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_2D_M1D_E2D_C: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD_0=1./D_0;
                 const double dvdX00_0= dXdv11_0*invD_0;
@@ -412,7 +412,7 @@ void Assemble_jacobians_3D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_3D: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00=(dXdv11*dXdv22-dXdv12*dXdv21)*invD;
@@ -490,7 +490,7 @@ void Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_M2D_E3D: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00=(dXdv11*dXdv22-dXdv12*dXdv21)*invD;
@@ -597,7 +597,7 @@ void Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_M2D_E3D_C: element " << e
                     << " (id " << element_id[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD_0=1./D_0;
                 const double dvdX00_0=(dXdv11_0*dXdv22_0-dXdv12_0*dXdv21_0)*invD_0;
@@ -700,7 +700,7 @@ void Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_3D_M2D_E2D: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD = 1./D;
                 const double dvdX00=( m00*dXdv00-m01*dXdv01)*invD;
@@ -787,7 +787,7 @@ void Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
                 ss << "Assemble_jacobians_3D_M2D_E2D_C: element " << e
                     << " (id " << element_id[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
-                Finley_setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
+                setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
                 const double invD_0=1./D_0;
                 const double dvdX00_0=( m00_0*dXdv00_0-m01_0*dXdv01_0)*invD_0;

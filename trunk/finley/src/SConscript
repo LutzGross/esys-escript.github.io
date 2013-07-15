@@ -52,38 +52,26 @@ sources = """
     Finley.cpp
     IndexList.cpp
     Mesh.cpp
-    Mesh_createNodeFileMappings.cpp
-    Mesh_distributeByRankOfDOF.cpp
+    Mesh_addPoints.cpp
     Mesh_findMatchingFaces.cpp
     Mesh_getPattern.cpp
     Mesh_glueFaces.cpp
     Mesh_hex20.cpp
     Mesh_hex8.cpp
     Mesh_joinFaces.cpp
-    Mesh_markNodes.cpp
     Mesh_merge.cpp
     Mesh_optimizeDOFDistribution.cpp
-    Mesh_optimizeDOFLabeling.cpp
-    Mesh_prepare.cpp
-    Mesh_print.cpp
     Mesh_read.cpp
     Mesh_readGmsh.cpp
     Mesh_rec4.cpp
     Mesh_rec8.cpp
-    Mesh_relableElementNodes.cpp
-    Mesh_resolveNodeIds.cpp
-    Mesh_setCoordinates.cpp
-    Mesh_tagmaps.cpp
-    Mesh_addPoints.cpp
     Mesh_write.cpp
     NodeFile.cpp
     Quadrature.cpp
     ReferenceElements.cpp
     ShapeFunctions.cpp
     Util.cpp
-    ReferenceElementSets.cpp
     CPPAdapter/FinleyAdapterException.cpp
-    CPPAdapter/FinleyError.cpp
     CPPAdapter/MeshAdapter.cpp
     CPPAdapter/MeshAdapterFactory.cpp
 """.split()
@@ -107,7 +95,6 @@ headers = """
 
 cppadapter_headers = """
     CPPAdapter/FinleyAdapterException.h
-    CPPAdapter/FinleyError.h
     CPPAdapter/MeshAdapter.h
     CPPAdapter/MeshAdapterFactory.h
     CPPAdapter/system_dep.h

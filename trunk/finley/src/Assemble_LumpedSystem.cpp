@@ -30,11 +30,11 @@
 
 namespace finley {
 
-void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
+void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                            escript::Data& lumpedMat, const escript::Data& D,
                            bool useHRZ)
 {
-    Finley_resetError();
+    resetError();
 
     if (!nodes || !elements || lumpedMat.isEmpty() || D.isEmpty())
         return;
@@ -53,13 +53,13 @@ void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
     } else if (funcspace==FINLEY_POINTS)  {
         reducedOrder=true;
     } else {
-        Finley_setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
+        setError(TYPE_ERROR, "Assemble_LumpedSystem: assemblage failed because of illegal function space.");
         return;
     }
 
     // initialize parameters
     AssembleParameters p(nodes, elements, NULL, lumpedMat, reducedOrder);
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     // check if all function spaces are the same
@@ -69,7 +69,7 @@ void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
             "don't match (" << p.numQuadSub << "," << elements->numElements
             << ").";
         std::string errorMsg = ss.str();
-        Finley_setError(TYPE_ERROR, errorMsg.c_str());
+        setError(TYPE_ERROR, errorMsg.c_str());
         return;
     }
 
@@ -77,7 +77,7 @@ void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
     if (p.numEqu==1) {
         const escript::DataTypes::ShapeType dimensions; //dummy
         if (D.getDataPointShape() != dimensions) {
-            Finley_setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficient D, rank 0 expected.");
+            setError(TYPE_ERROR, "Assemble_LumpedSystem: coefficient D, rank 0 expected.");
             return;
         }
     } else {
@@ -87,7 +87,7 @@ void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
             ss << "Assemble_LumpedSystem: coefficient D does not have "
                 "expected shape (" << p.numEqu << ",).";
             std::string errorMsg = ss.str();
-            Finley_setError(TYPE_ERROR, errorMsg.c_str());
+            setError(TYPE_ERROR, errorMsg.c_str());
             return;
         }
     }

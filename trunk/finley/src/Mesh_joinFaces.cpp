@@ -14,126 +14,116 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: Mesh */
+  Finley: Mesh
 
-/* detects faces in the mesh that match and replaces it by step elements */
+  detects faces in the mesh that match and replaces it by step elements
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include "Mesh.h"
 
-/************************************************************************************/
+namespace finley {
 
-void Finley_Mesh_joinFaces(Finley_Mesh* self,double safety_factor,double tolerance, bool_t optimize) {
+void Mesh::joinFaces(double safety_factor, double tolerance, bool optimize)
+{
+    char error_msg[LenErrorMsg_MAX];
 
-   char error_msg[LenErrorMsg_MAX];
-   index_t e0,e1,*elem1=NULL,*elem0=NULL,*elem_mask=NULL,*matching_nodes_in_elem1=NULL;
-   ElementFile *newFaceElementsFile=NULL,*newContactElementsFile=NULL;
-   dim_t e,i,numPairs, NN, NN_Contact,c, new_numFaceElements;
-   ReferenceElement*  faceRefElement=NULL, *contactRefElement=NULL;
+    if (MPIInfo->size>1) {
+        setError(TYPE_ERROR, "Mesh::joinFaces: MPI is not supported yet.");
+        return;
+    }
+    if (ContactElements==NULL) {
+        setError(TYPE_ERROR, "Mesh::joinFaces: no contact element file present.");
+        return;
+    }
+    if (!FaceElements)
+        return;
 
-   if (self->MPIInfo->size>1) {
-     Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: MPI is not supported yet.");
-     return;
-   }
-   if (self->ContactElements==NULL) {
-     Finley_setError(TYPE_ERROR,"Finley_Mesh_joinFaces: no contact element file present.");
-     return;
-   }
-   if (self->FaceElements==NULL) return;
-   faceRefElement= ReferenceElementSet_borrowReferenceElement(self->FaceElements->referenceElementSet, FALSE);
-   contactRefElement= ReferenceElementSet_borrowReferenceElement(self->ContactElements->referenceElementSet, FALSE);
-   
+    const_ReferenceElement_ptr faceRefElement(FaceElements->referenceElementSet->borrowReferenceElement(false));
+    const_ReferenceElement_ptr contactRefElement(ContactElements->referenceElementSet->borrowReferenceElement(false));
 
-   NN=self->FaceElements->numNodes;
-   NN_Contact=self->ContactElements->numNodes;
+    if (faceRefElement->Type->numNodesOnFace <= 0) {
+        sprintf(error_msg,"Mesh_joinFaces: joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
+        setError(TYPE_ERROR,error_msg);
+        return;
+    }
 
-   if (faceRefElement->Type->numNodesOnFace<=0) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces: joining faces cannot be applied to face elements of type %s",faceRefElement->Type->Name);
-     Finley_setError(TYPE_ERROR,error_msg);
-     return;
-   }
+    if (contactRefElement->Type->numNodes != 2*faceRefElement->Type->numNodes) {
+        sprintf(error_msg,"Mesh_joinFaces: contact element file for %s needs to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
+        setError(TYPE_ERROR,error_msg);
+        return;
+    }
 
+    const int NN=FaceElements->numNodes;
+    const int NN_Contact=ContactElements->numNodes;
 
-   if (contactRefElement->Type->numNodes != 2*faceRefElement->Type->numNodes) {
-     sprintf(error_msg,"Finley_Mesh_joinFaces: contact element file for %s needs to hold elements created from face elements %s", contactRefElement->Type->Name,faceRefElement->Type->Name);
-     Finley_setError(TYPE_ERROR,error_msg);
-     return;
-   }
+    // allocate work arrays
+    int* elem1=new int[FaceElements->numElements];
+    int* elem0=new int[FaceElements->numElements];
+    int* elem_mask=new int[FaceElements->numElements];
+    int* matching_nodes_in_elem1=new int[FaceElements->numElements*NN];
 
-   /* allocate work arrays */
-   elem1=new index_t[self->FaceElements->numElements];
-   elem0=new index_t[self->FaceElements->numElements];
-   elem_mask=new index_t[self->FaceElements->numElements];
-   matching_nodes_in_elem1=new index_t[self->FaceElements->numElements*NN];
-
-   if (!(Finley_checkPtr(elem1) || Finley_checkPtr(elem0) || Finley_checkPtr(elem_mask) || Finley_checkPtr(matching_nodes_in_elem1)))  {
-
-      /* find the matching face elements */
-      Finley_Mesh_findMatchingFaces(self->Nodes,self->FaceElements,safety_factor,tolerance,&numPairs,elem0,elem1,matching_nodes_in_elem1);
-      if (Finley_noError()) {
-         /* get a list of the face elements to be kept */
-         #pragma omp parallel for private(e) schedule(static)
-         for(e=0;e<self->FaceElements->numElements;e++) elem_mask[e]=1;
-         for(e=0;e<numPairs;e++) {
-             elem_mask[elem0[e]]=0;
-             elem_mask[elem1[e]]=0;
-         }
-         new_numFaceElements=0;
-         /* OMP */
-         for(e=0;e<self->FaceElements->numElements;e++) {
-             if (elem_mask[e]>0) {
-               elem_mask[new_numFaceElements]=e;
-               new_numFaceElements++;
-             }
-         }
-         /*  allocate new face element and Contact element files */
-         newContactElementsFile=new ElementFile(self->ContactElements->referenceElementSet, self->MPIInfo);
-         newFaceElementsFile=new ElementFile(self->FaceElements->referenceElementSet, self->MPIInfo);
-         if (Finley_noError()) {
-               newContactElementsFile->allocTable(numPairs+self->ContactElements->numElements);
-               newFaceElementsFile->allocTable(new_numFaceElements);
-         }
-         /* copy the old elements over */
-         if (Finley_noError()) {
-            /* get the face elements which are still in use:*/
-            newFaceElementsFile->gather(elem_mask, self->FaceElements);
-            /* get the Contact elements which are still in use:*/
-            newContactElementsFile->copyTable(0, 0, 0, self->ContactElements);
-            c=self->ContactElements->numElements;
-            /* OMP */
-            for (e=0;e<numPairs;e++) {
-                 e0=elem0[e];
-                 e1=elem1[e];
-                 newContactElementsFile->Id[c]=MIN(self->FaceElements->Id[e0],self->FaceElements->Id[e1]);
-                 newContactElementsFile->Tag[c]=MIN(self->FaceElements->Tag[e0],self->FaceElements->Tag[e1]);
-                 newContactElementsFile->Color[c]=e;
-                 for (i=0;i<NN;i++) newContactElementsFile->Nodes[INDEX2(i,c,NN_Contact)]=self->FaceElements->Nodes[INDEX2(i,e0,NN)];
-                 for (i=0;i<NN;i++) newContactElementsFile->Nodes[INDEX2(i+NN,c,NN_Contact)]=matching_nodes_in_elem1[INDEX2(i,e,NN)];
-                 c++;
+    // find the matching face elements
+    int numPairs;
+    findMatchingFaces(safety_factor, tolerance, &numPairs, elem0, elem1, matching_nodes_in_elem1);
+    if (noError()) {
+        // get a list of the face elements to be kept
+#pragma omp parallel for
+        for (int e=0; e<FaceElements->numElements; e++)
+            elem_mask[e]=1;
+        for (int e=0; e<numPairs; e++) {
+            elem_mask[elem0[e]]=0;
+            elem_mask[elem1[e]]=0;
+        }
+        int new_numFaceElements=0;
+        // OMP
+        for (int e=0; e<FaceElements->numElements; e++) {
+            if (elem_mask[e]>0) {
+                elem_mask[new_numFaceElements]=e;
+                new_numFaceElements++;
             }
-            newContactElementsFile->minColor=0;
-            newContactElementsFile->maxColor=numPairs-1;
-         } 
-         /* set new face and Contact elements */
-         if (Finley_noError()) {
-
-            delete self->FaceElements;
-            self->FaceElements=newFaceElementsFile;
-            delete self->ContactElements;
-            self->ContactElements=newContactElementsFile;
-            Finley_Mesh_prepare(self, optimize);
-
-         } else {
-            delete newFaceElementsFile;
-            delete newContactElementsFile;
-         }
-      }
-   }
-   delete[] elem1;
-   delete[] elem0;
-   delete[] matching_nodes_in_elem1;
-   delete[] elem_mask;
+        }
+        // allocate new face element and Contact element files
+        ElementFile *newFaceElementsFile, *newContactElementsFile;
+        newContactElementsFile=new ElementFile(ContactElements->referenceElementSet, MPIInfo);
+        newFaceElementsFile=new ElementFile(FaceElements->referenceElementSet, MPIInfo);
+        newContactElementsFile->allocTable(numPairs+ContactElements->numElements);
+        newFaceElementsFile->allocTable(new_numFaceElements);
+        // copy the old elements over
+        // get the face elements which are still in use
+        newFaceElementsFile->gather(elem_mask, FaceElements);
+        // get the contact elements which are still in use
+        newContactElementsFile->copyTable(0, 0, 0, ContactElements);
+        int c=ContactElements->numElements;
+        // OMP
+        for (int e=0; e<numPairs; e++) {
+            const int e0=elem0[e];
+            const int e1=elem1[e];
+            newContactElementsFile->Id[c]=std::min(FaceElements->Id[e0],FaceElements->Id[e1]);
+            newContactElementsFile->Tag[c]=std::min(FaceElements->Tag[e0],FaceElements->Tag[e1]);
+            newContactElementsFile->Color[c]=e;
+            for (int i=0; i<NN; i++)
+                newContactElementsFile->Nodes[INDEX2(i,c,NN_Contact)]=FaceElements->Nodes[INDEX2(i,e0,NN)];
+            for (int i=0; i<NN; i++)
+                newContactElementsFile->Nodes[INDEX2(i+NN,c,NN_Contact)]=matching_nodes_in_elem1[INDEX2(i,e,NN)];
+            c++;
+        }
+        newContactElementsFile->minColor=0;
+        newContactElementsFile->maxColor=numPairs-1;
+        // set new face and Contact elements
+        delete FaceElements;
+        FaceElements=newFaceElementsFile;
+        delete ContactElements;
+        ContactElements=newContactElementsFile;
+        prepare(optimize);
+    }
+    delete[] elem1;
+    delete[] elem0;
+    delete[] matching_nodes_in_elem1;
+    delete[] elem_mask;
 }
+
+} // namespace finley
+

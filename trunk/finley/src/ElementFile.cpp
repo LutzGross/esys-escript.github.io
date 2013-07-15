@@ -29,17 +29,18 @@ namespace finley {
 
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
-ElementFile::ElementFile(ReferenceElementSet* refSet, Esys_MPIInfo *mpiInfo)
+ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
+                         Esys_MPIInfo *mpiInfo) :
+    referenceElementSet(refSet),
+    numElements(0),
+    Id(NULL),
+    Tag(NULL),
+    Owner(NULL),
+    Nodes(NULL),
+    Color(NULL),
+    minColor(0),
+    maxColor(-1)
 {
-    referenceElementSet=ReferenceElementSet_reference(refSet);
-    numElements=0;
-    Id=NULL;
-    Nodes=NULL;
-    Tag=NULL;
-    Color=NULL;
-    minColor=0;
-    maxColor=-1;
-    Owner=NULL;                
     MPIInfo=Esys_MPIInfo_getReference(mpiInfo);
  
     jacobians=new ElementFile_Jacobians(
@@ -51,14 +52,13 @@ ElementFile::ElementFile(ReferenceElementSet* refSet, Esys_MPIInfo *mpiInfo)
     jacobians_reducedS_reducedQ=new ElementFile_Jacobians(
             referenceElementSet->referenceElementReducedQuadrature->LinearBasisFunctions);
 
-    numNodes=referenceElementSet->numNodes;
+    numNodes=referenceElementSet->getNumNodes();
 }
 
 /// destructor
 ElementFile::~ElementFile()
 {
     freeTable();   
-    ReferenceElementSet_dealloc(referenceElementSet);
     delete jacobians;
     delete jacobians_reducedS;
     delete jacobians_reducedQ;
@@ -113,7 +113,7 @@ void ElementFile::copyTable(int offset, int nodeOffset, int idOffset,
 {
     const int NN_in=in->numNodes;
     if (NN_in > numNodes) {
-        Finley_setError(TYPE_ERROR, "ElementFile::copyTable: dimensions of element files don't match.");
+        setError(TYPE_ERROR, "ElementFile::copyTable: dimensions of element files don't match.");
         return;
     }
 
@@ -182,12 +182,12 @@ void ElementFile::optimizeOrdering()
     if (numElements<1)
         return;
 
-    const int NN=referenceElementSet->numNodes;
+    const int NN=referenceElementSet->getNumNodes();
     util::ValueAndIndexList item_list(numElements);
     int *index=new int[numElements];
     ElementFile* out=new ElementFile(referenceElementSet, MPIInfo);
     out->allocTable(numElements);
-    if (Finley_noError()) {
+    if (noError()) {
 #pragma omp parallel for
         for (int e=0; e<numElements; e++) {
             std::pair<int,int> entry(Nodes[INDEX2(0,e,NN)], e);
@@ -208,7 +208,7 @@ void ElementFile::optimizeOrdering()
 
 /// assigns new node reference numbers to the elements.
 /// If k is the old node, the new node is newNode[k-offset].
-void ElementFile::relabelNodes(int* newNode, int offset)
+void ElementFile::relabelNodes(const std::vector<int>& newNode, int offset)
 {
 #pragma omp parallel for
     for (int j=0; j<numElements; j++) {
@@ -221,17 +221,17 @@ void ElementFile::relabelNodes(int* newNode, int offset)
 
 void ElementFile::setTags(const int newTag, const escript::Data& cMask)
 {
-    Finley_resetError();
+    resetError();
 
-    const int numQuad=ReferenceElementSet_borrowReferenceElement(
-            referenceElementSet, util::hasReducedIntegrationOrder(cMask))
+    const int numQuad=referenceElementSet->borrowReferenceElement(
+            util::hasReducedIntegrationOrder(cMask))
             ->Parametrization->numQuadNodes; 
     if (1 != cMask.getDataPointSize()) {
-        Finley_setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
+        setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
         return;
     } else if (cMask.getNumDataPointsPerSample() != numQuad ||
             cMask.getNumSamples() != numElements) {
-        Finley_setError(TYPE_ERROR, "ElementFile::setTags: illegal number of samples of mask Data object");
+        setError(TYPE_ERROR, "ElementFile::setTags: illegal number of samples of mask Data object");
         return;
     }
 
@@ -258,14 +258,14 @@ void ElementFile::setTags(const int newTag, const escript::Data& cMask)
 }
 
 /// Tries to reduce the number of colours used to colour the elements
-void ElementFile::createColoring(int nodeCount, int* degreeOfFreedom)
+void ElementFile::createColoring(const std::vector<int>& dofMap)
 {
     if (numElements < 1)
         return;
 
     const int NN = numNodes;
     const std::pair<int,int> idRange(util::getMinMaxInt(
-                                            1, nodeCount, degreeOfFreedom));
+                                            1, dofMap.size(), &dofMap[0]));
     const int len=idRange.second-idRange.first+1;
 
     // reset color vector
@@ -289,19 +289,19 @@ void ElementFile::createColoring(int nodeCount, int* degreeOfFreedom)
                 bool independent = true; 
                 for (int i=0; i<NN; i++) {
 #ifdef BOUNDS_CHECK
-if (Nodes[INDEX2(i,e,NN)] < 0 || Nodes[INDEX2(i,e,NN)] >= nodeCount) {
+if (Nodes[INDEX2(i,e,NN)] < 0 || Nodes[INDEX2(i,e,NN)] >= dofMap.size()) {
     printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d Nodes[INDEX2...]=%d\n",
             __FILE__, __LINE__, i, e, NN, idRange.first, Nodes[INDEX2(i,e,NN)]);
     exit(1);
 }
-if ((degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) >= len ||
-        (degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) < 0) {
+if ((dofMap[Nodes[INDEX2(i,e,NN)]]-idRange.first) >= len ||
+        (dofMap[Nodes[INDEX2(i,e,NN)]]-idRange.first) < 0) {
     printf("BOUNDS_CHECK %s %d i=%d e=%d NN=%d min_id=%d dof=%d\n",
-            __FILE__, __LINE__, i, e, NN, idRange.first, degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first);
+            __FILE__, __LINE__, i, e, NN, idRange.first, dofMap[Nodes[INDEX2(i,e,NN)]]-idRange.first);
     exit(1);
 }
 #endif
-                    if (maskDOF[degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first]>0) {
+                    if (maskDOF[dofMap[Nodes[INDEX2(i,e,NN)]]-idRange.first]>0) {
                         independent=false;
                         break;
                     }
@@ -310,7 +310,7 @@ if ((degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) >= len ||
                 // are marked as being used
                 if (independent) {
                     for (int i=0; i<NN; i++)
-                        maskDOF[degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first] = 1;
+                        maskDOF[dofMap[Nodes[INDEX2(i,e,NN)]]-idRange.first] = 1;
                     Color[e]=maxColor+1;
                 } else {
                     numUncoloredElements++;
@@ -321,10 +321,10 @@ if ((degreeOfFreedom[Nodes[INDEX2(i,e,NN)]]-idRange.first) >= len ||
     } // end of while loop
 }
 
-void ElementFile::markNodes(int* mask, int offset, bool useLinear)
+void ElementFile::markNodes(std::vector<short>& mask, int offset, bool useLinear)
 {
-    const ReferenceElement* refElement =
-        ReferenceElementSet_borrowReferenceElement(referenceElementSet, false);
+    const_ReferenceElement_ptr refElement(referenceElementSet->
+                                            borrowReferenceElement(false));
     if (useLinear) {
         const int NN=refElement->numLinearNodes;
         const int *lin_nodes=refElement->Type->linearNodes;
@@ -346,10 +346,10 @@ void ElementFile::markNodes(int* mask, int offset, bool useLinear)
 }
 
 void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
-        int firstDOF, int lastDOF, int *dofIndex, bool useLinear) 
+        int firstDOF, int lastDOF, const int *dofIndex, bool useLinear) 
 {
-    const ReferenceElement* refElement =
-        ReferenceElementSet_borrowReferenceElement(referenceElementSet, false);
+    const_ReferenceElement_ptr refElement(referenceElementSet->
+                                            borrowReferenceElement(false));
     if (useLinear) {
         const int NN=refElement->numLinearNodes;
         const int *lin_nodes=refElement->Type->linearNodes;
@@ -389,7 +389,7 @@ void ElementFile::markDOFsConnectedToRange(int* mask, int offset, int marker,
 }
 
 /// redistributes the elements including overlap by rank
-void ElementFile::distributeByRankOfDOF(int* mpiRankOfDOF, int* index)
+void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, int* index)
 {
     const int size=MPIInfo->size;
 

@@ -13,21 +13,21 @@
 *
 *****************************************************************************/
 
+#ifndef __FINLEY_H__
+#define __FINLEY_H__
 
-#ifndef INC_FINLEY
-#define INC_FINLEY
+/****************************************************************************
 
-/************************************************************************************/
+  Finley finite element solver
 
-/*    Finley finite element solver */
-
-/************************************************************************************/
+*****************************************************************************/
 
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
 
-/************************************************************************************/
-/*#define Finley_TRACE */
+namespace finley {
+
+//#define Finley_TRACE
 #define FINLEY_UNKNOWN -1
 #define FINLEY_DEGREES_OF_FREEDOM 1
 #define FINLEY_NODES 3
@@ -43,27 +43,20 @@
 #define FINLEY_REDUCED_CONTACT_ELEMENTS_1 12
 #define FINLEY_REDUCED_CONTACT_ELEMENTS_2 13
 
-/* status stuff */
-typedef int Finley_Status_t;
-#define Finley_increaseStatus(self) ((self)->status)++
 #define FINLEY_INITIAL_STATUS 0
 
-/* error codes */
+typedef Esys_ErrorCodeType ErrorCodeType;
 
+double timer();
+void resetError();
+void setError(ErrorCodeType err, const char* msg);
+bool noError();
+ErrorCodeType getErrorType();
+char* getErrorMessage();
+void checkFinleyError();
+bool MPI_noError(Esys_MPIInfo *mpi_info);
 
-typedef Esys_ErrorCodeType Finley_ErrorCodeType;
+} // namespace finley
 
-/* interfaces */
-
-double Finley_timer(void);
-bool_t Finley_checkPtr(void*);
-void Finley_resetError(void);
-void Finley_setError(Finley_ErrorCodeType err,__const char* msg);
-bool_t Finley_noError(void);
-Finley_ErrorCodeType Finley_getErrorType(void);
-char* Finley_getErrorMessage(void);
-void Finley_convertPasoError(void);
-bool_t Finley_MPI_noError( Esys_MPIInfo *mpi_info );
-
-#endif /* #ifndef INC_FINLEY */
+#endif // __FINLEY_H__
 

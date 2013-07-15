@@ -43,7 +43,7 @@ struct NodeMapping {
         std::pair<int,int> range(
             util::getFlaggedMinMaxInt(theTarget.size(), &theTarget[0], unused));
         if (range.first < 0) {
-            Finley_setError(VALUE_ERROR, "NodeMapping: target has negative entry.");
+            setError(VALUE_ERROR, "NodeMapping: target has negative entry.");
             return;
         }
         // now we assume min(target)=0!
@@ -62,7 +62,7 @@ struct NodeMapping {
 #pragma omp for
             for (int i=0; i<numTargets; ++i) {
                 if (map[i]==-1) {
-                    Finley_setError(VALUE_ERROR, "NodeMapping: target does not define a continuous labeling.");
+                    setError(VALUE_ERROR, "NodeMapping: target does not define a continuous labeling.");
                 }
             }
         }

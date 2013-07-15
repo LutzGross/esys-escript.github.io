@@ -29,7 +29,7 @@ namespace finley {
 void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                        escript::Data& grad_data, const escript::Data& data)
 {
-    Finley_resetError();
+    resetError();
     if (!nodes || !elements)
         return;
 
@@ -47,35 +47,36 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
         numNodes = nodes->getNumReducedNodes();
     } else if (data_type==FINLEY_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Finley_setError(TYPE_ERROR, "Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
+            setError(TYPE_ERROR, "Assemble_gradient: for more than one processor DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
         numNodes = nodes->getNumDegreesOfFreedom();
     } else if (data_type==FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
         if (elements->MPIInfo->size > 1) {
-            Finley_setError(TYPE_ERROR, "Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
+            setError(TYPE_ERROR, "Assemble_gradient: for more than one processor REDUCED_DEGREES_OF_FREEDOM data are not accepted as input.");
             return;
         }
         reducedShapefunction = true;
         numNodes = nodes->getNumReducedDegreesOfFreedom();
     } else {
-        Finley_setError(TYPE_ERROR, "Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
+        setError(TYPE_ERROR, "Assemble_gradient: Cannot calculate gradient of data because of unsuitable input data representation.");
         return;
     }
 
     ElementFile_Jacobians *jac = elements->borrowJacobians(nodes,
             reducedShapefunction, reducedOrder);
-    ReferenceElement *refElement = ReferenceElementSet_borrowReferenceElement(
-                elements->referenceElementSet, reducedOrder);
+    const_ReferenceElement_ptr refElement(elements->referenceElementSet->
+            borrowReferenceElement(reducedOrder));
     const int numDim=jac->numDim;
     const int numShapes=jac->BasisFunctions->Type->numShapes;
     const int numShapesTotal=jac->numShapesTotal;
     const int numSub=jac->numSub;
     const int numQuad=jac->numQuadTotal/numSub;
     int numShapesTotal2=0;
-    int s_offset=0, *nodes_selector=NULL;
+    int s_offset=0;
+    const int *nodes_selector=NULL;
   
-    if (Finley_noError()) {
+    if (noError()) {
         const int grad_data_type=grad_data.getFunctionSpace().getTypeCode();
         if (grad_data_type==FINLEY_CONTACT_ELEMENTS_2 || grad_data_type==FINLEY_REDUCED_CONTACT_ELEMENTS_2)  {
             s_offset=jac->offsets[1];
@@ -94,19 +95,19 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
 
         // check the dimensions of data
         if (!grad_data.numSamplesEqual(numQuad*numSub, elements->numElements)) {
-            Finley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples in gradient Data object");
+            setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples in gradient Data object");
         } else if (!data.numSamplesEqual(1, numNodes)) {
-            Finley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples of input Data object");
+            setError(TYPE_ERROR, "Assemble_gradient: illegal number of samples of input Data object");
         } else if (numDim*numComps != grad_data.getDataPointSize()) {
-            Finley_setError(TYPE_ERROR, "Assemble_gradient: illegal number of components in gradient data object.");
+            setError(TYPE_ERROR, "Assemble_gradient: illegal number of components in gradient data object.");
         } else if (!grad_data.actsExpanded()) {
-            Finley_setError(TYPE_ERROR, "Assemble_gradient: expanded Data object is expected for output data.");
+            setError(TYPE_ERROR, "Assemble_gradient: expanded Data object is expected for output data.");
         } else if (!(s_offset+numShapes <= numShapesTotal)) {
-            Finley_setError(SYSTEM_ERROR, "Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
+            setError(SYSTEM_ERROR, "Assemble_gradient: nodes per element is inconsistent with number of jacobians.");
         }
     }
 
-    if (!Finley_noError())
+    if (!noError())
         return;
 
     const size_t localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;

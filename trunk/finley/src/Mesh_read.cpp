@@ -14,77 +14,84 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************
 
-/*   Finley: read mesh from file */
+  Finley: read mesh from file
 
-/************************************************************************************/
+*****************************************************************************/
 
 #include <ctype.h>
 #include "Mesh.h"
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Finley_setError(IO_ERROR,"scan error while reading finley file"); return NULL;} }
+namespace finley {
+
+#define FSCANF_CHECK(scan_ret, reason) {\
+    if (scan_ret == EOF) {\
+        perror(reason);\
+        setError(IO_ERROR,"scan error while reading finley file");\
+        return NULL;\
+    }\
+}
 
 
-Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order,  bool_t optimize)
+Mesh* Mesh::read(const std::string fname, int order, int reduced_order,
+                 bool optimize)
 {
-    Esys_MPIInfo *mpi_info = NULL;
-    dim_t numNodes, numDim, numEle, i0, i1;
-    Finley_Mesh *mesh_p=NULL;
-    ReferenceElementSet *refPoints=NULL, *refContactElements=NULL, *refFaceElements=NULL, *refElements=NULL;
+    int numNodes, numDim, numEle, i0, i1;
+    const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
     char name[LenString_MAX],element_type[LenString_MAX],frm[20];
     char error_msg[LenErrorMsg_MAX];
     FILE *fileHandle_p = NULL;
     ElementTypeId typeID=NoRef;
     int scan_ret;
 
-    Finley_resetError();
-    mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
+    resetError();
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
 
     if (mpi_info->rank == 0) {
-        /* get file handle */
-        fileHandle_p = fopen(fname, "r");
+        // get file handle
+        fileHandle_p = fopen(fname.c_str(), "r");
         if (fileHandle_p==NULL) {
-            sprintf(error_msg,"Finley_Mesh_read: Opening file %s for reading failed.",fname);
-            Finley_setError(IO_ERROR,error_msg);
+            sprintf(error_msg,"Mesh_read: Opening file %s for reading failed.",fname.c_str());
+            setError(IO_ERROR,error_msg);
             Esys_MPIInfo_free( mpi_info );
             return NULL;
         }
 
-        /* read header */
+        // read header
         sprintf(frm,"%%%d[^\n]",LenString_MAX-1);
         scan_ret = fscanf(fileHandle_p, frm, name);
-        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+        FSCANF_CHECK(scan_ret, "Mesh::read")
 
         /* get the number of nodes */
         scan_ret = fscanf(fileHandle_p, "%1d%*s %d\n", &numDim,&numNodes);
-        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+        FSCANF_CHECK(scan_ret, "Mesh::read")
     }
 
-    #ifdef ESYS_MPI
-        /* MPI Broadcast numDim, numNodes, name if there are multiple MPI procs*/
-        if (mpi_info->size > 1) {
-            int temp1[3];
-            if (mpi_info->rank == 0) {
-                temp1[0] = numDim;
-                temp1[1] = numNodes;
-                temp1[2] = strlen(name) + 1;
-            } else {
-                temp1[0] = 0;
-                temp1[1] = 0;
-                temp1[2] = 1;
-            }
-            MPI_Bcast (temp1, 3, MPI_INT,  0, mpi_info->comm);
-            numDim = temp1[0];
-            numNodes = temp1[1];
-            MPI_Bcast (name, temp1[2], MPI_CHAR, 0, mpi_info->comm);
+#ifdef ESYS_MPI
+    // Broadcast numDim, numNodes, name if there are multiple MPI procs
+    if (mpi_info->size > 1) {
+        int temp1[3];
+        if (mpi_info->rank == 0) {
+            temp1[0] = numDim;
+            temp1[1] = numNodes;
+            temp1[2] = strlen(name) + 1;
+        } else {
+            temp1[0] = 0;
+            temp1[1] = 0;
+            temp1[2] = 1;
         }
-    #endif
+        MPI_Bcast(temp1, 3, MPI_INT,  0, mpi_info->comm);
+        numDim = temp1[0];
+        numNodes = temp1[1];
+        MPI_Bcast(name, temp1[2], MPI_CHAR, 0, mpi_info->comm);
+    }
+#endif
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name,numDim,mpi_info);
-    
-    if (Finley_noError()) {
+    Mesh* mesh_p = new Mesh(name, numDim, mpi_info);
+
+    if (noError()) {
         /* Each CPU will get at most chunkSize nodes so the message has to be sufficiently large */
         int chunkSize = numNodes / mpi_info->size + 1, totalNodes=0, chunkNodes=0,  nextCPU=1;
         int *tempInts = new index_t[chunkSize*3+1];        /* Stores the integer message data */
@@ -100,12 +107,12 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
         if (mpi_info->rank == 0) {  /* Master */
             for (;;) {            /* Infinite loop */
-                #pragma omp parallel for private (i0) schedule(static)
+#pragma omp parallel for private (i0) schedule(static)
                 for (i0=0; i0<chunkSize*3+1; i0++) tempInts[i0] = -1;
-                
-                #pragma omp parallel for private (i0) schedule(static)
+
+#pragma omp parallel for private (i0) schedule(static)
                 for (i0=0; i0<chunkSize*numDim; i0++) tempCoords[i0] = -1.0;
-                
+
                 chunkNodes = 0;
                 for (i1=0; i1<chunkSize; i1++) {
                     if (totalNodes >= numNodes) break;    /* End of inner loop */
@@ -113,25 +120,25 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                         scan_ret = fscanf(fileHandle_p, "%d %d %d %le\n",
                                             &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
                                             &tempCoords[i1*numDim+0]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     if (2 == numDim) {
                         scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le\n",
                                             &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
                                             &tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     if (3 == numDim) {
                         scan_ret = fscanf(fileHandle_p, "%d %d %d %le %le %le\n",
                                             &tempInts[0+i1], &tempInts[chunkSize+i1], &tempInts[chunkSize*2+i1],
                                             &tempCoords[i1*numDim+0], &tempCoords[i1*numDim+1], &tempCoords[i1*numDim+2]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     totalNodes++; /* When do we quit the infinite loop? */
                     chunkNodes++; /* How many nodes do we actually have in this chunk? It may be smaller than chunkSize. */
                 }
                 if (chunkNodes > chunkSize) {
-                    Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: error reading chunks of mesh, data too large for message size");
+                    setError(ESYS_MPI_ERROR, "Mesh_read: error reading chunks of mesh, data too large for message size");
                     return NULL;
                 }
                 #ifdef ESYS_MPI
@@ -159,9 +166,9 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
 
         /* Copy node data from tempMem to mesh_p */
         mesh_p->Nodes->allocTable(chunkNodes);
-        
-        if (Finley_noError()) {
-            #pragma omp parallel for private (i0, i1) schedule(static)
+
+        if (noError()) {
+#pragma omp parallel for private (i0, i1) schedule(static)
             for (i0=0; i0<chunkNodes; i0++) {
                 mesh_p->Nodes->Id[i0]               = tempInts[0+i0];
                 mesh_p->Nodes->globalDegreesOfFreedom[i0]       = tempInts[chunkSize+i0];
@@ -176,13 +183,13 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
     }
 
     /* ***********************************  read elements ****************************************************************************************/
-    if (Finley_noError()) {
+    if (noError()) {
 
         /* Read the element typeID */
         if (mpi_info->rank == 0) {
             scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-            FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=ReferenceElement_getTypeId(element_type);
+            FSCANF_CHECK(scan_ret, "Mesh_read")
+            typeID=ReferenceElement::getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -191,7 +198,7 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                 temp1[1] = numEle;
                 mpi_error = MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
                 if (mpi_error != MPI_SUCCESS) {
-                    Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: broadcast of Element typeID failed");
+                    setError(ESYS_MPI_ERROR, "Mesh_read: broadcast of Element typeID failed");
                     return NULL;
                 }
                 typeID = (ElementTypeId) temp1[0];
@@ -199,50 +206,50 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             }
         #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+            sprintf(error_msg, "Mesh_read: Unidentified element type %s", element_type);
+            setError(VALUE_ERROR, error_msg);
           }
     }
 
     /* Allocate the ElementFile */
-    if (Finley_noError()) {
-        refElements= ReferenceElementSet_alloc(typeID, order, reduced_order);
+    if (noError()) {
+        refElements.reset(new ReferenceElementSet(typeID, order, reduced_order));
         mesh_p->Elements=new ElementFile(refElements, mpi_info);
-        numNodes = mesh_p->Elements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+        // new meaning for numNodes: num nodes per element
+        numNodes = mesh_p->Elements->numNodes;
     }
 
-    /* *************************** Read the element data *****************************************************************************************/
-    if (Finley_noError()) {
-
+    /********************** Read the element data ***************************/
+    if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
-        int *tempInts = new index_t[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
+        int *tempInts = new int[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
         /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
         if (mpi_info->rank == 0) {  /* Master */
             for (;;) {            /* Infinite loop */
-                #pragma omp parallel for private (i0) schedule(static)
+#pragma omp parallel for private (i0) schedule(static)
                 for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-        
+
                 chunkEle = 0;
                 for (i0=0; i0<chunkSize; i0++) {
                     if (totalEle >= numEle) break; /* End inner loop */
                     scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     for (i1 = 0; i1 < numNodes; i1++) {
                         scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     scan_ret = fscanf(fileHandle_p, "\n");
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     totalEle++;
                     chunkEle++;
                 }
-                #ifdef ESYS_MPI
+#ifdef ESYS_MPI
                     /* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
                     if (nextCPU < mpi_info->size) {
                         tempInts[chunkSize*(2+numNodes)] = chunkEle;
                         MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81722, mpi_info->comm);
                     }
-                #endif
+#endif
                 nextCPU++;
                 /* Infinite loop ends when I've read a chunk for each of the worker nodes plus one more chunk for the master */
                 if (nextCPU > mpi_info->size) break; /* End infinite loop */
@@ -257,11 +264,10 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             #endif
         }   /* Worker */
 
-        
         mesh_p->Elements->allocTable(chunkEle);
-    
+
         /* Copy Element data from tempInts to mesh_p */
-        if (Finley_noError()) {
+        if (noError()) {
 
             mesh_p->Elements->minColor=0;
             mesh_p->Elements->maxColor=chunkEle-1;
@@ -278,17 +284,17 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         }
 
         delete[] tempInts;
-    } 
-    /* ******************** end of Read the element data ******************************************************/
+    }
+    /******************** end of Read the element data **********************/
 
-    /* ********************* read face elements *************************************************************************************/
-    if (Finley_noError()) {
+    /********************** read face elements ******************************/
+    if (noError()) {
         /* Read the element typeID */
 
         if (mpi_info->rank == 0) {
              scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-             FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-             typeID=ReferenceElement_getTypeId(element_type);
+             FSCANF_CHECK(scan_ret, "Mesh_read")
+             typeID=ReferenceElement::getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -301,21 +307,21 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             }
         #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+            sprintf(error_msg, "Mesh_read: Unidentified element type %s", element_type);
+            setError(VALUE_ERROR, error_msg);
         }
-        if (Finley_noError()) {
+        if (noError()) {
             /* Allocate the ElementFile */
-            refFaceElements= ReferenceElementSet_alloc(typeID,order, reduced_order);
+            refFaceElements.reset(new ReferenceElementSet(typeID, order, reduced_order));
             mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
-            numNodes = mesh_p->FaceElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+            numNodes = mesh_p->FaceElements->numNodes; // new meaning for numNodes: num nodes per element
         }
 
     }
 
-    /* ********************** Read the face element data ******************************************************************************* */
+    /*********************** Read the face element data *********************/
 
-    if (Finley_noError()) {
+    if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
         int *tempInts = new index_t[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
         /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
@@ -323,18 +329,18 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             for (;;) {            /* Infinite loop */
                 #pragma omp parallel for private (i0) schedule(static)
                 for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-        
+
                 chunkEle = 0;
                 for (i0=0; i0<chunkSize; i0++) {
                     if (totalEle >= numEle) break; /* End inner loop */
                     scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     for (i1 = 0; i1 < numNodes; i1++) {
                         scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     scan_ret = fscanf(fileHandle_p, "\n");
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     totalEle++;
                     chunkEle++;
                 }
@@ -358,12 +364,12 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                 chunkEle = tempInts[chunkSize*(2+numNodes)];
                 #endif
         }   /* Worker */
-        
+
         mesh_p->FaceElements->allocTable(chunkEle);
-        
-        if (Finley_noError()) {
+
+        if (noError()) {
             /* Copy Element data from tempInts to mesh_p */
-            
+
             mesh_p->FaceElements->minColor=0;
             mesh_p->FaceElements->maxColor=chunkEle-1;
             #pragma omp parallel for private (i0, i1)
@@ -379,18 +385,18 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         }
 
         delete[] tempInts;
-    } 
-    /* ************************************* end of Read the face element data *************************************** */
+    }
+    /******************* end of Read the face element data ******************/
 
 
-    /* ************************************* read contact elements ************************************************** */
+    /************************* read contact elements ************************/
 
     /* Read the element typeID */
-    if (Finley_noError()) {
+    if (noError()) {
         if (mpi_info->rank == 0) {
             scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-            FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=ReferenceElement_getTypeId(element_type);
+            FSCANF_CHECK(scan_ret, "Mesh_read")
+            typeID=ReferenceElement::getTypeId(element_type);
         }
         #ifdef ESYS_MPI
             if (mpi_info->size > 1) {
@@ -403,167 +409,176 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             }
         #endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+            sprintf(error_msg, "Mesh_read: Unidentified element type %s", element_type);
+            setError(VALUE_ERROR, error_msg);
          }
     }
 
-    if (Finley_noError()) {
+    if (noError()) {
         /* Allocate the ElementFile */
-        refContactElements= ReferenceElementSet_alloc(typeID,order, reduced_order);
+        refContactElements.reset(new ReferenceElementSet(typeID, order, reduced_order));
         mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
-        numNodes = mesh_p->ContactElements->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+        numNodes = mesh_p->ContactElements->numNodes; // new meaning for numNodes: num nodes per element
     }
-    /* *************************** Read the contact element data ************************************************* */
-    if (Finley_noError()) {
+    /******************* Read the contact element data **********************/
+    if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
         int *tempInts = new index_t[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
         /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
         if (mpi_info->rank == 0) {  /* Master */
             for (;;) {            /* Infinite loop */
-                #pragma omp parallel for private (i0) schedule(static)
+#pragma omp parallel for private (i0) schedule(static)
                 for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-       
+
                 chunkEle = 0;
                 for (i0=0; i0<chunkSize; i0++) {
                     if (totalEle >= numEle) break; /* End inner loop */
                     scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     for (i1 = 0; i1 < numNodes; i1++) {
                         scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     scan_ret = fscanf(fileHandle_p, "\n");
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     totalEle++;
                     chunkEle++;
                 }
-                #ifdef ESYS_MPI
-                    /* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
-                    if (nextCPU < mpi_info->size) {
-                        tempInts[chunkSize*(2+numNodes)] = chunkEle;
-                        MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81724, mpi_info->comm);
-                    }
-                #endif
+#ifdef ESYS_MPI
+                // Eventually we'll send chunk of elements to each CPU except
+                // 0 itself, here goes one of them
+                if (nextCPU < mpi_info->size) {
+                    tempInts[chunkSize*(2+numNodes)] = chunkEle;
+                    MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81724, mpi_info->comm);
+                }
+#endif
                 nextCPU++;
-                /* Infinite loop ends when I've read a chunk for each of the worker nodes plus one more chunk for the master */
-                if (nextCPU > mpi_info->size) break; /* End infinite loop */
-            } /* Infinite loop */
-        }   /* End master */
-        else {  /* Worker */
-            #ifdef ESYS_MPI
-                /* Each worker receives one message */
-                MPI_Status status;
-                MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81724, mpi_info->comm, &status);
-                chunkEle = tempInts[chunkSize*(2+numNodes)] ;
-            #endif
-        }   /* Worker */
+                // Infinite loop ends when I've read a chunk for each of the
+                // worker nodes plus one more chunk for the master
+                if (nextCPU > mpi_info->size)
+                    break; // End infinite loop
+            } // Infinite loop
+        } // End master
+        else { // Worker
+#ifdef ESYS_MPI
+            // Each worker receives one message
+            MPI_Status status;
+            MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81724, mpi_info->comm, &status);
+            chunkEle = tempInts[chunkSize*(2+numNodes)] ;
+#endif
+        } // Worker
 
-        /* Copy Element data from tempInts to mesh_p */
-         mesh_p->ContactElements->allocTable(chunkEle);
-         
-         if (Finley_noError()) {         
-             mesh_p->ContactElements->minColor=0;
-             mesh_p->ContactElements->maxColor=chunkEle-1;
-             #pragma omp parallel for private (i0, i1)
-             for (i0=0; i0<chunkEle; i0++) {
-                 mesh_p->ContactElements->Id[i0] = tempInts[i0*(2+numNodes)+0];
-                 mesh_p->ContactElements->Tag[i0]    = tempInts[i0*(2+numNodes)+1];
-                 mesh_p->ContactElements->Owner[i0]  =mpi_info->rank;
-                 mesh_p->ContactElements->Color[i0] = i0;
-                 for (i1 = 0; i1 < numNodes; i1++) {
-                     mesh_p->ContactElements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
-                 }
-             }
+        // Copy Element data from tempInts to mesh_p
+        mesh_p->ContactElements->allocTable(chunkEle);
+
+        if (noError()) {
+            mesh_p->ContactElements->minColor=0;
+            mesh_p->ContactElements->maxColor=chunkEle-1;
+#pragma omp parallel for private (i0, i1)
+            for (i0=0; i0<chunkEle; i0++) {
+                mesh_p->ContactElements->Id[i0] = tempInts[i0*(2+numNodes)+0];
+                mesh_p->ContactElements->Tag[i0]    = tempInts[i0*(2+numNodes)+1];
+                mesh_p->ContactElements->Owner[i0]  =mpi_info->rank;
+                mesh_p->ContactElements->Color[i0] = i0;
+                for (i1 = 0; i1 < numNodes; i1++) {
+                    mesh_p->ContactElements->Nodes[INDEX2(i1, i0, numNodes)] = tempInts[i0*(2+numNodes)+2+i1];
+                }
+            }
         }
         delete[] tempInts;
-    } /* end of Read the contact element data */
+    } // end of Read the contact element data
 
-    /* ********************************* read nodal elements ****************************************************** */
+    // ****************** read nodal elements ******************
 
-    /* *******************************  Read the element typeID */
+    // ***************  Read the element typeID ***********
 
-    if (Finley_noError()) {
+    if (noError()) {
         if (mpi_info->rank == 0) {
             scan_ret = fscanf(fileHandle_p, "%s %d\n", element_type, &numEle);
-            FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
-            typeID=ReferenceElement_getTypeId(element_type);
+            FSCANF_CHECK(scan_ret, "Mesh_read")
+            typeID=ReferenceElement::getTypeId(element_type);
         }
-        #ifdef ESYS_MPI
-            if (mpi_info->size > 1) {
-                int temp1[2];
-                temp1[0] = (int) typeID;
-                temp1[1] = numEle;
-                MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
-                typeID = (ElementTypeId) temp1[0];
-                numEle = temp1[1];
-            }
-        #endif
+#ifdef ESYS_MPI
+        if (mpi_info->size > 1) {
+            int temp1[2];
+            temp1[0] = (int) typeID;
+            temp1[1] = numEle;
+            MPI_Bcast (temp1, 2, MPI_INT,  0, mpi_info->comm);
+            typeID = (ElementTypeId) temp1[0];
+            numEle = temp1[1];
+        }
+#endif
         if (typeID==NoRef) {
-            sprintf(error_msg, "Finley_Mesh_read: Unidentified element type %s", element_type);
-            Finley_setError(VALUE_ERROR, error_msg);
+            sprintf(error_msg, "Mesh::read: Unidentified element type %s", element_type);
+            setError(VALUE_ERROR, error_msg);
          }
     }
 
-    if (Finley_noError()) {
-        /* Allocate the ElementFile */
-        refPoints= ReferenceElementSet_alloc(typeID,order, reduced_order);
+    if (noError()) {
+        // Allocate the ElementFile
+        refPoints.reset(new ReferenceElementSet(typeID, order, reduced_order));
         mesh_p->Points=new ElementFile(refPoints, mpi_info);
-        numNodes = mesh_p->Points->referenceElementSet->numNodes; /* New meaning for numNodes: num nodes per element */
+        // New meaning for numNodes: num nodes per element
+        numNodes = mesh_p->Points->numNodes;
     }
 
-    /**********************************  Read the nodal element data **************************************************/
-    if (Finley_noError()) {
+    // ******************* Read the nodal element data ****************
+    if (noError()) {
         int chunkSize = numEle / mpi_info->size + 1, totalEle=0, nextCPU=1, chunkEle=0;
-        int *tempInts = new index_t[chunkSize*(2+numNodes)+1]; /* Store Id + Tag + node list (+ one int at end for chunkEle) */
-        /* Elements are specified as a list of integers...only need one message instead of two as with the nodes */
-        if (mpi_info->rank == 0) {  /* Master */
-            for (;;) {            /* Infinite loop */
-                #pragma omp parallel for private (i0) schedule(static)
+        // Store Id + Tag + node list (+ one int at end for chunkEle)
+        int *tempInts = new index_t[chunkSize*(2+numNodes)+1];
+        // Elements are specified as a list of integers...only need one
+        // message instead of two as with the nodes
+        if (mpi_info->rank == 0) {  // Master
+            for (;;) { // Infinite loop
+#pragma omp parallel for private (i0) schedule(static)
                 for (i0=0; i0<chunkSize*(2+numNodes)+1; i0++) tempInts[i0] = -1;
-        
+
                 chunkEle = 0;
                 for (i0=0; i0<chunkSize; i0++) {
                     if (totalEle >= numEle) break; /* End inner loop */
                     scan_ret = fscanf(fileHandle_p, "%d %d", &tempInts[i0*(2+numNodes)+0], &tempInts[i0*(2+numNodes)+1]);
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     for (i1 = 0; i1 < numNodes; i1++) {
                         scan_ret = fscanf(fileHandle_p, " %d", &tempInts[i0*(2+numNodes)+2+i1]);
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                     }
                     scan_ret = fscanf(fileHandle_p, "\n");
-                    FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                    FSCANF_CHECK(scan_ret, "Mesh_read")
                     totalEle++;
                     chunkEle++;
                 }
-                #ifdef ESYS_MPI
-                    /* Eventually we'll send chunk of elements to each CPU except 0 itself, here goes one of them */
-                    if (nextCPU < mpi_info->size) {
-                        tempInts[chunkSize*(2+numNodes)] = chunkEle;
-                        MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81725, mpi_info->comm);
-                    }
-                #endif
+#ifdef ESYS_MPI
+                // Eventually we'll send chunk of elements to each CPU
+                // except 0 itself, here goes one of them
+                if (nextCPU < mpi_info->size) {
+                    tempInts[chunkSize*(2+numNodes)] = chunkEle;
+                    MPI_Send(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, nextCPU, 81725, mpi_info->comm);
+                }
+#endif
                 nextCPU++;
-                /* Infinite loop ends when I've read a chunk for each of the worker nodes plus one more chunk for the master */
-                if (nextCPU > mpi_info->size) break; /* End infinite loop */
-            } /* Infinite loop */
-        }   /* End master */
-        else {  /* Worker */
-            #ifdef ESYS_MPI
-                /* Each worker receives one message */
+                // Infinite loop ends when I've read a chunk for each of
+                // the worker nodes plus one more chunk for the master
+                if (nextCPU > mpi_info->size)
+                    break; // End infinite loop
+            } // Infinite loop
+        }   // End master
+        else {  // Worker
+#ifdef ESYS_MPI
+                // Each worker receives one message
                 MPI_Status status;
                 MPI_Recv(tempInts, chunkSize*(2+numNodes)+1, MPI_INT, 0, 81725, mpi_info->comm, &status);
                 chunkEle = tempInts[chunkSize*(2+numNodes)];
-            #endif
-        }   /* Worker */
+#endif
+        } // Worker
 
-        /* Copy Element data from tempInts to mesh_p */
+        // Copy Element data from tempInts to mesh_p
         mesh_p->Points->allocTable(chunkEle);
-        
-        if (Finley_noError()) {
+
+        if (noError()) {
             mesh_p->Points->minColor=0;
             mesh_p->Points->maxColor=chunkEle-1;
-            #pragma omp parallel for private (i0, i1) schedule(static)
+#pragma omp parallel for private (i0, i1) schedule(static)
             for (i0=0; i0<chunkEle; i0++) {
                 mesh_p->Points->Id[i0]  = tempInts[i0*(2+numNodes)+0];
                 mesh_p->Points->Tag[i0] = tempInts[i0*(2+numNodes)+1];
@@ -576,53 +591,49 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
         }
 
         delete[] tempInts;
-    } /* ******************************** end of Read the nodal element data *********************************************************************************** */
+    } // ************** end of Read the nodal element data ***************
 
-    
-    /******************  get the name tags *****************************************/
-    if (Finley_noError()) {
+    // *****************  get the name tags ********************************
+    if (noError()) {
         char *remainder=0, *ptr;
         size_t len=0;
-        #ifdef ESYS_MPI
-            int len_i;
-        #endif
+#ifdef ESYS_MPI
+        int len_i;
+#endif
         int tag_key;
-        if (mpi_info->rank == 0) {  /* Master */
-            /* Read the word 'Tag' */
-            if (! feof(fileHandle_p)) {
+        if (mpi_info->rank == 0) {  // Master
+            // Read the word 'Tag'
+            if (!feof(fileHandle_p)) {
                 scan_ret = fscanf(fileHandle_p, "%s\n", name);
-                FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                FSCANF_CHECK(scan_ret, "Mesh_read")
             }
 
-            #if defined(_WIN32)  /* windows ftell lies on unix formatted text files */
+#ifdef _WIN32
+            // windows ftell lies on unix formatted text files
                 remainder = NULL;
                 len=0;
-                while (1)
-                {
+                while (1) {
                     size_t malloc_chunk = 1024;
                     size_t buff_size = 0;
                     int ch;
 
                     ch = fgetc(fileHandle_p);
                     if( ch == '\r' )
-                    {
                         continue;
-                    }
-                    if( len+1 > buff_size )
-                    {
+
+                    if (len+1 > buff_size) {
                         TMPMEMREALLOC(remainder,remainder,buff_size+malloc_chunk,char);
-                    } 
-                    if( ch == EOF )
-                    {
-                        /* hit EOF */
+                    }
+                    if (ch == EOF) {
+                        // hit EOF
                         remainder[len] = (char)0;
                         break;
                     }
                     remainder[len] = (char)ch;
                     len++;
                 }
-            #else
-                /* Read rest of file in one chunk, after using seek to find length */
+#else
+                // Read rest of file in one chunk, after using seek to find length
                 {
                     long cur_pos, end_pos;
 
@@ -631,27 +642,23 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
                     end_pos = ftell(fileHandle_p);
                     fseek(fileHandle_p, (long)cur_pos, SEEK_SET);
                     remainder = new char[end_pos-cur_pos+1];
-                    if (! feof(fileHandle_p))
-                    {
+                    if (!feof(fileHandle_p)) {
                         scan_ret = fread(remainder, (size_t) end_pos-cur_pos,
                                              sizeof(char), fileHandle_p);
 
-                        FSCANF_CHECK(scan_ret, "Finley_Mesh_read")
+                        FSCANF_CHECK(scan_ret, "Mesh_read")
                         remainder[end_pos-cur_pos] = 0;
                     }
                 }
-            #endif
+#endif
             len = strlen(remainder);
             // trim the string
             while ((len>1) && isspace(remainder[--len])) {remainder[len]=0;}
             len = strlen(remainder);
-            // shrink the allocation unit
-            //TMPMEMREALLOC(remainder,remainder,len+1,char);
-        } /* Master */
-        #ifdef ESYS_MPI
-
+        } // Master
+#ifdef ESYS_MPI
             len_i=(int) len;
-            MPI_Bcast (&len_i, 1, MPI_INT,  0, mpi_info->comm);
+            MPI_Bcast(&len_i, 1, MPI_INT,  0, mpi_info->comm);
             len=(size_t) len_i;
             if (mpi_info->rank != 0) {
                 remainder = new char[len+1];
@@ -659,14 +666,15 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             }
             if (MPI_Bcast (remainder, len+1, MPI_CHAR,  0, mpi_info->comm) !=
                     MPI_SUCCESS)
-                Finley_setError(ESYS_MPI_ERROR, "Finley_Mesh_read: broadcast of remainder failed");
-        #endif
+                setError(ESYS_MPI_ERROR, "Mesh_read: broadcast of remainder failed");
+#endif
 
         if (remainder[0]) {
             ptr = remainder;
             do {
                 sscanf(ptr, "%s %d\n", name, &tag_key);
-                if (*name) Finley_Mesh_addTagMap(mesh_p,name,tag_key);
+                if (*name)
+                    mesh_p->addTagMap(name, tag_key);
                 ptr++;
             } while(NULL != (ptr = strchr(ptr, '\n')) && *ptr);
         }
@@ -674,24 +682,22 @@ Finley_Mesh* Finley_Mesh_read(char* fname,index_t order, index_t reduced_order, 
             delete[] remainder;
     }
 
-    /* close file */
-    if (mpi_info->rank == 0) fclose(fileHandle_p);
+    // close file
+    if (mpi_info->rank == 0)
+        fclose(fileHandle_p);
 
-    /*   resolve id's : */
-    /* rearrange elements: */
-    if (Finley_noError()) Finley_Mesh_resolveNodeIds(mesh_p);
-    if (Finley_noError()) Finley_Mesh_prepare(mesh_p, optimize);
+    // resolve id's and rearrange elements
+    if (noError()) mesh_p->resolveNodeIds();
+    if (noError()) mesh_p->prepare(optimize);
 
-    /* that's it */
-    if (! Finley_noError()) {
-        Finley_Mesh_free(mesh_p);
+    // that's it
+    if (!noError()) {
+        delete mesh_p;
+        mesh_p=NULL;
     }
-    /* free up memory */
-    ReferenceElementSet_dealloc(refPoints);
-    ReferenceElementSet_dealloc(refContactElements);
-    ReferenceElementSet_dealloc(refFaceElements);
-    ReferenceElementSet_dealloc(refElements);
-    Esys_MPIInfo_free( mpi_info );
+    Esys_MPIInfo_free(mpi_info);
     return mesh_p;
 }
+
+} // namespace finley
 

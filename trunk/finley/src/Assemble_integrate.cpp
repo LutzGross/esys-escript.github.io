@@ -25,21 +25,21 @@
 
 namespace finley {
 
-void Assemble_integrate(NodeFile* nodes, ElementFile* elements,
+void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
                         const escript::Data& data, double* out)
 {
-    Finley_resetError();
+    resetError();
     if (!nodes || !elements)
         return;
 
     Esys_MPI_rank my_mpi_rank = nodes->MPIInfo->rank;
     ElementFile_Jacobians *jac = elements->borrowJacobians(nodes, FALSE,
                                     util::hasReducedIntegrationOrder(data));
-    if (Finley_noError()) {
+    if (noError()) {
         const int numQuadTotal = jac->numQuadTotal;
         // check the shape of the data
         if (!data.numSamplesEqual(numQuadTotal, elements->numElements)) {
-            Finley_setError(TYPE_ERROR, "Assemble_integrate: illegal number of samples of integrant kernel Data object");
+            setError(TYPE_ERROR, "Assemble_integrate: illegal number of samples of integrant kernel Data object");
             return;
         }
 

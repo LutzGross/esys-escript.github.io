@@ -64,18 +64,19 @@ public:
     inline const int* borrowTargetNodes() const;
     inline const int* borrowTargetReducedDegreesOfFreedom() const;
 
-    void createNodeMappings(int numReducedNodes,
-                            const std::vector<int>& indexReducedNodes,
-                            const int* dofDistribution,
-                            const int* nodeDistribution);
+    void createNodeMappings(const std::vector<int>& indexReducedNodes,
+                            const std::vector<int>& dofDistribution,
+                            const std::vector<int>& nodeDistribution);
     int createDenseDOFLabeling();
-    int createDenseNodeLabeling(int* node_distribution, const int* dof_distribution);
-    int createDenseReducedLabeling(int* reducedMask, bool useNodes);
-    void assignMPIRankToDOFs(int* mpiRankOfDOF, int *distribution);
+    int createDenseNodeLabeling(std::vector<int>& nodeDistribution,
+                                const std::vector<int>& dofDistribution);
+    int createDenseReducedLabeling(const std::vector<short>& reducedMask,
+                                   bool useNodes);
+    void assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF, const std::vector<int>& distribution);
 
     void copyTable(int offset, int idOffset, int dofOffset, const NodeFile* in);
     void gather(int* index, const NodeFile* in);
-    void gather_global(int* index, const NodeFile* in);
+    void gather_global(const std::vector<int>& index, const NodeFile* in);
     void scatter(int* index, const NodeFile* in);
 
     void setCoordinates(const escript::Data& newX);
@@ -88,7 +89,8 @@ private:
     std::pair<int,int> getGlobalIdRange() const;
     std::pair<int,int> getGlobalDOFRange() const;
     std::pair<int,int> getGlobalNodeIDIndexRange() const;
-    int prepareLabeling(int* mask, std::vector<int>& buffer,
+    int prepareLabeling(const std::vector<short>& mask,
+                        std::vector<int>& buffer,
                         std::vector<int>& distribution, bool useNodes);
     void createDOFMappingAndCoupling(bool reduced);
 

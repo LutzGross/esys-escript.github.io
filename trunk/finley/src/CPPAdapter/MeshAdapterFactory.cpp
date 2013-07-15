@@ -14,7 +14,6 @@
 *****************************************************************************/
 
 #include "MeshAdapterFactory.h"
-#include "FinleyError.h"
 #include "esysUtils/blocktimer.h"
 #ifdef ESYS_MPI
 #include "esysUtils/Esys_MPI.h"
@@ -49,9 +48,9 @@ namespace finley {
   }
 #endif
 
-  inline void cleanupAndThrow(Finley_Mesh* mesh, Esys_MPIInfo* info, string msg)
+  inline void cleanupAndThrow(Mesh* mesh, Esys_MPIInfo* info, string msg)
   {
-      Finley_Mesh_free(mesh);
+      delete mesh;
       Esys_MPIInfo_free(info);
       string msgPrefix("loadMesh: NetCDF operation failed - ");
       throw DataException(msgPrefix+msg);
@@ -62,15 +61,14 @@ namespace finley {
   {
 #ifdef USE_NETCDF
     Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
-    Finley_Mesh *mesh_p=NULL;
+    Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
     const std::string fName(esysUtils::appendRankToFileName(fileName,
                                               mpi_info->size, mpi_info->rank));
 
     double blocktimer_start = blocktimer_time();
-    Finley_resetError();
-    int *first_DofComponent, *first_NodeComponent;
+    resetError();
 
     // Open NetCDF file for reading
     NcAtt *attr;
@@ -81,7 +79,7 @@ namespace finley {
     NcFile dataFile(fName.c_str(), NcFile::ReadOnly);
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
-      Finley_setError(IO_ERROR,error_msg);
+      setError(IO_ERROR,error_msg);
       Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
@@ -125,8 +123,8 @@ namespace finley {
     delete attr;
 
     /* allocate mesh */
-    mesh_p = Finley_Mesh_alloc(name.get(), numDim, mpi_info);
-    if (Finley_noError()) {
+    mesh_p = new Mesh(name.get(), numDim, mpi_info);
+    if (noError()) {
 
         /* read nodes */
         mesh_p->Nodes->allocTable(numNodes);
@@ -168,15 +166,15 @@ namespace finley {
         mesh_p->Nodes->updateTagList();
 
         /* read elements */
-        if (Finley_noError()) {
-            ReferenceElementSet *refElements=ReferenceElementSet_alloc((ElementTypeId)Elements_TypeId,order, reduced_order);
-            if (Finley_noError())  {
+        if (noError()) {
+            const_ReferenceElementSet_ptr refElements(new ReferenceElementSet(
+                        (ElementTypeId)Elements_TypeId, order, reduced_order));
+            if (noError())  {
                 mesh_p->Elements=new ElementFile(refElements, mpi_info);
             }
-            ReferenceElementSet_dealloc(refElements);
-            if (Finley_noError())
+            if (noError())
                 mesh_p->Elements->allocTable(num_Elements);
-            if (Finley_noError()) {
+            if (noError()) {
                 mesh_p->Elements->minColor=0;
                 mesh_p->Elements->maxColor=num_Elements-1;
                 if (num_Elements>0) {
@@ -233,16 +231,16 @@ namespace finley {
         }
 
         /* get the face elements */
-        if (Finley_noError()) {
-            ReferenceElementSet *refFaceElements =
-                ReferenceElementSet_alloc((ElementTypeId)FaceElements_TypeId, order, reduced_order);
-            if (Finley_noError())  {
+        if (noError()) {
+            const_ReferenceElementSet_ptr refFaceElements(
+                    new ReferenceElementSet((ElementTypeId)FaceElements_TypeId,
+                        order, reduced_order));
+            if (noError())  {
                 mesh_p->FaceElements=new ElementFile(refFaceElements, mpi_info);
             }
-            ReferenceElementSet_dealloc(refFaceElements);  
-            if (Finley_noError())
+            if (noError())
                 mesh_p->FaceElements->allocTable(num_FaceElements);
-            if (Finley_noError()) {
+            if (noError()) {
                 mesh_p->FaceElements->minColor=0;
                 mesh_p->FaceElements->maxColor=num_FaceElements-1;
                 if (num_FaceElements>0) {
@@ -297,16 +295,16 @@ namespace finley {
         }
 
         /* get the Contact elements */
-        if (Finley_noError()) {
-            ReferenceElementSet *refContactElements =
-                ReferenceElementSet_alloc((ElementTypeId)ContactElements_TypeId, order, reduced_order);
-            if (Finley_noError()) {
+        if (noError()) {
+            const_ReferenceElementSet_ptr refContactElements(
+                 new ReferenceElementSet((ElementTypeId)ContactElements_TypeId,
+                     order, reduced_order));
+            if (noError()) {
                 mesh_p->ContactElements=new ElementFile(refContactElements, mpi_info);
             }
-            ReferenceElementSet_dealloc(refContactElements);       
-            if (Finley_noError())
+            if (noError())
                 mesh_p->ContactElements->allocTable(num_ContactElements);
-            if (Finley_noError()) {
+            if (noError()) {
                 mesh_p->ContactElements->minColor=0;
                 mesh_p->ContactElements->maxColor=num_ContactElements-1;
                 if (num_ContactElements>0) {
@@ -361,16 +359,15 @@ namespace finley {
         }
 
         /* get the Points (nodal elements) */
-        if (Finley_noError()) {
-            ReferenceElementSet *refPoints =
-                ReferenceElementSet_alloc((ElementTypeId)Points_TypeId,order, reduced_order);
-            if (Finley_noError())  {
+        if (noError()) {
+            const_ReferenceElementSet_ptr refPoints(new ReferenceElementSet(
+                        (ElementTypeId)Points_TypeId, order, reduced_order));
+            if (noError())  {
                 mesh_p->Points=new ElementFile(refPoints, mpi_info);
             }
-            ReferenceElementSet_dealloc(refPoints);
-            if (Finley_noError())
+            if (noError())
                 mesh_p->Points->allocTable(num_Points);
-            if (Finley_noError()) {
+            if (noError()) {
                 mesh_p->Points->minColor=0;
                 mesh_p->Points->maxColor=num_Points-1;
                 if (num_Points>0) {
@@ -423,7 +420,7 @@ namespace finley {
         }
 
         /* get the tags */
-        if (Finley_noError()) {
+        if (noError()) {
           if (num_Tags>0) {
             // Temp storage to gather node IDs
             int *Tags_keys = TMPMEMALLOC(num_Tags, int);
@@ -449,48 +446,40 @@ namespace finley {
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
-              Finley_Mesh_addTagMap(mesh_p, name.get(), Tags_keys[i]);
+              mesh_p->addTagMap(name.get(), Tags_keys[i]);
             }
             TMPMEMFREE(Tags_keys);
           }
         }
    
-        if (Finley_noError()) {
+        if (noError()) {
             // Nodes_DofDistribution
-            first_DofComponent = TMPMEMALLOC(mpi_size+1,index_t);
-            if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
-                TMPMEMFREE(first_DofComponent);
+            std::vector<int> first_DofComponent(mpi_size+1);
+            if (! (nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
                 cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_DofDistribution)");
             }
-            if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
-                TMPMEMFREE(first_DofComponent);
+            if (!nc_var_temp->get(&first_DofComponent[0], mpi_size+1)) {
                 cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
-            first_NodeComponent = TMPMEMALLOC(mpi_size+1,index_t);
-            if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
-                TMPMEMFREE(first_DofComponent);
-                TMPMEMFREE(first_NodeComponent);
+            std::vector<int> first_NodeComponent(mpi_size+1);
+            if (! (nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
                 cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_NodeDistribution)");
             }
-            if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
-                TMPMEMFREE(first_DofComponent);
-                TMPMEMFREE(first_NodeComponent);
+            if (!nc_var_temp->get(&first_NodeComponent[0], mpi_size+1)) {
                 cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_NodeDistribution)");
             }
-            Finley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
-            TMPMEMFREE(first_DofComponent);
-            TMPMEMFREE(first_NodeComponent);
+            mesh_p->createMappings(first_DofComponent, first_NodeComponent);
         }
 
-    } /* Finley_noError() after Finley_Mesh_alloc() */
+    } /* noError() after new Mesh() */
 
     checkFinleyError();
     AbstractContinuousDomain* dom=new MeshAdapter(mesh_p);
 
-    if (! Finley_noError()) {
-        Finley_Mesh_free(mesh_p);
+    if (! noError()) {
+        delete mesh_p;
     }
 
     Esys_MPIInfo_free(mpi_info);
@@ -504,30 +493,15 @@ namespace finley {
   Domain_ptr readMesh(const std::string& fileName,
                       int integrationOrder,
                       int reducedIntegrationOrder,
-                      int optimize)
+                      bool optimize)
   {
-    //
-    // create a copy of the filename to overcome the non-constness of call
-    // to Finley_Mesh_read
-    Finley_Mesh* fMesh=0;
-    // Win32 refactor
-    if( fileName.size() == 0 )
-    {
-       throw DataException("Null file name!");
-    }
+    if (fileName.size() == 0 )
+        throw DataException("Null file name!");
 
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
-        
-    strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
-
-    fMesh=Finley_Mesh_read(fName,integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
+    Mesh* fMesh=Mesh::read(fileName, integrationOrder, reducedIntegrationOrder, optimize);
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    
-    /* win32 refactor */
-    TMPMEMFREE(fName);
-    
     blocktimer_increment("ReadMesh()", blocktimer_start);
     return temp->getPtr();
   }
@@ -536,80 +510,63 @@ namespace finley {
                                      int numDim,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
-                                     int optimize,
-                                     int useMacroElements)
+                                     bool optimize,
+                                     bool useMacroElements)
   {
-    //
-    // create a copy of the filename to overcome the non-constness of call
-    // to Finley_Mesh_read
-    Finley_Mesh* fMesh=0;
-    // Win32 refactor
-    if( fileName.size() == 0 )
-    {
-       throw DataException("Null file name!");
-    }
+    if (fileName.size() == 0 )
+        throw DataException("Null file name!");
 
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
-        
-    strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
-
-    fMesh=Finley_Mesh_readGmsh(fName, numDim, integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE), (useMacroElements ? TRUE : FALSE));
+    Mesh* fMesh=Mesh::readGmsh(fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-    
-    /* win32 refactor */
-    TMPMEMFREE(fName);
-    
     blocktimer_increment("ReadGmsh()", blocktimer_start);
     return temp->getPtr();
   }
 
 /*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
-  Domain_ptr brick(int n0,int n1,int n2,int order,
-                   double l0,double l1,double l2,
-                   int periodic0,int periodic1,
-                   int periodic2,
-                   int integrationOrder,
-                   int reducedIntegrationOrder,
-                   int useElementsOnFace,
-                   int useFullElementOrder,
-                   int optimize,
-                   const std::vector<double>& points,
-                   const std::vector<int>& tags, const std::map<std::string, int>& tagnamestonums)
+  Domain_ptr brick(int n0, int n1, int n2, int order,
+                   double l0, double l1, double l2,
+                   bool periodic0, bool periodic1, bool periodic2,
+                   int integrationOrder, int reducedIntegrationOrder,
+                   bool useElementsOnFace, bool useFullElementOrder,
+                   bool optimize, const std::vector<double>& points,
+                   const std::vector<int>& tags,
+                   const std::map<std::string, int>& tagnamestonums)
   {
-    int numElements[]={n0,n1,n2};
-    double length[]={l0,l1,l2};
-    int periodic[]={periodic0, periodic1, periodic2};
+    const int numElements[] = {n0, n1, n2};
+    const double length[] = {l0, l1, l2};
+    const bool periodic[] = {periodic0, periodic1, periodic2};
 
-    //
-    // linearInterpolation
-    Finley_Mesh* fMesh=NULL;
-
+    Mesh* fMesh = NULL;
     if (order==1) {
-        fMesh=Finley_RectangularMesh_Hex8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-               useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE)) ;
+        fMesh=RectangularMesh_Hex8(numElements, length, periodic,
+                integrationOrder, reducedIntegrationOrder,
+                useElementsOnFace, useFullElementOrder, optimize);
     } else if (order==2) {
-        fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-               useElementsOnFace,useFullElementOrder,FALSE, (optimize ? TRUE : FALSE)) ;
+        fMesh=RectangularMesh_Hex20(numElements, length, periodic,
+                integrationOrder, reducedIntegrationOrder,
+                useElementsOnFace, useFullElementOrder, false, optimize);
     } else if (order==-1) {
-        fMesh=Finley_RectangularMesh_Hex20(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-               useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE)) ;
+        fMesh=RectangularMesh_Hex20(numElements, length, periodic,
+                integrationOrder, reducedIntegrationOrder,
+                useElementsOnFace, useFullElementOrder, true, optimize);
     } else {
-        stringstream temp;
-        temp << "Illegal interpolation order: " << order;
-        setFinleyError(VALUE_ERROR,temp.str().c_str());
+        stringstream message;
+        message << "Illegal interpolation order " << order;
+        throw FinleyAdapterException(message.str());
     }
-    //
+
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     MeshAdapter* temp=new MeshAdapter(fMesh);
     temp->addDiracPoints(points, tags);
-    Finley_Mesh* out=temp->getMesh().get();     
+    Mesh* out=temp->getMesh().get();     
     for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
     {
-        Finley_Mesh_addTagMap(out, it->first.c_str(), it->second);
-    }        
+        out->addTagMap(it->first.c_str(), it->second);
+    }
+    out->Points->updateTagList();
     return temp->getPtr();
   }
 
@@ -659,59 +616,63 @@ namespace finley {
         
       }
       
-      Domain_ptr res=brick(static_cast<int>(extract<float>(args[0])), static_cast<int>(extract<float>(args[1])),
-                           static_cast<int>(extract<float>(args[2])), extract<int>(args[3]),
-                           extract<double>(args[4]), extract<double>(args[5]),
-                           extract<double>(args[6]), extract<int>(args[7]),
-                           extract<int>(args[8]), extract<int>(args[9]),
-                           extract<int>(args[10]), extract<int>(args[11]),
-                           extract<int>(args[12]), extract<int>(args[13]),
-                           extract<int>(args[14]), points, tags, namestonums);
+      Domain_ptr res=brick(static_cast<int>(extract<float>(args[0])),
+                           static_cast<int>(extract<float>(args[1])),
+                           static_cast<int>(extract<float>(args[2])),
+                           extract<int>(args[3]), extract<double>(args[4]),
+                           extract<double>(args[5]), extract<double>(args[6]),
+                           extract<int>(args[7]), extract<int>(args[8]),
+                           extract<int>(args[9]), extract<int>(args[10]),
+                           extract<int>(args[11]), extract<int>(args[12]),
+                           extract<int>(args[13]), extract<int>(args[14]),
+                           points, tags, namestonums);
 
       return res;
-  }  
-    
-/*  AbstractContinuousDomain*  rectangle(int n0,int n1,int order,*/
-  Domain_ptr rectangle(int n0,int n1,int order,
+  }
+
+  Domain_ptr rectangle(int n0, int n1, int order,
                        double l0, double l1,
-                       int periodic0,int periodic1,
+                       bool periodic0, bool periodic1,
                        int integrationOrder,
                        int reducedIntegrationOrder,
-                       int useElementsOnFace,
-                       int useFullElementOrder,
-                       int optimize,
+                       bool useElementsOnFace,
+                       bool useFullElementOrder,
+                       bool optimize,
                        const vector<double>& points,
                        const vector<int>& tags,
                        const std::map<std::string, int>& tagnamestonums)
   {
-    int numElements[]={n0,n1};
-    double length[]={l0,l1};
-    int periodic[]={periodic0, periodic1};
+    const int numElements[] = {n0, n1};
+    const double length[] = {l0, l1};
+    const bool periodic[] = {periodic0, periodic1};
 
-    Finley_Mesh* fMesh=0;
+    Mesh* fMesh = NULL;
     if (order==1) {
-        fMesh=Finley_RectangularMesh_Rec4(numElements, length,periodic,integrationOrder,reducedIntegrationOrder,
-               useElementsOnFace,useFullElementOrder,(optimize ? TRUE : FALSE));
+        fMesh=RectangularMesh_Rec4(numElements, length, periodic,
+                integrationOrder, reducedIntegrationOrder,
+                useElementsOnFace, useFullElementOrder, optimize);
     } else if (order==2) {
-        fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-               useElementsOnFace,useFullElementOrder,FALSE,(optimize ? TRUE : FALSE));
+        fMesh=RectangularMesh_Rec8(numElements, length, periodic,
+                integrationOrder, reducedIntegrationOrder,
+                useElementsOnFace,useFullElementOrder, false, optimize);
     } else if (order==-1) {
-        fMesh=Finley_RectangularMesh_Rec8(numElements,length,periodic,integrationOrder,reducedIntegrationOrder,
-               useElementsOnFace,useFullElementOrder,TRUE,(optimize ? TRUE : FALSE));
+        fMesh=RectangularMesh_Rec8(numElements, length, periodic,
+                integrationOrder, reducedIntegrationOrder,
+                useElementsOnFace, useFullElementOrder, true, optimize);
     } else {
-        stringstream temp;
-        temp << "Illegal interpolation order: " << order;
-        setFinleyError(VALUE_ERROR, temp.str().c_str());
+        stringstream message;
+        message << "Illegal interpolation order " << order;
+        throw FinleyAdapterException(message.str());
     }
-    //
+
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     MeshAdapter* temp=new MeshAdapter(fMesh);
     temp->addDiracPoints(points, tags);
-    Finley_Mesh* out=temp->getMesh().get();     
+    Mesh* out=temp->getMesh().get();     
     for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
     {
-        Finley_Mesh_addTagMap(out, it->first.c_str(), it->second);
+        out->addTagMap(it->first.c_str(), it->second);
     }
     out->Points->updateTagList();
     return temp->getPtr();
@@ -719,21 +680,18 @@ namespace finley {
 
   Domain_ptr meshMerge(const boost::python::list& meshList)
   {
-    Finley_Mesh* fMesh=0;
-    //
     // extract the meshes from meshList
-    int numMsh=boost::python::extract<int>(meshList.attr("__len__")());
-    Finley_Mesh **mshes = (numMsh) ? TMPMEMALLOC(numMsh,Finley_Mesh*) : (Finley_Mesh**)NULL;
-    for (int i=0;i<numMsh;++i) {
-         AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
-         const MeshAdapter* finley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
-         mshes[i]=finley_meshListMember->getFinley_Mesh();
+    int num=boost::python::extract<int>(meshList.attr("__len__")());
+    vector<Mesh*> meshes(num);
+    for (int i=0; i<num; ++i) {
+        AbstractContinuousDomain& meshListMember=boost::python::extract<AbstractContinuousDomain&>(meshList[i]);
+        const MeshAdapter* finley_meshListMember=static_cast<const MeshAdapter*>(&meshListMember);
+        meshes[i]=finley_meshListMember->getFinley_Mesh();
     }
-    //
-    // merge the meshes:
-    fMesh=Finley_Mesh_merge(numMsh,mshes);
-          TMPMEMFREE(mshes);
-    //
+
+    // merge the meshes
+    Mesh* fMesh=Mesh_merge(meshes);
+
     // Convert any finley errors into a C++ exception
     checkFinleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
@@ -799,7 +757,8 @@ namespace finley {
           }
       }
       
-      return rectangle(static_cast<int>(extract<float>(args[0])), static_cast<int>(extract<float>(args[1])),
+      return rectangle(static_cast<int>(extract<float>(args[0])),
+                       static_cast<int>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),
@@ -812,9 +771,9 @@ namespace finley {
   Domain_ptr glueFaces(const boost::python::list& meshList,
                        double safety_factor, 
                        double tolerance,
-                       int optimize)
+                       bool optimize)
   {
-    Finley_Mesh* fMesh=0;
+    Mesh* fMesh=0;
     //
     // merge the meshes:
     Domain_ptr merged_meshes=meshMerge(meshList);
@@ -823,7 +782,7 @@ namespace finley {
     // glue the faces:
     const MeshAdapter* merged_finley_meshes=dynamic_cast<const MeshAdapter*>(merged_meshes.get());
     fMesh=merged_finley_meshes->getFinley_Mesh();
-    Finley_Mesh_glueFaces(fMesh,safety_factor,tolerance,(optimize ? TRUE : FALSE));
+    fMesh->glueFaces(safety_factor, tolerance, optimize);
 
     //
     // Convert any finley errors into a C++ exception
@@ -834,9 +793,9 @@ namespace finley {
   Domain_ptr joinFaces(const boost::python::list& meshList,
                        double safety_factor, 
                        double tolerance,
-                       int optimize)
+                       bool optimize)
   {
-    Finley_Mesh* fMesh=0;
+    Mesh* fMesh=0;
     //
     // merge the meshes:
     Domain_ptr merged_meshes=meshMerge(meshList);
@@ -844,7 +803,7 @@ namespace finley {
     // join the faces:
     const MeshAdapter* merged_finley_meshes=static_cast<const MeshAdapter*>(merged_meshes.get());
     fMesh=merged_finley_meshes->getFinley_Mesh();
-    Finley_Mesh_joinFaces(fMesh,safety_factor,tolerance, (optimize ? TRUE : FALSE));
+    fMesh->joinFaces(safety_factor, tolerance, optimize);
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();

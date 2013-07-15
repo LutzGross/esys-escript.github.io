@@ -111,7 +111,7 @@ typedef enum {
   Rec9Macro,
   Tet10Macro,
   Hex27Macro,
-  NoRef   /* marks end of list */
+  NoRef   // marks end of list
 } ElementTypeId;
 
 
@@ -173,41 +173,43 @@ struct ReferenceElementInfo {
 
 /// this struct holds the realization of a reference element
 struct ReferenceElement {
+    /// constructor with type ID and integration order
+    ReferenceElement(ElementTypeId id, int order);
+
+    /// destructor
+    ~ReferenceElement();
+
+    /// returns the element information structure for the given type id
+    static const ReferenceElementInfo* getInfo(ElementTypeId id);
+
+    /// returns the element type id from its textual representation
+    static ElementTypeId getTypeId(const char*);
+
+    ///
+    int getNumNodes() const { return Type->numNodes; }
+
     /// type of the reference element
-    ReferenceElementInfo* Type;
+    const ReferenceElementInfo* Type;
     /// type of the linear reference element
-    ReferenceElementInfo* LinearType;
-    /// reference counter
-    int reference_counter;
+    const ReferenceElementInfo* LinearType;
     /// used integration order
     int integrationOrder;
     int numNodes;
     int numLocalDim;
     int numLinearNodes;
-    ShapeFunction* Parametrization;
-    ShapeFunction* BasisFunctions;
-    ShapeFunction* LinearBasisFunctions;
+    const_ShapeFunction_ptr Parametrization;
+    const_ShapeFunction_ptr BasisFunctions;
+    const_ShapeFunction_ptr LinearBasisFunctions;
     /// pointer to derivatives to basis function corresponding to the
     /// Parametrization of quad points
     double* DBasisFunctionDv;
-    /// TRUE to indicate that DBasisFunctionDv is shared with another object
+    /// if true indicates that DBasisFunctionDv is shared with another object
     /// which is managing it
-    bool_t DBasisFunctionDvShared;
+    bool DBasisFunctionDvShared;
 };
 
-
-/****** interfaces ******/
-
-ReferenceElement* ReferenceElement_alloc(ElementTypeId,int);
-void ReferenceElement_dealloc(ReferenceElement*);
-ElementTypeId ReferenceElement_getTypeId(char*);
-ReferenceElement* ReferenceElement_reference(ReferenceElement* in);
-ReferenceElementInfo* ReferenceElement_getInfo(ElementTypeId id);
-
-inline int ReferenceElement_getNumNodes(const ReferenceElement* in)
-{
-    return in->Type->numNodes;
-}
+typedef boost::shared_ptr<ReferenceElement> ReferenceElement_ptr;
+typedef boost::shared_ptr<const ReferenceElement> const_ReferenceElement_ptr;
 
 } // namespace finley
 

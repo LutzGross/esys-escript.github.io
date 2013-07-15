@@ -21,9 +21,6 @@
 #include "finley/Mesh.h"
 #include "finley/Finley.h"
 #include "finley/Assemble.h"
-#include "esysUtils/Esys_MPI.h"
-
-#include "FinleyError.h"
 #include "FinleyAdapterException.h"
 
 #include <pasowrap/SystemMatrixAdapter.h>
@@ -44,41 +41,28 @@
 namespace finley {
   
 // These are friends implemented in MeshAdapterFactory.cpp  
-// They are only fwd declared here so that vis.studio will accept the freind decls
+// They are only fwd declared here so that vis.studio will accept the friend
+// decls
 FINLEY_DLL_API
-escript::Domain_ptr brick(int n0,int n1,int n2,int order,
-		    double l0,double l1,double l2,
-		    int periodic0,int periodic1,
-		    int periodic2,
-		    int integrationOrder,
-		    int reducedIntegrationOrder,
-		    int useElementsOnFace,
-                    int useFullElementOrder,
-                     int optimize, 
-		    const std::vector<double>& points,
-		    const std::vector<int>& tags,
-		    const std::map<std::string, int>& tagnamestonums			   
-		    );
-		    
-FINLEY_DLL_API		    
-escript::Domain_ptr  rectangle(int n0,int n1,int order,
-			double l0, double l1,
-			int periodic0,int periodic1,
-			int integrationOrder,
-                        int reducedIntegrationOrder,
-			int useElementsOnFace,
-		        int useFullElementOrder,
-                        int optimize,
-			const std::vector<double>& points,
-			const std::vector<int>& tags,
-			const std::map<std::string, int>& tagnamestonums);	  
+escript::Domain_ptr brick(int n0, int n1, int n2, int order,
+                    double l0, double l1, double l2,
+                    bool periodic0, bool periodic1, bool periodic2,
+                    int integrationOrder, int reducedIntegrationOrder,
+                    bool useElementsOnFace, bool useFullElementOrder,
+                    bool optimize, const std::vector<double>& points,
+                    const std::vector<int>& tags,
+                    const std::map<std::string, int>& tagnamestonums);
+                    
+FINLEY_DLL_API              
+escript::Domain_ptr rectangle(int n0, int n1, int order,
+                        double l0, double l1,
+                        bool periodic0, bool periodic1,
+                        int integrationOrder, int reducedIntegrationOrder,
+                        bool useElementsOnFace, bool useFullElementOrder,
+                        bool optimize, const std::vector<double>& points,
+                        const std::vector<int>& tags,
+                        const std::map<std::string, int>& tagnamestonums);        
   
-}
-
-
-
-namespace finley {
-
 struct null_deleter
 {
   void operator()(void const *ptr) const
@@ -131,7 +115,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                                destructor.
   */
   FINLEY_DLL_API
-  MeshAdapter(Finley_Mesh* finleyMesh=0);
+  MeshAdapter(Mesh* finleyMesh=0);
 
   /**
      \brief
@@ -215,7 +199,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      return the pointer to the underlying finley mesh structure
   */
   FINLEY_DLL_API
-  Finley_Mesh* getFinley_Mesh() const;
+  Mesh* getFinley_Mesh() const;
 
    /**
      \brief
@@ -355,7 +339,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual int getDiracDeltaFunctionsCode() const;
 
   /**
-		 5B
+                 5B
      \brief
   */
   typedef std::map<int, std::string> FunctionSpaceNamesMapType;
@@ -576,7 +560,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                      const escript::Data& D, 
                      const escript::Data& d,
                      const escript::Data& d_dirac,
-		     const bool useHRZ) const;
+                     const bool useHRZ) const;
 
   /**
      \brief
@@ -694,7 +678,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
    \brief  adds points to support more Dirac delta function.
    
    Do NOT call these at any time other than construction!
-   Using them later creates consistancy problems
+   Using them later creates consistency problems
    */
   FINLEY_DLL_API
   void addDiracPoints( const std::vector<double>& points, const std::vector<int>& tags) const;
@@ -708,59 +692,45 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
  private:
   //
   // pointer to the externally created finley mesh
-  boost::shared_ptr<Finley_Mesh> m_finleyMesh;
+  boost::shared_ptr<Mesh> m_finleyMesh;
   
   // This is only provided so that the friends below can add tags during construction
   // do not use for any other purpose
-  boost::shared_ptr<Finley_Mesh> getMesh()
+  boost::shared_ptr<Mesh> getMesh()
   {
       return m_finleyMesh;
   }
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
-  friend escript::Domain_ptr finley::brick(int n0,int n1,int n2,int order,
-		    double l0,double l1,double l2,
-		    int periodic0,int periodic1,
-		    int periodic2,
-		    int integrationOrder,
-		    int reducedIntegrationOrder,
-		    int useElementsOnFace,
-                    int useFullElementOrder,
-                     int optimize, 
-		    const std::vector<double>& points,
-		    const std::vector<int>& tags,
-		    const std::map<std::string, int>& tagnamestonums			   
-		    );
-		    
-		    
-friend   escript::Domain_ptr  finley::rectangle(int n0,int n1,int order,
-			double l0, double l1,
-			int periodic0,int periodic1,
-			int integrationOrder,
+  friend escript::Domain_ptr finley::brick(int n0, int n1, int n2, int order,
+                    double l0, double l1, double l2,
+                    bool periodic0, bool periodic1, bool periodic2,
+                    int integrationOrder,
+                    int reducedIntegrationOrder,
+                    bool useElementsOnFace,
+                    bool useFullElementOrder,
+                    bool optimize, 
+                    const std::vector<double>& points,
+                    const std::vector<int>& tags,
+                    const std::map<std::string, int>& tagnamestonums);
+                    
+                    
+  friend escript::Domain_ptr finley::rectangle(int n0, int n1, int order,
+                        double l0, double l1,
+                        bool periodic0, bool periodic1,
+                        int integrationOrder,
                         int reducedIntegrationOrder,
-			int useElementsOnFace,
-		        int useFullElementOrder,
-                        int optimize,
-			const std::vector<double>& points,
-			const std::vector<int>& tags,
-			const std::map<std::string, int>& tagnamestonums);						
-};
-
-// Do not use this class. It is a convenience wrapper for the dataexporter.
-class FINLEY_DLL_API ReferenceElementSetWrapper {
- public:
-  ReferenceElementSetWrapper(ElementTypeId id, index_t order,
-                             index_t reducedOrder);
-  ~ReferenceElementSetWrapper();
-
-  ReferenceElementSet* getElementSet() const { return m_refSet; }
-
- private:
-  ReferenceElementSet* m_refSet;
+                        bool useElementsOnFace,
+                        bool useFullElementOrder,
+                        bool optimize,
+                        const std::vector<double>& points,
+                        const std::vector<int>& tags,
+                        const std::map<std::string, int>& tagnamestonums);                                              
 };
 
 
 } // end of namespace
 
 #endif
+

@@ -23,7 +23,6 @@
 #ifndef __FINLEY_ASSEMBLE_H__
 #define __FINLEY_ASSEMBLE_H__
 
-#include "ReferenceElements.h"
 #include "Finley.h"
 #include "ElementFile.h"
 #include "NodeFile.h"
@@ -77,10 +76,11 @@ struct AssembleParameters {
 /// Entry point for PDE assembly. Checks arguments, populates an
 /// AssembleParameters structure and calls appropriate method for the actual
 /// work.
-void Assemble_PDE(NodeFile* nodes, ElementFile* elements, Paso_SystemMatrix* S,
-        escript::Data& F, const escript::Data& A, const escript::Data& B,
-        const escript::Data& C, const escript::Data& D, const escript::Data& X,
-        const escript::Data& Y);
+void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
+                  Paso_SystemMatrix* S, escript::Data& F,
+                  const escript::Data& A, const escript::Data& B,
+                  const escript::Data& C, const escript::Data& D,
+                  const escript::Data& X, const escript::Data& Y);
 
 void Assemble_PDE_Points(const AssembleParameters& p, escript::Data& d_dirac,
                          escript::Data& y_dirac);
@@ -119,19 +119,35 @@ void Assemble_addToSystemMatrix(Paso_SystemMatrix*, const int NN_Equa,
         const int* Nodes_Equa, const int num_Equa, const int NN_Sol,
         const int* Nodes_Sol, const int num_Sol, const double* array);
 
-void Assemble_LumpedSystem(NodeFile* nodes, ElementFile* elements,
-        escript::Data& lumpedMat, const escript::Data& D, bool useHRZ);
+void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
+                           escript::Data& lumpedMat, const escript::Data& D,
+                           bool useHRZ);
 
-void Assemble_AverageElementData(ElementFile*, escript::Data&, const escript::Data&);
-void Assemble_CopyElementData(ElementFile*, escript::Data&, const escript::Data&);
-void Assemble_CopyNodalData(const NodeFile*, escript::Data&, const escript::Data&);
-void Assemble_NodeCoordinates(NodeFile*, escript::Data&);
+void Assemble_AverageElementData(const ElementFile* elements,
+                                 escript::Data& out, const escript::Data& in);
 
-void Assemble_gradient(const NodeFile*, const ElementFile*, escript::Data&, const escript::Data&);
-void Assemble_integrate(NodeFile*, ElementFile*, const escript::Data&, double*);
-void Assemble_interpolate(const NodeFile*, const ElementFile*, const escript::Data&, escript::Data&);
-void Assemble_setNormal(NodeFile*, ElementFile*, escript::Data&);
-void Assemble_getSize(NodeFile*, ElementFile*, escript::Data&);
+void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
+                              const escript::Data& in);
+
+void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
+                            const escript::Data& in);
+
+void Assemble_NodeCoordinates(const NodeFile* nodes, escript::Data& out);
+
+void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
+                        escript::Data& normals);
+
+void Assemble_getSize(const NodeFile* nodes, const ElementFile* elements,
+                      escript::Data& size);
+
+void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
+                       escript::Data& gradient, const escript::Data& data);
+
+void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
+                        const escript::Data& data, double* integrals);
+
+void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
+                          const escript::Data& data, escript::Data& output);
 
 void Assemble_jacobians_1D(double*, int, double*, int, int, int, int*, double*,
                            int, double*, double*, double*, int*);
