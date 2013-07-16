@@ -32,14 +32,14 @@ void Assemble_AverageElementData(const ElementFile* elements,
     if (!elements)
         return;
 
-    double *wq;
+    const double *wq;
     int numQuad_in, numQuad_out;
     if (util::hasReducedIntegrationOrder(in)) {
         numQuad_in=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;
-        wq=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadWeights;
+        wq=&elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->QuadWeights[0];
     } else {
         numQuad_in=elements->referenceElementSet->referenceElement->Parametrization->numQuadNodes;
-        wq=elements->referenceElementSet->referenceElement->Parametrization->QuadWeights;
+        wq=&elements->referenceElementSet->referenceElement->Parametrization->QuadWeights[0];
     }
     if (util::hasReducedIntegrationOrder(out)) {
         numQuad_out=elements->referenceElementSet->referenceElementReducedQuadrature->Parametrization->numQuadNodes;

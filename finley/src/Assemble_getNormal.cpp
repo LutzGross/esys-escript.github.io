@@ -75,7 +75,7 @@ void Assemble_getNormal(const NodeFile* nodes, const ElementFile* elements,
                              numDim, nodes->Coordinates, &local_X[0]);
                 // calculate dVdv(i,j,q)=local_X(i,n)*DSDv(n,j,q)
                 util::smallMatMult(numDim, numDim_local*numQuad, &dVdv[0], NS,
-                        &local_X[0], refElement->Parametrization->dSdv);
+                        local_X, refElement->Parametrization->dSdv);
                 double *normal_array=normal.getSampleDataRW(e);
                 util::normalVector(numQuad, numDim, numDim_local, &dVdv[0],
                                    normal_array);

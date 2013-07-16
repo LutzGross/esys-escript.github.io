@@ -26,7 +26,6 @@
 #include "Finley.h"
 
 #include <escript/Data.h>
-#include <vector>
 
 namespace finley {
 namespace util {
@@ -53,11 +52,13 @@ void gather(int len, const int* index, int numData, const double* in,
 void addScatter(int len, const int* index, int numData, const double* in,
                 double* out, int upperBound);
 
-void smallMatMult(int A1, int A2, double* A, int B2, const double* B,
-                  const double* C);
+void smallMatMult(int A1, int A2, double* A, int B2,
+                  const std::vector<double>& B,
+                  const std::vector<double>& C);
 
 void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
-                      const double* B, const double* C);
+                      const std::vector<double>& B,
+                      const std::vector<double>& C);
 
 void invertSmallMat(int len, int dim, const double* A, double *invA,
                     double* det);

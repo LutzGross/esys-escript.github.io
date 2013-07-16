@@ -25,6 +25,8 @@
 #include "esysUtils/Esys_MPI.h"
 #include "esysUtils/error.h"
 
+#include <vector>
+
 namespace finley {
 
 //#define Finley_TRACE

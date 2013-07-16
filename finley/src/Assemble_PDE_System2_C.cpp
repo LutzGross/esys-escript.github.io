@@ -45,7 +45,7 @@ void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
     bool expandedY=Y.actsExpanded();
     p.F.requireWrite();
     double *F_p=p.F.getSampleDataRW(0);
-    const double *S=p.row_jac->BasisFunctions->S;
+    const std::vector<double>& S(p.row_jac->BasisFunctions->S);
 
 #pragma omp parallel
     {

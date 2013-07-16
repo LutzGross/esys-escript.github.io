@@ -149,28 +149,61 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                           const escript::Data& data, escript::Data& output);
 
-void Assemble_jacobians_1D(double*, int, double*, int, int, int, int*, double*,
-                           int, double*, double*, double*, int*);
-void Assemble_jacobians_2D(double*, int, double*, int, int, int, int*, double*,
-                           int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E2D(double*, int, double*, int, int, int, int*,
-                                double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E2D_C(double*, int, double*, int, int, int,
-                          int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E1D(double*, int, double*, int, int, int, int*,
-                                double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_2D_M1D_E1D_C(double*, int, double*, int, int, int,
-                          int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D(double*, int, double*, int, int, int, int*, double*,
-                           int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E3D(double*, int, double*, int, int, int, int*,
-                                double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E3D_C(double*, int, double*, int, int, int,
-                          int*, double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E2D(double*, int, double*, int, int, int, int*,
-                                double*, int, double*, double*, double*, int*);
-void Assemble_jacobians_3D_M2D_E2D_C(double*, int, double*, int, int, int,
-                          int*, double*, int, double*, double*, double*, int*);
+void Assemble_jacobians_1D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_2D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_3D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_3D_M2D_E2D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
+void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId);
 
 } // namespace finley
 

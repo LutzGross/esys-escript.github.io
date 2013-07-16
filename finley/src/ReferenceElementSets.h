@@ -73,7 +73,7 @@ struct ReferenceElementSet {
         return (reducedIntOrder ? referenceElementReducedQuadrature :
                                   referenceElement);
     }
-    
+
     inline int getNumNodes() const { return referenceElement->getNumNodes(); }
 
     ReferenceElement_ptr referenceElementReducedQuadrature;

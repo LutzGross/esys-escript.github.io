@@ -133,13 +133,13 @@ void Assemble_interpolate(const NodeFile* nodes, const ElementFile* elements,
                     for (int q=0; q<NS_DOF; q++) {
                         const int i=elements->Nodes[INDEX2(resort_nodes[INDEX2(dof_offset+q,isub,numShapesTotal)],e,NN)];
                         const double *data_array=in.getSampleDataRO(map[i]);
-                        memcpy(&(local_data[INDEX3(0,q,isub, numComps,NS_DOF)]), data_array, numComps_size);
+                        memcpy(&local_data[INDEX3(0,q,isub, numComps,NS_DOF)], data_array, numComps_size);
                     }
                 }
                 // calculate interpolated_data=local_data*S
                 util::smallMatSetMult1(numSub, numComps, numQuad,
                       interpolated_data.getSampleDataRW(e), NS_DOF,
-                      &local_data[0], basis->S);
+                      local_data, basis->S);
             } // end of element loop
         } // end of parallel region
     } // no error

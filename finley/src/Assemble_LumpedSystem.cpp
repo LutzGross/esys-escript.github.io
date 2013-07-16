@@ -114,7 +114,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
         } // end parallel region
     } else { // function space not points
         bool expandedD=D.actsExpanded();
-        const double *S=p.row_jac->BasisFunctions->S;
+        const std::vector<double>& S(p.row_jac->BasisFunctions->S);
 
 #pragma omp parallel
         {

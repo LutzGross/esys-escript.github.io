@@ -246,7 +246,7 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
                 referenceElementSet->referenceElement->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
-                double* srcPtr = sf->QuadNodes+i;
+                const double* srcPtr = &sf->QuadNodes[i];
                 float* c = new float[numQuadNodes];
                 quadNodes.push_back(c);
                 for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
@@ -264,7 +264,7 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
                 ->referenceElementReducedQuadrature->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
-                double* srcPtr = sf->QuadNodes+i;
+                const double* srcPtr = &sf->QuadNodes[i];
                 float* c = new float[numQuadNodes];
                 quadNodes.push_back(c);
                 for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
@@ -350,7 +350,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
                 ->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
-                double* srcPtr = sf->QuadNodes+i;
+                const double* srcPtr = &sf->QuadNodes[i];
                 float* c = new float[numQuadNodes];
                 quadNodes.push_back(c);
                 for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
@@ -366,7 +366,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
             sf = refElements->referenceElementReducedQuadrature->Parametrization;
             numQuadNodes = sf->numQuadNodes;
             for (int i=0; i<f.quadDim; i++) {
-                double* srcPtr = sf->QuadNodes+i;
+                const double* srcPtr = &sf->QuadNodes[i];
                 float* c = new float[numQuadNodes];
                 quadNodes.push_back(c);
                 for (int j=0; j<numQuadNodes; j++, srcPtr+=f.quadDim) {
