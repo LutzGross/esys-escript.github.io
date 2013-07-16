@@ -500,7 +500,7 @@ void MeshAdapter::dump(const string& fileName) const
    // NetCDF file is closed by destructor of NcFile object
 
 #else // USE_NETCDF
-    Finley_setError(IO_ERROR, "MeshAdapter::dump: not configured with netCDF. Please contact your installation manager.");
+    setError(IO_ERROR, "MeshAdapter::dump: not configured with netCDF. Please contact your installation manager.");
 #endif // USE_NETCDF
     checkFinleyError();
 }
