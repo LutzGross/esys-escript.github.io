@@ -15,17 +15,17 @@
 
 /*
   input: 
-    double* coordinates[DIM*(*)]
+    const double* coordinates[DIM*(*)]
     int numQuad
-    double* QuadWeights[numQuad]
+    const double* QuadWeights[numQuad]
     int numShape
     int numElements
     int numNodes
-    int* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
-    double* DSDv[numShape*DIM*numQuad]
+    const int* nodes[numNodes*numElements]  where NUMSIDES*numShape<=numNodes
+    const double* DSDv[numShape*DIM*numQuad]
     int numTest
     double* DTDv[LOCDIM*numTest*numQuad] 
-    int* element_id[numElements]
+    const int* elementId[numElements]
 
   output:
     double* dTdX[DIM*numTest*NUMSIDES*numQuad*numElements]
@@ -43,11 +43,11 @@ namespace finley {
 //
 //  Jacobian 1D
 //
-void Assemble_jacobians_1D(double* coordinates, int numQuad,
-                           double* QuadWeights, int numShape, int numElements,
-                           int numNodes, int* nodes, double* DSDv, int numTest,
-                           double* DTDv, double* dTdX, double* volume,
-                           int* element_id)
+void Assemble_jacobians_1D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=1;
     const int LOCDIM=1;
@@ -62,7 +62,7 @@ void Assemble_jacobians_1D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_1D: element " << e
-                    << " (id " << element_id[e] << ") has length zero.";
+                    << " (id " << elementId[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -80,11 +80,11 @@ void Assemble_jacobians_1D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D with area element
 //
-void Assemble_jacobians_2D(double* coordinates, int numQuad,
-                           double* QuadWeights, int numShape, int numElements,
-                           int numNodes, int* nodes, double* DSDv, int numTest,
-                           double* DTDv, double* dTdX, double* volume,
-                           int* element_id)
+void Assemble_jacobians_2D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -107,7 +107,7 @@ void Assemble_jacobians_2D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D: element " << e
-                    << " (id " << element_id[e] << ") has length zero.";
+                    << " (id " << elementId[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -134,11 +134,11 @@ void Assemble_jacobians_2D(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 1D elements
 //
-void Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
-                                   double* QuadWeights, int numShape,
-                                   int numElements, int numNodes, int* nodes,
-                                   double* DSDv, int numTest, double* DTDv,
-                                   double* dTdX, double* volume,int* element_id)
+void Assemble_jacobians_2D_M1D_E1D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=2;
     const int LOCDIM=1;
@@ -157,7 +157,7 @@ void Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D_M1D_E1D: element " << e
-                   << " (id " << element_id[e] << ") has length zero.";
+                   << " (id " << elementId[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -180,12 +180,11 @@ void Assemble_jacobians_2D_M1D_E1D(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 1D elements with contact
 //
-void Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
-                                     double* QuadWeights, int numShape,
-                                     int numElements, int numNodes, int* nodes,
-                                     double* DSDv, int numTest, double* DTDv,
-                                     double* dTdX, double* volume,
-                                     int* element_id)
+void Assemble_jacobians_2D_M1D_E1D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=2;
     const int LOCDIM=1;
@@ -211,7 +210,7 @@ void Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D_M1D_E1D_C: element " << e
-                    << " (id " << element_id[e] << ") has length zero.";
+                    << " (id " << elementId[e] << ") has length zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -241,11 +240,11 @@ void Assemble_jacobians_2D_M1D_E1D_C(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 2D elements
 //
-void Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
-                                   double* QuadWeights, int numShape,
-                                   int numElements, int numNodes, int* nodes,
-                                   double* DSDv, int numTest, double* DTDv,
-                                   double* dTdX, double* volume,int* element_id)
+void Assemble_jacobians_2D_M1D_E2D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -268,7 +267,7 @@ void Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D_M1D_E2D: element " << e
-                    << " (id " << element_id[e] << ") has area zero.";
+                    << " (id " << elementId[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -295,12 +294,11 @@ void Assemble_jacobians_2D_M1D_E2D(double* coordinates, int numQuad,
 //
 //  Jacobian 1D manifold in 2D and 2D elements with contact
 //
-void Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
-                                     double* QuadWeights, int numShape,
-                                     int numElements, int numNodes, int* nodes,
-                                     double* DSDv, int numTest, double* DTDv,
-                                     double* dTdX, double* volume,
-                                     int* element_id)
+void Assemble_jacobians_2D_M1D_E2D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=2;
     const int LOCDIM=2;
@@ -334,7 +332,7 @@ void Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_2D_M1D_E2D_C: element " << e
-                    << " (id " << element_id[e] << ") has area zero.";
+                    << " (id " << elementId[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -372,11 +370,11 @@ void Assemble_jacobians_2D_M1D_E2D_C(double* coordinates, int numQuad,
 //
 //  Jacobian 3D
 //
-void Assemble_jacobians_3D(double* coordinates, int numQuad,
-                           double* QuadWeights, int numShape, int numElements,
-                           int numNodes, int* nodes, double* DSDv, int numTest,
-                           double* DTDv, double* dTdX, double* volume,
-                           int* element_id)
+void Assemble_jacobians_3D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -410,7 +408,7 @@ void Assemble_jacobians_3D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_3D: element " << e
-                    << " (id " << element_id[e] << ") has volume zero.";
+                    << " (id " << elementId[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -448,11 +446,11 @@ void Assemble_jacobians_3D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 3D elements
 //
-void Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
-                                   double* QuadWeights, int numShape,
-                                   int numElements, int numNodes, int* nodes,
-                                   double* DSDv, int numTest, double* DTDv,
-                                   double* dTdX, double* volume,int* element_id)
+void Assemble_jacobians_3D_M2D_E3D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -488,7 +486,7 @@ void Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_M2D_E3D: element " << e
-                    << " (id " << element_id[e] << ") has volume zero.";
+                    << " (id " << elementId[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -529,12 +527,11 @@ void Assemble_jacobians_3D_M2D_E3D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 3D elements on contact
 //
-void Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
-                                     double* QuadWeights, int numShape,
-                                     int numElements, int numNodes, int* nodes,
-                                     double* DSDv, int numTest, double* DTDv,
-                                     double* dTdX, double* volume,
-                                     int* element_id)
+void Assemble_jacobians_3D_M2D_E3D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=3;
     const int LOCDIM=3;
@@ -595,7 +592,7 @@ void Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_M2D_E3D_C: element " << e
-                    << " (id " << element_id[e] << ") has volume zero.";
+                    << " (id " << elementId[e] << ") has volume zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -663,11 +660,11 @@ void Assemble_jacobians_3D_M2D_E3D_C(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 2D elements
 //
-void Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
-                                   double* QuadWeights, int numShape,
-                                   int numElements, int numNodes, int* nodes,
-                                   double* DSDv, int numTest, double* DTDv,
-                                   double* dTdX, double* volume,int* element_id)
+void Assemble_jacobians_3D_M2D_E2D(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=3;
     const int LOCDIM=2;
@@ -698,7 +695,7 @@ void Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
             if (D==0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_3D_M2D_E2D: element " << e
-                    << " (id " << element_id[e] << ") has area zero.";
+                    << " (id " << elementId[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {
@@ -730,12 +727,11 @@ void Assemble_jacobians_3D_M2D_E2D(double* coordinates, int numQuad,
 //
 //  Jacobian 2D manifold in 3D with 2D elements with contact
 //
-void Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
-                                     double* QuadWeights, int numShape,
-                                     int numElements, int numNodes, int* nodes,
-                                     double* DSDv, int numTest, double* DTDv,
-                                     double* dTdX, double* volume,
-                                     int* element_id)
+void Assemble_jacobians_3D_M2D_E2D_C(const double* coordinates, int numQuad,
+                           const double* QuadWeights, int numShape,
+                           int numElements, int numNodes, const int* nodes,
+                           const double* DSDv, int numTest, const double* DTDv,
+                           double* dTdX, double* volume, const int* elementId)
 {
     const int DIM=3;
     const int LOCDIM=2;
@@ -785,7 +781,7 @@ void Assemble_jacobians_3D_M2D_E2D_C(double* coordinates, int numQuad,
             if (D_0 == 0. || D_1 == 0.) {
                 std::stringstream ss;
                 ss << "Assemble_jacobians_3D_M2D_E2D_C: element " << e
-                    << " (id " << element_id[e] << ") has area zero.";
+                    << " (id " << elementId[e] << ") has area zero.";
                 std::string errorMsg = ss.str();
                 setError(ZERO_DIVISION_ERROR, errorMsg.c_str());
             } else {

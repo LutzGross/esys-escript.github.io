@@ -74,9 +74,8 @@ struct ShapeFunctionInfo {
 /// this struct holds the evaluation of a shape function on a quadrature scheme
 struct ShapeFunction {
     ShapeFunction(ShapeFunctionTypeId id, int numQuadDim, int numQuadNodes,
-                  const double *QuadNodes, const double *QuadWeights);
-
-    ~ShapeFunction();
+                  const std::vector<double>& QuadNodes,
+                  const std::vector<double>& QuadWeights);
 
     ShapeFunctionTypeId getTypeId(const char*);
 
@@ -87,13 +86,13 @@ struct ShapeFunction {
     /// number of quadrature points
     int numQuadNodes;
     /// coordinates of quadrature nodes
-    double *QuadNodes;
+    std::vector<double> QuadNodes;
     /// weights of the quadrature scheme
-    double *QuadWeights;
+    std::vector<double> QuadWeights;
     /// shape functions at quadrature nodes
-    double *S;
+    std::vector<double> S;
     /// derivative of the shape functions at quadrature nodes
-    double *dSdv;
+    std::vector<double> dSdv;
 };
 
 typedef boost::shared_ptr<const ShapeFunction> const_ShapeFunction_ptr;

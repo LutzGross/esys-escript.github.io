@@ -20,7 +20,6 @@
 
 #include "Finley.h"
 #include "NodeMapping.h"
-#include "Util.h"
 #include <paso/Distribution.h>
 
 struct Esys_MPIInfo;

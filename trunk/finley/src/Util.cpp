@@ -72,7 +72,9 @@ void addScatter(const int len, const int* index, const int numData, const double
 }
 
 /// multiplies two matrices: A(1:A1,1:A2) := B(1:A1,1:B2)*C(1:B2,1:A2)
-void smallMatMult(int A1, int A2, double* A, int B2, const double* B, const double* C)
+void smallMatMult(int A1, int A2, double* A, int B2,
+                  const std::vector<double>& B,
+                  const std::vector<double>& C)
 {
     for (int i=0; i<A1; i++) {
         for (int j=0; j<A2; j++) {
@@ -86,7 +88,9 @@ void smallMatMult(int A1, int A2, double* A, int B2, const double* B, const doub
 
 /// multiplies a set of matrices with a single matrix:
 ///   A(1:A1,1:A2,i)=B(1:A1,1:B2,i)*C(1:B2,1:A2) for i=1,len
-void smallMatSetMult1(int len, int A1, int A2, double* A, int B2, const double* B, const double* C)
+void smallMatSetMult1(int len, int A1, int A2, double* A, int B2,
+                      const std::vector<double>& B,
+                      const std::vector<double>& C)
 {
     for (int q=0; q<len; q++) {
         for (int i=0; i<A1; i++) {

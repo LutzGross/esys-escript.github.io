@@ -16,7 +16,7 @@
 
 /****************************************************************************
 
-  Finley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line, 
+  Finley: integration schemes for element shapes Tri, Quad, Hex, Tet, Line,
           Point
 
 *****************************************************************************/
@@ -43,8 +43,9 @@ typedef enum {
 typedef void (Quad_getNodes) (int, double*, double*);
 typedef int (Quad_getNumNodes) (int);
 typedef int (Quad_getMacro) (int numSubElements, int numQuadNodes,
-                             double* quadNodes, double* quadWeights, 
-                             int numF, double* dFdv, 
+                             const double* quadNodes,
+                             const double* quadWeights,
+                             int numF, const double* dFdv,
                              int new_len, double* new_quadNodes,
                              double* new_quadWeights, double* new_dFfv);
 
@@ -92,7 +93,6 @@ Quad_getNodes Quad_getNodesRecMacro;
 Quad_getNodes Quad_getNodesHexMacro;
 Quad_getNodes Quad_getNodesLineMacro;
 
-
 Quad_getNumNodes Quad_getNumNodesPoint;
 Quad_getNumNodes Quad_getNumNodesLine;
 Quad_getNumNodes Quad_getNumNodesTri;
@@ -101,7 +101,7 @@ Quad_getNumNodes Quad_getNumNodesTet;
 Quad_getNumNodes Quad_getNumNodesHex;
 
 void Quad_makeNodesOnFace(int, int, double*, double*, Quad_getNodes);
-QuadInfo* QuadInfo_getInfo(QuadTypeId id);
+const QuadInfo* QuadInfo_getInfo(QuadTypeId id);
 
 } // namespace finley
 

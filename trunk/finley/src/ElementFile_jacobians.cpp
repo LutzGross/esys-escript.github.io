@@ -67,18 +67,18 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
         out->numSides=refElement->Type->numSides;
         out->numShapesTotal=basis->Type->numShapes * out->numSides; 
         out->numElements=numElements;
-        double *dBdv;
+        const double *dBdv;
 
         if (reducedShapefunction) {
             out->numSub=1;
             out->node_selection=refElement->Type->linearNodes;
             out->offsets=refElement->LinearType->offsets;
-            dBdv=basis->dSdv;
+            dBdv=&basis->dSdv[0];
         } else {
             out->numSub=refElement->Type->numSubElements;
             out->node_selection=refElement->Type->subElementNodes; 
             out->offsets=refElement->Type->offsets;
-            dBdv=refElement->DBasisFunctionDv;
+            dBdv=&refElement->DBasisFunctionDv[0];
         }
      
         if (out->numQuadTotal != out->numSub*basis->numQuadNodes) {
@@ -105,10 +105,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
             } else if (refElement->numLocalDim==1) {
                 if (out->numSides==1) {
                     Assemble_jacobians_1D(nodefile->Coordinates,
-                            out->numQuadTotal, shape->QuadWeights,
+                            out->numQuadTotal, &shape->QuadWeights[0],
                             shape->Type->numShapes, numElements, numNodes,
-                            Nodes, shape->dSdv, basis->Type->numShapes, dBdv,
-                            out->DSDX, out->volume, Id);
+                            Nodes, &shape->dSdv[0], basis->Type->numShapes,
+                            dBdv, out->DSDX, out->volume, Id);
                 } else {
                     setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: only one-sided elements supported in 1D.");
                 }
@@ -124,15 +124,15 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                     if (out->numSides==1) {
                         Assemble_jacobians_2D_M1D_E2D(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
                         Assemble_jacobians_2D_M1D_E2D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
@@ -142,15 +142,15 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                     if (out->numSides==1) {
                         Assemble_jacobians_2D_M1D_E1D(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
                         Assemble_jacobians_2D_M1D_E1D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
@@ -162,10 +162,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
             } else if (refElement->numLocalDim==2) {
                 if (out->numSides==1) {
                     Assemble_jacobians_2D(nodefile->Coordinates,
-                            out->numQuadTotal, shape->QuadWeights,
+                            out->numQuadTotal, &shape->QuadWeights[0],
                             shape->Type->numShapes, numElements, numNodes,
-                            Nodes, shape->dSdv, basis->Type->numShapes, dBdv,
-                            out->DSDX, out->volume, Id);
+                            Nodes, &shape->dSdv[0], basis->Type->numShapes,
+                            dBdv, out->DSDX, out->volume, Id);
                 } else {
                     setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: 2D volume supports one-sided elements only.");
                 }
@@ -181,15 +181,15 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                     if (out->numSides==1) {
                         Assemble_jacobians_3D_M2D_E3D(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
                         Assemble_jacobians_3D_M2D_E3D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
@@ -199,15 +199,15 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
                     if (out->numSides==1) {
                         Assemble_jacobians_3D_M2D_E2D(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else if (out->numSides==2) {
                         Assemble_jacobians_3D_M2D_E2D_C(
                                 nodefile->Coordinates, out->numQuadTotal,
-                                shape->QuadWeights, shape->Type->numShapes,
-                                numElements, numNodes, Nodes, shape->dSdv,
+                                &shape->QuadWeights[0], shape->Type->numShapes,
+                                numElements, numNodes, Nodes, &shape->dSdv[0],
                                 basis->Type->numShapes, dBdv, out->DSDX,
                                 out->volume, Id);
                     } else {
@@ -219,10 +219,10 @@ ElementFile_Jacobians* ElementFile::borrowJacobians(const NodeFile* nodefile,
             } else if (refElement->numLocalDim==3) {
                 if (out->numSides==1) {
                     Assemble_jacobians_3D(nodefile->Coordinates,
-                            out->numQuadTotal, shape->QuadWeights,
+                            out->numQuadTotal, &shape->QuadWeights[0],
                             shape->Type->numShapes, numElements, numNodes,
-                            Nodes, shape->dSdv, basis->Type->numShapes, dBdv,
-                            out->DSDX, out->volume, Id);
+                            Nodes, &shape->dSdv[0], basis->Type->numShapes,
+                            dBdv, out->DSDX, out->volume, Id);
                 } else {
                     setError(SYSTEM_ERROR, "ElementFile::borrowJacobians: 3D volume supports one sided elements only..");
                 }

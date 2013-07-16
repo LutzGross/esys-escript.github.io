@@ -23,8 +23,6 @@
 
 #include "Util.h"
 
-#include <vector>
-
 namespace finley {
 
 struct NodeMapping {
