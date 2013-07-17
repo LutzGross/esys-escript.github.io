@@ -51,7 +51,8 @@ except KeyError:
     WORKDIR='.'
 
 
-ERS_DATA = os.path.join(TEST_DATA_ROOT, 'ermapper_test.ers')
+ERS32_DATA = os.path.join(TEST_DATA_ROOT, 'ermapper32_test.ers')
+ERS64_DATA = os.path.join(TEST_DATA_ROOT, 'ermapper64_test.ers')
 ERS_REF = os.path.join(TEST_DATA_ROOT, 'ermapper_test.csv')
 ERS_NULL = -99999 * 1e-6
 ERS_SIZE = [20,15]
@@ -182,8 +183,14 @@ class TestNumpyData(unittest.TestCase):
 @unittest.skipIf(not haveProj, 'pyproj not available')
 class TestErMapperData(unittest.TestCase):
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
-    def test_ers_with_padding(self):
-        source = ErMapperData(DataSource.GRAVITY, headerfile=ERS_DATA, 
+    def test_ers32_with_padding(self):
+        self._ers_tester(ERS32_DATA)
+
+    def test_ers64_with_padding(self):
+        self._ers_tester(ERS64_DATA)
+
+    def _ers_tester(self, filename):
+        source = ErMapperData(DataSource.GRAVITY, headerfile=filename, 
                               altitude=ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()
         domainbuilder.addSource(source)

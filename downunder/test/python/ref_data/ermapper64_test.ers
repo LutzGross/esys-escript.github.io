@@ -1,7 +1,7 @@
 DatasetHeader Begin
 	Version		= "7.1"
-	Name		= "ermapper_test.ers"
-	LastUpdated	= Thu Sep 13 02:35:01 GMT 2012
+	Name		= "ermapper64_test.ers"
+	LastUpdated	= Thu Jun 13 02:35:01 GMT 2013
 	DataSetType	= ERStorage
 	DataType	= Raster
 	ByteOrder	= LSBFirst
@@ -12,7 +12,7 @@ DatasetHeader Begin
 		Rotation	= 0:0:0.0
 	CoordinateSpace End
 	RasterInfo Begin
-		CellType	= IEEE4ByteReal
+		CellType	= IEEE8ByteReal
 		NullCellValue	= -99999
 		CellInfo Begin
 			Xdimension	= 0.0054968863129241834
@@ -31,7 +31,7 @@ DatasetHeader Begin
 		RegionInfo Begin
 			Type		= Polygon
 			RegionName	= "All"
-			SourceDataset	= "ermapper_test"
+			SourceDataset	= "ermapper64_test"
 			RGBcolour Begin
 				Red			= 65535
 				Green		= 65535
