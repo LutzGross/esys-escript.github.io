@@ -1073,11 +1073,11 @@ void Quad_getNodesHex(int numQuadNodes, double* quadNodes, double* quadWeights)
 }
 
 /// get a quadrature scheme with numQuadNodes quadrature nodes for a point.
-/// As there is no quadrature scheme for a point any value for numQuadNodes
-/// other than 0 throws an error
+/// As there is no quadrature scheme for a point this function returns without
+/// changing the arrays but throws an error if numQuadNodes is negative
 void Quad_getNodesPoint(int numQuadNodes, double* quadNodes, double* quadWeights)
 {
-    if (numQuadNodes>0)
+    if (numQuadNodes<0)
         setError(VALUE_ERROR,
                 "Quad_getNodesPoint: Illegal number of quadrature nodes.");
 }
