@@ -186,6 +186,7 @@ class TestErMapperData(unittest.TestCase):
     def test_ers32_with_padding(self):
         self._ers_tester(ERS32_DATA)
 
+    @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
     def test_ers64_with_padding(self):
         self._ers_tester(ERS64_DATA)
 
