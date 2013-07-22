@@ -223,7 +223,7 @@ class SolverOptions(object):
         # out+="\nInner tolerance = %e"%self.getInnerTolerance()
         # out+="\nAdapt innner tolerance = %s"%self.adaptInnerTolerance()
 	
-        if self.getPackage() == self.PASO:
+        if self.getPackage() in (self.DEFAULT, self.PASO):
             out+="\nSolver method = %s"%self.getName(self.getSolverMethod())
             if self.getSolverMethod() == self.GMRES:
                 out+="\nTruncation  = %s"%self.getTruncation()
@@ -238,14 +238,14 @@ class SolverOptions(object):
             if self.getPreconditioner() == self.AMG:
                 out+="\nMaximum number of levels = %s"%self.getLevelMax()
                 out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
-                out+="\nMinimal sparsity on coarsest level = %e"%(self.getMinCoarseMatrixSparsity(),)
+                out+="\nMinimal sparsity on coarsest level = %e"%self.getMinCoarseMatrixSparsity()
                 out+="\nSmoother = %s"%self.getName(self.getSmoother())
-                out+="\nMinimum size of the coarsest level matrix = %e"%self.getCoarseningThreshold()
+                out+="\nMinimum size of the coarsest level matrix = %e"%self.getMinCoarseMatrixSize()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
-                out+="\nNumber of refinement steps in coarsest level solver = %d"%(self.getNumCoarseMatrixRefinements(),)
-                out+="\nUse node panel = %s"%(self.usePanel())
+                out+="\nNumber of refinement steps in coarsest level solver = %d"%self.getNumCoarseMatrixRefinements()
+                out+="\nUse node panel = %s"%self.usePanel()
                 out+="\nInterpolation = %s"%(self.getName(self.getAMGInterpolation()))
-                out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
+                out+="\nThreshold for diagonal dominant rows = %s"%self.getDiagonalDominanceThreshold()
 
             if self.getPreconditioner() == self.AMLI:
                 out+="\nMaximum number of levels = %s"%self.getLevelMax()
@@ -256,7 +256,7 @@ class SolverOptions(object):
             if self.getPreconditioner() == self.BOOMERAMG:
                 out+="\nMaximum number of levels = %s"%self.getLevelMax()
                 out+="\nCoarsening threshold = %e"%self.getCoarseningThreshold()
-                out+="\nThreshold for diagonal dominant rows = %s"%(setDiagonalDominanceThreshold(),)
+                out+="\nThreshold for diagonal dominant rows = %s"%setDiagonalDominanceThreshold()
                 out+="\nCoarsening method = %s"%self.getName(self.getCoarsening())
                 out+="\nV-cycle (1) or W-cyle (2) = %s"%self.getCycleType()
                 out+="\nNumber of pre / post sweeps = %s / %s, %s"%(self.getNumPreSweeps(), self.getNumPostSweeps(), self.getNumSweeps())
@@ -472,12 +472,12 @@ class SolverOptions(object):
         if size==None: size=500
         size=int(size)
         if size<0:
-           raise ValueError("minumum size of the coarsest level matrix must be non-negative.")
+           raise ValueError("minimum size of the coarsest level matrix must be non-negative.")
         self.__MinCoarseMatrixSize=size
         
     def getMinCoarseMatrixSize(self):
         """
-        Returns the minumum size of the coarsest level matrix in AMG or AMLI
+        Returns the minimum size of the coarsest level matrix in AMG or AMLI
 
         :rtype: ``int``
         """
