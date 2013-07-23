@@ -185,7 +185,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     #endif
-    A->mpi_info->msg_tag_counter += size;
+    ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
 
     /* Then, prepare to receive idx and val from other ranks */
     len = 0;
@@ -224,7 +224,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     #endif
-    A->mpi_info->msg_tag_counter += size;
+    ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
     delete[] temp_n;
 
     /* Then generate the sparse matrix */
@@ -251,7 +251,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     #ifdef ESYS_MPI
     MPI_Waitall(size-1, &(mpi_requests[1]), mpi_stati);
     #endif
-    A->mpi_info->msg_tag_counter += size;
+    ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
     delete[] temp_len;
   } else { /* it's not rank 0 */
 
@@ -279,7 +279,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
 
     MPI_Waitall(3, mpi_requests, mpi_stati);
     #endif
-    A->mpi_info->msg_tag_counter = tag + size - rank;
+    ESYS_MPI_SET_COUNTER(*(A->mpi_info), tag + size - rank)
     delete[] ptr;
     delete[] idx;
     delete[] val;

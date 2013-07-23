@@ -277,7 +277,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    #ifdef ESYS_MPI
    MPI_Waitall(recv->numNeighbors+send->numNeighbors, mpi_requests, mpi_stati);
    #endif
-   mpi_info->msg_tag_counter += size;
+   ESYS_MPI_INC_COUNTER(*mpi_info, size)
    delete[] mpi_requests;
    delete[] mpi_stati;
 

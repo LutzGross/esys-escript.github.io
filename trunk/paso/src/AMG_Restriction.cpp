@@ -177,7 +177,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    #ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
    #endif
-   mpi_info->msg_tag_counter += size;
+   ESYS_MPI_INC_COUNTER(*mpi_info, size)
 
    delete[] degree_set;
    degree_set = new index_t[send->numNeighbors];
@@ -240,7 +240,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    #ifdef ESYS_MPI
    MPI_Waitall(msgs, mpi_requests, mpi_stati);
    #endif
-   mpi_info->msg_tag_counter += 2*size;
+   ESYS_MPI_INC_COUNTER(*mpi_info, 2*size)
    delete[] degree_set;
    delete[] offset_set;
    delete[] data_set;

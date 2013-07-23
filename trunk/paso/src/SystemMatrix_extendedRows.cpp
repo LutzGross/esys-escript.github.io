@@ -223,7 +223,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
 	      A->row_coupler->mpi_requests,
 	      A->row_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter+=A->mpi_info->size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), A->mpi_info->size)
 
   /* filter the received ST (for extended rows) with cols in mainBlock as
      well as cols in col_coupleBlock, their global ids are listed in "B" */

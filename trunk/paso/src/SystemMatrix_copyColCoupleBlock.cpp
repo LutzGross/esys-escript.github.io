@@ -116,7 +116,7 @@ void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A)
 		     A->row_coupler->mpi_requests,
 		     A->row_coupler->mpi_stati);
          #endif
-         A->mpi_info->msg_tag_counter+=A->mpi_info->size;
+	 ESYS_MPI_INC_COUNTER(*(A->mpi_info), A->mpi_info->size);
          delete[] send_buffer;
    }
    return; 		      
