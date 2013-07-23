@@ -406,7 +406,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
                     MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
                     in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
 #endif
-            in->MPIInfo->msg_tag_counter+=4;
+	    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
         buffer_rank=Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank-1);
         scatterEntries(in->numNodes, in->Id, distribution[buffer_rank],
@@ -442,7 +442,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
                     MPI_DOUBLE, dest, in->MPIInfo->msg_tag_counter+3, source,
                     in->MPIInfo->msg_tag_counter+3, in->MPIInfo->comm, &status);
 #endif
-             in->MPIInfo->msg_tag_counter+=4;
+            ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
         buffer_rank=Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank-1);
     }
@@ -604,7 +604,7 @@ int NodeFile::createDenseDOFLabeling()
                     dest, MPIInfo->msg_tag_counter, source,
                     MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
 #endif
-            MPIInfo->msg_tag_counter+=1;
+	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
         buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
     }
@@ -719,7 +719,7 @@ int NodeFile::createDenseNodeLabeling(std::vector<int>& nodeDistribution,
                     dest, MPIInfo->msg_tag_counter, source,
                     MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
 #endif
-            MPIInfo->msg_tag_counter+=1;
+	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
         buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
     }
@@ -789,7 +789,7 @@ int NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask,
                     MPIInfo->msg_tag_counter, source,
                     MPIInfo->msg_tag_counter, MPIInfo->comm, &status);
 #endif
-            MPIInfo->msg_tag_counter+=1;
+	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
         buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
     }
@@ -987,7 +987,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             n+=snd_len[p];
         }
     }
-    MPIInfo->msg_tag_counter+=MPIInfo->size;
+    ESYS_MPI_INC_COUNTER(*MPIInfo, MPIInfo->size)
     offsetInShared[numNeighbors]=n;
 #ifdef ESYS_MPI
     MPI_Waitall(count, &mpi_requests[0], &mpi_stati[0]);

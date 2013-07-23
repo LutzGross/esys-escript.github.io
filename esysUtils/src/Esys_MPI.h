@@ -36,6 +36,10 @@ typedef int Esys_MPI_rank;
 
 #define ESYS_MPI_TODO 	{ fprintf( stdout, "\nTODO : %s:%d\n", __FILE__, __LINE__);	MPI_Finalize(); exit(1); }
 
+// Modding by 7 digit prime to avoid overflow
+#define ESYS_MPI_INC_COUNTER(V,I) {(V).msg_tag_counter=((V).msg_tag_counter+(I))%1010201;}
+#define ESYS_MPI_SET_COUNTER(V,I) {(V).msg_tag_counter=(I)%1010201;}
+
 /* Datatypes */
 
 /** \brief Struct that holds MPI communicator, rank, size and a tag counter */

@@ -272,7 +272,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter += size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
 
   j = 0;
   k = 0;
@@ -331,7 +331,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter += size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
 
   #pragma omp parallel for private(i,j,k,m,p) schedule(static)
   for (i=0; i<len; i++) {
@@ -400,7 +400,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
                 A->col_coupler->mpi_requests,
                 A->col_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter += size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), size);
 
   #pragma omp parallel for private(i,j,k,m,p) schedule(static)
   for (i=0; i<len; i++) {
@@ -492,7 +492,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 		P->col_coupler->mpi_requests,
 		P->col_coupler->mpi_stati);
   #endif
-  P->mpi_info->msg_tag_counter += size;
+  ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
   delete[] send_degree;
   m = Paso_Util_cumsum(recv_rows, recv_ptr);
@@ -537,7 +537,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 		P->col_coupler->mpi_requests,
 		P->col_coupler->mpi_stati);
   #endif
-  P->mpi_info->msg_tag_counter += size;
+  ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
   /* Last, send/receive the data array */
   j = 0;
@@ -575,7 +575,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 		P->col_coupler->mpi_requests,
 		P->col_coupler->mpi_stati);
   #endif
-  P->mpi_info->msg_tag_counter += size;
+  ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
   /* Clean up and return with received ptr, index and data arrays */
   delete[] ptr;
@@ -1794,7 +1794,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    MPI_Waitall(num_neighbors + recv->numNeighbors, 
 		mpi_requests, mpi_stati); 
    #endif
-   mpi_info->msg_tag_counter += size; 
+   ESYS_MPI_INC_COUNTER(*mpi_info, size); 
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
@@ -1934,7 +1934,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    MPI_Waitall(num_neighbors + send->numNeighbors,
 	mpi_requests, mpi_stati); 
    #endif
-   mpi_info->msg_tag_counter += size; 
+   ESYS_MPI_INC_COUNTER(*mpi_info, size); 
    delete[] send_len;
 
    sum = 0;
@@ -1969,7 +1969,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    MPI_Waitall(num_neighbors + send->numNeighbors, 
 		mpi_requests, mpi_stati); 
    #endif
-   mpi_info->msg_tag_counter += size;
+   ESYS_MPI_INC_COUNTER(*mpi_info, size);
 
    offset = input_dist->first_component[rank];
    k = row_couple_ptr[num_RAPext_rows];
@@ -3221,7 +3221,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    MPI_Waitall(num_neighbors + recv->numNeighbors, 
 		mpi_requests, mpi_stati); 
    #endif
-   mpi_info->msg_tag_counter += size; 
+   ESYS_MPI_INC_COUNTER(*mpi_info, size); 
 
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
@@ -3358,7 +3358,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    MPI_Waitall(num_neighbors + send->numNeighbors,
 	mpi_requests, mpi_stati); 
    #endif
-   mpi_info->msg_tag_counter += size; 
+   ESYS_MPI_INC_COUNTER(*mpi_info, size); 
    delete[] send_len;
 
    sum = 0;
@@ -3393,7 +3393,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    MPI_Waitall(num_neighbors + send->numNeighbors, 
 		mpi_requests, mpi_stati); 
    #endif
-   mpi_info->msg_tag_counter += size;
+   ESYS_MPI_INC_COUNTER(*mpi_info, size);
 
    offset = input_dist->first_component[rank];
    k = row_couple_ptr[num_RAPext_rows];

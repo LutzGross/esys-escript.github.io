@@ -152,7 +152,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
 #endif
-		    in->MPIInfo->msg_tag_counter += 1;
+		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo),1);
 		}
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
@@ -318,7 +318,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
 #endif
-		    in->MPIInfo->msg_tag_counter += 1;
+		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo),1);
 		}
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
@@ -466,7 +466,7 @@ dim_t Dudley_NodeFile_createDenseNodeLabeling(Dudley_NodeFile * in, index_t * no
 				     dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 				     in->MPIInfo->comm, &status);
 #endif
-		in->MPIInfo->msg_tag_counter += 1;
+		ESYS_MPI_INC_COUNTER(*(in->MPIInfo),1);
 	    }
 	    buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	}
@@ -597,7 +597,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
 					 dest, in->MPIInfo->msg_tag_counter, source, in->MPIInfo->msg_tag_counter,
 					 in->MPIInfo->comm, &status);
 #endif
-		    in->MPIInfo->msg_tag_counter += 1;
+		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo),1);
 		}
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }

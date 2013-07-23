@@ -269,7 +269,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduce
 		n += snd_len[p];
 	    }
 	}
-	mpi_info->msg_tag_counter += mpi_info->size;
+	ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size);
 	offsetInShared[numNeighbors] = n;
 #ifdef ESYS_MPI
 	MPI_Waitall(count, mpi_requests, mpi_stati);

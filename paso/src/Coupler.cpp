@@ -253,7 +253,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
              #endif 
         }
      }
-     mpi_info->msg_tag_counter+=mpi_info->size;
+     ESYS_MPI_INC_COUNTER(*mpi_info,mpi_info->size)
      coupler->in_use=TRUE;
   }
 }

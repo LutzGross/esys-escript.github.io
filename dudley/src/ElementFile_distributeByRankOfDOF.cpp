@@ -219,7 +219,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 
 		    }
 		}
-		self->MPIInfo->msg_tag_counter += 4 * size;
+		ESYS_MPI_INC_COUNTER(*(self->MPIInfo), 4 * size);
 		/* wait for the requests to be finalized */
 #ifdef ESYS_MPI
 		MPI_Waitall(numRequests, mpi_requests, mpi_stati);

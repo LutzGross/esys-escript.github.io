@@ -530,7 +530,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
                 numRequests++;
             }
         }
-        MPIInfo->msg_tag_counter+=4*size;
+        ESYS_MPI_INC_COUNTER(*MPIInfo, 4*size);
         // wait for the requests to be finalized
         MPI_Waitall(numRequests, &mpi_requests[0], &mpi_stati[0]);
 #endif

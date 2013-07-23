@@ -121,7 +121,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 					 in->MPIInfo->msg_tag_counter + 3, source, in->MPIInfo->msg_tag_counter + 3,
 					 in->MPIInfo->comm, &status);
 #endif
-		    in->MPIInfo->msg_tag_counter += 4;
+		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
 		}
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 		Dudley_NodeFile_scatterEntries(in->numNodes, in->Id,
@@ -161,7 +161,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 					 in->MPIInfo->msg_tag_counter + 3, source, in->MPIInfo->msg_tag_counter + 3,
 					 in->MPIInfo->comm, &status);
 #endif
-		    in->MPIInfo->msg_tag_counter += 4;
+		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
 		}
 		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }

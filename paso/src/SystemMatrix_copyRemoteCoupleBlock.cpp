@@ -236,7 +236,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
 		A->row_coupler->mpi_requests,
 		A->row_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter += mpi_size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), mpi_size)
 
   len = 0;
   for (i=0; i<overlapped_n; i++) {
@@ -279,7 +279,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
                 A->row_coupler->mpi_requests,
                 A->row_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter += mpi_size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), mpi_size)
 
   /* allocate pattern and sparsematrix for remote_coupleBlock */
   pattern = Paso_Pattern_alloc(A->row_coupleBlock->pattern->type,
@@ -322,7 +322,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t 
                 A->row_coupler->mpi_requests,
                 A->row_coupler->mpi_stati);
   #endif
-  A->mpi_info->msg_tag_counter += mpi_size;
+  ESYS_MPI_INC_COUNTER(*(A->mpi_info), mpi_size)
 
   /* release all temp memory allocation */
   delete[] cols;
