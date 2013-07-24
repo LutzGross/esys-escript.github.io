@@ -73,7 +73,7 @@ Depends(program, 'build_py_tests')
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("DUDLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('DUDLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BATCH_ROOT/escript/test/python:$BATCH_ROOT/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("DUDLEY_TEST_DATA","$BATCH_ROOT/dudley/test/python"),('DUDLEY_WORKDIR','$BUILD_DIR/dudley/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/dudley/test/python","$BATCH_ROOT/dudley/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/dudley/test/python")
 TestGroups.append(tgroup)
 
