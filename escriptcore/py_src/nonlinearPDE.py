@@ -29,15 +29,16 @@ __url__="https://launchpad.net/escript-finley"
 :var __version__: version
 :var __date__: date of the version
 """
-
+from .start import HAVE_SYMBOLS
 import numpy
 from time import time
-from esys.escript.linearPDEs import LinearPDE, IllegalCoefficient, IllegalCoefficientValue
-from esys.escript import util, Data, HAVE_SYMBOLS
+from . import linearPDEs as lpe
+from . import util
+from .escriptcpp import Data
 
 if HAVE_SYMBOLS:
     import sympy
-    from esys.escript import getTotalDifferential, isSymbol, Symbol, Evaluator
+    import esys.escriptcore.symbolic as symb
 
 __author__="Cihan Altinay, Lutz Gross"
 
@@ -105,7 +106,7 @@ def concatenateRow(*args):
     subs=args[0].getDataSubstitutions().copy()
     subs.update(args[1].getDataSubstitutions())
     dim=args[1].getDim() if args[0].getDim()<0 else args[0].getDim()
-    return Symbol(res, dim=dim, subs=subs)
+    return symb.Symbol(res, dim=dim, subs=subs)
 
 class NonlinearPDE(object):
     """
@@ -193,7 +194,7 @@ class NonlinearPDE(object):
         else:
             numEquations=u.getShape()[0]
         numSolutions=numEquations
-        self._lpde=LinearPDE(domain,numEquations,numSolutions,self._debug > self.DEBUG4 )
+        self._lpde=lpe.LinearPDE(domain,numEquations,numSolutions,self._debug > self.DEBUG4 )
 
     def __str__(self):
         """
@@ -303,10 +304,10 @@ class NonlinearPDE(object):
         u_syms=[]
         simple_u=False
         for i in numpy.ndindex(self._unknown.getShape()):
-            u_syms.append(Symbol(self._unknown[i]).atoms(sympy.Symbol).pop().name)
+            u_syms.append(symb.Symbol(self._unknown[i]).atoms(sympy.Symbol).pop().name)
         if len(set(u_syms))==1: simple_u=True
         
-        e=Evaluator(self._unknown)
+        e=symb.Evaluator(self._unknown)
         for sym in u_syms:
             if not subs.has_key(sym):
                 raise KeyError("Initial value for '%s' missing."%sym)
@@ -320,8 +321,8 @@ class NonlinearPDE(object):
         if not q.isEmpty():
             if hasattr(self, "_r"):
                 r=self._r
-                if isSymbol(r):
-                    r=Evaluator(r).evaluate(**subs)
+                if symb.isSymbol(r):
+                    r=symb.Evaluator(r).evaluate(**subs)
                 elif not isinstance(r, Data):
                     r=Data(r, self._lpde.getFunctionSpaceForSolution())
                 elif r.isEmpty():
@@ -334,7 +335,7 @@ class NonlinearPDE(object):
         constants={}
         expressions={}
         for n, e in self._set_coeffs.items():
-            if isSymbol(e):
+            if symb.isSymbol(e):
                 expressions[n]=e
             else:
                 constants[n]=e
@@ -584,7 +585,7 @@ class NonlinearPDE(object):
             else:
                 return ()
         else:
-            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
 
     def createCoefficient(self, name):
         """
@@ -600,7 +601,7 @@ class NonlinearPDE(object):
             return self._lpde.createCoefficient("q")
         else:
            s=self.getShapeOfCoefficient(name)
-           return Symbol(name, s, dim=self.dim)
+           return symb.Symbol(name, s, dim=self.dim)
 
     def getCoefficient(self, name):
         """
@@ -618,11 +619,11 @@ class NonlinearPDE(object):
              if hasattr(self, "_r"):
                  return self._r
              else:
-                 raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+                 raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
         elif name == "q":
              return self._lpde.getCoefficient("q")
         else:
-            raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
     def setValue(self,**coefficients):
         """
@@ -654,7 +655,7 @@ class NonlinearPDE(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
+                raise lpe.IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
             rank=len(shape)
             if name == "q":
                 self._lpde.setValue(q=val)
@@ -662,9 +663,9 @@ class NonlinearPDE(object):
                 self._r=val
             elif name=="X" or name=="X_reduced":
                 if rank != u.getRank()+1:
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
+                    raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()+1))
                 T0=time()
-                B,A=getTotalDifferential(val, u, 1)
+                B,A=symb.getTotalDifferential(val, u, 1)
                 if name=='X_reduced':
                     self.trace3("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
                     self._set_coeffs['A_reduced']=A
@@ -677,9 +678,9 @@ class NonlinearPDE(object):
                     self._set_coeffs['X']=val
             elif name=="Y" or name=="Y_reduced":
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                    raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 T0=time()
-                D,C=getTotalDifferential(val, u, 1)
+                D,C=symb.getTotalDifferential(val, u, 1)
                 if name=='Y_reduced':
                     self.trace3("Computing C_reduced, D_reduced took %f seconds."%(time()-T0))
                     self._set_coeffs['C_reduced']=C
@@ -694,7 +695,7 @@ class NonlinearPDE(object):
                     "y_dirac"):
                 y=val
                 if rank != u.getRank():
-                    raise IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
+                    raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 if not hasattr(y, 'diff'):
                     d=numpy.zeros(u.getShape())
                 else:
@@ -702,7 +703,7 @@ class NonlinearPDE(object):
                 self._set_coeffs[name]=y
                 self._set_coeffs['d'+name[1:]]=d
             else:
-                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+                raise lpe.IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
 
     def getSensitivity(self, f, g=None, **subs):
         """
@@ -759,7 +760,7 @@ class NonlinearPDE(object):
         expressions={}
         for n, e in self._set_coeffs.items():
             if n not in self.__COEFFICIENTS:
-                if isSymbol(e):
+                if symb.isSymbol(e):
                     expressions[n]=e
                 else:
                     constants[n]=e
@@ -773,17 +774,17 @@ class NonlinearPDE(object):
         #
         #   evaluate the derivatives of X, etc with respect to f:
         #
-        ev=Evaluator()
+        ev=symb.Evaluator()
         names=[]
         if hasattr(self, "_r"):
-             if isSymbol(self._r):
+             if symb.isSymbol(self._r):
                  names.append('r')
                  ev.addExpression(self._r.diff(f))
         for n in self._set_coeffs.keys():
-            if n in self.__COEFFICIENTS and isSymbol(self._set_coeffs[n]):
+            if n in self.__COEFFICIENTS and symb.isSymbol(self._set_coeffs[n]):
                    if n=="X" or n=="X_reduced":
                       T0=time()
-                      B,A=getTotalDifferential(self._set_coeffs[n], f, 1)
+                      B,A=symb.getTotalDifferential(self._set_coeffs[n], f, 1)
                       if n=='X_reduced':
                           self.trace3("Computing A_reduced, B_reduced took %f seconds."%(time()-T0))
                           names.append('A_reduced'); ev.addExpression(A)
@@ -794,7 +795,7 @@ class NonlinearPDE(object):
                           names.append('B'); ev.addExpression(B)
                    elif n=="Y" or n=="Y_reduced":
                       T0=time()
-                      D,C=getTotalDifferential(self._set_coeffs[n], f, 1)
+                      D,C=symb.getTotalDifferential(self._set_coeffs[n], f, 1)
                       if n=='Y_reduced':
                          self.trace3("Computing C_reduced, D_reduced took %f seconds."%(time()-T0))
                          names.append('C_reduced'); ev.addExpression(C)
@@ -944,7 +945,7 @@ class NonlinearPDE(object):
     def _updateRHS(self, expressions, subs):
         """
         """
-        ev=Evaluator()
+        ev=symb.Evaluator()
         names=[]
         for name in expressions:
             if name in self.__COEFFICIENTS:
@@ -970,7 +971,7 @@ class NonlinearPDE(object):
     def _updateMatrix(self, expressions, subs):
         """
         """
-        ev=Evaluator()
+        ev=symb.Evaluator()
         names=[]
         for name in expressions:
             if not name in self.__COEFFICIENTS:
@@ -1094,7 +1095,7 @@ class VariationalProblem(object):
         if self._parameter == None:
             U=u
         else:
-            self._lagrangean=Symbol("lambda%s"%id(self), self._unknown.getShape(), dim=self.dim)
+            self._lagrangean=symb.Symbol("lambda%s"%id(self), self._unknown.getShape(), dim=self.dim)
             U=concatenateRow(self._parameter, self._unknown, self._lagrangean)
         self.__PDE=NonlinearPDE(domain, u=U, debug=debug)
 
@@ -1220,7 +1221,7 @@ class VariationalProblem(object):
         elif name=="h_dirac":
                 return ()
         else:
-            raise IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request unknown coefficient %s"%name)
 
     def createCoefficient(self, name):
         """
@@ -1243,10 +1244,10 @@ class VariationalProblem(object):
             if numParams > 0:
                 return self.getNonlinearPDE().createCoefficient("q")[:numParams]
             else:
-                raise IllegalCoefficient("Attempt to request coefficient %s"%name)
+                raise lpe.IllegalCoefficient("Attempt to request coefficient %s"%name)
         else:
            s=self.getShapeOfCoefficient(name)
-           return Symbol(name, s, dim=self.dim)
+           return symb.Symbol(name, s, dim=self.dim)
 
     def getCoefficient(self, name):
         """
@@ -1261,7 +1262,7 @@ class VariationalProblem(object):
         if self._set_coeffs.has_key(name):
             return self._set_coeffs[name]
         else:
-            raise IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
+            raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
 
     def __getNonlinearPDECoefficient(self, extension, capson=False, order=0):
         """
@@ -1284,21 +1285,21 @@ class VariationalProblem(object):
 
         if self.getNumParameters() > 0:
             if order == 0:
-                Yp=getTotalDifferential(Z, self._parameter, order=0)
-                Yu=getTotalDifferential(Z, self._unknown, order=0)
-                Yl=getTotalDifferential(Z, self._lagrangean, order=0)
+                Yp=symb.getTotalDifferential(Z, self._parameter, order=0)
+                Yu=symb.getTotalDifferential(Z, self._unknown, order=0)
+                Yl=symb.getTotalDifferential(Z, self._lagrangean, order=0)
                 Y=concatenateRow(Yp, Yl, Yu)  # order different from solution!
             else:
-                Yp,Xp=getTotalDifferential(Z, self._parameter, order=1)
-                Yu,Xu=getTotalDifferential(Z, self._unknown, order=1)
-                Yl,Xl=getTotalDifferential(Z, self._lagrangean, order=1)
+                Yp,Xp=symb.getTotalDifferential(Z, self._parameter, order=1)
+                Yu,Xu=symb.getTotalDifferential(Z, self._unknown, order=1)
+                Yl,Xl=symb.getTotalDifferential(Z, self._lagrangean, order=1)
                 Y=concatenateRow(Yp, Yl, Yu)  # order different from solution!
                 X=concatenateRow(Xp, Xl, Xu)  # order different from solution!
         else:
             if order == 0:
-                Y=getTotalDifferential(Z, self._unknown, order=0)
+                Y=symb.getTotalDifferential(Z, self._unknown, order=0)
             else:
-                Y,X=getTotalDifferential(Z, self._unknown, order=1)
+                Y,X=symb.getTotalDifferential(Z, self._unknown, order=1)
         if order == 0:
             return Y
         else:
@@ -1345,14 +1346,14 @@ class VariationalProblem(object):
         for name,val in coefficients.iteritems():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
-                raise IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
+                raise lpe.IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
             if name == "q":
                 self._q = val
                 update.append("q")
 
             elif name == "qp":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._qp = val
                 update.append("q")
 
@@ -1362,31 +1363,31 @@ class VariationalProblem(object):
 
             elif name == "rp":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._rp = val
                 update.append("r")
 
             elif name=="X":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['X']=val
                 update.append("Y")
 
             elif name=="X_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['X_reduced']=val
                 update.append("Y_reduced")
 
             elif name=="Y":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['Y']=val
                 update.append("Y")
 
             elif name=="Y_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['Y_reduced']=val
                 update.append("Y_reduced")
 
@@ -1400,13 +1401,13 @@ class VariationalProblem(object):
 
             elif name=="y":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y']=val
                 update.append("y")
 
             elif name=="y_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_reduced']=val
                 update.append("y_reduced")
 
@@ -1420,13 +1421,13 @@ class VariationalProblem(object):
 
             elif name=="y_contact":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_contact']=val
                 update.append("y_contact")
 
             elif name=="y_contact_reduced":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_contact_reduced']=val
                 update.append("y_contact_reduced")
 
@@ -1440,7 +1441,7 @@ class VariationalProblem(object):
 
             elif name=="y_dirac":
                 if numParams<1:
-                    raise IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
+                    raise lpe.IllegalCoefficientValue("Illegal coefficient %s - no parameter present."%name)
                 self._set_coeffs['y_dirac']=val
                 update.append("y_dirac")
 
@@ -1448,7 +1449,7 @@ class VariationalProblem(object):
                 self._set_coeffs['h_diract']=val
                 update.append("y_dirac")
             else:
-                raise IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
+                raise lpe.IllegalCoefficient("Attempt to set unknown coefficient %s"%name)
 
         # now we can update the coefficients of the nonlinear PDE:
         coeff2={}

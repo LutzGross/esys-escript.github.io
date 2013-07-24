@@ -28,7 +28,7 @@ testruns += ['run_linearPDEsOnRipley1.py']
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
-local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escriptcore/test/python').abspath)
 local_env['ENV']['RIPLEY_TEST_DATA']=Dir('.').srcnode().abspath
 local_env['ENV']['RIPLEY_WORKDIR']=Dir('.').abspath
 # needed for a test from the util base class in escript

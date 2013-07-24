@@ -20,8 +20,11 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import esys.escript as escript
-from . import linearPDEs as lpe
+
+import esys.escriptcore.escriptcpp as escript
+import esys.escriptcore.util as util
+import esys.escriptcore.linearPDEs as lpe
+
 
 import math
 import sys
@@ -66,17 +69,17 @@ class Mountains(object):
 
     self.__PDE_W = lpe.LinearPDE(domain)
     self.__PDE_W.setSymmetryOn()
-    A=escript.kronecker(domain)*eps*0
-    A[self.__DIM-1,self.__DIM-1]=(0.3*(escript.sup(z)-escript.inf(z))/escript.log(2.))**2
+    A=util.kronecker(domain)*eps*0
+    A[self.__DIM-1,self.__DIM-1]=(0.3*(util.sup(z)-util.inf(z))/util.log(2.))**2
     # A[self.__DIM-1,self.__DIM-1]=(sup(FunctionOnBoundary(self.__domain).getSize())/log(2.))**2
-    self.__PDE_W.setValue(D=1, A=A, q=escript.whereZero(escript.sup(z)-z)+escript.whereZero(escript.inf(z)-z)) 
+    self.__PDE_W.setValue(D=1, A=A, q=util.whereZero(util.sup(z)-z)+util.whereZero(util.inf(z)-z)) 
 
     self.__PDE_H = lpe.LinearPDE(domain)
     self.__PDE_H.setSymmetryOn()
     if reduced: self.__PDE_H.setReducedOrderOn()
     # A=kronecker(domain)*0
     # A[self.__DIM-1,self.__DIM-1]=0.1
-    self.__PDE_H.setValue(D=1.0, q=escript.whereZero(escript.inf(z)-z))
+    self.__PDE_H.setValue(D=1.0, q=util.whereZero(util.inf(z)-z))
     # self.__PDE_H.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
 
     self.setVelocity()
@@ -109,7 +112,7 @@ class Mountains(object):
       self.__v=escript.Vector(0.,escript.Solution(self.getDomain()))
       if not v == None:
         xi=self.getDomain().getX()[self.getDomain().getDim()-1]
-        v=(xi-escript.inf(xi))/(escript.sup(xi)-escript.inf(xi))*v
+        v=(xi-util.inf(xi))/(util.sup(xi)-util.inf(xi))*v
         for d in range(self.__DIM):
            self.__PDE_W.setValue(r=v[d])
            self.__v[d]=self.__PDE_W.getSolution()
@@ -135,7 +138,7 @@ class Mountains(object):
     if H==None: 
        self.__H=escript.Scalar(0.0, fs)
     else:
-       self.__H=escript.interpolate(H, fs)
+       self.__H=util.interpolate(H, fs)
        
   def getTopography(self):
      """
@@ -152,7 +155,7 @@ class Mountains(object):
       """
       if self.__dt == None:
            h=self.getDomain().getSize()
-           self.__dt=0.5*escript.inf(h/escript.length(escript.interpolate(self.getVelocity(),h.getFunctionSpace())))
+           self.__dt=0.5*util.inf(h/util.length(util.interpolate(self.getVelocity(),h.getFunctionSpace())))
       return self.__dt
   def update(self,dt=None, allow_substeps=True):
       """
@@ -177,19 +180,19 @@ class Mountains(object):
       w_tilda=1.*w
       w_tilda[self.__DIM-1]=0
       w_z=w[self.__DIM-1]
-      V=escript.vol(self.__PDE_H.getDomain())
+      V=util.vol(self.__PDE_H.getDomain())
 
       t=0
       for i in range(n):
-         # L=escript.integrate(w_z*dt+H)/vol(self.__PDE_H.getDomain())
+         # L=util.integrate(w_z*dt+H)/vol(self.__PDE_H.getDomain())
          # self.__PDE_H.setValue(X=(inner(w_tilda,grad(H))*dt/2+H)*w_tilda*dt, Y=w_z*dt+H-L)
          # H=self.__PDE_H.getSolution()
-         L=escript.integrate(w_z*dt+H)/V
+         L=util.integrate(w_z*dt+H)/V
          self.__PDE_H.setValue(X=w_tilda*H*(dt/2), Y=w_z*(dt/2)+H-L)
          Hhalf=self.__PDE_H.getSolution()
          self.__PDE_H.setValue(X=w_tilda*Hhalf*dt, Y=w_z*dt+H-L)
          H=self.__PDE_H.getSolution()
-         print(("DDD : ava = ",escript.integrate(H)))
+         print(("DDD : ava = ",util.integrate(H)))
          t+=dt
       self.setTopography(H)
 

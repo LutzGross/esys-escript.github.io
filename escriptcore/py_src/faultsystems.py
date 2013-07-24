@@ -20,10 +20,13 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 #from esys.escript import sqrt, EPSILON, cos, sin, Lsup, atan, length, matrixmult, wherePositive, matrix_mult, inner, Scalar, whereNonNegative, whereNonPositive, maximum, minimum, sign, whereNegative, whereZero
-import esys.escript.pdetools as pdt
-import esys.escript as es
+import esys.escriptcore.pdetools as pdt
+#from .util import *
+from . import util as es
 import numpy
 import math
+
+__all__= ['FaultSystem']
 
 class FaultSystem(object):
   """
