@@ -52,6 +52,6 @@ Depends(program, [py_wrapper_lib, 'install_escript_py', 'build_py_tests'])
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("ESCRIPT_TEST_DATA_ROOT","$BATCH_ROOT/escript/test/python"),('ESCRIPT_WORKDIR','$BUILD_DIR/escript/test/python')),"$BATCH_ROOT/escript/test/python","$BATCH_ROOT/escript/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("ESCRIPT_TEST_DATA_ROOT","$BATCH_ROOT/escriptcore/test/python"),('ESCRIPT_WORKDIR','$BUILD_DIR/escript/test/python')),"$BATCH_ROOT/escriptcore/test/python","$BATCH_ROOT/escriptcore/test/python",testruns)
 TestGroups.append(tgroup)
 

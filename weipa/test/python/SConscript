@@ -41,7 +41,7 @@ program = local_env.RunPyUnitTest(alltestruns)
 
 # add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("WEIPA_TEST_DATA","$BATCH_ROOT/weipa/test/python"),('WEIPA_WORKDIR','$BUILD_DIR/weipa/test/python')),"$BATCH_ROOT/escript/test/python:$BATCH_ROOT/weipa/test/python","$BATCH_ROOT/weipa/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("WEIPA_TEST_DATA","$BATCH_ROOT/weipa/test/python"),('WEIPA_WORKDIR','$BUILD_DIR/weipa/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/weipa/test/python","$BATCH_ROOT/weipa/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/weipa/test/python")
 TestGroups.append(tgroup)
 

@@ -43,7 +43,7 @@ Depends(program, 'build_py_tests')
 
 # Add a group of tests
 from grouptest import *
-tgroup=GroupTest("$PYTHONRUNNER ",(("RIPLEY_TEST_DATA","$BATCH_ROOT/ripley/test/python"),('RIPLEY_WORKDIR','$BUILD_DIR/ripley/test/python')),"$BATCH_ROOT/escript/test/python:$BATCH_ROOT/ripley/test/python","$BATCH_ROOT/ripley/test/python",testruns)
+tgroup=GroupTest("$PYTHONRUNNER ",(("RIPLEY_TEST_DATA","$BATCH_ROOT/ripley/test/python"),('RIPLEY_WORKDIR','$BUILD_DIR/ripley/test/python')),"$BATCH_ROOT/escriptcore/test/python:$BATCH_ROOT/ripley/test/python","$BATCH_ROOT/ripley/test/python",testruns)
 tgroup.makeDir("$BUILD_DIR/ripley/test/python")
 TestGroups.append(tgroup)
 
