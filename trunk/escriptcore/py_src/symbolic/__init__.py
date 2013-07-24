@@ -25,7 +25,7 @@ from .evaluator import *
 
 __nodocorecursion=['symbol', 'evaluator']
 
-from esys.escript import HAVE_SYMBOLS
+from esys.escriptcore.start import HAVE_SYMBOLS
 if HAVE_SYMBOLS:
     from . import functions as symfn
     from .pretty import pretty_print, pprint

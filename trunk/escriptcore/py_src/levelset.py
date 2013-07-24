@@ -20,8 +20,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-from . import linearPDEs as lpe
-import esys.escript as es
+import esys.escriptcore.linearPDEs as lpe
+import esys.escriptcore.util as es
 import math
 
 class LevelSet(object):

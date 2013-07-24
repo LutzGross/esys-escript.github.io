@@ -33,7 +33,7 @@ import pickle
 import os
 import shutil
 from . import util
-from .escriptcpp import getMPIRankWorld, MPIBarrierWorld, load
+from . import escriptcpp as esc
 
 class DataManager(object):
     """
@@ -84,7 +84,7 @@ class DataManager(object):
         self._restartdir=None
         self._N=-1
         self._checkpointfreq=1
-        self._myrank=getMPIRankWorld()
+        self._myrank=esc.getMPIRankWorld()
         self._exportformats=set(formats)
         self._restartprefix=restart_prefix
         self._workdir=work_dir
@@ -171,7 +171,7 @@ class DataManager(object):
             return self._stamp[value_name]
 
         ff=self.__getDumpFilename(value_name, self._restartdir)
-        var = load(ff, self._domain)
+        var = esc.load(ff, self._domain)
         #print("Value %s recovered from %s."%(value_name, ff))
         return var 
 
@@ -336,5 +336,5 @@ class DataManager(object):
         if self._myrank==0 and os.path.isdir(path):
             shutil.rmtree(path, True)
             #print("Removed restart directory %s."%path)
-        MPIBarrierWorld()
+        esc.MPIBarrierWorld()
 

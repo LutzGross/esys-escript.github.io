@@ -41,5 +41,5 @@ if local_env['cppunit']:
     TestGroups.append(tgroup)
 
 # configure python unit tests
-local_env.SConscript(dirs = ['#/escript/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
+local_env.SConscript(dirs = ['#/escriptcore/test/python'], variant_dir='python', duplicate=0, exports=['py_wrapper_lib'])
 

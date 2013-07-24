@@ -42,12 +42,14 @@ import numpy
 import os
 import warnings
 warnings.simplefilter('default', category=DeprecationWarning)
+
 from . import escriptcpp as escore
-from .escriptcpp import C_GeneralTensorProduct
+from .escriptcpp import C_GeneralTensorProduct, Data
 from .escriptcpp import getVersion, getMPIRankWorld, getMPIWorldMax
 from .escriptcpp import printParallelThreadCounts
 from .escriptcpp import listEscriptParams
-from .symbolic import *
+from . import symbolic as sym
+
 
 #=========================================================
 #   some helpers:
@@ -495,7 +497,7 @@ def getRank(arg):
         return 0
     elif isinstance(arg,int):
         return 0
-    elif isinstance(arg,Symbol):
+    elif isinstance(arg,sym.Symbol):
         return arg.getRank()
     else:
       raise TypeError("getRank: Unknown argument type.")
@@ -522,7 +524,7 @@ def getShape(arg):
         return ()
     elif isinstance(arg,int):
         return ()
-    elif isinstance(arg,Symbol):
+    elif isinstance(arg,sym.Symbol):
         return arg.getShape()
     else:
       raise TypeError("getShape: Cannot identify shape")
@@ -635,7 +637,7 @@ def matchType(arg0=0.,arg1=0.):
           arg1=numpy.array(arg1,dtype=numpy.float64)
        elif isinstance(arg1,int):
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
-       elif isinstance(arg1,Symbol):
+       elif isinstance(arg1,sym.Symbol):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
@@ -648,11 +650,11 @@ def matchType(arg0=0.,arg1=0.):
           arg1=escore.Data(arg1,(),arg0.getFunctionSpace())
        elif isinstance(arg1,int):
           arg1=escore.Data(float(arg1),(),arg0.getFunctionSpace())
-       elif isinstance(arg1,Symbol):
+       elif isinstance(arg1,sym.Symbol):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
-    elif isinstance(arg0,Symbol):
+    elif isinstance(arg0,sym.Symbol):
        if isinstance(arg1,numpy.ndarray):
           pass
        elif isinstance(arg1,escore.Data):
@@ -661,7 +663,7 @@ def matchType(arg0=0.,arg1=0.):
           pass
        elif isinstance(arg1,int):
           pass
-       elif isinstance(arg1,Symbol):
+       elif isinstance(arg1,sym.Symbol):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
@@ -676,7 +678,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,int):
           arg0=numpy.array(arg0,dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
-       elif isinstance(arg1,Symbol):
+       elif isinstance(arg1,sym.Symbol):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
@@ -691,7 +693,7 @@ def matchType(arg0=0.,arg1=0.):
        elif isinstance(arg1,int):
           arg0=numpy.array(float(arg0),dtype=numpy.float64)
           arg1=numpy.array(float(arg1),dtype=numpy.float64)
-       elif isinstance(arg1,Symbol):
+       elif isinstance(arg1,sym.Symbol):
           pass
        else:
           raise TypeError("function: Unknown type of second argument.")
@@ -740,8 +742,8 @@ def log10(arg):
       return math.log10(arg)
    elif isinstance(arg,int):
       return math.log10(float(arg))
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.log10)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.log10)
    else:
       raise TypeError("log10: Unknown argument type.")
 
@@ -771,8 +773,8 @@ def wherePositive(arg):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.wherePositive)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.wherePositive)
    else:
       raise TypeError("wherePositive: Unknown argument type.")
 
@@ -802,8 +804,8 @@ def whereNegative(arg):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.whereNegative)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.whereNegative)
    else:
       raise TypeError("whereNegative: Unknown argument type.")
 
@@ -833,8 +835,8 @@ def whereNonNegative(arg):
         return 0.
       else:
         return 1.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.whereNonNegative)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.whereNonNegative)
    else:
       raise TypeError("whereNonNegative: Unknown argument type.")
 
@@ -864,8 +866,8 @@ def whereNonPositive(arg):
         return 0.
       else:
         return 1.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.whereNonPositive)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.whereNonPositive)
    else:
       raise TypeError("whereNonPositive: Unknown argument type.")
 
@@ -885,7 +887,7 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
    :raise ValueError: if ``rtol`` is non-negative.
    :raise TypeError: if the type of the argument is not expected
    """
-   if tol is None and not isinstance(arg, Symbol):
+   if tol is None and not isinstance(arg, sym.Symbol):
       if rtol<0: raise ValueError("rtol must be non-negative.")
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
@@ -904,8 +906,8 @@ def whereZero(arg,tol=None,rtol=math.sqrt(EPSILON)):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.whereZero)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.whereZero)
    else:
       raise TypeError("whereZero: Unknown argument type.")
 
@@ -942,8 +944,8 @@ def whereNonZero(arg,tol=0.):
         return 1.
       else:
         return 0.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.whereNonZero)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.whereNonZero)
    else:
       raise TypeError("whereNonZero: Unknown argument type.")
 
@@ -957,8 +959,8 @@ def Abs(arg):
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
-   if isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.abs)
+   if isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.sym.symfn.abs)
    else:
       return abs(arg)
 
@@ -974,8 +976,8 @@ def erf(arg):
    """
    if isinstance(arg,escore.Data):
       return arg._erf()
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.erf)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.erf)
    else:
       raise TypeError("erf: Unknown argument type.")
 
@@ -997,8 +999,8 @@ def sin(arg):
       return math.sin(arg)
    elif isinstance(arg,int):
       return math.sin(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.sin)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.sin)
    else:
       raise TypeError("sin: Unknown argument type.")
 
@@ -1020,8 +1022,8 @@ def cos(arg):
       return math.cos(arg)
    elif isinstance(arg,int):
       return math.cos(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.cos)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.cos)
    else:
       raise TypeError("cos: Unknown argument type.")
 
@@ -1043,8 +1045,8 @@ def tan(arg):
       return math.tan(arg)
    elif isinstance(arg,int):
       return math.tan(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.tan)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.tan)
    else:
       raise TypeError("tan: Unknown argument type.")
 
@@ -1066,8 +1068,8 @@ def asin(arg):
       return math.asin(arg)
    elif isinstance(arg,int):
       return math.asin(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.asin)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.asin)
    else:
       raise TypeError("asin: Unknown argument type.")
 
@@ -1089,8 +1091,8 @@ def acos(arg):
       return math.acos(arg)
    elif isinstance(arg,int):
       return math.acos(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.acos)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.acos)
    else:
       raise TypeError("acos: Unknown argument type.")
 
@@ -1112,8 +1114,8 @@ def atan(arg):
       return math.atan(arg)
    elif isinstance(arg,int):
       return math.atan(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.atan)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.atan)
    else:
       raise TypeError("atan: Unknown argument type.")
 
@@ -1135,8 +1137,8 @@ def sinh(arg):
       return math.sinh(arg)
    elif isinstance(arg,int):
       return math.sinh(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.sinh)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.sinh)
    else:
       raise TypeError("sinh: Unknown argument type.")
 
@@ -1158,8 +1160,8 @@ def cosh(arg):
       return math.cosh(arg)
    elif isinstance(arg,int):
       return math.cosh(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.cosh)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.cosh)
    else:
       raise TypeError("cosh: Unknown argument type.")
 
@@ -1181,8 +1183,8 @@ def tanh(arg):
       return math.tanh(arg)
    elif isinstance(arg,int):
       return math.tanh(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.tanh)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.tanh)
    else:
       raise TypeError("tanh: Unknown argument type.")
 
@@ -1204,8 +1206,8 @@ def asinh(arg):
       return numpy.arcsinh(arg)
    elif isinstance(arg,int):
       return numpy.arcsinh(float(arg))
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.asinh)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.asinh)
    else:
       raise TypeError("asinh: Unknown argument type.")
 
@@ -1227,8 +1229,8 @@ def acosh(arg):
       return numpy.arccosh(arg)
    elif isinstance(arg,int):
       return numpy.arccosh(float(arg))
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.acosh)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.acosh)
    else:
       raise TypeError("acosh: Unknown argument type.")
 
@@ -1250,8 +1252,8 @@ def atanh(arg):
       return numpy.arctanh(arg)
    elif isinstance(arg,int):
       return numpy.arctanh(float(arg))
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.atanh)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.atanh)
    else:
       raise TypeError("atanh: Unknown argument type.")
 
@@ -1273,8 +1275,8 @@ def exp(arg):
       return math.exp(arg)
    elif isinstance(arg,int):
       return math.exp(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.exp)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.exp)
    else:
       raise TypeError("exp: Unknown argument type.")
 
@@ -1296,8 +1298,8 @@ def sqrt(arg):
       return math.sqrt(arg)
    elif isinstance(arg,int):
       return math.sqrt(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.sqrt)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.sqrt)
    else:
       raise TypeError("sqrt: Unknown argument type.")
 
@@ -1319,8 +1321,8 @@ def log(arg):
       return math.log(arg)
    elif isinstance(arg,int):
       return math.log(arg)
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.log)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.log)
    else:
       raise TypeError("log: Unknown argument type.")
 
@@ -1352,8 +1354,8 @@ def sign(arg):
         return -1.
       else:
         return 0.
-   elif isinstance(arg,Symbol):
-      return arg.applyfunc(symfn.sign)
+   elif isinstance(arg,sym.Symbol):
+      return arg.applyfunc(sym.symfn.sign)
    else:
       raise TypeError("sign: Unknown argument type.")
 
@@ -1377,8 +1379,8 @@ def minval(arg):
       return arg
    elif isinstance(arg,int):
       return float(arg)
-   elif isinstance(arg,Symbol):
-      return symfn.minval(arg)
+   elif isinstance(arg,sym.Symbol):
+      return sym.symfn.minval(arg)
    else:
       raise TypeError("minval: Unknown argument type.")
 
@@ -1402,8 +1404,8 @@ def maxval(arg):
       return arg
    elif isinstance(arg,int):
       return float(arg)
-   elif isinstance(arg,Symbol):
-      return symfn.maxval(arg)
+   elif isinstance(arg,sym.Symbol):
+      return sym.symfn.maxval(arg)
    else:
       raise TypeError("maxval: Unknown argument type.")
 
@@ -1461,7 +1463,7 @@ def trace(arg,axis_offset=0):
       if not s[axis_offset] == s[axis_offset+1]:
         raise ValueError("dimensions of component %d and %d must match."%(axis_offset,axis_offset+1))
       return arg._trace(axis_offset)
-   elif isinstance(arg,Symbol):
+   elif isinstance(arg,sym.Symbol):
       if arg.getRank()<2:
         raise ValueError("rank of argument must be greater than 1")
       if axis_offset<0 or axis_offset>arg.getRank()-2:
@@ -1511,7 +1513,7 @@ def transpose(arg,axis_offset=None):
       if not ( axis_offset==0 or axis_offset==None):
         raise ValueError("axis_offset must be 0 for int argument")
       return float(arg)
-   elif isinstance(arg,Symbol):
+   elif isinstance(arg,sym.Symbol):
       r=arg.getRank()
       if axis_offset==None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
@@ -1542,7 +1544,7 @@ def swap_axes(arg,axis0=0,axis1=1):
       return numpy.swapaxes(arg,axis0,axis1)
    elif isinstance(arg,escore.Data):
       return arg._swap_axes(axis0,axis1)
-   elif isinstance(arg,Symbol):
+   elif isinstance(arg,sym.Symbol):
       return arg.swap_axes(axis0,axis1)
    elif isinstance(arg,float):
       raise TypeError("float argument is not supported.")
@@ -1582,7 +1584,7 @@ def symmetric(arg):
         return arg._symmetric()
       else:
         raise ValueError("rank 2 or 4 is required.")
-    elif isinstance(arg, Symbol):
+    elif isinstance(arg, sym.Symbol):
         if arg.getRank()==2:
             if arg.getShape()[0]!=arg.getShape()[1]:
                 raise ValueError("symmetric: argument must be square.")
@@ -1630,7 +1632,7 @@ def nonsymmetric(arg):
         return arg._nonsymmetric()
       else:
         raise ValueError("rank 2 or 4 is required.")
-    elif isinstance(arg, Symbol):
+    elif isinstance(arg, sym.Symbol):
         if arg.getRank()==2:
             if arg.getShape()[0]!=arg.getShape()[1]:
                 raise ValueError("nonsymmetric: argument must be square.")
@@ -1668,7 +1670,7 @@ def inverse(arg):
       return 1./arg
     elif isinstance(arg,int):
       return 1./float(arg)
-    elif isinstance(arg,Symbol):
+    elif isinstance(arg,sym.Symbol):
       return arg.inverse()
     else:
       raise TypeError("inverse: Unknown argument type.")
@@ -1750,8 +1752,8 @@ def eigenvalues(arg):
       return arg
     elif isinstance(arg,int):
       return float(arg)
-    elif isinstance(arg,Symbol):
-      return symfn.eigenvalues(arg)
+    elif isinstance(arg,sym.Symbol):
+      return sym.symfn.eigenvalues(arg)
     else:
       raise TypeError("eigenvalues: Unknown argument type.")
 
@@ -1778,8 +1780,8 @@ def eigenvalues_and_eigenvectors(arg):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
     elif isinstance(arg,int):
       return (numpy.array([[arg]],numpy.float_),numpy.ones((1,1),numpy.float_))
-    elif isinstance(arg,Symbol):
-      return symfn.eigenvalues_and_eigenvectors(arg)
+    elif isinstance(arg,sym.Symbol):
+      return sym.symfn.eigenvalues_and_eigenvectors(arg)
     else:
       raise TypeError("eigenvalues: Unknown argument type.")
 
@@ -1820,8 +1822,8 @@ def maximum(*args):
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
             ``float`` depending on the input
     """
-    if max([isinstance(v,Symbol) for v in args]):
-        return symfn.maximum(*args)
+    if max([isinstance(v,sym.Symbol) for v in args]):
+        return sym.symfn.maximum(*args)
     out=None
     for a in args:
        if out==None:
@@ -1862,8 +1864,8 @@ def minimum(*args):
     :rtype: ``numpy.ndarray``, `escript.Data`, `Symbol`, ``int`` or
             ``float`` depending on the input
     """
-    if max([isinstance(v,Symbol) for v in args]):
-        return symfn.minimum(*args)
+    if max([isinstance(v,sym.Symbol) for v in args]):
+        return sym.symfn.minimum(*args)
     out=None
     for a in args:
        if out==None:
@@ -1913,8 +1915,8 @@ def clip(arg,minval=None,maxval=None):
             ``float`` depending on the input
     :raise ValueError: if ``minval>maxval``
     """
-    if isinstance(arg, Symbol):
-        clip_item=lambda item: symfn.clip(item, minval, maxval)
+    if isinstance(arg, sym.Symbol):
+        clip_item=lambda item: sym.symfn.clip(item, minval, maxval)
         return arg.applyfunc(clip_item)
     if not minval==None and not maxval==None:
        if minval>maxval:
@@ -2082,14 +2084,14 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
     arg0,arg1=matchType(arg0,arg1)
     # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
     # or one is a Symbol and the other either of the allowed types
-    if isinstance(arg0,Symbol):
+    if isinstance(arg0,sym.Symbol):
        sh0=arg0.getShape()
        sh1=getShape(arg1)
        if not sh0[arg0.getRank()-axis_offset:]==sh1[:axis_offset]:
           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        if isinstance(arg1,float):
           return arg0*arg1
-       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, sym.Symbol):
           return arg0.tensorProduct(arg1, axis_offset)
        elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
@@ -2112,7 +2114,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[axis_offset:])
        return out
     elif isinstance(arg0,escore.Data):
-       if isinstance(arg1, Symbol):
+       if isinstance(arg1, sym.Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        return escript_generalTensorProduct(arg0,arg1,axis_offset) # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
     raise TypeError("generalTensorProduct: Unsupported argument type")
@@ -2229,14 +2231,14 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     arg0,arg1=matchType(arg0,arg1)
     # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
     # or one is a Symbol and the other either of the allowed types
-    if isinstance(arg0,Symbol):
+    if isinstance(arg0,sym.Symbol):
        sh0=arg0.getShape()
        sh1=getShape(arg1)
        if not sh0[:axis_offset]==sh1[:axis_offset]:
           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        if isinstance(arg1,float):
           return arg0*arg1
-       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, sym.Symbol):
           return arg0.transposedTensorProduct(arg1, axis_offset)
        elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
@@ -2259,7 +2261,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
        out.resize(sh0[axis_offset:]+sh1[axis_offset:])
        return out
     elif isinstance(arg0,escore.Data):
-       if isinstance(arg1, Symbol):
+       if isinstance(arg1, sym.Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
        return escript_generalTransposedTensorProduct(arg0,arg1,axis_offset)
@@ -2365,7 +2367,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     arg0,arg1=matchType(arg0,arg1)
     # at this stage arg0 and arg1 are both numpy.ndarray or escript.Data,
     # or one is a Symbol and the other either of the allowed types
-    if isinstance(arg0,Symbol):
+    if isinstance(arg0,sym.Symbol):
        sh0=arg0.getShape()
        sh1=getShape(arg1)
        r1=getRank(arg1)
@@ -2373,7 +2375,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
           raise ValueError("dimensions of last %s components in left argument don't match the first %s components in the right argument."%(axis_offset,axis_offset))
        if isinstance(arg1,float):
           return arg0*arg1
-       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, Symbol):
+       elif isinstance(arg1,numpy.ndarray) or isinstance(arg1, sym.Symbol):
           return arg0.tensorTransposedProduct(arg1, axis_offset)
        elif isinstance(arg1, escore.Data):
           raise TypeError("tensor product of Symbol and Data not supported yet")
@@ -2396,7 +2398,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
        out.resize(sh0[:arg0.ndim-axis_offset]+sh1[:arg1.ndim-axis_offset])
        return out
     elif isinstance(arg0,escore.Data):
-       if isinstance(arg1, Symbol):
+       if isinstance(arg1, sym.Symbol):
           raise TypeError("tensor product of Data and Symbol not supported yet")
        # this call has to be replaced by escript._generalTensorProduct(arg0,arg1,axis_offset)
        return escript_generalTensorTransposedProduct(arg0,arg1,axis_offset)
@@ -2433,7 +2435,7 @@ def grad(arg,where=None):
     :return: gradient of ``arg``
     :rtype: `escript.Data` or `Symbol`
     """
-    if isinstance(arg,Symbol):
+    if isinstance(arg,sym.Symbol):
        if where is None:
            return arg.grad()
        else:
@@ -2468,8 +2470,8 @@ def integrate(arg,where=None):
           return arg._integrateToTuple()[0]
        else:
           return numpy.array(arg._integrateToTuple())
-    elif isinstance(arg,Symbol):
-       return symfn.integrate(arg, where)
+    elif isinstance(arg,sym.Symbol):
+       return sym.symfn.integrate(arg, where)
     else:
        arg2=escore.Data(arg,where)
        if arg2.getRank()==0:
@@ -2497,8 +2499,8 @@ def interpolate(arg,where):
           return arg
        else:
           return escore.Data(arg,where)
-    elif isinstance(arg,Symbol):
-       return symfn.interpolate(arg, where)
+    elif isinstance(arg,sym.Symbol):
+       return sym.symfn.interpolate(arg, where)
     else:
        return escore.Data(arg,where)
 
@@ -2519,7 +2521,7 @@ def div(arg,where=None):
         dim=arg.getDomain().getDim()
         if not arg.getShape()==(dim,):
             raise ValueError("div: expected shape is (%s,)"%dim)
-    elif not isinstance(arg, Symbol):
+    elif not isinstance(arg, sym.Symbol):
         raise TypeError("div: argument type not supported")
     return trace(grad(arg,where))
 
@@ -2548,8 +2550,8 @@ def L2(arg):
     :rtype: `float` or `Symbol`
     :note: L2(arg) is equivalent to ``sqrt(integrate(inner(arg,arg)))``
     """
-    if isinstance(arg,Symbol):
-        return symfn.L2(arg)
+    if isinstance(arg,sym.Symbol):
+        return sym.symfn.L2(arg)
     return sqrt(integrate(inner(arg,arg)))
 
 def getClosestValue(arg,origin=0):
