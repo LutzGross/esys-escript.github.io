@@ -13,6 +13,13 @@
 #
 ##############################################################################
 
+try:
+    import os
+    if not 'escript/dev-deps' in os.environ['LOADEDMODULES'].split(':'):
+        print("WARNING: The escript/dev-deps module does not appear to be loaded!")
+except:
+    pass
+
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
@@ -53,7 +60,7 @@ cc_extra = '-sox'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
-cxx_extra = '-sox -I/sw/libs/numpy/x86_64/icc-13/numpy-1.6.2-py27/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-g -sox -I/sw/libs/numpy/x86_64/icc-13/numpy-1.6.2-py27/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
