@@ -476,15 +476,11 @@ namespace finley {
     } /* noError() after new Mesh() */
 
     checkFinleyError();
-    AbstractContinuousDomain* dom=new MeshAdapter(mesh_p);
-
-    if (! noError()) {
-        delete mesh_p;
-    }
+    Domain_ptr dom(new MeshAdapter(mesh_p));
 
     Esys_MPIInfo_free(mpi_info);
     blocktimer_increment("LoadMesh()", blocktimer_start);
-    return dom->getPtr();
+    return dom;
 #else
     throw DataException("loadMesh: not compiled with NetCDF. Please contact your installation manager.");
 #endif /* USE_NETCDF */
@@ -501,9 +497,8 @@ namespace finley {
     double blocktimer_start = blocktimer_time();
     Mesh* fMesh=Mesh::read(fileName, integrationOrder, reducedIntegrationOrder, optimize);
     checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     blocktimer_increment("ReadMesh()", blocktimer_start);
-    return temp->getPtr();
+    return Domain_ptr(new MeshAdapter(fMesh));
   }
 
   Domain_ptr readGmsh(const std::string& fileName,
@@ -519,9 +514,8 @@ namespace finley {
     double blocktimer_start = blocktimer_time();
     Mesh* fMesh=Mesh::readGmsh(fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
     checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     blocktimer_increment("ReadGmsh()", blocktimer_start);
-    return temp->getPtr();
+    return Domain_ptr(new MeshAdapter(fMesh));
   }
 
 /*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
@@ -559,15 +553,15 @@ namespace finley {
 
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    MeshAdapter* temp=new MeshAdapter(fMesh);
-    temp->addDiracPoints(points, tags);
-    Mesh* out=temp->getMesh().get();     
+    MeshAdapter* dom = new MeshAdapter(fMesh);
+    dom->addDiracPoints(points, tags);
+    Mesh* out=dom->getMesh().get();     
     for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
     {
         out->addTagMap(it->first.c_str(), it->second);
     }
     out->Points->updateTagList();
-    return temp->getPtr();
+    return Domain_ptr(dom);
   }
 
   Domain_ptr brick_driver(const boost::python::list& args)
@@ -616,18 +610,16 @@ namespace finley {
         
       }
       
-      Domain_ptr res=brick(static_cast<int>(extract<float>(args[0])),
-                           static_cast<int>(extract<float>(args[1])),
-                           static_cast<int>(extract<float>(args[2])),
-                           extract<int>(args[3]), extract<double>(args[4]),
-                           extract<double>(args[5]), extract<double>(args[6]),
-                           extract<int>(args[7]), extract<int>(args[8]),
-                           extract<int>(args[9]), extract<int>(args[10]),
-                           extract<int>(args[11]), extract<int>(args[12]),
-                           extract<int>(args[13]), extract<int>(args[14]),
-                           points, tags, namestonums);
-
-      return res;
+      return brick(static_cast<int>(extract<float>(args[0])),
+                   static_cast<int>(extract<float>(args[1])),
+                   static_cast<int>(extract<float>(args[2])),
+                   extract<int>(args[3]), extract<double>(args[4]),
+                   extract<double>(args[5]), extract<double>(args[6]),
+                   extract<int>(args[7]), extract<int>(args[8]),
+                   extract<int>(args[9]), extract<int>(args[10]),
+                   extract<int>(args[11]), extract<int>(args[12]),
+                   extract<int>(args[13]), extract<int>(args[14]),
+                   points, tags, namestonums);
   }
 
   Domain_ptr rectangle(int n0, int n1, int order,
@@ -667,15 +659,15 @@ namespace finley {
 
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    MeshAdapter* temp=new MeshAdapter(fMesh);
-    temp->addDiracPoints(points, tags);
-    Mesh* out=temp->getMesh().get();     
+    MeshAdapter* dom = new MeshAdapter(fMesh);
+    dom->addDiracPoints(points, tags);
+    Mesh* out=dom->getMesh().get();     
     for (map<string, int>::const_iterator it=tagnamestonums.begin();it!=tagnamestonums.end();++it)
     {
         out->addTagMap(it->first.c_str(), it->second);
     }
     out->Points->updateTagList();
-    return temp->getPtr();
+    return Domain_ptr(dom);
   }
 
   Domain_ptr meshMerge(const boost::python::list& meshList)
@@ -694,9 +686,7 @@ namespace finley {
 
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
-
-    return temp->getPtr();
+    return Domain_ptr(new MeshAdapter(fMesh));
   }
 
   Domain_ptr rectangle_driver(const boost::python::list& args)
@@ -787,7 +777,7 @@ namespace finley {
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    return merged_meshes->getPtr();
+    return merged_meshes;
   }
 
   Domain_ptr joinFaces(const boost::python::list& meshList,
@@ -807,7 +797,7 @@ namespace finley {
     //
     // Convert any finley errors into a C++ exception
     checkFinleyError();
-    return merged_meshes->getPtr();
+    return merged_meshes;
   }
 
   // end of namespace
