@@ -40,6 +40,7 @@ void seedGens(long seed)
     }  
     if (seed!=0)
     {
+       int i;
        base.seed((uint32_t)seed);	// without this cast, icc gets confused
        for (int i=0;i<numthreads;++i)
        {
@@ -47,7 +48,7 @@ void seedGens(long seed)
             seeds[i]=b;	// initialise each generator with successive random values      
        }
        #pragma omp parallel for private(i)
-       for (int i=0;i<numthreads;++i) 
+       for (i=0;i<numthreads;++i) 
        {
 	   gens[i]=new boost::mt19937(seeds[i]);
        }
