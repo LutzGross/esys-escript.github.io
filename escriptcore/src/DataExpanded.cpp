@@ -30,13 +30,14 @@
 #include <boost/python/extract.hpp>
 #include "DataMaths.h"
 
+#include "esysUtils/EsysRandom.h"
 //#define MKLRANDOM
 
-#ifdef MKLRANDOM
-#include <mkl_vsl.h>
-#else
-#include <boost/random/mersenne_twister.hpp>
-#endif
+// #ifdef MKLRANDOM
+// #include <mkl_vsl.h>
+// #else
+// #include <boost/random/mersenne_twister.hpp>
+// #endif
 
 using namespace std;
 using namespace boost::python;
@@ -841,6 +842,7 @@ DataExpanded::getVectorRO() const
 }
 
 
+#if 0
 #ifndef MKLRANDOM
 namespace {
     
@@ -873,6 +875,20 @@ void seedGens(long seed)
   
 }
 #endif
+#endif
+
+
+void DataExpanded::randomFill(long seed) {
+    CHECK_FOR_EX_WRITE
+
+    DataVector&  dv=getVectorRW();
+    const size_t dvsize=dv.size();
+    
+    randomFillArray(seed, &(dv[0]), dvsize);
+  
+}
+
+#if 0
 
 // Idea here is to create an array of seeds by feeding the original seed into the random generator
 // The code at the beginning of the function to compute the seed if one is given is
@@ -966,5 +982,7 @@ void DataExpanded::randomFill(long seed)
     }
 #endif
 }
+
+#endif
 
 }  // end of namespace

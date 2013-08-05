@@ -19,6 +19,7 @@ local_env = env.Clone()
 sources = """
 	EsysAssertException.cpp
 	EsysException.cpp
+	EsysRandom.cpp
 	Esys_MPI.cpp
 	error.cpp
 	esysExceptionTranslator.cpp
@@ -29,6 +30,7 @@ headers = """
 	EsysAssert.h
 	EsysAssertException.h
 	EsysException.h
+	EsysRandom.h
 	Esys_MPI.h
 	error.h
 	esys_malloc.h
