@@ -14,6 +14,7 @@
 
 #include <vector>
 #include <boost/random/mersenne_twister.hpp>
+#include "Esys_MPI.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
