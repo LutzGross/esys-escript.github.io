@@ -42,13 +42,30 @@ try:
 except:
     pass
 
+try:
+    import osgeo.osr
+    HAVE_GDAL=True
+except ImportError:
+    HAVE_GDAL=False
+
+def UTMZoneFromWkt(wkt_string):
+    """
+    """
+    if HAVE_GDAL and (wkt_string is not None):
+        srs = osgeo.osr.SpatialReference()
+        result=srs.ImportFromWkt(wkt_string)
+        if result==0:
+            return srs.GetUTMZone()
+    return 0
+
 def LatLonToUTM(lon, lat, wkt_string=None):
     """
     Converts one or more longitude,latitude pairs to the corresponding x,y
     coordinates in the Universal Transverse Mercator projection.
 
-    :note: The ``pyproj`` module is required for this method. If it is not
-           found an exception is raised.
+    :note: The ``pyproj`` module is required unless the input coordinates are
+           determined to be already projected. If it is not found an exception
+           is raised.
     :note: If `wkt_string` is not given or invalid or the ``gdal`` module is
            not available to convert the string, then the input values are
            assumed to be using the Clarke 1866 ellipsoid.
@@ -64,25 +81,43 @@ def LatLonToUTM(lon, lat, wkt_string=None):
     :rtype: ``tuple``
     """
 
+    logger = logging.getLogger('inv.datasources.LatLonToUTM')
+
+    nplon=np.array(lon)
+    nplat=np.array(lat)
+    if np.abs(nplon).max()>360.0 or np.abs(nplat).max()>180.0:
+        logger.debug('Coordinates appear to be projected. Passing through.')
+        zone=UTMZoneFromWkt(wkt_string)
+        return lon,lat,zone
+
+    logger.debug('Need to project coordinates.')
     try:
         import pyproj
     except:
+        logger.error("Cannot import pyproj! Exiting.")
         raise ImportError("In order to perform coordinate transformations on "
         "the data you are using the 'pyproj' Python module is required but "
         "was not found. Please install the module and try again.")
 
     # determine UTM zone from the input data
-    zone=int(np.median((np.floor((np.array(lon) + 180)/6) + 1) % 60))
-    try:
-        import osgeo.osr
+    zone=int(np.median((np.floor((nplon + 180)/6) + 1) % 60))
+    logger.debug("Determined UTM zone %d."%zone)
+
+    p_src=None
+    if HAVE_GDAL and (wkt_string is not None):
         srs = osgeo.osr.SpatialReference()
-        srs.ImportFromWkt(wkt_string)
-        p_src = pyproj.Proj(srs.ExportToProj4())
-    except:
+        result=srs.ImportFromWkt(wkt_string)
+        try:
+            p_src = pyproj.Proj(srs.ExportToProj4())
+        except:
+            logger.warn('pyproj returned exception: %s'%e.message)
+
+    if p_src is None:
+        logger.warn("Warning! Assuming lon/lat coordinates on Clarke 1866 ellipsoid since no wkt string provided and/or GDAL not available.")
         p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
 
     # check for hemisphere
-    if np.median(np.array(lat)) < 0.:
+    if np.median(nplat) < 0.:
         south='+south '
     else:
         south=''
@@ -580,8 +615,20 @@ class NetCdfData(DataSource):
         # see if there is a WKT string to convert coordinates
         try:
             wkt_string=datavar.esri_pe_string
+            self.logger.debug("wkt_string is: %s"%wkt_string)
         except:
             wkt_string=None
+
+        # CF GDAL output: see if there is a grid_mapping attribute which
+        # contains the name of a dummy variable that holds information about
+        # mapping. GDAL puts the WKT string into spatial_ref:
+        if wkt_string is None:
+            try:
+                mapvar=f.variables[datavar.grid_mapping]
+                wkt_string=mapvar.spatial_ref
+                self.logger.debug("wkt_string is: %s"%wkt_string)
+            except:
+                self.logger.debug("no wkt_string found!")
 
         # actual_range & geospatial_lon_min/max do not always contain correct
         # values so we have to obtain the min/max in a less efficient way:
