@@ -186,14 +186,14 @@ lapack_libs = ['lapack_atlas']
 silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/usr/local'
+#silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
 silo_libs = ['siloh5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
-visit = True
+visit = False
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
 visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
