@@ -86,7 +86,7 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2, phi
             break
     return alpha, phi_a, gphi_a
 
-def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMAX=15):
+def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMAX=15):
     """
     Line search method that satisfies the strong Wolfe conditions.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -96,6 +96,8 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
     :param p: search direction
     :param g_Jx: value for the gradient of f at x
     :param Jx: value of f(x)
+    :param alpha: initial step length. If g_Jx is properly scaled alpha=1 is a
+                  reasonable starting value.
     :param alpha_truncationax: algorithm terminates if alpha reaches this value
     :param c1: value for Armijo condition (see reference)
     :param c2: value for curvature condition (see reference)
@@ -103,7 +105,6 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
     """
     # this stores the latest gradf(x+a*p) which is returned
     g_Jx_new=[g_Jx]
-    import time
     def phi(a, *args):
         """ phi(a):=f(x+a*p) """
         return f(x+a*p, *args)
@@ -117,8 +118,6 @@ def line_search(f, x, p, g_Jx, Jx, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMA
             args=()
         return args
     old_alpha=0.
-    # we assume g_Jx is properly scaled so alpha=1 is a reasonable starting value
-    alpha=1.
     if Jx is None:
         args0=phiargs(0.)
         phi0=phi(0., *args0)
@@ -317,6 +316,8 @@ class MinimizerLBFGS(AbstractMinimizer):
           k=0
           break_down = False
           s_and_y=[]
+          # initial step length for line search
+          alpha=1.0
           self._doCallback(n_iter, x, Jx, g_Jx)
 
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
@@ -331,8 +332,12 @@ class MinimizerLBFGS(AbstractMinimizer):
                 if invH_scale: self.logger.debug("\tH = %s"%invH_scale)
 
                 p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
-                # determine step length
-                alpha, Jx_new, g_Jx_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx)
+
+                # determine new step length using the last one as initial value
+                # however, avoid using too small steps for too long...
+                if alpha <= 0.5:
+                    alpha=2*alpha
+                alpha, Jx_new, g_Jx_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, alpha)
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
                 # gradient for the new solution approximation x_new=x+alpha*p
