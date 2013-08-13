@@ -334,9 +334,17 @@ class MinimizerLBFGS(AbstractMinimizer):
                 p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
 
                 # determine new step length using the last one as initial value
-                # however, avoid using too small steps for too long...
-                if alpha <= 0.5:
-                    alpha=2*alpha
+                # however, avoid using too small steps for too long.
+                # FIXME: This is a bit specific to esys.downunder in that the
+                # inverse Hessian approximation is not scaled properly (only
+                # the regularization term is used at the moment)...
+                if invH_scale is None:
+                    if alpha <= 0.5:
+                        alpha=2*alpha
+                else:
+                    # reset alpha for the case that the cost function does not
+                    # provide an approximation of inverse H
+                    alpha=1.0
                 alpha, Jx_new, g_Jx_new = line_search(self.getCostFunction(), x, p, g_Jx, Jx, alpha)
                 # this function returns a scaling alpha for the search
                 # direction as well as the cost function evaluation and
@@ -583,7 +591,7 @@ class MinimizerNLCG(AbstractMinimizer):
 if __name__=="__main__":
     # Example usage with function 'rosen' (minimum=[1,1,...1]):
     from scipy.optimize import rosen, rosen_der
-    from esys.downunder import  MeteredCostFunction
+    from esys.downunder import MeteredCostFunction
     import sys
     N=10
     x0=np.array([4.]*N) # initial guess
