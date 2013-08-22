@@ -60,12 +60,10 @@ vars.AddVariables(
   PathVariable('build_dir', 'Top-level build directory', Dir('#/build').abspath, PathVariable.PathIsDirCreate),
   BoolVariable('verbose', 'Output full compile/link lines', False),
 # Compiler/Linker options
-  ('cc', 'Path to C compiler', 'default'),
   ('cxx', 'Path to C++ compiler', 'default'),
-  ('cc_flags', 'Base C/C++ compiler flags', 'default'),
-  ('cc_optim', 'Additional C/C++ flags for a non-debug build', 'default'),
-  ('cc_debug', 'Additional C/C++ flags for a debug build', 'default'),
-  ('cc_extra', 'Extra C compiler flags', ''),
+  ('cc_flags', 'Base C++ compiler flags', 'default'),
+  ('cc_optim', 'Additional C++ flags for a non-debug build', 'default'),
+  ('cc_debug', 'Additional C++ flags for a debug build', 'default'),
   ('cxx_extra', 'Extra C++ compiler flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
   BoolVariable('werror','Treat compiler warnings as errors', True),
@@ -148,7 +146,6 @@ env = Environment(tools = ['default'], options = vars,
 
 # set the vars for clang
 def mkclang(env):
-    env['CC']='clang'
     env['CXX']='clang++'
 
 if env['tools_names'] != 'default':
@@ -207,7 +204,6 @@ env.Append(LIBPATH = [env['libinstall']])
 
 ################# Fill in compiler options if not set above ##################
 
-if env['cc'] != 'default': env['CC']=env['cc']
 if env['cxx'] != 'default': env['CXX']=env['cxx']
 
 # version >=9 of intel C++ compiler requires use of icpc to link in C++
@@ -225,9 +221,9 @@ fatalwarning = '' # switch to turn warnings into errors
 sysheaderopt = '' # how to indicate that a header is a system header
 
 # env['CC'] might be a full path
-cc_name=os.path.basename(env['CC'])
+cc_name=os.path.basename(env['CXX'])
 
-if cc_name == 'icc':
+if cc_name == 'icpc':
     # Intel compiler
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     cc_flags    = "-std=c99 -fPIC -w2 -wd1875 -Wno-unknown-pragmas -DBLOCKTIMER -DCORE_ID1"
@@ -236,7 +232,7 @@ if cc_name == 'icc':
     omp_flags   = "-openmp"
     omp_ldflags = "-openmp -openmp_report=1"
     fatalwarning = "-Werror"
-elif cc_name[:3] == 'gcc':
+elif cc_name[:3] == 'g++':
     # GNU C on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
@@ -269,7 +265,6 @@ if env['cc_optim']    == 'default': env['cc_optim'] = cc_optim
 if env['cc_debug']    == 'default': env['cc_debug'] = cc_debug
 if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
-if env['cc_extra']  != '': env.Append(CFLAGS = env['cc_extra'])
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
@@ -446,9 +441,7 @@ env.PrependENVPath('PYTHONPATH', prefix)
 env['ENV']['ESCRIPT_ROOT'] = prefix
 
 if not env['verbose']:
-    env['CCCOMSTR'] = "Compiling $TARGET"
     env['CXXCOMSTR'] = "Compiling $TARGET"
-    env['SHCCCOMSTR'] = "Compiling $TARGET"
     env['SHCXXCOMSTR'] = "Compiling $TARGET"
     env['ARCOMSTR'] = "Linking $TARGET"
     env['LINKCOMSTR'] = "Linking $TARGET"
@@ -585,7 +578,7 @@ env.Default('install_all')
 ################## Targets to build and run the test suite ###################
 
 if not env['cppunit']:
-    test_msg = env.Command('.dummy.', None, '@echo "Cannot run C/C++ unit tests, CppUnit not found!";exit 1')
+    test_msg = env.Command('.dummy.', None, '@echo "Cannot run C++ unit tests, CppUnit not found!";exit 1')
     env.Alias('run_tests', test_msg)
     env.Alias('build_tests', '')
 env.Alias('run_tests', ['install_all'])

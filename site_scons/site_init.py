@@ -24,7 +24,7 @@ import sys, os, time, py_compile, re, subprocess
 from SCons.Defaults import Chmod, Copy
 from grouptest import *
 
-def findLibWithHeader(env, libs, header, paths, lang='c'):
+def findLibWithHeader(env, libs, header, paths, lang='c++'):
     from SCons.Script.SConscript import Configure
     inc_path=''
     lib_path=''
@@ -138,7 +138,7 @@ def runUnitTest(target, source, env):
   else:
       if env['usempi']:
           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-            "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s"\
+            "FINLEY_TEST_DATA,PATH %s"\
             %(pn,env['ENV']['ESCRIPT_NUM_NODES'], sn)
       else:
            app = "cd "+ pn +" & "+sn
@@ -154,10 +154,10 @@ def runPyUnitTest(target, source, env):
    time_start = time.time()
    app = str(source[0].abspath)
    pn, sn= os.path.split(app)
-   if os.name== "nt":
+   if os.name=="nt":
        if env['usempi']:
            app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
-              "FINLEY_TEST_DATA,PYVISI_TEST_DATA_ROOT,PYVISI_WORKDIR,PATH %s\pythonMPIredirect.exe %s"\
+              "FINLEY_TEST_DATA,PATH %s\pythonMPIredirect.exe %s"\
               %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
@@ -178,7 +178,7 @@ def eps2pdf(target, source, env):
    return None
 
 def effectiveName(inname):
-   m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")	# savanna names take the form r1i?n?
-   if m.match(inname):
-	return "savanna"
-   return inname
+    m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")	# savanna names take the form r1i?n?
+    if m.match(inname):
+        return "savanna"
+    return inname

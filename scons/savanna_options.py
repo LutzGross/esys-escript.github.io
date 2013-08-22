@@ -33,15 +33,11 @@ escript_opts_version = 201
 # DEFAULT: 'build'
 #build_dir = 'build'
 
-# C compiler command name or full path.
-# DEFAULT: auto-detected
-#cc = 'gcc'
-
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
 #cxx = 'g++'
 
-# Flags to use with both C and C++ compilers. Do not set unless you know
+# Flags to use with the C++ compiler. Do not set unless you know
 # what you are doing - use cc_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 #cc_flags = ''
@@ -54,11 +50,7 @@ escript_opts_version = 201
 # DEFAULT: compiler-dependent
 #cc_debug = '-g'
 
-# Additional flags to add to the C compiler only
-# DEFAULT: '' (empty)
-cc_extra = '-sox'
-
-# Additional flags to add to the C++ compiler only
+# Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 cxx_extra = '-g -sox -I/sw/libs/numpy/x86_64/icc-13/numpy-1.6.2-py27/lib/python2.7/site-packages/numpy/core/include'
 
@@ -94,7 +86,6 @@ openmp = True
 # Recognized values: 'none', 'MPT', 'MPICH', 'MPICH2', 'OPENMPI', 'INTELMPI'
 # DEFAULT: 'none' (disable MPI)
 mpi = 'INTELMPI'
-#mpi = 'none'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/sw/sdev/intel/impi/4.1.1.036/intel64'
