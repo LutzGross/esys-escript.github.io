@@ -28,32 +28,25 @@ from site_init import findLibWithHeader, detectModule
 
 def checkCompiler(env):
     conf = Configure(env.Clone())
-    if 'CheckCC' in dir(conf): # exists since scons 1.1.0
-        if not conf.CheckCC():
-            print("Cannot run C compiler '%s' (check config.log)" % (env['CC']))
-            env.Exit(1)
+    if 'CheckCXX' in dir(conf): # exists since scons 1.1.0
         if not conf.CheckCXX():
             print("Cannot run C++ compiler '%s' (check config.log)" % (env['CXX']))
             env.Exit(1)
     else:
-        if not conf.CheckFunc('printf', language='c'):
-            print("Cannot run C compiler '%s' (check config.log)" % (env['CC']))
-            env.Exit(1)
         if not conf.CheckFunc('printf', language='c++'):
             print("Cannot run C++ compiler '%s' (check config.log)" % (env['CXX']))
             env.Exit(1)
 
-    conf.env['buildvars']['cc']=conf.env['CC']
     conf.env['buildvars']['cxx']=conf.env['CXX']
 
-    if conf.CheckFunc('gethostname'):
+    if conf.CheckFunc('gethostname', language='c++'):
         conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
 
-    if conf.CheckCHeader('byteswap.h'):
+    if conf.CheckCXXHeader('byteswap.h'):
         conf.env.Append(CPPDEFINES = ['HAVE_BYTESWAP_H'])
-    if conf.CheckCHeader('sys/endian.h'):
+    if conf.CheckCXXHeader('sys/endian.h'):
         conf.env.Append(CPPDEFINES = ['HAVE_SYS_ENDIAN_H'])
-    if conf.CheckCHeader('libkern/OSByteOrder.h'):
+    if conf.CheckCXXHeader('libkern/OSByteOrder.h'):
         conf.env.Append(CPPDEFINES = ['HAVE_OSBYTEORDER_H'])
 
     return conf.Finish()
@@ -147,10 +140,10 @@ def checkPython(env):
     # The wrapper script needs to find the libs
     conf.env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], python_lib_path)
 
-    if not conf.CheckCHeader('Python.h'):
+    if not conf.CheckCXXHeader('Python.h'):
         print("Cannot find python include files (tried 'Python.h' in directory %s)" % (python_inc_path))
         env.Exit(1)
-    if not conf.CheckFunc('Py_Exit'):
+    if not conf.CheckFunc('Py_Exit', language='c++'):
         print("Cannot find python library method Py_Main (tried %s in directory %s)" % (python_libs, python_lib_path))
         env.Exit(1)
 
@@ -256,7 +249,7 @@ def checkOptionalLibraries(env):
     papi_inc_path=''
     papi_lib_path=''
     if env['papi']:
-        papi_inc_path,papi_lib_path=findLibWithHeader(env, env['papi_libs'], 'papi.h', env['papi_prefix'], lang='c')
+        papi_inc_path,papi_lib_path=findLibWithHeader(env, env['papi_libs'], 'papi.h', env['papi_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [papi_inc_path])
         env.AppendUnique(LIBPATH = [papi_lib_path])
         env.AppendUnique(LIBS = env['papi_libs'])
@@ -270,7 +263,7 @@ def checkOptionalLibraries(env):
     mkl_inc_path=''
     mkl_lib_path=''
     if env['mkl']:
-        mkl_inc_path,mkl_lib_path=findLibWithHeader(env, env['mkl_libs'], 'mkl_solver.h', env['mkl_prefix'], lang='c')
+        mkl_inc_path,mkl_lib_path=findLibWithHeader(env, env['mkl_libs'], 'mkl_solver.h', env['mkl_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mkl_inc_path])
         env.AppendUnique(LIBPATH = [mkl_lib_path])
         env.AppendUnique(LIBS = env['mkl_libs'])
@@ -284,7 +277,7 @@ def checkOptionalLibraries(env):
     umfpack_inc_path=''
     umfpack_lib_path=''
     if env['umfpack']:
-        umfpack_inc_path,umfpack_lib_path=findLibWithHeader(env, env['umfpack_libs'], 'umfpack.h', env['umfpack_prefix'], lang='c')
+        umfpack_inc_path,umfpack_lib_path=findLibWithHeader(env, env['umfpack_libs'], 'umfpack.h', env['umfpack_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [umfpack_inc_path])
         env.AppendUnique(LIBPATH = [umfpack_lib_path])
         env.AppendUnique(LIBS = env['umfpack_libs'])
@@ -307,7 +300,7 @@ def checkOptionalLibraries(env):
         if env['lapack']=='mkl':
             env.AppendUnique(CPPDEFINES = ['MKL_LAPACK'])
             header='mkl_lapack.h'
-        lapack_inc_path,lapack_lib_path=findLibWithHeader(env, env['lapack_libs'], header, env['lapack_prefix'], lang='c')
+        lapack_inc_path,lapack_lib_path=findLibWithHeader(env, env['lapack_libs'], header, env['lapack_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [lapack_inc_path])
         env.AppendUnique(LIBPATH = [lapack_lib_path])
         env.AppendUnique(LIBS = env['lapack_libs'])
@@ -320,7 +313,7 @@ def checkOptionalLibraries(env):
     silo_inc_path=''
     silo_lib_path=''
     if env['silo']:
-        silo_inc_path,silo_lib_path=findLibWithHeader(env, env['silo_libs'], 'silo.h', env['silo_prefix'], lang='c')
+        silo_inc_path,silo_lib_path=findLibWithHeader(env, env['silo_libs'], 'silo.h', env['silo_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [silo_inc_path])
         env.AppendUnique(LIBPATH = [silo_lib_path])
         # Note that we do not add the libs since they are only needed for the
@@ -334,7 +327,7 @@ def checkOptionalLibraries(env):
     visit_inc_path=''
     visit_lib_path=''
     if env['visit']:
-        visit_inc_path,visit_lib_path=findLibWithHeader(env, env['visit_libs'], 'VisItControlInterface_V2.h', env['visit_prefix'], lang='c')
+        visit_inc_path,visit_lib_path=findLibWithHeader(env, env['visit_libs'], 'VisItControlInterface_V2.h', env['visit_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [visit_inc_path])
         env.AppendUnique(LIBPATH = [visit_lib_path])
         env['buildvars']['visit_inc_path']=visit_inc_path
@@ -349,7 +342,7 @@ def checkOptionalLibraries(env):
     mpi_inc_path=''
     mpi_lib_path=''
     if env['usempi']:
-        mpi_inc_path,mpi_lib_path=findLibWithHeader(env, env['mpi_libs'], 'mpi.h', env['mpi_prefix'], lang='c')
+        mpi_inc_path,mpi_lib_path=findLibWithHeader(env, env['mpi_libs'], 'mpi.h', env['mpi_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [mpi_inc_path])
         env.AppendUnique(LIBPATH = [mpi_lib_path])
         env.AppendUnique(LIBS = env['mpi_libs'])
@@ -369,7 +362,7 @@ def checkOptionalLibraries(env):
     boomeramg_inc_path=''
     boomeramg_lib_path=''
     if env['boomeramg']:
-        boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c')
+        boomeramg_inc_path,boomeramg_lib_path=findLibWithHeader(env, env['boomeramg_libs'], 'HYPRE.h', env['boomeramg_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [boomeramg_inc_path])
         env.AppendUnique(LIBPATH = [boomeramg_lib_path])
         env.AppendUnique(LIBS = env['boomeramg_libs'])
@@ -384,7 +377,7 @@ def checkOptionalLibraries(env):
     parmetis_inc_path=''
     parmetis_lib_path=''
     if env['parmetis']:
-        parmetis_inc_path,parmetis_lib_path=findLibWithHeader(env, env['parmetis_libs'], 'parmetis.h', env['parmetis_prefix'], lang='c')
+        parmetis_inc_path,parmetis_lib_path=findLibWithHeader(env, env['parmetis_libs'], 'parmetis.h', env['parmetis_prefix'], lang='c++')
         env.AppendUnique(CPPPATH = [parmetis_inc_path])
         env.AppendUnique(LIBPATH = [parmetis_lib_path])
         env.AppendUnique(LIBS = env['parmetis_libs'])

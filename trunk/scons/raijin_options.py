@@ -26,16 +26,12 @@ escript_opts_version = 201
 # DEFAULT: 'build'
 build_dir = '/short/r17/cha564/escript_build'
 
-# C compiler command name or full path.
-# DEFAULT: auto-detected
-#cc = 'gcc'
-
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
 #cxx = 'g++'
 
-# Flags to use with both C and C++ compilers. Do not set unless you know
-# what you are doing - use cc_extra to specify additional flags!
+# Flags to use with the C++ compiler. Do not set unless you know
+# what you are doing - use cxx_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 #cc_flags = ''
 
@@ -47,11 +43,7 @@ build_dir = '/short/r17/cha564/escript_build'
 # DEFAULT: compiler-dependent
 #cc_debug = '-g'
 
-# Additional flags to add to the C compiler only
-# DEFAULT: '' (empty)
-cc_extra = '-sox -I/apps/metis/5.0.2/include'
-
-# Additional flags to add to the C++ compiler only
+# Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 cxx_extra = '-sox -I/apps/python/2.7.3/lib/python2.7/site-packages/numpy/core/include -I/apps/metis/5.0.2/include -wd981'
 

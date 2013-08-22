@@ -18,7 +18,7 @@ Import('*')
 local_env = env.Clone()
 
 # get the test source file names
-sources = Glob('*.cpp')+Glob('*.c')
+sources = Glob('*.cpp')
 
 # some of these test files are too large to optimize
 local_env['CCFLAGS'] = re.sub('-O[0-9]', '-g', str(local_env['CCFLAGS']))

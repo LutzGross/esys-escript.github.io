@@ -40,16 +40,12 @@ escript_opts_version = 201
 # DEFAULT: 'build'
 #build_dir = 'build'
 
-# C compiler command name or full path.
-# DEFAULT: auto-detected
-#cc = 'gcc'
-
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
 #cxx = 'g++'
 
-# Flags to use with both C and C++ compilers. Do not set unless you know
-# what you are doing - use cc_extra to specify additional flags!
+# Flags to use with the C++ compiler. Do not set unless you know
+# what you are doing - use cxx_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 cc_flags = '/EHsc /GR /MD /Qvc7.1'
 
@@ -61,11 +57,7 @@ cc_optim = '/fast /Oi /W3 /Qssp /Qinline-factor- /Qinline-min-size=0 /Qunroll'
 # DEFAULT: compiler-dependent
 cc_debug = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
 
-# Additional flags to add to the C compiler only
-# DEFAULT: '' (empty)
-#cc_extra = ''
-
-# Additional flags to add to the C++ compiler only
+# Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = ''
 

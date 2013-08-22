@@ -40,33 +40,25 @@ escript_opts_version = 200
 # DEFAULT: 'build'
 #build_dir = 'build'
 
-# C compiler command name or full path.
-# DEFAULT: auto-detected
-#cc = 'gcc'
-
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
 #cxx = 'g++'
 
-# Flags to use with both C and C++ compilers. Do not set unless you know
-# what you are doing - use cc_extra to specify additional flags!
+# Flags to use with the C++ compiler. Do not set unless you know
+# what you are doing - use cxx_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 cc_flags = '/EHsc /GR /MD /I"C:/Program Files (x86)/Intel/Composer XE 2011 SP1/compiler/include/"'
 
 # Additional compiler (optimization) flags for non-debug builds
 # DEFAULT: compiler-dependent
-cc_optim = '/fast /Oi /W3 /Qinline-factor- /Qinline-min-size=0 /Qunroll'
+#cc_optim = '/fast /Oi /W3 /Qinline-factor- /Qinline-min-size=0 /Qunroll'
 cc_optim = '/fast /Oi /Qunroll'
 
 # Additional compiler flags for debug builds
 # DEFAULT: compiler-dependent
 #cc_debug = '/Od /RTCcsu /Zi /Y- /debug:all /Qtrapuv'
 
-# Additional flags to add to the C compiler only
-# DEFAULT: '' (empty)
-#cc_extra = ''
-
-# Additional flags to add to the C++ compiler only
+# Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = ''
 

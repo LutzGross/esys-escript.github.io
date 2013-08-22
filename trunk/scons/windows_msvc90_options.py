@@ -40,16 +40,12 @@ escript_opts_version = 201
 # DEFAULT: 'build'
 #build_dir = 'build'
 
-# C compiler command name or full path.
-# DEFAULT: auto-detected
-#cc = 'cl'
-
 # C++ compiler command name or full path.
 # DEFAULT: auto-detected
 #cxx = 'cl'
 
-# Flags to use with both C and C++ compilers. Do not set unless you know
-# what you are doing - use cc_extra to specify additional flags!
+# Flags to use with the C++ compiler. Do not set unless you know
+# what you are doing - use cxx_extra to specify additional flags!
 # DEFAULT: compiler-dependent
 cc_flags = '/EHsc /GR /wd4068 /MD'
 
@@ -61,11 +57,7 @@ cc_optim = '/O2 /W3'
 # DEFAULT: compiler-dependent
 cc_debug = '/Od /RTCcsu /ZI /Yd /Y-'
 
-# Additional flags to add to the C compiler only
-# DEFAULT: '' (empty)
-#cc_extra = ''
-
-# Additional flags to add to the C++ compiler only
+# Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
 #cxx_extra = ''
 

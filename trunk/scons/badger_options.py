@@ -37,10 +37,6 @@ escript_opts_version = 201
 # DEFAULT: 'build'
 #build_dir = 'build'
 
-# C compiler command name or full path.
-# DEFAULT: auto-detected
-#cc = 'gcc'
-
 dudley_assemble_flags = '-funroll-loops'
 
 # C++ compiler command name or full path.
@@ -59,10 +55,6 @@ dudley_assemble_flags = '-funroll-loops'
 # Additional compiler flags for debug builds
 # DEFAULT: compiler-dependent
 #cc_debug = '-g'
-
-# Additional flags to add to the C compiler only
-# DEFAULT: '' (empty)
-#cc_extra = '--std=c99'
 
 # Additional flags to add to the C++ compiler only
 # DEFAULT: '' (empty)
