@@ -121,7 +121,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         south='+south '
     else:
         south=''
-    p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m'%(zone,south))
+    p_dest = pyproj.Proj('+proj=utm +zone=%d %s+units=m +ellps=WGS84'%(zone,south))
     x,y=pyproj.transform(p_src, p_dest, lon, lat)
     return x,y,zone
 
