@@ -93,13 +93,13 @@
 typedef struct {
     index_t method;
     index_t package;
-    bool_t symmetric;
+    bool symmetric;
     double tolerance;
     double absolute_tolerance;
     double inner_tolerance;
-    bool_t adapt_inner_tolerance;
-    bool_t verbose;
-    bool_t reordering;
+    bool adapt_inner_tolerance;
+    bool verbose;
+    bool reordering;
     index_t preconditioner;
     dim_t iter_max;
     dim_t inner_iter_max;
@@ -115,15 +115,15 @@ typedef struct {
     dim_t min_coarse_matrix_size;
     dim_t smoother;
     double coarsening_threshold;
-    bool_t accept_failed_convergence;
+    bool accept_failed_convergence;
     index_t coarsening_method;
     double relaxation_factor;
-    bool_t use_local_preconditioner;
+    bool use_local_preconditioner;
     double min_coarse_sparsity;
     dim_t refinements;
     dim_t coarse_matrix_refinements;
     double diagonal_dominance_threshold;
-    bool_t usePanel;
+    bool usePanel;
     index_t interpolation_method;
     index_t ode_solver;
     
@@ -137,9 +137,9 @@ typedef struct {
     double coarsening_matrix_time;
     double net_time;
     double residual_norm;
-    bool_t converged;
+    bool converged;
     double preconditioner_size; /* in Mbytes */
-    bool_t time_step_backtracking_used;
+    bool time_step_backtracking_used;
     double coarse_level_sparsity;
     dim_t num_coarse_unknowns;
 
@@ -157,9 +157,9 @@ void Paso_Options_show(const Paso_Options* options);
 PASO_DLL_API
 void Paso_Options_showDiagnostics(const Paso_Options* options);
 const char* Paso_Options_name(const index_t key);
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool_t symmetry, Esys_MPIInfo *mpi_info);
+index_t Paso_Options_getPackage(index_t solver,index_t package, bool symmetry, Esys_MPIInfo *mpi_info);
 
-index_t Paso_Options_getSolver(index_t solver,index_t package, bool_t symmetry, Esys_MPIInfo *mpi_info);
+index_t Paso_Options_getSolver(index_t solver,index_t package, bool symmetry, Esys_MPIInfo *mpi_info);
 
 #define Paso_Options_copy(in,out) memcpy((Paso_Options*)out,(Paso_Options*)in,sizeof(Paso_Options))
 

@@ -53,20 +53,20 @@ void Esys_setError(Esys_ErrorCodeType err,__const char* msg) {
 }
                                                                                                                                                                                                      
 /* checks if there is no error */
-bool_t Esys_noError(void) {
+bool Esys_noError(void) {
    Esys_ErrorCodeType err=Esys_getErrorType();
    /* return (err==NO_ERROR ||  err==WARNING);*/
    return (err==NO_ERROR);
 }
 /* This function checks if the pointer ptr has a target. If not an
-   error is raised and TRUE is returned. */
+   error is raised and true is returned. */
 
-bool_t Esys_checkPtr(void* ptr) {
+bool Esys_checkPtr(void* ptr) {
    if (ptr==NULL) {
       Esys_setError(MEMORY_ERROR,"Out of memory.");
-      return TRUE;
+      return true;
    } else {
-      return FALSE;
+      return false;
    }
 } 
 

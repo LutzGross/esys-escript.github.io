@@ -37,7 +37,7 @@
 /************************************************************************************/
 
 index_t Paso_Util_cumsum(dim_t,index_t*);
-bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value);
+bool Paso_Util_isAny(dim_t N,index_t* array,index_t value);
 void Paso_zeroes(const dim_t n, double* x);
 void Paso_Update(const dim_t n, const double a, double* x, const double b, const double* y);
 void Paso_LinearCombination(const dim_t n, double*z, const double a,const double* x, const double b, const double* y);
@@ -45,10 +45,10 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Esys_MP
 double Paso_l2(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo);
 void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* s);
 void Paso_Copy(const dim_t n, double* out, const double* in);
-bool_t Paso_fileExists( const char* filename );
+bool Paso_fileExists( const char* filename );
 double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo);
-index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask);
-index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask);
+index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool* mask);
+index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool* mask);
 index_t Paso_Util_arg_max(dim_t n, dim_t* lambda);
 index_t Paso_Util_iMax(const dim_t N,const index_t* array);
 dim_t Paso_Util_numPositives(const dim_t N, const double *x);

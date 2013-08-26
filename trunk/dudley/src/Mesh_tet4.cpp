@@ -27,7 +27,7 @@
 
 /* Be careful reading this function. The X? and NStride? are 1,2,3 but the loop vars are 0,1,2 */
 Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
-					double *Length, index_t order, index_t reduced_order, bool_t optimize)
+					double *Length, index_t order, index_t reduced_order, bool optimize)
 {
 #define N_PER_E 1
 #define DIM 3

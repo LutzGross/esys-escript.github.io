@@ -34,10 +34,10 @@
 /************************************************************************************/
 
 void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, escriptDataC * lumpedMat,
-				  escriptDataC * D, const bool_t useHRZ)
+				  escriptDataC * D, const bool useHRZ)
 {
 
-    bool_t reducedIntegrationOrder = FALSE, expandedD;
+    bool reducedIntegrationOrder = FALSE, expandedD;
     char error_msg[LenErrorMsg_MAX];
     Dudley_Assemble_Parameters p;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK], k, e, len_EM_lumpedMat, q, s;

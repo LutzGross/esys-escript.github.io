@@ -57,7 +57,7 @@ void Paso_UMFPACK(Paso_SparseMatrix* A,
                           double* out,
                           double* in,
 		          dim_t numRefinements,
-		          bool_t verbose) 
+		          bool verbose) 
 {
 #ifdef UMFPACK
      double time0;

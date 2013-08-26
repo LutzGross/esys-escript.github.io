@@ -23,7 +23,7 @@
 
 /************************************************************************************/
 
-void Dudley_Mesh_prepare(Dudley_Mesh * in, bool_t optimize)
+void Dudley_Mesh_prepare(Dudley_Mesh * in, bool optimize)
 {
     dim_t newGlobalNumDOFs = 0, numReducedNodes = 0, i;
     index_t *distribution = NULL, *maskReducedNodes = NULL, *indexReducedNodes = NULL, *node_distribution = NULL;

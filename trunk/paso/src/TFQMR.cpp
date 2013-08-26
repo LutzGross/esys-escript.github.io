@@ -83,7 +83,7 @@ err_t Paso_Solver_TFQMR(
   int j=0;
   
   dim_t num_iter=0,maxit;
-  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double  *u1=NULL, *u2=NULL, *y1=NULL, *y2=NULL, *d=NULL, *w=NULL, *v=NULL, *temp_vector=NULL,*res=NULL;

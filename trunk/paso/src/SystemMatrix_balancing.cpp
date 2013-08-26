@@ -33,7 +33,7 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 
-void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool_t RHS)
+void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool RHS)
 {
    const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
    const dim_t ncol=Paso_SystemMatrix_getTotalNumCols(A);
@@ -55,7 +55,7 @@ void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x
    return;
 }
 
-void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool_t RHS)
+void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool RHS)
 {
    const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
    const dim_t ncol=Paso_SystemMatrix_getTotalNumCols(A);

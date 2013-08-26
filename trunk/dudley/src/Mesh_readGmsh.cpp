@@ -30,8 +30,8 @@
 
 #define MAX_numNodes_gmsh 20
 
-Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, index_t reduced_order, bool_t optimize,
-				  bool_t useMacroElements)
+Dudley_Mesh *Dudley_Mesh_readGmsh(char *fname, index_t numDim, index_t order, index_t reduced_order, bool optimize,
+				  bool useMacroElements)
 {
 
     double version = 1.0;

@@ -141,7 +141,7 @@ void Dudley_Mesh_write(Dudley_Mesh * in, char *fname)
 #endif
 }
 
-void Dudley_PrintMesh_Info(Dudley_Mesh * in, bool_t full)
+void Dudley_PrintMesh_Info(Dudley_Mesh * in, bool full)
 {
     int NN, i, j, numDim;
     Dudley_TagMap *tag_map = in->TagMap;

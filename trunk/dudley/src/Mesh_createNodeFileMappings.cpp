@@ -25,7 +25,7 @@
 
 /************************************************************************************/
 
-void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool_t use_reduced_elements)
+void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_elements)
 {
     index_t min_DOF, max_DOF, *shared = NULL, *offsetInShared = NULL, *locDOFMask =
 	NULL, i, k, myFirstDOF, myLastDOF, *nodeMask = NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs = NULL;

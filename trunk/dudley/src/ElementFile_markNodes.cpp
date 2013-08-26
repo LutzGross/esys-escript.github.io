@@ -26,7 +26,7 @@
 /************************************************************************************/
 
 void Dudley_ElementFile_markNodes(index_t * mask, index_t offset, dim_t numNodes, Dudley_ElementFile * in,
-				  bool_t useLinear)
+				  bool useLinear)
 {
     dim_t i, NN, e;
     if (in != NULL)
@@ -45,7 +45,7 @@ void Dudley_ElementFile_markNodes(index_t * mask, index_t offset, dim_t numNodes
 
 void Dudley_ElementFile_markDOFsConnectedToRange(index_t * mask, index_t offset, index_t marker, index_t firstDOF,
 						 index_t lastDOF, index_t * dofIndex, Dudley_ElementFile * in,
-						 bool_t useLinear)
+						 bool useLinear)
 {
     dim_t i, NN, e, j;
     index_t color;

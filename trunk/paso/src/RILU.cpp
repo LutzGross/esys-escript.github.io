@@ -71,7 +71,7 @@ to
    then RILU is applied to S again until S becomes empty 
 
 */
-Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool_t verbose) {
+Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool verbose) {
   Paso_Solver_RILU* out=NULL;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;

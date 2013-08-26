@@ -81,7 +81,7 @@ err_t Paso_Solver_MINRES(
     dim_t     num_iter = 0;
     double    *Z=NULL, *W=NULL, *AZ=NULL, *R_old=NULL, *R_ancient=NULL, *W_old=NULL, *W_ancient=NULL, *ZNEW=NULL;
     const dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
-    bool_t convergeFlag=FALSE;
+    bool convergeFlag=FALSE;
     err_t status = SOLVER_NO_ERROR;
 /*                                                                 
  *                                                                 

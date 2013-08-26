@@ -58,6 +58,9 @@ void seedGens(long seed)
   
 }
 
+namespace esysUtils
+{
+
 // Put n random values into array
 // Idea here is to create an array of seeds by feeding the original seed into the random generator
 // The code at the beginning of the function to compute the seed if one is given is
@@ -118,3 +121,5 @@ void randomFillArray(long seed, double* array, size_t n)
     	}
     }
 }
+
+} // end namespace

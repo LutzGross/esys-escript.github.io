@@ -95,12 +95,13 @@ dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditione
 Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
 
   Paso_Preconditioner_LocalAMG* out=NULL;
-  bool_t verbose=options->verbose;
+  bool verbose=options->verbose;
   
   Paso_SparseMatrix *Atemp=NULL, *A_C=NULL;
   const dim_t n=A_p->numRows;
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
+  bool* F_marker=NULL;
+  index_t *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
   dim_t n_F=0, n_C=0, i;
   double time0=0;
   const double theta = options->coarsening_threshold;
@@ -145,7 +146,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   } 
      /* Start Coarsening : */
 
-     F_marker=new index_t[n];
+     F_marker=new bool[n];
      counter=new index_t[n];
      degree_S=new dim_t[n];
      S=new index_t[A_p->pattern->len];
@@ -501,10 +502,10 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 /* the Runge Stueben coarsening algorithm: */
 void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
-						index_t*split_marker, const bool_t usePanel)
+						bool*split_marker, const bool usePanel)
 {
-   
-   index_t *lambda=NULL, *ST=NULL, *notInPanel=NULL, *panel=NULL, lambda_max, lambda_k;
+   bool* notInPanel=NULL;
+   index_t *lambda=NULL, *ST=NULL, *panel=NULL, lambda_max, lambda_k;
    dim_t i,k, p, q, *degree_ST=NULL, len_panel, len_panel_new;
    register index_t j, itmp;
    
@@ -518,7 +519,7 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
    Esys_checkPtr(ST);
    if (usePanel) {
       if (!SMALL_PANEL) {
-	 notInPanel=new bool_t[n];
+	 notInPanel=new bool[n];
 	 Esys_checkPtr(notInPanel);
       }
       panel=new index_t[n];
@@ -728,7 +729,7 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
 /* ensures that two F nodes are connected via a C node :*/
 void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
-						index_t*split_marker)
+						bool* split_marker)
 {
       dim_t i, p, q;
 

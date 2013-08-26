@@ -51,14 +51,14 @@ typedef Esys_ErrorCodeType Dudley_ErrorCodeType;
 /* interfaces */
 
 double Dudley_timer(void);
-bool_t Dudley_checkPtr(void *);
+bool Dudley_checkPtr(void *);
 void Dudley_resetError(void);
 void Dudley_setError(Dudley_ErrorCodeType err, __const char *msg);
-bool_t Dudley_noError(void);
+bool Dudley_noError(void);
 Dudley_ErrorCodeType Dudley_getErrorType(void);
 char *Dudley_getErrorMessage(void);
 void Dudley_convertPasoError(void);
-bool_t Dudley_MPI_noError(Esys_MPIInfo * mpi_info);
+bool Dudley_MPI_noError(Esys_MPIInfo * mpi_info);
 void Dudley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t * numTagsInUse, index_t ** tagsInUse,
 			 Esys_MPIInfo * mpiinfo);
 

@@ -26,7 +26,7 @@
 
 /* returns a reference to the matrix pattern                  */
 
-Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool_t reduce_row_order, bool_t reduce_col_order)
+Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
 {
     Paso_SystemMatrixPattern *out = NULL;
     Dudley_resetError();
@@ -85,7 +85,7 @@ Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool_t reduce_ro
     return out;
 }
 
-Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool_t reduce_row_order, bool_t reduce_col_order)
+Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
 {
     Paso_SystemMatrixPattern *out = NULL;
     Paso_Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;

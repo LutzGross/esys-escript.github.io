@@ -33,7 +33,7 @@ index_t Dudley_Mesh_getTag(Dudley_Mesh * mesh_p, const char *name)
     return Dudley_TagMap_getTag(mesh_p->TagMap, name);
 }
 
-bool_t Dudley_Mesh_isValidTagName(Dudley_Mesh * mesh_p, const char *name)
+bool Dudley_Mesh_isValidTagName(Dudley_Mesh * mesh_p, const char *name)
 {
     return Dudley_TagMap_isValidTagName(mesh_p->TagMap, name);
 }

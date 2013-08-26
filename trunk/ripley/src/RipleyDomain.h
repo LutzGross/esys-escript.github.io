@@ -611,6 +611,18 @@ public:
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const = 0;
+    
+    
+    /**
+     * \brief true if this domain can handle to specified tuple of filter options.
+    */
+    virtual bool supportsFilter(const boost::python::tuple& t) const;
+    
+    /**
+     * \brief Generate filtered random data
+    */     
+    virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
+    
 
 protected:
     dim_t m_numDim;

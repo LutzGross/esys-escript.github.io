@@ -73,7 +73,7 @@ void Paso_MKL(Paso_SparseMatrix* A,
               double* in,
 	      index_t reordering,
 	      dim_t numRefinements,
-	      bool_t verbose)
+	      bool verbose)
 {	      
 
 #ifdef MKL

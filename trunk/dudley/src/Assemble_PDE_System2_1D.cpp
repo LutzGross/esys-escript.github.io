@@ -56,14 +56,14 @@ void Dudley_Assemble_PDE_System2_1D(Dudley_Assemble_Parameters p, Dudley_Element
     index_t *row_index;
     register dim_t q, s, r, k, m;
     register double rtmp;
-    bool_t add_EM_F, add_EM_S;
+    bool add_EM_F, add_EM_S;
 
-    bool_t extendedA = isExpanded(A);
-    bool_t extendedB = isExpanded(B);
-    bool_t extendedC = isExpanded(C);
-    bool_t extendedD = isExpanded(D);
-    bool_t extendedX = isExpanded(X);
-    bool_t extendedY = isExpanded(Y);
+    bool extendedA = isExpanded(A);
+    bool extendedB = isExpanded(B);
+    bool extendedC = isExpanded(C);
+    bool extendedD = isExpanded(D);
+    bool extendedX = isExpanded(X);
+    bool extendedY = isExpanded(Y);
     double *F_p = (requireWrite(F), getSampleDataRW(F, 0));	/* use comma, to get around the mixed code and declarations thing */
     double *S = p.row_jac->BasisFunctions->S;
     dim_t len_EM_S = p.row_numShapes * p.row_numShapes * p.numEqu * p.numComp;

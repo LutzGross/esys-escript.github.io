@@ -32,7 +32,7 @@ void Dudley_ElementFile_setTags(Dudley_ElementFile * self, const int newTag, esc
     register dim_t n, q;
     dim_t numElements, numQuad;
     register __const double *mask_array;
-    register bool_t check;
+    register bool check;
     Dudley_resetError();
     if (self == NULL)
 	return;

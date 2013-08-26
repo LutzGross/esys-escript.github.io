@@ -34,7 +34,7 @@ void Dudley_Assemble_interpolate(Dudley_NodeFile * nodes, Dudley_ElementFile * e
 {
     __const double *data_array;
     double *local_data = NULL;
-    bool_t reduced_integration = FALSE;
+    bool reduced_integration = FALSE;
     dim_t q, i, NS_DOF, NN, numNodes = 0, e, numQuad = 0;
     dim_t numComps = getDataPointSize(data);
     index_t *map = NULL;

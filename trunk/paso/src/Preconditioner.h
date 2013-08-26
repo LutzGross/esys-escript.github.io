@@ -37,7 +37,7 @@
 
 /* GAUSS SEIDEL & Jacobi */
 typedef struct Paso_Preconditioner_LocalSmoother {
-   bool_t Jacobi;
+   bool Jacobi;
    double* diag;
    double* buffer;
    index_t* pivot;
@@ -45,19 +45,19 @@ typedef struct Paso_Preconditioner_LocalSmoother {
 
 typedef struct Paso_Preconditioner_Smoother {
    Paso_Preconditioner_LocalSmoother* localSmoother;
-   bool_t is_local;
+   bool is_local;
 } Paso_Preconditioner_Smoother;
 
 void Paso_Preconditioner_Smoother_free(Paso_Preconditioner_Smoother * in);
 void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * in);
 
 
-Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose);
-Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p,const bool_t jacobi, const bool_t verbose);
+Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool jacobi, const bool is_local, const bool verbose);
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p,const bool jacobi, const bool verbose);
 
-void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
-void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps, const bool_t x_is_initial);
-err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const double atol, dim_t *sweeps, const bool_t x_is_initial);
+void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const dim_t sweeps, const bool x_is_initial);
+void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x, const double * b, const dim_t sweeps, const bool x_is_initial);
+err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A, Paso_Preconditioner_Smoother * gs, double * x, const double * b, const double atol, dim_t *sweeps, const bool x_is_initial);
 
 void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
 void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * gs, double * x);
@@ -77,7 +77,7 @@ struct Paso_Preconditioner_AMG {
    dim_t post_sweeps;
    dim_t pre_sweeps;
    dim_t options_smoother;  /* used in direct solver */
-   bool_t verbose;	    /* used in direct solver */
+   bool verbose;	    /* used in direct solver */
    index_t reordering;  /* applied reordering in direct solver */
    dim_t refinements;  /* number of refinements in direct solver (typically =0) */
    double* r;         /* buffer for residual */
@@ -102,7 +102,7 @@ double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_
 dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG * in);
 index_t Paso_Preconditioner_AMG_getMaxLevel(const Paso_Preconditioner_AMG * in);
 void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S, const dim_t nT, dim_t *degree_ST, index_t* offset_ST,index_t* ST);
-void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, index_t*split_marker,
+void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, bool*split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
 					    Paso_Connector* col_connector, Paso_Distribution* col_dist);
@@ -135,7 +135,7 @@ void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in);
 Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
 void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalAMG * amg, double * x, double * b);
 
-void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, index_t*split_marker, const bool_t usePanel);
+void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, bool*split_marker, const bool usePanel);
 void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
 void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
 Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, const index_t* counter_C, const index_t interpolation_method);
@@ -146,7 +146,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
 index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in);
 double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in);
 dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in);
-void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, index_t*split_marker);
+void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, bool*split_marker);
 
 
 struct Paso_Preconditioner_BoomerAMG
@@ -161,7 +161,7 @@ void Paso_Preconditioner_BoomerAMG_solve(Paso_SystemMatrix* A, Paso_Precondition
 
 struct Paso_Preconditioner_AMG_Root 
 {
-  bool_t is_local;
+  bool is_local;
   Paso_Preconditioner_AMG* amg;
   Paso_Preconditioner_LocalAMG* localamg;
   Paso_Preconditioner_BoomerAMG* boomeramg;
@@ -233,11 +233,11 @@ void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,d
 
 /*******************************************/
 void Paso_Solver_ILU_free(Paso_Solver_ILU * in);
-Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A_p,bool_t verbose);
+Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A_p,bool verbose);
 void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double * x, const double * b);
 
 void Paso_Solver_RILU_free(Paso_Solver_RILU * in);
-Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool_t verbose);
+Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix * A_p,bool verbose);
 void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b);
 
 void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC, Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot, Paso_SparseMatrix *A_FC);

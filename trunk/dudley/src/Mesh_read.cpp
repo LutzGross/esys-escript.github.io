@@ -24,7 +24,7 @@
 
 #define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); Dudley_setError(IO_ERROR,"scan error while reading dudley file"); return NULL;} }
 
-Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order, bool_t optimize)
+Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order, bool optimize)
 {
     Esys_MPIInfo *mpi_info = NULL;
     dim_t numNodes, numDim, numEle, i0, i1;

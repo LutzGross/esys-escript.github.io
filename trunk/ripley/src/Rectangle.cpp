@@ -18,6 +18,7 @@
 #include <esysUtils/esysFileWriter.h>
 
 #include <boost/scoped_array.hpp>
+#include "esysUtils/EsysRandom.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -3912,6 +3913,105 @@ void Rectangle::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
         }
     } // end of parallel section
 }
+
+namespace
+{
+    // Calculates a guassian blur colvolution matrix for 2D
+    double* get2DGauss(unsigned radius, double sigma)
+    {
+        double* arr=new double[2*(radius*2+1)];
+        double common=M_1_PI*0.5*1/(sigma*sigma);
+	double total=0;
+	for (size_t y=-radius;y<=radius;++y)
+	{
+	    for (size_t x=-radius;x<=radius;++x)
+	    {
+	        arr[x+y*(radius*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
+	        total+=arr[x+y*(radius*2+1)];
+	    }
+	}
+	double invtotal=1/total;
+	for (size_t p=0;p<(2*(radius*2+1));++p)
+	{
+	    arr[p]*=invtotal; 
+	}
+	return arr;
+    }
+    
+    // applies conv to source to get a point.
+    // (xp, yp) are the coords in the source matrix not the destination matrix
+    double Convolve2D(double* conv, double* source, size_t xp, size_t yp, unsigned radius, size_t width)
+    {
+	double result=0;
+	for (size_t y=-radius;y<=radius;++y)
+	{
+	    for (size_t x=-radius;x<=radius;++x)
+	    {
+	        result+=conv[x+y*(2*radius+1)] * source[xp + yp*width];
+	    }
+	}
+        return result;      
+    }
+}
+
+
+
+escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filter) const
+{
+    if (m_mpiInfo->size!=1)
+    {
+        throw RipleyException("This type of random does not support MPI yet.");
+    }
+    if (m_numDim!=2)
+    {
+        throw RipleyException("Only 2D supported at this time.");
+    }
+    if (len(filter)!=3) {
+        throw RipleyException("Unsupported random filter");
+    }
+    boost::python::extract<string> ex(filter[0]);
+    if (!ex.check() || (ex()!="gaussian")) 
+    {
+        throw RipleyException("Unsupported random filter");
+    }
+    boost::python::extract<unsigned int> ex1(filter[1]);
+    if (!ex1.check())
+    {
+        throw RipleyException("Radius of gaussian filter must be a positive integer.");
+    }
+    unsigned int radius=ex1();
+    double sigma=0.5;
+    boost::python::extract<double> ex2(filter[2]);
+    if (!ex2.check() || (sigma=ex2())<=0)
+    {
+        throw RipleyException("Sigma must be a postive floating point number.");
+    }    
+    size_t padding=max((unsigned)max((m_NE[0]-m_ownNE[0])/2, (m_NE[1]-m_ownNE[1])/2), radius);
+    size_t width=(m_ownNE[0]+2*padding);    
+    size_t dsize=width * (m_ownNE[1]+2*padding);
+    
+    double* src=new double[dsize];
+    esysUtils::randomFillArray(seed, src, dsize);  
+  
+    // Now we need to copy the regions owned by other ranks over here  
+  
+    // Lets call that done for now
+    escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+    escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
+    // don't need to check for exwrite because we just made it
+    escript::DataVector& dv=resdat.getExpandedVectorReference();
+    double* convolution=get2DGauss(radius, sigma);
+    for (size_t y=0;y<m_ownNE[1];++y)    
+    {
+        for (size_t x=0;x<m_ownNE[0];++x)
+	{
+	    dv[x+y*width]=Convolve2D(convolution, src, x, y, radius, width);
+	}
+    }
+    return resdat;
+}
+
+
 
 
 } // end of namespace ripley

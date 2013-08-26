@@ -41,10 +41,10 @@ index_t Dudley_Util_getMaxInt(dim_t dim, dim_t N, index_t * values);
 index_t Dudley_Util_getMinInt(dim_t dim, dim_t N, index_t * values);
 index_t Dudley_Util_getFlaggedMaxInt(dim_t dim, dim_t N, index_t * values, index_t ignore);
 index_t Dudley_Util_getFlaggedMinInt(dim_t dim, dim_t N, index_t * values, index_t ignore);
-dim_t Dudley_Util_packMask(dim_t N, bool_t * mask, index_t * index);
-bool_t Dudley_Util_isAny(dim_t N, index_t * array, index_t value);
+dim_t Dudley_Util_packMask(dim_t N, index_t * mask, index_t * index);
+bool Dudley_Util_isAny(dim_t N, index_t * array, index_t value);
 index_t Dudley_Util_cumsum(dim_t, index_t *);
-bool_t Dudley_Util_anyNonZeroDouble(dim_t N, double *values);
+bool Dudley_Util_anyNonZeroDouble(dim_t N, double *values);
 void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, dim_t * numValuesInUse,
 				index_t ** valuesInUse, Esys_MPIInfo * mpiinfo);
 

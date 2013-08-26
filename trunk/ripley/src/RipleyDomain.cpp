@@ -1280,6 +1280,29 @@ void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data&
     throw RipleyException("interpolateACross() not supported");
 }
 
+// Expecting ("gaussian", radius, sigma)
+bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
+{
+    if (len(t)!=3) {
+        return false;
+    }
+    boost::python::extract<string> ex(t[0]);
+    if (!ex.check() || (ex()!="gaussian")) 
+    {
+        return false;
+    }
+    if (! boost::python::extract<unsigned int>(t[1]).check())
+    {
+        return false;
+    }
+    return boost::python::extract<double>(t[2]).check();
+}
+
+escript::Data RipleyDomain::randomFill(long seed, const boost::python::tuple& filter) const
+{
+    throw RipleyException("Filtered randoms not supported on generic Ripley domains");
+}
+
 
 } // end of namespace ripley
 

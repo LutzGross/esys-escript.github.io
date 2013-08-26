@@ -147,7 +147,7 @@ int Paso_comparIndex(const void *index1,const void *index2){
    }
 }
 
-bool_t Paso_Pattern_isEmpty(Paso_Pattern* in) {
+bool Paso_Pattern_isEmpty(Paso_Pattern* in) {
      if (in != NULL) {
          if ((in->ptr != NULL) && (in->index != NULL)) return FALSE;
      }

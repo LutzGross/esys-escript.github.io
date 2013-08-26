@@ -29,8 +29,8 @@
    triangle of the matrix is stored. */
 
 void Dudley_IndexList_insertElements(Dudley_IndexList * index_list, Dudley_ElementFile * elements,
-				     bool_t reduce_row_order, index_t * row_map,
-				     bool_t reduce_col_order, index_t * col_map)
+				     bool reduce_row_order, index_t * row_map,
+				     bool reduce_col_order, index_t * col_map)
 {
     /* index_list is an array of linked lists. Each entry is a row (DOF) and contains the indices to the non-zero columns */
     index_t color;

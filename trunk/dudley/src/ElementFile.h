@@ -98,18 +98,18 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
 void Dudley_ElementFile_optimizeOrdering(Dudley_ElementFile ** in);
 void Dudley_ElementFile_setNodeRange(dim_t *, dim_t *, Dudley_ElementFile *);
 void Dudley_ElementFile_relableNodes(dim_t *, dim_t, Dudley_ElementFile *);
-void Dudley_ElementFile_markNodes(dim_t *, dim_t, dim_t, Dudley_ElementFile *, dim_t);
+void Dudley_ElementFile_markNodes(dim_t *, dim_t, dim_t, Dudley_ElementFile *, bool);
 void Dudley_ElementFile_scatter(dim_t *, Dudley_ElementFile *, Dudley_ElementFile *);
 void Dudley_ElementFile_gather(dim_t *, Dudley_ElementFile *, Dudley_ElementFile *);
 void Dudley_ElementFile_copyTable(dim_t, Dudley_ElementFile *, dim_t, dim_t, Dudley_ElementFile *);
 void Dudley_ElementFile_markDOFsConnectedToRange(index_t * mask, index_t offset, index_t marker, index_t firstDOF,
 						 index_t lastDOF, index_t * dofIndex, Dudley_ElementFile * in,
-						 bool_t useLinear);
+						 bool useLinear);
 
 void Dudley_ElementFile_setTags(Dudley_ElementFile *, const int, escriptDataC *);
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_Jacobeans_alloc(void);
 void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans *);
-Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile *, Dudley_NodeFile *, bool_t);
+Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile *, Dudley_NodeFile *, bool);
 void Dudley_ElementFile_setTagsInUse(Dudley_ElementFile * in);
 
 #endif				/* #ifndef INC_DUDLEY_ELEMENTFILE */

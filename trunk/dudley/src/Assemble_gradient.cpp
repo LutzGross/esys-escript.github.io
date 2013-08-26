@@ -37,7 +37,7 @@ void Dudley_Assemble_gradient(Dudley_NodeFile * nodes, Dudley_ElementFile * elem
     register double *grad_data_e;
     dim_t numNodes = 0, numShapesTotal = 0, numComps, NN = 0, numDim = 0, numQuad = 0;
     type_t data_type = getFunctionSpaceType(data);
-    bool_t reducedIntegrationOrder = FALSE;
+    bool reducedIntegrationOrder = FALSE;
     Dudley_ElementFile_Jacobeans *jac = NULL;
 
     Dudley_resetError();

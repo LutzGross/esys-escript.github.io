@@ -168,6 +168,13 @@ public:
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const;
+    
+    /**
+     * \brief 
+       Returns a Data object filled with random data passed through filter.
+    */ 
+    escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
+    
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -245,7 +252,7 @@ private:
     double m_dx[2];
 
     /// number of spatial subdivisions
-    int m_NX[2];
+    dim_t m_NX[2];
 
     /// number of elements for this rank in each dimension including shared
     dim_t m_NE[2];

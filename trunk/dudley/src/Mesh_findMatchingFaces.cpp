@@ -33,7 +33,7 @@ static double Dudley_Mesh_lockingGridSize = 0;
 int Dudley_Mesh_findMatchingFaces_compar(const void *arg1, const void *arg2)
 {
     Dudley_Mesh_findMatchingFaces_center *e1, *e2;
-    bool_t l, g;
+    bool l, g;
     dim_t i;
     e1 = (Dudley_Mesh_findMatchingFaces_center *) arg1;
     e2 = (Dudley_Mesh_findMatchingFaces_center *) arg2;

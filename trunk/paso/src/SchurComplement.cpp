@@ -39,7 +39,7 @@ void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_Sp
 
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;
-  bool_t set_A;
+  bool set_A;
   dim_t n_loc_rows=A_CC->numRows;
   dim_t n_block=A_CC->row_block_size;
   register double A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,

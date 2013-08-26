@@ -23,7 +23,7 @@ Evaluates the shape functions at nodes (This is the S value from the finley Shap
 The dim argument is the dimension of the element not the dimension of the embedding space.
 the reduced arg is whether the elements are reduced or not
 */
-bool_t getQuadShape(dim_t dim, bool_t reduced, const double **shapearr)
+bool getQuadShape(dim_t dim, bool reduced, const double **shapearr)
 {
 #define _dudley_s_alpha 0.58541019662496852
 #define _dudley_s_beta  0.1381966011250105

@@ -85,7 +85,7 @@ err_t Paso_Solver_PCG(
 #endif
   register double ss,ss1;
   dim_t i0, istart, iend;
-  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;

@@ -44,7 +44,7 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
 
 /*   constructs the incomplete block factorization            */
 
-Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool_t verbose) {
+Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
   const dim_t n=A->numRows;
   const dim_t n_block=A->row_block_size;
   const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);

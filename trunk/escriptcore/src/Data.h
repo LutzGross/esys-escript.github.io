@@ -1619,6 +1619,18 @@ instead of manually manipulating process and point IDs.
         DataTypes::ValueType::reference
         getDataAtOffsetRW(DataTypes::ValueType::size_type i);
 
+  /**
+    \brief Ensures that the Data is expanded and returns its underlying vector
+    Does not check for exclusive write so do that before calling if sharing
+    Is a posibility.
+    \warning For domain implementors only. Using this function will
+    avoid using optimisations like lazy evaluation. It is intended
+    to allow quick initialisation of Data by domain; not as a bypass around 
+    escript's other mechanisms.
+  */
+  ESCRIPT_DLL_API
+  DataTypes::ValueType&
+  getExpandedVectorReference();
  
  protected:
 
@@ -1875,7 +1887,7 @@ template <class BinaryOp>
   friend ESCRIPT_DLL_API Data applyBinaryCFunction(boost::python::object cfunc, boost::python::tuple shape, escript::Data& d, escript::Data& e);
 #endif
   friend ESCRIPT_DLL_API Data condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
-  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed);
+  friend ESCRIPT_DLL_API Data randomData(const boost::python::tuple& shape, const FunctionSpace& what, long seed, const boost::python::tuple& filter);
 
 };
 
@@ -1894,12 +1906,12 @@ condEval(escript::Data& mask, escript::Data& trueval, escript::Data& falseval);
 
 
 /**
- \brief Create a new Expanded Data object filled with (not very) random data.
+ \brief Create a new Expanded Data object filled with pseudo-random data.
 */
 ESCRIPT_DLL_API
 Data randomData(const boost::python::tuple& shape,
        const FunctionSpace& what,
-       long seed);
+       long seed, const boost::python::tuple& filter);
 
 
 }   // end namespace escript
