@@ -30,9 +30,9 @@
 
 
 /* returns true if array contains value */
-bool_t Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
-   bool_t out=FALSE;
-   register bool_t out2;
+bool Paso_Util_isAny(dim_t N,index_t* array,index_t value) {
+   bool out=FALSE;
+   register bool out2;
    dim_t i;
 
    #pragma omp parallel private(i, out2) 
@@ -147,7 +147,7 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
    return out;
 }
 
-index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
+index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool* mask) {
    index_t out=0,tmp;
    dim_t i;
    index_t *partial_sums=NULL,sum;
@@ -207,7 +207,7 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool_t* mask) {
    return out;
 }
 
-index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool_t* mask) {
+index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool* mask) {
    index_t out=0,tmp=0;
    dim_t i;
    index_t *partial_sums=NULL,sum;
@@ -540,7 +540,7 @@ void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* 
    }
 }
 
-bool_t Paso_fileExists( const char* filename )
+bool Paso_fileExists( const char* filename )
 {
     FILE* fp = NULL;
     fp = fopen(filename,"r");

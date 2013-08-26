@@ -129,12 +129,36 @@ dim_t Esys_MPIInfo_setDistribution(Esys_MPIInfo* mpi_info ,index_t min_id,index_
 
 /* checks that there is no error across all processes in a communicator */
 /* NOTE : does not make guarantee consistency of error string on each process */
-bool_t Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
+bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
 {
   int errorLocal = Esys_noError() ? 0 : 1;
   int errorGlobal = errorLocal;
 
   return (errorGlobal==0);
+}
+
+namespace 
+{
+    bool splitworld=false;
+  
+}
+
+namespace esysUtils
+{
+
+/* has the have sub-communicators been created? */
+bool getSplitWorld()
+{
+    return splitworld;  
+}
+
+
+/* record that a sub-communicator has been created or used */
+void splitWorld()
+{
+    splitworld=true;
+}
+
 }
 
 /**************************************************

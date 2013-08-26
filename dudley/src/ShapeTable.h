@@ -58,7 +58,7 @@ static const double QuadWeight[4][2] = { {0, 0}, {1., 0.5}, {0.5, 1. / 6}, {1. /
 static const dim_t QuadNums[4][2] = { {0, 0}, {1, 2}, {1, 3}, {1, 4} };
 
 /*shape functions at quadrature nodes */
-bool_t getQuadShape(dim_t sim, bool_t reduced, const double **shapearr);
+bool getQuadShape(dim_t sim, bool reduced, const double **shapearr);
 
 const char *getElementName(Dudley_ElementTypeId id);
 

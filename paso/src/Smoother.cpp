@@ -54,7 +54,7 @@ void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * 
 
 /*   constructs the symmetric Gauss-Seidel preconditioner     */
 
-Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool_t jacobi, const bool_t is_local, const bool_t verbose) 
+Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool jacobi, const bool is_local, const bool verbose) 
 {
   
   /* allocations: */  
@@ -70,7 +70,7 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
      return NULL;
   }
 }
-Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool_t jacobi, bool_t verbose)
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool jacobi, bool verbose)
 {
    
    const dim_t n=A_p->numRows;
@@ -123,7 +123,7 @@ The MPI-versioned smoother works in the following way:
 */
 
 void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother, double * x, const double * b, 
-					const dim_t sweeps, const bool_t x_is_initial) 
+					const dim_t sweeps, const bool x_is_initial) 
 {
    const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
    
@@ -151,7 +151,7 @@ void Paso_Preconditioner_Smoother_solve(Paso_SystemMatrix* A_p, Paso_Preconditio
 
 err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A_p, Paso_Preconditioner_Smoother * smoother,
                                                     double * x, const double * b,
-                                                    const double atol, dim_t *sweeps, const bool_t x_is_initial)
+                                                    const double atol, dim_t *sweeps, const bool x_is_initial)
 {
    const dim_t n= (A_p->mainBlock->numRows) * (A_p->mainBlock->row_block_size);
    double *b_new = smoother->localSmoother->buffer;
@@ -183,7 +183,7 @@ err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A_p, Pas
 }
 
 void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, 
-					     const dim_t sweeps, const bool_t x_is_initial) 
+					     const dim_t sweeps, const bool x_is_initial) 
 {
    const dim_t n= (A_p->numRows) * (A_p->row_block_size);
    double *b_new = smoother->buffer;

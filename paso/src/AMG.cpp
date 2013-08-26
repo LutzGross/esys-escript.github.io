@@ -95,7 +95,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 
   Paso_Preconditioner_AMG* out=NULL;
   Paso_SystemMatrix *A_C=NULL;
-  bool_t verbose=options->verbose;
+  bool verbose=options->verbose;
 
   const dim_t my_n=A_p->mainBlock->numRows;
   const dim_t overlap_n=A_p->row_coupleBlock->numRows;
@@ -103,7 +103,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-  index_t* F_marker=NULL, *counter=NULL, *mask_C=NULL, *rows_in_F;
+  bool* F_marker=NULL;
+  index_t *counter=NULL, *mask_C=NULL, *rows_in_F;
   dim_t i, my_n_F, my_n_C, n_C, F_flag, *F_set=NULL, global_n_C=0, global_n_F=0, n_F;
   double time0=0;
   const double theta = options->coarsening_threshold;
@@ -160,7 +161,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      index_t *ST=new  index_t[len_S];
      
      
-     F_marker=new index_t[n];
+     F_marker=new bool[n];
      counter=new index_t[n];
 
      if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) 
@@ -185,7 +186,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 /*	 Paso_SystemMatrix_extendedRowsForST(A_p, degree_ST, offset_ST, ST);
  */
 
-	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n,F_marker,
+	 Paso_Preconditioner_AMG_CIJPCoarsening(n,my_n, F_marker,
 					        degree_S, offset_S, S, degree_ST, offset_ST, ST,
 						A_p->col_coupler->connector,A_p->col_distribution);
       
@@ -730,7 +731,7 @@ int compareindex(const void *a, const void *b)
   return (*(int *)a - *(int *)b);
 }
 
-void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, index_t*split_marker,
+void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, bool*split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
 					    Paso_Connector* col_connector, Paso_Distribution* col_dist) 
@@ -777,7 +778,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, ind
       for (i=0; i<my_n; ++i) {
 	 if (Status[i]>0) { /* status is still undefined */
 
-	    register bool_t inD=TRUE;
+	    register bool inD=TRUE;
 	    const double wi=w[i];
 
 	    for( iptr =0 ; iptr < degree_S[i]; ++iptr) {

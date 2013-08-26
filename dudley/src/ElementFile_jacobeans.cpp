@@ -58,7 +58,7 @@ void Dudley_ElementFile_Jacobeans_dealloc(Dudley_ElementFile_Jacobeans * in)
 /************************************************************************************/
 
 Dudley_ElementFile_Jacobeans *Dudley_ElementFile_borrowJacobeans(Dudley_ElementFile * self, Dudley_NodeFile * nodes,
-								 bool_t reducedIntegrationOrder)
+								 bool reducedIntegrationOrder)
 {
     Dudley_ElementFile_Jacobeans *out = NULL;
 

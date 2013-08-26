@@ -31,13 +31,6 @@
 #include "DataMaths.h"
 
 #include "esysUtils/EsysRandom.h"
-//#define MKLRANDOM
-
-// #ifdef MKLRANDOM
-// #include <mkl_vsl.h>
-// #else
-// #include <boost/random/mersenne_twister.hpp>
-// #endif
 
 using namespace std;
 using namespace boost::python;
@@ -841,148 +834,14 @@ DataExpanded::getVectorRO() const
 	return m_data.getData();
 }
 
-
-#if 0
-#ifndef MKLRANDOM
-namespace {
-    
-boost::mt19937 base;		// used to seed all the other generators  
-vector<boost::mt19937> gens;
-
-
-void seedGens(long seed)
-{
-#ifdef _OPENMP
-    int numthreads=omp_get_max_threads();
-#else
-    int numthreads=1;
-#endif
-    if (gens.size()==0)		// we haven't instantiated the generators yet  
-    {
-        gens.resize(numthreads);	// yes this means all the generators will be owned by one thread in a NUMA sense      
-    }  					// I don't think it is worth a more complicated solution at this point
-    if (seed!=0)
-    {
-       base.seed((uint32_t)seed);	// without this cast, icc gets confused		
-       for (int i=0;i<numthreads;++i)
-       {
-	    uint32_t b=base();
-            gens[i].seed(b);	// initialise each generator with successive random values      
-       }       
-    }
-}
-  
-  
-}
-#endif
-#endif
-
-
 void DataExpanded::randomFill(long seed) {
     CHECK_FOR_EX_WRITE
 
     DataVector&  dv=getVectorRW();
     const size_t dvsize=dv.size();
     
-    randomFillArray(seed, &(dv[0]), dvsize);
+    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
   
 }
-
-#if 0
-
-// Idea here is to create an array of seeds by feeding the original seed into the random generator
-// The code at the beginning of the function to compute the seed if one is given is
-// just supposed to introduce some variety (and ensure that multiple ranks don't get the same seed).
-// I make no claim about how well these initial seeds are distributed
-void DataExpanded::randomFill(long seed)
-{
-    CHECK_FOR_EX_WRITE
-    static unsigned prevseed=0;	// So if we create a bunch of objects we don't get the same start seed 
-    if (seed==0)		// for each one
-    {
-	if (prevseed==0) 
-	{
-	    time_t s=time(0);
-	    seed=s;
-	}
-	else
-	{
-	    seed=prevseed+419;	// these numbers are arbitrary
-	    if (seed>3040101)		// I want to avoid overflow on 32bit systems
-	    {
-		seed=((int)(seed)%0xABCD)+1;
-	    }
-	}
-    }
-    // now we need to consider MPI since we don't want each rank to start with the same seed
-    seed+=getFunctionSpace().getDomain()->getMPIRank()*getFunctionSpace().getDomain()->getMPISize()*3;
-    prevseed=seed;
-
-#ifdef MKLRANDOM
-
-#ifdef _OPENMP
-    int numthreads=omp_get_max_threads();
-#else
-    int numthreads=1;
-#endif
-    double* seeds=new double[numthreads];
-    VSLStreamStatePtr sstream;
-
-    int status=vslNewStream(&sstream, VSL_BRNG_MT19937, seed);	// use a Mersenne Twister
-    numeric_limits<double> dlim;
-    vdRngUniform(VSL_METHOD_DUNIFORM_STD, sstream , numthreads, seeds, -1, 1);
-    vslDeleteStream(&sstream);
-    DataVector& dv=getVectorRW();
-    size_t dvsize=dv.size();
-    #pragma omp parallel
-    {
-	int tnum=0;
-	#ifdef _OPENMP
-	tnum=omp_get_thread_num();
-	#endif
-	VSLStreamStatePtr stream;
-	// the 12345 is a hack to give us a better chance of getting different integer seeds.
-    	int status=vslNewStream(&stream, VSL_BRNG_MT19937, seeds[tnum]*12345);	// use a Mersenne Twister
-	int bigchunk=(dvsize/numthreads+1);
-	int smallchunk=dvsize-bigchunk*(numthreads-1);
-	int chunksize=(tnum<(numthreads-1))?bigchunk:smallchunk;
-    	vdRngUniform(VSL_METHOD_DUNIFORM_STD, stream, chunksize, &(dv[bigchunk*tnum]), 0,1);
-    	vslDeleteStream(&stream);
-    }
-    delete[] seeds;
-#else
-    boost::mt19937::result_type RMAX=base.max();
-    seedGens(seed);
-    DataVector&  dv=getVectorRW();
-    long i;
-    const size_t dvsize=dv.size();
-    
-    #pragma omp parallel private(i)
-    {
-	int tnum=0;
-	#ifdef _OPENMP
-	tnum=omp_get_thread_num();
-	#endif
-	boost::mt19937& generator=gens[tnum];
-	
-    	#pragma omp for schedule(static)
-    	for (i=0;i<dvsize;++i)
-    	{
-	  
-	  
-	 
-	  
-	  
-#ifdef _WIN32
-	    dv[i]=((double)generator())/RMAX;
-#else
-	    dv[i]=((double)generator())/RMAX;
-#endif
-    	}
-    }
-#endif
-}
-
-#endif
 
 }  // end of namespace

@@ -36,7 +36,7 @@
 #include <omp.h>
 #endif
 
-void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool_t recreatePattern){
+void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool recreatePattern){
   Paso_Pattern *pattern=NULL;
   Paso_Coupler *coupler=NULL;
   Paso_SharedComponents *send=NULL, *recv=NULL;

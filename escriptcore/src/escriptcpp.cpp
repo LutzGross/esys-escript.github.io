@@ -85,7 +85,6 @@ namespace escript
 }
 */
 
-
 BOOST_PYTHON_MODULE(escriptcpp)
 {
 
@@ -95,7 +94,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   #endif
 
   scope().attr("__doc__") = "To use this module, please import esys.escript";      
-  
+    
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
 " available to OpenMP.");
@@ -595,8 +594,8 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
 	arg("expanded")=false));
 
 
- def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0),
-"Creates a new expanded Data object containing (not very) random values.\n\n"
+ def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0, arg("filter")=boost::python::tuple()),
+"Creates a new expanded Data object containing pseudo-random values.\n\n"
 ":param shape: datapoint shape\n:type shape: tuple\n"
 ":param fs: function space for data object.\n:type fs: `FunctionSpace`\n"
 ":param seed: seed for random number generator.\n:type seed: long\n");

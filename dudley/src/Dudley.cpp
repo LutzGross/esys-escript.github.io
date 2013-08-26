@@ -29,7 +29,7 @@ double Dudley_timer(void)
 
 /* This function checks if the pointer ptr has a target. If not an
    error is raised and TRUE is returned. */
-bool_t Dudley_checkPtr(void *arg)
+bool Dudley_checkPtr(void *arg)
 {
     return Esys_checkPtr(arg);
 }
@@ -47,7 +47,7 @@ void Dudley_setError(Dudley_ErrorCodeType err, __const char *msg)
 }
 
 /* checks if there is no error */
-bool_t Dudley_noError(void)
+bool Dudley_noError(void)
 {
     return Esys_noError();
 }
@@ -72,7 +72,7 @@ void Dudley_convertPasoError(void)
 
 /* checks that there is no error across all processes in a communicator */
 /* NOTE : does not make guarantee consistency of error string on each process */
-bool_t Dudley_MPI_noError(Esys_MPIInfo * mpi_info)
+bool Dudley_MPI_noError(Esys_MPIInfo * mpi_info)
 {
     return Esys_MPIInfo_noError(mpi_info);
 }

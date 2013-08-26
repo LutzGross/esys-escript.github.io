@@ -36,7 +36,7 @@ err_t Paso_Solver_GMRES2(
   const dim_t n=F->n;
   const double rel_tol=*tolerance;
   double abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual=0.;
-  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   double *h=NULL, **v=NULL, *c=NULL,*s=NULL,*g=NULL, *work=NULL;
   err_t Status=SOLVER_NO_ERROR;
 

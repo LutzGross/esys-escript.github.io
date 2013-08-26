@@ -577,7 +577,7 @@ int NodeFile::createDenseDOFLabeling()
     for (int n=0; n<myDOFs; ++n)
         DOF_buffer[n]+=loc_offsets[MPIInfo->rank];
 
-    std::vector<bool_t> set_new_DOF(numNodes, TRUE);
+    std::vector<bool> set_new_DOF(numNodes, true);
 
     // now entries are collected from the buffer again by sending them around
     // in a circle
@@ -594,7 +594,7 @@ int NodeFile::createDenseDOFLabeling()
             const int k=globalDegreesOfFreedom[n];
             if (set_new_DOF[n] && dof0<=k && k<dof1) {
                 globalDegreesOfFreedom[n]=DOF_buffer[k-dof0];
-                set_new_DOF[n]=FALSE;
+                set_new_DOF[n]=false;
             }
         }
         if (p<MPIInfo->size-1) { // the last send can be skipped

@@ -69,7 +69,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 
     dim_t dim, i, j, k, myNumVertices, p, mpiSize, len, globalNumVertices, *partition_count = NULL, *new_distribution =
 	NULL, *loc_partition_count = NULL;
-    bool_t *setNewDOFId = NULL;
+    bool *setNewDOFId = NULL;
     index_t myFirstVertex, myLastVertex, firstVertex, lastVertex, *newGlobalDOFID = NULL;
     size_t mpiSize_size;
     index_t *partition = NULL;
@@ -107,7 +107,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     partition_count = new  dim_t[mpiSize + 1];
     new_distribution = new  dim_t[mpiSize + 1];
     newGlobalDOFID = new  index_t[len];
-    setNewDOFId = new  bool_t[in->Nodes->numNodes];
+    setNewDOFId = new  bool[in->Nodes->numNodes];
     if (!
 	(Dudley_checkPtr(partition) || Dudley_checkPtr(xyz) || Dudley_checkPtr(partition_count)
 	 || Dudley_checkPtr(partition_count) || Dudley_checkPtr(newGlobalDOFID) || Dudley_checkPtr(setNewDOFId)))

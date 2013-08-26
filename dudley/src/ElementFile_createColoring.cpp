@@ -30,7 +30,7 @@ void Dudley_ElementFile_createColoring(Dudley_ElementFile * in, dim_t numNodes, 
 {
     dim_t e, i, numUncoloredElements, n, len, NN;
     index_t *maskDOF, min_id, max_id;
-    bool_t independent;
+    bool independent;
 
     if (in == NULL)
 	return;

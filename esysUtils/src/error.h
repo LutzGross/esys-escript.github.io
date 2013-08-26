@@ -63,7 +63,7 @@ ESYSUTILS_DLL_API
 double Esys_timer(void);
 
 ESYSUTILS_DLL_API
-bool_t Esys_checkPtr(void*);
+bool Esys_checkPtr(void*);
 
 ESYSUTILS_DLL_API
 void Esys_resetError(void);
@@ -72,7 +72,7 @@ ESYSUTILS_DLL_API
 void Esys_setError(Esys_ErrorCodeType err,__const char* msg);
 
 ESYSUTILS_DLL_API
-bool_t Esys_noError(void);
+bool Esys_noError(void);
 
 ESYSUTILS_DLL_API
 Esys_ErrorCodeType Esys_getErrorType(void);

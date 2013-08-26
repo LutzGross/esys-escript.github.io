@@ -108,11 +108,11 @@ void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
    pattern is already unrolled to match the requested block size
    and offsets. Otherwise unrolling and offset adjustment will be performed.
 */
-Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Pattern *pattern, int row_block_size, int col_block_size, const bool_t patternIsUnrolled) {
+Paso_SparseMatrix* Paso_SparseMatrix_alloc(Paso_SparseMatrixType type,Paso_Pattern *pattern, int row_block_size, int col_block_size, const bool patternIsUnrolled) {
 
   Paso_SparseMatrix*out=NULL;
   Paso_SparseMatrixType pattern_format_out;
-  bool_t unroll=FALSE;
+  bool unroll=FALSE;
 
   if (patternIsUnrolled) {
      if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {

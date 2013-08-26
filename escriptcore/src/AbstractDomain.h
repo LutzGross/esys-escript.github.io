@@ -468,6 +468,20 @@ Note: This is _not_ equivalent to weak_ptr::lock.
    ESCRIPT_DLL_API
    virtual bool supportsContactElements() const;
 
+   
+
+  /**
+   * \brief true if this domain can handle to specified tuple of filter options.
+  */
+  ESCRIPT_DLL_API
+  virtual bool supportsFilter(const boost::python::tuple& t) const;
+  
+  /**
+   * \brief Fills the data object with filtered random values 
+  */ 
+  ESCRIPT_DLL_API
+  virtual void randomFill(escript::Data& dat, long seed, const boost::python::tuple& filter) const;   
+   
  protected:
 
  private:

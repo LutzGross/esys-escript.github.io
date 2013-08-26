@@ -70,7 +70,7 @@ typedef struct Paso_SystemMatrix {
   Paso_SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on neighbouring processors 
                                                            don't assume that this is set */
 
-  bool_t is_balanced;
+  bool is_balanced;
   double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
 			      if is_balanced is set, the matrix stored is D*A*D where A is the original matrix.
 		              When the system of linear equations is solved we solve D*A*D*y=c.
@@ -91,7 +91,7 @@ typedef struct Paso_SystemMatrix {
 /*  interfaces: */
 
 PASO_DLL_API
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t, const bool_t patternIsUnrolled);
+Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t, const bool patternIsUnrolled);
 
 PASO_DLL_API
 Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix*);
@@ -110,10 +110,10 @@ PASO_DLL_API
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
 
 PASO_DLL_API
-void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool_t RHS);
+void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool RHS);
 
 PASO_DLL_API
-void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool_t RHS);
+void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool RHS);
 
 PASO_DLL_API
 void Paso_SystemMatrix_balance(Paso_SystemMatrix* A);
@@ -199,7 +199,7 @@ void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size);
 
 
 PASO_DLL_API
-int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool_t symmetry, Esys_MPIInfo *mpi_info);
+int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
 
 PASO_DLL_API
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
@@ -248,7 +248,7 @@ PASO_DLL_API
 void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A);
 
 PASO_DLL_API
-void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool_t recreatePattern);
+void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool recreatePattern);
 
 PASO_DLL_API
 void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const double f1);

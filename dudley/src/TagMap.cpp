@@ -91,17 +91,17 @@ index_t Dudley_TagMap_getTag(Dudley_TagMap * tag_map, const char *name)
     }
 }
 
-bool_t Dudley_TagMap_isValidTagName(Dudley_TagMap * tag_map, const char *name)
+bool Dudley_TagMap_isValidTagName(Dudley_TagMap * tag_map, const char *name)
 {
     if (tag_map == NULL)
     {
-	return FALSE;
+	return false;
     }
     else
     {
 	if (strcmp(tag_map->name, name) == 0)
 	{
-	    return TRUE;
+	    return true;
 	}
 	else
 	{

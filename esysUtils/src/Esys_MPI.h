@@ -77,7 +77,7 @@ ESYSUTILS_DLL_API
 void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t* offset); 
 
 ESYSUTILS_DLL_API
-bool_t Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info);
+bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info);
 
 namespace esysUtils {
 
@@ -97,6 +97,11 @@ inline std::string appendRankToFileName(const std::string &fileName,
     std::string result(ss.str());
     return result;
 }
+
+/* has the have sub-communicators been created? */
+bool getSplitWorld();
+/* record that a sub-communicator has been created or used */
+void splitWorld();
 
 } // namespace esysUtils
 

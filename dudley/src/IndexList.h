@@ -36,8 +36,8 @@ typedef struct Dudley_IndexList {
     struct Dudley_IndexList *extension;
 } Dudley_IndexList;
 void Dudley_IndexList_insertElements(Dudley_IndexList * index_list, Dudley_ElementFile * elements,
-				     bool_t reduce_row_order, index_t * row_map,
-				     bool_t reduce_col_order, index_t * col_map);
+				     bool reduce_row_order, index_t * row_map,
+				     bool reduce_col_order, index_t * col_map);
 void Dudley_IndexList_insertIndex(Dudley_IndexList *, index_t);
 void Dudley_IndexList_toArray(Dudley_IndexList *, index_t *, index_t, index_t, index_t);
 dim_t Dudley_IndexList_count(Dudley_IndexList *, index_t, index_t);

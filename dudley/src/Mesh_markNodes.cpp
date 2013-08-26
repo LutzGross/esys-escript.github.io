@@ -25,7 +25,7 @@
 
 /************************************************************************************/
 
-void Dudley_Mesh_markNodes(index_t * mask, index_t offset, Dudley_Mesh * in, bool_t useLinear)
+void Dudley_Mesh_markNodes(index_t * mask, index_t offset, Dudley_Mesh * in, bool useLinear)
 {
     Dudley_ElementFile_markNodes(mask, offset, in->Nodes->numNodes, in->Elements, useLinear);
     Dudley_ElementFile_markNodes(mask, offset, in->Nodes->numNodes, in->FaceElements, useLinear);
@@ -33,7 +33,7 @@ void Dudley_Mesh_markNodes(index_t * mask, index_t offset, Dudley_Mesh * in, boo
 }
 
 void Dudley_Mesh_markDOFsConnectedToRange(index_t * mask, index_t offset, index_t marker,
-					  index_t firstDOF, index_t lastDOF, Dudley_Mesh * in, bool_t useLinear)
+					  index_t firstDOF, index_t lastDOF, Dudley_Mesh * in, bool useLinear)
 {
     index_t *dofIndex;
     if (useLinear)

@@ -33,7 +33,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
     dim_t e, j, i, size, *send_count = NULL, *recv_count = NULL, *newOwner = NULL, *loc_proc_mask =
 	NULL, *loc_send_count = NULL, newNumElements, numElementsInBuffer, numNodes, NN;
     index_t *send_offset = NULL, *recv_offset = NULL, *Id_buffer = NULL, *Tag_buffer = NULL, *Nodes_buffer = NULL, k;
-    bool_t *proc_mask = NULL;
+    bool *proc_mask = NULL;
 #ifdef ESYS_MPI
     dim_t numRequests = 0;
     MPI_Request *mpi_requests = NULL;
@@ -127,7 +127,7 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 	    Nodes_buffer = new  index_t[numElementsInBuffer * NN];
 	    send_offset = new  index_t[size];
 	    recv_offset = new  index_t[size];
-	    proc_mask = new  bool_t[size];
+	    proc_mask = new  bool[size];
 	    if (!(Dudley_checkPtr(Id_buffer) || Dudley_checkPtr(Tag_buffer) || Dudley_checkPtr(Owner_buffer) ||
 		  Dudley_checkPtr(Nodes_buffer) || Dudley_checkPtr(send_offset) || Dudley_checkPtr(recv_offset) ||
 		  Dudley_checkPtr(proc_mask)))

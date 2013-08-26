@@ -31,7 +31,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
     index_t min_dof, max_dof, unset_dof = -1, set_dof = 1, dof_0, dof_1, *DOF_buffer = NULL, k;
     Esys_MPI_rank buffer_rank, *distribution = NULL;
     dim_t p, buffer_len, n, myDOFs, *offsets = NULL, *loc_offsets = NULL, new_numGlobalDOFs = 0, myNewDOFs;
-    bool_t *set_new_DOF = NULL;
+    bool *set_new_DOF = NULL;
 #ifdef ESYS_MPI
     Esys_MPI_rank dest, source;
     MPI_Status status;
@@ -43,7 +43,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
     distribution = new  index_t[in->MPIInfo->size + 1];
     offsets = new  dim_t[in->MPIInfo->size];
     loc_offsets = new  dim_t[in->MPIInfo->size];
-    set_new_DOF = new  bool_t[in->numNodes];
+    set_new_DOF = new  bool[in->numNodes];
 
     if (!
 	(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)

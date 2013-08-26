@@ -50,7 +50,7 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
    double loc_norm;
 #endif
    dim_t i,totIter=0,cntIter,method;
-   bool_t finalizeIteration;
+   bool finalizeIteration;
    err_t errorCode=SOLVER_NO_ERROR;
    const dim_t numSol = Paso_SystemMatrix_getTotalNumCols(A);
    const dim_t numEqua = Paso_SystemMatrix_getTotalNumRows(A);

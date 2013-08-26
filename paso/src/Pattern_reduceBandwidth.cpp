@@ -92,7 +92,7 @@ int Paso_comparDegreeAndIdx(const void *arg1,const void *arg2){
 /*                       firstVertexInLevel[i+1]-firstVertexInLevel[i] is the number of vertices in level i. */
 /*                         (array of length pattern->numOutput+1) */
 /*  max_LevelWidth_abort-  input param which triggers early return if LevelWidth becomes >= max_LevelWidth_abort */
-bool_t Paso_Pattern_dropTree(index_t root, 
+bool Paso_Pattern_dropTree(index_t root, 
                              Paso_Pattern *pattern, 
                              index_t *AssignedLevel, 
                              index_t *VerticesInTree,
@@ -147,7 +147,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
    } else if (N > 0) {
 /* printf("relabeling of %d DOFs started.\n",N); */
       degAndIdx=new Paso_DegreeAndIdx[N];
-      oldLabel=new bool_t[N];
+      oldLabel=new index_t[N];
       AssignedLevel=new index_t[N];
       VerticesInTree=new index_t[N];
       firstVertexInLevel=new index_t[N+1];

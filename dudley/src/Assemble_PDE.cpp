@@ -55,7 +55,7 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
 			 escriptDataC * X, escriptDataC * Y)
 {
 
-    bool_t reducedIntegrationOrder = FALSE;
+    bool reducedIntegrationOrder = FALSE;
     char error_msg[LenErrorMsg_MAX];
     Dudley_Assemble_Parameters p;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK];

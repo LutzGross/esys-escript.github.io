@@ -44,7 +44,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   index_t *send_ST=NULL, *recv_ST=NULL, *recv_offset_ST=NULL;
   index_t i, j, k, p, z, z0, z1, size, rank, offset, my_n, len, overlapped_n;
   index_t num_main_cols, num_couple_cols;
-  bool_t flag;
+  bool flag;
   dim_t *recv_degree_ST=NULL;
 
   if (A->mpi_info->size == 1) return;

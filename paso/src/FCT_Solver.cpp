@@ -296,7 +296,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
    dim_t m=0, num_critical_rates=0 ;
   /* ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
    
-   bool_t converged=FALSE, max_m_reached=FALSE,diverged=FALSE;   
+   bool converged=FALSE, max_m_reached=FALSE,diverged=FALSE;   
    options->num_iter=0;
    
    Paso_Coupler_startCollect(fct_solver->u_old_coupler,u_old);

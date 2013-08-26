@@ -46,17 +46,17 @@ err_t Paso_Solver_NewtonGMRES(
    const double inner_tolerance_safety=.9;
    dim_t gmres_iter;
    double stop_tol, norm2_f,norm2_fo, normsup_f,reduction_f, gmres_tol, rtmp, quad_tolerance;
-   bool_t convergeFlag=FALSE, maxIterFlag=FALSE, breakFlag=FALSE;
+   bool convergeFlag=FALSE, maxIterFlag=FALSE, breakFlag=FALSE;
    double *f=NULL, *step=NULL;
    err_t Status=SOLVER_NO_ERROR;
-   const bool_t debug=options->verbose;
+   const bool debug=options->verbose;
    const dim_t n = F->n; 
    dim_t iteration_count=0;
    const double atol=options->absolute_tolerance;  /* absolute tolerance */
    const double rtol=options->tolerance;           /* relative tolerance */
    const dim_t maxit=options->iter_max;            /* max iteration counter */
    const dim_t lmaxit=options->inner_iter_max*10;  /* max inner iteration counter */
-   const bool_t adapt_inner_tolerance=options->adapt_inner_tolerance;
+   const bool adapt_inner_tolerance=options->adapt_inner_tolerance;
    const double max_inner_tolerance=options->inner_tolerance *1.e-11;  
    double inner_tolerance=max_inner_tolerance;
   /*

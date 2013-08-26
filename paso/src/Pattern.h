@@ -66,7 +66,7 @@ PASO_DLL_API
 Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,index_t*,index_t*);
 
 PASO_DLL_API
-bool_t Paso_Pattern_isEmpty(Paso_Pattern* in);
+bool Paso_Pattern_isEmpty(Paso_Pattern* in);
 
 PASO_DLL_API
 void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);

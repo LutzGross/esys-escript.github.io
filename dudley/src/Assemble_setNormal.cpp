@@ -34,7 +34,7 @@ void Dudley_Assemble_setNormal(Dudley_NodeFile * nodes, Dudley_ElementFile * ele
     double *local_X = NULL, *dVdv = NULL, *normal_array;
     index_t sign;
     dim_t e, q, NN, NS, numDim, numQuad, numDim_local;
-    bool_t reduced_integration;
+    bool reduced_integration;
     const double *dSdv = 0;
     if (nodes == NULL || elements == NULL)
 	return;

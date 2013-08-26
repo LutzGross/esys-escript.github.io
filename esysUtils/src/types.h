@@ -22,12 +22,7 @@
 
 typedef int dim_t;
 typedef int index_t;
-typedef int bool_t;
 typedef int type_t;
 typedef int err_t;
-
-
-#define TRUE 1
-#define FALSE 0
 
 #endif 

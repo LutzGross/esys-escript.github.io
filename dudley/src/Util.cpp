@@ -34,7 +34,7 @@
 
 /*   returns true if any of the values in the short array values is not equal to zero */
 
-bool_t Dudley_Util_anyNonZeroDouble(dim_t N, double *values)
+bool Dudley_Util_anyNonZeroDouble(dim_t N, double *values)
 {
     dim_t q;
     for (q = 0; q < N; ++q)
@@ -592,9 +592,9 @@ dim_t Dudley_Util_packMask(dim_t N, index_t * mask, index_t * index)
 }
 
 /* returns true if array contains value */
-bool_t Dudley_Util_isAny(dim_t N, index_t * array, index_t value)
+bool Dudley_Util_isAny(dim_t N, index_t * array, index_t value)
 {
-    bool_t out = FALSE;
+    bool out = FALSE;
     dim_t i;
 #pragma omp parallel for private(i) schedule(static) reduction(||:out)
     for (i = 0; i < N; i++)
@@ -656,7 +656,7 @@ void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, d
     dim_t i;
     index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue, *newValuesInUse = NULL;
     register index_t itmp;
-    bool_t allFound = FALSE;
+    bool allFound = FALSE;
     dim_t nv = 0;
 
     while (!allFound)

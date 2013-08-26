@@ -26,7 +26,7 @@
 
 typedef struct Paso_TransportProblem {
 
-    bool_t valid_matrices;
+    bool valid_matrices;
     double dt_max_R;       /* safe time step size for reactive  part */
     double dt_max_T;       /* safe time step size for transport  part */
     double* constraint_mask;
@@ -86,7 +86,7 @@ PASO_DLL_API
 Paso_Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProblem* in);
 
 PASO_DLL_API
-index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool_t symmetry, Esys_MPIInfo *mpi_info);
+index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
 
 PASO_DLL_API
 void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const double* r,  double* source);

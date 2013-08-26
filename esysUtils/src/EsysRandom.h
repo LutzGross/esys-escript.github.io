@@ -15,10 +15,11 @@
 
 #ifndef ESYS_RANDOM_H
 #define ESYS_RANDOM_H
-
+namespace esysUtils
+{
 /* \brief put n random doubles in array (uses OpenMP).
    If using this on Data, then be sure to CHECK_EX_WRITE first
 */
 void randomFillArray(long seed, double* array, size_t n);
-
+}
 #endif

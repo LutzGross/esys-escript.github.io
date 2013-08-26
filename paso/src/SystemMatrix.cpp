@@ -36,12 +36,12 @@
    and offsets. Otherwise unrolling and offset adjustment will be performed. */
 
 Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_SystemMatrixPattern *pattern, int row_block_size, int col_block_size,
-  const bool_t patternIsUnrolled) {
+  const bool patternIsUnrolled) {
 
   Paso_SystemMatrix*out=NULL;
   dim_t n_norm,i;
   Paso_SystemMatrixType pattern_format_out;
-  bool_t unroll=FALSE;
+  bool unroll=FALSE;
 
   pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
   Esys_resetError();

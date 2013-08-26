@@ -93,7 +93,7 @@ err_t Paso_Solver_BiCGStab(
 #endif
   dim_t num_iter=0,maxit,num_iter_global=0;
   dim_t i0;
-  bool_t breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
   double *resid = tolerance;
   dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
