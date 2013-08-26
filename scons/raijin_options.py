@@ -45,11 +45,11 @@ build_dir = '/short/r17/cha564/escript_build'
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-sox -I/apps/python/2.7.3/lib/python2.7/site-packages/numpy/core/include -I/apps/metis/5.0.2/include -wd981'
+cxx_extra = '-sox -I/apps/python/2.7.3/lib/python2.7/site-packages/numpy/core/include -I/apps/metis/5.0.2/include -wd981 -pthread'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel -L/apps/metis/5.0.2/lib'
+ld_extra = '-shared-intel -pthread -L/apps/metis/5.0.2/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -81,15 +81,18 @@ openmp = True
 mpi = 'OPENMPI'
 #mpi = 'INTELMPI'
 
+#icpc -I/apps/openmpi/1.6.5/include -pthread -L/apps/openmpi/1.6.5/lib -lmpi_cxx -lmpi -ldl -lm -lnuma -Wl,--export-dynamic -lrt -lnsl -lutil -lm -ldl
+
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
 mpi_prefix = '/apps/openmpi/1.6.5'
 #mpi_prefix = ['/apps/intel-mpi/4.1.1.036/include64', '/apps/intel-mpi/4.1.1.036/lib64']
 
 # MPI libraries to link against
-mpi_libs = ['mpi']
+mpi_libs = ['mpi_cxx', 'mpi', 'dl', 'm', 'numa', 'rt', 'nsl', 'util']
+
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/apps/boost/1.54.0'
+boost_prefix = ['/apps/boost/1.54.0-python27/include', '/apps/boost/1.54.0-python27/lib/Intel']
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
