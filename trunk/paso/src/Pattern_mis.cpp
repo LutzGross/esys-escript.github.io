@@ -54,7 +54,7 @@ void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker) {
   dim_t i;
   double *value;
   index_t naib,iptr;
-  bool flag;
+  index_t flag;
   dim_t n=pattern_p->numOutput;
   if (pattern_p->numOutput != pattern_p->numInput) {
      Esys_setError(VALUE_ERROR,"Paso_Pattern_mis: pattern must be square.");
