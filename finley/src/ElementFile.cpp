@@ -453,7 +453,7 @@ void ElementFile::distributeByRankOfDOF(const std::vector<int>& mpiRankOfDOF, in
         std::vector<int> Nodes_buffer(numElementsInBuffer*numNodes);
         std::vector<int> send_offset(size);
         std::vector<int> recv_offset(size);
-        std::vector<bool> proc_mask(size);
+        std::vector<unsigned char> proc_mask(size);
 
         // calculate the offsets for the processor buffers
         for (int p=0; p<size-1; ++p) {

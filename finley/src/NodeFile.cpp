@@ -577,7 +577,7 @@ int NodeFile::createDenseDOFLabeling()
     for (int n=0; n<myDOFs; ++n)
         DOF_buffer[n]+=loc_offsets[MPIInfo->rank];
 
-    std::vector<bool> set_new_DOF(numNodes, true);
+    std::vector<unsigned char> set_new_DOF(numNodes, true);
 
     // now entries are collected from the buffer again by sending them around
     // in a circle
