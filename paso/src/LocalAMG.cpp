@@ -100,7 +100,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   Paso_SparseMatrix *Atemp=NULL, *A_C=NULL;
   const dim_t n=A_p->numRows;
   const dim_t n_block=A_p->row_block_size;
-  bool* F_marker=NULL;
+  AMGBlockSelect* F_marker=NULL;
   index_t *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
   dim_t n_F=0, n_C=0, i;
   double time0=0;
@@ -146,7 +146,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
   } 
      /* Start Coarsening : */
 
-     F_marker=new bool[n];
+     F_marker=new AMGBlockSelect[n];
      counter=new index_t[n];
      degree_S=new dim_t[n];
      S=new index_t[A_p->pattern->len];
@@ -170,7 +170,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatr
 	 
 	 if (Esys_noError() ) {
 	    #pragma omp parallel for private(i) schedule(static)
-	    for (i = 0; i < n; ++i) F_marker[i]=(F_marker[i] ==  PASO_AMG_IN_F);
+	    for (i = 0; i < n; ++i) F_marker[i]=((F_marker[i] ==  PASO_AMG_IN_F) ? PASO_AMG_IN_C : PASO_AMG_IN_F);
 	 
 	    /*
 	       count number of unknowns to be eliminated:
@@ -502,7 +502,7 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* 
 /* the Runge Stueben coarsening algorithm: */
 void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
-						bool*split_marker, const bool usePanel)
+						AMGBlockSelect*split_marker, const bool usePanel)
 {
    bool* notInPanel=NULL;
    index_t *lambda=NULL, *ST=NULL, *panel=NULL, lambda_max, lambda_k;
@@ -729,7 +729,7 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
 /* ensures that two F nodes are connected via a C node :*/
 void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
 						const dim_t* degree_S, const index_t* S, 
-						bool* split_marker)
+						AMGBlockSelect* split_marker)
 {
       dim_t i, p, q;
 

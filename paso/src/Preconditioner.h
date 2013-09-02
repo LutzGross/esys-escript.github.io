@@ -31,9 +31,12 @@
 #define PRECONDITIONER_DIVERGENCE -12
 
 
+/*
 #define PASO_AMG_UNDECIDED -1
 #define PASO_AMG_IN_F 0
 #define PASO_AMG_IN_C 1
+*/
+
 
 /* GAUSS SEIDEL & Jacobi */
 typedef struct Paso_Preconditioner_LocalSmoother {
@@ -102,7 +105,7 @@ double Paso_Preconditioner_AMG_getCoarseLevelSparsity(const Paso_Preconditioner_
 dim_t Paso_Preconditioner_AMG_getNumCoarseUnknwons(const Paso_Preconditioner_AMG * in);
 index_t Paso_Preconditioner_AMG_getMaxLevel(const Paso_Preconditioner_AMG * in);
 void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S, const dim_t nT, dim_t *degree_ST, index_t* offset_ST,index_t* ST);
-void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, bool*split_marker,
+void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMGBlockSelect*split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
 					    Paso_Connector* col_connector, Paso_Distribution* col_dist);
@@ -135,7 +138,7 @@ void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in);
 Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(Paso_SparseMatrix * A_p,dim_t level,Paso_Options* options);
 void Paso_Preconditioner_LocalAMG_solve(Paso_SparseMatrix* A, Paso_Preconditioner_LocalAMG * amg, double * x, double * b);
 
-void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, bool*split_marker, const bool usePanel);
+void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, AMGBlockSelect*split_marker, const bool usePanel);
 void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
 void Paso_Preconditioner_LocalAMG_setStrongConnections(Paso_SparseMatrix* A, dim_t *degree, index_t *S, const double theta, const double tau);
 Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatrix* A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, const index_t* counter_C, const index_t interpolation_method);
@@ -146,7 +149,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
 index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in);
 double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in);
 dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in);
-void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, bool*split_marker);
+void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, AMGBlockSelect*split_marker);
 
 
 struct Paso_Preconditioner_BoomerAMG

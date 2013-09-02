@@ -103,7 +103,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
   const dim_t n = my_n + overlap_n;
 
   const dim_t n_block=A_p->row_block_size;
-  bool* F_marker=NULL;
+  AMGBlockSelect* F_marker=NULL;
   index_t *counter=NULL, *mask_C=NULL, *rows_in_F;
   dim_t i, my_n_F, my_n_C, n_C, F_flag, *F_set=NULL, global_n_C=0, global_n_F=0, n_F;
   double time0=0;
@@ -161,7 +161,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      index_t *ST=new  index_t[len_S];
      
      
-     F_marker=new bool[n];
+     F_marker=new AMGBlockSelect[n];
      counter=new index_t[n];
 
      if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(offset_S) || Esys_checkPtr(S) 
@@ -200,7 +200,7 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	 options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
 	 if (Esys_noError() ) {
 	    #pragma omp parallel for private(i) schedule(static)
-	    for (i = 0; i < n; ++i) F_marker[i]=(F_marker[i] ==  PASO_AMG_IN_F);
+	    for (i = 0; i < n; ++i) F_marker[i]=((F_marker[i] ==  PASO_AMG_IN_F) ? PASO_AMG_IN_C:PASO_AMG_IN_F);
 	 
 	    /*
 	       count number of unknowns to be eliminated:
@@ -731,7 +731,7 @@ int compareindex(const void *a, const void *b)
   return (*(int *)a - *(int *)b);
 }
 
-void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, bool*split_marker,
+void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMGBlockSelect *split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
 					    Paso_Connector* col_connector, Paso_Distribution* col_dist) 

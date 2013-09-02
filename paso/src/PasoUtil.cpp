@@ -147,7 +147,7 @@ index_t Paso_Util_cumsum(dim_t N,index_t* array) {
    return out;
 }
 
-index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool* mask) {
+index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, AMGBlockSelect* mask) {
    index_t out=0,tmp;
    dim_t i;
    index_t *partial_sums=NULL,sum;
@@ -207,7 +207,7 @@ index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool* mask) {
    return out;
 }
 
-index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool* mask) {
+index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, AMGBlockSelect* mask) {
    index_t out=0,tmp=0;
    dim_t i;
    index_t *partial_sums=NULL,sum;

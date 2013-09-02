@@ -47,8 +47,8 @@ void ApplyGivensRotations(const dim_t n,double* v,const double* c,const double* 
 void Paso_Copy(const dim_t n, double* out, const double* in);
 bool Paso_fileExists( const char* filename );
 double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo);
-index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, bool* mask);
-index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, bool* mask);
+index_t Paso_Util_cumsum_maskedTrue(dim_t N,index_t* array, AMGBlockSelect* mask);
+index_t Paso_Util_cumsum_maskedFalse(dim_t N,index_t* array, AMGBlockSelect* mask);
 index_t Paso_Util_arg_max(dim_t n, dim_t* lambda);
 index_t Paso_Util_iMax(const dim_t N,const index_t* array);
 dim_t Paso_Util_numPositives(const dim_t N, const double *x);
