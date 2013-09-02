@@ -3919,21 +3919,25 @@ namespace
     // Calculates a guassian blur colvolution matrix for 2D
     double* get2DGauss(unsigned radius, double sigma)
     {
-        double* arr=new double[2*(radius*2+1)];
+        double* arr=new double[(radius*2+1)*(radius*2+1)];
         double common=M_1_PI*0.5*1/(sigma*sigma);
 	double total=0;
-	for (size_t y=-radius;y<=radius;++y)
+	int r=static_cast<int>(radius);
+	for (int y=-r;y<=r;++y)
 	{
-	    for (size_t x=-radius;x<=radius;++x)
-	    {
-	        arr[x+y*(radius*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
-	        total+=arr[x+y*(radius*2+1)];
+	    for (int x=-r;x<=r;++x)
+	    {	      
+	        arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
+// cout << (x+y*(r*2+1)) << " " << arr[(x+r)+(y+r)*(r*2+1)] << endl;
+	        total+=arr[(x+r)+(y+r)*(r*2+1)];
 	    }
 	}
 	double invtotal=1/total;
-	for (size_t p=0;p<(2*(radius*2+1));++p)
+//cout << "Inv total is "	 << invtotal << endl;
+	for (size_t p=0;p<(radius*2+1)*(radius*2+1);++p)
 	{
 	    arr[p]*=invtotal; 
+//cout << p << "->" << arr[p] << endl;	    
 	}
 	return arr;
     }
@@ -3942,12 +3946,14 @@ namespace
     // (xp, yp) are the coords in the source matrix not the destination matrix
     double Convolve2D(double* conv, double* source, size_t xp, size_t yp, unsigned radius, size_t width)
     {
+        size_t bx=xp-radius, by=yp-radius;
+	size_t sbase=bx+by*width;
 	double result=0;
-	for (size_t y=-radius;y<=radius;++y)
-	{
-	    for (size_t x=-radius;x<=radius;++x)
+	for (int y=0;y<2*radius+1;++y)
+	{	  
+	    for (int x=0;x<2*radius+1;++x)
 	    {
-	        result+=conv[x+y*(2*radius+1)] * source[xp + yp*width];
+	        result+=conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
 	    }
 	}
         return result;      
@@ -3986,13 +3992,17 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     {
         throw RipleyException("Sigma must be a postive floating point number.");
     }    
+    size_t numpoints[2];
+    numpoints[0]=m_ownNE[0]+1;
+    numpoints[1]=m_ownNE[1]+1;
     size_t padding=max((unsigned)max((m_NE[0]-m_ownNE[0])/2, (m_NE[1]-m_ownNE[1])/2), radius);
-    size_t width=(m_ownNE[0]+2*padding);    
-    size_t dsize=width * (m_ownNE[1]+2*padding);
+    size_t width=(numpoints[0]+2*padding);  	// width of one row in points
+    size_t height=(numpoints[1]+2*padding);	// height of one row in points
+    size_t dsize=width * height; // size of padded source grid 
     
     double* src=new double[dsize];
     esysUtils::randomFillArray(seed, src, dsize);  
-  
+      
     // Now we need to copy the regions owned by other ranks over here  
   
     // Lets call that done for now
@@ -4001,13 +4011,14 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     // don't need to check for exwrite because we just made it
     escript::DataVector& dv=resdat.getExpandedVectorReference();
     double* convolution=get2DGauss(radius, sigma);
-    for (size_t y=0;y<m_ownNE[1];++y)    
+    for (size_t y=0;y<(m_ownNE[1]+1);++y)    
     {
-        for (size_t x=0;x<m_ownNE[0];++x)
-	{
-	    dv[x+y*width]=Convolve2D(convolution, src, x, y, radius, width);
+        for (size_t x=0;x<(m_ownNE[0]+1);++x)
+	{	  
+	    dv[x+y*(m_ownNE[0]+1)]=Convolve2D(convolution, src, x+radius, y+radius, radius, width);
 	}
     }
+    delete[] convolution;
     return resdat;
 }
 
