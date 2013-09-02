@@ -55,4 +55,12 @@
    
 #endif
 
+
+typedef enum 
+{
+    PASO_AMG_UNDECIDED=-1,
+    PASO_AMG_IN_F=0,
+    PASO_AMG_IN_C=1
+} AMGBlockSelect;
+
 #endif /* #ifndef INC_PASO_COMMON */
