@@ -193,7 +193,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
                raise ValueError("saveDataCSV: unknown non-data argument type for %s"%(str(n)))
     escore._saveDataCSV(filename, new_data,sep, csep, append)
 
-def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, **data):
+def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """
     Saves `Data` objects to files and creates an I{escript dataset} (ESD) file
     for convenient processing/visualisation.
@@ -234,6 +234,8 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
                         Setting this to 1 changes the behaviour and the mesh
                         is saved at each timestep.
     :type dynamicMesh: `int`
+    :param timeStepFormat: timestep format string (defaults to "%04d")
+    :type timeStepFormat: ``str``
     :keyword <name>: writes the assigned value to the file using <name> as
                      identifier
     :type <name>: `Data` object
@@ -271,7 +273,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
         if timeStep == 0:
             domain.dump(os.path.join(dataDir, meshFile + ".nc"))
     else:
-        meshFile += ".%04d"
+        meshFile += ".%s"%timeStepFormat
         domain.dump(os.path.join(dataDir, (meshFile + ".nc") % fileNumber))
 
     outputString = ""
@@ -289,7 +291,7 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
 
     # now add the variables
     for varName, d in list(new_data.items()):
-        varFile = datasetName+"_"+varName+".%04d"
+        varFile = datasetName+"_"+varName+".%s"%timeStepFormat
         d.dump(os.path.join(dataDir, (varFile + ".nc") % fileNumber))
         if domain.onMasterProcessor():
             outputString += "V=%s:%s\n" % (varFile, varName)
