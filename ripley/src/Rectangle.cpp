@@ -307,9 +307,6 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                                    const std::vector<int>& multiplier,
                                    int byteOrder) const
 {
-    if (byteOrder != BYTEORDER_NATIVE)
-        throw RipleyException("readBinaryGrid(): only native byte order supported at the moment.");
-
     // check destination function space
     int myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
@@ -359,21 +356,28 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (index_t y=0; y<num1; y++) {
+    for (int y=0; y<num1; y++) {
         const int fileofs = numComp*(idx0+(idx1+y)*numValues[0]);
         f.seekg(fileofs*sizeof(ValueType));
         f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
         for (int x=0; x<num0; x++) {
             const int baseIndex = first0+x*multiplier[0]
                                     +(first1+y*multiplier[1])*myN0;
-            for (index_t m1=0; m1<multiplier[1]; m1++) {
-                for (index_t m0=0; m0<multiplier[0]; m0++) {
+            for (int m1=0; m1<multiplier[1]; m1++) {
+                for (int m0=0; m0<multiplier[0]; m0++) {
                     const int dataIndex = baseIndex+m0+m1*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
                     for (int c=0; c<numComp; c++) {
-                        if (!std::isnan(values[x*numComp+c])) {
+                        ValueType val = values[x*numComp+c];
+
+                        if (byteOrder != BYTEORDER_NATIVE) {
+                            char* cval = reinterpret_cast<char*>(&val);
+                            // this will alter val!!
+                            byte_swap32(cval);
+                        }
+                        if (!std::isnan(val)) {
                             for (int q=0; q<dpp; q++) {
-                                *dest++ = static_cast<double>(values[x*numComp+c]);
+                                *dest++ = static_cast<double>(val);
                             }
                         }
                     }
