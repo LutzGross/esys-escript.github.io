@@ -225,8 +225,8 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(Elements_Nodes);
-                   mesh_p->Elements->updateTagList();
                 } /* num_Elements>0 */
+                mesh_p->Elements->updateTagList();
             }
         }
 
@@ -289,8 +289,8 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(FaceElements_Nodes);
-                   mesh_p->FaceElements->updateTagList();
                 } /* num_FaceElements>0 */
+                mesh_p->FaceElements->updateTagList();
             }
         }
 
@@ -353,8 +353,8 @@ namespace finley {
                        }
                    }
                    TMPMEMFREE(ContactElements_Nodes);
-                   mesh_p->ContactElements->updateTagList();
                } /* num_ContactElements>0 */
+               mesh_p->ContactElements->updateTagList();
            }
         }
 
@@ -414,8 +414,8 @@ namespace finley {
                        mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
                    }
                    TMPMEMFREE(Points_Nodes);
-                   mesh_p->Points->updateTagList();
                 } /* num_Points>0 */
+                mesh_p->Points->updateTagList();
             }
         }
 
