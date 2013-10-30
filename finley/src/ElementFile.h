@@ -87,6 +87,9 @@ public:
     /// returns the minimum and maximum reference number of nodes describing
     /// the elements
     inline std::pair<int,int> getNodeRange() const;
+
+    /// updates the list of tags in use. This method must be called by all
+    /// ranks.
     inline void updateTagList();
 
 private:
