@@ -2409,7 +2409,7 @@ Changing this would mean that any resolve call would need to use MPI (to check f
 Data
 Data::matrixInverse() const
 {
-    if (isLazy())
+    if (isLazy())	// Cannot use lazy for this because individual inversions could throw.
     {
         Data d(*this);
         d.resolve();

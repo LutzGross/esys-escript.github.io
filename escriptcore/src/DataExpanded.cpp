@@ -639,10 +639,6 @@ DataExpanded::matrixInverse(DataAbstract* out) const
      }
   }
   return errcode;
-  if (errcode)
-  {
-	DataMaths::matrixInverseError(errcode);	// throws exceptions
-  }
 }
 
 void
