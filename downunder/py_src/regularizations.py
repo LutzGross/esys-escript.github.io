@@ -376,7 +376,7 @@ class Regularization(CostFunction):
         numLS=self.getNumLevelSets()
         if mu_c is None or numLS < 2:
             self.__mu_c = np.ones((numLS,numLS))
-        if isinstance(mu_c, float) or isinstance(mu_c, int):
+        elif isinstance(mu_c, float) or isinstance(mu_c, int):
             self.__mu_c = np.zeros((numLS,numLS))
             self.__mu_c[:,:]=mu_c
         else:
@@ -388,7 +388,7 @@ class Regularization(CostFunction):
                     self.__mu_c =  mu_c
                     self._new_mu=True
             else:
-                raise ValueError("Unexpected shape %s for mu."%mu_c.shape)
+                raise ValueError("Unexpected shape %s for mu."%(mu_c.shape,))
 
     def getArguments(self, m):
         """
