@@ -486,6 +486,7 @@ class InversionCostFunction(MeteredCostFunction):
             mu=self.mu_model[i]
             f=self.forward_models[i]
             q=self.__Q[i]
+            print "CC  =" , mu, f,q
             if isinstance(f, ForwardModel):
                 Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[q[0]] * mu
                 if self.numLevelSets == 1 :
