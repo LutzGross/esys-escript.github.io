@@ -128,6 +128,35 @@ class InversionCostFunction(MeteredCostFunction):
         self.__num_tradeoff_factors = self.regularization.getNumTradeOffFactors() + self.numModels
         self.setTradeOffFactorsModels()
 
+        
+        self.__Q={}
+        for i in range(self.numModels):
+            f=self.forward_models[i]
+            if isinstance(f, ForwardModel):
+               idx=[0]
+            elif len(f) == 1:
+               idx=[0]
+            else:
+               idx = f[1]
+               if isinstance(idx, int):
+                 idx=[idx]
+               else:
+                 pass
+      
+            q=[]
+            for k in idx:
+                mm=self.mappings[k]
+                if isinstance(mm, Mapping):
+                    q.append(0)
+                elif len(mm) == 1:
+                    q.append(0)
+                else:
+		     if  isinstance(mm[1], int):
+		         q.append(mm[1])
+		     else:
+                        q+=list(mm[1])
+            self.__Q[i]=q
+                        
     def getDomain(self):
         """
         returns the domain of the cost function
@@ -366,6 +395,7 @@ class InversionCostFunction(MeteredCostFunction):
                 else:
                     args=tuple( [ props[j] for j in idx] + args_f[i])
                     J_f = f.getDefect(*args)
+            print "J_f[%d] = %e"%(i, J_f), self.mu_model[i]
             self.logger.debug("J_f[%d] = %e"%(i, J_f))
             self.logger.debug("mu_model[%d] = %e"%(i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
@@ -415,6 +445,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         return result
 
+         
     def _getGradient(self, m, *args):
         """
         returns the gradient of the cost function at *m*.
@@ -454,36 +485,33 @@ class InversionCostFunction(MeteredCostFunction):
         for i in range(self.numModels):
             mu=self.mu_model[i]
             f=self.forward_models[i]
+            q=self.__Q[i]
             if isinstance(f, ForwardModel):
-                Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[0] * mu
+                Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[q[0]] * mu
                 if self.numLevelSets == 1 :
                     Y +=Ys
                 else:
-                    Y[0] +=Ys
+                    Y[q[0]] +=Ys
             elif len(f) == 1:
-                Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[0]  * mu
+                Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[q[0]]  * mu
                 if self.numLevelSets == 1 :
                     Y +=Ys
                 else:
-                    Y[0] +=Ys
+                    Y[q[0]] +=Ys
             else:
                 idx = f[1]
                 f = f[0]
                 if isinstance(idx, int):
-                    Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[idx] * mu
+                    Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[q[0]] * mu
                     if self.numLevelSets == 1 :
-                        if idx == 0:
-                            Y+=Ys
-                        else:
-                            raise IndexError("Illegal mapping index.")
+                        Y+=Ys
                     else:
-                        Y[idx] += Ys
+                        Y[q[0]] += Ys
                 else:
                     args = tuple( [ props[j] for j in idx] + args_f[i])
                     Ys = f.getGradient(*args)
-                    for ii in range(len(idx)):
-                        Y[idx[ii]]+=Ys[ii]* p_diffs[idx[ii]] * mu
-
+                    for ii in range(len(q)):
+                        Y[q[ii]]+=Ys[ii]* p_diffs[q[ii]] * mu
         return g_J
 
     def _getInverseHessianApproximation(self, m, r, *args):
