@@ -131,6 +131,7 @@ class InversionCostFunction(MeteredCostFunction):
         
         self.__Q={}
         for i in range(self.numModels):
+            # find the index of the physical parameters used to evaluate a model
             f=self.forward_models[i]
             if isinstance(f, ForwardModel):
                idx=[0]
@@ -151,12 +152,24 @@ class InversionCostFunction(MeteredCostFunction):
                 elif len(mm) == 1:
                     q.append(0)
                 else:
-		     if  isinstance(mm[1], int):
+		     if isinstance(mm[1], int):
 		         q.append(mm[1])
 		     else:
                         q+=list(mm[1])
             self.__Q[i]=q
-                        
+        # for each parameter find the component of the levelset function  beeing used to define it:
+        self.__parameter_to_level_set={}
+        for k in xrange(self.numMappings):
+            mm=self.mappings[k]
+            if isinstance(mm, Mapping):
+                 q=0
+            elif len(mm) == 1:
+                 q=0
+            else:
+	        if isinstance(mm[1], int):
+	           q=mm[1]
+            self.__parameter_to_level_set[k]=q
+                                
     def getDomain(self):
         """
         returns the domain of the cost function
@@ -485,34 +498,35 @@ class InversionCostFunction(MeteredCostFunction):
         for i in range(self.numModels):
             mu=self.mu_model[i]
             f=self.forward_models[i]
-            q=self.__Q[i]
-            print "CC  =" , mu, f,q
             if isinstance(f, ForwardModel):
-                Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[q[0]] * mu
+                Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[0] * mu
                 if self.numLevelSets == 1 :
                     Y +=Ys
                 else:
-                    Y[q[0]] +=Ys
+                    Y[self.__parameter_to_level_set[0]] +=Ys
             elif len(f) == 1:
-                Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[q[0]]  * mu
+                Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[0]  * mu
                 if self.numLevelSets == 1 :
                     Y +=Ys
                 else:
-                    Y[q[0]] +=Ys
+                    Y[self.__parameter_to_level_set[0]] +=Ys
             else:
                 idx = f[1]
                 f = f[0]
                 if isinstance(idx, int):
-                    Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[q[0]] * mu
+                    Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[idx] * mu
                     if self.numLevelSets == 1 :
                         Y+=Ys
                     else:
-                        Y[q[0]] += Ys
+                        Y[self.__parameter_to_level_set[idx]] += Ys
                 else:
                     args = tuple( [ props[j] for j in idx] + args_f[i])
                     Ys = f.getGradient(*args)
-                    for ii in range(len(q)):
-                        Y[q[ii]]+=Ys[ii]* p_diffs[q[ii]] * mu
+                    for j in range(idx):
+                        if self.numLevelSets == 1 :
+                           Y+=Ys[j]* p_diffs[idx[j]] * mu
+			else:
+                           Y[self.__parameter_to_level_set[j]]+=Ys[j]* p_diffs[idx[j]] * mu
         return g_J
 
     def _getInverseHessianApproximation(self, m, r, *args):
