@@ -494,10 +494,12 @@ Data::initialise(const double value,
     // within the shared_ptr constructor.
     if (expanded) {
         DataAbstract* temp=new DataExpanded(what, shape, value);
-        set_m_data(temp->getPtr());
+        DataAbstract_ptr p(temp);
+        set_m_data(p);
     } else {
         DataAbstract* temp=new DataConstant(what, shape, value);
-        set_m_data(temp->getPtr());
+        DataAbstract_ptr p(temp);
+        set_m_data(p);
     }
 }
 
