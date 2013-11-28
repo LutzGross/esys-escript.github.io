@@ -20,7 +20,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase' ]
+__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave' ]
 
 
 from math import pi
@@ -29,6 +29,7 @@ import sys
 import time
 from esys.escript import *
 import esys.escript.unitsSI as U
+from esys.escript.linearPDEs import LinearPDE
 
 
 
@@ -288,7 +289,7 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
     """    
     dom=x.getDomain()  
     bb=boundingBox(dom)
-    DIM=domain.getDim()
+    DIM=dom.getDim()
     decay=-log(absorption_cut)/absorption_zone**2
     f=1
     for i in xrange(DIM):
@@ -300,6 +301,7 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
 	    x_r=(bb[i][1]-absorption_zone)-x_i
 	    m_r=whereNegative(x_r)
 	    f=f*( (exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
+    return f
      
 class SonicWave(WaveBase):
 	"""
@@ -333,17 +335,17 @@ class SonicWave(WaveBase):
 	   if p0 == None:
 	      p0=Scalar(0.,Solution(domain))
 	   else:
-	      p0=interpolate(p0, Solution(domain )
+	      p0=interpolate(p0, Solution(domain ))
 	      
 	   if p0_t == None:
 	      p0_t=Scalar(0.,Solution(domain))
 	   else:
-	      p0_t=interpolate(p0_t, Solution(domain )
+	      p0_t=interpolate(p0_t, Solution(domain ))
 	   
 	   if dt == None:
                   dt=min(inf((1./5.)*domain.getSize()/v_p), wavelet.getTimeScale())
             
-           super(SonicWave, self).__init__(self, dt, u0=p0, v0=p0_t, t0=0.)
+           super(SonicWave, self).__init__( dt, u0=p0, v0=p0_t, t0=0.)
            
            self.__wavelet=wavelet
            self.__mypde=LinearPDE(domain)
@@ -353,7 +355,8 @@ class SonicWave(WaveBase):
            self.__r=Scalar(0., DiracDeltaFunctions(self.__mypde.getDomain()))
 	   self.__vp2=v_p**2
 
-       def  _getAcceleration(self, t, u):
+
+        def  _getAcceleration(self, t, u):
              """
              returns the acceleraton for time t and solution u at time t
              """
