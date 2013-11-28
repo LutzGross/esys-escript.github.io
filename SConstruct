@@ -226,7 +226,8 @@ cc_name=os.path.basename(env['CXX'])
 if cc_name == 'icpc':
     # Intel compiler
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
-    cc_flags    = "-std=c99 -fPIC -w2 -wd1875 -Wno-unknown-pragmas -DBLOCKTIMER -DCORE_ID1"
+    # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
+    cc_flags    = "-fPIC -w2 -wd1875 -Wno-unknown-pragmas -DBLOCKTIMER -DCORE_ID1"
     cc_optim    = "-O3 -ftz -fno-alias -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
     omp_flags   = "-openmp"

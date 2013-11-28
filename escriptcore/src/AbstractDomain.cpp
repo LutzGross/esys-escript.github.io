@@ -320,7 +320,7 @@ bool AbstractDomain::supportsFilter(const boost::python::tuple& t) const
     return false;  
 }
 
-void AbstractDomain::randomFill(escript::Data& dat, long seed, const boost::python::tuple& filter) const
+escript::Data AbstractDomain::randomFill(long seed, const boost::python::tuple& filter) const
 {
     throwStandardException("AbstractDomain::randomFill");
 }
