@@ -23,6 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['SimpleSEGYWriter', 'Ricker' ]
 
 
+from math import pi
 import numpy as np
 import sys
 import time
@@ -44,18 +45,19 @@ class Ricker(Wavelet):
 	        set up Ricker wavelet wih dominant frequence f_dom and center at time t_dom. If t_dom
 	        is not given an estimate for suitable t_dom is calculated so f(0)~0.
 	        """
-		drop=20
+		drop=18
 		self.__f=f_dom
 		self.__f_max=sqrt(7)*f_dom
 		self.__s=pi*self.__f
 		if t_dom == None:
 			t_dom=sqrt(drop)/self.__s
 		self.__t0=t_dom
+		
 	def getCenter(self):
 	       """
 	       return value of wavelet center 
 	       """
-               return self.___t0	
+               return self.__t0	
         
         def getTimeScale(self):
                 """

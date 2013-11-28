@@ -63,8 +63,13 @@ class TestSeismicTools(unittest.TestCase):
            data = np.random.ranf(3)
            sw.addRecord(data)
         sw.write(os.path.join(WORKDIR,"test2.sgy"))
-
-
+        
+     def test_ricker(self):
+           rw=Ricker(f_dom=40, t_dom=None)
+           
+           self.assertTrue(abs(rw.getValue(0)) < 1e-6)
+           self.assertAlmostEquals(rw.getValue(rw.getCenter()), 1. )
+           self.assertTrue(abs(rw.getAcceleration(0.)) < 1.)
 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
