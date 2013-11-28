@@ -323,8 +323,8 @@ bool AbstractDomain::supportsFilter(const boost::python::tuple& t) const
 escript::Data AbstractDomain::randomFill(long seed, const boost::python::tuple& filter) const
 {
     throwStandardException("AbstractDomain::randomFill");
+    return Data();
 }
-
 
 
 } // end of namespace
