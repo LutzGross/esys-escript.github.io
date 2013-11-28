@@ -31,64 +31,7 @@ from esys.escript import *
 import esys.escript.unitsSI as U
 
 
-class WaveBase(object):
-      """
-      Base for wave propagation using the Verlet scheme. 
-            
-            u_tt = A(t,u), u(t=t0)=u0, u_t(t=t0)=v0
 
-      with a given  acceleration force as function of time. 
-      
-      a_n=A(t_{n-1})
-      v_n=v_{n-1} +  dt *  a_n
-      u_n=u_{n-1} +  dt *  v_n
-      
-      
-      """
-      def __init__(self, dt, u0, v0, t0=0.):
-         """
-         set up the wave base
-         
-         :param dt: time step size (need to be sufficiently small)
-         :param u0: initial value
-         :param v0: initial velocity
-         :param t0: initial time 
-         """
-         self.u=u0
-         self.v=v0
-         self.t=t0
-         self.t_last=t0
-         self.__dt=dt
-         
-      def getTimeStepSize(self):
-    	   return self.__dt
-    	   
-      def _getAcceleration(self, t, u):
-           """
-           returns the acceleraton for time t and solution u at time t
-           : note: this function needs to be overwritten by a particular wave problem
-           """
-           pass
-           
-      def update(self, t):
-             """
-             returns the solution for the next time marker t which needs to greater than the time marker from the 
-             previous call.
-             """
-             if not self.t_last <= t:
-                  raise ValueError("You can not move backward in time.")
-                  
-             dt = self.getTimeStepSize()
-             # apply Verlet scheme until 
-             while self.t < t:
-                  a=self._getAcceleration(self.t, self.u)
-		  self.v += dt * a
-		  self.u += dt * self.v 
-                  self.t += dt
-             
-             # now we work backwards
-             self.t_last=t
-             return t, self.u + self.v * (t-self.t)
              
 class Wavelet(object):
 	"""
@@ -270,5 +213,153 @@ class SimpleSEGYWriter(object):
 
             if getMPIRankWorld()<1:
                 stream.write(filename, format="SEGY", data_encoding=1,byteorder=sys.byteorder)
+
+class WaveBase(object):
+      """
+      Base for wave propagation using the Verlet scheme. 
+            
+            u_tt = A(t,u), u(t=t0)=u0, u_t(t=t0)=v0
+
+      with a given  acceleration force as function of time. 
+      
+      a_n=A(t_{n-1})
+      v_n=v_{n-1} +  dt *  a_n
+      u_n=u_{n-1} +  dt *  v_n
+      
+      
+      """
+      def __init__(self, dt, u0, v0, t0=0.):
+         """
+         set up the wave base
+         
+         :param dt: time step size (need to be sufficiently small)
+         :param u0: initial value
+         :param v0: initial velocity
+         :param t0: initial time 
+         """
+         self.u=u0
+         self.v=v0
+         self.t=t0
+         self.t_last=t0
+         self.__dt=dt
+         
+      def getTimeStepSize(self):
+    	   return self.__dt
+    	   
+      def _getAcceleration(self, t, u):
+           """
+           returns the acceleraton for time t and solution u at time t
+           : note: this function needs to be overwritten by a particular wave problem
+           """
+           pass
+           
+      def update(self, t):
+             """
+             returns the solution for the next time marker t which needs to greater than the time marker from the 
+             previous call.
+             """
+             if not self.t_last <= t:
+                  raise ValueError("You can not move backward in time.")
+                  
+             dt = self.getTimeStepSize()
+             # apply Verlet scheme until 
+             while self.t < t:
+                  a=self._getAcceleration(self.t, self.u)
+		  self.v += dt * a
+		  self.u += dt * self.v 
+                  self.t += dt
+             
+             # now we work backwards
+             self.t_last=t
+             return t, self.u + self.v * (t-self.t)
+             
+def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e-2):
+    """
+    creating a distribution which is one in the interior of the domain of x
+    and is falling down to the value 'absorption_cut' over a margain of thickness 'absorption_zone' 
+    toward each boundary except the top of the domain.
+    
+    :param x: location of points in the domain
+    :type x: `Data`
+    :param absorption_zone: thickness of the aborption zone 
+    :param absorption_cut: value of decay function on domain boundary
+    :return: function on 'x' which is one in the iterior and decays to almost zero over a margin 
+             toward the boundary.            
+    """    
+    dom=x.getDomain()  
+    bb=boundingBox(dom)
+    DIM=domain.getDim()
+    decay=-log(absorption_cut)/absorption_zone**2
+    f=1
+    for i in xrange(DIM):
+        x_i=x[i]
+        x_l=x_i-(bb[i][0]+absorption_zone)
+	m_l=whereNegative(x_l)
+	f=f*( (exp(-decay*(x_l*m_l)**2)-1) * m_l+1 )
+	if not DIM-1 == i:
+	    x_r=(bb[i][1]-absorption_zone)-x_i
+	    m_r=whereNegative(x_r)
+	    f=f*( (exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
+     
+class SonicWave(WaveBase):
+	"""
+	Solving the sonic wave equation 
+	
+	p_tt = (v_p**2 * p_i)_i  + f(t) * delta_s   where (p-) velocity v_p.
+	
+	f(t) is wavelet acting at a point source term at positon s 
+	"""
+	def __init__(self, domain, v_p, wavelet, source_tag, dt=None, p0=None, p0_t=None, absorption_zone=300*U.m, absorption_cut=1e-2):
+           """
+           initialize the sonic wave solver
+           
+           :param domain: domain of the problem
+           :type domain: `Doamin`        
+           :param v_p: p-velocity field    
+           :type v_p: `Scalar`       
+           :param wavelet: wavelet to describe the time evolution of source term 
+           :type wavelet: `Wavelet`          
+           :param source_tag: tag of the source location
+           :type source_tag: 'str' or 'int'           
+           :param dt: time step size. If not present a suitable time step size is calculated.           
+           :param p0: initial solution. If not present zero is used.           
+           :param p0_t: initial solution change rate. If not present zero is used.           
+           :param absorption_zone: thickness of absorption zone           
+           :param absorption_cut: boundary value of absorption decay factor
+           """
+           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+           v_p=v_p*f
+
+	   if p0 == None:
+	      p0=Scalar(0.,Solution(domain))
+	   else:
+	      p0=interpolate(p0, Solution(domain )
+	      
+	   if p0_t == None:
+	      p0_t=Scalar(0.,Solution(domain))
+	   else:
+	      p0_t=interpolate(p0_t, Solution(domain )
+	   
+	   if dt == None:
+                  dt=min(inf((1./5.)*domain.getSize()/v_p), wavelet.getTimeScale())
+            
+           super(SonicWave, self).__init__(self, dt, u0=p0, v0=p0_t, t0=0.)
+           
+           self.__wavelet=wavelet
+           self.__mypde=LinearPDE(domain)
+           self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           self.__mypde.setValue(D=1.)
+	   self.__source_tag=source_tag
+           self.__r=Scalar(0., DiracDeltaFunctions(self.__mypde.getDomain()))
+	   self.__vp2=v_p**2
+
+       def  _getAcceleration(self, t, u):
+             """
+             returns the acceleraton for time t and solution u at time t
+             """
+             self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getAcceleration(t))
+             self.__mypde.setValue(X=-self.__vp2*grad(u), y_dirac= self.__r)
+             return self.__mypde.getSolution()
+
             
 

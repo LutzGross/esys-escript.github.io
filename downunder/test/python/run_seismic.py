@@ -109,8 +109,15 @@ class TestSeismicTools(unittest.TestCase):
           self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
 
           self.assertRaises(ValueError, tw.update, t_ref-1)
-                                                
-          
+     def test_sonicwave(self):
+         
+         domain=Brick(5,5,5, diracPoints=(0.5,0.5,1.), diracTags='sss')
+         v_p=1.
+         wl=Ricker(1)
+         
+         sw=SonicWave( domain, v_p, wavelet, source_tag)
+         print sw.update(1.)
+                 
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestSeismicTools))
