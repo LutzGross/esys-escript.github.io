@@ -59,6 +59,7 @@ some tools supporting physical units and conversion
 :var cm : unit of centi meter
 :var mm : unit of milli meter
 :var sec: unit of second
+:var msec: unit of milli second
 :var minute : unit of minute
 :var h : unit of hour
 :var hour : unit of hour
@@ -315,6 +316,7 @@ Mcf=1000. * ft**3
 #  time
 #
 sec=Unit("sec","second",0.,1.)
+msec=Milli*sec
 minute=Unit("min","minute",0.,60.)
 hour=Unit("h","hour",0.,60.* minute)
 h=hour
