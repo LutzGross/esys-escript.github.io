@@ -20,7 +20,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['SimpleSEGYWriter']
+__all__ = ['SimpleSEGYWriter', 'Ricker' ]
 
 
 import numpy as np
@@ -29,6 +29,55 @@ import time
 from esys.escript import *
 import esys.escript.unitsSI as U
 
+class Wavelet(object):
+	"""
+	place holder for source wavelet
+	"""
+	pass
+	
+class Ricker(Wavelet):
+	"""
+	The Ricker Wavelet w=f(t)
+	"""
+	def __init__(self, f_dom=40, t_dom=None):
+	        """
+	        set up Ricker wavelet wih dominant frequence f_dom and center at time t_dom. If t_dom
+	        is not given an estimate for suitable t_dom is calculated so f(0)~0.
+	        """
+		drop=20
+		self.__f=f_dom
+		self.__f_max=sqrt(7)*f_dom
+		self.__s=pi*self.__f
+		if t_dom == None:
+			t_dom=sqrt(drop)/self.__s
+		self.__t0=t_dom
+	def getCenter(self):
+	       """
+	       return value of wavelet center 
+	       """
+               return self.___t0	
+        
+        def getTimeScale(self):
+                """
+                returns the time scale which is the inverse of the largest freqence with a significant 
+                spectral component. 
+                """
+		return 1/self.__f_max
+
+	def getValue(self, t):
+	        """
+	        get value of wavelet at time t
+	        """
+		e2=(self.__s*(t-self.__t0))**2
+		return (1-2*e2)*exp(-e2)
+
+	def getAcceleration(self, t):
+	        """
+	        get the acceleration f''(t) at time t
+	        """
+		e2=(self.__s*(t-self.__t0))**2
+                return 2*self.__s**2*(-4*e2**2 + 12*e2 - 3)*exp(-e2)
+                
 
 class SimpleSEGYWriter(object):
 	"""
