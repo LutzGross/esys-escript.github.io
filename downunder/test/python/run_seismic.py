@@ -27,6 +27,7 @@ import os
 import sys
 from esys.downunder import *
 from esys.escript import unitsSI as U
+from esys.escript import *
 from esys.weipa import saveSilo
 
 # this is mainly to avoid warning messages
@@ -70,7 +71,46 @@ class TestSeismicTools(unittest.TestCase):
            self.assertTrue(abs(rw.getValue(0)) < 1e-6)
            self.assertAlmostEquals(rw.getValue(rw.getCenter()), 1. )
            self.assertTrue(abs(rw.getAcceleration(0.)) < 1.)
+     def test_wavebase(self):
+          class TestWave(WaveBase):
+                def _getAcceleration(self, t, u):
+                     return -sin(t)
+          tw=TestWave(dt=0.001, u0=0., v0=1., t0=0.)
+          self.assertAlmostEquals(0.001, tw.getTimeStepSize())
+          
+          t_ref=0.005
+          t, u=tw.update(t_ref)
+          self.assertTrue(abs(t-t_ref) < 1e-9)
+          self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
+          
+          t_ref=0.007
+          t, u=tw.update(t_ref)
+          self.assertTrue(abs(t-t_ref) < 1e-9)
+          self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
+          
+          t_ref=0.0071
+          t, u=tw.update(t_ref)
+          self.assertTrue(abs(t-t_ref) < 1e-9)
+          self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
+          
+          t_ref=0.01
+          t, u=tw.update(t_ref)
+          self.assertTrue(abs(t-t_ref) < 1e-9)
+          self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
+          
+          t_ref=0.02
+          t, u=tw.update(t_ref)
+          self.assertTrue(abs(t-t_ref) < 1e-9)
+          self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
 
+          t_ref=0.5
+          t, u=tw.update(t_ref)
+          self.assertTrue(abs(t-t_ref) < 1e-9)
+          self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
+
+          self.assertRaises(ValueError, tw.update, t_ref-1)
+                                                
+          
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestSeismicTools))
