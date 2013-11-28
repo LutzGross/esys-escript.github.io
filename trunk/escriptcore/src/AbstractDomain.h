@@ -480,7 +480,7 @@ Note: This is _not_ equivalent to weak_ptr::lock.
    * \brief Fills the data object with filtered random values 
   */ 
   ESCRIPT_DLL_API
-  virtual void randomFill(escript::Data& dat, long seed, const boost::python::tuple& filter) const;   
+  virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;   
    
  protected:
 

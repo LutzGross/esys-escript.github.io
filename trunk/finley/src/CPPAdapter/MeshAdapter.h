@@ -703,7 +703,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
-  friend escript::Domain_ptr finley::brick(int n0, int n1, int n2, int order,
+  friend escript::Domain_ptr brick(int n0, int n1, int n2, int order,
                     double l0, double l1, double l2,
                     bool periodic0, bool periodic1, bool periodic2,
                     int integrationOrder,
@@ -716,7 +716,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                     const std::map<std::string, int>& tagnamestonums);
                     
                     
-  friend escript::Domain_ptr finley::rectangle(int n0, int n1, int order,
+  friend escript::Domain_ptr rectangle(int n0, int n1, int order,
                         double l0, double l1,
                         bool periodic0, bool periodic1,
                         int integrationOrder,

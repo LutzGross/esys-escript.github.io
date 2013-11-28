@@ -144,7 +144,7 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composer_xe_2013.5.192/mkl/include', '/sw/sdev/intel/composer_xe_2013.5.192/mkl/lib/intel64']
+mkl_prefix = ['/sw/sdev/intel/composer_xe_2013_sp1.0.080/mkl/include', '/sw/sdev/intel/composer_xe_2013_sp1.0.080/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -219,7 +219,7 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.6.0/2.6.0/linux-x86_64/l
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013.5.192'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013_sp1.0.080'})]
 
 #iknowwhatimdoing = False
 

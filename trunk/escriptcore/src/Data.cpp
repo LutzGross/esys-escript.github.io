@@ -4355,21 +4355,13 @@ Data escript::randomData(const bp::tuple& shape,
        const FunctionSpace& what,
        long seed, const boost::python::tuple& filter)
 {
-    Data towipe(0, shape, what, true);
-    DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
-    if (de==0) 
-    {
-	throw DataException("Programmer Error: Expanded data is not expanded");
-    }  
-  
-  
     // first check what they have asked for in filter
     // does our domain support this?
     if (len(filter)>0) 
     {
         if (what.getDomain()->supportsFilter(filter))
 	{
-	    what.getDomain()->randomFill(towipe, seed, filter);
+	    return what.getDomain()->randomFill(seed, filter);
 	}
 	else
 	{
@@ -4385,8 +4377,8 @@ Data escript::randomData(const bp::tuple& shape,
 	    throw DataException("Programmer Error: Expanded data is not expanded");
 	}
 	de->randomFill(seed);
+        return towipe;
     }
-    return towipe;
 }
 
 
