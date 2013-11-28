@@ -109,15 +109,33 @@ class TestSeismicTools(unittest.TestCase):
           self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
 
           self.assertRaises(ValueError, tw.update, t_ref-1)
-     def test_sonicwave(self):
+     def test_sonicwave2D(self):
          
-         domain=Brick(5,5,5, diracPoints=(0.5,0.5,1.), diracTags='sss')
+         from esys.finley import Rectangle
+         
+         domain=Rectangle(5,5, diracPoints=[(0.5,1.)], diracTags=['sss'])
          v_p=1.
-         wl=Ricker(1)
          
-         sw=SonicWave( domain, v_p, wavelet, source_tag)
-         print sw.update(1.)
+         sw=SonicWave( domain, v_p, Ricker(0.5), source_tag='sss')
+         u=sw.update(1.)[1]
+         self.assertTrue(isinstance(u,Data))
+         self.assertEquals(u.getShape(), ())
+         self.assertEquals(u.getFunctionSpace(), Solution(domain))
+         
+     def test_sonicwave3D(self):
+         
+         from esys.finley import Brick
+         
+         domain=Brick(5,5,5, diracPoints=[(0.5,0.5,1.)], diracTags=['sss'])
+         v_p=1.
+         
+         sw=SonicWave( domain, v_p, Ricker(0.5), source_tag='sss')
+         u=sw.update(1.)[1]
+         self.assertTrue(isinstance(u,Data))
+         self.assertEquals(u.getShape(), ())
+         self.assertEquals(u.getFunctionSpace(), Solution(domain))
                  
+                                  
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestSeismicTools))
