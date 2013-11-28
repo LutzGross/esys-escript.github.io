@@ -20,7 +20,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['SimpleSEGYWriter', 'Ricker' ]
+__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase' ]
 
 
 from math import pi
@@ -30,6 +30,66 @@ import time
 from esys.escript import *
 import esys.escript.unitsSI as U
 
+
+class WaveBase(object):
+      """
+      Base for wave propagation using the Verlet scheme. 
+            
+            u_tt = A(t,u), u(t=t0)=u0, u_t(t=t0)=v0
+
+      with a given  acceleration force as function of time. 
+      
+      a_n=A(t_{n-1})
+      v_n=v_{n-1} +  dt *  a_n
+      u_n=u_{n-1} +  dt *  v_n
+      
+      
+      """
+      def __init__(self, dt, u0, v0, t0=0.):
+         """
+         set up the wave base
+         
+         :param dt: time step size (need to be sufficiently small)
+         :param u0: initial value
+         :param v0: initial velocity
+         :param t0: initial time 
+         """
+         self.u=u0
+         self.v=v0
+         self.t=t0
+         self.t_last=t0
+         self.__dt=dt
+         
+      def getTimeStepSize(self):
+    	   return self.__dt
+    	   
+      def _getAcceleration(self, t, u):
+           """
+           returns the acceleraton for time t and solution u at time t
+           : note: this function needs to be overwritten by a particular wave problem
+           """
+           pass
+           
+      def update(self, t):
+             """
+             returns the solution for the next time marker t which needs to greater than the time marker from the 
+             previous call.
+             """
+             if not self.t_last <= t:
+                  raise ValueError("You can not move backward in time.")
+                  
+             dt = self.getTimeStepSize()
+             # apply Verlet scheme until 
+             while self.t < t:
+                  a=self._getAcceleration(self.t, self.u)
+		  self.v += dt * a
+		  self.u += dt * self.v 
+                  self.t += dt
+             
+             # now we work backwards
+             self.t_last=t
+             return t, self.u + self.v * (t-self.t)
+             
 class Wavelet(object):
 	"""
 	place holder for source wavelet
