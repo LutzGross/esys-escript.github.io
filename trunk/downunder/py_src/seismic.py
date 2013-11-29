@@ -209,7 +209,7 @@ class SimpleSEGYWriter(object):
             # object.  If these are not set, they will be autocreated with default
             # values.
             stream.stats = AttribDict()
-            stream.stats.textual_file_header = 'C.. '+self.__text+'\nC.. with esys.escript.downunder r%s at %s'%(getVersion(),time.asctime())
+            stream.stats.textual_file_header = 'C.. '+self.__text+'\nC.. with esys.escript.downunder r%s\nC.. %s'%(getVersion(),time.asctime())
             stream.stats.binary_file_header = SEGYBinaryFileHeader()
 
             if getMPIRankWorld()<1:
@@ -311,7 +311,7 @@ class SonicWave(WaveBase):
 	
 	f(t) is wavelet acting at a point source term at positon s 
 	"""
-	def __init__(self, domain, v_p, wavelet, source_tag, dt=None, p0=None, p0_t=None, absorption_zone=300*U.m, absorption_cut=1e-2):
+	def __init__(self, domain, v_p, wavelet, source_tag, dt=None, p0=None, p0_t=None, absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True):
            """
            initialize the sonic wave solver
            
@@ -328,6 +328,7 @@ class SonicWave(WaveBase):
            :param p0_t: initial solution change rate. If not present zero is used.           
            :param absorption_zone: thickness of absorption zone           
            :param absorption_cut: boundary value of absorption decay factor
+           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion. 
            """
            f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
            v_p=v_p*f
@@ -349,7 +350,8 @@ class SonicWave(WaveBase):
            
            self.__wavelet=wavelet
            self.__mypde=LinearPDE(domain)
-           self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=1.)
 	   self.__source_tag=source_tag
            self.__r=Scalar(0., DiracDeltaFunctions(self.__mypde.getDomain()))
@@ -361,7 +363,7 @@ class SonicWave(WaveBase):
              returns the acceleraton for time t and solution u at time t
              """
              self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getAcceleration(t))
-             self.__mypde.setValue(X=-self.__vp2*grad(u), y_dirac= self.__r)
+             self.__mypde.setValue(X=-self.__vp2*grad(u,Function(self.__mypde.getDomain())), y_dirac= self.__r)
              return self.__mypde.getSolution()
 
             
