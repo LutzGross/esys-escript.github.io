@@ -30,79 +30,101 @@ from math import ceil
 DIM=2          # spatial dimension
 
 depth=1*U.km    # depth 
-
 v_p_top=1.5*U.km/U.sec
 v_p_bottom=3*U.km/U.sec
-reflector_at=0.5*depth
-
+absorption_zone=300*U.m
 ne_z=400
 
-t_end=1.0*U.sec
+reflector_at=0.5*depth
 
-frq=20*U.Hz
+
+t_end=1.*U.sec
+frq=20.*U.Hz
 sampling_interval=4*U.msec
-if DIM == 2:
-   rcv_num=100
-else:
-   rcv_num=30
+numRcvPerLine=101
+rangeRcv=800*U.m
 
-rcv_range=600*U.m
+# location of source in crossing array lines with in 0..numRcvInLine one needs to be None
+srcEW=numRcvPerLine/2
+srcNS=None
 
-absorption_zone=300*U.m
-
-width_x=rcv_range + 4*absorption_zone
+# dommain dimension
+width_x=rangeRcv + 4*absorption_zone
 width_y=width_x
 #
 # create array 
 #
-grid=[2*absorption_zone + i * (rcv_range/rcv_num) for i in xrange(rcv_num) ]
-
-array_points=[]
-array_tags=[]
-rg=[]
+receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in xrange(numRcvPerLine) ]
+#
+#   set source location with tag "source""
+#
+src_tags=["source"]
 if DIM == 2:
-   src_id=rcv_num/2
-   for ix in xrange(len(grid)):
-        array_points.append((grid[ix], depth))
-        array_tags.append('phone_%3.3d'%(ix,))
-        rg.append( ( grid[ix], 0.) ) 
+   src_locations = [ (receiver_line[srcEW], depth)]
+   src_loc_2D=(receiver_line[srcEW], 0.)
 else:
-   src_id= (rcv_num/2) * rcv_num + (rcv_num/2) 
-   for ix in xrange(len(grid)):
-      for iy in xrange(len(grid)):
-           array_points.append((grid[ix], grid[iy], depth))
-           array_tags.append('phone_%3.3d-%3.3d'%(ix,iy))
-           rg.append( (grid[ix], grid[iy]) )
+   if srcEW:
+      srcNS=numRcvPerLine/2
+   elif srcNS:
+      srcNS=numRcvPerLine/2
+   else:
+       raise ValueError("on of the variables srcEW or srcNS must be None!")
+   src_locations  = [ (receiver_line[srcEW], receiver_line[srcNS], depth)]
+   src_loc_2D=(receiver_line[srcEW], receiver_line[srcNS])
+#
+#   create sensor arrays:
+#
+# East-west line of receiver
+rcvEW_locations=[]
+rgEW=[]
+mid_point=receiver_line[len(receiver_line)/2]
+
+for ix in xrange(len(receiver_line)):
+        if DIM == 2:
+            rcvEW_locations.append((receiver_line[ix], depth))
+            rgEW.append( ( receiver_line[ix], 0.) ) 
+        else:
+           rcvEW_locations.append((receiver_line[ix], mid_point, depth))
+           rgEW.append( ( receiver_line[ix], mid_point) ) 
+# North-south line of receiver
+if DIM == 3:
+   rcvNS_locations=[]
+   rgNS=[]
+
+   for iy in xrange(len(receiver_line)):
+       rcvNS_locations.append((mid_point, receiver_line[iy],  depth))
+       rgNS.append( (  mid_point, receiver_line[iy]) ) 
 #
 # create domain:
 #
 if DIM == 2:
    domain=Rectangle(ceil(ne_z*width_x/depth),ne_z,l0=width_x,l1=depth, 
-		diracPoints=array_points, diracTags=array_tags)
+		diracPoints=src_locations, diracTags=src_tags)
 else:
    domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
-		diracPoints=array_points, diracTags=array_tags)
+		diracPoints=src_locations, diracTags=src_tags)
 wl=Ricker(frq)
 m=whereNegative(Function(domain).getX()[DIM-1]-reflector_at)
 v_p=v_p_bottom*m+v_p_top*(1-m)
 
-sw=SonicWave(domain, v_p, source_tag=array_tags[src_id], wavelet=wl, absorption_zone=absorption_zone, lumping=True)
+sw=SonicWave(domain, v_p, source_tag=src_tags[0], wavelet=wl, absorption_zone=absorption_zone, lumping=True)
 
-loc=Locator(domain,array_points)
+locEW=Locator(domain,rcvEW_locations)
+tracerEW=SimpleSEGYWriter(receiver_group=rgEW, source=src_loc_2D, sampling_interval=sampling_interval)
+if DIM==3:
+   locNS=Locator(domain,rcvNS_locations)
+   tracerNS=SimpleSEGYWriter(receiver_group=rgNS, source=src_loc_2D, sampling_interval=sampling_interval)
 
-print src_id
-
-tracer=SimpleSEGYWriter(receiver_group=rg, source=array_points[src_id], sampling_interval=sampling_interval)
 
 t=0.
 mkDir('tmp')
 n=0
 while t < t_end:
 	t,p = sw.update(t+sampling_interval)
-	rec=loc(p)
-	tracer.addRecord(rec)
-	print t, rec[:4], wl.getValue(t)
+	tracerEW.addRecord(locEW(p))
+	if DIM==3: tracerNS.addRecord(locNS(p))
+	print t, locEW(p)[:4], wl.getValue(t)
 	if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), p=p)
 	n+=1
-tracer.write('line.sgy')
-
+tracerEW.write('lineEW.sgy')
+if DIM == 3: tracerNS.write('lineNS.sgy')
