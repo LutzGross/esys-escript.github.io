@@ -67,14 +67,14 @@ The subscript comma $i$ denotes the derivative of the function with respect to $
 %\label{DEVIATORIC STRETCHING}
 %\end{equation}
 %
-%where $\delta_{ij}$ is the Kronecker $\delta$-symbol, which is a matrix with ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$).
+%where $\delta_{ij}$ is the Kronecker $\delta$-symbol, which is a matrix wi-th ones for its diagonal entries ($i = j$) and zeros for the remaining entries ($i \neq j$).
 The body force $f$ in \eqn{GENERAL NAVIER STOKES COM} is the gravity acting in
 the $x_{3}$ direction and is given as $f=-g\rho\delta_{i3}$.
 The Stokes equation is a saddle point problem, and can be solved using a Uzawa scheme.
 A class called \class{StokesProblemCartesian} in \escript can be used to solve
 for velocity and pressure. A more detailed discussion of the class can be
 found in Chapter \ref{MODELS CHAPTER}.
-In order to keep numerical stability and satisfy the Courant–Friedrichs–Lewy condition (CFL condition)  \index{Courant number}\index{CFL condition}, the
+In order to keep numerical stability and satisfy the Courant-Friedrichs-Lewy condition (CFL condition)  \index{Courant number}\index{CFL condition}, the
 time-step size needs to be kept below a certain value.
 The Courant number \index{Courant number} is defined as:
 %
@@ -123,7 +123,8 @@ given computational mesh, and the solver tolerance set.
 Inside the \code{while} loop, the boundary conditions, viscosity and body
 force are initialized.
 The Stokes equation is then solved for velocity and pressure.
-The time-step size is calculated based on the Courant–Friedrichs–Lewy condition (CFL condition)  \index{Courant number}\index{CFL condition}, to ensure stable solutions.
+The time-step size is calculated based on the Courant-Friedrichs-Lewy condition
+(CFL condition)\index{Courant number}\index{CFL condition}, to ensure stable solutions.
 The nodes in the mesh are then displaced based on the current velocity and
 time-step size, to move the body of fluid.
 The output for the simulation of velocity and pressure is then saved to a file
