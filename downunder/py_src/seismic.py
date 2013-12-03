@@ -35,144 +35,144 @@ from esys.escript.linearPDEs import LinearPDE
 
              
 class Wavelet(object):
-	"""
-	place holder for source wavelet
-	"""
-	pass
-	
+        """
+        place holder for source wavelet
+        """
+        pass
+        
 class Ricker(Wavelet):
-	"""
-	The Ricker Wavelet w=f(t)
-	"""
-	def __init__(self, f_dom=40, t_dom=None):
-	        """
-	        set up Ricker wavelet wih dominant frequence f_dom and center at time t_dom. If t_dom
-	        is not given an estimate for suitable t_dom is calculated so f(0)~0.
-	        """
-		drop=18
-		self.__f=f_dom
-		self.__f_max=sqrt(7)*f_dom
-		self.__s=pi*self.__f
-		if t_dom == None:
-			t_dom=sqrt(drop)/self.__s
-		self.__t0=t_dom
-		
-	def getCenter(self):
-	       """
-	       return value of wavelet center 
-	       """
-               return self.__t0	
+        """
+        The Ricker Wavelet w=f(t)
+        """
+        def __init__(self, f_dom=40, t_dom=None):
+                """
+                set up Ricker wavelet wih dominant frequence f_dom and center at time t_dom. If t_dom
+                is not given an estimate for suitable t_dom is calculated so f(0)~0.
+                """
+                drop=18
+                self.__f=f_dom
+                self.__f_max=sqrt(7)*f_dom
+                self.__s=pi*self.__f
+                if t_dom == None:
+                        t_dom=sqrt(drop)/self.__s
+                self.__t0=t_dom
+                
+        def getCenter(self):
+               """
+               return value of wavelet center 
+               """
+               return self.__t0 
         
         def getTimeScale(self):
                 """
                 returns the time scale which is the inverse of the largest freqence with a significant 
                 spectral component. 
                 """
-		return 1/self.__f_max
+                return 1/self.__f_max
 
-	def getValue(self, t):
-	        """
-	        get value of wavelet at time t
-	        """
-		e2=(self.__s*(t-self.__t0))**2
-		return (1-2*e2)*exp(-e2)
+        def getValue(self, t):
+                """
+                get value of wavelet at time t
+                """
+                e2=(self.__s*(t-self.__t0))**2
+                return (1-2*e2)*exp(-e2)
 
-	def getAcceleration(self, t):
-	        """
-	        get the acceleration f''(t) at time t
-	        """
-		e2=(self.__s*(t-self.__t0))**2
+        def getAcceleration(self, t):
+                """
+                get the acceleration f''(t) at time t
+                """
+                e2=(self.__s*(t-self.__t0))**2
                 return 2*self.__s**2*(-4*e2**2 + 12*e2 - 3)*exp(-e2)
                 
 
 class SimpleSEGYWriter(object):
-	"""
-	as simple writer for 2D and 3D seimic lines in particular for synthetic data
+        """
+        as simple writer for 2D and 3D seimic lines in particular for synthetic data
 
-	Typical usage:
+        Typical usage:
 
-    	   from esys.escript import unitsSI as U
-	   sw=SimpleSEGYWriter([0.,100*U.m,200*U,m,300.], source=200*U.m, sampling_interval=4*U.msec)
-	   while n < 10:
-	        sw.addRecord([i*2., i*0.67, i**2, -i*7])
-	   sw.write('example.segy')
+           from esys.escript import unitsSI as U
+           sw=SimpleSEGYWriter([0.,100*U.m,200*U,m,300.], source=200*U.m, sampling_interval=4*U.msec)
+           while n < 10:
+                sw.addRecord([i*2., i*0.67, i**2, -i*7])
+           sw.write('example.segy')
 
-	:note: the writer uses `obsy`
-	"""
-	COORDINATE_SCALE = 1000.
-	def __init__(self, receiver_group=None, source=0., sampling_interval=4*U.msec, text="some seimic data"):
-		"""
-		initalize writer
+        :note: the writer uses `obsy`
+        """
+        COORDINATE_SCALE = 1000.
+        def __init__(self, receiver_group=None, source=0., sampling_interval=4*U.msec, text="some seimic data"):
+                """
+                initalize writer
 
-		:param receiver_group: list of receiver coordinates (in meters). For the 2D case a list of floats is given, for the 3D case a list of coordinate tuples
-		                       are given
-		:param source: coordinates of the source (in meters).  For the 2D case a single floats is given, for the 3D case a coordinate tuples
-		:param sampling_interval: sample rate in seconds
-		:param text: a text for the header file (e.g a description)
-		"""
-		if isinstance(source, float) or  isinstance(source, int) :
-			DIM=1
-			source = (source, 0.)
-		elif hasattr(source, '__len__'):
-			DIM=len(source)
-			if DIM == 1:
-			    source = (source[0], 0.)
-		        elif DIM==2:
-			    source = (source[0], source[1] )
-			else:
-		            raise ValueError("Only 1D or 2D arrays accepted.")
-	        else:
-		    raise TypeError("illegal source type.")
-	        if receiver_group== None: 
-			if DIM == 1:
-				receiver_group=[0.]
-			else:
-				receiver_group=[(0.,0.)]
+                :param receiver_group: list of receiver coordinates (in meters). For the 2D case a list of floats is given, for the 3D case a list of coordinate tuples
+                                       are given
+                :param source: coordinates of the source (in meters).  For the 2D case a single floats is given, for the 3D case a coordinate tuples
+                :param sampling_interval: sample rate in seconds
+                :param text: a text for the header file (e.g a description)
+                """
+                if isinstance(source, float) or  isinstance(source, int) :
+                        DIM=1
+                        source = (source, 0.)
+                elif hasattr(source, '__len__'):
+                        DIM=len(source)
+                        if DIM == 1:
+                            source = (source[0], 0.)
+                        elif DIM==2:
+                            source = (source[0], source[1] )
+                        else:
+                            raise ValueError("Only 1D or 2D arrays accepted.")
+                else:
+                    raise TypeError("illegal source type.")
+                if receiver_group== None: 
+                        if DIM == 1:
+                                receiver_group=[0.]
+                        else:
+                                receiver_group=[(0.,0.)]
 
-		if isinstance(receiver_group, float) or  isinstance(receiver_group, int) :
-			if DIM == 1:
-			    rg = [ (receiver_group, 0. ) ]
-			else:
-		            raise TypeError("illegal receiver_group type.")
-		elif hasattr(receiver_group, '__len__'):
-			if DIM == 1:
-			    rg = [(c,0)  for c in receiver_group]
-			else:
-			    rg = [(c[0],c[1])  for c in receiver_group]
-	        else:
-		    raise TypeError("illegal receiver_group type.")
+                if isinstance(receiver_group, float) or  isinstance(receiver_group, int) :
+                        if DIM == 1:
+                            rg = [ (receiver_group, 0. ) ]
+                        else:
+                            raise TypeError("illegal receiver_group type.")
+                elif hasattr(receiver_group, '__len__'):
+                        if DIM == 1:
+                            rg = [(c,0)  for c in receiver_group]
+                        else:
+                            rg = [(c[0],c[1])  for c in receiver_group]
+                else:
+                    raise TypeError("illegal receiver_group type.")
                             
-		self.__source=source
-		self.__receiver_group=rg
-		self.__text=text
+                self.__source=source
+                self.__receiver_group=rg
+                self.__text=text
                 self.__trace = [ [] for i in self.__receiver_group ]
                 self.__sampling_interval = sampling_interval   
 
-	def addRecord(self, record):
-	       """
-	       adds a record to the traces. a time difference of sample_interval between two records is assumed. 
-	       The record mast be a list of as many values as given receivers or a float if a single receiver is used.
+        def addRecord(self, record):
+               """
+               adds a record to the traces. a time difference of sample_interval between two records is assumed. 
+               The record mast be a list of as many values as given receivers or a float if a single receiver is used.
 
                :param record: list of tracks to be added to the record. 
-	       """
-	       if not len(self.__receiver_group) == len(record): 
-	                 raise ValueError("expected number of records is %s but %s given."%(len(self.__receiver_group), len(record)))
-	       if len(self.__receiver_group) == 1:
-		       if isinstance(self.__receiver_group, float) or isinstance(self.__receiver_group, int):
-			         self.__trace[0].append(record)
-		       else:
-			         self.__trace[0].append(record[0])
-	       else:
-		       for i in xrange(len(record)):
-			       self.__trace[i].append(record[i])
+               """
+               if not len(self.__receiver_group) == len(record): 
+                         raise ValueError("expected number of records is %s but %s given."%(len(self.__receiver_group), len(record)))
+               if len(self.__receiver_group) == 1:
+                       if isinstance(self.__receiver_group, float) or isinstance(self.__receiver_group, int):
+                                 self.__trace[0].append(record)
+                       else:
+                                 self.__trace[0].append(record[0])
+               else:
+                       for i in xrange(len(record)):
+                               self.__trace[i].append(record[i])
 
-	def getSamplingInterval(self):
-	       """
-	       returns the sampling interval in seconds. 
-	       """
+        def getSamplingInterval(self):
+               """
+               returns the sampling interval in seconds. 
+               """
                return self.__sampling_interval
 
-	def write(self, filename):
+        def write(self, filename):
             """
             writes to segy file 
             
@@ -180,13 +180,13 @@ class SimpleSEGYWriter(object):
             :note: the function uses the `obspy` module. 
             """
             from obspy import Trace, Stream, UTCDateTime
-	    from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
+            from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
             from obspy.core import AttribDict
 
-	    stream=Stream()
-	    
-	    for i in xrange(len(self.__receiver_group)):
-		    trace = Trace(data=np.array(self.__trace[i], dtype='float32'))
+            stream=Stream()
+            
+            for i in xrange(len(self.__receiver_group)):
+                    trace = Trace(data=np.array(self.__trace[i], dtype='float32'))
                     # Attributes in trace.stats will overwrite everything in
                     # trace.stats.segy.trace_header (in Hz)
                     trace.stats.sampling_rate = 1./self.getSamplingInterval()
@@ -245,8 +245,8 @@ class WaveBase(object):
          self.__dt=dt
          
       def getTimeStepSize(self):
-    	   return self.__dt
-    	   
+           return self.__dt
+           
       def _getAcceleration(self, t, u):
            """
            returns the acceleraton for time t and solution u at time t
@@ -266,8 +266,8 @@ class WaveBase(object):
              # apply Verlet scheme until 
              while self.t < t:
                   a=self._getAcceleration(self.t, self.u)
-		  self.v += dt * a
-		  self.u += dt * self.v 
+                  self.v += dt * a
+                  self.u += dt * self.v 
                   self.t += dt
              
              # now we work backwards
@@ -295,23 +295,23 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
     for i in xrange(DIM):
         x_i=x[i]
         x_l=x_i-(bb[i][0]+absorption_zone)
-	m_l=whereNegative(x_l)
-	f=f*( (exp(-decay*(x_l*m_l)**2)-1) * m_l+1 )
-	if not DIM-1 == i:
-	    x_r=(bb[i][1]-absorption_zone)-x_i
-	    m_r=whereNegative(x_r)
-	    f=f*( (exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
+        m_l=whereNegative(x_l)
+        f=f*( (exp(-decay*(x_l*m_l)**2)-1) * m_l+1 )
+        if not DIM-1 == i:
+            x_r=(bb[i][1]-absorption_zone)-x_i
+            m_r=whereNegative(x_r)
+            f=f*( (exp(-decay*(x_r*m_r)**2)-1) * m_r+1 )
     return f
      
 class SonicWave(WaveBase):
-	"""
-	Solving the sonic wave equation 
-	
-	p_tt = (v_p**2 * p_i)_i  + f(t) * delta_s   where (p-) velocity v_p.
-	
-	f(t) is wavelet acting at a point source term at positon s 
-	"""
-	def __init__(self, domain, v_p, wavelet, source_tag, dt=None, p0=None, p0_t=None, absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True):
+        """
+        Solving the sonic wave equation 
+        
+        p_tt = (v_p**2 * p_i)_i  + f(t) * delta_s   where (p-) velocity v_p.
+        
+        f(t) is wavelet acting at a point source term at positon s 
+        """
+        def __init__(self, domain, v_p, wavelet, source_tag, dt=None, p0=None, p0_t=None, absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True):
            """
            initialize the sonic wave solver
            
@@ -333,17 +333,17 @@ class SonicWave(WaveBase):
            f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
            v_p=v_p*f
 
-	   if p0 == None:
-	      p0=Scalar(0.,Solution(domain))
-	   else:
-	      p0=interpolate(p0, Solution(domain ))
-	      
-	   if p0_t == None:
-	      p0_t=Scalar(0.,Solution(domain))
-	   else:
-	      p0_t=interpolate(p0_t, Solution(domain ))
-	   
-	   if dt == None:
+           if p0 == None:
+              p0=Scalar(0.,Solution(domain))
+           else:
+              p0=interpolate(p0, Solution(domain ))
+              
+           if p0_t == None:
+              p0_t=Scalar(0.,Solution(domain))
+           else:
+              p0_t=interpolate(p0_t, Solution(domain ))
+           
+           if dt == None:
                   dt=min(inf((1./5.)*domain.getSize()/v_p), wavelet.getTimeScale())
             
            super(SonicWave, self).__init__( dt, u0=p0, v0=p0_t, t0=0.)
@@ -353,9 +353,9 @@ class SonicWave(WaveBase):
            if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=1.)
-	   self.__source_tag=source_tag
+           self.__source_tag=source_tag
            self.__r=Scalar(0., DiracDeltaFunctions(self.__mypde.getDomain()))
-	   self.__vp2=v_p**2
+           self.__vp2=v_p**2
 
 
         def  _getAcceleration(self, t, u):

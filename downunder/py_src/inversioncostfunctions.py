@@ -152,9 +152,9 @@ class InversionCostFunction(MeteredCostFunction):
                 elif len(mm) == 1:
                     q.append(0)
                 else:
-		     if isinstance(mm[1], int):
-		         q.append(mm[1])
-		     else:
+                     if isinstance(mm[1], int):
+                         q.append(mm[1])
+                     else:
                         q+=list(mm[1])
             self.__Q[i]=q
         # for each parameter find the component of the levelset function  beeing used to define it:
@@ -166,8 +166,8 @@ class InversionCostFunction(MeteredCostFunction):
             elif len(mm) == 1:
                  q=0
             else:
-	        if isinstance(mm[1], int):
-	           q=mm[1]
+                if isinstance(mm[1], int):
+                   q=mm[1]
             self.__parameter_to_level_set[k]=q
                                 
     def getDomain(self):
@@ -408,7 +408,7 @@ class InversionCostFunction(MeteredCostFunction):
                 else:
                     args=tuple( [ props[j] for j in idx] + args_f[i])
                     J_f = f.getDefect(*args)
-            print "J_f[%d] = %e"%(i, J_f), self.mu_model[i]
+            print("J_f[%d] = %e"%(i, J_f), self.mu_model[i])
             self.logger.debug("J_f[%d] = %e"%(i, J_f))
             self.logger.debug("mu_model[%d] = %e"%(i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
@@ -525,7 +525,7 @@ class InversionCostFunction(MeteredCostFunction):
                     for j in range(idx):
                         if self.numLevelSets == 1 :
                            Y+=Ys[j]* p_diffs[idx[j]] * mu
-			else:
+                        else:
                            Y[self.__parameter_to_level_set[j]]+=Ys[j]* p_diffs[idx[j]] * mu
         return g_J
 
