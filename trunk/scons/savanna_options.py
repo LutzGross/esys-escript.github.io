@@ -52,11 +52,11 @@ escript_opts_version = 201
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-g -sox -I/sw/libs/numpy/x86_64/icc-13/numpy-1.6.2-py27/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-g -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel -L/sw/libs/hdf/x86_64/gcc-4.3.2/hdf5-1.8.4-p1-intelmpi/lib'
+ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -88,7 +88,7 @@ openmp = True
 mpi = 'INTELMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/sw/sdev/intel/impi/4.1.1.036/intel64'
+mpi_prefix = '/sw/sdev/intel/impi/4.1.2.040/intel64'
 
 # MPI libraries to link against
 mpi_libs = ['mpi']
@@ -110,10 +110,10 @@ cppunit_prefix = '/sw/apps/cppunit/x86_64/gcc-4.3.2/cppunit-1.12.1'
 netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-netcdf_prefix = '/sw/libs/netcdf/x86_64/gcc-4.3.2/netcdf-4.1.1'
+netcdf_prefix = '/sw/libs/netcdf/4.1.3'
 
 # netCDF library/libraries to link against
-#netcdf_libs = ['netcdf_c++', 'netcdf']
+netcdf_libs = ['netcdf_c++', 'netcdf', 'hdf5']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
@@ -144,7 +144,7 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composer_xe_2013_sp1.0.080/mkl/include', '/sw/sdev/intel/composer_xe_2013_sp1.0.080/mkl/lib/intel64']
+mkl_prefix = ['/sw/sdev/intel/composer_xe_2013_sp1.1.106/mkl/include', '/sw/sdev/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -186,7 +186,7 @@ lapack_libs = ['mkl_core']
 silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
-silo_prefix = '/sw/libs/silo/x86_64/gcc-4.3.2/silo-4.8'
+silo_prefix = '/sw/libs/silo/4.9.1'
 
 # SILO library/libraries to link against
 silo_libs = ['siloh5', 'hdf5']
@@ -196,7 +196,7 @@ silo_libs = ['siloh5', 'hdf5']
 visit = False
 
 # Prefix or paths to VisIt's sim2 headers and libraries. See note above.
-visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.6.0/2.6.0/linux-x86_64/libsim/V2'
+visit_prefix = '/sw/apps/visit/2.7.0/linux-x86_64/libsim/V2'
 
 # Sim2 library/libraries to link against
 #visit_libs = ['simV2']
@@ -219,7 +219,8 @@ visit_prefix = '/sw/apps/visit/x86_64/gcc-4.3.2/visit-2.6.0/2.6.0/linux-x86_64/l
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013_sp1.0.080'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013_sp1.1.106'})]
+
 
 #iknowwhatimdoing = False
 
