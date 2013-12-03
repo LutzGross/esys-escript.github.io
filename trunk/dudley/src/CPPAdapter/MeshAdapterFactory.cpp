@@ -541,7 +541,8 @@ namespace dudley {
     //
     // Convert any dudley errors into a C++ exception
     checkDudleyError();
-    return Domain_ptr(new MeshAdapter(fMesh));
+    MeshAdapter* ma=new MeshAdapter(fMesh);
+    return Domain_ptr(ma);
   }
 
   // end of namespace
