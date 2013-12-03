@@ -832,14 +832,17 @@ returns the gmsh command used to generate the mesh as a string.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{setOptions}{
-\optional{optimize_quality=\True
+\optional{algorithm=None
+\optional{, optimize_quality=\True
 \optional{, smoothing=1
-\optional{, curvature_based_element_size=\False\\
-\optional{, algorithm2D=\var{Design.MESHADAPT}
-\optional{, algorithm3D=\var{Design.FRONTAL}\\
-\optional{, generate_hexahedra=False}}}}}}}
+\optional{, curvature_based_element_size=\False
+\optional{, algorithm2D=None
+\optional{, algorithm3D=None
+\optional{, generate_hexahedra=False
+\optional{, random_factor=None}}}}}}}}}
 sets options for the mesh generator.
-\var{algorithm2D} sets the 2D meshing algorithm to be used.
+Both \var{algorithm} and \var{algorithm2D} set the 2D meshing algorithm to be
+used. If both parameters are given, they must be equal.
 The algorithm needs to be \var{Design.DELAUNAY}, \var{Design.FRONTAL},
 or \var{Design.MESHADAPT}. By default \var{Design.MESHADAPT} is used.
 \var{algorithm3D} sets the 3D  meshing algorithm to be used.
@@ -851,6 +854,7 @@ By default \var{Design.FRONTAL} is used.
 definition of element size.
 \var{generate_hexahedra}=\True switches on the usage of quadrilateral or
 hexahedral elements.
+\var{random_factor} a positive amount used in the 2D meshing algorithm.
 \end{methoddesc}
 
 \begin{methoddesc}[Design]{getTagMap}{}

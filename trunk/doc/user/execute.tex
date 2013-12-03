@@ -165,10 +165,10 @@ The options have the following meaning:
 \section{Input and Output}
 When \MPI is used on more than one process ($\var{nn} \cdot \var{np} >1$) no
 input from the standard input is accepted.
-Standard output on any process other than the master process (\var{rank}=0)
+Standard output on any process other than the master process (\var{rank}= 0)
 will also not be available.
 Error output from any processor will be redirected to the node where \program{run-escript} has been invoked.
-If the \programopt{-o} Option or \env{ESCRIPT_STDFILES} is set\footnote{That is, it has a non-empty value.},
+If the \programopt{-o} option or \env{ESCRIPT_STDFILES} is set\footnote{That is, it has a non-empty value.},
 then the standard and error output from any process other than the master
 process will be written to files of the names \file{stdout_\var{r}.out}
 and \file{stderr_\var{r}.out} (where \var{r} is the rank of the process).
@@ -297,7 +297,7 @@ The \code{resolve} command forces x to be evaluated immediately.
 \subsection*{When to use it}
 We believe that problems involving large domains and complicated expressions
 will benefit most from lazy evaluation.
-In cases where lazy does provide a benefit, larger domains should give a
-greater benefit.
+In cases where lazy evaluation does provide a benefit, larger domains should
+give a greater benefit.
 If you are uncertain, try running a test on a smaller domain first.
 

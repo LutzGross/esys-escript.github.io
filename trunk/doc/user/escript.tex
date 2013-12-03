@@ -468,7 +468,7 @@ The \Domain class provides an abstract interface to the domain of \FunctionSpace
     \Domain.
 \end{methoddesc}
 %
-\begin{methoddesc}[Domain]{onMasterProcessor)}{}
+\begin{methoddesc}[Domain]{onMasterProcessor}{}
     returns \True if the processor is the master processor within the \MPI
     processor group used by the \Domain. This is the processor with rank 0.
     If \MPI support is not enabled the return value is always \True.
@@ -899,7 +899,7 @@ For a \RankFour \var{a} this is
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{trace}{a\optional{,axis_offset=0}}
+\begin{funcdesc}{trace}{a\optional{, axis_offset=0}}
 returns the trace of \var{a}. This is the sum over components \var{axis_offset}
 and \var{axis_offset+1} with the same index.
 For instance, in the case of a \RankTwo this is
@@ -1028,7 +1028,7 @@ and if \var{a1} is a \RankTwo this is
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{transposed_matrix_mult}{a0,a1}
+\begin{funcdesc}{transposed_matrix_mult}{a0, a1}
 returns the matrix product of the transposed of \var{a0} and \var{a1}.
 The function is equivalent to \code{matrix_mult(transpose(a0),a1)}.
 If \var{a1} is a \RankOne this is
@@ -1041,7 +1041,7 @@ and if \var{a1} is a \RankTwo this is
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{matrix_transposed_mult}{a0,a1}
+\begin{funcdesc}{matrix_transposed_mult}{a0, a1}
 returns the matrix product of \var{a0} and the transposed of \var{a1}.
 The function is equivalent to \code{matrix_mult(a0,transpose(a1))}.
 If \var{a1} is a \RankTwo this is
@@ -1050,7 +1050,7 @@ If \var{a1} is a \RankTwo this is
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{outer}{a0,a1}
+\begin{funcdesc}{outer}{a0, a1}
 returns the outer product of \var{a0} and \var{a1}.
 For instance, if both, \var{a0} and \var{a1} is a \RankOne then
 \begin{equation}
@@ -1062,7 +1062,7 @@ and if \var{a0} is a \RankOne and \var{a1} is a \RankThree:
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{tensor_mult}{a0,a1}
+\begin{funcdesc}{tensor_mult}{a0, a1}
 returns the tensor product of \var{a0} and \var{a1}.
 If \var{a1} is a \RankTwo this is
 \begin{equation}
@@ -1074,7 +1074,7 @@ and if \var{a1} is a \RankFour this is
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{transposed_tensor_mult}{a0,a1}
+\begin{funcdesc}{transposed_tensor_mult}{a0, a1}
 returns the tensor product of the transposed of \var{a0} and \var{a1}.
 The function is equivalent to \code{tensor_mult(transpose(a0),a1)}.
 If \var{a1} is a \RankTwo this is
@@ -1087,7 +1087,7 @@ and if \var{a1} is a \RankFour this is
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{tensor_transposed_mult}{a0,a1}
+\begin{funcdesc}{tensor_transposed_mult}{a0, a1}
 returns the tensor product of \var{a0} and the transposed of \var{a1}.
 The function is equivalent to \code{tensor_mult(a0,transpose(a1))}.
 If \var{a1} is a \RankTwo this is
@@ -1109,7 +1109,7 @@ be calculated in the \FunctionSpace \var{where}, otherwise a default
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{integrate}{a\optional{ ,where=None}}
+\begin{funcdesc}{integrate}{a\optional{, where=None}}
 returns the integral of \var{a} where the domain of integration is defined by
 the \FunctionSpace of \var{a}. If \var{where} is present the argument is
 interpolated into \FunctionSpace \var{where} before integration.
@@ -1126,18 +1126,18 @@ where $\partial \Omega$ is the surface of the spatial domain and $ds$ area or
 line integration.
 \end{funcdesc}
 
-\begin{funcdesc}{interpolate}{a,where}
+\begin{funcdesc}{interpolate}{a, where}
 interpolates argument \var{a} into the \FunctionSpace \var{where}.
 \end{funcdesc}
 
-\begin{funcdesc}{div}{a\optional{ ,where=None}}
+\begin{funcdesc}{div}{a\optional{, where=None}}
 returns the divergence of \var{a}:
 \begin{equation}
     \code{div(a)=trace(grad(a),where)}
 \end{equation}
 \end{funcdesc}
 
-\begin{funcdesc}{jump}{a\optional{ ,domain=None}}
+\begin{funcdesc}{jump}{a\optional{, domain=None}}
 returns the jump of \var{a} over the discontinuity in its domain or if
 \Domain \var{domain} is present in \var{domain}.
 \begin{equation}
@@ -1243,13 +1243,13 @@ returns a function which is $1$ where \var{a} is non-negative and $0$ otherwise.
 returns a function which is $1$ where \var{a} is non-positive and $0$ otherwise.
 \end{funcdesc}
 
-\begin{funcdesc}{whereZero}{a\optional{, tol=None, \optional{, rtol=1.e-8}}}
+\begin{funcdesc}{whereZero}{a\optional{, tol=None\optional{, rtol=1.e-8}}}
 returns a function which is $1$ where \var{a} equals zero with tolerance
 \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum
 value of \var{a} times \var{rtol} is used.
 \end{funcdesc}
 
-\begin{funcdesc}{whereNonZero}{a, \optional{, tol=None, \optional{, rtol=1.e-8}}}
+\begin{funcdesc}{whereNonZero}{a\optional{, tol=None\optional{, rtol=1.e-8}}}
 returns a function which is $1$ where \var{a} is non-zero with tolerance
 \var{tol} and $0$ otherwise. If \var{tol} is not present, the absolute maximum
 value of \var{a} times \var{rtol} is used.
