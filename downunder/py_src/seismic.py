@@ -20,7 +20,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave' ]
+__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave' ]
 
 
 from math import pi
@@ -29,7 +29,7 @@ import sys
 import time
 from esys.escript import *
 import esys.escript.unitsSI as U
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem
 
 
 
@@ -349,7 +349,7 @@ class SonicWave(WaveBase):
            super(SonicWave, self).__init__( dt, u0=p0, v0=p0_t, t0=0.)
            
            self.__wavelet=wavelet
-           self.__mypde=LinearPDE(domain)
+           self.__mypde=LinearSinglePDE(domain)
            if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=1.)
@@ -364,6 +364,120 @@ class SonicWave(WaveBase):
              """
              self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getAcceleration(t))
              self.__mypde.setValue(X=-self.__vp2*grad(u,Function(self.__mypde.getDomain())), y_dirac= self.__r)
+             return self.__mypde.getSolution()
+
+            
+
+class VTIWave(WaveBase):
+        """
+        Solving the VTI wave equation 
+        """
+        def __init__(self, domain, v_p, v_s,   wavelet, source_tag, source_vector = [0.,0.,1.], eps=0., gamma=0., delta=0., rho=1.,    
+                     dt=None, u0=None, v0=None, absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True):
+           """
+           initialize the VTI wave solver
+           
+           :param domain: domain of the problem
+           :type domain: `Doamin`        
+           :param v_p: p-velocity field    
+           :type v_p: `Scalar`       
+           :param wavelet: wavelet to describe the time evolution of source term 
+           :type wavelet: `Wavelet`          
+           :param source_tag: tag of the source location
+           :type source_tag: 'str' or 'int'           
+           :param dt: time step size. If not present a suitable time step size is calculated.           
+           :param p0: initial solution. If not present zero is used.           
+           :param p0_t: initial solution change rate. If not present zero is used.           
+           :param absorption_zone: thickness of absorption zone           
+           :param absorption_cut: boundary value of absorption decay factor
+           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion. 
+           """
+           DIM=domain.getDim()
+           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+          
+           v_p=v_p*f
+           v_s=v_s*f
+
+           
+           
+           if u0 == None:
+              u0=Vector(0.,Solution(domain))
+           else:
+              u0=interpolate(p0, Solution(domain ))
+              
+           if v0 == None:
+              v0=Vector(0.,Solution(domain))
+           else:
+              v0=interpolate(v0, Solution(domain ))
+           
+           if dt == None:
+                  dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+            
+           super(VTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
+           
+           self.__wavelet=wavelet
+           
+           self.__mypde=LinearPDESystem(domain)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           self.__mypde.setSymmetryOn()
+           self.__mypde.setValue(D=rho*kronecker(DIM), X=self.__mypde.createCoefficient('X'))
+           self.__source_tag=source_tag
+           
+
+           if DIM ==2 :
+	      source_vector= [source_vector[0],source_vector[2]]
+
+	   
+	   self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           self.__r.setTaggedValue(self.__source_tag, source_vector)
+ 
+           
+           self.c33=v_p**2 * rho
+	   self.c44=v_s**2 * rho
+	   self.c11=(1+2*eps) * self.c33
+	   self.c66=(1+2*gamma) * self.c33
+	   self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+	   self.c12=self.c11-2*self.c66
+	   
+        def  _getAcceleration(self, t, u):
+             """
+             returns the acceleraton for time t and solution u at time t
+             """
+             strain=symmetric(grad(u))
+             sigma=self.__mypde.getCoefficient('X')
+             
+             if self.__mypde.getDim() == 3:
+		e11=strain[0,0]
+		e22=strain[1,1]
+		e33=strain[2,2]
+             
+		sigma[0,0]=self.c11*e11+self.c12*e22+self.c13*e33
+		sigma[1,1]=self.c12*e11+self.c11*u22+self.c13*e33
+		sigma[2,2]=self.c13*(e11+e22)+self.c33*e33
+
+		s=self.c44*(strain[1,0]+strain[0,1])*0.5
+		sigma[0,1]=s
+		sigma[1,0]=s
+
+		s=self.c44*(strain[2,1]+strain[1,2])*0.5
+		sigma[1,2]=s
+		sigma[2,1]=s
+             
+		s=self.c44*(strain[2,0]+strain[0,2])*0.5
+		sigma[0,2]=s
+		sigma[2,0]=s
+             else:
+		e11=strain[0,0]
+		e22=strain[1,1]
+             
+		sigma[0,0]=self.c11*e11+self.c13*e22
+		sigma[1,1]=self.c13*e11+self.c33*e22
+             
+		s=self.c44*(strain[1,0]+strain[0,1])*0.5
+		sigma[0,1]=s
+		sigma[1,0]=s
+             
+             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
              return self.__mypde.getSolution()
 
             
