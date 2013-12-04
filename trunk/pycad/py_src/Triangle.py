@@ -41,7 +41,7 @@ import math
 from esys.pycad.primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoop, RuledSurface, PlaneSurface, SurfaceLoop, Volume, PropertySet
 from esys.escript import getMPIWorldMax, getMPIRankWorld
 
-class Design(design.Design):
+class Design(design.AbstractDesign):
     """
     Design for Triangle.
     """
@@ -54,7 +54,7 @@ class Design(design.Design):
        """
        if dim != 2:
            raise ValueError("only dimension 2 is supported by Triangle.")
-       design.Design.__init__(self,dim=dim,keep_files=keep_files)
+       design.AbstractDesign.__init__(self,dim=dim,keep_files=keep_files)
        self.__scriptname=""
        self.setScriptFileName()
        self.setMeshFileName()
