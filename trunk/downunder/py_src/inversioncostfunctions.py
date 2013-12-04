@@ -408,9 +408,7 @@ class InversionCostFunction(MeteredCostFunction):
                 else:
                     args=tuple( [ props[j] for j in idx] + args_f[i])
                     J_f = f.getDefect(*args)
-            print("J_f[%d] = %e"%(i, J_f), self.mu_model[i])
-            self.logger.debug("J_f[%d] = %e"%(i, J_f))
-            self.logger.debug("mu_model[%d] = %e"%(i, self.mu_model[i]))
+            self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
 
         return J
@@ -451,8 +449,7 @@ class InversionCostFunction(MeteredCostFunction):
                 else:
                     args=tuple( [ props[j] for j in idx] + args_f[i])
                     J_f = f.getValue(*args)
-            self.logger.debug("J_f[%d] = %e"%(i, J_f))
-            self.logger.debug("mu_model[%d] = %e"%(i, self.mu_model[i]))
+            self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
 
             result += [J_f] # self.mu_model[i] * ?? 
 
