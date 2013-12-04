@@ -1130,7 +1130,7 @@ class NumpyData(DataSource):
         # If domain has twice the resolution we can double up the data etc.
         multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(dataDIM)]
         if domain.getDim() > dataDIM:
-            first.append(int((-origin[-1])/spacing[-1]))
+            first.append(int(-origin[-1]/spacing[-1]))
             multiplier=multiplier+[1]
             nValues=nValues+[1]
 
@@ -1140,6 +1140,7 @@ class NumpyData(DataSource):
 
         byteorder=ripleycpp.BYTEORDER_NATIVE
         datatype=ripleycpp.DATATYPE_FLOAT64
+        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
         data = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
                                          multiplier, (), self.__null_value,
                                          byteorder, datatype)
