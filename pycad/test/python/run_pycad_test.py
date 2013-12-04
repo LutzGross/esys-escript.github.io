@@ -27,7 +27,7 @@ import unittest
 import math
 import numpy
 from esys.pycad import *
-from esys.pycad.design import Design as Design0
+from esys.pycad.design import AbstractDesign 
 from esys.pycad.gmsh import Design as GMSHDesign
 from esys.pycad.extras import layer_cake
 # from esys.pycad.Triangle import Design as TriangleDesign
@@ -3736,7 +3736,7 @@ class Test_PyCAD_Design(unittest.TestCase):
 
    def test_Design(self):
      
-       d=Design0(dim=2, element_size=0.01, order=1, keep_files=False)
+       d=AbstractDesign(dim=2, element_size=0.01, order=1, keep_files=False)
        # check dimension:
        self.assertRaises(ValueError,d.setDim,4)
        d.setDim(3)

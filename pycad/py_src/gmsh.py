@@ -41,7 +41,7 @@ from .primitives import Point, Spline, BezierCurve, BSpline, Line, Arc, CurveLoo
 from esys.escript import getMPIWorldMax, getMPIRankWorld
 from .transformations import DEG
 
-class Design(design.Design):
+class Design(design.AbstractDesign):
     """
     Design for gmsh.
 
@@ -62,7 +62,7 @@ class Design(design.Design):
        :param order: element order
        :param keep_files: flag to keep work files
        """
-       design.Design.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
+       design.AbstractDesign.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
        self.__scriptname=""
        self.setScriptFileName()
        self.setOptions()
@@ -94,7 +94,9 @@ class Design(design.Design):
         """
         Sets options for the mesh generator.
        
-        :param algorithm2D: selects 2D meshing algorithm 
+        :param algorithm: selects 2D meshing algorithm 
+        :type algorithm: in self.DELAUNAY, self.MESHADAPT, self.FRONTAL 
+        :param algorithm2D: must be equal to algorithm
         :type algorithm2D: in self.DELAUNAY, self.MESHADAPT, self.FRONTAL 
         :param algorithm3D: selects 3D meshing algorithm 
         :type algorithm3D: in self.DELAUNAY, self.FRONTAL 

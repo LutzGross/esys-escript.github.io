@@ -203,7 +203,7 @@ class TagMap(object):
          else:
             iostream.write(dom.toprettyxml())
 
-class Design(object):
+class AbstractDesign(object):
     """
     Template for a design which defines the input for a mesh generator.
 
