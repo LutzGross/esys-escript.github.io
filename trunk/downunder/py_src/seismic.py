@@ -435,11 +435,9 @@ class VTIWave(WaveBase):
            self.c33=v_p**2 * rho
 	   self.c44=v_s**2 * rho
 	   self.c11=(1+2*eps) * self.c33
-	   self.c66=(1+2*gamma) * self.c33
+	   self.c66=(1+2*gamma) * self.c44
 	   self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
 	   self.c12=self.c11-2*self.c66
-	   
-	   print self.c33, self.c44, self.c11, self.c66, self.c13, self.c12
 	   
         def  _getAcceleration(self, t, u):
              """
