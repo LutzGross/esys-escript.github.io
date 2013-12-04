@@ -439,6 +439,8 @@ class VTIWave(WaveBase):
 	   self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
 	   self.c12=self.c11-2*self.c66
 	   
+	   print self.c33, self.c44, self.c11, self.c66, self.c13, self.c12
+	   
         def  _getAcceleration(self, t, u):
              """
              returns the acceleraton for time t and solution u at time t
