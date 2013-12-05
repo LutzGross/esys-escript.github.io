@@ -18,7 +18,6 @@
 /*   Dudley: ElementFile: this will redistribute the Elements including overlap by */
 
 /************************************************************************************/
-
 #include "ElementFile.h"
 #ifdef _OPENMP
 #include <omp.h>
@@ -142,12 +141,13 @@ void Dudley_ElementFile_distributeByRankOfDOF(Dudley_ElementFile * self, Esys_MP
 		    send_offset[p + 1] = send_offset[p] + send_count[p];
 
 		memset(send_count, 0, size_size);
-		/* copy element into buffers. proc_mask makes sure that an element is copied once only for each processor */
+		/* copy element into buffers. proc_mask makes sure that an 
+		 * element is copied once only for each processor */
 		for (e = 0; e < self->numElements; e++)
 		{
 		    if (self->Owner[e] == myRank)
 		    {
-			memset(proc_mask, TRUE, size_size);
+			memset(proc_mask, TRUE, size*sizeof(bool));
 			for (j = 0; j < numNodes; j++)
 			{
 			    p = mpiRankOfDOF[self->Nodes[INDEX2(j, e, NN)]];
