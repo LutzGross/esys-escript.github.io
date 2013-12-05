@@ -11,6 +11,7 @@ case "$distr" in
     "lucid") opf="lucid";;
     "oneiric") opf="oneiric";;
     "raring") opf="raring";;
+    "saucy" ) opf="saucy";;
     *) echo "No file found" >&2; exit 1;;
 esac
 rm -f debian/substvars
