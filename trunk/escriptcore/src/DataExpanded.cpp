@@ -40,7 +40,7 @@ using namespace escript::DataTypes;
 
 // #define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {throw DataException("Attempt to modify shared object");}
 
-#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; *((int*)0)=17;throw DataException(ss.str());}
+#define CHECK_FOR_EX_WRITE if (!checkNoSharing()) {std::ostringstream ss; ss << " Attempt to modify shared object. line " << __LINE__ << " of " << __FILE__; abort();throw DataException(ss.str());}
 
 namespace escript {
 
