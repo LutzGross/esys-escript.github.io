@@ -33,13 +33,13 @@ depth=1*U.km    # depth
 v_p_top=1.5*U.km/U.sec
 v_p_bottom=3*U.km/U.sec
 absorption_zone=300*U.m
-ne_z=400
+ne_z=500.
 
 reflector_at=0.5*depth
 
 
-t_end=1.*U.sec
-frq=20.*U.Hz
+t_end=0.4*U.sec
+frq=8.*U.Hz
 sampling_interval=4*U.msec
 numRcvPerLine=101
 rangeRcv=800*U.m
@@ -110,9 +110,9 @@ wl=Ricker(frq)
 # v_p=v_p_bottom*m+v_p_top*(1-m)
 v_p=2*U.km/U.sec
 v_s=0.9*U.km/U.sec
-vareps=0.1
-gamma=0.15
-delta=0.05
+vareps=0.1*0
+gamma=0.15*0
+delta=0.05*0
 rho=2000*U.kg/U.m**3
 src_dir=[0,0,1]
 
@@ -142,7 +142,7 @@ while t < t_end:
                tracerNS_x.addRecord(locNS(u[0]))
                tracerNS_y.addRecord(locNS(u[1]))
                tracerNS_z.addRecord(locNS(u[2]))
-	print t, locEW(u[0])[:4], wl.getValue(t)
+	print t, locEW(u[DIM-1])[len(rgEW)/2-4:len(rgEW)/2+1], wl.getValue(t)
 	#if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
 	saveSilo("tmp/u_%d.silo"%(n,), u=u)
 	n+=1
