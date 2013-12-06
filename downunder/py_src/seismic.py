@@ -452,18 +452,18 @@ class VTIWave(WaveBase):
 		e33=du[2,2]
              
 		sigma[0,0]=self.c11*e11+self.c12*e22+self.c13*e33
-		sigma[1,1]=self.c12*e11+self.c11*u22+self.c13*e33
+		sigma[1,1]=self.c12*e11+self.c11*e22+self.c13*e33
 		sigma[2,2]=self.c13*(e11+e22)+self.c33*e33
 
-		s=self.c66*(du[0,1]+du[1,0])*0.5
+		s=self.c66*(du[0,1]+du[1,0])
 		sigma[0,1]=s
 		sigma[1,0]=s
 
-		s=self.c44*(du[2,1]+du[1,2])*0.5
+		s=self.c44*(du[2,1]+du[1,2])
 		sigma[1,2]=s
 		sigma[2,1]=s
              
-		s=self.c44*(du[2,0]+du[0,2])*0.5
+		s=self.c44*(du[2,0]+du[0,2])
 		sigma[0,2]=s
 		sigma[2,0]=s
              else:
@@ -473,7 +473,7 @@ class VTIWave(WaveBase):
 		sigma[0,0]=self.c11*e11+self.c13*e22
 		sigma[1,1]=self.c13*e11+self.c33*e22
              
-		s=self.c44*(du[1,0]+du[0,1])*0.5
+		s=self.c44*(du[1,0]+du[0,1])
 		sigma[0,1]=s
 		sigma[1,0]=s
              
