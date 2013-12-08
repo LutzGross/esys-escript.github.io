@@ -3990,6 +3990,16 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         throw RipleyException("Radius of gaussian filter must be a positive integer.");
     }
     unsigned int radius=ex1();
+#ifdef ESYS_MPI    
+
+    // Need to check to see that radius would not cause the overlap to cover 
+    // more than one cell (eg each rank holds 4 columns and the radius is 5).
+    // Also need to take special care with narrow cells
+    
+    
+    // In fact it needs to be stricter than this, if a rank has neighbours on both sides, the borders can't overlap.
+    
+#endif    
     double sigma=0.5;
     boost::python::extract<double> ex2(filter[2]);
     if (!ex2.check() || (sigma=ex2())<=0)
@@ -4008,7 +4018,106 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     esysUtils::randomFillArray(seed, src, dsize);  
       
     // Now we need to copy the regions owned by other ranks over here  
-  
+#ifdef ESYS_MPI    
+    
+    
+    dim_t X=m_mpiInfo->rank%m_NX[0];
+    dim_t Y=m_mpiInfo->rank/m_NX[0];
+
+    MPI_Request reqs[10];
+    MPI_Status stats[10];
+    short rused=0;
+    double* SWin=new double[radius*radius];
+    double* SEin=new double[radius*radius];
+    double* NWin=new double[radius*radius];
+    double* Sin=new double[radius*m_NX[0]];
+    double* Win=new double[radius*m_NX[0]];
+
+    double* NEout=new double[radius*radius];
+    double* NWout=new double[radius*radius];
+    double* SEout=new double[radius*radius];
+    double* Nout=new double[radius*m_NX[0]];
+    double* Eout=new double[radius*m_NX[0]];
+    
+    int comserr=0;
+    if (Y!=0)	// not on bottom row, 
+    {
+	if (X!=0)	// not on the left hand edge
+	{
+	    // recv bottomleft from SW
+	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (X-1)+(Y-1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*m_NX[0], 10, m_mpiInfo->comm, reqs+(rused++));	  
+	}
+	else
+	{
+	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (Y-1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+	}
+	comserr|=MPI_Irecv(Sin, numpoints[0]*radius, MPI_DOUBLE, X+(Y-1)*m_NX[0], 8, m_mpiInfo->comm, reqs+(rused++));
+	comserr|=MPI_Irecv(SEin, radius*radius, MPI_DOUBLE, X+(Y-1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+      
+    }
+    else		// on the bottom row
+    {
+	if (X!=0) 
+	{
+	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*m_NX[0], 10, m_mpiInfo->comm, reqs+(rused++));
+	    comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, X-1+Y*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+	}
+	if (X!=(m_NX[0]-1))
+	{
+	    comserr|=MPI_Isend(SEout, radius*radius, MPI_DOUBLE, X+1+(Y)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));	  
+	}
+    }
+    if (Y!=(m_NX[1]-1))	// not on the top row
+    {
+	comserr|=MPI_Isend(Nout, radius*numpoints[0], MPI_DOUBLE, X+(Y+1)*m_NX[0], 8, m_mpiInfo->comm, reqs+(rused++));
+	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+(Y+1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+	if (X!=(m_NX[0]-1))	// not on right hand edge
+	{
+	    comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y+1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+	}
+	if (X==0)	// left hand edge
+	{
+	    comserr|=MPI_Isend(NWout, radius*radius, MPI_DOUBLE, (Y+1)*m_NX[0],7, m_mpiInfo->comm, reqs+(rused++));
+	}	
+    }
+    if (X!=(m_NX[0]-1))	// not on right hand edge
+    {
+	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+	comserr|=MPI_Isend(Eout, numpoints[1]*radius, MPI_DOUBLE, X+1+(Y)*m_NX[0], 10, m_mpiInfo->comm, reqs+(rused++));
+	comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, (X-1)+Y*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+    }
+
+    if (!comserr)
+    {
+        comserr=MPI_Waitall(rused, reqs, stats);
+    }
+    
+    if (comserr)
+    {
+	// Yes this is throwing an exception as a result of an MPI error.
+	// and no we don't inform the other ranks that we are doing this.
+	// however, we have no reason to believe coms work at this point anyway
+        throw RipleyException("Error in coms for randomFill");      
+    }
+    
+    
+    delete[] SWin;
+    delete[] SEin;
+    delete[] NWin;
+    delete[] Sin;
+    delete[] Win;
+
+    delete[] NEout;
+    delete[] NWout;
+    delete[] SEout;
+    delete[] Nout;
+    delete[] Eout;
+    
+    
+    
+    
+#endif    
     // Lets call that done for now
     escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
     escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
