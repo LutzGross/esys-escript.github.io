@@ -218,7 +218,7 @@ def solve_vel_penalty(rho, eta, velocity, pressure):
       for j in range(numDim):
         A[i,j,i,j] += eta
         A[i,j,j,i] += eta
-	A[i,i,j,j] += penalty*eta
+        A[i,i,j,j] += penalty*eta
 
     Y = Vector(0.0,Function(mesh))
     Y[1] -= rho*g

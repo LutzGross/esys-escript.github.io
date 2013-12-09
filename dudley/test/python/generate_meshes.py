@@ -154,7 +154,7 @@ for d in [2,3]:
                   # set tags:
                   for fs in [ContinuousFunction(dom), Function(dom), FunctionOnBoundary(dom), FunctionOnContactOne(dom)]:
                        m=whereNegative(fs.getX()[d-1]-CUT)
-		       fs.getDomain().setTagMap('tag1',1)
+                       fs.getDomain().setTagMap('tag1',1)
                        fs.setTags('tag1',m)
                        fs.setTags(100,1-m)
                   dom.write(os.path.join(MESH_DIRECTORY,filename))

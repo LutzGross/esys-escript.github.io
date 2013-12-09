@@ -45,9 +45,9 @@ from esys.finley import ReadMesh
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+        import sys
+        print("This example will not run in an MPI world.")
+        sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 # where to save output data
@@ -162,12 +162,12 @@ n=0 # iteration counter
 t=0 # time counter
 ##############################################################ITERATION
 while t<tend:
-	# get current stress
+    # get current stress
     g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))#*abc
     mypde.setValue(X=-stress) # set PDE values
     accel = mypde.getSolution() #get PDE solution for accelleration
     u_p1=(2.*u-u_m1)+h*h*accel #calculate displacement
-    u_p1=u_p1#*abc  		# apply boundary conditions
+    u_p1=u_p1#*abc          # apply boundary conditions
     u_m1=u; u=u_p1 # shift values by 1
     # save current displacement, acceleration and pressure
     if (t >= rtime):

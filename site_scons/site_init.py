@@ -174,11 +174,11 @@ def runPyUnitTest(target, source, env):
 def eps2pdf(target, source, env):
 #   if env.Execute("epstopdf "+str(source[0].abspath)+" -o "+str(target[0].abspath))!=0:
    if env.Execute("ps2pdf -dEPSCrop "+str(source[0].abspath)+" "+str(target[0].abspath))!=0:
-	   return 1
+       return 1
    return None
 
 def effectiveName(inname):
-    m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")	# savanna names take the form r1i?n?
+    m=re.compile("^r1i[0-9]{1,2}n[0-9]{1,2}$")  # savanna names take the form r1i?n?
     if m.match(inname):
         return "savanna"
     return inname

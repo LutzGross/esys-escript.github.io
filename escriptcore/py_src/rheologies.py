@@ -370,7 +370,7 @@ class Rheology(object):
           :type fixed_v_mask: vector value/field 
           :param v_boundary: value of velocity at location of constraints
           :type v_boundary: vector value/field 
-	  :param restoration_factor: factor for normal restoration force
+          :param restoration_factor: factor for normal restoration force
           :type restoration_factor: scalar values/field
           :note: Only changing parameters need to be specified.
           """
@@ -677,7 +677,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           :type fixed_v_mask: vector value/field 
           :param v_boundary: value of velocity at location of constraints
           :type v_boundary: vector value/field 
-	  :param restoration_factor: factor for normal restoration force
+          :param restoration_factor: factor for normal restoration force
           :type restoration_factor: scalar values/field
           :note: Only changing parameters need to be specified.
           """

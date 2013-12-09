@@ -58,7 +58,7 @@ class PoissonTestDiscreteData(PoissonTest):
              x_max=sup(x[0])
              z_max=sup(x[self.domain.getDim()-1])
              dx=(x_max-x_min)/N
-             self.loc=Locator(self.domain, [ (dx/2+dx*i, z_max) for i in xrange(N)  ])
+             self.loc=Locator(self.domain, [ (dx/2+dx*i, z_max) for i in range(N)  ])
              uu=self.loc(self.u_ref)
              s=self.sigma*(max(uu)+min(uu))/2.
              print self.loc.getX()

@@ -46,10 +46,10 @@ class Test_VisualizationInterface(unittest.TestCase):
       c=0
       for l in range(0,len(ref_string)):
          if not ref_string[l].strip()[0]=="#":
-	   line=out_string[c].strip()
-	   if os.name == "nt":
-	       line=line.replace("e+00","e+0").replace("e-00","e-0")
-	   line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
+           line=out_string[c].strip()
+           if os.name == "nt":
+               line=line.replace("e+00","e+0").replace("e-00","e-0")
+           line=line.replace("e-00","e+00").replace("-0.000000e+00","0.000000e+00")
            self.assertEqual(line,ref_string[l].strip(),"line %d (%s) in dx file does not match reference (%s)"%(c,line,ref_string[l].strip()))
            c+=1
 

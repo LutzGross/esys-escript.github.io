@@ -30,8 +30,8 @@ print "1D reduced quadrature weights =",wD1_r
 
 def generate(DIM):
    # variables
-   h=[Symbol('h%s'%i) for i in xrange(DIM) ]
-   x=[Symbol('x%s'%i) for i in xrange(DIM) ]
+   h=[Symbol('h%s'%i) for i in range(DIM) ]
+   x=[Symbol('x%s'%i) for i in range(DIM) ]
    #  shape functions: labeling differently from finley!!!!
    S=[ 1 ]
    GridOffset=[[]]
@@ -41,7 +41,7 @@ def generate(DIM):
    W = [ 1 ]
    Q_r = [ [] ]
    W_r = [ 1 ]
-   for i in xrange(DIM):
+   for i in range(DIM):
        idx_full.append(i)
        S = [ s * (1-x[i]/h[i])  for s in S] + [ s * x[i]/h[i]  for s in S]
        GridOffset = [ s + [0]  for s in GridOffset] + [ s + [1]  for s in GridOffset]
@@ -49,13 +49,13 @@ def generate(DIM):
 
        # generate quadrature points in element
        Qnew, Wnew =[], []
-       for j in xrange(len(qD1)): 
+       for j in range(len(qD1)): 
               Qnew += [ q + [qD1[j]*h[i],] for q in Q ]
               Wnew += [ w * wD1[j]*h[i] for w in W ]
        Q, W=Qnew, Wnew
 
        Qnew, Wnew =[], []
-       for j in xrange(len(qD1_r)): 
+       for j in range(len(qD1_r)): 
                Qnew += [ q + [qD1_r[j]*h[i],] for q in Q_r ]
                Wnew += [ w * wD1_r[j]*h[i] for w in W_r ]
        Q_r, W_r=Qnew, Wnew
@@ -66,13 +66,13 @@ def generate(DIM):
    Q_r_faces=[]
    W_r_faces=[]
    idx_faces=[]
-   for face in xrange(DIM):
+   for face in range(DIM):
        Q_left, W_left = [ [] ], [ 1 ]
        Q_left_r, W_left_r = [ [] ], [ 1 ]
        Q_right, W_right = [ [] ], [ 1 ]
        Q_right_r, W_right_r = [ [] ], [ 1 ]
        idx_left,idx_right=[],[]
-       for i in xrange(DIM):  
+       for i in range(DIM):  
           # generate quadrature points in element
           Q_left_new, W_left_new =[], []
           Q_right_new, W_right_new =[], []
@@ -87,7 +87,7 @@ def generate(DIM):
           else:
              idx_left.append(i)
              idx_right.append(i)
-             for j in xrange(len(qD1)): 
+             for j in range(len(qD1)): 
                  Q_left_new += [ q + [qD1[j]*h[i],] for q in Q_left ]
                  W_left_new += [ w * wD1[j]*h[i] for w in W_left ]
                  Q_right_new += [ q + [qD1[j]*h[i],] for q in Q_right ]
@@ -102,7 +102,7 @@ def generate(DIM):
        Q_left_r, W_left_r = [ [] ], [ 1 ]
        Q_right, W_right = [ [] ], [ 1 ]
        Q_right_r, W_right_r = [ [] ], [ 1 ]
-       for i in xrange(DIM):
+       for i in range(DIM):
           # generate quadrature points in element
           Q_left_new, W_left_new =[], []
           Q_right_new, W_right_new =[], []
@@ -112,7 +112,7 @@ def generate(DIM):
              Q_right_new += [ q + [ h[i], ] for q in Q_right ]
              W_right_new += [ w * 1. for w in W_right ]
           else:
-             for j in xrange(len(qD1_r)): 
+             for j in range(len(qD1_r)): 
                  Q_left_new += [ q + [qD1_r[j]*h[i],] for q in Q_left ]
                  W_left_new += [ w * wD1_r[j]*h[i] for w in W_left ]
                  Q_right_new += [ q + [qD1_r[j]*h[i],] for q in Q_right ]
@@ -124,7 +124,7 @@ def generate(DIM):
        
    # the interpolation function
    f_interpolation = 0
-   for i in xrange(len(GridOffsetText)):
+   for i in range(len(GridOffsetText)):
      f_interpolation = f_interpolation + S[i] * Symbol("f_%s"%GridOffsetText[i])
 
    # interpolation to Quad points
@@ -133,12 +133,12 @@ def generate(DIM):
    CODE+="} else if (out_data_type==RIPLEY_REDUCED_ELEMENTS) {\n"
    CODE+=createCode(f_interpolation, x, Q_r, loopindex=idx_full)
    CODE+="} else if (out_data_type==RIPLEY_BOUNDARY_ELEMENTS) {\n"
-   for i in xrange(len(Q_r_faces)):
+   for i in range(len(Q_r_faces)):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createCode(f_interpolation, x, Q_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
    CODE+="} else if (out_data_type==RIPLEY_REDUCED_BOUNDARY_ELEMENTS) {\n"
-   for i in xrange(len(Q_r_faces)):
+   for i in range(len(Q_r_faces)):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createCode(f_interpolation, x, Q_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
@@ -151,12 +151,12 @@ def generate(DIM):
    CODE+="} else if (out_data_type==RIPLEY_REDUCED_ELEMENTS) {\n"
    CODE+=createGradientCode(f_interpolation, x, Q_r, loopindex=idx_full)
    CODE+="} else if (out_data_type==RIPLEY_BOUNDARY_ELEMENTS) {\n"
-   for i in xrange(len(Q_r_faces)):
+   for i in range(len(Q_r_faces)):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createGradientCode(f_interpolation, x, Q_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
    CODE+="} else if (out_data_type==RIPLEY_REDUCED_BOUNDARY_ELEMENTS) {\n"
-   for i in xrange(len(Q_r_faces)):
+   for i in range(len(Q_r_faces)):
         CODE+="if (face_offset(%s)>-1) {\n"%i
         CODE+=createGradientCode(f_interpolation, x, Q_r_faces[i], loopindex=idx_faces[i],  gridoffset="face_offset(%s)"%i)
         CODE+="\n} /* end of face %s */\n"%i
@@ -196,7 +196,7 @@ def insertCode(fn, replacement):
         BOTTOM_LINE=BOTTOM_LINE_FMT%k
         new_code=""
         ignore=False
-        for l in old_code.split("\n"):	   
+        for l in old_code.split("\n"):           
            s=l.strip()
            if len(s)>0:
               if s.startswith(TOP_LINE): 
@@ -214,9 +214,9 @@ def insertCode(fn, replacement):
     for l in old_code.split("\n"):
        s=l.strip()
        if s.find("/*")>-1 and s.find("*/")>-1 :  
-	    s2=(s[:s.find("/*")] + s[s.find("*/")+2:]).strip()
+            s2=(s[:s.find("/*")] + s[s.find("*/")+2:]).strip()
        else:
-	    s2=s
+            s2=s
        if len(s)>0:
           if s2.startswith("}"): 
              N=max(N-1, 0)
@@ -232,7 +232,7 @@ def optimizeEvaluate(F, x, Q):
   F2=[]
   for f in F:
      f0=[]
-     for q in xrange(len(Q)):
+     for q in range(len(Q)):
         tmp=f
         for i in range(len(x)): tmp=tmp.subs(x[i], Q[q][i])
         f0.append(tmp)
@@ -281,7 +281,7 @@ def createGradientCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
    k=""
    N=""
    M1=""
-   for i in xrange(len(Q[0])):
+   for i in range(len(Q[0])):
      if len(k)==0:
          k+="k%s"%i
          N+="N%s"%i
@@ -292,19 +292,19 @@ def createGradientCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
          if i < DIM-1: M1+=",M%s"%i
    
    k3=""
-   for i in xrange(DIM-1,-1,-1): 
+   for i in range(DIM-1,-1,-1): 
           if loopindex[i] > -1: k3+=",k%i"%loopindex[i]
    TXT=""
    for a,v in  consts.items():
       TXT+="const double %s = %s;\n"%(ccode(a), ccode(v.evalf(n=DIGITS)))
    TXT+="#pragma omp parallel for private(i%s)"%k3
 
-   for i in xrange(DIM-1,-1,-1): 
+   for i in range(DIM-1,-1,-1): 
           if loopindex[i] > -1: TXT+="\nfor (k%i =0; k%i < N%i; ++k%i) {"%(loopindex[i],loopindex[i],loopindex[i],loopindex[i])
    TXT+="\nfor (i =0; i < NCOMP; ++i) {\n"
    for s in args:
             k1=""
-            for i in xrange(DIM):
+            for i in range(DIM):
               if s.name[2+i]=="0":
                   if loopindex[i]>-1:
                      k1+=",k%s"%i
@@ -321,13 +321,13 @@ def createGradientCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
                      k1+=",M%s-1"%i
             TXT+="const register double %s = in[INDEX2(i,INDEX%s(%s, %s),NCOMP)];\n"%(s.name,DIM,k1[1:],M1)
    #  interpolation to quadrature points
-   for q in xrange(len(Q)):
+   for q in range(len(Q)):
          IDX2="INDEX%s(%s,%s)"%(DIM,k,N)
          if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
          for i in range(DIM):
              TXT+="out[INDEX4(i,%s,%s,%s,NCOMP,%s,%s)] = %s;\n"%(i,q,IDX2,DIM,len(Q),ccode(dF[i][q]))
    TXT+="} /* close component loop i */\n"
-   for i in xrange(DIM): 
+   for i in range(DIM): 
            if loopindex[i]>-1 : TXT+="} /* close k%i loop */\n"%loopindex[i]
    return TXT
 
@@ -338,7 +338,7 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
    k=""
    N=""
    M1=""
-   for i in xrange(len(Q[0])):
+   for i in range(len(Q[0])):
      if len(k)==0:
          k+="k%s"%i
          N+="N%s"%i
@@ -349,18 +349,18 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
          if i < DIM-1: M1+=",M%s"%i
    
    k3=""
-   for i in xrange(DIM-1,-1,-1): 
+   for i in range(DIM-1,-1,-1): 
           if loopindex[i] > -1: k3+=",k%i"%loopindex[i]
    TXT=""
    for a,v in  consts.items():
       TXT+="const double %s = %s;\n"%(ccode(a), ccode(v.evalf(n=DIGITS)))
    TXT+="#pragma omp parallel for private(i%s)"%k3
-   for i in xrange(DIM-1,-1,-1): 
+   for i in range(DIM-1,-1,-1): 
           if loopindex[i] > -1: TXT+="\nfor (k%i =0; k%i < N%i; ++k%i) {"%(loopindex[i],loopindex[i],loopindex[i],loopindex[i])
    TXT+="\nfor (i =0; i < NCOMP; ++i) {\n"
    for s in args:
             k1=""
-            for i in xrange(DIM):
+            for i in range(DIM):
               if s.name[2+i]=="0":
                   if loopindex[i]>-1:
                      k1+=",k%s"%i
@@ -377,12 +377,12 @@ def createCode(F, x, Q, gridoffset="", loopindex=(0,1,2)):
                      k1+=",M%s-1"%i
             TXT+="const register double %s = in[INDEX2(i,INDEX%s(%s, %s),NCOMP)];\n"%(s.name,DIM,k1[1:],M1)
    #  interpolation to quadrature points
-   for q in xrange(len(Q)):
+   for q in range(len(Q)):
       IDX2="INDEX%s(%s,%s)"%(DIM,k,N)
       if len(gridoffset) > 0: IDX2=gridoffset+"+"+IDX2
       TXT+="out[INDEX3(i,%s,%s,NCOMP,%s)] = %s;\n"%(q,IDX2,len(Q),ccode(F[q]))
    TXT+="} /* close component loop i */\n"
-   for i in xrange(DIM): 
+   for i in range(DIM): 
            if loopindex[i]>-1 : TXT+="} /* close k%i loop */\n"%loopindex[i]
    return TXT
    
@@ -392,55 +392,55 @@ def subPoint(g,x, p):
      # return out.evalf()
      return out
 
-def generatePDECode(DATA_A, EM,GLOBAL_TMP, system=False): 	
-	LOCAL_TMP={}
-	LOCAL2_TMP={}	
-	OUT=""
-	for p in EM.keys():
-	    # first we collect the constant coefficients in the expression (outside the parallel region):
-	    tmp={}
-	    for a in DATA_A:
-	        c=  collect(EM[p], a, evaluate=False)
-	        if c.has_key(a):
-	           if not GLOBAL_TMP.has_key(c[a]):
-    	               GLOBAL_TMP[c[a]]=Symbol("w%s"%(len(GLOBAL_TMP),))
-		   if tmp.has_key(GLOBAL_TMP[c[a]]):
-	               tmp[GLOBAL_TMP[c[a]]]+=a
-		   else:
-		        tmp[GLOBAL_TMP[c[a]]]=a
+def generatePDECode(DATA_A, EM,GLOBAL_TMP, system=False):         
+        LOCAL_TMP={}
+        LOCAL2_TMP={}
+        OUT=""
+        for p in EM.keys():
+            # first we collect the constant coefficients in the expression (outside the parallel region):
+            tmp={}
+            for a in DATA_A:
+                c=  collect(EM[p], a, evaluate=False)
+                if c.has_key(a):
+                   if not GLOBAL_TMP.has_key(c[a]):
+                           GLOBAL_TMP[c[a]]=Symbol("w%s"%(len(GLOBAL_TMP),))
+                   if tmp.has_key(GLOBAL_TMP[c[a]]):
+                       tmp[GLOBAL_TMP[c[a]]]+=a
+                   else:
+                        tmp[GLOBAL_TMP[c[a]]]=a
             # now we find temporary values which are combinations of the input data:
             em_new=[]
             for t in tmp.keys():
-	        if tmp[t] in DATA_A:
-		   tt = t * tmp[t]
-		else:
-	           if not LOCAL_TMP.has_key(tmp[t]):
-		      LOCAL_TMP[tmp[t]]=Symbol("tmp%s_0"%len(LOCAL_TMP))
+                if tmp[t] in DATA_A:
+                   tt = t * tmp[t]
+                else:
+                   if not LOCAL_TMP.has_key(tmp[t]):
+                      LOCAL_TMP[tmp[t]]=Symbol("tmp%s_0"%len(LOCAL_TMP))
                    tt= t * LOCAL_TMP[tmp[t]]
                 if not LOCAL2_TMP.has_key(tt):
-		      LOCAL2_TMP[tt]=Symbol("tmp%s_1"%len(LOCAL2_TMP))
+                      LOCAL2_TMP[tt]=Symbol("tmp%s_1"%len(LOCAL2_TMP))
                 em_new.append(LOCAL2_TMP[tt])
             EM[p]=em_new
-	                 
+                         
         for p in EM.keys():
             sum_em=0
             for t in EM[p]: sum_em=sum_em + t
             if isinstance(p, int) :
-	      if system:
-	         OUT+="  EM_F[INDEX2(k,%s,p.numEqu)]+=%s;\n"%(p,ccode(sum_em))
-	      else:
-		 OUT+="  EM_F[%s]+=%s;\n"%(p,ccode(sum_em))
+              if system:
+                 OUT+="  EM_F[INDEX2(k,%s,p.numEqu)]+=%s;\n"%(p,ccode(sum_em))
+              else:
+                 OUT+="  EM_F[%s]+=%s;\n"%(p,ccode(sum_em))
             else:
               if system:
-	         OUT+="  EM_S[INDEX4(k,m,%s,%s,p.numEqu,p.numComp,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em))
-	      else:
-		 OUT+="  EM_S[INDEX2(%s,%s,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em)) 
+                 OUT+="  EM_S[INDEX4(k,m,%s,%s,p.numEqu,p.numComp,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em))
+              else:
+                 OUT+="  EM_S[INDEX2(%s,%s,%s)]+=%s;\n"%(p[0],p[1],max([ qq[0] for qq in EM.keys()])+1,ccode(sum_em)) 
 
-	OUT2=""
-	for p in LOCAL_TMP:
-	     OUT2+="  const register double %s = %s;\n"%(LOCAL_TMP[p],ccode(p))
+        OUT2=""
+        for p in LOCAL_TMP:
+             OUT2+="  const register double %s = %s;\n"%(LOCAL_TMP[p],ccode(p))
         for p in LOCAL2_TMP:
-	     OUT2+="  const register double %s = %s;\n"%(LOCAL2_TMP[p],ccode(p))
+             OUT2+="  const register double %s = %s;\n"%(LOCAL2_TMP[p],ccode(p))
         return OUT2+OUT
 
 def makePDE(S, x, Q, W, DIM=2, system=False):
@@ -463,26 +463,26 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
         CODE2=""
         EM = {}
         for i in range(len(S)):
-	    for j in range(len(S)):
-	        EM[(i,j)] = 0
-	        
-        for q in xrange(len(Q)):
-	    for di in range(DIM):
+            for j in range(len(S)):
+                EM[(i,j)] = 0
+                
+        for q in range(len(Q)):
+            for di in range(DIM):
                for dj in range(DIM):
-  	          A_name="A_%d%d_%d"%(di,dj,q)
+                    A_name="A_%d%d_%d"%(di,dj,q)
                   A=Symbol(A_name)
                   DATA_A.append(A)
                   if system:
-		      CODE2+="const register double %s = A_p[INDEX5(k,%s,m,%s,%s, p.numEqu,%s,p.numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
-		  else:
-		      CODE2+="const register double %s = A_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = A_p[INDEX5(k,%s,m,%s,%s, p.numEqu,%s,p.numComp,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+                  else:
+                      CODE2+="const register double %s = A_p[INDEX3(%s,%s,%s,%s,%s)];\n"%(A_name, di, dj, q, DIM, DIM)
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_A, EM, GLOBAL_TMP,system)
    
-	if system: CODE+="}\n }\n" 
-	CODE+="} else { /* constant data */\n"
+        if system: CODE+="}\n }\n" 
+        CODE+="} else { /* constant data */\n"
    if system: 
        CODE+= """for (k=0;k<p.numEqu;k++) {
                             for (m=0;m<p.numComp;m++) {
@@ -492,20 +492,20 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
    EM = {}
    for i in range(len(S)):
        for j in range(len(S)):
-	  EM[(i,j)] = 0 
+          EM[(i,j)] = 0 
    for di in range(DIM):
        for dj in range(DIM):
-  	     A_name="A_%d%d"%(di,dj)
+               A_name="A_%d%d"%(di,dj)
              A=Symbol(A_name)
              DATA_A.append(A)
              if system:
-		      CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s p.numEqu,%s, p.numComp)];\n"%(A_name, di, dj, DIM)
-	     else:
-		      CODE2+="const register double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
-             for q in xrange(len(Q)):
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = A_p[INDEX4(k,%s,m,%s p.numEqu,%s, p.numComp)];\n"%(A_name, di, dj, DIM)
+             else:
+                      CODE2+="const register double %s = A_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, dj, DIM)
+             for q in range(len(Q)):
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
    CODE+=CODE2+generatePDECode(DATA_A, EM, GLOBAL_TMP,system)    
    if system:  CODE+="}\n }\n"
    if len(Q) > 1: CODE+="}\n"
@@ -527,25 +527,25 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
         CODE2=""
         EM = {}
         for i in range(len(S)):
-	    for j in range(len(S)):
-	        EM[(i,j)] = 0
-	        
-        for q in xrange(len(Q)):
-	    for di in range(DIM):
-  	          A_name="B_%d_%d"%(di,q)
+            for j in range(len(S)):
+                EM[(i,j)] = 0
+                
+        for q in range(len(Q)):
+            for di in range(DIM):
+                    A_name="B_%d_%d"%(di,q)
                   A=Symbol(A_name)
                   DATA_B.append(A)
                   if system:
-		      CODE2+="const register double %s = B_p[INDEX4(k,%s,m,%s, p.numEqu,%s,p.numComp)];\n"%(A_name, di,  q, DIM)
-		  else:
-		      CODE2+="const register double %s = B_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * S[j]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = B_p[INDEX4(k,%s,m,%s, p.numEqu,%s,p.numComp)];\n"%(A_name, di,  q, DIM)
+                  else:
+                      CODE2+="const register double %s = B_p[INDEX2(%s,%s,%s)];\n"%(A_name, di, q, DIM)
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * S[j]).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_B, EM, GLOBAL_TMP,system)
         
-	if system: CODE+="}\n }\n" 
-	CODE+="} else { /* constant data */\n"
+        if system: CODE+="}\n }\n" 
+        CODE+="} else { /* constant data */\n"
    if system: 
        CODE+= """for (k=0;k<p.numEqu;k++) {
                             for (m=0;m<p.numComp;m++) {
@@ -555,19 +555,19 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
    EM = {}
    for i in range(len(S)):
        for j in range(len(S)):
-	  EM[(i,j)] = 0 
+          EM[(i,j)] = 0 
    for di in range(DIM):
-  	     A_name="B_%d"%(di)
+               A_name="B_%d"%(di)
              A=Symbol(A_name)
              DATA_B.append(A)
              if system:
-		      CODE2+="const register double %s = B_p[INDEX3(k,%s,m, p.numEqu,%s)];\n"%(A_name, di,  DIM)
-	     else:
-		      CODE2+="const register double %s = B_p[%s];\n"%(A_name, di)
-             for q in xrange(len(Q)):
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * S[j] ).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = B_p[INDEX3(k,%s,m, p.numEqu,%s)];\n"%(A_name, di,  DIM)
+             else:
+                      CODE2+="const register double %s = B_p[%s];\n"%(A_name, di)
+             for q in range(len(Q)):
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[i],x[di]) * S[j] ).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
    CODE+=CODE2+generatePDECode(DATA_B, EM, GLOBAL_TMP,system)    
    if system:  CODE+="}\n }\n"
    if len(Q) > 1: CODE+="}\n"
@@ -589,25 +589,25 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
         CODE2=""
         EM = {}
         for i in range(len(S)):
-	    for j in range(len(S)):
-	        EM[(i,j)] = 0
-	        
-        for q in xrange(len(Q)):
-	    for dj in range(DIM):
-  	          A_name="C_%d_%d"%(dj,q)
+            for j in range(len(S)):
+                EM[(i,j)] = 0
+                
+        for q in range(len(Q)):
+            for dj in range(DIM):
+                    A_name="C_%d_%d"%(dj,q)
                   A=Symbol(A_name)
                   DATA_C.append(A)
                   if system:
-		      CODE2+="const register double %s = C_p[INDEX4(k,m,%s, %s, p.numEqu,p.numComp,%s)];\n"%(A_name, dj,  q, DIM)
-		  else:
-		      CODE2+="const register double %s = C_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[j],x[dj]) * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = C_p[INDEX4(k,m,%s, %s, p.numEqu,p.numComp,%s)];\n"%(A_name, dj,  q, DIM)
+                  else:
+                      CODE2+="const register double %s = C_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj, q, DIM)
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[j],x[dj]) * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_C, EM, GLOBAL_TMP,system)
         
-	if system: CODE+="}\n }\n" 
-	CODE+="} else { /* constant data */\n"
+        if system: CODE+="}\n }\n" 
+        CODE+="} else { /* constant data */\n"
    if system: 
        CODE+= """for (k=0;k<p.numEqu;k++) {
                             for (m=0;m<p.numComp;m++) {
@@ -617,19 +617,19 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
    EM = {}
    for i in range(len(S)):
        for j in range(len(S)):
-	  EM[(i,j)] = 0 
+          EM[(i,j)] = 0 
    for dj in range(DIM):
-  	     A_name="C_%d"%(dj)
+               A_name="C_%d"%(dj)
              A=Symbol(A_name)
              DATA_C.append(A)
              if system:
-		      CODE2+="const register double %s = C_p[INDEX3(k,m,%s, p.numEqu,p.numComp)];\n"%(A_name, dj)
-	     else:
-		      CODE2+="const register double %s = C_p[%s];\n"%(A_name, dj)
-             for q in xrange(len(Q)):
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[j],x[dj]) * S[i] ).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = C_p[INDEX3(k,m,%s, p.numEqu,p.numComp)];\n"%(A_name, dj)
+             else:
+                      CODE2+="const register double %s = C_p[%s];\n"%(A_name, dj)
+             for q in range(len(Q)):
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * diff(S[j],x[dj]) * S[i] ).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
    CODE+=CODE2+generatePDECode(DATA_C, EM, GLOBAL_TMP,system)    
    if system:  CODE+="}\n }\n"
    if len(Q) > 1: CODE+="}\n"
@@ -651,24 +651,24 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
         CODE2=""
         EM = {}
         for i in range(len(S)):
-	    for j in range(len(S)):
-	        EM[(i,j)] = 0
-	        
-        for q in xrange(len(Q)):
-  	          A_name="D_%d"%(q,)
+            for j in range(len(S)):
+                EM[(i,j)] = 0
+                
+        for q in range(len(Q)):
+                    A_name="D_%d"%(q,)
                   A=Symbol(A_name)
                   DATA_D.append(A)
                   if system:
-		      CODE2+="const register double %s = D_p[INDEX3(k,m,%s, p.numEqu,p.numComp)];\n"%(A_name, q)
-		  else:
-		      CODE2+="const register double %s = D_p[%s];\n"%(A_name, q)
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * S[j] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = D_p[INDEX3(k,m,%s, p.numEqu,p.numComp)];\n"%(A_name, q)
+                  else:
+                      CODE2+="const register double %s = D_p[%s];\n"%(A_name, q)
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * S[j] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_D, EM, GLOBAL_TMP,system)
         
-	if system: CODE+="}\n }\n" 
-	CODE+="} else { /* constant data */\n"
+        if system: CODE+="}\n }\n" 
+        CODE+="} else { /* constant data */\n"
    if system: 
        CODE+= """for (k=0;k<p.numEqu;k++) {
                             for (m=0;m<p.numComp;m++) {
@@ -678,19 +678,19 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
    EM = {}
    for i in range(len(S)):
        for j in range(len(S)):
-	  EM[(i,j)] = 0 
+          EM[(i,j)] = 0 
    if 1:
-  	     A_name="D_0"
+               A_name="D_0"
              A=Symbol(A_name)
              DATA_D.append(A)
              if system:
-		      CODE2+="const register double %s = D_p[INDEX2(k,m, p.numEqu)];\n"%(A_name,)
-	     else:
-		      CODE2+="const register double %s = D_p[0];\n"%(A_name,)
-             for q in xrange(len(Q)):
- 		  for i in range(len(S)):
-	              for j in range(len(S)):
-	                  EM[(i,j)] = EM[(i,j)] + (A * W[q] * S[j] * S[i] ).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = D_p[INDEX2(k,m, p.numEqu)];\n"%(A_name,)
+             else:
+                      CODE2+="const register double %s = D_p[0];\n"%(A_name,)
+             for q in range(len(Q)):
+                   for i in range(len(S)):
+                      for j in range(len(S)):
+                          EM[(i,j)] = EM[(i,j)] + (A * W[q] * S[j] * S[i] ).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
    CODE+=CODE2+generatePDECode(DATA_D, EM, GLOBAL_TMP,system)    
    if system:  CODE+="}\n }\n"
    if len(Q) > 1: CODE+="}\n"
@@ -712,23 +712,23 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
         CODE2=""
         EM = {}
         for i in range(len(S)):
-	        EM[i] = 0
-	        
-        for q in xrange(len(Q)):
-	    for dj in range(DIM):
-  	          A_name="X_%d_%d"%(dj,q)
+                EM[i] = 0
+                
+        for q in range(len(Q)):
+            for dj in range(DIM):
+                    A_name="X_%d_%d"%(dj,q)
                   A=Symbol(A_name)
                   DATA_X.append(A)
                   if system:
-		      CODE2+="const register double %s = X_p[INDEX3(k,%s, %s, p.numEqu,%s)];\n"%(A_name, dj,  q, DIM)
-		  else:
-		      CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
- 		  for j in range(len(S)):
-	                  EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = X_p[INDEX3(k,%s, %s, p.numEqu,%s)];\n"%(A_name, dj,  q, DIM)
+                  else:
+                      CODE2+="const register double %s = X_p[INDEX2(%s,%s,%s)];\n"%(A_name, dj,q,DIM)
+                   for j in range(len(S)):
+                          EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP,system)
         
-	if system: CODE+="}\n" 
-	CODE+="} else { /* constant data */\n"
+        if system: CODE+="}\n" 
+        CODE+="} else { /* constant data */\n"
    if system: 
        CODE+= """for (k=0;k<p.numEqu;k++) {
             """ 
@@ -736,18 +736,18 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
    CODE2=""
    EM = {}
    for i in range(len(S)):
-	  EM[i] = 0 
+          EM[i] = 0 
    for dj in range(DIM):
-  	     A_name="X_%d"%(dj)
+               A_name="X_%d"%(dj)
              A=Symbol(A_name)
              DATA_X.append(A)
              if system:
-		      CODE2+="const register double %s = X_p[INDEX2(k,%s, p.numEqu)];\n"%(A_name, dj)
-	     else:
-		      CODE2+="const register double %s = X_p[%s];\n"%(A_name, dj)
-             for q in xrange(len(Q)):
- 		  for j in range(len(S)):
-	                  EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = X_p[INDEX2(k,%s, p.numEqu)];\n"%(A_name, dj)
+             else:
+                      CODE2+="const register double %s = X_p[%s];\n"%(A_name, dj)
+             for q in range(len(Q)):
+                   for j in range(len(S)):
+                          EM[j] = EM[j] + (A * W[q] * diff(S[j],x[dj])).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
    CODE+=CODE2+generatePDECode(DATA_X, EM, GLOBAL_TMP,system)    
    if system:  CODE+="}\n"
    if len(Q) > 1: CODE+="}\n"
@@ -769,22 +769,22 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
         CODE2=""
         EM = {}
         for i in range(len(S)):
-	        EM[i] = 0
-	        
-        for q in xrange(len(Q)):
-  	          A_name="Y_%d"%(q,)
+                EM[i] = 0
+                
+        for q in range(len(Q)):
+                    A_name="Y_%d"%(q,)
                   A=Symbol(A_name)
                   DATA_Y.append(A)
                   if system:
-		      CODE2+="const register double %s = Y_p[INDEX3(k,%s, p.numEqu)];\n"%(A_name, q)
-		  else:
-		      CODE2+="const register double %s = Y_p[%s];\n"%(A_name, q)
- 		  for i in range(len(S)):
-	                  EM[i] = EM[i] + (A * W[q] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = Y_p[INDEX3(k,%s, p.numEqu)];\n"%(A_name, q)
+                  else:
+                      CODE2+="const register double %s = Y_p[%s];\n"%(A_name, q)
+                   for i in range(len(S)):
+                          EM[i] = EM[i] + (A * W[q] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
         CODE+=CODE2+generatePDECode(DATA_Y, EM, GLOBAL_TMP,system)
         
-	if system: CODE+="}\n" 
-	CODE+="} else { /* constant data */\n"
+        if system: CODE+="}\n" 
+        CODE+="} else { /* constant data */\n"
    if system: 
        CODE+= """for (k=0;k<p.numEqu;k++) {
             """ 
@@ -792,18 +792,18 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
    CODE2=""
    EM = {}
    for i in range(len(S)):
-	  EM[i] = 0 
+          EM[i] = 0 
    if 1:
-  	     A_name="Y_0"
+               A_name="Y_0"
              A=Symbol(A_name)
              DATA_Y.append(A)
              if system:
-		      CODE2+="const register double %s = Y_p[k];\n"%(A_name,)
-	     else:
-		      CODE2+="const register double %s = Y_p[0];\n"%(A_name,)
-             for q in xrange(len(Q)):
- 		  for i in range(len(S)):
-	                  EM[i] = EM[i] + (A * W[q] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in xrange(DIM) ] )
+                      CODE2+="const register double %s = Y_p[k];\n"%(A_name,)
+             else:
+                      CODE2+="const register double %s = Y_p[0];\n"%(A_name,)
+             for q in range(len(Q)):
+                   for i in range(len(S)):
+                          EM[i] = EM[i] + (A * W[q] * S[i]).subs( [ (x[jj], Q[q][jj]) for jj in range(DIM) ] )
    CODE+=CODE2+generatePDECode(DATA_Y, EM, GLOBAL_TMP,system)    
    if system:  CODE+="}\n"
    if len(Q) > 1: CODE+="}\n"

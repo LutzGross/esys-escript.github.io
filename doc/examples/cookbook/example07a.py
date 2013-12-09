@@ -44,9 +44,9 @@ from esys.escript.linearPDEs import LinearPDE
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+        import sys
+        print("This example will not run in an MPI world.")
+        sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 # where to save output data
@@ -65,11 +65,11 @@ csq=c*c #square of c
 # Time related variables.
 testing=True
 if testing:
-	print('The testing end time is currently selected. This severely limits the number of time iterations.')
-	print("Try changing testing to False for more iterations.")
-	tend=0.004
+        print('The testing end time is currently selected. This severely limits the number of time iterations.')
+        print("Try changing testing to False for more iterations.")
+        tend=0.004
 else:
-	tend=1.5    # end time
+        tend=1.5    # end time
 
 h=0.001     # time step
 # data recording times

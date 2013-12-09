@@ -54,7 +54,7 @@ width_y=width_x
 #
 # create array 
 #
-receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in xrange(numRcvPerLine) ]
+receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
 #
 #   set source location with tag "source""
 #
@@ -79,7 +79,7 @@ rcvEW_locations=[]
 rgEW=[]
 mid_point=receiver_line[len(receiver_line)/2]
 
-for ix in xrange(len(receiver_line)):
+for ix in range(len(receiver_line)):
         if DIM == 2:
             rcvEW_locations.append((receiver_line[ix], depth))
             rgEW.append( ( receiver_line[ix], 0.) ) 
@@ -91,7 +91,7 @@ if DIM == 3:
    rcvNS_locations=[]
    rgNS=[]
 
-   for iy in xrange(len(receiver_line)):
+   for iy in range(len(receiver_line)):
        rcvNS_locations.append((mid_point, receiver_line[iy],  depth))
        rgNS.append( (  mid_point, receiver_line[iy]) ) 
 #
@@ -99,10 +99,10 @@ if DIM == 3:
 #
 if DIM == 2:
    domain=Rectangle(ceil(ne_z*width_x/depth),ne_z,l0=width_x,l1=depth, 
-		diracPoints=src_locations, diracTags=src_tags)
+        diracPoints=src_locations, diracTags=src_tags)
 else:
    domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
-		diracPoints=src_locations, diracTags=src_tags)
+        diracPoints=src_locations, diracTags=src_tags)
 wl=Ricker(frq)
 m=whereNegative(Function(domain).getX()[DIM-1]-reflector_at)
 v_p=v_p_bottom*m+v_p_top*(1-m)
@@ -120,11 +120,11 @@ t=0.
 mkDir('tmp')
 n=0
 while t < t_end:
-	t,p = sw.update(t+sampling_interval)
-	tracerEW.addRecord(locEW(p))
-	if DIM==3: tracerNS.addRecord(locNS(p))
-	print t, locEW(p)[:4], wl.getValue(t)
-	if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), p=p)
-	n+=1
+    t,p = sw.update(t+sampling_interval)
+    tracerEW.addRecord(locEW(p))
+    if DIM==3: tracerNS.addRecord(locNS(p))
+    print t, locEW(p)[:4], wl.getValue(t)
+    if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), p=p)
+    n+=1
 tracerEW.write('lineEW.sgy')
 if DIM == 3: tracerNS.write('lineNS.sgy')

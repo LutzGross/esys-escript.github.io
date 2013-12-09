@@ -165,7 +165,7 @@ class SimpleSEGYWriter(object):
                        else:
                                  self.__trace[0].append(record[0])
                else:
-                       for i in xrange(len(record)):
+                       for i in range(len(record)):
                                self.__trace[i].append(record[i])
 
         def getSamplingInterval(self):
@@ -187,7 +187,7 @@ class SimpleSEGYWriter(object):
 
             stream=Stream()
             
-            for i in xrange(len(self.__receiver_group)):
+            for i in range(len(self.__receiver_group)):
                     trace = Trace(data=np.array(self.__trace[i], dtype='float32'))
                     # Attributes in trace.stats will overwrite everything in
                     # trace.stats.segy.trace_header (in Hz)
@@ -294,7 +294,7 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
     DIM=dom.getDim()
     decay=-log(absorption_cut)/absorption_zone**2
     f=1
-    for i in xrange(DIM):
+    for i in range(DIM):
         x_i=x[i]
         x_l=x_i-(bb[i][0]+absorption_zone)
         m_l=whereNegative(x_l)
@@ -436,20 +436,20 @@ class VTIWave(WaveBase):
            
 
            if DIM ==2 :
-	      source_vector= [source_vector[0],source_vector[2]]
+              source_vector= [source_vector[0],source_vector[2]]
 
-	   
-	   self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           
+           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
  
            
            self.c33=v_p**2 * rho
-	   self.c44=v_s**2 * rho
-	   self.c11=(1+2*eps) * self.c33
-	   self.c66=(1+2*gamma) * self.c44
-	   self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
-	   self.c12=self.c11-2*self.c66
-	   
+           self.c44=v_s**2 * rho
+           self.c11=(1+2*eps) * self.c33
+           self.c66=(1+2*gamma) * self.c44
+           self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+           self.c12=self.c11-2*self.c66
+           
         def  _getAcceleration(self, t, u):
              """
              returns the acceleraton for time t and solution u at time t
@@ -458,37 +458,37 @@ class VTIWave(WaveBase):
              sigma=self.__mypde.getCoefficient('X')
              
              if self.__mypde.getDim() == 3:
-		e11=du[0,0]
-		e22=du[1,1]
-		e33=du[2,2]
+                e11=du[0,0]
+                e22=du[1,1]
+                e33=du[2,2]
              
-		sigma[0,0]=self.c11*e11+self.c12*e22+self.c13*e33
-		sigma[1,1]=self.c12*e11+self.c11*e22+self.c13*e33
-		sigma[2,2]=self.c13*(e11+e22)+self.c33*e33
+                sigma[0,0]=self.c11*e11+self.c12*e22+self.c13*e33
+                sigma[1,1]=self.c12*e11+self.c11*e22+self.c13*e33
+                sigma[2,2]=self.c13*(e11+e22)+self.c33*e33
 
-		s=self.c44*(du[2,1]+du[1,2])
-		sigma[1,2]=s
-		sigma[2,1]=s             
+                s=self.c44*(du[2,1]+du[1,2])
+                sigma[1,2]=s
+                sigma[2,1]=s             
 
-		s=self.c44*(du[2,0]+du[0,2])
-		sigma[0,2]=s
-		sigma[2,0]=s
-		
-		s=self.c66*(du[0,1]+du[1,0])
-		sigma[0,1]=s
-		sigma[1,0]=s
-		
+                s=self.c44*(du[2,0]+du[0,2])
+                sigma[0,2]=s
+                sigma[2,0]=s
+                
+                s=self.c66*(du[0,1]+du[1,0])
+                sigma[0,1]=s
+                sigma[1,0]=s
+                
 
              else:
-		e11=du[0,0]
-		e22=du[1,1]
+                e11=du[0,0]
+                e22=du[1,1]
              
-		sigma[0,0]=self.c11*e11+self.c13*e22
-		sigma[1,1]=self.c13*e11+self.c33*e22
+                sigma[0,0]=self.c11*e11+self.c13*e22
+                sigma[1,1]=self.c13*e11+self.c33*e22
              
-		s=self.c44*(du[1,0]+du[0,1])
-		sigma[0,1]=s
-		sigma[1,0]=s
+                s=self.c44*(du[1,0]+du[0,1])
+                sigma[0,1]=s
+                sigma[1,0]=s
              
              self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
              return self.__mypde.getSolution()
@@ -557,20 +557,20 @@ class HTIWave(WaveBase):
            
 
            if DIM ==2 :
-	      source_vector= [source_vector[0],source_vector[1]]
+              source_vector= [source_vector[0],source_vector[1]]
 
-	   
-	   self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           
+           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
  
            
            self.c33=v_p**2 * rho
-	   self.c44=v_s**2 * rho
-	   self.c11=(1+2*eps) * self.c33
-	   self.c66=(1+2*gamma) * self.c44
-	   self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
-	   self.c23=self.c33-2*self.c66
-	   
+           self.c44=v_s**2 * rho
+           self.c11=(1+2*eps) * self.c33
+           self.c66=(1+2*gamma) * self.c44
+           self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+           self.c23=self.c33-2*self.c66
+           
         def  _getAcceleration(self, t, u):
              """
              returns the acceleraton for time t and solution u at time t
@@ -579,36 +579,36 @@ class HTIWave(WaveBase):
              sigma=self.__mypde.getCoefficient('X')
              
              if self.__mypde.getDim() == 3:
-		e11=du[0,0]
-		e22=du[1,1]
-		e33=du[2,2]
+                e11=du[0,0]
+                e22=du[1,1]
+                e33=du[2,2]
              
-		sigma[0,0]=self.c11*e11+self.c13*(e22+e33)
-		sigma[1,1]=self.c13*e11+self.c33*e22+self.c23*e33
-		sigma[2,2]=self.c13*e11+self.c23*e22+self.c33*e33
+                sigma[0,0]=self.c11*e11+self.c13*(e22+e33)
+                sigma[1,1]=self.c13*e11+self.c33*e22+self.c23*e33
+                sigma[2,2]=self.c13*e11+self.c23*e22+self.c33*e33
 
-		s=self.c44*(du[2,1]+du[1,2])
-		sigma[1,2]=s
-		sigma[2,1]=s             
+                s=self.c44*(du[2,1]+du[1,2])
+                sigma[1,2]=s
+                sigma[2,1]=s             
 
-		s=self.c66*(du[2,0]+du[0,2])
-		sigma[0,2]=s
-		sigma[2,0]=s
-		
-		s=self.c66*(du[0,1]+du[1,0])
-		sigma[0,1]=s
-		sigma[1,0]=s
+                s=self.c66*(du[2,0]+du[0,2])
+                sigma[0,2]=s
+                sigma[2,0]=s
+                
+                s=self.c66*(du[0,1]+du[1,0])
+                sigma[0,1]=s
+                sigma[1,0]=s
 
              else:
-		e11=du[0,0]
-		e22=du[1,1]
+                e11=du[0,0]
+                e22=du[1,1]
              
-		sigma[0,0]=self.c11*e11+self.c13*e22
-		sigma[1,1]=self.c13*e11+self.c33*e22
-		
-		s=self.c66*(du[0,1]+du[1,0])
-		sigma[0,1]=s
-		sigma[1,0]=s
+                sigma[0,0]=self.c11*e11+self.c13*e22
+                sigma[1,1]=self.c13*e11+self.c33*e22
+                
+                s=self.c66*(du[0,1]+du[1,0])
+                sigma[0,1]=s
+                sigma[1,0]=s
              
              self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
              return self.__mypde.getSolution()            

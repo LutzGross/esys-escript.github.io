@@ -125,8 +125,8 @@ class Probe(Model):
 
        def doFinalization(self):
           """
-	  Print out the maximum error.
-	  """
+          Print out the maximum error.
+          """
           if not self.t_max==None: print("%s : == maximum error %e at time %e == "%(self.line_tag,self.max_error,self.t_max))
 
 # vim: expandtab shiftwidth=4:

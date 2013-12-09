@@ -57,16 +57,16 @@ def dumpPackage(mname, ignorelist, modset, banset):
                   print "About to dump "+name+"("+mem.__name__+")"
                   dumpPackage(mem.__name__, [], modset, banset)
                   print "Dump of "+mname+" complete"
-	#pack.write('Module '+name+'\n')
+        #pack.write('Module '+name+'\n')
       elif inspect.isclass(mem):
-	clist+=[(name, mem)]
+        clist+=[(name, mem)]
       elif inspect.isfunction(mem):
-	flist+=[(name, mem)]
+        flist+=[(name, mem)]
       else:
-	if type(mem).__module__+'.'+type(mem).__name__=='Boost.Python.function':
-	  flist+=[(name, mem)]
-	else:
-	  vlist+=[(name, mem)]
+        if type(mem).__module__+'.'+type(mem).__name__=='Boost.Python.function':
+          flist+=[(name, mem)]
+        else:
+          vlist+=[(name, mem)]
   pack.write('Classes\n')
   pack.write('-------\n')
   for (name, mem) in clist:
@@ -113,12 +113,12 @@ def listmods():
     dumpPackage(n, z[1], modset, banset)
     print "-------------"+n
     
-    for m in z[2]:	#This will list the files
+    for m in z[2]:        #This will list the files
       if m.split('.')[1]=='pyc' and m!='__init__.pyc':
-	print ".."+n+"."+m
-	print ".."+(n+'.'+m)[:-4]
-	if not (n+'.'+m)[:-4] in banset:
-	  dumpPackage((n+'.'+m)[:-4],[],modset, banset)
+        print ".."+n+"."+m
+        print ".."+(n+'.'+m)[:-4]
+        if not (n+'.'+m)[:-4] in banset:
+          dumpPackage((n+'.'+m)[:-4],[],modset, banset)
   l=list(modset)
   l.sort()
   for n in l:
@@ -130,7 +130,7 @@ def listmods():
   main.write('* :ref:`genindex`\n')
   main.write('* :ref:`modindex`\n')
   main.write('\n')
-  main.close()	
+  main.close()
     
     
 listmods()    

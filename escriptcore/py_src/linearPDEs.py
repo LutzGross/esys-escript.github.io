@@ -55,7 +55,7 @@ class SolverOptions(object):
     Typical usage is 
     
     ::
-	
+
       opts=SolverOptions()
       print(opts)
       opts.resetDiagnostics()
@@ -222,7 +222,7 @@ class SolverOptions(object):
         out+="\nMaximum number of iteration steps = %s"%self.getIterMax()
         # out+="\nInner tolerance = %e"%self.getInnerTolerance()
         # out+="\nAdapt innner tolerance = %s"%self.adaptInnerTolerance()
-	
+
         if self.getPackage() in (self.DEFAULT, self.PASO):
             out+="\nSolver method = %s"%self.getName(self.getSolverMethod())
             if self.getSolverMethod() == self.GMRES:
@@ -328,7 +328,7 @@ class SolverOptions(object):
         if key == self.CRANK_NICOLSON: return "CRANK_NICOLSON"
         if key == self.BACKWARD_EULER: return "BACKWARD_EULER"
 
-	
+
      
     def resetDiagnostics(self,all=False):
         """
@@ -390,11 +390,12 @@ class SolverOptions(object):
             self.__coarse_level_sparsity = value
         if name == "num_coarse_unknowns": 
             self.__num_coarse_unknowns= value
+            
     def getDiagnostics(self, name):
         """
         Returns the diagnostic information ``name``. Possible values are:
-	    
-	- "num_iter": the number of iteration steps
+            
+        - "num_iter": the number of iteration steps
         - "cum_num_iter": the cumulative number of iteration steps
         - "num_level": the number of level in multi level solver
         - "num_inner_iter": the number of inner iteration steps
@@ -410,7 +411,7 @@ class SolverOptions(object):
         - "time_step_backtracking_used": returns True if time step back tracking has been used.
         - "coarse_level_sparsity": returns the sparsity of the matrix on the coarsest level
         - "num_coarse_unknowns": returns the number of unknowns on the coarsest level
-	
+        
         
         :param name: name of diagnostic information to return
         :type name: ``str`` in the list above.
@@ -625,7 +626,7 @@ class SolverOptions(object):
             if restart<1:
                 raise ValueError("restart must be positive.")
             self.__restart=restart
-	    
+            
     def getRestart(self):
         """
         Returns the number of iterations steps after which GMRES is performing a restart.
@@ -648,8 +649,8 @@ class SolverOptions(object):
         """
         Sets the threshold for diagonal dominant rows which are eliminated during AMG coarsening. 
 
-	 :param value: threshold
-	 :type value: ``float``
+        :param value: threshold
+        :type value: ``float``
         """
         value=float(value)
         if value<0 or value>1.:
@@ -998,7 +999,7 @@ class SolverOptions(object):
             self.setVerbosityOn()
         else:
             self.setVerbosityOff()
-	    
+            
     def adaptInnerTolerance(self):
         """
         Returns ``True`` if the tolerance of the inner solver is selected automatically. 
