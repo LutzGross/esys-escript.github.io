@@ -27,7 +27,7 @@ from esys.downunder import Ricker, HTIWave, SimpleSEGYWriter
 from math import ceil
 
 
-DIM=2          # spatial dimension
+DIM=3          # spatial dimension
 
 v_p_top=1.5*U.km/U.sec
 v_p_bottom=3*U.km/U.sec
@@ -39,7 +39,7 @@ if DIM==3:
         layers=[500*U.m, 500 * U.m ]
         v_Ps=[ 3*U.km/U.sec, 2.*U.km/U.sec]
         v_Ss=[1.3*U.km/U.sec, 0.9*U.km/U.sec ]
-        rhos=[rho=2000*U.kg/U.m**3, rho=2000*U.kg/U.m**3]
+        rhos=[2000*U.kg/U.m**3, 2000*U.kg/U.m**3]
         epss=[0., 0.1]
         gammas=[0., 0.03]
         deltas=[0.,  0.1]
@@ -139,7 +139,7 @@ if DIM == 3:
    vareps=0
    gamma=0
    rho=0
-   for l in xrange(len(layers))
+   for l in xrange(len(layers)):
        m=wherePositive(z-z_bottom)*whereNonNegative(z-(z_bottom+layers[l]))
        v_p=v_p*(1-m)+v_Ps[l]*m
        v_s=v_s*(1-m)+v_Ss[l]*m
