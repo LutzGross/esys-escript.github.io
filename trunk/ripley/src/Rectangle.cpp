@@ -3968,10 +3968,10 @@ namespace
 
 escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filter) const
 {
-    if (m_mpiInfo->size!=1)
-    {
-        throw RipleyException("This type of random does not support MPI yet.");
-    }
+//     if (m_mpiInfo->size!=1)
+//     {
+//         throw RipleyException("This type of random does not support MPI yet.");
+//     }
     if (m_numDim!=2)
     {
         throw RipleyException("Only 2D supported at this time.");
@@ -4023,76 +4023,111 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank/m_NX[0];
+    dim_t row=m_NX[0];
 
     MPI_Request reqs[10];
     MPI_Status stats[10];
     short rused=0;
-    double* SWin=new double[radius*radius];
-    double* SEin=new double[radius*radius];
-    double* NWin=new double[radius*radius];
-    double* Sin=new double[radius*m_NX[0]];
-    double* Win=new double[radius*m_NX[0]];
+    double* SWin=new double[radius*radius];  memset(SWin, 0, radius*radius*sizeof(double));
+    double* SEin=new double[radius*radius];  memset(SEin, 0, radius*radius*sizeof(double));
+    double* NWin=new double[radius*radius];  memset(NWin, 0, radius*radius*sizeof(double));
+    double* Sin=new double[radius*numpoints[0]];  memset(Sin, 0, radius*numpoints[0]*sizeof(double));
+    double* Win=new double[radius*numpoints[1]];  memset(Win, 0, radius*numpoints[1]*sizeof(double));
 
-    double* NEout=new double[radius*radius];
-    double* NWout=new double[radius*radius];
-    double* SEout=new double[radius*radius];
-    double* Nout=new double[radius*m_NX[0]];
-    double* Eout=new double[radius*m_NX[0]];
+    double* NEout=new double[radius*radius];  memset(NEout, 0, radius*radius*sizeof(double));
+    double* NWout=new double[radius*radius];  memset(NWout, 0, radius*radius*sizeof(double));
+    double* SEout=new double[radius*radius];  memset(SEout, 0, radius*radius*sizeof(double));
+    double* Nout=new double[radius*numpoints[0]];  memset(Nout, 0, radius*numpoints[0]*sizeof(double));
+    double* Eout=new double[radius*numpoints[1]];  memset(Eout, 0, radius*numpoints[1]*sizeof(double));
     
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << SWin << " " << SEin << " " << NWin << " "<< Sin << " "<< Win << " "<< NEout << " "<< NWout << " "
+//<< SEout << " "
+//<< Nout << " "
+//<< Eout << " "
+//<< endl;  	    
+    
+
     int comserr=0;
     if (Y!=0)	// not on bottom row, 
     {
 	if (X!=0)	// not on the left hand edge
 	{
 	    // recv bottomleft from SW
-	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (X-1)+(Y-1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
-	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*m_NX[0], 10, m_mpiInfo->comm, reqs+(rused++));	  
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (X-1)+(Y-1)*row << endl;
+	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (X-1)+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " <<  X-1+Y*row << endl;  	    
+	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
+    
 	}
 	else
 	{
-	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (Y-1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (Y-1)*row  << endl;  	    	  
+	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	}
-	comserr|=MPI_Irecv(Sin, numpoints[0]*radius, MPI_DOUBLE, X+(Y-1)*m_NX[0], 8, m_mpiInfo->comm, reqs+(rused++));
-	comserr|=MPI_Irecv(SEin, radius*radius, MPI_DOUBLE, X+(Y-1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv S (8) from " << X+(Y-1)*row  << endl;  		
+	comserr|=MPI_Irecv(Sin, numpoints[0]*radius, MPI_DOUBLE, X+(Y-1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+(Y-1)*row << endl;  	
+	comserr|=MPI_Irecv(SEin, radius*radius, MPI_DOUBLE, X+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+
       
     }
     else		// on the bottom row
     {
 	if (X!=0) 
 	{
-	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*m_NX[0], 10, m_mpiInfo->comm, reqs+(rused++));
-	    comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, X-1+Y*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " << X-1+Y*row << endl;	  
+	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << X-1+Y*row << endl;	    
+	    comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, X-1+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	}
-	if (X!=(m_NX[0]-1))
+	if (X!=(row-1))
 	{
-	    comserr|=MPI_Isend(SEout, radius*radius, MPI_DOUBLE, X+1+(Y)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));	  
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send SE (7) to " <<  X+1+(Y)*row << endl; 		  
+	    comserr|=MPI_Isend(SEout, radius*radius, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));	
+    
 	}
     }
+    
     if (Y!=(m_NX[1]-1))	// not on the top row
     {
-	comserr|=MPI_Isend(Nout, radius*numpoints[0], MPI_DOUBLE, X+(Y+1)*m_NX[0], 8, m_mpiInfo->comm, reqs+(rused++));
-	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+(Y+1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
-	if (X!=(m_NX[0]-1))	// not on right hand edge
+//cerr << "Y=" << Y << "  (numpoints[1]-1)=" << (numpoints[1]-1) << endl; 
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send N (8) to " << X+(Y+1)*row  << endl;
+ 	comserr|=MPI_Isend(Nout, radius*numpoints[0], MPI_DOUBLE, X+(Y+1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+(Y+1)*row << endl; 
+	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	if (X!=(row-1))	// not on right hand edge
 	{
-	    comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y+1)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+1+(Y+1)*row << endl; 	    	  
+	    comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	}
 	if (X==0)	// left hand edge
 	{
-	    comserr|=MPI_Isend(NWout, radius*radius, MPI_DOUBLE, (Y+1)*m_NX[0],7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NW (7) to " << (Y+1)*row << endl; 	  
+	    comserr|=MPI_Isend(NWout, radius*radius, MPI_DOUBLE, (Y+1)*row,7, m_mpiInfo->comm, reqs+(rused++));	    
 	}	
     }
-    if (X!=(m_NX[0]-1))	// not on right hand edge
+    if (X!=(row-1))	// not on right hand edge
     {
-	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y)*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
-	comserr|=MPI_Isend(Eout, numpoints[1]*radius, MPI_DOUBLE, X+1+(Y)*m_NX[0], 10, m_mpiInfo->comm, reqs+(rused++));
-	comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, (X-1)+Y*m_NX[0], 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " << X+1+(Y)*row << endl;       
+	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send E (10) to " << X+1+(Y)*row << endl; 	
+	comserr|=MPI_Isend(Eout, numpoints[1]*radius, MPI_DOUBLE, X+1+(Y)*row, 10, m_mpiInfo->comm, reqs+(rused++));
     }
-
-    if (!comserr)
+    if (X!=0)
     {
-        comserr=MPI_Waitall(rused, reqs, stats);
+//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X-1)+Y*row << endl;  	
+      
+	comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, (X-1)+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
+      
+      
     }
     
+    if (!comserr)
+    {
+//cerr << rused << ": " <<   m_mpiInfo->rank << "[" << __LINE__ << "]\n";        
+        comserr=MPI_Waitall(rused, reqs, stats);
+    }
+
     if (comserr)
     {
 	// Yes this is throwing an exception as a result of an MPI error.
