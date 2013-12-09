@@ -364,7 +364,7 @@ while t<T_END:
          old_restart_dir="%s_%s_"%(PREFIX_RESTART,c-1)
          new_restart_dir="%s_%s_"%(PREFIX_RESTART,c)
          mkDir(new_restart_dir)
-	 dom.MPIBarrier()
+         dom.MPIBarrier()
          file(os.path.join(new_restart_dir,"stamp.%d"%dom.getMPIRank()),"w").write("%e; %e; %s; %s; %s; %e;\n"%(t, t_vis, n_vis, n, counter_vis, dt))
          v.dump(os.path.join(new_restart_dir,"v.nc"))
          p.dump(os.path.join(new_restart_dir,"p.nc"))

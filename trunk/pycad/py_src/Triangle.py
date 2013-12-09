@@ -111,7 +111,7 @@ class Design(design.AbstractDesign):
 
             triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
 
-        	see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
+            see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
 
         :param cmdLineArgs: the switches you would ordinarily use at the
                             command line (e.g. cmdLineArgs="pq25a7.5")

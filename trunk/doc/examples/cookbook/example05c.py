@@ -48,13 +48,13 @@ import numpy as np
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+        import sys
+        print("This example will not run in an MPI world.")
+        sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #set modal to 1 for a syncline or -1 for an anticline structural 
-#configuration	
+#configuration
 modal=-1
 
 # the folder to put our outputs in, leave blank "" for script path - 
@@ -91,7 +91,7 @@ mysp = Spline(*tuple(x))
 # Start and end of material boundary.
 x1=mysp.getStartPoint()
 x2=mysp.getEndPoint()
-	
+
 #  Create TOP BLOCK
 # lines
 tbl1=Line(p0,x1)

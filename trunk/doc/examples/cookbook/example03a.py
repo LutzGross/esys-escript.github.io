@@ -51,9 +51,9 @@ from cblib import toXYTuple
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+        import sys
+        print("This example will not run in an MPI world.")
+        sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 #PDE related
@@ -69,7 +69,7 @@ qH=0.*J/(sec*m**3) #our heat source temperature is now zero
 Ti=2273.*Celsius # Kelvin -the starting temperature of our RHS Block
 rhoi = 2750*kg/m**3 #kg/m^{3} density of granite
 cpi = 790.*J/(kg*K) #j/Kg.K thermal capacity
-rhocpi = rhoi*cpi	#DENSITY * SPECIFIC HEAT
+rhocpi = rhoi*cpi   #DENSITY * SPECIFIC HEAT
 kappai=2.2*W/m/K #watts/m.K thermal conductivity
 ## Country Rock Variables - Sandstone
 Tc = 473*Celsius # Kelvin #the starting temperature of our country rock

@@ -159,7 +159,7 @@ class InversionCostFunction(MeteredCostFunction):
             self.__Q[i]=q
         # for each parameter find the component of the levelset function  beeing used to define it:
         self.__parameter_to_level_set={}
-        for k in xrange(self.numMappings):
+        for k in range(self.numMappings):
             mm=self.mappings[k]
             if isinstance(mm, Mapping):
                  q=0

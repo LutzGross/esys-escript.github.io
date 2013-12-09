@@ -50,7 +50,7 @@ class TestSeismicTools(unittest.TestCase):
      def test_segy_writer1(self):
         sw= SimpleSEGYWriter(receiver_group=[0.,1.,2.], source=1., sampling_interval=10*U.msec, text="testing")
         self.assertRaises(ValueError, sw.addRecord, [1])
-        for i in xrange(713):
+        for i in range(713):
            # Create some random data.
            data = np.random.ranf(3)
            sw.addRecord(data)
@@ -59,7 +59,7 @@ class TestSeismicTools(unittest.TestCase):
      def test_segy_writer2(self):
         sw= SimpleSEGYWriter(receiver_group=[(0.,0.),(1.,-1.),(2.,-2)], source=(3,3), sampling_interval=10*U.msec, text="testing")
         self.assertRaises(ValueError, sw.addRecord, [1])
-        for i in xrange(411):
+        for i in range(411):
            # Create some random data.
            data = np.random.ranf(3)
            sw.addRecord(data)

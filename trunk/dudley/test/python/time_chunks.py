@@ -140,9 +140,9 @@ for n in [100000]:
       if isinstance(prop[0], int):
           o=prop[0]
           if tp=="s": 
-		q=1
-	  else:
-		q=dim
+                q=1
+          else:
+                q=dim
           NE=int(float(n/q-1)**(1./dim)/o+0.5)
           prog+="NE=%d\n"%NE
           if dim==2:

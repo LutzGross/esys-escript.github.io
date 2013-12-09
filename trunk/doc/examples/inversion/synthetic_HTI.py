@@ -79,7 +79,7 @@ width_y=width_x
 #
 # create array 
 #
-receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in xrange(numRcvPerLine) ]
+receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
 #
 #   set source location with tag "source""
 #
@@ -104,7 +104,7 @@ rcv_locations=[]
 rg=[]
 mid_point=receiver_line[len(receiver_line)/2]
 
-for ix in xrange(len(receiver_line)):
+for ix in range(len(receiver_line)):
         if DIM == 2:
             rcv_locations.append((receiver_line[ix], mid_point))
             rg.append( ( receiver_line[ix], mid_point) ) 
@@ -112,7 +112,7 @@ for ix in xrange(len(receiver_line)):
            rcv_locations.append((receiver_line[ix], mid_point, depth))
            rg.append( ( receiver_line[ix], mid_point) ) 
 # North-south line of receiver
-for iy in xrange(len(receiver_line)):
+for iy in range(len(receiver_line)):
         if DIM == 2:
             rcv_locations.append((mid_point, receiver_line[iy])) 
             rg.append( ( mid_point, receiver_line[iy]) ) 
@@ -124,10 +124,10 @@ for iy in xrange(len(receiver_line)):
 #
 if DIM == 2:
    domain=Rectangle(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),l0=width_x,l1=width_y, 
-		diracPoints=src_locations, diracTags=src_tags)
+        diracPoints=src_locations, diracTags=src_tags)
 else:
    domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
-		diracPoints=src_locations, diracTags=src_tags)
+        diracPoints=src_locations, diracTags=src_tags)
 wl=Ricker(frq)
 
 #======================================================================
@@ -139,7 +139,7 @@ if DIM == 3:
    vareps=0
    gamma=0
    rho=0
-   for l in xrange(len(layers)):
+   for l in range(len(layers)):
        m=wherePositive(z-z_bottom)*whereNonNegative(z-(z_bottom+layers[l]))
        v_p=v_p*(1-m)+v_Ps[l]*m
        v_s=v_s*(1-m)+v_Ss[l]*m
@@ -163,16 +163,16 @@ mkDir('tmp')
 n=0
 k=0
 while t < t_end:
-	t,u = sw.update(t+sampling_interval)
-	tracer_x.addRecord(loc(u[0]))
-	tracer_y.addRecord(loc(u[1]))
-	if DIM==3:
-	       tracer_z.addRecord(loc(u[2]))
-	print t, loc(u[0])[len(rg)/2-4:len(rg)/2+1], wl.getValue(t)
-	#if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
-	if t>0.3 and t< 0.5: 
-	   saveSilo("tmp/u_%d.silo"%(k,), u=u)
-	   k+=1
+    t,u = sw.update(t+sampling_interval)
+    tracer_x.addRecord(loc(u[0]))
+    tracer_y.addRecord(loc(u[1]))
+    if DIM==3:
+        tracer_z.addRecord(loc(u[2]))
+    print t, loc(u[0])[len(rg)/2-4:len(rg)/2+1], wl.getValue(t)
+    #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
+    if t>0.3 and t< 0.5: 
+        saveSilo("tmp/u_%d.silo"%(k,), u=u)
+        k+=1
         n+=1
 tracer_x.write('line_x.sgy')
 tracer_y.write('line_y.sgy')

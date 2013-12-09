@@ -173,20 +173,20 @@ for name in ["Point1", "Line2", "Line3", "Line4", "Tri3", "Tri6", "Tri9", "Tri10
         else:
             numSubElements=1
             BasisFunctions=Parametrization
-            subElementNodes=[ i for i in xrange(numNodes) ]
+            subElementNodes=[ i for i in range(numNodes) ]
 
         linearTypeId="%s%s"%(z,numLinearNodes)
-        linearNodes=[ i for i in xrange(numLinearNodes) ]
+        linearNodes=[ i for i in range(numLinearNodes) ]
         if isFace: linearTypeId+="Face"
        
         if isContact: 
              linearTypeId+="_Contact"
-             linearNodes+=[ n+i for i in xrange(numLinearNodes) ]
+             linearNodes+=[ n+i for i in range(numLinearNodes) ]
          
         if isFace:
            relevantGeoNodes=RELEVANTGEO["%s%s"%(z,n)]
         else:
-           relevantGeoNodes=[ i for i in xrange(n) ]
+           relevantGeoNodes=[ i for i in range(n) ]
 
         if isContact:
              faceNodes =[-1]
@@ -198,7 +198,7 @@ for name in ["Point1", "Line2", "Line3", "Line4", "Tri3", "Tri6", "Tri9", "Tri10
                 shiftNodes = SHIFTNODES["%s%sFace"%(z,n)][0]
                 reverseNodes = SHIFTNODES["%s%sFace"%(z,n)][1]
            else:
-                faceNodes=[  i for i in xrange(numNodes) ]
+                faceNodes=[  i for i in range(numNodes) ]
                 shiftNodes = SHIFTNODES["%s%s"%(z,n)][0]
                 reverseNodes = SHIFTNODES["%s%s"%(z,n)][1]
 

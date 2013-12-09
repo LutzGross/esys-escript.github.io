@@ -65,7 +65,7 @@ cc_debug = '/Od /RTCcsu /ZI /Yd /Y-'
 # DEFAULT: '' (empty)
 ld_extra = '/LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/lib" \
             /LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio 9.0/VC/redist/x86/Microsoft.VC90.CRT" \
-	        /LIBPATH:"C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib" \
+            /LIBPATH:"C:/Program Files/Microsoft SDKs/Windows/v6.0A/Lib" \
             /LIBPATH:"C:/Windows/winsxs/x86_microsoft.vc90.crt_1fc8b3b9a1e18e3b_9.0.21022.8_none_bcb86ed6ac711f91" \
             /LIBPATH:"C:/Program Files (x86)/Microsoft Visual Studio .NET 2003/SDK/v1.1/Lib"'
 

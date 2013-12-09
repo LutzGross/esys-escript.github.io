@@ -39,9 +39,9 @@ from esys.escript.linearPDEs import LinearPDE
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+        import sys
+        print("This example will not run in an MPI world.")
+        sys.exit(0)
 
 #################################################ESTABLISHING VARIABLES
 # where to save output data
@@ -60,11 +60,11 @@ rho=1154.   #density
 # Time related variables.
 testing=True
 if testing:
-	print('The testing end time is currently selected. This severely limits the number of time iterations.')
-	print("Try changing testing to False for more iterations.")
-	tend=0.001
+        print('The testing end time is currently selected. This severely limits the number of time iterations.')
+        print("Try changing testing to False for more iterations.")
+        tend=0.001
 else:
-	tend=0.5    # end time
+        tend=0.5    # end time
 
 h=0.0005     # time step
 # data recording times
@@ -107,7 +107,7 @@ n=0 # iteration counter
 t=0 # time counter
 ##############################################################ITERATION
 while t<tend:
-	# get current stress
+    # get current stress
     g=grad(u); stress=lam*trace(g)*kmat+mu*(g+transpose(g))
     mypde.setValue(X=-stress) # set PDE values
     accel = mypde.getSolution() #get PDE solution for accelleration

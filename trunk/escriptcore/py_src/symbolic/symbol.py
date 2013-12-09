@@ -801,7 +801,7 @@ class Symbol(object):
         last_s = symbols[len(symbols)-1]
         if not isinstance(last_s, Symbol):
             last_s=sympy.sympify(last_s)
-        for i in xrange(len(symbols)):
+        for i in range(len(symbols)):
             s = symbols[i]
             if not isinstance(s, Symbol):
                 s=sympy.sympify(s)

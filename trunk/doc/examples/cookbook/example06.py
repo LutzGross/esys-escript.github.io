@@ -44,9 +44,9 @@ import os, sys
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
-	import sys
-	print("This example will not run in an MPI world.")
-	sys.exit(0)
+        import sys
+        print("This example will not run in an MPI world.")
+        sys.exit(0)
 #################################################ESTABLISHING VARIABLES
 # where to put output files
 save_path= os.path.join("data","example06")
@@ -73,7 +73,7 @@ p4=Point(0.0,    -2400.0, 0.0)
 p5=Point(2000.0, -2400.0, 0.0)
 p6=Point(3000.0, -6000.0, 0.0)
 p7=Point(5000.0, -2400.0, 0.0)
-	
+
 # Create TOP BLOCK
 tbl1=Line(p0,p4)
 tbl2=Line(p4,p5)

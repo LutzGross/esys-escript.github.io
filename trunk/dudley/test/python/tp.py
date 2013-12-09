@@ -40,7 +40,7 @@ x_0=[0.5,0.5]
 sigma=0.075
 u0=1.
 for i in range(dom.getDim()):
-	u0=u0*exp(-(x[i]-x_0[i])**2/sigma**2)
+    u0=u0*exp(-(x[i]-x_0[i])**2/sigma**2)
 
 u0=whereNonPositive(abs(x[0]-0.4)-0.2)*whereNonPositive(abs(x[1]-0.5)-0.2)
 # f1=0.5
@@ -65,8 +65,8 @@ c_out=0
 c=0
 print(t,": range u",inf(u0),sup(u0),integrate(u0,Function(dom)))
 while t<t_end and c< c_stop:
-    print("time step t=",t+dt)	
-    u=fc.solve(dt)	
+    print("time step t=",t+dt)
+    u=fc.solve(dt)
     print(t+dt,": range u",inf(u),sup(u),integrate(u,Function(dom)))
     c+=1
     t+=dt
@@ -86,7 +86,7 @@ if True:
    u=u0
    print(t,": range u2",inf(u0),sup(u0),integrate(u0,Function(dom)))
    while t<t_end and c< c_stop:
-       print("time step t=",t+dt)	
+       print("time step t=",t+dt)
        pde.setValue(Y=u+(1.-THETA)*dt*inner(V,grad(u)))
        u=pde.getSolution(verbose=True)
        print(t+dt,": range u2",inf(u),sup(u),integrate(u,Function(dom)))

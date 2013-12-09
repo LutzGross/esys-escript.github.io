@@ -397,7 +397,7 @@ class NonlinearPDE(object):
                 self._updateRHS(expressions, subs)
                 new_defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
                 defect_reduced=False
-                for i in xrange(len( new_defect_norm)):
+                for i in range(len( new_defect_norm)):
                     if new_defect_norm[i] < defect_norm[i]: defect_reduced=True
                 
                 #print new_defect_norm
@@ -823,7 +823,7 @@ class NonlinearPDE(object):
             else:
                 u_g=Data(0., (self.getNumSolutions(), len_g), self._lpde.getFunctionSpaceForSolution())
 
-        for i in xrange(len_g):
+        for i in range(len_g):
               # reset coefficients may be set at previous calls:
               args={}
               for n in self.__COEFFICIENTS: args[n]=Data()

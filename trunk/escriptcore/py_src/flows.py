@@ -153,9 +153,8 @@ class DarcyFlow(object):
           self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
           if not self.__pde_v == None: 
               self.__pde_v.setValue(q=self.location_of_fixed_flux)
-			
+      
       if permeability!=None:
-	
          perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
          self.perm_scale=util.Lsup(util.length(perm))
          if self.verbose: print(("DarcyFlow: permeability scaling factor = %e."%self.perm_scale))
@@ -166,8 +165,6 @@ class DarcyFlow(object):
             perm_inv=(1./perm)
             perm_inv=perm_inv*util.kronecker(self.domain.getDim())
             perm=perm*util.kronecker(self.domain.getDim())
-	    
-	    
          elif perm.getRank()==2:
             perm_inv=util.inverse(perm)
          else:
@@ -175,7 +172,7 @@ class DarcyFlow(object):
          
          self.__permeability=perm
          self.__permeability_inv=perm_inv
-	 
+ 
          #====================
          self.__pde_p.setValue(A=self.__permeability)
          if self.solver  == self.EVAL:
@@ -199,7 +196,7 @@ class DarcyFlow(object):
         self.__permeability_invXg_ref=util.integrate(self.__permeability_invXg)/util.vol(self.domain) 
       if f !=None:
          f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
-         if f.isEmpty():	   
+         if f.isEmpty():   
              f=Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
          else:
              if f.getRank()>0: raise ValueError("illegal rank of f.")
@@ -223,7 +220,7 @@ class DarcyFlow(object):
       """
       if not self.__pde_v == None:
           self.__pde_v.setSolverOptions(options)
-	 
+ 
    def getSolverOptionsPressure(self):
       """
       Returns the solver options used to solve the pressure problems
@@ -314,7 +311,7 @@ class DarcyFlow(object):
                self.__pde_v.setValue(r=1./self.perm_scale * u0)
             u= self.__pde_v.getSolution() * self.perm_scale
         return u
-	  
+  
 class StokesProblemCartesian(pdt.HomogeneousSaddlePointProblem):
      """
      solves
@@ -351,7 +348,7 @@ class StokesProblemCartesian(pdt.HomogeneousSaddlePointProblem):
          self.domain=domain
          self.__pde_v=lpe.LinearPDE(domain,numEquations=self.domain.getDim(),numSolutions=self.domain.getDim())
          self.__pde_v.setSymmetryOn()
-	 
+ 
          self.__pde_prec=lpe.LinearPDE(domain)
          self.__pde_prec.setReducedOrderOn()
          self.__pde_prec.setSymmetryOn()
@@ -363,49 +360,49 @@ class StokesProblemCartesian(pdt.HomogeneousSaddlePointProblem):
 
      def getSolverOptionsVelocity(self):
          """
-	 returns the solver options used  solve the equation for velocity.
-	 
-	 :rtype: `SolverOptions`
-	 """
+         returns the solver options used  solve the equation for velocity.
+         
+         :rtype: `SolverOptions`
+         """
          return self.__pde_v.getSolverOptions()
      def setSolverOptionsVelocity(self, options=None):
          """
-	 set the solver options for solving the equation for velocity.
-	 
-	 :param options: new solver  options
-	 :type options: `SolverOptions`
-	 """
+         set the solver options for solving the equation for velocity.
+         
+         :param options: new solver  options
+         :type options: `SolverOptions`
+         """
          self.__pde_v.setSolverOptions(options)
      def getSolverOptionsPressure(self):
          """
-	 returns the solver options used  solve the equation for pressure.
-	 :rtype: `SolverOptions`
-	 """
+         returns the solver options used  solve the equation for pressure.
+         :rtype: `SolverOptions`
+         """
          return self.__pde_prec.getSolverOptions()
      def setSolverOptionsPressure(self, options=None):
          """
-	 set the solver options for solving the equation for pressure.
-	 :param options: new solver  options
-	 :type options: `SolverOptions`
-	 """
+         set the solver options for solving the equation for pressure.
+         :param options: new solver  options
+         :type options: `SolverOptions`
+         """
          self.__pde_prec.setSolverOptions(options)
 
      def setSolverOptionsDiv(self, options=None):
          """
-	 set the solver options for solving the equation to project the divergence of
-	 the velocity onto the function space of presure.
-	 
-	 :param options: new solver options
-	 :type options: `SolverOptions`
-	 """
+         set the solver options for solving the equation to project the divergence of
+         the velocity onto the function space of presure.
+         
+         :param options: new solver options
+         :type options: `SolverOptions`
+         """
          self.__pde_proj.setSolverOptions(options)
      def getSolverOptionsDiv(self):
          """
-	 returns the solver options for solving the equation to project the divergence of
-	 the velocity onto the function space of presure.
-	 
-	 :rtype: `SolverOptions`
-	 """
+         returns the solver options for solving the equation to project the divergence of
+         the velocity onto the function space of presure.
+         
+         :rtype: `SolverOptions`
+         """
          return self.__pde_proj.getSolverOptions()
 
      def updateStokesEquation(self, v, p):
@@ -427,7 +424,7 @@ class StokesProblemCartesian(pdt.HomogeneousSaddlePointProblem):
         :param surface_stress: normal surface stress
         :type surface_stress: `Vector` object on `FunctionSpace` `FunctionOnBoundary` or similar
         :param stress: initial stress
-	:type stress: `Tensor` object on `FunctionSpace` `Function` or similar
+        :type stress: `Tensor` object on `FunctionSpace` `Function` or similar
         """
         if eta !=None:
             k=util.kronecker(self.domain.getDim())
