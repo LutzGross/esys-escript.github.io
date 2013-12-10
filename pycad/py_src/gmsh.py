@@ -63,6 +63,7 @@ class Design(design.AbstractDesign):
        :param keep_files: flag to keep work files
        """
        design.AbstractDesign.__init__(self,dim=dim,element_size=element_size,order=order,keep_files=keep_files)
+       self.__mshname_set = False
        self.__scriptname=""
        self.setScriptFileName()
        self.setOptions()
@@ -158,9 +159,9 @@ class Design(design.AbstractDesign):
         Cleans up.
         """
         if not self.keepFiles():
-            if not self.__scriptname_set:
+            if not self.__scriptname_set: #i.e. it's a tempfile
                 os.unlink(self.getScriptFileName())
-            if not self.__mshname_set:
+            if not self.__mshname_set: #i.e. it's a tempfile
                 os.unlink(self.getMeshFileName())
 
     def getCommandString(self):
@@ -192,7 +193,9 @@ class Design(design.AbstractDesign):
         args[-1]=args[-1]%self.getScriptHandler()
         ret=runGmsh(args)
         if ret > 0:
-            raise RuntimeError("Could not build mesh using: %s"%" ".join(args))
+            self.setKeepFilesOn() #no files to delete, so don't try to
+            raise RuntimeError("Could not build mesh using: " + \
+                    "%s"%" ".join(args) + "\nCheck gmsh is available")
         return self.getMeshFileName()
 
         
