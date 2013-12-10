@@ -1,0 +1,113 @@
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   fun:PyObject_Free
+   obj:/usr/bin/python2.7
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   obj:/usr/bin/python2.7
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   obj:/usr/bin/python2.7
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   obj:/usr/bin/python2.7
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyAST_Compile
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python6detail11init_moduleEPKcPFvvE
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:PyFrame_New
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Cond
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Value8
+   ...
+   fun:_PyString_Resize
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   ...
+   fun:PyNode_AddChild
+}
+{
+   <insert_a_suppression_name_here>
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:_ZN5boost6python7objects8functionD1Ev
+   obj:/usr/lib/libboost_python-*
+   ...
+   fun:_PyImport_Fini
+}
+
+
+
+

@@ -3966,6 +3966,45 @@ namespace
 
 
 
+/* This routine produces a Data object filled with smoothed random data.
+The dimensions of the rectangle being filled are internal[0] x internal[1] points.
+A parameter radius  dives the size of the stencil used for the smoothing.
+A point on the left hand edge for example, will still require `radius` extra points to the left
+in order to complete the stencil.
+
+All local calculation is done on an array called `src`, with 
+dimensions = ext[0] * ext[1].
+Where ext[i]= internal[i]+2*radius.
+
+Now for MPI there is overlap to deal with. We need to share both the overlapping 
+values themselves but also the external region.
+
+In a hypothetical 1-D case:
+
+
+1234567
+would be split into two ranks thus:
+123(4)  (4)567     [4 being a shared element]
+
+If the radius is 2.   There will be padding elements on the outside:
+
+pp123(4)  (4)567pp
+
+To ensure that 4 can be correctly computed on both ranks, values from the other rank
+need to be known.
+
+pp123(4)56   23(4)567pp
+
+Now in our case, we wout set all the values 23456 on the left rank and send them to the 
+right hand rank.
+
+So the edges _may_ need to be shared at a distance `inset` from all boundaries.
+inset=2*radius+1    
+This is to ensure that values at distance `radius` from the shared/overlapped element
+that ripley has.
+
+
+*/
 escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filter) const
 {
 //     if (m_mpiInfo->size!=1)
@@ -3999,6 +4038,9 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
     // In fact it needs to be stricter than this, if a rank has neighbours on both sides, the borders can't overlap.
     
+    // basically, 2*inset<ext[i]
+    
+    
 #endif    
     double sigma=0.5;
     boost::python::extract<double> ex2(filter[2]);
@@ -4006,40 +4048,106 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     {
         throw RipleyException("Sigma must be a postive floating point number.");
     }    
-    size_t numpoints[2];
-    numpoints[0]=m_ownNE[0]+1;
-    numpoints[1]=m_ownNE[1]+1;
-    size_t padding=max((unsigned)max((m_NE[0]-m_ownNE[0])/2, (m_NE[1]-m_ownNE[1])/2), radius);
-    size_t width=(numpoints[0]+2*padding);  	// width of one row in points
-    size_t height=(numpoints[1]+2*padding);	// height of one row in points
-    size_t dsize=width * height; // size of padded source grid 
     
-    double* src=new double[dsize];
-    esysUtils::randomFillArray(seed, src, dsize);  
+    size_t internal[2];
+    internal[0]=m_NE[0]+1;	// number of points in the internal region
+    internal[1]=m_NE[1]+1;	// that is, the ones we need smoothed versions of
+    size_t ext[2];
+    ext[0]=internal[0]+2*radius;	// includes points we need as input
+    ext[1]=internal[1]+2*radius;	// for smoothing
+    
+    // now we check to see if the radius is acceptable 
+    // That is, would not cross multiple ranks in MPI
+
+    if ((2*radius>=internal[0]) || (2*radius>=internal[1]))
+    {
+        throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
+    }
+    
+    
+    
+    
+    size_t inset=2*radius+1;
+    size_t Eheight=ext[1]-2*inset;	// how high the E (shared) region is 
+    size_t Swidth=ext[0]-2*inset;
+
+    
+//     size_t numpoints[2];
+//     numpoints[0]=m_ownNE[0]+1;
+//     numpoints[1]=m_ownNE[1]+1;
+//     size_t padding=max((unsigned)max((m_NE[0]-m_ownNE[0])/2, (m_NE[1]-m_ownNE[1])/2), radius);
+//     size_t width=(numpoints[0]+2*padding);  	// width of one row in points
+//     size_t height=(numpoints[1]+2*padding);	// height of one row in points
+//     size_t dsize=width * height; // size of padded source grid 
+    
+    double* src=new double[ext[0]*ext[1]];
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]);  
       
     // Now we need to copy the regions owned by other ranks over here  
+//#ifdef ESYS_MPI    
+    
+
+
+    double* SWin=new double[inset*inset];  memset(SWin, 0, inset*inset*sizeof(double));
+    double* SEin=new double[inset*inset];  memset(SEin, 0, inset*inset*sizeof(double));
+    double* NWin=new double[inset*inset];  memset(NWin, 0, inset*inset*sizeof(double));
+    double* Sin=new double[inset*Swidth];  memset(Sin, 0, inset*Swidth*sizeof(double));
+    double* Win=new double[inset*Eheight];  memset(Win, 0, inset*Eheight*sizeof(double));
+
+    double* NEout=new double[inset*inset];  memset(NEout, 0, inset*inset*sizeof(double));
+    uint base=ext[0]-inset+(ext[1]-inset)*ext[0];
+    for (uint i=0;i<inset;++i)
+    {
+	memcpy(NEout+inset*i, src+base, inset*sizeof(double));
+	base+=ext[0];
+    }
+    double* NWout=new double[inset*inset];  memset(NWout, 0, inset*inset*sizeof(double));
+    base=(ext[1]-inset)*ext[0];
+    for (uint i=0;i<inset;++i)
+    {
+	memcpy(NWout+inset*i, src+base, inset*sizeof(double));
+	base+=ext[0];
+    }
+    double* SEout=new double[inset*inset];  memset(SEout, 0, inset*inset*sizeof(double));
+    base=ext[0]-inset;
+    for (int i=0;i<inset;++i)
+    {
+	memcpy(SEout+inset*i, src+base, inset*sizeof(double));
+	base+=ext[0];
+    }
+    double* Nout=new double[inset*Swidth];  memset(Nout, 0, inset*Swidth*sizeof(double));
+    base=inset+(ext[1]-inset)*ext[0];
+    for (uint i=0;i<inset;++i)
+    {
+	memcpy(Nout, src+base, Swidth*sizeof(double));
+	base+=ext[0];
+    }
+    double* Eout=new double[inset*Eheight];  memset(Eout, 0, inset*Eheight*sizeof(double));
+    base=ext[0]-inset+inset*ext[0];
+    for (uint i=0;i<inset;++i)
+    {
+	memcpy(Eout, src+base, inset);
+	base+=ext[0];
+    }
+    
 #ifdef ESYS_MPI    
-    
-    
-    dim_t X=m_mpiInfo->rank%m_NX[0];
-    dim_t Y=m_mpiInfo->rank/m_NX[0];
-    dim_t row=m_NX[0];
 
     MPI_Request reqs[10];
     MPI_Status stats[10];
     short rused=0;
-    double* SWin=new double[radius*radius];  memset(SWin, 0, radius*radius*sizeof(double));
-    double* SEin=new double[radius*radius];  memset(SEin, 0, radius*radius*sizeof(double));
-    double* NWin=new double[radius*radius];  memset(NWin, 0, radius*radius*sizeof(double));
-    double* Sin=new double[radius*numpoints[0]];  memset(Sin, 0, radius*numpoints[0]*sizeof(double));
-    double* Win=new double[radius*numpoints[1]];  memset(Win, 0, radius*numpoints[1]*sizeof(double));
-
-    double* NEout=new double[radius*radius];  memset(NEout, 0, radius*radius*sizeof(double));
-    double* NWout=new double[radius*radius];  memset(NWout, 0, radius*radius*sizeof(double));
-    double* SEout=new double[radius*radius];  memset(SEout, 0, radius*radius*sizeof(double));
-    double* Nout=new double[radius*numpoints[0]];  memset(Nout, 0, radius*numpoints[0]*sizeof(double));
-    double* Eout=new double[radius*numpoints[1]];  memset(Eout, 0, radius*numpoints[1]*sizeof(double));
     
+    dim_t X=m_mpiInfo->rank%m_NX[0];
+    dim_t Y=m_mpiInfo->rank/m_NX[0];
+    dim_t row=m_NX[0];
+    bool swused=false;		// These vars will be true if data needs to be copied out of them
+    bool seused=false;
+    bool nwused=false;
+    bool sused=false;
+    bool wused=false;    
+    
+    
+    
+
 //cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << SWin << " " << SEin << " " << NWin << " "<< Sin << " "<< Win << " "<< NEout << " "<< NWout << " "
 //<< SEout << " "
 //<< Nout << " "
@@ -4053,21 +4161,25 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
 	if (X!=0)	// not on the left hand edge
 	{
 	    // recv bottomleft from SW
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (X-1)+(Y-1)*row << endl;
-	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (X-1)+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " <<  X-1+Y*row << endl;  	    
-	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
-    
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (X-1)+(Y-1)*row << endl;
+	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (X-1)+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	    swused=true;
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " <<  X-1+Y*row << endl;  	    
+	    comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
+	    wused=true;
 	}
 	else
 	{
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (Y-1)*row  << endl;  	    	  
-	    comserr|=MPI_Irecv(SWin, radius*radius, MPI_DOUBLE, (Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (Y-1)*row  << endl;  	    	  
+	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	    swused=true;
 	}
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv S (8) from " << X+(Y-1)*row  << endl;  		
-	comserr|=MPI_Irecv(Sin, numpoints[0]*radius, MPI_DOUBLE, X+(Y-1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+(Y-1)*row << endl;  	
-	comserr|=MPI_Irecv(SEin, radius*radius, MPI_DOUBLE, X+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv S (8) from " << X+(Y-1)*row  << endl;  		
+	comserr|=MPI_Irecv(Sin, Swidth*inset, MPI_DOUBLE, X+(Y-1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
+	sused=true;
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+(Y-1)*row << endl;  	
+	comserr|=MPI_Irecv(SEin, inset*inset, MPI_DOUBLE, X+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	seused=true;
 
       
     }
@@ -4075,49 +4187,51 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     {
 	if (X!=0) 
 	{
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " << X-1+Y*row << endl;	  
-	    comserr|=MPI_Irecv(Win, numpoints[1]*radius, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << X-1+Y*row << endl;	    
-	    comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, X-1+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " << X-1+Y*row << endl;	  
+	    comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
+	    wused=true;
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << X-1+Y*row << endl;	    
+	    comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	    nwused=true;
 	}
 	if (X!=(row-1))
 	{
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send SE (7) to " <<  X+1+(Y)*row << endl; 		  
-	    comserr|=MPI_Isend(SEout, radius*radius, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));	
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send SE (7) to " <<  X+1+(Y)*row << endl; 		  
+	    comserr|=MPI_Isend(SEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));	
     
 	}
     }
     
     if (Y!=(m_NX[1]-1))	// not on the top row
     {
-//cerr << "Y=" << Y << "  (numpoints[1]-1)=" << (numpoints[1]-1) << endl; 
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send N (8) to " << X+(Y+1)*row  << endl;
- 	comserr|=MPI_Isend(Nout, radius*numpoints[0], MPI_DOUBLE, X+(Y+1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+(Y+1)*row << endl; 
-	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send N (8) to " << X+(Y+1)*row  << endl;
+ 	comserr|=MPI_Isend(Nout, inset*Swidth, MPI_DOUBLE, X+(Y+1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+(Y+1)*row << endl; 
+	comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	if (X!=(row-1))	// not on right hand edge
 	{
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+1+(Y+1)*row << endl; 	    	  
-	    comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+1+(Y+1)*row << endl; 	    	  
+	    comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	}
 	if (X==0)	// left hand edge
 	{
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NW (7) to " << (Y+1)*row << endl; 	  
-	    comserr|=MPI_Isend(NWout, radius*radius, MPI_DOUBLE, (Y+1)*row,7, m_mpiInfo->comm, reqs+(rused++));	    
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NW (7) to " << (Y+1)*row << endl; 	  
+	    comserr|=MPI_Isend(NWout, inset*inset, MPI_DOUBLE, (Y+1)*row,7, m_mpiInfo->comm, reqs+(rused++));	    
 	}	
     }
     if (X!=(row-1))	// not on right hand edge
     {
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " << X+1+(Y)*row << endl;       
-	comserr|=MPI_Isend(NEout, radius*radius, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send E (10) to " << X+1+(Y)*row << endl; 	
-	comserr|=MPI_Isend(Eout, numpoints[1]*radius, MPI_DOUBLE, X+1+(Y)*row, 10, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " << X+1+(Y)*row << endl;       
+	comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send E (10) to " << X+1+(Y)*row << endl; 	
+	comserr|=MPI_Isend(Eout, Eheight*inset, MPI_DOUBLE, X+1+(Y)*row, 10, m_mpiInfo->comm, reqs+(rused++));
     }
     if (X!=0)
     {
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X-1)+Y*row << endl;  	
+cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X-1)+Y*row << endl;  	
       
-	comserr|=MPI_Irecv(NWin, radius*radius, MPI_DOUBLE, (X-1)+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, (X-1)+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
+	nwused=true;
       
       
     }
@@ -4136,7 +4250,56 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         throw RipleyException("Error in coms for randomFill");      
     }
     
+ 
+    // Need to copy the values back from the buffers
+    // Copy from SW
     
+    if (swused)
+    {
+	base=0;
+	for (uint i=0;i<inset;++i)
+	{
+	    memcpy(src+base, SWin+i*inset, inset*sizeof(double));
+	    base+=ext[0];
+	}
+    }
+    if (seused)
+    {
+        base=ext[0]-inset;
+	for (uint i=0;i<inset;++i)
+	{
+	    memcpy(src+base, SEin+i*inset, inset*sizeof(double));
+	    base+=ext[0];
+	}
+    }
+    if (nwused)
+    {
+        base=(ext[1]-inset)*ext[0];
+	for (uint i=0;i<inset;++i)
+	{
+	    memcpy(src+base, NWin+i*inset, inset*sizeof(double));
+	    base+=ext[0];
+	}
+    }
+    if (sused)
+    {
+       base=inset;
+       for (uint i=0;i<inset;++i)
+       {
+	   memcpy(src+base, Sin+i*Swidth, Swidth*sizeof(double));
+	   base+=ext[0];
+       }
+    }
+    if (wused)
+    {
+	base=inset*ext[0];
+	for (uint i=0;i<Eheight;++i)
+	{
+	    memcpy(src+base, Win+i*inset, inset*sizeof(double));
+	    base+=ext[0];
+	}
+      
+    }
     delete[] SWin;
     delete[] SEin;
     delete[] NWin;
@@ -4163,7 +4326,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     {
         for (size_t x=0;x<(m_ownNE[0]+1);++x)
 	{	  
-	    dv[x+y*(m_ownNE[0]+1)]=Convolve2D(convolution, src, x+radius, y+radius, radius, width);
+	    dv[x+y*(m_ownNE[0]+1)]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
 	}
     }
     delete[] convolution;
