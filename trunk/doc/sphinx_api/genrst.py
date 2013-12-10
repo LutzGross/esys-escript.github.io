@@ -18,6 +18,10 @@ startdir=os.path.join(pathdir, startpackage)
 outdir=sys.argv[3]
 
 def dumpPackage(mname, ignorelist, modset, banset):
+  try:
+    exec('import '+mname+' as PP')
+  except ImportError:
+    return
   modset.add(mname)
   print "Starting dump on "+mname+' with ignore at '+str(ignorelist)
   pack=open(os.path.join(outdir,mname+'.rst'),'w')
@@ -25,7 +29,6 @@ def dumpPackage(mname, ignorelist, modset, banset):
   pack.write('='*len(mname)+'========\n\n')
   pack.write('.. py:module:: '+mname+'\n\n')
   #Automodule does not seem to do what we want so we need to drill down
-  exec('import '+mname+' as PP')
   clist=[]
   flist=[]
   vlist=[]
