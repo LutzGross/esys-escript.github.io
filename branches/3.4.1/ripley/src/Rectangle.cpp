@@ -4047,15 +4047,15 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
     }
     
-    size_t inset=2*radius+1;
-    size_t Eheight=ext[1]-2*inset;	// how high the E (shared) region is 
-    size_t Swidth=ext[0]-2*inset;
-    
+   
     double* src=new double[ext[0]*ext[1]];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]);  
     
    
 #ifdef ESYS_MPI    
+    size_t inset=2*radius+1;
+    size_t Eheight=ext[1]-2*inset;	// how high the E (shared) region is 
+    size_t Swidth=ext[0]-2*inset;
 
     double* SWin=new double[inset*inset];  memset(SWin, 0, inset*inset*sizeof(double));
     double* SEin=new double[inset*inset];  memset(SEin, 0, inset*inset*sizeof(double));
