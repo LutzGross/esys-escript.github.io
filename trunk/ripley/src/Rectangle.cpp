@@ -4191,7 +4191,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
 #ifdef ESYS_MPI    
 
-deliberate error to test buildbot
+deliberate error to test buildbot, now with extra commit
 
 
     MPI_Request reqs[10];
