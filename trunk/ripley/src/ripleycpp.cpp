@@ -387,6 +387,9 @@ args("solver", "preconditioner", "package", "symmetry"),
 
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init)
-    .def("randomFill", &ripley::Rectangle::randomFill);
+    .def("randomFill", &ripley::Rectangle::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
+":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
+"guassian blur and s is the sigma parameter."
+    );
 }
 

@@ -4007,10 +4007,6 @@ that ripley has.
 */
 escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filter) const
 {
-//     if (m_mpiInfo->size!=1)
-//     {
-//         throw RipleyException("This type of random does not support MPI yet.");
-//     }
     if (m_numDim!=2)
     {
         throw RipleyException("Only 2D supported at this time.");
@@ -4029,19 +4025,6 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         throw RipleyException("Radius of gaussian filter must be a positive integer.");
     }
     unsigned int radius=ex1();
-#ifdef ESYS_MPI    
-
-    // Need to check to see that radius would not cause the overlap to cover 
-    // more than one cell (eg each rank holds 4 columns and the radius is 5).
-    // Also need to take special care with narrow cells
-    
-    
-    // In fact it needs to be stricter than this, if a rank has neighbours on both sides, the borders can't overlap.
-    
-    // basically, 2*inset<ext[i]
-    
-    
-#endif    
     double sigma=0.5;
     boost::python::extract<double> ex2(filter[2]);
     if (!ex2.check() || (sigma=ex2())<=0)
@@ -4064,47 +4047,15 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
     }
     
-    
-    
-    
     size_t inset=2*radius+1;
     size_t Eheight=ext[1]-2*inset;	// how high the E (shared) region is 
     size_t Swidth=ext[0]-2*inset;
-
-    
-//     size_t numpoints[2];
-//     numpoints[0]=m_ownNE[0]+1;
-//     numpoints[1]=m_ownNE[1]+1;
-//     size_t padding=max((unsigned)max((m_NE[0]-m_ownNE[0])/2, (m_NE[1]-m_ownNE[1])/2), radius);
-//     size_t width=(numpoints[0]+2*padding);  	// width of one row in points
-//     size_t height=(numpoints[1]+2*padding);	// height of one row in points
-//     size_t dsize=width * height; // size of padded source grid 
     
     double* src=new double[ext[0]*ext[1]];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]);  
     
-    
-    double zz=m_mpiInfo->rank;
-    for (unsigned int i=0;i<ext[0]*ext[1];++i)
-    {
-        src[i]=zz*1000+i;
-    }
-    
-    for (unsigned int j=0;j<ext[1];++j)
-    {
-	ostringstream oss;
-        oss << ">:" << m_mpiInfo->rank << ": ";
-	for (unsigned int i=0;i<ext[0];++i)
-	{
-	    oss << src[i+j*ext[0]] << " ";
-	}
-	oss << endl;
-	cerr << oss.str();
-    }
-    // Now we need to copy the regions owned by other ranks over here  
-//#ifdef ESYS_MPI    
-    
-
+   
+#ifdef ESYS_MPI    
 
     double* SWin=new double[inset*inset];  memset(SWin, 0, inset*inset*sizeof(double));
     double* SEin=new double[inset*inset];  memset(SEin, 0, inset*inset*sizeof(double));
@@ -4113,35 +4064,19 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     double* Win=new double[inset*Eheight];  memset(Win, 0, inset*Eheight*sizeof(double));
 
     double* NEout=new double[inset*inset];  memset(NEout, 0, inset*inset*sizeof(double));
-    unsigned int base=ext[0]-inset+(ext[1]-inset)*ext[0];
-    for (unsigned int i=0;i<inset;++i)
+    uint base=ext[0]-inset+(ext[1]-inset)*ext[0];
+    for (uint i=0;i<inset;++i)
     {
 	memcpy(NEout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
     double* NWout=new double[inset*inset];  memset(NWout, 0, inset*inset*sizeof(double));
     base=(ext[1]-inset)*ext[0];
-    for (unsigned int i=0;i<inset;++i)
+    for (uint i=0;i<inset;++i)
     {
 	memcpy(NWout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
-    
-// for (unsigned int j=0;j<inset;++j)
-// {
-//     ostringstream oss;
-//     oss << "NW: ";
-//     for (unsigned int i=0;i<inset;++i)
-//     {
-//         oss << NWout[i+j*inset] << " ";
-//     }
-//     oss << endl;
-//     if (m_mpiInfo->rank==0)
-//     {
-//         cerr << oss.str();
-//     }
-// }
-    
     
     double* SEout=new double[inset*inset];  memset(SEout, 0, inset*inset*sizeof(double));
     base=ext[0]-inset;
@@ -4152,47 +4087,19 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     }
     double* Nout=new double[inset*Swidth];  memset(Nout, 0, inset*Swidth*sizeof(double));
     base=inset+(ext[1]-inset)*ext[0];
-    for (unsigned int i=0;i<inset;++i)
+    for (uint i=0;i<inset;++i)
     {
 	memcpy(Nout+Swidth*i, src+base, Swidth*sizeof(double));
 	base+=ext[0];
     }
     
-    
-  
-    
-    
-    
     double* Eout=new double[inset*Eheight];  memset(Eout, 0, inset*Eheight*sizeof(double));
     base=ext[0]-inset+inset*ext[0];
-    for (unsigned int i=0;i<Eheight;++i)
+    for (uint i=0;i<Eheight;++i)
     {
 	memcpy(Eout+i*inset, src+base, inset*sizeof(double));
 	base+=ext[0];
-    }
-    
-    
-/* for (unsigned int j=0;j<Eheight;++j)
-{
-    ostringstream oss;
-    oss << "E: ";
-    for (unsigned int i=0;i<inset;++i)
-    {
-        oss << Eout[i+j*inset] << " ";
-    }
-    oss << endl;
-    if (m_mpiInfo->rank==0)
-    {
-        cerr << oss.str();
-    }
-}   */  
-    
-    
-    
-#ifdef ESYS_MPI    
-
-deliberate error to test buildbot, now with extra commit
-
+    }  
 
     MPI_Request reqs[10];
     MPI_Status stats[10];
@@ -4215,12 +4122,6 @@ deliberate error to test buildbot, now with extra commit
     // 12 : SE corner to SW corner (only used on the bottom edge
     
 
-//cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << SWin << " " << SEin << " " << NWin << " "<< Sin << " "<< Win << " "<< NEout << " "<< NWout << " "
-//<< SEout << " "
-//<< Nout << " "
-//<< Eout << " "
-//<< endl;  	    
-    
 
     int comserr=0;
     if (Y!=0)	// not on bottom row, 
@@ -4228,23 +4129,18 @@ deliberate error to test buildbot, now with extra commit
 	if (X!=0)	// not on the left hand edge
 	{
 	    // recv bottomleft from SW
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (X-1)+(Y-1)*row << endl;
 	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (X-1)+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	    swused=true;
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " <<  X-1+Y*row << endl;  	    
 	    comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
 	    wused=true;
 	}
 	else	// on the left hand edge
 	{
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (11) from " << (Y-1)*row  << endl;  	    	  
 	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (Y-1)*row, 11, m_mpiInfo->comm, reqs+(rused++));
 	    swused=true;
 	}
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv S (8) from " << X+(Y-1)*row  << endl;  		
 	comserr|=MPI_Irecv(Sin, Swidth*inset, MPI_DOUBLE, X+(Y-1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
 	sused=true;
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+(Y-1)*row << endl;  	
 	comserr|=MPI_Irecv(SEin, inset*inset, MPI_DOUBLE, X+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	seused=true;
 
@@ -4254,51 +4150,38 @@ deliberate error to test buildbot, now with extra commit
     {
 	if (X!=0) 
 	{
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " << X-1+Y*row << endl;	  
 	    comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
 	    wused=true;
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << X-1+Y*row << endl;	    
-// 	    comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
-// 	    nwused=true;
 	    // Need to use tag 12 here because SW is coming from the East not South East
 	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 12, m_mpiInfo->comm, reqs+(rused++));
 	    swused=true;
 	}
 	if (X!=(row-1))
 	{
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send SE (12) to " <<  X+1+(Y)*row << endl; 		  
 	    comserr|=MPI_Isend(SEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 12, m_mpiInfo->comm, reqs+(rused++));	
 	}
     }
     
     if (Y!=(m_NX[1]-1))	// not on the top row
     {
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send N (8) to " << X+(Y+1)*row  << endl;
  	comserr|=MPI_Isend(Nout, inset*Swidth, MPI_DOUBLE, X+(Y+1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+(Y+1)*row << endl; 
 	comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	if (X!=(row-1))	// not on right hand edge
 	{
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+1+(Y+1)*row << endl; 	    	  
 	    comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	}
 	if (X==0)	// left hand edge
 	{
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NW (11) to " << (Y+1)*row << endl; 	  
 	    comserr|=MPI_Isend(NWout, inset*inset, MPI_DOUBLE, (Y+1)*row,11, m_mpiInfo->comm, reqs+(rused++));	    
 	}	
     }
     if (X!=(row-1))	// not on right hand edge
     {
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " << X+1+(Y)*row << endl;       
 	comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send E (10) to " << X+1+(Y)*row << endl; 	
 	comserr|=MPI_Isend(Eout, Eheight*inset, MPI_DOUBLE, X+1+(Y)*row, 10, m_mpiInfo->comm, reqs+(rused++));
     }
     if (X!=0)
     {
-// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X-1)+Y*row << endl;  	
-      
 	comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, (X-1)+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	nwused=true;
       
@@ -4306,8 +4189,7 @@ deliberate error to test buildbot, now with extra commit
     }
     
     if (!comserr)
-    {
-//cerr << rused << ": " <<   m_mpiInfo->rank << "[" << __LINE__ << "]\n";        
+    {     
         comserr=MPI_Waitall(rused, reqs, stats);
     }
 
@@ -4326,7 +4208,7 @@ deliberate error to test buildbot, now with extra commit
     if (swused)
     {
 	base=0;
-	for (unsigned int i=0;i<inset;++i)
+	for (uint i=0;i<inset;++i)
 	{
 	    memcpy(src+base, SWin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4335,7 +4217,7 @@ deliberate error to test buildbot, now with extra commit
     if (seused)
     {
         base=ext[0]-inset;
-	for (unsigned int i=0;i<inset;++i)
+	for (uint i=0;i<inset;++i)
 	{
 	    memcpy(src+base, SEin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4344,7 +4226,7 @@ deliberate error to test buildbot, now with extra commit
     if (nwused)
     {
         base=(ext[1]-inset)*ext[0];
-	for (unsigned int i=0;i<inset;++i)
+	for (uint i=0;i<inset;++i)
 	{
 	    memcpy(src+base, NWin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4353,7 +4235,7 @@ deliberate error to test buildbot, now with extra commit
     if (sused)
     {
        base=inset;
-       for (unsigned int i=0;i<inset;++i)
+       for (uint i=0;i<inset;++i)
        {
 	   memcpy(src+base, Sin+i*Swidth, Swidth*sizeof(double));
 	   base+=ext[0];
@@ -4362,25 +4244,13 @@ deliberate error to test buildbot, now with extra commit
     if (wused)
     {
 	base=inset*ext[0];
-	for (unsigned int i=0;i<Eheight;++i)
+	for (uint i=0;i<Eheight;++i)
 	{
 	    memcpy(src+base, Win+i*inset, inset*sizeof(double));
 	    base+=ext[0];
 	}
       
     }
-    for (unsigned int j=0;j<ext[1];++j)
-    {
-	ostringstream oss;
-        oss << "<;" << m_mpiInfo->rank << "; ";
-	for (unsigned int i=0;i<ext[0];++i)
-	{
-	    oss << src[i+j*ext[0]] << " ";
-	}
-	oss << endl;
-	cerr << oss.str();
-    }    
-    
     
     delete[] SWin;
     delete[] SEin;
@@ -4393,25 +4263,22 @@ deliberate error to test buildbot, now with extra commit
     delete[] SEout;
     delete[] Nout;
     delete[] Eout;
-    
-    
-    
-    
 #endif    
-    // Lets call that done for now
     escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
     escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
     // don't need to check for exwrite because we just made it
     escript::DataVector& dv=resdat.getExpandedVectorReference();
     double* convolution=get2DGauss(radius, sigma);
-    for (size_t y=0;y<(m_ownNE[1]+1);++y)    
+    for (size_t y=0;y<(internal[1]);++y)    
     {
-        for (size_t x=0;x<(m_ownNE[0]+1);++x)
+        for (size_t x=0;x<(internal[0]);++x)
 	{	  
-	    dv[x+y*(m_ownNE[0]+1)]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
+	    dv[x+y*(internal[0])]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
+	    
 	}
     }
     delete[] convolution;
+    delete[] src;
     return resdat;
 }
 
