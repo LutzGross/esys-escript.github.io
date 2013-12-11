@@ -4082,7 +4082,25 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
     double* src=new double[ext[0]*ext[1]];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]);  
-      
+    
+    
+    double zz=m_mpiInfo->rank;
+    for (uint i=0;i<ext[0]*ext[1];++i)
+    {
+        src[i]=zz*1000+i;
+    }
+    
+    for (uint j=0;j<ext[1];++j)
+    {
+	ostringstream oss;
+        oss << ">:" << m_mpiInfo->rank << ": ";
+	for (uint i=0;i<ext[0];++i)
+	{
+	    oss << src[i+j*ext[0]] << " ";
+	}
+	oss << endl;
+	cerr << oss.str();
+    }
     // Now we need to copy the regions owned by other ranks over here  
 //#ifdef ESYS_MPI    
     
@@ -4108,6 +4126,23 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
 	memcpy(NWout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
+    
+// for (uint j=0;j<inset;++j)
+// {
+//     ostringstream oss;
+//     oss << "NW: ";
+//     for (uint i=0;i<inset;++i)
+//     {
+//         oss << NWout[i+j*inset] << " ";
+//     }
+//     oss << endl;
+//     if (m_mpiInfo->rank==0)
+//     {
+//         cerr << oss.str();
+//     }
+// }
+    
+    
     double* SEout=new double[inset*inset];  memset(SEout, 0, inset*inset*sizeof(double));
     base=ext[0]-inset;
     for (int i=0;i<inset;++i)
@@ -4119,16 +4154,40 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     base=inset+(ext[1]-inset)*ext[0];
     for (uint i=0;i<inset;++i)
     {
-	memcpy(Nout, src+base, Swidth*sizeof(double));
+	memcpy(Nout+Swidth*i, src+base, Swidth*sizeof(double));
 	base+=ext[0];
     }
+    
+    
+  
+    
+    
+    
     double* Eout=new double[inset*Eheight];  memset(Eout, 0, inset*Eheight*sizeof(double));
     base=ext[0]-inset+inset*ext[0];
-    for (uint i=0;i<inset;++i)
+    for (uint i=0;i<Eheight;++i)
     {
-	memcpy(Eout, src+base, inset);
+	memcpy(Eout+i*inset, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
+    
+    
+/* for (uint j=0;j<Eheight;++j)
+{
+    ostringstream oss;
+    oss << "E: ";
+    for (uint i=0;i<inset;++i)
+    {
+        oss << Eout[i+j*inset] << " ";
+    }
+    oss << endl;
+    if (m_mpiInfo->rank==0)
+    {
+        cerr << oss.str();
+    }
+}   */  
+    
+    
     
 #ifdef ESYS_MPI    
 
@@ -4145,7 +4204,12 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     bool sused=false;
     bool wused=false;    
     
-    
+    // Tags:
+    // 10 : EW transfer (middle)
+    // 8 : NS transfer (middle)
+    // 7 : NE corner -> to N, E and NE
+    // 11 : NW corner to SW corner (only used on the left hand edge
+    // 12 : SE corner to SW corner (only used on the bottom edge
     
 
 //cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << SWin << " " << SEin << " " << NWin << " "<< Sin << " "<< Win << " "<< NEout << " "<< NWout << " "
@@ -4161,23 +4225,23 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
 	if (X!=0)	// not on the left hand edge
 	{
 	    // recv bottomleft from SW
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (X-1)+(Y-1)*row << endl;
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (X-1)+(Y-1)*row << endl;
 	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (X-1)+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	    swused=true;
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " <<  X-1+Y*row << endl;  	    
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " <<  X-1+Y*row << endl;  	    
 	    comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
 	    wused=true;
 	}
-	else
+	else	// on the left hand edge
 	{
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (7) from " << (Y-1)*row  << endl;  	    	  
-	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SW (11) from " << (Y-1)*row  << endl;  	    	  
+	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (Y-1)*row, 11, m_mpiInfo->comm, reqs+(rused++));
 	    swused=true;
 	}
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv S (8) from " << X+(Y-1)*row  << endl;  		
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv S (8) from " << X+(Y-1)*row  << endl;  		
 	comserr|=MPI_Irecv(Sin, Swidth*inset, MPI_DOUBLE, X+(Y-1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
 	sused=true;
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+(Y-1)*row << endl;  	
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+(Y-1)*row << endl;  	
 	comserr|=MPI_Irecv(SEin, inset*inset, MPI_DOUBLE, X+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	seused=true;
 
@@ -4187,48 +4251,50 @@ cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv SE (7) from " << X+
     {
 	if (X!=0) 
 	{
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " << X-1+Y*row << endl;	  
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv W (10) from " << X-1+Y*row << endl;	  
 	    comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
 	    wused=true;
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << X-1+Y*row << endl;	    
-	    comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
-	    nwused=true;
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << X-1+Y*row << endl;	    
+// 	    comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
+// 	    nwused=true;
+	    // Need to use tag 12 here because SW is coming from the East not South East
+	    comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 12, m_mpiInfo->comm, reqs+(rused++));
+	    swused=true;
 	}
 	if (X!=(row-1))
 	{
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send SE (7) to " <<  X+1+(Y)*row << endl; 		  
-	    comserr|=MPI_Isend(SEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));	
-    
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send SE (12) to " <<  X+1+(Y)*row << endl; 		  
+	    comserr|=MPI_Isend(SEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 12, m_mpiInfo->comm, reqs+(rused++));	
 	}
     }
     
     if (Y!=(m_NX[1]-1))	// not on the top row
     {
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send N (8) to " << X+(Y+1)*row  << endl;
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send N (8) to " << X+(Y+1)*row  << endl;
  	comserr|=MPI_Isend(Nout, inset*Swidth, MPI_DOUBLE, X+(Y+1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+(Y+1)*row << endl; 
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+(Y+1)*row << endl; 
 	comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	if (X!=(row-1))	// not on right hand edge
 	{
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+1+(Y+1)*row << endl; 	    	  
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " <<  X+1+(Y+1)*row << endl; 	    	  
 	    comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	}
 	if (X==0)	// left hand edge
 	{
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NW (7) to " << (Y+1)*row << endl; 	  
-	    comserr|=MPI_Isend(NWout, inset*inset, MPI_DOUBLE, (Y+1)*row,7, m_mpiInfo->comm, reqs+(rused++));	    
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NW (11) to " << (Y+1)*row << endl; 	  
+	    comserr|=MPI_Isend(NWout, inset*inset, MPI_DOUBLE, (Y+1)*row,11, m_mpiInfo->comm, reqs+(rused++));	    
 	}	
     }
     if (X!=(row-1))	// not on right hand edge
     {
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " << X+1+(Y)*row << endl;       
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send NE (7) to " << X+1+(Y)*row << endl;       
 	comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send E (10) to " << X+1+(Y)*row << endl; 	
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Send E (10) to " << X+1+(Y)*row << endl; 	
 	comserr|=MPI_Isend(Eout, Eheight*inset, MPI_DOUBLE, X+1+(Y)*row, 10, m_mpiInfo->comm, reqs+(rused++));
     }
     if (X!=0)
     {
-cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X-1)+Y*row << endl;  	
+// cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X-1)+Y*row << endl;  	
       
 	comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, (X-1)+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
 	nwused=true;
@@ -4300,6 +4366,19 @@ cerr << m_mpiInfo->rank << "[" << __LINE__ << "]: " << "Recv NW (7) from " << (X
 	}
       
     }
+    for (uint j=0;j<ext[1];++j)
+    {
+	ostringstream oss;
+        oss << "<;" << m_mpiInfo->rank << "; ";
+	for (uint i=0;i<ext[0];++i)
+	{
+	    oss << src[i+j*ext[0]] << " ";
+	}
+	oss << endl;
+	cerr << oss.str();
+    }    
+    
+    
     delete[] SWin;
     delete[] SEin;
     delete[] NWin;
