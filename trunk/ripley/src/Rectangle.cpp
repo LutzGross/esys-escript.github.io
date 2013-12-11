@@ -4085,16 +4085,16 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
     
     double zz=m_mpiInfo->rank;
-    for (uint i=0;i<ext[0]*ext[1];++i)
+    for (unsigned int i=0;i<ext[0]*ext[1];++i)
     {
         src[i]=zz*1000+i;
     }
     
-    for (uint j=0;j<ext[1];++j)
+    for (unsigned int j=0;j<ext[1];++j)
     {
 	ostringstream oss;
         oss << ">:" << m_mpiInfo->rank << ": ";
-	for (uint i=0;i<ext[0];++i)
+	for (unsigned int i=0;i<ext[0];++i)
 	{
 	    oss << src[i+j*ext[0]] << " ";
 	}
@@ -4113,25 +4113,25 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     double* Win=new double[inset*Eheight];  memset(Win, 0, inset*Eheight*sizeof(double));
 
     double* NEout=new double[inset*inset];  memset(NEout, 0, inset*inset*sizeof(double));
-    uint base=ext[0]-inset+(ext[1]-inset)*ext[0];
-    for (uint i=0;i<inset;++i)
+    unsigned int base=ext[0]-inset+(ext[1]-inset)*ext[0];
+    for (unsigned int i=0;i<inset;++i)
     {
 	memcpy(NEout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
     double* NWout=new double[inset*inset];  memset(NWout, 0, inset*inset*sizeof(double));
     base=(ext[1]-inset)*ext[0];
-    for (uint i=0;i<inset;++i)
+    for (unsigned int i=0;i<inset;++i)
     {
 	memcpy(NWout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
     
-// for (uint j=0;j<inset;++j)
+// for (unsigned int j=0;j<inset;++j)
 // {
 //     ostringstream oss;
 //     oss << "NW: ";
-//     for (uint i=0;i<inset;++i)
+//     for (unsigned int i=0;i<inset;++i)
 //     {
 //         oss << NWout[i+j*inset] << " ";
 //     }
@@ -4152,7 +4152,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     }
     double* Nout=new double[inset*Swidth];  memset(Nout, 0, inset*Swidth*sizeof(double));
     base=inset+(ext[1]-inset)*ext[0];
-    for (uint i=0;i<inset;++i)
+    for (unsigned int i=0;i<inset;++i)
     {
 	memcpy(Nout+Swidth*i, src+base, Swidth*sizeof(double));
 	base+=ext[0];
@@ -4165,18 +4165,18 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
     double* Eout=new double[inset*Eheight];  memset(Eout, 0, inset*Eheight*sizeof(double));
     base=ext[0]-inset+inset*ext[0];
-    for (uint i=0;i<Eheight;++i)
+    for (unsigned int i=0;i<Eheight;++i)
     {
 	memcpy(Eout+i*inset, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
     
     
-/* for (uint j=0;j<Eheight;++j)
+/* for (unsigned int j=0;j<Eheight;++j)
 {
     ostringstream oss;
     oss << "E: ";
-    for (uint i=0;i<inset;++i)
+    for (unsigned int i=0;i<inset;++i)
     {
         oss << Eout[i+j*inset] << " ";
     }
@@ -4326,7 +4326,7 @@ deliberate error to test buildbot, now with extra commit
     if (swused)
     {
 	base=0;
-	for (uint i=0;i<inset;++i)
+	for (unsigned int i=0;i<inset;++i)
 	{
 	    memcpy(src+base, SWin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4335,7 +4335,7 @@ deliberate error to test buildbot, now with extra commit
     if (seused)
     {
         base=ext[0]-inset;
-	for (uint i=0;i<inset;++i)
+	for (unsigned int i=0;i<inset;++i)
 	{
 	    memcpy(src+base, SEin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4344,7 +4344,7 @@ deliberate error to test buildbot, now with extra commit
     if (nwused)
     {
         base=(ext[1]-inset)*ext[0];
-	for (uint i=0;i<inset;++i)
+	for (unsigned int i=0;i<inset;++i)
 	{
 	    memcpy(src+base, NWin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4353,7 +4353,7 @@ deliberate error to test buildbot, now with extra commit
     if (sused)
     {
        base=inset;
-       for (uint i=0;i<inset;++i)
+       for (unsigned int i=0;i<inset;++i)
        {
 	   memcpy(src+base, Sin+i*Swidth, Swidth*sizeof(double));
 	   base+=ext[0];
@@ -4362,18 +4362,18 @@ deliberate error to test buildbot, now with extra commit
     if (wused)
     {
 	base=inset*ext[0];
-	for (uint i=0;i<Eheight;++i)
+	for (unsigned int i=0;i<Eheight;++i)
 	{
 	    memcpy(src+base, Win+i*inset, inset*sizeof(double));
 	    base+=ext[0];
 	}
       
     }
-    for (uint j=0;j<ext[1];++j)
+    for (unsigned int j=0;j<ext[1];++j)
     {
 	ostringstream oss;
         oss << "<;" << m_mpiInfo->rank << "; ";
-	for (uint i=0;i<ext[0];++i)
+	for (unsigned int i=0;i<ext[0];++i)
 	{
 	    oss << src[i+j*ext[0]] << " ";
 	}
