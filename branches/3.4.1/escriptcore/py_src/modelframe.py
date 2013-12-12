@@ -13,6 +13,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -32,8 +33,6 @@ Environment for implementing models in escript
 :var __date__: date of the version
 """
 __author__="Lutz Gross, l.gross@uq.edu.au"
-
-from __future__ import print_future
 
 import collections
 import itertools

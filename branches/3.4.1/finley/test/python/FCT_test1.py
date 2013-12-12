@@ -12,6 +12,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -42,7 +43,6 @@ __url__="https://launchpad.net/escript-finley"
 #     - sigma_h/4*E*t ~ 1 where sigma_h=sqrt(integrate(length(x-x0h)**2 * u_h) * (DIM==3 ? sqrt(2./3.) :1 )
 #
 #
-from __future__ import print_function
 
 from esys.escript import *
 from esys.escript.linearPDEs import TransportPDE

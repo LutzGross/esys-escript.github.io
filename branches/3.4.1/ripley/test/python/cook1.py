@@ -1,7 +1,8 @@
+from __future__ import print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 import random
-from __future__ import print_function
 
 from esys.escript import * 
 from esys.escript.linearPDEs import LinearPDE
