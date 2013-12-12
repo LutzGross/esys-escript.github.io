@@ -12,6 +12,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -31,8 +32,6 @@ some benchmarks for tetsing the finley solver. The idea is to develop a set of s
 """
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
-
-from __future__ import print_function
 
 from esys.escript import *
 from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
