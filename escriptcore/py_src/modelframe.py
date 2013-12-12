@@ -33,6 +33,8 @@ Environment for implementing models in escript
 """
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
+from __future__ import print_future
+
 import collections
 import itertools
 import numpy

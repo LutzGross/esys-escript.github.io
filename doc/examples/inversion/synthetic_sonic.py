@@ -18,6 +18,8 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
+from __future__ import print_function
+
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
@@ -123,7 +125,7 @@ while t < t_end:
     t,p = sw.update(t+sampling_interval)
     tracerEW.addRecord(locEW(p))
     if DIM==3: tracerNS.addRecord(locNS(p))
-    print t, locEW(p)[:4], wl.getValue(t)
+    print(t, locEW(p)[:4], wl.getValue(t))
     if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), p=p)
     n+=1
 tracerEW.write('lineEW.sgy')
