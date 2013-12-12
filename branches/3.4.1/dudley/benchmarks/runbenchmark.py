@@ -32,6 +32,8 @@ var __url__: url entry point on documentation
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
+from __future__ import print_function
+
 from esys.escript.benchmark import BenchmarkSuite,Benchmark
 from dudleybench import *
 
@@ -1106,4 +1108,4 @@ if type in ["all"]:
    
 bms.run(scale=thlist)
 out=bms.getHTML(filter=ff)
-print out
+print(out)

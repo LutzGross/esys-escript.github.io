@@ -32,6 +32,8 @@ some benchmarks for tetsing the finley solver. The idea is to develop a set of s
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
+from __future__ import print_function
+
 from esys.escript import *
 from esys.escript.benchmark import BenchmarkProblem, Options, BenchmarkFilter
 import esys.dudley
@@ -2586,9 +2588,9 @@ if __name__=="__main__":
                 else:
                     normal="[1.,0.,0.]"
 
-             print "class %s(AnisotropicSystem):"%name
-             print "   def __init__(self):"
-             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s,mu0=%e,normal=%s,alpha=%s)"%(name,n,o,d,10.**jump,normal,float(alpha))
+             print("class %s(AnisotropicSystem):"%name)
+             print("   def __init__(self):")
+             print("      super(%s,self).__init__(n=%s,order=%s,dim=%s,mu0=%e,normal=%s,alpha=%s)"%(name,n,o,d,10.**jump,normal,float(alpha)))
              test+="addProblem(%s())\n"%name
-   print test
+   print(test)
 
