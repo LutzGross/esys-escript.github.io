@@ -1,3 +1,5 @@
+from __future__ import print_function
+
 import numpy as np
 import matplotlib.pyplot as plt
 import random
@@ -34,7 +36,7 @@ class PoissonTest(object):
           x=Function(self.domain).getX()
           self.pde.setValue(Y=exp(a-(b*length(x-xc))**2))
           u=self.pde.getSolution()
-          print "PoissonTest.getU: a,b,xc, u =",a,b,xc,inf(u),sup(u)
+          print("PoissonTest.getU: a,b,xc, u =",a,b,xc,inf(u),sup(u))
           return u
 
       def getCostFunction(self, a, b, xc):
@@ -61,9 +63,9 @@ class PoissonTestDiscreteData(PoissonTest):
              self.loc=Locator(self.domain, [ (dx/2+dx*i, z_max) for i in range(N)  ])
              uu=self.loc(self.u_ref)
              s=self.sigma*(max(uu)+min(uu))/2.
-             print self.loc.getX()
+             print(self.loc.getX())
              self.data = numpy.array([    random.gauss(d, s) for d in self.loc(self.u_ref) ])
-             print self.data
+             print(self.data)
        def getCostFunction(self, a, b, xc):
           u=numpy.array(self.loc(self.getU(a, b, xc)))
           C=(0.5/self.N)*numpy.sum((u-self.data)**2)

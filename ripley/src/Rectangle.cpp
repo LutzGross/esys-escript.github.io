@@ -4047,15 +4047,15 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
     }
     
-    // size_t inset=2*radius+1;
-    // size_t Eheight=ext[1]-2*inset;	// how high the E (shared) region is 
-    // size_t Swidth=ext[0]-2*inset;
-    
+   
     double* src=new double[ext[0]*ext[1]];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]);  
     
    
 #ifdef ESYS_MPI    
+    size_t inset=2*radius+1;
+    size_t Eheight=ext[1]-2*inset;	// how high the E (shared) region is 
+    size_t Swidth=ext[0]-2*inset;
 
     double* SWin=new double[inset*inset];  memset(SWin, 0, inset*inset*sizeof(double));
     double* SEin=new double[inset*inset];  memset(SEin, 0, inset*inset*sizeof(double));
@@ -4064,15 +4064,15 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     double* Win=new double[inset*Eheight];  memset(Win, 0, inset*Eheight*sizeof(double));
 
     double* NEout=new double[inset*inset];  memset(NEout, 0, inset*inset*sizeof(double));
-    uint base=ext[0]-inset+(ext[1]-inset)*ext[0];
-    for (uint i=0;i<inset;++i)
+    unsigned int base=ext[0]-inset+(ext[1]-inset)*ext[0];
+    for (unsigned int i=0;i<inset;++i)
     {
 	memcpy(NEout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
     }
     double* NWout=new double[inset*inset];  memset(NWout, 0, inset*inset*sizeof(double));
     base=(ext[1]-inset)*ext[0];
-    for (uint i=0;i<inset;++i)
+    for (unsigned int i=0;i<inset;++i)
     {
 	memcpy(NWout+inset*i, src+base, inset*sizeof(double));
 	base+=ext[0];
@@ -4087,7 +4087,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     }
     double* Nout=new double[inset*Swidth];  memset(Nout, 0, inset*Swidth*sizeof(double));
     base=inset+(ext[1]-inset)*ext[0];
-    for (uint i=0;i<inset;++i)
+    for (unsigned int i=0;i<inset;++i)
     {
 	memcpy(Nout+Swidth*i, src+base, Swidth*sizeof(double));
 	base+=ext[0];
@@ -4095,7 +4095,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     
     double* Eout=new double[inset*Eheight];  memset(Eout, 0, inset*Eheight*sizeof(double));
     base=ext[0]-inset+inset*ext[0];
-    for (uint i=0;i<Eheight;++i)
+    for (unsigned int i=0;i<Eheight;++i)
     {
 	memcpy(Eout+i*inset, src+base, inset*sizeof(double));
 	base+=ext[0];
@@ -4208,7 +4208,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     if (swused)
     {
 	base=0;
-	for (uint i=0;i<inset;++i)
+	for (unsigned int i=0;i<inset;++i)
 	{
 	    memcpy(src+base, SWin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4217,7 +4217,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     if (seused)
     {
         base=ext[0]-inset;
-	for (uint i=0;i<inset;++i)
+	for (unsigned int i=0;i<inset;++i)
 	{
 	    memcpy(src+base, SEin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4226,7 +4226,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     if (nwused)
     {
         base=(ext[1]-inset)*ext[0];
-	for (uint i=0;i<inset;++i)
+	for (unsigned int i=0;i<inset;++i)
 	{
 	    memcpy(src+base, NWin+i*inset, inset*sizeof(double));
 	    base+=ext[0];
@@ -4235,7 +4235,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     if (sused)
     {
        base=inset;
-       for (uint i=0;i<inset;++i)
+       for (unsigned int i=0;i<inset;++i)
        {
 	   memcpy(src+base, Sin+i*Swidth, Swidth*sizeof(double));
 	   base+=ext[0];
@@ -4244,7 +4244,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     if (wused)
     {
 	base=inset*ext[0];
-	for (uint i=0;i<Eheight;++i)
+	for (unsigned int i=0;i<Eheight;++i)
 	{
 	    memcpy(src+base, Win+i*inset, inset*sizeof(double));
 	    base+=ext[0];

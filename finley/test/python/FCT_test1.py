@@ -12,6 +12,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -42,6 +43,7 @@ __url__="https://launchpad.net/escript-finley"
 #     - sigma_h/4*E*t ~ 1 where sigma_h=sqrt(integrate(length(x-x0h)**2 * u_h) * (DIM==3 ? sqrt(2./3.) :1 )
 #
 #
+
 from esys.escript import *
 from esys.escript.linearPDEs import TransportPDE
 from esys.finley import Rectangle, Brick
@@ -113,7 +115,7 @@ saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 dt=fc.getSafeTimeStepSize() 
 #dt=1.e-3
-print "dt = ",dt
+print("dt = ",dt)
 t=T0
 print("QUALITY FCT: time = %s pi"%(t/pi),inf(u0),sup(u0),integrate(u0))
 #T_END=200*dt

@@ -10,6 +10,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -123,7 +124,7 @@ while t < t_end:
     t,p = sw.update(t+sampling_interval)
     tracerEW.addRecord(locEW(p))
     if DIM==3: tracerNS.addRecord(locNS(p))
-    print t, locEW(p)[:4], wl.getValue(t)
+    print(t, locEW(p)[:4], wl.getValue(t))
     if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), p=p)
     n+=1
 tracerEW.write('lineEW.sgy')

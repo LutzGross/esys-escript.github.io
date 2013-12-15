@@ -10,6 +10,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -25,7 +26,6 @@ from esys.finley import Brick, Rectangle
 from esys.weipa import saveSilo
 from esys.downunder import Ricker, HTIWave, SimpleSEGYWriter
 from math import ceil
-
 
 DIM=3          # spatial dimension
 
@@ -168,7 +168,7 @@ while t < t_end:
     tracer_y.addRecord(loc(u[1]))
     if DIM==3:
         tracer_z.addRecord(loc(u[2]))
-    print t, loc(u[0])[len(rg)/2-4:len(rg)/2+1], wl.getValue(t)
+    print(t, loc(u[0])[len(rg)/2-4:len(rg)/2+1], wl.getValue(t))
     #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
     if t>0.3 and t< 0.5: 
         saveSilo("tmp/u_%d.silo"%(k,), u=u)
