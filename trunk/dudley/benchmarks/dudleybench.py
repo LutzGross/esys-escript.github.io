@@ -12,6 +12,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -2586,9 +2587,9 @@ if __name__=="__main__":
                 else:
                     normal="[1.,0.,0.]"
 
-             print "class %s(AnisotropicSystem):"%name
-             print "   def __init__(self):"
-             print "      super(%s,self).__init__(n=%s,order=%s,dim=%s,mu0=%e,normal=%s,alpha=%s)"%(name,n,o,d,10.**jump,normal,float(alpha))
+             print("class %s(AnisotropicSystem):"%name)
+             print("   def __init__(self):")
+             print("      super(%s,self).__init__(n=%s,order=%s,dim=%s,mu0=%e,normal=%s,alpha=%s)"%(name,n,o,d,10.**jump,normal,float(alpha)))
              test+="addProblem(%s())\n"%name
-   print test
+   print(test)
 

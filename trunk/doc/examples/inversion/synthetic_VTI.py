@@ -10,6 +10,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -142,7 +143,7 @@ while t < t_end:
                tracerNS_x.addRecord(locNS(u[0]))
                tracerNS_y.addRecord(locNS(u[1]))
                tracerNS_z.addRecord(locNS(u[2]))
-        print t, locEW(u[DIM-1])[len(rgEW)/2-4:len(rgEW)/2+1], wl.getValue(t)
+        print(t, locEW(u[DIM-1])[len(rgEW)/2-4:len(rgEW)/2+1], wl.getValue(t))
         #if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), u=u)
         saveSilo("tmp/u_%d.silo"%(n,), u=u)
         n+=1

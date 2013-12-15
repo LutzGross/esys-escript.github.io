@@ -99,7 +99,7 @@ class SimpleSEGYWriter(object):
                 sw.addRecord([i*2., i*0.67, i**2, -i*7])
            sw.write('example.segy')
 
-        :note: the writer uses `obsy`
+        :note: the writer uses `obspy`
         """
         COORDINATE_SCALE = 1000.
         def __init__(self, receiver_group=None, source=0., sampling_interval=4*U.msec, text="some seimic data"):
@@ -181,9 +181,14 @@ class SimpleSEGYWriter(object):
             :param filename: file name
             :note: the function uses the `obspy` module. 
             """
-            from obspy import Trace, Stream, UTCDateTime
-            from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
-            from obspy.core import AttribDict
+            try:
+                from obspy import Trace, Stream, UTCDateTime
+                from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
+                from obspy.core import AttribDict
+            except ImportError as e:
+                raise RuntimeError("This feature (SimpleSEGYWriter.write())"+\
+                        " depends on obspy, which is not installed, see "+\
+                        "https://github.com/obspy/obspy for install guide")
 
             stream=Stream()
             

@@ -12,6 +12,7 @@
 # Development since 2012 by School of Earth Sciences
 #
 ##############################################################################
+from __future__ import print_function
 
 __copyright__="""Copyright (c) 2003-2013 by University of Queensland
 http://www.uq.edu.au
@@ -19,6 +20,7 @@ Primary Business: Queensland, Australia"""
 __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
+
 
 from esys.escript import *
 from esys.escript.linearPDEs import TransportPDE
@@ -46,13 +48,13 @@ saveVTK("u.%s.vtu"%c,u=u0)
 fc.setInitialSolution(u0)
 dt=fc.getSafeTimeStepSize() 
 
-print "u0 =",u0
+print("u0 =",u0)
 T_END=dt
-print "dt = ",dt
+print("dt = ",dt)
 while t<T_END:
     print("time step t=",t+dt)	
     u=fc.getSolution(dt)
     saveVTK("u.%s.vtu"%(c+1,),u=u)
-    print "u =",u
+    print("u =",u)
     c+=1
     t+=dt

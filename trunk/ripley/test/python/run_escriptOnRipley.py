@@ -167,6 +167,11 @@ class Test_CSVOnRipley(Test_saveCSV):
         bound=Data(1,FunctionOnBoundary(self.domain))
         rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
         saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+        
+class Test_randomOnRipley(unittest.TestCase):
+    def testFill(self):
+        r=Rectangle(10,10).randomFill(2,("gaussian",1,0.5))
+
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -175,6 +180,7 @@ if __name__ == '__main__':
     suite.addTest(unittest.makeSuite(Test_DomainOnRipley))
     suite.addTest(unittest.makeSuite(Test_TableInterpolationOnRipley))
     suite.addTest(unittest.makeSuite(Test_CSVOnRipley))
+    suite.addTest(unittest.makeSuite(Test_randomOnRipley))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 
