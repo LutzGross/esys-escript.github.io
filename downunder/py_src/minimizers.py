@@ -322,12 +322,9 @@ class MinimizerLBFGS(AbstractMinimizer):
 
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
                 #self.logger.info("\033[1;31miteration %d\033[1;30m"%n_iter)
-                if n_iter%10==0:
-                    self.logger.info("********** iteration %3d **********"%n_iter)
-                else:
-                    self.logger.debug("********** iteration %3d **********"%n_iter)
+                self.logger.info("********** iteration %3d **********"%n_iter)
                 # determine search direction
-                self.logger.debug("\tJ(x) = %s"%Jx)
+                self.logger.info("\tJ(x) = %s"%Jx)
                 self.logger.debug("\tgrad f(x) = %s"%g_Jx)
                 if invH_scale: self.logger.debug("\tH = %s"%invH_scale)
 

@@ -110,13 +110,15 @@ sets an initial guess for the density anomaly. By default zero is used.
 \subsection{Magnetic Inversion Driver}
 For examples of usage please see Chapter~\ref{Chp:cook:magnetic inversion}.
 
-\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}
+\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}, \optional{self_demagnetization=\False}
 }
 Driver class to perform an inversion of magnetic anomaly data. This class
 is a sub-class of \class{InversionDriver}. The class uses the standard
 \class{Regularization} class for a single level set function, see Chapter~\ref{Chp:ref:regularization},
-\class{SusceptibilityMapping} mapping, see Section~\ref{Chp:ref:mapping susceptibility}, and the linear
-magnetic forward model \class{MagneticModel}, see Section~\ref{sec:forward magnetic}.
+\class{SusceptibilityMapping} mapping, see Section~\ref{Chp:ref:mapping susceptibility},
+and the magnetic forward model \class{SelfDemagnetizationModel} (if \member{self_demagnetization}=\True,
+see Section~\ref{sec:forward self demagnetic}) or \class{MagneticModel}  
+(if \member{self_demagnetization}=\False, see Section~\ref{sec:forward magnetic}).
 \member{solverclass} set the solver class to be used for inversion,
 see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
@@ -164,6 +166,7 @@ sets an initial guess for the susceptibility anomaly. By default zero is used.
 For examples of usage please see Chapter~\ref{Chp:cook:joint inversion}.
 
 \begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}
+, \optional{self_demagnetization=\False}
 }
 Driver class to perform a joint inversion of Gravity (Bouguer) and magnetic anomaly data.
 This class is a sub-class of \class{InversionDriver}. 
@@ -171,8 +174,9 @@ The class uses the standard \class{Regularization} for two level set functions
 with cross-gradient correlation, see Chapter~\ref{Chp:ref:regularization},
 \class{DensityMapping} and \class{SusceptibilityMapping} mappings, see Section~\ref{Chp:ref:mapping}, the 
 gravity forward model \class{GravityModel}, see Section~\ref{sec:forward gravity}
-and the linear
-magnetic forward model \class{MagneticModel}, see Section~\ref{sec:forward magnetic}.
+and the magnetic forward model \class{SelfDemagnetizationModel} (if \member{self_demagnetization}=\True,
+see Section~\ref{sec:forward self demagnetic}) or \class{MagneticModel}  
+(if \member{self_demagnetization}=\False, see Section~\ref{sec:forward magnetic}).
 \member{solverclass} set the solver class to be used for inversion,
 see Chapter~\ref{chapter:ref:Minimization}.
  By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
@@ -233,4 +237,3 @@ see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
 sets initial guesses for density and susceptibility anomaly.
 By default zero is used for both.
 \end{methoddesc}
-
