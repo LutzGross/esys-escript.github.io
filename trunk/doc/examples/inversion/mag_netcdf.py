@@ -54,7 +54,7 @@ def work():
   db.setBackgroundMagneticFluxDensity(B_b)
   db.fixSusceptibilityBelow(depth=thickness)
 
-  inv=MagneticInversion()
+  inv=MagneticInversion(self_demagnetization=True)
   inv.setSolverTolerance(1e-4)
   inv.setSolverMaxIterations(50)
   inv.fixMagneticPotentialAtBottom(False)

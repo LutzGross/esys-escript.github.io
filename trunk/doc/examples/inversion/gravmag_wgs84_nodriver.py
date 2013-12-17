@@ -101,6 +101,8 @@ def work():
   w=safeDiv(1., sigma_B)
 
   magnetic_model=MagneticModel(dom, w*d, B*d, B_b, coordinates=COORDINATES)
+  # or
+  # magnetic_model=SelfDemagnetizationModel(dom, w*d, B*d, B_b, coordinates=COORDINATES)
   magnetic_model.rescaleWeights(k_scale=k_mapping.getTypicalDerivative())
 
 

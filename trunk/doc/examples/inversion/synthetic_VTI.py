@@ -67,7 +67,7 @@ else:
    if srcEW:
       srcNS=numRcvPerLine/2
    elif srcNS:
-      srcNS=numRcvPerLine/2
+      srcEW=numRcvPerLine/2
    else:
        raise ValueError("on of the variables srcEW or srcNS must be None!")
    src_locations  = [ (receiver_line[srcEW], receiver_line[srcNS], depth)]

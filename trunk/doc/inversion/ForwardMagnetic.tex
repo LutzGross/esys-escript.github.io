@@ -18,10 +18,10 @@ For the magnetic inversion we use the anomaly of the magnetic flux
 density~\index{magnetic flux density} of the Earth.
 The controlling material parameter is the susceptibility~\index{susceptibility}
 $k$ of the rock.
-With magnetization $M$ and inducing magnetic field anomaly $H^s$, the magnetic
-flux density anomaly $B^s$ is given as
+With magnetization $M$ and inducing magnetic field anomaly $H$, the magnetic
+flux density anomaly $B$ is given as
 \begin{equation}\label{ref:MAG:EQU:1}
-B_i = \mu_0 \cdot ( H^s_i  + M_i )
+B_i = \mu_0 \cdot ( H_i  + M_i )
 \end{equation}
 where $\mu_0 = 4 \pi \cdot 10^{-7} \frac{Vs}{Am}$.
 In this forward model we make the simplifying assumption that the magnetization
@@ -35,17 +35,17 @@ Geomagnetic Reference Field (IGRF)~\cite{IGRF}
 In most cases it is reasonable to assume that that the background field is
 constant across the domain.
 
-The magnetic field anomaly $H^s$ can be represented by the gradient of a
+The magnetic field anomaly $H$ can be represented by the gradient of a
 magnetic scalar potential\index{scalar potential!magnetic} $\psi$.
 We use the form 
 \begin{equation}\label{ref:MAG:EQU:6}
-\mu_0  \cdot H^s_i = - \psi_{,i}
+\mu_0  \cdot H_i = - \psi_{,i}
 \end{equation}
 With this notation one gets from Equations~(\ref{ref:MAG:EQU:1}) and~(\ref{ref:MAG:EQU:4}):
 \begin{equation}\label{ref:MAG:EQU:7}
 B_i = - \psi_{,i}  + k \cdot B^b_i
 \end{equation}
-As the $B^s$ magnetic flux density anomaly we obtain the PDE
+As the $B$ magnetic flux density anomaly is divergence free ($B_{i,i}=0$) we obtain the PDE
 \begin{equation}\label{ref:MAG:EQU:8}
 - \psi_{,ii} = - (k B^r_i)_{,i} 
 \end{equation} 
@@ -116,7 +116,7 @@ The weighting factors and the  measured magnetic flux density anomalies must be 
 \member{background_field} defines the background magnetic flux density $B^b$
 as a vector with north, east and vertical components. 
 \member{tol} sets the tolerance for the solution of the PDE~(\ref{ref:MAG:EQU:8}).
-If \member{fixPotentialAtBottom} is set to  \True, the gravitational potential 
+If \member{fixPotentialAtBottom} is set to  \True, the magnetic potential 
 at the bottom is set to zero in addition to the potential on the top. 
 \member{coordinates} set the reference coordinate system to be used. By the default the 
 Cartesian coordinate system is used.
@@ -151,19 +151,19 @@ known and for a given direction $p$ with $p=0$ on $\Gamma_{k}$ one has
 \sum_{s} (\omega^{(s)}_j 
 ( B^{(s)}_j-B_{j}))  \cdot ( \omega^{(s)}_i ( \Psi[p]_{,i} - p  \cdot B^b_i  ) ) \; dx  
 \end{equation} 
-with
+With
 \begin{equation}\label{ref:MAG:EQU:202c}
 Y_i[\psi]=   \sum_{s} (\omega^{(s)}_j 
 (B^{(s)}_j - B_{j}) )  \cdot \omega^{(s)}_i  
 \end{equation} 
-This is written as 
+this is written as 
 \begin{equation}\label{ref:MAG:EQU:202cc}
 \int_{\Omega}   \frac{\partial J^{mag}}{\partial k} \cdot p \;  dx  = \int_{\Omega}  
 Y_i[\psi] \Psi[p]_{,i} - p \cdot Y_i[\psi]B^b_i   \; dx  
 \end{equation} 
 We then set adjoint function $Y^*[\psi]$ as the solution of the equation 
 \begin{equation}\label{ref:MAG:EQU:202d}
-\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} ,Y_i[\psi]  \; dx  \mbox{ for all } p \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
+\int_{\Omega} r_{,i} Y^*[\psi]_{,i} \; dx  =  \int_{\Omega} r_{,i} Y_i[\psi]  \; dx  \mbox{ for all } r \mbox{ with } r=0 \mbox{ on } \Gamma_{0}
 \end{equation} 
 with $Y^*[\psi]=0$ on $\Gamma_{0}$. With $r=\Psi[p]$ we get
 \begin{equation}\label{ref:MAG:EQU:202dd}
@@ -187,7 +187,7 @@ or
 \frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,i}  B^r_i - Y_i[\psi] B^b_i
 \end{equation}
 
-\subsection{Geodetic Coordinates }
+\subsection{Geodetic Coordinates}
 For geodetic coordinates $(\phi, \lambda, h)$, see Chapter~\ref{Chp:ref:coordinates}, the solution process needs to be slightly modified.
 Observations are recorded along the geodetic coordinates axes $\alpha$ rather than the Cartesian axes $i$. In fact we
 have in equation~\ref{ref:MAG:EQU:9}:
@@ -237,5 +237,4 @@ and finally
 \begin{equation}\label{ref:MAG:EQU:310}
 \frac{\partial J^{mag}}{\partial k} = Y^*[\psi]_{,{\alpha}}  B^r_{\alpha} - Y_i[\psi] B^b_{\alpha}
 \end{equation} 
-
 

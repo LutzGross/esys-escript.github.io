@@ -316,7 +316,7 @@ Mcf=1000. * ft**3
 #  time
 #
 sec=Unit("sec","second",0.,1.)
-msec=Milli*sec
+msec=Unit("msec","milli-second",0.,1e-3)
 minute=Unit("min","minute",0.,60.)
 hour=Unit("h","hour",0.,60.* minute)
 h=hour
