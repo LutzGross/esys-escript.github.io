@@ -562,7 +562,7 @@ class HTIWave(WaveBase):
            
 
            if DIM ==2 :
-	      source_vector= [source_vector[0],source_vector[2]]
+              source_vector= [source_vector[0],source_vector[2]]
            
            self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
@@ -604,14 +604,14 @@ class HTIWave(WaveBase):
                 sigma[1,0]=s
 
              else:
-		e11=du[0,0]
-		e33=du[1,1]
-		sigma[0,0]=self.c11*e11+self.c13*e33
-		sigma[1,1]=self.c13*e11+self.c33*e33
+                e11=du[0,0]
+                e33=du[1,1]
+                sigma[0,0]=self.c11*e11+self.c13*e33
+                sigma[1,1]=self.c13*e11+self.c33*e33
 
-		s=self.c66*(du[1,0]+du[0,1])
-		sigma[0,1]=s
-		sigma[1,0]=s
+                s=self.c66*(du[1,0]+du[0,1])
+                sigma[0,1]=s
+                sigma[1,0]=s
              
              self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
              return self.__mypde.getSolution()            
