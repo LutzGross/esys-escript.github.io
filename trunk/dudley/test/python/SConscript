@@ -27,7 +27,7 @@ testruns += ['run_escriptOnDudley.py']
 testruns += ['run_inputOutput.py']
 testruns += ['run_linearPDEsOnDudley1.py']
 testruns += ['run_linearPDEsOnDudley2.py']
-#testruns += ['run_models.py']
+testruns += ['run_models.py']
 testruns += ['run_simplesolve.py']
 testruns += ['run_utilOnDudley.py']
 # 
