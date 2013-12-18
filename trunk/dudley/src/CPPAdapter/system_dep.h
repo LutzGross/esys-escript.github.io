@@ -37,7 +37,7 @@
  */
 #   include <mathimf.h>
 #else
-#   include <math.h>
+#   include <cmath>
 #endif
 
 #define DUDLEY_DLL_API

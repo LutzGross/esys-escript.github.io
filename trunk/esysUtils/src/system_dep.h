@@ -33,7 +33,7 @@
 */
 #include <mathimf.h>
 #else
-#include <math.h>
+#include <cmath>
 #endif
 
 #define ESYSUTILS_DLL_API

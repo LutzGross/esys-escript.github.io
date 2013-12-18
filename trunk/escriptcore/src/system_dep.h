@@ -45,7 +45,7 @@
 */
 #  include <mathimf.h>
 # else
-#  include <math.h>
+#  include <cmath>
 # endif
 
 #ifndef M_PI

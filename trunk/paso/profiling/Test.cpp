@@ -5,7 +5,7 @@
 #include "paso/SystemMatrix.h"
 #include "Paso_tests.h"
 #include "getopt.h"
-#include <math.h>
+#include <cmath>
 
 #define PI (3.141592653589793)
 
