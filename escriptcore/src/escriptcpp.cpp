@@ -138,7 +138,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractDomain
   //
-  class_<escript::AbstractDomain, escript::Domain_ptr>("Domain","Base class for all domains.",no_init)
+  class_<escript::AbstractDomain, escript::Domain_ptr, boost::noncopyable >("Domain","Base class for all domains.",no_init)
      .def("getStatus",&escript::AbstractDomain::getStatus,"The status of a domain changes whenever the domain is modified\n\n:rtype: int")
      .def("setTagMap",&escript::AbstractDomain::setTagMap,args("name","tag"),
 "Give a tag number a name.\n\n:param name: Name for the tag\n:type name: ``string``\n"
@@ -166,7 +166,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   //
   // Interface for AbstractContinuousDomain
   //
-  class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain> >("ContinuousDomain","Class representing continuous domains",no_init)
+  class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain>, boost::noncopyable >("ContinuousDomain","Class representing continuous domains",no_init)
        .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId,
 args("solver", "preconditioner", "package", "symmetry"),
 ":return: the identifier of the matrix type to be used for the global stiffness matrix "
@@ -616,7 +616,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   //
   // Interface for AbstractSystemMatrix
   //
-  class_<escript::AbstractSystemMatrix,escript::ASM_ptr>("Operator","",init<>())    // Doco goes in the empty string param
+  class_<escript::AbstractSystemMatrix,escript::ASM_ptr, boost::noncopyable>("Operator","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractSystemMatrix::isEmpty,":rtype: ``bool``\n"
 ":return: True if matrix is empty")
      .def("solve",&escript::AbstractSystemMatrix::solve, args("in","options"),
@@ -633,7 +633,7 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   //
   // Interface for AbstractTransportProblem
   //
-  class_<escript::AbstractTransportProblem, escript::ATP_ptr>("TransportProblem","",init<>())    // Doco goes in the empty string param
+  class_<escript::AbstractTransportProblem, escript::ATP_ptr, boost::noncopyable >("TransportProblem","",init<>())    // Doco goes in the empty string param
      .def("isEmpty",&escript::AbstractTransportProblem::isEmpty,":rtype: ``int``")
      .def("solve",&escript::AbstractTransportProblem::solve, args("u0","source","dt", "options"),
 "returns the solution *u* for a time step *dt>0* with initial value u0\n\n:rtype: `Data`\n"
