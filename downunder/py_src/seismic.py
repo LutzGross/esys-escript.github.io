@@ -203,7 +203,7 @@ class SimpleSEGYWriter(object):
                     trace.stats.segy.trace_header = SEGYTraceHeader()
                     trace.stats.segy.trace_header.trace_identification_code=1
                     trace.stats.segy.trace_header.trace_sequence_number_within_line = i + 1
-                    trace.stats.segy.trace_header.scalar_to_be_applied_to_all_coordinates = int(self.COORDINATE_SCALE)
+                    trace.stats.segy.trace_header.scalar_to_be_applied_to_all_coordinates = -int(self.COORDINATE_SCALE)
                     trace.stats.segy.trace_header.coordinate_units=1
                     trace.stats.segy.trace_header.source_coordinate_x=int(self.__source[0] * self.COORDINATE_SCALE)
                     trace.stats.segy.trace_header.source_coordinate_y=int(self.__source[1] * self.COORDINATE_SCALE)
