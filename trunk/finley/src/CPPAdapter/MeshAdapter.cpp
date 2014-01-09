@@ -754,6 +754,7 @@ void MeshAdapter::addPDEToSystem(
     Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
     checkFinleyError();
 
+
     Assemble_PDE(mesh->Nodes, mesh->FaceElements, S, rhs,
             escript::Data(), escript::Data(), escript::Data(), d,
             escript::Data(), y);

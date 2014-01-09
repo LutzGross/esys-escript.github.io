@@ -359,10 +359,9 @@ class SonicWave(WaveBase):
            self.__mypde=LinearSinglePDE(domain)
            if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
-           self.__mypde.setValue(D=1.)
+           self.__mypde.setValue(D=1./v_p**2)
            self.__source_tag=source_tag
            self.__r=Scalar(0., DiracDeltaFunctions(self.__mypde.getDomain()))
-           self.__vp2=v_p**2
 
 
         def  _getAcceleration(self, t, u):
@@ -370,7 +369,7 @@ class SonicWave(WaveBase):
              returns the acceleraton for time t and solution u at time t
              """
              self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getAcceleration(t))
-             self.__mypde.setValue(X=-self.__vp2*grad(u,Function(self.__mypde.getDomain())), y_dirac= self.__r)
+             self.__mypde.setValue(X=-grad(u,Function(self.__mypde.getDomain())), y_dirac= self.__r)
              return self.__mypde.getSolution()
 
             
