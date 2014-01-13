@@ -50,6 +50,10 @@ NC_DATA2 = os.path.join(TEST_DATA_ROOT, 'zone52.nc')
 
 @unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestDomainBuilderWithNetCdf(unittest.TestCase):
+
+    # append custom messages instead of overwriting originals
+    longMessage = True
+
     def test_add_garbage(self):
         db=DomainBuilder()
         self.assertRaises(TypeError, db.addSource, 42)
@@ -91,7 +95,7 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         # because ripley may adjust internally.
         if getMPISizeWorld()==1:
             self.assertAlmostEqual(sup(x[0]), 120.3, delta=0.001, msg="phi range wrong")
-            self.assertAlmostEqual(sup(x[1]), -29.13333333333333, delta=0.0001, msg="lambda range wrong")
+            self.assertAlmostEqual(sup(x[1]), -29.1, delta=0.0001, msg="lambda range wrong")
             self.assertAlmostEqual(sup(x[2]), 0.3, msg="h range wrong: "+str(x[2]))
         
 
