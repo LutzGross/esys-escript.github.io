@@ -169,8 +169,7 @@ bool Rectangle::operator==(const AbstractDomain& other) const
 }
 
 void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
-            const vector<int>& first, const vector<int>& numValues,
-            const vector<int>& multiplier) const
+            const GridParameters& params) const
 {
 #ifdef USE_NETCDF
     // check destination function space
@@ -185,16 +184,16 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     } else
         throw RipleyException("readNcGrid(): invalid function space for output data object");
 
-    if (first.size() != 2)
+    if (params.first.size() != 2)
         throw RipleyException("readNcGrid(): argument 'first' must have 2 entries");
 
-    if (numValues.size() != 2)
+    if (params.numValues.size() != 2)
         throw RipleyException("readNcGrid(): argument 'numValues' must have 2 entries");
 
-    if (multiplier.size() != 2)
+    if (params.multiplier.size() != 2)
         throw RipleyException("readNcGrid(): argument 'multiplier' must have 2 entries");
-    for (size_t i=0; i<multiplier.size(); i++)
-        if (multiplier[i]<1)
+    for (size_t i=0; i<params.multiplier.size(); i++)
+        if (params.multiplier[i]<1)
             throw RipleyException("readNcGrid(): all multipliers must be positive");
 
     // check file existence and size
@@ -216,27 +215,29 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 
     // is this a slice of the data object (dims!=2)?
     // note the expected ordering of edges (as in numpy: y,x)
-    if ( (dims==2 && (numValues[1] > edges[0] || numValues[0] > edges[1]))
-            || (dims==1 && numValues[1]>1) ) {
+    if ( (dims==2 && (params.numValues[1] > edges[0] || params.numValues[0] > edges[1]))
+            || (dims==1 && params.numValues[1]>1) ) {
         throw RipleyException("readNcGrid(): not enough data in file");
     }
 
     // check if this rank contributes anything
-    if (first[0] >= m_offset[0]+myN0 || first[0]+numValues[0]*multiplier[0] <= m_offset[0] ||
-            first[1] >= m_offset[1]+myN1 || first[1]+numValues[1]*multiplier[1] <= m_offset[1])
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0]*params.multiplier[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1]*params.multiplier[1] <= m_offset[1])
         return;
 
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, first[0]-m_offset[0]);
-    const int first1 = max(0, first[1]-m_offset[1]);
+    const int first0 = max(0, params.first[0]-m_offset[0]);
+    const int first1 = max(0, params.first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-first[0]);
-    const int idx1 = max(0, m_offset[1]-first[1]);
+    const int idx0 = max(0, m_offset[0]-params.first[0]);
+    const int idx1 = max(0, m_offset[1]-params.first[1]);
     // number of values to read
-    const int num0 = min(numValues[0]-idx0, myN0-first0);
-    const int num1 = min(numValues[1]-idx1, myN1-first1);
+    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
 
     vector<double> values(num0*num1);
     if (dims==2) {
@@ -253,12 +254,12 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
         for (index_t x=0; x<num0; x++) {
-            const int baseIndex = first0+x*multiplier[0]
-                                  +(first1+y*multiplier[1])*myN0;
+            const int baseIndex = first0+x*params.multiplier[0]
+                                  +(first1+y*params.multiplier[1])*myN0;
             const int srcIndex = y*num0+x;
             if (!isnan(values[srcIndex])) {
-                for (index_t m1=0; m1<multiplier[1]; m1++) {
-                    for (index_t m0=0; m0<multiplier[0]; m0++) {
+                for (index_t m1=0; m1<params.multiplier[1]; m1++) {
+                    for (index_t m0=0; m0<params.multiplier[0]; m0++) {
                         const int dataIndex = baseIndex+m0+m1*myN0;
                         double* dest = out.getSampleDataRW(dataIndex);
                         for (index_t q=0; q<dpp; q++) {
@@ -275,25 +276,19 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 }
 
 void Rectangle::readBinaryGrid(escript::Data& out, string filename,
-                               const vector<int>& first,
-                               const vector<int>& numValues,
-                               const std::vector<int>& multiplier,
-                               int byteOrder, int dataType) const
+                               const GridParameters& params) const
 {
     // the mapping is not universally correct but should work on our
     // supported platforms
-    switch (dataType) {
+    switch (params.dataType) {
         case DATATYPE_INT32:
-            readBinaryGridImpl<int>(out, filename, first, numValues,
-                                    multiplier, byteOrder);
+            readBinaryGridImpl<int>(out, filename, params);
             break;
         case DATATYPE_FLOAT32:
-            readBinaryGridImpl<float>(out, filename, first, numValues,
-                                      multiplier, byteOrder);
+            readBinaryGridImpl<float>(out, filename, params);
             break;
         case DATATYPE_FLOAT64:
-            readBinaryGridImpl<double>(out, filename, first, numValues,
-                                       multiplier, byteOrder);
+            readBinaryGridImpl<double>(out, filename, params);
             break;
         default:
             throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
@@ -302,10 +297,7 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
 
 template<typename ValueType>
 void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
-                                   const vector<int>& first,
-                                   const vector<int>& numValues,
-                                   const std::vector<int>& multiplier,
-                                   int byteOrder) const
+                                   const GridParameters& params) const
 {
     // check destination function space
     int myN0, myN1;
@@ -327,15 +319,17 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
     const int filesize = f.tellg();
-    const int reqsize = numValues[0]*numValues[1]*numComp*sizeof(ValueType);
+    const int reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
         throw RipleyException("readBinaryGrid(): not enough data in file");
     }
 
     // check if this rank contributes anything
-    if (first[0] >= m_offset[0]+myN0 || first[0]+numValues[0] <= m_offset[0] ||
-            first[1] >= m_offset[1]+myN1 || first[1]+numValues[1] <= m_offset[1]) {
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1] <= m_offset[1]) {
         f.close();
         return;
     }
@@ -343,34 +337,34 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, first[0]-m_offset[0]);
-    const int first1 = max(0, first[1]-m_offset[1]);
+    const int first0 = max(0, params.first[0]-m_offset[0]);
+    const int first1 = max(0, params.first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-first[0]);
-    const int idx1 = max(0, m_offset[1]-first[1]);
+    const int idx0 = max(0, m_offset[0]-params.first[0]);
+    const int idx1 = max(0, m_offset[1]-params.first[1]);
     // number of values to read
-    const int num0 = min(numValues[0]-idx0, myN0-first0);
-    const int num1 = min(numValues[1]-idx1, myN1-first1);
+    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
     for (int y=0; y<num1; y++) {
-        const int fileofs = numComp*(idx0+(idx1+y)*numValues[0]);
+        const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
         f.seekg(fileofs*sizeof(ValueType));
         f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
         for (int x=0; x<num0; x++) {
-            const int baseIndex = first0+x*multiplier[0]
-                                    +(first1+y*multiplier[1])*myN0;
-            for (int m1=0; m1<multiplier[1]; m1++) {
-                for (int m0=0; m0<multiplier[0]; m0++) {
+            const int baseIndex = first0+x*params.multiplier[0]
+                                    +(first1+y*params.multiplier[1])*myN0;
+            for (int m1=0; m1<params.multiplier[1]; m1++) {
+                for (int m0=0; m0<params.multiplier[0]; m0++) {
                     const int dataIndex = baseIndex+m0+m1*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
                     for (int c=0; c<numComp; c++) {
                         ValueType val = values[x*numComp+c];
 
-                        if (byteOrder != BYTEORDER_NATIVE) {
+                        if (params.byteOrder != BYTEORDER_NATIVE) {
                             char* cval = reinterpret_cast<char*>(&val);
                             // this will alter val!!
                             byte_swap32(cval);

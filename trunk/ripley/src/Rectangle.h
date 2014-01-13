@@ -67,17 +67,12 @@ public:
     /**
     */
     virtual void readNcGrid(escript::Data& out, std::string filename,
-            std::string varname, const std::vector<int>& first,
-            const std::vector<int>& numValues,
-            const std::vector<int>& multiplier) const;
+            std::string varname, const GridParameters& params) const;
 
     /**
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
-                                const std::vector<int>& first,
-                                const std::vector<int>& numValues,
-                                const std::vector<int>& multiplier,
-                                int byteOrder, int dataType) const;
+                                const GridParameters& params) const;
 
     /**
     */
@@ -230,10 +225,7 @@ private:
 
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
-                            const std::vector<int>& first,
-                            const std::vector<int>& numValues,
-                            const std::vector<int>& multiplier,
-                            int byteOrder) const;
+                            const GridParameters& params) const;
 
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,
