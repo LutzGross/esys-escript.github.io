@@ -32,12 +32,13 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
         const object& pyShape, double fill, int byteOrder, int dataType)
 {
     int dim=fs.getDim();
-    std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
+    GridParameters params;
+    std::vector<int> shape;
 
     if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
         if (len(pyFirst)==dim) {
             for (int i=0; i<dim; i++) {
-                first[i]=extract<int>(pyFirst[i]);
+                params.first.push_back(extract<int>(pyFirst[i]));
             }
         } else
             throw RipleyException("Argument 'first' has wrong length");
@@ -47,7 +48,7 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     if (extract<tuple>(pyNum).check() || extract<list>(pyNum).check()) {
         if (len(pyNum)==dim) {
             for (int i=0; i<dim; i++) {
-                numValues[i]=extract<int>(pyNum[i]);
+                params.numValues.push_back(extract<int>(pyNum[i]));
             }
         } else
             throw RipleyException("Argument 'numValues' has wrong length");
@@ -64,7 +65,7 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
         if (len(pyMultiplier)==dim) {
             for (int i=0; i<dim; i++) {
-                multiplier[i]=extract<int>(pyMultiplier[i]);
+                params.multiplier.push_back(extract<int>(pyMultiplier[i]));
             }
         } else
             throw RipleyException("Argument 'multiplier' has wrong length");
@@ -78,8 +79,7 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readBinaryGrid(res, filename, first, numValues, multiplier,
-                        byteOrder, dataType);
+    dom->readBinaryGrid(res, filename, params);
     return res;
 }
 
@@ -88,12 +88,13 @@ escript::Data readNcGrid(std::string filename, std::string varname,
         const object& pyMultiplier, const object& pyShape, double fill=0.)
 {
     int dim=fs.getDim();
-    std::vector<int> first(dim), numValues(dim), multiplier(dim), shape;
+    GridParameters params;
+    std::vector<int> shape;
 
     if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
         if (len(pyFirst)==dim) {
             for (int i=0; i<dim; i++) {
-                first[i]=extract<int>(pyFirst[i]);
+                params.first.push_back(extract<int>(pyFirst[i]));
             }
         } else
             throw RipleyException("Argument 'first' has wrong length");
@@ -103,7 +104,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     if (extract<tuple>(pyNum).check() || extract<list>(pyNum).check()) {
         if (len(pyNum)==dim) {
             for (int i=0; i<dim; i++) {
-                numValues[i]=extract<int>(pyNum[i]);
+                params.numValues.push_back(extract<int>(pyNum[i]));
             }
         } else
             throw RipleyException("Argument 'numValues' has wrong length");
@@ -113,7 +114,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
         if (len(pyMultiplier)==dim) {
             for (int i=0; i<dim; i++) {
-                multiplier[i]=extract<int>(pyMultiplier[i]);
+                params.multiplier.push_back(extract<int>(pyMultiplier[i]));
             }
         } else
             throw RipleyException("Argument 'multiplier' has wrong length");
@@ -134,7 +135,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 
     escript::Data res(fill, shape, fs, true);
 
-    dom->readNcGrid(res, filename, varname, first, numValues, multiplier);
+    dom->readNcGrid(res, filename, varname, params);
     return res;
 }
 

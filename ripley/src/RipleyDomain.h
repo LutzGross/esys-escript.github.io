@@ -32,6 +32,27 @@ namespace ripley {
 
 /**
    \brief
+   Structure that wraps parameters for the grid reading routines.
+*/
+struct GridParameters
+{
+    /// the (global) offset into the data object to start writing into
+    std::vector<int> first;
+    /// the number of values to read from file
+    std::vector<int> numValues;
+    /// how often to write each value from the file into the data object
+    /// (e.g. to supersample)
+    std::vector<int> multiplier;
+    /// if non-zero, values are written from last index to first index
+    std::vector<int> reverse;
+    /// byte order in the file (used by binary reader only)
+    int byteOrder;
+    /// data type in the file (used by binary reader only)
+    int dataType;
+};
+
+/**
+   \brief
    RipleyDomain extends the AbstractContinuousDomain interface
    for the Ripley library and is the base class for Rectangle and Brick.
 */
@@ -540,17 +561,12 @@ public:
     /**
     */
     virtual void readNcGrid(escript::Data& out, std::string filename,
-            std::string varname, const std::vector<int>& first,
-            const std::vector<int>& numValues,
-            const std::vector<int>& multiplier) const = 0;
+            std::string varname, const GridParameters& params) const = 0;
 
     /**
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
-                                const std::vector<int>& first,
-                                const std::vector<int>& numValues,
-                                const std::vector<int>& multiplier,
-                                int byteOrder, int dataType) const = 0;
+                                const GridParameters& params) const = 0;
 
     /**
     */
