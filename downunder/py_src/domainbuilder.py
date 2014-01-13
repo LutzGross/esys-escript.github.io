@@ -415,17 +415,20 @@ class DomainBuilder(object):
         if len(self.__sources)==0:
             raise ValueError("No data")
         X0, NE, DX = self.__sources[0].getDataExtents()
-        XN=[X0[i]+NE[i]*DX[i] for i in range(len(NE))]
+        # do not mess with the values if only one source used
+        if len(self.__sources)>1:
+            XN=[X0[i]+NE[i]*DX[i] for i in range(len(NE))]
 
-        for src in self.__sources[1:]:
-            d_x0, d_ne, d_dx = src.getDataExtents()
-            for i in range(len(d_x0)):
-                X0[i]=min(X0[i], d_x0[i])
-            for i in range(len(d_dx)):
-                DX[i]=min(DX[i], d_dx[i])
-            for i in range(len(d_ne)):
-                XN[i]=max(XN[i], d_x0[i]+d_ne[i]*d_dx[i])
-        NE=[int((XN[i]-X0[i])/DX[i]) for i in range(len(XN))]
+            for src in self.__sources[1:]:
+                d_x0, d_ne, d_dx = src.getDataExtents()
+                for i in range(len(d_x0)):
+                    X0[i]=min(X0[i], d_x0[i])
+                for i in range(len(d_dx)):
+                    DX[i]=min(DX[i], d_dx[i])
+                for i in range(len(d_ne)):
+                    XN[i]=max(XN[i], d_x0[i]+d_ne[i]*d_dx[i])
+            # FIXME: should this be rounded up instead?
+            NE=[int((XN[i]-X0[i])/DX[i]) for i in range(len(XN))]
         return X0, NE, DX
 
     def __createDomain(self):
@@ -458,7 +461,7 @@ class DomainBuilder(object):
         self._spacing = spacing
 
         lo=[(self._dom_origin[i], self._dom_origin[i]+NE[i]*self._spacing[i]) for i in range(self.__dim)]
-        
+
         if self.__dim==3:
             dom=Brick(*NE, l0=lo[0], l1=lo[1], l2=lo[2])
         else:

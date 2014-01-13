@@ -48,15 +48,27 @@ try:
 except ImportError:
     HAVE_GDAL=False
 
-def UTMZoneFromWkt(wkt_string):
+def getUTMZone(lon, lat, wkt_string=None):
     """
     """
-    if HAVE_GDAL and (wkt_string is not None):
-        srs = osgeo.osr.SpatialReference()
-        result=srs.ImportFromWkt(wkt_string)
-        if result==0:
-            return srs.GetUTMZone()
-    return 0
+
+    logger = logging.getLogger('inv.datasources.getUTMZone')
+    zone = 0
+
+    nplon=np.array(lon)
+    nplat=np.array(lat)
+    if np.abs(nplon).max()>360.0 or np.abs(nplat).max()>180.0:
+        if HAVE_GDAL and (wkt_string is not None):
+            srs = osgeo.osr.SpatialReference()
+            result=srs.ImportFromWkt(wkt_string)
+            if result==0:
+                zone = srs.GetUTMZone()
+    else:
+        # determine UTM zone from the input data
+        zone = int(np.median((np.floor((nplon + 180)/6) + 1) % 60))
+
+    logger.debug("Determined UTM zone %d."%zone)
+    return zone
 
 def LatLonToUTM(lon, lat, wkt_string=None):
     """
@@ -85,9 +97,10 @@ def LatLonToUTM(lon, lat, wkt_string=None):
 
     nplon=np.array(lon)
     nplat=np.array(lat)
+    zone = getUTMZone(nplon, nplat, wkt_string)
+
     if np.abs(nplon).max()>360.0 or np.abs(nplat).max()>180.0:
         logger.debug('Coordinates appear to be projected. Passing through.')
-        zone=UTMZoneFromWkt(wkt_string)
         return lon,lat,zone
 
     logger.debug('Need to project coordinates.')
@@ -98,10 +111,6 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         raise ImportError("In order to perform coordinate transformations on "
         "the data you are using the 'pyproj' Python module is required but "
         "was not found. Please install the module and try again.")
-
-    # determine UTM zone from the input data
-    zone=int(np.median((np.floor((nplon + 180)/6) + 1) % 60))
-    logger.debug("Determined UTM zone %d."%zone)
 
     p_src=None
     if HAVE_GDAL and (wkt_string is not None):
@@ -146,6 +155,11 @@ class DataSource(object):
              self.__reference_system = CartesianReferenceSystem()
         else:
              self.__reference_system = reference_system
+
+        if self.__reference_system.isCartesian():
+            self.__v_scale=1.
+        else:
+            self.__v_scale=1./self.getReferenceSystem().getHeightUnit()
              
     def getReferenceSystem(self):
         """
@@ -154,7 +168,16 @@ class DataSource(object):
         :rtype: `ReferenceSystem`
         """
         return self.__reference_system
-        
+
+    def getHeightScale(self):
+        """
+        returns the height scale factor to convert from meters to the
+        appropriate units of the reference system used.
+
+        :rtype: ``float``
+        """
+        return self.__v_scale
+
     def getDataExtents(self):
         """
         returns a tuple of tuples ``( (x0, y0), (nx, ny), (dx, dy) )``, where
@@ -399,7 +422,7 @@ class ErMapperData(DataSource):
                 originX=np.round(originX_UTM)
                 originY=np.round(originY_UTM)
             else:
-                _,_,zone=LatLonToUTM(originX, originY, wkt)
+                zone=getUTMZone(originX, originY, wkt)
                 op1X, op1Y= originX+spacingX, originY+spacingY
                 spacingX=np.round(op1X-originX,5)
                 spacingY=np.round(op1Y-originY,5)
@@ -445,11 +468,12 @@ class ErMapperData(DataSource):
         # If domain has twice the resolution we can double up the data etc.
         multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
         if domain.getDim()==3:
-            first.append(int((self.__altitude-origin[2])/spacing[2]))
+            first.append(int((self.getHeightScale()*self.__altitude-origin[2])/spacing[2]))
             multiplier=multiplier+[1]
             nValues=nValues+[1]
 
         byteorder=ripleycpp.BYTEORDER_NATIVE
+        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
         data = ripleycpp._readBinaryGrid(self.__datafile, FS, first, nValues,
                                          multiplier, (), self.__null_value,
                                          byteorder, self.__celltype)
@@ -637,7 +661,7 @@ class NetCdfData(DataSource):
         if self.getReferenceSystem().isCartesian():
              lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
         else:
-             _,_,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+             zone=getUTMZone(lon_range, lat_range, wkt_string)
              
         self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
@@ -672,14 +696,18 @@ class NetCdfData(DataSource):
         # If domain has twice the resolution we can double up the data etc.
         multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
         if domain.getDim()==3:
-            first.append(int((self.__altitude-origin[2])/spacing[2]))
+            first.append(int((self.getHeightScale()*self.__altitude-origin[2])/spacing[2]))
             multiplier=multiplier+[1]
             nValues=nValues+[1]
 
+        self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s"%(
+            self.__data_name, str(first),str(nValues),str(multiplier)))
         data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
                                      first, nValues, multiplier, (),
                                      self.__null_value)
         if self.__error_name is not None:
+            self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s"%(
+                self.__data_name, str(first),str(nValues),str(multiplier)))
             sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
                                           FS, first, nValues, multiplier, (),0.)
         else:
@@ -1146,6 +1174,7 @@ class NumpyData(DataSource):
                                          byteorder, datatype)
         if len(self.__error.shape) > 0:
             self.__error.tofile(numpyfile)
+            self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
             sigma = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
                                              multiplier, (), 0., byteorder,
                                              datatype)
