@@ -27,114 +27,76 @@ using namespace boost::python;
 
 namespace ripley {
 
+template<typename T>
+std::vector<T> extractPyArray(const object& obj, const std::string& name,
+                              int expectedLength=0)
+{
+    std::vector<T> result;
+    if (extract<tuple>(obj).check() || extract<list>(obj).check()) {
+        if (expectedLength==0 || len(obj)==expectedLength) {
+            for (int i=0; i<len(obj); i++) {
+                result.push_back(extract<T>(obj[i]));
+            }
+        } else {
+            std::stringstream ssError;
+            ssError << "argument '" << name << "' has wrong length";
+            std::string error(ssError.str());
+            throw RipleyException(error.c_str());
+        }
+    } else {
+        std::stringstream ssError;
+        ssError << "argument '" << name << "' must be a tuple or list";
+        std::string error(ssError.str());
+        throw RipleyException(error.c_str());
+    }
+
+    return result;
+}
+
 escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
+        const object& pyShape, double fill, int byteOrder, int dataType,
         const object& pyFirst, const object& pyNum, const object& pyMultiplier,
-        const object& pyShape, double fill, int byteOrder, int dataType)
+        const object& pyReverse)
 {
     int dim=fs.getDim();
     GridParameters params;
-    std::vector<int> shape;
 
-    if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
-        if (len(pyFirst)==dim) {
-            for (int i=0; i<dim; i++) {
-                params.first.push_back(extract<int>(pyFirst[i]));
-            }
-        } else
-            throw RipleyException("Argument 'first' has wrong length");
-    } else
-        throw RipleyException("Argument 'first' must be a tuple or list");
-
-    if (extract<tuple>(pyNum).check() || extract<list>(pyNum).check()) {
-        if (len(pyNum)==dim) {
-            for (int i=0; i<dim; i++) {
-                params.numValues.push_back(extract<int>(pyNum[i]));
-            }
-        } else
-            throw RipleyException("Argument 'numValues' has wrong length");
-    } else
-        throw RipleyException("Argument 'numValues' must be a tuple or list");
-
-    if (extract<tuple>(pyShape).check() || extract<list>(pyShape).check()) {
-        for (int i=0; i<len(pyShape); i++) {
-            shape.push_back(extract<int>(pyShape[i]));
-        }
-    } else
-        throw RipleyException("Argument 'shape' must be a tuple or list");
-
-    if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
-        if (len(pyMultiplier)==dim) {
-            for (int i=0; i<dim; i++) {
-                params.multiplier.push_back(extract<int>(pyMultiplier[i]));
-            }
-        } else
-            throw RipleyException("Argument 'multiplier' has wrong length");
-    } else
-        throw RipleyException("Argument 'multiplier' must be a tuple or list");
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    params.byteOrder = byteOrder;
+    params.dataType = dataType;
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
 
     const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
     if (!dom)
         throw RipleyException("Function space must be on a ripley domain");
 
-
     escript::Data res(fill, shape, fs, true);
-
     dom->readBinaryGrid(res, filename, params);
     return res;
 }
 
 escript::Data readNcGrid(std::string filename, std::string varname,
-        escript::FunctionSpace fs, const object& pyFirst, const object& pyNum,
-        const object& pyMultiplier, const object& pyShape, double fill=0.)
+        escript::FunctionSpace fs, const object& pyShape, double fill,
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyReverse)
 {
     int dim=fs.getDim();
     GridParameters params;
-    std::vector<int> shape;
 
-    if (extract<tuple>(pyFirst).check() || extract<list>(pyFirst).check()) {
-        if (len(pyFirst)==dim) {
-            for (int i=0; i<dim; i++) {
-                params.first.push_back(extract<int>(pyFirst[i]));
-            }
-        } else
-            throw RipleyException("Argument 'first' has wrong length");
-    } else
-        throw RipleyException("Argument 'first' must be a tuple or list");
-
-    if (extract<tuple>(pyNum).check() || extract<list>(pyNum).check()) {
-        if (len(pyNum)==dim) {
-            for (int i=0; i<dim; i++) {
-                params.numValues.push_back(extract<int>(pyNum[i]));
-            }
-        } else
-            throw RipleyException("Argument 'numValues' has wrong length");
-    } else
-        throw RipleyException("Argument 'numValues' must be a tuple or list");
-
-    if (extract<tuple>(pyMultiplier).check() || extract<list>(pyMultiplier).check()) {
-        if (len(pyMultiplier)==dim) {
-            for (int i=0; i<dim; i++) {
-                params.multiplier.push_back(extract<int>(pyMultiplier[i]));
-            }
-        } else
-            throw RipleyException("Argument 'multiplier' has wrong length");
-    } else
-        throw RipleyException("Argument 'multiplier' must be a tuple or list");
-
-    if (extract<tuple>(pyShape).check() || extract<list>(pyShape).check()) {
-        for (int i=0; i<len(pyShape); i++) {
-            shape.push_back(extract<int>(pyShape[i]));
-        }
-    } else
-        throw RipleyException("Argument 'shape' must be a tuple or list");
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
 
     const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
     if (!dom)
         throw RipleyException("Function space must be on a ripley domain");
 
-
     escript::Data res(fill, shape, fs, true);
-
     dom->readNcGrid(res, filename, varname, params);
     return res;
 }
@@ -265,9 +227,16 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
     def("_theculprit_", ripley::_who);
 
-    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0., arg("byteOrder"), arg("dataType")));
+    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"),
+                arg("functionspace"), arg("shape"), arg("fill")=0.,
+                arg("byteOrder"), arg("dataType"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a binary Grid");
 
-    def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"), arg("functionspace"), arg("first"), arg("numValues"), arg("multiplier"), arg("shape"), arg("fill")=0.));
+    def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"),
+                arg("functionspace"), arg("shape"), arg("fill"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a grid from a netCDF file");
 
     class_<ripley::RipleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("RipleyDomain", "", no_init)
