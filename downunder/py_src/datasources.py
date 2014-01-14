@@ -43,6 +43,12 @@ except:
     pass
 
 try:
+    import pyproj
+    HAVE_PYPROJ=True
+except:
+    HAVE_PYPROJ=False
+
+try:
     import osgeo.osr
     HAVE_GDAL=True
 except ImportError:
@@ -104,25 +110,27 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         return lon,lat,zone
 
     logger.debug('Need to project coordinates.')
-    try:
-        import pyproj
-    except:
+    if not HAVE_PYPROJ:
         logger.error("Cannot import pyproj! Exiting.")
         raise ImportError("In order to perform coordinate transformations on "
-        "the data you are using the 'pyproj' Python module is required but "
-        "was not found. Please install the module and try again.")
+           "the data you are using the 'pyproj' Python module is required but "
+           "was not found. Please install the module and try again.")
 
     p_src=None
-    if HAVE_GDAL and (wkt_string is not None):
+    if HAVE_GDAL and (wkt_string is not None) and len(wkt_string)>0:
         srs = osgeo.osr.SpatialReference()
         result=srs.ImportFromWkt(wkt_string)
         try:
             p_src = pyproj.Proj(srs.ExportToProj4())
-        except:
-            logger.warn('pyproj returned exception: %s'%e.message)
+        except RuntimeError as e:
+            logger.warn('pyproj returned exception: %s [wkt=%s]'%(e.message,wkt_string))
 
     if p_src is None:
-        logger.warn("Warning! Assuming lon/lat coordinates on Clarke 1866 ellipsoid since no wkt string provided and/or GDAL not available.")
+        if HAVE_GDAL:
+            reason="no wkt string provided."
+        else:
+            reason="the gdal python module not available."
+        logger.warn("Assuming lon/lat coordinates on Clarke 1866 ellipsoid since "+reason)
         p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
 
     # check for hemisphere
@@ -472,11 +480,13 @@ class ErMapperData(DataSource):
             multiplier=multiplier+[1]
             nValues=nValues+[1]
 
+        reverse = [0]*domain.getDim()
         byteorder=ripleycpp.BYTEORDER_NATIVE
         self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-        data = ripleycpp._readBinaryGrid(self.__datafile, FS, first, nValues,
-                                         multiplier, (), self.__null_value,
-                                         byteorder, self.__celltype)
+        data = ripleycpp._readBinaryGrid(self.__datafile, FS, shape=(),
+                fill=self.__null_value, byteOrder=byteorder,
+                dataType=self.__celltype, first=first, numValues=nValues,
+                multiplier=multiplier, reverse=reverse)
         sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
         data = data * self.__scale_factor
@@ -700,16 +710,20 @@ class NetCdfData(DataSource):
             multiplier=multiplier+[1]
             nValues=nValues+[1]
 
-        self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s"%(
-            self.__data_name, str(first),str(nValues),str(multiplier)))
+        # FIXME: populate reverse properly
+        reverse = [0]*domain.getDim()
+        self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s, reverse=%s"%(
+            self.__data_name, str(first),str(nValues),str(multiplier),str(reverse)))
         data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
-                                     first, nValues, multiplier, (),
-                                     self.__null_value)
+                shape=(), fill=self.__null_value, first=first,
+                numValues=nValues, multiplier=multiplier, reverse=reverse)
+
         if self.__error_name is not None:
             self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s"%(
                 self.__data_name, str(first),str(nValues),str(multiplier)))
             sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
-                                          FS, first, nValues, multiplier, (),0.)
+                    FS, shape=(), fill=0., first=first, numValues=nValues,
+                    multiplier=multiplier, reverse=reverse)
         else:
             sigma = self.__error_value * whereNonZero(data-self.__null_value)
 
@@ -1166,18 +1180,21 @@ class NumpyData(DataSource):
         os.close(_handle)
         self.__data.tofile(numpyfile)
 
+        reverse=[0]*domain.getDim()
         byteorder=ripleycpp.BYTEORDER_NATIVE
         datatype=ripleycpp.DATATYPE_FLOAT64
         self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-        data = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
-                                         multiplier, (), self.__null_value,
-                                         byteorder, datatype)
+        data = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
+                fill=self.__null_value, byteOrder=byteorder, dataType=datatype,
+                first=first, numValues=nValues, multiplier=multiplier,
+                reverse=reverse)
         if len(self.__error.shape) > 0:
             self.__error.tofile(numpyfile)
             self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-            sigma = ripleycpp._readBinaryGrid(numpyfile, FS, first, nValues,
-                                             multiplier, (), 0., byteorder,
-                                             datatype)
+            sigma = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
+                    fill=0., byteOrder=byteorder, dataType=datatype,
+                    first=first, numValues=nValues, multiplier=multiplier,
+                    reverse=reverse)
         else:
             sigma = self.__error.item() * whereNonZero(data-self.__null_value)
 
