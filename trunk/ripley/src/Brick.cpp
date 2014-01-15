@@ -251,7 +251,7 @@ bool Brick::operator==(const AbstractDomain& other) const
 }
 
 void Brick::readNcGrid(escript::Data& out, string filename, string varname,
-            const GridParameters& params) const
+            const ReaderParameters& params) const
 {
 #ifdef USE_NETCDF
     // check destination function space
@@ -323,14 +323,23 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     const int first0 = max(0, params.first[0]-m_offset[0]);
     const int first1 = max(0, params.first[1]-m_offset[1]);
     const int first2 = max(0, params.first[2]-m_offset[2]);
-    // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-params.first[0]);
-    const int idx1 = max(0, m_offset[1]-params.first[1]);
-    const int idx2 = max(0, m_offset[2]-params.first[2]);
+    // indices to first value in file (not accounting for reverse yet)
+    int idx0 = max(0, m_offset[0]-params.first[0]);
+    int idx1 = max(0, m_offset[1]-params.first[1]);
+    int idx2 = max(0, m_offset[2]-params.first[2]);
     // number of values to read
     const int num0 = min(params.numValues[0]-idx0, myN0-first0);
     const int num1 = min(params.numValues[1]-idx1, myN1-first1);
     const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+
+    // make sure we read the right block if going backwards through file
+    if (params.reverse[0])
+        idx0 = edges[dims-1]-num0-idx0;
+    if (dims>1 && params.reverse[1])
+        idx1 = edges[dims-2]-num1-idx1;
+    if (dims>2 && params.reverse[2])
+        idx2 = edges[dims-3]-num2-idx2;
+
 
     vector<double> values(num0*num1*num2);
     if (dims==3) {
@@ -347,6 +356,14 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     const int dpp = out.getNumDataPointsPerSample();
     out.requireWrite();
 
+    // helpers for reversing
+    const int x0 = (params.reverse[0] ? num0-1 : 0);
+    const int x_mult = (params.reverse[0] ? -1 : 1);
+    const int y0 = (params.reverse[1] ? num1-1 : 0);
+    const int y_mult = (params.reverse[1] ? -1 : 1);
+    const int z0 = (params.reverse[2] ? num2-1 : 0);
+    const int z_mult = (params.reverse[2] ? -1 : 1);
+
     for (index_t z=0; z<num2; z++) {
         for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
@@ -354,7 +371,9 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
                 const int baseIndex = first0+x*params.multiplier[0]
                                      +(first1+y*params.multiplier[1])*myN0
                                      +(first2+z*params.multiplier[2])*myN0*myN1;
-                const int srcIndex=z*num1*num0+y*num0+x;
+                const int srcIndex=(z0+z_mult*z)*num1*num0
+                                  +(y0+y_mult*y)*num0
+                                  +(x0+x_mult*x);
                 if (!isnan(values[srcIndex])) {
                     for (index_t m2=0; m2<params.multiplier[2]; m2++) {
                         for (index_t m1=0; m1<params.multiplier[1]; m1++) {
@@ -379,7 +398,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 }
 
 void Brick::readBinaryGrid(escript::Data& out, string filename,
-                           const GridParameters& params) const
+                           const ReaderParameters& params) const
 {
     // the mapping is not universally correct but should work on our
     // supported platforms
@@ -400,7 +419,7 @@ void Brick::readBinaryGrid(escript::Data& out, string filename,
 
 template<typename ValueType>
 void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
-                               const GridParameters& params) const
+                               const ReaderParameters& params) const
 {
     // check destination function space
     int myN0, myN1, myN2;

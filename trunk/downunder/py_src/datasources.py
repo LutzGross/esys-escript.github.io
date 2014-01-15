@@ -532,12 +532,12 @@ class NetCdfData(DataSource):
                            areas. This information is usually included in the
                            file.
         :type null_value: ``float``
-        :param reference_system: reference coordinate system to be used. For a Cartesian
-                                 reference the appropriate UTM transformation is applied.
-                                 By default the Cartesian coordinate system is used.
+        :param reference_system: reference coordinate system to be used.
+                                 For a Cartesian reference (default) the
+                                 appropriate UTM transformation is applied.
         :type reference_system: `ReferenceSystem`
-        :note: consistence in the reference coordinate system and the reference coordinate system  
-               used in the data source is not checked.
+        :note: it is the responsibility of the caller to ensure all data
+               sources and the domain builder use the same reference system.
         """
         super(NetCdfData,self).__init__(reference_system)
         self.__filename=filename
@@ -677,6 +677,14 @@ class NetCdfData(DataSource):
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
         f.close()
 
+        # see if lat or lon is stored in reverse order to domain conventions
+        self.__reverse=[False,False]
+        d=longitude.data
+        if d[0]>d[-1]:
+            self.__reverse[0]=True
+        d=latitude.data
+        if d[0]>d[-1]:
+            self.__reverse[1]=True
         self.__nPts=[NX, NY]
         self.__origin=[lon_range[0],lat_range[0]]
         # we are rounding to avoid interpolation issues
@@ -705,13 +713,14 @@ class NetCdfData(DataSource):
         # determine the resolution difference between domain and data.
         # If domain has twice the resolution we can double up the data etc.
         multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(len(self.__nPts))]
-        if domain.getDim()==3:
-            first.append(int((self.getHeightScale()*self.__altitude-origin[2])/spacing[2]))
-            multiplier=multiplier+[1]
-            nValues=nValues+[1]
+        reverse = [int(self.__reverse[i]) for i in range(len(self.__reverse))]
 
-        # FIXME: populate reverse properly
-        reverse = [0]*domain.getDim()
+        if domain.getDim() == 3:
+            first.append(int((self.getHeightScale()*self.__altitude-origin[2])/spacing[2]))
+            multiplier = multiplier + [1]
+            nValues = nValues + [1]
+            reverse = reverse + [0]
+
         self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s, reverse=%s"%(
             self.__data_name, str(first),str(nValues),str(multiplier),str(reverse)))
         data = ripleycpp._readNcGrid(self.__filename, self.__data_name, FS,
