@@ -59,7 +59,7 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
         const object& pyReverse)
 {
     int dim=fs.getDim();
-    GridParameters params;
+    ReaderParameters params;
 
     params.first = extractPyArray<int>(pyFirst, "first", dim);
     params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
@@ -84,7 +84,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
         const object& pyReverse)
 {
     int dim=fs.getDim();
-    GridParameters params;
+    ReaderParameters params;
 
     params.first = extractPyArray<int>(pyFirst, "first", dim);
     params.numValues = extractPyArray<int>(pyNum, "numValues", dim);

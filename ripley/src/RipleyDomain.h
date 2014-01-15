@@ -34,7 +34,7 @@ namespace ripley {
    \brief
    Structure that wraps parameters for the grid reading routines.
 */
-struct GridParameters
+struct ReaderParameters
 {
     /// the (global) offset into the data object to start writing into
     std::vector<int> first;
@@ -561,12 +561,12 @@ public:
     /**
     */
     virtual void readNcGrid(escript::Data& out, std::string filename,
-            std::string varname, const GridParameters& params) const = 0;
+            std::string varname, const ReaderParameters& params) const = 0;
 
     /**
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
-                                const GridParameters& params) const = 0;
+                                const ReaderParameters& params) const = 0;
 
     /**
     */
@@ -630,12 +630,13 @@ public:
     
     
     /**
-     * \brief true if this domain can handle to specified tuple of filter options.
+       \brief
+       true if this domain can handle the specified tuple of filter options.
     */
     virtual bool supportsFilter(const boost::python::tuple& t) const;
     
     /**
-     * \brief Generate filtered random data
+       \brief Generates filtered random data
     */     
     virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
     
