@@ -123,7 +123,7 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         try:
             p_src = pyproj.Proj(srs.ExportToProj4())
         except RuntimeError as e:
-            logger.warn('pyproj returned exception: %s [wkt=%s]'%(e.message,wkt_string))
+            logger.warn('pyproj returned exception: %s [wkt=%s]'%(e,wkt_string))
 
     if p_src is None:
         if HAVE_GDAL:
