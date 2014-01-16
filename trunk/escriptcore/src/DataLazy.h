@@ -250,7 +250,7 @@ public:
   */
   ESCRIPT_DLL_API
   const ValueType*
-  resolveSample(int sampleNo, size_t& roffset); 
+  resolveSample(int sampleNo, size_t& roffset) const; 
 
   /**
   \brief if resolve() was called would it produce expanded data.
@@ -274,9 +274,9 @@ public:
 
 
 private:
-  DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
-  DataLazy_ptr m_left, m_right, m_mask;	// operands for operation.
-  ES_optype m_op;	// operation to perform.
+  mutable DataReady_ptr m_id;	//  For IDENTITY nodes, stores a wrapped value.
+  mutable DataLazy_ptr m_left, m_right, m_mask;	// operands for operation.
+  mutable ES_optype m_op;	// operation to perform.
 
   size_t m_samplesize;	// number of values required to store a sample
 
@@ -293,7 +293,7 @@ private:
   size_t m_height;
 
   int* m_sampleids;		// may be NULL
-  DataVector m_samples;  
+  mutable DataVector m_samples;  
 
   /**
   Allocates sample storage at each node
@@ -302,32 +302,32 @@ private:
 
 
   const DataTypes::ValueType*
-  resolveNodeUnary(int tid, int sampleNo, size_t& roffset);
+  resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const;
 
 
   const DataTypes::ValueType*
-  resolveNodeReduction(int tid, int sampleNo, size_t& roffset);  
+  resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const;  
 
   const DataTypes::ValueType*
-  resolveNodeSample(int tid, int sampleNo, size_t& roffset);
+  resolveNodeSample(int tid, int sampleNo, size_t& roffset) const;
 
   const DataTypes::ValueType*
-  resolveNodeBinary(int tid, int sampleNo, size_t& roffset);
+  resolveNodeBinary(int tid, int sampleNo, size_t& roffset) const;
 
   const DataTypes::ValueType*
-  resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset);
+  resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const;
 
   const DataTypes::ValueType*
-  resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset);
+  resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const;
 
   const DataTypes::ValueType*
-  resolveNodeTProd(int tid, int sampleNo, size_t& roffset);
+  resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const;
 
   const DataTypes::ValueType*
-  resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset);
+  resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const;
 
   const DataTypes::ValueType*
-  resolveNodeCondEval(int tid, int sampleNo, size_t& roffset);
+  resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const;
 
   /**
   Does the work for toString. 
@@ -348,7 +348,7 @@ private:
    the purpose of using DataLazy in the first place).
   */
   void
-  collapse();		// converts the node into an IDENTITY node
+  collapse() const;		// converts the node into an IDENTITY node
 
 
   /**
@@ -357,7 +357,7 @@ private:
   For reasons of efficiency do not call this method on DataExpanded nodes.
   */
   DataReady_ptr
-  collapseToReady();
+  collapseToReady() const;
 
   /**
   \brief resolve the expression can store it in the current node

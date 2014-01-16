@@ -822,7 +822,7 @@ DataLazy::~DataLazy()
   For reasons of efficiency do not call this method on DataExpanded nodes.
 */
 DataReady_ptr
-DataLazy::collapseToReady()
+DataLazy::collapseToReady() const
 {
   if (m_readytype=='E')
   {	// this is more an efficiency concern than anything else
@@ -977,7 +977,7 @@ DataLazy::collapseToReady()
    the purpose of using DataLazy in the first place).
 */
 void
-DataLazy::collapse()
+DataLazy::collapse() const
 {
   if (m_op==IDENTITY)
   {
@@ -1016,7 +1016,7 @@ LAZYDEBUG(cout << " result=      " << resultp[0] << endl;) \
 // The result will be stored in m_samples
 // The return value is a pointer to the DataVector, offset is the offset within the return value
 const DataTypes::ValueType*
-DataLazy::resolveNodeSample(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeSample(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve sample " << toString() << endl;)
 	// collapse so we have a 'E' node or an IDENTITY for some other type
@@ -1065,7 +1065,7 @@ if (&x<stackend[omp_get_thread_num()])
 }
 
 const DataTypes::ValueType*
-DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
 	// since we only have one argument we don't need to think about only
@@ -1197,7 +1197,7 @@ DataLazy::resolveNodeUnary(int tid, int sampleNo, size_t& roffset)
 
 
 const DataTypes::ValueType*
-DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
 	// since we only have one argument we don't need to think about only
@@ -1249,7 +1249,7 @@ DataLazy::resolveNodeReduction(int tid, int sampleNo, size_t& roffset)
 }
 
 const DataTypes::ValueType*
-DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
 	// since we only have one argument we don't need to think about only
@@ -1294,7 +1294,7 @@ DataLazy::resolveNodeNP1OUT(int tid, int sampleNo, size_t& roffset)
 }
 
 const DataTypes::ValueType*
-DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset) const
 {
 	// we assume that any collapsing has been done before we get here
 	// since we only have one argument we don't need to think about only
@@ -1342,7 +1342,7 @@ DataLazy::resolveNodeNP1OUT_P(int tid, int sampleNo, size_t& roffset)
 
 
 const DataTypes::ValueType*
-DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset) const
 {
   if (m_readytype!='E')
   {
@@ -1378,7 +1378,7 @@ DataLazy::resolveNodeNP1OUT_2P(int tid, int sampleNo, size_t& roffset)
 }
 
 const DataTypes::ValueType*
-DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset) const
 {
   if (m_readytype!='E')
   {
@@ -1422,7 +1422,7 @@ DataLazy::resolveNodeCondEval(int tid, int sampleNo, size_t& roffset)
 // For example, 2+Vector.
 // In this case each double within the point is treated individually
 const DataTypes::ValueType*
-DataLazy::resolveNodeBinary(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeBinary(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve binary: " << toString() << endl;)
 
@@ -1579,7 +1579,7 @@ LAZYDEBUG(cout << "Result res[" << roffset<< "]" << m_samples[roffset] << endl;)
 // have already been collapsed to IDENTITY. So we must have at least one expanded child.
 // unlike the other resolve helpers, we must treat these datapoints separately.
 const DataTypes::ValueType*
-DataLazy::resolveNodeTProd(int tid, int sampleNo, size_t& roffset)
+DataLazy::resolveNodeTProd(int tid, int sampleNo, size_t& roffset) const
 {
 LAZYDEBUG(cout << "Resolve TensorProduct: " << toString() << endl;)
 
@@ -1638,7 +1638,7 @@ LAZYDEBUG(cout << DataTypes::pointToString(*right,m_right->getShape(),rroffset, 
 
 
 const DataTypes::ValueType*
-DataLazy::resolveSample(int sampleNo, size_t& roffset)
+DataLazy::resolveSample(int sampleNo, size_t& roffset) const
 {
 #ifdef _OPENMP
 	int tid=omp_get_thread_num();

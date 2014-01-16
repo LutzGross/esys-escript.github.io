@@ -621,7 +621,7 @@ If false, the result is a list of scalars [1, 2, ...]
   ESCRIPT_DLL_API
   inline
   const DataAbstract::ValueType::value_type*
-  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo);
+  getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const;
 
 
   /**
@@ -1979,7 +1979,7 @@ Data::getSampleDataRW(DataAbstract::ValueType::size_type sampleNo)
 
 inline
 const DataAbstract::ValueType::value_type*
-Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo)
+Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const
 {
    DataLazy* l=dynamic_cast<DataLazy*>(m_data.get());
    if (l!=0)
