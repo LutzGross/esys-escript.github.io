@@ -38,7 +38,11 @@ public:
        \param d0,d1 number of subdivisions in each dimension
     */
     Rectangle(int n0, int n1, double x0, double y0, double x1, double y1,
-              int d0=-1, int d1=-1);
+              int d0=-1, int d1=-1,
+              const std::vector<double>& points = std::vector<double>(),
+              const std::vector<int>& tags = std::vector<int>(),
+              const std::map<std::string, int>& tagnamestonums = 
+                                            std::map<std::string, int>());
 
     /**
        \brief
@@ -163,13 +167,19 @@ public:
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const;
-    
+
     /**
      * \brief 
        Returns a Data object filled with random data passed through filter.
     */ 
     escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
-    
+
+    /**
+       \brief
+       Sets the assembler to a custom/specific assembler.
+    */
+    virtual void setAssembler(std::string type, std::map<std::string, escript::Data> options);
+
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -180,34 +190,6 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const;
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
@@ -215,6 +197,7 @@ protected:
                                          bool reduced) const;
     virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
+    virtual int getDofOfNode(int node) const;
 
 private:
     void populateSampleIds();
@@ -230,6 +213,8 @@ private:
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
+
+    int findNode(double *coords) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE[2];
@@ -283,9 +268,15 @@ private:
 
     // the Paso System Matrix pattern
     Paso_SystemMatrixPattern* m_pattern;
+
+    friend class DefaultAssembler2D;
+    friend class WaveAssembler2D;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
+inline int Rectangle::getDofOfNode(int node) const {
+    return m_dofMap[node];
+}
 
 inline int Rectangle::getNumDataPointsGlobal() const
 {

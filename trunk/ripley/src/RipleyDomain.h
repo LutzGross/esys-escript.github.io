@@ -17,9 +17,11 @@
 #define __RIPLEY_DOMAIN_H__
 
 #include <boost/python/tuple.hpp>
+#include <boost/python/list.hpp>
 
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
+#include <ripley/AbstractAssembler.h>
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
@@ -49,6 +51,16 @@ struct ReaderParameters
     int byteOrder;
     /// data type in the file (used by binary reader only)
     int dataType;
+};
+
+/**
+   \brief
+   A struct to contain a dirac point's information.
+*/
+struct DiracPoint
+{
+    int node;
+    int tag;
 };
 
 /**
@@ -469,11 +481,41 @@ public:
 
     /**
        \brief
+       adds a PDE onto the stiffness matrix mat and rhs, used for custom 
+       solvers with varying arguments counts and so on
+    */
+    virtual void addToSystem(escript::AbstractSystemMatrix& mat,
+            escript::Data& rhs,std::map<std::string, escript::Data> data) const;
+
+    /**
+       \brief
+       a wrapper for addToSystem that allows calling from Python
+    */
+    virtual void addToSystemFromPython(escript::AbstractSystemMatrix& mat,
+            escript::Data& rhs,boost::python::list data) const;
+
+    /**
+       \brief
        adds a PDE onto rhs
     */
     virtual void addPDEToRHS(escript::Data& rhs, const escript::Data& X,
             const escript::Data& Y, const escript::Data& y,
             const escript::Data& y_contact, const escript::Data& y_dirac) const;
+
+    /**
+       \brief
+       adds a PDE onto rhs, used for custom 
+       solvers with varying arguments counts and so on
+    */
+    virtual void addToRHS(escript::Data& rhs,
+            std::map<std::string, escript::Data> data) const;
+
+    /**
+       \brief
+       a wrapper for addToRHS that allows calling from Python
+    */
+    virtual void addToRHSFromPython(escript::Data& rhs,
+            boost::python::list data) const;
 
     /**
        \brief
@@ -639,8 +681,13 @@ public:
        \brief Generates filtered random data
     */     
     virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
-    
 
+    virtual void setAssembler(std::string type,
+                std::map<std::string, escript::Data> options) {
+        throw RipleyException("Domain does not support custom assemblers");
+    }
+    void setAssemblerFromPython(std::string type,
+                                         boost::python::list options);
 protected:
     dim_t m_numDim;
     StatusType m_status;
@@ -649,7 +696,9 @@ protected:
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
-
+    AbstractAssembler *assembler;
+    std::vector<struct DiracPoint> diracPoints;
+    
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, escript::Data& in) const;
 
@@ -680,6 +729,9 @@ protected:
             dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
             const DoubleVector& array) const;
 
+    void addPoints(int numPoints, const double* points_ptr,
+                     const int* tags_ptr);
+
     /***********************************************************************/
 
     /// returns the number of nodes per MPI rank
@@ -707,58 +759,6 @@ protected:
     /// copies the integrals of the function defined by 'arg' into 'integrals'
     virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const = 0;
 
-    /// assembles a single PDE into the system matrix 'mat' and the right hand
-    /// side 'rhs'
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const = 0;
-
-    /// assembles boundary conditions of a single PDE into the system matrix
-    /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const = 0;
-
-    /// assembles a single PDE with reduced order into the system matrix 'mat'
-    /// and the right hand side 'rhs'
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const = 0;
-
-    /// assembles boundary conditions of a single PDE with reduced order into
-    /// the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const = 0;
-
-    /// assembles a system of PDEs into the system matrix 'mat' and the right
-    /// hand side 'rhs'
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const = 0;
-
-    /// assembles boundary conditions of a system of PDEs into the system
-    /// matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const = 0;
-
-    /// assembles a system of PDEs with reduced order into the system matrix
-    /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const = 0;
-
-    /// assembles boundary conditions of a system of PDEs with reduced order
-    /// into the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const = 0;
-
     /// returns the Paso system matrix pattern
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
             bool reducedColOrder) const = 0;
@@ -777,17 +777,23 @@ protected:
     /// converts data on degrees of freedom in 'in' to nodes in 'out'
     virtual void dofToNodes(escript::Data& out, escript::Data& in) const = 0;
 
+    virtual int getDofOfNode(int node) const = 0;
+
 private:
     /// calls the right PDE assembly routines after performing input checks
     void assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
+            std::map<std::string, escript::Data> coefs) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
     void assemblePDEBoundary(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& d, const escript::Data& y) const;
+            std::map<std::string, escript::Data> coefs) const;
+
+    void assemblePDEDirac(Paso_SystemMatrix* mat, escript::Data& rhs,
+            std::map<std::string, escript::Data> coefs) const;
+
+    // finds the node that the given point belongs to
+    virtual int findNode(double *coords) const = 0;
 };
 
 } // end of namespace ripley

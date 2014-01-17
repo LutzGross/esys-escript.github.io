@@ -27,6 +27,28 @@ using paso::TransportProblemAdapter;
 
 namespace ripley {
 
+bool isNotEmpty(string target, map<string, escript::Data> mapping) {
+    map<string, escript::Data>::iterator i = mapping.find(target);
+    return i != mapping.end() && !i->second.isEmpty();
+}
+
+void tupleListToMap(map<string, escript::Data>& mapping,
+        boost::python::list& list) {
+    using boost::python::tuple;
+    using boost::python::extract;
+    for (int i = 0; i < len(list); i++) {
+        if (!extract<tuple>(list[i]).check())
+            throw RipleyException("Passed in list contains objects"
+                                    " other than tuples");
+        tuple t = extract<tuple>(list[i]);
+        if (len(t) != 2 || !extract<std::string>(t[0]).check() ||
+                !extract<escript::Data>(t[1]).check())
+            throw RipleyException("The passed in list must contain tuples"
+                " of the form (string, escript::data)");
+        mapping[extract<std::string>(t[0])] = extract<escript::Data>(t[1]);
+    }
+}
+
 RipleyDomain::RipleyDomain(dim_t dim) :
     m_numDim(dim),
     m_status(0)
@@ -106,7 +128,7 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
         case ReducedFaceElements:
             return pair<int,int>(1, getNumFaceElements());
         case Points:
-            return pair<int,int>(1, 0); //FIXME: dirac
+            return pair<int,int>(1, diracPoints.size());
         default:
             break;
     }
@@ -581,11 +603,11 @@ bool RipleyDomain::canTag(int fsType) const
         case Elements:
         case ReducedElements:
         case FaceElements:
+        case Points:
         case ReducedFaceElements:
             return true;
         case DegreesOfFreedom:
         case ReducedDegreesOfFreedom:
-        case Points:
         case ReducedNodes:
             return false;
         default:
@@ -648,6 +670,10 @@ int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
         case ReducedElements:
             if (m_elementTags.size() > sampleNo)
                 return m_elementTags[sampleNo];
+            break;
+        case Points:
+            if (diracPoints.size() > sampleNo)
+                return diracPoints[sampleNo].tag;
             break;
         case FaceElements:
         case ReducedFaceElements:
@@ -769,6 +795,34 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     return sma;
 }
 
+void RipleyDomain::addToSystem(
+        escript::AbstractSystemMatrix& mat, escript::Data& rhs,
+        std::map<std::string, escript::Data> coefs) const
+{
+    if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
+        throw RipleyException(
+                    "addToSystem: Ripley does not support contact elements");
+
+    paso::SystemMatrixAdapter* sma = 
+                    dynamic_cast<paso::SystemMatrixAdapter*>(&mat);
+    if (!sma)
+        throw RipleyException(
+                    "addToSystem: Ripley only accepts Paso system matrices");
+
+    Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+    assemblePDE(S, rhs, coefs);
+    assemblePDEBoundary(S, rhs, coefs);
+    assemblePDEDirac(S, rhs, coefs);
+}
+
+void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
+        escript::Data& rhs, boost::python::list data) const
+{
+    std::map<std::string, escript::Data> mapping;
+    tupleListToMap(mapping, data);
+    addToSystem(mat, rhs, mapping);
+}
+
 void RipleyDomain::addPDEToSystem(
         escript::AbstractSystemMatrix& mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B, const escript::Data& C,
@@ -785,10 +839,21 @@ void RipleyDomain::addPDEToSystem(
         throw RipleyException("addPDEToSystem: Ripley only accepts Paso system matrices");
 
     Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
-    assemblePDE(S, rhs, A, B, C, D, X, Y);
-    assemblePDEBoundary(S, rhs, d, y);
-    //assemblePDEDirac(S, rhs, d_dirac, y_dirac);
 
+    std::map<std::string, escript::Data> coefs;
+    coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
+    coefs["X"] = X; coefs["Y"] = Y;
+    assemblePDE(S, rhs, coefs);
+
+    std::map<std::string, escript::Data> boundary;
+    boundary["d"] = d;
+    boundary["y"] = y;
+    assemblePDEBoundary(S, rhs, boundary);
+
+    map<string, escript::Data> dirac;
+    dirac["d_dirac"] = d_dirac;
+    dirac["y_dirac"] = y_dirac;
+    assemblePDEDirac(S, rhs, dirac);
 }
 
 void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
@@ -804,9 +869,53 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         else
             return;
     }
+    {
+        std::map<std::string, escript::Data> coefs;
+        coefs["X"] = X; coefs["Y"] = Y;
+        assemblePDE(NULL, rhs, coefs);
+    }
+    std::map<std::string, escript::Data> coefs;
+    coefs["y"] = y;
+    assemblePDEBoundary(NULL, rhs, coefs);
+    map<string, escript::Data> dirac;
+    dirac["y_dirac"] = y_dirac;
+    assemblePDEDirac(NULL, rhs, dirac);
+}
 
-    assemblePDE(NULL, rhs, escript::Data(), escript::Data(), escript::Data(), escript::Data(), X, Y);
-    assemblePDEBoundary(NULL, rhs, escript::Data(), y);
+void RipleyDomain::setAssemblerFromPython(std::string type,
+                                         boost::python::list options) {
+    std::map<std::string, escript::Data> mapping;
+    tupleListToMap(mapping, options);
+    setAssembler(type, mapping);
+}
+
+void RipleyDomain::addToRHSFromPython(escript::Data& rhs,
+                                         boost::python::list data) const
+{
+    std::map<std::string, escript::Data> mapping;
+    tupleListToMap(mapping, data);
+    addToRHS(rhs, mapping);
+}
+
+void RipleyDomain::addToRHS(escript::Data& rhs,
+        std::map<std::string, escript::Data> coefs) const
+{
+    if (isNotEmpty("y_contact", coefs))
+        throw RipleyException(
+                    "addPDEToRHS: Ripley does not support contact elements");
+
+    if (rhs.isEmpty()) {
+        if (isNotEmpty("X", coefs) || isNotEmpty("Y", coefs))
+            throw RipleyException(
+                    "addPDEToRHS: right hand side coefficients are provided "
+                    "but no right hand side vector given");
+        else
+            return;
+    }
+
+    assemblePDE(NULL, rhs, coefs);
+    assemblePDEBoundary(NULL, rhs, coefs);
+    assemblePDEDirac(NULL, rhs, coefs);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -848,11 +957,15 @@ void RipleyDomain::addPDEToTransportProblem(
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
     Paso_TransportProblem* ptp = tpa->getPaso_TransportProblem();
-    assemblePDE(ptp->mass_matrix, source, escript::Data(), escript::Data(),
-            escript::Data(), M, escript::Data(), escript::Data());
-    assemblePDE(ptp->transport_matrix, source, A, B, C, D, X, Y);
-    assemblePDEBoundary(ptp->transport_matrix, source, d, y);
-    //assemblePDEDirac(ptp->transport_matrix, source, d_dirac, y_dirac);
+    std::map<std::string, escript::Data> coefs;
+    coefs["D"] = M;
+    assemblePDE(ptp->mass_matrix, source, coefs);
+    coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
+    coefs["X"] = X; coefs["Y"] = Y; coefs["d"] = d; coefs["y"] = y;
+    coefs["d_dirac"] = d_dirac; coefs["y_dirac"] = y_dirac;
+    assemblePDE(ptp->transport_matrix, source, coefs);
+    assemblePDEBoundary(ptp->transport_matrix, source, coefs);
+    assemblePDEDirac(ptp->transport_matrix, source, coefs);
 }
 
 void RipleyDomain::setNewX(const escript::Data& arg)
@@ -1165,21 +1278,31 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
 
 //private
 void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y) const
+        std::map<std::string, escript::Data> coefs) const
 {
-    if (rhs.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
-        throw RipleyException("assemblePDE: right hand side coefficients are provided but no right hand side vector given");
+    if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
+        throw RipleyException("assemblePDE: right hand side coefficients are "
+                    "provided but no right hand side vector given");
 
     vector<int> fsTypes;
-    if (!A.isEmpty()) fsTypes.push_back(A.getFunctionSpace().getTypeCode());
-    if (!B.isEmpty()) fsTypes.push_back(B.getFunctionSpace().getTypeCode());
-    if (!C.isEmpty()) fsTypes.push_back(C.getFunctionSpace().getTypeCode());
-    if (!D.isEmpty()) fsTypes.push_back(D.getFunctionSpace().getTypeCode());
-    if (!X.isEmpty()) fsTypes.push_back(X.getFunctionSpace().getTypeCode());
-    if (!Y.isEmpty()) fsTypes.push_back(Y.getFunctionSpace().getTypeCode());
-    if (fsTypes.empty())
+    if (isNotEmpty("A", coefs))
+        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("B", coefs))
+        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("C", coefs))
+        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("D", coefs))
+        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("X", coefs)) //may not exist for some custom assemblers
+        fsTypes.push_back(coefs["X"].getFunctionSpace().getTypeCode());
+    else if (isNotEmpty("du", coefs)) //used for (some) custom assemblers
+        fsTypes.push_back(coefs["du"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("Y", coefs))
+        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+    
+    if (fsTypes.empty()) {
         return;
+    }
 
     int fs=fsTypes[0];
     if (fs != Elements && fs != ReducedElements)
@@ -1211,36 +1334,42 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
     //TODO: check shape and num samples of coeffs
 
     if (numEq==1) {
-        if (fs==ReducedElements)
-            assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
-        else
-            assemblePDESingle(mat, rhs, A, B, C, D, X, Y);
+        if (fs==ReducedElements) {
+            assembler->assemblePDESingleReduced(mat, rhs, coefs);
+        } else {
+            assembler->assemblePDESingle(mat, rhs, coefs);
+        }
     } else {
-        if (fs==ReducedElements)
-            assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
-        else
-            assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
+        if (fs==ReducedElements) {
+            assembler->assemblePDESystemReduced(mat, rhs, coefs);
+        } else {
+            assembler->assemblePDESystem(mat, rhs, coefs);
+        }
     }
 }
 
 //private
 void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
-      escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
+      escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
-    if (rhs.isEmpty() && !y.isEmpty())
+    std::map<std::string, escript::Data>::iterator iy = coefs.find("y"),
+                                                   id = coefs.find("d");
+    if (rhs.isEmpty() && isNotEmpty("y", coefs))
         throw RipleyException("assemblePDEBoundary: y provided but no right hand side vector given");
 
     int fs=-1;
-    if (!d.isEmpty())
-        fs=d.getFunctionSpace().getTypeCode();
-    if (!y.isEmpty()) {
+    if (isNotEmpty("d", coefs))
+        fs=id->second.getFunctionSpace().getTypeCode();
+    if (isNotEmpty("y", coefs)) {
         if (fs == -1)
-            fs = y.getFunctionSpace().getTypeCode();
-        else if (fs != y.getFunctionSpace().getTypeCode())
+            fs = iy->second.getFunctionSpace().getTypeCode();
+        else if (fs != iy->second.getFunctionSpace().getTypeCode())
             throw RipleyException("assemblePDEBoundary: coefficient function spaces don't match");
     }
-    if (fs==-1) return;
-
+    if (fs==-1) {
+        return;
+    }
+    
     if (fs != FaceElements && fs != ReducedFaceElements)
         throw RipleyException("assemblePDEBoundary: illegal function space type for coefficients");
 
@@ -1257,14 +1386,57 @@ void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
 
     if (numEq==1) {
         if (fs==ReducedFaceElements)
-            assemblePDEBoundarySingleReduced(mat, rhs, d, y);
+            assembler->assemblePDEBoundarySingleReduced(mat, rhs, coefs);
         else
-            assemblePDEBoundarySingle(mat, rhs, d, y);
+            assembler->assemblePDEBoundarySingle(mat, rhs, coefs);
     } else {
         if (fs==ReducedFaceElements)
-            assemblePDEBoundarySystemReduced(mat, rhs, d, y);
+            assembler->assemblePDEBoundarySystemReduced(mat, rhs, coefs);
         else
-            assemblePDEBoundarySystem(mat, rhs, d, y);
+            assembler->assemblePDEBoundarySystem(mat, rhs, coefs);
+    }
+}
+
+void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
+        escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
+{
+    bool yNotEmpty = isNotEmpty("y_dirac", coefs),
+         dNotEmpty = isNotEmpty("d_dirac", coefs);
+    escript::Data d = dNotEmpty ? coefs["d_dirac"] : escript::Data(),
+                  y = yNotEmpty ? coefs["y_dirac"] : escript::Data();
+    if (!(yNotEmpty || dNotEmpty)) {
+        return;
+    }
+    int nEq, nComp;
+    if (!mat) {
+        if (rhs.isEmpty()) {
+            nEq=nComp=1;
+        } else {
+            nEq=nComp=rhs.getDataPointSize();
+        }
+    } else {
+        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->logical_row_block_size)
+            throw RipleyException("assemblePDEDirac: matrix row block size "
+                    "and number of components of right hand side don't match");
+        nEq = mat->logical_row_block_size;
+        nComp = mat->logical_col_block_size;
+    }
+    for (int i = 0; i < diracPoints.size(); i++) { //only for this rank
+        IndexVector rowIndex;
+        rowIndex.push_back(getDofOfNode(diracPoints[i].node));
+        if (yNotEmpty) {
+            double *EM_F = const_cast<double *>(y.getSampleDataRO(i));
+            double *F_p = const_cast<double *>(rhs.getSampleDataRW(0));
+            for (index_t eq = 0; eq < nEq; eq++) {
+                F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+            }
+        }
+        if (dNotEmpty) {
+            double *EM_S = const_cast<double *>(d.getSampleDataRO(i));
+            std::vector<double> contents(EM_S,
+                        EM_S+mat->row_block_size*nEq*nComp*rowIndex.size());
+            addToSystemMatrix(mat, rowIndex, nEq, rowIndex, nComp, contents);
+        }
     }
 }
 
@@ -1287,7 +1459,7 @@ bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
         return false;
     }
     boost::python::extract<string> ex(t[0]);
-    if (!ex.check() || (ex()!="gaussian")) 
+    if (!ex.check() || (ex()!="gaussian"))
     {
         return false;
     }
@@ -1303,6 +1475,19 @@ escript::Data RipleyDomain::randomFill(long seed, const boost::python::tuple& fi
     throw RipleyException("Filtered randoms not supported on generic Ripley domains");
 }
 
+void RipleyDomain::addPoints(int numPoints, const double* points_ptr,
+                     const int* tags_ptr)
+{
+    for (int i = 0; i < numPoints; i++) {
+        int node = findNode(const_cast<double *>(points_ptr + i * m_numDim));
+        if (node >= 0) {
+            struct DiracPoint dp;
+            dp.node = node;
+            dp.tag = tags_ptr[i];
+            diracPoints.push_back(dp);
+        }
+    }
+}
 
 } // end of namespace ripley
 

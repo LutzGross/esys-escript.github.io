@@ -22,7 +22,7 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.finley import Brick, Rectangle
+from esys.ripley import Brick, Rectangle
 from esys.weipa import saveSilo
 from esys.downunder import Ricker, VTIWave, SimpleSEGYWriter
 from math import ceil
@@ -117,8 +117,9 @@ delta=0.05*0
 rho=2000*U.kg/U.m**3
 src_dir=[0,0,1]
 
-sw=VTIWave(domain, v_p, v_s, wl, src_tags[0], source_vector = src_dir, eps=vareps, gamma=gamma, delta=delta, rho=rho,  \
-                     absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True)
+sw=VTIWave(domain, v_p, v_s, wl, src_tags[0], source_vector = src_dir
+                eps=vareps, gamma=gamma, delta=delta, rho=rho,
+                absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True)
 
 locEW=Locator(domain,rcvEW_locations)
 tracerEW_x=SimpleSEGYWriter(receiver_group=rgEW, source=src_loc_2D, sampling_interval=sampling_interval, text='x-displacement - east-west line')
