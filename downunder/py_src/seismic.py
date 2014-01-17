@@ -320,7 +320,7 @@ class SonicWave(WaveBase):
            initialize the sonic wave solver
 
            :param domain: domain of the problem
-           :type domain: `Doamin`
+           :type domain: `Domain`
            :param v_p: p-velocity field
            :type v_p: `Scalar`
            :param wavelet: wavelet to describe the time evolution of source term
@@ -430,13 +430,19 @@ class VTIWave(WaveBase):
 
         self.__wavelet=wavelet
 
-        c33=v_p**2 * rho
-        c44=v_s**2 * rho
-        c11=(1+2*eps) * c33
-        c66=(1+2*gamma) * c44
-        c13=sqrt(2*c33*(c33-c44) * delta + (c33-c44)**2)-c44
-        c12=c11-2*c66
-        self.__mypde=VTIWavePDE(domain, [c11, c12, c13, c33, c44, c66])
+        self.fastAssembler = hasattr(domain, "setAssembler")
+
+        if self.fastAssembler:
+            c33=v_p**2 * rho
+            c44=v_s**2 * rho
+            c11=(1+2*eps) * c33
+            c66=(1+2*gamma) * c44
+            c13=sqrt(2*c33*(c33-c44) * delta + (c33-c44)**2)-c44
+            c12=c11-2*c66
+            self.__mypde=VTIWavePDE(domain, [c11, c12, c13, c33, c44, c66])
+        else:
+            self.__mypde=LinearPDESystem(domain)
+            self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
 
         if lumping: 
             self.__mypde.getSolverOptions().setSolverMethod(
@@ -451,12 +457,75 @@ class VTIWave(WaveBase):
         self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
         self.__r.setTaggedValue(self.__source_tag, source_vector)
 
+        if not self.fastAssembler:
+            self.c33=v_p**2 * rho
+            self.c44=v_s**2 * rho
+            self.c11=(1+2*eps) * self.c33
+            self.c66=(1+2*gamma) * self.c44
+            self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+            self.c12=self.c11-2*self.c66
+
     def _getAcceleration(self, t, u):
         """
         returns the acceleraton for time t and solution u at time t
         """
         du = grad(u)
-        self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+        if not self.fastAssembler:
+            sigma=self.__mypde.getCoefficient('X')
+            if sigma.isEmpty():
+                print "X"
+            if self.__mypde.getDim() == 3:
+                e11=du[0,0]
+                e22=du[1,1]
+                e33=du[2,2]
+                if e11.isEmpty():
+                    print "e11"
+                if e22.isEmpty():
+                    print "e22"
+                if e33.isEmpty():
+                    print "e33"
+                if self.c11.isEmpty():
+                    print "c11"
+                if self.c12.isEmpty():
+                    print "c12"
+                if self.c13.isEmpty():
+                    print "c13"
+                if self.c33.isEmpty():
+                    print "c33"
+                if self.c44.isEmpty():
+                    print "c44"
+                if self.c66.isEmpty():
+                    print "c66"
+                sigma[0,0]=self.c11*e11+self.c12*e22+self.c13*e33
+                sigma[1,1]=self.c12*e11+self.c11*e22+self.c13*e33
+                sigma[2,2]=self.c13*(e11+e22)+self.c33*e33
+
+                s=self.c44*(du[2,1]+du[1,2])
+                sigma[1,2]=s
+                sigma[2,1]=s             
+
+                s=self.c44*(du[2,0]+du[0,2])
+                sigma[0,2]=s
+                sigma[2,0]=s
+
+                s=self.c66*(du[0,1]+du[1,0])
+                sigma[0,1]=s
+                sigma[1,0]=s
+                
+
+            else:
+                e11=du[0,0]
+                e22=du[1,1]
+                sigma[0,0]=self.c11*e11+self.c13*e22
+                sigma[1,1]=self.c13*e11+self.c33*e22
+                s=self.c44*(du[1,0]+du[0,1])
+                sigma[0,1]=s
+                sigma[1,0]=s
+            self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+
+        else:
+            self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+
         return self.__mypde.getSolution()
 
 
@@ -475,7 +544,7 @@ class HTIWave(WaveBase):
            initialize the VTI wave solver
 
            :param domain: domain of the problem
-           :type domain: `Doamin`
+           :type domain: `Domain`
            :param v_p: vertical p-velocity field
            :type v_p: `Scalar`
            :param v_s: vertical s-velocity field
