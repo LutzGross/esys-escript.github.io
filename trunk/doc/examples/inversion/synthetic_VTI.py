@@ -117,7 +117,7 @@ delta=0.05*0
 rho=2000*U.kg/U.m**3
 src_dir=[0,0,1]
 
-sw=VTIWave(domain, v_p, v_s, wl, src_tags[0], source_vector = src_dir
+sw=VTIWave(domain, v_p, v_s, wl, src_tags[0], source_vector = src_dir,
                 eps=vareps, gamma=gamma, delta=delta, rho=rho,
                 absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True)
 
