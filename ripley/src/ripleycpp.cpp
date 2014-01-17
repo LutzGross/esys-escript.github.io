@@ -107,7 +107,8 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 // The double for n? is just to keep python happy when people need to deal with
 // truediv
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
-                 const object& l1, const object& l2, int d0, int d1, int d2)
+                 const object& l1, const object& l2, int d0, int d1, int d2,
+                 const object& objpoints, const object& objtags)
 {
     int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1), n2=static_cast<int>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
@@ -147,12 +148,54 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
     } else
         throw RipleyException("Argument l2 must be a float or 2-tuple");
 
-    return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2));
+    boost::python::list pypoints=extract<boost::python::list>(objpoints);
+    boost::python::list pytags=extract<boost::python::list>(objtags);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    std::vector<double> points;
+    std::vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        boost::python::object temp=pypoints[i];
+        int l=extract<int>(temp.attr("__len__")());
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    std::map<std::string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<std::string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            std::string s=ex_str();
+            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw RipleyException("Error - Unable to extract tag value.");
+        }
+    }
+    return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
+                                            points, tags, tagstonames));
 }
 
 const int _q[]={0x61686969,0x746c4144,0x79616e43};
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
-                               const object& l1, int d0, int d1)
+                               const object& l1, int d0, int d1, 
+                               const object& objpoints, const object& objtags)
 {
     int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
@@ -179,8 +222,49 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
         y1=extract<double>(l1);
     } else
         throw RipleyException("Argument l1 must be a float or 2-tuple");
-
-    return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1));
+        
+    boost::python::list pypoints=extract<boost::python::list>(objpoints);
+    boost::python::list pytags=extract<boost::python::list>(objtags);
+    int numpts=extract<int>(pypoints.attr("__len__")());
+    int numtags=extract<int>(pytags.attr("__len__")());
+    std::vector<double> points;
+    std::vector<int> tags;
+    tags.resize(numtags, -1);
+    for (int i=0;i<numpts;++i) {
+        boost::python::object temp=pypoints[i];
+        int l=extract<int>(temp.attr("__len__")());
+        for (int k=0;k<l;++k) {
+            points.push_back(extract<double>(temp[k]));
+        }
+    }
+    std::map<std::string, int> tagstonames;
+    int curmax=40;
+    // but which order to assign tags to names?????
+    for (int i=0;i<numtags;++i) {
+        extract<int> ex_int(pytags[i]);
+        extract<std::string> ex_str(pytags[i]);
+        if (ex_int.check()) {
+            tags[i]=ex_int();
+            if (tags[i]>= curmax) {
+                curmax=tags[i]+1;
+            }
+        } else if (ex_str.check()) {
+            std::string s=ex_str();
+            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            if (it!=tagstonames.end()) {
+                // we have the tag already so look it up
+                tags[i]=it->second;
+            } else {
+                tagstonames[s]=curmax;
+                tags[i]=curmax;
+                curmax++;
+            }
+        } else {
+            throw RipleyException("Error - Unable to extract tag value.");
+        }
+    }
+    return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
+                                             points, tags, tagstonames));
 }
 std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
@@ -205,7 +289,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
     scope().attr("DATATYPE_FLOAT32") = (int)ripley::DATATYPE_FLOAT32;
     scope().attr("DATATYPE_FLOAT64") = (int)ripley::DATATYPE_FLOAT64;
 
-    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1),
+    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
@@ -217,7 +301,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
-    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1),
+    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
 "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
@@ -261,6 +345,12 @@ BOOST_PYTHON_MODULE(ripleycpp)
         .def("getNumDataPointsGlobal", &ripley::RipleyDomain::getNumDataPointsGlobal,
 ":return: the number of data points summed across all MPI processes\n"
 ":rtype: ``int``")
+        .def("addToSystem",&ripley::RipleyDomain::addToSystemFromPython,
+            args("mat", "rhs", "data"),
+            "adds a PDE to the system, results depend on domain\n\n"
+            ":param mat:\n:type mat: `OperatorAdapter`\n"
+            ":param rhs:\n:type rhs: `Data`\n"
+            ":param data:\ntype data: `list`")
         .def("addPDEToSystem",&ripley::RipleyDomain::addPDEToSystem,
 args("mat", "rhs", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
@@ -275,6 +365,7 @@ args("mat", "rhs", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_conta
 ":param d_contact:\n:type d_contact: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
 )
+
         .def("addPDEToRHS",&ripley::RipleyDomain::addPDEToRHS, 
 args("rhs", "X", "Y", "y", "y_contact"),
 "adds a PDE onto the stiffness matrix mat and a rhs\n\n"
@@ -284,6 +375,18 @@ args("rhs", "X", "Y", "y", "y_contact"),
 ":param y:\n:type y: `Data`\n"
 ":param y_contact:\n:type y_contact: `Data`"
 )
+        .def("addToRHS",&ripley::RipleyDomain::addToRHSFromPython,
+            args("rhs", "data"),
+            "adds a PDE onto the stiffness matrix mat and a rhs, "
+            "results depends on domain\n\n"
+            ":param rhs:\n:type rhs: `Data`\n"
+            ":param data:\ntype data: `list`")
+        .def("setAssembler", &ripley::RipleyDomain::setAssemblerFromPython,
+            args("typename", "options"),
+            "sets the domain to use the named assembler, if supported, using"
+            "the options if provided"
+            ":param typename:\n:type typename: `string`\n"
+            ":param options:\n:type options: `list`\n")
         .def("addPDEToTransportProblem",&ripley::RipleyDomain::addPDEToTransportProblem,
 args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
 ":param tp:\n:type tp: `TransportProblemAdapter`\n"

@@ -30,6 +30,10 @@ sources = """
     Rectangle.cpp
     RipleyDomain.cpp
     RipleyException.cpp
+    DefaultAssembler2D.cpp
+    DefaultAssembler3D.cpp
+    AbstractAssembler.cpp
+    WaveAssembler2D.cpp
 """.split()
 
 headers = """
@@ -39,6 +43,10 @@ headers = """
     RipleyDomain.h
     RipleyException.h
     system_dep.h
+    DefaultAssembler2D.h
+    DefaultAssembler3D.h
+    AbstractAssembler.h
+    WaveAssembler2D.h
 """.split()
 
 local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])

@@ -28,6 +28,7 @@ namespace ripley {
 */
 class RIPLEY_DLL_API Brick: public RipleyDomain
 {
+    friend class DefaultAssembler3D;
 public:
 
     /**
@@ -38,7 +39,11 @@ public:
        \param d0,d1,d2 number of subdivisions in each dimension
     */
     Brick(int n0, int n1, int n2, double x0, double y0, double z0, double x1,
-          double y1, double z1, int d0=-1, int d1=-1, int d2=-1);
+          double y1, double z1, int d0=-1, int d1=-1, int d2=-1,
+          const std::vector<double>& points = std::vector<double>(),
+          const std::vector<int>& tags = std::vector<int>(),
+          const std::map<std::string, int>& tagnamestonums = 
+                                            std::map<std::string, int>());
 
     /**
        \brief
@@ -173,34 +178,6 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const;
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                        escript::Data& in, bool reduced) const;
@@ -208,6 +185,7 @@ protected:
                                          bool reduced) const;
     virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
+    virtual int getDofOfNode(int node) const;
 
 private:
     void populateSampleIds();
@@ -224,6 +202,7 @@ private:
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
 
+    int findNode(double *coords) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE[3];
@@ -281,6 +260,9 @@ private:
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
+inline int Brick::getDofOfNode(int node) const {
+    return m_dofMap[node];
+}
 
 inline int Brick::getNumDataPointsGlobal() const
 {

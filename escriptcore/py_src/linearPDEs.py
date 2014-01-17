@@ -2841,7 +2841,7 @@ class LinearPDE(LinearProblem):
                  D_reduced=self.getCoefficient("D_reduced")
                  d_reduced=self.getCoefficient("d_reduced")
                  d_dirac=self.getCoefficient("d_dirac")
-                 
+
                  if not D.isEmpty():
                      if self.getNumSolutions()>1:
                         D_times_e=util.matrix_mult(D,numpy.ones((self.getNumSolutions(),)))
@@ -3373,6 +3373,155 @@ class Helmholtz(LinearPDE):
         return self.getCoefficient("g_reduced")
      else:
         return super(Helmholtz, self).getCoefficient(name)
+
+class VTIWavePDE(LinearPDE):
+    """
+    A class specifically for waves, passes along values to native implementation
+    to save computational time.
+    """
+    def __init__(self,domain,c,numEquations=None,numSolutions=None,debug=False):
+        """
+        Initializes a new linear PDE.
+
+        :param domain: domain of the PDE
+        :type domain: `Domain`
+        :param numEquations: number of equations. If ``None`` the number of
+                          equations is extracted from the PDE coefficients.
+        :param numSolutions: number of solution components. If ``None`` the number
+                          of solution components is extracted from the PDE
+                          coefficients.
+        :param debug: if True debug information is printed
+
+        """
+        super(VTIWavePDE, self).__init__(domain,numEquations,numSolutions,debug)
+        #
+        #   the coefficients of the PDE:
+        #
+        self.introduceCoefficients(
+           A=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+           B=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+           C=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION,PDECoef.BY_DIM),PDECoef.OPERATOR),
+           D=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+           du=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+           Y=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+           d=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+           y=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+           d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
+           y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
+           r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
+
+#X=PDECoef(PDECoef.INTERIOR, (PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
+
+           q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH))
+
+        domain.setAssembler("WaveAssembler", [("c11", c[0]), ("c12", c[1]),
+                    ("c13", c[2]), ("c33", c[3]), ("c44", c[4]), ("c66", c[5])])
+
+    
+    def getSystem(self):
+        """
+        Returns the operator and right hand side of the PDE.
+
+        :return: the discrete version of the PDE
+        :rtype: ``tuple`` of `Operator` and
+                `Data`
+        """
+        if not self.isOperatorValid() or not self.isRightHandSideValid():
+          if self.isUsingLumping():
+              if not self.isOperatorValid():
+                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution():
+                      raise TypeError("Lumped matrix requires same order for equations and unknowns")
+                 if not self.getCoefficient("A").isEmpty():
+                      raise ValueError("coefficient A in lumped matrix may not be present.")
+                 if not self.getCoefficient("B").isEmpty():
+                      raise ValueError("coefficient B in lumped matrix may not be present.")
+                 if not self.getCoefficient("C").isEmpty():
+                      raise ValueError("coefficient C in lumped matrix may not be present.")
+
+                 D=self.getCoefficient("D")
+                 d=self.getCoefficient("d")
+                 d_dirac=self.getCoefficient("d_dirac")
+                 
+                 if not D.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_times_e=util.matrix_mult(D,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        D_times_e=D
+                 else:
+                    D_times_e=escore.Data()
+                 if not d.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_times_e=util.matrix_mult(d,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        d_times_e=d
+                 else:
+                    d_times_e=escore.Data()
+                    
+                 if not d_dirac.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_dirac_times_e=util.matrix_mult(d_dirac,numpy.ones((self.getNumSolutions(),)))
+                 else:
+                    d_dirac_times_e=escore.Data()
+
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
+                    hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
+                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+                 else:
+                    self.getDomain().addToRHS(operator, 
+                        [("Y", D_times_e), ("y", d_times_e),
+                         ("y_dirac", d_dirac_times_e)])
+                 self.trace("New lumped operator has been built.")
+              if not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.getDomain().addToRHS(righthandside,
+                                [(i, self.getCoefficient(i)) for i in 
+                                    ["du", "Y", "y", "y_dirac"]
+                                ])
+                 self.trace("New right hand side has been built.")
+                 self.validRightHandSide()
+              self.insertConstraint(rhs_only=False)
+              self.validOperator()
+          else:
+             if not self.isOperatorValid() and not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 data = [(i, self.getCoefficient(i)) for i in ["A", "B", "C",
+                                "D", "Y", "d", "y", "d_contact",
+                                "y_contact", "d_dirac", "y_dirac", "du"]
+                            ]
+                 self.getDomain().addToSystem(operator, righthandside, data)
+                 self.insertConstraint(rhs_only=False)
+                 self.trace("New system has been built.")
+                 self.validOperator()
+                 self.validRightHandSide()
+             elif not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.getDomain().addToRHS(righthandside,
+                                [(i, self.getCoefficient(i)) for i in 
+                                    ["du", "Y", "y", "y_contact", "y_dirac"]
+                                ])
+                 self.insertConstraint(rhs_only=True)
+                 self.trace("New right hand side has been built.")
+                 self.validRightHandSide()
+             elif not self.isOperatorValid():
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 data = [(i, self.getCoefficient(i)) for i in ["A", "B", "C",
+                        "D", "d", "d_contact", "d_dirac", "du"]]
+                 self.getDomain().addToSystem(operator, escore.Data(), data)
+                 self.insertConstraint(rhs_only=False)
+                 self.trace("New operator has been built.")
+                 self.validOperator()
+        self.setSystemStatus()
+        self.trace("System status is %s."%self.getSystemStatus())
+        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
+
 
 class LameEquation(LinearPDE):
    """
