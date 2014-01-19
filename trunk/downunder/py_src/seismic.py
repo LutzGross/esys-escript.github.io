@@ -472,30 +472,10 @@ class VTIWave(WaveBase):
         du = grad(u)
         if not self.fastAssembler:
             sigma=self.__mypde.getCoefficient('X')
-            if sigma.isEmpty():
-                print "X"
             if self.__mypde.getDim() == 3:
                 e11=du[0,0]
                 e22=du[1,1]
                 e33=du[2,2]
-                if e11.isEmpty():
-                    print "e11"
-                if e22.isEmpty():
-                    print "e22"
-                if e33.isEmpty():
-                    print "e33"
-                if self.c11.isEmpty():
-                    print "c11"
-                if self.c12.isEmpty():
-                    print "c12"
-                if self.c13.isEmpty():
-                    print "c13"
-                if self.c33.isEmpty():
-                    print "c33"
-                if self.c44.isEmpty():
-                    print "c44"
-                if self.c66.isEmpty():
-                    print "c66"
                 sigma[0,0]=self.c11*e11+self.c12*e22+self.c13*e33
                 sigma[1,1]=self.c12*e11+self.c11*e22+self.c13*e33
                 sigma[2,2]=self.c13*(e11+e22)+self.c33*e33
