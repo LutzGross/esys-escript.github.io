@@ -3414,8 +3414,7 @@ class VTIWavePDE(LinearPDE):
 
            q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH))
 
-        domain.setAssembler("WaveAssembler", [("c11", c[0]), ("c12", c[1]),
-                    ("c13", c[2]), ("c33", c[3]), ("c44", c[4]), ("c66", c[5])])
+        domain.setAssembler("WaveAssembler", c)
 
     
     def getSystem(self):

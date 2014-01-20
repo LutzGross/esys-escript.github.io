@@ -439,7 +439,8 @@ class VTIWave(WaveBase):
             c66=(1+2*gamma) * c44
             c13=sqrt(2*c33*(c33-c44) * delta + (c33-c44)**2)-c44
             c12=c11-2*c66
-            self.__mypde=VTIWavePDE(domain, [c11, c12, c13, c33, c44, c66])
+            self.__mypde=VTIWavePDE(domain, [("c11", c11), ("c12", c12),
+                        ("c13", c13), ("c33", c33), ("c44", c44), ("c66", c66)])
         else:
             self.__mypde=LinearPDESystem(domain)
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
