@@ -92,7 +92,6 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
         }
     }
 
-    escript::Data& _D(*const_cast<escript::Data*>(&D));
     lumpedMat.requireWrite();
     double *lumpedMat_p=lumpedMat.getSampleDataRW(0);
     if (funcspace==FINLEY_POINTS) {
@@ -103,7 +102,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
                     if (elements->Color[e]==color) {
-                        const double *D_p=_D.getSampleDataRO(e);
+                        const double *D_p=D.getSampleDataRO(e);
                         util::addScatter(1,
                                 &(p.row_DOF[elements->Nodes[INDEX2(0,e,p.NN)]]),
                                 p.numEqu, D_p, lumpedMat_p,
@@ -129,7 +128,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                                    const double *D_p=_D.getSampleDataRO(e);
+                                    const double *D_p=D.getSampleDataRO(e);
                                     if (useHRZ) {
                                         double m_t=0; // mass of the element
                                         double diagS=0; // diagonal sum
@@ -182,7 +181,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                                    const double *D_p=_D.getSampleDataRO(e);
+                                    const double *D_p=D.getSampleDataRO(e);
                                     if (useHRZ) { // HRZ lumping
                                         double m_t=0; // mass of the element
                                         double diagS=0; // diagonal sum
@@ -236,7 +235,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e,p.numQuadSub,p.numSub)]);
-                                    const double *D_p=_D.getSampleDataRO(e);
+                                    const double *D_p=D.getSampleDataRO(e);
 
                                     if (useHRZ) { // HRZ lumping
                                         for (int k=0; k<p.numEqu; k++) {
@@ -295,7 +294,7 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
                             if (elements->Color[e]==color) {
                                 for (int isub=0; isub<p.numSub; isub++) {
                                     const double *Vol=&(p.row_jac->volume[INDEX3(0,isub,e, p.numQuadSub,p.numSub)]);
-                                    const double *D_p=_D.getSampleDataRO(e);
+                                    const double *D_p=D.getSampleDataRO(e);
 
                                     if (useHRZ) { // HRZ lumping
                                         double m_t=0.; // mass of the element

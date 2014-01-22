@@ -16,30 +16,27 @@
 
 /****************************************************************************
 
-  Assembles the system of numEqu PDEs into the stiffness matrix S and right
-  hand side F
+  Assembles a single PDE into the stiffness matrix S and right hand side F
 
-      D_{k,m} u_m  and Y_k
+      D u_m and Y
 
-  u has p.numComp components in a 3D domain. The shape functions for test and
-  solution must be identical and 2*row_NS == row_NN (contact elements).
+  in a 3D domain. The shape functions for test and solution must be identical
+  and 2*row_NS == row_NN (contact elements).
 
   Shape of the coefficients:
 
-      D = p.numEqu x p.numComp
-      Y = p.numEqu
+      D = scalar
+      Y = scalar
 
 *****************************************************************************/
-
-/*  Author: Lutz Gross, l.gross@uq.edu.au */
 
 #include "Assemble.h"
 #include "Util.h"
 
 namespace finley {
 
-void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
-                           escript::Data& Y)
+void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
+                           const escript::Data& Y)
 {
     bool expandedD=D.actsExpanded();
     bool expandedY=Y.actsExpanded();
@@ -49,11 +46,11 @@ void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
 
 #pragma omp parallel
     {
-        std::vector<double> EM_S(p.row_numShapesTotal*p.col_numShapesTotal*p.numEqu*p.numComp);
-        std::vector<double> EM_F(p.row_numShapesTotal*p.numEqu);
+        std::vector<double> EM_S(p.row_numShapesTotal*p.col_numShapesTotal);
+        std::vector<double> EM_F(p.row_numShapesTotal);
 
         for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
-            // loop over all elements:
+            // loop over all elements
 #pragma omp for
             for (int e=0; e<p.elements->numElements; e++) {
                 if (p.elements->Color[e]==color) {
@@ -68,21 +65,16 @@ void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
                             const double *D_p=D.getSampleDataRO(e);
                             add_EM_S=true;
                             if (expandedD) {
-                                const double *D_q=&(D_p[INDEX4(0,0,0,isub,p.numEqu,p.numComp, p.numQuadSub)]);
+                                const double *D_q=&(D_p[INDEX2(0,isub, p.numQuadSub)]);
                                 for (int s=0; s<p.row_numShapes; s++) {
                                     for (int r=0; r<p.col_numShapes; r++) {
-                                        for (int k=0; k<p.numEqu; k++) {
-                                            for (int m=0; m<p.numComp; m++) {
-                                                double val=0;
-                                                for (int q=0; q<p.numQuadSub; q++) {
-                                                    val+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_q[INDEX3(k,m,q,p.numEqu,p.numComp)]*S[INDEX2(r,q,p.row_numShapes)];
-                                                }
-                                                EM_S[INDEX4(k,m,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]= val;
-                                                EM_S[INDEX4(k,m,s,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]=-val;
-                                                EM_S[INDEX4(k,m,s+p.row_numShapes,r,p.numEqu,p.numComp,p.row_numShapesTotal)]=-val;
-                                                EM_S[INDEX4(k,m,s+p.row_numShapes,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]= val;
-                                            }
-                                        }
+                                        double val=0.;
+                                        for (int q=0; q<p.numQuadSub; q++)
+                                            val+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*D_q[q]*S[INDEX2(r,q,p.row_numShapes)];
+                                        EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]= val;
+                                        EM_S[INDEX4(0,0,s,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]=-val;
+                                        EM_S[INDEX4(0,0,s+p.row_numShapes,r,p.numEqu,p.numComp,p.row_numShapesTotal)]=-val;
+                                        EM_S[INDEX4(0,0,s+p.row_numShapes,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]= val;
                                     }
                                 }
                             } else { // constant D
@@ -91,15 +83,11 @@ void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
                                         double f=0;
                                         for (int q=0; q<p.numQuadSub; q++)
                                             f+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*S[INDEX2(r,q,p.row_numShapes)];
-                                        for (int k=0; k<p.numEqu; k++) {
-                                            for (int m=0; m<p.numComp; m++) {
-                                                const double fD=f*D_p[INDEX2(k,m,p.numEqu)];
-                                                EM_S[INDEX4(k,m,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]= fD;
-                                                EM_S[INDEX4(k,m,s,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]=-fD;
-                                                EM_S[INDEX4(k,m,s+p.row_numShapes,r,p.numEqu,p.numComp,p.row_numShapesTotal)]=-fD;
-                                                EM_S[INDEX4(k,m,s+p.row_numShapes,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]= fD;
-                                            }
-                                        }
+                                        const double fD=f*D_p[0];
+                                        EM_S[INDEX4(0,0,s,r,p.numEqu,p.numComp,p.row_numShapesTotal)]= fD;
+                                        EM_S[INDEX4(0,0,s,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]=-fD;
+                                        EM_S[INDEX4(0,0,s+p.row_numShapes,r,p.numEqu,p.numComp,p.row_numShapesTotal)]=-fD;
+                                        EM_S[INDEX4(0,0,s+p.row_numShapes,r+p.col_numShapes,p.numEqu,p.numComp,p.row_numShapesTotal)]= fD;
                                     }
                                 }
                             }
@@ -111,25 +99,21 @@ void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
                             const double *Y_p=Y.getSampleDataRO(e);
                             add_EM_F=true;
                             if (expandedY) {
-                                const double *Y_q=&(Y_p[INDEX3(0,0,isub, p.numEqu,p.numQuadSub)]);
+                                const double *Y_q=&(Y_p[INDEX2(0,isub, p.numQuadSub)]);
                                 for (int s=0; s<p.row_numShapes; s++) {
-                                    for (int k=0; k<p.numEqu; k++) {
-                                        double val=0;
-                                        for (int q=0; q<p.numQuadSub; q++)
-                                            val+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*Y_q[INDEX2(k,q,p.numEqu)];
-                                        EM_F[INDEX2(k,s,p.numEqu)]=-val;
-                                        EM_F[INDEX2(k,s+p.row_numShapes,p.numEqu)]= val;
-                                    }
+                                    double val=0.;
+                                    for (int q=0; q<p.numQuadSub; q++)
+                                        val+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)]*Y_q[q];
+                                    EM_F[INDEX2(0,s,p.numEqu)]=-val;
+                                    EM_F[INDEX2(0,s+p.row_numShapes,p.numEqu)]= val;
                                 }
                             } else { // constant Y
                                 for (int s=0; s<p.row_numShapes; s++) {
-                                    double f=0;
+                                    double f=0.;
                                     for (int q=0; q<p.numQuadSub; q++)
                                         f+=Vol[q]*S[INDEX2(s,q,p.row_numShapes)];
-                                    for (int k=0; k<p.numEqu; k++) {
-                                        EM_F[INDEX2(k,s,p.numEqu)]=-f*Y_p[k];
-                                        EM_F[INDEX2(k,s+p.row_numShapes,p.numEqu)]=f*Y_p[k];
-                                    }
+                                    EM_F[INDEX2(0,s,p.numEqu)] = -f*Y_p[0];
+                                    EM_F[INDEX2(0,s+p.row_numShapes,p.numEqu)] = f*Y_p[0];
                                 }
                             }
                         }
@@ -138,16 +122,16 @@ void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
                         std::vector<int> row_index(p.row_numShapesTotal);
                         for (int q=0; q<p.row_numShapesTotal; q++)
                             row_index[q]=p.row_DOF[p.elements->Nodes[INDEX2(p.row_node[INDEX2(q,isub,p.row_numShapesTotal)],e,p.NN)]];
-               
+
                         if (add_EM_F)
                             util::addScatter(p.row_numShapesTotal,
-                                    &row_index[0], p.numEqu, &EM_F[0], F_p,
-                                    p.row_DOF_UpperBound);
+                                   &row_index[0], p.numEqu, &EM_F[0], F_p,
+                                   p.row_DOF_UpperBound);
                         if (add_EM_S)
                             Assemble_addToSystemMatrix(p.S,
-                                    p.row_numShapesTotal, &row_index[0],
-                                    p.numEqu, p.col_numShapesTotal,
-                                    &row_index[0], p.numComp, &EM_S[0]);
+                                   p.row_numShapesTotal, &row_index[0],
+                                   p.numEqu, p.col_numShapesTotal,
+                                   &row_index[0], p.numComp, &EM_S[0]);
                     } // end of isub
                 } // end color check
             } // end element loop

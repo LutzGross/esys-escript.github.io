@@ -590,8 +590,6 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
     if (numComp > 1 || dpp > 1)
         throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
 
-    escript::Data* _in = const_cast<escript::Data*>(&in);
-
     // from here on we know that each sample consists of one value
     FileWriter fw;
     fw.openFile(filename, fileSize);
@@ -604,7 +602,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
             ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {
-                const double* sample = _in->getSampleDataRO(z*myN0*myN1+y*myN0+x);
+                const double* sample = in.getSampleDataRO(z*myN0*myN1+y*myN0+x);
                 ValueType fvalue = static_cast<ValueType>(*sample);
                 if (byteOrder == BYTEORDER_NATIVE) {
                     oss.write((char*)&fvalue, sizeof(fvalue));
@@ -1151,7 +1149,7 @@ void Brick::assembleCoordinates(escript::Data& arg) const
 }
 
 //protected
-void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
+void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const double C0 = .044658198738520451079;
@@ -1622,7 +1620,7 @@ void Brick::assembleGradient(escript::Data& out, escript::Data& in) const
 }
 
 //protected
-void Brick::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
+void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
     const index_t left = (m_offset[0]==0 ? 0 : 1);
@@ -1910,7 +1908,7 @@ dim_t Brick::insertNeighbourNodes(IndexVector& index, index_t node) const
 }
 
 //protected
-void Brick::nodesToDOF(escript::Data& out, escript::Data& in) const
+void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
@@ -1934,12 +1932,11 @@ void Brick::nodesToDOF(escript::Data& out, escript::Data& in) const
 }
 
 //protected
-void Brick::dofToNodes(escript::Data& out, escript::Data& in) const
+void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     Paso_Coupler* coupler = Paso_Coupler_alloc(m_connector, numComp);
-    in.requireWrite();
-    Paso_Coupler_startCollect(coupler, in.getSampleDataRW(0));
+    Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
@@ -2530,7 +2527,8 @@ void Brick::addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
 }
 
 //protected
-void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
+void Brick::interpolateNodesOnElements(escript::Data& out,
+                                       const escript::Data& in,
                                        bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
@@ -2613,7 +2611,7 @@ void Brick::interpolateNodesOnElements(escript::Data& out, escript::Data& in,
 }
 
 //protected
-void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
                                     bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
@@ -2847,7 +2845,7 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
     }
 }
 
-int Brick::findNode(double *coords) const {
+int Brick::findNode(const double *coords) const {
     const int NOT_MINE = -1;
     //is the found element even owned by this rank
     for (int dim = 0; dim < m_numDim; dim++) {

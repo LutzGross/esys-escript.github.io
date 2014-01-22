@@ -82,38 +82,44 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
                   const escript::Data& C, const escript::Data& D,
                   const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Points(const AssembleParameters& p, escript::Data& d_dirac,
-                         escript::Data& y_dirac);
+void Assemble_PDE_Points(const AssembleParameters& p, const escript::Data& d_dirac,
+                         const escript::Data& y_dirac);
 
-void Assemble_PDE_Single_1D(const AssembleParameters& p, escript::Data& A,
-        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
-        escript::Data& Y);
+void Assemble_PDE_Single_1D(const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Single_2D(const AssembleParameters& p, escript::Data& A,
-        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
-        escript::Data& Y);
+void Assemble_PDE_Single_2D(const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Single_3D(const AssembleParameters& p, escript::Data& A,
-        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
-        escript::Data& Y);
+void Assemble_PDE_Single_3D(const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_Single_C(const AssembleParameters& p, escript::Data& D,
-                           escript::Data& Y);
+void Assemble_PDE_Single_C(const AssembleParameters& p, const escript::Data& D,
+                           const escript::Data& Y);
 
-void Assemble_PDE_System_1D(const AssembleParameters& p, escript::Data& A,
-        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
-        escript::Data& Y);
+void Assemble_PDE_System_1D(const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_System_2D(const AssembleParameters& p, escript::Data& A,
-        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
-        escript::Data& Y);
+void Assemble_PDE_System_2D(const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_System_3D(const AssembleParameters& p, escript::Data& A,
-        escript::Data& B, escript::Data& C, escript::Data& D, escript::Data& X,
-        escript::Data& Y);
+void Assemble_PDE_System_3D(const AssembleParameters& p,
+                            const escript::Data& A, const escript::Data& B,
+                            const escript::Data& C, const escript::Data& D,
+                            const escript::Data& X, const escript::Data& Y);
 
-void Assemble_PDE_System_C(const AssembleParameters& p, escript::Data& D,
-                           escript::Data& Y);
+void Assemble_PDE_System_C(const AssembleParameters& p, const escript::Data& D,
+                           const escript::Data& Y);
 
 void Assemble_addToSystemMatrix(Paso_SystemMatrix*, const int NN_Equa,
         const int* Nodes_Equa, const int num_Equa, const int NN_Sol,

@@ -60,7 +60,6 @@ void Assemble_AverageElementData(const ElementFile* elements,
     } else if (!out.actsExpanded()) {
         setError(TYPE_ERROR, "Assemble_AverageElementData: expanded Data object is expected for output data.");
     } else {
-        escript::Data& _in(*const_cast<escript::Data*>(&in));
         if (in.actsExpanded()) {
             double vol=0.;
             for (int q=0; q<numQuad_in;++q) vol+=wq[q];
@@ -68,7 +67,7 @@ void Assemble_AverageElementData(const ElementFile* elements,
             out.requireWrite();
 #pragma omp parallel for
             for (int n=0; n<numElements; n++) {
-                const double *in_array = _in.getSampleDataRO(n);
+                const double *in_array = in.getSampleDataRO(n);
                 double *out_array = out.getSampleDataRW(n);
                 for (int i=0; i<numComps; ++i) {
                     double rtmp=0.;
@@ -84,7 +83,7 @@ void Assemble_AverageElementData(const ElementFile* elements,
             out.requireWrite();
 #pragma omp parallel for
             for (int n=0; n<numElements; n++) {
-                const double *in_array = _in.getSampleDataRO(n);
+                const double *in_array = in.getSampleDataRO(n);
                 double *out_array = out.getSampleDataRW(n);
                 for (int q=0; q<numQuad_out; q++)
                     memcpy(out_array+q*numComps, in_array, numComps_size);

@@ -111,7 +111,6 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
         return;
 
     const size_t localGradSize=sizeof(double)*numDim*numQuad*numSub*numComps;
-    escript::Data& in(*const_cast<escript::Data*>(&data));
     grad_data.requireWrite();
 #pragma omp parallel
     {
@@ -124,7 +123,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(n);
+                            const double *data_array=data.getSampleDataRO(n);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -142,7 +141,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(n);
+                            const double *data_array=data.getSampleDataRO(n);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -161,7 +160,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(n);
+                            const double *data_array=data.getSampleDataRO(n);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -184,7 +183,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0;s<numShapes;s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);            
+                            const double *data_array=data.getSampleDataRO(target[n]);            
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {                              
@@ -202,7 +201,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -221,7 +220,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {   
 #pragma ivdep
                                 for (int l=0;l<numComps;l++) {
@@ -244,7 +243,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -262,7 +261,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -281,7 +280,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -304,7 +303,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -322,7 +321,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {
@@ -342,7 +341,7 @@ void Assemble_gradient(const NodeFile* nodes, const ElementFile* elements,
                     for (int isub=0; isub<numSub; isub++) {
                         for (int s=0; s<numShapes; s++) {
                             const int n=elements->Nodes[INDEX2(nodes_selector[INDEX2(s_offset+s,isub,numShapesTotal2)],e, NN)];
-                            const double *data_array=in.getSampleDataRO(target[n]);
+                            const double *data_array=data.getSampleDataRO(target[n]);
                             for (int q=0; q<numQuad; q++) {
 #pragma ivdep
                                 for (int l=0; l<numComps; l++) {

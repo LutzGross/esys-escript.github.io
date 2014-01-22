@@ -37,8 +37,9 @@
 
 namespace finley {
 
-void Assemble_PDE_Points(const AssembleParameters& p, escript::Data& d_dirac,
-                         escript::Data& y_dirac)
+void Assemble_PDE_Points(const AssembleParameters& p,
+                         const escript::Data& d_dirac,
+                         const escript::Data& y_dirac)
 {
     p.F.requireWrite();
     double *F_p=p.F.getSampleDataRW(0);

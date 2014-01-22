@@ -102,7 +102,6 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         return;
 
     const size_t numComps_size = numComps*sizeof(double);
-    escript::Data& _in(*const_cast<escript::Data*>(&in));
 
     /*********************** FINLEY_NODES ********************************/
     if (in_data_type == FINLEY_NODES) {
@@ -110,27 +109,27 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             const std::vector<int>& map = nodes->borrowReducedNodesTarget();
 #pragma omp parallel for
             for (int n=0; n<map.size(); n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             const std::vector<int>& map = nodes->borrowDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             const std::vector<int>& map = nodes->borrowReducedDegreesOfFreedomTarget();
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(map[n]),
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
                        numComps_size);
             }
         }
@@ -143,7 +142,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             out.requireWrite();
 #pragma omp parallel for
             for (int n=0; n<nodes->getNumNodes(); n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
             }
        } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
             setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to degrees of freedom.");
@@ -154,7 +153,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
                memcpy(out.getSampleDataRW(n),
-                      _in.getSampleDataRO(target[map[n]]), numComps_size);
+                      in.getSampleDataRO(target[map[n]]), numComps_size);
             }
         }
 
@@ -164,12 +163,9 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
             Paso_Coupler *coupler = Paso_Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
             if (Esys_noError()) {
-                // It is not immediately clear whether coupler can be
-                // trusted with constant data so I'll assume RW.
-                // Also, it holds pointers so it might not be safe to use
-                // on lazy data anyway?
-                _in.requireWrite();
-                Paso_Coupler_startCollect(coupler, _in.getSampleDataRW(0));
+                // Coupler holds the pointer but it doesn't appear to get
+                // used so RO should work.
+                Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
                 const int upperBound=nodes->getNumDegreesOfFreedom();
                 const int* target = nodes->borrowTargetDegreesOfFreedom();
@@ -177,7 +173,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 for (int n=0; n<nodes->numNodes; n++) {
                     const int k=target[n];
                     if (k < upperBound) {
-                        memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(k),
+                        memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
                                numComps_size);
                     } else {
                         memcpy(out.getSampleDataRW(n),
@@ -190,8 +186,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         } else if  (out_data_type == FINLEY_REDUCED_NODES) {
             Paso_Coupler *coupler = Paso_Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
             if (Esys_noError()) {
-                _in.requireWrite(); // See comment above about coupler and const
-                Paso_Coupler_startCollect(coupler, _in.getSampleDataRW(0));
+                Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
                 const double *recv_buffer=Paso_Coupler_finishCollect(coupler);
                 const int upperBound=nodes->getNumDegreesOfFreedom();
                 const std::vector<int>& map = nodes->borrowReducedNodesTarget();
@@ -201,7 +196,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 for (int n=0; n<map.size(); n++) {
                     const int k=target[map[n]];
                     if (k < upperBound) {
-                        memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(k),
+                        memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
                                numComps_size);
                     } else {
                         memcpy(out.getSampleDataRW(n),
@@ -214,7 +209,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n),
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n),
                        numComps_size);
             }
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
@@ -223,7 +218,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
                 memcpy(out.getSampleDataRW(n),
-                       _in.getSampleDataRO(target[map[n]]), numComps_size);
+                       in.getSampleDataRO(target[map[n]]), numComps_size);
             }
         }
 
@@ -234,8 +229,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             Paso_Coupler *coupler=Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
             if (Esys_noError()) {
-                _in.requireWrite(); // See comment about coupler and const
-                Paso_Coupler_startCollect(coupler, _in.getSampleDataRW(0));
+                Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
                 out.requireWrite();
                 const int upperBound=nodes->getNumReducedDegreesOfFreedom();
                 const std::vector<int>& map=nodes->borrowReducedNodesTarget();
@@ -245,7 +239,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 for (int n=0; n<map.size(); n++) {
                     const int k=target[map[n]];
                     if (k < upperBound) {
-                        memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(k),
+                        memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
                                numComps_size);
                     } else {
                         memcpy(out.getSampleDataRW(n),
@@ -259,7 +253,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             out.requireWrite();
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), numComps_size);
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
             }
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM ) {
             setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to degrees of freedom.");
