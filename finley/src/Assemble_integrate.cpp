@@ -44,7 +44,6 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
         }
 
         const int numComps = data.getDataPointSize();
-        escript::Data& in(*const_cast<escript::Data*>(&data));
 
         for (int q=0; q<numComps; q++)
             out[q]=0;
@@ -57,7 +56,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
                     if (elements->Owner[e] == my_mpi_rank) {
-                        const double *data_array=in.getSampleDataRO(e);
+                        const double *data_array=data.getSampleDataRO(e);
                         for (int q=0; q<numQuadTotal; q++) {
                             for (int i=0; i<numComps; i++)
                                 out_local[i]+=data_array[INDEX2(i,q,numComps)]*jac->volume[INDEX2(q,e,numQuadTotal)];
@@ -68,7 +67,7 @@ void Assemble_integrate(const NodeFile* nodes, const ElementFile* elements,
 #pragma omp for
                 for (int e=0; e<elements->numElements; e++) {
                     if (elements->Owner[e] == my_mpi_rank) {
-                        const double *data_array=in.getSampleDataRO(e);
+                        const double *data_array=data.getSampleDataRO(e);
                         double rtmp=0.;
                         for (int q=0; q<numQuadTotal; q++)
                             rtmp+=jac->volume[INDEX2(q,e,numQuadTotal)];

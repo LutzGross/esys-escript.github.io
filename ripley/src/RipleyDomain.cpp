@@ -354,7 +354,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
 
     // simplest case: 1:1 copy
     if (inFS==outFS) {
-        copyData(target, *const_cast<escript::Data*>(&in));
+        copyData(target, in);
     // not allowed: reduced nodes/dof->non-reduced nodes/dof
     } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
             && (outFS==Nodes || outFS==DegreesOfFreedom)) {
@@ -362,12 +362,12 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
     } else if ((inFS==Elements && outFS==ReducedElements)
             || (inFS==FaceElements && outFS==ReducedFaceElements)) {
         if (in.actsExpanded())
-            averageData(target, *const_cast<escript::Data*>(&in));
+            averageData(target, in);
         else
-            copyData(target, *const_cast<escript::Data*>(&in));
+            copyData(target, in);
     } else if ((inFS==ReducedElements && outFS==Elements)
             || (inFS==ReducedFaceElements && outFS==FaceElements)) {
-        multiplyData(target, *const_cast<escript::Data*>(&in));
+        multiplyData(target, in);
     } else {
         switch (inFS) {
             case Nodes:
@@ -376,30 +376,30 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom: //FIXME: reduced
                         if (getMPISize()==1)
-                            copyData(target, *const_cast<escript::Data*>(&in));
+                            copyData(target, in);
                         else
-                            nodesToDOF(target,*const_cast<escript::Data*>(&in));
+                            nodesToDOF(target, in);
                         break;
 
                     case Nodes:
                     case ReducedNodes: //FIXME: reduced
-                        copyData(target, *const_cast<escript::Data*>(&in));
+                        copyData(target, in);
                         break;
 
                     case Elements:
-                        interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), false);
+                        interpolateNodesOnElements(target, in, false);
                         break;
 
                     case ReducedElements:
-                        interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), true);
+                        interpolateNodesOnElements(target, in, true);
                         break;
 
                     case FaceElements:
-                        interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), false);
+                        interpolateNodesOnFaces(target, in, false);
                         break;
 
                     case ReducedFaceElements:
-                        interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), true);
+                        interpolateNodesOnFaces(target, in, true);
                         break;
 
                     default:
@@ -413,20 +413,20 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case Nodes:
                     case ReducedNodes: //FIXME: reduced
                         if (getMPISize()==1)
-                            copyData(target, *const_cast<escript::Data*>(&in));
+                            copyData(target, in);
                         else
-                            dofToNodes(target, *const_cast<escript::Data*>(&in));
+                            dofToNodes(target, in);
                         break;
 
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom: //FIXME: reduced
-                        copyData(target, *const_cast<escript::Data*>(&in));
+                        copyData(target, in);
                         break;
 
                     case Elements:
                     case ReducedElements:
                         if (getMPISize()==1) {
-                            interpolateNodesOnElements(target, *const_cast<escript::Data*>(&in), outFS==ReducedElements);
+                            interpolateNodesOnElements(target, in, outFS==ReducedElements);
                         } else {
                             escript::Data contIn(in, (inFS==DegreesOfFreedom ?
                                         escript::continuousFunction(*this) : escript::reducedContinuousFunction(*this)));
@@ -437,7 +437,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case FaceElements:
                     case ReducedFaceElements:
                         if (getMPISize()==1) {
-                            interpolateNodesOnFaces(target, *const_cast<escript::Data*>(&in), outFS==ReducedFaceElements);
+                            interpolateNodesOnFaces(target, in, outFS==ReducedFaceElements);
                         } else {
                             escript::Data contIn(in, (inFS==DegreesOfFreedom ?
                                      escript::continuousFunction(*this) : escript::reducedContinuousFunction(*this)));
@@ -533,10 +533,10 @@ void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
             escript::Data contArg(arg, escript::reducedContinuousFunction(*this));
             assembleGradient(grad, contArg);
         } else {
-            assembleGradient(grad, *const_cast<escript::Data*>(&arg));
+            assembleGradient(grad, arg);
         }
     } else {
-        assembleGradient(grad, *const_cast<escript::Data*>(&arg));
+        assembleGradient(grad, arg);
     }
 }
 
@@ -561,7 +561,7 @@ void RipleyDomain::setToIntegrals(vector<double>& integrals, const escript::Data
         case ReducedElements:
         case FaceElements:
         case ReducedFaceElements:
-            assembleIntegrate(integrals, *const_cast<escript::Data*>(&arg));
+            assembleIntegrate(integrals, arg);
             break;
         default: {
             stringstream msg;
@@ -619,7 +619,7 @@ bool RipleyDomain::canTag(int fsType) const
     throw RipleyException(msg.str());
 }
 
-void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Data& cMask) const
+void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Data& mask) const
 {
     IndexVector* target=NULL;
     dim_t num=0;
@@ -649,7 +649,6 @@ void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Da
         target->assign(num, -1);
     }
 
-    escript::Data& mask=*const_cast<escript::Data*>(&cMask);
 #pragma omp parallel for
     for (index_t i=0; i<num; i++) {
         if (mask.getSampleDataRO(i)[0] > 0) {
@@ -974,7 +973,7 @@ void RipleyDomain::setNewX(const escript::Data& arg)
 }
 
 //protected
-void RipleyDomain::copyData(escript::Data& out, escript::Data& in) const
+void RipleyDomain::copyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
@@ -986,7 +985,7 @@ void RipleyDomain::copyData(escript::Data& out, escript::Data& in) const
 }
 
 //protected
-void RipleyDomain::averageData(escript::Data& out, escript::Data& in) const
+void RipleyDomain::averageData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = in.getNumDataPointsPerSample();
@@ -1005,7 +1004,7 @@ void RipleyDomain::averageData(escript::Data& out, escript::Data& in) const
 }
 
 //protected
-void RipleyDomain::multiplyData(escript::Data& out, escript::Data& in) const
+void RipleyDomain::multiplyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = out.getNumDataPointsPerSample();
@@ -1425,14 +1424,14 @@ void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
         IndexVector rowIndex;
         rowIndex.push_back(getDofOfNode(diracPoints[i].node));
         if (yNotEmpty) {
-            double *EM_F = const_cast<double *>(y.getSampleDataRO(i));
-            double *F_p = const_cast<double *>(rhs.getSampleDataRW(0));
+            const double *EM_F = y.getSampleDataRO(i);
+            double *F_p = rhs.getSampleDataRW(0);
             for (index_t eq = 0; eq < nEq; eq++) {
                 F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
             }
         }
         if (dNotEmpty) {
-            double *EM_S = const_cast<double *>(d.getSampleDataRO(i));
+            const double *EM_S = d.getSampleDataRO(i);
             std::vector<double> contents(EM_S,
                         EM_S+mat->row_block_size*nEq*nComp*rowIndex.size());
             addToSystemMatrix(mat, rowIndex, nEq, rowIndex, nComp, contents);
@@ -1479,9 +1478,9 @@ void RipleyDomain::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
     for (int i = 0; i < numPoints; i++) {
-        int node = findNode(const_cast<double *>(points_ptr + i * m_numDim));
+        int node = findNode(&points_ptr[i * m_numDim]);
         if (node >= 0) {
-            struct DiracPoint dp;
+            DiracPoint dp;
             dp.node = node;
             dp.tag = tags_ptr[i];
             diracPoints.push_back(dp);

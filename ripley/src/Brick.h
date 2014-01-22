@@ -176,15 +176,16 @@ protected:
     virtual dim_t getNumDOF() const;
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
-    virtual void assembleGradient(escript::Data& out, escript::Data& in) const;
-    virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const;
+    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
+    virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                       escript::Data& in, bool reduced) const;
-    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+                                  const escript::Data& in, bool reduced) const;
+    virtual void interpolateNodesOnFaces(escript::Data& out,
+                                         const escript::Data& in,
                                          bool reduced) const;
-    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const;
-    virtual void dofToNodes(escript::Data& out, escript::Data& in) const;
+    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
+    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
 
 private:
@@ -202,7 +203,7 @@ private:
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
 
-    int findNode(double *coords) const;
+    int findNode(const double *coords) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE[3];

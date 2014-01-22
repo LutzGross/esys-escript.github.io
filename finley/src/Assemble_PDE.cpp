@@ -212,12 +212,6 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
     if (!noError())
         return;
 
-    escript::Data& _A(*const_cast<escript::Data*>(&A));
-    escript::Data& _B(*const_cast<escript::Data*>(&B));
-    escript::Data& _C(*const_cast<escript::Data*>(&C));
-    escript::Data& _D(*const_cast<escript::Data*>(&D));
-    escript::Data& _X(*const_cast<escript::Data*>(&X));
-    escript::Data& _Y(*const_cast<escript::Data*>(&Y));
     double blocktimer_start = blocktimer_time();
 
     if (p.numSides == 1) {
@@ -225,25 +219,25 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
             if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
                 setError(TYPE_ERROR, "Assemble_PDE: Point elements require A, B, C and X to be empty.");
             } else {
-                Assemble_PDE_Points(p, _D, _Y);
+                Assemble_PDE_Points(p, D, Y);
             }
         } else if (p.numEqu > 1) { // system of PDEs
             if (p.numDim==3) {
-                Assemble_PDE_System_3D(p, _A, _B, _C, _D, _X, _Y);
+                Assemble_PDE_System_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim==2) {
-                Assemble_PDE_System_2D(p, _A, _B, _C, _D, _X, _Y);
+                Assemble_PDE_System_2D(p, A, B, C, D, X, Y);
             } else if (p.numDim==1) {
-                Assemble_PDE_System_1D(p, _A, _B, _C, _D, _X, _Y);
+                Assemble_PDE_System_1D(p, A, B, C, D, X, Y);
             } else {
                 setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
         } else { // single PDE
             if (p.numDim==3) {
-                Assemble_PDE_Single_3D(p, _A, _B, _C, _D, _X, _Y);
+                Assemble_PDE_Single_3D(p, A, B, C, D, X, Y);
             } else if (p.numDim==2) {
-                Assemble_PDE_Single_2D(p, _A, _B, _C, _D, _X, _Y);
+                Assemble_PDE_Single_2D(p, A, B, C, D, X, Y);
             } else if (p.numDim==1) {
-                Assemble_PDE_Single_1D(p, _A, _B, _C, _D, _X, _Y);
+                Assemble_PDE_Single_1D(p, A, B, C, D, X, Y);
             } else {
                 setError(VALUE_ERROR, "Assemble_PDE supports spatial dimensions 1,2,3 only.");
             }
@@ -252,9 +246,9 @@ void Assemble_PDE(const NodeFile* nodes, const ElementFile* elements,
         if (!A.isEmpty() || !B.isEmpty() || !C.isEmpty() || !X.isEmpty()) {
             setError(TYPE_ERROR, "Assemble_PDE: Contact elements require A, B, C and X to be empty.");
         } else if (p.numEqu > 1) { // system of PDEs
-            Assemble_PDE_System_C(p, _D, _Y);
+            Assemble_PDE_System_C(p, D, Y);
         } else { // single PDE
-            Assemble_PDE_Single_C(p, _D, _Y);
+            Assemble_PDE_Single_C(p, D, Y);
         }
     } else {
         setError(TYPE_ERROR,"Assemble_PDE supports numShape=NumNodes or 2*numShape=NumNodes only.");

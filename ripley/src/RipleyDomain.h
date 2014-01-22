@@ -508,14 +508,14 @@ public:
        solvers with varying arguments counts and so on
     */
     virtual void addToRHS(escript::Data& rhs,
-            std::map<std::string, escript::Data> data) const;
+                          std::map<std::string, escript::Data> data) const;
 
     /**
        \brief
        a wrapper for addToRHS that allows calling from Python
     */
     virtual void addToRHSFromPython(escript::Data& rhs,
-            boost::python::list data) const;
+                                    boost::python::list data) const;
 
     /**
        \brief
@@ -686,8 +686,9 @@ public:
                 std::map<std::string, escript::Data> options) {
         throw RipleyException("Domain does not support custom assemblers");
     }
+
     void setAssemblerFromPython(std::string type,
-                                         boost::python::list options);
+                                boost::python::list options);
 protected:
     dim_t m_numDim;
     StatusType m_status;
@@ -697,16 +698,16 @@ protected:
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
     AbstractAssembler *assembler;
-    std::vector<struct DiracPoint> diracPoints;
+    std::vector<DiracPoint> diracPoints;
     
     /// copies data in 'in' to 'out' (both must be on same function space)
-    void copyData(escript::Data& out, escript::Data& in) const;
+    void copyData(escript::Data& out, const escript::Data& in) const;
 
     /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
-    void averageData(escript::Data& out, escript::Data& in) const;
+    void averageData(escript::Data& out, const escript::Data& in) const;
 
     /// copies data in 'in' to 'out' (from reduced to non-reduced fs)
-    void multiplyData(escript::Data& out, escript::Data& in) const;
+    void multiplyData(escript::Data& out, const escript::Data& in) const;
 
     // this is const because setTags is const
     void updateTagsInUse(int fsType) const;
@@ -730,7 +731,7 @@ protected:
             const DoubleVector& array) const;
 
     void addPoints(int numPoints, const double* points_ptr,
-                     const int* tags_ptr);
+                   const int* tags_ptr);
 
     /***********************************************************************/
 
@@ -754,10 +755,10 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const = 0;
 
     /// computes the gradient of 'in' and puts the result in 'out'
-    virtual void assembleGradient(escript::Data& out, escript::Data& in) const = 0;
+    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const = 0;
 
     /// copies the integrals of the function defined by 'arg' into 'integrals'
-    virtual void assembleIntegrate(DoubleVector& integrals, escript::Data& arg) const = 0;
+    virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
     /// returns the Paso system matrix pattern
     virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
@@ -765,17 +766,19 @@ protected:
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                   escript::Data& in, bool reduced) const = 0;
+                                            const escript::Data& in,
+                                            bool reduced) const = 0;
 
     /// interpolates data on nodes in 'in' onto (reduced) face elements in 'out'
-    virtual void interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+    virtual void interpolateNodesOnFaces(escript::Data& out,
+                                         const escript::Data& in,
                                          bool reduced) const = 0;
 
     /// converts data on nodes in 'in' to degrees of freedom in 'out'
-    virtual void nodesToDOF(escript::Data& out, escript::Data& in) const = 0;
+    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const = 0;
 
     /// converts data on degrees of freedom in 'in' to nodes in 'out'
-    virtual void dofToNodes(escript::Data& out, escript::Data& in) const = 0;
+    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const = 0;
 
     virtual int getDofOfNode(int node) const = 0;
 
@@ -793,7 +796,7 @@ private:
             std::map<std::string, escript::Data> coefs) const;
 
     // finds the node that the given point belongs to
-    virtual int findNode(double *coords) const = 0;
+    virtual int findNode(const double *coords) const = 0;
 };
 
 } // end of namespace ripley

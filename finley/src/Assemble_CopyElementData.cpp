@@ -51,19 +51,18 @@ void Assemble_CopyElementData(const ElementFile* elements, escript::Data& out,
     } else if (!out.actsExpanded()) {
         setError(TYPE_ERROR,"Assemble_CopyElementData: expanded Data object is expected for output data.");
     } else {
-        escript::Data& _in(*const_cast<escript::Data*>(&in));
         if (in.actsExpanded()) {
             const size_t len_size=numComps*numQuad*sizeof(double);
             out.requireWrite();
 #pragma omp parallel for
             for (int n=0; n<numElements; n++) 
-                memcpy(out.getSampleDataRW(n), _in.getSampleDataRO(n), len_size);
+                memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), len_size);
         } else {
             const size_t len_size=numComps*sizeof(double);
             out.requireWrite();
 #pragma omp parallel for
             for (int n=0; n<numElements; n++) {
-                const double *in_array = _in.getSampleDataRO(n);
+                const double *in_array = in.getSampleDataRO(n);
                 double *out_array = out.getSampleDataRW(n);
                 for (int q=0; q<numQuad; q++)
                     memcpy(out_array+q*numComps, in_array, len_size);

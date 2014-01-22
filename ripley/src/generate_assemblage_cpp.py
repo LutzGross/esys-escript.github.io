@@ -280,7 +280,7 @@ def makePDE(S, x, Q, W, DIM=2, system=False):
 ///////////////
 if (!A.isEmpty()) {
 add_EM_S = true;
-const double* A_p = const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+const double* A_p = A.getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (A.actsExpanded()) {\n"
@@ -346,7 +346,7 @@ for (index_t m=0; m<numComp; m++) {
 ///////////////
 if (!B.isEmpty()) {
 add_EM_S=true;
-const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+const double* B_p=B.getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (B.actsExpanded()) {\n"
@@ -410,7 +410,7 @@ for (index_t m=0; m<numComp; m++) {
 ///////////////
 if (!C.isEmpty()) {
 add_EM_S=true;
-const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+const double* C_p=C.getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (C.actsExpanded()) {\n"
@@ -474,7 +474,7 @@ for (index_t m=0; m<numComp; m++) {
 ///////////////
 if (!D.isEmpty()) {
 add_EM_S=true;
-const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+const double* D_p=D.getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (D.actsExpanded()) {\n"
@@ -538,7 +538,7 @@ for (index_t m=0; m<numComp; m++) {
 ///////////////
 if (!X.isEmpty()) {
 add_EM_F=true;
-const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+const double* X_p=X.getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (X.actsExpanded()) {\n"
@@ -595,7 +595,7 @@ const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
 ///////////////
 if (!Y.isEmpty()) {
 add_EM_F=true;
-const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+const double* Y_p=Y.getSampleDataRO(e);
 """
    if len(Q) > 1:
         CODE+="if (Y.actsExpanded()) {\n"
@@ -673,7 +673,7 @@ def makePDEBC(S, x, Q, W, DIM, system=True):
 // process d //
 ///////////////
 if (add_EM_S) {
-const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+const double* d_p=d.getSampleDataRO(e);
 """
         if len(Q[n]) > 1:
             CODE+="if (d.actsExpanded()) {\n"
@@ -734,7 +734,7 @@ for (index_t m=0; m<numComp; m++) {
 // process y //
 ///////////////
 if (add_EM_F) {
-const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+const double* y_p=y.getSampleDataRO(e);
 """
         if len(Q[n]) > 1:
               CODE+="if (y.actsExpanded()) {\n"

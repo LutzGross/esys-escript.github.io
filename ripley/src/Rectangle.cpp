@@ -455,7 +455,6 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
     if (numComp > 1 || dpp > 1)
         throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
 
-    escript::Data* _in = const_cast<escript::Data*>(&in);
     const int fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1;
 
     // from here on we know that each sample consists of one value
@@ -468,7 +467,7 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
         ostringstream oss;
 
         for (index_t x=0; x<myN0; x++) {
-            const double* sample = _in->getSampleDataRO(y*myN0+x);
+            const double* sample = in.getSampleDataRO(y*myN0+x);
             ValueType fvalue = static_cast<ValueType>(*sample);
             if (byteOrder == BYTEORDER_NATIVE) {
                 oss.write((char*)&fvalue, sizeof(fvalue));
@@ -896,7 +895,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 }
 
 //protected
-void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
+void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const double cx0 = .21132486540518711775/m_dx[0];
@@ -1101,7 +1100,8 @@ void Rectangle::assembleGradient(escript::Data& out, escript::Data& in) const
 }
 
 //protected
-void Rectangle::assembleIntegrate(vector<double>& integrals, escript::Data& arg) const
+void Rectangle::assembleIntegrate(vector<double>& integrals,
+                                  const escript::Data& arg) const
 {
     const dim_t numComp = arg.getDataPointSize();
     const index_t left = (m_offset[0]==0 ? 0 : 1);
@@ -1287,7 +1287,7 @@ dim_t Rectangle::insertNeighbourNodes(IndexVector& index, index_t node) const
 }
 
 //protected
-void Rectangle::nodesToDOF(escript::Data& out, escript::Data& in) const
+void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     out.requireWrite();
@@ -1307,12 +1307,11 @@ void Rectangle::nodesToDOF(escript::Data& out, escript::Data& in) const
 }
 
 //protected
-void Rectangle::dofToNodes(escript::Data& out, escript::Data& in) const
+void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     Paso_Coupler* coupler = Paso_Coupler_alloc(m_connector, numComp);
-    in.requireWrite();
-    Paso_Coupler_startCollect(coupler, in.getSampleDataRW(0));
+    Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
@@ -1682,7 +1681,8 @@ void Rectangle::addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
 
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,
-                                        escript::Data& in, bool reduced) const
+                                           const escript::Data& in,
+                                           bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
     if (reduced) {
@@ -1740,7 +1740,8 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
 }
 
 //protected
-void Rectangle::interpolateNodesOnFaces(escript::Data& out, escript::Data& in,
+void Rectangle::interpolateNodesOnFaces(escript::Data& out,
+                                        const escript::Data& in,
                                         bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
@@ -2225,7 +2226,7 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
     return resdat;
 }
 
-int Rectangle::findNode(double *coords) const {
+int Rectangle::findNode(const double *coords) const {
     const int NOT_MINE = -1;
     //is the found element even owned by this rank
     for (int dim = 0; dim < m_numDim; dim++) {

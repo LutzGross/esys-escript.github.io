@@ -100,7 +100,7 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                     ///////////////
                     if (!A.isEmpty()) {
                         addEM_S = true;
-                        const double* A_p = const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                        const double* A_p = A.getSampleDataRO(e);
                         if (A.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -230,7 +230,7 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                     ///////////////
                     if (!B.isEmpty()) {
                         addEM_S=true;
-                        const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                        const double* B_p=B.getSampleDataRO(e);
                         if (B.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -306,7 +306,7 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                     ///////////////
                     if (!C.isEmpty()) {
                         addEM_S=true;
-                        const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                        const double* C_p=C.getSampleDataRO(e);
                         if (C.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -382,7 +382,7 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                     ///////////////
                     if (!D.isEmpty()) {
                         addEM_S=true;
-                        const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                        const double* D_p=D.getSampleDataRO(e);
                         if (D.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
@@ -538,7 +538,7 @@ const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
                     ///////////////
                     if (!Y.isEmpty()) {
                         addEM_F=true;
-                        const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                        const double* Y_p=Y.getSampleDataRO(e);
                         if (Y.actsExpanded()) {
                             for (index_t k=0; k<numEq; k++) {
                                 const double Y_0 = Y_p[INDEX2(k, 0, numEq)];

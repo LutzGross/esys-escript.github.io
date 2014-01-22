@@ -219,23 +219,21 @@ void ElementFile::relabelNodes(const std::vector<int>& newNode, int offset)
     }
 }
 
-void ElementFile::setTags(const int newTag, const escript::Data& cMask)
+void ElementFile::setTags(const int newTag, const escript::Data& mask)
 {
     resetError();
 
     const int numQuad=referenceElementSet->borrowReferenceElement(
-            util::hasReducedIntegrationOrder(cMask))
+            util::hasReducedIntegrationOrder(mask))
             ->Parametrization->numQuadNodes; 
-    if (1 != cMask.getDataPointSize()) {
+    if (1 != mask.getDataPointSize()) {
         setError(TYPE_ERROR, "ElementFile::setTags: number of components of mask must be 1.");
         return;
-    } else if (cMask.getNumDataPointsPerSample() != numQuad ||
-            cMask.getNumSamples() != numElements) {
+    } else if (mask.getNumDataPointsPerSample() != numQuad ||
+            mask.getNumSamples() != numElements) {
         setError(TYPE_ERROR, "ElementFile::setTags: illegal number of samples of mask Data object");
         return;
     }
-
-    escript::Data& mask = *const_cast<escript::Data*>(&cMask);
 
     if (mask.actsExpanded()) {
 #pragma omp parallel for

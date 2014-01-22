@@ -31,14 +31,14 @@ sources = """
     Assemble_NodeCoordinates.cpp
     Assemble_PDE.cpp
     Assemble_PDE_Points.cpp
-    Assemble_PDE_Single2_1D.cpp
-    Assemble_PDE_Single2_2D.cpp
-    Assemble_PDE_Single2_3D.cpp
-    Assemble_PDE_Single2_C.cpp
-    Assemble_PDE_System2_1D.cpp
-    Assemble_PDE_System2_2D.cpp
-    Assemble_PDE_System2_3D.cpp
-    Assemble_PDE_System2_C.cpp
+    Assemble_PDE_Single_1D.cpp
+    Assemble_PDE_Single_2D.cpp
+    Assemble_PDE_Single_3D.cpp
+    Assemble_PDE_Single_C.cpp
+    Assemble_PDE_System_1D.cpp
+    Assemble_PDE_System_2D.cpp
+    Assemble_PDE_System_3D.cpp
+    Assemble_PDE_System_C.cpp
     Assemble_addToSystemMatrix.cpp
     Assemble_getAssembleParameters.cpp
     Assemble_getNormal.cpp

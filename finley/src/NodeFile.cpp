@@ -200,16 +200,16 @@ void NodeFile::print() const
 }
 
 /// copies the array newX into this->coordinates
-void NodeFile::setCoordinates(const escript::Data& cNewX)
+void NodeFile::setCoordinates(const escript::Data& newX)
 {
-    if (cNewX.getDataPointSize() != numDim)  {
+    if (newX.getDataPointSize() != numDim)  {
         std::stringstream ss;
         ss << "NodeFile::setCoordinates: number of dimensions of new "
             "coordinates has to be " << numDim;
         const std::string errorMsg(ss.str());
         setError(VALUE_ERROR, errorMsg.c_str());
-    } else if (cNewX.getNumDataPointsPerSample() != 1 ||
-            cNewX.getNumSamples() != numNodes) {
+    } else if (newX.getNumDataPointsPerSample() != 1 ||
+            newX.getNumSamples() != numNodes) {
         std::stringstream ss;
         ss << "NodeFile::setCoordinates: number of given nodes must be "
             << numNodes;
@@ -218,7 +218,6 @@ void NodeFile::setCoordinates(const escript::Data& cNewX)
     } else {
         const size_t numDim_size=numDim*sizeof(double);
         ++status;
-        escript::Data& newX = *const_cast<escript::Data*>(&cNewX);
 #pragma omp parallel for
         for (int n=0; n<numNodes; n++) {
             memcpy(&(Coordinates[INDEX2(0,n,numDim)]), newX.getSampleDataRO(n), numDim_size);
@@ -227,20 +226,19 @@ void NodeFile::setCoordinates(const escript::Data& cNewX)
 }
 
 /// sets tags to newTag where mask>0
-void NodeFile::setTags(const int newTag, const escript::Data& cMask)
+void NodeFile::setTags(const int newTag, const escript::Data& mask)
 {
     resetError();
 
-    if (1 != cMask.getDataPointSize()) {
+    if (1 != mask.getDataPointSize()) {
        setError(TYPE_ERROR, "NodeFile::setTags: number of components of mask must be 1.");
        return;
-    } else if (cMask.getNumDataPointsPerSample() != 1 ||
-            cMask.getNumSamples() != numNodes) {
+    } else if (mask.getNumDataPointsPerSample() != 1 ||
+            mask.getNumSamples() != numNodes) {
        setError(TYPE_ERROR, "NodeFile::setTags: illegal number of samples of mask Data object");
        return;
     }
 
-    escript::Data& mask = *const_cast<escript::Data*>(&cMask);
 #pragma omp parallel for
     for (int n=0; n<numNodes; n++) {
          if (mask.getSampleDataRO(n)[0] > 0)

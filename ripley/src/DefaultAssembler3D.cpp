@@ -181,7 +181,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!A.isEmpty()) {
                             add_EM_S = true;
-                            const double* A_p = const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                            const double* A_p = A.getSampleDataRO(e);
                             if (A.actsExpanded()) {
                                 const double A_00_0 = A_p[INDEX3(0,0,0,3,3)];
                                 const double A_01_0 = A_p[INDEX3(0,1,0,3,3)];
@@ -922,7 +922,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!B.isEmpty()) {
                             add_EM_S=true;
-                            const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                            const double* B_p=B.getSampleDataRO(e);
                             if (B.actsExpanded()) {
                                 const double B_0_0 = B_p[INDEX2(0,0,3)];
                                 const double B_1_0 = B_p[INDEX2(1,0,3)];
@@ -1351,7 +1351,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!C.isEmpty()) {
                             add_EM_S=true;
-                            const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                            const double* C_p=C.getSampleDataRO(e);
                             if (C.actsExpanded()) {
                                 const double C_0_0 = C_p[INDEX2(0,0,3)];
                                 const double C_1_0 = C_p[INDEX2(1,0,3)];
@@ -1780,7 +1780,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!D.isEmpty()) {
                             add_EM_S=true;
-                            const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                            const double* D_p=D.getSampleDataRO(e);
                             if (D.actsExpanded()) {
                                 const double D_0 = D_p[0];
                                 const double D_1 = D_p[1];
@@ -1986,7 +1986,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!X.isEmpty()) {
                             add_EM_F=true;
-                            const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                            const double* X_p=X.getSampleDataRO(e);
                             if (X.actsExpanded()) {
                                 const double X_0_0 = X_p[INDEX2(0,0,3)];
                                 const double X_1_0 = X_p[INDEX2(1,0,3)];
@@ -2099,7 +2099,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!Y.isEmpty()) {
                             add_EM_F=true;
-                            const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                            const double* Y_p=Y.getSampleDataRO(e);
                             if (Y.actsExpanded()) {
                                 const double Y_0 = Y_p[0];
                                 const double Y_1 = Y_p[1];
@@ -2191,7 +2191,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!A.isEmpty()) {
                             add_EM_S=true;
-                            const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                            const double* A_p=A.getSampleDataRO(e);
                             const double Aw00 = A_p[INDEX2(0,0,3)]*w0;
                             const double Aw10 = A_p[INDEX2(1,0,3)]*w1;
                             const double Aw20 = A_p[INDEX2(2,0,3)]*w5;
@@ -2271,7 +2271,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!B.isEmpty()) {
                             add_EM_S=true;
-                            const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                            const double* B_p=B.getSampleDataRO(e);
                             const double wB0 = B_p[0]*w12;
                             const double wB1 = B_p[1]*w13;
                             const double wB2 = B_p[2]*w14;
@@ -2345,7 +2345,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!C.isEmpty()) {
                             add_EM_S=true;
-                            const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                            const double* C_p=C.getSampleDataRO(e);
                             const double wC0 = C_p[0]*w12;
                             const double wC1 = C_p[1]*w13;
                             const double wC2 = C_p[2]*w14;
@@ -2419,7 +2419,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!D.isEmpty()) {
                             add_EM_S=true;
-                            const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                            const double* D_p=D.getSampleDataRO(e);
                             EM_S[INDEX2(0,0,8)]+=D_p[0]*w18;
                             EM_S[INDEX2(1,0,8)]+=D_p[0]*w18;
                             EM_S[INDEX2(2,0,8)]+=D_p[0]*w18;
@@ -2490,7 +2490,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!X.isEmpty()) {
                             add_EM_F=true;
-                            const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                            const double* X_p=X.getSampleDataRO(e);
                             const double wX0 = 8*X_p[0]*w12;
                             const double wX1 = 8*X_p[1]*w13;
                             const double wX2 = 8*X_p[2]*w14;
@@ -2508,7 +2508,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!Y.isEmpty()) {
                             add_EM_F=true;
-                            const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                            const double* Y_p=Y.getSampleDataRO(e);
                             EM_F[0]+=8*Y_p[0]*w18;
                             EM_F[1]+=8*Y_p[0]*w18;
                             EM_F[2]+=8*Y_p[0]*w18;
@@ -2635,7 +2635,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!A.isEmpty()) {
                             add_EM_S = true;
-                            const double* A_p = const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                            const double* A_p = A.getSampleDataRO(e);
                             if (A.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -3378,7 +3378,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!B.isEmpty()) {
                             add_EM_S=true;
-                            const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                            const double* B_p=B.getSampleDataRO(e);
                             if (B.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -3815,7 +3815,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!C.isEmpty()) {
                             add_EM_S=true;
-                            const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                            const double* C_p=C.getSampleDataRO(e);
                             if (C.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -4252,7 +4252,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!D.isEmpty()) {
                             add_EM_S=true;
-                            const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                            const double* D_p=D.getSampleDataRO(e);
                             if (D.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -4466,7 +4466,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!X.isEmpty()) {
                             add_EM_F=true;
-                            const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                            const double* X_p=X.getSampleDataRO(e);
                             if (X.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double X_0_0 = X_p[INDEX3(k,0,0,numEq,3)];
@@ -4583,7 +4583,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
                         ///////////////
                         if (!Y.isEmpty()) {
                             add_EM_F=true;
-                            const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                            const double* Y_p=Y.getSampleDataRO(e);
                             if (Y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double Y_0 = Y_p[INDEX2(k, 0, numEq)];
@@ -4687,7 +4687,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!A.isEmpty()) {
                             add_EM_S=true;
-                            const double* A_p=const_cast<escript::Data*>(&A)->getSampleDataRO(e);
+                            const double* A_p=A.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double Aw00 = A_p[INDEX4(k,0,m,0,numEq,3,numComp)]*w8;
@@ -4771,7 +4771,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!B.isEmpty()) {
                             add_EM_S=true;
-                            const double* B_p=const_cast<escript::Data*>(&B)->getSampleDataRO(e);
+                            const double* B_p=B.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double wB0 = B_p[INDEX3(k,0,m, numEq, 3)]*w5;
@@ -4849,7 +4849,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!C.isEmpty()) {
                             add_EM_S=true;
-                            const double* C_p=const_cast<escript::Data*>(&C)->getSampleDataRO(e);
+                            const double* C_p=C.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double wC0 = C_p[INDEX3(k, m, 0, numEq, numComp)]*w5;
@@ -4927,7 +4927,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!D.isEmpty()) {
                             add_EM_S=true;
-                            const double* D_p=const_cast<escript::Data*>(&D)->getSampleDataRO(e);
+                            const double* D_p=D.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double wD = D_p[INDEX2(k, m, numEq)]*w9;
@@ -5003,7 +5003,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!X.isEmpty()) {
                             add_EM_F=true;
-                            const double* X_p=const_cast<escript::Data*>(&X)->getSampleDataRO(e);
+                            const double* X_p=X.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 const double wX0 = 8*X_p[INDEX2(k, 0, numEq)]*w5;
                                 const double wX1 = 8*X_p[INDEX2(k, 1, numEq)]*w4;
@@ -5023,7 +5023,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
                         ///////////////
                         if (!Y.isEmpty()) {
                             add_EM_F=true;
-                            const double* Y_p=const_cast<escript::Data*>(&Y)->getSampleDataRO(e);
+                            const double* Y_p=Y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)]+=8*Y_p[k]*w9;
                                 EM_F[INDEX2(k,1,numEq)]+=8*Y_p[k]*w9;
@@ -5084,7 +5084,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5141,7 +5141,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 const double y_0 = y_p[0];
                                 const double y_1 = y_p[1];
@@ -5180,7 +5180,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5237,7 +5237,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 const double y_0 = y_p[0];
                                 const double y_1 = y_p[1];
@@ -5276,7 +5276,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5333,7 +5333,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 const double y_0 = y_p[0];
                                 const double y_1 = y_p[1];
@@ -5372,7 +5372,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5429,7 +5429,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 const double y_0 = y_p[0];
                                 const double y_1 = y_p[1];
@@ -5468,7 +5468,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5525,7 +5525,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 const double y_0 = y_p[0];
                                 const double y_1 = y_p[1];
@@ -5564,7 +5564,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 const double d_0 = d_p[0];
                                 const double d_1 = d_p[1];
@@ -5621,7 +5621,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 const double y_0 = y_p[0];
                                 const double y_1 = y_p[1];
@@ -5674,7 +5674,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             EM_S[INDEX2(0,0,8)]+=d_p[0]*w2;
                             EM_S[INDEX2(2,0,8)]+=d_p[0]*w2;
                             EM_S[INDEX2(4,0,8)]+=d_p[0]*w2;
@@ -5696,7 +5696,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             EM_F[0]+=4*w2*y_p[0];
                             EM_F[2]+=4*w2*y_p[0];
                             EM_F[4]+=4*w2*y_p[0];
@@ -5722,7 +5722,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             EM_S[INDEX2(1,1,8)]+=d_p[0]*w2;
                             EM_S[INDEX2(3,1,8)]+=d_p[0]*w2;
                             EM_S[INDEX2(5,1,8)]+=d_p[0]*w2;
@@ -5744,7 +5744,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             EM_F[1]+=4*w2*y_p[0];
                             EM_F[3]+=4*w2*y_p[0];
                             EM_F[5]+=4*w2*y_p[0];
@@ -5770,7 +5770,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             EM_S[INDEX2(0,0,8)]+=d_p[0]*w1;
                             EM_S[INDEX2(1,0,8)]+=d_p[0]*w1;
                             EM_S[INDEX2(4,0,8)]+=d_p[0]*w1;
@@ -5792,7 +5792,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             EM_F[0]+=4*w1*y_p[0];
                             EM_F[1]+=4*w1*y_p[0];
                             EM_F[4]+=4*w1*y_p[0];
@@ -5818,7 +5818,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             EM_S[INDEX2(2,2,8)]+=d_p[0]*w1;
                             EM_S[INDEX2(3,2,8)]+=d_p[0]*w1;
                             EM_S[INDEX2(6,2,8)]+=d_p[0]*w1;
@@ -5840,7 +5840,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             EM_F[2]+=4*w1*y_p[0];
                             EM_F[3]+=4*w1*y_p[0];
                             EM_F[6]+=4*w1*y_p[0];
@@ -5866,7 +5866,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             EM_S[INDEX2(0,0,8)]+=d_p[0]*w0;
                             EM_S[INDEX2(1,0,8)]+=d_p[0]*w0;
                             EM_S[INDEX2(2,0,8)]+=d_p[0]*w0;
@@ -5888,7 +5888,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             EM_F[0]+=4*w0*y_p[0];
                             EM_F[1]+=4*w0*y_p[0];
                             EM_F[2]+=4*w0*y_p[0];
@@ -5914,7 +5914,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             EM_S[INDEX2(4,4,8)]+=d_p[0]*w0;
                             EM_S[INDEX2(5,4,8)]+=d_p[0]*w0;
                             EM_S[INDEX2(6,4,8)]+=d_p[0]*w0;
@@ -5936,7 +5936,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             EM_F[4]+=4*w0*y_p[0];
                             EM_F[5]+=4*w0*y_p[0];
                             EM_F[6]+=4*w0*y_p[0];
@@ -5996,7 +5996,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6061,7 +6061,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -6104,7 +6104,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6169,7 +6169,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -6212,7 +6212,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6277,7 +6277,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -6320,7 +6320,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6385,7 +6385,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -6428,7 +6428,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6493,7 +6493,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -6536,7 +6536,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             if (d.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     for (index_t m=0; m<numComp; m++) {
@@ -6601,7 +6601,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             if (y.actsExpanded()) {
                                 for (index_t k=0; k<numEq; k++) {
                                     const double y_0 = y_p[INDEX2(k, 0, numEq)];
@@ -6665,7 +6665,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w2;
@@ -6692,7 +6692,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)]+=4*w2*y_p[k];
                                 EM_F[INDEX2(k,2,numEq)]+=4*w2*y_p[k];
@@ -6720,7 +6720,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w2;
@@ -6747,7 +6747,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,1,numEq)]+=4*w2*y_p[k];
                                 EM_F[INDEX2(k,3,numEq)]+=4*w2*y_p[k];
@@ -6775,7 +6775,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
@@ -6802,7 +6802,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)]+=4*w1*y_p[k];
                                 EM_F[INDEX2(k,1,numEq)]+=4*w1*y_p[k];
@@ -6830,7 +6830,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w1;
@@ -6857,7 +6857,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,2,numEq)]+=4*w1*y_p[k];
                                 EM_F[INDEX2(k,3,numEq)]+=4*w1*y_p[k];
@@ -6885,7 +6885,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
@@ -6912,7 +6912,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,0,numEq)]+=4*w0*y_p[k];
                                 EM_F[INDEX2(k,1,numEq)]+=4*w0*y_p[k];
@@ -6940,7 +6940,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process d //
                         ///////////////
                         if (add_EM_S) {
-                            const double* d_p=const_cast<escript::Data*>(&d)->getSampleDataRO(e);
+                            const double* d_p=d.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 for (index_t m=0; m<numComp; m++) {
                                     const double tmp0 = d_p[INDEX2(k, m, numEq)]*w0;
@@ -6967,7 +6967,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
                         // process y //
                         ///////////////
                         if (add_EM_F) {
-                            const double* y_p=const_cast<escript::Data*>(&y)->getSampleDataRO(e);
+                            const double* y_p=y.getSampleDataRO(e);
                             for (index_t k=0; k<numEq; k++) {
                                 EM_F[INDEX2(k,4,numEq)]+=4*w0*y_p[k];
                                 EM_F[INDEX2(k,5,numEq)]+=4*w0*y_p[k];
