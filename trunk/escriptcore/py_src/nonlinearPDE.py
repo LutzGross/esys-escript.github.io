@@ -142,7 +142,7 @@ class NonlinearPDE(object):
     other condition set by the PDE or the boundary condition.
 
     For a system of PDEs and a solution with several components, *u* is rank
-    one, while the PDE coefficient *X* is rank two and *Y* and *y* is rank one.
+    one, while the PDE coefficient *X* is rank two and *y* is rank one.
 
     The PDE is solved by linearising the coefficients and iteratively solving
     the corresponding linear PDE until the error is smaller than a tolerance
