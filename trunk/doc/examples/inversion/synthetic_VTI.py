@@ -28,13 +28,13 @@ from esys.downunder import Ricker, VTIWave, SimpleSEGYWriter
 from math import ceil
 
 
-DIM=3          # spatial dimension
+DIM=2          # spatial dimension
 
 depth=1*U.km    # depth 
 v_p_top=1.5*U.km/U.sec
 v_p_bottom=3*U.km/U.sec
 absorption_zone=300*U.m
-ne_z=20.
+ne_z=500.
 
 reflector_at=0.5*depth
 
