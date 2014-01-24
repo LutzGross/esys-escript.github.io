@@ -20,8 +20,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave',
-            'HTIWave', 'createAbsorbtionLayerFunction' ]
+__all__ = ['SimpleSEGYWriter', 'Ricker', 'WaveBase', 'SonicWave', 'VTIWave', 'HTIWave', 'createAbsorbtionLayerFunction', 'SonicHTIWave' , "TTIWave"]
 
 
 from math import pi
@@ -622,3 +621,192 @@ class HTIWave(WaveBase):
              self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
              return self.__mypde.getSolution()
 
+class TTIWave(WaveBase):
+        """
+        Solving the 2D TTI wave equation with 
+
+        sigma_xx= c11*e_xx + c13*e_zz + c15*e_xz
+        sigma_zz= c13*e_xx + c33*e_zz + c35*e_xz
+        sigma_xz= c15*e_xx + c35*e_zz + c55*e_xz
+
+	the coefficicients c11, c13, etc are calculated from the tompsen parameters eps and delta and the tilt theta
+
+	:note: currently only the 2D case is supported.
+        """
+        
+        def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
+                source_vector = [0.,1.], eps=0., delta=0., theta=0., rho=1.,
+                dt=None, u0=None, v0=None, absorption_zone=300*U.m,
+                absorption_cut=1e-2, lumping=True):
+           """
+           initialize the TTI wave solver
+
+           :param domain: domain of the problem
+           :type domain: `Domain`
+           :param v_p: vertical p-velocity field
+           :type v_p: `Scalar`
+           :param v_s: vertical s-velocity field
+           :type v_s: `Scalar`
+           :param wavelet: wavelet to describe the time evolution of source term
+           :type wavelet: `Wavelet`
+           :param source_tag: tag of the source location
+           :type source_tag: 'str' or 'int'
+           :param source_vector: source orientation vector
+           :param eps: first Thompsen parameter
+           :param delta: second Thompsen parameter
+           :param theta: tilting (in Rad)
+           :param rho: density
+           :param dt: time step size. If not present a suitable time step size is calculated.
+           :param u0: initial solution. If not present zero is used.
+           :param v0: initial solution change rate. If not present zero is used.
+           :param absorption_zone: thickness of absorption zone
+           :param absorption_cut: boundary value of absorption decay factor
+           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
+           """
+           DIM=domain.getDim()
+	   if not DIM == 2:
+                raise ValueError("Only 2D is supported.")
+           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+
+           v_p=v_p*f
+           v_s=v_s*f
+
+           if u0 == None:
+              u0=Vector(0.,Solution(domain))
+           else:
+              u0=interpolate(p0, Solution(domain ))
+
+           if v0 == None:
+              v0=Vector(0.,Solution(domain))
+           else:
+              v0=interpolate(v0, Solution(domain ))
+
+           if dt == None:
+                  dt=min((1./5.)*min(inf(domain.getSize()/v_p), inf(domain.getSize()/v_s)), wavelet.getTimeScale())
+
+           super(TTIWave, self).__init__( dt, u0=u0, v0=v0, t0=0.)
+
+           self.__wavelet=wavelet
+
+           self.__mypde=LinearPDESystem(domain)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           self.__mypde.setSymmetryOn()
+           self.__mypde.setValue(D=rho*kronecker(DIM), X=self.__mypde.createCoefficient('X'))
+           self.__source_tag=source_tag
+
+           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           self.__r.setTaggedValue(self.__source_tag, source_vector)
+
+           self.c33=v_p**2 * rho
+           self.c55=v_s**2 * rho
+	   self.c15=0
+	   self.c35=0
+           self.c11=(1+2*eps) * self.c33
+           self.c13=sqrt(2*self.c33*(self.c33-self.c55) * delta + (self.c33-self.c55)**2)-self.c55
+
+        def  _getAcceleration(self, t, u):
+             """
+             returns the acceleraton for time t and solution u at time t
+             """
+             du = grad(u)
+             sigma=self.__mypde.getCoefficient('X')
+
+             e_xx=du[0,0]
+             e_zz=du[1,1]
+             e_xz=(du[0,1]+du[1,0])/2
+
+	     
+             sigma[0,0]= self.c11 * e_xx + self.c13 * e_zz + self.c15 * e_xz
+             sigma[1,1]= self.c13 * e_xx + self.c33 * e_zz + self.c35 * e_xz
+             sigma_xz  = self.c15 * e_xx + self.c35 * e_zz + self.c55 * e_xz
+
+             sigma[0,1]=sigma_xz
+             sigma[1,0]=sigma_xz
+
+             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+             return self.__mypde.getSolution()
+
+class SonicHTIWave(WaveBase):
+        """
+        Solving the HTI wave equation (along the x_0 axis) with azimuth (rotation around verticle axis)
+	under the assumption of zero shear wave velocities
+	The unknowns are the transversal (along x_0) and vertial stress (Q, P)
+        
+        :note: In case of a two dimensional domain the second spatial dimenion is depth.
+        """
+        def __init__(self, domain, v_p, wavelet, source_tag, source_vector = [1.,0.], eps=0., delta=0., azimuth=0.,    
+                     dt=None, p0=None, v0=None, absorption_zone=300*U.m, absorption_cut=1e-2, lumping=True):
+           """
+           initialize the HTI wave solver
+           
+           :param domain: domain of the problem
+           :type domain: `Doamin`        
+           :param v_p: vertical p-velocity field    
+           :type v_p: `Scalar`
+           :param v_s: vertical s-velocity field    
+           :type v_s: `Scalar`          
+           :param wavelet: wavelet to describe the time evolution of source term 
+           :type wavelet: `Wavelet`          
+           :param source_tag: tag of the source location
+           :type source_tag: 'str' or 'int'
+           :param source_vector: source orientation vector
+           :param eps: first Thompsen parameter
+           :param azimuth: azimuth (rotation around verticle axis)
+           :param gamma: third Thompsen parameter
+           :param rho: density           
+           :param dt: time step size. If not present a suitable time step size is calculated.           
+           :param p0: initial solution (Q(t=0), P(t=0)). If not present zero is used.           
+           :param v0: initial solution change rate. If not present zero is used.           
+           :param absorption_zone: thickness of absorption zone           
+           :param absorption_cut: boundary value of absorption decay factor
+           :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion. 
+           """
+           DIM=domain.getDim()
+           f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
+
+           self.v2_p=v_p**2
+           self.v2_t=self.v2_p*sqrt(1+2*delta)
+           self.v2_n=self.v2_p*(1+2*eps)
+           
+           if p0 == None:
+              p0=Data(0.,(2,),Solution(domain))
+           else:
+              p0=interpolate(p0, Solution(domain ))
+              
+           if v0 == None:
+              v0=Data(0.,(2,),Solution(domain))
+           else:
+              v0=interpolate(v0, Solution(domain ))
+           
+           if dt == None:
+                  dt=min((1./5.)*min(inf(domain.getSize()/sqrt(self.v2_p)), inf(domain.getSize()/sqrt(self.v2_t)), inf(domain.getSize()/sqrt(self.v2_n))) , wavelet.getTimeScale())
+            
+           super(SonicHTIWave, self).__init__( dt, u0=p0, v0=v0, t0=0.)
+           
+           self.__wavelet=wavelet
+           
+           self.__mypde=LinearPDESystem(domain)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           self.__mypde.setSymmetryOn()
+           self.__mypde.setValue(D=kronecker(2), X=self.__mypde.createCoefficient('X'))
+           self.__source_tag=source_tag
+           
+
+           self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
+           self.__r.setTaggedValue(self.__source_tag, source_vector)
+ 
+        def  _getAcceleration(self, t, u):
+             """
+             returns the acceleraton for time t and solution u at time t
+             """
+             dQ = grad(u[0])[0]
+	     dP = grad(u[1])[1:]
+             sigma=self.__mypde.getCoefficient('X')
+             
+	     sigma[0,0] = self.v2_n*dQ
+	     sigma[0,1:] = self.v2_t*dP
+	     sigma[1,0] = self.v2_t*dQ
+	     sigma[1,1:] = self.v2_p*dP
+
+             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+             return self.__mypde.getSolution()            
