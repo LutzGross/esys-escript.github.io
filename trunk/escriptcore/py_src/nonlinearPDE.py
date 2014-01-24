@@ -119,7 +119,7 @@ class NonlinearPDE(object):
 
     *-div(X) + Y = 0*
 
-    where *X*,*Y*=f(*u*,*grad(u)*), *div(F)* denotes the divergence of *F* and
+    where *X*,*Y*=f(*u*,*grad(u)*). *div(F)* denotes the divergence of *F* and
     *grad(F)* is the spatial derivative of *F*.
 
     The coefficients *X* (rank 1) and *Y* (scalar) have to be specified through
