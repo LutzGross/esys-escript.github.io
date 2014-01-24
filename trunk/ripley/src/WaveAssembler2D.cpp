@@ -38,11 +38,6 @@ WaveAssembler2D::WaveAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_
 void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
-//    std::cerr << "assemblePDESystem(mat, rhs, {";
-//    for (map<string, escript::Data>::iterator i = coefs.begin(); i != coefs.end(); i++) {
-//        std::cerr << i->first << ":" << i->second.isEmpty() << ", ";
-//    }
-//    std::cerr << "}\n";
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
                  Y = unpackData("Y", coefs), du = unpackData("du", coefs);
@@ -452,32 +447,31 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                         const double *c11_p = c11.getSampleDataRO(e),
                                      *c13_p = c13.getSampleDataRO(e),
                                      *c33_p = c33.getSampleDataRO(e),
-                                     *c66_p = c44.getSampleDataRO(e);
-                
+                                     *c44_p = c44.getSampleDataRO(e);
                         if (du.actsExpanded()) {
-const double X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[INDEX3(0,0,0,numEq,2)] 
-                    + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[INDEX3(0,0,0,numEq,2)]);
-const double X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[INDEX3(0,0,1,numEq,2)] 
-                    + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[INDEX3(0,0,1,numEq,2)]);
-const double X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[INDEX3(0,0,2,numEq,2)] 
-                    + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[INDEX3(0,0,2,numEq,2)]);
-const double X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[INDEX3(0,0,3,numEq,2)] 
-                    + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[INDEX3(0,0,3,numEq,2)]);
-const double X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[INDEX3(1,1,0,numEq,2)] 
-                    + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[INDEX3(1,1,0,numEq,2)]);
-const double X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[INDEX3(1,1,1,numEq,2)] 
-                    + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[INDEX3(1,1,1,numEq,2)]);
-const double X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[INDEX3(1,1,2,numEq,2)] 
-                    + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[INDEX3(1,1,2,numEq,2)]);
-const double X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[INDEX3(1,1,3,numEq,2)] 
-                    + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[INDEX3(1,1,3,numEq,2)]);
-const double X_01_0 = -(c66_p[INDEX3(0,1,0,numEq,2)] *
+const double X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
+                    + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
+const double X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1] 
+                    + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[1]);
+const double X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2] 
+                    + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[2]);
+const double X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3] 
+                    + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[3]);
+const double X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0] 
+                    + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[0]);
+const double X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1] 
+                    + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[1]);
+const double X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2] 
+                    + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[2]);
+const double X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3] 
+                    + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[3]);
+const double X_01_0 = -(c44_p[0] *
                     (du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]));
-const double X_01_1 = -(c66_p[INDEX3(0,1,1,numEq,2)] *
+const double X_01_1 = -(c44_p[1] *
                     (du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]));
-const double X_01_2 = -(c66_p[INDEX3(0,1,2,numEq,2)] *
+const double X_01_2 = -(c44_p[2] *
                     (du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]));
-const double X_01_3 = -(c66_p[INDEX3(0,1,3,numEq,2)] *
+const double X_01_3 = -(c44_p[3] *
                     (du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]));
 const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
 
@@ -523,7 +517,7 @@ const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
                             EM_F[INDEX2(1,3,numEq)]+=Btmp12 + Btmp13 + Btmp14 + Btmp15;
                         } else { // constant data
                             for (index_t k=0; k<numEq; k++) {
-                                throw RipleyException("No idea how to deal with constant data in WaveAssembler");
+                                throw RipleyException("WaveAssembler for constant data not yet implemented");
 //                                const double wX0 = X_p[INDEX2(k, 0, numEq)]*w18*6;
 //                                const double wX1 = X_p[INDEX2(k, 1, numEq)]*w19*6;
 //                                EM_F[INDEX2(k,0,numEq)]+= wX0 + wX1;

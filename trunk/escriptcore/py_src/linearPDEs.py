@@ -3409,11 +3409,7 @@ class VTIWavePDE(LinearPDE):
            d_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,PDECoef.BY_SOLUTION),PDECoef.OPERATOR),
            y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
            r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
-
-#X=PDECoef(PDECoef.INTERIOR, (PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
-
            q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH))
-
         domain.setAssembler("WaveAssembler", c)
 
     

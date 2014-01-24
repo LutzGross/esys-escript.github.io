@@ -28,13 +28,13 @@ from esys.downunder import Ricker, VTIWave, SimpleSEGYWriter
 from math import ceil
 
 
-DIM=2          # spatial dimension
+DIM=3          # spatial dimension
 
 depth=1*U.km    # depth 
 v_p_top=1.5*U.km/U.sec
 v_p_bottom=3*U.km/U.sec
 absorption_zone=300*U.m
-ne_z=500.
+ne_z=20.
 
 reflector_at=0.5*depth
 
@@ -102,7 +102,7 @@ if DIM == 2:
    domain=Rectangle(ceil(ne_z*width_x/depth),ne_z,l0=width_x,l1=depth, 
                 diracPoints=src_locations, diracTags=src_tags)
 else:
-   domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
+   domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth,
                 diracPoints=src_locations, diracTags=src_tags)
 wl=Ricker(frq)
 

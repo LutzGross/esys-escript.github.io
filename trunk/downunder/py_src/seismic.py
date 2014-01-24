@@ -430,17 +430,18 @@ class VTIWave(WaveBase):
 
         self.__wavelet=wavelet
 
-        self.fastAssembler = hasattr(domain, "setAssembler")
+        self.fastAssembler = False #hasattr(domain, "setAssembler")
+        self.c33=v_p**2 * rho
+        self.c44=v_s**2 * rho
+        self.c11=(1+2*eps) * self.c33
+        self.c66=(1+2*gamma) * self.c44
+        self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
+        self.c12=self.c11-2*self.c66
 
         if self.fastAssembler:
-            c33=v_p**2 * rho
-            c44=v_s**2 * rho
-            c11=(1+2*eps) * c33
-            c66=(1+2*gamma) * c44
-            c13=sqrt(2*c33*(c33-c44) * delta + (c33-c44)**2)-c44
-            c12=c11-2*c66
-            self.__mypde=VTIWavePDE(domain, [("c11", c11), ("c12", c12),
-                        ("c13", c13), ("c33", c33), ("c44", c44), ("c66", c66)])
+            self.__mypde=VTIWavePDE(domain, [("c11", self.c11),
+                    ("c12", self.c12), ("c13", self.c13), ("c33", self.c33),
+                    ("c44", self.c44), ("c66", self.c66)])
         else:
             self.__mypde=LinearPDESystem(domain)
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
@@ -457,14 +458,6 @@ class VTIWave(WaveBase):
 
         self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
         self.__r.setTaggedValue(self.__source_tag, source_vector)
-
-        if not self.fastAssembler:
-            self.c33=v_p**2 * rho
-            self.c44=v_s**2 * rho
-            self.c11=(1+2*eps) * self.c33
-            self.c66=(1+2*gamma) * self.c44
-            self.c13=sqrt(2*self.c33*(self.c33-self.c44) * delta + (self.c33-self.c44)**2)-self.c44
-            self.c12=self.c11-2*self.c66
 
     def _getAcceleration(self, t, u):
         """
