@@ -128,7 +128,7 @@ pair<int,int> RipleyDomain::getDataShape(int fsType) const
         case ReducedFaceElements:
             return pair<int,int>(1, getNumFaceElements());
         case Points:
-            return pair<int,int>(1, diracPoints.size());
+            return pair<int,int>(1, m_diracPoints.size());
         default:
             break;
     }
@@ -385,7 +385,6 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case ReducedNodes: //FIXME: reduced
                         copyData(target, in);
                         break;
-
                     case Elements:
                         interpolateNodesOnElements(target, in, false);
                         break;
@@ -401,7 +400,17 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case ReducedFaceElements:
                         interpolateNodesOnFaces(target, in, true);
                         break;
-
+                    case Points:
+                        {
+                            const dim_t numComp = in.getDataPointSize();
+                            target.requireWrite();
+                        #pragma omp parallel for
+                            for (int i = 0; i < m_diracPoints.size(); i++) {
+                                const double* src = in.getSampleDataRO(m_diracPoints[i].node);
+                                copy(src, src+numComp, target.getSampleDataRW(i));
+                            }
+                        }
+                        break;
                     default:
                         throw RipleyException(msg.str());
                 }
@@ -433,7 +442,6 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                             interpolateNodesOnElements(target, contIn, outFS==ReducedElements);
                         }
                         break;
-
                     case FaceElements:
                     case ReducedFaceElements:
                         if (getMPISize()==1) {
@@ -671,8 +679,8 @@ int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
                 return m_elementTags[sampleNo];
             break;
         case Points:
-            if (diracPoints.size() > sampleNo)
-                return diracPoints[sampleNo].tag;
+            if (m_diracPoints.size() > sampleNo)
+                return m_diracPoints[sampleNo].tag;
             break;
         case FaceElements:
         case ReducedFaceElements:
@@ -1420,9 +1428,9 @@ void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
         nEq = mat->logical_row_block_size;
         nComp = mat->logical_col_block_size;
     }
-    for (int i = 0; i < diracPoints.size(); i++) { //only for this rank
+    for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
         IndexVector rowIndex;
-        rowIndex.push_back(getDofOfNode(diracPoints[i].node));
+        rowIndex.push_back(getDofOfNode(m_diracPoints[i].node));
         if (yNotEmpty) {
             const double *EM_F = y.getSampleDataRO(i);
             double *F_p = rhs.getSampleDataRW(0);
@@ -1477,13 +1485,15 @@ escript::Data RipleyDomain::randomFill(long seed, const boost::python::tuple& fi
 void RipleyDomain::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
+    const int *ids = borrowSampleReferenceIDs(Nodes);
     for (int i = 0; i < numPoints; i++) {
         int node = findNode(&points_ptr[i * m_numDim]);
         if (node >= 0) {
+            m_diracPointNodeIDs.push_back(ids[node]); //stores global
             DiracPoint dp;
             dp.node = node;
             dp.tag = tags_ptr[i];
-            diracPoints.push_back(dp);
+            m_diracPoints.push_back(dp);
         }
     }
 }

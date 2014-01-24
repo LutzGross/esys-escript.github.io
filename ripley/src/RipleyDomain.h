@@ -698,7 +698,8 @@ protected:
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
     AbstractAssembler *assembler;
-    std::vector<DiracPoint> diracPoints;
+    std::vector<struct DiracPoint> m_diracPoints;
+    IndexVector m_diracPointNodeIDs; //for borrowSampleID
     
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, const escript::Data& in) const;

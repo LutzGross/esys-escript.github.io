@@ -29,6 +29,7 @@ namespace ripley {
 class RIPLEY_DLL_API Brick: public RipleyDomain
 {
     friend class DefaultAssembler3D;
+    friend class WaveAssembler3D;
 public:
 
     /**
@@ -187,6 +188,8 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
+    void setAssembler(std::string type, std::map<std::string,
+        escript::Data> constants);
 
 private:
     void populateSampleIds();

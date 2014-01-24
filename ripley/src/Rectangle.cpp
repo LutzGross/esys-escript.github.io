@@ -638,6 +638,8 @@ const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
         case FaceElements:
         case ReducedFaceElements:
             return &m_faceId[0];
+        case Points:
+            return &m_diracPointNodeIDs[0];
         default:
             break;
     }
