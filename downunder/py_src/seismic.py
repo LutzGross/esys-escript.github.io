@@ -430,7 +430,7 @@ class VTIWave(WaveBase):
 
         self.__wavelet=wavelet
 
-        self.fastAssembler = False #hasattr(domain, "setAssembler")
+        self.fastAssembler = hasattr(domain, "setAssembler")
         self.c33=v_p**2 * rho
         self.c44=v_s**2 * rho
         self.c11=(1+2*eps) * self.c33
