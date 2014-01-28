@@ -57,7 +57,7 @@ src_dir=[0,1]
 width_x=rangeRcv + 4*absorption_zone
 depth=sum(layers)
 if ne_z is None:
-	ne_z=int(ceil(depth*(2*frq)/min(v_P)*10))
+    ne_z=int(ceil(depth*(2*frq)/min(v_P)*10))
 ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create receiver array 
@@ -152,11 +152,11 @@ while t < t_end:
         t,u = sw.update(t+sampling_interval)
         tracer_x.addRecord(srclog(u[0]))
         tracer_z.addRecord(srclog(u[1]))
-	print("t=%s, src=%s: \t %s \t %s \t %s"%(t, wl.getValue(t),srclog(u[1])[0], srclog(u[1])[src_id], srclog(u[1])[-1]))
-	if not n_out is None and n%n_out == 0:
+        print("t=%s, src=%s: \t %s \t %s \t %s"%(t, wl.getValue(t),srclog(u[1])[0], srclog(u[1])[src_id], srclog(u[1])[-1]))
+        if not n_out is None and n%n_out == 0:
             print("time step %s writen to file %s."%(n_out, k_out))
             saveSilo("output/u_%d.silo"%(k_out,), u=u)
-	    k_out+=1
+            k_out+=1
         n+=1
 tracer_x.write('output/lineX.sgy')
 tracer_z.write('output/lineZ.sgy')
