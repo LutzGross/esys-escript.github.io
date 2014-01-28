@@ -2094,7 +2094,7 @@ DataLazy::setToZero()
 //   m_readytype='C';
 //   m_buffsRequired=1;
 
-  privdebug=privdebug;  // to stop the compiler complaining about unused privdebug
+  (void)privdebug;  // to stop the compiler complaining about unused privdebug
   throw DataException("Programmer error - setToZero not supported for DataLazy (DataLazy objects should be read only).");
 }
 
