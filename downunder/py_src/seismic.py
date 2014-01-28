@@ -629,9 +629,9 @@ class TTIWave(WaveBase):
         sigma_zz= c13*e_xx + c33*e_zz + c35*e_xz
         sigma_xz= c15*e_xx + c35*e_zz + c55*e_xz
 
-	the coefficicients c11, c13, etc are calculated from the tompsen parameters eps and delta and the tilt theta
+        the coefficicients c11, c13, etc are calculated from the tompsen parameters eps and delta and the tilt theta
 
-	:note: currently only the 2D case is supported.
+        :note: currently only the 2D case is supported.
         """
         
         def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
@@ -664,7 +664,7 @@ class TTIWave(WaveBase):
            :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
            """
            DIM=domain.getDim()
-	   if not DIM == 2:
+       if not DIM == 2:
                 raise ValueError("Only 2D is supported.")
            f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
 
@@ -699,8 +699,8 @@ class TTIWave(WaveBase):
 
            self.c33=v_p**2 * rho
            self.c55=v_s**2 * rho
-	   self.c15=0
-	   self.c35=0
+           self.c15=0
+           self.c35=0
            self.c11=(1+2*eps) * self.c33
            self.c13=sqrt(2*self.c33*(self.c33-self.c55) * delta + (self.c33-self.c55)**2)-self.c55
 
@@ -715,7 +715,7 @@ class TTIWave(WaveBase):
              e_zz=du[1,1]
              e_xz=(du[0,1]+du[1,0])/2
 
-	     
+
              sigma[0,0]= self.c11 * e_xx + self.c13 * e_zz + self.c15 * e_xz
              sigma[1,1]= self.c13 * e_xx + self.c33 * e_zz + self.c35 * e_xz
              sigma_xz  = self.c15 * e_xx + self.c35 * e_zz + self.c55 * e_xz
@@ -729,8 +729,8 @@ class TTIWave(WaveBase):
 class SonicHTIWave(WaveBase):
         """
         Solving the HTI wave equation (along the x_0 axis) with azimuth (rotation around verticle axis)
-	under the assumption of zero shear wave velocities
-	The unknowns are the transversal (along x_0) and vertial stress (Q, P)
+        under the assumption of zero shear wave velocities
+        The unknowns are the transversal (along x_0) and vertial stress (Q, P)
         
         :note: In case of a two dimensional domain the second spatial dimenion is depth.
         """
@@ -796,17 +796,17 @@ class SonicHTIWave(WaveBase):
            self.__r.setTaggedValue(self.__source_tag, source_vector)
  
         def  _getAcceleration(self, t, u):
-             """
-             returns the acceleraton for time t and solution u at time t
-             """
-             dQ = grad(u[0])[0]
-	     dP = grad(u[1])[1:]
-             sigma=self.__mypde.getCoefficient('X')
-             
-	     sigma[0,0] = self.v2_n*dQ
-	     sigma[0,1:] = self.v2_t*dP
-	     sigma[1,0] = self.v2_t*dQ
-	     sigma[1,1:] = self.v2_p*dP
+            """
+            returns the acceleraton for time t and solution u at time t
+            """
+            dQ = grad(u[0])[0]
+            dP = grad(u[1])[1:]
+            sigma=self.__mypde.getCoefficient('X')
+            
+            sigma[0,0] = self.v2_n*dQ
+            sigma[0,1:] = self.v2_t*dP
+            sigma[1,0] = self.v2_t*dQ
+            sigma[1,1:] = self.v2_p*dP
 
-             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
-             return self.__mypde.getSolution()            
+            self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+            return self.__mypde.getSolution()            
