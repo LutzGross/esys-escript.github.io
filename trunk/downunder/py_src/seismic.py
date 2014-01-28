@@ -664,7 +664,7 @@ class TTIWave(WaveBase):
            :param lumping: if True mass matrix lumping is being used. This is accelerates the computing but introduces some diffusion.
            """
            DIM=domain.getDim()
-       if not DIM == 2:
+           if not DIM == 2:
                 raise ValueError("Only 2D is supported.")
            f=createAbsorbtionLayerFunction(Function(domain).getX(), absorption_zone, absorption_cut)
 
