@@ -697,13 +697,18 @@ class TTIWave(WaveBase):
            self.__r=Vector(0, DiracDeltaFunctions(self.__mypde.getDomain()))
            self.__r.setTaggedValue(self.__source_tag, source_vector)
 
-           self.c33=v_p**2 * rho
-           self.c55=v_s**2 * rho
-           self.c15=0
-           self.c35=0
-           self.c11=(1+2*eps) * self.c33
-           self.c13=sqrt(2*self.c33*(self.c33-self.c55) * delta + (self.c33-self.c55)**2)-self.c55
+           c0_33=v_p**2 * rho
+           c0_66=v_s**2 * rho
+           c0_11=(1+2*eps) * c0_33
+           c0_13=sqrt(2*c0_33*(c0_33-c0_66) * delta + (c0_33-c0_66)**2)-c0_66
 
+           self.c11= c0_11*cos(theta)**4 - 2*c0_13*cos(theta)**4 + 2*c0_13*cos(theta)**2 + c0_33*sin(theta)**4 - 4*c0_66*cos(theta)**4 + 4*c0_66*cos(theta)**2
+           self.c13= -c0_11*cos(theta)**4 + c0_11*cos(theta)**2 + c0_13*sin(theta)**4 + c0_13*cos(theta)**4 - c0_33*cos(theta)**4 + c0_33*cos(theta)**2 + 4*c0_66*cos(theta)**4 - 4*c0_66*cos(theta)**2
+           self.c16= (-2*c0_11*cos(theta)**2 - 4*c0_13*sin(theta)**2 + 2*c0_13 + 2*c0_33*sin(theta)**2 - 8*c0_66*sin(theta)**2 + 4*c0_66)*sin(theta)*cos(theta)/2
+           self.c33= c0_11*sin(theta)**4 - 2*c0_13*cos(theta)**4 + 2*c0_13*cos(theta)**2 + c0_33*cos(theta)**4 - 4*c0_66*cos(theta)**4 + 4*c0_66*cos(theta)**2
+           self.c36= (2*c0_11*cos(theta)**2 - 2*c0_11 + 4*c0_13*sin(theta)**2 - 2*c0_13 + 2*c0_33*cos(theta)**2 + 8*c0_66*sin(theta)**2 - 4*c0_66)*sin(theta)*cos(theta)/2
+           self.c66= -c0_11*cos(theta)**4 + c0_11*cos(theta)**2 + 2*c0_13*cos(theta)**4 - 2*c0_13*cos(theta)**2 - c0_33*cos(theta)**4 + c0_33*cos(theta)**2 + c0_66*sin(theta)**4 + 3*c0_66*cos(theta)**4 - 2*c0_66*cos(theta)**2
+           
         def  _getAcceleration(self, t, u):
              """
              returns the acceleraton for time t and solution u at time t
@@ -713,12 +718,12 @@ class TTIWave(WaveBase):
 
              e_xx=du[0,0]
              e_zz=du[1,1]
-             e_xz=(du[0,1]+du[1,0])/2
+             e_xz=du[0,1]+du[1,0]
 
 
-             sigma[0,0]= self.c11 * e_xx + self.c13 * e_zz + self.c15 * e_xz
-             sigma[1,1]= self.c13 * e_xx + self.c33 * e_zz + self.c35 * e_xz
-             sigma_xz  = self.c15 * e_xx + self.c35 * e_zz + self.c55 * e_xz
+             sigma[0,0]= self.c11 * e_xx + self.c13 * e_zz + self.c16 * e_xz
+             sigma[1,1]= self.c13 * e_xx + self.c33 * e_zz + self.c36 * e_xz
+             sigma_xz  = self.c16 * e_xx + self.c36 * e_zz + self.c66 * e_xz
 
              sigma[0,1]=sigma_xz
              sigma[1,0]=sigma_xz
@@ -779,7 +784,7 @@ class SonicHTIWave(WaveBase):
               v0=interpolate(v0, Solution(domain ))
            
            if dt == None:
-                  dt=min((1./5.)*min(inf(domain.getSize()/sqrt(self.v2_p)), inf(domain.getSize()/sqrt(self.v2_t)), inf(domain.getSize()/sqrt(self.v2_n))) , wavelet.getTimeScale())
+                  dt=min(min(inf(domain.getSize()/sqrt(self.v2_p)), inf(domain.getSize()/sqrt(self.v2_t)), inf(domain.getSize()/sqrt(self.v2_n))) , wavelet.getTimeScale())*0.2
             
            super(SonicHTIWave, self).__init__( dt, u0=p0, v0=v0, t0=0.)
            
