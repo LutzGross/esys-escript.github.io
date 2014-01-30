@@ -62,7 +62,7 @@ tools_names=['clang']
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-#cxx_extra = '-DBADPYTHONMACROS'
+cxx_extra = '-DBADPYTHONMACROS'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
@@ -104,26 +104,26 @@ tools_names=['clang']
 #mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/usr/local'
+boost_prefix = '/opt/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python']
+boost_libs = ['boost_python-mt']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
-cppunit_prefix = '/usr/local'
+cppunit_prefix = '/opt/local'
 
 # CppUnit library/libraries to link against
-#cppunit_libs = ['cppunit']
+cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
-#netcdf = True
+netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-#netcdf_prefix = '/usr/local'
+netcdf_prefix = '/opt/local'
 
 # netCDF library/libraries to link against
-#netcdf_libs = ['netcdf_c++', 'netcdf']
+netcdf_libs = ['netcdf_c++', 'netcdf']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False

@@ -43,7 +43,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const std::map<std::string, int>& tagnamestonums) :
+                     const simap_t& tagnamestonums) :
     RipleyDomain(2)
 {
     // ignore subdivision parameters for serial run
