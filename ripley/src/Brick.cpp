@@ -41,7 +41,7 @@ namespace ripley {
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const std::vector<double>& points, const std::vector<int>& tags,
-             const std::map<std::string, int>& tagnamestonums) :
+             const simap_t& tagnamestonums) :
     RipleyDomain(3)
 {
     // ignore subdivision parameters for serial run

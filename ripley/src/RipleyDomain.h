@@ -16,6 +16,17 @@
 #ifndef __RIPLEY_DOMAIN_H__
 #define __RIPLEY_DOMAIN_H__
 
+#ifdef BADPYTHONMACROS
+// This hack is required for BSD/OSX builds with python 2.7
+// (and possibly others).  It must be the first include.
+// From bug reports online it seems that python redefines
+// some c macros that are functions in c++.
+// c++ doesn't like that!
+#include <Python.h>
+#undef BADPYTHONMACROS
+#endif
+
+
 #include <boost/python/tuple.hpp>
 #include <boost/python/list.hpp>
 
@@ -31,6 +42,14 @@ struct Paso_SystemMatrixPattern;
 struct Paso_SystemMatrix;
 
 namespace ripley {
+
+/* There is no particular significance to this type,
+It is here as a typedef because a bug in clang++ prevents
+that compiler from recognising it as a valid part of
+a constant expression.
+*/
+typedef std::map<std::string, int> simap_t;
+
 
 /**
    \brief

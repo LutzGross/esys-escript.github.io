@@ -41,8 +41,7 @@ public:
               int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
-              const std::map<std::string, int>& tagnamestonums = 
-                                            std::map<std::string, int>());
+              const simap_t& tagnamestonums = simap_t());
 
     /**
        \brief
