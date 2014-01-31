@@ -80,7 +80,7 @@ escript_opts_version = 201
 
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
-#openmp = True
+openmp = True
 
 # Additional compiler flags for OpenMP builds
 # DEFAULT: compiler-dependent
@@ -102,26 +102,26 @@ escript_opts_version = 201
 #mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/usr/local'
+boost_prefix = '/usr/local/boost/1.55.0'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
-cppunit_prefix = '/usr/local'
+cppunit_prefix = '/usr/local/cppunit/1.12.1'
 
 # CppUnit library/libraries to link against
-#cppunit_libs = ['cppunit']
+cppunit_libs = ['cppunit']
 
 # Whether to use the netCDF library for dump file support
 # DEFAULT: False
-#netcdf = True
+netcdf = True
 
 # Prefix or paths to netCDF headers and libraries. See note above.
-#netcdf_prefix = '/usr/local'
+netcdf_prefix = '/opt/local'
 
 # netCDF library/libraries to link against
-#netcdf_libs = ['netcdf_c++', 'netcdf']
+netcdf_libs = ['netcdf_c++', 'netcdf']
 
 # Whether to use the parMETIS library (only in conjunction with MPI)
 # DEFAULT: False
