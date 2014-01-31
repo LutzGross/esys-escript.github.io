@@ -152,7 +152,7 @@ class NonlinearPDE(object):
 
         u = Symbol('u', dim=dom.getDim())
         p = NonlinearPDE(dom, u)
-        p.setValue(X=grad(u), Y=5*u)
+        p.setValue(X=grad(u), Y=1+5*u)
         v = p.getSolution(u=0.)
     """
     DEBUG0=0 # no debug info
@@ -306,7 +306,7 @@ class NonlinearPDE(object):
         for i in numpy.ndindex(self._unknown.getShape()):
             u_syms.append(symb.Symbol(self._unknown[i]).atoms(sympy.Symbol).pop().name)
         if len(set(u_syms))==1: simple_u=True
-        
+        print len(u_syms)
         e=symb.Evaluator(self._unknown)
         for sym in u_syms:
             if not subs.has_key(sym):
@@ -339,7 +339,6 @@ class NonlinearPDE(object):
                 expressions[n]=e
             else:
                 constants[n]=e
-
         # set constant PDE values now
         self._lpde.setValue(**constants)
         self._lpde.getSolverOptions().setAbsoluteTolerance(0.)
@@ -367,7 +366,7 @@ class NonlinearPDE(object):
             self.trace1(5*"="+" iteration step %d "%n + 5*"=")
             # calculate the correction delta_u
             if n == 0:
-                self._updateLinearPDE(expressions, subs)
+                self._updateLinearPDE(expressions, subs, **constants)
                 defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
                 LINTOL=0.1
             else:
@@ -394,7 +393,7 @@ class NonlinearPDE(object):
                 else:
                     for i in range(len(u_syms)):
                         subs[u_syms[i]]=ui[i]
-                self._updateRHS(expressions, subs)
+                self._updateRHS(expressions, subs, **constants)
                 new_defect_norm=self._getDefectNorm(self._lpde.getRightHandSide())
                 defect_reduced=False
                 for i in range(len( new_defect_norm)):
@@ -697,7 +696,7 @@ class NonlinearPDE(object):
                 if rank != u.getRank():
                     raise lpe.IllegalCoefficientValue("%s must have rank %d"%(name,u.getRank()))
                 if not hasattr(y, 'diff'):
-                    d=numpy.zeros(u.getShape())
+                    d=numpy.zeros(u.getShape()+u.getShape())
                 else:
                     d=y.diff(u)
                 self._set_coeffs[name]=y
@@ -942,7 +941,7 @@ class NonlinearPDE(object):
         if len(s_m) == 4 and len(s_v) == 2:
             return tensor_mult(m,v)
 
-    def _updateRHS(self, expressions, subs):
+    def _updateRHS(self, expressions, subs, **constants):
         """
         """
         ev=symb.Evaluator()
@@ -964,7 +963,8 @@ class NonlinearPDE(object):
         args=dict(zip(names,res))
         # reset coefficients may be set at previous calls:
         for n in self.__COEFFICIENTS:
-            if not args.has_key(n): args[n]=Data()
+            if not args.has_key(n) and not constants.has_key(n): args[n]=Data()
+        args=dict(args.items()+constants.items())
         if not args.has_key('r'): args['r']=Data()
         self._lpde.setValue(**args)
 
@@ -989,9 +989,9 @@ class NonlinearPDE(object):
             self.trace3("util.Lsup(%s)=%s"%(names[i],util.Lsup(res[i])))
         self._lpde.setValue(**dict(zip(names,res)))
 
-    def _updateLinearPDE(self, expressions, subs):
+    def _updateLinearPDE(self, expressions, subs, **constants):
         self._updateMatrix(expressions, subs)
-        self._updateRHS(expressions, subs)
+        self._updateRHS(expressions, subs, **constants)
 
 
 class VariationalProblem(object):
