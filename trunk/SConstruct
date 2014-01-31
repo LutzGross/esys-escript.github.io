@@ -27,6 +27,8 @@ REQUIRED_OPTS_VERSION=201
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
 
+IS_OSX = (os.uname()[0] == 'Darwin')
+
 ########################## Determine options file ############################
 # 1. command line
 # 2. scons/<hostname>_options.py
@@ -380,6 +382,13 @@ try:
     env.PrependENVPath(LD_LIBRARY_PATH_KEY, os.environ[LD_LIBRARY_PATH_KEY])
 except KeyError:
     pass
+
+if IS_OSX:
+  try:
+    env.PrependENVPath('DYLD_LIBRARY_PATH', os.environ['DYLD_LIBRARY_PATH'])
+  except KeyError:
+    pass
+
 
 # these shouldn't be needed
 #for key in 'C_INCLUDE_PATH','CPLUS_INCLUDE_PATH','LIBRARY_PATH':
