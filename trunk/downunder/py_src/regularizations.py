@@ -353,7 +353,7 @@ class Regularization(CostFunction):
                 else:
                     raise ValueError("Value for trade-off factor must be positive.")
             else:
-                raise ValueError("Unexpected shape %s for mu."%mu.shape)
+                raise ValueError("Unexpected shape %s for mu."%str(mu.shape))
         else:
             if mu.shape == (numLS,):
                 if min(mu) > 0:
@@ -362,7 +362,7 @@ class Regularization(CostFunction):
                 else:
                     raise ValueError("All values for mu must be positive.")
             else:
-                raise ValueError("Unexpected shape %s for trade-off factor."%mu.shape)
+                raise ValueError("Unexpected shape %s for trade-off factor."%str(mu.shape))
 
     def setTradeOffFactorsForCrossGradient(self, mu_c=None):
         """
