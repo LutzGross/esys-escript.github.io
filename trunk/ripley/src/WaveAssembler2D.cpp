@@ -516,15 +516,23 @@ const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
                             EM_F[INDEX2(1,2,numEq)]+=Btmp10 + Btmp11 + Btmp8 + Btmp9;
                             EM_F[INDEX2(1,3,numEq)]+=Btmp12 + Btmp13 + Btmp14 + Btmp15;
                         } else { // constant data
-                            for (index_t k=0; k<numEq; k++) {
-                                throw RipleyException("WaveAssembler for constant data not yet implemented");
-//                                const double wX0 = X_p[INDEX2(k, 0, numEq)]*w18*6;
-//                                const double wX1 = X_p[INDEX2(k, 1, numEq)]*w19*6;
-//                                EM_F[INDEX2(k,0,numEq)]+= wX0 + wX1;
-//                                EM_F[INDEX2(k,1,numEq)]+=-wX0 + wX1;
-//                                EM_F[INDEX2(k,2,numEq)]+= wX0 - wX1;
-//                                EM_F[INDEX2(k,3,numEq)]+=-wX0 - wX1;
-                            }
+
+                            const double wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
+                                                + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
+                            const double wX_01 = -(c44_p[0] *
+                                                (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
+                            const double wX_10 = -(c44_p[0] *
+                                                (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
+                            const double wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
+                                                + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
+                            EM_F[INDEX2(0,0,numEq)]+= wX_00 + wX_01;
+                            EM_F[INDEX2(0,1,numEq)]+=-wX_00 + wX_01;
+                            EM_F[INDEX2(0,2,numEq)]+= wX_00 - wX_01;
+                            EM_F[INDEX2(0,3,numEq)]+=-wX_00 - wX_01;
+                            EM_F[INDEX2(1,0,numEq)]+= wX_10 + wX_11;
+                            EM_F[INDEX2(1,1,numEq)]+=-wX_10 + wX_11;
+                            EM_F[INDEX2(1,2,numEq)]+= wX_10 - wX_11;
+                            EM_F[INDEX2(1,3,numEq)]+=-wX_10 - wX_11;
                         }
                     }
                     ///////////////
