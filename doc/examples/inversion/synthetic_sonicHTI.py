@@ -22,16 +22,14 @@ __url__="https://launchpad.net/escript-finley"
 from esys.escript import *
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
-from esys.finley import Brick, Rectangle
+from esys.ripley import Brick, Rectangle
 from esys.weipa import saveSilo
 from esys.downunder import Ricker, SonicHTIWave, SimpleSEGYWriter
 from math import ceil
+import time, os
 
 DIM=2          # spatial dimension
 
-ne_z=400/2
-
-absorption_zone=1000*U.m
 
 # layers from the bottom up:
 layers = [ 1*U.km     , 1*U.km  ,700*U.m, 500*U.m, 800*U.m ]
@@ -40,13 +38,21 @@ epss =[   0., 0.24, 0, 0.1, 0]
 deltas=[  0.,  0.1, 0.,0.03,0 ]
 azmths=[  0.,0.,0,  0, 0.]
 
+dt=0.5*U.msec
+
+ne_z=400
+
+ne_z=800
+dt=0.5*U.msec
+
 t_end=3.0*U.sec
-frq=12.5*U.Hz
+frq=15.*U.Hz
+tcenter=None
 sampling_interval=4*U.msec
 numRcvPerLine=101
 rangeRcv=2.*U.km
 src_dir=[0,1]
-
+absorption_zone=1000*U.m
 
 # location of source in crossing array lines with in 0..numRcvInLine one needs to be None
 srcEW=numRcvPerLine/2
@@ -55,6 +61,7 @@ srcNS=None
 width_x=4*U.km
 width_y=width_x
 depth=sum(layers)
+ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create array 
 #
@@ -101,12 +108,12 @@ if DIM == 3:
 # create domain:
 #
 if DIM == 2:
-   domain=Rectangle(ceil(ne_z*width_x/depth), ne_z ,l0=width_x, l1=depth, order=2,
+   domain=Rectangle(ne_x, ne_z ,l0=width_x, l1=depth, 
         diracPoints=src_locations, diracTags=src_tags)
 else:
-   domain=Brick(ceil(ne_z*width_x/depth),ceil(ne_z*width_y/depth),ne_z,l0=width_x,l1=width_y,l2=depth, 
+   domain=Brick(ne_x,ne_x,ne_z,l0=width_x,l1=width_y,l2=depth, 
         diracPoints=src_locations, diracTags=src_tags)
-wl=Ricker(frq)
+wl=Ricker(frq, tcenter)
 
 #======================================================================
 z=Function(domain).getX()[DIM-1]
@@ -124,18 +131,42 @@ for l in xrange(len(layers)):
        delta=delta*(1-m)+deltas[l]*m
        z_bottom+=layers[l]
 
-sw=SonicHTIWave(domain, v_p, wl, src_tags[0], source_vector = src_dir, eps=vareps, delta=delta, azimuth=azmth,  \
+sw=SonicHTIWave(domain, v_p, wl, src_tags[0], dt=dt, source_vector = src_dir, eps=vareps, delta=delta, azimuth=azmth,  \
                      absorption_zone=absorption_zone, absorption_cut=1e-2, lumping=False)
 
+#
+#  print some info:
+#
+print("ne_x = ", ne_x)
+print("ne_z = ", ne_z)
+print("h_x = ", width_x/ne_x)
+print("h_z = ", depth/ne_z)
+print("dt = ", sw.getTimeStepSize()*1000, "msec")
+print("width_x = ", width_x)
+print("depth = ", depth)
+print("number receivers = ", numRcvPerLine)
+print("receiver spacing = ", receiver_line[1]-receiver_line[0])
+print("sampling time = ", sampling_interval*1000,"msec")
+print("source @ ", src_locations[0])
+#
 loc=Locator(domain,rcv_locations)
-tracer=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='vertical')
+tracerP=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='P')
+tracerQ=SimpleSEGYWriter(receiver_group=rg, source=src_loc_2D, sampling_interval=sampling_interval, text='Q')
 
 t=0.
-mkDir('tmp')
+OUT_DIR="out%sm%smus"%(int(width_x/ne_x),int(sw.getTimeStepSize()*1000000))
+mkDir(OUT_DIR)
 n=0
 k=0
+timer1=time.time()
 while t < t_end:
     t,u = sw.update(t+sampling_interval)
-    tracer.addRecord(loc(u[1]))
-    print(t, loc(u[1])[len(rg)/2-4:len(rg)/2+1], wl.getValue(t))
-tracer.write('line.sgy')
+    Plog=loc(u[1])
+    Qlog=loc(u[0])
+    tracerP.addRecord(Plog)
+    tracerQ.addRecord(Qlog)
+    print(t, wl.getValue(t)," :", Plog[0], Plog[srcEW], Plog[-1])
+timer1=time.time()-timer1
+print("time= %e sec; %s sec per step"%(timer1,timer1/max(sw.n,1)))
+tracerP.write(os.path.join(OUT_DIR,'lineP.sgy'))
+tracerQ.write(os.path.join(OUT_DIR,'lineQ.sgy'))

@@ -244,6 +244,7 @@ class WaveBase(object):
          self.u=u0
          self.v=v0
          self.t=t0
+         self.n=0
          self.t_last=t0
          self.__dt=dt
 
@@ -272,6 +273,7 @@ class WaveBase(object):
                   self.v += dt * a
                   self.u += dt * self.v
                   self.t += dt
+                  self.n += 1
 
              # now we work backwards
              self.t_last=t
