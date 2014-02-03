@@ -306,7 +306,6 @@ class NonlinearPDE(object):
         for i in numpy.ndindex(self._unknown.getShape()):
             u_syms.append(symb.Symbol(self._unknown[i]).atoms(sympy.Symbol).pop().name)
         if len(set(u_syms))==1: simple_u=True
-        print len(u_syms)
         e=symb.Evaluator(self._unknown)
         for sym in u_syms:
             if not subs.has_key(sym):
