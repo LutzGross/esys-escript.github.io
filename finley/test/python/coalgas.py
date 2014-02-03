@@ -602,37 +602,37 @@ class PorosityOneHalfModel(DualPorosity):
               print("q_water =",q_water)
 
          k_fw=self.k_w(S_fw)
-                if self.verbose: print("k_fw range = ",inf(k_fw),sup(k_fw)) 
+         if self.verbose: print("k_fw range = ",inf(k_fw),sup(k_fw)) 
 
 
          k_fg=self.k_g(S_fg)
-                if self.verbose: print("k_fg range = ",inf(k_fg),sup(k_fg)) 
+         if self.verbose: print("k_fg range = ",inf(k_fg),sup(k_fg)) 
 
          mu_fw=self.mu_w(p_f)
-                if self.verbose: print("mu_fw range = ",inf(mu_fw),sup(mu_fw)) 
+         if self.verbose: print("mu_fw range = ",inf(mu_fw),sup(mu_fw)) 
 
          mu_fg=self.mu_g(p_f)
-                if self.verbose: print("mu_fg range = ",inf(mu_fg),sup(mu_fg)) 
+         if self.verbose: print("mu_fg range = ",inf(mu_fg),sup(mu_fg)) 
          
 
          phi_f   =self.phi_f.getValue(p_f)
          dphi_fdp=self.phi_f.getValueDifferential(p_f)
-                if self.verbose: print("phi_f range = ",inf(phi_f),sup(phi_f)," (slope %e,%e)"%(inf(dphi_fdp), sup(dphi_fdp))) 
+         if self.verbose: print("phi_f range = ",inf(phi_f),sup(phi_f)," (slope %e,%e)"%(inf(dphi_fdp), sup(dphi_fdp))) 
          
          rho_fw         = self.rho_w.getValue(p_f)
          drho_fwdp        = self.rho_w.getValueDifferential(p_f)
-               if self.verbose: print("rho_fw range = ",inf(rho_fw),sup(rho_fw)," (slope %e,%e)"%(inf(drho_fwdp), sup(drho_fwdp))) 
+         if self.verbose: print("rho_fw range = ",inf(rho_fw),sup(rho_fw)," (slope %e,%e)"%(inf(drho_fwdp), sup(drho_fwdp))) 
 
          rho_fg = self.rho_g.getValue(p_f)
          rho_g_surf = self.rho_g.rho_surf
-         drho_fgdp        = self.rho_g.getValueDifferential(p_f)
-               if self.verbose: 
-                      print("rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp))) 
-                      print("rho_fg surf = ",rho_g_surf)
+         drho_fgdp = self.rho_g.getValueDifferential(p_f)
+         if self.verbose: 
+              print("rho_fg range = ",inf(rho_fg),sup(rho_fg)," (slope %e,%e)"%(inf(drho_fgdp), sup(drho_fgdp))) 
+              print("rho_fg surf = ",rho_g_surf)
               
          L_g = self.L_g(p_f)
          dL_gdp = self.L_g.getValueDifferential(p_f)
-               if self.verbose: print("L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp))) 
+         if self.verbose: print("L_g range = ",inf(L_g),sup(L_g)," (slope %e,%e)"%(inf(dL_gdp), sup(dL_gdp))) 
                   
          A_fw = rho_fw * k_fw/mu_fw 
          A_fg = rho_fg * k_fg/mu_fg
