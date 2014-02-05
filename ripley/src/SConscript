@@ -26,6 +26,7 @@ local_unroll_env = env.Clone()
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
+    blocktools.cpp
     Brick.cpp
     Rectangle.cpp
     RipleyDomain.cpp
@@ -38,6 +39,7 @@ sources = """
 """.split()
 
 headers = """
+    blocktools.h
     Brick.h
     Rectangle.h
     Ripley.h

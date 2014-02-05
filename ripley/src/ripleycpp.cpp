@@ -458,7 +458,11 @@ args("solver", "preconditioner", "package", "symmetry"),
         .def("MPIBarrier",&ripley::RipleyDomain::MPIBarrier,"Wait until all processes have reached this point")
         .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
 
-    class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
+    class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init)
+    .def("randomFill", &ripley::Brick::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
+":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
+"guassian blur and s is the sigma parameter."
+    );
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init)
     .def("randomFill", &ripley::Rectangle::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
 ":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
