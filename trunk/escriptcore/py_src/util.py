@@ -41,6 +41,10 @@ import math
 import numpy
 import os
 import warnings
+import inspect
+import sympy as sp
+sympy_classes = tuple(x[1] for x in inspect.getmembers(sp,inspect.isclass))
+
 warnings.simplefilter('default', category=DeprecationWarning)
 
 from . import escriptcpp as escore
@@ -744,7 +748,7 @@ def log10(arg):
       return math.log10(arg)
    elif isinstance(arg,int):
       return math.log10(float(arg))
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.log10)
    else:
       raise TypeError("log10: Unknown argument type.")
@@ -961,7 +965,7 @@ def Abs(arg):
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
-   if isinstance(arg,sym.Symbol):
+   if isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.sym.symfn.abs)
    else:
       return abs(arg)
@@ -978,7 +982,7 @@ def erf(arg):
    """
    if isinstance(arg,escore.Data):
       return arg._erf()
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.erf)
    else:
       raise TypeError("erf: Unknown argument type.")
@@ -1001,7 +1005,7 @@ def sin(arg):
       return math.sin(arg)
    elif isinstance(arg,int):
       return math.sin(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.sin)
    else:
       raise TypeError("sin: Unknown argument type.")
@@ -1016,6 +1020,7 @@ def cos(arg):
            on the type of ``arg``
    :raise TypeError: if the type of the argument is not expected
    """
+   #print dir(sym)
    if isinstance(arg,numpy.ndarray):
       return numpy.cos(arg)
    elif isinstance(arg,escore.Data):
@@ -1024,7 +1029,7 @@ def cos(arg):
       return math.cos(arg)
    elif isinstance(arg,int):
       return math.cos(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.cos)
    else:
       raise TypeError("cos: Unknown argument type.")
@@ -1047,7 +1052,7 @@ def tan(arg):
       return math.tan(arg)
    elif isinstance(arg,int):
       return math.tan(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.tan)
    else:
       raise TypeError("tan: Unknown argument type.")
@@ -1070,7 +1075,7 @@ def asin(arg):
       return math.asin(arg)
    elif isinstance(arg,int):
       return math.asin(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.asin)
    else:
       raise TypeError("asin: Unknown argument type.")
@@ -1093,7 +1098,7 @@ def acos(arg):
       return math.acos(arg)
    elif isinstance(arg,int):
       return math.acos(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.acos)
    else:
       raise TypeError("acos: Unknown argument type.")
@@ -1116,7 +1121,7 @@ def atan(arg):
       return math.atan(arg)
    elif isinstance(arg,int):
       return math.atan(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.atan)
    else:
       raise TypeError("atan: Unknown argument type.")
@@ -1139,7 +1144,7 @@ def sinh(arg):
       return math.sinh(arg)
    elif isinstance(arg,int):
       return math.sinh(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.sinh)
    else:
       raise TypeError("sinh: Unknown argument type.")
@@ -1162,7 +1167,7 @@ def cosh(arg):
       return math.cosh(arg)
    elif isinstance(arg,int):
       return math.cosh(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.cosh)
    else:
       raise TypeError("cosh: Unknown argument type.")
@@ -1185,7 +1190,7 @@ def tanh(arg):
       return math.tanh(arg)
    elif isinstance(arg,int):
       return math.tanh(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.tanh)
    else:
       raise TypeError("tanh: Unknown argument type.")
@@ -1208,7 +1213,7 @@ def asinh(arg):
       return numpy.arcsinh(arg)
    elif isinstance(arg,int):
       return numpy.arcsinh(float(arg))
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.asinh)
    else:
       raise TypeError("asinh: Unknown argument type.")
@@ -1231,7 +1236,7 @@ def acosh(arg):
       return numpy.arccosh(arg)
    elif isinstance(arg,int):
       return numpy.arccosh(float(arg))
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.acosh)
    else:
       raise TypeError("acosh: Unknown argument type.")
@@ -1254,7 +1259,7 @@ def atanh(arg):
       return numpy.arctanh(arg)
    elif isinstance(arg,int):
       return numpy.arctanh(float(arg))
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.atanh)
    else:
       raise TypeError("atanh: Unknown argument type.")
@@ -1277,7 +1282,7 @@ def exp(arg):
       return math.exp(arg)
    elif isinstance(arg,int):
       return math.exp(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.exp)
    else:
       raise TypeError("exp: Unknown argument type.")
@@ -1300,7 +1305,7 @@ def sqrt(arg):
       return math.sqrt(arg)
    elif isinstance(arg,int):
       return math.sqrt(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.sqrt)
    else:
       raise TypeError("sqrt: Unknown argument type.")
@@ -1323,7 +1328,7 @@ def log(arg):
       return math.log(arg)
    elif isinstance(arg,int):
       return math.log(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.log)
    else:
       raise TypeError("log: Unknown argument type.")
@@ -1356,7 +1361,7 @@ def sign(arg):
         return -1.
       else:
         return 0.
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return arg.applyfunc(sym.symfn.sign)
    else:
       raise TypeError("sign: Unknown argument type.")
@@ -1381,7 +1386,7 @@ def minval(arg):
       return arg
    elif isinstance(arg,int):
       return float(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return sym.symfn.minval(arg)
    else:
       raise TypeError("minval: Unknown argument type.")
@@ -1406,7 +1411,7 @@ def maxval(arg):
       return arg
    elif isinstance(arg,int):
       return float(arg)
-   elif isinstance(arg,sym.Symbol):
+   elif isinstance(arg,sympy_classes):
       return sym.symfn.maxval(arg)
    else:
       raise TypeError("maxval: Unknown argument type.")
