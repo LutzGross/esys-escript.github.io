@@ -168,6 +168,13 @@ public:
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const;
+    
+    /**
+     * \brief 
+       Returns a Data object filled with random data passed through filter.
+    */     
+    virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;   
+    
 
 protected:
     virtual dim_t getNumNodes() const;

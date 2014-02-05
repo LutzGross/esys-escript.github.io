@@ -1869,6 +1869,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 namespace
 {
     // Calculates a guassian blur colvolution matrix for 2D
+    // See wiki article on the subject    
     double* get2DGauss(unsigned radius, double sigma)
     {
         double* arr=new double[(radius*2+1)*(radius*2+1)];
@@ -1916,7 +1917,7 @@ namespace
 
 /* This routine produces a Data object filled with smoothed random data.
 The dimensions of the rectangle being filled are internal[0] x internal[1] points.
-A parameter radius  dives the size of the stencil used for the smoothing.
+A parameter radius  gives the size of the stencil used for the smoothing.
 A point on the left hand edge for example, will still require `radius` extra points to the left
 in order to complete the stencil.
 

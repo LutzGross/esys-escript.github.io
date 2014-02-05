@@ -171,7 +171,7 @@ public:
      * \brief 
        Returns a Data object filled with random data passed through filter.
     */ 
-    escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
+    virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
 
     /**
        \brief

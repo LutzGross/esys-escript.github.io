@@ -33,6 +33,10 @@
 
 #include <iomanip>
 
+#include "esysUtils/EsysRandom.h"
+#include "blocktools.h"
+
+
 using namespace std;
 using esysUtils::FileWriter;
 
@@ -2851,6 +2855,228 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
         } // end of parallel section
     }
 }
+
+namespace
+{
+    // Calculates a guassian blur colvolution matrix for 3D
+    // See wiki article on the subject
+    double* get3DGauss(unsigned radius, double sigma)
+    {
+        double* arr=new double[(radius*2+1)*(radius*2+1)*(radius*2+1)];
+        double common=pow(M_1_PI*0.5*1/(sigma*sigma), 3./2);
+	double total=0;
+	int r=static_cast<int>(radius);
+	for (int z=-r;z<=r;++z)
+	{
+	    for (int y=-r;y<=r;++y)
+	    {
+		for (int x=-r;x<=r;++x)
+		{	      
+		    arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
+		    total+=arr[(x+r)+(y+r)*(r*2+1)];
+		}
+	    }
+	}
+	double invtotal=1/total;
+	for (size_t p=0;p<(radius*2+1)*(radius*2+1);++p)
+	{
+	    arr[p]*=invtotal; 
+	}
+	return arr;
+    }
+    
+    // applies conv to source to get a point.
+    // (xp, yp) are the coords in the source matrix not the destination matrix
+    double Convolve3D(double* conv, double* source, size_t xp, size_t yp, size_t zp, unsigned radius, size_t width, size_t height)
+    {
+        size_t bx=xp-radius, by=yp-radius, bz=zp-radius;
+	size_t sbase=bx+by*width+bz*width*height;
+	double result=0;
+	for (int z=0;z<2*radius+1;++z)
+	{
+	    for (int y=0;y<2*radius+1;++y)
+	    {	  
+		for (int x=0;x<2*radius+1;++x)
+		{
+		    result+=conv[x+y*(2*radius+1)+z*(2*radius+1)*(2*radius+1)] * source[sbase + x+y*width+z*width*height];
+		}
+	    }
+	}
+        return result;      
+    }
+}
+
+
+/* This routine produces a Data object filled with smoothed random data.
+The dimensions of the rectangle being filled are internal[0] x internal[1] x internal[2] points.
+A parameter radius  gives the size of the stencil used for the smoothing.
+A point on the left hand edge for example, will still require `radius` extra points to the left
+in order to complete the stencil.
+
+All local calculation is done on an array called `src`, with 
+dimensions = ext[0] * ext[1] *ext[2].
+Where ext[i]= internal[i]+2*radius.
+
+Now for MPI there is overlap to deal with. We need to share both the overlapping 
+values themselves but also the external region.
+
+In a hypothetical 1-D case:
+
+
+1234567
+would be split into two ranks thus:
+123(4)  (4)567     [4 being a shared element]
+
+If the radius is 2.   There will be padding elements on the outside:
+
+pp123(4)  (4)567pp
+
+To ensure that 4 can be correctly computed on both ranks, values from the other rank
+need to be known.
+
+pp123(4)56   23(4)567pp
+
+Now in our case, we wout set all the values 23456 on the left rank and send them to the 
+right hand rank.
+
+So the edges _may_ need to be shared at a distance `inset` from all boundaries.
+inset=2*radius+1    
+This is to ensure that values at distance `radius` from the shared/overlapped element
+that ripley has.
+*/
+escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) const
+{
+    if (m_numDim!=3)
+    {
+        throw RipleyException("Brick must be 3D.");
+    }
+    if (len(filter)!=3) {
+        throw RipleyException("Unsupported random filter");
+    }
+    boost::python::extract<string> ex(filter[0]);
+    if (!ex.check() || (ex()!="gaussian")) 
+    {
+        throw RipleyException("Unsupported random filter");
+    }
+    boost::python::extract<unsigned int> ex1(filter[1]);
+    if (!ex1.check())
+    {
+        throw RipleyException("Radius of gaussian filter must be a positive integer.");
+    }
+    unsigned int radius=ex1();
+    double sigma=0.5;
+    boost::python::extract<double> ex2(filter[2]);
+    if (!ex2.check() || (sigma=ex2())<=0)
+    {
+        throw RipleyException("Sigma must be a postive floating point number.");
+    }    
+    
+    size_t internal[3];
+    internal[0]=m_NE[0]+1;	// number of points in the internal region
+    internal[1]=m_NE[1]+1;	// that is, the ones we need smoothed versions of
+    internal[2]=m_NE[2]+1;	// that is, the ones we need smoothed versions of
+    size_t ext[3];
+    ext[0]=internal[0]+2*radius;	// includes points we need as input
+    ext[1]=internal[1]+2*radius;	// for smoothing
+    ext[2]=internal[2]+2*radius;	// for smoothing
+    
+    // now we check to see if the radius is acceptable 
+    // That is, would not cross multiple ranks in MPI
+
+    if ((2*radius>=internal[0]) || (2*radius>=internal[1]) || (2*radius>=internal[2]))
+    {
+        throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
+    }
+    
+   
+    double* src=new double[ext[0]*ext[1]*ext[2]];
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]);  
+    
+   
+#ifdef ESYS_MPI
+    
+    dim_t X=m_mpiInfo->rank%m_NX[0];
+    dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
+    dim_t Z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
+    
+    BlockGrid grid(m_NX[0]-1, m_NX[1]-1, m_NX[2]-1);
+    size_t inset=2*radius+1;	
+    
+    size_t xmidlen=ext[0]-2*inset;	// how wide is the x-dimension between the two insets
+    size_t ymidlen=ext[1]-2*inset;	
+    size_t zmidlen=ext[2]-2*inset;
+    
+    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen);    
+    
+    MPI_Request reqs[50];		// a non-tight upper bound on how many we need
+    MPI_Status stats[50];
+    short rused=0;
+    
+    messvec incoms;
+    messvec outcoms;
+    
+    grid.generateInNeighbours(X, Y, Z ,incoms);
+    grid.generateOutNeighbours(X, Y, Z, outcoms);
+    
+    
+    block.copyUsedFromBuffer(src);
+    
+    
+    int comserr=0;    
+    for (size_t i=0;i<incoms.size();++i)
+    {
+	message& m=incoms[i];
+	comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+	block.setUsed(m.destbuffid);
+    }
+
+    for (size_t i=0;i<incoms.size();++i)
+    {
+	message& m=incoms[i];
+	comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+    }    
+    
+    if (!comserr)
+    {     
+        comserr=MPI_Waitall(rused, reqs, stats);
+    }
+
+    if (comserr)
+    {
+	// Yes this is throwing an exception as a result of an MPI error.
+	// and no we don't inform the other ranks that we are doing this.
+	// however, we have no reason to believe coms work at this point anyway
+        throw RipleyException("Error in coms for randomFill");      
+    }
+    
+    block.copyUsedFromBuffer(src);
+
+#endif    
+    escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+    escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
+    // don't need to check for exwrite because we just made it
+    escript::DataVector& dv=resdat.getExpandedVectorReference();
+    double* convolution=get3DGauss(radius, sigma);
+    for (size_t z=0;z<(internal[2]);++z)
+    {
+	for (size_t y=0;y<(internal[1]);++y)    
+	{
+	    for (size_t x=0;x<(internal[0]);++x)
+	    {	  
+		dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
+		
+	    }
+	}
+    }
+    delete[] convolution;
+    delete[] src;
+    return resdat;
+}
+
+
+
+
+
 
 int Brick::findNode(const double *coords) const {
     const int NOT_MINE = -1;
