@@ -72,8 +72,8 @@ public:
   neighbourID_t sourceID;	// ranks involved in communication
   neighbourID_t destID;
   int tag;
-  char srcbuffid;		// number of buffer to use for coms
-  char destbuffid;
+  unsigned char srcbuffid;		// number of buffer to use for coms
+  unsigned char destbuffid;
 } message;
 
 typedef std::vector<message> messvec;
@@ -122,36 +122,36 @@ public:
     
     // Out buffers are loaded with the contents of the flat array and are
     // to be sent to other blocks
-    double* getOutBuffer(char subx, char suby, char subz);
-    double* getOutBuffer(char bid);
+    double* getOutBuffer(unsigned char subx, unsigned char suby, unsigned char subz);
+    double* getOutBuffer(unsigned char bid);
 
     // In buffers are populated from external communications
     // and copied back to teh flat array
-    double* getInBuffer(char subx, char suby, char subz);
-    double* getInBuffer(char bid);
+    double* getInBuffer(unsigned char subx, unsigned char suby, unsigned char subz);
+    double* getInBuffer(unsigned char bid);
     
     // return number of doubles in the given block
-    size_t getBuffSize(char subx, char suby, char subz);
-    size_t getBuffSize(char bid);
+    size_t getBuffSize(unsigned char subx, unsigned char suby, unsigned char subz);
+    size_t getBuffSize(unsigned char bid);
       
     // where does the subblock specified start in a source array
-    size_t startOffset(char subx, char suby, char subz);
+    size_t startOffset(unsigned char subx, unsigned char suby, unsigned char subz);
 
     // debug only
-    void displayBlock(char subx, char suby, char subz, bool out);
+    void displayBlock(unsigned char subx, unsigned char suby, unsigned char subz, bool out);
     
     // Copy a 3d region from a flat array into a buffer
-    void copyToBuffer(char buffid, double* src);
+    void copyToBuffer(unsigned char buffid, double* src);
 
     // Copy a 3d region from a buffer into a flat array
-    void copyFromBuffer(char buffid, double* dest);    
+    void copyFromBuffer(unsigned char buffid, double* dest);    
     
     
     void copyAllToBuffer(double* src);
     
     void copyUsedFromBuffer(double* dest);
 
-    void setUsed(char buffid);    
+    void setUsed(unsigned char buffid);    
   
 private:    
   
@@ -183,14 +183,14 @@ private:
 };
 
 // Returns the MPI message tag to use for a transfer between the two subblocks
-int getTag(char sourcex, char sourcey, char sourcez, char targetx, char targety, char targetz);
+int getTag(unsigned char sourcex, unsigned char sourcey, unsigned char sourcez, unsigned char targetx, unsigned char targety, unsigned char targetz);
 
 // computes the tag based on the destination and the direction it comes from
 // the booleans indicate whether a negative shift in that direction is required
-int getTag(char destx, char desty, char destz, bool deltax, bool deltay, bool deltaz);
+int getTag(unsigned char destx, unsigned char desty, unsigned char destz, bool deltax, bool deltay, bool deltaz);
 
 
 // the booleans indicate whether a negative shift in that direction is required
-char getSrcBuffID(char destx, char desty, char destz, bool deltax, bool deltay, bool deltaz);
+unsigned char getSrcBuffID(unsigned char destx, unsigned char desty, unsigned char destz, bool deltax, bool deltay, bool deltaz);
 
 
