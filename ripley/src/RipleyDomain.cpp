@@ -1380,9 +1380,6 @@ void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
     if (fs != FaceElements && fs != ReducedFaceElements)
         throw RipleyException("assemblePDEBoundary: illegal function space type for coefficients");
 
-    if (!rhs.isEmpty() && rhs.getDataPointSize() != mat->logical_row_block_size)
-        throw RipleyException("assemblePDEBoundary: matrix row block size and number of components of right hand side don't match");
-
     int numEq, numComp;
     if (!mat) {
         if (rhs.isEmpty()) {
