@@ -1383,8 +1383,19 @@ void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
     if (!rhs.isEmpty() && rhs.getDataPointSize() != mat->logical_row_block_size)
         throw RipleyException("assemblePDEBoundary: matrix row block size and number of components of right hand side don't match");
 
-    const int numEq=mat->logical_row_block_size;
-    const int numComp=mat->logical_col_block_size;
+    int numEq, numComp;
+    if (!mat) {
+        if (rhs.isEmpty()) {
+            numEq=numComp=1;
+        } else {
+            numEq=numComp=rhs.getDataPointSize();
+        }
+    } else {
+        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->logical_row_block_size)
+            throw RipleyException("assemblePDEBoundary: matrix row block size and number of components of right hand side don't match");
+        numEq = mat->logical_row_block_size;
+        numComp = mat->logical_col_block_size;
+    }
 
     if (numEq != numComp)
         throw RipleyException("assemblePDEBoundary: number of equations and number of solutions don't match");
