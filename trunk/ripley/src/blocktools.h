@@ -48,6 +48,7 @@
 */
 
 #ifdef ESYS_MPI
+#include <esysUtils/Esys_MPI.h>
 typedef Esys_MPI_rank neighbourID_t;	// This should be the MPI_rank type
 typedef unsigned coord_t;		// if we ever get more than 2^32 ranks, we have other problems
 
