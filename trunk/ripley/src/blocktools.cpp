@@ -40,16 +40,16 @@ void generateOutNeighbours(coord_t blockx, coord_t blocky, coord_t blockz, messv
 void BlockGrid::generateInNeighbours(coord_t blockx, coord_t blocky, coord_t blockz, messvec& v)
 {
     neighbourID_t myid=getNID(blockx, blocky, blockz);
-    char deltax=0;
-    char deltay=0;
-    char deltaz=blockz?1:0;	// do not look to a lower layer if we are on the bottom layer of _blocks_.
-    for (char z=0;z<3;++z)
+    unsigned char deltax=0;
+    unsigned char deltay=0;
+    unsigned char deltaz=blockz?1:0;	// do not look to a lower layer if we are on the bottom layer of _blocks_.
+    for (unsigned char z=0;z<3;++z)
     {
       deltay=blocky?1:0;		// do not look at a lower row of blocks if there isn't one
-      for (char y=0;y<3;++y)
+      for (unsigned char y=0;y<3;++y)
       {
 	deltax=blockx?1:0;
-	for (char x=0;x<3;++x)
+	for (unsigned char x=0;x<3;++x)
 	{
 	  // now we will have a set of possible directions to look in (delta?==0 means don't attempt to
 	  // change this component	  
@@ -80,19 +80,19 @@ void BlockGrid::generateOutNeighbours(coord_t blockx, coord_t blocky, coord_t bl
 {
     messvec vv;
     neighbourID_t myid=getNID(blockx, blocky, blockz);
-    for (char z=0;z<2;++z)
+    for (unsigned char z=0;z<2;++z)
     {
         if (z && (blockz==zmax))	// don't look up if there is no up
 	{
 	    break;
 	}
-        for (char y=0;y<2;++y)
+        for (unsigned char y=0;y<2;++y)
 	{
 	    if (y && (blocky==ymax))
 	    {
 	        break;
 	    }
-	    for (char x=0;x<2;++x)
+	    for (unsigned char x=0;x<2;++x)
 	    {
 		if (x && (blockx==xmax))
 		{
@@ -116,9 +116,9 @@ void BlockGrid::generateOutNeighbours(coord_t blockx, coord_t blocky, coord_t bl
 }
 
   
-double* Block::getOutBuffer(char subx, char suby, char subz)
+double* Block::getOutBuffer(unsigned char subx, unsigned char suby, unsigned char subz)
 {
-    char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")
+    unsigned char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")
     if (bid==13)	// there is no buffer for block 13
     {
 	return 0;	// don't ask for this buffer because refusal may offend
@@ -126,9 +126,9 @@ double* Block::getOutBuffer(char subx, char suby, char subz)
     return outbuffptr[bid];	
 }
 
-double* Block::getInBuffer(char subx, char suby, char subz)
+double* Block::getInBuffer(unsigned char subx, unsigned char suby, unsigned char subz)
 {
-    char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")
+    unsigned char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")
     if (bid==13)	// there is no buffer for block 13
     {
 	return 0;	// don't ask for this buffer because refusal may offend
@@ -136,9 +136,9 @@ double* Block::getInBuffer(char subx, char suby, char subz)
     return inbuffptr[bid];
 }
 
-size_t Block::getBuffSize(char subx, char suby, char subz)
+size_t Block::getBuffSize(unsigned char subx, unsigned char suby, unsigned char subz)
 {
-    char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")
+    unsigned char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")
     if (bid==13)	// there is no buffer for block 13
     {
 	return 0;	
@@ -146,7 +146,7 @@ size_t Block::getBuffSize(char subx, char suby, char subz)
     return dims[bid][0]*dims[bid][1]*dims[bid][2];	
 }
 
-double* Block::getOutBuffer(char bid)
+double* Block::getOutBuffer(unsigned char bid)
 {
     if (bid==13)	// there is no buffer for block 13
     {
@@ -155,7 +155,7 @@ double* Block::getOutBuffer(char bid)
     return outbuffptr[bid];	
 }
 
-double* Block::getInBuffer(char bid)
+double* Block::getInBuffer(unsigned char bid)
 {
     if (bid==13)	// there is no buffer for block 13
     {
@@ -164,7 +164,7 @@ double* Block::getInBuffer(char bid)
     return inbuffptr[bid];
 }
 
-size_t Block::getBuffSize(char bid)
+size_t Block::getBuffSize(unsigned char bid)
 {
     if (bid==13)	// there is no buffer for block 13
     {
@@ -240,19 +240,19 @@ void Block::createBuffArrays(double* startaddress, double* buffptr[27], size_t i
     buffptr[13]=0;	// since the middle should never be sent anywhere
 }
 
-void Block::setUsed(char buffid)
+void Block::setUsed(unsigned char buffid)
 {
     used[buffid]=true;
 }
 
 void Block::copyAllToBuffer(double* src)
 {
-    for (char i=0;i<13;++i)
+    for (unsigned char i=0;i<13;++i)
     {
 	copyToBuffer(i, src);
       
     }
-    for (char i=14;i<27;++i)
+    for (unsigned char i=14;i<27;++i)
     {
 	copyToBuffer(i, src);
     }
@@ -260,7 +260,7 @@ void Block::copyAllToBuffer(double* src)
     
 void Block::copyUsedFromBuffer(double* dest)
 {
-    for (char i=0;i<27;++i)
+    for (unsigned char i=0;i<27;++i)
     {
 	if (used[i])
 	{
@@ -301,7 +301,7 @@ Block::Block(size_t sx, size_t sy, size_t sz, size_t inset, size_t xmidlen, size
 }  
 
 // where does the subblock specified start in a source array
-size_t Block::startOffset(char subx, char suby, char subz)
+size_t Block::startOffset(unsigned char subx, unsigned char suby, unsigned char subz)
 {
     size_t off=0;
     off+=((subx==0) ? 0 :((subx==1)?inset:(inset+xmidlen) ));
@@ -315,10 +315,10 @@ size_t Block::startOffset(char subx, char suby, char subz)
 
 
 
-void Block::displayBlock(char subx, char suby, char subz, bool out)
+void Block::displayBlock(unsigned char subx, unsigned char suby, unsigned char subz, bool out)
 {
     
-    char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")	
+    unsigned char bid=subx+suby*3+subz*3*3;	// (bid is "blockid")	
     double* b=out?outbuffptr[bid]:inbuffptr[bid];
     for (int z=0;z<dims[bid][2];++z)
     {
@@ -337,7 +337,7 @@ void Block::displayBlock(char subx, char suby, char subz, bool out)
 
 
 // Copy a 3d region from a flat array into a buffer
-void Block::copyToBuffer(char bid, double* src)
+void Block::copyToBuffer(unsigned char bid, double* src)
 {
     if (bid==13)	// there is no buffer for block 13
     {
@@ -365,7 +365,7 @@ void Block::copyToBuffer(char bid, double* src)
 
 
 // Copy a 3d region from a buffer into a flat array
-void Block::copyFromBuffer(char bid, double* dest)
+void Block::copyFromBuffer(unsigned char bid, double* dest)
 {
     if (bid==13)	// there is no buffer for block 13
     {
@@ -391,29 +391,29 @@ void Block::copyFromBuffer(char bid, double* dest)
 }
 
 // Returns the MPI message tag to use for a transfer between the two subblocks
-int getTag(char sourcex, char sourcey, char sourcez, char targetx, char targety, char targetz)
+int getTag(unsigned char sourcex, unsigned char sourcey, unsigned char sourcez, unsigned char targetx, unsigned char targety, unsigned char targetz)
 {
     return sourcex*100000+sourcey*10000+sourcez*1000+targetx*100+targety*10+targetz;
 }
 
 // computes the tag based on the destination and the direction it comes from
 // the booleans indicate whether a negative shift in that direction is required
-int getTag(char destx, char desty, char destz, bool deltax, bool deltay, bool deltaz)
+int getTag(unsigned char destx, unsigned char desty, unsigned char destz, bool deltax, bool deltay, bool deltaz)
 {
-    char sourcex=deltax?2:destx;
-    char sourcey=deltay?2:desty;
-    char sourcez=deltaz?2:destz;
+    unsigned char sourcex=deltax?2:destx;
+    unsigned char sourcey=deltay?2:desty;
+    unsigned char sourcez=deltaz?2:destz;
   
     return sourcex*100000+sourcey*10000+sourcez*1000+destx*100+desty*10+destz;  
 }
 
 
 // the booleans indicate whether a negative shift in that direction is required
-char getSrcBuffID(char destx, char desty, char destz, bool deltax, bool deltay, bool deltaz)
+unsigned char getSrcBuffID(unsigned char destx, unsigned char desty, unsigned char destz, bool deltax, bool deltay, bool deltaz)
 {
-    char sourcex=deltax?2:destx;
-    char sourcey=deltay?2:desty;
-    char sourcez=deltaz?2:destz;
+    unsigned char sourcex=deltax?2:destx;
+    unsigned char sourcey=deltay?2:desty;
+    unsigned char sourcez=deltaz?2:destz;
   
     return sourcex+sourcey*3+sourcez*9;
 }
