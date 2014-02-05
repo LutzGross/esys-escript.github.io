@@ -3030,9 +3030,9 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
 	block.setUsed(m.destbuffid);
     }
 
-    for (size_t i=0;i<incoms.size();++i)
+    for (size_t i=0;i<outcoms.size();++i)
     {
-	message& m=incoms[i];
+	message& m=outcoms[i];
 	comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
     }    
     
