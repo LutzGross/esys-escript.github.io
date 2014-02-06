@@ -124,14 +124,14 @@ def LatLonToUTM(lon, lat, wkt_string=None):
         try:
             p_src = pyproj.Proj(srs.ExportToProj4())
         except RuntimeError as e:
-            logger.warn('pyproj returned exception: %s [wkt=%s]'%(e,wkt_string))
+            logger.warning('pyproj returned exception: %s [wkt=%s]'%(e,wkt_string))
 
     if p_src is None:
         if HAVE_GDAL:
             reason="no wkt string provided."
         else:
             reason="the gdal python module not available."
-        logger.warn("Assuming lon/lat coordinates on Clarke 1866 ellipsoid since "+reason)
+        logger.warning("Assuming lon/lat coordinates on Clarke 1866 ellipsoid since "+reason)
         p_src = pyproj.Proj('+proj=longlat +ellps=clrk66 +no_defs')
 
     # check for hemisphere
@@ -343,13 +343,13 @@ class ErMapperData(DataSource):
             if md_dict['ByteOrder'] != 'LSBFirst':
                 raise RuntimeError('Unsupported byte order '+md_dict['ByteOrder'])
         except KeyError:
-            self.logger.warn("Byte order not specified. Assuming LSB first.")
+            self.logger.warning("Byte order not specified. Assuming LSB first.")
 
         try:
             if md_dict['DataType'] != 'Raster':
                 raise RuntimeError('Unsupported data type '+md_dict['DataType'])
         except KeyError:
-            self.logger.warn("Data type not specified. Assuming raster data.")
+            self.logger.warning("Data type not specified. Assuming raster data.")
 
         try:
             if md_dict['RasterInfo.CellType'] == 'IEEE4ByteReal':
@@ -361,7 +361,7 @@ class ErMapperData(DataSource):
             else:
                 raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
         except KeyError:
-            self.logger.warn("Cell type not specified. Assuming IEEE4ByteReal.")
+            self.logger.warning("Cell type not specified. Assuming IEEE4ByteReal.")
             self.__celltype = ripleycpp.DATATYPE_FLOAT32
 
         try:
@@ -405,7 +405,7 @@ class ErMapperData(DataSource):
             else:
                 raise RuntimeError("Unknown CoordinateType")
         except:
-            self.logger.warn("Could not determine coordinate origin. Setting to (0.0, 0.0)")
+            self.logger.warning("Could not determine coordinate origin. Setting to (0.0, 0.0)")
             originX,originY = 0.0, 0.0
 
         # data sets have origin in top-left corner so y runs top-down and
@@ -418,10 +418,10 @@ class ErMapperData(DataSource):
             try:
                 from osgeo import gdal
                 ds=gdal.Open(self.__headerfile)
-                wkt=ds.GetProjection()
+                wkt=str(ds.GetProjection())
             except:
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
-                self.logger.warn('GDAL not available or file read error, assuming GDA94 data')
+                self.logger.warning('GDAL not available or file read error, assuming GDA94 data')
             if self.getReferenceSystem().isCartesian():
                 originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
                 op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
@@ -649,7 +649,7 @@ class NetCdfData(DataSource):
 
         # see if there is a WKT string to convert coordinates
         try:
-            wkt_string=datavar.esri_pe_string
+            wkt_string=str(datavar.esri_pe_string)
             self.logger.debug("wkt_string is: %s"%wkt_string)
         except:
             wkt_string=None
@@ -660,7 +660,7 @@ class NetCdfData(DataSource):
         if wkt_string is None:
             try:
                 mapvar=f.variables[datavar.grid_mapping]
-                wkt_string=mapvar.spatial_ref
+                wkt_string=str(mapvar.spatial_ref)
                 self.logger.debug("wkt_string is: %s"%wkt_string)
             except:
                 self.logger.debug("no wkt_string found!")
