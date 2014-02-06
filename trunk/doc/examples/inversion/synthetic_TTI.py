@@ -105,14 +105,6 @@ wl=Ricker(frq)
 #
 #  set 
 #
-layers = [     700*U.m         ,    400*U.m  ,        1.*U.km,         ]
-v_P=     [    3.8 * U.km/U.sec ,    3. * U.km/U.sec, 2.5*U.km/U.sec     ]
-v_S=     [    3.8 * U.km/U.sec ,    3. * U.km/U.sec, 2.5*U.km/U.sec     ]
-eps =    [    0.               ,    0.24,               0.              ]
-delta=   [    0.               ,    0.1            ,    0.              ]
-tilt=    [    0.               ,    0.             ,    0.              ]
-rho=     [ 2000 * U.kg/U.m**3  , 2000 * U.kg/U.m**3, 2000 * U.kg/U.m**3 ]
-
 z=Function(domain).getX()[1]
 z_top=0
 V_P=0
