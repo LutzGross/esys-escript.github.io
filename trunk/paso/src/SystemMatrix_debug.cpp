@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2013 by University of Queensland
+* Copyright (c) 2003-2014 by University of Queensland
 * Earth Systems Science Computational Center (ESSCC)
 * http://www.uq.edu.au
 *
