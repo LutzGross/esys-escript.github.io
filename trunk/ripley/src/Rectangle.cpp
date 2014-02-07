@@ -2235,9 +2235,13 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
 int Rectangle::findNode(const double *coords) const {
     const int NOT_MINE = -1;
     //is the found element even owned by this rank
+    // (inside owned or shared elements but will map to an owned element)
     for (int dim = 0; dim < m_numDim; dim++) {
-        if (m_origin[dim] + m_offset[dim] > coords[dim]  || m_origin[dim] 
-                + m_offset[dim] + m_dx[dim]*m_ownNE[dim] < coords[dim]) {
+        double min = m_origin[dim] + m_offset[dim]* m_dx[dim]
+                - m_dx[dim]/2.; //allows for point outside mapping onto node
+        double max = m_origin[dim] + (m_offset[dim] + m_NE[dim])*m_dx[dim]
+                + m_dx[dim]/2.;
+        if (min > coords[dim] || max < coords[dim]) {
             return NOT_MINE;
         }
     }
@@ -2254,16 +2258,21 @@ int Rectangle::findNode(const double *coords) const {
         minDist += m_dx[dim]*m_dx[dim];
     }
     //find the closest node
-    for (int dx = 0; dx < 2; dx++) {
+    for (int dx = 0; dx < 1; dx++) {
         double xdist = (x - (ex + dx)*m_dx[0]);
-        for (int dy = 0; dy < 2; dy++) {
+        for (int dy = 0; dy < 1; dy++) {
             double ydist = (y - (ey + dy)*m_dx[1]);
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
-                closest = INDEX2(ex+dx, ey+dy, m_NE[0] + 1); 
+                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NE[0] + 1); 
                 minDist = total;
             }
         }
+    }
+    //if this happens, we've let a dirac point slip through, which is awful
+    if (closest == NOT_MINE) {
+        throw RipleyException("Unable to map appropriate dirac point to a node,"
+                " implementation problem in Rectangle::findNode()");
     }
     return closest;
 }
