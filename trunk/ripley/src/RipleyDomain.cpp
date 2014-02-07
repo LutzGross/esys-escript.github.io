@@ -1050,7 +1050,8 @@ void RipleyDomain::updateTagsInUse(int fsType) const
             tagsInUse=&m_faceTagsInUse;
             break;
         case Points:
-            throw RipleyException("welp");
+            throw RipleyException("updateTagsInUse for Ripley dirac points "
+                    "not supported");
         default:
             return;
     }
