@@ -787,6 +787,8 @@ const int* Brick::borrowSampleReferenceIDs(int fsType) const
         case FaceElements:
         case ReducedFaceElements:
             return &m_faceId[0];
+        case Points:
+            return &m_diracPointNodeIDs[0];
         default:
             break;
     }
@@ -3082,9 +3084,13 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
 int Brick::findNode(const double *coords) const {
     const int NOT_MINE = -1;
     //is the found element even owned by this rank
+    // (inside owned or shared elements but will map to an owned element)
     for (int dim = 0; dim < m_numDim; dim++) {
-        if (m_origin[dim] + m_offset[dim] > coords[dim]  || m_origin[dim] 
-                + m_offset[dim] + m_dx[dim]*m_ownNE[dim] < coords[dim]) {
+        double min = m_origin[dim] + m_offset[dim]* m_dx[dim]
+                - m_dx[dim]/2.; //allows for point outside mapping onto node
+        double max = m_origin[dim] + (m_offset[dim] + m_NE[dim])*m_dx[dim]
+                + m_dx[dim]/2.;
+        if (min > coords[dim] || max < coords[dim]) {
             return NOT_MINE;
         }
     }
@@ -3103,19 +3109,23 @@ int Brick::findNode(const double *coords) const {
         minDist += m_dx[dim]*m_dx[dim];
     }
     //find the closest node
-    for (int dx = 0; dx < 2; dx++) {
+    for (int dx = 0; dx < 1; dx++) {
         double xdist = x - (ex + dx)*m_dx[0];
-        for (int dy = 0; dy < 2; dy++) {
+        for (int dy = 0; dy < 1; dy++) {
             double ydist = y - (ey + dy)*m_dx[1];
-            for (int dz = 0; dz < 2; dz++) {
+            for (int dz = 0; dz < 1; dz++) {
                 double zdist = z - (ez + dz)*m_dx[2];
                 double total = xdist*xdist + ydist*ydist + zdist*zdist;
                 if (total < minDist) {
-                    closest = INDEX3(ex+dy, ey+dy, ez+dz, m_NE[0]+1, m_NE[1]+1);
+                    closest = INDEX3(ex+dy-m_offset[0], ey+dy-m_offset[1],
+                            ez+dz-m_offset[2], m_NE[0]+1, m_NE[1]+1);
                     minDist = total;
                 }
             }
         }
+    }
+    if (closest == NOT_MINE) {
+        throw RipleyException("Unable to map appropriate dirac point to a node, implementation problem in Brick::findNode()");
     }
     return closest;
 }

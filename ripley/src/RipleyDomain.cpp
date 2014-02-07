@@ -1049,6 +1049,8 @@ void RipleyDomain::updateTagsInUse(int fsType) const
             tags=&m_faceTags;
             tagsInUse=&m_faceTagsInUse;
             break;
+        case Points:
+            throw RipleyException("welp");
         default:
             return;
     }
@@ -1494,13 +1496,12 @@ escript::Data RipleyDomain::randomFill(long seed, const boost::python::tuple& fi
 void RipleyDomain::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
-    const int *ids = borrowSampleReferenceIDs(Nodes);
     for (int i = 0; i < numPoints; i++) {
         int node = findNode(&points_ptr[i * m_numDim]);
         if (node >= 0) {
-            m_diracPointNodeIDs.push_back(ids[node]); //stores global
+            m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[node]);
             DiracPoint dp;
-            dp.node = node;
+            dp.node = node; //local
             dp.tag = tags_ptr[i];
             m_diracPoints.push_back(dp);
         }
