@@ -45,6 +45,11 @@ class EscriptPrettyPrinter(PrettyPrinter):
     """
     def __init__(self, profile=None):
         PrettyPrinter.__init__(self, profile)
+        try:
+            self.__ppMatrix = self._print_Matrix
+        except AttributeError:
+            # renamed in 0.7.2
+            self.__ppMatrix = self._print_MatrixBase
 
     def _print_Symbol(self, e):
         # handle escript symbols
@@ -66,17 +71,17 @@ class EscriptPrettyPrinter(PrettyPrinter):
             return self._print(e.item())
         elif e.ndim==1:
             m=sympy.Matrix(1,e.shape[0],lambda i,j:e[j])
-            return self._print_Matrix(m)
+            return self.__ppMatrix(m)
         elif e.ndim==2:
             i,j=e.shape
             m=sympy.Matrix(i,j,lambda i,j:e[i,j])
-            return self._print_Matrix(m)
+            return self.__ppMatrix(m)
         else: #ndim==3 or 4:
             arr=numpy.empty(e.shape[2:],dtype=object)
             for idx in numpy.ndindex(e.shape[2:]):
                 arr[idx]=Symbol(e[idx])
             m=ValueMatrix(arr)
-            return self._print_Matrix(m)
+            return self.__ppMatrix(m)
 
     def _print_grad_n(self, e):
         s=prettyForm(*self._print(e.args[0]).parens())

@@ -236,11 +236,11 @@ fi
 #
 if [ "$MPI_FLAVOUR" = "none" ] 
 then
-    if [ ! -z $ESCRIPT_NUM_NODES ]
+    if [ ! -z $ESCRIPT_NUM_NODES -a $ESCRIPT_NUM_NODES -gt 1 ]
     then
         echo "Warning: MPI disabled but number of nodes set. Option ignored."
     fi
-    if [ ! -z $ESCRIPT_NUM_PROCS ]
+    if [ ! -z $ESCRIPT_NUM_PROCS -a $ESCRIPT_NUM_PROCS -gt 1 ]
     then
         echo "Warning: MPI disabled but number of processors per node set. Option ignored."
     fi
