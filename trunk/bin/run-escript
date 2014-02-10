@@ -460,8 +460,8 @@ elif [ "$MPI_FLAVOUR" = "OPENMPI" ]
 then 
    if [ ! -z "$HOSTFILE" ] 
    then
-      HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE"`
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --bynode -np $TOTPROC --bind-to-socket --cpus-per-rank $ESCRIPT_NUM_THREADS --host $HOST_LIST $EXEC_CMD"
+      HOST_LIST=`sort -u "$HOSTFILE" | awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}'`
+      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --bysocket --bind-to-socket --host $HOST_LIST -np $TOTPROC $EXEC_CMD"
    else
       CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --cpus-per-rank $ESCRIPT_NUM_THREADS -np $TOTPROC $EXEC_CMD"
    fi 
