@@ -1027,8 +1027,6 @@ def cos(arg):
       return math.cos(arg)
    elif isinstance(arg,sym.Symbol):
       return arg.applyfunc(sym.symfn.cos)
-   elif sym.HAVE_SYMBOLS and sym.isSymbol(arg):
-      return sym.symfn.cos(arg)  
    else:
       raise TypeError("cos: Unknown argument type.")
 
