@@ -19,10 +19,9 @@ Import('*')
 local_env = env.Clone(tools=['pdflatex'])
 
 tex_src = Glob('*.tex')+Glob('*.bib')+Glob('*.sty')+Glob('*.cfg')+Glob('*.cls')
-fig_src = Glob('figures/*.eps')
+#fig_src = Glob('figures/*.eps')
 
-# Target that converts eps figures to pdf and adds png files
-figures=local_env.EpsToPDF(source=fig_src) + Glob('figures/*.png')
+figures=Glob('figures/*.png') + Glob('figures/*.pdf')
 
 if local_env['pdflatex']:
     if local_env['verbose']:
