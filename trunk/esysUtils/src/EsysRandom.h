@@ -13,7 +13,6 @@
 *
 *****************************************************************************/
 
-
 #ifndef ESYS_RANDOM_H
 #define ESYS_RANDOM_H
 namespace esysUtils
@@ -22,5 +21,9 @@ namespace esysUtils
    If using this on Data, then be sure to CHECK_EX_WRITE first
 */
 void randomFillArray(long seed, double* array, size_t n);
+
+/* Intended for debugging use only */
+void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, size_t spacing, size_t basex, size_t basey, size_t basez);
+
 }
 #endif
