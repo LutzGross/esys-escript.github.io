@@ -2875,13 +2875,13 @@ namespace
 	    {
 		for (int x=-r;x<=r;++x)
 		{	      
-		    arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
-		    total+=arr[(x+r)+(y+r)*(r*2+1)];
+		    arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
+		    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];
 		}
 	    }
 	}
 	double invtotal=1/total;
-	for (size_t p=0;p<(radius*2+1)*(radius*2+1);++p)
+	for (size_t p=0;p<(radius*2+1)*(radius*2+1)*(radius*2+1);++p)
 	{
 	    arr[p]*=invtotal; 
 	}
@@ -2905,9 +2905,13 @@ namespace
 		}
 	    }
 	}
-        return result;      
+	// use this line for "pass-though" (return the centre point value)
+//	return source[sbase+(radius)+(radius)*width+(radius)*width*height];
+	return result;      
     }
 }
+
+
 
 
 /* This routine produces a Data object filled with smoothed random data.
@@ -2986,24 +2990,66 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
     // now we check to see if the radius is acceptable 
     // That is, would not cross multiple ranks in MPI
 
-    if ((2*radius>=internal[0]) || (2*radius>=internal[1]) || (2*radius>=internal[2]))
+    if (2*radius>=internal[0]-4)
     {
-        throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
+        throw RipleyException("Radius of gaussian filter is too large for X dimension of a rank");
     }
-    
+    if (2*radius>=internal[1]-4)
+    {
+        throw RipleyException("Radius of gaussian filter is too large for Y dimension of a rank");
+    }
+    if (2*radius>=internal[2]-4)
+    {
+        throw RipleyException("Radius of gaussian filter is too large for Z dimension of a rank");
+    }    
    
     double* src=new double[ext[0]*ext[1]*ext[2]];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]);  
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]);       
     
-   
 #ifdef ESYS_MPI
     
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     dim_t Z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
+#endif    
+
+/*    
+    // if we wanted to test a repeating pattern
+    size_t basex=0;
+    size_t basey=0;
+    size_t basez=0;
+#ifdef ESYS_MPI    
+    basex=X*m_gNE[0]/m_NX[0];
+    basey=Y*m_gNE[1]/m_NX[1];
+    basez=Z*m_gNE[2]/m_NX[2];    
+#endif    
+    if (seed==0)
+    {
+	seed=2;	// since we are using the seed parameter as the spacing and 0 spacing causes an exception
+    }
+    esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, seed, basex, basey, basez);
+*/
     
+    
+/*
+cout << "Pattern:\n";    
+for (int i=0;i<ext[0]*ext[1]*ext[2];)
+{
+    cout << src[i++] << " ";
+    if (i%ext[0]==0)
+      cout << "\n";
+    if (i%(ext[0]*ext[1])==0)
+      cout << "\n";
+}*/
+    
+   
+#ifdef ESYS_MPI
+
+
+
     BlockGrid grid(m_NX[0]-1, m_NX[1]-1, m_NX[2]-1);
-    size_t inset=2*radius+1;	
+    size_t inset=2*radius+2;	// Its +2 not +1 because a whole element is shared (and hence 
+		// there is an overlap of two points both of which need to have "radius" points on either side.
     
     size_t xmidlen=ext[0]-2*inset;	// how wide is the x-dimension between the two insets
     size_t ymidlen=ext[1]-2*inset;	
@@ -3022,7 +3068,7 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
     grid.generateOutNeighbours(X, Y, Z, outcoms);
     
     
-    block.copyUsedFromBuffer(src);
+    block.copyAllToBuffer(src);
     
     
     int comserr=0;    
@@ -3053,13 +3099,50 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
     }
     
     block.copyUsedFromBuffer(src);
+    
+    
+    
 
 #endif    
+    
+/*    
+cout << "Pattern (post transfer):\n";    
+for (int i=0;i<ext[0]*ext[1]*ext[2];)
+{
+    cout << src[i++] << " ";
+    if (i%ext[0]==0)
+      cout << "\n";
+    if (i%(ext[0]*ext[1])==0)
+      cout << "\n";
+}   */ 
+    
+    
+    
     escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
     escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
     // don't need to check for exwrite because we just made it
     escript::DataVector& dv=resdat.getExpandedVectorReference();
     double* convolution=get3DGauss(radius, sigma);
+
+// cout << "Convolution matrix\n";
+// size_t di=(radius*2+1);
+// double ctot=0;
+// for (int i=0;i<di*di*di;++i)
+// {
+//     cout << convolution[i] << " ";
+//     ctot+=convolution[i];
+//     if ((i+1)%di==0)
+//     {
+// 	cout << "\n";
+//     }
+//     if ((i+1)%(di*di)==0)
+//     {
+// 	cout << "\n";
+//     }
+// }
+// 
+// cout << "Sum of matrix is = " << ctot << endl;
+
     for (size_t z=0;z<(internal[2]);++z)
     {
 	for (size_t y=0;y<(internal[1]);++y)    
@@ -3071,6 +3154,22 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
 	    }
 	}
     }
+    
+// cout << "\nResulting matrix:\n";
+//     for (size_t z=0;z<(internal[2]);++z)
+//     {
+// 	for (size_t y=0;y<(internal[1]);++y)    
+// 	{
+// 	    for (size_t x=0;x<(internal[0]);++x)
+// 	    {	  
+// 		cout << dv[x+y*(internal[0])+z*internal[0]*internal[1]] << " ";
+// 	    }
+// 	    cout << endl;
+// 	}
+// 	cout << endl;
+//     }
+
+    
     delete[] convolution;
     delete[] src;
     return resdat;
