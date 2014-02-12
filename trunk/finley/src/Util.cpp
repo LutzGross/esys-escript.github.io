@@ -38,7 +38,7 @@ bool ValueAndIndexCompare(const std::pair<int,int> &i, const std::pair<int, int>
     if (i.first > j.first) return false;
     if (i.second < j.second) return true;
     if (i.second > j.second) return false;
-    return true;
+    return false;   // to ensure we have a strict ordering as required by std
 }
 
 /// orders a ValueAndIndexList by value
