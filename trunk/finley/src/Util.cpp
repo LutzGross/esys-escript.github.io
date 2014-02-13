@@ -34,11 +34,10 @@ namespace util {
 /// comparison function for sortValueAndIndex
 bool ValueAndIndexCompare(const std::pair<int,int> &i, const std::pair<int, int> &j)
 {
-    if (i.first < j.first) return true;
-    if (i.first > j.first) return false;
-    if (i.second < j.second) return true;
-    if (i.second > j.second) return false;
-    return false;   // to ensure we have a strict ordering as required by std
+    // to ensure we have a strict ordering as required by std
+    if (i.first == j.first)
+        return i.second < j.second;
+    return i.first < j.first;
 }
 
 /// orders a ValueAndIndexList by value
