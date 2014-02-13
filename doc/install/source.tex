@@ -16,28 +16,90 @@
 
 \chapter{Installing from Source}\label{chap:source}
 
-This chapter assumes you are using a unix/posix like system.
+This chapter assumes you are using a unix/posix like system (including MacOSX).
 
-\section{Intro}
+\section{Parallel Technologies}\label{sec:par}
+It is likely that the computer you run \escript on, will have more than one processor core.
+\escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
+but this functionality must be enabled at compile time.
+Section~\ref{sec:needpar} gives some rough guidelines to help you determine what you need.
 
-Some initial questions:
-\begin{enumerate}
-\item Are you using MacOS? (If not, then skip to Section~\ref{sec:par}).
-\item Which parallel technologies do you wish to use?
-\item Which packaging system are you using?
-\end{enumerate}
+There are two technologies which \escript can employ here.
+\begin{itemize}
+ \item OpenMP -- more efficient of the two [thread level parallelism].
+ \item MPI -- Uses multiple processes (less efficient), needs less help from the compiler.
+\end{itemize}
 
+Escript is primarily tested on recent versions of the GNU and Intel suites (``g++'' / ``icpc'').
+However, it also passes our tests when compiled using ``clang++''.
+The table below shows what methods are available with which compilers.
 
+\begin{center}
+\begin{tabular}{|l|c|c|c|}\hline
+ & Serial & OpenMP & MPI \\\hline
+ $\leq$ g++-4.2.1 & \checkmark & \raisebox{-0.1cm}{\footnotemark}& \checkmark \\\hline
+ g++ (recent $\geq 4.3.2$)  & \checkmark& \checkmark& \checkmark \\\hline
+ icpc(10) & \checkmark& \checkmark& \checkmark \\\hline
+ icpc(11) & \checkmark& \raisebox{-0.1cm}{\footnotemark}  &\checkmark \\\hline
+ icpc(12) & \checkmark& \checkmark&\checkmark \\\hline
+ clang++ & \checkmark& & \checkmark\\\hline
+\end{tabular}
+\end{center}
+\addtocounter{footnote}{-1}
+\footnotetext{The \openmp support in g++-4.2.1 is buggy/non-functional.}
+\addtocounter{footnote}{1}
+\footnotetext{There is a subtle bug in icpc-11 when \openmp and c++ exception handling 
+are combined.}
 
-\subsection{MacOS and compilers}
+\noindent Where both \openmp and \mpi are marked, \escript can be compiled with either or both.
+A \checkmark mark means that combination passes our tests.
+
+\subsection{What parallel technology do I need?}\label{sec:needpar}
+If you are using any version of Linux released in the past few years, then your system compiler will support 
+\openmp with no extra work; so you should use it.
+You will not need MPI unless your computer is some form of cluster.
+
+If you are using BSD or MacOSX and you are just experimenting with \escript, then performance is
+probably not a major issue for you at the moment so you don't need to use either \openmp or MPI. 
+This also applies if you write and polish your scripts on your computer and then send them to a cluster to execute.
+If in the future you find escript useful and your scripts take significant time to run, then you may want to reinstall 
+\escript with more options.
+
+In general, for a single computer, \openmp will give better performance (both time and memory) so use it if possible.
+If \openmp is not an option, then use MPI.
+
+Note that even if your version of \escript has support for \openmp or MPI, you will still need to tell the system to 
+use it when you run your scripts.
+If you are using the \texttt{run-escript} launcher, then this is controlled  by the \texttt{-t} and \texttt{-p} options.
+If not, then consult the documentation for your MPI libraries (or the compiler documentation in the case of OpenMP
+\footnote{It may be enough to set the \texttt{OMP\_NUM\_THREADS} environment variable.}).
+
+If you are using MacOSX, then see the next section, if not, then skip to Section~\ref{sec:build}.
+
+\section{MacOS}
+
+To build \escript from source you need to choose and install the following (if you already have some parts installed, skip 
+that section).
+\begin{itemize}
+ \item \texttt{XCode} and the associated command line tools. [Section~\ref{sec:initcompiler}]
+ \item A package manager. [Section~\ref{sec:osxpackagemanager}]
+ \item A compiler. [Section~\ref{sec:osxcompiler}] 
+\end{itemize}
+
+As noted above, different compilers have varying support for parallel processing technologies so your choice of 
+compiler may limit your options of parallel technologies.
+Once you have the pieces in this section, go to Section~\ref{sec:build} for build instructions.
+
+\subsection{Initial compiler}\label{sec:initcompiler}
 \emph{This information is as accurate as far as we can tell at time of writing but things may change.}
 
-In order to install \escript from source, you need a compiler.
+Even if you wish to install and use a different compiler later, the first step is generally 
+to get some compiler onto your system.
 This is a bit harder on MacOS than on other systems which either provide a compiler as part of the base install (BSD) or allow 
 people to download one as part of the install process (Linux).
 In earlier releases of its operating system (``Snow Leopard'' and earlier), Apple included an optional ``developer tools'' package (\texttt{XCode}) on the install media.
 For more recent releases, \texttt{XCode} is available for ``free'' from Apple's application store.
-Why ``free''? 
+Why the quotes around ``free''? 
 The only way to access the application store is with an AppleID which requires either:
 \begin{itemize}
  \item purchasing an iTunes gift card.
@@ -56,120 +118,72 @@ For example:
  \item \url{http://kennethreitz.org/experiments/xcode-gcc-and-homebrew}
 \end{itemize}
 
+\subsection{OSX Package Managers}\label{sec:osxpackagemanager}
+Once you have a working compiler, you will need to consider how you will install the components \escript needs.
+While it is certainly possible to compile and install these pieces manually, it can be easier to use a tool
+which handles some of the details for you.
+This is especially true if you will need to uninstall or upgrade them later.
 
-\subsection{Parallel Technologies}\label{sec:par}
-It is extremely likely that the computer you run \escript on, will have more than one processor core.
-\escript can make use of multiple cores [in order to solve problems more quickly] if it is told to do so,
-but this functionality must be enabled at compile time.
+On OSX, there are a number of options. 
+The popular ones at time of writing seem to be \texttt{macports} and \texttt{homebrew}.
+(We have not experimented with \texttt{fink}).
+\escript does not assume that you are using a particular package manager\footnote{or even if you are using one at all.}.
+The configuration instructions/files in this guide are just examples that we have found to work.
 
-There are two technologies which \escript can employ here.
-\begin{itemize}
- \item OpenMP -- more efficient of the two [thread level parallelism].
- \item MPI -- Uses multiple processes (less efficient), needs less help from the compiler.
-\end{itemize}
-
-Escript is primarily tested on recent versions of the GNU or Intel suites (``gcc, g++'' / ``icc, icpc'').
-However, it also passes our tests when compiled using ``clang, clang++''.
-The table below shows what methods are available with which compilers.
-
-\begin{center}
-\begin{tabular}{|l|c|c|c|}\hline
- & Serial & OpenMP & MPI \\\hline
- $\leq$ gcc-4.2.1 & \checkmark & \raisebox{-0.1cm}{\footnotemark}& \checkmark \\\hline
- gcc (recent $\geq 4.3.2$)  & \checkmark& \checkmark& \checkmark \\\hline
- icc(10) & \checkmark& \checkmark& \checkmark \\\hline
- icc(11) & \checkmark& \raisebox{-0.1cm}{\footnotemark}  &\checkmark \\\hline
- icc(12) & \checkmark& \checkmark&\checkmark \\\hline
- clang & \checkmark& & \checkmark\\\hline
-\end{tabular}
-\end{center}
-\addtocounter{footnote}{-1}
-\footnotetext{The \openmp support in gcc-4.2.1 is buggy/non-functional.}
-\addtocounter{footnote}{1}
-\footnotetext{There is a subtle bug in icc-11 when \openmp and c++ exception handling 
-are combined.}
-
-\noindent Where both \openmp and \mpi are marked, \escript can be compiled with either or both.
-A \checkmark mark means that combination passes our tests.
-
-
-
-\subsection{Packaging System}
-The packaging system (also known as the package manager) is the tool you use to search for and install new open source software.
-For Linux, there will be one set up by default: the apt tools on Debian and Ubuntu, yast on Suse, yum on the RedHat family.
-On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
-
-For MacOS, this is a bit more tricky.
-There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, 
-but we have not experimented with that.}, but they do not come pre-installed so if you want to make use of one you will need
-you will need to install it.
-
-Packaging systems will make changes to your computer based on programs configured by other people from 
+Note that package managers will make changes to your computer based on programs configured by other people from 
 various places around the internet.
 It is important to satisfy yourself as to the security of those systems.
 
-If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{sec:build}.
+Please consult the documentation for your chosen package manager to determine how to set it up.
 
-\subsubsection*{Changing Compilers on MacOS and BSD}
-\emph{Not for the faint-hearted.}
+\subsection{A compiler}\label{sec:osxcompiler}
+While the command line tools described in \ref{sec:initcompiler}, do contain a c++ compiler, in recent versions of OSX, 
+it is likely to be some version of \texttt{clang++}\footnote{even if it is 
+labelled as g++ it is likely clang++ under the hood.}.
+If you don't need \openmp or genuine \texttt{g++} or you have installed an \openmp supporting compiler
+using some other method, then you can skip to Section~\ref{sec:build}.
 
-In order to use OpenMP, your compiler must support it.
-The compilers provided in Apple's package and BSD do not support OpenMP.
-\texttt{Clang} has no support for it at all, while \texttt{GCC4.2.1} has some, 
-but it does not work very well\footnote{Rejects valid code, crashes etc}.
-You can use the packaging system to install a more up to date version of \texttt{gcc}.
-However, you will need to install a number of other dependencies in order for escript to operate.
-If these dependencies end up fighting over which versions of libraries to use, there will be problems.
-\footnote{For example: Trying to use two versions of \texttt{Python} in the same program 
-or two versions of the \texttt{c++} standard library.}
-To avoid this, if you are intend to change the compiler or python versions, you should install the new compiler first,
-then the new version of python.
-After this, you can install the other dependencies.
-\emph{Please note that none of the Mac based package managers nor BSD recommend changing the default $C$ compiler so
-do so at your own risk.  If you want OpenMP though, there does not seem to be a choice.}
-
-The following steps seemed to work when we tested them but we cannot make guarantees.
-
-\subsubsection*{Changing compiler on FreeBSD(9.1)}
-The following sequence passes our unit tests under OpenMP.
-\begin{itemize}
- \item Install \texttt{gcc46} from ports.
- \item Modify \texttt{/etc/make.conf} to set the default compiler to be \texttt{gcc46}
- \item Install the remaining dependencies. 
- \item Configure \escript to build with \openmp.
-\end{itemize}
-
-We chose version $4.6$ rather than a later one because one of the optional dependencies (scipy) will try to install it anyway.
-
-\subsection*{Changing compiler on MacPorts}
-The following sequence passes our unit tests under OpenMP.
-\begin{itemize}
- \item \texttt{port install gcc47}
- \item Set the default compiler for the command line with: \texttt{port select --set gcc mp-gcc47}
- \item Set the default compiler for macports by adding the following line to \hfill~\linebreak[4] \file{/opt/local/etc/macports/macports.conf}:
-\begin{shellCode} 
-#Added by user to coerce macports into using a newer compiler
-default_compiler	macports-gcc-4.7 
-\end{shellCode}
-\item Now install the remainder of the dependencies using \texttt{port -s install X}.
-This will build them from source rather than downloading precompiled versions.
-(This will unfortunately mean larger downloads.).
-In some cases, some dependencies will not build properly from source.
-In those cases(where XYZ is the dependency that fails to build), \texttt{port clean XYZ} then \texttt{port install XYZ}.
-Then \emph{try to install the rest from source}.
-
-Installing from source via macports is necessary to convince macports to link against the libraries provided by 
-your new compiler rather than the default one.
-\end{itemize}
+If you are still reading this part, we assume that you wish to use \texttt{g++} to build escript on your system and that you are 
+using a package manager.
+The challenge here isn't installing the compiler itself. 
+The issue is that the other dependencies that \escript needs have 
+probably\footnote{or ``will probably be compiled'' in the case of \texttt{homebrew}.} been compiled by \texttt{clang} rather than the compiler 
+you want to use.
+A lot of the time this is fine, but in the case of \texttt{c++} libraries such as \texttt{boost}, the result can be two different 
+standard c++ libraries\footnote{\texttt{libstdc++} and \texttt{libc++} on OSX 10.9.} being used in the same program and confusing matters.
+Apart from giving up, there are two ways to try to solve this problem.
+\begin{enumerate}
+\item Changing the compiler that your package manager uses to compile its packages.
+\emph{This is not for the faint hearted!} But we do provide some instructions in Appendix~\ref{chap:chcomp}.
+\item Install most of the libraries using your package manager to install most things and then compile the c++ parts yourself.
+(The most important one is texttt{boost}).
+We have tested this on Macports and it works well. The only trick is to make sure that your ``replacement'' components are in a separate 
+directory which is ahead of you Macports directory in the various paths (\texttt{PATH, LD\_LIBRARY\_PATH, DYLD\_LIBRARY\_PATH}).
+\end{enumerate}
 
 
 
 
-\subsection*{Changing compiler on Homebrew}
-There is no configuration file that needs to be changed in order to use a different compiler.
-You do need to do things in the correct order and make sure that you have made any required changes to 
-your environment variables before moving on to the next step.
-In particular, the compiler must be installed before anything else, followed by Python.
+% \subsection{Packaging System}
+% The packaging system (also known as the package manager) is the tool you use to search for and install new open source software.
+% For Linux, there will be one set up by default: the apt tools on Debian and Ubuntu, yast on Suse, yum on the RedHat family.
+% On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
+% 
+% For MacOS, this is a bit more tricky.
+% There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, 
+% but we have not experimented with that.}, but they do not come pre-installed so if you want to make use of one you will need
+% you will need to install it.
+% 
+% Packaging systems will make changes to your computer based on programs configured by other people from 
+% various places around the internet.
+% It is important to satisfy yourself as to the security of those systems.
+% 
+% If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{sec:build}.
+% 
+% 
+% \textsl{This whole section could be moved to an appendix.
+% Need to make it clear somewhere near that it is not intended to be complicated but to give options.
+% }
 
 
 % make it clear that escript can be customised to use whatever you have
@@ -485,7 +499,7 @@ openmp = True
 
 If you are using libraries which are not installed in the standard places (or have different names) you will need to 
 change the relevant lines.
-A common need for this would be using a more recent version of the boostpython library.
+A common need for this would be using a more recent version of the boost::python library.
 
 You can also change the compiler or the options passed to it by modifying the relevant lines.
 
