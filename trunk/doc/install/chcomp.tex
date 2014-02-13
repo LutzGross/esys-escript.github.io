@@ -1,0 +1,66 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2014 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Changing compilers for package managers}
+\label{chap:chcomp}
+
+Here are some brief instructions / hints for changing the compilers used by package managers in OSX and FreeBSD.
+If you are intend to change the compiler or python versions, you should install the new compiler first,
+then the new version of python.
+After this, you can install the other dependencies.
+\emph{Please note that neither homebrew, MacPorts nor BSD recommend changing the default $C$ compiler so
+do so at your own risk.  If you want OpenMP though, there does not seem to be a choice.}
+
+The following steps seemed to work when we tested them but we cannot make guarantees.
+
+\subsubsection*{Changing compiler on FreeBSD(9.1)}
+The following sequence passes our unit tests under OpenMP.
+\begin{itemize}
+ \item Install \texttt{gcc46} from ports.
+ \item Modify \texttt{/etc/make.conf} to set the default compiler to be \texttt{gcc46}
+ \item Install the remaining dependencies. 
+ \item Configure \escript to build with \openmp.
+\end{itemize}
+
+We chose version $4.6$ rather than a later one because one of the optional dependencies (scipy) will try to install it anyway.
+
+\subsubsection*{Changing compiler on MacPorts}
+The following sequence passes our unit tests under OpenMP.
+\begin{itemize}
+ \item \texttt{port install gcc47}
+ \item Set the default compiler for the command line with: \texttt{port select --set gcc mp-gcc47}
+ \item Set the default compiler for macports by adding the following line to \hfill~\linebreak[4] \file{/opt/local/etc/macports/macports.conf}:
+\begin{shellCode} 
+#Added by user to coerce macports into using a newer compiler
+default_compiler	macports-gcc-4.7 
+\end{shellCode}
+\item Now install the remainder of the dependencies using \texttt{port -s install X}.
+This will build them from source rather than downloading precompiled versions.
+(This will unfortunately mean larger downloads.).
+In some cases, some dependencies will not build properly from source.
+In those cases(where XYZ is the dependency that fails to build), \texttt{port clean XYZ} then \texttt{port install XYZ}.
+Then \emph{try to install the rest from source}.
+
+Installing from source via macports is necessary to convince macports to link against the libraries provided by 
+your new compiler rather than the default one.
+\end{itemize}
+
+
+
+
+\subsubsection*{Changing compiler on Homebrew}
+There is no configuration file that needs to be changed in order to use a different compiler.
+You do need to do things in the correct order and make sure that you have made any required changes to 
+your environment variables before moving on to the next step.
+In particular, the compiler must be installed before anything else, followed by Python.
