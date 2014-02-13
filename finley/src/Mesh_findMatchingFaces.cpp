@@ -46,7 +46,7 @@ bool FaceCenterCompare(const FaceCenter& e1, const FaceCenter& e2)
     } else if (e1.refId > e2.refId) {
         return false;
     }
-    return true;
+    return false;	// strict order to e1==e2 is false
 }
 
 inline double getDist(int e0, int i0, int e1, int i1, int numDim, int NN,
