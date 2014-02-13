@@ -44,7 +44,7 @@ class GroupTest(object):
         res=res+"#############################################\n\n"
         res=res+"function failed()\n{\n  echo ""Execution failed for $@""\n  exit 1\n}\n"
         res=res+"if [ $# -ne 2 ]\nthen\n echo Usage: $0 build_dir wrapper_options\necho Runs all unit tests. Options must be a single string.\nexit 2\nfi\n"
-        res=res+'CMDSTR="getopt -uq -o p:n: -- $2"\nSTR=`$CMDSTR`\nNUMPROCS=1\n'
+        res=res+'CMDSTR="getopt p:n: -- $2" #Not using -uq -o because that is GNU only\nSTR=`$CMDSTR`\nNUMPROCS=1\n'
         if stdloc:
             res=res+'MPITYPE=`run-escript -c | grep mpi=`\n'
         else:
