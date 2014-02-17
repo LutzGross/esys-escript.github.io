@@ -48,6 +48,9 @@ testruns += ['run_utilOnFinley2.py']
 testruns += ['run_utilOnFinley3.py']
 # testruns += ['run_visualization_interface.py']
 testruns += ['run_amg.py'] 
+# testruns += ['run_nlpde.py']
+testruns += ['run_nlpde2d.py']
+testruns += ['run_nlpde3d.py']
 
 #  files defining a few tests for a quick test
 scalable_tests = []
