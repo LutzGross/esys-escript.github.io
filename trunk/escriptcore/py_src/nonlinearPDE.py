@@ -128,7 +128,7 @@ class NonlinearPDE(object):
 
     The following natural boundary conditions are considered:
 
-    *n[j]*X[j] - y = 0*
+    *n[j]*X[j] + y = 0*
 
     where *n* is the outer normal field. Notice that the coefficient *X*
     is defined in the PDE. The coefficient *y* is a scalar `Symbol`.
@@ -651,7 +651,7 @@ class NonlinearPDE(object):
         """
 
         u=self._unknown
-        for name,val in coefficients.iteritems():
+        for name,val in coefficients.items():
             shape=util.getShape(val)
             if not shape == self.getShapeOfCoefficient(name):
                 raise lpe.IllegalCoefficientValue("%s has shape %s but must have shape %s"%(name, shape, self.getShapeOfCoefficient(name)))
@@ -1011,7 +1011,7 @@ class VariationalProblem(object):
     the location *x* within the domain and is a function of the solution *u*
     and the parameter *p* and their gradients *grad(u)* and *grad(p)*,
     respectively.
-    Similarly, int{H} refers to integration over the boundary of the domain and
+    Similarly, int{h} refers to integration over the boundary of the domain and
     *h=f(*x*,*u*, *p*) is a function which may depend on the location *x*
     within the domain boundary and is a function of the solution *u* and the
     parameter *p*.
