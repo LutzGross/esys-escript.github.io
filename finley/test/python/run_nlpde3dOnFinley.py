@@ -42,13 +42,6 @@ from esys.finley import Rectangle,Brick
 import sys
 
 
-try:
-     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
-except KeyError:
-     FINLEY_TEST_DATA='.'
-
-FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
-
 class Test_nonLinearPDE(Test_nlpde):
    def setUp(self):
         self.domain = Brick(l0=10.,l1=10.,l2=10.,n0=10, n1=10,n2=10) 
