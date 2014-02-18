@@ -309,7 +309,7 @@ class NonlinearPDE(object):
         if len(set(u_syms))==1: simple_u=True
         e=symb.Evaluator(self._unknown)
         for sym in u_syms:
-            if not subs.has_key(sym):
+            if not sym in subs:
                 raise KeyError("Initial value for '%s' missing."%sym)
             if not isinstance(subs[sym], Data):
                 subs[sym]=Data(subs[sym], self._lpde.getFunctionSpaceForSolution())
@@ -612,7 +612,7 @@ class NonlinearPDE(object):
         :rtype: `Symbol`
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """
-        if self._set_coeffs.has_key(name):
+        if name in self._set_coeffs:
             return self._set_coeffs[name]
         elif name == "r":
              if hasattr(self, "_r"):
@@ -864,7 +864,7 @@ class NonlinearPDE(object):
                           name = 'X'+n[1:]
                           val = self.__mm(v, grad(g_i))
                       if name:
-                          if args.has_key(name):
+                          if name in args:
                               args[name]+=val
                           else:
                               args[name]=val
@@ -963,9 +963,9 @@ class NonlinearPDE(object):
         args=dict(zip(names,res))
         # reset coefficients may be set at previous calls:
         for n in self.__COEFFICIENTS:
-            if not args.has_key(n) and not constants.has_key(n): args[n]=Data()
-        args=dict(args.items()+constants.items())
-        if not args.has_key('r'): args['r']=Data()
+            if not n in args  and not n in constants: args[n]=Data()
+        args=dict(list(args.items())+list(constants.items()))
+        if not 'r' in args: args['r']=Data()
         self._lpde.setValue(**args)
 
     def _updateMatrix(self, expressions, subs):
@@ -1259,7 +1259,7 @@ class VariationalProblem(object):
         :rtype: `Symbol`
         :raise IllegalCoefficient: if ``name`` is not a coefficient of the PDE
         """
-        if self._set_coeffs.has_key(name):
+        if name in self._set_coeffs:
             return self._set_coeffs[name]
         else:
             raise lpe.IllegalCoefficient("Attempt to request undefined coefficient %s"%name)
@@ -1279,9 +1279,9 @@ class VariationalProblem(object):
             Z_key="z"+extension
 
         Z=0
-        if self._set_coeffs.has_key(H_key): Z+=self._set_coeffs[H_key]
-        if self._set_coeffs.has_key(X_key): Z+=util.inner(self._set_coeffs[X_key], util.grad(self._lagrangean))
-        if self._set_coeffs.has_key(Y_key): Z+=util.inner(self._set_coeffs[Y_key], self._lagrangean)
+        if H_Key in self._set_coeffs: Z+=self._set_coeffs[H_key]
+        if X_Key in self._set_coeffs: Z+=util.inner(self._set_coeffs[X_key], util.grad(self._lagrangean))
+        if Y_Key in self._set_coeffs: Z+=util.inner(self._set_coeffs[Y_key], self._lagrangean)
 
         if self.getNumParameters() > 0:
             if order == 0:
@@ -1516,7 +1516,7 @@ class VariationalProblem(object):
             fs=self.getNonlinearPDE().getLinearPDE().getFunctionSpaceForSolution()
             subs[self._lagrangean.name]=Data(0., self._lagrangean.getShape(), fs)
             p_sym=self._parameter.atoms().pop().name
-            if not subs.has_key(p_sym):
+            if not p_sym in subs:
                 raise KeyError("Initial value for '%s' missing."%p_sym)
             pi=subs[p_sym]
             if not isinstance(pi,Data):
