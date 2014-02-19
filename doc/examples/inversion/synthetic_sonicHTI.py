@@ -51,7 +51,7 @@ frq=15.*U.Hz
 tcenter=None
 sampling_interval=4*U.msec
 numRcvPerLine=101
-rangeRcv=2.*U.km
+rangeRcv=4.*U.km
 src_dir=[0,1]
 absorption_zone=1000*U.m
 
@@ -59,14 +59,14 @@ absorption_zone=1000*U.m
 srcEW=numRcvPerLine/2
 srcNS=None
 # dommain dimension
-width_x=4*U.km
+width_x=rangeRcv + 2*absorption_zone
 width_y=width_x
 depth=sum(layers)
 ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create array 
 #
-receiver_line=[  (width_x-rangeRcv)/2 + i * (rangeRcv/(numRcvPerLine-1) ) for i in range(numRcvPerLine) ]
+receiver_line=[  absorption_zone  + i * (rangeRcv/(numRcvPerLine-1) ) for i in range(numRcvPerLine) ]
 #
 #   set source location with tag "source""
 #

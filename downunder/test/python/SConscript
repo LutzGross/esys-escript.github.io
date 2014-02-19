@@ -24,6 +24,7 @@ testruns = [ \
             'run_coordinates.py',\
             'run_datasources.py',\
             'run_domainbuilder.py',\
+            'run_forward.py',\
             'run_mappings.py',\
             'run_minimizers.py',\
             'inversion_gravity_2d.py',\

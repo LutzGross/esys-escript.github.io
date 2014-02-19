@@ -23,10 +23,10 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel']
+__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm']
 
 from esys.escript import unitsSI as U
-from esys.escript import Data, Vector, Scalar, Function
+from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from .coordinates import makeTranformation
 from esys.escript.util import *
@@ -59,7 +59,7 @@ class ForwardModel(object):
 class ForwardModelWithPotential(ForwardModel):
     """
     Base class for a forward model using a potential such as magnetic or
-    gravity. It defines a cost function::
+    gravity. It defines a cost function:
 
         defect = 1/2 sum_s integrate( ( weight_i[s] * ( r_i - data_i[s] ) ) ** 2 )
 
@@ -586,4 +586,278 @@ class  SelfDemagnetizationModel(ForwardModelWithPotential):
             return inner(grad_YT-Y, self.__B_r-grad_phi)
         else:
             return inner(grad_YT,self.__B_r-grad_phi)+inner(Y,grad_phi-self.__B_b)
+
+class AcousticWaveForm(ForwardModel):
+    """
+    Forward Model for acoustic waveform inversion in the frequence domain 
+    It defines a cost function:
+
+        defect = 1/2 integrate( ( w * ( a * u - data ) ) ** 2 )
+
+    where w are weighting factors, data are the measured data (as a 2-comp vector of real and imaginary part)  for real frequency omega, 
+    and u is the coresponding result produced by the forward model. u (as a 2-comp vector) is the solution of the 
+    complex Helmholtz equation for frequency omega, source F and complex, inverse, squared p-velocity sigma:
+       * -u_{ii} - omega**2 * sigma * u = F
+    It is assumed that the exact scale of source F is unknown and the scaling factor a of F is calculated by minimizing the
+    defect 
+    """
+    def __init__(self, domain, omega, w, data, F, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True, scaleF=True):
+        """
+        initializes a new forward model with acoustic wave form inversion.
+
+        :param domain: domain of the model
+        :type domain: `Domain`
+        :param w: weighting factors
+        :type w: ``Scalar``
+        :param data: real and imaginary part of data
+        :type data: ``Data`` of shape (2,)
+        :param F: real and imaginary part of source given at Dirac points, on surface or at volume.
+        :type F: ``Data`` of shape (2,)
+        :param coordinates: defines coordinate system to be used (not supported yet)
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
+        :param saveMemory: if true stiffness matrix is deleted after solution of PDE to 
+                           minimize memory requests. This will require more compute time as
+                           the matrix needs to be reallocated. 
+        :type saveMemory: ``bool``
+        :param scaleF: if true source F is scaled to minimize defect. 
+        :type scaleF: ``bool``
+        :param fixAtBottom: if true pressure is fixed to zero at the bottom of the domain 
+        :type fixAtBottom: ``bool``
+        """
+        super(AcousticWaveForm, self).__init__()
+        self.__domain = domain
+        self.__omega=omega
+        self.scaleF=scaleF
+        self.__trafo=makeTranformation(domain, coordinates)
+        if not self.getCoordinateTransformation().isCartesian():
+            raise ValueError("Non-Cartesian Coordinates are not supported yet.")
+        if not isinstance(data, Data):
+                raise ValueError("data must be escript.Data object.")
+        if not data.getFunctionSpace() == FunctionOnBoundary(domain):
+                raise ValueError("data must be defined on boundary")                    
+        if not data.getShape() == (2,):
+                raise ValueError("data must have shape 2 (real and imaginary part).")
+        if w == None: 
+            w = 1.
+        if not isinstance(w, Data):
+            w=Data(w, FunctionOnBoundary(domain))
+        else:
+            if not w.getFunctionSpace() == FunctionOnBoundary(domain):
+                raise ValueError("Weights must be defined on boundary.")
+            if not w.getShape() == ():
+                raise ValueError("Weights must be scalar.")
+        self.__weight = w
+        self.__data = data
+        if scaleF:
+            A = integrate(self.__weight*length(self.__data)**2)
+            if A>0: 
+                self.__data*=1./sqrt(A)
         
+        self.__BX = boundingBox(domain)
+        self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
+
+        self.__F=Data()
+        self.__f=Data()
+        self.__f_dirac=Data()
+                        
+        if not isinstance(F, Data):
+            F=interpolate(F,  DiracDeltaFunctions(domain))
+        if not F.getShape() == (2,):
+                raise ValueError("Sourcemust have shape 2 (real and imaginary part).")
+                
+        if F.getFunctionSpace() == DiracDeltaFunctions(domain):
+            self.__f_dirac=F
+        elif F.getFunctionSpace() == FunctionOnBoundary(domain):
+            self.__f=F
+        else:
+            self.__F=F
+        self.__tol=tol
+        self.__fixAtBottom=fixAtBottom
+        self.__pde=None
+        if not saveMemory:
+            self.__pde=self.setUpPDE()
+    def getSurvey(self, index=None):
+        """
+        Returns the pair (data, weight)
+        
+        If argument index is ignored.
+        """
+        return self.__data, self.__weight
+        
+
+    def rescaleWeights(self, scale=1., sigma_scale=1.):
+        """
+        rescales the weights such that
+
+        *integrate( ( w omega**2 * sigma_scale * data * ((1/L_j)**2)**-1) +1 )/(data*omega**2 * ((1/L_j)**2)**-1) * sigma_scale )=scale*
+
+        :param scale: scale of data weighting factors
+        :type scale: positive ``float``
+        :param sigma_scale: scale of 1/vp**2 velocity.
+        :type sigma_scale: ``Scalar``
+        """
+        raise Warning("rescaleWeights is not tested yet.")
+        if not scale > 0:
+             raise ValueError("Value for scale must be positive.")
+        if not sigma_scale*omega**2*d > 0:
+             raise ValueError("Rescaling of weights failed due to zero denominator.")
+        # copy back original weights before rescaling
+        #self.__weight=[1.*ow for ow in self.__origweight]
+        L2=1/length(1/self.edge_length)**2
+        d=Lsup(length(data))
+        A=integrate(self.__weight*(sigma_scale*omega**2*d+1)/(sigma_scale*omega**2*d) ) 
+        if A > 0:
+            self.__weight*=1./A
+            if self.scaleF: self.__data*=sqrt(A)
+        else:
+            raise ValueError("Rescaling of weights failed.")
+        
+    def getDomain(self):
+        """
+        Returns the domain of the forward model.
+
+        :rtype: `Domain`
+        """
+        return self.__domain
+
+    def getCoordinateTransformation(self):
+        """
+        returns the coordinate transformation being used
+
+        :rtype: ``CoordinateTransformation``
+        """
+        return self.__trafo
+
+    def setUpPDE(self):
+        """
+        Return the underlying PDE.
+
+        :rtype: `LinearPDE`
+        """
+        if self.__pde is None:
+            pde=LinearPDE(self.__domain, numEquations=2)
+            D=pde.createCoefficient('D')
+            A=pde.createCoefficient('A')
+            A[0,:,0,:]=kronecker(self.__domain.getDim())
+            A[1,:,1,:]=kronecker(self.__domain.getDim())
+            pde.setValue(A=A, D=D)
+            if self.__fixAtBottom: 
+                DIM=self.__domain.getDim()
+                z = self.__domain.getX()[DIM-1]
+                pde.setValue(q=whereZero(z-self.__BX[DIM-1][0])*[1,1])
+
+            pde.getSolverOptions().setSolverMethod(pde.getSolverOptions().DIRECT)
+            pde.getSolverOptions().setTolerance(self.__tol)
+            pde.setSymmetryOff()
+        else:
+            pde=self.__pde
+            pde.resetRightHandSideCoefficients()
+        return pde
+    
+    def getSourceScaling(self, u):
+        """
+        returns the scaling factor s required to rescale source F to minimize defect |s * u- data|^2
+        :param u: value of pressure solution (real and imaginary part)
+        :type u: ``Data`` of shape (2,)
+        :rtype: `complex`
+        """
+        uTu=integrate(self.__weight * length(u)**2)
+        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) ) 
+        if uTu > 0:
+            return complex(uTar/uTu, uTai/uTu)
+        else:
+            return complex(1.,0)
+            
+    def getArguments(self, sigma):
+        """
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
+
+        :param sigma: a suggestion for complex 1/V**2 
+        :type sigma: ``Data`` of shape (2,)
+        :return: solution,  uTar, uTai, uTu
+        :rtype: ``Data`` of shape (2,), 3 x `float`
+        """
+        pde=self.setUpPDE()
+        D=pde.getCoefficient('D')
+        D[0,0]=-self.__omega**2 * sigma[0]
+        D[0,1]= self.__omega**2 * sigma[1]
+        D[1,0]=-self.__omega**2 * sigma[1]
+        D[1,1]=-self.__omega**2 * sigma[0]
+        pde.setValue(D=D, Y=self.__F, y=self.__f, y_dirac=self.__f_dirac)
+        u=pde.getSolution()
+
+        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
+        uTu = integrate( self.__weight * length(u)**2 )
+        return u, uTar, uTai, uTu
+    
+    def getDefect(self, sigma, u, uTar, uTai, uTu):
+        """
+        Returns the defect value.
+        
+        :param sigma: a suggestion for complex 1/V**2 
+        :type sigma: ``Data`` of shape (2,)
+        :param u: a u vector
+        :type u: ``Data`` of shape (2,)
+        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
+        :type uTar: float
+        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
+        :type uTa: float
+        :param uTu : = integrate( w  * (u,u))
+        :type uTu: float
+        
+        :rtype: ``float``
+        """
+        # assummuing  integrate(w * length(data)**2) =1 
+        if self.scaleF and abs(uTu) >0:
+           A=1.-(uTar**2 + uTai**2)/uTu  
+        else:
+           A =  integrate(self.__weight*length(self.__data)**2)- 2 * uTar + uTu
+        return  A/2
+
+    def getGradient(self,sigma, u,uTar, uTai, uTu ):
+        """
+        Returns the gradient of the defect with respect to density.
+
+        :param sigma: a suggestion for complex 1/V**2 
+        :type sigma: ``Data`` of shape (2,)
+        :param u: a u vector
+        :type u: ``Data`` of shape (2,)
+        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
+        :type uTar: float
+        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
+        :type uTa: float
+        :param uTu : = integrate( w  * (u,u))
+        :type uTu: float
+        """
+        pde=self.setUpPDE()
+        
+        if self.scaleF and abs(uTu) >0:
+            Z=((uTar**2+uTai**2)/uTu**2) *interpolate(u, self.__data.getFunctionSpace())
+            Z[0]+= (-uTar/uTu) * self.__data[0]+ (-uTai/uTu) * self.__data[1]
+            Z[1]+= (-uTar/uTu) * self.__data[1]+   uTai/uTu  * self.__data[0]
+
+        else:
+            Z= u - self.__data
+        if Z.getFunctionSpace() == DiracDeltaFunctions(self.getDomain()):
+            pde.setValue(y_dirac=self.__weight * Z)
+        else:
+            pde.setValue(y=self.__weight * Z)
+        D=pde.getCoefficient('D')
+        D[0,0]=-self.__omega**2 * sigma[0]
+        D[0,1]=-self.__omega**2 * sigma[1]
+        D[1,0]= self.__omega**2 * sigma[1]
+        D[1,1]=-self.__omega**2 * sigma[0]
+        pde.setValue(D=D)
+        ZTo2=pde.getSolution()*self.__omega**2
+        return inner(ZTo2,u)*[1,0]+(ZTo2[1]*u[0]-ZTo2[0]*u[1])*[0,1]
+
+
+
+
+
+                
+               
