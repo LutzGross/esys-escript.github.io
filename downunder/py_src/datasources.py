@@ -152,12 +152,20 @@ class DataSource(object):
     For other setups override the methods as required.
     """
 
-    GRAVITY, MAGNETIC = list(range(2))
+    GRAVITY, MAGNETIC, ACOUSTIC = list(range(3))
 
-    def __init__(self, reference_system=None):
+    def __init__(self, reference_system=None, tags=[]):
         """
         Constructor. Sets some defaults and initializes logger.
+        
+        :param tags: a list of tags associated with the data set.
+        :type tags: ``list`` of almost any type (typically `str`) 
+        :param reference_system: the reference coordinate system
+        :type reference_system: ``None`` or `ReferenceSystem`
         """
+        if not isinstance(tags ,list):
+            raise ValueError("tags argument must be a list.")
+        self.__tags=tags
         self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__subsampling_factor=1
         if not reference_system:
@@ -169,6 +177,23 @@ class DataSource(object):
             self.__v_scale=1.
         else:
             self.__v_scale=1./self.getReferenceSystem().getHeightUnit()
+
+    def getTags(self):
+        """
+        returns the list of tags
+        
+        :rtype: ``list``
+        """
+        return self.__tags
+
+    def hasTag(self, tag):
+        """
+        returns true if the data set has tag ``tag``
+        
+        :rtype: ``bool``
+        """
+        return tag in self.__tags
+                    
              
     def getReferenceSystem(self):
         """
@@ -202,7 +227,7 @@ class DataSource(object):
     def getDataType(self):
         """
         Returns the type of survey data managed by this source.
-        Subclasses must return `GRAVITY` or `MAGNETIC` as appropriate.
+        Subclasses must return `GRAVITY` or `MAGNETIC` or `ACOUSTIC` as appropriate.
         """
         raise NotImplementedError
 
@@ -296,7 +321,7 @@ class ErMapperData(DataSource):
         :note: consistence in the reference coordinate system and the reference
                coordinate system used in the data source is not checked.
         """
-        super(ErMapperData, self).__init__(reference_system)
+        super(ErMapperData, self).__init__(reference_system, [ headerfile ] )
         self.__headerfile=headerfile
         if datafile is None:
             self.__datafile=headerfile[:-4]
@@ -540,7 +565,7 @@ class NetCdfData(DataSource):
         :note: it is the responsibility of the caller to ensure all data
                sources and the domain builder use the same reference system.
         """
-        super(NetCdfData,self).__init__(reference_system)
+        super(NetCdfData,self).__init__(reference_system, [filename])
         self.__filename=filename
         if not data_type in [self.GRAVITY,self.MAGNETIC]:
             raise ValueError("Invalid value for data_type parameter")
@@ -1116,7 +1141,7 @@ class NumpyData(DataSource):
     """
     """
 
-    def __init__(self, data_type, data, error=1., length=1.*U.km, null_value=-1.):
+    def __init__(self, data_type, data, error=1., length=1.*U.km, null_value=-1., tags=[]):
         """
         A data source that uses survey data from a ``numpy`` object or list
         instead of a file.
@@ -1141,8 +1166,8 @@ class NumpyData(DataSource):
                            survey data object.
         :type null_value: ``float``
         """
-        super(NumpyData, self).__init__()
-        if not data_type in [self.GRAVITY, self.MAGNETIC]:
+        super(NumpyData, self).__init__(tags=tags)
+        if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC ]:
             raise ValueError("Invalid value for data_type parameter")
         self.__data_type = data_type
         self.__data = np.asarray(data, dtype=np.float64)
