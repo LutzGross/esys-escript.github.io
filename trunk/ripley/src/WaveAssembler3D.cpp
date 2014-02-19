@@ -27,11 +27,26 @@ WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m
         this->m_NX = m_NX;
         this->m_NE = m_NE;
         this->m_NN = m_NN;
-        if (c.find("c11") == c.end() || c.find("c12") == c.end()
+        isHTI = isVTI = false;
+        std::map<std::string, escript::Data>::iterator a = c.find("c12"),
+                                                       b = c.find("c23");
+        if (c.find("c11") == c.end()
                 || c.find("c13") == c.end() || c.find("c33") == c.end()
-                || c.find("c44") == c.end() || c.find("c66") == c.end())
+                || c.find("c44") == c.end() || c.find("c66") == c.end()
+                || (a == c.end() && b == c.end()))
             throw RipleyException("required constants missing for WaveAssembler");
-        c11 = c.find("c11")->second, c12 = c.find("c12")->second,
+        
+        if (a != c.end() && b != c.end()) {
+            throw RipleyException("WaveAssembler3D() doesn't support general"
+                    " form waves (yet)");
+        } else if (a == c.end()) {
+            c23 = b->second;
+            isHTI = true;
+        } else if (b == c.end()) {
+            c12 = a->second;
+            isVTI = true;
+        } //final else case taken care of with the missing constants above
+        c11 = c.find("c11")->second,
         c13 = c.find("c13")->second, c33 = c.find("c33")->second,
         c44 = c.find("c44")->second, c66 = c.find("c66")->second;
 }
@@ -1974,20 +1989,11 @@ void WaveAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
                             add_EM_F=true;
                             const double *du_p = du.getSampleDataRO(e);
                             const double *c11_p = c11.getSampleDataRO(e),
-                                         *c12_p = c12.getSampleDataRO(e),
                                          *c13_p = c13.getSampleDataRO(e),
                                          *c33_p = c33.getSampleDataRO(e),
                                          *c44_p = c44.getSampleDataRO(e),
                                          *c66_p = c66.getSampleDataRO(e);
                             if (du.actsExpanded()) {
-const double X_00_0 = -(c11_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c12_p[0]*du_p[INDEX3(1,1,0,numEq,3)]+c13_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
-const double X_00_1 = -(c11_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c12_p[1]*du_p[INDEX3(1,1,1,numEq,3)]+c13_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
-const double X_00_2 = -(c11_p[2]*du_p[INDEX3(0,0,2,numEq,3)]+c12_p[2]*du_p[INDEX3(1,1,2,numEq,3)]+c13_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
-const double X_00_3 = -(c11_p[3]*du_p[INDEX3(0,0,3,numEq,3)]+c12_p[3]*du_p[INDEX3(1,1,3,numEq,3)]+c13_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
-const double X_00_4 = -(c11_p[4]*du_p[INDEX3(0,0,4,numEq,3)]+c12_p[4]*du_p[INDEX3(1,1,4,numEq,3)]+c13_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
-const double X_00_5 = -(c11_p[5]*du_p[INDEX3(0,0,5,numEq,3)]+c12_p[5]*du_p[INDEX3(1,1,5,numEq,3)]+c13_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
-const double X_00_6 = -(c11_p[6]*du_p[INDEX3(0,0,6,numEq,3)]+c12_p[6]*du_p[INDEX3(1,1,6,numEq,3)]+c13_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
-const double X_00_7 = -(c11_p[7]*du_p[INDEX3(0,0,7,numEq,3)]+c12_p[7]*du_p[INDEX3(1,1,7,numEq,3)]+c13_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
 const double X_01_0 = -(c66_p[0]*(du_p[INDEX3(0,1,0,numEq,3)]+du_p[INDEX3(1,0,0,numEq,3)]));
 const double X_01_1 = -(c66_p[1]*(du_p[INDEX3(0,1,1,numEq,3)]+du_p[INDEX3(1,0,1,numEq,3)]));
 const double X_01_2 = -(c66_p[2]*(du_p[INDEX3(0,1,2,numEq,3)]+du_p[INDEX3(1,0,2,numEq,3)]));
@@ -1996,22 +2002,6 @@ const double X_01_4 = -(c66_p[4]*(du_p[INDEX3(0,1,4,numEq,3)]+du_p[INDEX3(1,0,4,
 const double X_01_5 = -(c66_p[5]*(du_p[INDEX3(0,1,5,numEq,3)]+du_p[INDEX3(1,0,5,numEq,3)]));
 const double X_01_6 = -(c66_p[6]*(du_p[INDEX3(0,1,6,numEq,3)]+du_p[INDEX3(1,0,6,numEq,3)]));
 const double X_01_7 = -(c66_p[7]*(du_p[INDEX3(0,1,7,numEq,3)]+du_p[INDEX3(1,0,7,numEq,3)]));
-const double X_02_0 = -(c44_p[0]*(du_p[INDEX3(2,0,0,numEq,3)]+du_p[INDEX3(0,2,0,numEq,3)]));
-const double X_02_1 = -(c44_p[1]*(du_p[INDEX3(2,0,1,numEq,3)]+du_p[INDEX3(0,2,1,numEq,3)]));
-const double X_02_2 = -(c44_p[2]*(du_p[INDEX3(2,0,2,numEq,3)]+du_p[INDEX3(0,2,2,numEq,3)]));
-const double X_02_3 = -(c44_p[3]*(du_p[INDEX3(2,0,3,numEq,3)]+du_p[INDEX3(0,2,3,numEq,3)]));
-const double X_02_4 = -(c44_p[4]*(du_p[INDEX3(2,0,4,numEq,3)]+du_p[INDEX3(0,2,4,numEq,3)]));
-const double X_02_5 = -(c44_p[5]*(du_p[INDEX3(2,0,5,numEq,3)]+du_p[INDEX3(0,2,5,numEq,3)]));
-const double X_02_6 = -(c44_p[6]*(du_p[INDEX3(2,0,6,numEq,3)]+du_p[INDEX3(0,2,6,numEq,3)]));
-const double X_02_7 = -(c44_p[7]*(du_p[INDEX3(2,0,7,numEq,3)]+du_p[INDEX3(0,2,7,numEq,3)]));
-const double X_11_0 = -(c12_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c11_p[0]*du_p[INDEX3(1,1,0,numEq,3)]+c13_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
-const double X_11_1 = -(c12_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c11_p[1]*du_p[INDEX3(1,1,1,numEq,3)]+c13_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
-const double X_11_2 = -(c12_p[2]*du_p[INDEX3(0,0,2,numEq,3)]+c11_p[2]*du_p[INDEX3(1,1,2,numEq,3)]+c13_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
-const double X_11_3 = -(c12_p[3]*du_p[INDEX3(0,0,3,numEq,3)]+c11_p[3]*du_p[INDEX3(1,1,3,numEq,3)]+c13_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
-const double X_11_4 = -(c12_p[4]*du_p[INDEX3(0,0,4,numEq,3)]+c11_p[4]*du_p[INDEX3(1,1,4,numEq,3)]+c13_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
-const double X_11_5 = -(c12_p[5]*du_p[INDEX3(0,0,5,numEq,3)]+c11_p[5]*du_p[INDEX3(1,1,5,numEq,3)]+c13_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
-const double X_11_6 = -(c12_p[6]*du_p[INDEX3(0,0,6,numEq,3)]+c11_p[6]*du_p[INDEX3(1,1,6,numEq,3)]+c13_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
-const double X_11_7 = -(c12_p[7]*du_p[INDEX3(0,0,7,numEq,3)]+c11_p[7]*du_p[INDEX3(1,1,7,numEq,3)]+c13_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
 const double X_12_0 = -(c44_p[0]*(du_p[INDEX3(2,1,0,numEq,3)]+du_p[INDEX3(1,2,0,numEq,3)]));
 const double X_12_1 = -(c44_p[1]*(du_p[INDEX3(2,1,1,numEq,3)]+du_p[INDEX3(1,2,1,numEq,3)]));
 const double X_12_2 = -(c44_p[2]*(du_p[INDEX3(2,1,2,numEq,3)]+du_p[INDEX3(1,2,2,numEq,3)]));
@@ -2020,14 +2010,92 @@ const double X_12_4 = -(c44_p[4]*(du_p[INDEX3(2,1,4,numEq,3)]+du_p[INDEX3(1,2,4,
 const double X_12_5 = -(c44_p[5]*(du_p[INDEX3(2,1,5,numEq,3)]+du_p[INDEX3(1,2,5,numEq,3)]));
 const double X_12_6 = -(c44_p[6]*(du_p[INDEX3(2,1,6,numEq,3)]+du_p[INDEX3(1,2,6,numEq,3)]));
 const double X_12_7 = -(c44_p[7]*(du_p[INDEX3(2,1,7,numEq,3)]+du_p[INDEX3(1,2,7,numEq,3)]));
-const double X_22_0 = -(c13_p[0]*(du_p[INDEX3(0,0,0,numEq,3)] + du_p[INDEX3(1,1,0,numEq,3)]) + c33_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
-const double X_22_1 = -(c13_p[1]*(du_p[INDEX3(0,0,1,numEq,3)] + du_p[INDEX3(1,1,1,numEq,3)]) + c33_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
-const double X_22_2 = -(c13_p[2]*(du_p[INDEX3(0,0,2,numEq,3)] + du_p[INDEX3(1,1,2,numEq,3)]) + c33_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
-const double X_22_3 = -(c13_p[3]*(du_p[INDEX3(0,0,3,numEq,3)] + du_p[INDEX3(1,1,3,numEq,3)]) + c33_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
-const double X_22_4 = -(c13_p[4]*(du_p[INDEX3(0,0,4,numEq,3)] + du_p[INDEX3(1,1,4,numEq,3)]) + c33_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
-const double X_22_5 = -(c13_p[5]*(du_p[INDEX3(0,0,5,numEq,3)] + du_p[INDEX3(1,1,5,numEq,3)]) + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
-const double X_22_6 = -(c13_p[6]*(du_p[INDEX3(0,0,6,numEq,3)] + du_p[INDEX3(1,1,6,numEq,3)]) + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
-const double X_22_7 = -(c13_p[7]*(du_p[INDEX3(0,0,7,numEq,3)] + du_p[INDEX3(1,1,7,numEq,3)]) + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
+                                double X_00_0, X_00_1, X_00_2, X_00_3, 
+                                       X_00_4, X_00_5, X_00_6, X_00_7,
+                                       X_02_0, X_02_1, X_02_2, X_02_3,
+                                       X_02_4, X_02_5, X_02_6, X_02_7,
+                                       X_11_0, X_11_1, X_11_2, X_11_3,
+                                       X_11_4, X_11_5, X_11_6, X_11_7,
+                                       X_22_0, X_22_1, X_22_2, X_22_3,
+                                       X_22_4, X_22_5, X_22_6, X_22_7;
+                                if (isVTI) {
+                                    const double *c12_p = c12.getSampleDataRO(e);
+X_00_0 = -(c11_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c12_p[0]*du_p[INDEX3(1,1,0,numEq,3)]+c13_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
+X_00_1 = -(c11_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c12_p[1]*du_p[INDEX3(1,1,1,numEq,3)]+c13_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
+X_00_2 = -(c11_p[2]*du_p[INDEX3(0,0,2,numEq,3)]+c12_p[2]*du_p[INDEX3(1,1,2,numEq,3)]+c13_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
+X_00_3 = -(c11_p[3]*du_p[INDEX3(0,0,3,numEq,3)]+c12_p[3]*du_p[INDEX3(1,1,3,numEq,3)]+c13_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
+X_00_4 = -(c11_p[4]*du_p[INDEX3(0,0,4,numEq,3)]+c12_p[4]*du_p[INDEX3(1,1,4,numEq,3)]+c13_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
+X_00_5 = -(c11_p[5]*du_p[INDEX3(0,0,5,numEq,3)]+c12_p[5]*du_p[INDEX3(1,1,5,numEq,3)]+c13_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
+X_00_6 = -(c11_p[6]*du_p[INDEX3(0,0,6,numEq,3)]+c12_p[6]*du_p[INDEX3(1,1,6,numEq,3)]+c13_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
+X_00_7 = -(c11_p[7]*du_p[INDEX3(0,0,7,numEq,3)]+c12_p[7]*du_p[INDEX3(1,1,7,numEq,3)]+c13_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
+
+X_02_0 = -(c44_p[0]*(du_p[INDEX3(2,0,0,numEq,3)]+du_p[INDEX3(0,2,0,numEq,3)]));
+X_02_1 = -(c44_p[1]*(du_p[INDEX3(2,0,1,numEq,3)]+du_p[INDEX3(0,2,1,numEq,3)]));
+X_02_2 = -(c44_p[2]*(du_p[INDEX3(2,0,2,numEq,3)]+du_p[INDEX3(0,2,2,numEq,3)]));
+X_02_3 = -(c44_p[3]*(du_p[INDEX3(2,0,3,numEq,3)]+du_p[INDEX3(0,2,3,numEq,3)]));
+X_02_4 = -(c44_p[4]*(du_p[INDEX3(2,0,4,numEq,3)]+du_p[INDEX3(0,2,4,numEq,3)]));
+X_02_5 = -(c44_p[5]*(du_p[INDEX3(2,0,5,numEq,3)]+du_p[INDEX3(0,2,5,numEq,3)]));
+X_02_6 = -(c44_p[6]*(du_p[INDEX3(2,0,6,numEq,3)]+du_p[INDEX3(0,2,6,numEq,3)]));
+X_02_7 = -(c44_p[7]*(du_p[INDEX3(2,0,7,numEq,3)]+du_p[INDEX3(0,2,7,numEq,3)]));
+
+X_11_0 = -(c12_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c11_p[0]*du_p[INDEX3(1,1,0,numEq,3)]+c13_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
+X_11_1 = -(c12_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c11_p[1]*du_p[INDEX3(1,1,1,numEq,3)]+c13_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
+X_11_2 = -(c12_p[2]*du_p[INDEX3(0,0,2,numEq,3)]+c11_p[2]*du_p[INDEX3(1,1,2,numEq,3)]+c13_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
+X_11_3 = -(c12_p[3]*du_p[INDEX3(0,0,3,numEq,3)]+c11_p[3]*du_p[INDEX3(1,1,3,numEq,3)]+c13_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
+X_11_4 = -(c12_p[4]*du_p[INDEX3(0,0,4,numEq,3)]+c11_p[4]*du_p[INDEX3(1,1,4,numEq,3)]+c13_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
+X_11_5 = -(c12_p[5]*du_p[INDEX3(0,0,5,numEq,3)]+c11_p[5]*du_p[INDEX3(1,1,5,numEq,3)]+c13_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
+X_11_6 = -(c12_p[6]*du_p[INDEX3(0,0,6,numEq,3)]+c11_p[6]*du_p[INDEX3(1,1,6,numEq,3)]+c13_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
+X_11_7 = -(c12_p[7]*du_p[INDEX3(0,0,7,numEq,3)]+c11_p[7]*du_p[INDEX3(1,1,7,numEq,3)]+c13_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
+
+X_22_0 = -(c13_p[0]*(du_p[INDEX3(0,0,0,numEq,3)] + du_p[INDEX3(1,1,0,numEq,3)]) + c33_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
+X_22_1 = -(c13_p[1]*(du_p[INDEX3(0,0,1,numEq,3)] + du_p[INDEX3(1,1,1,numEq,3)]) + c33_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
+X_22_2 = -(c13_p[2]*(du_p[INDEX3(0,0,2,numEq,3)] + du_p[INDEX3(1,1,2,numEq,3)]) + c33_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
+X_22_3 = -(c13_p[3]*(du_p[INDEX3(0,0,3,numEq,3)] + du_p[INDEX3(1,1,3,numEq,3)]) + c33_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
+X_22_4 = -(c13_p[4]*(du_p[INDEX3(0,0,4,numEq,3)] + du_p[INDEX3(1,1,4,numEq,3)]) + c33_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
+X_22_5 = -(c13_p[5]*(du_p[INDEX3(0,0,5,numEq,3)] + du_p[INDEX3(1,1,5,numEq,3)]) + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
+X_22_6 = -(c13_p[6]*(du_p[INDEX3(0,0,6,numEq,3)] + du_p[INDEX3(1,1,6,numEq,3)]) + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
+X_22_7 = -(c13_p[7]*(du_p[INDEX3(0,0,7,numEq,3)] + du_p[INDEX3(1,1,7,numEq,3)]) + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
+                                } else if (isHTI) {
+                                    const double *c23_p = c23.getSampleDataRO(e);
+X_00_0 = -(c11_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c13_p[0]*(du_p[INDEX3(1,1,0,numEq,3)]+du_p[INDEX3(2,2,0,numEq,3)]));
+X_00_1 = -(c11_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c13_p[1]*(du_p[INDEX3(1,1,1,numEq,3)]+du_p[INDEX3(2,2,1,numEq,3)]));
+X_00_2 = -(c11_p[2]*du_p[INDEX3(0,0,2,numEq,3)]+c13_p[2]*(du_p[INDEX3(1,1,2,numEq,3)]+du_p[INDEX3(2,2,2,numEq,3)]));
+X_00_3 = -(c11_p[3]*du_p[INDEX3(0,0,3,numEq,3)]+c13_p[3]*(du_p[INDEX3(1,1,3,numEq,3)]+du_p[INDEX3(2,2,3,numEq,3)]));
+X_00_4 = -(c11_p[4]*du_p[INDEX3(0,0,4,numEq,3)]+c13_p[4]*(du_p[INDEX3(1,1,4,numEq,3)]+du_p[INDEX3(2,2,4,numEq,3)]));
+X_00_5 = -(c11_p[5]*du_p[INDEX3(0,0,5,numEq,3)]+c13_p[5]*(du_p[INDEX3(1,1,5,numEq,3)]+du_p[INDEX3(2,2,5,numEq,3)]));
+X_00_6 = -(c11_p[6]*du_p[INDEX3(0,0,6,numEq,3)]+c13_p[6]*(du_p[INDEX3(1,1,6,numEq,3)]+du_p[INDEX3(2,2,6,numEq,3)]));
+X_00_7 = -(c11_p[7]*du_p[INDEX3(0,0,7,numEq,3)]+c13_p[7]*(du_p[INDEX3(1,1,7,numEq,3)]+du_p[INDEX3(2,2,7,numEq,3)]));
+
+X_02_0 = -(c66_p[0]*(du_p[INDEX3(2,0,0,numEq,3)]+du_p[INDEX3(0,2,0,numEq,3)]));
+X_02_1 = -(c66_p[1]*(du_p[INDEX3(2,0,1,numEq,3)]+du_p[INDEX3(0,2,1,numEq,3)]));
+X_02_2 = -(c66_p[2]*(du_p[INDEX3(2,0,2,numEq,3)]+du_p[INDEX3(0,2,2,numEq,3)]));
+X_02_3 = -(c66_p[3]*(du_p[INDEX3(2,0,3,numEq,3)]+du_p[INDEX3(0,2,3,numEq,3)]));
+X_02_4 = -(c66_p[4]*(du_p[INDEX3(2,0,4,numEq,3)]+du_p[INDEX3(0,2,4,numEq,3)]));
+X_02_5 = -(c66_p[5]*(du_p[INDEX3(2,0,5,numEq,3)]+du_p[INDEX3(0,2,5,numEq,3)]));
+X_02_6 = -(c66_p[6]*(du_p[INDEX3(2,0,6,numEq,3)]+du_p[INDEX3(0,2,6,numEq,3)]));
+X_02_7 = -(c66_p[7]*(du_p[INDEX3(2,0,7,numEq,3)]+du_p[INDEX3(0,2,7,numEq,3)]));
+
+X_11_0 = -(c13_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c33_p[0]*du_p[INDEX3(1,1,0,numEq,3)]+c23_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
+X_11_1 = -(c13_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c33_p[1]*du_p[INDEX3(1,1,1,numEq,3)]+c23_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
+X_11_2 = -(c13_p[2]*du_p[INDEX3(0,0,2,numEq,3)]+c33_p[2]*du_p[INDEX3(1,1,2,numEq,3)]+c23_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
+X_11_3 = -(c13_p[3]*du_p[INDEX3(0,0,3,numEq,3)]+c33_p[3]*du_p[INDEX3(1,1,3,numEq,3)]+c23_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
+X_11_4 = -(c13_p[4]*du_p[INDEX3(0,0,4,numEq,3)]+c33_p[4]*du_p[INDEX3(1,1,4,numEq,3)]+c23_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
+X_11_5 = -(c13_p[5]*du_p[INDEX3(0,0,5,numEq,3)]+c33_p[5]*du_p[INDEX3(1,1,5,numEq,3)]+c23_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
+X_11_6 = -(c13_p[6]*du_p[INDEX3(0,0,6,numEq,3)]+c33_p[6]*du_p[INDEX3(1,1,6,numEq,3)]+c23_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
+X_11_7 = -(c13_p[7]*du_p[INDEX3(0,0,7,numEq,3)]+c33_p[7]*du_p[INDEX3(1,1,7,numEq,3)]+c23_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
+
+X_22_0 = -(c13_p[0]*du_p[INDEX3(0,0,0,numEq,3)] + c23_p[0]*du_p[INDEX3(1,1,0,numEq,3)] + c33_p[0]*du_p[INDEX3(2,2,0,numEq,3)]);
+X_22_1 = -(c13_p[1]*du_p[INDEX3(0,0,1,numEq,3)] + c23_p[1]*du_p[INDEX3(1,1,1,numEq,3)] + c33_p[1]*du_p[INDEX3(2,2,1,numEq,3)]);
+X_22_2 = -(c13_p[2]*du_p[INDEX3(0,0,2,numEq,3)] + c23_p[2]*du_p[INDEX3(1,1,2,numEq,3)] + c33_p[2]*du_p[INDEX3(2,2,2,numEq,3)]);
+X_22_3 = -(c13_p[3]*du_p[INDEX3(0,0,3,numEq,3)] + c23_p[3]*du_p[INDEX3(1,1,3,numEq,3)] + c33_p[3]*du_p[INDEX3(2,2,3,numEq,3)]);
+X_22_4 = -(c13_p[4]*du_p[INDEX3(0,0,4,numEq,3)] + c23_p[4]*du_p[INDEX3(1,1,4,numEq,3)] + c33_p[4]*du_p[INDEX3(2,2,4,numEq,3)]);
+X_22_5 = -(c13_p[5]*du_p[INDEX3(0,0,5,numEq,3)] + c23_p[5]*du_p[INDEX3(1,1,5,numEq,3)] + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
+X_22_6 = -(c13_p[6]*du_p[INDEX3(0,0,6,numEq,3)] + c23_p[6]*du_p[INDEX3(1,1,6,numEq,3)] + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
+X_22_7 = -(c13_p[7]*du_p[INDEX3(0,0,7,numEq,3)] + c23_p[7]*du_p[INDEX3(1,1,7,numEq,3)] + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
+                                } else {
+                                    throw RipleyException("General form solutions"
+                                           " not yet implemented in WaveAssembler");
+                                }
 
 const double Atmp0 = w72*(X_00_6 + X_00_7);
 const double Atmp1 = w66*(X_02_0 + X_02_4);
@@ -2233,144 +2301,33 @@ EM_F[INDEX2(2,4,numEq)]+=Ctmp15 + Ctmp25 + Ctmp34 + Ctmp35 + Ctmp36 + Ctmp37 + C
 EM_F[INDEX2(2,5,numEq)]+=Ctmp33 + Ctmp41 + Ctmp42 + Ctmp43 + Ctmp44 + Ctmp45 + Ctmp46 + Ctmp47 + Ctmp6;
 EM_F[INDEX2(2,6,numEq)]+=Ctmp31 + Ctmp44 + Ctmp48 + Ctmp49 + Ctmp50 + Ctmp51 + Ctmp52 + Ctmp53 + Ctmp8;
 EM_F[INDEX2(2,7,numEq)]+=Ctmp17 + Ctmp23 + Ctmp37 + Ctmp54 + Ctmp55 + Ctmp56 + Ctmp57 + Ctmp58 + Ctmp59;
-#if 0
-#define NUM_QUADPOINTS 8
-                            double *X_00[NUM_QUADPOINTS];
-                            double *X_01[NUM_QUADPOINTS];
-                            double *X_02[NUM_QUADPOINTS];
-                            double *X_11[NUM_QUADPOINTS];
-                            double *X_12[NUM_QUADPOINTS];
-                            double *X_22[NUM_QUADPOINTS];
-
-#define GET(a,b) [INDEX3((a),(b),qp,numEq,3)]
-                                for (int qp = 0; qp < NUM_QUADPOINTS; qp++) {
-//sigma[0,0]=c11           * du      [0,0] + c12            * du      [1,1] + c13           *du      [2,2]
-X_00[qp] = -(c11_p[qp]* du_p GET(0,0) + c12_p[qp] * du_p GET(1,1) + c13_p[qp]*du_p GET(2,2));
-//sigma[1,1]=c12           * du      [0,0] + c11            * du      [1,1] + c13           *du      [2,2]
-X_11[qp] = -(c12_p[qp]* du_p GET(0,0) + c11_p[qp] * du_p GET(1,1) + c13_p[qp]*du_p GET(2,2));
-//sigma[2,2]=c13           *(du      [0,0] + du      [1,1]) + c33           * du      [2,2]
-X_22[qp] = -(c13_p[qp]*(du_p GET(0,0) + du_p GET(1,1)) + c33_p[qp]* du_p GET(2,2));
-//sigma[0,1]=c66           *(du      [0,1] + du      [1,0])
-X_01[qp] = -(c66_p[qp]*(du_p GET(0,1) + du_p GET(1,0)));
-//sigma[0,2]=c44           *(du      [2,0] + du      [0,2])
-X_02[qp] = -(c44_p[qp]*(du_p GET(2,0) + du_p GET(0,2)));
-//sigma[1,2]=c44           *(du      [2,1] + du      [1,2])
-X_12[qp] = -(c44_p[qp]*(du_p GET(2,1) + du_p GET(1,2)));
-                                }
-#undef GET
-#undef NUM_QUADPOINTS
-                                const double *X_0[3] = {X_00, X_01, X_02},
-                                             *X_1[3] = {X_01, X_11, X_12},
-                                             *X_2[3] = {X_02, X_12, X_22};
-
-                                for (index_t k=0; k<numEq; k++) {
-                                    const double X_0_0 = X_0[k][0];
-                                    const double X_1_0 = X_1[k][0];
-                                    const double X_2_0 = X_2[k][0];
-                                    const double X_0_1 = X_0[k][1];
-                                    const double X_1_1 = X_1[k][1];
-                                    const double X_2_1 = X_2[k][1];
-                                    const double X_0_2 = X_0[k][2];
-                                    const double X_1_2 = X_1[k][2];
-                                    const double X_2_2 = X_2[k][2];
-                                    const double X_0_3 = X_0[k][3];
-                                    const double X_1_3 = X_1[k][3];
-                                    const double X_2_3 = X_2[k][3];
-                                    const double X_0_4 = X_0[k][4];
-                                    const double X_1_4 = X_1[k][4];
-                                    const double X_2_4 = X_2[k][4];
-                                    const double X_0_5 = X_0[k][5];
-                                    const double X_1_5 = X_1[k][5];
-                                    const double X_2_5 = X_2[k][5];
-                                    const double X_0_6 = X_0[k][6];
-                                    const double X_1_6 = X_1[k][6];
-                                    const double X_2_6 = X_2[k][6];
-                                    const double X_0_7 = X_0[k][7];
-                                    const double X_1_7 = X_1[k][7];
-                                    const double X_2_7 = X_2[k][7];
-                                    const double tmp0 = w72*(X_0_6 + X_0_7);
-                                    const double tmp1 = w66*(X_2_0 + X_2_4);
-                                    const double tmp2 = w64*(X_0_0 + X_0_1);
-                                    const double tmp3 = w68*(X_2_1 + X_2_2 + X_2_5 + X_2_6);
-                                    const double tmp4 = w65*(X_1_0 + X_1_2);
-                                    const double tmp5 = w70*(X_2_3 + X_2_7);
-                                    const double tmp6 = w67*(X_1_1 + X_1_3 + X_1_4 + X_1_6);
-                                    const double tmp7 = w71*(X_1_5 + X_1_7);
-                                    const double tmp8 = w69*(X_0_2 + X_0_3 + X_0_4 + X_0_5);
-                                    const double tmp9 = w72*(-X_0_6 - X_0_7);
-                                    const double tmp10 = w66*(X_2_1 + X_2_5);
-                                    const double tmp11 = w64*(-X_0_0 - X_0_1);
-                                    const double tmp12 = w68*(X_2_0 + X_2_3 + X_2_4 + X_2_7);
-                                    const double tmp13 = w65*(X_1_1 + X_1_3);
-                                    const double tmp14 = w70*(X_2_2 + X_2_6);
-                                    const double tmp15 = w67*(X_1_0 + X_1_2 + X_1_5 + X_1_7);
-                                    const double tmp16 = w71*(X_1_4 + X_1_6);
-                                    const double tmp17 = w69*(-X_0_2 - X_0_3 - X_0_4 - X_0_5);
-                                    const double tmp18 = w72*(X_0_4 + X_0_5);
-                                    const double tmp19 = w66*(X_2_2 + X_2_6);
-                                    const double tmp20 = w64*(X_0_2 + X_0_3);
-                                    const double tmp21 = w65*(-X_1_0 - X_1_2);
-                                    const double tmp22 = w70*(X_2_1 + X_2_5);
-                                    const double tmp23 = w67*(-X_1_1 - X_1_3 - X_1_4 - X_1_6);
-                                    const double tmp24 = w71*(-X_1_5 - X_1_7);
-                                    const double tmp25 = w69*(X_0_0 + X_0_1 + X_0_6 + X_0_7);
-                                    const double tmp26 = w72*(-X_0_4 - X_0_5);
-                                    const double tmp27 = w66*(X_2_3 + X_2_7);
-                                    const double tmp28 = w64*(-X_0_2 - X_0_3);
-                                    const double tmp29 = w65*(-X_1_1 - X_1_3);
-                                    const double tmp30 = w70*(X_2_0 + X_2_4);
-                                    const double tmp31 = w67*(-X_1_0 - X_1_2 - X_1_5 - X_1_7);
-                                    const double tmp32 = w71*(-X_1_4 - X_1_6);
-                                    const double tmp33 = w69*(-X_0_0 - X_0_1 - X_0_6 - X_0_7);
-                                    const double tmp34 = w72*(X_0_2 + X_0_3);
-                                    const double tmp35 = w66*(-X_2_0 - X_2_4);
-                                    const double tmp36 = w64*(X_0_4 + X_0_5);
-                                    const double tmp37 = w68*(-X_2_1 - X_2_2 - X_2_5 - X_2_6);
-                                    const double tmp38 = w65*(X_1_4 + X_1_6);
-                                    const double tmp39 = w70*(-X_2_3 - X_2_7);
-                                    const double tmp40 = w71*(X_1_1 + X_1_3);
-                                    const double tmp41 = w72*(-X_0_2 - X_0_3);
-                                    const double tmp42 = w66*(-X_2_1 - X_2_5);
-                                    const double tmp43 = w64*(-X_0_4 - X_0_5);
-                                    const double tmp44 = w68*(-X_2_0 - X_2_3 - X_2_4 - X_2_7);
-                                    const double tmp45 = w65*(X_1_5 + X_1_7);
-                                    const double tmp46 = w70*(-X_2_2 - X_2_6);
-                                    const double tmp47 = w71*(X_1_0 + X_1_2);
-                                    const double tmp48 = w72*(X_0_0 + X_0_1);
-                                    const double tmp49 = w66*(-X_2_2 - X_2_6);
-                                    const double tmp50 = w64*(X_0_6 + X_0_7);
-                                    const double tmp51 = w65*(-X_1_4 - X_1_6);
-                                    const double tmp52 = w70*(-X_2_1 - X_2_5);
-                                    const double tmp53 = w71*(-X_1_1 - X_1_3);
-                                    const double tmp54 = w72*(-X_0_0 - X_0_1);
-                                    const double tmp55 = w66*(-X_2_3 - X_2_7);
-                                    const double tmp56 = w64*(-X_0_6 - X_0_7);
-                                    const double tmp57 = w65*(-X_1_5 - X_1_7);
-                                    const double tmp58 = w70*(-X_2_0 - X_2_4);
-                                    const double tmp59 = w71*(-X_1_0 - X_1_2);
-                                    EM_F[INDEX2(k,0,numEq)]+=tmp0 + tmp1 + tmp2 + tmp3 + tmp4 + tmp5 + tmp6 + tmp7 + tmp8;
-                                    EM_F[INDEX2(k,1,numEq)]+=tmp10 + tmp11 + tmp12 + tmp13 + tmp14 + tmp15 + tmp16 + tmp17 + tmp9;
-                                    EM_F[INDEX2(k,2,numEq)]+=tmp12 + tmp18 + tmp19 + tmp20 + tmp21 + tmp22 + tmp23 + tmp24 + tmp25;
-                                    EM_F[INDEX2(k,3,numEq)]+=tmp26 + tmp27 + tmp28 + tmp29 + tmp3 + tmp30 + tmp31 + tmp32 + tmp33;
-                                    EM_F[INDEX2(k,4,numEq)]+=tmp15 + tmp25 + tmp34 + tmp35 + tmp36 + tmp37 + tmp38 + tmp39 + tmp40;
-                                    EM_F[INDEX2(k,5,numEq)]+=tmp33 + tmp41 + tmp42 + tmp43 + tmp44 + tmp45 + tmp46 + tmp47 + tmp6;
-                                    EM_F[INDEX2(k,6,numEq)]+=tmp31 + tmp44 + tmp48 + tmp49 + tmp50 + tmp51 + tmp52 + tmp53 + tmp8;
-                                    EM_F[INDEX2(k,7,numEq)]+=tmp17 + tmp23 + tmp37 + tmp54 + tmp55 + tmp56 + tmp57 + tmp58 + tmp59;
-                                }
-#endif
                             } else { // constant data
-                                const double wX00 = 18*w55*-(c11_p[0]* du_p[INDEX2(0,0,numEq)] + c12_p[0] * du_p[INDEX2(1,1,numEq)] + c13_p[0]*du_p[INDEX2(2,2,numEq)]);
-                                const double wX11 = 18*w56*-(c12_p[0]* du_p[INDEX2(0,0,numEq)] + c11_p[0] * du_p[INDEX2(1,1,numEq)] + c13_p[0]*du_p[INDEX2(2,2,numEq)]);
-                                const double wX22 = 18*w54*-(c13_p[0]*(du_p[INDEX2(0,0,numEq)] + du_p[INDEX2(1,1,numEq)]) + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
-                                
                                 const double wX01 = 18*w56*-(c66_p[0]*(du_p[INDEX2(0,1,numEq)] + du_p[INDEX2(1,0,numEq)]));
                                 const double wX10 = 18*w55*-(c66_p[0]*(du_p[INDEX2(0,1,numEq)] + du_p[INDEX2(1,0,numEq)]));
-
-                                const double wX02 = 18*w54*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
-                                const double wX20 = 18*w55*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
-
                                 const double wX12 = 18*w54*-(c44_p[0]*(du_p[INDEX2(2,1,numEq)] + du_p[INDEX2(1,2,numEq)]));
                                 const double wX21 = 18*w56*-(c44_p[0]*(du_p[INDEX2(2,1,numEq)] + du_p[INDEX2(1,2,numEq)]));
+                                double wX00, wX11, wX22, wX02, wX20;
+                                if (isVTI) {
+                                    const double *c12_p = c12.getSampleDataRO(e);
+                                    wX00 = 18*w55*-(c11_p[0]* du_p[INDEX2(0,0,numEq)] + c12_p[0] * du_p[INDEX2(1,1,numEq)] + c13_p[0]*du_p[INDEX2(2,2,numEq)]);
+                                    wX11 = 18*w56*-(c12_p[0]* du_p[INDEX2(0,0,numEq)] + c11_p[0] * du_p[INDEX2(1,1,numEq)] + c13_p[0]*du_p[INDEX2(2,2,numEq)]);
+                                    wX22 = 18*w54*-(c13_p[0]*(du_p[INDEX2(0,0,numEq)] + du_p[INDEX2(1,1,numEq)]) + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
+                                    wX02 = 18*w54*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
+                                    wX20 = 18*w55*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));                                
+                                } else if (isHTI) {
+                                    const double *c23_p = c23.getSampleDataRO(e);
+                                    wX00 = 18*w55*-(c11_p[0]* du_p[INDEX2(0,0,numEq)] + c13_p[0] * (du_p[INDEX2(1,1,numEq)] + du_p[INDEX2(2,2,numEq)]));
+                                    wX11 = 18*w56*-(c13_p[0]* du_p[INDEX2(0,0,numEq)] + c33_p[0] * du_p[INDEX2(1,1,numEq)] + c23_p[0]*du_p[INDEX2(2,2,numEq)]);
+                                    wX22 = 18*w54*-(c13_p[0]* du_p[INDEX2(0,0,numEq)] + c23_p[0] * du_p[INDEX2(1,1,numEq)] + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
+                                    wX02 = 18*w54*-(c66_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
+                                    wX20 = 18*w55*-(c66_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
+                                } else {
+                                    throw RipleyException("General form "
+                                        "solution for WaveAssembler and "
+                                        "constant data not yet implemented");
+                                }
+
+
                                 EM_F[INDEX2(0,0,numEq)]+= wX00 + wX01 + wX02;
                                 EM_F[INDEX2(0,1,numEq)]+=-wX00 + wX01 + wX02;
                                 EM_F[INDEX2(0,2,numEq)]+= wX00 - wX01 + wX02;
