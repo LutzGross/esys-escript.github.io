@@ -1165,6 +1165,8 @@ class NumpyData(DataSource):
         :param null_value: value that is used in the undefined regions of the
                            survey data object.
         :type null_value: ``float``
+        :param tags: a list of tags associated with the data set.
+        :type tags: ``list`` of almost any type (typically `str`) 
         """
         super(NumpyData, self).__init__(tags=tags)
         if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC ]:
