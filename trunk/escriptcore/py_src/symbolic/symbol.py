@@ -67,7 +67,7 @@ class Symbol(object):
 
         returns a scalar symbol by the name 'u'.
 
-            a=Symbol('alpha', (4,3))
+            alpha=Symbol('alpha', (4,3))
 
         returns a rank 2 symbol with the shape (4,3), whose elements are
         named '[alpha]_i_j' (with i=0..3, j=0..2).
@@ -89,7 +89,6 @@ class Symbol(object):
         """
         if not HAVE_SYMBOLS:
             raise RuntimeError("Trying to instantiate a Symbol but sympy not available")
-
         if 'dim' in kwargs:
             self._dim=kwargs.pop('dim')
         else:
@@ -184,6 +183,7 @@ class Symbol(object):
         # replace sympy Symbols/expressions by escript Symbols
         if isinstance(res, sympy.Basic) or isinstance(res, numpy.ndarray):
             res=Symbol(res)
+            res._dim=self._dim
         return res
 
     def __setitem__(self, key, value):
