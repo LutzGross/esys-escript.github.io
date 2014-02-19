@@ -3375,7 +3375,7 @@ class Helmholtz(LinearPDE):
      else:
         return super(Helmholtz, self).getCoefficient(name)
 
-class VTIWavePDE(LinearPDE):
+class WavePDE(LinearPDE):
     """
     A class specifically for waves, passes along values to native implementation
     to save computational time.
@@ -3394,7 +3394,7 @@ class VTIWavePDE(LinearPDE):
         :param debug: if True debug information is printed
 
         """
-        super(VTIWavePDE, self).__init__(domain,numEquations,numSolutions,debug)
+        super(WavePDE, self).__init__(domain,numEquations,numSolutions,debug)
         #
         #   the coefficients of the PDE:
         #

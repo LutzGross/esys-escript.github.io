@@ -27,11 +27,26 @@ WaveAssembler2D::WaveAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_
         this->m_NX = m_NX;
         this->m_NE = m_NE;
         this->m_NN = m_NN;
-        if (c.find("c11") == c.end() || c.find("c12") == c.end()
+        isHTI = isVTI = false;
+        std::map<std::string, escript::Data>::iterator a = c.find("c12"),
+                                                       b = c.find("c23");
+        if (c.find("c11") == c.end()
                 || c.find("c13") == c.end() || c.find("c33") == c.end()
-                || c.find("c44") == c.end() || c.find("c66") == c.end())
+                || c.find("c44") == c.end() || c.find("c66") == c.end()
+                || (a == c.end() && b == c.end()))
             throw RipleyException("required constants missing for WaveAssembler");
-        c11 = c.find("c11")->second, c12 = c.find("c12")->second,
+        
+        if (a != c.end() && b != c.end()) {
+            throw RipleyException("WaveAssembler2D() doesn't support general"
+                    " form waves (yet)");
+        } else if (a == c.end()) {
+            c23 = b->second;
+            isHTI = true;
+        } else if (b == c.end()) {
+            c12 = a->second;
+            isVTI = true;
+        } //final else case taken care of with the missing constants above
+        c11 = c.find("c11")->second,
         c13 = c.find("c13")->second, c33 = c.find("c33")->second,
         c44 = c.find("c44")->second, c66 = c.find("c66")->second;
 }
@@ -447,34 +462,64 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                         const double *du_p = du.getSampleDataRO(e);
                         const double *c11_p = c11.getSampleDataRO(e),
                                      *c13_p = c13.getSampleDataRO(e),
-                                     *c33_p = c33.getSampleDataRO(e),
-                                     *c44_p = c44.getSampleDataRO(e);
+                                     *c33_p = c33.getSampleDataRO(e);
                         if (du.actsExpanded()) {
-const double X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
-                    + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
-const double X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1] 
-                    + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[1]);
-const double X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2] 
-                    + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[2]);
-const double X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3] 
-                    + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[3]);
-const double X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0] 
-                    + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[0]);
-const double X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1] 
-                    + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[1]);
-const double X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2] 
-                    + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[2]);
-const double X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3] 
-                    + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[3]);
-const double X_01_0 = -(c44_p[0] *
-                    (du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]));
-const double X_01_1 = -(c44_p[1] *
-                    (du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]));
-const double X_01_2 = -(c44_p[2] *
-                    (du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]));
-const double X_01_3 = -(c44_p[3] *
-                    (du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]));
-const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
+                            double X_00_0, X_00_1, X_00_2, X_00_3,
+                                   X_11_0, X_11_1, X_11_2, X_11_3,
+                                   X_01_0 = -(du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]),
+                                   X_01_1 = -(du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]),
+                                   X_01_2 = -(du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]),
+                                   X_01_3 = -(du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]);
+                            if (isVTI) {
+                                const double *c44_p = c44.getSampleDataRO(e);
+                                X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
+                                        + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
+                                X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1] 
+                                        + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[1]);
+                                X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2] 
+                                        + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[2]);
+                                X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3] 
+                                        + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[3]);
+                                X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0] 
+                                        + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[0]);
+                                X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1] 
+                                        + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[1]);
+                                X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2] 
+                                        + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[2]);
+                                X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3] 
+                                        + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[3]);
+                                X_01_0 *= c44_p[0];
+                                X_01_1 *= c44_p[1];
+                                X_01_2 *= c44_p[2];
+                                X_01_3 *= c44_p[3];
+                            } else if (isHTI) {
+                                const double *c66_p = c66.getSampleDataRO(e);
+                                X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
+                                        + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
+                                X_00_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c11_p[1] 
+                                        + du_p[INDEX3(1,1,1,numEq,2)] * c13_p[1]);
+                                X_00_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c11_p[2] 
+                                        + du_p[INDEX3(1,1,2,numEq,2)] * c13_p[2]);
+                                X_00_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c11_p[3] 
+                                        + du_p[INDEX3(1,1,3,numEq,2)] * c13_p[3]);
+                                X_11_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c13_p[0] 
+                                        + du_p[INDEX3(1,1,0,numEq,2)] * c33_p[0]);
+                                X_11_1 = -(du_p[INDEX3(0,0,1,numEq,2)] * c13_p[1] 
+                                        + du_p[INDEX3(1,1,1,numEq,2)] * c33_p[1]);
+                                X_11_2 = -(du_p[INDEX3(0,0,2,numEq,2)] * c13_p[2] 
+                                        + du_p[INDEX3(1,1,2,numEq,2)] * c33_p[2]);
+                                X_11_3 = -(du_p[INDEX3(0,0,3,numEq,2)] * c13_p[3] 
+                                        + du_p[INDEX3(1,1,3,numEq,2)] * c33_p[3]);
+                                X_01_0 *= c66_p[0];
+                                X_01_1 *= c66_p[1];
+                                X_01_2 *= c66_p[2];
+                                X_01_3 *= c66_p[3];
+                            } else {
+                                throw RipleyException("General form solutions"
+                                       " not yet implemented in WaveAssembler");
+                            }
+                            
+                            const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
 
                             const double Atmp0 = 6*w15*(X_00_2 + X_00_3);
                             const double Atmp1 = 6*w10*(X_00_0 + X_00_1);
@@ -516,16 +561,33 @@ const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
                             EM_F[INDEX2(1,1,numEq)]+=Btmp4 + Btmp5 + Btmp6 + Btmp7;
                             EM_F[INDEX2(1,2,numEq)]+=Btmp10 + Btmp11 + Btmp8 + Btmp9;
                             EM_F[INDEX2(1,3,numEq)]+=Btmp12 + Btmp13 + Btmp14 + Btmp15;
-                        } else { // constant data
 
-                            const double wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
-                                                + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
-                            const double wX_01 = -(c44_p[0] *
-                                                (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
-                            const double wX_10 = -(c44_p[0] *
-                                                (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
-                            const double wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
-                                                + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
+                        } else { // constant data
+                            double wX_00, wX_01, wX_10, wX_11;
+                            if (isVTI) {
+                                const double *c44_p = c44.getSampleDataRO(e);
+                                wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
+                                                    + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
+                                wX_01 = -(c44_p[0] *
+                                                    (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
+                                wX_10 = -(c44_p[0] *
+                                                    (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
+                                wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
+                                                    + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
+                            } else if (isVTI) {
+                                const double *c66_p = c66.getSampleDataRO(e);
+                                wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
+                                                    + du_p[INDEX2(2,2,numEq)] * c13_p[0])*w18;
+                                wX_01 = -(c66_p[0] *
+                                                    (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
+                                wX_10 = -(c66_p[0] *
+                                                    (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
+                                wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
+                                                    + du_p[INDEX2(2,2,numEq)] * c33_p[0])*w19;
+                            } else {
+                                throw RipleyException("General form solutions"
+                                       " not yet implemented in WaveAssembler");
+                            }
                             EM_F[INDEX2(0,0,numEq)]+= wX_00 + wX_01;
                             EM_F[INDEX2(0,1,numEq)]+=-wX_00 + wX_01;
                             EM_F[INDEX2(0,2,numEq)]+= wX_00 - wX_01;
