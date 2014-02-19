@@ -517,7 +517,6 @@ class Regularization(CostFunction):
                         o_kl = outer(grad_m_k, grad_m_l)
                         o_ll=outer(grad_m_l, grad_m_l)
                         f=  mu_c[l,k]* self.__wc[l,k]
-
                         A[l,:,l,:] += f * (l2_grad_m_k*kronecker(DIM) - o_kk)
                         A[l,:,k,:] += f * (2*o_lk - o_kl - i_lk*kronecker(DIM))
                         A[k,:,l,:] += f * (2*o_kl - o_lk - i_lk*kronecker(DIM))
