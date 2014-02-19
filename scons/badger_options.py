@@ -104,7 +104,7 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['libboost_python-mt-py26']
+boost_libs = ['libboost_python-py27']
 
 # Prefix or paths to CppUnit headers and libraries. See note above.
 #cppunit_prefix = '/usr/local'
@@ -190,13 +190,13 @@ lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-#silo = True
+silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 #silo_prefix = '/usr/local'
 
 # SILO library/libraries to link against
-#silo_libs = ['siloh5', 'hdf5']
+silo_libs = ['siloh5', 'hdf5']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False

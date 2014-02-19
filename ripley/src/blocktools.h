@@ -81,6 +81,7 @@ typedef std::vector<message> messvec;
 
 
 
+
 class BlockGrid
 {
 public:  
@@ -99,9 +100,11 @@ void generateOutNeighbours(coord_t blockx, coord_t blocky, coord_t blockz, messv
 private:
    coord_t xmax;
    coord_t ymax;
-   coord_t zmax;   
-
+   coord_t zmax;  
 };
+
+
+
 
 /* Do not ask about buffers for sub-block 1,1,1 (also known as #13)
  They do not exist, such buffers woudl be:
@@ -111,13 +114,18 @@ private:
 Note that this class does not deal with data transfer between blocks
 Sub-blocks are copied to and from buffers. Other code is required to
 actually move the data.
+
+"dpp" == doubles per point and gives the number of doubles that make up each "point"
+This is required to calculate offsets and buffer sizes.
+
 */
 class Block
 {
 public: 
   
     // s? specifiy the [local] size (in points) of each dimension
-    Block(size_t sx, size_t sy, size_t sz, size_t inset, size_t xmidlen, size_t ymidlen, size_t zmidlen);
+    Block(size_t sx, size_t sy, size_t sz, size_t inset, size_t xmidlen, 
+	  size_t ymidlen, size_t zmidlen, unsigned int dpp=1);
     
     ~Block();    
     
@@ -127,7 +135,7 @@ public:
     double* getOutBuffer(unsigned char bid);
 
     // In buffers are populated from external communications
-    // and copied back to teh flat array
+    // and copied back to the flat array
     double* getInBuffer(unsigned char subx, unsigned char suby, unsigned char subz);
     double* getInBuffer(unsigned char bid);
     
@@ -178,6 +186,7 @@ private:
     size_t zmidlen;    
     double* inbuffptr[27];
     double* outbuffptr[27];
+    const unsigned int dpsize;	// number of doubles which make up a point
 
 
     
@@ -194,4 +203,108 @@ int getTag(unsigned char destx, unsigned char desty, unsigned char destz, bool d
 // the booleans indicate whether a negative shift in that direction is required
 unsigned char getSrcBuffID(unsigned char destx, unsigned char desty, unsigned char destz, bool deltax, bool deltay, bool deltaz);
 
+
+/* Now the 2D versions */
+
+// 2D version
+class BlockGrid2
+{
+public:  
+    BlockGrid2(coord_t maxx, coord_t maxy);
+
+    neighbourID_t getNID(coord_t x, coord_t y) const;
+
+
+// generate all incoming com messages for this block.
+// for each subblock (9 of them), there may be an x, y direction to search in  
+void generateInNeighbours(coord_t blockx, coord_t blocky, messvec& v);
+
+
+// generate all outgoing com messages for this block
+void generateOutNeighbours(coord_t blockx, coord_t blocky, messvec& v);
+private:
+   coord_t xmax;
+   coord_t ymax;
+};
+
+// The 2D version - there is no block 4
+class Block2
+{
+public: 
+  
+    // s? specifiy the [local] size (in points) of each dimension
+    Block2(size_t sx, size_t sy, size_t inset, size_t xmidlen, 
+	  size_t ymidlen, unsigned int dpp=1);
+    
+    ~Block2();    
+    
+    // Out buffers are loaded with the contents of the flat array and are
+    // to be sent to other blocks
+    double* getOutBuffer(unsigned char subx, unsigned char suby);
+    double* getOutBuffer(unsigned char bid);
+
+    // In buffers are populated from external communications
+    // and copied back to the flat array
+    double* getInBuffer(unsigned char subx, unsigned char suby);
+    double* getInBuffer(unsigned char bid);
+    
+    // return number of doubles in the given block
+    size_t getBuffSize(unsigned char subx, unsigned char suby);
+    size_t getBuffSize(unsigned char bid);
+      
+    // where does the subblock specified start in a source array
+    size_t startOffset(unsigned char subx, unsigned char suby);
+
+    // debug only
+    void displayBlock(unsigned char subx, unsigned char suby, bool out);
+    
+    // Copy a 3d region from a flat array into a buffer
+    void copyToBuffer(unsigned char buffid, double* src);
+
+    // Copy a 3d region from a buffer into a flat array
+    void copyFromBuffer(unsigned char buffid, double* dest);    
+    
+    
+    void copyAllToBuffer(double* src);
+    
+    void copyUsedFromBuffer(double* dest);
+
+    void setUsed(unsigned char buffid);    
+  
+private:    
+  
+    // determines the dimensions of each subblock
+    void populateDimsTable(); 
+    void populateOffsetTable(size_t inset, size_t xmidlen, size_t ymidlen);
+    void createBuffArrays(double* startaddress, double* buffptr[27], size_t inset, size_t xmidlen, size_t ymidlen);  
+  
+  
+  
+    double* inbuff;
+    double* outbuff;
+    size_t buffoffsets[9];	// offsets of the various blocks within the buffer arrays
+    size_t flatoffsets[9];	// starting point of each block within a flat array
+    bool used[9];
+    size_t dims[9][2];	// dimension of each subblock 
+    size_t sx;
+    size_t sy;
+    size_t inset;
+    size_t xmidlen;
+    size_t ymidlen;
+    double* inbuffptr[9];
+    double* outbuffptr[9];
+    const unsigned int dpsize;	// number of doubles which make up a point
+};
+
+
+// Returns the MPI message tag to use for a transfer between the two subblocks
+int getTag2(unsigned char sourcex, unsigned char sourcey, unsigned char targetx, unsigned char targety);
+
+// computes the tag based on the destination and the direction it comes from
+// the booleans indicate whether a negative shift in that direction is required
+int getTag2(unsigned char destx, unsigned char desty, bool deltax, bool deltay);
+
+
+// the booleans indicate whether a negative shift in that direction is required
+unsigned char getSrcBuffID2(unsigned char destx, unsigned char desty, bool deltax, bool deltay);
 

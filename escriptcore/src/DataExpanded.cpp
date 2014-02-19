@@ -831,14 +831,14 @@ DataExpanded::getVectorRO() const
 	return m_data.getData();
 }
 
-void DataExpanded::randomFill(long seed) {
-    CHECK_FOR_EX_WRITE
-
-    DataVector&  dv=getVectorRW();
-    const size_t dvsize=dv.size();
-    
-    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
-  
-}
+// void DataExpanded::randomFill(long seed) {
+//     CHECK_FOR_EX_WRITE
+// 
+//     DataVector&  dv=getVectorRW();
+//     const size_t dvsize=dv.size();
+//     
+//     esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+//   
+// }
 
 }  // end of namespace

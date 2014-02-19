@@ -40,10 +40,12 @@
 
 
 #include "Pointers.h"
+#include "DataTypes.h"
 
 namespace escript {
 // class forward declarations
 class Data;
+class FunctionSpace;
 /**
    \brief
    Base class for all escript domains.
@@ -481,7 +483,8 @@ Note: This is _not_ equivalent to weak_ptr::lock.
    * \brief Fills the data object with filtered random values 
   */ 
   ESCRIPT_DLL_API
-  virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;   
+  virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
+       const FunctionSpace& what, long seed, const boost::python::tuple& filter) const=0;   
    
  protected:
 

@@ -51,9 +51,11 @@ class Test_DomainOnDudley(Test_Domain):
    def setUp(self):
        self.boundary_tag_list = [1, 2, 10, 20]
        self.domain =Rectangle(NE,NE+1,2)
+       self.rdomain=self.domain
 
    def tearDown(self):
        del self.domain
+       del self.rdomain
        del self.boundary_tag_list
 
    def test_setXError(self):

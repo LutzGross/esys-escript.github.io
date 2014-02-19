@@ -465,14 +465,6 @@ contains datapoints.
 
   /**
      \brief
-     Return a copy of the function space.
-  */
-  ESCRIPT_DLL_API
-  const FunctionSpace
-  getCopyOfFunctionSpace() const;
-
-  /**
-     \brief
      Return the domain.
   */
   ESCRIPT_DLL_API
@@ -498,14 +490,6 @@ contains datapoints.
   {
      return getFunctionSpace().getDomainPython();
   }
-
-  /**
-     \brief
-     Return a copy of the domain.
-  */
-  ESCRIPT_DLL_API
-  const AbstractDomain
-  getCopyOfDomain() const;
 
   /**
      \brief

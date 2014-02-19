@@ -4356,30 +4356,39 @@ Data escript::randomData(const bp::tuple& shape,
        const FunctionSpace& what,
        long seed, const boost::python::tuple& filter)
 {
+  
+    DataTypes::ShapeType dataPointShape;
+    for (int i = 0; i < shape.attr("__len__")(); ++i) {
+        dataPointShape.push_back(bp::extract<const int>(shape[i]));
+    }  
+  
+  
     // first check what they have asked for in filter
     // does our domain support this?
-    if (len(filter)>0) 
+    if (what.getDomain()->supportsFilter(filter))
     {
-        if (what.getDomain()->supportsFilter(filter))
-	{
-	    return what.getDomain()->randomFill(seed, filter);
-	}
-	else
-	{
-	    throw DataException("The specified domain does not support those filter options.");
-	}
+	return what.getDomain()->randomFill(dataPointShape, what, seed, filter);
     }
     else
     {
-	Data towipe(0, shape, what, true);
-	DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
-	if (de==0) 
-	{
-	    throw DataException("Programmer Error: Expanded data is not expanded");
-	}
-	de->randomFill(seed);
-        return towipe;
+	throw DataException("The specified domain does not support those filter options.");
     }
+    
+/*     This code below needs to be moved into the other domains' randomFill code */    
+    
+    
+//     }
+//     else
+//     {
+// 	Data towipe(0, shape, what, true);
+// 	DataExpanded* de=dynamic_cast<DataExpanded*>(towipe.m_data.get());
+// 	if (de==0) 
+// 	{
+// 	    throw DataException("Programmer Error: Expanded data is not expanded");
+// 	}
+// 	de->randomFill(seed);
+//         return towipe;
+//     }
 }
 
 

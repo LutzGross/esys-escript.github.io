@@ -18,6 +18,7 @@
 #include <cstring>	// for memset
 #include "blocktools.h"
 
+using namespace std;
 
 BlockGrid::BlockGrid(coord_t x, coord_t y, coord_t z)
  : xmax(x), ymax(y), zmax(z)
@@ -272,7 +273,8 @@ void Block::copyUsedFromBuffer(double* dest)
 
 // s? specifiy the size (in points) of each dimension
 // maxb? gives the largest block number in each dimension in the overall grid (number from zero)
-Block::Block(size_t sx, size_t sy, size_t sz, size_t inset, size_t xmidlen, size_t ymidlen, size_t zmidlen)
+Block::Block(size_t sx, size_t sy, size_t sz, size_t inset, size_t xmidlen, 
+	     size_t ymidlen, size_t zmidlen, unsigned int dpp) : dpsize(dpp)
 {
     this->sx=sx;
     this->sy=sy;
@@ -290,7 +292,8 @@ Block::Block(size_t sx, size_t sy, size_t sz, size_t inset, size_t xmidlen, size
 	totalbuff+=dims[i][0]*dims[i][1]*dims[i][2];
     }
     totalbuff-=dims[13][0]*dims[13][1]*dims[13][2];
-	      
+	
+    totalbuff*=dpsize;		// to account for non-scalars
     inbuff=new double[totalbuff];
     outbuff=new double[totalbuff];
     memset(inbuff,0,totalbuff*sizeof(double));
@@ -311,11 +314,11 @@ size_t Block::startOffset(unsigned char subx, unsigned char suby, unsigned char 
     size_t zstep=((subz==0) ? 0 :((subz==1)?inset:(inset+zmidlen) ));
     off+=ystep*(2*inset+xmidlen);
     off+=zstep*(2*inset+xmidlen)*(2*inset+ymidlen);
-    return off;
+    return off*dpsize;
 }
 
 
-
+// This is only intended for debugging, so I have not made it fast
 void Block::displayBlock(unsigned char subx, unsigned char suby, unsigned char subz, bool out)
 {
     
@@ -329,7 +332,19 @@ void Block::displayBlock(unsigned char subx, unsigned char suby, unsigned char s
 	{
 	    for (int x=0;x<dims[bid][0];++x)
 	    {
-		std::cout << b[x+y*dims[bid][0]+z*dims[bid][1]*dims[bid][0]] << ' ';
+		if (dpsize==1)
+		{
+		    std::cout << b[x+y*dims[bid][0]+z*dims[bid][1]*dims[bid][0]] << ' ';
+		}
+		else
+		{
+		    std::cout << '(';
+		    for (int i=0;i<dpsize;++i)
+		    {
+			std::cout << b[(x+y*dims[bid][0]+z*dims[bid][1]*dims[bid][0])*dpsize+i] << ", ";
+		    }
+		    std::cout << ") ";
+		}	
 	    }
 	    std::cout << std::endl;
 	}
@@ -347,6 +362,7 @@ void Block::copyToBuffer(unsigned char bid, double* src)
     // where does the strided content start?
     double* start=src+startOffset(bid%3, bid%9/3, bid/9);
     double* dest=outbuffptr[bid];
+
     size_t zlim=dims[bid][2];	// how big is the block
     size_t ylim=dims[bid][1];
     size_t xlim=dims[bid][0];
@@ -354,13 +370,13 @@ void Block::copyToBuffer(unsigned char bid, double* src)
     for (size_t z=0;z<zlim;++z)
     {
 	for (size_t y=0;y<ylim;++y)
-	{     
-	    memcpy(dest, start, xlim*sizeof(double));
-	    dest+=xlim;
-	    start+=(2*inset+xmidlen);		
+	{ 
+	    memcpy(dest, start, xlim*sizeof(double)*dpsize);
+	    dest+=xlim*dpsize;
+	    start+=(2*inset+xmidlen)*dpsize;		
 	}
 	// we are at the end of the slab so we need to jump to the next level up
-	start+=(totaly-ylim)*(2*inset+xmidlen);
+	start+=((totaly-ylim)*(2*inset+xmidlen))*dpsize;
     }
 }
 
@@ -382,12 +398,12 @@ void Block::copyFromBuffer(unsigned char bid, double* dest)
     {
 	for (size_t y=0;y<ylim;++y)
 	{
-	    memcpy(start, src, xlim*sizeof(double));
-	    src+=xlim;
-	    start+=(2*inset+xmidlen);
+	    memcpy(start, src, xlim*sizeof(double)*dpsize);
+	    src+=xlim*dpsize;
+	    start+=(2*inset+xmidlen)*dpsize;
 	}
 	// we are at the end of the slab so we need to jump to the next level up
-	start+=(totaly-ylim)*(2*inset+xmidlen);
+	start+=(totaly-ylim)*(2*inset+xmidlen)*dpsize;
     }	
 }
 

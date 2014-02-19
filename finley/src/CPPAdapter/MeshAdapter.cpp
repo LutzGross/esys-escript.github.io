@@ -20,6 +20,7 @@
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
 #include "esysUtils/blocktimer.h"
+#include "esysUtils/EsysRandom.h"
 
 #include <boost/python/import.hpp>
 #ifdef USE_NETCDF
@@ -2162,6 +2163,19 @@ bool MeshAdapter::supportsContactElements() const
 {
     return true;
 }
+
+escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape,
+       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const
+{
+    escript::Data towipe(0, shape, what, true);
+    // since we just made this object, no sharing is possible and we don't need to check for
+    // exlusive write
+    escript::DataTypes::ValueType& dv=towipe.getExpandedVectorReference();
+    const size_t dvsize=dv.size();
+    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+    return towipe;	 
+}
+
 
 void MeshAdapter::addDiracPoints(const vector<double>& points,
                                  const vector<int>& tags) const

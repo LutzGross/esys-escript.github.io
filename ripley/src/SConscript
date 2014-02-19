@@ -28,6 +28,7 @@ del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
     blocktools.cpp
+    blocktools2.cpp
     Brick.cpp
     Rectangle.cpp
     RipleyDomain.cpp

@@ -652,6 +652,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   DUDLEY_DLL_API
   bool supportsContactElements() const;
+  
+ 	  
+  DUDLEY_DLL_API
+  virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
+       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;         
+  
  protected:
 
  private:

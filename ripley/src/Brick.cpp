@@ -2911,8 +2911,26 @@ namespace
     }
 }
 
-
-
+/* This is a wrapper for filtered (and non-filtered) randoms
+ * For detailed doco see randomFillWorker
+*/ 
+escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
+       const escript::FunctionSpace& what,
+       long seed, const boost::python::tuple& filter) const
+{
+    int numvals=escript::DataTypes::noValues(shape);
+    if (len(filter)>0 && (numvals!=1))
+    {
+	throw RipleyException("Ripley only supports filters for scalar data.");
+    }
+    escript::Data res=randomFillWorker(shape, seed, filter);
+    if (res.getFunctionSpace()!=what)
+    {
+	escript::Data r=escript::Data(res, what);
+	return r;
+    }
+    return res;
+}
 
 /* This routine produces a Data object filled with smoothed random data.
 The dimensions of the rectangle being filled are internal[0] x internal[1] x internal[2] points.
@@ -2951,32 +2969,49 @@ inset=2*radius+1
 This is to ensure that values at distance `radius` from the shared/overlapped element
 that ripley has.
 */
-escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) const
+escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape, long seed, const boost::python::tuple& filter) const
 {
     if (m_numDim!=3)
     {
         throw RipleyException("Brick must be 3D.");
     }
-    if (len(filter)!=3) {
-        throw RipleyException("Unsupported random filter");
-    }
-    boost::python::extract<string> ex(filter[0]);
-    if (!ex.check() || (ex()!="gaussian")) 
-    {
-        throw RipleyException("Unsupported random filter");
-    }
-    boost::python::extract<unsigned int> ex1(filter[1]);
-    if (!ex1.check())
-    {
-        throw RipleyException("Radius of gaussian filter must be a positive integer.");
-    }
-    unsigned int radius=ex1();
+    
+    unsigned int radius=0;	// these are only used by gaussian
     double sigma=0.5;
-    boost::python::extract<double> ex2(filter[2]);
-    if (!ex2.check() || (sigma=ex2())<=0)
+    
+    unsigned int numvals=escript::DataTypes::noValues(shape);
+    
+    if (len(filter)==0) 
     {
-        throw RipleyException("Sigma must be a postive floating point number.");
-    }    
+	// nothing special required here yet
+    }
+    else if (len(filter)==3) 
+    {
+	boost::python::extract<string> ex(filter[0]);
+	if (!ex.check() || (ex()!="gaussian")) 
+	{
+	    throw RipleyException("Unsupported random filter for Brick.");
+	}
+	boost::python::extract<unsigned int> ex1(filter[1]);
+	if (!ex1.check())
+	{
+	    throw RipleyException("Radius of gaussian filter must be a positive integer.");
+	}
+	radius=ex1();
+	sigma=0.5;
+	boost::python::extract<double> ex2(filter[2]);
+	if (!ex2.check() || (sigma=ex2())<=0)
+	{
+	    throw RipleyException("Sigma must be a postive floating point number.");
+	}            
+    }
+    else
+    {
+        throw RipleyException("Unsupported random filter");
+    }
+    
+    
+
     
     size_t internal[3];
     internal[0]=m_NE[0]+1;	// number of points in the internal region
@@ -3003,11 +3038,18 @@ escript::Data Brick::randomFill(long seed, const boost::python::tuple& filter) c
         throw RipleyException("Radius of gaussian filter is too large for Z dimension of a rank");
     }    
    
-    double* src=new double[ext[0]*ext[1]*ext[2]];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]);       
+    double* src=new double[ext[0]*ext[1]*ext[2]*numvals];
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);       
     
 #ifdef ESYS_MPI
-    
+   
+    if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5))
+    {
+	// since the dimensions are equal for all ranks, this exception
+	// will be thrown on all ranks
+	throw RipleyException("Random Data in Ripley requries at least five elements per side per rank.");
+
+    }
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     dim_t Z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
@@ -3055,7 +3097,7 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
     size_t ymidlen=ext[1]-2*inset;	
     size_t zmidlen=ext[2]-2*inset;
     
-    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen);    
+    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen, numvals);    
     
     MPI_Request reqs[50];		// a non-tight upper bound on how many we need
     MPI_Status stats[50];
@@ -3116,13 +3158,40 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
       cout << "\n";
 }   */ 
     
+    if (radius==0 || numvals>1)	// the truth of either should imply the truth of the other but let's be safe
+    {
+      
+ 	escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+	escript::Data resdat(0, shape, fs , true);
+	// don't need to check for exwrite because we just made it
+	escript::DataVector& dv=resdat.getExpandedVectorReference();
+	
+	
+	// now we need to copy values over
+	for (size_t z=0;z<(internal[2]);++z)
+	{
+	    for (size_t y=0;y<(internal[1]);++y)    
+	    {
+		for (size_t x=0;x<(internal[0]);++x)
+		{
+		    for (unsigned int i=0;i<numvals;++i)
+		    {
+		        dv[i+(x+y*(internal[0])+z*internal[0]*internal[1])*numvals]=src[i+(x+y*ext[0]+z*ext[0]*ext[1])*numvals];
+		    }
+		}
+	    }
+	}  
+	delete[] src;
+	return resdat;      
+    }
+    else		// filter enabled	
+    {
     
-    
-    escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
-    escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
-    // don't need to check for exwrite because we just made it
-    escript::DataVector& dv=resdat.getExpandedVectorReference();
-    double* convolution=get3DGauss(radius, sigma);
+	escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+	escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
+	// don't need to check for exwrite because we just made it
+	escript::DataVector& dv=resdat.getExpandedVectorReference();
+	double* convolution=get3DGauss(radius, sigma);
 
 // cout << "Convolution matrix\n";
 // size_t di=(radius*2+1);
@@ -3143,17 +3212,17 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
 // 
 // cout << "Sum of matrix is = " << ctot << endl;
 
-    for (size_t z=0;z<(internal[2]);++z)
-    {
-	for (size_t y=0;y<(internal[1]);++y)    
+	for (size_t z=0;z<(internal[2]);++z)
 	{
-	    for (size_t x=0;x<(internal[0]);++x)
-	    {	  
-		dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
-		
+	    for (size_t y=0;y<(internal[1]);++y)    
+	    {
+		for (size_t x=0;x<(internal[0]);++x)
+		{	  
+		    dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
+		    
+		}
 	    }
 	}
-    }
     
 // cout << "\nResulting matrix:\n";
 //     for (size_t z=0;z<(internal[2]);++z)
@@ -3170,9 +3239,11 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
 //     }
 
     
-    delete[] convolution;
-    delete[] src;
-    return resdat;
+	delete[] convolution;
+	delete[] src;
+	return resdat;
+    
+    }
 }
 
 
