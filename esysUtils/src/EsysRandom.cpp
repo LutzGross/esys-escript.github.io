@@ -124,6 +124,24 @@ void randomFillArray(long seed, double* array, size_t n)
     }
 }
 
+// see patternFillArray for details on parameters
+void patternFillArray2D(size_t x, size_t y, double* array, size_t spacing, size_t basex, size_t basey, size_t numpoints)
+{
+      memset(array, 0, x*y*sizeof(double)*numpoints);
+      size_t xoff=basex%spacing;
+      size_t yoff=basey%spacing;
+      for (int r=0;r<y;++r)
+      {
+	  size_t step=((r+yoff)%spacing)?spacing:1;
+	  for (int c=(spacing-xoff)%spacing;c<x;c+=step)
+	  {
+	      for (int p=0;p<numpoints;++p)
+	      {
+	          array[(c+r*x)*numpoints+p]=1+p;
+	      }
+	  }
+      } 
+}
 
 
 // fill the array (which we assume is 3D with x by y by z points in it) with a pattern.
@@ -131,7 +149,7 @@ void randomFillArray(long seed, double* array, size_t n)
 //  used to ensure patterns are generated consistantly across multiple ranks
 // This is only for internal debug so the patterns (or this function) may disappear 
 // without notice
-void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, size_t spacing, size_t basex, size_t basey, size_t basez)
+void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, size_t spacing, size_t basex, size_t basey, size_t basez, size_t numpoints)
 {
     if (pattern==0)	// a cross pattern in the z=0 plane, repeated for each z layer
     {
@@ -143,27 +161,30 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	    size_t step=((r+yoff)%spacing)?spacing:1;
 	    for (int c=(spacing-xoff)%spacing;c<x;c+=step)
 	    {
-		array[c+r*x]=1;
+		for (int p=0;p<numpoints;++p)
+		{
+		    array[(c+r*x)*numpoints+p]=p+1;
+		}
 	    }
 	}
 	for (int l=1;l<z;++l)
 	{
-	    memcpy(array+(x*y*l), array, x*y*sizeof(double));
+	    memcpy(array+(x*y*l*numpoints), array, x*y*sizeof(double)*numpoints);
 	}
     }
     else		// pattern 1. A grid in all 3 dimensions 
     {
 	if (z<2)
 	{
-	    patternFillArray(0, x, y, z, array, spacing, basex, basey, basez);
+	    patternFillArray(0, x, y, z, array, spacing, basex, basey, basez, numpoints);
 	    return;	// this pattern needs a minimum of 2 layers
 	}
 	size_t xoff=basex%spacing;
 	size_t yoff=basey%spacing;
 	size_t zoff=basez%spacing;
 	
-	double* buff1=new double[x*y];	// stores the main cross pattern
-	double* buff2=new double[x*y];	// stores the "verticals"
+	double* buff1=new double[x*y*numpoints];	// stores the main cross pattern
+	double* buff2=new double[x*y*numpoints];	// stores the "verticals"
 	memset(buff1, 0, x*y*sizeof(double));
 	memset(buff2, 0, x*y*sizeof(double));
 	for (size_t r=0;r<y;++r)
@@ -173,16 +194,20 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	    {
 		for (size_t c=0;c<x;++c)
 		{
-		    buff1[c+r*x]=1;	
-//		    buff1[c+r*x]=c+r*x;	// hack to test stuff
+		    for (int p=0;p<numpoints;++p)
+		    {
+			buff1[(c+r*x)*numpoints+p]=p+1;	
+		    }
 		}
 	    }
 	    else
 	    {
 		for (size_t c=(spacing-xoff)%spacing;c<x;c+=step)
 		{
-		    buff1[c+r*x]=1;
-//		    buff1[c+r*x]=c+r*x;
+		    for (int p=0;p<numpoints;++p)
+		    {
+			buff1[(c+r*x)*numpoints+p]=p+1;
+		    }
 		}
 	    }
 	}
@@ -190,19 +215,21 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	{
 	    for (size_t c=(spacing-xoff)%spacing;c<x;c+=spacing)
 	    {
-		buff2[c+r*x]=1;
-//		buff2[c+r*x]=c+r*x;
+		for (int p=0;p<numpoints;++p)
+		{
+		    buff2[(c+r*x)*numpoints+p]=p+1;
+		}
 	    }
 	}	
 	for (size_t l=0;l<z;++l)
 	{
 	    if ((l+zoff)%spacing)
 	    {
-		memcpy(array+(x*y*l), buff2, x*y*sizeof(double));
+		memcpy(array+(x*y*l*numpoints), buff2, x*y*sizeof(double)*numpoints);
 	    }
 	    else
 	    {
-		memcpy(array+(x*y*l), buff1, x*y*sizeof(double));
+		memcpy(array+(x*y*l*numpoints), buff1, x*y*sizeof(double)*numpoints);
 	    }
 	}
 	delete[] buff1;

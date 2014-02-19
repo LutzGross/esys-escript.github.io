@@ -73,7 +73,7 @@ werror = False
 
 # Whether to build a debug version
 # DEFAULT: False
-#debug = True
+debug = True
 
 # Set to True to print the full compiler/linker command line
 # DEFAULT: False
@@ -106,8 +106,8 @@ mpi_libs = ['mpi_cxx', 'mpi', 'open-rte', 'open-pal']
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-mt-py32']
-boost_libs = ['boost_python-mt-py27']
+boost_libs = ['boost_python-py32']
+boost_libs = ['boost_python-py27']
 
 #pythoncmd='python3'
 #usepython3=True

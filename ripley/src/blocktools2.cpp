@@ -123,7 +123,7 @@ size_t Block2::getBuffSize(unsigned char subx, unsigned char suby)
     {
 	return 0;	
     }
-    return dims[bid][0]*dims[bid][1]*dims[bid][2];	
+    return dims[bid][0]*dims[bid][1]*dims[bid][2]*dpsize;	
 }
 
 double* Block2::getOutBuffer(unsigned char bid)
@@ -150,7 +150,7 @@ size_t Block2::getBuffSize(unsigned char bid)
     {
 	return 0;	
     }
-    return dims[bid][0]*dims[bid][1];	
+    return dims[bid][0]*dims[bid][1]*dpsize;	
 }
 
 
@@ -186,7 +186,7 @@ void Block2::populateOffsetTable(size_t inset, size_t xmidlen, size_t ymidlen)
     for (int i=0;i<9;++i)
     {
 	flatoffsets[i]=cur;
-	cur+=dims[i][0]*dims[i][1];
+	cur+=dims[i][0]*dims[i][1]*dpsize;
     }
     for (int i=0;i<4;++i)
     {
@@ -324,6 +324,13 @@ void Block2::copyToBuffer(unsigned char bid, double* src)
     double* dest=outbuffptr[bid];
     size_t ylim=dims[bid][1];	// how big is the block
     size_t xlim=dims[bid][0];
+    
+// // testing for mismatch in the copy
+// for (int i=0;i<ylim*xlim*dpsize;++i)
+// {
+// dest[i]=-42;    
+// }
+    
     for (size_t y=0;y<ylim;++y)
     {     
 	memcpy(dest, start, xlim*sizeof(double)*dpsize);
