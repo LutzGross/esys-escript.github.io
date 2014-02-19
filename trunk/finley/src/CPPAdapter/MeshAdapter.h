@@ -340,7 +340,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual int getDiracDeltaFunctionsCode() const;
 
   /**
-                 5B
      \brief
   */
   typedef std::map<int, std::string> FunctionSpaceNamesMapType;
@@ -671,6 +670,11 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   FINLEY_DLL_API
   bool supportsContactElements() const;
+  
+
+  FINLEY_DLL_API
+  virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
+       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;       
   
   
   private:

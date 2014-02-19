@@ -19,6 +19,7 @@
 #include "TestDomain.h" 
 #include "Data.h"
 #include "Utils.h"	// for MPI functions
+#include <esysUtils/EsysRandom.h>
 
 namespace escript {
 
@@ -253,6 +254,18 @@ escript::Data TestDomain::getX() const
   
 }
 
+escript::Data TestDomain::randomFill(const DataTypes::ShapeType& shape,
+       const FunctionSpace& what, long seed, const boost::python::tuple& filter) const
+{
+    escript::Data towipe(0, shape, what, true);
+    // since we just made this object, no sharing is possible and we don't need to check for
+    // exlusive write
+    escript::DataTypes::ValueType& dv=towipe.getExpandedVectorReference();
+    const size_t dvsize=dv.size();
+    esysUtils::randomFillArray(seed, &(dv[0]), dvsize);
+    return towipe;	  
+}
+
 FunctionSpace
 getTestDomainFunctionSpace(int dpps, int samples, int dpsize)
 {
@@ -260,5 +273,7 @@ getTestDomainFunctionSpace(int dpps, int samples, int dpsize)
     Domain_ptr p=Domain_ptr(td);
     return FunctionSpace(p, td->getDefaultCode());
 }
+
+
 
 }  // end of namespace

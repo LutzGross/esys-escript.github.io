@@ -21,6 +21,7 @@
 #include <ripley/WaveAssembler2D.h>
 #include <boost/scoped_array.hpp>
 #include "esysUtils/EsysRandom.h"
+#include "blocktools.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -490,7 +491,7 @@ void Rectangle::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    int driver=DB_HDF5;
+    int driver=DB_HDF5;    
     DBfile* dbfile = NULL;
     const char* blockDirFmt = "/block%04d";
 
@@ -1870,7 +1871,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 namespace
 {
     // Calculates a guassian blur colvolution matrix for 2D
-    // See wiki article on the subject
+    // See wiki article on the subject    
     double* get2DGauss(unsigned radius, double sigma)
     {
         double* arr=new double[(radius*2+1)*(radius*2+1)];
@@ -1880,22 +1881,22 @@ namespace
         for (int y=-r;y<=r;++y)
         {
             for (int x=-r;x<=r;++x)
-            {
+            {         
                 arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
 // cout << (x+y*(r*2+1)) << " " << arr[(x+r)+(y+r)*(r*2+1)] << endl;
                 total+=arr[(x+r)+(y+r)*(r*2+1)];
             }
         }
         double invtotal=1/total;
-//cout << "Inv total is "         << invtotal << endl;
+//cout << "Inv total is "        << invtotal << endl;
         for (size_t p=0;p<(radius*2+1)*(radius*2+1);++p)
         {
-            arr[p]*=invtotal;
-//cout << p << "->" << arr[p] << endl;
+            arr[p]*=invtotal; 
+//cout << p << "->" << arr[p] << endl;      
         }
         return arr;
     }
-
+    
     // applies conv to source to get a point.
     // (xp, yp) are the coords in the source matrix not the destination matrix
     double Convolve2D(double* conv, double* source, size_t xp, size_t yp, unsigned radius, size_t width)
@@ -1904,16 +1905,37 @@ namespace
         size_t sbase=bx+by*width;
         double result=0;
         for (int y=0;y<2*radius+1;++y)
-        {
+        {         
             for (int x=0;x<2*radius+1;++x)
             {
                 result+=conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
             }
         }
-        return result;
+        return result;      
     }
 }
 
+
+/* This is a wrapper for filtered (and non-filtered) randoms
+ * For detailed doco see randomFillWorker
+*/ 
+escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
+       const escript::FunctionSpace& what,
+       long seed, const boost::python::tuple& filter) const
+{
+    int numvals=escript::DataTypes::noValues(shape);
+    if (len(filter)>0 && (numvals!=1))
+    {
+        throw RipleyException("Ripley only supports filters for scalar data.");
+    }
+    escript::Data res=randomFillWorker(shape, seed, filter);
+    if (res.getFunctionSpace()!=what)
+    {
+        escript::Data r=escript::Data(res, what);
+        return r;
+    }
+    return res;
+}
 
 
 /* This routine produces a Data object filled with smoothed random data.
@@ -1922,11 +1944,11 @@ A parameter radius  gives the size of the stencil used for the smoothing.
 A point on the left hand edge for example, will still require `radius` extra points to the left
 in order to complete the stencil.
 
-All local calculation is done on an array called `src`, with
+All local calculation is done on an array called `src`, with 
 dimensions = ext[0] * ext[1].
 Where ext[i]= internal[i]+2*radius.
 
-Now for MPI there is overlap to deal with. We need to share both the overlapping
+Now for MPI there is overlap to deal with. We need to share both the overlapping 
 values themselves but also the external region.
 
 In a hypothetical 1-D case:
@@ -1945,201 +1967,135 @@ need to be known.
 
 pp123(4)56   23(4)567pp
 
-Now in our case, we wout set all the values 23456 on the left rank and send them to the
+Now in our case, we wout set all the values 23456 on the left rank and send them to the 
 right hand rank.
 
 So the edges _may_ need to be shared at a distance `inset` from all boundaries.
-inset=2*radius+1
+inset=2*radius+1    
 This is to ensure that values at distance `radius` from the shared/overlapped element
 that ripley has.
 
 
 */
-escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filter) const
+escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& shape,
+       long seed, const boost::python::tuple& filter) const
 {
     if (m_numDim!=2)
     {
         throw RipleyException("Only 2D supported at this time.");
     }
-    if (len(filter)!=3) {
-        throw RipleyException("Unsupported random filter");
-    }
-    boost::python::extract<string> ex(filter[0]);
-    if (!ex.check() || (ex()!="gaussian"))
-    {
-        throw RipleyException("Unsupported random filter");
-    }
-    boost::python::extract<unsigned int> ex1(filter[1]);
-    if (!ex1.check())
-    {
-        throw RipleyException("Radius of gaussian filter must be a positive integer.");
-    }
-    unsigned int radius=ex1();
-    double sigma=0.5;
-    boost::python::extract<double> ex2(filter[2]);
-    if (!ex2.check() || (sigma=ex2())<=0)
-    {
-        throw RipleyException("Sigma must be a postive floating point number.");
-    }
 
+    unsigned int radius=0;      // these are only used by gaussian
+    double sigma=0.5;
+    
+    unsigned int numvals=escript::DataTypes::noValues(shape);
+        
+    
+    if (len(filter)==0) 
+    {
+        // nothing special required here yet
+    }    
+    else if (len(filter)==3)
+    {
+        boost::python::extract<string> ex(filter[0]);
+        if (!ex.check() || (ex()!="gaussian")) 
+        {
+            throw RipleyException("Unsupported random filter");
+        }
+        boost::python::extract<unsigned int> ex1(filter[1]);
+        if (!ex1.check())
+        {
+            throw RipleyException("Radius of gaussian filter must be a positive integer.");
+        }
+        radius=ex1();
+        sigma=0.5;
+        boost::python::extract<double> ex2(filter[2]);
+        if (!ex2.check() || (sigma=ex2())<=0)
+        {
+            throw RipleyException("Sigma must be a postive floating point number.");
+        }        
+    }
+    else
+    {
+        throw RipleyException("Unsupported random filter for Rectangle.");
+    }
+      
+  
+    
     size_t internal[2];
-    internal[0]=m_NE[0]+1;        // number of points in the internal region
-    internal[1]=m_NE[1]+1;        // that is, the ones we need smoothed versions of
+    internal[0]=m_NE[0]+1;      // number of points in the internal region
+    internal[1]=m_NE[1]+1;      // that is, the ones we need smoothed versions of
     size_t ext[2];
     ext[0]=internal[0]+2*radius;        // includes points we need as input
     ext[1]=internal[1]+2*radius;        // for smoothing
-
-    // now we check to see if the radius is acceptable
+    
+    // now we check to see if the radius is acceptable 
     // That is, would not cross multiple ranks in MPI
 
-    if ((2*radius>=internal[0]) || (2*radius>=internal[1]))
+    if (2*radius>=internal[0]-4)
     {
-        throw RipleyException("Radius of gaussian filter must be less than half the width/height of a rank");
+        throw RipleyException("Radius of gaussian filter is too large for X dimension of a rank");
+    }
+    if (2*radius>=internal[1]-4)
+    {
+        throw RipleyException("Radius of gaussian filter is too large for Y dimension of a rank");
     }
 
-
-    double* src=new double[ext[0]*ext[1]];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]);
-
+    double* src=new double[ext[0]*ext[1]*numvals];
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);       
 
 #ifdef ESYS_MPI
-    size_t inset=2*radius+1;
-    size_t Eheight=ext[1]-2*inset;        // how high the E (shared) region is
-    size_t Swidth=ext[0]-2*inset;
-
-    double* SWin=new double[inset*inset];  memset(SWin, 0, inset*inset*sizeof(double));
-    double* SEin=new double[inset*inset];  memset(SEin, 0, inset*inset*sizeof(double));
-    double* NWin=new double[inset*inset];  memset(NWin, 0, inset*inset*sizeof(double));
-    double* Sin=new double[inset*Swidth];  memset(Sin, 0, inset*Swidth*sizeof(double));
-    double* Win=new double[inset*Eheight];  memset(Win, 0, inset*Eheight*sizeof(double));
-
-    double* NEout=new double[inset*inset];  memset(NEout, 0, inset*inset*sizeof(double));
-    unsigned int base=ext[0]-inset+(ext[1]-inset)*ext[0];
-    for (unsigned int i=0;i<inset;++i)
+    if ((internal[0]<5) || (internal[1]<5))
     {
-        memcpy(NEout+inset*i, src+base, inset*sizeof(double));
-        base+=ext[0];
+        // since the dimensions are equal for all ranks, this exception
+        // will be thrown on all ranks
+        throw RipleyException("Random Data in Ripley requries at least five elements per side per rank.");
     }
-    double* NWout=new double[inset*inset];  memset(NWout, 0, inset*inset*sizeof(double));
-    base=(ext[1]-inset)*ext[0];
-    for (unsigned int i=0;i<inset;++i)
-    {
-        memcpy(NWout+inset*i, src+base, inset*sizeof(double));
-        base+=ext[0];
-    }
-
-    double* SEout=new double[inset*inset];  memset(SEout, 0, inset*inset*sizeof(double));
-    base=ext[0]-inset;
-    for (int i=0;i<inset;++i)
-    {
-        memcpy(SEout+inset*i, src+base, inset*sizeof(double));
-        base+=ext[0];
-    }
-    double* Nout=new double[inset*Swidth];  memset(Nout, 0, inset*Swidth*sizeof(double));
-    base=inset+(ext[1]-inset)*ext[0];
-    for (unsigned int i=0;i<inset;++i)
-    {
-        memcpy(Nout+Swidth*i, src+base, Swidth*sizeof(double));
-        base+=ext[0];
-    }
-
-    double* Eout=new double[inset*Eheight];  memset(Eout, 0, inset*Eheight*sizeof(double));
-    base=ext[0]-inset+inset*ext[0];
-    for (unsigned int i=0;i<Eheight;++i)
-    {
-        memcpy(Eout+i*inset, src+base, inset*sizeof(double));
-        base+=ext[0];
-    }
-
-    MPI_Request reqs[10];
-    MPI_Status stats[10];
-    short rused=0;
-
     dim_t X=m_mpiInfo->rank%m_NX[0];
-    dim_t Y=m_mpiInfo->rank/m_NX[0];
-    dim_t row=m_NX[0];
-    bool swused=false;                // These vars will be true if data needs to be copied out of them
-    bool seused=false;
-    bool nwused=false;
-    bool sused=false;
-    bool wused=false;
+    dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
+#endif      
+    
+    
+   
+#ifdef ESYS_MPI   
+    
+    BlockGrid2 grid(m_NX[0]-1, m_NX[1]-1);
+    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence 
+                // there is an overlap of two points both of which need to have "radius" points on either side.
+    
+    size_t xmidlen=ext[0]-2*inset;      // how wide is the x-dimension between the two insets
+    size_t ymidlen=ext[1]-2*inset;      
+    
+    Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
 
-    // Tags:
-    // 10 : EW transfer (middle)
-    // 8 : NS transfer (middle)
-    // 7 : NE corner -> to N, E and NE
-    // 11 : NW corner to SW corner (only used on the left hand edge
-    // 12 : SE corner to SW corner (only used on the bottom edge
-
-
-
-    int comserr=0;
-    if (Y!=0)        // not on bottom row,
+    MPI_Request reqs[40];               // a non-tight upper bound on how many we need
+    MPI_Status stats[40];
+    short rused=0;
+    
+    messvec incoms;
+    messvec outcoms;  
+    
+    grid.generateInNeighbours(X, Y, incoms);
+    grid.generateOutNeighbours(X, Y, outcoms);
+    
+    block.copyAllToBuffer(src);    
+    
+    int comserr=0;    
+    for (size_t i=0;i<incoms.size();++i)
     {
-        if (X!=0)        // not on the left hand edge
-        {
-            // recv bottomleft from SW
-            comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (X-1)+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-            swused=true;
-            comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
-            wused=true;
-        }
-        else        // on the left hand edge
-        {
-            comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, (Y-1)*row, 11, m_mpiInfo->comm, reqs+(rused++));
-            swused=true;
-        }
-        comserr|=MPI_Irecv(Sin, Swidth*inset, MPI_DOUBLE, X+(Y-1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
-        sused=true;
-        comserr|=MPI_Irecv(SEin, inset*inset, MPI_DOUBLE, X+(Y-1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-        seused=true;
-
-
-    }
-    else                // on the bottom row
-    {
-        if (X!=0)
-        {
-            comserr|=MPI_Irecv(Win, Eheight*inset, MPI_DOUBLE, X-1+Y*row, 10, m_mpiInfo->comm, reqs+(rused++));
-            wused=true;
-            // Need to use tag 12 here because SW is coming from the East not South East
-            comserr|=MPI_Irecv(SWin, inset*inset, MPI_DOUBLE, X-1+Y*row, 12, m_mpiInfo->comm, reqs+(rused++));
-            swused=true;
-        }
-        if (X!=(row-1))
-        {
-            comserr|=MPI_Isend(SEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 12, m_mpiInfo->comm, reqs+(rused++));
-        }
+        message& m=incoms[i];
+        comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+        block.setUsed(m.destbuffid);
     }
 
-    if (Y!=(m_NX[1]-1))        // not on the top row
+    for (size_t i=0;i<outcoms.size();++i)
     {
-         comserr|=MPI_Isend(Nout, inset*Swidth, MPI_DOUBLE, X+(Y+1)*row, 8, m_mpiInfo->comm, reqs+(rused++));
-        comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-        if (X!=(row-1))        // not on right hand edge
-        {
-            comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y+1)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-        }
-        if (X==0)        // left hand edge
-        {
-            comserr|=MPI_Isend(NWout, inset*inset, MPI_DOUBLE, (Y+1)*row,11, m_mpiInfo->comm, reqs+(rused++));
-        }
-    }
-    if (X!=(row-1))        // not on right hand edge
-    {
-        comserr|=MPI_Isend(NEout, inset*inset, MPI_DOUBLE, X+1+(Y)*row, 7, m_mpiInfo->comm, reqs+(rused++));
-        comserr|=MPI_Isend(Eout, Eheight*inset, MPI_DOUBLE, X+1+(Y)*row, 10, m_mpiInfo->comm, reqs+(rused++));
-    }
-    if (X!=0)
-    {
-        comserr|=MPI_Irecv(NWin, inset*inset, MPI_DOUBLE, (X-1)+Y*row, 7, m_mpiInfo->comm, reqs+(rused++));
-        nwused=true;
-
-
-    }
-
+        message& m=outcoms[i];
+        comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+    }    
+    
     if (!comserr)
-    {
+    {     
         comserr=MPI_Waitall(rused, reqs, stats);
     }
 
@@ -2148,88 +2104,55 @@ escript::Data Rectangle::randomFill(long seed, const boost::python::tuple& filte
         // Yes this is throwing an exception as a result of an MPI error.
         // and no we don't inform the other ranks that we are doing this.
         // however, we have no reason to believe coms work at this point anyway
-        throw RipleyException("Error in coms for randomFill");
+        throw RipleyException("Error in coms for randomFill");      
     }
-
-
-    // Need to copy the values back from the buffers
-    // Copy from SW
-
-    if (swused)
+    
+    block.copyUsedFromBuffer(src);    
+    
+#endif    
+    
+    if (radius==0 || numvals>1) // the truth of either should imply the truth of the other but let's be safe
     {
-        base=0;
-        for (unsigned int i=0;i<inset;++i)
+      
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, shape, fs , true);
+        // don't need to check for exwrite because we just made it
+        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        
+        
+        // now we need to copy values over
+        for (size_t y=0;y<(internal[1]);++y)    
         {
-            memcpy(src+base, SWin+i*inset, inset*sizeof(double));
-            base+=ext[0];
+            for (size_t x=0;x<(internal[0]);++x)
+            {
+                for (unsigned int i=0;i<numvals;++i)
+                {
+                    dv[i+(x+y*(internal[0]))*numvals]=src[i+(x+y*ext[0])*numvals];
+                }
+            }
         }
+        delete[] src;
+        return resdat;      
     }
-    if (seused)
-    {
-        base=ext[0]-inset;
-        for (unsigned int i=0;i<inset;++i)
+    else                // filter enabled       
+    {    
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
+        // don't need to check for exwrite because we just made it
+        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        double* convolution=get2DGauss(radius, sigma);
+        for (size_t y=0;y<(internal[1]);++y)    
         {
-            memcpy(src+base, SEin+i*inset, inset*sizeof(double));
-            base+=ext[0];
+            for (size_t x=0;x<(internal[0]);++x)
+            {     
+                dv[x+y*(internal[0])]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
+                
+            }
         }
+        delete[] convolution;
+        delete[] src;
+        return resdat;
     }
-    if (nwused)
-    {
-        base=(ext[1]-inset)*ext[0];
-        for (unsigned int i=0;i<inset;++i)
-        {
-            memcpy(src+base, NWin+i*inset, inset*sizeof(double));
-            base+=ext[0];
-        }
-    }
-    if (sused)
-    {
-       base=inset;
-       for (unsigned int i=0;i<inset;++i)
-       {
-           memcpy(src+base, Sin+i*Swidth, Swidth*sizeof(double));
-           base+=ext[0];
-       }
-    }
-    if (wused)
-    {
-        base=inset*ext[0];
-        for (unsigned int i=0;i<Eheight;++i)
-        {
-            memcpy(src+base, Win+i*inset, inset*sizeof(double));
-            base+=ext[0];
-        }
-
-    }
-
-    delete[] SWin;
-    delete[] SEin;
-    delete[] NWin;
-    delete[] Sin;
-    delete[] Win;
-
-    delete[] NEout;
-    delete[] NWout;
-    delete[] SEout;
-    delete[] Nout;
-    delete[] Eout;
-#endif
-    escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
-    escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
-    // don't need to check for exwrite because we just made it
-    escript::DataVector& dv=resdat.getExpandedVectorReference();
-    double* convolution=get2DGauss(radius, sigma);
-    for (size_t y=0;y<(internal[1]);++y)
-    {
-        for (size_t x=0;x<(internal[0]);++x)
-        {
-            dv[x+y*(internal[0])]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
-
-        }
-    }
-    delete[] convolution;
-    delete[] src;
-    return resdat;
 }
 
 int Rectangle::findNode(const double *coords) const {
@@ -2264,7 +2187,7 @@ int Rectangle::findNode(const double *coords) const {
             double ydist = (y - (ey + dy)*m_dx[1]);
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
-                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NE[0] + 1);
+                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NE[0] + 1); 
                 minDist = total;
             }
         }

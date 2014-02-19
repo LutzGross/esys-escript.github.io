@@ -64,6 +64,8 @@ class Test_DomainOnRipley(Test_Domain):
     def setUp(self):
         self.boundary_tag_list = [1, 2, 10, 20]
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+	self.rdomain=Rectangle(n0=(NE+6)*NX-1, n1=(NE+6)*NY-1, l0=1., l1=1., d0=NX, d1=NY)
+
     def tearDown(self):
         del self.domain
         del self.boundary_tag_list
@@ -170,8 +172,22 @@ class Test_CSVOnRipley(Test_saveCSV):
         saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
         
 class Test_randomOnRipley(unittest.TestCase):
-    def testFill(self):
-        r=Rectangle(10,10).randomFill(2,("gaussian",1,0.5))
+    def test_FillRectangle(self):
+        fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize+1))),10*(int(sqrt(mpiSize+1)))))
+	RandomData((), fs, 2,("gaussian",1,0.5))
+	RandomData((), fs, 0,("gaussian",2,0.76))
+	self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
+	self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",5,0.1))
+	RandomData((2,3),fs)
+
+    def test_FillBrick(self):
+	fs=ContinuousFunction(Brick(10*(int(sqrt(mpiSize+1))),10*(int(sqrt(mpiSize+1))), 10*(int(sqrt(mpiSize+1)))))
+	RandomData((), fs, 2,("gaussian",1,0.5))
+	RandomData((), fs, 0,("gaussian",2,0.76))
+	self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
+	self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",5,0.1))
+	RandomData((2,3),fs)
+
 
 
 if __name__ == '__main__':

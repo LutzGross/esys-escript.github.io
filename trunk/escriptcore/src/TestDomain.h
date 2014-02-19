@@ -241,6 +241,10 @@ class TestDomain : public AbstractDomain {
   */
   ESCRIPT_DLL_API 
   virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
+  
+  ESCRIPT_DLL_API
+  virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
+       const FunctionSpace& what, long seed, const boost::python::tuple& filter) const;     
 
  protected:
 

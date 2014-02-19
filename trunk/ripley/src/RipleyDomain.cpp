@@ -1474,6 +1474,9 @@ void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data&
 // Expecting ("gaussian", radius, sigma)
 bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
 {
+    if (len(t)==0) {	// so we can handle unfiltered randoms
+        return true;
+    }
     if (len(t)!=3) {
         return false;
     }

@@ -284,7 +284,7 @@ class Test_Domain(unittest.TestCase):
            self.assertTrue(i in tags, "tag %s is missing."%i)
 
    def test_RandomData(self):
-        fs=Function(self.domain)        # The choice of functionspace is arbitrary
+        fs=Function(self.rdomain)        # The choice of functionspace is arbitrary
         dat=RandomData((2,2,2,2),fs,8)  # Choice of seed is arbitrary
         self.assertTrue(Lsup(dat-1)<1.0001)
 

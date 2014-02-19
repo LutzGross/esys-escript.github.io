@@ -318,14 +318,19 @@ bool AbstractDomain::supportsContactElements() const
 
 bool AbstractDomain::supportsFilter(const boost::python::tuple& t) const
 {
+    if (len(t)==0)
+    {
+        return true;	// to make creating non-filtered values simpler 
+    }
     return false;  
 }
 
-escript::Data AbstractDomain::randomFill(long seed, const boost::python::tuple& filter) const
-{
-    throwStandardException("AbstractDomain::randomFill");
-    return Data();
-}
+// escript::Data AbstractDomain::randomFill(const DataTypes::ShapeType& shape,
+//        const FunctionSpace& what, long seed, const boost::python::tuple& filter) const
+// {
+//     throwStandardException("AbstractDomain::randomFill");
+//     return Data();
+// }
 
 
 } // end of namespace

@@ -185,4 +185,11 @@ bool NullDomain::supportsContactElements() const
   return false;
 }
 
+escript::Data NullDomain::randomFill(const DataTypes::ShapeType& shape,
+       const FunctionSpace& what, long seed, const boost::python::tuple& filter) const
+{
+    throw DataException("Attempted randomFill on NullDomain. NullDomains do not store values.");
+}
+
+
 }  // end of namespace
