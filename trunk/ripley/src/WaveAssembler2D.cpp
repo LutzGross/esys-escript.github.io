@@ -574,16 +574,16 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
                                 wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
                                                     + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
-                            } else if (isVTI) {
+                            } else if (isHTI) {
                                 const double *c66_p = c66.getSampleDataRO(e);
                                 wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
-                                                    + du_p[INDEX2(2,2,numEq)] * c13_p[0])*w18;
+                                        + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
                                 wX_01 = -(c66_p[0] *
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w19;
                                 wX_10 = -(c66_p[0] *
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
                                 wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
-                                                    + du_p[INDEX2(2,2,numEq)] * c33_p[0])*w19;
+                                        + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
                             } else {
                                 throw RipleyException("General form solutions"
                                        " not yet implemented in WaveAssembler");
