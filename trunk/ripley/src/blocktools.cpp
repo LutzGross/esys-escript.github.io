@@ -145,7 +145,7 @@ size_t Block::getBuffSize(unsigned char subx, unsigned char suby, unsigned char 
     {
 	return 0;	
     }
-    return dims[bid][0]*dims[bid][1]*dims[bid][2];	
+    return dims[bid][0]*dims[bid][1]*dims[bid][2]*dpsize;	
 }
 
 double* Block::getOutBuffer(unsigned char bid)
@@ -172,7 +172,7 @@ size_t Block::getBuffSize(unsigned char bid)
     {
 	return 0;	
     }
-    return dims[bid][0]*dims[bid][1]*dims[bid][2];	
+    return dims[bid][0]*dims[bid][1]*dims[bid][2]*dpsize;	
 }
 
 
@@ -217,7 +217,7 @@ void Block::populateOffsetTable(size_t inset, size_t xmidlen, size_t ymidlen, si
     for (int i=0;i<27;++i)
     {
 	flatoffsets[i]=cur;
-	cur+=dims[i][0]*dims[i][1]*dims[i][2];
+	cur+=dims[i][0]*dims[i][1]*dims[i][2]*dpsize;
     }
     for (int i=0;i<13;++i)
     {

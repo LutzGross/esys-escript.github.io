@@ -3069,7 +3069,7 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
     {
 	seed=2;	// since we are using the seed parameter as the spacing and 0 spacing causes an exception
     }
-    esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, seed, basex, basey, basez);
+    esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
 */
     
     

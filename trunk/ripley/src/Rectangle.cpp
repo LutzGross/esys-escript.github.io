@@ -2042,7 +2042,9 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     }
 
     double* src=new double[ext[0]*ext[1]*numvals];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);       
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);   
+    
+
 
 #ifdef ESYS_MPI
     if ((internal[0]<5) || (internal[1]<5))
@@ -2054,7 +2056,18 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
 #endif      
-    
+
+/*    
+    // if we wanted to test a repeating pattern
+    size_t basex=0;
+    size_t basey=0;
+#ifdef ESYS_MPI    
+    basex=X*m_gNE[0]/m_NX[0];
+    basey=Y*m_gNE[1]/m_NX[1];
+#endif 
+        
+    esysUtils::patternFillArray2D(ext[0], ext[1], src, 4, basex, basey, numvals);
+*/    
     
    
 #ifdef ESYS_MPI   
@@ -2078,7 +2091,19 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     grid.generateInNeighbours(X, Y, incoms);
     grid.generateOutNeighbours(X, Y, outcoms);
     
-    block.copyAllToBuffer(src);    
+    block.copyAllToBuffer(src);  
+
+// for (int i=0;i<9;++i)
+// {
+//     if (i!=4)
+//     {
+//       for (int j=0;j<block.getBuffSize(i);++j)
+//       {
+// 	  block.getOutBuffer(i)[j]=100+i;
+//       }
+//     }
+// }
+    
     
     int comserr=0;    
     for (size_t i=0;i<incoms.size();++i)
@@ -2086,17 +2111,38 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
         message& m=incoms[i];
         comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
         block.setUsed(m.destbuffid);
+	
     }
 
     for (size_t i=0;i<outcoms.size();++i)
     {
         message& m=outcoms[i];
+// cout << "Sending " << 	(int)m.srcbuffid << " with tag " << m.tag << endl;
         comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+// for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
+// {
+//     cout << block.getOutBuffer(m.srcbuffid)[i] << " ";
+// }
+// cout << endl;	
     }    
     
     if (!comserr)
     {     
         comserr=MPI_Waitall(rused, reqs, stats);
+	
+	
+//     for (size_t i=0;i<incoms.size();++i)
+//     {
+//         message& m=incoms[i];      
+// cout << "Gettinging " << 	(int)m.destbuffid << " with tag " << m.tag << endl;
+// for (int i=0;i<block.getBuffSize(m.destbuffid);++i)
+// {
+//     cout << block.getInBuffer(m.destbuffid)[i] << " ";
+// }
+// cout << endl;
+// 	
+//     }	
+	
     }
 
     if (comserr)
