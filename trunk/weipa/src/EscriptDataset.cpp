@@ -422,6 +422,8 @@ bool EscriptDataset::saveSilo(string fileName, bool useMultiMesh)
     return true;
 
 #else // !USE_SILO
+    std::cerr << "WARNING: saving to silo file requested but escript was not built"
+            " with silo support";
     return false;
 #endif
 }
