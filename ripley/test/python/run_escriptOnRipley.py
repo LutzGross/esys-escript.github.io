@@ -181,7 +181,8 @@ class Test_randomOnRipley(unittest.TestCase):
 	RandomData((2,3),fs)
 
     def test_FillBrick(self):
-	fs=ContinuousFunction(Brick(10*(int(sqrt(mpiSize+1))),10*(int(sqrt(mpiSize+1))), 10*(int(sqrt(mpiSize+1)))))
+	# If we are going to do really big tests of this, the size of this brick will need to be reduced
+	fs=ContinuousFunction(Brick(10*mpiSize,10*mpiSize, 10*mpiSize))
 	RandomData((), fs, 2,("gaussian",1,0.5))
 	RandomData((), fs, 0,("gaussian",2,0.76))
 	self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
