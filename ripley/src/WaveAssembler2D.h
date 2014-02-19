@@ -61,7 +61,8 @@ private:
     dim_t *m_NX;
     dim_t *m_NE;
     dim_t *m_NN;
-    escript::Data c11, c12, c13, c33, c44, c66;
+    escript::Data c11, c12, c13, c23, c33, c44, c66;
+    bool isVTI, isHTI;
 };
 
 }
