@@ -154,8 +154,8 @@ class Test_nlpde(Test_nonLinearPDEs):
         self.assertRaises(IllegalCoefficientValue, nlpde.setValue,**args)
         args=dict(X=grad(u), Y=5*grad(u))
         self.assertRaises(IllegalCoefficientValue, nlpde.setValue,**args)
-        args=dict(q=u)
-        self.assertRaises(IllegalCoefficientValue, nlpde.setValue,**args)
+        #args=dict(q=u)
+        #self.assertRaises(IllegalCoefficientValue, nlpde.setValue,**args)
     
     def test_DimAndShape2eq(self):
         dim=self.domain.getDim()
@@ -175,9 +175,9 @@ class Test_nlpde(Test_nonLinearPDEs):
         self.assertRaises(IllegalCoefficient,nlpde.setValue,**args)
 
 
-    def test_yDirection:
-
-        u = Symbol('u',(2,), dim=2)
+    def test_yDirection(self):
+        dim=self.domain.getDim()
+        u = Symbol('u',(2,), dim=dim)
         q = Symbol('q', (2,2))
         theta = Symbol('theta')
         theta=3.141/6
@@ -187,8 +187,8 @@ class Test_nlpde(Test_nonLinearPDEs):
         q[1,1]=cos(theta)
         sigma = Symbol('sigma',(2,2))
         p = NonlinearPDE(self.domain, u, debug=0)
-        epsilon0 = symmetric(grad(u))
-        epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
+        epsilon = symmetric(grad(u))
+        #epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
         c00=10;c01=8;c05=0
         c01=8;c11=10;c15=0
         c05=0;c15=0;c55=1
@@ -196,11 +196,11 @@ class Test_nlpde(Test_nonLinearPDEs):
         sigma[1,1]=c01*epsilon[0,0]+c11*epsilon[1,1]+c15*2*epsilon[1,0]
         sigma[0,1]=c05*epsilon[0,0]+c15*epsilon[1,1]+c55*2*epsilon[1,0]
         sigma[1,0]=sigma[0,1]
-        sigma0=matrixmult(ixmult(q.transpose(1),epsilon),q)
-        x = mydomain.getX()
+        #sigma0=matrixmult(matrixmult(q.transpose(1),epsilon),q)
+        x = self.domain.getX()
         gammaD=whereZero(x[1])*[1,1]#+whereZero(x[0])*[1,0]+whereZero(x[0]-1)*[1,0]  
-        yconstraint = FunctionOnBoundary(mydomain).getX()[1]
-        p.setValue(X=sigma0,q=gammaD,y=[-50,0]*whereZero(yconstraint-1),r=[1,1])
+        yconstraint = FunctionOnBoundary(self.domain).getX()[1]
+        p.setValue(X=sigma,q=gammaD,y=[-50,0]*whereZero(yconstraint-1),r=[1,1])
         v = p.getSolution(u=[0,0])
         x=np.ndarray((2,))
         x[0]=0.5
