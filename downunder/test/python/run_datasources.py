@@ -114,7 +114,7 @@ class TestNumpyData(unittest.TestCase):
         nz=NE_V
         z_data=int(np.round((ALT-VMIN)/DV)-1)
 
-        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
         nz=len(out)/nx
         g_out=out[:,0].reshape(nz,nx)
@@ -162,7 +162,7 @@ class TestNumpyData(unittest.TestCase):
         nz=NE_V
         z_data=int(np.round((ALT-VMIN)/DV)-1)
 
-        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
         nz=len(out)/(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
@@ -223,11 +223,11 @@ class TestErMapperData(unittest.TestCase):
         nz=NE_V
         z_data=int(np.round((ALT-VMIN)/DV)-1)
 
-        ref=np.genfromtxt(ERS_REF, delimiter=',', dtype=float)
+        ref=np.genfromtxt(ERS_REF, delimiter=',', dtype=np.float64)
         g_ref=ref[:,0].reshape((NP[1],NP[0]))
         s_ref=ref[:,1].reshape((NP[1],NP[0]))
 
-        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
         nz=len(out)/(nx*ny)
         g_out=out[:,0].reshape(nz,ny,nx)
@@ -280,11 +280,11 @@ class TestNetCdfData(unittest.TestCase):
         nz=NE_V
         z_data=int(np.round((ALT-VMIN)/DV)-1)
     
-        ref=np.genfromtxt(NC_REF, delimiter=',', dtype=float)
+        ref=np.genfromtxt(NC_REF, delimiter=',', dtype=np.float64)
         g_ref=ref[:,0].reshape((NP[1],NP[0]))
         s_ref=ref[:,1].reshape((NP[1],NP[0]))
 
-        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         # recompute nz since ripley might have adjusted number of elements
 
         nz=len(out)/(nx*ny)
@@ -335,11 +335,11 @@ class TestNetCdfData(unittest.TestCase):
         nz=NE_V
         z_data=int(np.round((ALT-VMIN)/DV)-1)
 
-        ref=np.genfromtxt(NC_REF, delimiter=',', dtype=float)
+        ref=np.genfromtxt(NC_REF, delimiter=',', dtype=np.float64)
         g_ref=ref[:,0].reshape((NP[1],NP[0]))
         s_ref=ref[:,1].reshape((NP[1],NP[0]))
 
-        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=float)
+        out=np.genfromtxt(outfn, delimiter=',', skip_header=1, dtype=np.float64)
         
         # recompute nz since ripley might have adjusted number of elements
         nz=len(out)/(nx*ny)
@@ -358,12 +358,36 @@ class TestNetCdfData(unittest.TestCase):
         g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=NC_NULL
         self.assertAlmostEqual(np.abs(g_out-NC_NULL).max(), 0.,
                 msg="Wrong values in padding area")
-                
+class TestSeimicSource(unittest.TestCase):
+    def test_seismic_source(self):
+        ss= SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.])
+        self.assertEqual(ss.getLocation(), (1.,2) )
+        self.assertEqual(ss.getFrequency(), 3.)
+        self.assertEqual(ss.getPower(), complex(4.,-4.) ) 
+        self.assertEqual(ss.getOrientation(), [5.,6.])
+        
+        self.assertTrue( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertFalse( ss == SeismicSource(x=-1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertFalse( ss == SeismicSource(x=1., y=-2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=-3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(-4.,-4.), orientation=[5.,6.]) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,4.), orientation=[5.,6.]) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.]) )
+
+        self.assertFalse( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertTrue( ss != SeismicSource(x=-1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertTrue( ss != SeismicSource(x=1., y=-2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=-3., power = complex(4.,-4.), orientation=[5.,6.]) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(-4.,-4.), orientation=[5.,6.]) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,4.), orientation=[5.,6.]) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.]) )
+        
 if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestNumpyData))
     suite.addTest(unittest.makeSuite(TestErMapperData))
     suite.addTest(unittest.makeSuite(TestNetCdfData))
+    suite.addTest(unittest.makeSuite(TestSeimicSource))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 

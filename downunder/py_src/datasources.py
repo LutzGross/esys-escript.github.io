@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __all__ = ['DataSource', 'ErMapperData', 'NumpyData', \
         'SyntheticDataBase', 'SyntheticFeatureData', 'SyntheticData',
-        'SmoothAnomaly']
+        'SmoothAnomaly', 'SeismicSource']
 
 import logging
 import numpy as np
@@ -1172,7 +1172,10 @@ class NumpyData(DataSource):
         if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC ]:
             raise ValueError("Invalid value for data_type parameter")
         self.__data_type = data_type
-        self.__data = np.asarray(data, dtype=np.float64)
+        if not isinstance(data, np.ndarray) or data.dtype not in [ np.float64, np.complex128]:
+            self.__data = np.asarray(data, dtype=np.float64)
+        else:
+            self.__data = data
         DIM = len(self.__data.shape)
         if DIM not in (1,2):
             raise ValueError("NumpyData requires 1- or 2-dimensional data")
@@ -1246,3 +1249,67 @@ class NumpyData(DataSource):
         """
         return 0
 
+class SeismicSource(object):
+    """
+    describes a seimic source by location (x,y), frequency omega, power (if known) and orientation (if known).
+    this class is used to tag seismic data sources.
+    """ 
+    def __init__(self, x, y=0., omega=0., power = None, orientation=None):
+        """
+        initiale the source
+        
+        :param x: lateral x location
+        :param y: lateral y location
+        :param omega: frequency of source
+        :param power: power of source at frequence
+        :param orientation: oriententation of source in 3D or 2D (or None)
+        :type x: ``float``
+        :type y: ``float``
+        :type omega: ``float``
+        :type power: ``complex`` or ``None``
+        :type orientation: vector of appropriate length or ``None``
+        """
+        self.__loc=(x,y)
+        self.__omega=omega
+        self.__power=power
+        self.__orientation=orientation
+        
+    def __eq__(self, other):
+        if isinstance(other, SeismicSource):
+            return self.__loc == other.getLocation() \
+                and self.__omega == other.getFrequency() \
+                and self.__power == other.getPower() \
+                and self.__orientation == other.getOrientation()
+        else:
+            return False
+    
+    def __ne__(self, other):
+            return not self.__eq__(other)
+            
+    def getLocation(self):
+        """
+        return location of source
+        :rtype: ``tuple`` of ``float``
+        """
+        return self.__loc
+    def getFrequency(self):
+        """
+        return frequency of source
+        :rtype: ``float``
+        """
+        return self.__omega
+    
+    def getPower(self):
+        """
+        return power of source at frequency
+        :rtype: ``complex`` or ``None``
+        """
+        return self.__power
+    def getOrientation(self):
+        """
+        return power of source orientation at frequency
+        :rtype: vector type object or ``None``
+        """
+        return self.__orientation
+    
+    
