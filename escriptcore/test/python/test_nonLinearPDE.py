@@ -177,6 +177,8 @@ class Test_nlpde(Test_nonLinearPDEs):
 
     def test_yDirection(self):
         dim=self.domain.getDim()
+        if dim==3:
+            return
         u = Symbol('u',(2,), dim=dim)
         q = Symbol('q', (2,2))
         theta = Symbol('theta')
@@ -188,7 +190,7 @@ class Test_nlpde(Test_nonLinearPDEs):
         sigma = Symbol('sigma',(2,2))
         p = NonlinearPDE(self.domain, u, debug=0)
         epsilon = symmetric(grad(u))
-        #epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
+     #   epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
         c00=10;c01=8;c05=0
         c01=8;c11=10;c15=0
         c05=0;c15=0;c55=1
@@ -196,7 +198,7 @@ class Test_nlpde(Test_nonLinearPDEs):
         sigma[1,1]=c01*epsilon[0,0]+c11*epsilon[1,1]+c15*2*epsilon[1,0]
         sigma[0,1]=c05*epsilon[0,0]+c15*epsilon[1,1]+c55*2*epsilon[1,0]
         sigma[1,0]=sigma[0,1]
-        #sigma0=matrixmult(matrixmult(q.transpose(1),epsilon),q)
+     #   sigma0=matrixmult(matrixmult(q.transpose(1),epsilon),q)
         x = self.domain.getX()
         gammaD=whereZero(x[1])*[1,1]#+whereZero(x[0])*[1,0]+whereZero(x[0]-1)*[1,0]  
         yconstraint = FunctionOnBoundary(self.domain).getX()[1]
@@ -207,4 +209,5 @@ class Test_nlpde(Test_nonLinearPDEs):
         x[1]=0.5
         loc=Locator(v.getFunctionSpace(),x)
         valAtX=loc(v)
+        print valAtX
         self.assertTrue(valAtX[0]>10*valAtX[1])
