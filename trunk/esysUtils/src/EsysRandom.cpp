@@ -133,13 +133,24 @@ void patternFillArray2D(size_t x, size_t y, double* array, size_t spacing, size_
       for (int r=0;r<y;++r)
       {
 	  size_t step=((r+yoff)%spacing)?spacing:1;
-	  for (int c=(spacing-xoff)%spacing;c<x;c+=step)
+cout << "For row " << r << " step is " << step << endl;	  
+	  for (int c=0;c<x;++c)
 	  {
-	      for (int p=0;p<numpoints;++p)
+	      if ((c+xoff)%step==0)
 	      {
-	          array[(c+r*x)*numpoints+p]=1+p;
-	      }
+		  for (int p=0;p<numpoints;++p)
+		  {
+		      array[(c+r*x)*numpoints+p]=1+p;
+		  }		
+	      }	    
 	  }
+// 	  for (int c=(spacing-xoff)%spacing;c<x;c+=step)
+// 	  {
+// 	      for (int p=0;p<numpoints;++p)
+// 	      {
+// 	          array[(c+r*x)*numpoints+p]=1+p;
+// 	      }
+// 	  }
       } 
 }
 
@@ -153,17 +164,20 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 {
     if (pattern==0)	// a cross pattern in the z=0 plane, repeated for each z layer
     {
-	memset(array, 0, x*y*sizeof(double));
+	memset(array, 0, x*y*sizeof(double)*numpoints);
 	size_t xoff=basex%spacing;
 	size_t yoff=basey%spacing;
 	for (int r=0;r<y;++r)
 	{
 	    size_t step=((r+yoff)%spacing)?spacing:1;
-	    for (int c=(spacing-xoff)%spacing;c<x;c+=step)
+	    for (int c=0;c<x;++c)
 	    {
-		for (int p=0;p<numpoints;++p)
+		if ((c+xoff)%step==0)
 		{
-		    array[(c+r*x)*numpoints+p]=p+1;
+		    for (int p=0;p<numpoints;++p)
+		    {
+			array[(c+r*x)*numpoints+p]=p+1;
+		    }
 		}
 	    }
 	}
@@ -185,32 +199,24 @@ void patternFillArray(int pattern, size_t x, size_t y, size_t z, double* array, 
 	
 	double* buff1=new double[x*y*numpoints];	// stores the main cross pattern
 	double* buff2=new double[x*y*numpoints];	// stores the "verticals"
-	memset(buff1, 0, x*y*sizeof(double));
-	memset(buff2, 0, x*y*sizeof(double));
+	memset(buff1, 0, x*y*sizeof(double)*numpoints);
+	memset(buff2, 0, x*y*sizeof(double)*numpoints);
+	    // fill in buff1
 	for (size_t r=0;r<y;++r)
 	{
 	    size_t step=((r+yoff)%spacing)?spacing:1;
-	    if (step==1)
+	    for (int c=0;c<x;++c)
 	    {
-		for (size_t c=0;c<x;++c)
-		{
-		    for (int p=0;p<numpoints;++p)
-		    {
-			buff1[(c+r*x)*numpoints+p]=p+1;	
-		    }
-		}
-	    }
-	    else
-	    {
-		for (size_t c=(spacing-xoff)%spacing;c<x;c+=step)
+		if ((c+xoff)%step==0)
 		{
 		    for (int p=0;p<numpoints;++p)
 		    {
 			buff1[(c+r*x)*numpoints+p]=p+1;
 		    }
 		}
-	    }
+	    }	    
 	}
+	
 	for (size_t r=(spacing-yoff)%spacing;r<y;r+=spacing)
 	{
 	    for (size_t c=(spacing-xoff)%spacing;c<x;c+=spacing)
