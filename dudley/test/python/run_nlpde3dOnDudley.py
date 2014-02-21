@@ -43,7 +43,7 @@ import sys
 
 class Test_nonLinearPDE(Test_nlpde):
    def setUp(self):
-        self.domain = Brick(l0=10.,l1=10.,l2=10.,n0=10, n1=10,n2=10) 
+        self.domain = Brick(l0=1.,l1=1.,l2=1.,n0=10, n1=10,n2=10) 
    def tearDown(self):
         del self.domain
 
