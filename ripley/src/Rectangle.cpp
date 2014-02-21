@@ -1883,19 +1883,13 @@ namespace
             for (int x=-r;x<=r;++x)
             {         
                 arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
-// cout << (x+y*(r*2+1)) << " " << arr[(x+r)+(y+r)*(r*2+1)] << endl;
-cerr << "arr[" << (x+r)+(y+r)*(r*2+1) << "] = " << arr[(x+r)+(y+r)*(r*2+1)]<< " ";		
                 total+=arr[(x+r)+(y+r)*(r*2+1)];
             }
-cerr << endl;            
         }
-cerr << "Total is " << total << endl;        
         double invtotal=1/total;
-cerr << "Inv total is "        << invtotal << endl;
         for (size_t p=0;p<(radius*2+1)*(radius*2+1);++p)
         {
             arr[p]*=invtotal; 
-//cout << p << "->" << arr[p] << endl;      
         }
         return arr;
     }
@@ -2060,7 +2054,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
 #endif      
 
-    
+/*    
     // if we wanted to test a repeating pattern
     size_t basex=0;
     size_t basey=0;
@@ -2070,22 +2064,8 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
 #endif 
         
     esysUtils::patternFillArray2D(ext[0], ext[1], src, 4, basex, basey, numvals);
+*/
 
-cout << "Initial pattern\n";    
-for (int p=0;p<ext[1];++p)
-{
-    for (int q=0;q<ext[0];++q)
-    {
-	cout << '(';
-	for (int d=0;d<numvals;++d)
-	{
-	    cout << src[(q+p*ext[0])*numvals+d] << " ";
-	}
-	cout << ") ";
-    }
-    cout << endl;
-}
-    
     
 #ifdef ESYS_MPI   
     
@@ -2095,10 +2075,6 @@ for (int p=0;p<ext[1];++p)
     
     size_t xmidlen=ext[0]-2*inset;      // how wide is the x-dimension between the two insets
     size_t ymidlen=ext[1]-2*inset;      
-
-    
-cerr << "xmidlen=" << xmidlen << " ymidlen=" << ymidlen << endl;  
-    
     
     Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
 
@@ -2113,30 +2089,6 @@ cerr << "xmidlen=" << xmidlen << " ymidlen=" << ymidlen << endl;
     grid.generateOutNeighbours(X, Y, outcoms);
     
     block.copyAllToBuffer(src);  
-
-// for (int i=0;i<9;++i)
-// {
-//     if (i!=4)
-//     {
-//       for (int j=0;j<block.getBuffSize(i);++j)
-//       {
-// 	  block.getOutBuffer(i)[j]=100+i;
-//       }
-//     }
-// }
-    
-    
-for (size_t j=0;j<incoms.size();++j)
-{
-	message& m=incoms[j];
-for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
-{
-    block.getInBuffer(m.srcbuffid)[i]=-42; 
-}	
-}
-        
-    
-    
     
     int comserr=0;    
     for (size_t i=0;i<incoms.size();++i)
@@ -2150,32 +2102,12 @@ for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
     for (size_t i=0;i<outcoms.size();++i)
     {
         message& m=outcoms[i];
- cout << "Sending " << 	(int)m.srcbuffid << " with tag " << m.tag << endl;
         comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
-{
-    cout << block.getOutBuffer(m.srcbuffid)[i] << " ";
-}
-cout << endl;	
     }    
     
     if (!comserr)
     {     
-        comserr=MPI_Waitall(rused, reqs, stats);
-	
-	
-    for (size_t i=0;i<incoms.size();++i)
-    {
-        message& m=incoms[i];      
-cout << "Gettinging " << 	(int)m.destbuffid << " with tag " << m.tag << endl;
-for (int i=0;i<block.getBuffSize(m.destbuffid);++i)
-{
-    cout << block.getInBuffer(m.destbuffid)[i] << " ";
-}
-cout << endl;
-	
-    }	
-	
+        comserr=MPI_Waitall(rused, reqs, stats);	
     }
 
     if (comserr)
@@ -2185,18 +2117,6 @@ cout << endl;
         // however, we have no reason to believe coms work at this point anyway
         throw RipleyException("Error in coms for randomFill");      
     }
-/*
-for (int i=0;i<9;++i)
-{
-    if (i!=4)
-    {
-      for (int j=0;j<block.getBuffSize(i);++j)
-      {
-	  block.getInBuffer(i)[j]=200+i;
-      }
-    }
-}  */  
-    
     
     block.copyUsedFromBuffer(src);    
     
