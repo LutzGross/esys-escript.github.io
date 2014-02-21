@@ -682,6 +682,7 @@ The following examples show slicing in action:
   t[:2,:2,5,5]=s[2:4,1,:2]
 \end{python}
 
+
 \subsection{Generation of \Data objects}
 \begin{classdesc}{Data}{value=0, shape=(,), what=FunctionSpace(), expanded=\False}
 creates a \Data object with \Shape \var{shape} in the \FunctionSpace \var{what}.
@@ -741,6 +742,90 @@ If \var{expanded} is \True the \Data object is represented in expanded form.
 recovers a \Data object on \Domain \var{domain} from the file \var{filename},
 which was created by \function{dump}.
 \end{funcdesc}
+
+\subsection{Generating random \Data objects}
+A \Data object filled with random values can be produced using the \function{RandomData}
+function.
+You will need to supply a shape for the data points and a \FunctionSpace for the new \Data.
+For example:
+\begin{python}
+from esys.finley import *
+from esys.escript import *
+
+domain=Rectangle(11,11)
+fs=ContinuousFunction(domain)
+d=RandomData((), fs)
+\end{python}
+would result in \var{d} being filled with scalar random data [\texttt{()} being an empty tuple].
+
+\begin{python}
+from esys.finley import *
+from esys.escript import *
+
+domain=Rectangle(11,11)
+fs=ContinuousFunction(domain)
+d=RandomData((2,2), fs)
+\end{python}
+would give \var{d} the same number of datapoints, but each point would be a $2\times 2$ matrix instead of
+a scalar.
+
+By default, the seed used to generate the random values will be different each time.
+If necessary though, you can specify a seed to ensure the same sequence is produced.
+\begin{python}
+from esys.dudley import *
+from esys.escript import *
+
+seed=-17171717
+domain=Brick(10,10,10)
+fs=Function(domain)
+d=RandomData((2,2), fs, seed)
+\end{python}
+
+The \var{seed} can be any integer value\footnote{which can be converted to a c++ long} but 0 is special.
+A seed of zero will cause escript to use a different seed each time. Also, note that the mechanism used
+to produce the random values could be different in different releases.
+
+\noindent\textbf{Note for MPI users:}
+\textsl{
+Even if you specify a seed, you will only get the same results if you are running with the same
+number of ranks.
+If you change the number of ranks, you will get different values for the same seed.
+}
+
+\subsubsection{Smoothed randoms}
+The \class{Ripley} domains support generating random scalars which are smoothed using gaussian blur.
+To use this, you need to supply the radius of the filter kernel (in elements) and the \var{sigma} value used in the filter.
+For example:
+\begin{python}
+from esys.ripley import *
+from esys.escript import *
+
+fs=ContinuousFunction(Rectangle(11,11, d1=2,d0=2))
+d=RandomData((), fs, 0, ('gaussian',1,0.5))
+\end{python}
+will use a filter that uses the immediate neighbours of each point with a sigma value of $0.5$.
+The random values will be different each time this code is executed due to the seed of $0$.
+
+Ripley's gaussian smoothing has the following requirements.
+\begin{enumerate}
+ \item If MPI is in use, then each rank must have at least $5$ elements in it \emph{in each dimension}.
+   This value increases as the radius of the blur increases.
+ \item The data being generated must be scalar. (You can generate random data objects for Ripley domains
+ with whatever shape you require, you just can't smooth them unless that shape is scalar).
+\end{enumerate}
+An exception will be raised if either of these requirements are not met. 
+
+The components of the matrix used in the kernal for the 2D case are defined\cite{gaussfilter} by:
+
+\[ G(x,y) = \frac{1}{2\pi\sigma^2} e^{-\frac{x^2+y^2}{2\sigma^2}} \]
+
+For the 3D case, we use:
+
+\[ G(x,y) = \frac{1}{(\sqrt{2\pi\sigma^2})^3} e^{-\frac{x^2+y^2+z^2}{2\sigma^2}} \]
+
+All distances ($x$,$y$,$z$) refer to the number of points from the centre point. 
+Eg. the closest neighbours have at least one distance of $1$, the next ``ring'' of neighbours have at least one $2$ and so on.
+The matrix is normalised before use.
 
 \subsection{\Data methods}
 These are the most frequently used methods of the \Data class.

@@ -2876,10 +2876,8 @@ namespace
 		for (int x=-r;x<=r;++x)
 		{	      
 		    arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
-		    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];
-cerr << 	arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)] << " ";	    
+		    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];    
 		}
-cerr << endl;		
 	    }
 	}
 	double invtotal=1/total;
@@ -3057,7 +3055,7 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
     dim_t Z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
 #endif    
 
-    
+/*    
     // if we wanted to test a repeating pattern
     size_t basex=0;
     size_t basey=0;
@@ -3070,46 +3068,9 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
 cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;    
     
 #endif    
-    if (seed==0)
-    {
-	seed=2;	// since we are using the seed parameter as the spacing and 0 spacing causes an exception
-    }
     esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
+*/
 
-
-for (int z=0;z<ext[2];++z)
-{
-    for (int y=0;y<ext[1];++y)
-    {
-	for (int x=0;x<ext[0];++x)
-	{
-	    cout << "(";
-	    for (int p=0;p<numvals;++p)
-	    {
-		cout << src[(x+y*ext[0]+z*ext[0]*ext[1])*numvals+p] << ", ";
-	    }
-	    cout << ") ";
-	  
-	}
-	cout << endl;
-    }
-    cout << endl;
-}
-    
-    
-    
-/*
-cout << "Pattern:\n";    
-for (int i=0;i<ext[0]*ext[1]*ext[2];)
-{
-    cout << src[i++] << " ";
-    if (i%ext[0]==0)
-      cout << "\n";
-    if (i%(ext[0]*ext[1])==0)
-      cout << "\n";
-}*/
-    
-   
 #ifdef ESYS_MPI
 
 
@@ -3136,17 +3097,6 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
     
     
     block.copyAllToBuffer(src);
-
-    
-for (size_t j=0;j<incoms.size();++j)
-{
-	message& m=incoms[j];
-for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
-{
-    block.getInBuffer(m.srcbuffid)[i]=-42; 
-}	
-}
-    
     
     int comserr=0;    
     for (size_t i=0;i<incoms.size();++i)
@@ -3160,15 +3110,6 @@ for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
     {
 	message& m=outcoms[i];
 	comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-if (m.destID==1)
-{
-cout << "Sending to 1\n";
-for (int i=0;i<block.getBuffSize(m.srcbuffid);++i)
-{
-    cout << block.getOutBuffer(m.srcbuffid)[i] << " "; 
-}
-cout << endl;  
-}
     }    
     
     if (!comserr)
@@ -3185,34 +3126,8 @@ cout << endl;
     }
     
     block.copyUsedFromBuffer(src);
-    
-    for (size_t i=0;i<incoms.size();++i)
-    {
-	message& m=incoms[i];
-	cout << "From" <<  m.sourceID << "Recv " << (int)m.destbuffid << endl;
-	for (int j=0;j<block.getBuffSize(m.destbuffid);++j)
-	{
-	    cout << block.getInBuffer(m.destbuffid)[j] << " ";
-	}
-	cout << endl;
-    }    
-    
-    
-    
-    
-
+     
 #endif    
-    
-/*    
-cout << "Pattern (post transfer):\n";    
-for (int i=0;i<ext[0]*ext[1]*ext[2];)
-{
-    cout << src[i++] << " ";
-    if (i%ext[0]==0)
-      cout << "\n";
-    if (i%(ext[0]*ext[1])==0)
-      cout << "\n";
-}   */ 
     
     if (radius==0 || numvals>1)	// the truth of either should imply the truth of the other but let's be safe
     {
@@ -3249,25 +3164,6 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
 	escript::DataVector& dv=resdat.getExpandedVectorReference();
 	double* convolution=get3DGauss(radius, sigma);
 
-// cout << "Convolution matrix\n";
-// size_t di=(radius*2+1);
-// double ctot=0;
-// for (int i=0;i<di*di*di;++i)
-// {
-//     cout << convolution[i] << " ";
-//     ctot+=convolution[i];
-//     if ((i+1)%di==0)
-//     {
-// 	cout << "\n";
-//     }
-//     if ((i+1)%(di*di)==0)
-//     {
-// 	cout << "\n";
-//     }
-// }
-// 
-// cout << "Sum of matrix is = " << ctot << endl;
-
 	for (size_t z=0;z<(internal[2]);++z)
 	{
 	    for (size_t y=0;y<(internal[1]);++y)    
@@ -3279,21 +3175,6 @@ for (int i=0;i<ext[0]*ext[1]*ext[2];)
 		}
 	    }
 	}
-    
-// cout << "\nResulting matrix:\n";
-//     for (size_t z=0;z<(internal[2]);++z)
-//     {
-// 	for (size_t y=0;y<(internal[1]);++y)    
-// 	{
-// 	    for (size_t x=0;x<(internal[0]);++x)
-// 	    {	  
-// 		cout << dv[x+y*(internal[0])+z*internal[0]*internal[1]] << " ";
-// 	    }
-// 	    cout << endl;
-// 	}
-// 	cout << endl;
-//     }
-
     
 	delete[] convolution;
 	delete[] src;
