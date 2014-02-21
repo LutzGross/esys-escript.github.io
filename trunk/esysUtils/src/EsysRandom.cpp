@@ -132,8 +132,7 @@ void patternFillArray2D(size_t x, size_t y, double* array, size_t spacing, size_
       size_t yoff=basey%spacing;
       for (int r=0;r<y;++r)
       {
-	  size_t step=((r+yoff)%spacing)?spacing:1;
-cout << "For row " << r << " step is " << step << endl;	  
+	  size_t step=((r+yoff)%spacing)?spacing:1; 
 	  for (int c=0;c<x;++c)
 	  {
 	      if ((c+xoff)%step==0)
@@ -144,13 +143,6 @@ cout << "For row " << r << " step is " << step << endl;
 		  }		
 	      }	    
 	  }
-// 	  for (int c=(spacing-xoff)%spacing;c<x;c+=step)
-// 	  {
-// 	      for (int p=0;p<numpoints;++p)
-// 	      {
-// 	          array[(c+r*x)*numpoints+p]=1+p;
-// 	      }
-// 	  }
       } 
 }
 
