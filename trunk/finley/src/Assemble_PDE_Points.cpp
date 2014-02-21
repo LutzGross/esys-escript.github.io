@@ -42,9 +42,12 @@ void Assemble_PDE_Points(const AssembleParameters& p,
                          const escript::Data& d_dirac,
                          const escript::Data& y_dirac)
 {
-    p.F.requireWrite();
-    double *F_p=p.F.getSampleDataRW(0);
 
+    double *F_p=NULL;
+    if(!p.F.isEmpty()) {
+        p.F.requireWrite();
+        F_p=p.F.getSampleDataRW(0);
+    }
 #pragma omp parallel
     {
         for (int color=p.elements->minColor; color<=p.elements->maxColor; color++) {
