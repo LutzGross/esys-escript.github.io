@@ -52,8 +52,11 @@ void Assemble_PDE_Single_1D(const AssembleParameters& p,
     bool expandedD=D.actsExpanded();
     bool expandedX=X.actsExpanded();
     bool expandedY=Y.actsExpanded();
-    p.F.requireWrite();
-    double *F_p=p.F.getSampleDataRW(0);
+    double *F_p=NULL;
+    if(!p.F.isEmpty()) {
+        p.F.requireWrite();
+        F_p=p.F.getSampleDataRW(0);
+    }
     const std::vector<double>& S(p.row_jac->BasisFunctions->S);
     const int len_EM_S=p.row_numShapesTotal*p.col_numShapesTotal;
     const int len_EM_F=p.row_numShapesTotal;
