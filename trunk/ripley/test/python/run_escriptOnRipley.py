@@ -173,7 +173,7 @@ class Test_CSVOnRipley(Test_saveCSV):
         
 class Test_randomOnRipley(unittest.TestCase):
     def test_FillRectangle(self):
-        fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize+1))),10*(int(sqrt(mpiSize+1)))))
+        fs=ContinuousFunction(Rectangle(10*(int(sqrt(mpiSize)+1)),10*(int(sqrt(mpiSize)+1))))
 	RandomData((), fs, 2,("gaussian",1,0.5))
 	RandomData((), fs, 0,("gaussian",2,0.76))
 	self.assertRaises(RuntimeError, RandomData, (2,2), fs, 0, ("gaussian",2,0.76))
