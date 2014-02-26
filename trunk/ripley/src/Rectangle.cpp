@@ -19,6 +19,8 @@
 #include <esysUtils/esysFileWriter.h>
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/WaveAssembler2D.h>
+#include <ripley/LameAssembler2D.h>
+#include <ripley/domainhelpers.h>
 #include <boost/scoped_array.hpp>
 #include "esysUtils/EsysRandom.h"
 #include "blocktools.h"
@@ -55,31 +57,38 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
     }
 
     bool warn=false;
-    // if number of subdivisions is non-positive, try to subdivide by the same
-    // ratio as the number of elements
-    if (d0<=0 && d1<=0) {
-        warn=true;
-        d0=max(1, (int)(sqrt(m_mpiInfo->size*(n0+1)/(float)(n1+1))));
-        d1=m_mpiInfo->size/d0;
-        if (d0*d1 != m_mpiInfo->size) {
-            // ratios not the same so subdivide side with more elements only
-            if (n0>n1) {
-                d0=0;
-                d1=1;
-            } else {
-                d0=1;
-                d1=0;
+    std::vector<int> factors;
+    int ranks = m_mpiInfo->size;
+    int epr[2] = {n0,n1};
+    int d[2] = {d0,d1};
+    if (d0<=0 || d1<=0) {
+        for (int i = 0; i < 2; i++) {
+            if (d[i] < 1) {
+                d[i] = 1;
+                continue;
             }
+            epr[i] = -1; // can no longer be max
+            //remove 
+            if (ranks % d[i] != 0) {
+                throw RipleyException("Invalid number of spatial subdivisions");
+            }
+            ranks /= d[i];
+        }
+        factorise(factors, ranks);
+        if (factors.size() != 0) {
+            warn = true;
         }
     }
-    if (d0<=0) {
-        // d1 is preset, determine d0 - throw further down if result is no good
-        d0=m_mpiInfo->size/d1;
-    } else if (d1<=0) {
-        // d0 is preset, determine d1 - throw further down if result is no good
-        d1=m_mpiInfo->size/d0;
+    
+    while (factors.size() > 0) {
+        int i = epr[0] > epr[1] ? 0 : 1;
+        int f = factors.back();
+        factors.pop_back();
+        d[i] *= f;
+        epr[i] /= f;
     }
-
+    d0 = d[0]; d1 = d[1];
+    
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
     if (d0*d1 != m_mpiInfo->size)
@@ -2096,7 +2105,6 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
         message& m=incoms[i];
         comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
         block.setUsed(m.destbuffid);
-	
     }
 
     for (size_t i=0;i<outcoms.size();++i)
@@ -2107,7 +2115,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     
     if (!comserr)
     {     
-        comserr=MPI_Waitall(rused, reqs, stats);	
+        comserr=MPI_Waitall(rused, reqs, stats);
     }
 
     if (comserr)
@@ -2216,6 +2224,9 @@ void Rectangle::setAssembler(std::string type, std::map<std::string,
     if (type.compare("WaveAssembler") == 0) {
         delete assembler;
         assembler = new WaveAssembler2D(this, m_dx, m_NX, m_NE, m_NN, constants);
+    } else if (type.compare("LameAssembler") == 0) {
+        delete assembler;
+        assembler = new LameAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
     } else { //else ifs would go before this for other types
         throw RipleyException("Ripley::Rectangle does not support the"
                                 " requested assembler");

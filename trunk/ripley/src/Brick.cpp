@@ -19,6 +19,8 @@
 #include <esysUtils/esysFileWriter.h>
 #include <ripley/DefaultAssembler3D.h>
 #include <ripley/WaveAssembler3D.h>
+#include <ripley/LameAssembler3D.h>
+#include <ripley/domainhelpers.h>
 #include <boost/scoped_array.hpp>
 
 #ifdef USE_NETCDF
@@ -43,6 +45,18 @@ using esysUtils::FileWriter;
 
 namespace ripley {
 
+int indexOfMax(int a, int b, int c) {
+    if (a > b) {
+        if (c > a) {
+            return 2;
+        }
+        return 0;
+    } else if (b > c) {
+        return 1;
+    }
+    return 2;
+}
+
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const std::vector<double>& points, const std::vector<int>& tags,
@@ -56,95 +70,43 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
         d2=1;
     }
     bool warn=false;
-    // if number of subdivisions is non-positive, try to subdivide by the same
-    // ratio as the number of elements
-    if (d0<=0 && d1<=0 && d2<=0) {
-        warn=true;
-        d0=(int)(pow(m_mpiInfo->size*(n0+1)*(n0+1)/((float)(n1+1)*(n2+1)), 1.f/3));
-        d0=max(1, d0);
-        d1=max(1, (int)(d0*n1/(float)n0));
-        d2=m_mpiInfo->size/(d0*d1);
-        if (d0*d1*d2 != m_mpiInfo->size) {
-            // ratios not the same so leave "smallest" side undivided and try
-            // dividing 2 sides only
-            if (n0>=n1) {
-                if (n1>=n2) {
-                    d0=d1=0;
-                    d2=1;
-                } else {
-                    d0=d2=0;
-                    d1=1;
-                }
-            } else {
-                if (n0>=n2) {
-                    d0=d1=0;
-                    d2=1;
-                } else {
-                    d0=1;
-                    d1=d2=0;
-                }
+
+    std::vector<int> factors;
+    int ranks = m_mpiInfo->size;
+    int epr[3] = {n0,n1,n2};
+    int d[3] = {d0,d1,d2};
+    if (d0<=0 || d1<=0 || d2<=0) {
+        for (int i = 0; i < 3; i++) {
+            if (d[i] < 1) {
+                d[i] = 1;
+                continue;
             }
+            epr[i] = -1; // can no longer be max
+            if (ranks % d[i] != 0) {
+                throw RipleyException("Invalid number of spatial subdivisions");
+            }
+            //remove 
+            ranks /= d[i];
         }
+        factorise(factors, ranks);
+        if (factors.size() != 0) {
+            warn = true;
+        }
+    } 
+    while (factors.size() > 0) {
+        int i = indexOfMax(epr[0],epr[1],epr[2]);
+        int f = factors.back();
+        factors.pop_back();
+        d[i] *= f;
+        epr[i] /= f;
     }
-    if (d0<=0 && d1<=0) {
-        warn=true;
-        d0=max(1, int(sqrt(m_mpiInfo->size*(n0+1)/(float)(n1+1))));
-        d1=m_mpiInfo->size/d0;
-        if (d0*d1*d2 != m_mpiInfo->size) {
-            // ratios not the same so subdivide side with more elements only
-            if (n0>n1) {
-                d0=0;
-                d1=1;
-            } else {
-                d0=1;
-                d1=0;
-            }
-        }
-    } else if (d0<=0 && d2<=0) {
-        warn=true;
-        d0=max(1, int(sqrt(m_mpiInfo->size*(n0+1)/(float)(n2+1))));
-        d2=m_mpiInfo->size/d0;
-        if (d0*d1*d2 != m_mpiInfo->size) {
-            // ratios not the same so subdivide side with more elements only
-            if (n0>n2) {
-                d0=0;
-                d2=1;
-            } else {
-                d0=1;
-                d2=0;
-            }
-        }
-    } else if (d1<=0 && d2<=0) {
-        warn=true;
-        d1=max(1, int(sqrt(m_mpiInfo->size*(n1+1)/(float)(n2+1))));
-        d2=m_mpiInfo->size/d1;
-        if (d0*d1*d2 != m_mpiInfo->size) {
-            // ratios not the same so subdivide side with more elements only
-            if (n1>n2) {
-                d1=0;
-                d2=1;
-            } else {
-                d1=1;
-                d2=0;
-            }
-        }
-    }
-    if (d0<=0) {
-        // d1,d2 are preset, determine d0
-        d0=m_mpiInfo->size/(d1*d2);
-    } else if (d1<=0) {
-        // d0,d2 are preset, determine d1
-        d1=m_mpiInfo->size/(d0*d2);
-    } else if (d2<=0) {
-        // d0,d1 are preset, determine d2
-        d2=m_mpiInfo->size/(d0*d1);
-    }
+    d0 = d[0]; d1 = d[1]; d2 = d[2];
 
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
-    if (d0*d1*d2 != m_mpiInfo->size)
+    if (d0*d1*d2 != m_mpiInfo->size){
         throw RipleyException("Invalid number of spatial subdivisions");
-
+    }
     if (warn) {
         cout << "Warning: Automatic domain subdivision (d0=" << d0 << ", d1="
             << d1 << ", d2=" << d2 << "). This may not be optimal!" << endl;
@@ -2867,25 +2829,25 @@ namespace
     {
         double* arr=new double[(radius*2+1)*(radius*2+1)*(radius*2+1)];
         double common=pow(M_1_PI*0.5*1/(sigma*sigma), 3./2);
-	double total=0;
-	int r=static_cast<int>(radius);
-	for (int z=-r;z<=r;++z)
-	{
-	    for (int y=-r;y<=r;++y)
-	    {
-		for (int x=-r;x<=r;++x)
-		{	      
-		    arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
-		    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];    
-		}
-	    }
-	}
-	double invtotal=1/total;
-	for (size_t p=0;p<(radius*2+1)*(radius*2+1)*(radius*2+1);++p)
-	{
-	    arr[p]*=invtotal; 
-	}
-	return arr;
+        double total=0;
+        int r=static_cast<int>(radius);
+        for (int z=-r;z<=r;++z)
+        {
+            for (int y=-r;y<=r;++y)
+            {
+                for (int x=-r;x<=r;++x)
+                {         
+                    arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
+                    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];    
+                }
+            }
+        }
+        double invtotal=1/total;
+        for (size_t p=0;p<(radius*2+1)*(radius*2+1)*(radius*2+1);++p)
+        {
+            arr[p]*=invtotal; 
+        }
+        return arr;
     }
     
     // applies conv to source to get a point.
@@ -2893,21 +2855,21 @@ namespace
     double Convolve3D(double* conv, double* source, size_t xp, size_t yp, size_t zp, unsigned radius, size_t width, size_t height)
     {
         size_t bx=xp-radius, by=yp-radius, bz=zp-radius;
-	size_t sbase=bx+by*width+bz*width*height;
-	double result=0;
-	for (int z=0;z<2*radius+1;++z)
-	{
-	    for (int y=0;y<2*radius+1;++y)
-	    {	  
-		for (int x=0;x<2*radius+1;++x)
-		{
-		    result+=conv[x+y*(2*radius+1)+z*(2*radius+1)*(2*radius+1)] * source[sbase + x+y*width+z*width*height];
-		}
-	    }
-	}
-	// use this line for "pass-though" (return the centre point value)
-//	return source[sbase+(radius)+(radius)*width+(radius)*width*height];
-	return result;      
+        size_t sbase=bx+by*width+bz*width*height;
+        double result=0;
+        for (int z=0;z<2*radius+1;++z)
+        {
+            for (int y=0;y<2*radius+1;++y)
+            {     
+                for (int x=0;x<2*radius+1;++x)
+                {
+                    result+=conv[x+y*(2*radius+1)+z*(2*radius+1)*(2*radius+1)] * source[sbase + x+y*width+z*width*height];
+                }
+            }
+        }
+        // use this line for "pass-though" (return the centre point value)
+//      return source[sbase+(radius)+(radius)*width+(radius)*width*height];
+        return result;      
     }
 }
 
@@ -2921,13 +2883,13 @@ escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
     int numvals=escript::DataTypes::noValues(shape);
     if (len(filter)>0 && (numvals!=1))
     {
-	throw RipleyException("Ripley only supports filters for scalar data.");
+        throw RipleyException("Ripley only supports filters for scalar data.");
     }
     escript::Data res=randomFillWorker(shape, seed, filter);
     if (res.getFunctionSpace()!=what)
     {
-	escript::Data r=escript::Data(res, what);
-	return r;
+        escript::Data r=escript::Data(res, what);
+        return r;
     }
     return res;
 }
@@ -2976,34 +2938,34 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
         throw RipleyException("Brick must be 3D.");
     }
     
-    unsigned int radius=0;	// these are only used by gaussian
+    unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;
     
     unsigned int numvals=escript::DataTypes::noValues(shape);
     
     if (len(filter)==0) 
     {
-	// nothing special required here yet
+    // nothing special required here yet
     }
     else if (len(filter)==3) 
     {
-	boost::python::extract<string> ex(filter[0]);
-	if (!ex.check() || (ex()!="gaussian")) 
-	{
-	    throw RipleyException("Unsupported random filter for Brick.");
-	}
-	boost::python::extract<unsigned int> ex1(filter[1]);
-	if (!ex1.check())
-	{
-	    throw RipleyException("Radius of gaussian filter must be a positive integer.");
-	}
-	radius=ex1();
-	sigma=0.5;
-	boost::python::extract<double> ex2(filter[2]);
-	if (!ex2.check() || (sigma=ex2())<=0)
-	{
-	    throw RipleyException("Sigma must be a postive floating point number.");
-	}            
+        boost::python::extract<string> ex(filter[0]);
+        if (!ex.check() || (ex()!="gaussian")) 
+        {
+            throw RipleyException("Unsupported random filter for Brick.");
+        }
+        boost::python::extract<unsigned int> ex1(filter[1]);
+        if (!ex1.check())
+        {
+            throw RipleyException("Radius of gaussian filter must be a positive integer.");
+        }
+        radius=ex1();
+        sigma=0.5;
+        boost::python::extract<double> ex2(filter[2]);
+        if (!ex2.check() || (sigma=ex2())<=0)
+        {
+            throw RipleyException("Sigma must be a postive floating point number.");
+        }            
     }
     else
     {
@@ -3014,13 +2976,13 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
 
     
     size_t internal[3];
-    internal[0]=m_NE[0]+1;	// number of points in the internal region
-    internal[1]=m_NE[1]+1;	// that is, the ones we need smoothed versions of
-    internal[2]=m_NE[2]+1;	// that is, the ones we need smoothed versions of
+    internal[0]=m_NE[0]+1;  // number of points in the internal region
+    internal[1]=m_NE[1]+1;  // that is, the ones we need smoothed versions of
+    internal[2]=m_NE[2]+1;  // that is, the ones we need smoothed versions of
     size_t ext[3];
-    ext[0]=internal[0]+2*radius;	// includes points we need as input
-    ext[1]=internal[1]+2*radius;	// for smoothing
-    ext[2]=internal[2]+2*radius;	// for smoothing
+    ext[0]=internal[0]+2*radius;    // includes points we need as input
+    ext[1]=internal[1]+2*radius;    // for smoothing
+    ext[2]=internal[2]+2*radius;    // for smoothing
     
     // now we check to see if the radius is acceptable 
     // That is, would not cross multiple ranks in MPI
@@ -3045,9 +3007,9 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
    
     if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5))
     {
-	// since the dimensions are equal for all ranks, this exception
-	// will be thrown on all ranks
-	throw RipleyException("Random Data in Ripley requries at least five elements per side per rank.");
+    // since the dimensions are equal for all ranks, this exception
+    // will be thrown on all ranks
+    throw RipleyException("Random Data in Ripley requries at least five elements per side per rank.");
 
     }
     dim_t X=m_mpiInfo->rank%m_NX[0];
@@ -3076,16 +3038,16 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
 
 
     BlockGrid grid(m_NX[0]-1, m_NX[1]-1, m_NX[2]-1);
-    size_t inset=2*radius+2;	// Its +2 not +1 because a whole element is shared (and hence 
-		// there is an overlap of two points both of which need to have "radius" points on either side.
+    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence 
+        // there is an overlap of two points both of which need to have "radius" points on either side.
     
-    size_t xmidlen=ext[0]-2*inset;	// how wide is the x-dimension between the two insets
-    size_t ymidlen=ext[1]-2*inset;	
+    size_t xmidlen=ext[0]-2*inset;  // how wide is the x-dimension between the two insets
+    size_t ymidlen=ext[1]-2*inset;  
     size_t zmidlen=ext[2]-2*inset;
     
     Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen, numvals);    
     
-    MPI_Request reqs[50];		// a non-tight upper bound on how many we need
+    MPI_Request reqs[50];       // a non-tight upper bound on how many we need
     MPI_Status stats[50];
     short rused=0;
     
@@ -3101,15 +3063,15 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
     int comserr=0;    
     for (size_t i=0;i<incoms.size();++i)
     {
-	message& m=incoms[i];
-	comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-	block.setUsed(m.destbuffid);
+        message& m=incoms[i];
+        comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+        block.setUsed(m.destbuffid);
     }
 
     for (size_t i=0;i<outcoms.size();++i)
     {
-	message& m=outcoms[i];
-	comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+        message& m=outcoms[i];
+        comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
     }    
     
     if (!comserr)
@@ -3119,9 +3081,9 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
 
     if (comserr)
     {
-	// Yes this is throwing an exception as a result of an MPI error.
-	// and no we don't inform the other ranks that we are doing this.
-	// however, we have no reason to believe coms work at this point anyway
+    // Yes this is throwing an exception as a result of an MPI error.
+    // and no we don't inform the other ranks that we are doing this.
+    // however, we have no reason to believe coms work at this point anyway
         throw RipleyException("Error in coms for randomFill");      
     }
     
@@ -3129,56 +3091,56 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
      
 #endif    
     
-    if (radius==0 || numvals>1)	// the truth of either should imply the truth of the other but let's be safe
+    if (radius==0 || numvals>1) // the truth of either should imply the truth of the other but let's be safe
     {
       
- 	escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
-	escript::Data resdat(0, shape, fs , true);
-	// don't need to check for exwrite because we just made it
-	escript::DataVector& dv=resdat.getExpandedVectorReference();
-	
-	
-	// now we need to copy values over
-	for (size_t z=0;z<(internal[2]);++z)
-	{
-	    for (size_t y=0;y<(internal[1]);++y)    
-	    {
-		for (size_t x=0;x<(internal[0]);++x)
-		{
-		    for (unsigned int i=0;i<numvals;++i)
-		    {
-		        dv[i+(x+y*(internal[0])+z*internal[0]*internal[1])*numvals]=src[i+(x+y*ext[0]+z*ext[0]*ext[1])*numvals];
-		    }
-		}
-	    }
-	}  
-	delete[] src;
-	return resdat;      
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, shape, fs , true);
+        // don't need to check for exwrite because we just made it
+        escript::DataVector& dv=resdat.getExpandedVectorReference();
+    
+    
+        // now we need to copy values over
+        for (size_t z=0;z<(internal[2]);++z)
+        {
+            for (size_t y=0;y<(internal[1]);++y)    
+            {
+                for (size_t x=0;x<(internal[0]);++x)
+                {
+                    for (unsigned int i=0;i<numvals;++i)
+                    {
+                        dv[i+(x+y*(internal[0])+z*internal[0]*internal[1])*numvals]=src[i+(x+y*ext[0]+z*ext[0]*ext[1])*numvals];
+                    }
+                }
+            }
+        }  
+        delete[] src;
+        return resdat;      
     }
-    else		// filter enabled	
+    else        // filter enabled   
     {
     
-	escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
-	escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
-	// don't need to check for exwrite because we just made it
-	escript::DataVector& dv=resdat.getExpandedVectorReference();
-	double* convolution=get3DGauss(radius, sigma);
+        escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
+        escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
+        // don't need to check for exwrite because we just made it
+        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        double* convolution=get3DGauss(radius, sigma);
 
-	for (size_t z=0;z<(internal[2]);++z)
-	{
-	    for (size_t y=0;y<(internal[1]);++y)    
-	    {
-		for (size_t x=0;x<(internal[0]);++x)
-		{	  
-		    dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
-		    
-		}
-	    }
-	}
+        for (size_t z=0;z<(internal[2]);++z)
+        {
+            for (size_t y=0;y<(internal[1]);++y)    
+            {
+                for (size_t x=0;x<(internal[0]);++x)
+                {     
+                    dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
+            
+                }
+            }
+        }
     
-	delete[] convolution;
-	delete[] src;
-	return resdat;
+        delete[] convolution;
+        delete[] src;
+        return resdat;
     
     }
 }

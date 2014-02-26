@@ -38,6 +38,9 @@ sources = """
     AbstractAssembler.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
+    LameAssembler2D.cpp
+    LameAssembler3D.cpp
+    domainhelpers.cpp
 """.split()
 
 headers = """
@@ -53,6 +56,9 @@ headers = """
     AbstractAssembler.h
     WaveAssembler2D.h
     WaveAssembler3D.h
+    LameAssembler2D.h
+    LameAssembler3D.h
+    domainhelpers.h
 """.split()
 
 local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])
