@@ -280,6 +280,7 @@ private:
 
     friend class DefaultAssembler2D;
     friend class WaveAssembler2D;
+    friend class LameAssembler2D;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
