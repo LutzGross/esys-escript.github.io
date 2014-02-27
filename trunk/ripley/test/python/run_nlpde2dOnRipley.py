@@ -43,7 +43,7 @@ import sys
 
 class Test_nonLinearPDE(Test_nlpde):
    def setUp(self):
-        self.domain = Rectangle(l0=1.,l1=1.,n0=10, n1=10) 
+        self.domain = Rectangle(l0=1.,l1=1.,n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 
