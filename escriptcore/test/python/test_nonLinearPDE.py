@@ -209,5 +209,4 @@ class Test_nlpde(Test_nonLinearPDEs):
         x[1]=0.5
         loc=Locator(v.getFunctionSpace(),x)
         valAtX=loc(v)
-        print valAtX
         self.assertTrue(valAtX[0]>10*valAtX[1])
