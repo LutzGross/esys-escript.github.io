@@ -736,6 +736,7 @@ class AcousticWaveForm(ForwardModel):
 
         :rtype: `LinearPDE`
         """
+        from esys.escript import getEscriptParamInt
         if self.__pde is None:
             pde=LinearPDE(self.__domain, numEquations=2)
             D=pde.createCoefficient('D')
@@ -748,6 +749,8 @@ class AcousticWaveForm(ForwardModel):
                 z = self.__domain.getX()[DIM-1]
                 pde.setValue(q=whereZero(z-self.__BX[DIM-1][0])*[1,1])
 
+            if getEscriptParamInt("PASO_DIRECT")==0:
+                raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
             pde.getSolverOptions().setSolverMethod(pde.getSolverOptions().DIRECT)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()

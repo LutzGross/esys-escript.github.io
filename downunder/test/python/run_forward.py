@@ -31,6 +31,7 @@ from esys.escript import unitsSI as U
 from esys.escript import *
 from esys.weipa import saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
+from esys.escript import getEscriptParamInt
 
 mpisize = getMPISizeWorld()
 # this is mainly to avoid warning messages
@@ -45,10 +46,12 @@ try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
 except KeyError:
     WORKDIR='.'
+
     
+have_direct=getEscriptParamInt("PASO_DIRECT")   
 
 
-@unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+@unittest.skipIf(mpisize>1 or have_direct!=1, "more than 1 MPI rank or missing direct solver")
 class TestAcousticInversion(unittest.TestCase):
     def test_API(self):
         from esys.ripley import Rectangle

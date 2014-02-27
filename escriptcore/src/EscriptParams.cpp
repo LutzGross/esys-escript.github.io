@@ -20,6 +20,9 @@
 #include <boost/python/tuple.hpp>
 #include <cmath>			// to test if we know how to check for nan
 
+
+#include "esysUtils/Esys_MPI.h"
+
 namespace escript
 {
 
@@ -66,7 +69,17 @@ EscriptParams::EscriptParams()
 	amg_disabled=false;
 #endif
 
-
+    temp_direct_solver=false;	// This variable is to be removed once proper
+				// SolverOptions support is in place
+#ifdef MKL
+    temp_direct_solver=true;
+#endif
+#ifdef UMFPACK
+      temp_direct_solver=true;
+#endif
+#ifdef PASTIX
+    temp_direct_solver=true;
+#endif
 
 }
 
@@ -124,6 +137,23 @@ EscriptParams::getInt(const char* name, int sentinel) const
 #else
 	return 0;
 #endif
+   }
+   if (!strcmp(name, "PASO_DIRECT"))
+   {
+	// This is not in the constructor because escriptparams could be constructed 
+	// before main (and hence no opportunity to call INIT)
+	#ifdef ESYS_MPI
+	    int size;
+	    if (MPI_Comm_size(MPI_COMM_WORLD, &size)!=MPI_SUCCESS)	// This would break in a subworld
+	    {
+		temp_direct_solver=false;	
+	    }
+	    if (size>1)
+	    {
+		temp_direct_solver=false;
+	    }
+	#endif   
+	return temp_direct_solver;
    }
    return sentinel;
 }

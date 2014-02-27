@@ -53,6 +53,7 @@ private:
 	int lapack_support;
 	int lazy_verbose;
 	int amg_disabled;
+	mutable int temp_direct_solver;
 
 protected: 
   // This is to provide fast access for methods in Data.
