@@ -37,6 +37,13 @@ import numpy as np
 from esys.escript.pdetools import Locator
 
 
+sympyavail=True
+try:
+    import sympy
+except ImportError as e:
+    sympyavail=False
+
+
 class Test_nonLinearPDEs(unittest.TestCase):
     DEBUG=False
     VERBOSE=False
@@ -44,6 +51,7 @@ class Test_nonLinearPDEs(unittest.TestCase):
     
     
 class Test_nlpde(Test_nonLinearPDEs):
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_run(self):
         #test just to confirm nlpde works   
         u=Symbol('u', dim=self.domain.getDim())
@@ -52,6 +60,7 @@ class Test_nlpde(Test_nonLinearPDEs):
         gammaD=whereZero(x[0])+whereZero(x[1])
         nlpde.setValue(X=grad(u), Y=5*u, q=gammaD, r=1)
         v=nlpde.getSolution(u=1)
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_setVals1eq(self):
         #test setting Coefficients with 1 equation
         dim=self.domain.getDim()
@@ -93,6 +102,7 @@ class Test_nlpde(Test_nonLinearPDEs):
             temp=Symbol('temp') 
             self.assertTrue(D-temp.subs(temp,5)==temp.subs(temp,0))
 
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_setVals2eq(self):
         #test setting Coefficients with 2 coeficients
         dim=self.domain.getDim()
@@ -140,6 +150,7 @@ class Test_nlpde(Test_nonLinearPDEs):
             self.assertTrue(numpy.ndarray.__eq__(CTest, C).all())
             self.assertTrue(numpy.ndarray.__eq__(DTest, D).all())
 
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_DimAndShape1eq(self):
         dim=self.domain.getDim()
         if dim==3:
@@ -157,6 +168,7 @@ class Test_nlpde(Test_nonLinearPDEs):
         #args=dict(q=u)
         #self.assertRaises(IllegalCoefficientValue, nlpde.setValue,**args)
     
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_DimAndShape2eq(self):
         dim=self.domain.getDim()
         u = Symbol('u',(2,), dim=dim)
@@ -166,7 +178,7 @@ class Test_nlpde(Test_nonLinearPDEs):
         args=dict(X=grad(u[0]), Y=5*u)
         self.assertRaises(IllegalCoefficientValue, nlpde.setValue,**args)
 
-
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_setUnknownPeram(self):
         dim=self.domain.getDim()
         u = Symbol('u',(2,), dim=dim)
@@ -174,7 +186,7 @@ class Test_nlpde(Test_nonLinearPDEs):
         args=dict(k=0,f=8)  
         self.assertRaises(IllegalCoefficient,nlpde.setValue,**args)
 
-
+    @unittest.skipIf(not sympyavail, 'sympy not available')
     def test_yDirection(self):
         dim=self.domain.getDim()
         if dim==3:
