@@ -123,7 +123,7 @@ size_t Block2::getBuffSize(unsigned char subx, unsigned char suby)
     {
 	return 0;	
     }
-    return dims[bid][0]*dims[bid][1]*dims[bid][2]*dpsize;	
+    return dims[bid][0]*dims[bid][1]*dpsize;	
 }
 
 double* Block2::getOutBuffer(unsigned char bid)
