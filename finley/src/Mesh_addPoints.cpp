@@ -170,7 +170,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
     // if the node id has changed we found another node which is closer
     // elsewhere
     for (int i=0; i<numPoints; ++i) {
-        const int best_fit_Id = static_cast<const int>(recvbuf[2*i+1]+0.5);
+        const int best_fit_Id = static_cast<int>(recvbuf[2*i+1]+0.5);
         if (best_fit_Id != Nodes->Id[node_id_p[i]]) {
             node_id_p[i] = -1;
         }

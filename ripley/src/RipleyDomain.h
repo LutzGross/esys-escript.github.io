@@ -696,11 +696,6 @@ public:
        true if this domain can handle the specified tuple of filter options.
     */
     virtual bool supportsFilter(const boost::python::tuple& t) const;
-    
-    /**
-       \brief Generates filtered random data
-    */     
-    virtual escript::Data randomFill(long seed, const boost::python::tuple& filter) const;
 
     virtual void setAssembler(std::string type,
                 std::map<std::string, escript::Data> options) {

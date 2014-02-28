@@ -1492,11 +1492,6 @@ bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
     return boost::python::extract<double>(t[2]).check();
 }
 
-escript::Data RipleyDomain::randomFill(long seed, const boost::python::tuple& filter) const
-{
-    throw RipleyException("Filtered randoms not supported on generic Ripley domains");
-}
-
 void RipleyDomain::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
