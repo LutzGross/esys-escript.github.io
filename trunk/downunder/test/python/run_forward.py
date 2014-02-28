@@ -187,8 +187,9 @@ class TestAcousticInversion(unittest.TestCase):
         args=acw.getArguments(sigma_comps)
         d=acw.getDefect(sigma_comps, *args)
         self.assertTrue(isinstance(d, float))
-        self.assertTrue(d >= 0)
-        self.assertTrue(d < 1e-10)
+        self.assertTrue(Lsup(d) < 1e-10)
+        #self.assertTrue(d >= 0)
+        #self.assertTrue(d < 1e-10)
         
         dg=acw.getGradient(sigma_comps, *args)
 
