@@ -35,7 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os
 import unittest
-from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE
+from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
 from esys.escript import *
@@ -50,7 +50,7 @@ except KeyError:
 NE=10 # number of element in each spatial direction (must be even)
 mpiSize=getMPISizeWorld()
 
-class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
+class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_2Do1, Test_TransportPDE):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
@@ -64,7 +64,7 @@ class Test_LinearPDEOnRipleyRect(Test_LinearPDE, Test_pdetools, Test_assemblage_
     def tearDown(self):
         del self.domain
 
-class Test_LinearPDEOnRipleyBrick(Test_LinearPDE, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
+class Test_LinearPDEOnRipleyBrick(Test_LinearPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping, Test_pdetools, Test_assemblage_3Do1, Test_TransportPDE):
     RES_TOL=1.e-7
     ABS_TOL=1.e-8
     def setUp(self):
