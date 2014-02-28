@@ -41,7 +41,7 @@ void EsysFileWriterTestCase::testAll()
     fw = new FileWriter();
 #endif
 
-    const char crank = (const char)mpirank;
+    const char crank = static_cast<char>(mpirank<128?mpirank:128);
     const char data[] = {crank,crank,crank,crank};
     ostringstream oss;
     oss.write(data, 4);
