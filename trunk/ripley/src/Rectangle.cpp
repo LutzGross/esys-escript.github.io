@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#include <algorithm>
+
 #include <ripley/Rectangle.h>
 #include <paso/SystemMatrix.h>
 #include <esysUtils/esysFileWriter.h>
@@ -1521,9 +1523,24 @@ void Rectangle::createPattern()
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
-    int numShared=0;
+    int numShared=0, expectedShared=0;
     const int x=m_mpiInfo->rank%m_NX[0];
     const int y=m_mpiInfo->rank/m_NX[0];
+    if (x > 0)
+        expectedShared += nDOF1;
+    if (x < m_NX[0] - 1)
+        expectedShared += nDOF1;
+    if (y > 0)
+        expectedShared += nDOF0;
+    if (y < m_NX[1] - 1)
+        expectedShared += nDOF0;
+    if (x > 0 && y > 0) expectedShared++;
+    if (x > 0 && y < m_NX[1] - 1) expectedShared++;
+    if (x < m_NX[0] - 1 && y > 0) expectedShared++;
+    if (x < m_NX[0] - 1 && y < m_NX[1] - 1) expectedShared++;
+    
+    vector<IndexVector> rowIndices(expectedShared);
+    
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
             // skip this rank
@@ -1543,10 +1560,10 @@ void Rectangle::createPattern()
                         sendShared.push_back(firstDOF+i);
                         recvShared.push_back(numDOF+numShared);
                         if (i>0)
-                            colIndices[firstDOF+i-1].push_back(numShared);
-                        colIndices[firstDOF+i].push_back(numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+i-1, numShared);
+                        doublyLink(colIndices, rowIndices, firstDOF+i, numShared);
                         if (i<nDOF0-1)
-                            colIndices[firstDOF+i+1].push_back(numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+i+1, numShared);
                         m_dofMap[firstNode+i]=numDOF+numShared;
                     }
                 } else if (i1==0) {
@@ -1558,10 +1575,10 @@ void Rectangle::createPattern()
                         sendShared.push_back(firstDOF+i*nDOF0);
                         recvShared.push_back(numDOF+numShared);
                         if (i>0)
-                            colIndices[firstDOF+(i-1)*nDOF0].push_back(numShared);
-                        colIndices[firstDOF+i*nDOF0].push_back(numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0, numShared);
+                        doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0, numShared);
                         if (i<nDOF1-1)
-                            colIndices[firstDOF+(i+1)*nDOF0].push_back(numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0, numShared);
                         m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
                     }
                 } else {
@@ -1571,14 +1588,19 @@ void Rectangle::createPattern()
                     offsetInShared.push_back(offsetInShared.back()+1);
                     sendShared.push_back(dof);
                     recvShared.push_back(numDOF+numShared);
-                    colIndices[dof].push_back(numShared);
+                    doublyLink(colIndices, rowIndices, dof, numShared);
                     m_dofMap[node]=numDOF+numShared;
                     ++numShared;
                 }
             }
         }
     }
-
+        
+#pragma omp parallel for
+    for (int i = 0; i < numShared; i++) {
+        std::sort(rowIndices[i].begin(), rowIndices[i].end());
+    }
+    
     // create connector
     Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
             numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
@@ -1593,7 +1615,7 @@ void Rectangle::createPattern()
     // create main and couple blocks
     Paso_Pattern *mainPattern = createMainPattern();
     Paso_Pattern *colPattern, *rowPattern;
-    createCouplePatterns(colIndices, numShared, &colPattern, &rowPattern);
+    createCouplePatterns(colIndices, rowIndices, numShared, &colPattern, &rowPattern);
 
     // allocate paso distribution
     Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,

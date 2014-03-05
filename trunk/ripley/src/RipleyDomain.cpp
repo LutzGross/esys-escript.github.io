@@ -1123,6 +1123,7 @@ Paso_Pattern* RipleyDomain::createMainPattern() const
 
 //protected
 void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
+        const vector<IndexVector>& rowIndices,
         const dim_t N, Paso_Pattern** colPattern, Paso_Pattern** rowPattern) const
 {
     IndexVector ptr(1,0);
@@ -1137,18 +1138,9 @@ void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
 
     IndexVector rowPtr(1,0);
     IndexVector rowIndex;
-    for (dim_t id=0; id<N; id++) {
-        dim_t n=0;
-        for (dim_t i=0; i<M; i++) {
-            for (dim_t j=ptr[i]; j<ptr[i+1]; j++) {
-                if (index[j]==id) {
-                    rowIndex.push_back(i);
-                    n++;
-                    break;
-                }
-            }
-        }
-        rowPtr.push_back(rowPtr.back()+n);
+    for (index_t i=0; i<rowIndices.size(); i++) {
+        rowIndex.insert(rowIndex.end(), rowIndices[i].begin(), rowIndices[i].end());
+        rowPtr.push_back(rowPtr.back()+rowIndices[i].size());
     }
 
     // M and N are now reversed
