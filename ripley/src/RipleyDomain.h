@@ -739,6 +739,7 @@ protected:
     /// matrix. colIndices[i] contains all IDs of DOFs that are connected with
     /// DOF i but remote and 'N' is the total number of remote components
     void createCouplePatterns(const std::vector<IndexVector>& colIndices,
+                              const std::vector<IndexVector>& rowIndices,
                               const dim_t N, Paso_Pattern** colPattern,
                               Paso_Pattern** rowPattern) const;
 

@@ -2193,10 +2193,43 @@ void Brick::createPattern()
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
-    int numShared=0;
+    int numShared=0, expectedShared=0;;
     const int x=m_mpiInfo->rank%m_NX[0];
     const int y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     const int z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
+    for (int i2=-1; i2<2; i2++) {
+        for (int i1=-1; i1<2; i1++) {
+            for (int i0=-1; i0<2; i0++) {
+                // skip this rank
+                if (i0==0 && i1==0 && i2==0)
+                    continue;
+                // location of neighbour rank
+                const int nx=x+i0;
+                const int ny=y+i1;
+                const int nz=z+i2;
+                if (!(nx>=0 && ny>=0 && nz>=0 && nx<m_NX[0] && ny<m_NX[1] && nz<m_NX[2])) {
+                    continue;
+                }
+                if (i0==0 && i1==0)
+                    expectedShared += nDOF0*nDOF1;
+                else if (i0==0 && i2==0)
+                    expectedShared += nDOF0*nDOF2;
+                else if (i1==0 && i2==0)
+                    expectedShared += nDOF1*nDOF2;
+                else if (i0==0)
+                    expectedShared += nDOF0;
+                else if (i1==0)
+                    expectedShared += nDOF1;
+                else if (i2==0)
+                    expectedShared += nDOF2;
+                else
+                    expectedShared++;
+            }
+        }
+    }
+    
+    vector<IndexVector> rowIndices(expectedShared);
+    
     for (int i2=-1; i2<2; i2++) {
         for (int i1=-1; i1<2; i1++) {
             for (int i0=-1; i0<2; i0++) {
@@ -2222,22 +2255,22 @@ void Brick::createPattern()
                                 recvShared.push_back(numDOF+numShared);
                                 if (j>0) {
                                     if (i>0)
-                                        colIndices[firstDOF+j-1-nDOF0].push_back(numShared);
-                                    colIndices[firstDOF+j-1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j-1-nDOF0, numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j-1, numShared);
                                     if (i<nDOF1-1)
-                                        colIndices[firstDOF+j-1+nDOF0].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j-1+nDOF0, numShared);
                                 }
                                 if (i>0)
-                                    colIndices[firstDOF+j-nDOF0].push_back(numShared);
-                                colIndices[firstDOF+j].push_back(numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j-nDOF0, numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+j, numShared);
                                 if (i<nDOF1-1)
-                                    colIndices[firstDOF+j+nDOF0].push_back(numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j+nDOF0, numShared);
                                 if (j<nDOF0-1) {
                                     if (i>0)
-                                        colIndices[firstDOF+j+1-nDOF0].push_back(numShared);
-                                    colIndices[firstDOF+j+1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j+1-nDOF0, numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j+1, numShared);
                                     if (i<nDOF1-1)
-                                        colIndices[firstDOF+j+1+nDOF0].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j+1+nDOF0, numShared);
                                 }
                                 m_dofMap[firstNode+j]=numDOF+numShared;
                             }
@@ -2256,22 +2289,22 @@ void Brick::createPattern()
                                 recvShared.push_back(numDOF+numShared);
                                 if (j>0) {
                                     if (i>0)
-                                        colIndices[firstDOF+j-1-nDOF0*nDOF1].push_back(numShared);
-                                    colIndices[firstDOF+j-1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j-1-nDOF0*nDOF1, numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j-1, numShared);
                                     if (i<nDOF2-1)
-                                        colIndices[firstDOF+j-1+nDOF0*nDOF1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j-1+nDOF0*nDOF1, numShared);
                                 }
                                 if (i>0)
-                                    colIndices[firstDOF+j-nDOF0*nDOF1].push_back(numShared);
-                                colIndices[firstDOF+j].push_back(numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j-nDOF0*nDOF1, numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+j, numShared);
                                 if (i<nDOF2-1)
-                                    colIndices[firstDOF+j+nDOF0*nDOF1].push_back(numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j+nDOF0*nDOF1, numShared);
                                 if (j<nDOF0-1) {
                                     if (i>0)
-                                        colIndices[firstDOF+j+1-nDOF0*nDOF1].push_back(numShared);
-                                    colIndices[firstDOF+j+1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j+1-nDOF0*nDOF1, numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j+1, numShared);
                                     if (i<nDOF2-1)
-                                        colIndices[firstDOF+j+1+nDOF0*nDOF1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+j+1+nDOF0*nDOF1, numShared);
                                 }
                                 m_dofMap[firstNode+j]=numDOF+numShared;
                             }
@@ -2290,22 +2323,22 @@ void Brick::createPattern()
                                 recvShared.push_back(numDOF+numShared);
                                 if (j>0) {
                                     if (i>0)
-                                        colIndices[firstDOF+(j-1)*nDOF0-nDOF0*nDOF1].push_back(numShared);
-                                    colIndices[firstDOF+(j-1)*nDOF0].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0-nDOF0*nDOF1, numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0, numShared);
                                     if (i<nDOF2-1)
-                                        colIndices[firstDOF+(j-1)*nDOF0+nDOF0*nDOF1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0+nDOF0*nDOF1, numShared);
                                 }
                                 if (i>0)
-                                    colIndices[firstDOF+j*nDOF0-nDOF0*nDOF1].push_back(numShared);
-                                colIndices[firstDOF+j*nDOF0].push_back(numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0-nDOF0*nDOF1, numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0, numShared);
                                 if (i<nDOF2-1)
-                                    colIndices[firstDOF+j*nDOF0+nDOF0*nDOF1].push_back(numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0+nDOF0*nDOF1, numShared);
                                 if (j<nDOF1-1) {
                                     if (i>0)
-                                        colIndices[firstDOF+(j+1)*nDOF0-nDOF0*nDOF1].push_back(numShared);
-                                    colIndices[firstDOF+(j+1)*nDOF0].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0-nDOF0*nDOF1, numShared);
+                                    doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0, numShared);
                                     if (i<nDOF2-1)
-                                        colIndices[firstDOF+(j+1)*nDOF0+nDOF0*nDOF1].push_back(numShared);
+                                        doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0+nDOF0*nDOF1, numShared);
                                 }
                                 m_dofMap[firstNode+j*m_NN[0]]=numDOF+numShared;
                             }
@@ -2321,10 +2354,10 @@ void Brick::createPattern()
                             sendShared.push_back(firstDOF+i);
                             recvShared.push_back(numDOF+numShared);
                             if (i>0)
-                                colIndices[firstDOF+i-1].push_back(numShared);
-                            colIndices[firstDOF+i].push_back(numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+i-1, numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+i, numShared);
                             if (i<nDOF0-1)
-                                colIndices[firstDOF+i+1].push_back(numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+i+1, numShared);
                             m_dofMap[firstNode+i]=numDOF+numShared;
                         }
                     } else if (i1==0) {
@@ -2339,10 +2372,10 @@ void Brick::createPattern()
                             sendShared.push_back(firstDOF+i*nDOF0);
                             recvShared.push_back(numDOF+numShared);
                             if (i>0)
-                                colIndices[firstDOF+(i-1)*nDOF0].push_back(numShared);
-                            colIndices[firstDOF+i*nDOF0].push_back(numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0, numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0, numShared);
                             if (i<nDOF1-1)
-                                colIndices[firstDOF+(i+1)*nDOF0].push_back(numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0, numShared);
                             m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
                         }
                     } else if (i2==0) {
@@ -2357,10 +2390,10 @@ void Brick::createPattern()
                             sendShared.push_back(firstDOF+i*nDOF0*nDOF1);
                             recvShared.push_back(numDOF+numShared);
                             if (i>0)
-                                colIndices[firstDOF+(i-1)*nDOF0*nDOF1].push_back(numShared);
-                            colIndices[firstDOF+i*nDOF0*nDOF1].push_back(numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0*nDOF1, numShared);
+                            doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0*nDOF1, numShared);
                             if (i<nDOF2-1)
-                                colIndices[firstDOF+(i+1)*nDOF0*nDOF1].push_back(numShared);
+                                doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0*nDOF1, numShared);
                             m_dofMap[firstNode+i*m_NN[0]*m_NN[1]]=numDOF+numShared;
                         }
                     } else {
@@ -2374,13 +2407,18 @@ void Brick::createPattern()
                         offsetInShared.push_back(offsetInShared.back()+1);
                         sendShared.push_back(dof);
                         recvShared.push_back(numDOF+numShared);
-                        colIndices[dof].push_back(numShared);
+                        doublyLink(colIndices, rowIndices, dof, numShared);
                         m_dofMap[node]=numDOF+numShared;
                         ++numShared;
                     }
                 }
             }
         }
+    }
+
+#pragma omp parallel for
+    for (int i = 0; i < numShared; i++) {
+        std::sort(rowIndices[i].begin(), rowIndices[i].end());
     }
 
     // create connector
@@ -2397,7 +2435,7 @@ void Brick::createPattern()
     // create main and couple blocks
     Paso_Pattern *mainPattern = createMainPattern();
     Paso_Pattern *colPattern, *rowPattern;
-    createCouplePatterns(colIndices, numShared, &colPattern, &rowPattern);
+    createCouplePatterns(colIndices, rowIndices, numShared, &colPattern, &rowPattern);
 
     // allocate paso distribution
     Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,

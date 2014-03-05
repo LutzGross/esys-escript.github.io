@@ -14,3 +14,8 @@ void factorise(std::vector<int>& factors, int product) {
     }
 }
 
+void doublyLink(std::vector<ripley::IndexVector>& va,
+        std::vector<ripley::IndexVector>& vb, int a, int b) {
+    va[a].push_back(b);
+    vb[b].push_back(a);
+}
