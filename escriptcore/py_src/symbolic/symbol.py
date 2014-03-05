@@ -390,6 +390,7 @@ class Symbol(object):
         """
         Substitutes an expression.
         """
+        dataSubs={}
         old._ensureShapeCompatible(new)
         if isinstance(new, Data):
             subs=self._subs.copy()
@@ -398,6 +399,7 @@ class Symbol(object):
             subs[old]=new
             result=Symbol(self._arr, dim=self._dim, subs=subs)
         elif isinstance(old, Symbol) and old.getRank()>0:
+            dataSubs=new.getDataSubstitutions()    
             if hasattr(new, '__array__'):
                 new=new.__array__()
             else:
@@ -415,11 +417,13 @@ class Symbol(object):
             result=Symbol(result, dim=self._dim, subs=self._subs)
         else: # scalar
             if isinstance(new, Symbol):
+                dataSubs=new.getDataSubstitutions()    
                 new=new.item()
             if isinstance(old, Symbol):
                 old=old.item()
             subs_item=lambda item: getattr(item, 'subs')(old, new)
             result=self.applyfunc(subs_item)
+        result._subs.update(dataSubs)
         return result
 
     def diff(self, *symbols, **assumptions):
