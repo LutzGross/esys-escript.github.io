@@ -24,6 +24,8 @@
 #include <boost/python/detail/defaults_gen.hpp>
 #include <boost/version.hpp>
 
+#include "escript/SubWorld.h"
+
 using namespace boost::python;
 
 namespace ripley {
@@ -109,7 +111,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 // truediv
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2,
-                 const object& objpoints, const object& objtags)
+                 const object& objpoints, const object& objtags, escript::SubWorld_ptr world)
 {
     int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1), n2=static_cast<int>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
@@ -190,7 +192,7 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
         }
     }
     return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
-                                            points, tags, tagstonames));
+                                            points, tags, tagstonames, world));
 }
 
 const int _q[]={0x61686969,0x746c4144,0x79616e43};
@@ -290,7 +292,8 @@ BOOST_PYTHON_MODULE(ripleycpp)
     scope().attr("DATATYPE_FLOAT32") = (int)ripley::DATATYPE_FLOAT32;
     scope().attr("DATATYPE_FLOAT64") = (int)ripley::DATATYPE_FLOAT64;
 
-    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
+    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
+        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"

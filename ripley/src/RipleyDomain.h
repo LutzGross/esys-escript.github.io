@@ -37,6 +37,7 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
+#include <escript/SubWorld.h>
 
 struct Paso_Pattern;
 struct Paso_SystemMatrixPattern;
@@ -96,7 +97,7 @@ public:
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
     */
-    RipleyDomain(dim_t dim);
+    RipleyDomain(dim_t dim, escript::SubWorld_ptr p=escript::SubWorld_ptr());
 
     /**
        \brief

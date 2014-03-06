@@ -60,8 +60,9 @@ int indexOfMax(int a, int b, int c) {
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const std::vector<double>& points, const std::vector<int>& tags,
-             const simap_t& tagnamestonums) :
-    RipleyDomain(3)
+             const simap_t& tagnamestonums,
+             escript::SubWorld_ptr w) :
+    RipleyDomain(3, w)
 {
     // ignore subdivision parameters for serial run
     if (m_mpiInfo->size == 1) {

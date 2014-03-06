@@ -51,11 +51,13 @@ sources = """
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     NullDomain.cpp
+    SubWorld.cpp
     SystemMatrixException.cpp
     Taipan.cpp
     TestDomain.cpp
     TransportProblemException.cpp
     Utils.cpp
+    WorldSplitter.cpp
     WrappedArray.cpp
 """.split()
     # blocktimer.c
@@ -91,6 +93,7 @@ headers = """
     LocalOps.h
     NullDomain.h
     Pointers.h
+    SubWorld.h
     SystemMatrixException.h
     Taipan.h
     TestDomain.h
@@ -99,6 +102,7 @@ headers = """
     UnaryOp.h
     UtilC.h
     Utils.h
+    WorldSplitter.h
     WrappedArray.h
     system_dep.h
 """.split()
