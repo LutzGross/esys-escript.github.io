@@ -50,11 +50,18 @@ void tupleListToMap(map<string, escript::Data>& mapping,
     }
 }
 
-RipleyDomain::RipleyDomain(dim_t dim) :
+RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
     m_numDim(dim),
     m_status(0)
 {
-    m_mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    if (p.get()==0)	
+    {
+	m_mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    }
+    else
+    {
+	m_mpiInfo = Esys_MPIInfo_alloc(p->getComm());
+    }
 }
 
 RipleyDomain::~RipleyDomain()

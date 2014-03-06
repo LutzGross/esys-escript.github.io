@@ -28,7 +28,8 @@
 #include "esysUtils/Esys_MPI.h"
 #include "EscriptParams.h"
 #include "TestDomain.h"
-
+#include "SubWorld.h"
+#include "WorldSplitter.h"
 
 #include "esysUtils/blocktimer.h"
 
@@ -86,6 +87,75 @@ namespace escript
 }
 */
 
+#include <boost/python/raw_function.hpp>
+
+
+bool test1(double d)
+{
+    std::cout << "Line " << __LINE__ << std::endl;
+    return true;
+}
+
+
+bool test2(boost::python::object o, double x, double y, double z)
+{
+    std::cout << "Line " << __LINE__ << std::endl;
+    return true;
+}
+
+bool test3(double x, double y, double z)
+{
+    std::cout << "Line " << __LINE__ << std::endl;
+    return true;
+}
+
+bool test4(double x, double y, double z, bool bozo1=true, bool bozo2=false)
+{
+    std::cout << "Line " << __LINE__ << std::endl;
+    return true;
+}
+
+
+namespace
+{
+
+object raw1(boost::python::tuple t, boost::python::dict kwargs)
+{
+    std::cout << "In raw1\n";
+    if (len(t)<2)
+    {
+        return object(false);
+    }
+    t[0](*t, **kwargs);
+    return object();
+}
+
+object raw2(boost::python::tuple t, boost::python::dict kwargs)
+{
+    std::cout << "In raw2\n";
+//    raw1(t, kwargs);
+    if (len(t)<1)
+    {
+        return object(false);
+    }
+    object target=t[0];
+    object zz=t.slice(1,len(t));
+    tuple t2=tuple(zz);
+    target(*t2, **kwargs);
+    //target(t2[0], t2[1], t2[2], t2[3], **kwargs);   // This doesn't work
+    return object();
+}
+
+
+}
+
+
+
+tuple raw(tuple args, dict kw)
+{
+    return make_tuple(args, kw);
+}
+
 BOOST_PYTHON_MODULE(escriptcpp)
 {
 
@@ -95,7 +165,30 @@ BOOST_PYTHON_MODULE(escriptcpp)
   #endif
 
   scope().attr("__doc__") = "To use this module, please import esys.escript";      
-    
+  
+  
+    def("jf1", &test1, "Here is a docstring");
+  def("jf2", &test2);
+  def("jf3", &test3);
+  def("jf4", &test4, args("x","y","z","bozo1","bozo2"));
+
+  def("passthrough", raw_function(raw1));
+  def("pass2", raw_function(raw2,2));
+
+  
+  
+  
+
+/* begin SubWorld things */
+  // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one  
+  def("buildDomains", raw_function(escript::raw_buildDomains,2));
+      
+  class_<escript::WorldSplitter, boost::noncopyable>("WorldSplitter", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")));
+
+  // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
+  class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
+/* end SubWorld things */
+  
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
 " available to OpenMP.");
