@@ -1,0 +1,185 @@
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Copyright (c) 2003-2014 by University of Queensland
+% http://www.uq.edu.au
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+% Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+% Development 2012-2013 by School of Earth Sciences
+% Development from 2014 by Centre for Geoscience Computing (GeoComp)
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Changes from previous releases}
+\label{app:changes}
+
+\subsection*{3.4 to 3.4.1}
+\begin{itemize}
+ \item Renamed design.Design to design.AbstractDesign as a more explicit/descriptive name, {\bf this will break any existing custom implementation} until changed to match.
+
+ \item Efficiency improvements in esys.downunder inversions.
+ \item Implemented more CF conventions for the netCDF datasource and added GDAL support.
+ \item Strongly coupled joint inversion added.
+ \item Preliminary work on seismic modelling.
+ \item Added support for more input data types in ER Mapper files.
+ \item Improved stability for long MPI runs.
+ \item Added timeStepFormat option to \texttt{esys.escript.saveESD}.
+ \item Document generation process more stable.
+ \item Added support for smoothed random 2D data.
+ \item Documentation updated.
+ \item Improved read support for grid-reading.
+ \item Removed last usages of C compiler.
+ \item Efficiency improvements in \texttt{esys.downunder}.
+ \item Removed support for VSL random (\texttt{boost::random} is sufficient).
+ \item Fixes related to compatibility with Intel compiler.
+ \item Simplified module structure.
+ \item Various code cleanup and bug fixes.
+\end{itemize}
+
+\subsection*{3.3.1 to 3.4}
+\begin{itemize}
+ \item This release does not use the support bundles from $3.0$ so building from source will be required in more cases.
+ \item In Debian and Ubuntu, there are now two packages. One containing escript itself and the other containing documentation.
+This fits better with the way Debian does things.
+ \item esys.weipa can now write Voxet files for data on ripley.
+ \item All support for OpenDX has been dropped.
+ \item Improved documentation HTML API documentation.
+ \item Improvements to inversion module. 
+\end{itemize}
+
+
+\subsection*{3.3 to 3.3.1}
+\begin{itemize}
+ \item Source packages for Debian and Ubuntu can now be made directly by dpkg-source from the source tree\footnote{For this to work, you will need to place a file called \texttt{svn_version} containing the revision number in the root of the source.}.
+ \item non-uniform 1D interpolation (see Section~\ref{sec:interpolation}).
+ \item The minimum version of python required for escript is now $2.6$.
+ \item saveVTK and saveDX (previously deprecated) have been removed from the main escript module.
+Please see the \module{weipa} documentation for export functionality.
+ \item The \module{downunder} inversion module is included.
+\begin{itemize}
+ \item The documentation includes an inversion cookbook to get you started.
+ \item Most operations are possible with \escript's existing dependencies but some \emph{may} require \module{pyproj} or \module{gdal}
+  but \escript will let you know if that happens.
+\end{itemize}
+ 
+\end{itemize}
+
+
+\subsection*{3.2.1 to 3.3}
+\begin{itemize}
+ \item Experimental support for \pythonthree.
+ \item Parameter order for the table interpolation methods has changed to be consistent. 
+ Please test your scripts if you use these functions.
+ \item setX on \finley and \dudley domains will now only accept coordinates from ContinuousFunction spaces.
+ This is to avoid some potentially nasty behaviour when using periodic boundary conditions.
+ You can still use setX, just make sure that you interpolate first.
+\end{itemize}
+
+
+\subsection*{3.1 to 3.2}
+\begin{itemize}
+\item The deprecated name for the launcher has been removed. To run scripts use
+    \emph{run-escript} not \emph{escript}.
+\item \escript is no longer automatically imported by importing \finley.
+    You will need to import escript explicitly. (All of our example scripts do this anyway.)
+\item An experimental version of the new Dudley domain is now available.
+\item Various bug fixes and optimisations.
+\item New algorithms for gmsh support.
+\item Improvements to the AMG solver. AMG is the recommended solver for symmetric problems.
+\item Fixed compilation issues using netcdf.
+\item Redesigned configuration files to make it easier to compile from source
+    without finding the locations of all your libraries.
+\item Faster rendering of documentation.
+\item Documentation is now hyperlinked.
+\item New data export module \weipa. The \texttt{saveVTK} functionality has
+    been moved into this module, and while calling \texttt{saveVTK} from the
+    \escript module still works it is discouraged and will be removed in a
+    future release.
+\item New \texttt{esys.escript.DataManager} class for convenient checkpointing
+    and exporting of escript data.
+\item \VisIt simulation interface for online data access and visualization.
+\item Simpler interpolation and support for interpolation from 3D vectors.
+\item HRZ lumping has been added and some clarification on how to use it.
+\item Data objects populated with ``random'' values can be created.
+\end{itemize}
+
+\subsection*{3.0 to 3.1}
+\begin{itemize}
+\item The \emph{escript} launcher has been renamed to \emph{run-escript}. The
+    old name will still work in this version but will be removed in the future.
+\item Lazy evaluation features have been improved and documented (see \Sec{sec:lazy}).
+\item The \emph{escript} documentation now includes a new Cookbook which
+    demonstrates how to solve sample problems using escript.
+\item Macro elements have been introduced.
+\item The \var{saveDataCSV} method allows one or more \Data objects to be
+    exported in CSV format (see \Sec{sec:savedatacsv}).
+\item \Data objects can be populated by interpolating from values in a table.
+\item The new \var{getInfLocator} and \var{getSupLocator} functions in
+    \pdetools return Locators to a minimal/maximal point over the
+    data.
+\item There is a new class to model fault systems (\var{esys.escript.faultsystems.FaultSystem}).
+\item A beta version of an Algebraic Multigrid (AMG) solver is included.
+\item Inverting square matrices larger than 3x3 is now permitted if escript is
+    compiled with Lapack support.
+\item If escript is compiled with a modern compiler, then inf/sup/Lsup will now
+    report NaN, +/-inf as appropriate if those values appear in the data.
+\item Data.setTags will take tag names as well as tag numbers.
+\item The Scalar, Vector, Tensor, Tensor3, Tensor4 factory methods can now take
+    arrays/nested sequence like objects as their initial values.
+\item escript.util.mkDir can now take a list of directories to create.
+\item Behind the scenes, \PYTHON docstrings have been rewritten from epydoc to
+    restructured text.
+\item Various other bug fixes and performance tweaks.
+\end{itemize}
+
+\subsection*{2.0 to 3.0}
+\begin{itemize}
+\item The major change here was replacing \module{numarray} with \numpy.
+For general instructions on converting scripts to use numpy see \url{http://www.stsci.edu/resources/software_hardware/numarray/numarray2numpy.pdf}.
+The specific changes to \escript are:
+ \begin{itemize}
+  \item getValueOfDataPoint() which returned a \module{numarray}.array has been
+      replaced by getTupleForDataPoint() which returns a \PYTHON tuple
+      containing the components of the data point. In the case of matrices or
+      higher ranked data, the tuples will be nested.
+      Use \numpy.array(data.getTupleForDataPoint()) if a \numpyNDA object is
+      required.
+  \item getValueOfGlobalDataPoint() has similarly been replaced by
+      getTupleForGlobalDataPoint().
+  \item \code{integrate(data)} now returns a \numpyNDA instead of a
+      \module{numarray}.array.
+ \end{itemize}
+Any python methods which previously accepted \module{numarray} objects now
+accept \numpy objects instead.
+
+\item The way to define solver options for \LinearPDE objects has changed.
+    There is now a \SolverOptions object attached to the \LinearPDE
+    object which handles the options of solvers used to solve the PDE.
+    The following changes apply:  
+ \begin{itemize}
+  \item The \method{setTolerance} and \method{setAbsoluteTolerance} methods
+      have been removed. Instead use \method{setTolerance} and
+      \method{setAbsoluteTolerance} on the \SolverOptions object. For example:
+      \method{getSolverOptions().setTolerance(\ldots)}
+  \item The \method{setSolverPackage} and \method{setSolverMethod} methods have
+      been removed. Instead use the methods \method{setPackage},
+      \method{setSolverMethod} and \method{setPreconditioner}. For example:
+      getSolverOptions().setPackage(\ldots).
+  \item The static class variables defining packages, solvers and
+      preconditioners have been removed and are now accessed via the
+      corresponding static class variables in \SolverOptions.
+      For instance use \method{SolverOptions.PCG} instead of
+      \method{LinearPDE.PCG} to select the preconditioned conjugate gradient
+      method.
+  \item The \method{getSolution} now takes no argument. Use the corresponding
+      methods of the \SolverOptions object returned by
+      \method{getSolverOptions()} to set values,\\ e.g. use
+      \method{getSolverOptions().setVerbosityOn()} instead of argument
+      \code{verbose=True} and \method{getSolverOptions().setIterMax(1000)}
+      instead of argument \code{iter_max=1000}.
+ \end{itemize}
+\end{itemize}
+

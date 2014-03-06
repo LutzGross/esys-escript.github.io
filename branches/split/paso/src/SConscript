@@ -1,0 +1,157 @@
+
+##############################################################################
+#
+# Copyright (c) 2003-2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+Import('*')
+local_env = env.Clone()
+
+lib_name = 'paso'
+
+sources = """
+	AMG.cpp
+	AMG_Root.cpp
+	BiCGStab.cpp
+	BlockOps.cpp
+	Coupler.cpp
+	Distribution.cpp
+        FluxLimiter.cpp
+	Functions.cpp
+	GMRES.cpp
+	GMRES2.cpp
+	IndexList.cpp
+        MergedSolver.cpp
+	MKL.cpp
+	NewtonGMRES.cpp
+	Options_getPackage.cpp
+	Options_getSolver.cpp
+	Options_setDefaults.cpp
+	PCG.cpp
+	PasoUtil.cpp
+	Pattern.cpp
+	Pattern_getSubpattern.cpp
+	Pattern_mis.cpp
+        Pattern_multiply.cpp
+	Pattern_reduceBandwidth.cpp
+	Pattern_unrollBlocks.cpp
+	SharedComponents.cpp
+	Solver.cpp
+	Transport.cpp
+	Transport_solve.cpp
+        FCT_Solver.cpp
+	ReactiveSolver.cpp
+	Solver_Function.cpp
+	Smoother.cpp
+	ILU.cpp
+	RILU.cpp
+	LocalAMG.cpp
+	LocalAMG_Prolongation.cpp
+	AMG_Prolongation.cpp
+	AMG_Restriction.cpp
+	AMG_Interpolation.cpp
+	SchurComplement.cpp
+	Preconditioner.cpp
+	SparseMatrix.cpp
+	SparseMatrix_MatrixVector.cpp
+	SparseMatrix_addAbsRow.cpp
+	SparseMatrix_addRow.cpp
+	SparseMatrix_applyDiagonal.cpp
+	SparseMatrix_getSubmatrix.cpp
+	SparseMatrix_getTranspose.cpp
+	SparseMatrix_nullifyRowsAndCols.cpp
+	SparseMatrix_saveHB.cpp
+	SparseMatrix_setValues.cpp
+        SparseMatrix_invMain.cpp
+        SparseMatrix_unroll.cpp
+	SystemMatrix.cpp
+	SystemMatrixPattern.cpp
+	SystemMatrixPattern_unrollBlocks.cpp
+	SystemMatrix_copyColCoupleBlock.cpp
+	SystemMatrix_MatrixVector.cpp
+        SparseMatrix_MatrixMatrix.cpp
+        SparseMatrix_MatrixMatrixTranspose.cpp
+	SystemMatrix_balancing.cpp
+	SystemMatrix_getSystemMatrixTypeId.cpp
+	SystemMatrix_loadMM.cpp
+        SystemMatrix_MIS.cpp
+	SystemMatrix_nullifyRows.cpp
+	SystemMatrix_nullifyRowsAndCols.cpp
+	SystemMatrix_rowSum.cpp
+	SystemMatrix_saveHB.cpp
+	SystemMatrix_saveMM.cpp
+	SystemMatrix_setValues.cpp
+	SystemMatrix_debug.cpp
+	SystemMatrix_mergeMainAndCouple.cpp
+	SystemMatrix_extendedRows.cpp
+	SystemMatrix_copyRemoteCoupleBlock.cpp
+	TFQMR.cpp
+	MINRES.cpp
+	UMFPACK.cpp
+	BOOMERAMG.cpp
+	mmio.cpp
+	performance.cpp
+	solve.cpp
+""".split()
+
+headers = """
+	Common.h
+	Coupler.h
+	Distribution.h
+        FluxLimiter.h
+	Functions.h
+	IndexList.h
+        MergedSolver.h
+	MKL.h
+	Options.h
+	Paso.h
+	PasoUtil.h
+	Pattern.h
+	Preconditioner.h
+	SharedComponents.h
+	Solver.h
+	Transport.h
+        FCT_Solver.h
+	ReactiveSolver.h
+	SparseMatrix.h
+	SystemMatrix.h
+        SystemMatrix_MIS.h
+	SystemMatrixPattern.h
+	UMFPACK.h
+	BOOMERAMG.h
+	mmio.h
+	BlockOps.h
+	performance.h
+""".split()
+
+# And just for blocktimer cancer.....
+local_env.Prepend(LIBS = ['esysUtils'])
+if IS_WINDOWS:
+    local_env.Append(CPPDEFINES = ['PASO_EXPORTS'])
+
+if local_env['build_shared']:
+    lib = local_env.SharedLibrary(lib_name, sources)
+else:
+    lib = local_env.StaticLibrary(lib_name, sources)
+
+env.Alias('build_paso_lib', lib)
+
+include_path = Dir('paso', local_env['incinstall'])
+solvers_include_path = Dir('Solvers', include_path)
+
+hdr_inst = local_env.Install(include_path, headers)
+env.Alias('install_paso_headers', hdr_inst)
+
+lib_inst = local_env.Install(local_env['libinstall'], lib)
+env.Alias('install_paso_lib', lib_inst)
+
