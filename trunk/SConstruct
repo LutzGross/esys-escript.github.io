@@ -661,6 +661,10 @@ def print_summary():
     print("")
     for w in env['warnings']:
         print("WARNING: %s"%w)
+    if len(GetBuildFailures()):
+        print("\nERROR: build stopped due to errors\n")
+    else:
+        print("\nSUCCESS: build complete\n")
 
 atexit.register(print_summary)
 
