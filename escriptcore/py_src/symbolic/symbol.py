@@ -689,7 +689,13 @@ class Symbol(object):
         Applies the sympy.simplify operation on all elements in this symbol
         """
         return self.applyfunc(sympy.simplify, sympy.Basic)
-
+    
+    def evalf(self):
+        """
+        Applies the sympy.evalf operation on all elements in this symbol
+        """
+        evalf_s=lambda item: getattr(item, 'evalf')()
+        return self.applyfunc(evalf_s, sympy.Basic)
     # unary/binary operators follow
 
     def __pos__(self):
