@@ -173,6 +173,38 @@ class SusceptibilityMapping(LinearMapping):
             a = dk
         super(SusceptibilityMapping,self).__init__(a=a, p0=k0)
 
+class AcousticVMapping(Mapping):
+    """
+    Maps 
+    """
+
+    def __init__(self, s_min=0, s_max=1):
+        if not s_min < s_max:
+            raise ValueError("value for s_min must be less than the value for s_max.")
+        self.s_min=s_min
+        self.s_max=s_max
+
+    def getValue(self, m):
+        """
+        returns the value of the mapping for m
+        """
+        return (self.s_max+self.s_min)/2. + (self.s_max-self.s_min)/2. * tanh(m)
+
+    def getDerivative(self, m):
+        """
+        returns the value for the derivative of the mapping for m
+        """
+        return ((self.s_max-self.s_min)/2.) * (1.-tanh(m)**2.)
+
+    def getInverse(self, s):
+        """
+        returns the value of the inverse of the mapping for s
+        """
+        if not (inf(s) > self.s_min and sup(s) < self.s_max):
+            raise ValueError("s is out of range [%f,%f]"%(inf(s),sup(s)))
+
+        return 1./2. * log( (s-self.s_min)/(self.s_max-s) )
+        
 # needs REVISION
 class BoundedRangeMapping(Mapping):
     """

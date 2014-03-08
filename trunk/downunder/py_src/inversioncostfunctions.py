@@ -29,7 +29,7 @@ from .costfunctions import MeteredCostFunction
 from .mappings import Mapping
 from .forwardmodels import ForwardModel
 from esys.escript.pdetools import ArithmeticTuple
-from esys.escript import Data
+from esys.escript import Data, inner
 import numpy as np
 
 
@@ -67,7 +67,7 @@ class InversionCostFunction(MeteredCostFunction):
          f0=ForwardModel()
          f1=ForwardModel()
 
-         J=InversionCostFunction(Regularization(numLevelSets=2), mappings=[(m0,0), (m1,0)], forward_models=[(f0, 0), (f1,1)])
+         J=InversionCostFunction(Regularization(self.numLevelSets=2), mappings=[(m0,0), (m1,0)], forward_models=[(f0, 0), (f1,1)])
 
     :cvar provides_inverse_Hessian_approximation: if true the class provides an
           approximative inverse of the Hessian operator.
@@ -103,74 +103,79 @@ class InversionCostFunction(MeteredCostFunction):
         """
         super(InversionCostFunction, self).__init__()
         self.regularization=regularization
+        self.numLevelSets = self.regularization.getNumLevelSets()
 
         if isinstance(mappings, Mapping):
-             self.mappings = [mappings ]
-        else:
-             self.mappings = mappings
+            mappings = [ mappings ]
+        
+        self.mappings=[]
+        for i in range(len(mappings)):
+            mm=mappings[i]
+            if isinstance(mm, Mapping):
+                m=mm
+                if self.numLevelSets>1:
+                    idx=[ p for p in range(self.numLevelSets)]
+                else:
+                    idx=None
+            elif len(mm) == 1:
+                m=mm[0]
+                if self.numLevelSets>1:
+                    idx=[ p for p in range(self.numLevelSets)]
+                else:
+                    idx=None
+            else:
+                m=mm[0]
+                if isinstance(mm[1], int):
+                    idx=[mm[1]]
+                else:
+                    idx=list(mm[1])
+                if self.numLevelSets>1:
+                    for k in idx:
+                        if  k < 0  or k > self.numLevelSets-1:
+                            raise ValueError("level set index %s is out of range."%(k,))
+
+                else:
+                    if idx[0] != 0:
+                        raise ValueError("Level set index %s is out of range."%(k,))
+                    else:
+                        idx=None
+            self.mappings.append((m,idx))
+        self.numMappings=len(self.mappings)
+
 
         if isinstance(forward_models, ForwardModel):
-            self.forward_models = [ forward_models ]
-        else:
-            self.forward_models=forward_models
-    
-        trafo = regularization.getCoordinateTransformation()
-        for m in self.forward_models:
-            if isinstance(m, ForwardModel):
-                F=m
+            forward_models = [ forward_models ]
+        self.forward_models=[]
+        for i in range(len(forward_models)):
+            f=forward_models[i]
+            if isinstance(f, ForwardModel):
+                idx=[0]
+                fm=f
+            elif len(f) == 1:
+                idx=[0]
+                fm=f[0]
             else:
-                F=m[0]
-            if not F.getCoordinateTransformation() == trafo:
+                if isinstance(f[1],int):
+                    idx=[f[1]]
+                else:
+                    idx=list(f[1])
+                for k in idx:
+                    if k<0 or k> self.numMappings:
+                        raise ValueError("mapping index %s in model %s is out of range."%(k,i))
+                fm=f[0]
+            self.forward_models.append((fm,idx))
+        self.numModels=len(self.forward_models)
+
+    
+        trafo = self.regularization.getCoordinateTransformation()
+        for m in self.forward_models:
+            if not m[0].getCoordinateTransformation() == trafo:
                 raise ValueError("Coordinate transformation for regularization and model don't match.") 
 
-        self.numMappings=len(self.mappings)
-        self.numModels=len(self.forward_models)
-        self.numLevelSets = self.regularization.getNumLevelSets()
+ 
         self.__num_tradeoff_factors = self.regularization.getNumTradeOffFactors() + self.numModels
         self.setTradeOffFactorsModels()
 
-        
-        self.__Q={}
-        for i in range(self.numModels):
-            # find the index of the physical parameters used to evaluate a model
-            f=self.forward_models[i]
-            if isinstance(f, ForwardModel):
-               idx=[0]
-            elif len(f) == 1:
-               idx=[0]
-            else:
-               idx = f[1]
-               if isinstance(idx, int):
-                 idx=[idx]
-               else:
-                 pass
-      
-            q=[]
-            for k in idx:
-                mm=self.mappings[k]
-                if isinstance(mm, Mapping):
-                    q.append(0)
-                elif len(mm) == 1:
-                    q.append(0)
-                else:
-                     if isinstance(mm[1], int):
-                         q.append(mm[1])
-                     else:
-                        q+=list(mm[1])
-            self.__Q[i]=q
-        # for each parameter find the component of the levelset function  beeing used to define it:
-        self.__parameter_to_level_set={}
-        for k in range(self.numMappings):
-            mm=self.mappings[k]
-            if isinstance(mm, Mapping):
-                 q=0
-            elif len(mm) == 1:
-                 q=0
-            else:
-                if isinstance(mm[1], int):
-                   q=mm[1]
-            self.__parameter_to_level_set[k]=q
-                                
     def getDomain(self):
         """
         returns the domain of the cost function
@@ -197,13 +202,8 @@ class InversionCostFunction(MeteredCostFunction):
         :type idx: ``int``
         """
         if idx==None: idx=0
-        f=self.forward_models[idx]
-        if isinstance(f, ForwardModel):
-            F=f
-        else:
-            F=f[0]
-        return F
-
+        return self.forward_models[idx][0]
+        
     def getRegularization(self):
         """
         returns the regularization
@@ -293,13 +293,15 @@ class InversionCostFunction(MeteredCostFunction):
         if len(props) > 0:
             for i in range(self.numMappings):
                 if props[i]:
-                    mm=self.mappings[i]
-                    if isinstance(mm, Mapping):
-                        m=mm.getInverse(props[i])
-                    elif len(mm) == 1:
-                        m=mm[0].getInverse(props[i])
+                    mp, idx=self.mappings[i]
+                    m2=mp.getInverse(props[i])
+                    if idx:
+                        if len(idx) == 1:
+                            m[idx[0]]=m2
+                        else:
+                            for k in range(idx): m[idx[k]]=m2[k]
                     else:
-                        m[mm[1]]=mm[0].getInverse(props[i])
+                        m=m2
         return m
 
     def getProperties(self, m, return_list=False):
@@ -313,15 +315,19 @@ class InversionCostFunction(MeteredCostFunction):
         :type return_list: ``bool``
         :rtype: ``list`` of `Data`
         """
+             
         props=[]
         for i in range(self.numMappings):
-            mm=self.mappings[i]
-            if isinstance(mm, Mapping):
-                p=mm.getValue(m)
-            elif len(mm) == 1:
-                p=mm[0].getValue(m)
+            mp, idx=self.mappings[i]
+            if idx:
+                if len(idx)==1:
+                    p=mp.getValue(m[idx[0]])
+                else:
+                    m2=Data(0.,(len(idx),),m.getFunctionSpace())
+                    for k in range(len(idx)): m2[k]=m[idx[k]]
+                    p=mp.getValue(m2)
             else:
-                p=mm[0].getValue(m[mm[1]])
+                p=mp.getValue(m)
             props.append(p)
         if self.numMappings > 1 or return_list:
             return props
@@ -357,19 +363,9 @@ class InversionCostFunction(MeteredCostFunction):
         props=self.getProperties(m, return_list=True)
         args_f=[]
         for i in range(self.numModels):
-            f=self.forward_models[i]
-            if isinstance(f, ForwardModel):
-                aa=f.getArguments(props[0])
-            elif len(f) == 1:
-                aa=f[0].getArguments(props[0])
-            else:
-                idx = f[1]
-                f=f[0]
-                if isinstance(idx, int):
-                    aa=f.getArguments(props[idx])
-                else:
-                    pp=tuple( [ props[i] for i in idx] )
-                    aa=f.getArguments(*pp)
+            f, idx=self.forward_models[i]
+            pp=tuple( [ props[k] for k in idx] )
+            aa=f.getArguments(*pp)
             args_f.append(aa)
 
         return props, args_f, args_reg
@@ -396,19 +392,9 @@ class InversionCostFunction(MeteredCostFunction):
         J = self.regularization.getValue(m, *args_reg)
 
         for i in range(self.numModels):
-            f=self.forward_models[i]
-            if isinstance(f, ForwardModel):
-                J_f = f.getDefect(props[0],*args_f[i])
-            elif len(f) == 1:
-                J_f=f[0].getDefect(props[0],*args_f[i])
-            else:
-                idx = f[1]
-                f=f[0]
-                if isinstance(idx, int):
-                    J_f = f.getDefect(props[idx],*args_f[i])
-                else:
-                    args=tuple( [ props[j] for j in idx] + args_f[i])
-                    J_f = f.getDefect(*args)
+            f, idx=self.forward_models[i]
+            args=tuple( [ props[k] for k in idx]  + list( args_f[i] ) )
+            J_f = f.getDefect(*args)
             self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
 
@@ -435,21 +421,11 @@ class InversionCostFunction(MeteredCostFunction):
 
         J_reg = self.regularization.getValue(m, *args_reg)
         result = [J_reg]
-
+ 
         for i in range(self.numModels):
-            f=self.forward_models[i]
-            if isinstance(f, ForwardModel):
-                J_f = f.getValue(props[0],*args_f[i])
-            elif len(f) == 1:
-                J_f=f[0].getValue(props[0],*args_f[i])
-            else:
-                idx = f[1]
-                f=f[0]
-                if isinstance(idx, int):
-                    J_f = f.getValue(props[idx],*args_f[i])
-                else:
-                    args=tuple( [ props[j] for j in idx] + args_f[i])
-                    J_f = f.getValue(*args)
+            f, idx=self.forward_models[i]
+            args=tuple( [ props[k] for k in idx]  + list( args_f[i] ) )
+            J_f = f.getValue(*args)
             self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
 
             result += [J_f] # self.mu_model[i] * ?? 
@@ -483,48 +459,67 @@ class InversionCostFunction(MeteredCostFunction):
         g_J = self.regularization.getGradient(m, *args_reg)
         p_diffs=[]
         for i in range(self.numMappings):
-            mm=self.mappings[i]
-            if isinstance(mm, Mapping):
-                dpdm = mm.getDerivative(m)
-            elif len(mm) == 1:
-                dpdm = mm[0].getDerivative(m)
+            mm, idx=self.mappings[i]
+            if idx and self.numLevelSets > 1:
+                if len(idx)>1:
+                    m2=Data(0,(len(idx),),m.getFunctionSpace())
+                    for k in range(len(idx)): m2[k]=m[idx[k]]
+                    dpdm = mm.getDerivative(m2)
+                else:
+                    dpdm = mm.getDerivative(m[idx[0]])
             else:
-                dpdm = mm[0].getDerivative(m[mm[1]])
+                dpdm = mm.getDerivative(m)
             p_diffs.append(dpdm)
 
         Y=g_J[0]      # Beacause g_J==(Y,X)  Y_k=dKer/dm_k
         for i in range(self.numModels):
             mu=self.mu_model[i]
-            f=self.forward_models[i]
-            if isinstance(f, ForwardModel):
-                Ys= f.getGradient(props[0],*args_f[i]) * p_diffs[0] * mu
-                if self.numLevelSets == 1 :
-                    Y +=Ys
-                else:
-                    Y[self.__parameter_to_level_set[0]] +=Ys
-            elif len(f) == 1:
-                Ys=f[0].getGradient(props[0],*args_f[i]) * p_diffs[0]  * mu
-                if self.numLevelSets == 1 :
-                    Y +=Ys
-                else:
-                    Y[self.__parameter_to_level_set[0]] +=Ys
-            else:
-                idx = f[1]
-                f = f[0]
-                if isinstance(idx, int):
-                    Ys = f.getGradient(props[idx],*args_f[i]) * p_diffs[idx] * mu
-                    if self.numLevelSets == 1 :
-                        Y+=Ys
+            f, idx_f=self.forward_models[i]                
+            args=tuple( [ props[k] for k in idx_f]  + list( args_f[i] ) )
+            Ys = f.getGradient(*args) # this d Jf/d props
+            if Ys.getRank() == 0: # in this case f depend on one parameter props only but this can still depend on several level set components
+                idx_m=self.mappings[idx_f[0]][1] # run through all level sets k prop j is depending on:
+                tmp=Ys * p_diffs[idx_f[0]] * mu # tmp[k] = dJ_f/d_prop * d prop/d m[idx_m[k]]
+                if idx_m:
+                    if tmp.getRank()== 0:
+                        for k in range(len(idx_m)): 
+                            Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
                     else:
-                        Y[self.__parameter_to_level_set[idx]] += Ys
+                        for k in range(len(idx_m)): 
+                            Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
                 else:
-                    args = tuple( [ props[j] for j in idx] + args_f[i])
-                    Ys = f.getGradient(*args)
-                    for j in range(idx):
-                        if self.numLevelSets == 1 :
-                           Y+=Ys[j]* p_diffs[idx[j]] * mu
+                    Y+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
+            else:
+                s=0
+                for j in range(len(idx_f)): # run through all props j formward model f is depending on:
+                    idx_m=self.mappings[j][1] # run through all level sets k prop j is depending on:
+                    if p_diffs[idx_f[j]].getRank() == 0 :
+                        if idx_m: # this case is not needed (really?)
+                            print "something wrong A"
+                            tmp=Ys[s]*p_diffs[idx_f[j]] * mu # tmp[k] = dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                            for k in range(len(idx_m)): 
+                                Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
                         else:
-                           Y[self.__parameter_to_level_set[j]]+=Ys[j]* p_diffs[idx[j]] * mu
+                            Y+=Ys[s]*p_diffs[idx_f[j]] * mu
+                        s+=1
+                    elif p_diffs[idx_f[j]].getRank() == 1 :
+                        l=p_diffs[idx_f[j]].getShape()[0]
+                        tmp=inner(Ys[s:s+l], p_diffs[idx_f[j]]) * mu # tmp[k] = sum_j dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                        if idx_m:
+                            for k in range(len(idx_m)): 
+                                Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
+                        else:
+                            Y+=tmp
+                        s+=l
+                    else: # rank 2 case
+                        l=p_diffs[idx_f[j]].getShape()[0]
+                        Yss=Ys[s:s+l]
+                        if idx_m:
+                            for k in range(len(idx_m)): 
+                                Y[idx_m[k]]+=inner(Yss, p_diffs[idx_f[j]][:,k]) # dJ_f /d m[idx_m[k]] = tmp[k]
+                        else:
+                            Y+=inner(Yss, p_diffs[idx_f[j]]) * mu
+                        s+=l
         return g_J
 
     def _getInverseHessianApproximation(self, m, r, *args):

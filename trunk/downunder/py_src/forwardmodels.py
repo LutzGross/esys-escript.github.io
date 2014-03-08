@@ -81,7 +81,7 @@ class ForwardModelWithPotential(ForwardModel):
         :param data: data
         :type data: ``Vector`` or list of ``Vector``
         :param coordinates: defines coordinate system to be used
-        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
+        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
