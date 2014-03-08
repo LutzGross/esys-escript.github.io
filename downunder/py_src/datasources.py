@@ -30,7 +30,7 @@ __all__ = ['DataSource', 'ErMapperData', 'NumpyData', \
 import logging
 import numpy as np
 import tempfile
-from esys.escript import ReducedFunction
+from esys.escript import ReducedFunction, FunctionOnBoundary, Scalar
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
@@ -1141,7 +1141,7 @@ class NumpyData(DataSource):
     """
     """
 
-    def __init__(self, data_type, data, error=1., length=1.*U.km, null_value=-1., tags=[]):
+    def __init__(self, data_type, data, error=1., length=1.*U.km, null_value=-1., tags=[], origin=None):
         """
         A data source that uses survey data from a ``numpy`` object or list
         instead of a file.
@@ -1167,6 +1167,8 @@ class NumpyData(DataSource):
         :type null_value: ``float``
         :param tags: a list of tags associated with the data set.
         :type tags: ``list`` of almost any type (typically `str`) 
+        :param origin: offset of origin of offset
+        :type origin: ``list`` of ``float``s
         """
         super(NumpyData, self).__init__(tags=tags)
         if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC ]:
@@ -1191,11 +1193,15 @@ class NumpyData(DataSource):
                 raise ValueError("length must be scalar or an array with %d values"%DIM)
             length=length.tolist()
 
+        self.__length=length
         self.__null_value = null_value
         self.__nPts = list(reversed(self.__data.shape))
         self.__delta = [length[i]/self.__nPts[i] for i in range(DIM)]
-        self.__origin = [0.] * DIM # this could be an optional argument
-
+        if origin is None:
+            self.__origin = [0.] * DIM 
+        else:
+            self.__origin = origin[:DIM-1]
+            
     def getDataExtents(self):
         return (self.__origin, self.__nPts, self.__delta)
 
@@ -1203,42 +1209,66 @@ class NumpyData(DataSource):
         return self.__data_type
 
     def getSurveyData(self, domain, origin, NE, spacing):
-        FS = ReducedFunction(domain)
-        nValues = self.__nPts
-        dataDIM = len(nValues)
-        # determine base location of this dataset within the domain
-        first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(dataDIM)]
-        # determine the resolution difference between domain and data.
-        # If domain has twice the resolution we can double up the data etc.
-        multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(dataDIM)]
-        if domain.getDim() > dataDIM:
-            first.append(int(-origin[-1]/spacing[-1]))
-            multiplier=multiplier+[1]
-            nValues=nValues+[1]
+        DIM=domain.getDim()
+        if self.getDataType()  == self.ACOUSTIC:
+            x=FunctionOnBoundary(domain).getX()
+            BBX=boundingBox(domain)
+            z=x[DIM-1] 
+            mask= whereZero( z - inf(z))  # we don't use BBX[DIM-1][1] due to mountains'
+            for i in range(DIM-1):
+                x_i=x[i]
+                mask+=whereNonPositive( x_i - self.__origin[i] ) + whereNonNegative( x_i - ( self.__origin[i]+self.__length[i] ) ) 
+            mask=1-wherePositive(mask)
+            
+            data=Data(0.,(2,), FunctionOnBoundary(domain))
+            step= [ self.__length[i]/self.__data.shape[i] for i in range(DIM-1) ]
+            if DIM == 2:
+                data[0] = interpolateTable(self.__data.real, x[0],self.__origin[0], step[0])
+                data[1] = interpolateTable(self.__data.imag, x[0],self.__origin[0], step[0])
+                if len(self.__error.shape) > 0:
+                    sigma = interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
+                else:
+                    sigma = Scalar(self.__error.item(), FunctionOnBoundary(domain))
+            else:
+                raise ValueError("3D domains are not supported yet.")
+            data*=mask
+            sigma*=mask
+        else:
+            FS = ReducedFunction(domain)
+            nValues = self.__nPts
+            dataDIM = len(nValues)
+            # determine base location of this dataset within the domain
+            first=[int((self.__origin[i]-origin[i])/spacing[i]) for i in range(dataDIM)]
+            # determine the resolution difference between domain and data.
+            # If domain has twice the resolution we can double up the data etc.
+            multiplier=[int(round(self.__delta[i]/spacing[i])) for i in range(dataDIM)]
+            if domain.getDim() > dataDIM:
+                first.append(int(-origin[-1]/spacing[-1]))
+                multiplier=multiplier+[1]
+                nValues=nValues+[1]
 
-        _handle, numpyfile = tempfile.mkstemp()
-        os.close(_handle)
-        self.__data.tofile(numpyfile)
+            _handle, numpyfile = tempfile.mkstemp()
+            os.close(_handle)
+            self.__data.tofile(numpyfile)
 
-        reverse=[0]*domain.getDim()
-        byteorder=ripleycpp.BYTEORDER_NATIVE
-        datatype=ripleycpp.DATATYPE_FLOAT64
-        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-        data = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
+            reverse=[0]*DIM
+            byteorder=ripleycpp.BYTEORDER_NATIVE
+            datatype=ripleycpp.DATATYPE_FLOAT64
+            self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
+            data = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
                 fill=self.__null_value, byteOrder=byteorder, dataType=datatype,
                 first=first, numValues=nValues, multiplier=multiplier,
                 reverse=reverse)
-        if len(self.__error.shape) > 0:
-            self.__error.tofile(numpyfile)
-            self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-            sigma = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
+            if len(self.__error.shape) > 0:
+                self.__error.tofile(numpyfile)
+                self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
+                sigma = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
                     fill=0., byteOrder=byteorder, dataType=datatype,
                     first=first, numValues=nValues, multiplier=multiplier,
                     reverse=reverse)
-        else:
-            sigma = self.__error.item() * whereNonZero(data-self.__null_value)
-
-        os.unlink(numpyfile)
+            else:
+                sigma = self.__error.item() * whereNonZero(data-self.__null_value)
+            os.unlink(numpyfile)
 
         return data, sigma
 
@@ -1254,13 +1284,14 @@ class SeismicSource(object):
     describes a seimic source by location (x,y), frequency omega, power (if known) and orientation (if known).
     this class is used to tag seismic data sources.
     """ 
-    def __init__(self, x, y=0., omega=0., power = None, orientation=None):
+    def __init__(self, x, y=0., omega=0., elevation=0.,  power = None, orientation=None):
         """
         initiale the source
         
         :param x: lateral x location
         :param y: lateral y location
         :param omega: frequency of source
+        :param elevation: elevation of source above reference level 
         :param power: power of source at frequence
         :param orientation: oriententation of source in 3D or 2D (or None)
         :type x: ``float``
@@ -1272,12 +1303,14 @@ class SeismicSource(object):
         self.__loc=(x,y)
         self.__omega=omega
         self.__power=power
+        self.__elevation=elevation
         self.__orientation=orientation
         
     def __eq__(self, other):
         if isinstance(other, SeismicSource):
             return self.__loc == other.getLocation() \
                 and self.__omega == other.getFrequency() \
+                and self.__elevation == other.getElevation() \
                 and self.__power == other.getPower() \
                 and self.__orientation == other.getOrientation()
         else:
@@ -1298,7 +1331,14 @@ class SeismicSource(object):
         :rtype: ``float``
         """
         return self.__omega
-    
+        
+    def getElevation(self):
+        """
+        return elevation of source
+        :rtype: ``float``
+        """
+        return self.__elevation
+        
     def getPower(self):
         """
         return power of source at frequency

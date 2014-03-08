@@ -2453,7 +2453,7 @@ class LinearProblem(object):
          for i,d in list(coefficients.items()):
             if hasattr(d,"shape"):
                 s=d.shape
-            elif hasattr(d,"getShape"):
+            elif isinstance(d, escore.Data) and not d.isEmpty():
                 s=d.getShape()
             else:
                 s=numpy.array(d).shape
