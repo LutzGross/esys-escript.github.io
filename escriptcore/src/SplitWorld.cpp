@@ -14,9 +14,9 @@
 *****************************************************************************/
 
 #include "esysUtils/Esys_MPI.h"
-#include "WorldSplitter.h"
+#include "SplitWorld.h"
 #include "AbstractDomain.h"
-#include "DomainException.h"
+#include "SplitWorldException.h"
 #include "SplitWorldException.h"
 
 #include <iostream>
@@ -24,24 +24,24 @@
 using namespace boost::python;
 using namespace escript;
 
-WorldSplitter::WorldSplitter(unsigned int numgroups, MPI_Comm global)
+SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
     :globalcom(global), subcom(MPI_COMM_NULL), localworld((SubWorld*)0), groupcount(numgroups)
 {
     int gsize;
     int grank;
     if ((MPI_Comm_size(global, &gsize)!=MPI_SUCCESS) || (MPI_Comm_rank(global, &grank)!=MPI_SUCCESS))
     {
-	throw DomainException("MPI appears to be inoperative.");
+	throw SplitWorldException("MPI appears to be inoperative.");
     }
     if (gsize%numgroups!=0)
     {
-	throw DomainException("WorldSplitter error: requested number of groups is not a factor of global communicator size.");
+	throw SplitWorldException("SplitWorld error: requested number of groups is not a factor of global communicator size.");
     }
     int wsize=gsize/numgroups;	// each world has this many processes
     int res=MPI_Comm_split(MPI_COMM_WORLD, grank/wsize, grank%wsize, &subcom);
     if (res!=MPI_SUCCESS)
     {
-	throw DomainException("WorldSplitter error: Unable to form communicator.");
+	throw SplitWorldException("SplitWorld error: Unable to form communicator.");
     } 
     localworld=SubWorld_ptr(new SubWorld(subcom));
     localid=grank/wsize;
@@ -49,7 +49,7 @@ WorldSplitter::WorldSplitter(unsigned int numgroups, MPI_Comm global)
 
 // We may need to look into this more closely.
 // What if the domain lives longer than the world splitter?
-WorldSplitter::~WorldSplitter()
+SplitWorld::~SplitWorld()
 {
     if (subcom!=MPI_COMM_NULL)
     {
@@ -59,7 +59,7 @@ WorldSplitter::~WorldSplitter()
 
 
 // The boost wrapper will ensure that there is at least one entry in the tuple
-object WorldSplitter::buildDomains(tuple t, dict kwargs)
+object SplitWorld::buildDomains(tuple t, dict kwargs)
 {
     int tsize=len(t);
     // get the callable that we will invoke in a sec
@@ -86,14 +86,14 @@ object WorldSplitter::buildDomains(tuple t, dict kwargs)
     // now do a sanity check to see if the domain has respected the communicator info we passed it.
     if (dptr->getMPIComm()!=localworld->getComm())
     {
-	throw DomainException("The newly constructed domain is not using the correct communicator.");
+	throw SplitWorldException("The newly constructed domain is not using the correct communicator.");
     }
     localworld->setDomain(dptr);
     return object();	// return None
 }
 
 /** a list of tuples/sequences:  (Job class, number of instances)*/
-void WorldSplitter::runJobs(boost::python::list l)
+void SplitWorld::runJobs(boost::python::list l)
 {
     // first count up how many jobs we have in total
     unsigned int numjobs=0;
@@ -127,7 +127,7 @@ void WorldSplitter::runJobs(boost::python::list l)
     unsigned int classnum=0;
     unsigned int lowend=1;
     unsigned int highend=lowend+numjobs/groupcount+(numjobs%groupcount);
-std::cout << localid << std::endl;
+// std::cout << localid << std::endl;
     for (int i=1;i<=localid;++i)
     {
 	lowend=highend;
@@ -137,7 +137,7 @@ std::cout << localid << std::endl;
 	    highend++;
 	}
     }
-std::cout << "There are " << numjobs << " jobs with range [" << lowend << ", " << highend << ")\n";    
+// std::cout << "There are " << numjobs << " jobs with range [" << lowend << ", " << highend << ")\n";    
     // We could do something more clever about trying to fit Jobs to subworlds
     // to ensure that instances sharing the same Job class would share the same 
     // world as much as possible but for now we'll do this:
@@ -150,16 +150,32 @@ std::cout << "There are " << numjobs << " jobs with range [" << lowend << ", " <
 	// now if this is one of the job numbers in our local range,
 	// create an instance of the appropriate class
 	if (j>=lowend and j<highend)
-	{
-std::cout << "Added job\n";	  
+	{  
 	    object o=classvec[classnum](localworld->getDomain(), object(j));
 	    localworld->addJob(o);
 	}
     }
-    
-    // now we actually need to run the jobs
-    // everybody will be executing their localworld's jobs
-    localworld->runJobs();
+    int mres=0;
+    do
+    {
+	// now we actually need to run the jobs
+	// everybody will be executing their localworld's jobs
+	int res=localworld->runJobs();	
+	// now we find out about the other worlds
+	mres=0;
+	if (MPI_Allreduce(&res, &mres, 1, MPI_INT, MPI_MAX, globalcom)!=MPI_SUCCESS)
+	{
+	    throw SplitWorldException("MPI appears to have failed.");
+	}
+    } while (mres==1);
+    if (mres==2)
+    {
+	throw SplitWorldException("At least one Job's work() function did not return True/False.");
+    }
+    else if (mres==3)
+    {
+	throw SplitWorldException("At least one Job's work() function raised an exception.");
+    }
 }
 
 namespace escript
@@ -170,14 +186,14 @@ boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::di
     int l=len(t);
     if (l<2)
     {
-	throw DomainException("Insufficient parameters to buildDomains.");
+	throw SplitWorldException("Insufficient parameters to buildDomains.");
     }
-    extract<WorldSplitter&> exw(t[0]);
+    extract<SplitWorld&> exw(t[0]);
     if (!exw.check())
     {
-	throw DomainException("First parameter to buildDomains must be a WorldSplitter.");
+	throw SplitWorldException("First parameter to buildDomains must be a SplitWorld.");
     }
-    WorldSplitter& ws=exw();
+    SplitWorld& ws=exw();
     tuple ntup=tuple(t.slice(1,l));	// strip off the object param
     return ws.buildDomains(ntup, kwargs);
 }

@@ -34,7 +34,7 @@ public:
     Domain_ptr getDomain();
     MPI_Comm getComm();
     void addJob(boost::python::object j);
-    void runJobs();
+    char runJobs();
 private:    
     MPI_Comm communicator;
     escript::Domain_ptr domain;

@@ -82,6 +82,8 @@ class Job:
     
   def work(self):
     """
-    Need to be overloaded for the job to actually do anthing
+    Need to be overloaded for the job to actually do anthing.
+    A return value of True, indicates this job thinks it is done.
+    A return value of False indicates work still to be done
     """
-    pass
+    return True

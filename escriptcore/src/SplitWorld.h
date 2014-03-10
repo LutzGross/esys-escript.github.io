@@ -14,8 +14,8 @@
 *
 *****************************************************************************/
 
-#ifndef escript_WorldSplitter_H
-#define escript_WorldSplitter_H
+#ifndef escript_SplitWorld_H
+#define escript_SplitWorld_H
 #include <boost/python.hpp>
 #include <boost/smart_ptr.hpp>
 #include "esysUtils/Esys_MPI.h"
@@ -25,15 +25,15 @@ namespace escript
 
 /** class to hold a collection of MPI ranks and a communicator linking them
 */
-class WorldSplitter
+class SplitWorld
 {
 public:
-    WorldSplitter(unsigned int numgroups, MPI_Comm global=MPI_COMM_WORLD);
-    ~WorldSplitter();
+    SplitWorld(unsigned int numgroups, MPI_Comm global=MPI_COMM_WORLD);
+    ~SplitWorld();
     boost::python::object buildDomains(boost::python::tuple t, boost::python::dict kwargs);	
 	// first param will be the factory method / constructor
 	// return value will always be None (it would be void but apparently boost doesn't like that
-	// this method will be def("set....", raw_function(WorldSplitter::setDomainParams, 1)
+	// this method will be def("set....", raw_function(SplitWorld::setDomainParams, 1)
     
     void runJobs(boost::python::list l);
 private:    
@@ -46,7 +46,7 @@ private:
 
 
 /**
-  used to invoke the WorldSplitter version from python (in lieu of a method based equivalent to raw_function) 
+  used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function) 
 */
 boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::dict kwargs);
 
