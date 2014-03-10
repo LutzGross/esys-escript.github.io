@@ -17,6 +17,9 @@
 #include "WorldSplitter.h"
 #include "AbstractDomain.h"
 #include "DomainException.h"
+#include "SplitWorldException.h"
+
+#include <iostream>
 
 using namespace boost::python;
 using namespace escript;
@@ -26,7 +29,7 @@ WorldSplitter::WorldSplitter(unsigned int numgroups, MPI_Comm global)
 {
     int gsize;
     int grank;
-    if ((MPI_Comm_size(global, &gsize)!=MPI_SUCCESS) || (MPI_Comm_size(global, &grank)!=MPI_SUCCESS))
+    if ((MPI_Comm_size(global, &gsize)!=MPI_SUCCESS) || (MPI_Comm_rank(global, &grank)!=MPI_SUCCESS))
     {
 	throw DomainException("MPI appears to be inoperative.");
     }
@@ -34,13 +37,14 @@ WorldSplitter::WorldSplitter(unsigned int numgroups, MPI_Comm global)
     {
 	throw DomainException("WorldSplitter error: requested number of groups is not a factor of global communicator size.");
     }
-    int res=MPI_Comm_split(MPI_COMM_WORLD, grank/gsize, grank%gsize, &subcom);
+    int wsize=gsize/numgroups;	// each world has this many processes
+    int res=MPI_Comm_split(MPI_COMM_WORLD, grank/wsize, grank%wsize, &subcom);
     if (res!=MPI_SUCCESS)
     {
 	throw DomainException("WorldSplitter error: Unable to form communicator.");
-    }
-std::cerr << subcom << std::endl;    
+    } 
     localworld=SubWorld_ptr(new SubWorld(subcom));
+    localid=grank/wsize;
 }
 
 // We may need to look into this more closely.
@@ -86,6 +90,76 @@ object WorldSplitter::buildDomains(tuple t, dict kwargs)
     }
     localworld->setDomain(dptr);
     return object();	// return None
+}
+
+/** a list of tuples/sequences:  (Job class, number of instances)*/
+void WorldSplitter::runJobs(boost::python::list l)
+{
+    // first count up how many jobs we have in total
+    unsigned int numjobs=0;
+    std::vector<object> classvec;
+    std::vector<unsigned int> countvec;
+    std::vector<unsigned int> partialcounts;
+    for (int i=0;i<len(l);++i)
+    {
+	extract<tuple> ex(l[i]);
+	if (!ex.check())
+	{
+	    throw SplitWorldException("runJobs takes a list of tuples (jobclass, number).");
+	}
+	tuple t=ex();
+	if (len(t)!=2)
+	{
+	    throw SplitWorldException("runJobs takes a list of tuples (jobclass, number).");
+	}
+	extract<unsigned int> ex2(t[1]);
+	unsigned int c=0;
+	if (!ex2.check() || ((c=ex2())==0))
+	{
+	    throw SplitWorldException("Number of jobs must be a strictly positive integer.");
+	  
+	}
+	classvec.push_back(t[0]);
+	countvec.push_back(c);
+	numjobs+=c;
+	partialcounts.push_back(numjobs);
+    }
+    unsigned int classnum=0;
+    unsigned int lowend=1;
+    unsigned int highend=lowend+numjobs/groupcount+(numjobs%groupcount);
+std::cout << localid << std::endl;
+    for (int i=1;i<=localid;++i)
+    {
+	lowend=highend;
+	highend=lowend+numjobs/groupcount;
+	if (i<numjobs%groupcount)
+	{
+	    highend++;
+	}
+    }
+std::cout << "There are " << numjobs << " jobs with range [" << lowend << ", " << highend << ")\n";    
+    // We could do something more clever about trying to fit Jobs to subworlds
+    // to ensure that instances sharing the same Job class would share the same 
+    // world as much as possible but for now we'll do this:
+    for (unsigned int j=1;j<=numjobs;++j)		// job #0 is a sentinel
+    {
+	if (j>partialcounts[classnum])
+	{
+	    classnum++;	// we dont' need to loop this because each count >0
+	}
+	// now if this is one of the job numbers in our local range,
+	// create an instance of the appropriate class
+	if (j>=lowend and j<highend)
+	{
+std::cout << "Added job\n";	  
+	    object o=classvec[classnum](localworld->getDomain(), object(j));
+	    localworld->addJob(o);
+	}
+    }
+    
+    // now we actually need to run the jobs
+    // everybody will be executing their localworld's jobs
+    localworld->runJobs();
 }
 
 namespace escript
