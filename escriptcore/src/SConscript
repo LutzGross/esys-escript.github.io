@@ -51,6 +51,7 @@ sources = """
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     NullDomain.cpp
+    SplitWorld.cpp
     SplitWorldException.cpp
     SubWorld.cpp
     SystemMatrixException.cpp
@@ -58,7 +59,6 @@ sources = """
     TestDomain.cpp
     TransportProblemException.cpp
     Utils.cpp
-    WorldSplitter.cpp
     WrappedArray.cpp
 """.split()
     # blocktimer.c
@@ -94,6 +94,7 @@ headers = """
     LocalOps.h
     NullDomain.h
     Pointers.h
+    SplitWorld.h
     SplitWorldException.h
     SubWorld.h
     SystemMatrixException.h
@@ -104,7 +105,6 @@ headers = """
     UnaryOp.h
     UtilC.h
     Utils.h
-    WorldSplitter.h
     WrappedArray.h
     system_dep.h
 """.split()
