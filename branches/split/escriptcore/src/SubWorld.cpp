@@ -50,10 +50,31 @@ void SubWorld::addJob(boost::python::object j)
     jobvec.push_back(j);
 }
 
-void SubWorld::runJobs()
+// if 3, a Job threw an exception 
+// if 2, a Job did not return a bool
+// if 1, at least one Job returned False
+// if 0, all jobs in this world returned True
+char SubWorld::runJobs()
 {
-    for (size_t i=0;i<jobvec.size();++i)
+    int ret=0;
+    try
     {
-	jobvec[i].attr("work")();
-    }
+	for (size_t i=0;i<jobvec.size();++i)
+	{
+	    boost::python::object result=jobvec[i].attr("work")();
+	    boost::python::extract<bool> ex(result);
+	    if (!ex.check())
+	    {
+		return 2;	
+	    }
+	    if (!ex())
+	    {
+		ret=1;
+	    }
+	}
+    } catch (boost::python::error_already_set e)
+    {
+	return 3;
+    }  
+    return ret;
 }
