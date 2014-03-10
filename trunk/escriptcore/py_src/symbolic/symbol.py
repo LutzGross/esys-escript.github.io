@@ -399,7 +399,8 @@ class Symbol(object):
             subs[old]=new
             result=Symbol(self._arr, dim=self._dim, subs=subs)
         elif isinstance(old, Symbol) and old.getRank()>0:
-            dataSubs=new.getDataSubstitutions()    
+            if isinstance(new, Symbol):
+                dataSubs=new.getDataSubstitutions()    
             if hasattr(new, '__array__'):
                 new=new.__array__()
             else:
