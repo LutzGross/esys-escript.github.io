@@ -183,7 +183,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one  
   def("buildDomains", raw_function(escript::raw_buildDomains,2));
       
-  class_<escript::WorldSplitter, boost::noncopyable>("WorldSplitter", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")));
+  class_<escript::WorldSplitter, boost::noncopyable>("WorldSplitter", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
+    .def("runJobs", &escript::WorldSplitter::runJobs, arg("tuplelist"), "Create a set of jobs and execute them on the subworlds.");
 
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);

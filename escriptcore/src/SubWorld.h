@@ -33,9 +33,12 @@ public:
     void setDomain(Domain_ptr d);
     Domain_ptr getDomain();
     MPI_Comm getComm();
+    void addJob(boost::python::object j);
+    void runJobs();
 private:    
     MPI_Comm communicator;
     escript::Domain_ptr domain;
+    std::vector<boost::python::object> jobvec;
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;

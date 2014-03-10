@@ -34,11 +34,14 @@ public:
 	// first param will be the factory method / constructor
 	// return value will always be None (it would be void but apparently boost doesn't like that
 	// this method will be def("set....", raw_function(WorldSplitter::setDomainParams, 1)
+    
+    void runJobs(boost::python::list l);
 private:    
     MPI_Comm globalcom;	// don't free this because we don't own it
     MPI_Comm subcom;
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
     unsigned int groupcount;
+    unsigned int localid;		// position of localworld in overall world sequence
 };
 
 

@@ -14,46 +14,20 @@
 *
 *****************************************************************************/
 
-#include "SubWorld.h"
+// Adapted from FunctionSpaceException.cpp
+
+#include "SplitWorldException.h"
+
 
 using namespace escript;
 
 
-SubWorld::SubWorld(MPI_Comm comm)
-    :communicator(comm), domain((AbstractDomain*)0)
+const std::string 
+SplitWorldException::exceptionNameValue("SplitWorldException");
+
+
+const std::string &
+SplitWorldException::exceptionName() const
 {
-
-
-}
-
-SubWorld::~SubWorld()
-{
-}
-
-MPI_Comm SubWorld::getComm()
-{
-    return communicator;
-}
-
-void SubWorld::setDomain(Domain_ptr d)
-{
-    domain=d;
-}
-
-Domain_ptr SubWorld::getDomain()
-{
-    return domain;
-}
-
-void SubWorld::addJob(boost::python::object j)
-{
-    jobvec.push_back(j);
-}
-
-void SubWorld::runJobs()
-{
-    for (size_t i=0;i<jobvec.size();++i)
-    {
-	jobvec[i].attr("work")();
-    }
+  return exceptionNameValue;
 }
