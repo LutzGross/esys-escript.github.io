@@ -30,6 +30,7 @@
 #include "TestDomain.h"
 #include "SubWorld.h"
 #include "SplitWorld.h"
+#include "Crates.h"
 
 #include "esysUtils/blocktimer.h"
 
@@ -177,13 +178,17 @@ BOOST_PYTHON_MODULE(escriptcpp)
 
   
   
-  
+  class_<escript::AbstractCrate, escript::crate_ptr, boost::noncopyable>("AbstractCrate", "", no_init);
+  class_<escript::DataCrate, bases<escript::AbstractCrate> >("DataCrate","Stores and merges Data objects for transport between worlds.",
+    init<std::string, std::string>(args("label", "operation"))
+  );
 
 /* begin SubWorld things */
   // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one  
   def("buildDomains", raw_function(escript::raw_buildDomains,2));
       
   class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
+    .def("registerCrate", &escript::SplitWorld::registerCrate, arg("crate")) 
     .def("runJobs", &escript::SplitWorld::runJobs, arg("tuplelist"), "Create a set of jobs and execute them on the subworlds.");
 
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  

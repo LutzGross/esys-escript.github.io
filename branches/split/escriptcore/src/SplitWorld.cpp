@@ -178,6 +178,12 @@ void SplitWorld::runJobs(boost::python::list l)
     }
 }
 
+
+void SplitWorld::registerCrate(escript::crate_ptr c)
+{
+    protocrates.push_back(c);
+}
+
 namespace escript
 {
 
