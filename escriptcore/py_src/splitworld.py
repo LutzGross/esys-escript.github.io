@@ -55,8 +55,8 @@ class Job:
     """
     self.domain=domain
     self.id=id
-    self.incrates={}
-    self.outcrates={}
+    self.incratenames={}
+    self.outcratenames={}
     
   # Now does this take a crate / hamper / ....
   # There is the issue of only wanting to put in values for initial set up

@@ -20,6 +20,7 @@
 #include <boost/smart_ptr.hpp>
 #include "esysUtils/Esys_MPI.h"
 #include "SubWorld.h"
+#include ""
 namespace escript
 {
 
@@ -36,12 +37,16 @@ public:
 	// this method will be def("set....", raw_function(SplitWorld::setDomainParams, 1)
     
     void runJobs(boost::python::list l);
+    
+	// maybe this should take factory parameters instead? The metaphor isn't quite right
+    void registerCrate(escript::Crate);
 private:    
     MPI_Comm globalcom;	// don't free this because we don't own it
     MPI_Comm subcom;
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
     unsigned int groupcount;
     unsigned int localid;		// position of localworld in overall world sequence
+    std::vector<crate_ptr> protocrates;
 };
 
 
