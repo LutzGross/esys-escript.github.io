@@ -629,6 +629,10 @@ public:
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const = 0;
+#ifdef USE_BOOSTIO
+    virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
+                                const ReaderParameters& params) const = 0;
+#endif
 
     /**
     */

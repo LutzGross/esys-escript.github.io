@@ -77,6 +77,14 @@ public:
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const;
+#ifdef USE_BOOSTIO
+    /**
+    */
+    virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
+                                const ReaderParameters& params) const {
+             throw RipleyException("Rectangle doesn't support zipped binary grid reads yet");
+    }
+#endif
 
     /**
     */

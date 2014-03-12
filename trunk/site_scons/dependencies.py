@@ -398,7 +398,17 @@ def checkOptionalLibraries(env):
             env['gmsh']='s'
     except OSError:
         env['gmsh']=False
-
+    
+    
+######## boost::iostreams
+    if env['compressed_files']:
+        try:
+            boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
+            env.Append(CPPDEFINES = ['USE_BOOSTIO'])
+            env.AppendUnique(LIBS = env['compression_libs'])
+        except RuntimeError as e:
+            env['compressed_files'] = False
+    
     return env
 
 def checkPDFLatex(env):

@@ -79,6 +79,33 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     return res;
 }
 
+#ifdef USE_BOOSTIO
+escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSpace fs,
+        const object& pyShape, double fill, int byteOrder, int dataType,
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyReverse)
+{
+    int dim=fs.getDim();
+    ReaderParameters params;
+
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    params.byteOrder = byteOrder;
+    params.dataType = dataType;
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
+
+    const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
+    if (!dom)
+        throw RipleyException("Function space must be on a ripley domain");
+
+    escript::Data res(fill, shape, fs, true);
+    dom->readBinaryGridFromZipped(res, filename, params);
+    return res;
+}
+#endif
+
 escript::Data readNcGrid(std::string filename, std::string varname,
         escript::FunctionSpace fs, const object& pyShape, double fill,
         const object& pyFirst, const object& pyNum, const object& pyMultiplier,
@@ -317,7 +344,13 @@ BOOST_PYTHON_MODULE(ripleycpp)
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
 "Reads a binary Grid");
-
+#ifdef USE_BOOSTIO
+    def("_readBinaryGridFromZipped", &ripley::readBinaryGridFromZipped, (arg("filename"),
+                arg("functionspace"), arg("shape"), arg("fill")=0.,
+                arg("byteOrder"), arg("dataType"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a binary Grid");
+#endif
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"),
                 arg("functionspace"), arg("shape"), arg("fill"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),

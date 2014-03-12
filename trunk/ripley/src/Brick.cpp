@@ -374,6 +374,28 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 #endif
 }
 
+#ifdef USE_BOOSTIO
+void Brick::readBinaryGridFromZipped(escript::Data& out, string filename,
+                           const ReaderParameters& params) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (params.dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridZippedImpl<int>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridZippedImpl<float>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridZippedImpl<double>(out, filename, params);
+            break;
+        default:
+            throw RipleyException("readBinaryGrid(): invalid or unsupported datatype");
+    }
+}
+#endif
+
 void Brick::readBinaryGrid(escript::Data& out, string filename,
                            const ReaderParameters& params) const
 {
@@ -509,6 +531,125 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
 
     f.close();
 }
+
+#ifdef USE_BOOSTIO
+template<typename ValueType>
+void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
+                               const ReaderParameters& params) const
+{
+    // check destination function space
+    int myN0, myN1, myN2;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NN[0];
+        myN1 = m_NN[1];
+        myN2 = m_NN[2];
+    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
+                out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        myN0 = m_NE[0];
+        myN1 = m_NE[1];
+        myN2 = m_NE[2];
+    } else
+        throw RipleyException("readBinaryGridFromZipped(): invalid function space for output data object");
+
+    if (params.first.size() != 3)
+        throw RipleyException("readBinaryGridFromZipped(): argument 'first' must have 3 entries");
+
+    if (params.numValues.size() != 3)
+        throw RipleyException("readBinaryGridFromZipped(): argument 'numValues' must have 3 entries");
+
+    if (params.multiplier.size() != 3)
+        throw RipleyException("readBinaryGridFromZipped(): argument 'multiplier' must have 3 entries");
+    for (size_t i=0; i<params.multiplier.size(); i++)
+        if (params.multiplier[i]<1)
+            throw RipleyException("readBinaryGridFromZipped(): all multipliers must be positive");
+
+    // check file existence and size
+    ifstream f(filename.c_str(), ifstream::binary);
+    if (f.fail()) {
+        throw RipleyException("readBinaryGridFromZipped(): cannot open file");
+    }
+    f.seekg(0, ios::end);
+    const int numComp = out.getDataPointSize();
+    int filesize = f.tellg();
+    f.seekg(0, ios::beg);
+    std::vector<char> compressed(filesize);
+    f.read((char*)&compressed[0], filesize);
+    f.close();
+    std::vector<char> decompressed = unzip(compressed);
+    filesize = decompressed.size();
+    const int reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
+    if (filesize < reqsize) {
+        throw RipleyException("readBinaryGridFromZipped(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0]*params.multiplier[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1]*params.multiplier[1] <= m_offset[1] ||
+            params.first[2] >= m_offset[2]+myN2 ||
+            params.first[2]+params.numValues[2]*params.multiplier[2] <= m_offset[2]) {
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const int first0 = max(0, params.first[0]-m_offset[0]);
+    const int first1 = max(0, params.first[1]-m_offset[1]);
+    const int first2 = max(0, params.first[2]-m_offset[2]);
+    // indices to first value in file
+    const int idx0 = max(0, m_offset[0]-params.first[0]);
+    const int idx1 = max(0, m_offset[1]-params.first[1]);
+    const int idx2 = max(0, m_offset[2]-params.first[2]);
+    // number of values to read
+    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+
+    out.requireWrite();
+    vector<ValueType> values(num0*numComp);
+    const int dpp = out.getNumDataPointsPerSample();
+
+    for (int z=0; z<num2; z++) {
+        for (int y=0; y<num1; y++) {
+            const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
+                             +(idx2+z)*params.numValues[0]*params.numValues[1]);
+            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
+            
+            for (int x=0; x<num0; x++) {
+                const int baseIndex = first0+x*params.multiplier[0]
+                                     +(first1+y*params.multiplier[1])*myN0
+                                     +(first2+z*params.multiplier[2])*myN0*myN1;
+                for (int m2=0; m2<params.multiplier[2]; m2++) {
+                    for (int m1=0; m1<params.multiplier[1]; m1++) {
+                        for (int m0=0; m0<params.multiplier[0]; m0++) {
+                            const int dataIndex = baseIndex+m0
+                                           +m1*myN0
+                                           +m2*myN0*myN1;
+                            double* dest = out.getSampleDataRW(dataIndex);
+                            for (int c=0; c<numComp; c++) {
+                                ValueType val = values[x*numComp+c];
+
+                                if (params.byteOrder != BYTEORDER_NATIVE) {
+                                    char* cval = reinterpret_cast<char*>(&val);
+                                    // this will alter val!!
+                                    byte_swap32(cval);
+                                }
+                                if (!std::isnan(val)) {
+                                    for (int q=0; q<dpp; q++) {
+                                        *dest++ = static_cast<double>(val);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+#endif
 
 void Brick::writeBinaryGrid(const escript::Data& in, string filename,
                             int byteOrder, int dataType) const
