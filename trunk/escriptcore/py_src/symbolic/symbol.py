@@ -184,10 +184,12 @@ class Symbol(object):
         if isinstance(res, sympy.Basic) or isinstance(res, numpy.ndarray):
             res=Symbol(res)
             res._dim=self._dim
+        res._subs.update(self._subs)
         return res
 
     def __setitem__(self, key, value):
         if isinstance(value, Symbol):
+            self._subs.update(value._subs)
             if value.getRank()==0:
                 self._arr[key]=value.item()
             elif hasattr(self._arr[key], "shape"):
