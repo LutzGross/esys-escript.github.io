@@ -408,6 +408,7 @@ def checkOptionalLibraries(env):
             env.AppendUnique(LIBS = env['compression_libs'])
         except RuntimeError as e:
             env['compressed_files'] = False
+    env['buildvars']['compressed_files']=int(env['compressed_files'])
     
     return env
 
