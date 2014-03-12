@@ -135,6 +135,8 @@ vars.AddVariables(
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
   BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
+  BoolVariable('compressed_files','Enables reading from compressed binary files', True),
+  ('compression_libs', 'Compression libraries to link with', ['boost_iostreams'])
 )
 
 ##################### Create environment and help text #######################
@@ -653,6 +655,7 @@ def print_summary():
         print("            gmsh:  FOUND")
     else:
         print("            gmsh:  NOT FOUND")
+    print(    "            gzip:  " + ("YES" if env['compressed_files'] else "NO"))
 
     if ((fatalwarning != '') and (env['werror'])):
         print("  Treating warnings as errors")
