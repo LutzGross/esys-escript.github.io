@@ -65,10 +65,9 @@ void SubWorld::clearJobs()
 // if 2, a Job did not return a bool
 // if 1, at least one Job returned False
 // if 0, all jobs in this world returned True
-char SubWorld::runJobs()
+char SubWorld::runJobs(std::string& errormsg)
 {
-
-
+    errormsg.clear();
     bp::object gettrace=bp::import("traceback").attr("format_exc");
     int ret=0;
     try
@@ -110,20 +109,31 @@ std::cerr << "Here" << __LINE__ << std::endl;
 
 std::cerr << "Here" << __LINE__ << std::endl;	
 
-//   	PyObject* ptype=0;
-//  	PyObject* pvalue=0;
-//  	PyObject* ptraceback=0;
-//  	PyErr_Fetch(&ptype, &pvalue, &ptraceback);
-// 	PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
+  	PyObject* ptype=0;
+ 	PyObject* pvalue=0;
+ 	PyObject* ptraceback=0;
+ 	PyErr_Fetch(&ptype, &pvalue, &ptraceback);
+	PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
  
 std::cerr << "Here" << __LINE__ << std::endl;	
  
  
-//std::cerr << PyString_Check(pvalue) << std::endl;
+std::cerr << PyString_Check(pvalue) << std::endl;
+
+	PyObject* errobj=PyObject_Str(pvalue);
+
+	errormsg=PyString_AsString(errobj);
+	Py_XDECREF(errobj);
+
+	Py_XDECREF(ptype);
+	Py_XDECREF(pvalue);
+	Py_XDECREF(ptraceback);
  	
-std::cerr << "Here" << __LINE__ << std::endl;	
- 	
- 	
+std::cerr << errormsg << std::endl;
+
+
+	
+	
 //  	handle<> htype(ptype);
 //  	handle<> hvalue(ptype);
 //  	handle<> htraceback(ptype);

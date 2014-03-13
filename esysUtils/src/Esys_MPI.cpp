@@ -26,6 +26,9 @@
 #include "error.h"
 
 
+#include <iostream>	// temp for debugging
+
+
 /* allocate memory for an mpi_comm, and find the communicator details */
 Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
 {
@@ -137,6 +140,116 @@ bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
 
   return (errorGlobal==0);
 }
+
+/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
+bool esysUtils::checkResult(int& input, int& output, Esys_MPIInfo *mpi_info)
+{
+#ifdef ESYS_MPI
+    output=0;
+    if (MPI_Allreduce(&input, &output, 1, MPI_INT, MPI_MAX, mpi_info->comm)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+    return true;
+#else
+    output=input;
+    return true;
+#endif
+}
+
+/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
+bool esysUtils::checkResult(int& input, int& output, MPI_Comm& comm)
+{
+#ifdef ESYS_MPI
+    output=0;
+    if (MPI_Allreduce(&input, &output, 1, MPI_INT, MPI_MAX, comm)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+    return true;
+#else
+    output=input;
+    return true;
+#endif
+}
+
+
+
+
+// ensure that the any ranks with an empty src argument end up with the string from
+// one of the other ranks
+// with no-mpi, it makes dest point at a copy of src
+// Expected use case for this code is to ship error messages between ranks
+// as such, it is not written to be speedy
+bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
+{
+#ifdef ESYS_MPI  
+    Esys_MPI_rank rank=0;
+    if (MPI_Comm_rank( comm, &rank )!=MPI_SUCCESS)
+    {
+	return false;	// we have no reason to believe MPI works anymore
+    }
+    
+    int slen=strlen(src);
+    // everybody needs to tell everyone if they have a string
+    // send your rank if you have a non-empty string else
+    // send -1
+    int in=(slen?rank:-1);
+    int out;
+std::cerr << "My input is " << in << std::endl;    
+    if (MPI_Allreduce(&in, &out, 1, MPI_INT, MPI_MAX, comm)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+std::cerr << "My ouput is " << out << std::endl;    
+    if (out==-1)		// should not be called under these conditions, but noone had a string
+    {
+	*dest=new char[1];
+	*dest[0]='\0';
+	return true;
+    }
+    // since we will be using broadcast, we need to tell everyone how big the string is going to be
+    // with an additional bcast
+    
+    if (MPI_Bcast(&slen, 1, MPI_INT, out, comm)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+std::cerr << "slen=" << slen << " out=" << out << std::endl;    
+    // now broadcast that string to everyone
+    if (rank==out)
+    {
+	// I could const _ cast src but instead I'll make a copy
+	
+	*dest=new char[slen+1];
+	strcpy(*dest, src);
+	
+	// this guy should just send the string
+	if (MPI_Bcast(*dest, slen+1, MPI_CHAR, out, comm)!=MPI_SUCCESS)
+	{
+	    return false;
+	}
+std::cerr << "Post send [" << *dest << ']' << std::endl;	
+	return true;
+    }
+    else
+    {
+	*dest=new char[slen+1];
+	if (MPI_Bcast(*dest, slen+1, MPI_CHAR, out, comm)!=MPI_SUCCESS)
+	{
+	    return false;
+	}
+std::cerr << "Post recv [" << *dest << ']' << std::endl;	
+	return true;
+    }
+#else
+    *dest=new char[strlen(src)+1];
+    strcpy(*dest, src);
+    return true;
+#endif
+  
+}
+
 
 namespace 
 {
