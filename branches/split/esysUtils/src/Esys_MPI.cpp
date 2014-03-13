@@ -28,6 +28,40 @@
 
 #include <iostream>	// temp for debugging
 
+namespace esysUtils
+{
+JMPI makeInfo(MPI_Comm comm, bool owncom)
+{
+    JMPI_* p=new JMPI_(comm, owncom);
+    return JMPI(p);
+}
+
+
+JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
+	: comm(mpicomm), ownscomm(owncom)
+{
+	msg_tag_counter = 0;
+#ifdef ESYS_MPI
+	if (MPI_Comm_rank(comm, &rank)!=MPI_SUCCESS || MPI_Comm_size(comm, &size)!=MPI_SUCCESS)
+	{
+	    Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
+	}
+#else
+	rank=0;
+	size=1;	
+#endif	
+}
+
+JMPI_::~JMPI_()
+{
+#ifdef ESYS_MPI
+    MPI_Comm_free(&comm);
+#endif
+}
+
+
+}
+
 
 /* allocate memory for an mpi_comm, and find the communicator details */
 Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
@@ -142,22 +176,6 @@ bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
 }
 
 /* returns the max of inputs on all ranks -- or just sends the input back on nompi */
-bool esysUtils::checkResult(int& input, int& output, Esys_MPIInfo *mpi_info)
-{
-#ifdef ESYS_MPI
-    output=0;
-    if (MPI_Allreduce(&input, &output, 1, MPI_INT, MPI_MAX, mpi_info->comm)!=MPI_SUCCESS)
-    {
-	return false;
-    }
-    return true;
-#else
-    output=input;
-    return true;
-#endif
-}
-
-/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
 bool esysUtils::checkResult(int& input, int& output, MPI_Comm& comm)
 {
 #ifdef ESYS_MPI
@@ -196,12 +214,10 @@ bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
     // send -1
     int in=(slen?rank:-1);
     int out;
-std::cerr << "My input is " << in << std::endl;    
     if (MPI_Allreduce(&in, &out, 1, MPI_INT, MPI_MAX, comm)!=MPI_SUCCESS)
     {
 	return false;
     }
-std::cerr << "My ouput is " << out << std::endl;    
     if (out==-1)		// should not be called under these conditions, but noone had a string
     {
 	*dest=new char[1];
@@ -215,7 +231,6 @@ std::cerr << "My ouput is " << out << std::endl;
     {
 	return false;
     }
-std::cerr << "slen=" << slen << " out=" << out << std::endl;    
     // now broadcast that string to everyone
     if (rank==out)
     {
@@ -229,7 +244,6 @@ std::cerr << "slen=" << slen << " out=" << out << std::endl;
 	{
 	    return false;
 	}
-std::cerr << "Post send [" << *dest << ']' << std::endl;	
 	return true;
     }
     else
@@ -239,7 +253,6 @@ std::cerr << "Post send [" << *dest << ']' << std::endl;
 	{
 	    return false;
 	}
-std::cerr << "Post recv [" << *dest << ']' << std::endl;	
 	return true;
     }
 #else
