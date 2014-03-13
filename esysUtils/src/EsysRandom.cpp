@@ -26,7 +26,7 @@ namespace {
     
 boost::mt19937 base;		// used to seed all the other generators  
 vector<boost::mt19937*> gens;
-vector<uint32_t> seeds;
+vector<boost::uint32_t> seeds;
 
 void seedGens(long seed)
 {
@@ -43,10 +43,10 @@ void seedGens(long seed)
     if (seed!=0)
     {
        int i;
-       base.seed((uint32_t)seed);	// without this cast, icc gets confused
+       base.seed((boost::uint32_t)seed);	// without this cast, icc gets confused
        for (int i=0;i<numthreads;++i)
        {
-	    uint32_t b=base();
+	    boost::uint32_t b=base();
             seeds[i]=b;	// initialise each generator with successive random values      
        }
        #pragma omp parallel for private(i)

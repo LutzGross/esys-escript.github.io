@@ -38,7 +38,7 @@ warnings.simplefilter('default', category=DeprecationWarning)
 
 from . import escriptcpp as escore
 
-class Job:
+class Job(object):
   """
   Describes a sequence of work to be carried out in a subworld.
   The instances of this class used in the subworlds will
@@ -47,14 +47,15 @@ class Job:
   *overloaded* work() method
   """
 
-  def __init__(self, domain, id):
+  def __init__(self, *args, **kwargs):
     """
+    It ignores all of its parameters, except, it requires the following as keyword arguments
     :var domain: Domain to be used as the basis for all ``Data`` and PDEs in this Job.
-    :var id: sequence number of this job [0, number of jobs-1]
-    :type id: Positive ``int``
+    :var jobid: sequence number of this job. The first job has id=1
+    :type jobid: Positive ``int``
     """
-    self.domain=domain
-    self.id=id
+    self.domain=kwargs["domain"]
+    self.jobid=kwargs["jobid"]
     self.incratenames={}
     self.outcratenames={}
     
