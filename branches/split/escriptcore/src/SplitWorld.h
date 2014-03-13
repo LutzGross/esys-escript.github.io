@@ -20,7 +20,7 @@
 #include <boost/smart_ptr.hpp>
 #include "esysUtils/Esys_MPI.h"
 #include "SubWorld.h"
-#include ""
+#include "Crates.h"
 namespace escript
 {
 
@@ -32,21 +32,36 @@ public:
     SplitWorld(unsigned int numgroups, MPI_Comm global=MPI_COMM_WORLD);
     ~SplitWorld();
     boost::python::object buildDomains(boost::python::tuple t, boost::python::dict kwargs);	
-	// first param will be the factory method / constructor
-	// return value will always be None (it would be void but apparently boost doesn't like that
-	// this method will be def("set....", raw_function(SplitWorld::setDomainParams, 1)
     
-    void runJobs(boost::python::list l);
+    void runJobs();
+    
+    void addJob(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
     
 	// maybe this should take factory parameters instead? The metaphor isn't quite right
-    void registerCrate(escript::Crate);
+    void registerCrate(escript::crate_ptr c);
+
+    void clearActiveJobs();
+
+    
+    
+    
+    
 private:    
     MPI_Comm globalcom;	// don't free this because we don't own it
     MPI_Comm subcom;
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
-    unsigned int groupcount;
+    unsigned int swcount;		// number of subwords
     unsigned int localid;		// position of localworld in overall world sequence
     std::vector<crate_ptr> protocrates;
+    
+    // details of jobs to be created
+    std::vector<boost::python::object> create;
+    std::vector<boost::python::tuple> tupargs;
+    std::vector<boost::python::dict> kwargs;
+    
+    unsigned int jobcounter;		// note that the id of the first job is 1 not 0.
+    void clearPendingJobs();
+    void distributeJobs();
 };
 
 
@@ -55,6 +70,10 @@ private:
 */
 boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::dict kwargs);
 
+/**
+ used to invoke the SplitWorld version from python (in lieu of a method based equivalent to raw_function)
+*/
+boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwargs);
 
 }
 #endif
