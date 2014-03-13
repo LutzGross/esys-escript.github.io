@@ -22,10 +22,10 @@
 
 using namespace escript;
 namespace bp=boost::python;
+using namespace esysUtils;
 
-
-SubWorld::SubWorld(MPI_Comm comm)
-    :communicator(comm), domain((AbstractDomain*)0)
+SubWorld::SubWorld(JMPI& comm)
+    :mpiinfo(comm), domain((AbstractDomain*)0)
 {
 
 
@@ -35,9 +35,9 @@ SubWorld::~SubWorld()
 {
 }
 
-MPI_Comm SubWorld::getComm()
+JMPI& SubWorld::getMPI()
 {
-    return communicator;
+    return mpiinfo;
 }
 
 void SubWorld::setDomain(Domain_ptr d)

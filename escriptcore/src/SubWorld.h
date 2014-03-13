@@ -28,16 +28,16 @@ namespace escript
 class SubWorld : public boost::enable_shared_from_this<SubWorld>
 {
 public:
-    SubWorld(MPI_Comm comm);
+    SubWorld(esysUtils::JMPI& comm);
     ~SubWorld();
     void setDomain(Domain_ptr d);
     Domain_ptr getDomain();
-    MPI_Comm getComm();
+    esysUtils::JMPI& getMPI();
     void addJob(boost::python::object j);
     char runJobs(std::string& errmsg);
     void clearJobs();
 private:    
-    MPI_Comm communicator;
+    esysUtils::JMPI mpiinfo;
     escript::Domain_ptr domain;
     std::vector<boost::python::object> jobvec;
 };

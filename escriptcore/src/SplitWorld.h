@@ -47,8 +47,12 @@ public:
     
     
 private:    
+/*    
     MPI_Comm globalcom;	// don't free this because we don't own it
     MPI_Comm subcom;
+*/    
+    esysUtils::JMPI globalcom;
+    esysUtils::JMPI subcom;
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
     unsigned int swcount;		// number of subwords
     unsigned int localid;		// position of localworld in overall world sequence

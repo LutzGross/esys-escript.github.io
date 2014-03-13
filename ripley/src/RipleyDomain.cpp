@@ -60,7 +60,7 @@ RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
     }
     else
     {
-	m_mpiInfo = Esys_MPIInfo_alloc(p->getComm());
+	m_mpiInfo = Esys_MPIInfo_alloc(p->getMPI()->comm);
     }
 }
 

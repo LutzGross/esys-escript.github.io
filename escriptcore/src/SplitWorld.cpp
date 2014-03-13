@@ -25,41 +25,37 @@ using namespace boost::python;
 using namespace escript;
 
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
-    :globalcom(global), subcom(MPI_COMM_NULL), localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1)
+    :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1)
 {
+    globalcom=esysUtils::makeInfo(global);
+    
     int grank=0;
     int wsize=1;		// each world has this many processes
     #ifdef ESYS_MPI
-	int gsize=1;
-	if ((MPI_Comm_size(global, &gsize)!=MPI_SUCCESS) || (MPI_Comm_rank(global, &grank)!=MPI_SUCCESS))
-	{
-	    throw SplitWorldException("MPI appears to be inoperative.");
-	}
+	int gsize=globalcom->size;
+	grank=globalcom->rank;
 	if (gsize%swcount!=0)
 	{
 	    throw SplitWorldException("SplitWorld error: requested number of groups is not a factor of global communicator size.");
 	}
 	wsize=gsize/swcount;	// each world has this many processes
-	int res=MPI_Comm_split(MPI_COMM_WORLD, grank/wsize, grank%wsize, &subcom);
+	MPI_Comm sub;
+	int res=MPI_Comm_split(MPI_COMM_WORLD, grank/wsize, grank%wsize, &sub);
 	if (res!=MPI_SUCCESS)
 	{
 	    throw SplitWorldException("SplitWorld error: Unable to form communicator.");
 	}
+	subcom=esysUtils::makeInfo(sub,true);
+    #else
+	subcom=esysUtils::makeInfo(0);
     #endif
     localworld=SubWorld_ptr(new SubWorld(subcom));
     localid=grank/wsize;
 }
 
-// We may need to look into this more closely.
-// What if the domain lives longer than the world splitter?
 SplitWorld::~SplitWorld()
 {
-#ifdef ESYS_MPI  
-    if (subcom!=MPI_COMM_NULL)
-    {
-	MPI_Comm_free(&subcom);
-    }
-#endif    
+    // communicator cleanup handled by the MPI_Info
 }
 
 
@@ -89,7 +85,7 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
     Domain_ptr dptr=ex1();
     
     // now do a sanity check to see if the domain has respected the communicator info we passed it.
-    if (dptr->getMPIComm()!=localworld->getComm())
+    if (dptr->getMPIComm()!=localworld->getMPI()->comm)
     {
 	throw SplitWorldException("The newly constructed domain is not using the correct communicator.");
     }
@@ -110,12 +106,10 @@ void SplitWorld::runJobs()
 	// everybody will be executing their localworld's jobs
 	int res=localworld->runJobs(err);	
 	// now we find out about the other worlds
-	if (!esysUtils::checkResult(res, mres, globalcom))
+	if (!esysUtils::checkResult(res, mres, globalcom->comm))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}
-std::cerr << "I got a res of " << mres << std::endl;	
-	
     } while (mres==1);
     if (mres==2)
     {
@@ -123,21 +117,15 @@ std::cerr << "I got a res of " << mres << std::endl;
     }
     else if (mres==3)
     {
-std::cerr << "My err string is [" << err <<"]\n";	
-      
 	char* resultstr=0;
 	// now we ship around the error message
-	if (!esysUtils::shipString(err.c_str(), &resultstr, globalcom))
+	if (!esysUtils::shipString(err.c_str(), &resultstr, globalcom->comm))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}
 	//throw SplitWorldException("At least one Job's work() function raised an exception.");
 	std::string s("At least one Job's work() function raised the following exception:\n");
 	s+=resultstr;
-// std::cerr << "My combined [" << s.c_str() << std::endl;
-// 	char* testing=new char[s.size()+1];
-// 	strcpy(testing, s.c_str());
-std::cerr << "Pre-throw [[[" << s << "]]]\n";	
 	throw SplitWorldException(s);
     }
 }
@@ -295,7 +283,7 @@ std::cerr << "Numjobs=" << numjobs << " start=" << start << std::endl;
     
     // MPI check to ensure that it worked for everybody
     int mstat=0;
-    if (!esysUtils::checkResult(errstat, mstat, globalcom))
+    if (!esysUtils::checkResult(errstat, mstat, globalcom->comm))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }

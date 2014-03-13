@@ -22,6 +22,7 @@
 #include "types.h"
 
 #include <sstream>
+#include <boost/shared_ptr.hpp>
 
 #ifdef ESYS_MPI
    #include "mpi_C.h"
@@ -83,6 +84,26 @@ bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info);
 
 namespace esysUtils {
 
+class JMPI_;
+
+typedef boost::shared_ptr<JMPI_> JMPI;
+
+class JMPI_
+{
+public:
+    ~JMPI_();
+    int size;
+    Esys_MPI_rank rank;
+    MPI_Comm comm;
+    int msg_tag_counter;
+    bool ownscomm;	// if true, destroy comm on destruct    
+private:
+    JMPI_(MPI_Comm comm, bool ocomm);
+    friend JMPI makeInfo(MPI_Comm comm, bool owncom);
+};
+
+JMPI makeInfo(MPI_Comm comm, bool owncom=false);
+
 /// Appends MPI rank to a file name if MPI size > 1
 ESYSUTILS_DLL_API
 inline std::string appendRankToFileName(const std::string &fileName,
@@ -104,10 +125,6 @@ inline std::string appendRankToFileName(const std::string &fileName,
 bool getSplitWorld();
 /* record that a sub-communicator has been created or used */
 void splitWorld();
-
-
-/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
-bool checkResult(int& input, int& output, Esys_MPIInfo *mpi_info);
 
 /* returns the max of inputs on all ranks -- or just sends the input back on nompi */
 bool checkResult(int& input, int& output, MPI_Comm& comm);
