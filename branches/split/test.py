@@ -4,7 +4,7 @@ from esys.escriptcore.splitworld import *
 from esys.ripley import *
 
 
-sw=SplitWorld(getMPISizeWorld()/2)
+sw=SplitWorld(getMPISizeWorld())
 buildDomains(sw, Brick, 3,3,3)
 
 class J1(Job):
@@ -27,9 +27,15 @@ class BarrierJob(Job):
       self.rounds-=1
       print self.domain.OnMasterProcessor()
       return self.rounds<1
-      
-for z in range(3):
+
+addJob(sw, J1)
+addJob(sw, J1)
+for z in range(1):
 #  addJob(sw, J1)
   addJob(sw, BarrierJob)
 
-sw.runJobs()
+  
+try:  
+    sw.runJobs()
+except RuntimeError as e:
+    print e

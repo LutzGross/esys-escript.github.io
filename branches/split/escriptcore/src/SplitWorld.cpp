@@ -25,24 +25,27 @@ using namespace boost::python;
 using namespace escript;
 
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
-    :globalcom(global), subcom(MPI_COMM_NULL), localworld((SubWorld*)0), swcount(numgroups), jobcounter(1)
+    :globalcom(global), subcom(MPI_COMM_NULL), localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1)
 {
-    int gsize;
-    int grank;
-    if ((MPI_Comm_size(global, &gsize)!=MPI_SUCCESS) || (MPI_Comm_rank(global, &grank)!=MPI_SUCCESS))
-    {
-	throw SplitWorldException("MPI appears to be inoperative.");
-    }
-    if (gsize%numgroups!=0)
-    {
-	throw SplitWorldException("SplitWorld error: requested number of groups is not a factor of global communicator size.");
-    }
-    int wsize=gsize/numgroups;	// each world has this many processes
-    int res=MPI_Comm_split(MPI_COMM_WORLD, grank/wsize, grank%wsize, &subcom);
-    if (res!=MPI_SUCCESS)
-    {
-	throw SplitWorldException("SplitWorld error: Unable to form communicator.");
-    } 
+    int grank=0;
+    int wsize=1;		// each world has this many processes
+    #ifdef ESYS_MPI
+	int gsize=1;
+	if ((MPI_Comm_size(global, &gsize)!=MPI_SUCCESS) || (MPI_Comm_rank(global, &grank)!=MPI_SUCCESS))
+	{
+	    throw SplitWorldException("MPI appears to be inoperative.");
+	}
+	if (gsize%swcount!=0)
+	{
+	    throw SplitWorldException("SplitWorld error: requested number of groups is not a factor of global communicator size.");
+	}
+	wsize=gsize/swcount;	// each world has this many processes
+	int res=MPI_Comm_split(MPI_COMM_WORLD, grank/wsize, grank%wsize, &subcom);
+	if (res!=MPI_SUCCESS)
+	{
+	    throw SplitWorldException("SplitWorld error: Unable to form communicator.");
+	}
+    #endif
     localworld=SubWorld_ptr(new SubWorld(subcom));
     localid=grank/wsize;
 }
@@ -51,10 +54,12 @@ SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
 // What if the domain lives longer than the world splitter?
 SplitWorld::~SplitWorld()
 {
+#ifdef ESYS_MPI  
     if (subcom!=MPI_COMM_NULL)
     {
 	MPI_Comm_free(&subcom);
     }
+#endif    
 }
 
 
@@ -98,17 +103,19 @@ void SplitWorld::runJobs()
 {
     distributeJobs();
     int mres=0;
+    std::string err;
     do
     {
 	// now we actually need to run the jobs
 	// everybody will be executing their localworld's jobs
-	int res=localworld->runJobs();	
+	int res=localworld->runJobs(err);	
 	// now we find out about the other worlds
-	mres=0;
-	if (MPI_Allreduce(&res, &mres, 1, MPI_INT, MPI_MAX, globalcom)!=MPI_SUCCESS)
+	if (!esysUtils::checkResult(res, mres, globalcom))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}
+std::cerr << "I got a res of " << mres << std::endl;	
+	
     } while (mres==1);
     if (mres==2)
     {
@@ -116,7 +123,22 @@ void SplitWorld::runJobs()
     }
     else if (mres==3)
     {
-	throw SplitWorldException("At least one Job's work() function raised an exception.");
+std::cerr << "My err string is [" << err <<"]\n";	
+      
+	char* resultstr=0;
+	// now we ship around the error message
+	if (!esysUtils::shipString(err.c_str(), &resultstr, globalcom))
+	{
+	    throw SplitWorldException("MPI appears to have failed.");
+	}
+	//throw SplitWorldException("At least one Job's work() function raised an exception.");
+	std::string s("At least one Job's work() function raised the following exception:\n");
+	s+=resultstr;
+// std::cerr << "My combined [" << s.c_str() << std::endl;
+// 	char* testing=new char[s.size()+1];
+// 	strcpy(testing, s.c_str());
+std::cerr << "Pre-throw [[[" << s << "]]]\n";	
+	throw SplitWorldException(s);
     }
 }
 
@@ -249,7 +271,7 @@ void SplitWorld::distributeJobs()
     {
 	start+=create.size()%swcount;
     }
-    short errstat=0;
+    int errstat=0;
     try
     {
 std::cerr << "Numjobs=" << numjobs << " start=" << start << std::endl;    
@@ -272,12 +294,11 @@ std::cerr << "Numjobs=" << numjobs << " start=" << start << std::endl;
     clearPendingJobs();
     
     // MPI check to ensure that it worked for everybody
-    short mstat=0;
-    if (MPI_Allreduce(&errstat, &mstat, 1, MPI_SHORT, MPI_MAX, globalcom)!=MPI_SUCCESS)
+    int mstat=0;
+    if (!esysUtils::checkResult(errstat, mstat, globalcom))
     {
 	throw SplitWorldException("MPI appears to have failed.");
     }
-    errstat=mstat;
     
     if (errstat==1)
     {

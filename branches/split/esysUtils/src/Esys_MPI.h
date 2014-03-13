@@ -31,6 +31,7 @@
    #define MPI_INT 6
    #define MPI_DOUBLE 11
    #define MPI_COMM_WORLD 91
+   #define MPI_COMM_NULL 0
 #endif
 
 typedef int Esys_MPI_rank;
@@ -103,6 +104,18 @@ inline std::string appendRankToFileName(const std::string &fileName,
 bool getSplitWorld();
 /* record that a sub-communicator has been created or used */
 void splitWorld();
+
+
+/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
+bool checkResult(int& input, int& output, Esys_MPIInfo *mpi_info);
+
+/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
+bool checkResult(int& input, int& output, MPI_Comm& comm);
+
+// ensure that the any ranks with an empty src argument end up with the string from
+// one of the other ranks
+// with no-mpi, it makes dest point at a copy of src
+bool shipString(const char* src, char** dest, MPI_Comm& comm);
 
 } // namespace esysUtils
 

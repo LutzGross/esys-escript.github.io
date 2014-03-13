@@ -34,7 +34,7 @@ public:
     Domain_ptr getDomain();
     MPI_Comm getComm();
     void addJob(boost::python::object j);
-    char runJobs();
+    char runJobs(std::string& errmsg);
     void clearJobs();
 private:    
     MPI_Comm communicator;
