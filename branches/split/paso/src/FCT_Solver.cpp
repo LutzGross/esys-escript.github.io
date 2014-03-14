@@ -44,7 +44,7 @@ Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options
     out=new Paso_FCT_Solver;
     if (! Esys_checkPtr(out)) {
       	out->transportproblem  = Paso_TransportProblem_getReference(fctp);
-        out->mpi_info          = Esys_MPIInfo_getReference(fctp->mpi_info);
+        out->mpi_info          = fctp->mpi_info;
 	out->flux_limiter      = Paso_FCT_FluxLimiter_alloc(fctp);
 	out->b                 = new double[n];
 	if ( (options->ode_solver == PASO_CRANK_NICOLSON) || (options->ode_solver == PASO_BACKWARD_EULER) ) {
@@ -85,7 +85,6 @@ void Paso_FCT_Solver_free(Paso_FCT_Solver *in)
     if (in != NULL) {
           Paso_TransportProblem_free(in->transportproblem);
 	  Paso_FCT_FluxLimiter_free(in->flux_limiter);
-          Esys_MPIInfo_free(in->mpi_info);
 	  Paso_Coupler_free(in->u_old_coupler);
 	  Paso_Coupler_free(in->u_coupler);
 

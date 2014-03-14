@@ -41,7 +41,6 @@ void Paso_TransportProblem_free(Paso_TransportProblem* in) {
            Paso_SystemMatrix_free(in->transport_matrix);
            Paso_SystemMatrix_free(in->mass_matrix);
            Paso_SystemMatrix_free(in->iteration_matrix);
-           Esys_MPIInfo_free(in->mpi_info);
            delete[] in->constraint_mask;
            delete[] in->reactive_matrix;
            delete[] in->main_diagonal_mass_matrix;
@@ -75,7 +74,7 @@ Paso_TransportProblem* Paso_TransportProblem_alloc(Paso_SystemMatrixPattern *pat
      out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
      out->iteration_matrix=NULL;
      out->constraint_mask=NULL;
-     out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
+     out->mpi_info=pattern->mpi_info;
 
      out->lumped_mass_matrix=NULL;
      out->main_diagonal_low_order_transport_matrix=NULL;
@@ -123,7 +122,7 @@ void Paso_TransportProblem_reset(Paso_TransportProblem* in)
 }
 
 
-index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info) 
+index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, esysUtils::JMPI& mpi_info) 
 {
    return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
 }

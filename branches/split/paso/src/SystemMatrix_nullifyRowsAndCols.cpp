@@ -40,7 +40,7 @@
 void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
 
   double *remote_values=NULL;
-  Esys_MPIInfo *mpi_info=A->mpi_info;
+  esysUtils::JMPI& mpi_info=A->mpi_info;
   if (mpi_info->size>1) {
      if (A ->col_block_size==1 && A ->row_block_size ==1) {
        if (A->type & MATRIX_FORMAT_CSC) {

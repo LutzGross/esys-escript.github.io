@@ -29,7 +29,7 @@
 /*   allocates a node file to hold nodes */
 /*   use Dudley_NodeFile_allocTable to allocate the node table (Id,Coordinates). */
 
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo * MPIInfo)
+Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, esysUtils::JMPI& MPIInfo)
 {
     Dudley_NodeFile *out;
 
@@ -66,7 +66,7 @@ Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo * MPIInfo)
     out->reducedDegreesOfFreedomConnector = NULL;
     out->tagsInUse = NULL;
 
-    out->MPIInfo = Esys_MPIInfo_getReference(MPIInfo);
+    out->MPIInfo = MPIInfo;
     return out;
 }
 
@@ -77,7 +77,6 @@ void Dudley_NodeFile_free(Dudley_NodeFile * in)
     if (in != NULL)
     {
 	Dudley_NodeFile_freeTable(in);
-	Esys_MPIInfo_free(in->MPIInfo);
 	delete in;
     }
 }

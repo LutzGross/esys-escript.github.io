@@ -53,7 +53,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
                                                            const index_t* offset_S, const dim_t* degree_S, const index_t* S,
 							   const dim_t n_C, index_t* counter_C, const index_t interpolation_method) 
 {
-   Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
+   esysUtils::JMPI& mpi_info=A_p->mpi_info;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;

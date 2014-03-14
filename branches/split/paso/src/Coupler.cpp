@@ -42,7 +42,7 @@ Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents* send,
   if (!Esys_checkPtr(out)) {
       out->send=Paso_SharedComponents_getReference(send);
       out->recv= Paso_SharedComponents_getReference(recv);
-      out->mpi_info = Esys_MPIInfo_getReference(send->mpi_info);
+      out->mpi_info = send->mpi_info;
       out->reference_counter=1;
 
 /*
@@ -82,7 +82,6 @@ void Paso_Connector_free(Paso_Connector* in) {
      if (in->reference_counter<=0) {
         Paso_SharedComponents_free(in->send);
         Paso_SharedComponents_free(in->recv);
-        Esys_MPIInfo_free(in->mpi_info);
         delete in;
         #ifdef Paso_TRACE
         printf("Paso_Coupler_dealloc: system matrix pattern as been deallocated.\n");
@@ -136,7 +135,7 @@ Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size) {
 
 Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
 {
-  Esys_MPIInfo *mpi_info = connector->mpi_info;  
+  esysUtils::JMPI mpi_info = connector->mpi_info;  
   Paso_Coupler*out=NULL;
   Esys_resetError();
   out=new Paso_Coupler;
@@ -148,7 +147,7 @@ Paso_Coupler* Paso_Coupler_alloc(Paso_Connector* connector, dim_t block_size)
       out->recv_buffer=NULL;
       out->mpi_requests=NULL;
       out->mpi_stati=NULL;
-      out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
+      out->mpi_info = mpi_info;
       out->reference_counter=1;
       out->in_use = FALSE;
       
@@ -195,7 +194,6 @@ void Paso_Coupler_free(Paso_Coupler* in) {
         delete[] in->mpi_requests;
         delete[] in->mpi_stati;
   #endif		
-        Esys_MPIInfo_free(in->mpi_info);
         delete in;
      }
    }
@@ -204,7 +202,7 @@ void Paso_Coupler_free(Paso_Coupler* in) {
 
 void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
 {
-  Esys_MPIInfo *mpi_info = coupler->mpi_info;  
+  esysUtils::JMPI& mpi_info = coupler->mpi_info;  
   dim_t block_size=coupler->block_size;
   size_t block_size_size=block_size*sizeof(double);
   dim_t i;
@@ -261,7 +259,7 @@ void Paso_Coupler_startCollect(Paso_Coupler* coupler,const double* in)
 
 double* Paso_Coupler_finishCollect(Paso_Coupler* coupler)
 {
-  Esys_MPIInfo *mpi_info = coupler->mpi_info;  
+  esysUtils::JMPI& mpi_info = coupler->mpi_info;  
   if ( mpi_info->size>1) {
      if (! coupler->in_use) {
 	Esys_setError(SYSTEM_ERROR,"Paso_Coupler_finishCollect: Communication has not been initiated.");

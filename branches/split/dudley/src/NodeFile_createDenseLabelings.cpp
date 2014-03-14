@@ -51,7 +51,7 @@ dim_t Dudley_NodeFile_createDenseDOFLabeling(Dudley_NodeFile * in)
 	 || Dudley_checkPtr(set_new_DOF)))
     {
 	/* distribute the range of node ids */
-	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
+	buffer_len = in->MPIInfo->setDistribution(min_dof, max_dof, distribution);
 	myDOFs = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
 	DOF_buffer = new  index_t[buffer_len];
@@ -217,7 +217,7 @@ dim_t Dudley_NodeFile_createDenseReducedDOFLabeling(Dudley_NodeFile * in, index_
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)))
     {
 	/* distribute the range of node ids */
-	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_dof, max_dof, distribution);
+	buffer_len = in->MPIInfo->setDistribution(min_dof, max_dof, distribution);
 	myDOFs = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
 	DOF_buffer = new  index_t[buffer_len];
@@ -496,7 +496,7 @@ dim_t Dudley_NodeFile_createDenseReducedNodeLabeling(Dudley_NodeFile * in, index
     if (!(Dudley_checkPtr(distribution) || Dudley_checkPtr(offsets) || Dudley_checkPtr(loc_offsets)))
     {
 	/* distribute the range of node ids */
-	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_node, max_node, distribution);
+	buffer_len = in->MPIInfo->setDistribution(min_node, max_node, distribution);
 	myNodes = distribution[in->MPIInfo->rank + 1] - distribution[in->MPIInfo->rank];
 	/* allocate buffers */
 	Nodes_buffer = new  index_t[buffer_len];

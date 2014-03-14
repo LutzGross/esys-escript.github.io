@@ -94,7 +94,7 @@ Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type,
   out->col_connector=Paso_Connector_getReference(col_connector);
   out->output_distribution=Paso_Distribution_getReference(output_distribution);
   out->input_distribution=Paso_Distribution_getReference(input_distribution);
-  out->mpi_info= Esys_MPIInfo_getReference(output_distribution->mpi_info);
+  out->mpi_info= output_distribution->mpi_info;
   #ifdef Paso_TRACE
   printf("Paso_SystemMatrixPattern_alloc: system matrix pattern has been allocated.\n");
   #endif
@@ -123,7 +123,6 @@ void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern* in) {
         Paso_Connector_free(in->col_connector);
         Paso_Distribution_free(in->output_distribution);
         Paso_Distribution_free(in->input_distribution);
-        Esys_MPIInfo_free(in->mpi_info);
         delete in;
         #ifdef Paso_TRACE
         printf("Paso_SystemMatrixPattern_free: system matrix pattern has been deallocated.\n");

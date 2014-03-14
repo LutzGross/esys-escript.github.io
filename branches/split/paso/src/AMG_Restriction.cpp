@@ -42,7 +42,7 @@
 
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 { 
-   Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(P->mpi_info);
+   esysUtils::JMPI& mpi_info=P->mpi_info;
    Paso_SparseMatrix *main_block=NULL, *couple_block=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;

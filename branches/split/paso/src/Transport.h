@@ -43,7 +43,7 @@ typedef struct Paso_TransportProblem {
     double* reactive_matrix;
     double* main_diagonal_mass_matrix;
 
-    Esys_MPIInfo *mpi_info;
+    esysUtils::JMPI mpi_info;
     dim_t reference_counter;
 
 } Paso_TransportProblem;
@@ -87,7 +87,7 @@ PASO_DLL_API
 Paso_Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProblem* in);
 
 PASO_DLL_API
-index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
+index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, esysUtils::JMPI& mpi_info);
 
 PASO_DLL_API
 void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const double* r,  double* source);

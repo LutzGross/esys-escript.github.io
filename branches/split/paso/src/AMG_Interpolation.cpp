@@ -590,7 +590,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
 {
-   Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
+   esysUtils::JMPI& mpi_info=A->mpi_info;
    Paso_SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
@@ -1990,7 +1990,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    delete[] neighbor;
    delete[] mpi_requests;
    delete[] mpi_stati;
-   Esys_MPIInfo_free(mpi_info);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
    main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,
@@ -2038,7 +2037,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 	Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
 {
-   Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
+   esysUtils::JMPI& mpi_info=A->mpi_info;
    Paso_SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
@@ -3413,7 +3412,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    delete[] neighbor;
    delete[] mpi_requests;
    delete[] mpi_stati;
-   Esys_MPIInfo_free(mpi_info);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
    main_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,

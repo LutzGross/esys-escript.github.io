@@ -80,7 +80,7 @@ static void gatherEntries(int n, const int* index, int min_index, int max_index,
 
 /// constructor
 /// use NodeFile::allocTable to allocate the node table (Id,Coordinates)
-NodeFile::NodeFile(int nDim, Esys_MPIInfo *mpiInfo) :
+NodeFile::NodeFile(int nDim, esysUtils::JMPI& mpiInfo) :
     numNodes(0),
     numDim(nDim),
     Id(NULL),
@@ -101,14 +101,13 @@ NodeFile::NodeFile(int nDim, Esys_MPIInfo *mpiInfo) :
     reducedDegreesOfFreedomId(NULL),
     status(FINLEY_INITIAL_STATUS)
 {
-    MPIInfo = Esys_MPIInfo_getReference(mpiInfo);
+    MPIInfo = mpiInfo;
 }
 
 /// destructor
 NodeFile::~NodeFile()
 {
     freeTable();
-    Esys_MPIInfo_free(MPIInfo);
 }
 
 /// allocates the node table within this node file to hold NN nodes.

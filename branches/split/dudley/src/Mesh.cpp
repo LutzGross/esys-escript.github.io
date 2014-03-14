@@ -26,7 +26,7 @@
 /*   allocates a Mesh with name name for elements of type id using an integration order. If order is negative, */
 /*   the most appropriate order is selected independently. */
 
-Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info)
+Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, esysUtils::JMPI& mpi_info)
 {
     Dudley_Mesh *out;
 
@@ -47,7 +47,7 @@ Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, Esys_MPIInfo * mpi_info
     out->FullReducedPattern = NULL;
     out->ReducedFullPattern = NULL;
     out->ReducedReducedPattern = NULL;
-    out->MPIInfo = Esys_MPIInfo_getReference(mpi_info);
+    out->MPIInfo = mpi_info;
     if (!Dudley_noError())
     {
 	Dudley_Mesh_free(out);
@@ -110,7 +110,6 @@ void Dudley_Mesh_free(Dudley_Mesh * in)
 	    Paso_SystemMatrixPattern_free(in->FullReducedPattern);
 	    Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
 	    Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
-	    Esys_MPIInfo_free(in->MPIInfo);
 	    delete in;
 	}
     }

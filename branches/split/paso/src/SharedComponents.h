@@ -49,7 +49,7 @@ typedef struct Paso_SharedComponents {
                           
   dim_t numSharedComponents; /* = offsetInShared[numNeighbors] */
 
-  Esys_MPIInfo *mpi_info;
+  esysUtils::JMPI mpi_info;
   dim_t reference_counter;
 
 } Paso_SharedComponents;
@@ -63,7 +63,7 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
                                                    index_t* shared,
                                                    index_t* offsetInShared,
                                                    index_t m, index_t b,
-                                                   Esys_MPIInfo *mpi_info);
+                                                   esysUtils::JMPI& mpi_info);
                                  
 
 PASO_DLL_API

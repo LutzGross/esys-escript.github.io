@@ -122,7 +122,7 @@ class TransportProblemAdapter:public escript::AbstractTransportProblem {
   */
   PASOWRAP_DLL_API
   static int getTransportTypeId(const int solver, const int preconditioner,
-          const int package, const bool symmetry, Esys_MPIInfo* mpiInfo);
+          const int package, const bool symmetry, esysUtils::JMPI& mpiInfo);
 
  protected:
 

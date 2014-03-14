@@ -84,7 +84,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     if (!Dudley_checkPtr(distribution))
     {
 	/* distribute the range of node ids */
-	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_id, max_id, distribution);
+	buffer_len = in->MPIInfo->setDistribution(min_id, max_id, distribution);
 	/* allocate buffers */
 	Id_buffer = new  index_t[buffer_len];
 	Tag_buffer = new  index_t[buffer_len];
@@ -187,5 +187,5 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     }
     delete[] distribution;
     /* make sure that the error is global */
-    Esys_MPIInfo_noError(in->MPIInfo);
+    Esys_MPIInfo_noError(0);
 }

@@ -32,7 +32,7 @@ typedef enum Paso_FunctionType Paso_FunctionType;
 typedef struct Paso_Function {
   Paso_FunctionType kind;
   dim_t n;
-  Esys_MPIInfo *mpi_info;
+  esysUtils::JMPI mpi_info;
   double *b;
   double *tmp;
   void *more;

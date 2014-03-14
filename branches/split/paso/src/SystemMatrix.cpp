@@ -71,7 +71,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      out->pattern=NULL;  
      out->row_distribution=NULL;
      out->col_distribution=NULL;
-     out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
+     out->mpi_info=pattern->mpi_info;
      out->row_coupler=NULL;
      out->col_coupler=NULL;
      out->mainBlock=NULL;
@@ -184,7 +184,6 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Paso_SystemMatrixPattern_free(in->pattern);
         Paso_Distribution_free(in->row_distribution);
         Paso_Distribution_free(in->col_distribution);
-        Esys_MPIInfo_free(in->mpi_info);
         Paso_Coupler_free(in->row_coupler);
         Paso_Coupler_free(in->col_coupler);
         Paso_SparseMatrix_free(in->mainBlock);

@@ -38,7 +38,7 @@ Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp)
      out=new Paso_FCT_FluxLimiter;
      if (! Esys_checkPtr(out)) {
       
-            out->mpi_info = Esys_MPIInfo_getReference(fctp->mpi_info);
+            out->mpi_info = fctp->mpi_info;
 	    out->u_tilde=new double[n];
 	    Esys_checkPtr(out->u_tilde);
 
@@ -67,7 +67,6 @@ Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp)
 void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in) 
 {
    if (in!=NULL) {
-       Esys_MPIInfo_free(in->mpi_info);
        Paso_SystemMatrix_free(in->antidiffusive_fluxes);
        delete[] in->u_tilde;
        delete[] in->MQ;

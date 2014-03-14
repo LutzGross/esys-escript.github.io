@@ -708,7 +708,7 @@ public:
 protected:
     dim_t m_numDim;
     StatusType m_status;
-    Esys_MPIInfo *m_mpiInfo;
+    esysUtils::JMPI m_mpiInfo;
     TagMap m_tagMap;
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
