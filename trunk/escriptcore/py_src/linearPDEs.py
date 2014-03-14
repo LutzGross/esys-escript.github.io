@@ -3520,114 +3520,274 @@ class WavePDE(LinearPDE):
 
 
 class LameEquation(LinearPDE):
-   """
-   Class to define a Lame equation problem. This problem is defined as:
+    """
+    Class to define a Lame equation problem. This problem is defined as:
 
-   *-grad(mu*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(lambda*grad(u[k])[k])[j] = F_i -grad(sigma[ij])[j]*
+    *-grad(mu*(grad(u[i])[j]+grad(u[j])[i]))[j] - grad(lambda*grad(u[k])[k])[j] = F_i -grad(sigma[ij])[j]*
 
-   with natural boundary conditions:
+    with natural boundary conditions:
 
-   *n[j]*(mu*(grad(u[i])[j]+grad(u[j])[i]) + lambda*grad(u[k])[k]) = f_i +n[j]*sigma[ij]*
+    *n[j]*(mu*(grad(u[i])[j]+grad(u[j])[i]) + lambda*grad(u[k])[k]) = f_i +n[j]*sigma[ij]*
 
-   and constraints:
+    and constraints:
 
-   *u[i]=r[i]* where *q[i]>0*
+    *u[i]=r[i]* where *q[i]>0*
 
-   """
+    """
 
-   def __init__(self,domain,debug=False):
-      """
-      Initializes a new Lame equation.
+    def __init__(self,domain,debug=False,useFast=True):
+        """
+        Initializes a new Lame equation.
 
-      :param domain: domain of the PDE
-      :type domain: `Domain`
-      :param debug: if True debug information is printed
+        :param domain: domain of the PDE
+        :type domain: `Domain`
+        :param debug: if True debug information is printed
 
-      """
-      super(LameEquation, self).__init__(domain,\
+        """
+        self.fastAssembler = False
+        if useFast and hasattr(domain, "setAssembler"):
+            self.fastAssembler = True
+            domain.setAssembler("LameAssembler", [])
+        super(LameEquation, self).__init__(domain,\
                                          domain.getDim(),domain.getDim(),debug)
-      self.introduceCoefficients(lame_lambda=PDECoef(PDECoef.INTERIOR,(),PDECoef.OPERATOR),
+        self.introduceCoefficients(lame_lambda=PDECoef(PDECoef.INTERIOR,(),PDECoef.OPERATOR),
                                  lame_mu=PDECoef(PDECoef.INTERIOR,(),PDECoef.OPERATOR),
                                  F=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
                                  sigma=PDECoef(PDECoef.INTERIOR,(PDECoef.BY_EQUATION,PDECoef.BY_DIM),PDECoef.RIGHTHANDSIDE),
                                  f=PDECoef(PDECoef.BOUNDARY,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE))
-      self.setSymmetryOn()
+        self.setSymmetryOn()
 
-   def setValues(self,**coefficients):
-     """
-     Sets new values to coefficients.
+    def setValues(self,**coefficients):
+        """
+        Sets new values to coefficients.
 
-     :param coefficients: new values assigned to coefficients
-     :keyword lame_mu: value for coefficient *mu*
-     :type lame_mu: any type that can be cast to a `Scalar`
+        :param coefficients: new values assigned to coefficients
+        :keyword lame_mu: value for coefficient *mu*
+        :type lame_mu: any type that can be cast to a `Scalar`
                     object on `Function`
-     :keyword lame_lambda: value for coefficient *lambda*
-     :type lame_lambda: any type that can be cast to a `Scalar`
+        :keyword lame_lambda: value for coefficient *lambda*
+        :type lame_lambda: any type that can be cast to a `Scalar`
                         object on `Function`
-     :keyword F: value for internal force *F*
-     :type F: any type that can be cast to a `Vector` object
+        :keyword F: value for internal force *F*
+        :type F: any type that can be cast to a `Vector` object
               on `Function`
-     :keyword sigma: value for initial stress *sigma*
-     :type sigma: any type that can be cast to a `Tensor`
+        :keyword sigma: value for initial stress *sigma*
+        :type sigma: any type that can be cast to a `Tensor`
                   object on `Function`
-     :keyword f: value for external force *f*
-     :type f: any type that can be cast to a `Vector` object
+        :keyword f: value for external force *f*
+        :type f: any type that can be cast to a `Vector` object
               on `FunctionOnBoundary`
-     :keyword r: prescribed values *r* for the solution in constraints
-     :type r: any type that can be cast to a `Vector` object
+        :keyword r: prescribed values *r* for the solution in constraints
+        :type r: any type that can be cast to a `Vector` object
               on `Solution` or
               `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     :keyword q: mask for the location of constraints
-     :type q: any type that can be cast to a `Vector` object
+        :keyword q: mask for the location of constraints
+        :type q: any type that can be cast to a `Vector` object
               on `Solution` or
               `ReducedSolution` depending on whether
               reduced order is used for the representation of the equation
-     :raise IllegalCoefficient: if an unknown coefficient keyword is used
-     """
-     super(LameEquation, self).setValues(**coefficients)
+        :raise IllegalCoefficient: if an unknown coefficient keyword is used
+        """
+        super(LameEquation, self).setValues(**coefficients)
 
-   def getCoefficient(self,name):
-     """
-     Returns the value of the coefficient ``name`` of the general PDE.
+    def getCoefficient(self,name):
+        """
+        Returns the value of the coefficient ``name`` of the general PDE.
 
-     :param name: name of the coefficient requested
-     :type name: ``string``
-     :return: the value of the coefficient ``name``
-     :rtype: `Data`
-     :raise IllegalCoefficient: invalid coefficient name
-     """
-     out =self.createCoefficient("A")
-     if name == "A" :
-         if self.getCoefficient("lame_lambda").isEmpty(): 
-            if self.getCoefficient("lame_mu").isEmpty():
-                pass
-            else:
-                for i in range(self.getDim()):
-                  for j in range(self.getDim()):
-                    out[i,j,j,i] += self.getCoefficient("lame_mu")
-                    out[i,j,i,j] += self.getCoefficient("lame_mu")
-         else: 
-            if self.getCoefficient("lame_mu").isEmpty():
-                for i in range(self.getDim()):
-                  for j in range(self.getDim()):
-                    out[i,i,j,j] += self.getCoefficient("lame_lambda")
-            else:
-                for i in range(self.getDim()):
-                  for j in range(self.getDim()):
-                    out[i,i,j,j] += self.getCoefficient("lame_lambda")
-                    out[i,j,j,i] += self.getCoefficient("lame_mu")
-                    out[i,j,i,j] += self.getCoefficient("lame_mu")
-         return out
-     elif name == "X" :
-         return self.getCoefficient("sigma")
-     elif name == "Y" :
-         return self.getCoefficient("F")
-     elif name == "y" :
-         return self.getCoefficient("f")
-     else:
+        :param name: name of the coefficient requested
+        :type name: ``string``
+        :return: the value of the coefficient ``name``
+        :rtype: `Data`
+        :raise IllegalCoefficient: invalid coefficient name
+        """
+
+        if name == "A" :
+            out = self.createCoefficient("A")
+            if self.getCoefficient("lame_lambda").isEmpty(): 
+                if self.getCoefficient("lame_mu").isEmpty():
+                    pass
+                else:
+                    for i in range(self.getDim()):
+                        for j in range(self.getDim()):
+                            out[i,j,j,i] += self.getCoefficient("lame_mu")
+                            out[i,j,i,j] += self.getCoefficient("lame_mu")
+            else: 
+                if self.getCoefficient("lame_mu").isEmpty():
+                    for i in range(self.getDim()):
+                        for j in range(self.getDim()):
+                            out[i,i,j,j] += self.getCoefficient("lame_lambda")
+                else:
+                    for i in range(self.getDim()):
+                        for j in range(self.getDim()):
+                            out[i,i,j,j] += self.getCoefficient("lame_lambda")
+                            out[i,j,j,i] += self.getCoefficient("lame_mu")
+                            out[i,j,i,j] += self.getCoefficient("lame_mu")
+            return out
+        elif name == "X" :
+            return self.getCoefficient("sigma")
+        elif name == "Y" :
+            return self.getCoefficient("F")
+        elif name == "y" :
+            return self.getCoefficient("f")
         return super(LameEquation, self).getCoefficient(name)
 
+    def getSystem(self):
+        """
+        Returns the operator and right hand side of the PDE.
+
+        :return: the discrete version of the PDE
+        :rtype: ``tuple`` of `Operator` and
+               `Data`
+        """
+
+        if not self.fastAssembler:
+            return super(LameEquation, self).getSystem()
+
+        if not self.isOperatorValid() or not self.isRightHandSideValid():
+          if self.isUsingLumping():
+              if not self.isOperatorValid():
+                 if not self.getFunctionSpaceForEquation()==self.getFunctionSpaceForSolution():
+                      raise TypeError("Lumped matrix requires same order for equations and unknowns")
+                 if not self.getCoefficient("lame_mu").isEmpty() and not self.getCoefficient("lame_mu").isEmpty():
+                      raise ValueError("coefficient A in lumped matrix may not be present.")
+                 if not self.getCoefficient("B").isEmpty():
+                      raise ValueError("coefficient B in lumped matrix may not be present.")
+                 if not self.getCoefficient("C").isEmpty():
+                      raise ValueError("coefficient C in lumped matrix may not be present.")
+                 if not self.getCoefficient("d_contact").isEmpty():
+                      raise ValueError("coefficient d_contact in lumped matrix may not be present.")
+                 if not self.getCoefficient("A_reduced").isEmpty():
+                      raise ValueError("coefficient A_reduced in lumped matrix may not be present.")
+                 if not self.getCoefficient("B_reduced").isEmpty():
+                      raise ValueError("coefficient B_reduced in lumped matrix may not be present.")
+                 if not self.getCoefficient("C_reduced").isEmpty():
+                      raise ValueError("coefficient C_reduced in lumped matrix may not be present.")
+                 if not self.getCoefficient("d_contact_reduced").isEmpty():
+                      raise ValueError("coefficient d_contact_reduced in lumped matrix may not be present.")
+                 D=self.getCoefficient("D")
+                 d=self.getCoefficient("d")
+                 D_reduced=self.getCoefficient("D_reduced")
+                 d_reduced=self.getCoefficient("d_reduced")
+                 d_dirac=self.getCoefficient("d_dirac")
+
+                 if not D.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_times_e=util.matrix_mult(D,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        D_times_e=D
+                 else:
+                    D_times_e=escore.Data()
+                 if not d.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_times_e=util.matrix_mult(d,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        d_times_e=d
+                 else:
+                    d_times_e=escore.Data()
+
+                 if not D_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        D_reduced_times_e=util.matrix_mult(D_reduced,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        D_reduced_times_e=D_reduced
+                 else:
+                    D_reduced_times_e=escore.Data()
+                    
+                 if not d_reduced.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_reduced_times_e=util.matrix_mult(d_reduced,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        d_reduced_times_e=d_reduced
+                 else:
+                    d_reduced_times_e=escore.Data()
+                    
+                 if not d_dirac.isEmpty():
+                     if self.getNumSolutions()>1:
+                        d_dirac_times_e=util.matrix_mult(d_dirac,numpy.ones((self.getNumSolutions(),)))
+                     else:
+                        d_reduced_dirac_e=d_dirac
+                 else:
+                    d_dirac_times_e=escore.Data()
+
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
+                    hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
+                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escore.Data(), hrz_lumping)
+                 else:
+                    self.getDomain().addToRHS(operator, [
+                                                 ("Y", D_times_e),
+                                                 ("y", d_times_e),
+                                                 ("y_dirac", d_dirac_times_e)])
+                    self.getDomain().addToRHS(operator, [
+                                                 ("Y",D_reduced_times_e),
+                                                 ("y",d_reduced_times_e)])
+                 self.trace("New lumped operator has been built.")
+              if not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 data = [(i, self.getCoefficient(i)) for i in ["X", "Y", "y",
+                        "y_contact", "y_dirac"]]
+                 self.getDomain().addToRHS(righthandside, data)
+                 data = [(i, self.getCoefficient(i+"_reduced")) for i in ["X",
+                        "Y", "y", "y_contact"]]
+                 self.getDomain().addToRHS(righthandside, data)
+                 self.trace("New right hand side has been built.")
+                 self.validRightHandSide()
+              self.insertConstraint(rhs_only=False)
+              self.validOperator()
+          else:
+             if not self.isOperatorValid() and not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 data = [(i, self.getCoefficient(i)) for i in ["lame_mu",
+                        "lame_lambda", "B", "C", "D",
+                        "X", "Y", "d", "y", "d_contact", "y_contact",
+                        "d_dirac", "y_dirac"]]
+                 self.getDomain().addToSystem(operator,righthandside, data)
+                 data = [(i, self.getCoefficient(i+"_reduced")) for i in [
+                            "A", "B", "C", "D",
+                            "X", "Y", "d", "y", "d_contact", "y_contact"]
+                        ]
+                 self.getDomain().addToSystem(operator,righthandside, data)
+                 self.insertConstraint(rhs_only=False)
+                 self.trace("New system has been built.")
+                 self.validOperator()
+                 self.validRightHandSide()
+             elif not self.isRightHandSideValid():
+                 self.resetRightHandSide()
+                 righthandside=self.getCurrentRightHandSide()
+                 data = [(i, self.getCoefficient(i)) for i in ["X", "Y", "y",
+                        "y_contact", "y_dirac"]]
+                 self.getDomain().addToRHS(righthandside, data)
+                 data = [(i, self.getCoefficient(i+"_reduced")) for i in [
+                        "X", "Y", "y","y_contact"]]
+                 self.getDomain().addToRHS(righthandside, data)
+                 self.insertConstraint(rhs_only=True)
+                 self.trace("New right hand side has been built.")
+                 self.validRightHandSide()
+             elif not self.isOperatorValid():
+                 self.resetOperator()
+                 operator=self.getCurrentOperator()
+                 data = [(i, self.getCoefficient(i)) for i in ["lame_mu",
+                        "lame_lambda", "B","C","D","d","d_contact","d_dirac"]]
+                 self.getDomain().addToSystem(operator, data)
+                 data = [(i, self.getCoefficient(i)) for i in [
+                            "lame_mu","lame_lambda"]
+                        ] + [(i, self.getCoefficient(i+"_reduced")) for i in [
+                            "B","C","D","d","d_contact"]
+                        ]
+                 self.getDomain().addToSystem(operator,data)
+                 self.insertConstraint(rhs_only=False)
+                 self.trace("New operator has been built.")
+                 self.validOperator()
+        self.setSystemStatus()
+        self.trace("System status is %s."%self.getSystemStatus())
+        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
 def LinearSinglePDE(domain,debug=False):
    """
