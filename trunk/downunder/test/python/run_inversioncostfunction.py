@@ -83,7 +83,7 @@ class LinearMappingX(Mapping):
         
 class TestInversionCostfunction(unittest.TestCase):
     def setUp(self):
-        self.domain = esys.ripley.Rectangle(20,20) # expected dimension 1mx1m
+        self.domain = esys.ripley.Rectangle(20*getMPISizeWorld()-1,20,d0=getMPISizeWorld()) # expected dimension 1mx1m
         self.COORDINATES=CartesianReferenceSystem()
         
     def tearDown(self):
