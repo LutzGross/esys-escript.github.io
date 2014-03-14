@@ -59,7 +59,7 @@ typedef struct Paso_SystemMatrix {
 
   Paso_Distribution *row_distribution;
   Paso_Distribution *col_distribution;
-  Esys_MPIInfo *mpi_info;
+  esysUtils::JMPI mpi_info;
 
   Paso_Coupler* col_coupler;
   Paso_Coupler* row_coupler;
@@ -200,7 +200,7 @@ void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size);
 
 
 PASO_DLL_API
-int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
+int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool symmetry, esysUtils::JMPI& mpi_info);
 
 PASO_DLL_API
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);

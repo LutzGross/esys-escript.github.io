@@ -74,7 +74,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 	  options->set_up_time=0;
 	  options->residual_norm=0.;
 	  options->num_iter=0;
-	  if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
+	  if (Esys_MPIInfo_noError(0)) options->converged=TRUE;
           break;
 
 	 case PASO_UMFPACK:
@@ -92,7 +92,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 	    options->set_up_time=0;
 	    options->residual_norm=0.;
 	    options->num_iter=0;
-	    if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
+	    if (Esys_MPIInfo_noError(0)) options->converged=TRUE;
             break;
 
         default:

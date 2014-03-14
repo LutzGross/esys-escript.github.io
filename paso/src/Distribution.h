@@ -39,7 +39,7 @@ struct Paso_Distribution
 {
   index_t *first_component;  /* process i has nodes with global indices first_component[i+1] to first_component[i]. */
   dim_t reference_counter;
-  Esys_MPIInfo *mpi_info;
+  esysUtils::JMPI mpi_info;
 };
 
 typedef struct Paso_Distribution Paso_Distribution;
@@ -50,7 +50,7 @@ typedef struct Paso_Distribution Paso_Distribution;
 
 
 PASO_DLL_API
-Paso_Distribution*  Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, const index_t* first_component, index_t m, index_t b);
+Paso_Distribution*  Paso_Distribution_alloc( esysUtils::JMPI& mpi_info, const index_t* first_component, index_t m, index_t b);
 
 PASO_DLL_API
 void                Paso_Distribution_free( Paso_Distribution *in );

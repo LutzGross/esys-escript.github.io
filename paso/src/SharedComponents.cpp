@@ -41,7 +41,7 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
                                                    index_t* shared,
                                                    index_t* offsetInShared,
                                                    index_t m, index_t b,
-                                                   Esys_MPIInfo *mpi_info)
+                                                   esysUtils::JMPI& mpi_info)
 {
   dim_t i,j;
   register index_t itmp;
@@ -50,7 +50,7 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
   out=new Paso_SharedComponents;
   if (!Esys_checkPtr(out)) {
       out->local_length=local_length*m;
-      out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
+      out->mpi_info = mpi_info;
       out->numNeighbors=numNeighbors;
       out->neighbor=new Esys_MPI_rank[out->numNeighbors];
       if (offsetInShared == NULL) {
@@ -113,7 +113,6 @@ void Paso_SharedComponents_free(Paso_SharedComponents* in) {
         delete[] in->neighbor;
         delete[] in->shared;
         delete[] in->offsetInShared;
-        Esys_MPIInfo_free(in->mpi_info);
         delete in;
         #ifdef Paso_TRACE
         printf("Paso_SharedComponents_dealloc: system matrix pattern has been deallocated.\n");

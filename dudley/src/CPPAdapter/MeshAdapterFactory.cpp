@@ -54,10 +54,9 @@ namespace dudley {
   }
 #endif
 
-  inline void cleanupAndThrow(Dudley_Mesh* mesh, Esys_MPIInfo* info, string msg)
+  inline void cleanupAndThrow(Dudley_Mesh* mesh, string msg)
   {
       Dudley_Mesh_free(mesh);
-      Esys_MPIInfo_free(info);
       string msgPrefix("loadMesh: NetCDF operation failed - ");
       throw DataException(msgPrefix+msg);
   }
@@ -66,7 +65,7 @@ namespace dudley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
+    esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
     Dudley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
@@ -87,7 +86,6 @@ namespace dudley {
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
       Dudley_setError(IO_ERROR,error_msg);
-      Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
 
@@ -132,39 +130,39 @@ namespace dudley {
         Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Id)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_Id)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Id)");
+            cleanupAndThrow(mesh_p, "get(Nodes_Id)");
         // Nodes_Tag
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_Tag)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, "get(Nodes_Tag)");
         // Nodes_gDOF
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_gDOF)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, "get(Nodes_gDOF)");
         // Nodes_gNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_gNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, "get(Nodes_gNI)");
         // Nodes_grDfI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_grDfI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, "get(Nodes_grDfI)");
         // Nodes_grNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_grNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, "get(Nodes_grNI)");
         // Nodes_Coordinates
         if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates")))
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_Coordinates)");
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
 
         Dudley_NodeFile_setTagsInUse(mesh_p->Nodes);
 
@@ -179,33 +177,33 @@ namespace dudley {
                 if (num_Elements>0) {
                    // Elements_Id
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Id)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Id)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Id)");
                    // Elements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Tag)");
                    // Elements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Owner)");
                    // Elements_Color
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Color)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Color)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Color)");
                    // Elements_Nodes
                    int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
                        TMPMEMFREE(Elements_Nodes);
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
                        TMPMEMFREE(Elements_Nodes);
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
                    }
 
                    // Copy temp array into mesh_p->Elements->Nodes
@@ -232,33 +230,33 @@ namespace dudley {
                 if (num_FaceElements>0) {
                    // FaceElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Id)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Id)");
                    // FaceElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Tag)");
                    // FaceElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Owner)");
                    // FaceElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Color)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
                    // FaceElements_Nodes
                    int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
                        TMPMEMFREE(FaceElements_Nodes);
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
                        TMPMEMFREE(FaceElements_Nodes);
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->FaceElements->Nodes
                    for (int i=0; i<num_FaceElements; i++) {
@@ -283,33 +281,33 @@ namespace dudley {
                 if (num_Points>0) {
                    // Points_Id
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Id)");
                    if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Id)");
+                       cleanupAndThrow(mesh_p, "get(Points_Id)");
                    // Points_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Points_Tag")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Tag)");
+                       cleanupAndThrow(mesh_p, "get(Points_Tag)");
                    // Points_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Points_Owner")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Owner)");
                    if (!nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Owner)");
+                       cleanupAndThrow(mesh_p, "get(Points_Owner)");
                    // Points_Color
                    if (! ( nc_var_temp = dataFile.get_var("Points_Color")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Color)");
                    if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Color)");
+                       cleanupAndThrow(mesh_p, "get(Points_Color)");
                    // Points_Nodes
                    int *Points_Nodes = TMPMEMALLOC(num_Points,int);
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
                        TMPMEMFREE(Points_Nodes);
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
                        TMPMEMFREE(Points_Nodes);
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(Points_Nodes)");
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
@@ -332,11 +330,11 @@ namespace dudley {
             // Tags_keys
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
                 TMPMEMFREE(Tags_keys);
-                cleanupAndThrow(mesh_p, mpi_info, "get_var(Tags_keys)");
+                cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
             }
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
                 TMPMEMFREE(Tags_keys);
-                cleanupAndThrow(mesh_p, mpi_info, "get(Tags_keys)");
+                cleanupAndThrow(mesh_p, "get(Tags_keys)");
             }
             for (i=0; i<num_Tags; i++) {
               // Retrieve tag name
@@ -344,7 +342,7 @@ namespace dudley {
               if (! (attr=dataFile.get_att(name_temp)) ) {
                   TMPMEMFREE(Tags_keys);
                   sprintf(error_msg,"get_att(%s)", name_temp);
-                  cleanupAndThrow(mesh_p, mpi_info, error_msg);
+                  cleanupAndThrow(mesh_p, error_msg);
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
@@ -359,11 +357,11 @@ namespace dudley {
             first_DofComponent = TMPMEMALLOC(mpi_size+1,index_t);
             if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
                 TMPMEMFREE(first_DofComponent);
-                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
             }
             if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
                 TMPMEMFREE(first_DofComponent);
-                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
@@ -371,12 +369,12 @@ namespace dudley {
             if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
                 TMPMEMFREE(first_DofComponent);
                 TMPMEMFREE(first_NodeComponent);
-                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
             }
             if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
                 TMPMEMFREE(first_DofComponent);
                 TMPMEMFREE(first_NodeComponent);
-                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
             }
             Dudley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
             TMPMEMFREE(first_DofComponent);
@@ -392,7 +390,6 @@ namespace dudley {
         Dudley_Mesh_free(mesh_p);
     }
 
-    Esys_MPIInfo_free(mpi_info);
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom->getPtr();
 #else

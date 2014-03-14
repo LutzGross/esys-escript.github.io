@@ -1,0 +1,20 @@
+
+
+Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR( char *fileName_p )
+-- created an mpi_info from COM_WORLD with out any checks or references to a domain.   This needs to be fixed (Not sure how invasive that will need to be).`
+
+
+Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC( char *fileName_p )
+-- another offender
+
+
+
+What does:     Esys_MPIInfo_noError   do?    
+It takes an MPIINFO param but doesn't do anything with it
+Is it actually supposed to be doing error checking across ranks????
+
+Dudley_Mesh_read
+-- another offender
+
+There are a lot of them!
+Just search for MPI_COMM_WORLD

@@ -23,7 +23,6 @@
 #include "NodeMapping.h"
 #include <paso/Distribution.h>
 
-struct Esys_MPIInfo;
 struct Paso_Connector;
 
 namespace finley {
@@ -31,7 +30,7 @@ namespace finley {
 class NodeFile
 {
 public:
-    NodeFile(int nDim, Esys_MPIInfo *mpiInfo);
+    NodeFile(int nDim, esysUtils::JMPI& mpiInfo);
     ~NodeFile();
 
     void allocTable(int numNodes);
@@ -105,7 +104,7 @@ public:
     NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
-    Esys_MPIInfo *MPIInfo;
+    esysUtils::JMPI& MPIInfo;
     /// number of nodes
     int numNodes;
     /// number of spatial dimensions

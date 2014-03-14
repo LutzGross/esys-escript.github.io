@@ -29,7 +29,7 @@
 #include "PasoUtil.h"
 #include "esysUtils/error.h"  /* For checkPtr */
 
-Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, 
+Paso_Distribution* Paso_Distribution_alloc( esysUtils::JMPI& mpi_info, 
                                             const index_t *first_component,
                                             index_t m, index_t b) 
 {
@@ -37,7 +37,7 @@ Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info,
   Paso_Distribution *out=NULL;
   out = new Paso_Distribution;
   if (Esys_checkPtr(out)) return NULL;
-  out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
+  out->mpi_info = mpi_info;
   out->reference_counter = 0;
   out->first_component=NULL;
 
@@ -56,7 +56,6 @@ void Paso_Distribution_free( Paso_Distribution *in )
   if (in != NULL) {
     --(in->reference_counter);
     if (in->reference_counter<=0) {
-      Esys_MPIInfo_free( in->mpi_info );
       delete[] in->first_component;
       delete in;
     } 

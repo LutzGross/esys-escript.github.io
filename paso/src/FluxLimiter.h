@@ -23,7 +23,7 @@
 
 typedef struct Paso_FCT_FluxLimiter {
       Paso_SystemMatrix *antidiffusive_fluxes;
-      Esys_MPIInfo *mpi_info;
+      esysUtils::JMPI mpi_info;
       double dt;
       double* u_tilde;
       double* MQ;   /* (M_C* Q_min, M_C* Q_max) */ 

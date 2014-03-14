@@ -27,7 +27,7 @@ namespace finley {
 
 #ifdef ESYS_MPI
 void MPI_minimizeDistance(void *invec_p, void *inoutvec_p, int *len,
-                          MPI_Datatype *dtype)
+                          esysUtils::JMPI& dtype)
 {
     const int numPoints = (*len)/2;
     double *invec = reinterpret_cast<double*>(invec_p);

@@ -31,7 +31,7 @@ Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b
     out=new Paso_Function;
     if (! Esys_checkPtr(out)) {
         out->kind=LINEAR_SYSTEM;
-        out->mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
+        out->mpi_info=A->mpi_info;
         out->n=Paso_SystemMatrix_getTotalNumRows(A);
         out->more=(void*)Paso_SystemMatrix_getReference(A);
         out->b=b;
@@ -48,7 +48,6 @@ Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b
 void Paso_Function_LinearSystem_free(Paso_Function * F) 
 {
    if (F!=NULL) {
-       Esys_MPIInfo_free(F->mpi_info);
        Paso_SystemMatrix_free((Paso_SystemMatrix*)(F->more));
        delete[] F->tmp;
        delete F;

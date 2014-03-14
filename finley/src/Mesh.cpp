@@ -27,7 +27,7 @@ namespace finley {
 
 /// Constructor.
 /// Allocates a Mesh with given name and dimensionality
-Mesh::Mesh(const std::string name, int numDim, Esys_MPIInfo *mpi_info) :
+Mesh::Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info) :
     m_name(name),
     approximationOrder(-1),
     reducedApproximationOrder(-1),
@@ -42,7 +42,7 @@ Mesh::Mesh(const std::string name, int numDim, Esys_MPIInfo *mpi_info) :
     ReducedFullPattern(NULL),
     ReducedReducedPattern(NULL)
 {
-    MPIInfo = Esys_MPIInfo_getReference(mpi_info);
+    MPIInfo = mpi_info;
 
     // allocate node table
     Nodes = new NodeFile(numDim, mpi_info);
@@ -61,7 +61,6 @@ Mesh::~Mesh()
     Paso_SystemMatrixPattern_free(FullReducedPattern);
     Paso_SystemMatrixPattern_free(ReducedFullPattern);
     Paso_SystemMatrixPattern_free(ReducedReducedPattern);
-    Esys_MPIInfo_free(MPIInfo);
 }
 
 void Mesh::setElements(ElementFile *elements)
@@ -358,7 +357,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
 
     Paso_Pattern_free(pattern);
     delete[] index_list;
-    Esys_MPIInfo_noError(MPIInfo);
+    Esys_MPIInfo_noError(0);
 
     if (noError()) {
         // shift new labeling to create a global id
@@ -412,7 +411,7 @@ void Mesh::prepare(bool optimize)
 
     // create a distribution of the global DOFs and determine the MPI rank
     // controlling the DOFs on this processor
-    Esys_MPIInfo_setDistribution(MPIInfo, 0, newGlobalNumDOFs-1, &distribution[0]);
+    MPIInfo->setDistribution(0, newGlobalNumDOFs-1, &distribution[0]);
 
     // now the mesh is re-distributed according to the distribution vector
     // this will redistribute the Nodes and Elements including overlap and

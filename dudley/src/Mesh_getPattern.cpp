@@ -180,6 +180,6 @@ Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row
 	Paso_Pattern_free(col_couple_pattern);
 	Paso_Pattern_free(row_couple_pattern);
     }
-    Esys_MPIInfo_noError(mesh->MPIInfo);
+    Esys_MPIInfo_noError(0);
     return out;
 }

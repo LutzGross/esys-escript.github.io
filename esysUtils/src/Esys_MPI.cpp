@@ -59,6 +59,49 @@ JMPI_::~JMPI_()
 #endif
 }
 
+dim_t JMPI_::setDistribution(index_t min_id,index_t max_id,index_t* distribution)
+{
+   int rest=0, p;
+   int s=size;
+   dim_t N=max_id-min_id+1;
+   if (N>0) {
+      int local_N=N/s;
+      rest=N-local_N*s;
+      for (p=0; p<s; ++p) {
+         if (p<rest) {
+             distribution[p]=min_id+(local_N+1)*p;
+         } else {
+             distribution[p]=min_id+rest+local_N*p;
+         }
+      }
+      distribution[s]=max_id+1;
+      if (rest==0) {
+         return local_N;
+      } else {
+         return local_N+1;
+      }
+  } else {
+      for (p=0; p<s+1; ++p) distribution[p]=min_id;
+      return 0;
+  }  
+  
+  
+}
+
+void JMPI_::split(dim_t N, dim_t* local_N,index_t* offset) 
+{
+   int rest=0;
+   int s=size;
+   int r=rank;
+   *local_N=N/s;
+   rest=N-(*local_N)*s;
+   if (r<rest) {
+       (*local_N)++;
+       (*offset)=(*local_N)*r;
+   } else {
+       (*offset)=(*local_N)*r+rest;
+   }
+}
 
 }
 
@@ -139,7 +182,7 @@ void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t N, dim_t* local_N,index_t
 }
 
 
-dim_t Esys_MPIInfo_setDistribution(Esys_MPIInfo* mpi_info ,index_t min_id,index_t max_id,index_t* distribution) {
+dim_t Esys_MPIInfo_setDistribution(esysUtils::JMPI& mpi_info ,index_t min_id,index_t max_id,index_t* distribution) {
    int rest=0, p;
    int s=mpi_info->size;
    dim_t N=max_id-min_id+1;

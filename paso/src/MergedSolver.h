@@ -37,7 +37,7 @@
 
 typedef struct Paso_MergedSolver
 {
-    Esys_MPIInfo *mpi_info;
+    esysUtils::JMPI mpi_info;
     Paso_SparseMatrix *A;
 
     double* x;

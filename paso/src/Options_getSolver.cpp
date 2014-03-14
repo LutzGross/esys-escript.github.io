@@ -31,7 +31,7 @@
 
 /************************************************************************************/
 
-index_t Paso_Options_getSolver(index_t solver,index_t package, bool symmetry, Esys_MPIInfo *mpi_info) {
+index_t Paso_Options_getSolver(index_t solver,index_t package, bool symmetry, esysUtils::JMPI& mpi_info) {
   index_t out=PASO_DEFAULT;
   /* PASO */
   if (package==PASO_PASO) {

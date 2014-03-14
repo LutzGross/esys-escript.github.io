@@ -194,7 +194,7 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
 
 PASOWRAP_DLL_API
 int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner,
-        const int package, const bool symmetry, Esys_MPIInfo* mpiInfo)
+        const int package, const bool symmetry, esysUtils::JMPI& mpiInfo)
 {
     int out=Paso_SystemMatrix_getSystemMatrixTypeId(mapOptionToPaso(solver),
             mapOptionToPaso(preconditioner), mapOptionToPaso(package),

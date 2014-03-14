@@ -52,7 +52,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
    
        /* merge matrix */
        out->A = NULL;
-       out->mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
+       out->mpi_info=A->mpi_info;
        out->reordering = options->reordering;
        out->refinements = options->coarse_matrix_refinements;
        /*out->verbose = options->verbose; */

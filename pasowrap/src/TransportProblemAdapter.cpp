@@ -183,7 +183,7 @@ double TransportProblemAdapter::getUnlimitedTimeStepSize() const
 PASOWRAP_DLL_API
 int TransportProblemAdapter::getTransportTypeId(const int solver,
         const int preconditioner, const int package, const bool symmetry,
-        Esys_MPIInfo* mpiInfo)
+        esysUtils::JMPI& mpiInfo)
 {
     int out=Paso_TransportProblem_getTypeId(
             SystemMatrixAdapter::mapOptionToPaso(solver),

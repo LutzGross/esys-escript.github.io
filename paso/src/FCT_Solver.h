@@ -28,7 +28,7 @@
 
 typedef struct Paso_FCT_Solver {
       Paso_TransportProblem* transportproblem;
-      Esys_MPIInfo *mpi_info;
+      esysUtils::JMPI mpi_info;
       Paso_FCT_FluxLimiter* flux_limiter;
       index_t method;
       double omega;

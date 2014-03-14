@@ -56,17 +56,17 @@ RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
 {
     if (p.get()==0)	
     {
-	m_mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+	m_mpiInfo = makeInfo(MPI_COMM_WORLD);
     }
     else
     {
-	m_mpiInfo = Esys_MPIInfo_alloc(p->getMPI()->comm);
+	m_mpiInfo = p->getMPI();
     }
 }
 
 RipleyDomain::~RipleyDomain()
 {
-    Esys_MPIInfo_free(m_mpiInfo);
+    // cleanup of MPI is dealt with by shared_ptr
 }
 
 bool RipleyDomain::operator==(const AbstractDomain& other) const

@@ -74,7 +74,7 @@ ESYSUTILS_DLL_API
 index_t Esys_MPIInfo_mod(index_t n, index_t k);
 
 ESYSUTILS_DLL_API
-dim_t Esys_MPIInfo_setDistribution(Esys_MPIInfo* in ,index_t min_id,index_t max_id,index_t* distribution);
+dim_t Esys_MPIInfo_setDistribution( Esys_MPIInfo *mpi_info, index_t min_id,index_t max_id,index_t* distribution);
 
 ESYSUTILS_DLL_API
 void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t* offset); 
@@ -97,6 +97,20 @@ public:
     MPI_Comm comm;
     int msg_tag_counter;
     bool ownscomm;	// if true, destroy comm on destruct    
+    
+    dim_t setDistribution(index_t min_id,index_t max_id,index_t* distribution);
+    void split(dim_t N, dim_t* local_N,index_t* offset);     
+    
+    void incCounter(int i)
+    {
+	msg_tag_counter+=i;
+	msg_tag_counter%=1010201;
+    }
+    
+    void setCounter(int i)
+    {
+	msg_tag_counter%=1010201;
+    }
 private:
     JMPI_(MPI_Comm comm, bool ocomm);
     friend JMPI makeInfo(MPI_Comm comm, bool owncom);

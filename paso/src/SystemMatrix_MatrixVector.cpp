@@ -41,7 +41,7 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
                                      double* out) {
 
   /*double *snd_buffer=NULL, *rcv_buffer=NULL;*/
-  Esys_MPIInfo *mpi_info=A->mpi_info;
+  esysUtils::JMPI& mpi_info=A->mpi_info;
 
   if (A->is_balanced) {
      Esys_setError(VALUE_ERROR,"Paso_SystemMatrix_MatrixVector: balanced matrix is not supported.");

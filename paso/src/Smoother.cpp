@@ -64,7 +64,7 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
      out->localSmoother=Paso_Preconditioner_LocalSmoother_alloc(A_p->mainBlock,jacobi,verbose);
      out->is_local=is_local;
   }
-  if (Esys_MPIInfo_noError(A_p->mpi_info)) {
+  if (Esys_MPIInfo_noError(0)) {
      return out;
   } else {
      Paso_Preconditioner_Smoother_free(out);

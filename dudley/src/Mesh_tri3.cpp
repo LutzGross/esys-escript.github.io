@@ -35,7 +35,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
     dim_t totalNECount, faceNECount, NDOF0 = 0, NDOF1 = 0, NFaceElements;
     index_t myRank;
     Dudley_Mesh *out;
-    Esys_MPIInfo *mpi_info = NULL;
     char name[50];
     const int LEFTTAG = 1;	/* boundary x1=0 */
     const int RIGHTTAG = 2;	/* boundary x1=1 */
@@ -47,7 +46,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
 #endif
 
     /* get MPI information */
-    mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
     if (!Dudley_noError())
     {
 	return NULL;
@@ -72,7 +71,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
     out = Dudley_Mesh_alloc(name, DIM, mpi_info);
     if (!Dudley_noError())
     {
-	Esys_MPIInfo_free(mpi_info);
 	return NULL;
     }
     if (Dudley_noError())
@@ -87,11 +85,11 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
 	{
 	    local_NE0 = NE0;
 	    e_offset0 = 0;
-	    Esys_MPIInfo_Split(mpi_info, NE1, &local_NE1, &e_offset1);
+	    mpi_info->split(NE1, &local_NE1, &e_offset1);
 	}
 	else
 	{
-	    Esys_MPIInfo_Split(mpi_info, NE0, &local_NE0, &e_offset0);
+	    mpi_info->split(NE0, &local_NE0, &e_offset0);
 	    local_NE1 = NE1;
 	    e_offset1 = 0;
 	}
@@ -309,9 +307,5 @@ INDEX2(1,k,NN),out->FaceElements->Nodes[INDEX2(1,k,NN)]); */
     {
 	Dudley_Mesh_prepare(out, optimize);
     }
-
-    /* free up memory */
-    Esys_MPIInfo_free(mpi_info);
-
     return out;
 }

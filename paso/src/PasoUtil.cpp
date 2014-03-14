@@ -430,7 +430,7 @@ void Paso_LinearCombination(const dim_t n, double*z, const double a,const double
 
 
 
-double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Esys_MPIInfo* mpiinfo)
+double Paso_InnerProduct(const dim_t n,const double* x, const double* y, esysUtils::JMPI& mpiinfo)
 {
    dim_t i,local_n,rest,n_start,n_end,q;
    double my_out=0, local_out=0., out=0.;
@@ -462,7 +462,7 @@ double Paso_InnerProduct(const dim_t n,const double* x, const double* y, Esys_MP
    return out;
 
 }
-double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo) 
+double Paso_lsup(const dim_t n, const double* x, esysUtils::JMPI&  mpiinfo) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;
    double my_out=0., local_out=0., out=0.;
@@ -493,7 +493,7 @@ double Paso_lsup(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
    return out;
 
 }
-double Paso_l2(const dim_t n, const double* x, Esys_MPIInfo* mpiinfo) 
+double Paso_l2(const dim_t n, const double* x, esysUtils::JMPI&  mpiinfo) 
 {
    dim_t i,local_n,rest,n_start,n_end,q;
    double my_out=0, local_out=0., out=0.;
