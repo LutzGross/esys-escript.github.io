@@ -3383,8 +3383,11 @@ void Brick::setAssembler(std::string type, std::map<std::string,
     if (type.compare("WaveAssembler") == 0) {
         delete assembler;
         assembler = new WaveAssembler3D(this, m_dx, m_NX, m_NE, m_NN, constants);
+    } else if (type.compare("LameAssembler") == 0) {
+        delete assembler;
+        assembler = new LameAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
     } else { //else ifs would go before this for other types
-        throw RipleyException("Ripley::Rectangle does not support the"
+        throw RipleyException("Ripley::Brick does not support the"
                                 " requested assembler");
     }
 }

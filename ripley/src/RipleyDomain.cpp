@@ -1290,6 +1290,12 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
     vector<int> fsTypes;
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
+    else { // lame assembler replacements of A, should be in a better place
+        if (isNotEmpty("lame_mu", coefs))
+            fsTypes.push_back(coefs["lame_mu"].getFunctionSpace().getTypeCode());
+        if (isNotEmpty("lame_lambda", coefs))
+            fsTypes.push_back(coefs["lame_lambda"].getFunctionSpace().getTypeCode());
+    }
     if (isNotEmpty("B", coefs))
         fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
     if (isNotEmpty("C", coefs))
