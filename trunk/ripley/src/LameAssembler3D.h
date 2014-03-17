@@ -62,11 +62,11 @@ public:
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 protected:
-    Brick *domain;
-    double *m_dx;
-    dim_t *m_NX;
-    dim_t *m_NE;
-    dim_t *m_NN;
+    const Brick *domain;
+    const double *m_dx;
+    const dim_t *m_NX;
+    const dim_t *m_NE;
+    const dim_t *m_NN;
 };
 
 }

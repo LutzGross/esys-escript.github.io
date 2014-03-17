@@ -746,6 +746,11 @@ void LameAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
 		         mu = unpackData("lame_mu", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
                  X = unpackData("X", coefs), Y = unpackData("Y", coefs);
+    if (!unpackData("A", coefs).isEmpty())
+        throw RipleyException("Coefficient A was given to LameAssembler "
+                "unexpectedly. Specialised domains can't be used for general "
+                "assemblage.");
+
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());

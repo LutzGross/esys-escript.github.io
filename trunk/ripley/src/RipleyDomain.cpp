@@ -55,6 +55,7 @@ RipleyDomain::RipleyDomain(dim_t dim) :
     m_status(0)
 {
     m_mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    assembler_type = DEFAULT_ASSEMBLER;
 }
 
 RipleyDomain::~RipleyDomain()

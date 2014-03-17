@@ -44,6 +44,12 @@ struct Paso_SystemMatrix;
 
 namespace ripley {
 
+enum assembler_t {
+    DEFAULT_ASSEMBLER,
+    WAVE_ASSEMBLER,
+    LAME_ASSEMBLER
+};
+
 /* There is no particular significance to this type,
 It is here as a typedef because a bug in clang++ prevents
 that compiler from recognising it as a valid part of
@@ -719,6 +725,7 @@ protected:
     AbstractAssembler *assembler;
     std::vector<struct DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
+    assembler_t assembler_type;
     
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, const escript::Data& in) const;
