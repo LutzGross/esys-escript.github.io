@@ -19,6 +19,7 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <pasowrap/SystemMatrixAdapter.h>
 #include <pasowrap/TransportProblemAdapter.h>
+#include <ripley/domainhelpers.h>
 
 #include <iomanip>
 
@@ -27,11 +28,6 @@ using paso::SystemMatrixAdapter;
 using paso::TransportProblemAdapter;
 
 namespace ripley {
-
-bool isNotEmpty(string target, map<string, escript::Data> mapping) {
-    map<string, escript::Data>::iterator i = mapping.find(target);
-    return i != mapping.end() && !i->second.isEmpty();
-}
 
 void tupleListToMap(map<string, escript::Data>& mapping,
         boost::python::list& list) {
@@ -1289,26 +1285,7 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
                     "provided but no right hand side vector given");
 
     vector<int> fsTypes;
-    if (isNotEmpty("A", coefs))
-        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
-    else { // lame assembler replacements of A, should be in a better place
-        if (isNotEmpty("lame_mu", coefs))
-            fsTypes.push_back(coefs["lame_mu"].getFunctionSpace().getTypeCode());
-        if (isNotEmpty("lame_lambda", coefs))
-            fsTypes.push_back(coefs["lame_lambda"].getFunctionSpace().getTypeCode());
-    }
-    if (isNotEmpty("B", coefs))
-        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("C", coefs))
-        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("D", coefs))
-        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("X", coefs)) //may not exist for some custom assemblers
-        fsTypes.push_back(coefs["X"].getFunctionSpace().getTypeCode());
-    else if (isNotEmpty("du", coefs)) //used for (some) custom assemblers
-        fsTypes.push_back(coefs["du"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("Y", coefs))
-        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+    assembler->collateFunctionSpaceTypes(fsTypes, coefs);
     
     if (fsTypes.empty()) {
         return;

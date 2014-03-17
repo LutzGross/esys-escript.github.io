@@ -7,6 +7,11 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #endif
 
+bool isNotEmpty(std::string target, std::map<std::string, escript::Data> mapping) {
+    std::map<std::string, escript::Data>::iterator i = mapping.find(target);
+    return i != mapping.end() && !i->second.isEmpty();
+}
+
 void factorise(std::vector<int>& factors, int product) {
     int current = product;
     for (int p = 2; p <= sqrt(product); p++) {

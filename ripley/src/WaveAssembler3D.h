@@ -54,6 +54,9 @@ public:
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
 
+    void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const;
+
 private:
     std::map<std::string, escript::Data> c;
     Brick *domain;
