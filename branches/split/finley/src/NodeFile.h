@@ -104,7 +104,7 @@ public:
     NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
-    esysUtils::JMPI& MPIInfo;
+    esysUtils::JMPI MPIInfo;
     /// number of nodes
     int numNodes;
     /// number of spatial dimensions

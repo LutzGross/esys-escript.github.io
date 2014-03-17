@@ -46,7 +46,7 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
 #endif
 
     // get MPI information
-    esysUtils::JMPI mpiInfo = makeInfo(MPI_COMM_WORLD);
+    esysUtils::JMPI mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
     if (!noError()) {
         return NULL;
     }

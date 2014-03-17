@@ -366,8 +366,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
     std::vector<int> distribution(in->MPIInfo->size+1);
 
     // distribute the range of node ids
-    int buffer_len=Esys_MPIInfo_setDistribution(in->MPIInfo,
-            id_range.first, id_range.second, &distribution[0]);
+    int buffer_len=in->MPIInfo->setDistribution(id_range.first, id_range.second, &distribution[0]);
 
     // allocate buffers
     int *Id_buffer=new int[buffer_len];
@@ -460,7 +459,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
     delete[] globalDegreesOfFreedom_buffer;
     delete[] Coordinates_buffer;
     // make sure that the error is global
-    Esys_MPIInfo_noError(in->MPIInfo);
+    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
 }
 
 void NodeFile::assignMPIRankToDOFs(std::vector<int>& mpiRankOfDOF,
@@ -499,7 +498,7 @@ int NodeFile::prepareLabeling(const std::vector<short>& mask,
     const int* indexArray = (useNodes ? globalNodesIndex : globalDegreesOfFreedom);
     // distribute the range of node ids
     distribution.assign(MPIInfo->size+1, 0);
-    int buffer_len=Esys_MPIInfo_setDistribution(MPIInfo, idRange.first,
+    int buffer_len=MPIInfo->setDistribution(idRange.first,
             idRange.second, &distribution[0]);
     const int myCount=distribution[MPIInfo->rank+1]-distribution[MPIInfo->rank];
 

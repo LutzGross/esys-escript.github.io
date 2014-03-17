@@ -136,7 +136,7 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix {
      used
   */
   PASOWRAP_DLL_API
-  static int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry, esysUtils::JMPI& mpiInfo);
+  static int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry, const esysUtils::JMPI& mpiInfo);
 
   /**
      \brief extract paso options from SolutionOptions class

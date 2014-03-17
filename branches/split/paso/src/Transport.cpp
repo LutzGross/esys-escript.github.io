@@ -122,7 +122,7 @@ void Paso_TransportProblem_reset(Paso_TransportProblem* in)
 }
 
 
-index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, esysUtils::JMPI& mpi_info) 
+index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, const esysUtils::JMPI& mpi_info) 
 {
    return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
 }

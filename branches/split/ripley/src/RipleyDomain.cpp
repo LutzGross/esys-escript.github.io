@@ -56,7 +56,7 @@ RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
 {
     if (p.get()==0)	
     {
-	m_mpiInfo = makeInfo(MPI_COMM_WORLD);
+	m_mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
     }
     else
     {
