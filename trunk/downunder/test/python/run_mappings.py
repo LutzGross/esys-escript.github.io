@@ -91,13 +91,13 @@ class TestAcousticVelocityMapping(unittest.TestCase):
         s0=mp.getValue((m0, m1))
         s1=mp.getValue((m0+STEP, m1))
         DS_ref = (s1-s0)/STEP
-        self.assertLess( Lsup(DS[0,0]-DS_ref[0]), 1e-8 * abs(DS_ref[0]))
-        self.assertLess( Lsup(DS[1,0]-DS_ref[1]), 1e-8 * abs(DS_ref[1]))
+        self.assertLess( Lsup(DS[0,0]-DS_ref[0]), 1e-8 * Lsup(DS_ref[0]))
+        self.assertLess( Lsup(DS[1,0]-DS_ref[1]), 1e-8 * Lsup(DS_ref[1]))
 
         s1=mp.getValue((m0, m1+STEP))
         DS_ref= (s1-s0)/STEP
-        self.assertLess( Lsup(DS[0,1]-DS_ref[0]), 1e-8 * abs(DS_ref[0]))
-        self.assertTrue( Lsup(DS[1,1]-DS_ref[1]), 1e-8 * abs(DS_ref[1]))
+        self.assertLess( Lsup(DS[0,1]-DS_ref[0]), 1e-8 * Lsup(DS_ref[0]))
+        self.assertTrue( Lsup(DS[1,1]-DS_ref[1]), 1e-8 * Lsup(DS_ref[1]))
         # get inverse
         s0_ref=1/(V0*complex(1,-1/(2*Q0)))**2
         m0=mp.getInverse( (s0_ref.real,s0_ref.imag))
