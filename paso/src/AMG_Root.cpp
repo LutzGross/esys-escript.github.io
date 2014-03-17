@@ -59,7 +59,7 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(Paso_SystemMatr
         
           if (prec->is_local) {
 	      prec->localamg=Paso_Preconditioner_LocalAMG_alloc(A->mainBlock,1,options);
-	      Esys_MPIInfo_noError(0);
+	      esysUtils::Esys_MPIInfo_noError(A->mpi_info);
           } else {
               prec->amg=Paso_Preconditioner_AMG_alloc(A,1,options);
           }
