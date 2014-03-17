@@ -24,7 +24,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping', 'BoundedRangeMapping', 'LinearMapping', 'AcousticVelcityMapping']
+__all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping', 'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping']
 
 from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp
 import esys.escript.unitsSI as U
@@ -174,7 +174,7 @@ class SusceptibilityMapping(LinearMapping):
             a = dk
         super(SusceptibilityMapping,self).__init__(a=a, p0=k0)
 
-class AcousticVelcityMapping(Mapping):
+class AcousticVelocityMapping(Mapping):
     """
     Maps a p-velocity and Q-index to slowness square sigma=(V*(1-i*1/(2*Q))^{-2} in the form
     sigma=e^{Mr+m[0])}*( cos(Mi+m[1])) + i * sin(Mi+m[1]) where 

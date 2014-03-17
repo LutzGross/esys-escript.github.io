@@ -51,7 +51,8 @@ class TestLinearMapping(unittest.TestCase):
         v=self.mapping.getInverse(1.23)
         ref=(1.23-self.p0)/self.alpha
         self.assertAlmostEqual(v, ref)
-class TestAcousticVelcityMapping(unittest.TestCase):
+        
+class TestAcousticVelocityMapping(unittest.TestCase):
     def setUp(self):
         self.fs=Function(Rectangle(40,40))
     def tearDown(self):
@@ -62,24 +63,24 @@ class TestAcousticVelcityMapping(unittest.TestCase):
         V0=3000
         QQ=Scalar(Q0, self.fs)
         VV=Scalar(V0, self.fs)
-        mp=AcousticVelcityMapping(VV, QQ)
+        mp=AcousticVelocityMapping(VV, QQ)
         
         # get Value test
         s0=mp.getValue( (0,0))
         s0_ref=1/(V0*complex(1,-1/(2*Q0)))**2
-        self.assertTrue( Lsup(s0[0]-s0_ref.real) < 1e-8 * abs(s0_ref.real))
-        self.assertTrue( Lsup(s0[1]-s0_ref.imag) < 1e-8 * abs(s0_ref.imag))
+        self.assertLess( Lsup(s0[0]-s0_ref.real), 1e-8 * abs(s0_ref.real))
+        self.assertLess( Lsup(s0[1]-s0_ref.imag), 1e-8 * abs(s0_ref.imag))
         
         M0=numpy.log(s0_ref)
         s1=mp.getValue( (1.,0))
         s1_ref=numpy.exp(complex(1.,0)+M0)
-        self.assertTrue( Lsup(s1[0]-s1_ref.real) < 1e-8 * abs(s1_ref.real))
-        self.assertTrue( Lsup(s1[1]-s1_ref.imag) < 1e-8 * abs(s1_ref.imag))
+        self.assertLess( Lsup(s1[0]-s1_ref.real), 1e-8 * abs(s1_ref.real))
+        self.assertLess( Lsup(s1[1]-s1_ref.imag), 1e-8 * abs(s1_ref.imag))
         
         s2=mp.getValue( (0,1.))
         s2_ref=numpy.exp(complex(0,1,)+M0)
-        self.assertTrue( Lsup(s2[0]-s2_ref.real) < 1e-8 * abs(s2_ref.real))
-        self.assertTrue( Lsup(s2[1]-s2_ref.imag) < 1e-8 * abs(s2_ref.imag))
+        self.assertLess( Lsup(s2[0]-s2_ref.real), 1e-8 * abs(s2_ref.real))
+        self.assertLess( Lsup(s2[1]-s2_ref.imag), 1e-8 * abs(s2_ref.imag))
         
         # get derivative
         m0=0.5
@@ -90,18 +91,18 @@ class TestAcousticVelcityMapping(unittest.TestCase):
         s0=mp.getValue((m0, m1))
         s1=mp.getValue((m0+STEP, m1))
         DS_ref = (s1-s0)/STEP
-        self.assertTrue( Lsup(DS[0,0]-DS_ref[0]) < 1e-8 * abs(DS_ref[0]))
-        self.assertTrue( Lsup(DS[1,0]-DS_ref[1]) < 1e-8 * abs(DS_ref[1]))
-        
+        self.assertLess( Lsup(DS[0,0]-DS_ref[0]), 1e-8 * abs(DS_ref[0]))
+        self.assertLess( Lsup(DS[1,0]-DS_ref[1]), 1e-8 * abs(DS_ref[1]))
+
         s1=mp.getValue((m0, m1+STEP))
         DS_ref= (s1-s0)/STEP
-        self.assertTrue( Lsup(DS[0,1]-DS_ref[0]) < 1e-8 * abs(DS_ref[0]))
-        self.assertTrue( Lsup(DS[1,1]-DS_ref[1]) < 1e-8 * abs(DS_ref[1]))
+        self.assertLess( Lsup(DS[0,1]-DS_ref[0]), 1e-8 * abs(DS_ref[0]))
+        self.assertTrue( Lsup(DS[1,1]-DS_ref[1]), 1e-8 * abs(DS_ref[1]))
         # get inverse
         s0_ref=1/(V0*complex(1,-1/(2*Q0)))**2
         m0=mp.getInverse( (s0_ref.real,s0_ref.imag))
-        self.assertTrue( Lsup(m0[0]) < 1e-14)
-        self.assertTrue( Lsup(m0[1]) < 1e-14)
+        self.assertLess( Lsup(m0[0]), 1e-14)
+        self.assertLess( Lsup(m0[1]), 1e-14)
         
 class TestBoundedRangeMapping(unittest.TestCase):
     def setUp(self):
@@ -156,7 +157,7 @@ if __name__ == "__main__":
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestLinearMapping))
     suite.addTest(unittest.makeSuite(TestBoundedRangeMapping))
-    suite.addTest(unittest.makeSuite(TestAcousticVelcityMapping))
+    suite.addTest(unittest.makeSuite(TestAcousticVelocityMapping))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 
