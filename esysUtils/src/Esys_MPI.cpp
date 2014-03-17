@@ -55,7 +55,10 @@ JMPI_::JMPI_(MPI_Comm mpicomm, bool owncom)
 JMPI_::~JMPI_()
 {
 #ifdef ESYS_MPI
-    MPI_Comm_free(&comm);
+    if (ownscomm)
+    {
+	MPI_Comm_free(&comm);
+    }
 #endif
 }
 
@@ -210,7 +213,7 @@ dim_t Esys_MPIInfo_setDistribution(esysUtils::JMPI& mpi_info ,index_t min_id,ind
 
 /* checks that there is no error across all processes in a communicator */
 /* NOTE : does not make guarantee consistency of error string on each process */
-bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info )
+bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
 {
   int errorLocal = Esys_noError() ? 0 : 1;
   int errorGlobal = errorLocal;

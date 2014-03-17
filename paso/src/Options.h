@@ -158,9 +158,9 @@ void Paso_Options_show(const Paso_Options* options);
 PASO_DLL_API
 void Paso_Options_showDiagnostics(const Paso_Options* options);
 const char* Paso_Options_name(const index_t key);
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool symmetry, esysUtils::JMPI& mpi_info);
+index_t Paso_Options_getPackage(index_t solver,index_t package, bool symmetry, const esysUtils::JMPI& mpi_info);
 
-index_t Paso_Options_getSolver(index_t solver,index_t package, bool symmetry, esysUtils::JMPI& mpi_info);
+index_t Paso_Options_getSolver(index_t solver,index_t package, bool symmetry, const esysUtils::JMPI& mpi_info);
 
 #define Paso_Options_copy(in,out) memcpy((Paso_Options*)out,(Paso_Options*)in,sizeof(Paso_Options))
 

@@ -32,7 +32,8 @@
 
 /************************************************************************************/
 
-index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, esysUtils::JMPI& mpi_info) {
+index_t Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, 
+     const index_t package,const  bool symmetry, const esysUtils::JMPI& mpi_info) {
   index_t true_package;
   index_t out=MATRIX_FORMAT_DEFAULT;
   true_package=Paso_Options_getPackage(solver,package,symmetry, mpi_info);
