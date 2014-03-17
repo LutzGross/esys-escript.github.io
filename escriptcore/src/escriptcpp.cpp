@@ -42,6 +42,7 @@
 #include <boost/python/tuple.hpp>
 #include <boost/smart_ptr.hpp>
 #include <boost/version.hpp>
+#include <boost/python/errors.hpp>
 
 using namespace boost::python;
 
@@ -86,6 +87,34 @@ namespace escript
 }
 */
 
+namespace
+{
+
+bool block_cmp_data(const escript::Data&, boost::python::object o)
+{
+    PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for Data objects.");
+    boost::python::throw_error_already_set();   
+    return false;
+}
+
+bool block_cmp_functionspace(const escript::FunctionSpace&, boost::python::object o)
+{
+    PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for FunctionSpaces.");
+    boost::python::throw_error_already_set();   
+    return false;
+}
+
+bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
+{
+    PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for Domains.");
+    boost::python::throw_error_already_set();   
+    return false;
+}
+
+
+}
+
+
 BOOST_PYTHON_MODULE(escriptcpp)
 {
 
@@ -95,7 +124,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
   #endif
 
   scope().attr("__doc__") = "To use this module, please import esys.escript";      
-    
+  
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"
 " available to OpenMP.");
@@ -162,7 +191,11 @@ BOOST_PYTHON_MODULE(escriptcpp)
      .def("onMasterProcessor",&escript::AbstractDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`")
      .def("supportsContactElements", &escript::AbstractDomain::supportsContactElements,"Does this domain support contact elements.")
      .def(self == self)
-     .def(self != self);
+     .def(self != self)
+     .def("__lt__", block_cmp_domains)
+     .def("__le__", block_cmp_domains)
+     .def("__gt__", block_cmp_domains)
+     .def("__ge__", block_cmp_domains);
 
   //
   // Interface for AbstractContinuousDomain
@@ -283,8 +316,15 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
   fs_definer.def("getListOfTags",&escript::FunctionSpace::getListOfTags,":return: a list of the tags used in this function space\n:rtype: ``list``");
   fs_definer.def("getApproximationOrder", &escript::FunctionSpace::getApproximationOrder,":return: the approximation order referring to the maximum degree of a polynomial which can be represented exactly in interpolation and/or integration.\n:rtype: ``int``");
   fs_definer.def("__str__", &escript::FunctionSpace::toString);
+  fs_definer.def("__lt__",block_cmp_functionspace);
+  fs_definer.def("__le__",block_cmp_functionspace);
+  fs_definer.def("__gt__",block_cmp_functionspace);
+  fs_definer.def("__ge__",block_cmp_functionspace);
   fs_definer.def(self == self);
   fs_definer.def(self != self);
+
+  
+  
   //
   // Interface for Data
   //
@@ -457,8 +497,10 @@ args("arg"), "assigns new location to the domain\n\n:param arg:\n:type arg: `Dat
     .def("__truediv__",&escript::Data::truedivO)
     .def("__truediv__",&escript::Data::truedivD)
     .def("__rtruediv__",&escript::Data::rtruedivO)
-    .def("__gt__",&escript::Data::greaterThan)
-    .def("__lt__",&escript::Data::lessThan)
+    .def("__gt__",block_cmp_data)
+    .def("__lt__",block_cmp_data)
+    .def("__le__",block_cmp_data)
+    .def("__ge__",block_cmp_data)
     // NOTE:: The order of these declarations is important. Anything
     // declared before the generic declaration isn't found so the generic
     // version will be called. 
