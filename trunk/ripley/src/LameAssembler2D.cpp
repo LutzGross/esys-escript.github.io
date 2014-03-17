@@ -14,11 +14,29 @@
 *
 *****************************************************************************/
 #include <ripley/LameAssembler2D.h>
+#include <ripley/domainhelpers.h>
 
 using namespace std;
 
 namespace ripley {
 
+void LameAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const {
+    if (isNotEmpty("lame_mu", coefs))
+        fsTypes.push_back(coefs["lame_mu"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("lame_lambda", coefs))
+        fsTypes.push_back(coefs["lame_lambda"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("B", coefs))
+        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("C", coefs))
+        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("D", coefs))
+        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("X", coefs))
+        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("Y", coefs))
+        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+}
 
 void LameAssembler2D::assemblePDESingle(Paso_SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const

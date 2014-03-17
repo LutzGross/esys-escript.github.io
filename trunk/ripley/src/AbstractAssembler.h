@@ -137,6 +137,8 @@ public:
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const = 0;
 
+    virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const = 0;
 };
 
 }

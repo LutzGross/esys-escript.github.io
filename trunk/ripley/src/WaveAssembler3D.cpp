@@ -15,9 +15,28 @@
 *****************************************************************************/
 #include <ripley/WaveAssembler3D.h>
 #include <fenv.h>
+#include <ripley/domainhelpers.h>
+
 using namespace std;
 
 namespace ripley {
+
+void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const {
+    if (isNotEmpty("A", coefs))
+        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("B", coefs))
+        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("C", coefs))
+        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("D", coefs))
+        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("du", coefs))
+        fsTypes.push_back(coefs["du"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("Y", coefs))
+        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+}
+
 
 WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
                 dim_t *m_NN, std::map<std::string, escript::Data> c) 

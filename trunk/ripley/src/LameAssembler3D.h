@@ -61,6 +61,9 @@ public:
     virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
+            
+    void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const;
 protected:
     const Brick *domain;
     const double *m_dx;

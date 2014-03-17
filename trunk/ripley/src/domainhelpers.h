@@ -3,6 +3,7 @@
 
 #include <vector>
 #include <ripley/Ripley.h>
+#include <escript/Data.h>
 
 /**
     factorises 'product' and inserts the factors into the vector 'factors'
@@ -16,6 +17,12 @@ void factorise(std::vector<int>& factors, int product);
 */
 void doublyLink(std::vector<ripley::IndexVector>& va,
         std::vector<ripley::IndexVector>& vb, int a, int b);
+
+/**
+    returns true if the given string is in the mapping AND the resulting
+    coefficient is not empty
+*/
+bool isNotEmpty(std::string target, std::map<std::string, escript::Data> mapping);
 
 #ifdef USE_BOOSTIO
 /**
