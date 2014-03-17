@@ -37,7 +37,7 @@ namespace finley {
 // that every rank has at least 1 vertex (at line 129 of file
 // "xyzpart.c" in parmetis 3.1.1, variable "nvtxs" would be 0 if 
 // any rank has no vertex).
-bool allRanksHaveNodes(Esys_MPIInfo* mpiInfo, const std::vector<int>& distribution)
+bool allRanksHaveNodes(esysUtils::JMPI& mpiInfo, const std::vector<int>& distribution)
 {
     int ret = 1;
 
