@@ -59,7 +59,7 @@ bool Dudley_noError(void);
 Dudley_ErrorCodeType Dudley_getErrorType(void);
 char *Dudley_getErrorMessage(void);
 void Dudley_convertPasoError(void);
-bool Dudley_MPI_noError(Esys_MPIInfo * mpi_info);
+bool Dudley_MPI_noError(esysUtils::JMPI& mpi_info);
 void Dudley_setTagsInUse(const index_t Tag, const dim_t numTags, dim_t * numTagsInUse, index_t ** tagsInUse,
 			 Esys_MPIInfo * mpiinfo);
 

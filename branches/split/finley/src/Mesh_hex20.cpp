@@ -40,7 +40,6 @@ Mesh* RectangularMesh_Hex20(const int* numElements, const double* Length,
   dim_t N0,N1,N2,NE0,NE1,NE2,i0,i1,i2,k,Nstride0=0, Nstride1=0, Nstride2=0, local_NE0, local_NE1, local_NE2;
   dim_t totalNECount,faceNECount,NDOF0=0, NDOF1=0, NDOF2=0, NFaceElements=0, local_N0=0, local_N1=0, local_N2=0, NN;
   index_t node0, myRank, e_offset0, e_offset1, e_offset2, offset0=0, offset1=0, offset2=0, global_i0, global_i1, global_i2;
-  Esys_MPIInfo *mpi_info = NULL;
   const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
   char name[50];
   bool generateAllNodes=(useFullElementOrder || useMacroElements);
@@ -49,7 +48,7 @@ Mesh* RectangularMesh_Hex20(const int* numElements, const double* Length,
 #endif
 
   /* get MPI information */
-  mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
+  esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
   if (!noError()) {
         return NULL;
   }
@@ -114,21 +113,21 @@ Mesh* RectangularMesh_Hex20(const int* numElements, const double* Length,
           e_offset0=0;
           local_NE1=NE1;
           e_offset1=0;
-          Esys_MPIInfo_Split(mpi_info,NE2,&local_NE2,&e_offset2);
+          mpi_info->split(NE2,&local_NE2,&e_offset2);
       } else if (N1==MAX3(N0,N1,N2)) {
           Nstride0=N2;
           Nstride1=N0*N2;
           Nstride2=1;
           local_NE0=NE0;
           e_offset0=0;
-          Esys_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
+          mpi_info->split(NE1,&local_NE1,&e_offset1);
           local_NE2=NE2;
           e_offset2=0;
       } else {
           Nstride0=N1*N2;
           Nstride1=1;
           Nstride2=N1;
-          Esys_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
+          mpi_info->split(NE0,&local_NE0,&e_offset0);
           local_NE1=NE1;
           e_offset1=0;
           local_NE2=NE2;
@@ -607,8 +606,6 @@ Mesh* RectangularMesh_Hex20(const int* numElements, const double* Length,
         delete out;
         out=NULL;
     }
-    Esys_MPIInfo_free(mpi_info);  
-
     return out;
 }
 

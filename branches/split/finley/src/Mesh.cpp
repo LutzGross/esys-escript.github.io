@@ -357,7 +357,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
 
     Paso_Pattern_free(pattern);
     delete[] index_list;
-    Esys_MPIInfo_noError(0);
+    esysUtils::Esys_MPIInfo_noError(MPIInfo);
 
     if (noError()) {
         // shift new labeling to create a global id

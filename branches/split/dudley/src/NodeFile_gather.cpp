@@ -187,5 +187,5 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     }
     delete[] distribution;
     /* make sure that the error is global */
-    Esys_MPIInfo_noError(0);
+    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
 }

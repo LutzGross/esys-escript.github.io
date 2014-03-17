@@ -60,7 +60,7 @@ Mesh* Mesh_merge(const std::vector<Mesh*>& msh)
     int order=msh[0]->integrationOrder;
     int reduced_order=msh[0]->reducedIntegrationOrder;
     const int numDim=msh[0]->Nodes->numDim;
-    Esys_MPIInfo* mpiInfo=msh[0]->MPIInfo;
+    esysUtils::JMPI& mpiInfo=msh[0]->MPIInfo;
     std::stringstream newName;
 
     for (int i=0; i<msh.size(); i++) {

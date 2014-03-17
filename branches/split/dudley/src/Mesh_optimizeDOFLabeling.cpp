@@ -95,7 +95,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 
 	Paso_Pattern_free(pattern);
     }
-    Esys_MPIInfo_noError(0);
+    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
     if (Dudley_noError())
     {
 	/* shift new labeling to create a global id */

@@ -79,9 +79,6 @@ dim_t Esys_MPIInfo_setDistribution( Esys_MPIInfo *mpi_info, index_t min_id,index
 ESYSUTILS_DLL_API
 void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t n, dim_t* local_N,index_t* offset); 
 
-ESYSUTILS_DLL_API
-bool Esys_MPIInfo_noError( Esys_MPIInfo *mpi_info);
-
 namespace esysUtils {
 
 class JMPI_;
@@ -117,6 +114,9 @@ private:
 };
 
 JMPI makeInfo(MPI_Comm comm, bool owncom=false);
+
+ESYSUTILS_DLL_API
+bool Esys_MPIInfo_noError( JMPI& mpi_info);
 
 /// Appends MPI rank to a file name if MPI size > 1
 ESYSUTILS_DLL_API
