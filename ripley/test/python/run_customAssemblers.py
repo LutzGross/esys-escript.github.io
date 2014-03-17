@@ -73,7 +73,10 @@ class Test_CustomAssemblers(unittest.TestCase):
             self.assertEqual(Lsup(default - lame),
                     0., "Default and Lame 3Dassembler solutions differ for " \
                     + "%s data"%labels[test_type])
-                    
+
+            #check for catching that default assemblage will now fail
+            self.assertRaises(Exception, run_lame, dom, False, test_type)
+
             #check the 2D assembler
             dom = Rectangle(20,20)
             default = run_lame(dom, False, test_type)
