@@ -2244,9 +2244,15 @@ int Rectangle::findNode(const double *coords) const {
 void Rectangle::setAssembler(std::string type, std::map<std::string,
         escript::Data> constants) {
     if (type.compare("WaveAssembler") == 0) {
+        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = WAVE_ASSEMBLER;
         delete assembler;
         assembler = new WaveAssembler2D(this, m_dx, m_NX, m_NE, m_NN, constants);
     } else if (type.compare("LameAssembler") == 0) {
+        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = LAME_ASSEMBLER;
         delete assembler;
         assembler = new LameAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
     } else { //else ifs would go before this for other types

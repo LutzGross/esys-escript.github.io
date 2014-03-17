@@ -57,6 +57,10 @@ void WaveAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
                  Y = unpackData("Y", coefs), du = unpackData("du", coefs);
+    if (!unpackData("X", coefs).isEmpty())
+        throw RipleyException("Coefficient X was given to WaveAssembler "
+                "unexpectedly. Specialised domains can't be used for general "
+                "assemblage.");
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
