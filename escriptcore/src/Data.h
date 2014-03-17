@@ -1399,6 +1399,20 @@ instead of manually manipulating process and point IDs.
 
   /**
     \brief
+    Comparator operator for python
+  */
+  ESCRIPT_DLL_API
+  Data greaterThan(const boost::python::object& left);
+
+  /**
+    \brief
+    Comparator operator for python
+  */
+  ESCRIPT_DLL_API
+  Data lessThan(const boost::python::object& left);
+
+  /**
+    \brief
     wrapper for python add operation
   */
   ESCRIPT_DLL_API
@@ -2135,6 +2149,26 @@ Data::rtruedivO(const boost::python::object& left)
 {
     Data tmp(left, getFunctionSpace(), false);
     return tmp.truedivD(*this);
+}
+
+/**
+  \brief
+  Operator/
+  Takes RHS python::object.
+*/
+inline
+Data Data::greaterThan(const boost::python::object& right) {
+    throw DataException("Cannot order data objects meaningfully for >");
+}
+
+/**
+  \brief
+  Operator/
+  Takes RHS python::object.
+*/
+inline
+Data Data::lessThan(const boost::python::object& right) {
+    throw DataException("Cannot order data objects meaningfully for <");
 }
 
 /**

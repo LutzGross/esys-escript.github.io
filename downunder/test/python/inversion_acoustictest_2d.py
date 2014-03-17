@@ -129,7 +129,7 @@ for ds in domainbuilder.getTags():
     logger.debug("power for frequency %s Hz for source at %s added."%(ds.getFrequency, ds.getLocation()))
     forwardmodels.append((acw, 0))
 
-m=AcousticVelcityMapping(V_P_prior, Q_prior)
+m=AcousticVelocityMapping(V_P_prior, Q_prior)
 # finally we can set up the cost function:
 cf=InversionCostFunction(regularization,
              (m,) , tuple(forwardmodels) )
