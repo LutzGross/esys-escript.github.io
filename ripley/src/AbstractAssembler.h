@@ -39,7 +39,7 @@ public:
     
     /// assembles a single PDE into the system matrix 'mat' and the right hand
     /// side 'rhs'
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const {
@@ -49,7 +49,7 @@ public:
 
     /// assembles boundary conditions of a single PDE into the system matrix
     /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -58,7 +58,7 @@ public:
 
     /// assembles a single PDE with reduced order into the system matrix 'mat'
     /// and the right hand side 'rhs'
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
+    void assemblePDESingleReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const {
@@ -68,7 +68,7 @@ public:
     
     /// assembles boundary conditions of a single PDE with reduced order into
     /// the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -77,7 +77,7 @@ public:
     
     /// assembles a system of PDEs into the system matrix 'mat' and the right
     /// hand side 'rhs'
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) {
@@ -87,7 +87,7 @@ public:
     
     /// assembles boundary conditions of a system of PDEs into the system
     /// matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -96,7 +96,7 @@ public:
 
     /// assembles a system of PDEs with reduced order into the system matrix
     /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
+    void assemblePDESystemReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) {
@@ -106,7 +106,7 @@ public:
 
     /// assembles boundary conditions of a system of PDEs with reduced order
     /// into the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
