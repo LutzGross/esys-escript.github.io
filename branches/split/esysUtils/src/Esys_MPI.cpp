@@ -218,6 +218,17 @@ bool esysUtils::Esys_MPIInfo_noError( const esysUtils::JMPI& mpi_info )
   int errorLocal = Esys_noError() ? 0 : 1;
   int errorGlobal = errorLocal;
 
+#ifdef ESYS_MPI
+  if (!checkResult(errorLocal, errorGlobal, mpi_info->comm))
+  {
+      return false;
+  }
+  if( (errorLocal==0) && (errorGlobal==1)) 
+  {
+     Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_noError() : there was an error on another MPI process" );
+  }
+#endif
+  
   return (errorGlobal==0);
 }
 
