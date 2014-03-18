@@ -1328,7 +1328,7 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     Paso_Coupler* coupler = Paso_Coupler_alloc(m_connector, numComp);
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
+    Paso_Coupler_startCollect(coupler, in.getDataRO());
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
