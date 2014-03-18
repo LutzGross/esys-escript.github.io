@@ -85,19 +85,19 @@ class TestAcousticVelocityMapping(unittest.TestCase):
         # get derivative
         m0=0.5
         m1=0.01
-        STEP=1e-3
+        STEP=0.5e-4
         
         DS=mp.getDerivative((m0, m1))
         s0=mp.getValue((m0, m1))
         s1=mp.getValue((m0+STEP, m1))
         DS_ref = (s1-s0)/STEP
-        self.assertLess( Lsup(DS[0,0]-DS_ref[0]), 1e-8 * Lsup(DS_ref[0]))
-        self.assertLess( Lsup(DS[1,0]-DS_ref[1]), 1e-8 * Lsup(DS_ref[1]))
+        self.assertLess( Lsup(DS[0,0]-DS_ref[0]), 1e-2 * Lsup(DS_ref[0]))
+        self.assertLess( Lsup(DS[1,0]-DS_ref[1]), 1e-2 * Lsup(DS_ref[1]))
 
         s1=mp.getValue((m0, m1+STEP))
         DS_ref= (s1-s0)/STEP
-        self.assertLess( Lsup(DS[0,1]-DS_ref[0]), 1e-8 * Lsup(DS_ref[0]))
-        self.assertTrue( Lsup(DS[1,1]-DS_ref[1]), 1e-8 * Lsup(DS_ref[1]))
+        self.assertTrue( Lsup(DS[1,1]-DS_ref[1]), 1e-2 * Lsup(DS_ref[1]))
+        self.assertLess( Lsup(DS[0,1]-DS_ref[0]), 1e-2 * Lsup(DS_ref[0]))
         # get inverse
         s0_ref=1/(V0*complex(1,-1/(2*Q0)))**2
         m0=mp.getInverse( (s0_ref.real,s0_ref.imag))

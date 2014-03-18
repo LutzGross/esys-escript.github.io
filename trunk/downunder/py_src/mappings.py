@@ -202,7 +202,7 @@ class AcousticVelocityMapping(Mapping):
         returns the value for the derivative of the mapping for m
         """
         e=exp(m[0]+self.Mr)
-        return (e*cos(m[1]+self.Mi))*[[1,0],[0,1]]+ (e*sin(m[1]+self.Mi))*[[0,1],[-1,0]]
+        return (e*cos(m[1]+self.Mi))*[[1,0],[0,1]]+ (e*sin(m[1]+self.Mi))*[[0,-1],[1,0]]
 
     def getInverse(self, s):
         """
