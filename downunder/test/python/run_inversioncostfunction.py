@@ -39,14 +39,14 @@ class SimpleModel(ForwardModel):
         return self.trafo 
         
     def getArguments(self, x):
-        return tuple([ n+1 for n in xrange(self.numComps)] )
+        return tuple([ n+1 for n in range(self.numComps)] )
 
     def getDefect(self, x, *args):
         if self.numComps == 1:
             out=(1.*x-2.)*(args[0]*x-2.)
         else:
             out=0
-            for n in xrange(self.numComps):
+            for n in range(self.numComps):
                 out=out+((n+1)*x[n]-(n+2))*(args[n]*x[n]-(n+2))  
         return integrate(out, Function(self.domain))/2
 
@@ -55,7 +55,7 @@ class SimpleModel(ForwardModel):
             Y=(1.*x-2.)*args[0]
         else:
             Y=Data(0.,(self.numComps,), Function(self.domain))
-            for n in xrange(self.numComps):
+            for n in range(self.numComps):
                 Y[n]=((n+1)*x[n]-(n+2))*args[n]
         return Y
         
@@ -63,7 +63,7 @@ class SimpleModel(ForwardModel):
         if self.numComps == 1:
             return (s-2)**2 * 0.5
         else:
-            return sum(((n+1)*s[n]-(n+2))**2 for n in xrange(self.numComps) )*.5    
+            return sum(((n+1)*s[n]-(n+2))**2 for n in range(self.numComps) )*.5    
     
         
 class LinearMappingX(Mapping):
