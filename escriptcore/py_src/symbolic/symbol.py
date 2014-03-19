@@ -395,11 +395,17 @@ class Symbol(object):
         dataSubs={}
         old._ensureShapeCompatible(new)
         if isinstance(new, Data):
+            if old.getShape()==() and new.getShape()!=():
+                raise ValueError("Only a scalar Data object can be substituted into a scalar\
+                        symbol")
             subs=self._subs.copy()
-            if isinstance(old, Symbol) and old.getRank()>0:
-                old=Symbol(old.atoms(sympy.Symbol)[0])
-            subs[old]=new
-            result=Symbol(self._arr, dim=self._dim, subs=subs)
+            name='data'+str(id(new))
+            newsym=Symbol(name, new.getShape(), dim=self._dim)
+            subs.update({Symbol(name):new})
+            result=numpy.empty(self.getShape(), dtype=object)
+            for idx in numpy.ndindex(self.getShape()):
+                result[idx]=self._arr[idx].subs(old._arr[idx], newsym._arr[idx])
+            result=Symbol(result, dim=self._dim, subs=subs)
         elif isinstance(old, Symbol) and old.getRank()>0:
             if isinstance(new, Symbol):
                 dataSubs=new.getDataSubstitutions()    
@@ -411,12 +417,12 @@ class Symbol(object):
             result=numpy.empty(self.getShape(), dtype=object)
             if new.ndim>0:
                 for idx in numpy.ndindex(self.getShape()):
-                    for symidx in numpy.ndindex(new.shape):
-                        result[idx]=self._arr[idx].subs(old._arr[symidx], new[symidx])
+                    #for symidx in numpy.ndindex(new.shape):
+                        result[idx]=self._arr[idx].subs(old._arr[idx], new[idx])
             else: # substitute scalar for non-scalar
                 for idx in numpy.ndindex(self.getShape()):
-                    for symidx in numpy.ndindex(old.getShape()):
-                        result[idx]=self._arr[idx].subs(old._arr[symidx], new.item())
+                    #for symidx in numpy.ndindex(old.getShape()):
+                        result[idx]=self._arr[idx].subs(old._arr[idx], new.item())
             result=Symbol(result, dim=self._dim, subs=self._subs)
         else: # scalar
             if isinstance(new, Symbol):
