@@ -81,6 +81,16 @@ index_t Esys_MPIInfo_mod(index_t n, index_t k);
 
 namespace esysUtils {
 
+/** \brief tag reserved for use by SubWorld code
+    this value should be higher than the modulus used in JMPI_::setCounter, apart from that, its value
+    is not particularly significant.
+*/
+ESYSUTILS_DLL_API
+inline const int getSubWorldTag()	
+{
+    return ('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W';  
+}
+  
 class JMPI_;
 
 typedef boost::shared_ptr<JMPI_> JMPI;
@@ -101,8 +111,8 @@ public:
     void incCounter(int i)
     {
 	msg_tag_counter+=i;
-	msg_tag_counter%=1010201;
-    }
+	msg_tag_counter%=1010201;		// there is no particular significance here other than being 7 digits 
+    }					// and prime (because why not). It just needs to be big.
     
     void setCounter(int i)
     {
