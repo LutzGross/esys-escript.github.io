@@ -790,6 +790,9 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix: illegal function space type for system matrix columns");
 
+    if (type & MATRIX_FORMAT_TRILINOS_CRS)
+        throw RipleyException("newSystemMatrix: Ripley does not support matrix format TRILINOS_CRS");
+
     // generate matrix
     Paso_SystemMatrixPattern* pattern=getPattern(reduceRowOrder, reduceColOrder);
     Paso_SystemMatrix* matrix = Paso_SystemMatrix_alloc(type, pattern,
@@ -815,6 +818,7 @@ void RipleyDomain::addToSystem(
                     "addToSystem: Ripley only accepts Paso system matrices");
 
     Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+
     assemblePDE(S, rhs, coefs);
     assemblePDEBoundary(S, rhs, coefs);
     assemblePDEDirac(S, rhs, coefs);
@@ -1095,8 +1099,8 @@ Paso_Pattern* RipleyDomain::createPasoPattern(const IndexVector& ptr,
         const IndexVector& index, const dim_t M, const dim_t N) const
 {
     // paso will manage the memory
-    index_t* indexC = new  index_t[index.size()];
-    index_t* ptrC = new  index_t[ptr.size()];
+    index_t* indexC = new index_t[index.size()];
+    index_t* ptrC = new index_t[ptr.size()];
     copy(index.begin(), index.end(), indexC);
     copy(ptr.begin(), ptr.end(), ptrC);
     return Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC);
@@ -1149,9 +1153,6 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
        const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
        dim_t num_Sol, const vector<double>& array) const
 {
-    if (mat->type & MATRIX_FORMAT_TRILINOS_CRS)
-        throw RipleyException("addToSystemMatrix: TRILINOS_CRS not supported");
-
     const dim_t numMyCols = mat->pattern->mainPattern->numInput;
     const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
     const dim_t numSubblocks_Eq = num_Eq / mat->row_block_size;
