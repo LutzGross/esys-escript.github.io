@@ -94,6 +94,76 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
 }
 
 
+namespace
+{
+
+// Throw all values in and get the maximum
+// This is not an AllReduce because we need to use Tagged Communication so as not to interfere with 
+// other messages / collective ops which the SubWorld's Jobs might be using
+// This is implemented by sending to rank 0
+bool checkResultInt(int res, int& mres, esysUtils::JMPI& info)
+{
+    const int leader=0;
+    const int BIGTAG=esysUtils::getSubWorldTag();
+    if (info->size==1)
+    {
+	mres=res;
+	return true;
+    }
+    else
+    {
+	if (info->rank!=leader)
+	{
+	    if (MPI_Send(&res, 1, MPI_INT, leader, BIGTAG, info->comm)!=MPI_SUCCESS)
+	    {
+		return false;
+	    }
+	    if (MPI_Recv(&mres, 1, MPI_INT, leader, BIGTAG, info->comm,0)!=MPI_SUCCESS)
+	    {
+		return false;
+	    }
+	}
+	else
+	{
+	    MPI_Request* reqs=new MPI_Request[info->size-1];
+	    int* eres=new int[info->size-1];
+	    for (int i=0;i<info->size-1;++i)
+	    {
+		MPI_Irecv(eres+i, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
+	    }
+	    if (MPI_Waitall(info->size-1, reqs, 0)!=MPI_SUCCESS)
+	    {
+		delete[] reqs;
+		return false;
+	    }
+	    // now we have them all, find the max
+	    mres=res;
+	    for (int i=0;i<info->size-1;++i)
+	    {
+		if (mres<eres[i])
+		{
+		    mres=eres[i];
+		}
+	    }
+	    // now we know what the result should be
+	    // send it to the others
+	    for (int i=0;i<info->size-1;++i)
+	    {
+		MPI_Isend(&mres, 1, MPI_INT, i+1, BIGTAG, info->comm, reqs+i);	  
+	    }
+	    if (MPI_Waitall(info->size-1, reqs,0)!=MPI_SUCCESS)
+	    {
+		return false;
+	    }
+	}
+      
+    }
+    return true;
+}
+
+
+}
+
 // Executes all pending jobs on all subworlds
 void SplitWorld::runJobs()
 {
@@ -105,8 +175,9 @@ void SplitWorld::runJobs()
 	// now we actually need to run the jobs
 	// everybody will be executing their localworld's jobs
 	int res=localworld->runJobs(err);	
+std::cerr << "Done local jobs" << std::endl;	
 	// now we find out about the other worlds
-	if (!esysUtils::checkResult(res, mres, globalcom->comm))
+	if (!checkResultInt(res, mres, globalcom))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}
@@ -118,7 +189,8 @@ void SplitWorld::runJobs()
     else if (mres==3)
     {
 	char* resultstr=0;
-	// now we ship around the error message
+	// now we ship around the error message - This should be safe since
+	// eveyone must have finished their Jobs to get here
 	if (!esysUtils::shipString(err.c_str(), &resultstr, globalcom->comm))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
@@ -129,94 +201,6 @@ void SplitWorld::runJobs()
 	throw SplitWorldException(s);
     }
 }
-
-
-/** a list of tuples/sequences:  (Job class, number of instances)*/
-// void SplitWorld::runJobs(boost::python::list l)
-// {
-//     // first count up how many jobs we have in total
-//     unsigned int numjobs=0;
-//     std::vector<object> classvec;
-//     std::vector<unsigned int> countvec;
-//     std::vector<unsigned int> partialcounts;
-//     for (int i=0;i<len(l);++i)
-//     {
-// 	extract<tuple> ex(l[i]);
-// 	if (!ex.check())
-// 	{
-// 	    throw SplitWorldException("runJobs takes a list of tuples (jobclass, number).");
-// 	}
-// 	tuple t=ex();
-// 	if (len(t)!=2)
-// 	{
-// 	    throw SplitWorldException("runJobs takes a list of tuples (jobclass, number).");
-// 	}
-// 	extract<unsigned int> ex2(t[1]);
-// 	unsigned int c=0;
-// 	if (!ex2.check() || ((c=ex2())==0))
-// 	{
-// 	    throw SplitWorldException("Number of jobs must be a strictly positive integer.");
-// 	  
-// 	}
-// 	classvec.push_back(t[0]);
-// 	countvec.push_back(c);
-// 	numjobs+=c;
-// 	partialcounts.push_back(numjobs);
-//     }
-//     unsigned int classnum=0;
-//     unsigned int lowend=1;
-//     unsigned int highend=lowend+numjobs/swcount+(numjobs%swcount);
-// // std::cout << localid << std::endl;
-//     for (int i=1;i<=localid;++i)
-//     {
-// 	lowend=highend;
-// 	highend=lowend+numjobs/swcount;
-// 	if (i<numjobs%swcount)
-// 	{
-// 	    highend++;
-// 	}
-//     }
-// // std::cout << "There are " << numjobs << " jobs with range [" << lowend << ", " << highend << ")\n";    
-//     // We could do something more clever about trying to fit Jobs to subworlds
-//     // to ensure that instances sharing the same Job class would share the same 
-//     // world as much as possible but for now we'll do this:
-//     for (unsigned int j=1;j<=numjobs;++j)		// job #0 is a sentinel
-//     {
-// 	if (j>partialcounts[classnum])
-// 	{
-// 	    classnum++;	// we dont' need to loop this because each count >0
-// 	}
-// 	// now if this is one of the job numbers in our local range,
-// 	// create an instance of the appropriate class
-// 	if (j>=lowend and j<highend)
-// 	{  
-// 	    object o=classvec[classnum](localworld->getDomain(), object(j));
-// 	    localworld->addJob(o);
-// 	}
-//     }
-//     int mres=0;
-//     do
-//     {
-// 	// now we actually need to run the jobs
-// 	// everybody will be executing their localworld's jobs
-// 	int res=localworld->runJobs();	
-// 	// now we find out about the other worlds
-// 	mres=0;
-// 	if (MPI_Allreduce(&res, &mres, 1, MPI_INT, MPI_MAX, globalcom)!=MPI_SUCCESS)
-// 	{
-// 	    throw SplitWorldException("MPI appears to have failed.");
-// 	}
-//     } while (mres==1);
-//     if (mres==2)
-//     {
-// 	throw SplitWorldException("At least one Job's work() function did not return True/False.");
-//     }
-//     else if (mres==3)
-//     {
-// 	throw SplitWorldException("At least one Job's work() function raised an exception.");
-//     }
-// }
-
 
 void SplitWorld::registerCrate(escript::crate_ptr c)
 {

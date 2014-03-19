@@ -30,6 +30,7 @@
 
 namespace esysUtils
 {
+  
 JMPI makeInfo(MPI_Comm comm, bool owncom)
 {
     JMPI_* p=new JMPI_(comm, owncom);
