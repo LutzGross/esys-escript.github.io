@@ -202,6 +202,8 @@ class Test_binaryGridOnRipley(unittest.TestCase):
         if not zipped:
             return ripleycpp._readBinaryGrid(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)
+        if not hasattr(ripleycpp, "_readBinaryGridFromZipped"):
+            raise unittest.SkipTest("unzip library not available (boost_iostreams)")
         return ripleycpp._readBinaryGridFromZipped(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)
 
