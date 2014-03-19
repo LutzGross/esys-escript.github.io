@@ -98,7 +98,7 @@ for ix in range(len(receiver_line)):
            rg.append( ( receiver_line[ix], mid_point) ) 
 # North-south line of receiver
 if DIM == 3:
-     for iy in xrange(len(receiver_line)):
+     for iy in range(len(receiver_line)):
             rcv_locations.append((mid_point, receiver_line[iy],  depth))
             rg.append( (  mid_point, receiver_line[iy]) ) 
 #
@@ -121,7 +121,7 @@ delta=0
 vareps=0
 gamma=0
 rho=0
-for l in xrange(len(layers)):
+for l in range(len(layers)):
        m=wherePositive(z-z_bottom)*whereNonPositive(z-(z_bottom+layers[l]))
        v_p=v_p*(1-m)+v_Ps[l]*m
        v_s=v_s*(1-m)+v_Ss[l]*m
