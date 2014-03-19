@@ -333,6 +333,7 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     }
 }
 
+#ifdef USE_BOOSTIO
 void Rectangle::readBinaryGridFromZipped(escript::Data& out, string filename,
                                const ReaderParameters& params) const
 {
@@ -352,6 +353,7 @@ void Rectangle::readBinaryGridFromZipped(escript::Data& out, string filename,
             throw RipleyException("readBinaryGridFromZipped(): invalid or unsupported datatype");
     }
 }
+#endif
 
 template<typename ValueType>
 void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
@@ -441,6 +443,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     f.close();
 }
 
+#ifdef USE_BOOSTIO
 template<typename ValueType>
 void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                    const ReaderParameters& params) const
@@ -532,6 +535,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
 
     f.close();
 }
+#endif
 
 void Rectangle::writeBinaryGrid(const escript::Data& in, string filename,
                                 int byteOrder, int dataType) const
