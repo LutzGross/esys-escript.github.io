@@ -333,6 +333,26 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     }
 }
 
+void Rectangle::readBinaryGridFromZipped(escript::Data& out, string filename,
+                               const ReaderParameters& params) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (params.dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridZippedImpl<int>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridZippedImpl<float>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridZippedImpl<double>(out, filename, params);
+            break;
+        default:
+            throw RipleyException("readBinaryGridFromZipped(): invalid or unsupported datatype");
+    }
+}
+
 template<typename ValueType>
 void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                                    const ReaderParameters& params) const
@@ -392,6 +412,98 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
         const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
         f.seekg(fileofs*sizeof(ValueType));
         f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+        for (int x=0; x<num0; x++) {
+            const int baseIndex = first0+x*params.multiplier[0]
+                                    +(first1+y*params.multiplier[1])*myN0;
+            for (int m1=0; m1<params.multiplier[1]; m1++) {
+                for (int m0=0; m0<params.multiplier[0]; m0++) {
+                    const int dataIndex = baseIndex+m0+m1*myN0;
+                    double* dest = out.getSampleDataRW(dataIndex);
+                    for (int c=0; c<numComp; c++) {
+                        ValueType val = values[x*numComp+c];
+
+                        if (params.byteOrder != BYTEORDER_NATIVE) {
+                            char* cval = reinterpret_cast<char*>(&val);
+                            // this will alter val!!
+                            byte_swap32(cval);
+                        }
+                        if (!std::isnan(val)) {
+                            for (int q=0; q<dpp; q++) {
+                                *dest++ = static_cast<double>(val);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    f.close();
+}
+
+template<typename ValueType>
+void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
+                                   const ReaderParameters& params) const
+{
+    // check destination function space
+    int myN0, myN1;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NN[0];
+        myN1 = m_NN[1];
+    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
+                out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        myN0 = m_NE[0];
+        myN1 = m_NE[1];
+    } else
+        throw RipleyException("readBinaryGrid(): invalid function space for output data object");
+
+    // check file existence and size
+    ifstream f(filename.c_str(), ifstream::binary);
+    if (f.fail()) {
+        throw RipleyException("readBinaryGridFromZipped(): cannot open file");
+    }
+    f.seekg(0, ios::end);
+    const int numComp = out.getDataPointSize();
+    int filesize = f.tellg();
+    f.seekg(0, ios::beg);
+    std::vector<char> compressed(filesize);
+    f.read((char*)&compressed[0], filesize);
+    f.close();
+    std::vector<char> decompressed = unzip(compressed);
+    filesize = decompressed.size();
+    const int reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
+    if (filesize < reqsize) {
+        throw RipleyException("readBinaryGridFromZipped(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1] <= m_offset[1]) {
+        f.close();
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const int first0 = max(0, params.first[0]-m_offset[0]);
+    const int first1 = max(0, params.first[1]-m_offset[1]);
+    // indices to first value in file
+    const int idx0 = max(0, m_offset[0]-params.first[0]);
+    const int idx1 = max(0, m_offset[1]-params.first[1]);
+    // number of values to read
+    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
+
+    out.requireWrite();
+    vector<ValueType> values(num0*numComp);
+    const int dpp = out.getNumDataPointsPerSample();
+
+    for (int y=0; y<num1; y++) {
+        const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
+            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
         for (int x=0; x<num0; x++) {
             const int baseIndex = first0+x*params.multiplier[0]
                                     +(first1+y*params.multiplier[1])*myN0;
