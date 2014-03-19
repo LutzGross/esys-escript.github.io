@@ -222,7 +222,6 @@ class Test_binaryGridOnRipley(unittest.TestCase):
         return x[0] * 100 * (10*self.ranks-1) + x[1] * 100 + x[2]
 
     def test_BrickWriteThenRead(self):
-        return
         NE = [10*self.ranks-1, 10*self.ranks-1, 10]
         domain = Brick(NE[0], NE[1], NE[2], d2=0)
         for ftype in [ReducedFunction, ContinuousFunction]:
