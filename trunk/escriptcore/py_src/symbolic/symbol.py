@@ -417,12 +417,10 @@ class Symbol(object):
             result=numpy.empty(self.getShape(), dtype=object)
             if new.ndim>0:
                 for idx in numpy.ndindex(self.getShape()):
-                    #for symidx in numpy.ndindex(new.shape):
-                        result[idx]=self._arr[idx].subs(old._arr[idx], new[idx])
+                    result[idx]=self._arr[idx].subs(old._arr[idx], new[idx])
             else: # substitute scalar for non-scalar
                 for idx in numpy.ndindex(self.getShape()):
-                    #for symidx in numpy.ndindex(old.getShape()):
-                        result[idx]=self._arr[idx].subs(old._arr[idx], new.item())
+                    result[idx]=self._arr[idx].subs(old._arr[idx], new.item())
             result=Symbol(result, dim=self._dim, subs=self._subs)
         else: # scalar
             if isinstance(new, Symbol):
