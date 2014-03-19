@@ -2017,7 +2017,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 
 namespace
 {
-    // Calculates a guassian blur colvolution matrix for 2D
+    // Calculates a gaussian blur convolution matrix for 2D
     // See wiki article on the subject    
     double* get2DGauss(unsigned radius, double sigma)
     {
@@ -2124,11 +2124,6 @@ that ripley has.
 escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& shape,
        long seed, const boost::python::tuple& filter) const
 {
-    if (m_numDim!=2)
-    {
-        throw RipleyException("Only 2D supported at this time.");
-    }
-
     unsigned int radius=0;      // these are only used by gaussian
     double sigma=0.5;
     
@@ -2163,15 +2158,13 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     {
         throw RipleyException("Unsupported random filter for Rectangle.");
     }
-      
-  
-    
-    size_t internal[2];
-    internal[0]=m_NE[0]+1;      // number of points in the internal region
-    internal[1]=m_NE[1]+1;      // that is, the ones we need smoothed versions of
+
+    // number of points in the internal region
+    // that is, the ones we need smoothed versions of
+    const dim_t internal[2] = { m_NN[0], m_NN[1] };
     size_t ext[2];
-    ext[0]=internal[0]+2*radius;        // includes points we need as input
-    ext[1]=internal[1]+2*radius;        // for smoothing
+    ext[0]=(size_t)internal[0]+2*radius; // includes points we need as input
+    ext[1]=(size_t)internal[1]+2*radius; // for smoothing
     
     // now we check to see if the radius is acceptable 
     // That is, would not cross multiple ranks in MPI
@@ -2187,7 +2180,6 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
 
     double* src=new double[ext[0]*ext[1]*numvals];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);   
-    
 
 
 #ifdef ESYS_MPI
@@ -2195,7 +2187,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     {
         // since the dimensions are equal for all ranks, this exception
         // will be thrown on all ranks
-        throw RipleyException("Random Data in Ripley requries at least five elements per side per rank.");
+        throw RipleyException("Random Data in Ripley requires at least five elements per side per rank.");
     }
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
