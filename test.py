@@ -2,7 +2,7 @@ from esys.escript import *
 from esys.escriptcore.splitworld import *
 
 from esys.ripley import *
-
+from esys.escript.linearPDEs import Poisson
 
 sw=SplitWorld(getMPISizeWorld())
 buildDomains(sw, Brick, 3, 3, 3 )
@@ -26,7 +26,7 @@ class BarrierJob(Job):
       print str(self.jobid)+"is doing work  "+str(self.rounds)
       self.rounds-=1
       #print self.domain.OnMasterProcessor()
-      print self.domain.onMasterProcessor()
+      #print self.domain.onMasterProcessor()
       return self.rounds<1
       
       
@@ -35,29 +35,21 @@ class PoissonJob(Job):
       super(PoissonJob, self).__init__(**kwargs)
     
     def work(self):
-      print "Starting work"
       x = self.domain.getX()
-      print "Here"
-      q=x[0]
-      print ";;;;;;;;;;"
-      whereZero(q)
-      print "----"
       gammaD = whereZero(x[0])+whereZero(x[1])
-      print "There"
       # define PDE and get its solution u
       mypde = Poisson(domain=self.domain)
-      print "Passed constructor"
-      mypde.setValue(f=1,q=gammaD)
-      print "Beginning solve"
+      mypde.setValue(f=self.jobid, q=gammaD)
       u = mypde.getSolution()
-      print "Solution complete"
+      print "Lsup solution=",Lsup(u)
+      return True
 
-#addJob(sw, J1)
-#addJob(sw, J1)
-#for z in range(1):
-#  addJob(sw, J1)
-#  addJob(sw, BarrierJob)
-addJob(sw, PoissonJob)
+addJob(sw, J1)
+addJob(sw, J1)
+for z in range(10):
+  addJob(sw, J1)
+  addJob(sw, BarrierJob)
+  addJob(sw, PoissonJob)
   
 try:  
     sw.runJobs()

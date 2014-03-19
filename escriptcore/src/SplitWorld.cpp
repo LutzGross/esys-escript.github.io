@@ -70,15 +70,6 @@ object SplitWorld::buildDomains(tuple t, dict kwargs)
     // now add the subworld to the kwargs
     kwargs["escriptworld"]=localworld;
 
-// std::cerr << "About to call function with:\n";
-// //extract<std::string> ex(ntup.attr("__str__")());
-//  std::cerr << extract<std::string>(ntup.attr("__str__")())() << std::endl;
-// // for (int i=0;i<tsize-1;++i)
-// // {
-// //     std::cout << extract<const char*>(ntup[i])() << " ";
-// // }
-// std::cerr << std::endl;
-    
     // pass the whole package to the python call
     object dobj=tocall(*ntup, **kwargs);
     extract<Domain_ptr> ex1(dobj);
@@ -175,7 +166,6 @@ void SplitWorld::runJobs()
 	// now we actually need to run the jobs
 	// everybody will be executing their localworld's jobs
 	int res=localworld->runJobs(err);	
-std::cerr << "Done local jobs" << std::endl;	
 	// now we find out about the other worlds
 	if (!checkResultInt(res, mres, globalcom))
 	{
@@ -246,7 +236,6 @@ void SplitWorld::distributeJobs()
     int errstat=0;
     try
     {
-std::cerr << "Numjobs=" << numjobs << " start=" << start << std::endl;    
 	// No other subworld will be looking at this portion of the array
 	// so jobs will only be created on one subworld
 	for (unsigned int i=start;i<start+numjobs;++i)

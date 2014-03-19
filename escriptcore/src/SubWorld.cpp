@@ -89,37 +89,12 @@ char SubWorld::runJobs(std::string& errormsg)
     catch (boost::python::error_already_set e)
     {
 	using namespace boost::python;
-std::cerr << "Here" << __LINE__ << std::endl;	
-// 	std::cerr << bp::extract<std::string>(e.attr("__str__")())() << std::cerr;
-
-// 	PyObject* xx=PyErr_Occurred();
-// 	handle<> xy(borrowed(xx));
-// 	object zzz(xy); 
-
-	
-// 	Still trying to work out how to get the exception text from the values below
-// 	It seems the best approach at the moment is to work out how do do it using the C API
-// 	Should probably have a #def to switch this stuff off in case we need to give people instructions
-// 	about how to disable it if it goes nasty with a python or boost update
-	
-
-//	object mess=zzz.attr("message");
-	
-//	std::cerr << (extract<std::string>(mess)()) << std::endl;
-
-std::cerr << "Here" << __LINE__ << std::endl;	
-
   	PyObject* ptype=0;
  	PyObject* pvalue=0;
  	PyObject* ptraceback=0;
  	PyErr_Fetch(&ptype, &pvalue, &ptraceback);
 	PyErr_NormalizeException(&ptype, &pvalue, &ptraceback);
  
-std::cerr << "Here" << __LINE__ << std::endl;	
- 
- 
-std::cerr << PyString_Check(pvalue) << std::endl;
-
 	PyObject* errobj=PyObject_Str(pvalue);
 
 	errormsg=PyString_AsString(errobj);
@@ -129,35 +104,6 @@ std::cerr << PyString_Check(pvalue) << std::endl;
 	Py_XDECREF(pvalue);
 	Py_XDECREF(ptraceback);
  	
-std::cerr << errormsg << std::endl;
-
-
-	
-	
-//  	handle<> htype(ptype);
-//  	handle<> hvalue(ptype);
-//  	handle<> htraceback(ptype);
-//  	
-// 	object otype(htype);
-// 	object ovalue(hvalue);
-// 	
-// 
-// 	
-//  	object otraceback(htraceback);
- 	
-//  	std::cerr << (extract<std::string>(otype.attr("__str__")())()) << std::endl;
-//  	std::cerr << (extract<std::string>(ovalue.attr("__str__")())()) << std::endl;
-// 	std::cerr << (extract<std::string>(otraceback.attr("__str__")())()) << std::endl;
- 	
- 	
-//  	object btraceback(handle<>(ptraceback));
-//  	
-//  	std::cerr << (extract<std::string>(btype.attr("__str__")())()) << std::endl;
- 	
-// 	bp::object eo(p);
-//  	bp::object zz=eo.attr("__str__")();
- 	//std::cerr << (bp::extract<std::string>(zz)()) << std::endl;
-// 	std::cerr<< "[[[" << (bp::extract<std::string>(gettrace())()) << "]]]\n";
 	return 3;
     }  
     return ret;
