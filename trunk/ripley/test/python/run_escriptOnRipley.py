@@ -26,7 +26,7 @@ import sys
 import unittest
 
 from esys.escript import *
-from esys.ripley import Rectangle, Brick
+from esys.ripley import Rectangle, Brick, ripleycpp
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
 from test_objects import Test_Domain, Test_GlobalMinMax, Test_Lazy
 
@@ -189,7 +189,83 @@ class Test_randomOnRipley(unittest.TestCase):
         self.assertRaises(RuntimeError, RandomData, (), fs, 0, ("gaussian",20,0.1))
         RandomData((2,3),fs)
 
+class Test_binaryGridOnRipley(unittest.TestCase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_NATIVE
+        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.ranks = getMPISizeWorld()
 
+    def read(self, filename, FS, expected, zipped = False):
+        first = [0 for i in expected]
+        reverse = [0 for i in expected]
+        scale = [1 for i in expected]
+        if not zipped:
+            return ripleycpp._readBinaryGrid(filename, FS, (), 50000,
+                self.byteorder, self.datatype, first, expected, scale, reverse)
+        return ripleycpp._readBinaryGridFromZipped(filename, FS, (), 50000,
+                self.byteorder, self.datatype, first, expected, scale, reverse)
+
+    def write(self, domain, data, filename):
+        domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
+
+    def adjust(self, NE, ftype):
+        if ftype == ContinuousFunction:
+            return [i+1 for i in NE]
+        return NE
+
+    def generateUniqueData(self, FS, dim):
+        x = FS.getX()
+        if dim == 2:
+            return x[0] * 10 * (10*self.ranks-1) + x[1]
+        return x[0] * 100 * (10*self.ranks-1) + x[1] * 100 + x[2]
+
+    def test_BrickWriteThenRead(self):
+        NE = [10*self.ranks-1, 10*self.ranks-1, 10]
+        domain = Brick(NE[0], NE[1], NE[2], d2=0)
+        for ftype in [ReducedFunction, ContinuousFunction]:
+            FS = ftype(domain)
+            original = self.generateUniqueData(FS, 3)
+            self.write(domain, original, "ref_data/tempfile")
+            result = self.read("ref_data/tempfile", FS, self.adjust(NE, ftype))
+            os.unlink("ref_data/tempfile")
+            self.assertEqual(Lsup(original - result), 0, "Data objects don't match for "+str(FS))
+
+    def test_RectangleWriteThenRead(self):
+        NE = [10*self.ranks-1, 10]
+        domain = Rectangle(NE[0], NE[1], d1=0)
+        for ftype in [ReducedFunction, ContinuousFunction]:
+            FS = ftype(domain)
+            original = self.generateUniqueData(FS, 2)
+            self.write(domain, original, "ref_data/tempfile")
+            result = self.read("ref_data/tempfile", FS, self.adjust(NE, ftype))
+            os.unlink("ref_data/tempfile")
+            self.assertEqual(Lsup(original - result), 0, "Data objects don't match for "+str(FS))
+
+    @unittest.skipIf(getMPISizeWorld() > 1,
+        "Skipping compressed binary grid tests due element stretching")
+    def test_BrickCompressed(self):
+        NE = [10*self.ranks-1, 10*self.ranks-1, 10]
+        domain = Brick(NE[0], NE[1], NE[2], d1=0, d2=0)
+        for filename, ftype in [("ref_data/BrickRedF%s.grid.gz", ReducedFunction),
+                ("ref_data/BrickConF%s.grid.gz", ContinuousFunction)]:
+            FS = ftype(domain)
+            filename = filename%self.ranks
+            unzipped = self.read(filename[:-3], FS, self.adjust(NE, ftype))
+            zipped = self.read(filename, FS, self.adjust(NE, ftype), zipped=True)
+            self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
+
+    @unittest.skipIf(getMPISizeWorld() > 1,
+        "Skipping compressed binary grid tests due element stretching")
+    def test_RectangleCompressed(self):
+        NE = [10*self.ranks-1, 10]
+        domain = Rectangle(NE[0], NE[1], d1=0)
+        for filename, ftype in [("ref_data/RectRedF%s.grid.gz", ReducedFunction),
+                ("ref_data/RectConF%s.grid.gz", ContinuousFunction)]:
+            FS = ftype(domain)
+            filename = filename%self.ranks
+            unzipped = self.read(filename[:-3], FS, self.adjust(NE, ftype))
+            zipped = self.read(filename, FS, self.adjust(NE, ftype), zipped=True)
+            self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
@@ -199,6 +275,7 @@ if __name__ == '__main__':
     suite.addTest(unittest.makeSuite(Test_TableInterpolationOnRipley))
     suite.addTest(unittest.makeSuite(Test_CSVOnRipley))
     suite.addTest(unittest.makeSuite(Test_randomOnRipley))
+    suite.addTest(unittest.makeSuite(Test_binaryGridOnRipley))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
 

@@ -81,9 +81,7 @@ public:
     /**
     */
     virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
-                                const ReaderParameters& params) const {
-             throw RipleyException("Rectangle doesn't support zipped binary grid reads yet");
-    }
+                                const ReaderParameters& params) const;
 #endif
 
     /**
@@ -222,6 +220,10 @@ private:
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
                             const ReaderParameters& params) const;
+
+    template<typename ValueType>
+    void readBinaryGridZippedImpl(escript::Data& out, 
+            const std::string& filename, const ReaderParameters& params) const;
 
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,
