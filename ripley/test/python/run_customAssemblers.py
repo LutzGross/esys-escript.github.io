@@ -70,8 +70,8 @@ class Test_CustomAssemblers(unittest.TestCase):
             dom = Brick(10,10,10)
             default = run_lame(dom, False, test_type)
             lame = run_lame(dom, True, test_type)
-            self.assertEqual(Lsup(default - lame),
-                    0., "Default and Lame 3Dassembler solutions differ for " \
+            self.assertLess(Lsup(default - lame), 1e-8,
+                    "Default and Lame 3Dassembler solutions differ for " \
                     + "%s data"%labels[test_type])
 
             #check for catching that default assemblage will now fail
@@ -81,8 +81,8 @@ class Test_CustomAssemblers(unittest.TestCase):
             dom = Rectangle(20,20)
             default = run_lame(dom, False, test_type)
             lame = run_lame(dom, True, test_type)
-            self.assertEqual(Lsup(default - lame),
-                    0., "Default and Lame 2Dassembler solutions differ for " \
+            self.assertLess(Lsup(default - lame), 1e-8,
+                    "Default and Lame 2Dassembler solutions differ for " \
                     + "%s data"%labels[test_type])
                     
             #check for catching that default assemblage will now fail
