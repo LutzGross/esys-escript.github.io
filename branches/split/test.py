@@ -1,11 +1,12 @@
 from esys.escript import *
 from esys.escriptcore.splitworld import *
 
-from esys.ripley import *
+from esys.finley import *
 from esys.escript.linearPDEs import Poisson
 
 sw=SplitWorld(getMPISizeWorld())
-buildDomains(sw, Brick, 3, 3, 3 )
+#buildDomains(sw, Brick, 3, 3, 3 )
+buildDomains(sw, Rectangle, 3, 3)
 
 class J1(Job):
     def __init__(self, **kwargs):

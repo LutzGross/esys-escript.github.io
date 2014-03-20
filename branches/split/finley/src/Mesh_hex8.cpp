@@ -33,7 +33,8 @@ namespace finley {
 Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool optimize)
+                           bool optimize,
+			   esysUtils::JMPI& mpiInfo)
 {
     const int N_PER_E = 1;
     const int DIM = 3;
@@ -46,7 +47,6 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
 #endif
 
     // get MPI information
-    esysUtils::JMPI mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
     if (!noError()) {
         return NULL;
     }

@@ -26,6 +26,7 @@
 #include "MeshAdapter.h"
 
 #include "escript/AbstractContinuousDomain.h"
+#include "escript/SubWorld.h"
 
 #include <boost/python/list.hpp>
 
@@ -108,7 +109,7 @@ namespace finley {
      \param tagnamestonums
   */
 FINLEY_DLL_API
-escript::Domain_ptr brick(int n0=1, int n1=1, int n2=1, int order=1,
+escript::Domain_ptr brick(esysUtils::JMPI& info, int n0=1, int n1=1, int n2=1, int order=1,
                     double l0=1.0, double l1=1.0, double l2=1.0,
                     bool periodic0=false, bool periodic1=false,
                     bool periodic2=false,
@@ -162,7 +163,7 @@ escript::Domain_ptr brick(int n0=1, int n1=1, int n2=1, int order=1,
      \param tagnamestonums
   */
 FINLEY_DLL_API
-  escript::Domain_ptr rectangle(int n0=1, int n1=1, int order=1,
+  escript::Domain_ptr rectangle(esysUtils::JMPI& info, int n0=1, int n1=1, int order=1,
                                 double l0=1.0, double l1=1.0,
                                 bool periodic0=false, bool periodic1=false,
                                 int integrationOrder=-1,

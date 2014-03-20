@@ -28,6 +28,7 @@
 
 #include <sstream>
 
+
 using namespace std;
 using namespace escript;
 
@@ -517,14 +518,15 @@ namespace finley {
   }
 
 /*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
-  Domain_ptr brick(int n0, int n1, int n2, int order,
+  Domain_ptr brick(esysUtils::JMPI& info, int n0, int n1, int n2, int order,
                    double l0, double l1, double l2,
                    bool periodic0, bool periodic1, bool periodic2,
                    int integrationOrder, int reducedIntegrationOrder,
                    bool useElementsOnFace, bool useFullElementOrder,
                    bool optimize, const std::vector<double>& points,
                    const std::vector<int>& tags,
-                   const std::map<std::string, int>& tagnamestonums)
+                   const std::map<std::string, int>& tagnamestonums
+		  )
   {
     const int numElements[] = {n0, n1, n2};
     const double length[] = {l0, l1, l2};
@@ -534,15 +536,18 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Hex8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize);
+                useElementsOnFace, useFullElementOrder, optimize,
+		info);
     } else if (order==2) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, false, optimize);
+                useElementsOnFace, useFullElementOrder, false, optimize,
+		info);
     } else if (order==-1) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize);
+                useElementsOnFace, useFullElementOrder, true, optimize,
+		info);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -607,8 +612,23 @@ namespace finley {
           }
         
       }
-      
-      return brick(static_cast<int>(extract<float>(args[0])),
+      boost::python::object pworld=args[17];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+	  extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
+	  }
+	  info=ex()->getMPI();
+      }
+      else
+      {
+	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+
+      }
+      return brick(info, static_cast<int>(extract<float>(args[0])),
                    static_cast<int>(extract<float>(args[1])),
                    static_cast<int>(extract<float>(args[2])),
                    extract<int>(args[3]), extract<double>(args[4]),
@@ -617,10 +637,11 @@ namespace finley {
                    extract<int>(args[9]), extract<int>(args[10]),
                    extract<int>(args[11]), extract<int>(args[12]),
                    extract<int>(args[13]), extract<int>(args[14]),
-                   points, tags, namestonums);
+                   points, tags, namestonums
+		  );
   }
 
-  Domain_ptr rectangle(int n0, int n1, int order,
+  Domain_ptr rectangle(esysUtils::JMPI& info, int n0, int n1, int order,
                        double l0, double l1,
                        bool periodic0, bool periodic1,
                        int integrationOrder,
@@ -630,7 +651,8 @@ namespace finley {
                        bool optimize,
                        const vector<double>& points,
                        const vector<int>& tags,
-                       const std::map<std::string, int>& tagnamestonums)
+                       const std::map<std::string, int>& tagnamestonums
+		      )
   {
     const int numElements[] = {n0, n1};
     const double length[] = {l0, l1};
@@ -640,15 +662,18 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Rec4(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize);
+                useElementsOnFace, useFullElementOrder, optimize,
+		info);
     } else if (order==2) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace,useFullElementOrder, false, optimize);
+                useElementsOnFace,useFullElementOrder, false, optimize,
+		info);
     } else if (order==-1) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize);
+                useElementsOnFace, useFullElementOrder, true, optimize,
+		info);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -744,15 +769,31 @@ namespace finley {
               throw FinleyAdapterException("Error - Unable to extract tag value.");
           }
       }
-      
-      return rectangle(static_cast<int>(extract<float>(args[0])),
+      boost::python::object pworld=args[14];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+          extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
+          }
+          info=ex()->getMPI();
+      }
+      else
+      {
+          info=esysUtils::makeInfo(MPI_COMM_WORLD);
+      }
+
+      return rectangle(info, static_cast<int>(extract<float>(args[0])),
                        static_cast<int>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),
                        extract<int>(args[8]), extract<int>(args[9]),
                        extract<int>(args[10]), extract<int>(args[11]), 
-                       points, tags, tagstonames);
+                       points, tags, tagstonames
+		       );
   }  
 
 
