@@ -32,7 +32,8 @@ namespace finley {
 Mesh* RectangularMesh_Rec4(const int* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool optimize)
+                           bool optimize,
+			   esysUtils::JMPI& mpi_info)
 {
 #define N_PER_E 1
 #define DIM 2
@@ -47,7 +48,6 @@ Mesh* RectangularMesh_Rec4(const int* numElements, const double* Length,
 #endif
 
   /* get MPI information */
-  esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
   if (! noError()) {
         return NULL;
   }

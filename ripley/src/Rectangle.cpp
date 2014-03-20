@@ -49,8 +49,10 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const simap_t& tagnamestonums) :
-    RipleyDomain(2)
+                     const simap_t& tagnamestonums,
+		    escript::SubWorld_ptr w
+		    ) :
+    RipleyDomain(2, w)
 {
     // ignore subdivision parameters for serial run
     if (m_mpiInfo->size == 1) {
