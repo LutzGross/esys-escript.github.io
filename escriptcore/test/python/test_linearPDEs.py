@@ -68,8 +68,8 @@ class Test_linearPDEs(unittest.TestCase):
     
     def checkContactsNotEmpty(self, pde):
         if self.domain.supportsContactElements():
-            self.checkIfNotEmpty(mypde, ["d_contact", "y_contact"])
-            self.checkIfReducedNotEmpty(mypde, ["d_contact", "y_contact"])
+            self.checkIfNotEmpty(pde, ["d_contact", "y_contact"])
+            self.checkIfReducedNotEmpty(pde, ["d_contact", "y_contact"])
     
 class Test_LameEquation(Test_linearPDEs):
     def test_config(self):
