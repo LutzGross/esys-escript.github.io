@@ -54,9 +54,24 @@ class Test_linearPDEs(unittest.TestCase):
         """
         if tol==None: tol=self.TOL
         return Lsup(arg-ref_arg)<=tol*Lsup(ref_arg)
+
+    def checkIfNotEmpty(self, pde, coefs):
+        for coef in coefs:
+            self.assertTrue(pde.getCoefficient(coef).isEmpty(),
+                    "%s is not empty"%coef)
+
+    def checkIfReducedNotEmpty(self, pde, coefs):
+        for coef in coefs:
+            coef += "_reduced"
+            self.assertTrue(pde.getCoefficient(coef).isEmpty(),
+                    "%s is not empty"%coef)
+    
+    def checkContactsNotEmpty(self, pde):
+        if self.domain.supportsContactElements():
+            self.checkIfNotEmpty(mypde, ["d_contact", "y_contact"])
+            self.checkIfReducedNotEmpty(mypde, ["d_contact", "y_contact"])
     
 class Test_LameEquation(Test_linearPDEs):
-
     def test_config(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
         d=self.domain.getDim()
@@ -66,62 +81,28 @@ class Test_LameEquation(Test_linearPDEs):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
         mypde.setValue(q=x)
-
         q_ref=interpolate(x,Solution(self.domain))
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),0),"A is not 0")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
 
     def test_setCoefficient_r(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
         mypde.setValue(r=x)
-
         r_ref=interpolate(x,Solution(self.domain))
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+        
         self.assertTrue(self.check(mypde.getCoefficient("A"),0),"A is not 0")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("r"),r_ref),"r is nor x")
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
 
 
     def test_setCoefficient_F(self):
@@ -130,29 +111,13 @@ class Test_LameEquation(Test_linearPDEs):
         mypde.setValue(F=x)
 
         Y_ref=interpolate(x,Function(self.domain))
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),0),"A is not 0")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("Y"),Y_ref),"Y is not x")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_f(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
@@ -160,59 +125,26 @@ class Test_LameEquation(Test_linearPDEs):
         mypde.setValue(f=x)
 
         y_ref=interpolate(x,FunctionOnBoundary(self.domain))
+        
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),0),"A is not 0")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(self.check(mypde.getCoefficient("y"),y_ref),"d is not x[0]")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+        self.assertTrue(self.check(mypde.getCoefficient("y"),y_ref),"y is not x[0]")
 
     def test_setCoefficient_sigma(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
         mypde.setValue(sigma=outer(x,x))
 
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "Y", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         X_ref=interpolate(outer(x,x),Function(self.domain))
         self.assertTrue(self.check(mypde.getCoefficient("A"),0),"A is not 0")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("X"),X_ref),"X is not x X x")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_lambda(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
@@ -224,29 +156,11 @@ class Test_LameEquation(Test_linearPDEs):
         k3Xk3=outer(k3,k3)
         A_ref=x[0]*k3Xk3
 
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_mu(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
@@ -258,29 +172,11 @@ class Test_LameEquation(Test_linearPDEs):
         k3Xk3=outer(k3,k3)
         A_ref=x[0]*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3))
 
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")        
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_lambdamu(self):
         mypde=LameEquation(self.domain,debug=self.DEBUG)
@@ -291,29 +187,11 @@ class Test_LameEquation(Test_linearPDEs):
         k3Xk3=outer(k3,k3)
         A_ref=x[0]*k3Xk3+x[1]*(swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3))
 
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_solve(self):
        d=self.domain.getDim()
@@ -341,29 +219,12 @@ class Test_Helmholtz(Test_linearPDEs):
         q_ref=interpolate(whereZero(x[0]),Solution(self.domain))
         A_ref=kronecker(self.domain)
 
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
         self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_r(self):
         mypde=Helmholtz(self.domain,debug=self.DEBUG)
@@ -372,29 +233,13 @@ class Test_Helmholtz(Test_linearPDEs):
 
         r_ref=interpolate(x[0],Solution(self.domain))
         A_ref=kronecker(self.domain)
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty") 
         self.assertTrue(self.check(mypde.getCoefficient("r"),r_ref),"r is nor x[0]")
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
 
 
     def test_setCoefficient_f(self):
@@ -404,29 +249,13 @@ class Test_Helmholtz(Test_linearPDEs):
 
         Y_ref=interpolate(x[0],Function(self.domain))
         A_ref=kronecker(self.domain)
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("Y"),Y_ref),"Y is not x[0]")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_alpha(self):
         mypde=Helmholtz(self.domain,debug=self.DEBUG)
@@ -435,29 +264,13 @@ class Test_Helmholtz(Test_linearPDEs):
 
         d_ref=interpolate(x[0],FunctionOnBoundary(self.domain))
         A_ref=kronecker(self.domain)
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("d"),d_ref),"d is not x[0]")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_g(self):
         mypde=Helmholtz(self.domain,debug=self.DEBUG)
@@ -466,29 +279,13 @@ class Test_Helmholtz(Test_linearPDEs):
 
         y_ref=interpolate(x[0],FunctionOnBoundary(self.domain))
         A_ref=kronecker(self.domain)
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("y"),y_ref),"y is not x[0]")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")       
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_setCoefficient_omega(self):
         mypde=Helmholtz(self.domain,debug=self.DEBUG)
@@ -497,29 +294,13 @@ class Test_Helmholtz(Test_linearPDEs):
 
         D_ref=interpolate(x[0],Function(self.domain))
         A_ref=kronecker(self.domain)
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "X", "Y", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("D"),D_ref),"D is not x[0]")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")        
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
 
     def test_solve(self):
        d=self.domain.getDim()
@@ -535,93 +316,49 @@ class Test_Poisson(Test_linearPDEs):
     def test_config(self):
         mypde=Poisson(self.domain,debug=self.DEBUG)
         self.assertEqual((mypde.getNumEquations(), mypde.getNumSolutions(), mypde.getSolverOptions().isSymmetric()),(1,1,True),"set up incorrect")
+
     def test_setCoefficient_q(self):
         mypde=Poisson(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
         q_ref=interpolate(whereZero(x[0]),Solution(self.domain))
         A_ref=kronecker(self.domain)
         mypde.setValue(q=whereZero(x[0]))
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("q"),q_ref),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
     def test_setCoefficient_f(self):
         mypde=Poisson(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
         Y_ref=interpolate(x[0],Function(self.domain))
         A_ref=kronecker(self.domain)
         mypde.setValue(f=x[0])
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "Y", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("Y"),Y_ref),"Y is not x[0]")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("Y_reduced").isEmpty(),"Y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
     def test_setCoefficient_f_reduced(self):
         mypde=Poisson(self.domain,debug=self.DEBUG)
         x=self.domain.getX()
         Y_ref=interpolate(x[0],ReducedFunction(self.domain))
         A_ref=kronecker(self.domain)
         mypde.setValue(f_reduced=x[0])
+
+        self.checkIfNotEmpty(mypde, ["B", "C", "D", "X", "Y", "y", "d", "q", "r"])
+        self.checkIfReducedNotEmpty(mypde, ["A", "B", "C", "D", "X", "y", "d"])
+        self.checkContactsNotEmpty(mypde)
+
         self.assertTrue(self.check(mypde.getCoefficient("A"),A_ref),"A is not kronecker")
-        self.assertTrue(mypde.getCoefficient("B").isEmpty(),"B is not empty")
-        self.assertTrue(mypde.getCoefficient("C").isEmpty(),"C is not empty")
-        self.assertTrue(mypde.getCoefficient("D").isEmpty(),"D is not empty")
-        self.assertTrue(mypde.getCoefficient("X").isEmpty(),"X is not empty")
-        self.assertTrue(mypde.getCoefficient("Y").isEmpty(),"Y is not empty")
-        self.assertTrue(mypde.getCoefficient("y").isEmpty(),"y is not empty")
-        self.assertTrue(mypde.getCoefficient("d").isEmpty(),"d is not empty")
-        self.assertTrue(mypde.getCoefficient("A_reduced").isEmpty(),"A_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("B_reduced").isEmpty(),"B_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("C_reduced").isEmpty(),"C_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("D_reduced").isEmpty(),"D_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("X_reduced").isEmpty(),"X_reduced is not empty")
         self.assertTrue(self.check(mypde.getCoefficient("Y_reduced"),Y_ref),"Y_reduced is not x[0]")
-        self.assertTrue(mypde.getCoefficient("y_reduced").isEmpty(),"y_reduced is not empty")
-        self.assertTrue(mypde.getCoefficient("d_reduced").isEmpty(),"d_reduced is not empty")
-        if self.domain.supportsContactElements():
-            self.assertTrue(mypde.getCoefficient("d_contact_reduced").isEmpty(),"d_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact_reduced").isEmpty(),"y_contact_reduced is not empty")
-            self.assertTrue(mypde.getCoefficient("d_contact").isEmpty(),"d_contact is not empty")
-            self.assertTrue(mypde.getCoefficient("y_contact").isEmpty(),"y_contact is not empty")        
-        self.assertTrue(mypde.getCoefficient("q").isEmpty(),"q is not empty")
-        self.assertTrue(mypde.getCoefficient("r").isEmpty(),"r is not empty")
+
     def test_solve(self):
        d=self.domain.getDim()
        cf=ContinuousFunction(self.domain)
