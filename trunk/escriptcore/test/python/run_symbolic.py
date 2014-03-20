@@ -8586,6 +8586,17 @@ class SymbolicTestCase(unittest.TestCase):
         res=Evaluator(z)(x=xx,y=yy)
         self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
 
+    def test_subs(self):
+        #tests for preservation of data substitution 
+        u=Symbol('u',(2,))
+        a=Symbol('a',(2,))
+        dat=Data([1,0],FunctionSpace())
+        dat2=Data([0,1],FunctionSpace())
+        u=u.subs(u,dat)
+        a=a.subs(a,dat2)
+        a[0]=u[0]
+        self.assertEqual(u._subs, u[0]._subs, "indexing did not preserve data substitution")
+        self.assertTrue(a[0]._subs.has_key(u[0]._subs.keys()[0]), "indexing did not preserve data substitution")
 
 if __name__ == "__main__":
     import sys
