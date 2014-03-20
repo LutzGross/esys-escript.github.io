@@ -175,13 +175,13 @@ class Test_VTKSaver(unittest.TestCase):
         p2=VTKParser()
         self.assertTrue(p1.parse(file1), "Invalid vtu file")
         p2.parse(file2)
-        self.assertEquals(p1.getTimeAndCycle(), p2.getTimeAndCycle())
+        self.assertEqual(p1.getTimeAndCycle(), p2.getTimeAndCycle())
         nPoints1, nCells1 = p1.getNumPointsAndCells()
-        self.assertEquals((nPoints1, nCells1), p2.getNumPointsAndCells())
+        self.assertEqual((nPoints1, nCells1), p2.getNumPointsAndCells())
 
         nodeList1 = p1.getPoints()
         nodeList2 = p2.getPoints()
-        self.assertEquals(len(nodeList1), nPoints1)
+        self.assertEqual(len(nodeList1), nPoints1)
 
         # Find mapping of nodes in file 1 to file 2 (they may be permuted)
         nodeMap1to2 = {}
@@ -190,17 +190,17 @@ class Test_VTKSaver(unittest.TestCase):
             for i2 in range(len(nodeList2)):
                 if self.numericCompareL2(nodeList1[i1], nodeList2[i2]):
                     indexList.append(i2)
-            self.assertNotEquals(len(indexList), 0,
+            self.assertNotEqual(len(indexList), 0,
                              "Node with coordinates %s missing."%nodeList1[i1])
             nodeMap1to2[i1]=indexList
 
         # cells
         offsets1 = p1.getCellOffsets()
         offsets2 = p2.getCellOffsets()
-        self.assertEquals(len(offsets1), nCells1)
+        self.assertEqual(len(offsets1), nCells1)
         types1 = p1.getCellTypes()
         types2 = p2.getCellTypes()
-        self.assertEquals(len(types1), nCells1)
+        self.assertEqual(len(types1), nCells1)
         conn1 = p1.getCellConnectivity()
         conn2 = p2.getCellConnectivity()
         elementList1=[]
@@ -212,7 +212,7 @@ class Test_VTKSaver(unittest.TestCase):
             elementList2.append(conn2[lastOffset2:offsets2[i]])
             lastOffset1=offsets1[i]
             lastOffset2=offsets2[i]
-        self.assertEquals(len(elementList1), len(elementList2))
+        self.assertEqual(len(elementList1), len(elementList2))
 
         # find element mapping, then compare types.
         # offsets are compared implicitly by creating the mapping
@@ -226,20 +226,20 @@ class Test_VTKSaver(unittest.TestCase):
                     if min(matches):
                         index=i2
                         break
-            self.assertNotEquals(index, None,
+            self.assertNotEqual(index, None,
                                  "Element %s is missing."%elementList1[i1])
             elementMap1to2[i1]=[index]
 
         types1n = [types1[elementMap1to2[i][0]] for i in range(nCells1)]
-        self.assertEquals(types1n, types2)
+        self.assertEqual(types1n, types2)
 
         # point data
         pdata1=p1.getPointData()
         pdata2=p2.getPointData()
-        self.assertEquals(len(pdata1), len(pdata2))
+        self.assertEqual(len(pdata1), len(pdata2))
         for name in pdata2:
             self.assertTrue(name in pdata1, "Point variable '%s' missing"%name)
-            self.assertEquals(len(pdata1[name]), nPoints1)
+            self.assertEqual(len(pdata1[name]), nPoints1)
             if not name.startswith('mesh_vars/'):
                 self.assertTrue(self.compareDataWithMap(
                     pdata1[name], pdata2[name], nodeMap1to2),
@@ -248,10 +248,10 @@ class Test_VTKSaver(unittest.TestCase):
         # cell data
         cdata1=p1.getCellData()
         cdata2=p2.getCellData()
-        self.assertEquals(len(cdata1), len(cdata2))
+        self.assertEqual(len(cdata1), len(cdata2))
         for name in cdata2:
             self.assertTrue(name in cdata1, "Cell variable '%s' missing"%name)
-            self.assertEquals(len(cdata1[name]), nCells1)
+            self.assertEqual(len(cdata1[name]), nCells1)
             if not name.startswith('mesh_vars/'):
                 self.assertTrue(self.compareDataWithMap(
                     cdata1[name], cdata2[name], elementMap1to2),
