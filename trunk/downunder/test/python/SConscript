@@ -30,7 +30,8 @@ testruns = [ \
             'run_inversioncostfunction.py',\
             'inversion_gravity_2d.py',\
             'inversion_magnetic_2d.py',\
-            'inversion_gravmag_2d.py'
+            'inversion_gravmag_2d.py',
+            'run_seismic.py'
             ]
 
 # all tests
