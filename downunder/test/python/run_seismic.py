@@ -44,7 +44,7 @@ try:
 except KeyError:
     WORKDIR='.'
     
-
+writeFailMessage = "This feature (SimpleSEGYWriter.write()) depends on obspy, which is not installed, see https://github.com/obspy/obspy for install guide"
 
 
 class TestSeismicTools(unittest.TestCase):
@@ -57,8 +57,10 @@ class TestSeismicTools(unittest.TestCase):
            sw.addRecord(data)
         try:
             sw.write(os.path.join(WORKDIR,"test1.sgy"))
-        except Exception:
-            raise unittest.SkipTest("obspy may not be installed")
+        except Exception as e:
+            if str(e) == writeFailMessage:
+                raise unittest.SkipTest("obspy not installed")
+            raise e
         
     def test_segy_writer2(self):
         sw= SimpleSEGYWriter(receiver_group=[(0.,0.),(1.,-1.),(2.,-2)], source=(3,3), sampling_interval=10*U.msec, text="testing")
@@ -69,101 +71,57 @@ class TestSeismicTools(unittest.TestCase):
            sw.addRecord(data)
         try:
             sw.write(os.path.join(WORKDIR,"test2.sgy"))
-        except Exception:
-            raise unittest.SkipTest("obspy may not be installed")
+        except Exception as e:
+            if str(e) == writeFailMessage:
+                raise unittest.SkipTest("obspy not installed")
+            raise e
         
     def test_ricker(self):
         rw=Ricker(f_dom=40, t_dom=None)
 
-        self.assertTrue(abs(rw.getValue(0)) < 1e-6)
+        self.assertLess(abs(rw.getValue(0)), 1e-6)
         self.assertAlmostEquals(rw.getValue(rw.getCenter()), 1. )
-        self.assertTrue(abs(rw.getAcceleration(0.)) < 1.)
+        self.assertLess(abs(rw.getAcceleration(0.)), 1.)
 
     def test_wavebase(self):
         class TestWave(WaveBase):
             def _getAcceleration(self, t, u):
                 return -sin(t)
+        def check_values(self, tw, t_ref):
+            t, u=tw.update(t_ref)
+            self.assertLess(abs(t-t_ref), 1e-9)
+            self.assertLess(abs(u-sin(t_ref)), 1e-6)
+            
         tw=TestWave(dt=0.001, u0=0., v0=1., t0=0.)
         self.assertAlmostEquals(0.001, tw.getTimeStepSize())
+        for t in [0.005, 0.007, 0.0071, 0.01, 0.02, 0.5]:
+            check_values(self, tw, t)
+        self.assertRaises(ValueError, tw.update, t-1)
 
-        t_ref=0.005
-        t, u=tw.update(t_ref)
-        self.assertTrue(abs(t-t_ref) < 1e-9)
-        self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
-
-        t_ref=0.007
-        t, u=tw.update(t_ref)
-        self.assertTrue(abs(t-t_ref) < 1e-9)
-        self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
-
-        t_ref=0.0071
-        t, u=tw.update(t_ref)
-        self.assertTrue(abs(t-t_ref) < 1e-9)
-        self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
-
-        t_ref=0.01
-        t, u=tw.update(t_ref)
-        self.assertTrue(abs(t-t_ref) < 1e-9)
-        self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
-
-        t_ref=0.02
-        t, u=tw.update(t_ref)
-        self.assertTrue(abs(t-t_ref) < 1e-9)
-        self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
-
-        t_ref=0.5
-        t, u=tw.update(t_ref)
-        self.assertTrue(abs(t-t_ref) < 1e-9)
-        self.assertTrue(abs(u-sin(t_ref)) < 1e-6)
-
-        self.assertRaises(ValueError, tw.update, t_ref-1)
+    def sonicRunner(self, domain, label):
+            v_p=1.
+            sw = SonicWave(domain, v_p, Ricker(0.5), source_tag='sss')
+            u = sw.update(1.)[1]
+            self.assertIsInstance(u, Data,
+                    "u is not Data instance for %s"%label)
+            self.assertEqual(u.getShape(), (),
+                    "u is not shape () for %s"%label)
+            self.assertEqual(u.getFunctionSpace(), Solution(domain),
+                    "functionspace != solution for %s"%label)
 
     def test_sonicwave2D(self):
-        from esys.finley import Rectangle
+        from esys.finley import Rectangle as fRect
+        from esys.ripley import Rectangle as rRect
+        for domType, impl in [(fRect, "finley"), (rRect, "ripley")]:
+            domain=domType(5,5, diracPoints=[(0.5,1.)], diracTags=['sss'])
+            self.sonicRunner(domain, "%s.Rectangle"%impl)
 
-        domain=Rectangle(5,5, diracPoints=[(0.5,1.)], diracTags=['sss'])
-        v_p=1.
-
-        sw=SonicWave( domain, v_p, Ricker(0.5), source_tag='sss')
-        u=sw.update(1.)[1]
-        self.assertTrue(isinstance(u,Data))
-        self.assertEqual(u.getShape(), ())
-        self.assertEqual(u.getFunctionSpace(), Solution(domain))
-
-        from esys.ripley import Rectangle
-
-        domain=Rectangle(5,5, diracPoints=[(0.5,1.)], diracTags=['sss'])
-        v_p=1.
-
-        sw=SonicWave( domain, v_p, Ricker(0.5), source_tag='sss')
-        u=sw.update(1.)[1]
-        self.assertTrue(isinstance(u,Data))
-        self.assertEqual(u.getShape(), ())
-        self.assertEqual(u.getFunctionSpace(), Solution(domain))
-         
     def test_sonicwave3D(self):
-        from esys.finley import Brick
-
-        domain=Brick(5,5,5, diracPoints=[(0.5,0.5,1.)], diracTags=['sss'])
-        v_p=1.
-
-        sw=SonicWave( domain, v_p, Ricker(0.5), source_tag='sss')
-        u=sw.update(1.)[1]
-        self.assertTrue(isinstance(u,Data))
-        self.assertEqual(u.getShape(), ())
-        self.assertEqual(u.getFunctionSpace(), Solution(domain))
-        
-        from esys.ripley import Brick
-
-        domain=Brick(5,5,5, diracPoints=[(0.5,0.5,1.)], diracTags=['sss'])
-        v_p=1.
-
-        sw=SonicWave( domain, v_p, Ricker(0.5), source_tag='sss')
-        u=sw.update(1.)[1]
-        self.assertTrue(isinstance(u,Data))
-        self.assertEqual(u.getShape(), ())
-        self.assertEqual(u.getFunctionSpace(), Solution(domain))
-                 
+        from esys.finley import Brick as fBrick
+        from esys.ripley import Brick as rBrick
+        for domType, impl in [(fBrick, "finley"), (rBrick, "ripley")]:
+            domain=domType(5,5,5, diracPoints=[(0.5,0.5,1.)], diracTags=['sss'])
+            self.sonicRunner(domain, "%s.Brick"%impl)
                                   
 if __name__ == "__main__":
     suite = unittest.TestSuite()
