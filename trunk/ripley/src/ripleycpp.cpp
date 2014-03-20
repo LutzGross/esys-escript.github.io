@@ -220,7 +220,8 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                                             points, tags, tagstonames));
 }
 
-const int _q[]={0x61686969,0x746c4144,0x79616e43};
+//const int _q[]={0x61686969,0x746c4144,0x79616e43};
+const int _q[]={0x62207363, 0x6574735F, 0x2020214e};
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1, 
                                const object& objpoints, const object& objtags)
