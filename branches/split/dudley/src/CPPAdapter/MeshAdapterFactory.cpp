@@ -24,6 +24,8 @@
 #include "esysUtils/Esys_MPI.h"
 #endif
 
+#include "escript/SubWorld.h"
+
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -461,7 +463,7 @@ namespace dudley {
     return temp->getPtr();
   }
 
-  Domain_ptr brick(double n0, double n1,double n2,int order,
+  Domain_ptr brick(esysUtils::JMPI& mpi_info, double n0, double n1,double n2,int order,
                    double l0,double l1,double l2,
                    int periodic0,int periodic1,
                    int periodic2,
@@ -496,7 +498,8 @@ namespace dudley {
     Dudley_Mesh* fMesh=NULL;
 
     fMesh=Dudley_TriangularMesh_Tet4(numElements, length, integrationOrder,
-                        reducedIntegrationOrder, (optimize ? TRUE : FALSE));
+                        reducedIntegrationOrder, (optimize ? TRUE : FALSE),
+                        mpi_info);
 
     //
     // Convert any dudley errors into a C++ exception
@@ -505,7 +508,166 @@ namespace dudley {
     return temp->getPtr();
   }
 
-  Domain_ptr rectangle(double n0, double n1, int order,
+  Domain_ptr brick_driver(const boost::python::list& args)
+  {
+      using boost::python::extract;
+
+//       // we need to convert lists to stl vectors
+//       boost::python::list pypoints=extract<boost::python::list>(args[15]);
+//       boost::python::list pytags=extract<boost::python::list>(args[16]);
+//       int numpts=extract<int>(pypoints.attr("__len__")());
+//       int numtags=extract<int>(pytags.attr("__len__")());
+//       vector<double> points;
+//       vector<int> tags;
+//       tags.resize(numtags, -1);
+//       for (int i=0;i<numpts;++i) {
+//           boost::python::object temp=pypoints[i];
+//           int l=extract<int>(temp.attr("__len__")());
+//           for (int k=0;k<l;++k) {
+//               points.push_back(extract<double>(temp[k]));           
+//           }
+//       }
+//       map<string, int> namestonums;
+//       int curmax=40; // bricks use up to 30
+//       for (int i=0;i<numtags;++i) {
+//           extract<int> ex_int(pytags[i]);
+//           extract<string> ex_str(pytags[i]);
+//           if (ex_int.check()) {
+//               tags[i]=ex_int();
+//               if (tags[i]>= curmax) {
+//                   curmax=tags[i]+1;
+//               }
+//           } else if (ex_str.check()) {
+//               string s=ex_str();
+//               map<string, int>::iterator it=namestonums.find(s);
+//               if (it!=namestonums.end()) {
+//                   // we have the tag already so look it up
+//                   tags[i]=it->second;
+//               } else {
+//                   namestonums[s]=curmax;
+//                   tags[i]=curmax;
+//                   curmax++;
+//               }
+//           } else {
+//               throw DudleyAdapterException("Error - Unable to extract tag value.");
+//           }
+//         
+//       }
+      boost::python::object pworld=args[15];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+	  extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {	  
+	      throw DudleyAdapterException("Invalid escriptworld parameter.");
+	  }
+	  info=ex()->getMPI();
+      }
+      else
+      {
+	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+
+      }
+      return brick(info, static_cast<int>(extract<float>(args[0])),
+                   static_cast<int>(extract<float>(args[1])),
+                   static_cast<int>(extract<float>(args[2])),
+                   extract<int>(args[3]), extract<double>(args[4]),
+                   extract<double>(args[5]), extract<double>(args[6]),
+                   extract<int>(args[7]), extract<int>(args[8]),
+                   extract<int>(args[9]), extract<int>(args[10]),
+                   extract<int>(args[11]), extract<int>(args[12]),
+                   extract<int>(args[13]), extract<int>(args[14])
+                   );
+  }  
+  
+  
+  Domain_ptr rectangle_driver(const boost::python::list& args)
+  {
+      using boost::python::extract;
+/*
+      // we need to convert lists to stl vectors
+      boost::python::list pypoints=extract<boost::python::list>(args[12]);
+      boost::python::list pytags=extract<boost::python::list>(args[13]);
+      int numpts=extract<int>(pypoints.attr("__len__")());
+      int numtags=extract<int>(pytags.attr("__len__")());
+      vector<double> points;
+      vector<int> tags;
+      tags.resize(numtags, -1);
+      for (int i=0;i<numpts;++i)
+      {
+          boost::python::object temp=pypoints[i];
+          int l=extract<int>(temp.attr("__len__")());
+          for (int k=0;k<l;++k)
+          {
+              points.push_back(extract<double>(temp[k]));           
+          }
+      }
+      map<string, int> tagstonames;
+      int curmax=40;
+      // but which order to assign tags to names?????
+      for (int i=0;i<numtags;++i)
+      {
+          extract<int> ex_int(pytags[i]);
+          extract<string> ex_str(pytags[i]);
+          if (ex_int.check())
+          {
+              tags[i]=ex_int();
+              if (tags[i]>= curmax)
+              {
+                  curmax=tags[i]+1;
+              }
+          } 
+          else if (ex_str.check())
+          {
+              string s=ex_str();
+              map<string, int>::iterator it=tagstonames.find(s);
+              if (it!=tagstonames.end())
+              {
+                  // we have the tag already so look it up
+                  tags[i]=it->second;
+              }
+              else
+              {
+                  tagstonames[s]=curmax;
+                  tags[i]=curmax;
+                  curmax++;
+              }
+          }
+          else
+          {
+              throw DudleyAdapterException("Error - Unable to extract tag value.");
+          }
+      }*/
+      boost::python::object pworld=args[12];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+          extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw DudleyAdapterException("Invalid escriptworld parameter.");
+          }
+          info=ex()->getMPI();
+      }
+      else
+      {
+          info=esysUtils::makeInfo(MPI_COMM_WORLD);
+      }
+
+      return rectangle(info, static_cast<int>(extract<float>(args[0])),
+                       static_cast<int>(extract<float>(args[1])),
+                       extract<int>(args[2]), extract<double>(args[3]),
+                       extract<double>(args[4]), extract<int>(args[5]),
+                       extract<int>(args[6]), extract<int>(args[7]),
+                       extract<int>(args[8]), extract<int>(args[9]),
+                       extract<int>(args[10]), extract<int>(args[11]) 
+		       );
+  }  
+  
+  
+  
+  Domain_ptr rectangle(esysUtils::JMPI& mpi_info, double n0, double n1, int order,
                        double l0, double l1,
                        int periodic0,int periodic1,
                        int integrationOrder,
@@ -535,7 +697,8 @@ namespace dudley {
         throw DudleyAdapterException("Dudley does not support element order greater than 1.");
     }
     Dudley_Mesh* fMesh=Dudley_TriangularMesh_Tri3(numElements, length,
-          integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
+          integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE),
+          mpi_info);
     //
     // Convert any dudley errors into a C++ exception
     checkDudleyError();

@@ -80,6 +80,22 @@ namespace dudley {
 				     int reducedIntegrationOrder=-1, 
 				     int optimize=0,
 				     int useMacroElements=0);
+				     
+				     
+   /**
+   \brief Python driver for brick()
+   \param args see brick() definition for order of params
+   */
+   DUDLEY_DLL_API
+   escript::Domain_ptr brick_driver(const boost::python::list& args);
+
+   /**
+   \brief Python driver for rectangle()
+   \param args see rectangle() definition for order of params
+   */
+   DUDLEY_DLL_API
+   escript::Domain_ptr rectangle_driver(const boost::python::list& args);   
+   
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 
@@ -99,7 +115,7 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr brick(double n0=1,double n1=1,double n2=1,int order=1,
+  escript::Domain_ptr brick(esysUtils::JMPI& mpi_info, double n0=1,double n1=1,double n2=1,int order=1,
                     double l0=1.0,double l1=1.0,double l2=1.0,
                     int periodic0=0,int periodic1=0,
                     int periodic2=0,
@@ -129,7 +145,7 @@ namespace dudley {
      \param optimize
   */
   DUDLEY_DLL_API
-  escript::Domain_ptr rectangle(double n0=1,double n1=1,int order=1,
+  escript::Domain_ptr rectangle(esysUtils::JMPI& mpi_info, double n0=1,double n1=1,int order=1,
                                       double l0=1.0, double l1=1.0,
                                       int periodic0=false,int periodic1=false,
                                       int integrationOrder=-1,
