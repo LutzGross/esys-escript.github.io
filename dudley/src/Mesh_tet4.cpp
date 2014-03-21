@@ -28,7 +28,7 @@
 
 /* Be careful reading this function. The X? and NStride? are 1,2,3 but the loop vars are 0,1,2 */
 Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
-					double *Length, index_t order, index_t reduced_order, bool optimize)
+					double *Length, index_t order, index_t reduced_order, bool optimize, esysUtils::JMPI& mpi_info)
 {
 #define N_PER_E 1
 #define DIM 3
@@ -51,13 +51,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
     const int BACKTAG = 20;	/* boundary x2=1 */
 
     /* get MPI information */
-    
-    /* No! Bad! take a parameter for this */
-    esysUtils::JMPI mpi_info=esysUtils::makeInfo(MPI_COMM_WORLD);
-    if (!Dudley_noError())
-    {
-	return NULL;
-    }
     myRank = mpi_info->rank;
 
     /* set up the global dimensions of the mesh */

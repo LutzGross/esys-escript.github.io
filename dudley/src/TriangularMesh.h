@@ -28,8 +28,8 @@
 #include "Mesh.h"
 
 Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-					bool optimize);
+					bool optimize, esysUtils::JMPI& mpi_info);
 Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements, double *Length, index_t order, index_t reduced_order,
-					bool optimize);
+					bool optimize, esysUtils::JMPI& mpi_info);
 
 #endif				/* #ifndef INC_DUDLEY_TRIANGULARMESH */

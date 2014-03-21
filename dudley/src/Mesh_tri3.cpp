@@ -26,7 +26,7 @@
 #include "TriangularMesh.h"
 
 Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
-					double *Length, index_t order, index_t reduced_order, bool optimize)
+					double *Length, index_t order, index_t reduced_order, bool optimize, esysUtils::JMPI& mpi_info)
 {
 #define N_PER_E 1
 #define DIM 2
@@ -46,11 +46,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tri3(dim_t * numElements,
 #endif
 
     /* get MPI information */
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
-    if (!Dudley_noError())
-    {
-	return NULL;
-    }
     myRank = mpi_info->rank;
 
     /* set up the global dimensions of the mesh */

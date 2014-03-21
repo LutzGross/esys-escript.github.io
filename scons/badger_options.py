@@ -179,7 +179,7 @@ netcdf_prefix = ['/usr/include', '/usr/lib']
 # Flavour of LAPACK implementation
 # Recognized values: 'none', 'clapack', 'mkl'
 # DEFAULT: 'none' (do not use LAPACK)
-lapack = 'clapack'
+#lapack = 'clapack'
 
 # Prefix or paths to LAPACK headers and libraries. See note above.
 #lapack_prefix = ['/usr/include','/usr/lib/atlas']
@@ -190,7 +190,7 @@ lapack_libs = ['lapack_atlas']
 
 # Whether to use LLNL's SILO library for Silo output file support in weipa
 # DEFAULT: False
-silo = True
+#silo = True
 
 # Prefix or paths to SILO headers and libraries. See note above.
 #silo_prefix = '/usr/local'
