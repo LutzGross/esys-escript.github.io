@@ -332,7 +332,7 @@ void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *No
 	    A11 = A[INDEX3(0, 0, q, 2, dim1)];
 	    A21 = A[INDEX3(1, 0, q, 2, dim1)];
 	    length = sqrt(A11 * A11 + A21 * A21);
-	    if (!length > 0)
+	    if (length <= 0)
 	    {
 		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
 		return;
@@ -358,7 +358,7 @@ void Dudley_NormalVector(dim_t len, dim_t dim, dim_t dim1, double *A, double *No
 	    CO_A23 = A31 * A12 - A11 * A32;
 	    CO_A33 = A11 * A22 - A21 * A12;
 	    length = sqrt(CO_A13 * CO_A13 + CO_A23 * CO_A23 + CO_A33 * CO_A33);
-	    if (!length > 0)
+	    if (length <= 0)
 	    {
 		Dudley_setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
 		return;

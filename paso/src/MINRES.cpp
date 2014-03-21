@@ -118,7 +118,7 @@ err_t Paso_Solver_MINRES(
 	  dp0=dp;
       if (dp<0) {
 	 status=SOLVER_NEGATIVE_NORM_ERROR;
-      } else if (! ABS(dp)>0) {
+      } else if (ABS(dp) <= 0) {
 	    convergeFlag = TRUE;            /* happy break down */
       } else {
             gamma   = sqrt(dp); /*  gamma <- sqrt(r'*z)  */
