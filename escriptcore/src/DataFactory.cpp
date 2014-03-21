@@ -280,7 +280,7 @@ load(const std::string fileName,
           if (! (d_dim=dataFile.get_dim("l")) )
               throw DataException("Error - load:: unable to recover d0 for scalar constant data in netCDF file.");
           int d0 = d_dim->size();
-          if (! d0 == 1) 
+          if (d0 != 1)
               throw DataException("Error - load:: d0 is expected to be one for scalar constant data in netCDF file.");
           dims[0]=1;
       }
