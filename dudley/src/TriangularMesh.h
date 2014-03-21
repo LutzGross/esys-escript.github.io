@@ -21,7 +21,7 @@
 /************************************************************************************/
 
 #ifndef INC_DUDLEY_TRIANGULARMESH
-#define INC_DUDLEY_TRIANGLULARMESH
+#define INC_DUDLEY_TRIANGULARMESH
 
 /************************************************************************************/
 
