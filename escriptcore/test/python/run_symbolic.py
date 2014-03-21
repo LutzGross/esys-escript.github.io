@@ -8596,7 +8596,7 @@ class SymbolicTestCase(unittest.TestCase):
         a=a.subs(a,dat2)
         a[0]=u[0]
         self.assertEqual(u._subs, u[0]._subs, "indexing did not preserve data substitution")
-        self.assertTrue(a[0]._subs.has_key(u[0]._subs.keys()[0]), "indexing did not preserve data substitution")
+        self.assertTrue(u[0]._subs.keys()[0] in a[0]._subs, "indexing did not preserve data substitution")
 
 if __name__ == "__main__":
     import sys
