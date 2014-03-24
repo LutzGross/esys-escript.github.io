@@ -65,10 +65,10 @@ typedef struct Paso_SystemMatrix {
   Paso_Coupler* row_coupler;
 
   /* this comes into play when PASO is used */
-  Paso_SparseMatrix* mainBlock;                      /* main block */
-  Paso_SparseMatrix* col_coupleBlock;                    /* coupling to neighbouring processors (row - col) */
-  Paso_SparseMatrix* row_coupleBlock;                /* coupling to neighbouring processors (col - row)  */
-  Paso_SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on neighbouring processors 
+  paso::SparseMatrix* mainBlock;                      /* main block */
+  paso::SparseMatrix* col_coupleBlock;                    /* coupling to neighbouring processors (row - col) */
+  paso::SparseMatrix* row_coupleBlock;                /* coupling to neighbouring processors (col - row)  */
+  paso::SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on neighbouring processors 
                                                            don't assume that this is set */
 
   bool is_balanced;

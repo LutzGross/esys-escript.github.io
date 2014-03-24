@@ -15,23 +15,25 @@
 *****************************************************************************/
 
 
-/************************************************************************************
+/****************************************************************************
 
   Paso: transposed matrix 
 
-************************************************************************************
+*****************************************************************************
 
    Author: Lutz Gross, l.gross@uq.edu.au 
 
-************************************************************************************/
+*****************************************************************************/
 
 #include "SparseMatrix.h"
 
-Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* A)
+namespace paso {
+
+SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
 {
    
    Paso_Pattern *ATpattern=NULL;
-   Paso_SparseMatrix *AT=NULL;
+   SparseMatrix *AT=NULL;
    
    const dim_t m=A->numCols;
    const dim_t n=A->numRows;
@@ -52,7 +54,7 @@ Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* A)
 	 
    ATpattern=Paso_Pattern_fromIndexListArray(0,index_list,0,n,0);
    Paso_IndexListArray_free(index_list);
-   AT=Paso_SparseMatrix_alloc(A->type,ATpattern,col_block_size_A,row_block_size_A,FALSE);
+   AT=SparseMatrix_alloc(A->type,ATpattern,col_block_size_A,row_block_size_A,FALSE);
    Paso_Pattern_free(ATpattern);
  
    if (  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) && (block_size == 1 ) ) || 
@@ -116,3 +118,6 @@ Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* A)
    }
    return AT;
 }						      
+
+} // namespace paso
+

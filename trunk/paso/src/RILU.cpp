@@ -39,8 +39,8 @@ void Paso_Solver_RILU_free(Paso_Solver_RILU * in) {
         Paso_Solver_RILU_free(in->RILU_of_Schur);
         delete[] in->inv_A_FF;
         delete[] in->A_FF_pivot;
-        Paso_SparseMatrix_free(in->A_FC);
-        Paso_SparseMatrix_free(in->A_CF);
+        paso::SparseMatrix_free(in->A_FC);
+        paso::SparseMatrix_free(in->A_CF);
         delete[] in->rows_in_F;
         delete[] in->rows_in_C;
         delete[] in->mask_F;
@@ -72,7 +72,7 @@ to
    then RILU is applied to S again until S becomes empty 
 
 */
-Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool verbose) {
+Paso_Solver_RILU* Paso_Solver_getRILU(paso::SparseMatrix *A_p,bool verbose) {
   Paso_Solver_RILU* out=NULL;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
@@ -80,7 +80,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool verbose) {
   index_t* counter=NULL;  
   index_t iPtr,*index, *where_p;
   dim_t i,k;
-  Paso_SparseMatrix * schur=NULL;
+  paso::SparseMatrix * schur=NULL;
   double A11,A12,A13,A21,A22,A23,A31,A32,A33,D,time0=0,time1=0;/*,time2=0;*/
    
 
@@ -225,13 +225,13 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool verbose) {
                           }
                       } /* end parallel region */
                       /* get A_CF block: */
-                      out->A_CF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
+                      out->A_CF=paso::SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
                       if (Esys_noError()) {
                          /* get A_FC block: */
-                         out->A_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
+                         out->A_FC=paso::SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
                          /* get A_FF block: */
                          if (Esys_noError()) {
-                            schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
+                            schur=paso::SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
                             time0=Esys_timer()-time0;
                             if (Esys_noError()) {
                                 time1=Esys_timer();
@@ -239,7 +239,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(Paso_SparseMatrix *A_p,bool verbose) {
                                 Paso_Solver_updateIncompleteSchurComplement(schur,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
                                 time1=Esys_timer()-time1;
                                 out->RILU_of_Schur=Paso_Solver_getRILU(schur,verbose);
-                                Paso_SparseMatrix_free(schur);
+                                paso::SparseMatrix_free(schur);
                             }
                             /* allocate work arrays for RILU application */
                             if (Esys_noError()) {

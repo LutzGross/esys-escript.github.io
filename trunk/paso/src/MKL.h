@@ -61,6 +61,6 @@
 */
 
 
-void Paso_MKL_free(Paso_SparseMatrix* A);
-void Paso_MKL(Paso_SparseMatrix* A, double* out, double* in, index_t reordering, dim_t numRefinements, bool verbose);
+void Paso_MKL_free(paso::SparseMatrix* A);
+void Paso_MKL(paso::SparseMatrix* A, double* out, double* in, index_t reordering, dim_t numRefinements, bool verbose);
 #endif

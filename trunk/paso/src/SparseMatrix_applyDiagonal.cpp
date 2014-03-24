@@ -15,25 +15,27 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SparseMatrix                  
 
-applies diagonal matrices from the left and the right 
+   applies diagonal matrices from the left and the right 
 
-
-************************************************************************************/
+*****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 
+namespace paso {
 
-
-void Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(Paso_SparseMatrix* A, const double* left, const double* right) {
+void SparseMatrix_applyDiagonal_CSR_OFFSET0(SparseMatrix* A,
+                                            const double* left,
+                                            const double* right)
+{
   index_t ir,icol,iptr,icb,irb,irow,l;
   const dim_t row_block=A->row_block_size;
   const dim_t col_block=A->col_block_size;
@@ -56,3 +58,6 @@ void Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(Paso_SparseMatrix* A, const dou
       }
    }
 }
+
+} // namespace paso
+

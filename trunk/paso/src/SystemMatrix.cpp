@@ -141,9 +141,9 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
            #endif
         } else {
            out->solver_package=PASO_PASO;  
-           out->mainBlock=Paso_SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size,TRUE);
-           out->col_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size,TRUE);
-           out->row_coupleBlock=Paso_SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size,TRUE);
+           out->mainBlock=paso::SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size,TRUE);
+           out->col_coupleBlock=paso::SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size,TRUE);
+           out->row_coupleBlock=paso::SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size,TRUE);
            if (Esys_noError()) {
               /* allocate memory for matrix entries */
               n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
@@ -187,10 +187,10 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
         Esys_MPIInfo_free(in->mpi_info);
         Paso_Coupler_free(in->row_coupler);
         Paso_Coupler_free(in->col_coupler);
-        Paso_SparseMatrix_free(in->mainBlock);
-        Paso_SparseMatrix_free(in->col_coupleBlock);
-        Paso_SparseMatrix_free(in->row_coupleBlock);
-	Paso_SparseMatrix_free(in->remote_coupleBlock);
+        paso::SparseMatrix_free(in->mainBlock);
+        paso::SparseMatrix_free(in->col_coupleBlock);
+        paso::SparseMatrix_free(in->row_coupleBlock);
+        paso::SparseMatrix_free(in->remote_coupleBlock);
 	
 	delete[] in->balance_vector;
         if (in->global_id) delete[] in->global_id;
@@ -284,7 +284,7 @@ dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A){
 double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A) {
    double global_size=0;
    if (A!=NULL) {
-	 double my_size=Paso_SparseMatrix_getSize(A->mainBlock)+Paso_SparseMatrix_getSize(A->col_coupleBlock);
+	 double my_size=paso::SparseMatrix_getSize(A->mainBlock)+paso::SparseMatrix_getSize(A->col_coupleBlock);
 	 if (A->mpi_info->size > 1) {
 	 
 	    #ifdef ESYS_MPI 
@@ -311,7 +311,7 @@ index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p)
 {
     index_t* out=NULL;
     int fail=0;
-    out=Paso_SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
+    out=paso::SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
     if (out==NULL) fail=1;
     #ifdef ESYS_MPI
     {
@@ -348,22 +348,22 @@ void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_ove
 }
 void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double* out)
 {
-    Paso_SparseMatrix_copyBlockFromMainDiagonal(A_p->mainBlock, out);
+    paso::SparseMatrix_copyBlockFromMainDiagonal(A_p->mainBlock, out);
     return;
 }
 void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
 {
-    Paso_SparseMatrix_copyBlockToMainDiagonal(A_p->mainBlock, in);
+    paso::SparseMatrix_copyBlockToMainDiagonal(A_p->mainBlock, in);
     return;
 }
 void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out)
 {
-    Paso_SparseMatrix_copyFromMainDiagonal(A_p->mainBlock, out);
+    paso::SparseMatrix_copyFromMainDiagonal(A_p->mainBlock, out);
     return;
 }
 void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
 {
-    Paso_SparseMatrix_copyToMainDiagonal(A_p->mainBlock, in);
+    paso::SparseMatrix_copyToMainDiagonal(A_p->mainBlock, in);
     return;
 }
 

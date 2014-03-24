@@ -24,7 +24,9 @@
 
 ************************************************************************************/
 
-void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x) {
+void Paso_BlockOps_solveAll(dim_t n_block, dim_t n, const double* D,
+                            index_t* pivot, double* x)
+{
      dim_t i;
      int failed=0;
      const dim_t block_size=n_block*n_block;
@@ -50,5 +52,5 @@ void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,doubl
      if (failed > 0) {
 	Esys_setError(ZERO_DIVISION_ERROR, "Paso_BlockOps_solveAll: solution failed.");
      }
-     return;
 }
+

@@ -34,7 +34,8 @@
    #endif
 #endif
 
-void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x);
+void Paso_BlockOps_solveAll(dim_t n_block, dim_t n, const double* D,
+                            index_t* pivot, double* x);
 
 #define PASO_MISSING_CLAPACK Esys_setError(TYPE_ERROR, "You need to install a CLAPACK version to run a block size > 3.")  
 

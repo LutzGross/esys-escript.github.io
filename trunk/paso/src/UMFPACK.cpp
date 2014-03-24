@@ -37,7 +37,7 @@
 
 /*  free any extra stuff possibly used by the UMFPACK library */
 
-void Paso_UMFPACK_free(Paso_SparseMatrix* A) {
+void Paso_UMFPACK_free(paso::SparseMatrix* A) {
      Paso_UMFPACK_Handler* pt =NULL;
      if ( (A->solver_p!=NULL) && (A->solver_package == PASO_UMFPACK) ) {
            pt=(Paso_UMFPACK_Handler*)(A->solver_p);
@@ -54,7 +54,7 @@ void Paso_UMFPACK_free(Paso_SparseMatrix* A) {
 
 /*  call the solver: */
 
-void Paso_UMFPACK(Paso_SparseMatrix* A,
+void Paso_UMFPACK(paso::SparseMatrix* A,
                           double* out,
                           double* in,
 		          dim_t numRefinements,

@@ -50,11 +50,11 @@
 */
 
  
-Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatrix* A_p, 
+paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMatrix* A_p, 
                                                            const index_t* offset_S, const dim_t* degree_S, const index_t* S,
 							   const dim_t n_C, const index_t* counter_C, const index_t interpolation_method) 
 {
-   Paso_SparseMatrix* out=NULL;
+    paso::SparseMatrix* out=NULL;
    Paso_Pattern *outpattern=NULL;
    const dim_t n_block=A_p->row_block_size;
    index_t *ptr=NULL, *index=NULL,j, iptr;
@@ -114,7 +114,7 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
    }
    /* now we need to create a matrix and fill it */
    if (Esys_noError()) {
-      out=Paso_SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK,outpattern,n_block,n_block,FALSE);
+      out=paso::SparseMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK,outpattern,n_block,n_block,FALSE);
    } 
    
    if (Esys_noError()) {
@@ -136,7 +136,7 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
    if (Esys_noError()) {
       return out;
    } else {
-      Paso_SparseMatrix_free(out);
+       paso::SparseMatrix_free(out);
       return NULL;
    }
    
@@ -157,8 +157,8 @@ Paso_SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(Paso_SparseMatri
 
 */
 
-void Paso_Preconditioner_LocalAMG_setDirectProlongation(Paso_SparseMatrix* P_p, 
-					           const Paso_SparseMatrix* A_p,
+void Paso_Preconditioner_LocalAMG_setDirectProlongation(paso::SparseMatrix* P_p, 
+					           const paso::SparseMatrix* A_p,
 						   const index_t *counter_C) { 
    dim_t i;
    const dim_t n =A_p->numRows;
@@ -239,8 +239,8 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation(Paso_SparseMatrix* P_p,
    } 
 }
 
-void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix* P_p, 
-						         const Paso_SparseMatrix* A_p,
+void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(paso::SparseMatrix* P_p, 
+						         const paso::SparseMatrix* A_p,
 						         const index_t *counter_C) { 
    dim_t i;
    const dim_t n =A_p->numRows;
@@ -368,8 +368,8 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(Paso_SparseMatrix*
             A+[i,k]=A[i,k] if sign(A[i,k])==sign(A[i,i])  or 0 otherwise.
 
 */
-void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p, 
-				 	           Paso_SparseMatrix* A_p,
+void Paso_Preconditioner_LocalAMG_setClassicProlongation(paso::SparseMatrix* P_p, 
+				 	           paso::SparseMatrix* A_p,
                                                    const index_t* offset_S, const dim_t* degree_S, const index_t* S,
 						   const index_t *counter_C) { 
    dim_t i, q;
@@ -377,7 +377,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
    const dim_t ll = Paso_Util_iMax(n, degree_S);
-   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   const index_t *ptr_main_A = paso::SparseMatrix_borrowMainDiagonalPointer(A_p);
    
 
    #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j)
@@ -465,8 +465,8 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(Paso_SparseMatrix* P_p,
      }    /* end of parallel region */
 }
 
-void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix* P_p, 
-				 	           Paso_SparseMatrix* A_p,
+void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(paso::SparseMatrix* P_p, 
+				 	           paso::SparseMatrix* A_p,
                                                    const index_t* offset_S, const dim_t* degree_S, const index_t* S,
 						   const index_t *counter_C) { 
    dim_t i, q, ib;
@@ -476,7 +476,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(Paso_SparseMatrix
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
    const dim_t ll = Paso_Util_iMax(n, degree_S);
-   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   const index_t *ptr_main_A = paso::SparseMatrix_borrowMainDiagonalPointer(A_p);
    
 
    #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)

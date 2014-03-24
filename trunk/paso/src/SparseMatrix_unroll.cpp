@@ -15,21 +15,22 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SparseMatrix */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 
+namespace paso {
 
-Paso_SparseMatrix* Paso_SparseMatrix_unroll(const Paso_SparseMatrixType type, const Paso_SparseMatrix* A) {
+SparseMatrix* SparseMatrix_unroll(SparseMatrixType type, const SparseMatrix* A) {
 
   const dim_t row_block_size = A->row_block_size;
   const dim_t col_block_size = A->col_block_size;
@@ -41,9 +42,9 @@ Paso_SparseMatrix* Paso_SparseMatrix_unroll(const Paso_SparseMatrixType type, co
   index_t iptr, *start_p, *where_p;
   dim_t i, j, irb, icb, icol, irow, l_col, l_row;
   
-  Paso_SparseMatrix*out=NULL;
+  SparseMatrix*out=NULL;
   
-  out = Paso_SparseMatrix_alloc(out_type, A->pattern, row_block_size, col_block_size, FALSE);
+  out = SparseMatrix_alloc(out_type, A->pattern, row_block_size, col_block_size, FALSE);
   
   if (Esys_noError()) {
      if (out->type & MATRIX_FORMAT_CSC) {
@@ -89,3 +90,6 @@ Paso_SparseMatrix* Paso_SparseMatrix_unroll(const Paso_SparseMatrixType type, co
   }
  return out;
 }
+
+} // namespace paso
+

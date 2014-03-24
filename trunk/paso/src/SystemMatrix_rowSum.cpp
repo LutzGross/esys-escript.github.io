@@ -39,8 +39,8 @@ void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum) {
          for (irow=0; irow<nrow ; ++irow) {
                row_sum[irow]=0.;
          }
-         Paso_SparseMatrix_addRow_CSR_OFFSET0(A->mainBlock,row_sum);
-         Paso_SparseMatrix_addRow_CSR_OFFSET0(A->col_coupleBlock,row_sum);
+         paso::SparseMatrix_addRow_CSR_OFFSET0(A->mainBlock,row_sum);
+         paso::SparseMatrix_addRow_CSR_OFFSET0(A->col_coupleBlock,row_sum);
    }
-   return;
 }
+

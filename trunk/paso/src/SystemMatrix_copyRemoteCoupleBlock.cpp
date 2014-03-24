@@ -52,7 +52,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
 
   if (mpi_size == 1) return;
 
-  if (recreatePattern) Paso_SparseMatrix_free(A->remote_coupleBlock);
+  if (recreatePattern) paso::SparseMatrix_free(A->remote_coupleBlock);
 
   if (A->remote_coupleBlock) return;
 
@@ -285,7 +285,7 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
   /* allocate pattern and sparsematrix for remote_coupleBlock */
   pattern = Paso_Pattern_alloc(A->row_coupleBlock->pattern->type,
                 overlapped_n, num_couple_cols, ptr_ptr, ptr_idx);
-  A->remote_coupleBlock = Paso_SparseMatrix_alloc(A->row_coupleBlock->type,
+  A->remote_coupleBlock = paso::SparseMatrix_alloc(A->row_coupleBlock->type,
                 pattern, A->row_block_size, A->col_block_size, 
                 FALSE);
   Paso_Pattern_free(pattern);

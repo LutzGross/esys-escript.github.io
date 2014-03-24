@@ -38,7 +38,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
 
 /* CSC format with offset 0 */
 void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
-                                           const Paso_SparseMatrix* A,
+                                           const SparseMatrix* A,
                                            const double* in,
                                            const double beta,
                                            double* out)
@@ -114,7 +114,7 @@ void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
 
 /* CSC format with offset 1 */
 void SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
-                                           const Paso_SparseMatrix* A,
+                                           const SparseMatrix* A,
                                            const double* in,
                                            const double beta,
                                            double* out)
@@ -186,7 +186,7 @@ void SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
 
 /* CSR format with offset 1 */
 void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
-        const Paso_SparseMatrix* A, const double* in, const double beta,
+        const SparseMatrix* A, const double* in, const double beta,
         double* out)
 {
     if (ABS(beta) > 0) {
@@ -271,7 +271,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
 
 /* CSR format with offset 0 */
 void SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
-                                           const Paso_SparseMatrix* A,
+                                           const SparseMatrix* A,
                                            const double* in,
                                            const double beta,
                                            double* out)
@@ -416,7 +416,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
 
 /* CSR format with offset 0 (diagonal only) */
 void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
-        const Paso_SparseMatrix* A, const double* in, const double beta,
+        const SparseMatrix* A, const double* in, const double beta,
         double* out)
 {
     if (ABS(beta) > 0) {

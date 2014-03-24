@@ -15,15 +15,15 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: inverts the main diagonal of a SparseMatrix: */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
@@ -31,7 +31,10 @@
 #include "BlockOps.h"
 #include "PasoUtil.h"
 
-void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* pivot) {
+namespace paso {
+
+void SparseMatrix_invMain(const SparseMatrix* A_p, double* inv_diag, int* pivot)
+{
    index_t failed=0;
    register double A11;
    const dim_t n=A_p->numRows;
@@ -43,7 +46,7 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
    index_t* main_ptr=Paso_Pattern_borrowMainDiagonalPointer(A_p->pattern);
    /* check matrix is square */
    if (m_block != n_block) {
-      Esys_setError(TYPE_ERROR, "Paso_SparseMatrix_invMain: square block size expected.");
+      Esys_setError(TYPE_ERROR, "SparseMatrix_invMain: square block size expected.");
    }
    if (Esys_noError()) {
          
@@ -80,13 +83,19 @@ void Paso_SparseMatrix_invMain(Paso_SparseMatrix * A_p, double* inv_diag, int* p
       }
    }
    if (failed > 0) {
-      Esys_setError(ZERO_DIVISION_ERROR, "Paso_SparseMatrix_invMain: non-regular main diagonal block.");
+      Esys_setError(ZERO_DIVISION_ERROR, "SparseMatrix_invMain: non-regular main diagonal block.");
    }
 }
-void Paso_SparseMatrix_applyBlockMatrix(Paso_SparseMatrix * A_p, double* block_diag, int* pivot, double*x, double *b) {
+void SparseMatrix_applyBlockMatrix(const SparseMatrix* A_p,
+                                   double* block_diag,
+                                   int* pivot, double* x,
+                                   const double *b)
+{
    dim_t n=A_p->numRows;
    dim_t n_block=A_p->row_block_size;
    Paso_Copy(n_block*n, x,b);
    Paso_BlockOps_solveAll(n_block,n,block_diag,pivot,x);
 }
+
+} // namespace paso
 
