@@ -20,6 +20,7 @@
 #include "SplitWorldException.h"
 
 #include <iostream>
+#include <sstream>
 
 using namespace boost::python;
 using namespace escript;
@@ -192,11 +193,6 @@ void SplitWorld::runJobs()
     }
 }
 
-void SplitWorld::registerCrate(escript::crate_ptr c)
-{
-    protocrates.push_back(c);
-}
-
 /**
   stores the constructor/factory to make Jobs and the parameters.
 */
@@ -205,6 +201,32 @@ void SplitWorld::addJob(boost::python::object creator, boost::python::tuple tup,
     create.push_back(creator);
     tupargs.push_back(tup);
     kwargs.push_back(kw);
+}
+
+// At some point, we may need there to be more isolation here
+// and trap any python exceptions etc, but for now I'll just call the constructor
+void SplitWorld::addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs)
+{
+    if (varmap.find(name)!=varmap.end())
+    {
+	std::ostringstream oss;
+	oss << "There is already a variable called " << name;
+	throw SplitWorldException(oss.str());    
+    }
+    object red=creator(*ntup, **kwargs);
+    extract<Reducer_ptr> ex(red);
+    if (!ex.check())
+    {
+	throw SplitWorldException("Creator function did not produce a reducer.");
+    }
+    Reducer_ptr rp=ex();
+    varmap[name]=rp;
+}
+
+
+void SplitWorld::removeVariable(std::string name)
+{
+    varmap.erase(name);
 }
 
 void SplitWorld::clearPendingJobs()
@@ -307,6 +329,34 @@ boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwa
     ws.addJob(creator, ntup, kwargs);
     return object();
 }
+
+// expects, splitworld, name of var, constructor function for the reducer, any constructor params
+boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dict kwargs)
+{
+    int l=len(t);
+    if (l<3)
+    {
+	throw SplitWorldException("Insufficient parameters to addReducer.");
+    }
+    extract<SplitWorld&> exw(t[0]);
+    if (!exw.check())
+    {
+	throw SplitWorldException("First parameter to addVariable must be a SplitWorld.");
+    }
+    SplitWorld& ws=exw();
+    object pname=t[1];
+    extract<std::string> ex2(pname);
+    if (!ex2.check())
+    {
+	throw SplitWorldException("Second parameter to addVariable must be a string");
+    }
+    std::string name=ex2();
+    object creator=t[2]; 
+    tuple ntup=tuple(t.slice(3,l));	// strip off the object param
+    ws.addVariable(name, creator, ntup, kwargs);
+    return object();
+}
+
 
 
 }
