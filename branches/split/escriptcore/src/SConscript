@@ -29,7 +29,6 @@ sources = """
     AbstractDomain.cpp
     AbstractSystemMatrix.cpp
     AbstractTransportProblem.cpp
-    Crates.cpp
     Data.cpp
     DataAbstract.cpp
     DataBlocks2D.cpp
@@ -52,6 +51,7 @@ sources = """
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     NullDomain.cpp
+    Reducer.cpp
     SplitWorld.cpp
     SplitWorldException.cpp
     SubWorld.cpp
@@ -69,7 +69,6 @@ headers = """
     AbstractSystemMatrix.h
     AbstractTransportProblem.h
     BinaryOp.h
-    Crates.h
     Data.h
     DataAbstract.h
     DataAlgorithm.h
@@ -96,6 +95,7 @@ headers = """
     LocalOps.h
     NullDomain.h
     Pointers.h
+    Reducer.h
     SplitWorld.h
     SplitWorldException.h
     SubWorld.h

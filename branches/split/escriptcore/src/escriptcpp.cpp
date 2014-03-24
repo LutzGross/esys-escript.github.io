@@ -30,7 +30,7 @@
 #include "TestDomain.h"
 #include "SubWorld.h"
 #include "SplitWorld.h"
-#include "Crates.h"
+#include "Reducer.h"
 
 #include "esysUtils/blocktimer.h"
 
@@ -176,21 +176,27 @@ BOOST_PYTHON_MODULE(escriptcpp)
   def("passthrough", raw_function(raw1));
   def("pass2", raw_function(raw2,2));
 
-  
-  
-  class_<escript::AbstractCrate, escript::crate_ptr, boost::noncopyable>("AbstractCrate", "", no_init);
-  class_<escript::DataCrate, bases<escript::AbstractCrate> >("DataCrate","Stores and merges Data objects for transport between worlds.",
-    init<std::string, std::string>(args("label", "operation"))
-  );
-
 /* begin SubWorld things */
-  // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one  
+  
+  
+  class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
+  def("makeDataReducer", escript::makeDataReducer, (arg("op")), "Creates an object to combine values.\n\n"
+  ":param op: name of the operation to use.\n:type op: `str`");
+
+  // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one
+  // These functions take a SplitWorld instance as their first parameter
   def("buildDomains", raw_function(escript::raw_buildDomains,2));
   def("addJob", raw_function(escript::raw_addJob,2));
+  def("addVariable", raw_function(escript::raw_addVariable,3));
+  
+  
+  def("makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
+
       
   class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
-    .def("registerCrate", &escript::SplitWorld::registerCrate, arg("crate")) 
-    .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.");
+    .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
+    .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld");
+    
 
   // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
   class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);

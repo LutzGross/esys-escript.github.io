@@ -20,7 +20,7 @@
 #include <boost/smart_ptr.hpp>
 #include "esysUtils/Esys_MPI.h"
 #include "SubWorld.h"
-#include "Crates.h"
+#include "Reducer.h"
 namespace escript
 {
 
@@ -37,9 +37,8 @@ public:
     
     void addJob(boost::python::object creator, boost::python::tuple tup, boost::python::dict kw);
     
-	// maybe this should take factory parameters instead? The metaphor isn't quite right
-    void registerCrate(escript::crate_ptr c);
-
+    void addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs);
+    void removeVariable(std::string name);
     void clearActiveJobs();
 
     
@@ -56,12 +55,13 @@ private:
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
     unsigned int swcount;		// number of subwords
     unsigned int localid;		// position of localworld in overall world sequence
-    std::vector<crate_ptr> protocrates;
     
     // details of jobs to be created
     std::vector<boost::python::object> create;
     std::vector<boost::python::tuple> tupargs;
     std::vector<boost::python::dict> kwargs;
+    
+    std::map<std::string, Reducer_ptr> varmap;
     
     unsigned int jobcounter;		// note that the id of the first job is 1 not 0.
     void clearPendingJobs();
@@ -79,5 +79,9 @@ boost::python::object raw_buildDomains(boost::python::tuple t, boost::python::di
 */
 boost::python::object raw_addJob(boost::python::tuple t, boost::python::dict kwargs);
 
+/**
+ used to add a reducer for shared values.
+*/
+boost::python::object raw_addVariable(boost::python::tuple t, boost::python::dict kwargs);
 }
 #endif
