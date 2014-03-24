@@ -36,7 +36,7 @@
 
 /*  free any extra stuff possibly used by the MKL library */
 
-void Paso_MKL_free(Paso_SparseMatrix* A) {
+void Paso_MKL_free(paso::SparseMatrix* A) {
 #ifdef MKL
       index_t i;
       if (A!=NULL) {
@@ -69,7 +69,7 @@ void Paso_MKL_free(Paso_SparseMatrix* A) {
 
 /*  call the solver: */
 
-void Paso_MKL(Paso_SparseMatrix* A,
+void Paso_MKL(paso::SparseMatrix* A,
               double* out,
               double* in,
 	      index_t reordering,

@@ -50,10 +50,10 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
        } else {
          if (Esys_noError()) {
             Paso_SystemMatrix_startRowCollect(A,mask_row);
-            Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->mainBlock,mask_row,main_diagonal_value);
-            Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->col_coupleBlock,mask_row,0.); 
+            paso::SparseMatrix_nullifyRows_CSR_BLK1(A->mainBlock,mask_row,main_diagonal_value);
+            paso::SparseMatrix_nullifyRows_CSR_BLK1(A->col_coupleBlock,mask_row,0.); 
             remote_values=Paso_SystemMatrix_finishRowCollect(A);
-            Paso_SparseMatrix_nullifyRows_CSR_BLK1(A->row_coupleBlock,remote_values,0.);
+            paso::SparseMatrix_nullifyRows_CSR_BLK1(A->row_coupleBlock,remote_values,0.);
          }
        }
   } else {
@@ -66,10 +66,10 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
        } else {
          if (Esys_noError()) {
             Paso_SystemMatrix_startRowCollect(A,mask_row);
-            Paso_SparseMatrix_nullifyRows_CSR(A->mainBlock,mask_row,main_diagonal_value);
-            Paso_SparseMatrix_nullifyRows_CSR(A->col_coupleBlock,mask_row,0.);
+            paso::SparseMatrix_nullifyRows_CSR(A->mainBlock,mask_row,main_diagonal_value);
+            paso::SparseMatrix_nullifyRows_CSR(A->col_coupleBlock,mask_row,0.);
             remote_values=Paso_SystemMatrix_finishRowCollect(A);
-            Paso_SparseMatrix_nullifyRows_CSR(A->row_coupleBlock,remote_values,0.);
+            paso::SparseMatrix_nullifyRows_CSR(A->row_coupleBlock,remote_values,0.);
          }
        }
   } 

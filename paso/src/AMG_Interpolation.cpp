@@ -76,7 +76,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   if (size == 1) return;
 
   if (B->row_coupleBlock) {
-    Paso_SparseMatrix_free(B->row_coupleBlock);
+      paso::SparseMatrix_free(B->row_coupleBlock);
     B->row_coupleBlock = NULL;
   }
 
@@ -352,7 +352,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   /* allocate pattern and sparsematrix for B_ext_main */
   pattern_main = Paso_Pattern_alloc(B->col_coupleBlock->pattern->type,
                 len, num_main_cols, ptr_main, idx_main);
-  B->row_coupleBlock = Paso_SparseMatrix_alloc(B->col_coupleBlock->type,
+  B->row_coupleBlock = paso::SparseMatrix_alloc(B->col_coupleBlock->type,
 		pattern_main, B->row_block_size, B->col_block_size,
 		FALSE);
   Paso_Pattern_free(pattern_main);
@@ -361,7 +361,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   pattern_couple = Paso_Pattern_alloc(B->col_coupleBlock->pattern->type,
                 len, B->col_distribution->first_component[size], 
 		ptr_couple, idx_couple);
-  B->remote_coupleBlock = Paso_SparseMatrix_alloc(B->col_coupleBlock->type,
+  B->remote_coupleBlock = paso::SparseMatrix_alloc(B->col_coupleBlock->type,
                 pattern_couple, B->row_block_size, B->col_block_size,
                 FALSE);
   Paso_Pattern_free(pattern_couple);
@@ -591,7 +591,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-   Paso_SparseMatrix *R_main=NULL, *R_couple=NULL;
+   paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
@@ -635,9 +635,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
-   R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
+   R_main = paso::SparseMatrix_getTranspose(P->mainBlock);
    if (size > 1) 
-     R_couple = Paso_SparseMatrix_getTranspose(P->col_coupleBlock);
+     R_couple = paso::SparseMatrix_getTranspose(P->col_coupleBlock);
 
    /* generate P_ext, i.e. portion of P that is stored on neighbor procs
       and needed locally for triple matrix product RAP 
@@ -1674,8 +1674,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    delete[] RAP_ext_ptr;
    delete[] RAP_ext_idx;
    delete[] RAP_ext_val;
-   Paso_SparseMatrix_free(R_main);
-   Paso_SparseMatrix_free(R_couple);
+   paso::SparseMatrix_free(R_main);
+   paso::SparseMatrix_free(R_couple);
 
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)
@@ -2039,7 +2039,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 	Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-   Paso_SparseMatrix *R_main=NULL, *R_couple=NULL;
+   paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
@@ -2079,8 +2079,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
-   R_main = Paso_SparseMatrix_getTranspose(P->mainBlock);
-   R_couple = Paso_SparseMatrix_getTranspose(P->col_coupleBlock);
+   R_main = paso::SparseMatrix_getTranspose(P->mainBlock);
+   R_couple = paso::SparseMatrix_getTranspose(P->col_coupleBlock);
 
    /* generate P_ext, i.e. portion of P that is stored on neighbor procs
       and needed locally for triple matrix product RAP 
@@ -3102,8 +3102,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    delete[] RAP_ext_ptr;
    delete[] RAP_ext_idx;
    delete[] RAP_ext_val;
-   Paso_SparseMatrix_free(R_main);
-   Paso_SparseMatrix_free(R_couple);
+   paso::SparseMatrix_free(R_main);
+   paso::SparseMatrix_free(R_couple);
 
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)

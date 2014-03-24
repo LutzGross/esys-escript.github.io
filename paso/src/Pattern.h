@@ -64,7 +64,7 @@ PASO_DLL_API
 Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern*,int, dim_t,dim_t);
 
 PASO_DLL_API
-Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,index_t*,index_t*);
+Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,const index_t*,const index_t*);
 
 PASO_DLL_API
 bool Paso_Pattern_isEmpty(Paso_Pattern* in);

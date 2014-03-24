@@ -43,7 +43,7 @@
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 { 
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(P->mpi_info);
-   Paso_SparseMatrix *main_block=NULL, *couple_block=NULL;
+   paso::SparseMatrix *main_block=NULL, *couple_block=NULL;
    Paso_SystemMatrix *out=NULL;
    Paso_SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
@@ -72,7 +72,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    #endif
 
    /* get main_block of R from the transpose of P->mainBlock */
-   main_block = Paso_SparseMatrix_getTranspose(P->mainBlock);
+   main_block = paso::SparseMatrix_getTranspose(P->mainBlock);
 
    /* prepare "ptr" for the col_coupleBlock of R, start with get info about
       the degree_set (associated with "ptr"), offset_set (associated with
@@ -390,7 +390,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    delete[] val;
 
    /* clean up */ 
-   Paso_SparseMatrix_free(main_block);
+   paso::SparseMatrix_free(main_block);
    Paso_SystemMatrixPattern_free(pattern);
    Paso_Pattern_free(couple_pattern);
    Paso_Connector_free(col_connector);

@@ -42,7 +42,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
    const dim_t n_block = A->mainBlock->row_block_size;
    const dim_t* dist = A->pattern->input_distribution->first_component;
    dim_t i;
-   Paso_SparseMatrix *A_temp;
+   paso::SparseMatrix *A_temp;
 
    Paso_MergedSolver* out = NULL;
    A_temp = Paso_MergedSolver_mergeSystemMatrix(A); 
@@ -76,11 +76,11 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
           if (rank == 0) {
              /* solve locally */
              #ifdef MKL
-               out->A = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_temp);
+               out->A = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_temp);
                out->A->solver_package = PASO_MKL;
              #else 
                #ifdef UMFPACK
-	         out->A  = Paso_SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_temp);
+	         out->A  = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_temp);
 	         out->A->solver_package = PASO_UMFPACK;
                #else
 	         out->A->solver_p = Paso_Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
@@ -91,7 +91,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
        }
    }
 
-   Paso_SparseMatrix_free(A_temp);
+   paso::SparseMatrix_free(A_temp);
    if ( Esys_noError()) {
       return out;
    } else {
@@ -102,7 +102,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
 
 void Paso_MergedSolver_free(Paso_MergedSolver* in) {
      if (in!=NULL) {
-        Paso_SparseMatrix_free(in->A);
+         paso::SparseMatrix_free(in->A);
 	delete[] in->x;
 	delete[] in->b;
 	delete[] in->counts;
@@ -113,7 +113,7 @@ void Paso_MergedSolver_free(Paso_MergedSolver* in) {
 
 /* Merge the system matrix which is distributed on ranks into a complete 
    matrix on rank 0, then solve this matrix on rank 0 only */
-Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
+paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
   index_t i, iptr, j, n, remote_n, global_n, len, offset, tag;
   index_t row_block_size, col_block_size, block_size;
   index_t size=A->mpi_info->size;
@@ -122,7 +122,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
   index_t *temp_n=NULL, *temp_len=NULL;
   double  *val=NULL;
   Paso_Pattern *pattern=NULL;
-  Paso_SparseMatrix *out=NULL;
+  paso::SparseMatrix *out=NULL;
   #ifdef ESYS_MPI
     MPI_Request* mpi_requests=NULL;
     MPI_Status* mpi_stati=NULL;
@@ -135,7 +135,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     ptr = new index_t[n]; 
     #pragma omp parallel for private(i)
     for (i=0; i<n; i++) ptr[i] = i;
-    out = Paso_SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
+    out = paso::SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
     delete[] ptr;
     return out;
   }
@@ -231,7 +231,7 @@ Paso_SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     /* Then generate the sparse matrix */
     pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, global_n,
 			global_n, ptr_global, idx_global);
-    out = Paso_SparseMatrix_alloc(A->mainBlock->type, pattern, 
+    out = paso::SparseMatrix_alloc(A->mainBlock->type, pattern, 
 			row_block_size, col_block_size, FALSE);
     Paso_Pattern_free(pattern);
 

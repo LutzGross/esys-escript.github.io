@@ -100,9 +100,9 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
              for (irow=0; irow<nrow ; ++irow) {
 		A->balance_vector[irow]=0;
              }
-             Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(A->mainBlock,A->balance_vector);
+             paso::SparseMatrix_maxAbsRow_CSR_OFFSET0(A->mainBlock,A->balance_vector);
              if(A->col_coupleBlock->pattern->ptr!=NULL) {
-		Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector);  
+                 paso::SparseMatrix_maxAbsRow_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector);  
              }
              
              /* set balancing vector */
@@ -124,15 +124,15 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
 		  /* start exchange */
 		  Paso_SystemMatrix_startCollect(A, A->balance_vector);
 		  /* process main block */
-		  Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(A->mainBlock,A->balance_vector, A->balance_vector);
+          paso::SparseMatrix_applyDiagonal_CSR_OFFSET0(A->mainBlock,A->balance_vector, A->balance_vector);
 		  /* finish exchange */
 		  remote_values=Paso_SystemMatrix_finishCollect(A);
 		  /* process couple block */
 		  if (A->col_coupleBlock->pattern->ptr!=NULL) {
-		     Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector, remote_values); 
+              paso::SparseMatrix_applyDiagonal_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector, remote_values); 
 		  }
 		  if (A->row_coupleBlock->pattern->ptr!=NULL) {
-		     Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(A->row_coupleBlock, remote_values, A->balance_vector); 
+              paso::SparseMatrix_applyDiagonal_CSR_OFFSET0(A->row_coupleBlock, remote_values, A->balance_vector); 
 		  }
 	     }
              A->is_balanced=TRUE;

@@ -29,26 +29,39 @@
 #include "SparseMatrix.h"
 #include "Paso.h"
 
-Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrixTranspose(const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T) {
-   Paso_SparseMatrixType C_type;
+namespace paso {
+
+// forward declarations
+void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix *C,
+        const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T);
+void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix *C,
+        const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T);
+void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix *C,
+        const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T);
+void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix *C,
+        const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T);
+
+SparseMatrix* SparseMatrix_MatrixMatrixTranspose(const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T)
+{
+   SparseMatrixType C_type;
    
    Paso_Pattern* outpattern=NULL;
-   Paso_SparseMatrix *out=NULL;
+   SparseMatrix *out=NULL;
 
    if ( !  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) || (A->type & MATRIX_FORMAT_DEFAULT) || (MATRIX_FORMAT_BLK1 & A->type ) )  ) {
-      Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_MatrixMatrix: Unsupported matrix format of A.");
+      Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: Unsupported matrix format of A.");
       return NULL;
    }
    if ( !  ( (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) || (B->type & MATRIX_FORMAT_DEFAULT) || (MATRIX_FORMAT_BLK1 & B->type ) ) ) {
-      Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_MatrixMatrix: Unsupported matrix format of B.");
+      Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: Unsupported matrix format of B.");
       return NULL;
    }
    if (! (A->col_block_size == B->row_block_size) ) {
-      Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_MatrixMatrix: Column block size of A and row block size of B must match.");
+      Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: Column block size of A and row block size of B must match.");
       return NULL;
    }
    if (! (A->numCols == B->numRows) ) {
-      Esys_setError(TYPE_ERROR,"Paso_SparseMatrix_MatrixMatrix: number of columns of A and number of rows of B must match.");
+      Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: number of columns of A and number of rows of B must match.");
       return NULL;
    }
    
@@ -62,36 +75,37 @@ Paso_SparseMatrix* Paso_SparseMatrix_MatrixMatrixTranspose(const Paso_SparseMatr
    outpattern=Paso_Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
    
    if (Esys_noError()) {
-      out=Paso_SparseMatrix_alloc(C_type, outpattern, A->row_block_size, B->col_block_size, FALSE);
+      out=SparseMatrix_alloc(C_type, outpattern, A->row_block_size, B->col_block_size, FALSE);
    }
    Paso_Pattern_free(outpattern);
 
    if (Esys_noError()) {
       if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {
-	 Paso_SparseMatrix_MatrixMatrixTranspose_DD(out, A,B,T);
+	 SparseMatrix_MatrixMatrixTranspose_DD(out, A,B,T);
       } else {
 	 if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
 	    if (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-	       Paso_SparseMatrix_MatrixMatrixTranspose_DD(out, A,B,T);
+	       SparseMatrix_MatrixMatrixTranspose_DD(out, A,B,T);
 	    } else {
-	       Paso_SparseMatrix_MatrixMatrixTranspose_DB(out, A,B,T);
+	       SparseMatrix_MatrixMatrixTranspose_DB(out, A,B,T);
 	    }
 	 } else {
 	    if (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-	       Paso_SparseMatrix_MatrixMatrixTranspose_BD(out, A,B,T);
+	       SparseMatrix_MatrixMatrixTranspose_BD(out, A,B,T);
 	    } else {
-	       Paso_SparseMatrix_MatrixMatrixTranspose_BB(out, A,B,T);
+	       SparseMatrix_MatrixMatrixTranspose_BB(out, A,B,T);
 	    }
 	 }
       }
       return out;
    } else {
-      Paso_SparseMatrix_free(out);
+      SparseMatrix_free(out);
       return NULL;
    }
 }
+
 /* not good for block size 1 */
-void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T) 
+void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix* C, const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T) 
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -436,7 +450,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BB(Paso_SparseMatrix* C, const Paso
 }
 
 /* not good for block size 1 */
-void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T) 
+void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix* C, const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T) 
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -717,7 +731,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DB(Paso_SparseMatrix* C, const Paso
 }
 
 /* not good for block size 1 */
-void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T) 
+void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix* C, const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T) 
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -999,7 +1013,7 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_BD(Paso_SparseMatrix* C, const Paso
 }
 
 /* not good for block size 1 */
-void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso_SparseMatrix* A, const Paso_SparseMatrix* B, const Paso_SparseMatrix* T) 
+void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix* C, const SparseMatrix* A, const SparseMatrix* B, const SparseMatrix* T) 
 {
    const dim_t n = C->numRows;
    const dim_t C_block_size =C->block_size;
@@ -1221,3 +1235,6 @@ void Paso_SparseMatrix_MatrixMatrixTranspose_DD(Paso_SparseMatrix* C, const Paso
       } /* end of parallel region */
    }
 }
+
+} // namespace paso
+

@@ -42,7 +42,7 @@ void Paso_SystemMatrix_saveHB( Paso_SystemMatrix *A_p, char *filename_p ) {
 	}
 
 	if ( A_p->type & MATRIX_FORMAT_CSC) {
-             Paso_SparseMatrix_saveHB_CSC( A_p->mainBlock,fileHandle_p);
+        paso::SparseMatrix_saveHB_CSC( A_p->mainBlock,fileHandle_p);
         } else {
       	      Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_saveHB: Only CSC is currently supported.\n");
 	}

@@ -36,7 +36,7 @@
 
 
 
-void Paso_Solver_updateIncompleteSchurComplement(Paso_SparseMatrix* A_CC,Paso_SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,Paso_SparseMatrix *A_FC) {
+void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix* A_CC,paso::SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,paso::SparseMatrix *A_FC) {
 
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;

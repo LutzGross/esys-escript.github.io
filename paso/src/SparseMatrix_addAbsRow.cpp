@@ -15,20 +15,23 @@
 *****************************************************************************/
 
 
-/*************************************************************************************************/
+/****************************************************************************/
 
-/* Paso: SparseMatrix: adds the absolute values of row entries to an array */
+/* Paso: SparseMatrix: adds the absolute values of row entries to an array  */
 
-/*************************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 
-void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double* array) {
+namespace paso {
+
+void SparseMatrix_addAbsRow_CSR_OFFSET0(const SparseMatrix* A, double* array)
+{
    dim_t ir,icb,irb;
    index_t iptr;
    #pragma omp parallel for private(ir,irb,iptr,icb) schedule(static)
@@ -46,7 +49,9 @@ void Paso_SparseMatrix_addAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double*
         }
    }
 }
-void Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double* array) {
+
+void SparseMatrix_maxAbsRow_CSR_OFFSET0(const SparseMatrix* A, double* array)
+{
    dim_t ir,icb,irb;
    index_t iptr;
    #pragma omp parallel for private(ir,irb,iptr,icb) schedule(static)
@@ -64,3 +69,6 @@ void Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(const Paso_SparseMatrix* A, double*
         }
    }
 }
+
+} // namespace paso
+

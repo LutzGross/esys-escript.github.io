@@ -15,28 +15,34 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
-/* Paso: SparseMatrix                                         */
+/* Paso: SparseMatrix
 
-/*  Nullify rows and columns in the matrix                    */
+   Nullify rows and columns in the matrix
 
-/*  The rows and columns are marked by positive values in     */
-/*  mask_row and mask_col. Values on the main diagonal        */
-/*  which are marked to set to zero by both mask_row and      */
-/*  mask_col are set to main_diagonal_value                   */
+   The rows and columns are marked by positive values in
+   mask_row and mask_col. Values on the main diagonal
+   which are marked to set to zero by both mask_row and
+   mask_col are set to main_diagonal_value
+*/
 
-
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 
-void Paso_SparseMatrix_nullifyRowsAndCols_CSC_BLK1(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
+namespace paso {
+
+void SparseMatrix_nullifyRowsAndCols_CSC_BLK1(SparseMatrix* A,
+                                              const double* mask_row,
+                                              const double* mask_col,
+                                              double main_diagonal_value)
+{
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t irow, iptr, icol;
   #pragma omp parallel for private(irow, iptr,icol) schedule(static)
@@ -52,9 +58,14 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSC_BLK1(Paso_SparseMatrix* A, double*
             }
 	  }
 	}
-      }
+    }
 }
-void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
+
+void SparseMatrix_nullifyRowsAndCols_CSR_BLK1(SparseMatrix* A,
+                                              const double* mask_row,
+                                              const double* mask_col,
+                                              double main_diagonal_value)
+{
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t irow, iptr, icol;
   #pragma omp parallel for private(irow, iptr,icol) schedule(static)
@@ -73,7 +84,12 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSR_BLK1(Paso_SparseMatrix* A, double*
      }
   } 
 }
-void Paso_SparseMatrix_nullifyRowsAndCols_CSC(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
+
+void SparseMatrix_nullifyRowsAndCols_CSC(SparseMatrix* A,
+                                         const double* mask_row,
+                                         const double* mask_col,
+                                         double main_diagonal_value)
+{
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t icol,iptr,icb,irb,irow,ic,l;
   #pragma omp parallel for private(l,irow, iptr,icol,ic,irb,icb) schedule(static)
@@ -97,7 +113,12 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSC(Paso_SparseMatrix* A, double* mask
 	}
   }
 }
-void Paso_SparseMatrix_nullifyRowsAndCols_CSR(Paso_SparseMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value) {
+
+void SparseMatrix_nullifyRowsAndCols_CSR(SparseMatrix* A,
+                                         const double* mask_row,
+                                         const double* mask_col,
+                                         double main_diagonal_value)
+{
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t ir,icol,iptr,icb,irb,irow,l;
   #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
@@ -121,7 +142,10 @@ void Paso_SparseMatrix_nullifyRowsAndCols_CSR(Paso_SparseMatrix* A, double* mask
 	}
   }
 }
-void Paso_SparseMatrix_nullifyRows_CSR_BLK1(Paso_SparseMatrix* A, double* mask_row, double main_diagonal_value) {
+
+void SparseMatrix_nullifyRows_CSR_BLK1(SparseMatrix* A, const double* mask_row,
+                                       double main_diagonal_value)
+{
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t irow, iptr, icol;
   #pragma omp parallel for private(irow, iptr,icol) schedule(static)
@@ -139,7 +163,10 @@ void Paso_SparseMatrix_nullifyRows_CSR_BLK1(Paso_SparseMatrix* A, double* mask_r
      }
   } 
 }
-void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix* A, double* mask_row, double main_diagonal_value) {
+
+void SparseMatrix_nullifyRows_CSR(SparseMatrix* A, const double* mask_row,
+                                  double main_diagonal_value)
+{
   index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   index_t ir,icol,iptr,icb,irb,irow,l;
   #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
@@ -163,3 +190,6 @@ void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix* A, double* mask_row, d
 	}
   }
 }
+
+} // namespace paso
+

@@ -71,7 +71,7 @@ Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatr
      return NULL;
   }
 }
-Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_SparseMatrix * A_p, const bool jacobi, bool verbose)
+Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(paso::SparseMatrix * A_p, const bool jacobi, bool verbose)
 {
    
    const dim_t n=A_p->numRows;
@@ -89,7 +89,7 @@ Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(Paso_
       out->Jacobi=jacobi;
       
       if ( ! ( Esys_checkPtr(out->diag) || Esys_checkPtr(out->pivot) ) ) {
-	 Paso_SparseMatrix_invMain(A_p, out->diag, out->pivot );
+          paso::SparseMatrix_invMain(A_p, out->diag, out->pivot );
       }
       
    }
@@ -183,7 +183,7 @@ err_t Paso_Preconditioner_Smoother_solve_byTolerance(Paso_SystemMatrix* A_p, Pas
    return errorCode;
 }
 
-void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, 
+void Paso_Preconditioner_LocalSmoother_solve(paso::SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x, const double * b, 
 					     const dim_t sweeps, const bool x_is_initial) 
 {
    const dim_t n= (A_p->numRows) * (A_p->row_block_size);
@@ -221,7 +221,7 @@ void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Precon
 	 residual r_n (in x)
   Output: /delta x_{n+1} (in x)
 */
-void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
+void Paso_Preconditioner_LocalSmoother_Sweep(paso::SparseMatrix* A, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
 {
    const dim_t nt=omp_get_max_threads();
    if (smoother->Jacobi) {
@@ -237,7 +237,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep(Paso_SparseMatrix* A, Paso_Precondi
 
 /* inplace Gauss-Seidel sweep in sequential mode: */
 
-void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x)
+void Paso_Preconditioner_LocalSmoother_Sweep_sequential(paso::SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x)
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
@@ -251,7 +251,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    register double rtmp;
    int failed = 0;
 
-   const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   const index_t* ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A_p);
 
    (void)pivot;                /* silence warning from var being unused by macros */
    (void)block_len;
@@ -356,7 +356,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_sequential(Paso_SparseMatrix* A_p, 
    return;
 }
        
-void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
+void Paso_Preconditioner_LocalSmoother_Sweep_colored(paso::SparseMatrix* A_p, Paso_Preconditioner_LocalSmoother * smoother, double * x) 
 {
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
@@ -372,7 +372,7 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(Paso_SparseMatrix* A_p, Pas
    
    const index_t* coloring = Paso_Pattern_borrowColoringPointer(A_p->pattern);
    const dim_t num_colors = Paso_Pattern_getNumColors(A_p->pattern);
-   const index_t* ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A_p);
+   const index_t* ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A_p);
    
    (void)pivot;			/* These vars are dropped by some macros*/
    (void)block_len;

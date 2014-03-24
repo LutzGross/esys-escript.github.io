@@ -379,8 +379,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P, 
 	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C) { 
-   Paso_SparseMatrix *main_block=P->mainBlock;
-   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+    paso::SparseMatrix *main_block=P->mainBlock;
+    paso::SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
    const dim_t my_n=A->mainBlock->numRows;
@@ -515,8 +515,8 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
 void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
         Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C) {
-   Paso_SparseMatrix *main_block=P->mainBlock;
-   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+    paso::SparseMatrix *main_block=P->mainBlock;
+    paso::SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
    const dim_t row_block_size=A->row_block_size;
@@ -709,8 +709,8 @@ void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
 void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P, 
 	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
 	const index_t* S, const index_t *counter_C) { 
-   Paso_SparseMatrix *main_block=P->mainBlock;
-   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+    paso::SparseMatrix *main_block=P->mainBlock;
+    paso::SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
    const dim_t my_n=A->mainBlock->numRows;
@@ -719,7 +719,7 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
    dim_t i, q;
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
-   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
+   const index_t *ptr_main_A = paso::SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
    index_t *start_p_main_i, *start_p_couple_i;
    dim_t degree_p_main_i, degree_p_couple_i;
    dim_t len, ll, main_len, len_D_s;
@@ -938,8 +938,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
 void Paso_Preconditioner_AMG_setClassicProlongation_Block(
 	Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S,
 	const dim_t* degree_S, const index_t* S, const index_t *counter_C) {
-   Paso_SparseMatrix *main_block=P->mainBlock;
-   Paso_SparseMatrix *couple_block=P->col_coupleBlock;
+    paso::SparseMatrix *main_block=P->mainBlock;
+    paso::SparseMatrix *couple_block=P->col_coupleBlock;
    Paso_Pattern *main_pattern=main_block->pattern;
    Paso_Pattern *couple_pattern=couple_block->pattern;
    const dim_t row_block=A->row_block_size;
@@ -953,7 +953,7 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
    index_t *start_p_main_i, *start_p_couple_i;
    dim_t degree_p_main_i, degree_p_couple_i;
    dim_t len, ll, main_len, len_D_s;
-   const index_t *ptr_main_A = Paso_SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
+   const index_t *ptr_main_A = paso::SparseMatrix_borrowMainDiagonalPointer(A->mainBlock);
    
    len = A->col_coupleBlock->numCols;
    len = MAX(A->remote_coupleBlock->numCols, len);

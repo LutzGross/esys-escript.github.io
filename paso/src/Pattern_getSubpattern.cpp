@@ -34,8 +34,11 @@
 
 /* creates Pattern  */
 
-Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern, \
-                                           int newNumRows, int newNumCols, index_t* row_list,index_t* new_col_index) {
+Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern,
+                                         int newNumRows, int newNumCols,
+                                         const index_t* row_list,
+                                         const index_t* new_col_index)
+{
   index_t index_offset=(pattern->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
   Paso_Pattern*out=NULL;
   index_t *ptr=NULL,*index=NULL,k,j,subpattern_row,tmp;
