@@ -53,9 +53,9 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
            return;
      } else {
        if (A->type & MATRIX_FORMAT_OFFSET1) {
-         Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(alpha,A->mainBlock,in,beta,out);
+           paso::SparseMatrix_MatrixVector_CSC_OFFSET1(alpha,A->mainBlock,in,beta,out);
        } else {
-         Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->mainBlock,in,beta,out);
+           paso::SparseMatrix_MatrixVector_CSC_OFFSET0(alpha,A->mainBlock,in,beta,out);
        }
      }
   } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
@@ -67,7 +67,7 @@ void  Paso_SystemMatrix_MatrixVector(const double alpha,
               Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_MatrixVector: CSR with index 1 is not supported by MPI.");
               return;
            } else {
-              Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(alpha,A->mainBlock,in,beta,out);
+               paso::SparseMatrix_MatrixVector_CSR_OFFSET1(alpha,A->mainBlock,in,beta,out);
            }
      } else {
          if (Esys_noError()) {
@@ -88,18 +88,18 @@ void  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha,
   Paso_SystemMatrix_startCollect(A,in);
   /* process main block */
   if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->mainBlock,in,beta,out);
+      paso::SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->mainBlock,in,beta,out);
   } else {
-     Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->mainBlock,in,beta,out);
+      paso::SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->mainBlock,in,beta,out);
   }
   /* finish exchange */
   remote_values=Paso_SystemMatrix_finishCollect(A);
   /* process couple block */
   if (A->col_coupleBlock->pattern->ptr!=NULL) {
       if (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->col_coupleBlock,remote_values,1.,out); 
+          paso::SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(alpha,A->col_coupleBlock,remote_values,1.,out); 
       } else {
-         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out); 
+          paso::SparseMatrix_MatrixVector_CSR_OFFSET0(alpha,A->col_coupleBlock,remote_values,1.,out); 
       }
   }
 }

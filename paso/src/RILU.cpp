@@ -346,11 +346,11 @@ void Paso_Solver_solveRILU(Paso_Solver_RILU * rilu, double * x, double * b) {
 	Paso_Copy(n_block*rilu->n_F, rilu->x_F,rilu->b_F);
 	Paso_BlockOps_solveAll(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F);
         /* b_C=b_C-A_CF*x_F */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C);
+        paso::SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C);
         /* x_C=RILU(b_C)     */
         Paso_Solver_solveRILU(rilu->RILU_of_Schur,rilu->x_C,rilu->b_C);
         /* b_F=b_F-A_FC*x_C */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F);
+        paso::SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F);
         /* x_F=invA_FF*b_F  */
 	Paso_Copy(n_block*rilu->n_F, rilu->x_F,rilu->b_F);
 	Paso_BlockOps_solveAll(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F);

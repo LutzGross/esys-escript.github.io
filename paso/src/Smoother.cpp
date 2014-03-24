@@ -199,7 +199,7 @@ void Paso_Preconditioner_LocalSmoother_solve(Paso_SparseMatrix* A_p, Paso_Precon
    while (nsweeps > 0 ) {
 	 Paso_Copy(n, b_new, b);
 
-	 Paso_SparseMatrix_MatrixVector_CSR_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
+     paso::SparseMatrix_MatrixVector_CSR_OFFSET0((-1.), A_p, x, 1., b_new); /* b_new = b - A*x */
 	 Paso_Preconditioner_LocalSmoother_Sweep(A_p,smoother,b_new);
 	 Paso_AXPY(n, x, 1., b_new);
 	 nsweeps--;

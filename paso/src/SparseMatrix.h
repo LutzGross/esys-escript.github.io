@@ -15,15 +15,15 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: SparseMatrix and SystemVector */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Author: lgross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #ifndef INC_PASO_SPARSEMATRIX
 #define INC_PASO_SPARSEMATRIX
@@ -33,7 +33,7 @@
 #include "Options.h"
 #include "Paso.h"
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*  this struct holds a stiffness matrix: */
 
@@ -68,11 +68,14 @@ dim_t Paso_SparseMatrix_getNumColors(Paso_SparseMatrix*);
 void Paso_SparseMatrix_applyDiagonal_CSR_OFFSET0(Paso_SparseMatrix* A, const double* left, const double* right);
 index_t* Paso_SparseMatrix_borrowColoringPointer(Paso_SparseMatrix*);
 void Paso_SparseMatrix_free(Paso_SparseMatrix*);
-void Paso_SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void Paso_SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+
+namespace paso {
+void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha, const Paso_SparseMatrix* A, const double* in, const double beta, double* out);
+}
 
 void Paso_SparseMatrix_copy(Paso_SparseMatrix*,double*);
 void Paso_SparseMatrix_maxAbsRow_CSR_OFFSET0(const Paso_SparseMatrix*,double*);
@@ -103,7 +106,6 @@ Paso_SparseMatrix* Paso_SparseMatrix_getTranspose(Paso_SparseMatrix* P);
 
 void Paso_SparseMatrix_setValues(Paso_SparseMatrix*,double);
 void Paso_SparseMatrix_saveMM_CSC(Paso_SparseMatrix *, FILE *);
-void  Paso_SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha, const dim_t nRows, const dim_t row_block_size, const dim_t col_block_size, const index_t* ptr, const index_t* index, const double* val, const double* in, const double beta, double* out);
 Paso_SparseMatrix* Paso_SparseMatrix_loadMM_toCSR( char *fileName_p );
 void Paso_SparseMatrix_saveMM(Paso_SparseMatrix * A_p, char * fileName_p);
 void Paso_SparseMatrix_nullifyRows_CSR(Paso_SparseMatrix*, double*, double);
