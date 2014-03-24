@@ -1,0 +1,148 @@
+\chapter{Symbolic}
+\label{CHAP: Symbolic}
+\section{Introduction}
+The Symbol class is used to define symbolic objects. these object act as placeholders for a single mathematical symbol, 
+such as x, or for arbitrarily complex mathematical expressions such as
+c*x**4+alpha*exp(x)-2*sin(beta*x), where 'alpha', 'beta', 'c', and 'x'
+are also Symbols (the symbolic 'atoms' of the expression).
+With the help of the 'Evaluator' class these symbols and expressions can
+be resolved by substituting numeric values and/or escript `Data` objects
+for the atoms. To facilitate the use of `Data` objects a `Symbol` has a
+shape (and thus a rank) as well as a dimension.
+Symbols are useful to perform mathematical simplifications, compute
+derivatives. As an example of how the symbolic toolbox can be used consider the folowing code extract.
+\begin{python}
+import esys.escript as es
+u = es.Symbol('u')
+p=2*u**2+3*u+1
+p2=es.sin(u)
+p3 = p.diff(u)
+evalu = es.Evaluator()
+evalu.addExpression(p)
+evalu.addExpression(p2)
+evalu.addExpression(p3)
+evalu.subs(u=2*es.symconstants.pi)
+evaluated=evalu.evaluate()
+print evaluated
+\end{python}
+Running this code evaluates to (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi) to get the answer evaluated we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183).This shows how the symbols can be put into expressions and evauluated. The diff member used on p takes the derivative of p with respect to u. The use of these symbols becomes more interesting when they are integrated with escript object such as the Data Object. 
+
+
+\section{nonlinearPDE}
+The nonlinearPDE class in escript has been implemented using interaction between escript symbols and escript object such as domains. The nonlinearPDE class allows for the solution of pdes of the form 
+\begin{equation}
+-div(X) + Y = 0
+\label{symbolic eq1}
+\end{equation}
+where $X$ and $Y$ are function of $grad(u)$ and $u$, $u$ is the unknown function implemented as a Symbol.
+The intention is that X can be defined as arbatratry function of the unknown function $u$ or $grad(u)$ to implement a desired equation 
+The NonlinearPDE class uses the symbolics class to solve the non-linear pde given in \eqn{symbolic eq1}
+
+The class works by using Newtons method to find the zeros of the left hand side of \eqn{symbolic eq1} and as a consequence finding the
+$X$ and $Y$ which satisfy \eqn{symbolic eq1}. 
+
+newtons method involves evalulating the gradient of the function at $u_n$ and leting it go to 0 to get a $u_n$ from $u_{n-1}$. Consecutive updates are cacluted until the equation is
+satisfied to the desired level of accuracy. The solution to each update step involves solving a linear pde. The nonlinearPDE class uses $X$ and $Y$ to produce the coeficient of the linear pde for the update step. The linear pde class given in \Sec{SEC LinearPDE} is used to solve the linear pdes from the update step. The coeficients of the linear pde to be solved are calculated as follows \\\\\begin{centering}
+ A = $\frac{\partial \text{X}}{\partial grad(u)}$   B = $\frac{\partial \text{X}}{\partial u}$   C = $\frac{\partial \text{Y}}{\partial grad(u)}$    D = $\frac{\partial \text{Y}}{\partial u}$
+\end{centering}
+
+
+
+\section{2d plane-strain problem}
+The non-linear pde class can be used to solve a 2d plane-strain problem. In continuous media stress is given by lame's equation, \eqn{symbolic eq2}.
+
+\begin{equation} 
+-div(\sigma)=f
+\label{symbolic eq2}
+\end{equation} 
+Hooks law provides a relation between $\sigma$ and $\epsilon$ in the folowing form
+\begin{equation}
+\left[ \begin{array}{c}
+\sigma_{00} \\
+\sigma_{11} \\
+\sigma_{01} \\
+\end{array} \right] = 
+\left[ \begin{array}{ccc}
+c_{00} & c_{01} & c_{05}\\
+c_{01} & c_{11} & c_{15}\\
+c_{05} & c_{15} & c_{55}\\
+\end{array}\right]
+\left[ \begin{array}{c}
+\epsilon_{00} \\
+\epsilon_{11} \\
+2\epsilon_{10} \\
+\end{array} \right]
+\label{symbolic eq3}
+\end{equation}
+Where $\epsilon = symetric(grad(u)), \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + {\frac{\partial u_j}{\partial x_i}}\right)$
+u is the unkown function. To fit this to the non-linear pde class's standard form X is set to $c \times Semetric(\text{grad(}u)))$ where $c$ is the stifness matrix from \eqn{symbolic eq3}
+the following python extract sets up a example 2d plain strain problem problem. 
+
+\begin{python}
+mydomain = Rectangle(l0=1.,l1=1.,n0=100, n1=100)
+u = Symbol('u',(2,), dim=2)
+q = Symbol('q', (2,2))
+theta = Symbol('theta')
+x = mydomain.getX()
+q[0,0]=cos(theta)
+q[0,1]=-sin(theta)
+q[1,0]=sin(theta)
+q[1,1]=cos(theta)
+q=q.subs(theta,symconstants.pi/4*wherePositive(x[1]-.35)*whereNegative(x[1]-.75))
+sigma = Symbol('sigma',(2,2))
+p = NonlinearPDE(mydomain, u)
+epsilon0 = symmetric(grad(u))
+epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
+c00=10
+c01=8;c11=10
+c05=0;c15=0;c55=1
+sigma[0,0]=c00*epsilon[0,0]+c01*epsilon[1,1]+c05*2*epsilon[1,0]
+sigma[1,1]=c01*epsilon[0,0]+c11*epsilon[1,1]+c15*2*epsilon[1,0]
+sigma[0,1]=c05*epsilon[0,0]+c15*epsilon[1,1]+c55*2*epsilon[1,0]
+sigma[1,0]=sigma[0,1]
+sigma0=matrixmult(matrixmult(q.transpose(1),epsilon),q)
+gammaD=whereZero(x[1])*[1,1]
+yconstraint = FunctionOnBoundary(mydomain).getX()[1]
+p.setValue(X=sigma0,q=gammaD,y=[-50,0]*whereZero(yconstraint-1),r=[1,1])
+v = p.getSolution(u=[0,0])
+\end{python}
+
+A rectangular domain is setup to represent the 2d material section, the symbol u is setup to represent the displacement vector. q here is used to produce a rotation in the centre of the material from y=0.35 to y=.75 the rest of the material is left in its default orientation. The way in which q is setup demonstrates the seamless intergration of escript symbols and data objects.The NonlinearPDE object is instantiated with the domain and uknown function represent here by the symbol u. gammaD represent the location of the boundary condition with r giving the value for it to hold at that location. y reperesents a external shearing force acting on the domain in this case a force of magnitude 50 acting in the x direction. The values are inserted into the nonlinearPDE object by a call to setValue. finally a call to get solution calculates the resultant displacements created by the applied force, Setting u to [0,0] set the initial displacement everywhere except at the boundary to the vector [0,0].
+isnert some pretty pictures of the domain, and the solution.
+
+
+\section{Methods}
+\subsection{Symbolic}
+\begin{classdesc}{Symbol}{symbol \optional{, shape} \optional{, Dim}}
+Defines a Symbol object. The first argument symbol is a string given to represent the symbol. the string typically matches the name of the object for instance u=Symbol('u'). next the shape defines ,,, . Dim is used to define the dimentionality.
+\end{classdesc}
+
+\subsection{Symconsts}
+Symconsts provides symbolic constants for use in symbolic expressions. These constants are preffered to floating point implementation as the can cancel perfectly in when mathematical expression are evaluated.
+usage:
+	symconsts.pi this provides a python symbol object
+
+
+\subsection{NonLinearPDE}
+\begin{classdesc}{NonLinearPDE}{domain, u}
+Defines a general nonlinear, steady, second order PDE for an unknown function \var{u} on a given domain defined through a \Domain object \var{domain}. \var(u) is a Symbol object.
+the general form is -div(X) + Y = 0 
+\end{classdesc}
+
+
+\begin{methoddesc}[NonLinearPDE]{setValue}{
+\optional{X}\optional{, Y}
+\optional{, d}\optional{, y}
+\optional{, d_contact}\optional{, y_contact}
+\optional{, q}\optional{, r}}
+assigns new values to coefficients. By default all values are assumed to be
+zero\footnote{In fact, it is assumed they are not present by assigning the
+value \code{escript.Data()}. This can be used by the solver library to reduce
+computational costs.}.
+If the new coefficient value is not a \Data object, it is converted into a
+\Data object in the appropriate \FunctionSpace.
+\end{methoddesc}
+
+The PDE is solved by linearising the coefficients and iteratively solving
+the corresponding linear PDE until the error is smaller than a tolerance
+or a maximum number of iterations is reached.   
