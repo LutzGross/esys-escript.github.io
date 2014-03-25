@@ -135,7 +135,7 @@ void SparseMatrix_nullifyRowsAndCols_CSR(SparseMatrix* A,
 void SparseMatrix_nullifyRows_CSR_BLK1(SparseMatrix* A, const double* mask_row,
                                        double main_diagonal_value);
 
-void SparseMatrix_nullifyRows_CSR(SparseMatrix* A, double* mask_row,
+void SparseMatrix_nullifyRows_CSR(SparseMatrix* A, const double* mask_row,
                                   double main_diagonal_value);
 
 SparseMatrix* SparseMatrix_getSubmatrix(const SparseMatrix* A, dim_t n_row_sub,
