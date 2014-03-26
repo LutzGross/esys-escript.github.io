@@ -95,6 +95,7 @@ namespace
 // This is implemented by sending to rank 0
 bool checkResultInt(int res, int& mres, esysUtils::JMPI& info)
 {
+#ifdef ESYS_MPI
     const int leader=0;
     const int BIGTAG=esysUtils::getSubWorldTag();
     if (info->size==1)
@@ -151,6 +152,10 @@ bool checkResultInt(int res, int& mres, esysUtils::JMPI& info)
       
     }
     return true;
+#else
+    mres=res;
+    return true;
+#endif
 }
 
 
@@ -167,13 +172,20 @@ void SplitWorld::runJobs()
 	// now we actually need to run the jobs
 	// everybody will be executing their localworld's jobs
 	int res=localworld->runJobs(err);	
+	// take this opportunity to clean up
+	
+	localworld->clearImportExports();
 	// now we find out about the other worlds
 	if (!checkResultInt(res, mres, globalcom))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
 	}
     } while (mres==1);
-    if (mres==2)
+    if (mres==0)
+    {
+	return;
+    }
+    else if (mres==2)
     {
 	throw SplitWorldException("At least one Job's work() function did not return True/False.");
     }
@@ -191,6 +203,15 @@ void SplitWorld::runJobs()
 	s+=resultstr;
 	throw SplitWorldException(s);
     }
+    else if (mres==4)
+    {
+	throw SplitWorldException("While processing exports: "+err);
+    
+    }
+    else
+    { 
+	throw SplitWorldException("Unexpected return value from runJobs.");
+    }
 }
 
 /**
@@ -207,12 +228,6 @@ void SplitWorld::addJob(boost::python::object creator, boost::python::tuple tup,
 // and trap any python exceptions etc, but for now I'll just call the constructor
 void SplitWorld::addVariable(std::string name, boost::python::object creator, boost::python::tuple ntup, boost::python::dict kwargs)
 {
-    if (varmap.find(name)!=varmap.end())
-    {
-	std::ostringstream oss;
-	oss << "There is already a variable called " << name;
-	throw SplitWorldException(oss.str());    
-    }
     object red=creator(*ntup, **kwargs);
     extract<Reducer_ptr> ex(red);
     if (!ex.check())
@@ -220,13 +235,13 @@ void SplitWorld::addVariable(std::string name, boost::python::object creator, bo
 	throw SplitWorldException("Creator function did not produce a reducer.");
     }
     Reducer_ptr rp=ex();
-    varmap[name]=rp;
+    localworld->addVariable(name, rp);
 }
 
 
 void SplitWorld::removeVariable(std::string name)
 {
-    varmap.erase(name);
+    localworld->removeVariable(name);
 }
 
 void SplitWorld::clearPendingJobs()

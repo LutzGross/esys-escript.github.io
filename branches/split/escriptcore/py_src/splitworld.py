@@ -56,30 +56,60 @@ class Job(object):
     """
     self.domain=kwargs["domain"]
     self.jobid=kwargs["jobid"]
-    self.incratenames={}
-    self.outcratenames={}
+    self.wantedvalues=[]		# names of shared values this job wishes to import    
+    self.importedvalues={}	# name:values of which this jobs wants to use
+    self.exportedvalues={}	# name:values exported by this job
     
-  # Now does this take a crate / hamper / ....
-  # There is the issue of only wanting to put in values for initial set up
-  # and so merge is not required
   def setImportValue(self, name, v):
     """
     Use to make a value available to the job (ie called from outside the job)
     :var name: label used to identify this import
     :type name: ``str``
     :var v: value to be imported
-    :type v: crate
+    :type v: ?
     """
     pass
   
   
   def getExportValue(self, name):
     """
-    get value exported by work()
+    get value exported by work()  [called from outside the job]
     """
-    pass
-  
-  
+    if name in self.exportedvalues:
+	return self.exportedvalues[name]
+    else:
+	return None
+	
+  def export(self, name, v):
+    """
+    Make value v available to other Jobs under the label name.
+    name must have already been registered with the SplitWorld instance
+    :var name: registered label for exported value
+    :type name: ``str``
+    """
+    self.exportedvalues[name]=v
+    
+  def getImport(self, name):
+    """
+    :var name: label for imported value. Returns None if import not present.
+    :type name: ``str``
+    """
+    if name in self.importedvalues:
+	return self.importedvalues[name]
+    else:
+	return None
+
+  def clearExports(self):
+    """
+    Remove exported values from the map
+    """
+    self.exportedvalues.clear()
+    
+  def clearImports(self):
+    """
+    Remove imported values from their map
+    """
+    self.importedvalues.clear()
     
   def work(self):
     """

@@ -16,7 +16,7 @@
 
 #include "boost/python/import.hpp"
 #include "SubWorld.h"
-
+#include "SplitWorldException.h"
 
 #include <iostream>
 
@@ -60,7 +60,60 @@ void SubWorld::clearJobs()
     jobvec.clear();
 }
 
+// Deal with the i-th job's exports
+bool SubWorld::processExports(size_t i, std::string& errmsg)
+{
+    bp::dict expmap=bp::extract<bp::dict>(jobvec[i].attr("exportedvalues"))();	
+    bp::list items=expmap.items();
+    size_t l=bp::len(items);
+    for (int j=0;j<l;++j)
+    {
+	bp::object o1=items[j][0];
+	bp::object o2=items[j][1];
+	bp::extract<std::string> ex1(o1);
+	if (!ex1.check())
+	{
+	    errmsg="Job attempted export using a name which was not a string.";
+	    return false;
+	}
+	std::string name=ex1();
+	std::map<std::string, Reducer_ptr>::iterator it=reducemap.find(name);
+	if (it==reducemap.end())
+	{
+	    errmsg="Attempt to export variable \""+name+"\". SplitWorld was not told about this variable.";
+	    return false;
+	}
+	// so now we know it is a known name, we check that it is not None and that it is compatible
+	if (o2.is_none())
+	{
+	    errmsg="Attempt to export variable \""+name+"\" with value of None, this is not permitted.";
+	    return false;
+	}
+	if (!(it->second)->valueCompatible(o2))
+	{
+	    errmsg="Attempt to export variable \""+name+"\" with an incompatible value.";
+	    return false;
+	}
+	if (!(it->second)->reduceLocalValue(o2, errmsg))
+	{
+	    return false;	// the error string will be set by the reduceLocalValue
+	}
+    }
+    return true;
+}
 
+// clears out all the old import and export values from _Jobs_
+// does not clear values out of reducers
+void SubWorld::clearImportExports()
+{
+    for (size_t i=0;i<jobvec.size();++i)
+    {
+	jobvec[i].attr("clearImports")();
+	jobvec[i].attr("clearExports")();
+    }
+}
+
+// if 4, a Job performed an invalid export
 // if 3, a Job threw an exception 
 // if 2, a Job did not return a bool
 // if 1, at least one Job returned False
@@ -80,10 +133,18 @@ char SubWorld::runJobs(std::string& errormsg)
 	    {
 		return 2;	
 	    }
+	    // now we check the exports from that Job,
+	    // Do names and type match?
+	    if (!processExports(i, errormsg))
+	    {    
+		return 4;
+	    }
+	    // check to see if we need to keep running
 	    if (!ex())
 	    {
 		ret=1;
 	    }
+
 	}
     } 
     catch (boost::python::error_already_set e)
@@ -108,3 +169,20 @@ char SubWorld::runJobs(std::string& errormsg)
     }  
     return ret;
 }
+
+void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
+{
+    if (reducemap.find(name)!=reducemap.end())
+    {
+	std::ostringstream oss;
+	oss << "There is already a variable called " << name;
+	throw SplitWorldException(oss.str());    
+    }
+    reducemap[name]=rp;
+}
+
+void SubWorld::removeVariable(std::string& s)
+{
+    reducemap.erase(s);
+}
+

@@ -15,6 +15,7 @@
 
 #include <sstream>
 #include <boost/python/extract.hpp>
+#include <boost/scoped_array.hpp>
 
 #include "Reducer.h"
 #include "SplitWorldException.h"
@@ -80,15 +81,18 @@ void MPIDataReducer::setDomain(escript::Domain_ptr d)
 
 bool MPIDataReducer::valueCompatible(boost::python::object v)
 {
-    extract<const Data&> ex(v);
+    extract<Data&> ex(v);
     if (!ex.check())
     {
 	return false;
     }
-    const Data& d=ex();
-    if (d.getDomain()!=dom)
+    if (dom.get()!=0)
     {
-	return false;	// the domains don't match
+	const Data& d=ex();
+	if (d.getDomain().get()!=dom.get())
+	{
+	    return false;	// the domains don't match
+	}
     }
     return true;
 }
@@ -103,7 +107,7 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
 	return false;
     }
     Data& d=ex();
-    if (d.getDomain()!=dom)
+    if ((d.getDomain()!=dom) && (dom.get()!=0))
     {
 	errstring="reduceLocalValue: Got a Data object, but it was not using the SubWorld's domain.";
 	return false;
@@ -112,6 +116,7 @@ bool MPIDataReducer::reduceLocalValue(boost::python::object v, std::string& errs
     if (!valueadded)	// first value so answer becomes this one
     {
 	value=d;
+	dom=d.getDomain();
     }
     else
     {
@@ -133,6 +138,7 @@ void MPIDataReducer::reset()
 
 bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)
 {
+#ifdef ESYS_MPI    
     // since they can't add it unless it is using the proper domain, we need to 
     // check the following:
     //   FunctionSpace,
@@ -147,6 +153,7 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
     // still need to incorporate domain version into this
     // or are domains not mutable in any way that matters?
     int* rbuff=new int[mpi_info->size];
+    boost::scoped_array<int> dummy(rbuff);	// to ensure cleanup
     for (int i=0;i<mpi_info->size;++i)
     {
 	rbuff[i]=0;	// since this won't match any valid value we can use it as a failure check
@@ -167,12 +174,16 @@ bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::st
 	}
     }
     return true;
+#else
+    return true;
+#endif
 }
 
 // By the time this function is called, we know that all the values 
 // are compatible
 bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
 {
+#ifdef ESYS_MPI
     DataTypes::ValueType& vr=value.getExpandedVectorReference();
     Data result(0, value.getDataPointShape(), value.getFunctionSpace(), true);
     DataTypes::ValueType& rr=value.getExpandedVectorReference();
@@ -181,4 +192,7 @@ bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
 	return false;
     }
     return true;
+#else
+    return true;
+#endif
 }
