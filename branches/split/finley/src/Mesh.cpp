@@ -367,8 +367,8 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
 
         // distribute new labeling to other processors
 #ifdef ESYS_MPI
-        const int dest=Esys_MPIInfo_mod(mpiSize, myRank + 1);
-        const int source=Esys_MPIInfo_mod(mpiSize, myRank - 1);
+        const int dest=esysUtils::mod_rank(mpiSize, myRank + 1);
+        const int source=esysUtils::mod_rank(mpiSize, myRank - 1);
 #endif
         int current_rank=myRank;
         for (int p=0; p<mpiSize; ++p) {
@@ -391,7 +391,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
                                      MPIInfo->comm, &status);
 #endif
                 MPIInfo->msg_tag_counter++;
-                current_rank=Esys_MPIInfo_mod(mpiSize, current_rank-1);
+                current_rank=esysUtils::mod_rank(mpiSize, current_rank-1);
             }
         }
     }

@@ -55,32 +55,32 @@ typedef int Esys_MPI_rank;
 /* Datatypes */
 
 /** \brief Struct that holds MPI communicator, rank, size and a tag counter */
-struct Esys_MPIInfo {
-  dim_t reference_counter;
-  int size;
-  Esys_MPI_rank rank;
-  MPI_Comm comm;
-  int msg_tag_counter;
-};
-
-typedef struct Esys_MPIInfo Esys_MPIInfo;
+// struct Esys_MPIInfo {
+//   dim_t reference_counter;
+//   int size;
+//   Esys_MPI_rank rank;
+//   MPI_Comm comm;
+//   int msg_tag_counter;
+// };
+// 
+// typedef struct Esys_MPIInfo Esys_MPIInfo;
 
 /* Function prototypes */
 
-ESYSUTILS_DLL_API
-Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm );
-
-ESYSUTILS_DLL_API
-void          Esys_MPIInfo_free( Esys_MPIInfo* );
-
-ESYSUTILS_DLL_API
-Esys_MPIInfo *Esys_MPIInfo_getReference( Esys_MPIInfo* in );
-
-ESYSUTILS_DLL_API
-int           Esys_MPIInfo_initialized( void );
-
-ESYSUTILS_DLL_API
-index_t Esys_MPIInfo_mod(index_t n, index_t k);
+// ESYSUTILS_DLL_API
+// Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm );
+// 
+// ESYSUTILS_DLL_API
+// void          Esys_MPIInfo_free( Esys_MPIInfo* );
+// 
+// ESYSUTILS_DLL_API
+// Esys_MPIInfo *Esys_MPIInfo_getReference( Esys_MPIInfo* in );
+// 
+// ESYSUTILS_DLL_API
+// int           Esys_MPIInfo_initialized( void );
+// 
+// ESYSUTILS_DLL_API
+// index_t Esys_MPIInfo_mod(index_t n, index_t k);
 
 //ESYSUTILS_DLL_API
 //dim_t Esys_MPIInfo_setDistribution( Esys_MPIInfo *mpi_info, index_t min_id,index_t max_id,index_t* distribution);
@@ -136,6 +136,10 @@ JMPI makeInfo(MPI_Comm comm, bool owncom=false);
 
 ESYSUTILS_DLL_API
 bool Esys_MPIInfo_noError( const JMPI& mpi_info);
+
+ESYSUTILS_DLL_API
+index_t mod_rank(index_t n, index_t k);
+
 
 /// Appends MPI rank to a file name if MPI size > 1
 ESYSUTILS_DLL_API

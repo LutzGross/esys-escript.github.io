@@ -383,8 +383,8 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
     // fill the buffer by sending portions around in a circle
 #ifdef ESYS_MPI
     MPI_Status status;
-    int dest=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank+1);
-    int source=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank-1);
+    int dest=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank+1);
+    int source=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank-1);
 #endif
     int buffer_rank=in->MPIInfo->rank;
     for (int p=0; p<in->MPIInfo->size; ++p) {
@@ -405,7 +405,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
 #endif
 	    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
-        buffer_rank=Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank-1);
+        buffer_rank=esysUtils::mod_rank(in->MPIInfo->size, buffer_rank-1);
         scatterEntries(in->numNodes, in->Id, distribution[buffer_rank],
                 distribution[buffer_rank+1], Id_buffer, in->Id,
                 Tag_buffer, in->Tag, globalDegreesOfFreedom_buffer,
@@ -415,8 +415,8 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
     // now entries are collected from the buffer again by sending the
     // entries around in a circle
 #ifdef ESYS_MPI
-    dest=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank+1);
-    source=Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank-1);
+    dest=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank+1);
+    source=esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank-1);
 #endif
     buffer_rank=in->MPIInfo->rank;
     for (int p=0; p<in->MPIInfo->size; ++p) {
@@ -441,7 +441,7 @@ void NodeFile::gather_global(const std::vector<int>& index, const NodeFile* in)
 #endif
             ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
         }
-        buffer_rank=Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank-1);
+        buffer_rank=esysUtils::mod_rank(in->MPIInfo->size, buffer_rank-1);
     }
     // check if all nodes are set:
 #pragma omp parallel for
@@ -508,8 +508,8 @@ int NodeFile::prepareLabeling(const std::vector<short>& mask,
     // fill the buffer by sending portions around in a circle
 #ifdef ESYS_MPI
     MPI_Status status;
-    int dest=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank + 1);
-    int source=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank - 1);
+    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
+    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -521,7 +521,7 @@ int NodeFile::prepareLabeling(const std::vector<short>& mask,
 #endif
             MPIInfo->msg_tag_counter++;
         }
-        buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
+        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
         const int id0=distribution[buffer_rank];
         const int id1=distribution[buffer_rank+1];
 #pragma omp parallel for
@@ -579,8 +579,8 @@ int NodeFile::createDenseDOFLabeling()
     // now entries are collected from the buffer again by sending them around
     // in a circle
 #ifdef ESYS_MPI
-    int dest=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank + 1);
-    int source=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank - 1);
+    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
+    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -603,7 +603,7 @@ int NodeFile::createDenseDOFLabeling()
 #endif
 	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
-        buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
+        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
     }
 
     return new_numGlobalDOFs;
@@ -691,8 +691,8 @@ int NodeFile::createDenseNodeLabeling(std::vector<int>& nodeDistribution,
 
     // now we send this buffer around to assign global node index
 #ifdef ESYS_MPI
-    int dest=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank + 1);
-    int source=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank - 1);
+    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
+    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -718,7 +718,7 @@ int NodeFile::createDenseNodeLabeling(std::vector<int>& nodeDistribution,
 #endif
 	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
-        buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
+        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
     }
     return globalNumNodes;
 }
@@ -764,8 +764,8 @@ int NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask,
     // now entries are collected from the buffer by sending them around
     // in a circle
 #ifdef ESYS_MPI
-    int dest=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank + 1);
-    int source=Esys_MPIInfo_mod(MPIInfo->size, MPIInfo->rank - 1);
+    int dest=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank + 1);
+    int source=esysUtils::mod_rank(MPIInfo->size, MPIInfo->rank - 1);
 #endif
     int buffer_rank=MPIInfo->rank;
     for (int p=0; p<MPIInfo->size; ++p) {
@@ -788,7 +788,7 @@ int NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask,
 #endif
 	    ESYS_MPI_INC_COUNTER(*MPIInfo, 1)
         }
-        buffer_rank=Esys_MPIInfo_mod(MPIInfo->size, buffer_rank-1);
+        buffer_rank=esysUtils::mod_rank(MPIInfo->size, buffer_rank-1);
     }
     return new_numGlobalReduced;
 }
