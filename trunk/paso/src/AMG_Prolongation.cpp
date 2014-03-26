@@ -55,7 +55,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
    Paso_SystemMatrix *out=NULL;
-   Paso_SystemMatrixPattern *pattern=NULL;
+   paso::SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
    Paso_Connector *col_connector=NULL;
@@ -320,7 +320,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
       and col_connector for interpolation matrix P. To be completed, 
       row_couple_pattern and row_connector need to be constructed as well */
    if (Esys_noError()) {
-     pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT, 
+     pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
 		output_dist, input_dist, main_pattern, couple_pattern, 
 		couple_pattern, col_connector, col_connector);
      out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
@@ -346,7 +346,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    }  
 
    /* clean up */ 
-   Paso_SystemMatrixPattern_free(pattern);
+   paso::SystemMatrixPattern_free(pattern);
    Paso_Pattern_free(main_pattern);
    Paso_Pattern_free(couple_pattern);
    Paso_Connector_free(col_connector);

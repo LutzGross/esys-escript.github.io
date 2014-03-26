@@ -38,8 +38,11 @@
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 
+namespace paso {
+    struct SystemMatrixPattern;
+}
+
 struct Paso_Pattern;
-struct Paso_SystemMatrixPattern;
 struct Paso_SystemMatrix;
 
 namespace ripley {
@@ -789,7 +792,7 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
     /// returns the Paso system matrix pattern
-    virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
+    virtual paso::SystemMatrixPattern* getPattern(bool reducedRowOrder,
             bool reducedColOrder) const = 0;
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'

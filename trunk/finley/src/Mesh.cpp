@@ -57,10 +57,10 @@ Mesh::~Mesh()
     delete ContactElements;
     delete Points;
     tagMap.clear();
-    Paso_SystemMatrixPattern_free(FullFullPattern);
-    Paso_SystemMatrixPattern_free(FullReducedPattern);
-    Paso_SystemMatrixPattern_free(ReducedFullPattern);
-    Paso_SystemMatrixPattern_free(ReducedReducedPattern);
+    paso::SystemMatrixPattern_free(FullFullPattern);
+    paso::SystemMatrixPattern_free(FullReducedPattern);
+    paso::SystemMatrixPattern_free(ReducedFullPattern);
+    paso::SystemMatrixPattern_free(ReducedReducedPattern);
     Esys_MPIInfo_free(MPIInfo);
 }
 

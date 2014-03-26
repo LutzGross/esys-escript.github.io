@@ -1406,7 +1406,7 @@ ASM_ptr MeshAdapter::newSystemMatrix(
    }
    // generate matrix:
  
-   Paso_SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder);
+   paso::SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder);
    checkDudleyError();
    Paso_SystemMatrix* fsystemMatrix;
    int trilinos = 0;
@@ -1419,7 +1419,7 @@ ASM_ptr MeshAdapter::newSystemMatrix(
       fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize,FALSE);
    }
    checkPasoError();
-   Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
+   paso::SystemMatrixPattern_free(fsystemMatrixPattern);
    SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace, column_blocksize,column_functionspace);
    return ASM_ptr(sma);
 }
@@ -1447,12 +1447,12 @@ ATP_ptr MeshAdapter::newTransportProblem(
    }
    // generate matrix:
  
-   Paso_SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder);
+   paso::SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder);
    checkDudleyError();
    Paso_TransportProblem* transportProblem;
    transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern,blocksize);
    checkPasoError();
-   Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
+   paso::SystemMatrixPattern_free(fsystemMatrixPattern);
    AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem,blocksize,functionspace);
    return ATP_ptr(atp);
 }

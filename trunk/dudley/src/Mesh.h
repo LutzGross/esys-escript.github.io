@@ -89,10 +89,10 @@ struct Dudley_Mesh {
 
     /* pointer to the sparse matrix pattern */
 
-    Paso_SystemMatrixPattern *FullFullPattern;
-    Paso_SystemMatrixPattern *FullReducedPattern;
-    Paso_SystemMatrixPattern *ReducedFullPattern;
-    Paso_SystemMatrixPattern *ReducedReducedPattern;
+    paso::SystemMatrixPattern *FullFullPattern;
+    paso::SystemMatrixPattern *FullReducedPattern;
+    paso::SystemMatrixPattern *ReducedFullPattern;
+    paso::SystemMatrixPattern *ReducedReducedPattern;
     Esys_MPIInfo *MPIInfo;
 };
 
@@ -118,8 +118,8 @@ void Dudley_Mesh_addTagMap(Dudley_Mesh * mesh_p, const char *name, index_t tag_k
 index_t Dudley_Mesh_getTag(Dudley_Mesh * mesh_p, const char *name);
 bool Dudley_Mesh_isValidTagName(Dudley_Mesh * mesh_p, const char *name);
 void Dudley_Mesh_distributeByRankOfDOF(Dudley_Mesh * in, dim_t * distribution);
-Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order);
-Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order);
+paso::SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order);
+paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order);
 void Dudley_Mesh_write(Dudley_Mesh *, char *);
 void Dudley_Mesh_dump(Dudley_Mesh * in, char *fname);
 void Dudley_PrintMesh_Info(Dudley_Mesh *, bool);
@@ -158,8 +158,8 @@ int Dudley_Mesh_findMatchingFaces_compar(const void *, const void *);
 void Dudley_Mesh_findMatchingFaces(Dudley_NodeFile *, Dudley_ElementFile *, double, double, int *, int *, int *, int *);
 void Dudley_Mesh_print(Dudley_Mesh * in);
 void Dudley_Mesh_optimizeNodeLabeling(Dudley_Mesh * mesh_p);
-dim_t Dudley_Mesh_FindMinDegreeNode(Paso_SystemMatrixPattern * pattern_p, index_t * available, index_t indicator);
-index_t Dudley_Mesh_getDegree(Paso_SystemMatrixPattern * pattern_p, index_t * label);
+dim_t Dudley_Mesh_FindMinDegreeNode(paso::SystemMatrixPattern * pattern_p, index_t * available, index_t indicator);
+index_t Dudley_Mesh_getDegree(paso::SystemMatrixPattern * pattern_p, index_t * label);
 void Dudley_Mesh_setTagsInUse(Dudley_Mesh * in);
 int Dudley_Mesh_getStatus(Dudley_Mesh * in);
 

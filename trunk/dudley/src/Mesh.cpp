@@ -106,10 +106,10 @@ void Dudley_Mesh_free(Dudley_Mesh * in)
 	    Dudley_ElementFile_free(in->Elements);
 	    Dudley_ElementFile_free(in->Points);
 	    Dudley_TagMap_free(in->TagMap);
-	    Paso_SystemMatrixPattern_free(in->FullFullPattern);
-	    Paso_SystemMatrixPattern_free(in->FullReducedPattern);
-	    Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
-	    Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
+            paso::SystemMatrixPattern_free(in->FullFullPattern);
+            paso::SystemMatrixPattern_free(in->FullReducedPattern);
+            paso::SystemMatrixPattern_free(in->ReducedFullPattern);
+            paso::SystemMatrixPattern_free(in->ReducedReducedPattern);
 	    Esys_MPIInfo_free(in->MPIInfo);
 	    delete in;
 	}

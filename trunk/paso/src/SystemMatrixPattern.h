@@ -15,60 +15,67 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: system matrix pattern                              */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Copyrights by ACcESS Australia 2004,2005 */
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_SYSTEMMATRIXPATTERN
-#define INC_PASO_SYSTEMMATRIXPATTERN
+#ifndef __PASO_SYSTEMMATRIXPATTERN_H__
+#define __PASO_SYSTEMMATRIXPATTERN_H__
 
 #include "Distribution.h"
 #include "Pattern.h"
 #include "Coupler.h"
 
-/************************************************************************************/
+namespace paso {
 
-typedef struct Paso_SystemMatrixPattern {
-  int type;
+PASO_DLL_API
+struct SystemMatrixPattern
+{
+    // constructor
+    SystemMatrixPattern(int type, Paso_Distribution* output_distribution,
+        Paso_Distribution* input_distribution, Paso_Pattern* mainPattern,
+        Paso_Pattern* col_couplePattern, Paso_Pattern* row_couplePattern,
+        Paso_Connector* col_connector, Paso_Connector* row_connector);
 
-  Esys_MPIInfo *mpi_info;
+    int type;
 
-  
-  Paso_Pattern* mainPattern;
-  Paso_Pattern* col_couplePattern;
-  Paso_Pattern* row_couplePattern;
-  Paso_Connector* col_connector;
-  Paso_Connector* row_connector;
-  Paso_Distribution *output_distribution; 
-  Paso_Distribution *input_distribution; 
+    Esys_MPIInfo* mpi_info;
 
-  dim_t reference_counter;
-  
+    Paso_Pattern* mainPattern;
+    Paso_Pattern* col_couplePattern;
+    Paso_Pattern* row_couplePattern;
+    Paso_Connector* col_connector;
+    Paso_Connector* row_connector;
+    Paso_Distribution* output_distribution; 
+    Paso_Distribution* input_distribution; 
 
-} Paso_SystemMatrixPattern;
+    dim_t reference_counter;
+};
 
 
 /*  interfaces: */
 
+PASO_DLL_API
+SystemMatrixPattern* SystemMatrixPattern_getReference(SystemMatrixPattern*);
 
 PASO_DLL_API
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, Paso_Distribution* output_distribution, Paso_Distribution* input_distribution, Paso_Pattern* mainPattern, Paso_Pattern* col_couplePattern, Paso_Pattern* row_couplePattern, Paso_Connector* col_connector, Paso_Connector* row_connector);
+void SystemMatrixPattern_free(SystemMatrixPattern*);
 
-PASO_DLL_API
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getReference(Paso_SystemMatrixPattern*);
+SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
+                                           SystemMatrixPattern* pattern,
+                                           int type, dim_t output_block_size,
+                                           dim_t input_block_size);
 
-PASO_DLL_API
-void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern*);
+index_t SystemMatrixPattern_getNumOutput(const SystemMatrixPattern*);
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern,
-                                           int type, dim_t output_block_size,dim_t input_block_size);
-index_t Paso_SystemMatrixPattern_getNumOutput(Paso_SystemMatrixPattern*);
+} // namespace paso
 
-#endif /* #ifndef INC_PASO_SYSTEMPATTERN */
+#endif // __PASO_SYSTEMMATRIXPATTERN_H__
+

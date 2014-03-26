@@ -46,7 +46,7 @@ typedef int Paso_SystemMatrixType;
 
 typedef struct Paso_SystemMatrix {
   Paso_SystemMatrixType type;
-  Paso_SystemMatrixPattern *pattern;
+  paso::SystemMatrixPattern *pattern;
 
   dim_t reference_counter;
 
@@ -92,7 +92,7 @@ typedef struct Paso_SystemMatrix {
 /*  interfaces: */
 
 PASO_DLL_API
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,Paso_SystemMatrixPattern*,dim_t,dim_t, const bool patternIsUnrolled);
+Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType,paso::SystemMatrixPattern*,dim_t,dim_t, const bool patternIsUnrolled);
 
 PASO_DLL_API
 Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix*);
