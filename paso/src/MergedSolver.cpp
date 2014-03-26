@@ -121,7 +121,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
   index_t *ptr=NULL, *idx=NULL, *ptr_global=NULL, *idx_global=NULL;
   index_t *temp_n=NULL, *temp_len=NULL;
   double  *val=NULL;
-  Paso_Pattern *pattern=NULL;
+  paso::Pattern *pattern=NULL;
   paso::SparseMatrix *out=NULL;
   #ifdef ESYS_MPI
     MPI_Request* mpi_requests=NULL;
@@ -229,11 +229,11 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     delete[] temp_n;
 
     /* Then generate the sparse matrix */
-    pattern = Paso_Pattern_alloc(A->mainBlock->pattern->type, global_n,
+    pattern = paso::Pattern_alloc(A->mainBlock->pattern->type, global_n,
 			global_n, ptr_global, idx_global);
     out = paso::SparseMatrix_alloc(A->mainBlock->type, pattern, 
 			row_block_size, col_block_size, FALSE);
-    Paso_Pattern_free(pattern);
+    paso::Pattern_free(pattern);
 
     /* Finally, receive and copy the value */
     iptr = temp_len[0] * block_size;

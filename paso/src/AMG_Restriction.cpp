@@ -49,7 +49,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
    paso::Connector *col_connector=NULL;
-   Paso_Pattern *couple_pattern=NULL;
+   paso::Pattern *couple_pattern=NULL;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
    const dim_t n=P->mainBlock->numRows;
@@ -281,9 +281,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    num_Rcouple_cols = 0;
    if (sum) {
      #ifdef USE_QSORTG
-       qsortG(recv_idx, (size_t)sum, sizeof(index_t), Paso_comparIndex);
+       qsortG(recv_idx, (size_t)sum, sizeof(index_t), paso::comparIndex);
      #else
-       qsort(recv_idx, (size_t)sum, sizeof(index_t), Paso_comparIndex);
+       qsort(recv_idx, (size_t)sum, sizeof(index_t), paso::comparIndex);
      #endif
      num_Rcouple_cols = 1;
      i = recv_idx[0];
@@ -297,7 +297,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      #pragma omp parallel for private(i,where_p) schedule(static)
      for (i=0; i<sum; i++) {
 	where_p = (index_t *)bsearch(&(idx[i]), recv_idx, num_Rcouple_cols,
-				sizeof(index_t), Paso_comparIndex);
+				sizeof(index_t), paso::comparIndex);
 	idx[i] = (index_t)(where_p - recv_idx);
      }
    }
@@ -363,7 +363,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    delete[] offsetInShared;
    delete[] shared;   
 
-   couple_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n_C,
+   couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, n_C,
                         num_Rcouple_cols, ptr, idx);
 
    input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
@@ -392,7 +392,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    /* clean up */ 
    paso::SparseMatrix_free(main_block);
    paso::SystemMatrixPattern_free(pattern);
-   Paso_Pattern_free(couple_pattern);
+   paso::Pattern_free(couple_pattern);
    paso::Connector_free(col_connector);
    Paso_Distribution_free(output_dist);
    Paso_Distribution_free(input_dist);

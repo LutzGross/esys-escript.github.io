@@ -31,7 +31,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     index_t myFirstVertex, myLastVertex, *newGlobalDOFID = NULL, firstVertex, lastVertex;
     register index_t k;
     dim_t mpiSize, myNumVertices, len, p, i;
-    Paso_Pattern *pattern = NULL;
+    paso::Pattern *pattern = NULL;
     Esys_MPI_rank myRank, current_rank;
     Dudley_IndexList *index_list = NULL;
 #ifdef ESYS_MPI
@@ -91,9 +91,9 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 	}
 
 	if (Dudley_noError())
-	    Paso_Pattern_reduceBandwidth(pattern, newGlobalDOFID);
+	    paso::Pattern_reduceBandwidth(pattern, newGlobalDOFID);
 
-	Paso_Pattern_free(pattern);
+    paso::Pattern_free(pattern);
     }
     Esys_MPIInfo_noError(in->MPIInfo);
     if (Dudley_noError())

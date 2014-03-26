@@ -228,14 +228,14 @@ void Dudley_IndexList_free(Dudley_IndexList * in)
     }
 }
 
-/* creates a Paso_pattern from a range of indices */
-Paso_Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList * index_list, index_t range_min,
+/* creates a paso pattern from a range of indices */
+paso::Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList * index_list, index_t range_min,
 					     index_t range_max, index_t index_offset)
 {
     dim_t *ptr = NULL;
     register dim_t s, i, itmp;
     index_t *index = NULL;
-    Paso_Pattern *out = NULL;
+    paso::Pattern *out = NULL;
 
     ptr = new index_t[n + 1 - n0];
     if (!Dudley_checkPtr(ptr))
@@ -264,14 +264,14 @@ Paso_Pattern *Dudley_IndexList_createPattern(dim_t n0, dim_t n, Dudley_IndexList
 	    {
 		Dudley_IndexList_toArray(&index_list[i], &index[ptr[i - n0]], range_min, range_max, index_offset);
 	    }
-	    out = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n - n0, range_max + index_offset, ptr, index);
+	    out = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, n - n0, range_max + index_offset, ptr, index);
 	}
     }
     if (!Dudley_noError())
     {
 	delete[] ptr;
 	delete[] index;
-	Paso_Pattern_free(out);
+    paso::Pattern_free(out);
     }
     return out;
 }

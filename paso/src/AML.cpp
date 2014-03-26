@@ -58,13 +58,13 @@ void Paso_Coarsening_Local_YS_blk(Paso_SparseMatrix* A, index_t* marker_F, const
 
 void Paso_Coarsening_Local_RS(Paso_SparseMatrix* A, index_t* marker_F, double theta);
 
-void Paso_Coarsening_Local_Partition(Paso_Pattern* pattern,index_t* marker_F);
-void Paso_Coarsening_Local_greedy(Paso_Pattern* pattern, index_t* marker_F);
+void Paso_Coarsening_Local_Partition(paso::Pattern* pattern,index_t* marker_F);
+void Paso_Coarsening_Local_greedy(paso::Pattern* pattern, index_t* marker_F);
 
 
 
 /*=== REVISE ============*/
-void Paso_Coarsening_Local_greedy_color(Paso_Pattern* pattern, index_t* marker_F);
+void Paso_Coarsening_Local_greedy_color(paso::Pattern* pattern, index_t* marker_F);
 void Paso_Coarsening_Local_greedy_diag(Paso_SparseMatrix* A, index_t* marker_F, double thershold);
 
 void Paso_Coarsening_Local_YS_plus(Paso_SparseMatrix* A, index_t* marker_F, double alpha, double taw, double delta);
@@ -74,9 +74,9 @@ void Paso_Coarsening_Local_greedy_Agg(Paso_SparseMatrix* A, index_t* marker_F, d
 /*dim_t how_many(dim_t n,dim_t* S_i, int value1, dim_t* addedSet, int value2);*/
 void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_F, double theta);
 
-dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose);
+dim_t how_many(dim_t i,paso::Pattern * S, bool_t transpose);
 dim_t arg_max(dim_t n, dim_t* lambda, dim_t mask);
-Paso_Pattern* Paso_Coarsening_Local_getTranspose(Paso_Pattern* P);
+paso::Pattern* Paso_Coarsening_Local_getTranspose(paso::Pattern* P);
 
 void Paso_Coarsening_Local_getReport(dim_t n,index_t* marker_F);
 void Paso_Coarsening_Local_Read(char *fileName,dim_t n,index_t* marker_F);
@@ -159,8 +159,8 @@ to
 */
 Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
   Paso_Solver_AMLI* out=NULL;
-  Paso_Pattern* temp1=NULL;
-  Paso_Pattern* temp2=NULL;
+  paso::Pattern* temp1=NULL;
+  paso::Pattern* temp2=NULL;
   bool_t verbose=options->verbose;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
@@ -355,11 +355,11 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
               }
               if ( Esys_noError()) {
                      /*find the pattern of the schur complement with fill in*/
-                    temp1=Paso_Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
-                    temp2=Paso_Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
+                    temp1=paso::Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
+                    temp2=paso::Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
                     schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,temp2,1,1, TRUE);
-                    Paso_Pattern_free(temp1);
-                    Paso_Pattern_free(temp2);
+                    paso::Pattern_free(temp1);
+                    paso::Pattern_free(temp2);
               }
               if ( Esys_noError()) {
                     /* copy values over*/ 
@@ -373,7 +373,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                                               index,
                                               schur->pattern->ptr[i + 1]-schur->pattern->ptr[i],
                                               sizeof(index_t),
-                                              Paso_comparIndex);
+                                              paso::comparIndex);
                          if (where_p!=NULL) {
                                 schur_withFillIn->val[iPtr]=schur->val[iPtr_s+(index_t)(where_p-index)];
                          }
@@ -626,7 +626,7 @@ Author: artak@uq.edu.au, l.gross@uq.edu.au
 bool_t transpose - TRUE if we want to compute how many strong connection of i in S^T, FALSE otherwise.
 Note that if we first transpose S and then call method on S^T then "transpose" should be set to FALSE.
 */
-dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose) {
+dim_t how_many(dim_t i,paso::Pattern * S, bool_t transpose) {
    dim_t j,n;
    dim_t total,ltotal;
    index_t *index,*where_p;
@@ -648,7 +648,7 @@ dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose) {
 				      index,
 				      S->ptr[j + 1]-S->ptr[j],
 				      sizeof(index_t),
-				      Paso_comparIndex);
+				      paso::comparIndex);
 				      if (where_p!=NULL) {
 					 ltotal++;
 				      }
@@ -679,9 +679,9 @@ dim_t how_many(dim_t i,Paso_Pattern * S, bool_t transpose) {
 
 
 
-Paso_Pattern* Paso_Coarsening_Local_getTranspose(Paso_Pattern* P){
+paso::Pattern* Paso_Coarsening_Local_getTranspose(paso::Pattern* P){
    
-   Paso_Pattern *outpattern=NULL;
+    paso::Pattern *outpattern=NULL;
    
    dim_t C=P->numInput;
    dim_t F=P->numOutput-C;
@@ -699,7 +699,7 @@ Paso_Pattern* Paso_Coarsening_Local_getTranspose(Paso_Pattern* P){
       }
    }
    
-   outpattern=Paso_Pattern_fromIndexListArray(0, index_list,0,n,0);
+   outpattern=paso::Pattern_fromIndexListArray(0, index_list,0,n,0);
    
    /* clean up */
    Paso_IndexListArray_free(index_list);
@@ -728,8 +728,8 @@ void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_
    double fnorm=0;
    dim_t bi;
    
-   Paso_Pattern *S=NULL;
-   Paso_Pattern *ST=NULL;
+   paso::Pattern *S=NULL;
+   paso::Pattern *ST=NULL;
    Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(n);
    
    time0=Esys_timer();
@@ -772,7 +772,7 @@ void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_
       }
    }
    
-   S=Paso_Pattern_fromIndexListArray(0,index_list,0,A->pattern->numInput,0);
+   S=paso::Pattern_fromIndexListArray(0,index_list,0,A->pattern->numInput,0);
    ST=Paso_Coarsening_Local_getTranspose(S);
    
    /*printf("Patterns len %d %d\n",S->len,ST->len);*/
@@ -875,7 +875,7 @@ if(k==0) {
 		     index,
 		     S->ptr[j + 1]-S->ptr[j],
 		     sizeof(index_t),
-		     Paso_comparIndex);
+             paso::comparIndex);
 		     if (where_p!=NULL) {
 			marker_F[j]=TRUE;
 			lambda[j]=-1;
@@ -914,7 +914,7 @@ if(k==0) {
    
    /* clean up */
    Paso_IndexListArray_free(index_list);
-   Paso_Pattern_free(S);
+   paso::Pattern_free(S);
    
    /* swap to TRUE/FALSE in marker_F */
    #pragma omp parallel for private(i) schedule(static)

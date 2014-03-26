@@ -32,7 +32,7 @@ namespace paso {
 SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
 {
    
-   Paso_Pattern *ATpattern=NULL;
+   Pattern *ATpattern=NULL;
    SparseMatrix *AT=NULL;
    
    const dim_t m=A->numCols;
@@ -52,10 +52,10 @@ SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
        }
    }
 	 
-   ATpattern=Paso_Pattern_fromIndexListArray(0,index_list,0,n,0);
+   ATpattern=Pattern_fromIndexListArray(0,index_list,0,n,0);
    Paso_IndexListArray_free(index_list);
    AT=SparseMatrix_alloc(A->type,ATpattern,col_block_size_A,row_block_size_A,FALSE);
-   Paso_Pattern_free(ATpattern);
+   Pattern_free(ATpattern);
  
    if (  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) && (block_size == 1 ) ) || 
          ( (row_block_size_A == 1 ) && (col_block_size_A == 1)            )  ) {
@@ -68,7 +68,7 @@ SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
 	       where_p=(index_t*)bsearch(&i, start_p,
 					 A->pattern->ptr[j + 1]-jptr_A,
 					 sizeof(index_t),
-					 Paso_comparIndex);
+					 comparIndex);
 		if (! (where_p == NULL) ) { /* this should always be the case */
 		    jptr_A += (index_t)(where_p-start_p);
 		    AT->val[iptr_AT]=A->val[jptr_A];
@@ -86,7 +86,7 @@ SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
 	       where_p=(index_t*)bsearch(&i, start_p,
 					 A->pattern->ptr[j + 1]-jptr_A,
 					 sizeof(index_t),
-					 Paso_comparIndex);
+					 comparIndex);
 		if (! (where_p == NULL) ) { /* this should always be the case */
 		    jptr_A += (index_t)(where_p-start_p);
 		    for (ib=0; ib < block_size; ++ib )  AT->val[iptr_AT*block_size+ib]=A->val[jptr_A*block_size+ib];
@@ -103,7 +103,7 @@ SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
 	       where_p=(index_t*)bsearch(&i, start_p,
 				       A->pattern->ptr[j + 1]-jptr_A,
 				       sizeof(index_t),
-				       Paso_comparIndex);
+				       comparIndex);
 	       if (! (where_p == NULL) ) { /* this should always be the case */
 		  jptr_A += (index_t)(where_p-start_p);
 		  for (irb =0 ; irb < row_block_size_A; ++irb) {

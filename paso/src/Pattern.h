@@ -15,86 +15,96 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
-/*   Paso: pattern                                            */
+/*   Paso: CSC/CSR pattern                                                  */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_PATTERN
-#define INC_PASO_PATTERN
+#ifndef __PASO_PATTERN_H__
+#define __PASO_PATTERN_H__
 
 #include "Paso.h"
 #include "IndexList.h"
 
-/************************************************************************************/
+namespace paso {
 
-typedef struct Paso_Pattern {
-  int type;
-  dim_t numOutput;	/* Number of rows the ptr array [CSR] for CSC it's the number of cols*/
-  dim_t numInput;	/* Number of cols [CSR] */
-  dim_t len;		/* number of non-zeros */
-  index_t* ptr;		/* ptr[n] to ptr[n+1] lists indices (in index) of non-zeros in row n*/
-  index_t* index;	/* Non-major indices of non-zeros (in CSR this will be col numbers) */ 
-  index_t *main_iptr;  /* pointer to main diagonal entry */
-  dim_t numColors;     /* number of colors */
-  index_t* coloring;   /* coloring index: input with the same color are not connected */
-  dim_t reference_counter;
-} Paso_Pattern;
-
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
-
-PASO_DLL_API
-
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_getReference(Paso_Pattern*);
-
-PASO_DLL_API
-void Paso_Pattern_free(Paso_Pattern*);
+struct Pattern
+{
+    int type;
+    // Number of rows in the ptr array [CSR] / number of cols for CSC
+    dim_t numOutput;
+    // Number of cols [CSR]
+    dim_t numInput;
+    // number of non-zeros
+    dim_t len;
+    // ptr[n] to ptr[n+1] lists indices (in index) of non-zeros in row n
+    index_t* ptr;
+    // Non-major indices of non-zeros (in CSR this will be col numbers)
+    index_t* index;
+    // pointer to main diagonal entry
+    index_t *main_iptr;
+    // number of colors
+    dim_t numColors;
+    // coloring index: inputs with the same color are not connected
+    index_t* coloring;
+    dim_t reference_counter;
+};
 
 PASO_DLL_API
-int Paso_comparIndex(const void *,const void *);
+Pattern* Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
 
 PASO_DLL_API
-Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern*,int, dim_t,dim_t);
+Pattern* Pattern_getReference(Pattern*);
 
 PASO_DLL_API
-Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,const index_t*,const index_t*);
+void Pattern_free(Pattern*);
 
 PASO_DLL_API
-bool Paso_Pattern_isEmpty(Paso_Pattern* in);
+int comparIndex(const void *, const void *);
 
 PASO_DLL_API
-void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);
+Pattern* Pattern_unrollBlocks(Pattern*, int, dim_t, dim_t);
 
 PASO_DLL_API
-void Paso_Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew);
+Pattern* Pattern_getSubpattern(Pattern*, dim_t, dim_t, const index_t*, const index_t*);
 
 PASO_DLL_API
-void Paso_Pattern_color(Paso_Pattern* patter, index_t* num_colors, index_t* colorOf);
-Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B);
+bool Pattern_isEmpty(Pattern* in);
 
 PASO_DLL_API
-Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B);
+void Pattern_mis(Pattern* pattern_p, index_t* mis_marker);
 
 PASO_DLL_API
-index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A);
+void Pattern_reduceBandwidth(Pattern* self, index_t* oldToNew);
 
 PASO_DLL_API
-Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* index_list_array,index_t range_min,index_t range_max, index_t index_offset);
+void Pattern_color(Pattern* patter, index_t* num_colors, index_t* colorOf);
+Pattern* Pattern_multiply(int type, Pattern* A, Pattern* B);
 
 PASO_DLL_API
-dim_t Paso_Pattern_getNumColors(Paso_Pattern* A);
+Pattern* Pattern_binop(int type, Pattern* A, Pattern* B);
 
 PASO_DLL_API
-index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A);
+index_t* Pattern_borrowMainDiagonalPointer(Pattern* A);
 
 PASO_DLL_API
-dim_t Paso_Pattern_maxDeg(Paso_Pattern* A);
+Pattern* Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* index_list_array,index_t range_min,index_t range_max, index_t index_offset);
 
-#endif /* #ifndef INC_PASO_PATTERN */
+PASO_DLL_API
+dim_t Pattern_getNumColors(Pattern* A);
+
+PASO_DLL_API
+index_t* Pattern_borrowColoringPointer(Pattern* A);
+
+PASO_DLL_API
+dim_t Pattern_maxDeg(Pattern* A);
+
+} // namespace paso
+
+#endif // __PASO_PATTERN_H__
+

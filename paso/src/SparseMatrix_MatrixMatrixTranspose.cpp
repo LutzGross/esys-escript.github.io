@@ -45,7 +45,7 @@ SparseMatrix* SparseMatrix_MatrixMatrixTranspose(const SparseMatrix* A, const Sp
 {
    SparseMatrixType C_type;
    
-   Paso_Pattern* outpattern=NULL;
+   Pattern* outpattern=NULL;
    SparseMatrix *out=NULL;
 
    if ( !  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) || (A->type & MATRIX_FORMAT_DEFAULT) || (MATRIX_FORMAT_BLK1 & A->type ) )  ) {
@@ -72,12 +72,12 @@ SparseMatrix* SparseMatrix_MatrixMatrixTranspose(const SparseMatrix* A, const Sp
       C_type=MATRIX_FORMAT_DEFAULT;
    }
 
-   outpattern=Paso_Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
+   outpattern=Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
    
    if (Esys_noError()) {
       out=SparseMatrix_alloc(C_type, outpattern, A->row_block_size, B->col_block_size, FALSE);
    }
-   Paso_Pattern_free(outpattern);
+   Pattern_free(outpattern);
 
    if (Esys_noError()) {
       if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {

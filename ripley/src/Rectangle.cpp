@@ -1729,8 +1729,8 @@ void Rectangle::createPattern()
     Paso_SharedComponents_free(rcv_shcomp);
 
     // create main and couple blocks
-    Paso_Pattern *mainPattern = createMainPattern();
-    Paso_Pattern *colPattern, *rowPattern;
+    paso::Pattern *mainPattern = createMainPattern();
+    paso::Pattern *colPattern, *rowPattern;
     createCouplePatterns(colIndices, rowIndices, numShared, &colPattern, &rowPattern);
 
     // allocate paso distribution
@@ -1802,9 +1802,9 @@ void Rectangle::createPattern()
     }
     */
 
-    Paso_Pattern_free(mainPattern);
-    Paso_Pattern_free(colPattern);
-    Paso_Pattern_free(rowPattern);
+    paso::Pattern_free(mainPattern);
+    paso::Pattern_free(colPattern);
+    paso::Pattern_free(rowPattern);
 }
 
 //private

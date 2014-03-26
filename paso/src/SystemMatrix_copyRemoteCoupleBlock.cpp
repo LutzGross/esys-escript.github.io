@@ -38,7 +38,7 @@
 #endif
 
 void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool recreatePattern){
-  Paso_Pattern *pattern=NULL;
+    paso::Pattern *pattern=NULL;
   paso::Coupler *coupler=NULL;
   Paso_SharedComponents *send=NULL, *recv=NULL;
   double *cols=NULL, *send_buf=NULL;
@@ -283,12 +283,12 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
   ESYS_MPI_INC_COUNTER(*(A->mpi_info), mpi_size)
 
   /* allocate pattern and sparsematrix for remote_coupleBlock */
-  pattern = Paso_Pattern_alloc(A->row_coupleBlock->pattern->type,
+  pattern = paso::Pattern_alloc(A->row_coupleBlock->pattern->type,
                 overlapped_n, num_couple_cols, ptr_ptr, ptr_idx);
   A->remote_coupleBlock = paso::SparseMatrix_alloc(A->row_coupleBlock->type,
                 pattern, A->row_block_size, A->col_block_size, 
                 FALSE);
-  Paso_Pattern_free(pattern);
+  paso::Pattern_free(pattern);
 
   /* send/receive value array */
   j=0;

@@ -40,17 +40,17 @@ struct SystemMatrixPattern
 {
     // constructor
     SystemMatrixPattern(int type, Paso_Distribution* output_distribution,
-        Paso_Distribution* input_distribution, Paso_Pattern* mainPattern,
-        Paso_Pattern* col_couplePattern, Paso_Pattern* row_couplePattern,
+        Paso_Distribution* input_distribution, Pattern* mainPattern,
+        Pattern* col_couplePattern, Pattern* row_couplePattern,
         Connector* col_connector, Connector* row_connector);
 
     int type;
 
     Esys_MPIInfo* mpi_info;
 
-    Paso_Pattern* mainPattern;
-    Paso_Pattern* col_couplePattern;
-    Paso_Pattern* row_couplePattern;
+    Pattern* mainPattern;
+    Pattern* col_couplePattern;
+    Pattern* row_couplePattern;
     Connector* col_connector;
     Connector* row_connector;
     Paso_Distribution* output_distribution; 

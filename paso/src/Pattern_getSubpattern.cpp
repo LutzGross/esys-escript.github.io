@@ -15,82 +15,76 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: Pattern */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003, 2004, 2005 */
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "Pattern.h"
 #include "PasoUtil.h"
 
-/************************************************************************************/
+namespace paso {
 
-/* creates Pattern  */
-
-Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern* pattern,
-                                         int newNumRows, int newNumCols,
-                                         const index_t* row_list,
-                                         const index_t* new_col_index)
+// creates a subpattern
+Pattern* Pattern_getSubpattern(Pattern* pattern,
+                               int newNumRows, int newNumCols,
+                               const index_t* row_list,
+                               const index_t* new_col_index)
 {
-  index_t index_offset=(pattern->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  Paso_Pattern*out=NULL;
-  index_t *ptr=NULL,*index=NULL,k,j,subpattern_row,tmp;
-  dim_t i;
-  Esys_resetError();
+    const index_t index_offset=(pattern->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    Esys_resetError();
 
-  ptr=new index_t[newNumRows+1];
-  if (! Esys_checkPtr(ptr))  {
-     #pragma omp parallel
-     {
-        #pragma omp for private(i) schedule(static)
-        for (i=0;i<newNumRows+1;++i) ptr[i]=0;
-        
+    index_t* ptr = new index_t[newNumRows+1];
+#pragma omp parallel
+    {
+#pragma omp for schedule(static)
+        for (dim_t i=0; i < newNumRows+1; ++i) ptr[i]=0;
+    
         /* find the number of column entries in each row */
-        #pragma omp for private(i,k,j,subpattern_row) schedule(static)
-        for (i=0;i<newNumRows;++i) {
-            j=0;
-            subpattern_row=row_list[i];
+#pragma omp for schedule(static)
+        for (dim_t i=0; i < newNumRows; ++i) {
+            index_t j=0;
+            const index_t subpattern_row=row_list[i];
             #pragma ivdep
-            for (k=pattern->ptr[subpattern_row]-index_offset;k<pattern->ptr[subpattern_row+1]-index_offset;++k) 
-               if (new_col_index[pattern->index[k]-index_offset]>-1) j++;
+            for (index_t k=pattern->ptr[subpattern_row]-index_offset; k < pattern->ptr[subpattern_row+1]-index_offset; ++k)
+                if (new_col_index[pattern->index[k]-index_offset] > -1) j++;
             ptr[i]=j;
         }
-     }
-     /* accumulate ptr */
-     ptr[newNumRows]=Paso_Util_cumsum(newNumRows,ptr);
-     index=new index_t[ptr[newNumRows]];
-     if (Esys_checkPtr(index))  {
+    } // parallel section
+
+    // accumulate ptr
+    ptr[newNumRows]=Paso_Util_cumsum(newNumRows, ptr);
+    index_t* index = new index_t[ptr[newNumRows]];
+
+    // find the number of column entries in each row
+#pragma omp parallel for schedule(static)
+    for (dim_t i=0; i < newNumRows; ++i) {
+        index_t j=ptr[i];
+        const index_t subpattern_row=row_list[i];
+        #pragma ivdep
+        for (index_t k=pattern->ptr[subpattern_row]-index_offset; k < pattern->ptr[subpattern_row+1]-index_offset; ++k) {
+            const index_t tmp=new_col_index[pattern->index[k]-index_offset];
+            if (tmp > -1) {
+                index[j]=tmp;
+                ++j;
+            }
+        }
+    }
+    // create return value
+    Pattern* out=Pattern_alloc(pattern->type, newNumRows, newNumCols, ptr, index);
+    if (!Esys_noError()) {
+        delete[] index;
         delete[] ptr;
-     } else {
-        /* find the number of column entries in each row */
-        #pragma omp parallel for private(i,k,j,subpattern_row,tmp) schedule(static)
-        for (i=0;i<newNumRows;++i) {
-             j=ptr[i];
-             subpattern_row=row_list[i];
-             #pragma ivdep
-             for (k=pattern->ptr[subpattern_row]-index_offset;k<pattern->ptr[subpattern_row+1]-index_offset;++k) {
-                tmp=new_col_index[pattern->index[k]-index_offset];
-                if (tmp>-1) {
-                    index[j]=tmp;
-                    ++j;
-                }
-             }
-        }
-        /* create return value */
-        out=Paso_Pattern_alloc(pattern->type,newNumRows,newNumCols,ptr,index);
-        if (! Esys_noError()) {
-          delete[] index;
-          delete[] ptr;
-        }
-     }
-  }
-  return out;
+    }
+    return out;
 }
+
+} // namespace paso
 

@@ -16,51 +16,42 @@
 
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: Pattern */
 
-/************************************************************************************/
- 
+/****************************************************************************/
+
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "Pattern.h"
 
-/************************************************************************************/
+namespace paso {
 
-/* computes the pattern coming from matrix-matrix multiplication
-*
-**/
+// computes the pattern coming from a matrix-matrix multiplication
 
-Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B) {
-  Paso_Pattern*out=NULL;
-  index_t iptrA,iptrB;
-  dim_t i,j,k;
-  Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
-  
-  #pragma omp parallel for private(i,iptrA,j,iptrB,k) schedule(static) 
-  for(i = 0; i < A->numOutput; i++) {
-     for(iptrA = A->ptr[i]; iptrA < A->ptr[i+1]; ++iptrA) {
-      j = A->index[iptrA];
-      for(iptrB = B->ptr[j]; iptrB < B->ptr[j+1]; ++iptrB) {
-    	k = B->index[iptrB];
-	Paso_IndexListArray_insertIndex(index_list,i,k);
-     }
+Pattern* Pattern_multiply(int type, Pattern* A, Pattern* B)
+{
+    Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
+
+#pragma omp parallel for schedule(static)
+    for (dim_t i = 0; i < A->numOutput; i++) {
+        for (index_t iptrA = A->ptr[i]; iptrA < A->ptr[i+1]; ++iptrA) {
+            const dim_t j = A->index[iptrA];
+            for (index_t iptrB = B->ptr[j]; iptrB < B->ptr[j+1]; ++iptrB) {
+                const dim_t k = B->index[iptrB];
+                Paso_IndexListArray_insertIndex(index_list, i, k);
+            }
+        }
     }
-  }
-    
-  out=Paso_Pattern_fromIndexListArray(0, index_list,0,B->numInput,0);
+    Pattern* out=Pattern_fromIndexListArray(0, index_list, 0, B->numInput, 0);
 
- /* clean up */
- Paso_IndexListArray_free(index_list);
-  
-return out;
+    Paso_IndexListArray_free(index_list);
+    return out;
 }
-
-
 
 /*
  * Computes the pattern  of C = A binary operation B for CSR matrices A,B
@@ -68,50 +59,47 @@ return out;
  * Note: we do not check whether A_ij(op)B_ij=0
  *
  */
-Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B) {
-  Paso_Pattern *out=NULL;
-  index_t iptrA,iptrB;
-  dim_t i,j,k;
+Pattern* Pattern_binop(int type, Pattern* A, Pattern* B)
+{
+    Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
 
-  Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
-  
-  #pragma omp parallel for private(i,iptrA,j,iptrB,k) schedule(static) 
-  for(i = 0; i < B->numOutput; i++){
-    iptrA = A->ptr[i],
-    iptrB = B->ptr[i];
-    
-    while (iptrA < A->ptr[i+1] && iptrB < B->ptr[i+1]) {
-        j = A->index[iptrA];
-        k = B->index[iptrB];
-        if (j<k) {
-	   Paso_IndexListArray_insertIndex(index_list,i,j);
-           iptrA++;
-        } else if (j>k) {
-	   Paso_IndexListArray_insertIndex(index_list,i,k);
-            iptrB++;
-        } else if (j==k) {
-	   Paso_IndexListArray_insertIndex(index_list,i,j);
-            iptrB++;
+#pragma omp parallel for schedule(static)
+    for (dim_t i = 0; i < B->numOutput; i++) {
+        index_t iptrA = A->ptr[i];
+        index_t iptrB = B->ptr[i];
+
+        while (iptrA < A->ptr[i+1] && iptrB < B->ptr[i+1]) {
+            const dim_t j = A->index[iptrA];
+            const dim_t k = B->index[iptrB];
+            if (j < k) {
+                Paso_IndexListArray_insertIndex(index_list, i, j);
+                iptrA++;
+            } else if (j > k) {
+                Paso_IndexListArray_insertIndex(index_list, i, k);
+                iptrB++;
+            } else { // (j == k)
+                Paso_IndexListArray_insertIndex(index_list, i, j);
+                iptrB++;
+                iptrA++;
+            }
+        }
+        while(iptrA < A->ptr[i+1]) {
+            const dim_t j = A->index[iptrA];
+            Paso_IndexListArray_insertIndex(index_list, i, j);
             iptrA++;
         }
+        while(iptrB < B->ptr[i+1]) {
+            const dim_t k = B->index[iptrB];
+            Paso_IndexListArray_insertIndex(index_list, i, k);
+            iptrB++;
+        }
     }
-    while(iptrA < A->ptr[i+1]) {
-        j = A->index[iptrA];
-	Paso_IndexListArray_insertIndex(index_list,i,j);
-        iptrA++;
-    }
-    while(iptrB < B->ptr[i+1]) {
-        k = B->index[iptrB];
-	Paso_IndexListArray_insertIndex(index_list,i,k);
-        iptrB++;
-    }
-  }
- 
-  out=Paso_Pattern_fromIndexListArray(0, index_list,0,A->numInput,0);
 
+    Pattern* out=Pattern_fromIndexListArray(0, index_list, 0, A->numInput, 0);
 
- /* clean up */
- Paso_IndexListArray_free(index_list);
-
-  return out;
+    Paso_IndexListArray_free(index_list);
+    return out;
 }
+
+} // namespace paso
+

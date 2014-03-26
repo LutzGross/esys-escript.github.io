@@ -89,7 +89,7 @@ paso::SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row
 paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
 {
     paso::SystemMatrixPattern *out = NULL;
-    Paso_Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
+    paso::Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
     paso::Connector *col_connector, *row_connector;
     Dudley_IndexList *index_list = NULL;
     Dudley_NodeMapping *colMap = NULL, *rowMap = NULL;
@@ -175,9 +175,9 @@ paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_ro
 		Dudley_IndexList_free(index_list[i].extension);
 	}
 	delete[] index_list;
-	Paso_Pattern_free(main_pattern);
-	Paso_Pattern_free(col_couple_pattern);
-	Paso_Pattern_free(row_couple_pattern);
+    paso::Pattern_free(main_pattern);
+    paso::Pattern_free(col_couple_pattern);
+    paso::Pattern_free(row_couple_pattern);
     }
     Esys_MPIInfo_noError(mesh->MPIInfo);
     return out;

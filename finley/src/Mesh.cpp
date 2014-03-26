@@ -350,13 +350,13 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
                 Nodes->globalDegreesOfFreedom);
     }
     // create the local matrix pattern
-    Paso_Pattern *pattern=IndexList_createPattern(0, myNumVertices,
+    paso::Pattern *pattern=IndexList_createPattern(0, myNumVertices,
             index_list, myFirstVertex, myLastVertex, -myFirstVertex);
 
     if (noError())
-        Paso_Pattern_reduceBandwidth(pattern, &newGlobalDOFID[0]); 
+        paso::Pattern_reduceBandwidth(pattern, &newGlobalDOFID[0]); 
 
-    Paso_Pattern_free(pattern);
+    paso::Pattern_free(pattern);
     delete[] index_list;
     Esys_MPIInfo_noError(MPIInfo);
 

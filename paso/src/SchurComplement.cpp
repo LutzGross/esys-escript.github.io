@@ -59,7 +59,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix* A_CC,paso::
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-               where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
+               where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),paso::comparIndex);
                 if (where_p!=NULL) { 
                     if (set_A) {
                        A11=A_CF->val[iPtr_CF]*invA_FF[col_CF];
@@ -83,7 +83,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix* A_CC,paso::
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),paso::comparIndex);
                 if (where_p!=NULL) {
                     iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
                     /* this calculates A_CF*invA_FF(i,col_CF) */
@@ -133,7 +133,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix* A_CC,paso::
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),Paso_comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),paso::comparIndex);
                 if (where_p!=NULL) {
                     iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
                     /* this calculates A_CF*invA_FF(i,col_CF) */

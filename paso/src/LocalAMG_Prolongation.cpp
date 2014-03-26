@@ -55,7 +55,7 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
 							   const dim_t n_C, const index_t* counter_C, const index_t interpolation_method) 
 {
     paso::SparseMatrix* out=NULL;
-   Paso_Pattern *outpattern=NULL;
+    paso::Pattern *outpattern=NULL;
    const dim_t n_block=A_p->row_block_size;
    index_t *ptr=NULL, *index=NULL,j, iptr;
    const dim_t n =A_p->numRows; 
@@ -107,7 +107,7 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
       }
    }   
    if (Esys_noError()) {
-	 outpattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
+	 outpattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
    } else {
       delete[] ptr;
       delete[] index;
@@ -132,7 +132,7 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
       	}
       }
    }
-   Paso_Pattern_free(outpattern);
+   paso::Pattern_free(outpattern);
    if (Esys_noError()) {
       return out;
    } else {
@@ -197,7 +197,7 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation(paso::SparseMatrix* P_p,
 		  where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
 					    P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    paso::comparIndex);
 		  if (! (where_p == NULL) ) { /* yes i strongly connected with j */
 			offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
 			P_p->val[offset]=A_ij; /* will be modified later */
@@ -295,7 +295,7 @@ void Paso_Preconditioner_LocalAMG_setDirectProlongation_Block(paso::SparseMatrix
 		     where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
 					     P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
 					     sizeof(index_t),
-					     Paso_comparIndex);
+					     paso::comparIndex);
 		     if (! (where_p == NULL) ) { /* yes i strongly connected with j */
 			      offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
 			      for (ib =0; ib<row_block; ++ib) {
@@ -405,12 +405,12 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(paso::SparseMatrix* P_p
 	         const double A_ij=A_p->val[iPtr];
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection? */
-	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
+	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), paso::comparIndex);
 	            if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;  
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), Paso_comparIndex);
+	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), paso::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_LocalAMG_setClassicProlongation: Interpolation point is missing.");
                                } else {
@@ -427,7 +427,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation(paso::SparseMatrix* P_p
 	                            const double A_jm=A_p->val[iPtr_j];
 	                            const index_t m=A_p->pattern->index[iPtr_j];
                                     /* is m an interpolation point? */
-	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), paso::comparIndex);
                                     if (! (where_p_m==NULL)) {
   		                         const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          if (! SAMESIGN(A_ii,A_jm)) {
@@ -507,12 +507,12 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(paso::SparseMatri
 
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
-	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), Paso_comparIndex);
+	            const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), paso::comparIndex);
 	            if (where_s == NULL) { /* weak connections are accumulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), Paso_comparIndex);
+	                       const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), paso::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Paso_Preconditioner_LocalAMG_setClassicProlongation_Block: Interpolation point is missing.");
                                } else {
@@ -528,7 +528,7 @@ void Paso_Preconditioner_LocalAMG_setClassicProlongation_Block(paso::SparseMatri
 	                            const double* A_jm=&(A_p->val[iPtr_j*A_block]);
 	                            const index_t m=A_p->pattern->index[iPtr_j];
                                     /* is m an interpolation point? */
-	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), Paso_comparIndex);
+	                            const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), paso::comparIndex);
                                     if (! (where_p_m==NULL)) {
   		                         const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          for (ib=0; ib<row_block; ib++) {

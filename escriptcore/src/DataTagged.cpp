@@ -17,8 +17,6 @@
 
 #include "Data.h"
 #include "DataTagged.h"
-#include "esysUtils/esys_malloc.h"
-
 #include "DataConstant.h"
 #include "DataException.h"
 #include "esysUtils/Esys_MPI.h"

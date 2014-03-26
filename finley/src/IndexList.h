@@ -28,7 +28,9 @@
 
 #include <list>
 
-struct Paso_Pattern;
+namespace paso {
+    struct Pattern;
+}
 
 // helpers to build system matrix
 
@@ -42,7 +44,7 @@ void IndexList_insertIndex(IndexList&, int);
 void IndexList_toArray(const IndexList&, int*, int, int, int);
 int IndexList_count(const IndexList&,  int, int);
 
-Paso_Pattern* IndexList_createPattern(int n0, int n,
+paso::Pattern* IndexList_createPattern(int n0, int n,
         const IndexList* index_list, int range_min, int range_max,
         int index_offset);
 

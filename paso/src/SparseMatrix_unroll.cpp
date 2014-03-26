@@ -59,7 +59,7 @@ SparseMatrix* SparseMatrix_unroll(SparseMatrixType type, const SparseMatrix* A) 
 		 l_col=out->pattern->ptr[icol + 1]-out->pattern->ptr[icol];
 		 for (irb=0; irb<row_block_size; ++irb) {
 		    irow=row_block_size*i+irb+out_offset;
-		    where_p=(index_t*)bsearch(&(irow), start_p, l_col,sizeof(index_t), Paso_comparIndex);		       
+		    where_p=(index_t*)bsearch(&(irow), start_p, l_col,sizeof(index_t), comparIndex);		       
 		    if (! (where_p == NULL) ) 
 		       out->val[out->pattern->ptr[icol]-out_offset+(index_t)(where_p-start_p)] =
 		       A->val[block_size*iptr+irb+row_block_size*icb];
@@ -78,7 +78,7 @@ SparseMatrix* SparseMatrix_unroll(SparseMatrixType type, const SparseMatrix* A) 
 		  l_row=out->pattern->ptr[irow + 1]-out->pattern->ptr[irow];
 		  for (icb=0; icb<col_block_size; ++icb) {
 		     icol=j*col_block_size+icb+out_offset;
-		     where_p=(index_t*)bsearch(&(icol), start_p, l_row,sizeof(index_t), Paso_comparIndex);		       
+		     where_p=(index_t*)bsearch(&(icol), start_p, l_row,sizeof(index_t), comparIndex);		       
 		     if (! (where_p == NULL) ) 
 		         out->val[out->pattern->ptr[irow]-out_offset+(index_t)(where_p-start_p)] =
 							 A->val[block_size*iptr+irb+row_block_size*icb];
