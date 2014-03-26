@@ -105,8 +105,8 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 
 	/* distribute new labeling to other processors */
 #ifdef ESYS_MPI
-	dest = Esys_MPIInfo_mod(mpiSize, myRank + 1);
-	source = Esys_MPIInfo_mod(mpiSize, myRank - 1);
+	dest = esysUtils::mod_rank(mpiSize, myRank + 1);
+	source = esysUtils::mod_rank(mpiSize, myRank - 1);
 #endif
 	current_rank = myRank;
 	for (p = 0; p < mpiSize; ++p)
@@ -131,7 +131,7 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
 				     source, in->MPIInfo->msg_tag_counter, in->MPIInfo->comm, &status);
 #endif
 		in->MPIInfo->msg_tag_counter++;
-		current_rank = Esys_MPIInfo_mod(mpiSize, current_rank - 1);
+		current_rank = esysUtils::mod_rank(mpiSize, current_rank - 1);
 	    }
 	}
     }

@@ -181,8 +181,8 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
 
     // now the overlap needs to be created by sending the partition around
 #ifdef ESYS_MPI
-    int dest=Esys_MPIInfo_mod(mpiSize, myRank + 1);
-    int source=Esys_MPIInfo_mod(mpiSize, myRank - 1);
+    int dest=esysUtils::mod_rank(mpiSize, myRank + 1);
+    int source=esysUtils::mod_rank(mpiSize, myRank - 1);
 #endif
     int current_rank=myRank;
     std::vector<short> setNewDOFId(Nodes->numNodes, 1);
@@ -208,7 +208,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
                                MPIInfo->comm, &status);
 #endif
             MPIInfo->msg_tag_counter++;
-            current_rank=Esys_MPIInfo_mod(mpiSize, current_rank-1);
+            current_rank=esysUtils::mod_rank(mpiSize, current_rank-1);
         }
     }
     for (int i=0; i<mpiSize+1; ++i)

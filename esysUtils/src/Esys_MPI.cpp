@@ -111,79 +111,79 @@ void JMPI_::split(dim_t N, dim_t* local_N,index_t* offset)
 
 
 /* allocate memory for an mpi_comm, and find the communicator details */
-Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
-{
-  #ifdef ESYS_MPI
-    int error;
-  #endif
-
-  Esys_MPIInfo *out=NULL;
-
-  out = new Esys_MPIInfo;
-  
-  out->reference_counter = 0;
-  out->msg_tag_counter = 0;
-  #ifdef ESYS_MPI
-     error = MPI_Comm_rank( comm, &out->rank )==MPI_SUCCESS && MPI_Comm_size( comm, &out->size )==MPI_SUCCESS;
-     if( !error ) {
-       Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
-     }
-  
-     out->comm = comm;
-  #else
-     out->rank=0;
-     out->size=1;
-     out->comm=-1;
-  #endif
-  out->reference_counter++;
-
-  return out;
-}
+// Esys_MPIInfo* Esys_MPIInfo_alloc( MPI_Comm comm )
+// {
+//   #ifdef ESYS_MPI
+//     int error;
+//   #endif
+// 
+//   Esys_MPIInfo *out=NULL;
+// 
+//   out = new Esys_MPIInfo;
+//   
+//   out->reference_counter = 0;
+//   out->msg_tag_counter = 0;
+//   #ifdef ESYS_MPI
+//      error = MPI_Comm_rank( comm, &out->rank )==MPI_SUCCESS && MPI_Comm_size( comm, &out->size )==MPI_SUCCESS;
+//      if( !error ) {
+//        Esys_setError( ESYS_MPI_ERROR, "Esys_MPIInfo_alloc : error finding comm rank/size" );
+//      }
+//   
+//      out->comm = comm;
+//   #else
+//      out->rank=0;
+//      out->size=1;
+//      out->comm=-1;
+//   #endif
+//   out->reference_counter++;
+// 
+//   return out;
+// }
 
 /* free memory for an mpi_comm */
-void Esys_MPIInfo_free( Esys_MPIInfo *in )
-{
-  if( in!=NULL) {
-    if (!(--in->reference_counter) ) delete in;
-  }
-}
+// void Esys_MPIInfo_free( Esys_MPIInfo *in )
+// {
+//   if( in!=NULL) {
+//     if (!(--in->reference_counter) ) delete in;
+//   }
+// }
+// 
+// Esys_MPIInfo *Esys_MPIInfo_getReference( Esys_MPIInfo* in )
+// {
+//   if (in!=NULL) 
+//     ++(in->reference_counter);
+//   
+//   return in;
+// }
+// /* N = #CPUs, k is a CPU number but out of range or even negative. Return a CPU number in 0...n-1. */
+// index_t Esys_MPIInfo_mod(index_t n, index_t k) 
+// {
+//     index_t q, out=0;
+//     if (n>1) {
+//         q=k/n;
+//         if (k>0) {
+//            out=k-n*q;
+//         } else if (k<0) {
+//            out=k-n*(q-1);
+//         }
+//     }
+//     return out;
+// }
 
-Esys_MPIInfo *Esys_MPIInfo_getReference( Esys_MPIInfo* in )
-{
-  if (in!=NULL) 
-    ++(in->reference_counter);
-  
-  return in;
-}
-/* N = #CPUs, k is a CPU number but out of range or even negative. Return a CPU number in 0...n-1. */
-index_t Esys_MPIInfo_mod(index_t n, index_t k) 
-{
-    index_t q, out=0;
-    if (n>1) {
-        q=k/n;
-        if (k>0) {
-           out=k-n*q;
-        } else if (k<0) {
-           out=k-n*(q-1);
-        }
-    }
-    return out;
-}
-
-void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t N, dim_t* local_N,index_t* offset) 
-{
-   int rest=0;
-   int s=mpi_info->size;
-   int r=mpi_info->rank;
-   *local_N=N/s;
-   rest=N-(*local_N)*s;
-   if (r<rest) {
-       (*local_N)++;
-       (*offset)=(*local_N)*r;
-   } else {
-       (*offset)=(*local_N)*r+rest;
-   }
-}
+// void Esys_MPIInfo_Split( Esys_MPIInfo *mpi_info, dim_t N, dim_t* local_N,index_t* offset) 
+// {
+//    int rest=0;
+//    int s=mpi_info->size;
+//    int r=mpi_info->rank;
+//    *local_N=N/s;
+//    rest=N-(*local_N)*s;
+//    if (r<rest) {
+//        (*local_N)++;
+//        (*offset)=(*local_N)*r;
+//    } else {
+//        (*offset)=(*local_N)*r+rest;
+//    }
+// }
 
 
 dim_t Esys_MPIInfo_setDistribution(esysUtils::JMPI& mpi_info ,index_t min_id,index_t max_id,index_t* distribution) {
@@ -211,6 +211,24 @@ dim_t Esys_MPIInfo_setDistribution(esysUtils::JMPI& mpi_info ,index_t min_id,ind
       return 0;
   }
 }
+
+
+
+/* N = #CPUs, k is a CPU number but out of range or even negative. Return a CPU number in 0...n-1. */
+index_t esysUtils::mod_rank(index_t n, index_t k) 
+{
+    index_t q, out=0;
+    if (n>1) {
+        q=k/n;
+        if (k>0) {
+           out=k-n*q;
+        } else if (k<0) {
+           out=k-n*(q-1);
+        }
+    }
+    return out;
+}
+
 
 /* checks that there is no error across all processes in a communicator */
 /* NOTE : does not make guarantee consistency of error string on each process */
