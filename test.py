@@ -5,8 +5,11 @@ from esys.finley import *
 from esys.escript.linearPDEs import Poisson
 
 sw=SplitWorld(getMPISizeWorld())
-buildDomains(sw, Brick, 3, 3, 3 )
-#buildDomains(sw, Rectangle, 3, 3)
+#buildDomains(sw, Brick, 3, 3, 3 )
+buildDomains(sw, Rectangle, 3, 3)
+
+addVariable(sw, "poisson", makeDataReducer, "SUM")
+
 
 class J1(Job):
     def __init__(self, **kwargs):
@@ -43,6 +46,7 @@ class PoissonJob(Job):
       mypde.setValue(f=self.jobid, q=gammaD)
       u = mypde.getSolution()
       print "Lsup solution=",Lsup(u)
+      self.export("poisson", u)
       return True
 
 addJob(sw, J1)
@@ -51,6 +55,8 @@ for z in range(10):
   addJob(sw, J1)
   addJob(sw, BarrierJob)
   addJob(sw, PoissonJob)
+  
+addJob(sw, PoissonJob)  
   
 try:  
     sw.runJobs()

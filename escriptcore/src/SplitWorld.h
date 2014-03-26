@@ -61,8 +61,6 @@ private:
     std::vector<boost::python::tuple> tupargs;
     std::vector<boost::python::dict> kwargs;
     
-    std::map<std::string, Reducer_ptr> varmap;
-    
     unsigned int jobcounter;		// note that the id of the first job is 1 not 0.
     void clearPendingJobs();
     void distributeJobs();

@@ -19,6 +19,7 @@
 
 #include "esysUtils/Esys_MPI.h"
 #include "AbstractDomain.h"
+#include "Reducer.h"
 
 namespace escript
 {
@@ -36,10 +37,17 @@ public:
     void addJob(boost::python::object j);
     char runJobs(std::string& errmsg);
     void clearJobs();
+    void clearImportExports();
+    void addVariable(std::string&, Reducer_ptr& red);
+    void removeVariable(std::string& name);    
+    
 private:    
     esysUtils::JMPI mpiinfo;
     escript::Domain_ptr domain;
     std::vector<boost::python::object> jobvec;
+    std::map<std::string, Reducer_ptr> reducemap;
+    
+    bool processExports(size_t i, std::string& errmsg);
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;

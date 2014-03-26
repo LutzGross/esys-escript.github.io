@@ -83,7 +83,7 @@ public:
     bool reduceRemoteValues(esysUtils::JMPI& mpi_info);
 private:    
     escript::Data value;
-    escript::Domain_ptr dom;
+    escript::const_Domain_ptr dom;
     MPI_Op reduceop;
 };
 

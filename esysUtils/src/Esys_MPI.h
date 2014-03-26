@@ -29,10 +29,19 @@
 #else
    typedef int MPI_Comm;
    typedef int MPI_Request;
+   typedef int MPI_Op;
    #define MPI_INT 6
    #define MPI_DOUBLE 11
    #define MPI_COMM_WORLD 91
    #define MPI_COMM_NULL 0
+   
+// MPI_Op replacements for non-MPI - these values are arbitrary
+
+   #define MPI_SUM 100
+
+// end MPI_op
+
+   
 #endif
 
 typedef int Esys_MPI_rank;
