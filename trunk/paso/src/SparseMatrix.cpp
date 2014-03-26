@@ -107,7 +107,7 @@ void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
    pattern is already unrolled to match the requested block size
    and offsets. Otherwise unrolling and offset adjustment will be performed.
 */
-SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Paso_Pattern *pattern,
+SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Pattern *pattern,
                                  int row_block_size, int col_block_size,
                                  bool patternIsUnrolled)
 {
@@ -150,14 +150,14 @@ SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Paso_Pattern *pattern,
      if (type & MATRIX_FORMAT_CSC) {
            if (unroll) {
               if (patternIsUnrolled) {
-                    out->pattern=Paso_Pattern_getReference(pattern);
+                    out->pattern=Pattern_getReference(pattern);
               } else {
-                    out->pattern=Paso_Pattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
+                    out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
               }
               out->row_block_size=1;
               out->col_block_size=1;
            } else {
-             out->pattern=Paso_Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
+             out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
            }
@@ -170,14 +170,14 @@ SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Paso_Pattern *pattern,
      /* ====== compressed sparse row === */
            if (unroll) {
               if (patternIsUnrolled) {
-                   out->pattern=Paso_Pattern_getReference(pattern);
+                   out->pattern=Pattern_getReference(pattern);
               } else {
-                   out->pattern=Paso_Pattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
+                   out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
               }
               out->row_block_size=1;
               out->col_block_size=1;
            } else {
-              out->pattern=Paso_Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
+              out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
            }
@@ -235,7 +235,7 @@ void SparseMatrix_free(SparseMatrix* in) {
                break;
         }
         delete[] in->val;
-        Paso_Pattern_free(in->pattern);
+        Pattern_free(in->pattern);
         delete in;
      }
    }
@@ -248,7 +248,7 @@ SparseMatrix* SparseMatrix_loadMM_toCSR( char *fileName_p )
         index_t *row_ptr = NULL;
         double *val = NULL;
         FILE *fileHandle_p = NULL;
-        Paso_Pattern* mainPattern=NULL;
+        Pattern* mainPattern=NULL;
         SparseMatrix *out = NULL;
         int i, curr_row, scan_ret;
         MM_typecode matrixCode;
@@ -330,12 +330,12 @@ SparseMatrix* SparseMatrix_loadMM_toCSR( char *fileName_p )
         }
         row_ptr[M] = nz;
 
-        mainPattern=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
+        mainPattern=Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
         out  = SparseMatrix_alloc(MATRIX_FORMAT_DEFAULT, mainPattern, 1, 1, TRUE);
         /* copy values and cleanup temps */
         for( i=0; i<nz; i++ ) out->val[i] = val[i];
 
-        Paso_Pattern_free(mainPattern);
+        Pattern_free(mainPattern);
         delete[] val;
         delete[] row_ind;
         return out;
@@ -409,22 +409,22 @@ void SparseMatrix_saveMM(const SparseMatrix* A_p, const char* fileName_p)
 
 index_t* SparseMatrix_borrowMainDiagonalPointer(const SparseMatrix* A_p)
 {
-    return Paso_Pattern_borrowMainDiagonalPointer(A_p->pattern);
+    return Pattern_borrowMainDiagonalPointer(A_p->pattern);
 }
 
 dim_t SparseMatrix_getNumColors(const SparseMatrix* A_p)
 {
-   return Paso_Pattern_getNumColors(A_p->pattern);
+   return Pattern_getNumColors(A_p->pattern);
 }
 
 index_t* SparseMatrix_borrowColoringPointer(const SparseMatrix* A_p)
 {
-   return Paso_Pattern_borrowColoringPointer(A_p->pattern);
+   return Pattern_borrowColoringPointer(A_p->pattern);
 }
 
 dim_t SparseMatrix_maxDeg(const SparseMatrix* A_p)
 {
-   return Paso_Pattern_maxDeg(A_p->pattern);
+   return Pattern_maxDeg(A_p->pattern);
 }
 
 dim_t SparseMatrix_getTotalNumRows(const SparseMatrix* A)

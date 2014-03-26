@@ -48,8 +48,8 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
 Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix * A,bool verbose) {
   const dim_t n=A->numRows;
   const dim_t n_block=A->row_block_size;
-  const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);
-  const dim_t num_colors = Paso_Pattern_getNumColors(A->pattern);
+  const index_t* colorOf = paso::Pattern_borrowColoringPointer(A->pattern);
+  const dim_t num_colors = paso::Pattern_getNumColors(A->pattern);
   const index_t *ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A);
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
@@ -328,8 +328,8 @@ void Paso_Solver_solveILU(paso::SparseMatrix * A, Paso_Solver_ILU * ilu, double 
      register double S1,S2,S3,R1,R2,R3;
      const dim_t n=A->numRows;
      const dim_t n_block=A->row_block_size;
-     const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);
-     const dim_t num_colors = Paso_Pattern_getNumColors(A->pattern);
+     const index_t* colorOf = paso::Pattern_borrowColoringPointer(A->pattern);
+     const dim_t num_colors = paso::Pattern_getNumColors(A->pattern);
      const index_t *ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A);
      
      

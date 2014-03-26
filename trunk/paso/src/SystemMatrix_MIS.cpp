@@ -66,7 +66,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
 	    for (j=0;j<bordercount;++j) {
 		index_t bnode=border[j];
 		if (ISAVAILABLE(weights[bnode])) {
-		    Paso_Pattern* p=A->mainBlock->pattern;
+            paso::Pattern* p=A->mainBlock->pattern;
 		    weights[bnode]=MISIN;
 		    /* Now walk the neighbours and mark them unavailable */
 		    for (k=p->ptr[bnode];k<p->ptr[bnode+1];++k) {	/* Walk along the row */
@@ -103,7 +103,7 @@ void Paso_SystemMatrix_CalcBorderMIS(Paso_SystemMatrix* A, index_t* border, inde
 
 /* used to generate pseudo random numbers: */
 
-static double Paso_Pattern_mis_seed=.4142135623730951;
+static double local_Pattern_mis_seed=.4142135623730951;
 
 /* Return a list of nodes which belong to a maximal independent set.
    Note: Only nodes local to this rank will be returned.
@@ -119,10 +119,10 @@ index_t Paso_SystemMatrix_getMIS(Paso_SystemMatrix* A, index_t** set) {
     char* inborder=NULL;
     double* weights=NULL;
     index_t* mis=NULL;
-    Paso_Pattern* pat=A->mainBlock->pattern;
+    paso::Pattern* pat=A->mainBlock->pattern;
     int i,j,k, retry;
     char done=1;
-    double seed=Paso_Pattern_mis_seed;
+    double seed=local_Pattern_mis_seed;
     Esys_resetError();
     border=Paso_SparseMatrix_getBorderNodes(A, &count);
     if (!Esys_noError()) {

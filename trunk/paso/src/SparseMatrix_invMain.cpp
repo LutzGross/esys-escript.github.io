@@ -43,7 +43,7 @@ void SparseMatrix_invMain(const SparseMatrix* A_p, double* inv_diag, int* pivot)
    const dim_t block_size=A_p->block_size;
    dim_t i;
    register index_t iPtr;
-   index_t* main_ptr=Paso_Pattern_borrowMainDiagonalPointer(A_p->pattern);
+   index_t* main_ptr=Pattern_borrowMainDiagonalPointer(A_p->pattern);
    /* check matrix is square */
    if (m_block != n_block) {
       Esys_setError(TYPE_ERROR, "SparseMatrix_invMain: square block size expected.");

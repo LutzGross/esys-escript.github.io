@@ -36,7 +36,7 @@ void SparseMatrix_setValues(SparseMatrix* in, double value)
     index_t index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     dim_t i,j;
     index_t iptr;
-    if (! Paso_Pattern_isEmpty(in->pattern)) {
+    if (!Pattern_isEmpty(in->pattern)) {
      #pragma omp parallel for private(i,iptr,j) schedule(static)
         for (i=0;i< in->pattern->numOutput;++i) {
             for (iptr=(in->pattern->ptr[i])-index_offset;iptr<(in->pattern->ptr[i+1])-index_offset;++iptr) {

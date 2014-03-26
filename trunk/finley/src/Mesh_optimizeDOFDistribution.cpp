@@ -102,7 +102,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
        
         // create the local matrix pattern
         const int globalNumVertices=distribution[mpiSize];
-        Paso_Pattern *pattern=IndexList_createPattern(0, myNumVertices,
+        paso::Pattern *pattern=IndexList_createPattern(0, myNumVertices,
                 index_list, 0, globalNumVertices, 0);
         // set the coordinates
         std::vector<float> xyz(myNumVertices*dim);
@@ -126,7 +126,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
                               NULL, NULL, &wgtflag, &numflag, &dim, &xyz[0],
                               &ncon, &mpiSize, &tpwgts[0], &ubvec[0], options,
                               &edgecut, &partition[0], &MPIInfo->comm);
-        Paso_Pattern_free(pattern);
+        paso::Pattern_free(pattern);
         delete[] index_list;
     } else {
         for (int i=0; i<myNumVertices; ++i)

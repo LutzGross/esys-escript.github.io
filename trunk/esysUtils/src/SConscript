@@ -34,7 +34,6 @@ headers = """
 	EsysRandom.h
 	Esys_MPI.h
 	error.h
-	esys_malloc.h
 	esysExceptionTranslator.h
 	esysFileWriter.h
 	blocktimer.h

@@ -38,8 +38,10 @@
 #include "Pattern.h"
 #include "Common.h"
 
+namespace paso {
+
 /*   calculate initial bandwidth for a given labeling */
-dim_t Paso_Pattern_getBandwidth(Paso_Pattern* pattern, index_t* label) {
+dim_t Pattern_getBandwidth(Pattern* pattern, index_t* label) {
       register index_t k;
       index_t iptr;
       dim_t bandwidth = 0, local_bandwidth=0,i ;
@@ -83,7 +85,7 @@ int Paso_comparDegreeAndIdx(const void *arg1,const void *arg2){
    }
 }
 
-/*  Paso_Pattern_dropTree drops a tree in pattern from root */
+/*  Pattern_dropTree drops a tree in pattern from root */
 
 /*  root - on input the starting point of the tree. */
 /*  AssignedLevel- array of length pattern->numOutput indicating the level assigned to vertex */
@@ -93,14 +95,14 @@ int Paso_comparDegreeAndIdx(const void *arg1,const void *arg2){
 /*                       firstVertexInLevel[i+1]-firstVertexInLevel[i] is the number of vertices in level i. */
 /*                         (array of length pattern->numOutput+1) */
 /*  max_LevelWidth_abort-  input param which triggers early return if LevelWidth becomes >= max_LevelWidth_abort */
-bool Paso_Pattern_dropTree(index_t root, 
-                             Paso_Pattern *pattern, 
+bool Pattern_dropTree(index_t root, 
+                             Pattern *pattern, 
                              index_t *AssignedLevel, 
                              index_t *VerticesInTree,
                              dim_t* numLevels, 
                              index_t* firstVertexInLevel, 
                              dim_t max_LevelWidth_abort,
-			     dim_t N) 
+                             dim_t N) 
 {
   dim_t nlvls,i;
   index_t level_top,k ,itest,j;
@@ -123,8 +125,8 @@ bool Paso_Pattern_dropTree(index_t root,
            itest = pattern->index[j];
            if (AssignedLevel[itest]<0) {
 #ifdef BOUNDS_CHECK
-		       if (itest < 0 || itest >= N) { printf("BOUNDS_CHECK %s %d itest=%d\n", __FILE__, __LINE__, itest); exit(1); }
-		       if (level_top < 0 || level_top >= N) { printf("BOUNDS_CHECK %s %d level_top=%d\n", __FILE__, __LINE__, level_top); exit(1); }
+                       if (itest < 0 || itest >= N) { printf("BOUNDS_CHECK %s %d itest=%d\n", __FILE__, __LINE__, itest); exit(1); }
+                       if (level_top < 0 || level_top >= N) { printf("BOUNDS_CHECK %s %d level_top=%d\n", __FILE__, __LINE__, level_top); exit(1); }
 #endif
               AssignedLevel[itest] = nlvls;
               VerticesInTree[level_top] = itest;
@@ -138,13 +140,13 @@ bool Paso_Pattern_dropTree(index_t root,
 }
 
 /* the driver */
-void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
+void Pattern_reduceBandwidth(Pattern* pattern,index_t* oldToNew) {
    dim_t i, initial_bandwidth, N=pattern->numOutput, numLabledVertices, numLevels, max_LevelWidth, min_deg,deg, numVerticesInTree=0, bandwidth;
    Paso_DegreeAndIdx* degAndIdx=NULL;
    index_t root, *AssignedLevel=NULL, *VerticesInTree=NULL, *firstVertexInLevel=NULL,k, *oldLabel=NULL;
    /* check input */
    if (N != pattern->numInput) {
-      Esys_setError(VALUE_ERROR,"Paso_Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
+      Esys_setError(VALUE_ERROR,"Pattern_reduceBandwidth: pattern needs to be for a square matrix.");
    } else if (N > 0) {
 /* printf("relabeling of %d DOFs started.\n",N); */
       degAndIdx=new Paso_DegreeAndIdx[N];
@@ -156,7 +158,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
          /* get the initial bandwidth */
          #pragma omp parallel for private(i)
          for (i=0;i<N;++i) oldToNew[i]=i; 
-         initial_bandwidth=Paso_Pattern_getBandwidth(pattern,oldToNew);
+         initial_bandwidth=Pattern_getBandwidth(pattern,oldToNew);
 /* printf("initial bandwidth = %d\n",initial_bandwidth); */
          /* get the initial bandwidth */
          #pragma omp parallel for private(i)
@@ -178,14 +180,14 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
          while (root>=0) {
              max_LevelWidth=N+1;
                  
-             while (Paso_Pattern_dropTree(root,pattern,AssignedLevel,VerticesInTree,
+             while (Pattern_dropTree(root,pattern,AssignedLevel,VerticesInTree,
                                           &numLevels,firstVertexInLevel,max_LevelWidth,N) ) {
 
                  /* find new maximum level width */
                  max_LevelWidth=0;
                  for (i=0;i<numLevels;++i) {
 #ifdef BOUNDS_CHECK
-		      if (i < 0 || i >= N+1) { printf("BOUNDS_CHECK %s %d i=%d N=%d\n", __FILE__, __LINE__, i, N); exit(1); }
+                      if (i < 0 || i >= N+1) { printf("BOUNDS_CHECK %s %d i=%d N=%d\n", __FILE__, __LINE__, i, N); exit(1); }
 #endif
                       max_LevelWidth=MAX(max_LevelWidth,firstVertexInLevel[i+1]-firstVertexInLevel[i]);
                  }
@@ -204,7 +206,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
                  numVerticesInTree=firstVertexInLevel[numLevels];
                  for (i=0;i<firstVertexInLevel[numLevels];++i) {
 #ifdef BOUNDS_CHECK
-		       if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d firstVertexInLevel[numLevels]=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N, firstVertexInLevel[numLevels]); exit(1); }
+                       if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d firstVertexInLevel[numLevels]=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N, firstVertexInLevel[numLevels]); exit(1); }
 #endif
                        oldLabel[numLabledVertices+i]=VerticesInTree[i];
                  }
@@ -212,7 +214,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
              /* now the vertices in the current tree */
              for (i=0;i<numVerticesInTree;++i) {
 #ifdef BOUNDS_CHECK
-		 if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N); exit(1); }
+                 if (numLabledVertices+i < 0 || numLabledVertices+i >= N) { printf("BOUNDS_CHECK %s %d i=%d numLabeledVertices=%d root=%d N=%d\n", __FILE__, __LINE__, i, numLabledVertices, root, N); exit(1); }
 #endif
                  oldToNew[oldLabel[numLabledVertices+i]]=numLabledVertices+i;
              }
@@ -226,7 +228,7 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
                  }
              }
         } /* end of while root loop */
-        bandwidth=Paso_Pattern_getBandwidth(pattern,oldToNew);
+        bandwidth=Pattern_getBandwidth(pattern,oldToNew);
 /* printf("bandwidth after DOF relabeling= %d\n",bandwidth); */
         if (bandwidth>=initial_bandwidth) {
 /* printf("initial labeling used.\n"); */
@@ -241,4 +243,6 @@ void Paso_Pattern_reduceBandwidth(Paso_Pattern* pattern,index_t* oldToNew) {
       delete[] firstVertexInLevel;
    }
 }
+
+} // namespace paso
 

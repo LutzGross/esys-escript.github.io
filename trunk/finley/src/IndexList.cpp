@@ -148,8 +148,8 @@ void IndexList_toArray(const IndexList& in, int* array, int range_min, int range
     }
 }
 
-/// creates a Paso_pattern from a range of indices
-Paso_Pattern* IndexList_createPattern(int n0, int n,
+/// creates a paso pattern from a range of indices
+paso::Pattern* IndexList_createPattern(int n0, int n,
                                       const IndexList* index_list,
                                       int range_min, int range_max,
                                       int index_offset)
@@ -175,11 +175,11 @@ Paso_Pattern* IndexList_createPattern(int n0, int n,
         IndexList_toArray(index_list[i], &index[ptr[i-n0]], range_min, range_max, index_offset);
     }
 
-    Paso_Pattern* out=Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n-n0, range_max+index_offset, ptr, index);
+    paso::Pattern* out=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, n-n0, range_max+index_offset, ptr, index);
     if (!noError()) {
         delete[] ptr;
         delete[] index;
-        Paso_Pattern_free(out);
+        paso::Pattern_free(out);
     }
     return out;
 }

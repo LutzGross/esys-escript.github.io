@@ -36,7 +36,7 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
         dim_t input_block_size)
 {
     SystemMatrixPattern* out = NULL;
-    Paso_Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
+    Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
     Paso_Distribution *new_output_distribution=NULL, *new_input_distribution=NULL;
     Connector *new_col_connector=NULL, *new_row_connector=NULL;
 
@@ -44,12 +44,12 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
             ((pattern->type & MATRIX_FORMAT_OFFSET1) == (type & MATRIX_FORMAT_OFFSET1)) ) {
         out = SystemMatrixPattern_getReference(pattern);
     } else {
-        new_mainPattern = Paso_Pattern_unrollBlocks(pattern->mainPattern, type,
+        new_mainPattern = Pattern_unrollBlocks(pattern->mainPattern, type,
                 output_block_size, input_block_size);
-        new_col_couplePattern = Paso_Pattern_unrollBlocks(
+        new_col_couplePattern = Pattern_unrollBlocks(
                 pattern->col_couplePattern, type, output_block_size,
                 input_block_size);
-        new_row_couplePattern = Paso_Pattern_unrollBlocks(
+        new_row_couplePattern = Pattern_unrollBlocks(
                 pattern->row_couplePattern, type, output_block_size,
                 input_block_size);
         if (output_block_size > 1) {
@@ -84,9 +84,9 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
                                           new_col_connector,
                                           new_row_connector);
         }
-        Paso_Pattern_free(new_mainPattern);
-        Paso_Pattern_free(new_col_couplePattern);
-        Paso_Pattern_free(new_row_couplePattern);
+        Pattern_free(new_mainPattern);
+        Pattern_free(new_col_couplePattern);
+        Pattern_free(new_row_couplePattern);
         Paso_Distribution_free(new_output_distribution);
         Paso_Distribution_free(new_input_distribution);
         Connector_free(new_row_connector);

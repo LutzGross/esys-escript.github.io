@@ -785,7 +785,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
 	    for( iptr =0 ; iptr < degree_S[i]; ++iptr) {
 	       const index_t k=S[offset_S[i]+iptr];
 	       const index_t* start_p = &ST[offset_ST[k]];
-	       const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), Paso_comparIndex);
+	       const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), paso::comparIndex);
 
 	       if (ST_flag[offset_ST[k] + (index_t)(where_p-start_p)]>0) {
 		  if (wi <= w[k] ) {
@@ -864,7 +864,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
 			ST_flag[offset_ST[i]+jptr]=-1;
 			for (kptr=0; kptr<degree_ST[j]; ++kptr) {
 			   const index_t k=ST[offset_ST[j]+kptr]; 
-			   if (NULL != bsearch(&k, start_p, degree_ST[i], sizeof(index_t), Paso_comparIndex) ) { /* k in ST[i] ? */
+			   if (NULL != bsearch(&k, start_p, degree_ST[i], sizeof(index_t), paso::comparIndex) ) { /* k in ST[i] ? */
 			      if (ST_flag[offset_ST[j]+kptr] >0) {
 				 if (j< my_n ) {
 				    w[j]--;

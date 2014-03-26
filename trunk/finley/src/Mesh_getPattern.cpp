@@ -70,7 +70,7 @@ paso::SystemMatrixPattern* Mesh::getPattern(bool reduce_row_order, bool reduce_c
 paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_col_order)
 {
     paso::SystemMatrixPattern* out=NULL;
-    Paso_Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
+    paso::Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
     paso::Connector *col_connector, *row_connector;
     Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
   
@@ -141,9 +141,9 @@ paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_
                 col_connector, row_connector);
     }
     delete[] index_list;
-    Paso_Pattern_free(main_pattern);
-    Paso_Pattern_free(col_couple_pattern);
-    Paso_Pattern_free(row_couple_pattern);
+    paso::Pattern_free(main_pattern);
+    paso::Pattern_free(col_couple_pattern);
+    paso::Pattern_free(row_couple_pattern);
     Esys_MPIInfo_noError(MPIInfo);
     return out;
 }

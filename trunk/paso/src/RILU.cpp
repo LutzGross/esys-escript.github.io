@@ -106,7 +106,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(paso::SparseMatrix *A_p,bool verbose) {
      time0=Esys_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     Paso_Pattern_mis(A_p->pattern,mis_marker);
+     paso::Pattern_mis(A_p->pattern,mis_marker);
      /*time2=Esys_timer()-time0;*/
      if (Esys_noError()) {
         #pragma omp parallel for private(i) schedule(static)
@@ -142,7 +142,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(paso::SparseMatrix *A_p,bool verbose) {
                                         index,
                                         A_p->pattern->ptr[out->rows_in_F[i] + 1]-A_p->pattern->ptr[out->rows_in_F[i]],
                                         sizeof(index_t),
-                                        Paso_comparIndex);
+                                        paso::comparIndex);
                 if (where_p==NULL) {
                     Esys_setError(VALUE_ERROR, "Paso_Solver_getRILU: main diagonal element missing.");
                 } else {

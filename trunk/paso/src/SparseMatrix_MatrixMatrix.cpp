@@ -44,7 +44,7 @@ SparseMatrix* SparseMatrix_MatrixMatrix(const SparseMatrix* A, const SparseMatri
 {
    SparseMatrixType C_type;
    
-   Paso_Pattern* outpattern=NULL;
+   Pattern* outpattern=NULL;
    SparseMatrix *out=NULL;
    if ( !  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) || (A->type & MATRIX_FORMAT_DEFAULT) || (MATRIX_FORMAT_BLK1 & A->type ) )  ) {
       Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: Unsupported matrix format of A.");
@@ -70,12 +70,12 @@ SparseMatrix* SparseMatrix_MatrixMatrix(const SparseMatrix* A, const SparseMatri
       C_type=MATRIX_FORMAT_DEFAULT;
    }
 
-   outpattern=Paso_Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
+   outpattern=Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
    
    if (Esys_noError()) {
       out=SparseMatrix_alloc(C_type, outpattern, A->row_block_size, B->col_block_size, FALSE);
    }
-   Paso_Pattern_free(outpattern);
+   Pattern_free(outpattern);
    
    if (Esys_noError()) {
       if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {
@@ -140,7 +140,7 @@ void SparseMatrix_MatrixMatrix_BB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			kj_ptrB += (index_t)(where_p-start_p);
 			A_ik=&(A->val[ik_ptrA*4]);
@@ -191,7 +191,7 @@ void SparseMatrix_MatrixMatrix_BB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			kj_ptrB += (index_t)(where_p-start_p);
 			A_ik=&(A->val[ik_ptrA*9]);
@@ -276,7 +276,7 @@ void SparseMatrix_MatrixMatrix_BB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			   kj_ptrB += (index_t)(where_p-start_p);
 			   A_ik=&(A->val[ik_ptrA*16]);
@@ -388,7 +388,7 @@ void SparseMatrix_MatrixMatrix_BB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -450,7 +450,7 @@ void SparseMatrix_MatrixMatrix_DB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			kj_ptrB += (index_t)(where_p-start_p);
 			A_ik=&(A->val[ik_ptrA*2]);
@@ -501,7 +501,7 @@ void SparseMatrix_MatrixMatrix_DB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			kj_ptrB += (index_t)(where_p-start_p);
 			A_ik=&(A->val[ik_ptrA*3]);
@@ -569,7 +569,7 @@ void SparseMatrix_MatrixMatrix_DB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			   kj_ptrB += (index_t)(where_p-start_p);
 			   A_ik=&(A->val[ik_ptrA*4]);
@@ -633,7 +633,7 @@ void SparseMatrix_MatrixMatrix_DB(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -691,7 +691,7 @@ void SparseMatrix_MatrixMatrix_BD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			kj_ptrB += (index_t)(where_p-start_p);
 			A_ik=&(A->val[ik_ptrA*4]);
@@ -742,7 +742,7 @@ void SparseMatrix_MatrixMatrix_BD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			kj_ptrB += (index_t)(where_p-start_p);
 			A_ik=&(A->val[ik_ptrA*9]);
@@ -809,7 +809,7 @@ void SparseMatrix_MatrixMatrix_BD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 			   kj_ptrB += (index_t)(where_p-start_p);
 			   A_ik=&(A->val[ik_ptrA*16]);
@@ -873,7 +873,7 @@ void SparseMatrix_MatrixMatrix_BD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*A_block_size]);
@@ -922,7 +922,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       C_ij_0+=A->val[ik_ptrA]*B->val[kj_ptrB];
@@ -951,7 +951,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*2]);
@@ -986,7 +986,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*3]);
@@ -1024,7 +1024,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*4]);
@@ -1061,7 +1061,7 @@ void SparseMatrix_MatrixMatrix_DD(SparseMatrix* C, const SparseMatrix* A, const 
 		  where_p=(index_t*)bsearch(&j, start_p,
 					    B->pattern->ptr[k + 1]-kj_ptrB,
 					    sizeof(index_t),
-					    Paso_comparIndex);
+					    comparIndex);
 		  if (! (where_p == NULL) ) { /* this should always be the case */
 		       kj_ptrB += (index_t)(where_p-start_p);
 		       A_ik=&(A->val[ik_ptrA*A_block_size]);

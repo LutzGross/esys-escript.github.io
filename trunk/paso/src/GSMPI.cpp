@@ -42,7 +42,7 @@ void Paso_Solver_GSMPI_free(Paso_Solver_GS * in) {
         Paso_SparseMatrix_free(in->factors);
         delete[] in->diag;
         delete[] in->main_iptr;
-        Paso_Pattern_free(in->pattern);   
+        paso::Pattern_free(in->pattern);   
         delete in;
      }
 }
@@ -70,14 +70,14 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
   out->diag=new double[ ((size_t) n) * ((size_t) block_size)];
   /*out->diag=new double[A->len];*/
   out->main_iptr=new index_t[n];
-  out->pattern=Paso_Pattern_getReference(A->pattern);
+  out->pattern=paso::Pattern_getReference(A->pattern);
   out->factors=Paso_SparseMatrix_getReference(A);
   out->n_block=n_block;
   out->n=n;
 
   if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
     time0=Paso_timer();
-    Paso_Pattern_color(A->pattern,&out->num_colors,out->colorOf);
+    paso::Pattern_color(A->pattern,&out->num_colors,out->colorOf);
     time_color=Paso_timer()-time0;
 
     if (Paso_noError()) {

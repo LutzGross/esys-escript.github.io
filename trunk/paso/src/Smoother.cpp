@@ -370,8 +370,8 @@ void Paso_Preconditioner_LocalSmoother_Sweep_colored(paso::SparseMatrix* A_p, Pa
    register double rtmp;
    int failed = 0;
    
-   const index_t* coloring = Paso_Pattern_borrowColoringPointer(A_p->pattern);
-   const dim_t num_colors = Paso_Pattern_getNumColors(A_p->pattern);
+   const index_t* coloring = paso::Pattern_borrowColoringPointer(A_p->pattern);
+   const dim_t num_colors = paso::Pattern_getNumColors(A_p->pattern);
    const index_t* ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A_p);
    
    (void)pivot;			/* These vars are dropped by some macros*/

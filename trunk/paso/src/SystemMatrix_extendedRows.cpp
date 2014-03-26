@@ -253,7 +253,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
     j = my_n + i;
     degree_ST[j] = len - offset_ST[j];
     offset_ST[j+1] = len;
-    qsort(&(ST[offset_ST[j]]), (size_t) degree_ST[j], sizeof(index_t), Paso_comparIndex);
+    qsort(&(ST[offset_ST[j]]), (size_t) degree_ST[j], sizeof(index_t), paso::comparIndex);
   }
 
   /* release all temp memory allocation */

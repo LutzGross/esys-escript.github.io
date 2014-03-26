@@ -746,7 +746,7 @@ void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const ind
 	              for (q=0; q<degree_S[i]; ++q) {
                          index_t k=S[offset_S[i]+q];
                          if (split_marker[k]==PASO_AMG_IN_C) {
-                            register index_t* where_k=(index_t*)bsearch(&k, &(S[offset_S[j]]), degree_S[j], sizeof(index_t), Paso_comparIndex);
+                            register index_t* where_k=(index_t*)bsearch(&k, &(S[offset_S[j]]), degree_S[j], sizeof(index_t), paso::comparIndex);
                             if (where_k != NULL) {
                                sharing=k;
                                break;
