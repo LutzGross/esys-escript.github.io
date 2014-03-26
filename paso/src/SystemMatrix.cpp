@@ -36,7 +36,7 @@
    that the pattern is already unrolled to match the requested block size
    and offsets. Otherwise unrolling and offset adjustment will be performed. */
 
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_SystemMatrixPattern *pattern, int row_block_size, int col_block_size,
+Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::SystemMatrixPattern *pattern, int row_block_size, int col_block_size,
   const bool patternIsUnrolled) {
 
   Paso_SystemMatrix*out=NULL;
@@ -92,14 +92,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      if (type & MATRIX_FORMAT_CSC) {
          if (unroll) {
                if (patternIsUnrolled) {
-                  out->pattern=Paso_SystemMatrixPattern_getReference(pattern);
+                  out->pattern=paso::SystemMatrixPattern_getReference(pattern);
                } else {
-                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
+                  out->pattern=paso::SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
                }
                out->row_block_size=1;
                out->col_block_size=1;
          } else {
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
+              out->pattern=paso::SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
          }
@@ -110,14 +110,14 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,Paso_Syste
      } else {
          if (unroll) {
               if (patternIsUnrolled) {
-                  out->pattern=Paso_SystemMatrixPattern_getReference(pattern);
+                  out->pattern=paso::SystemMatrixPattern_getReference(pattern);
               } else {
-                  out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
+                  out->pattern=paso::SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
               }
               out->row_block_size=1;
               out->col_block_size=1;
          } else {
-              out->pattern=Paso_SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
+              out->pattern=paso::SystemMatrixPattern_unrollBlocks(pattern,pattern_format_out,1,1);
               out->row_block_size=row_block_size;
               out->col_block_size=col_block_size;
          }
@@ -181,7 +181,7 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
      if (in->reference_counter<=0) {
 	
 	Paso_solve_free(in);
-        Paso_SystemMatrixPattern_free(in->pattern);
+    paso::SystemMatrixPattern_free(in->pattern);
         Paso_Distribution_free(in->row_distribution);
         Paso_Distribution_free(in->col_distribution);
         Esys_MPIInfo_free(in->mpi_info);
@@ -304,7 +304,7 @@ double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix*A) {
 }
 
 dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A) {
-   return Paso_SystemMatrixPattern_getNumOutput(A->pattern);
+   return paso::SystemMatrixPattern_getNumOutput(A->pattern);
 }
 
 index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p) 
@@ -327,7 +327,7 @@ void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_ove
 {
    index_t ir, ib, irow;
    register double rtmp1, rtmp2;
-   const dim_t n = Paso_SystemMatrixPattern_getNumOutput(A_p->pattern);
+   const dim_t n = paso::SystemMatrixPattern_getNumOutput(A_p->pattern);
    const dim_t nblk = A_p->block_size;
    const dim_t blk = A_p->row_block_size;
    const index_t* main_ptr=Paso_SystemMatrix_borrowMainDiagonalPointer(A_p);

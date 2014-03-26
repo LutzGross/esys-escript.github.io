@@ -27,9 +27,9 @@
 
 /* returns a reference to the matrix pattern                  */
 
-Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
 {
-    Paso_SystemMatrixPattern *out = NULL;
+    paso::SystemMatrixPattern *out = NULL;
     Dudley_resetError();
     /* make sure that the requested pattern is available */
     if (reduce_row_order)
@@ -64,31 +64,31 @@ Paso_SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_
 	{
 	    if (reduce_col_order)
 	    {
-		out = Paso_SystemMatrixPattern_getReference(mesh->ReducedReducedPattern);
+		out = paso::SystemMatrixPattern_getReference(mesh->ReducedReducedPattern);
 	    }
 	    else
 	    {
-		out = Paso_SystemMatrixPattern_getReference(mesh->ReducedFullPattern);
+		out = paso::SystemMatrixPattern_getReference(mesh->ReducedFullPattern);
 	    }
 	}
 	else
 	{
 	    if (reduce_col_order)
 	    {
-		out = Paso_SystemMatrixPattern_getReference(mesh->FullReducedPattern);
+		out = paso::SystemMatrixPattern_getReference(mesh->FullReducedPattern);
 	    }
 	    else
 	    {
-		out = Paso_SystemMatrixPattern_getReference(mesh->FullFullPattern);
+		out = paso::SystemMatrixPattern_getReference(mesh->FullFullPattern);
 	    }
 	}
     }
     return out;
 }
 
-Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
 {
-    Paso_SystemMatrixPattern *out = NULL;
+    paso::SystemMatrixPattern *out = NULL;
     Paso_Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
     Paso_Connector *col_connector, *row_connector;
     Dudley_IndexList *index_list = NULL;
@@ -162,11 +162,10 @@ Paso_SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row
 	/* if everything is in order we can create the return value */
 	if (Dudley_noError())
 	{
-	    out = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
-						 rowDistribution,
-						 colDistribution,
-						 main_pattern,
-						 col_couple_pattern, row_couple_pattern, col_connector, row_connector);
+	    out = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+						  rowDistribution, colDistribution,
+						  main_pattern, col_couple_pattern,
+                          row_couple_pattern, col_connector, row_connector);
 	}
 	/* clean up */
 	if (index_list != NULL)

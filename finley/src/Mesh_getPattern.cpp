@@ -27,9 +27,9 @@
 namespace finley {
 
 /// returns a reference to the matrix pattern
-Paso_SystemMatrixPattern* Mesh::getPattern(bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern* Mesh::getPattern(bool reduce_row_order, bool reduce_col_order)
 {
-    Paso_SystemMatrixPattern *out=NULL;
+    paso::SystemMatrixPattern *out=NULL;
     resetError();
     /* make sure that the requested pattern is available */
     if (reduce_row_order) {
@@ -52,24 +52,24 @@ Paso_SystemMatrixPattern* Mesh::getPattern(bool reduce_row_order, bool reduce_co
     if (noError()) {
         if (reduce_row_order) {
             if (reduce_col_order) {
-                out=Paso_SystemMatrixPattern_getReference(ReducedReducedPattern);
+                out=paso::SystemMatrixPattern_getReference(ReducedReducedPattern);
             } else {
-                out=Paso_SystemMatrixPattern_getReference(ReducedFullPattern);
+                out=paso::SystemMatrixPattern_getReference(ReducedFullPattern);
             }
         } else {
             if (reduce_col_order) {
-                out=Paso_SystemMatrixPattern_getReference(FullReducedPattern);
+                out=paso::SystemMatrixPattern_getReference(FullReducedPattern);
             } else {
-                out=Paso_SystemMatrixPattern_getReference(FullFullPattern);
+                out=paso::SystemMatrixPattern_getReference(FullFullPattern);
             }
         }
     }  
     return out;
 }
 
-Paso_SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_col_order)
 {
-    Paso_SystemMatrixPattern* out=NULL;
+    paso::SystemMatrixPattern* out=NULL;
     Paso_Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
     Paso_Connector *col_connector, *row_connector;
     Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
@@ -135,7 +135,7 @@ Paso_SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_c
 
     // if everything is in order we can create the return value
     if (noError()) {
-        out=Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
+        out = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 rowDistribution, colDistribution, main_pattern,
                 col_couple_pattern, row_couple_pattern,
                 col_connector, row_connector);

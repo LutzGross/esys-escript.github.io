@@ -1455,7 +1455,7 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
     }
 
     // generate matrix:
-    Paso_SystemMatrixPattern* fsystemMatrixPattern=
+    paso::SystemMatrixPattern* fsystemMatrixPattern=
         getFinley_Mesh()->getPattern(reduceRowOrder, reduceColOrder);
     checkFinleyError();
     Paso_SystemMatrix* fsystemMatrix;
@@ -1469,7 +1469,7 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
                 row_blocksize, column_blocksize, FALSE);
     }
     checkPasoError();
-    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
+    paso::SystemMatrixPattern_free(fsystemMatrixPattern);
     SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
     return escript::ASM_ptr(sma);
 }
@@ -1494,13 +1494,13 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
     }
 
     // generate transport problem:
-    Paso_SystemMatrixPattern* fsystemMatrixPattern=
+    paso::SystemMatrixPattern* fsystemMatrixPattern=
         getFinley_Mesh()->getPattern(reduceOrder, reduceOrder);
     checkFinleyError();
     Paso_TransportProblem* transportProblem;
     transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern, blocksize);
     checkPasoError();
-    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
+    paso::SystemMatrixPattern_free(fsystemMatrixPattern);
     TransportProblemAdapter* tpa=new TransportProblemAdapter(
             transportProblem, blocksize, functionspace);
     return escript::ATP_ptr(tpa);

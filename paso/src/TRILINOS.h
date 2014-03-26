@@ -31,7 +31,7 @@
 #include "Options.h"
 
 
-void Paso_TRILINOS_alloc(void* trilinos_data, Paso_SystemMatrixPattern *pattern, dim_t row_block_size, dim_t col_block_size);
+void Paso_TRILINOS_alloc(void* trilinos_data, paso::SystemMatrixPattern *pattern, dim_t row_block_size, dim_t col_block_size);
 
 void Paso_TRILINOS(Paso_SystemMatrix* A,
                    double* out,

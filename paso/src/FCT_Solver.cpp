@@ -458,7 +458,7 @@ void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
   const double *remote_u=Paso_Coupler_borrowRemoteData(u_coupler);
   const double *remote_u_old=Paso_Coupler_borrowRemoteData(u_old_coupler);
   const double dt_half= dt/2;
-  const Paso_SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
+  const paso::SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fct->iteration_matrix);
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
@@ -503,7 +503,7 @@ void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
   const double *u_old= Paso_Coupler_borrowLocalData(u_old_coupler);
   const double *remote_u=Paso_Coupler_borrowRemoteData(u_coupler);
   const double *remote_u_old=Paso_Coupler_borrowRemoteData(u_old_coupler);
-  const Paso_SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
+  const paso::SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
   const dim_t  n=Paso_SystemMatrix_getTotalNumRows(fct->iteration_matrix);
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
@@ -557,7 +557,7 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
   const double *u_old= Paso_Coupler_borrowLocalData(u_old_coupler);
   const double *remote_u_tilde=Paso_Coupler_borrowRemoteData(u_tilde_coupler);
   const double *remote_u_old=Paso_Coupler_borrowRemoteData(u_old_coupler);
-  const Paso_SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
+  const paso::SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fct->iteration_matrix);
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
@@ -625,7 +625,7 @@ void Paso_FCT_setLowOrderOperator(Paso_TransportProblem * fc) {
   }
 
   if (Esys_noError()) {
-      const Paso_SystemMatrixPattern *pattern=fc->iteration_matrix->pattern;
+      const paso::SystemMatrixPattern *pattern=fc->iteration_matrix->pattern;
       const dim_t n=Paso_SystemMatrix_getTotalNumRows(fc->iteration_matrix);
       #pragma omp parallel for private(i, iptr_ij, iptr_ji)  schedule(static)
       for (i = 0; i < n; ++i) {
@@ -693,7 +693,7 @@ void Paso_FCT_Solver_setMuPaLu(double* out,
                               const Paso_SystemMatrix *L)
 {
   dim_t i;
-  const Paso_SystemMatrixPattern *pattern = L->pattern;
+  const paso::SystemMatrixPattern *pattern = L->pattern;
   const double *u=Paso_Coupler_borrowLocalData(u_coupler);
   const double *remote_u=Paso_Coupler_borrowRemoteData(u_coupler);
   index_t iptr_ij;

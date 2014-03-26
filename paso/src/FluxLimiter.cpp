@@ -84,7 +84,7 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
   
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
   double * remote_u_tilde =NULL;
-  const Paso_SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
+  const paso::SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
   const double *lumped_mass_matrix = flux_limiter->borrowed_lumped_mass_matrix;
   index_t i, iptr_ij;
 
@@ -166,7 +166,7 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
 void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limiter) {
   
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
-  const Paso_SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
+  const paso::SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
   const double* u_tilde = flux_limiter->u_tilde;
   const double* remote_u_tilde=Paso_Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
   Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
@@ -240,7 +240,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
 void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_limiter, double* b) 
 {
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
-  const Paso_SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
+  const paso::SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
   const Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
   double *R = flux_limiter->R;
   double *remote_R=NULL;
