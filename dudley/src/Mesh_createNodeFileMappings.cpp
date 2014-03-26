@@ -34,7 +34,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
     Esys_MPI_rank myRank, p, p_min, p_max, *neighbor = NULL;
     Paso_SharedComponents *rcv_shcomp = NULL, *snd_shcomp = NULL;
     Dudley_NodeMapping *this_mapping = NULL;
-    Paso_Connector *this_connector = NULL;
+    paso::Connector *this_connector = NULL;
     Paso_Distribution *dof_distribution;
     Esys_MPIInfo *mpi_info = in->MPIInfo;
 #ifdef ESYS_MPI
@@ -287,7 +287,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 					dof_distribution->mpi_info);
 
 	if (Dudley_noError())
-	    this_connector = Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
+	    this_connector = paso::Connector_alloc(snd_shcomp, rcv_shcomp);
 	/* assign new DOF labels to nodes */
 	Paso_SharedComponents_free(rcv_shcomp);
 	Paso_SharedComponents_free(snd_shcomp);
@@ -318,7 +318,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
     else
     {
 	Dudley_NodeMapping_free(this_mapping);
-	Paso_Connector_free(this_connector);
+    paso::Connector_free(this_connector);
 
     }
 }
@@ -513,8 +513,8 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	Paso_Distribution_free(in->Nodes->reducedNodesDistribution);
 	Paso_Distribution_free(in->Nodes->degreesOfFreedomDistribution);
 	Paso_Distribution_free(in->Nodes->reducedDegreesOfFreedomDistribution);
-	Paso_Connector_free(in->Nodes->degreesOfFreedomConnector);
-	Paso_Connector_free(in->Nodes->reducedDegreesOfFreedomConnector);
+    paso::Connector_free(in->Nodes->degreesOfFreedomConnector);
+    paso::Connector_free(in->Nodes->reducedDegreesOfFreedomConnector);
 	in->Nodes->nodesMapping = NULL;
 	in->Nodes->reducedNodesMapping = NULL;
 	in->Nodes->degreesOfFreedomMapping = NULL;

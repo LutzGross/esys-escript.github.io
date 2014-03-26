@@ -61,15 +61,15 @@ typedef struct Paso_SystemMatrix {
   Paso_Distribution *col_distribution;
   Esys_MPIInfo *mpi_info;
 
-  Paso_Coupler* col_coupler;
-  Paso_Coupler* row_coupler;
+  paso::Coupler* col_coupler;
+  paso::Coupler* row_coupler;
 
   /* this comes into play when PASO is used */
-  paso::SparseMatrix* mainBlock;                      /* main block */
-  paso::SparseMatrix* col_coupleBlock;                    /* coupling to neighbouring processors (row - col) */
-  paso::SparseMatrix* row_coupleBlock;                /* coupling to neighbouring processors (col - row)  */
-  paso::SparseMatrix* remote_coupleBlock;                /* coupling of rows-cols on neighbouring processors 
-                                                           don't assume that this is set */
+  paso::SparseMatrix* mainBlock;           /* main block */
+  paso::SparseMatrix* col_coupleBlock;     /* coupling to neighbouring processors (row - col) */
+  paso::SparseMatrix* row_coupleBlock;     /* coupling to neighbouring processors (col - row)  */
+  paso::SparseMatrix* remote_coupleBlock;  /* coupling of rows-cols on neighbouring processors 
+                                              don't assume that this is set */
 
   bool is_balanced;
   double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)

@@ -60,7 +60,7 @@
 void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
 {
   Paso_Pattern *pattern_main=NULL, *pattern_couple=NULL;
-  Paso_Coupler *coupler=NULL;
+  paso::Coupler *coupler=NULL;
   Paso_SharedComponents *send=NULL, *recv=NULL;
   double *cols=NULL, *send_buf=NULL, *ptr_val=NULL, *send_m=NULL, *send_c=NULL;
   index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
@@ -92,8 +92,8 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
   if (B->global_id == NULL) {
-    coupler=Paso_Coupler_alloc(B->col_coupler->connector, 1);
-    Paso_Coupler_startCollect(coupler, cols);
+    coupler=paso::Coupler_alloc(B->col_coupler->connector, 1);
+    paso::Coupler_startCollect(coupler, cols);
   }
 
   recv_buf = new index_t[size];
@@ -126,13 +126,13 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
 
   /* waiting for receiving unknown's global ID */
   if (B->global_id == NULL) {
-    Paso_Coupler_finishCollect(coupler);
+      paso::Coupler_finishCollect(coupler);
     global_id = new index_t[num_couple_cols];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_couple_cols; ++i)
         global_id[i] = coupler->recv_buffer[i];
     B->global_id = global_id;
-    Paso_Coupler_free(coupler);
+    paso::Coupler_free(coupler);
   } else 
     global_id = B->global_id;
 
@@ -596,7 +596,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    paso::SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
-   Paso_Connector *col_connector=NULL, *row_connector=NULL;
+   paso::Connector *col_connector=NULL, *row_connector=NULL;
    Paso_Pattern *main_pattern=NULL;
    Paso_Pattern *col_couple_pattern=NULL, *row_couple_pattern =NULL;
    const dim_t row_block_size=A->row_block_size;
@@ -1804,7 +1804,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
 			neighbor, shared, offsetInShared, 1, 0, mpi_info);
 
-   col_connector = Paso_Connector_alloc(send, recv);
+   col_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
@@ -1905,7 +1905,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    }
    recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
                         neighbor, shared, offsetInShared, 1, 0, mpi_info);
-   row_connector = Paso_Connector_alloc(send, recv);
+   row_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
@@ -2020,8 +2020,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    Paso_Pattern_free(main_pattern);
    Paso_Pattern_free(col_couple_pattern);
    Paso_Pattern_free(row_couple_pattern);
-   Paso_Connector_free(col_connector);
-   Paso_Connector_free(row_connector);
+   paso::Connector_free(col_connector);
+   paso::Connector_free(row_connector);
    Paso_Distribution_free(output_dist);
    Paso_Distribution_free(input_dist);
    delete[] RAP_main_val;
@@ -2044,7 +2044,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    paso::SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
-   Paso_Connector *col_connector=NULL, *row_connector=NULL;
+   paso::Connector *col_connector=NULL, *row_connector=NULL;
    Paso_Pattern *main_pattern=NULL;
    Paso_Pattern *col_couple_pattern=NULL, *row_couple_pattern =NULL;
    const dim_t row_block_size=A->row_block_size;
@@ -3230,7 +3230,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
 			neighbor, shared, offsetInShared, 1, 0, mpi_info);
 
-   col_connector = Paso_Connector_alloc(send, recv);
+   col_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
@@ -3329,7 +3329,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    }
    recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
                         neighbor, shared, offsetInShared, 1, 0, mpi_info);
-   row_connector = Paso_Connector_alloc(send, recv);
+   row_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
@@ -3443,8 +3443,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    Paso_Pattern_free(main_pattern);
    Paso_Pattern_free(col_couple_pattern);
    Paso_Pattern_free(row_couple_pattern);
-   Paso_Connector_free(col_connector);
-   Paso_Connector_free(row_connector);
+   paso::Connector_free(col_connector);
+   paso::Connector_free(row_connector);
    Paso_Distribution_free(output_dist);
    Paso_Distribution_free(input_dist);
    delete[] RAP_main_val;

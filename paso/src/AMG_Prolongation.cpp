@@ -58,7 +58,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    paso::SystemMatrixPattern *pattern=NULL;
    Paso_Distribution *input_dist=NULL, *output_dist=NULL;
    Paso_SharedComponents *send =NULL, *recv=NULL;
-   Paso_Connector *col_connector=NULL;
+   paso::Connector *col_connector=NULL;
    Paso_Pattern *main_pattern=NULL, *couple_pattern=NULL;
    const dim_t row_block_size=A_p->row_block_size;
    const dim_t col_block_size=A_p->col_block_size;
@@ -306,7 +306,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 
    send = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
 				      offsetInShared, 1, 0, mpi_info);
-   col_connector = Paso_Connector_alloc(send, recv);
+   col_connector = paso::Connector_alloc(send, recv);
    Paso_SharedComponents_free(recv);
    Paso_SharedComponents_free(send);
    delete[] recv_shared;
@@ -349,7 +349,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    paso::SystemMatrixPattern_free(pattern);
    Paso_Pattern_free(main_pattern);
    Paso_Pattern_free(couple_pattern);
-   Paso_Connector_free(col_connector);
+   paso::Connector_free(col_connector);
    Paso_Distribution_free(output_dist);
    Paso_Distribution_free(input_dist);
    if (Esys_noError()) {

@@ -489,9 +489,9 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	  
           double *remote_threshold=NULL;
           
-	  Paso_Coupler* threshold_coupler=Paso_Coupler_alloc(A->row_coupler->connector  ,2);
-          Paso_Coupler_startCollect(threshold_coupler,threshold_p);
-          Paso_Coupler_finishCollect(threshold_coupler);
+          paso::Coupler* threshold_coupler=paso::Coupler_alloc(A->row_coupler->connector  ,2);
+          paso::Coupler_startCollect(threshold_coupler,threshold_p);
+          paso::Coupler_finishCollect(threshold_coupler);
           remote_threshold=threshold_coupler->recv_buffer;
 
           #pragma omp parallel for private(i,iptr) schedule(static)
@@ -522,7 +522,7 @@ void Paso_Preconditioner_AMG_setStrongConnections(Paso_SystemMatrix* A,
 	      degree_S[i+my_n]=kdeg;
           }
 
-          Paso_Coupler_free(threshold_coupler);
+          paso::Coupler_free(threshold_coupler);
      }
      delete[] threshold_p;
 }
@@ -648,9 +648,9 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
       
       double *remote_threshold=NULL;
       
-      Paso_Coupler* threshold_coupler=Paso_Coupler_alloc(A->row_coupler->connector  ,2);
-      Paso_Coupler_startCollect(threshold_coupler,threshold_p);
-      Paso_Coupler_finishCollect(threshold_coupler);
+      paso::Coupler* threshold_coupler=paso::Coupler_alloc(A->row_coupler->connector  ,2);
+      paso::Coupler_startCollect(threshold_coupler,threshold_p);
+      paso::Coupler_finishCollect(threshold_coupler);
       remote_threshold=threshold_coupler->recv_buffer;
       
       #pragma omp parallel for private(i,iptr) schedule(static)
@@ -695,7 +695,7 @@ void Paso_Preconditioner_AMG_setStrongConnections_Block(Paso_SystemMatrix* A,
 	 offset_S[i+my_n]=koffset;
 	 degree_S[i+my_n]=kdeg;
       }
-      Paso_Coupler_free(threshold_coupler);
+      paso::Coupler_free(threshold_coupler);
    }
    delete[] threshold_p;
 }
@@ -735,14 +735,14 @@ int compareindex(const void *a, const void *b)
 void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMGBlockSelect *split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
-					    Paso_Connector* col_connector, Paso_Distribution* col_dist) 
+					    paso::Connector* col_connector, Paso_Distribution* col_dist) 
 {
    dim_t i, numUndefined,   iter=0;
   index_t iptr, jptr, kptr;
   double *random=NULL, *w=NULL, *Status=NULL;
   index_t * ST_flag=NULL;
 
-  Paso_Coupler* w_coupler=Paso_Coupler_alloc(col_connector  ,1);
+  paso::Coupler* w_coupler=paso::Coupler_alloc(col_connector  ,1);
    
   w=new  double[n];
   Status=new  double[n];
@@ -771,7 +771,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
   /* printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined);  */
   iter=0; 
   while (numUndefined > 0) {
-     Paso_Coupler_fillOverlap(n, w, w_coupler);
+      paso::Coupler_fillOverlap(n, w, w_coupler);
 
       /* calculate the maximum value of neighbours following active strong connections:
 	    w2[i]=MAX(w[k]) with k in ST[i] or S[i] and (i,k) connection is still active  */       
@@ -814,7 +814,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
 	 
       }
 
-      Paso_Coupler_fillOverlap(n, Status, w_coupler);
+      paso::Coupler_fillOverlap(n, Status, w_coupler);
 
 
 	 /*   remove connection to D points : 
@@ -901,7 +901,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
   } /* end of while loop */
 
   /* map to output :*/
-  Paso_Coupler_fillOverlap(n, Status, w_coupler);
+  paso::Coupler_fillOverlap(n, Status, w_coupler);
   #pragma omp parallel for private(i)
   for (i=0; i< n; ++i) {
 	 if (Status[i] > -50.) {
@@ -911,7 +911,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
 	 }
   }
   /* clean up : */
-  Paso_Coupler_free(w_coupler);
+  paso::Coupler_free(w_coupler);
   delete[] random;
   delete[] w;
   delete[] Status;

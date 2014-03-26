@@ -56,8 +56,8 @@ struct Dudley_NodeFile {
     Paso_Distribution *degreesOfFreedomDistribution;
     Paso_Distribution *reducedDegreesOfFreedomDistribution;
 
-    Paso_Connector *degreesOfFreedomConnector;
-    Paso_Connector *reducedDegreesOfFreedomConnector;
+    paso::Connector *degreesOfFreedomConnector;
+    paso::Connector *reducedDegreesOfFreedomConnector;
 
     /* these a the packed versions of Id */
     index_t *reducedNodesId;

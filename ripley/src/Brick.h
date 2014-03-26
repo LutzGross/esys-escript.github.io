@@ -19,7 +19,9 @@
 
 #include <ripley/RipleyDomain.h>
 
-struct Paso_Connector;
+namespace paso {
+   struct Connector;
+}
 
 namespace ripley {
 
@@ -276,7 +278,7 @@ private:
 
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes
-    Paso_Connector* m_connector;
+    paso::Connector* m_connector;
 
     // the Paso System Matrix pattern
     paso::SystemMatrixPattern* m_pattern;

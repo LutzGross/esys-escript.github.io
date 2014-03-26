@@ -34,7 +34,7 @@ namespace paso {
 SystemMatrixPattern::SystemMatrixPattern(int patType,
         Paso_Distribution* outDist, Paso_Distribution* inDist,
         Paso_Pattern* mainPat, Paso_Pattern* colPat, Paso_Pattern* rowPat,
-        Paso_Connector* colConn, Paso_Connector* rowConn) 
+        Connector* colConn, Connector* rowConn) 
 {
     Esys_resetError();
 
@@ -77,8 +77,8 @@ SystemMatrixPattern::SystemMatrixPattern(int patType,
     mainPattern=Paso_Pattern_getReference(mainPat);
     row_couplePattern=Paso_Pattern_getReference(rowPat);
     col_couplePattern=Paso_Pattern_getReference(colPat);
-    row_connector=Paso_Connector_getReference(rowConn);
-    col_connector=Paso_Connector_getReference(colConn);
+    row_connector=Connector_getReference(rowConn);
+    col_connector=Connector_getReference(colConn);
     output_distribution=Paso_Distribution_getReference(outDist);
     input_distribution=Paso_Distribution_getReference(inDist);
     mpi_info = Esys_MPIInfo_getReference(outDist->mpi_info);
@@ -105,8 +105,8 @@ void SystemMatrixPattern_free(SystemMatrixPattern* in)
             Paso_Pattern_free(in->mainPattern);
             Paso_Pattern_free(in->row_couplePattern);
             Paso_Pattern_free(in->col_couplePattern);
-            Paso_Connector_free(in->row_connector);
-            Paso_Connector_free(in->col_connector);
+            Connector_free(in->row_connector);
+            Connector_free(in->col_connector);
             Paso_Distribution_free(in->output_distribution);
             Paso_Distribution_free(in->input_distribution);
             Esys_MPIInfo_free(in->mpi_info);

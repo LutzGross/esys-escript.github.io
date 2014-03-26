@@ -39,7 +39,7 @@
 
 void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool recreatePattern){
   Paso_Pattern *pattern=NULL;
-  Paso_Coupler *coupler=NULL;
+  paso::Coupler *coupler=NULL;
   Paso_SharedComponents *send=NULL, *recv=NULL;
   double *cols=NULL, *send_buf=NULL;
   index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
@@ -63,8 +63,8 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
   if (A->global_id == NULL) {
-    coupler=Paso_Coupler_alloc(A->col_coupler->connector, 1);
-    Paso_Coupler_startCollect(coupler, cols);
+    coupler=paso::Coupler_alloc(A->col_coupler->connector, 1);
+    paso::Coupler_startCollect(coupler, cols);
   }
 
   recv_buf = new index_t[mpi_size];
@@ -87,13 +87,13 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
 
   /* waiting for receiving unknown's global ID */
   if (A->global_id == NULL) {
-    Paso_Coupler_finishCollect(coupler);
+      paso::Coupler_finishCollect(coupler);
     global_id = new index_t[num_couple_cols+1];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_couple_cols; ++i) 
 	global_id[i] = coupler->recv_buffer[i];
     A->global_id = global_id;
-    Paso_Coupler_free(coupler);
+    paso::Coupler_free(coupler);
   } else 
   global_id = A->global_id;
 
