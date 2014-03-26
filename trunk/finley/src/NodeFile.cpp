@@ -173,9 +173,9 @@ void NodeFile::freeTable()
     degreesOfFreedomDistribution=NULL;
     Paso_Distribution_free(reducedDegreesOfFreedomDistribution);
     reducedDegreesOfFreedomDistribution=NULL;
-    Paso_Connector_free(degreesOfFreedomConnector);
+    paso::Connector_free(degreesOfFreedomConnector);
     degreesOfFreedomConnector=NULL;
-    Paso_Connector_free(reducedDegreesOfFreedomConnector);
+    paso::Connector_free(reducedDegreesOfFreedomConnector);
     reducedDegreesOfFreedomConnector=NULL;
 
     numNodes=0;
@@ -1003,9 +1003,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 
     if (noError()) {
         if (use_reduced_elements) {
-            reducedDegreesOfFreedomConnector=Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
+            reducedDegreesOfFreedomConnector=paso::Connector_alloc(snd_shcomp, rcv_shcomp);
         } else {
-            degreesOfFreedomConnector=Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
+            degreesOfFreedomConnector=paso::Connector_alloc(snd_shcomp, rcv_shcomp);
         }
     }
 
@@ -1124,8 +1124,8 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
         Paso_Distribution_free(reducedNodesDistribution);
         Paso_Distribution_free(degreesOfFreedomDistribution);
         Paso_Distribution_free(reducedDegreesOfFreedomDistribution);
-        Paso_Connector_free(degreesOfFreedomConnector);
-        Paso_Connector_free(reducedDegreesOfFreedomConnector);
+        paso::Connector_free(degreesOfFreedomConnector);
+        paso::Connector_free(reducedDegreesOfFreedomConnector);
         nodesDistribution=NULL;
         reducedNodesDistribution=NULL;
         degreesOfFreedomDistribution=NULL;

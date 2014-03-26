@@ -169,7 +169,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 Rectangle::~Rectangle()
 {
     paso::SystemMatrixPattern_free(m_pattern);
-    Paso_Connector_free(m_connector);
+    paso::Connector_free(m_connector);
     delete assembler;
 }
 
@@ -1441,14 +1441,14 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    Paso_Coupler* coupler = Paso_Coupler_alloc(m_connector, numComp);
+    paso::Coupler* coupler = paso::Coupler_alloc(m_connector, numComp);
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    Paso_Coupler_startCollect(coupler, in.getSampleDataRO(0));
+    paso::Coupler_startCollect(coupler, in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
-    const double* buffer = Paso_Coupler_finishCollect(coupler);
+    const double* buffer = paso::Coupler_finishCollect(coupler);
 
 #pragma omp parallel for
     for (index_t i=0; i<getNumNodes(); i++) {
@@ -1457,7 +1457,7 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
-    Paso_Coupler_free(coupler);
+    paso::Coupler_free(coupler);
 }
 
 //private
@@ -1724,7 +1724,7 @@ void Rectangle::createPattern()
     Paso_SharedComponents *rcv_shcomp = Paso_SharedComponents_alloc(
             numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
             &offsetInShared[0], 1, 0, m_mpiInfo);
-    m_connector = Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
+    m_connector = paso::Connector_alloc(snd_shcomp, rcv_shcomp);
     Paso_SharedComponents_free(snd_shcomp);
     Paso_SharedComponents_free(rcv_shcomp);
 

@@ -48,8 +48,8 @@ Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp)
 	    out->R=new double[2*n];
 	    Esys_checkPtr(out->R);
 
-	    out->R_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),2*blockSize);
-	    out->u_tilde_coupler=Paso_Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
+	    out->R_coupler=paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),2*blockSize);
+	    out->u_tilde_coupler=paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
 	    out->antidiffusive_fluxes=Paso_SystemMatrix_alloc(fctp->transport_matrix->type,
 						    fctp->transport_matrix->pattern,
 						    fctp->transport_matrix->row_block_size,
@@ -72,8 +72,8 @@ void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in)
        delete[] in->u_tilde;
        delete[] in->MQ;
        delete[] in->R;
-       Paso_Coupler_free(in->R_coupler);
-       Paso_Coupler_free(in->u_tilde_coupler);
+       paso::Coupler_free(in->R_coupler);
+       paso::Coupler_free(in->u_tilde_coupler);
        delete in;
    }
 }
@@ -83,7 +83,6 @@ void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in)
 void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const double *Mu_tilda) {
   
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
-  double * remote_u_tilde =NULL;
   const paso::SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
   const double *lumped_mass_matrix = flux_limiter->borrowed_lumped_mass_matrix;
   index_t i, iptr_ij;
@@ -102,7 +101,7 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
     }        
   }
   /* distribute u_tilde: */
-  Paso_Coupler_startCollect(flux_limiter->u_tilde_coupler,flux_limiter->u_tilde);
+  paso::Coupler_startCollect(flux_limiter->u_tilde_coupler,flux_limiter->u_tilde);
   /* 
      * calculate MQ_P[i] = lumped_mass_matrix[i] * max_{j} (\tilde{u}[j]- \tilde{u}[i] ) 
      *           MQ_N[i] = lumped_mass_matrix[i] * min_{j} (\tilde{u}[j]- \tilde{u}[i] ) 
@@ -134,8 +133,8 @@ void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const d
      }
   } /* parallel region */
   /* complete distribute u_tilde: */
-  Paso_Coupler_finishCollect(flux_limiter->u_tilde_coupler);
-  remote_u_tilde=Paso_Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
+  paso::Coupler_finishCollect(flux_limiter->u_tilde_coupler);
+  const double* remote_u_tilde=paso::Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
 
   /* now we look at the couple matrix and set the final value for QP, QN */
   #pragma omp parallel private(i, iptr_ij)
@@ -168,7 +167,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
   const paso::SystemMatrixPattern *pattern = Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter);
   const double* u_tilde = flux_limiter->u_tilde;
-  const double* remote_u_tilde=Paso_Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
+  const double* remote_u_tilde=paso::Coupler_borrowRemoteData(flux_limiter->u_tilde_coupler);
   Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
   index_t iptr_ij;
   dim_t i;
@@ -232,7 +231,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
   } /* end parallel region */
   
   /* now we kick off the distribution of the R's */
-  Paso_Coupler_startCollect(flux_limiter->R_coupler,flux_limiter->R);
+  paso::Coupler_startCollect(flux_limiter->R_coupler,flux_limiter->R);
 } 
 
 
@@ -247,7 +246,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_l
   dim_t i;
   index_t iptr_ij;
 
-  remote_R=Paso_Coupler_finishCollect(flux_limiter->R_coupler);
+  remote_R=paso::Coupler_finishCollect(flux_limiter->R_coupler);
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
   for (i = 0; i < n; ++i) {

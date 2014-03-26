@@ -38,7 +38,7 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
     SystemMatrixPattern* out = NULL;
     Paso_Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
     Paso_Distribution *new_output_distribution=NULL, *new_input_distribution=NULL;
-    Paso_Connector *new_col_connector=NULL, *new_row_connector=NULL;
+    Connector *new_col_connector=NULL, *new_row_connector=NULL;
 
     if ( (output_block_size == 1) && (input_block_size == 1) &&
             ((pattern->type & MATRIX_FORMAT_OFFSET1) == (type & MATRIX_FORMAT_OFFSET1)) ) {
@@ -57,22 +57,22 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
                     pattern->output_distribution->mpi_info,
                     pattern->output_distribution->first_component,
                     output_block_size, 0);
-            new_row_connector = Paso_Connector_unroll(pattern->row_connector,
+            new_row_connector = Connector_unroll(pattern->row_connector,
                                                       output_block_size);
         } else {
             new_output_distribution = Paso_Distribution_getReference(pattern->output_distribution);
-            new_row_connector = Paso_Connector_getReference(pattern->row_connector);
+            new_row_connector = Connector_getReference(pattern->row_connector);
         }
         if (input_block_size > 1) {
             new_input_distribution = Paso_Distribution_alloc(
                     pattern->input_distribution->mpi_info,
                     pattern->input_distribution->first_component,
                     input_block_size, 0);
-            new_col_connector = Paso_Connector_unroll(pattern->col_connector,
+            new_col_connector = Connector_unroll(pattern->col_connector,
                     input_block_size);
         } else {
             new_input_distribution = Paso_Distribution_getReference(pattern->input_distribution);
-            new_col_connector = Paso_Connector_getReference(pattern->col_connector);
+            new_col_connector = Connector_getReference(pattern->col_connector);
         }
 
         if (Esys_noError()) {
@@ -89,8 +89,8 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
         Paso_Pattern_free(new_row_couplePattern);
         Paso_Distribution_free(new_output_distribution);
         Paso_Distribution_free(new_input_distribution);
-        Paso_Connector_free(new_row_connector);
-        Paso_Connector_free(new_col_connector);
+        Connector_free(new_row_connector);
+        Connector_free(new_col_connector);
     }
 
     if (Esys_noError()) {

@@ -30,7 +30,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 {
     dim_t n, k, l, mpiSize;
     dim_t numComps = getDataPointSize(out);
-    Paso_Coupler *coupler = NULL;
+    paso::Coupler *coupler = NULL;
     type_t in_data_type = getFunctionSpaceType(in);
     type_t out_data_type = getFunctionSpaceType(out);
     index_t upperBound;
@@ -247,14 +247,14 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    requireWrite(out);
 	    if (out_data_type == DUDLEY_NODES)
 	    {
-		coupler = Paso_Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
+		coupler = paso::Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
 		if (Esys_noError())
 		{
 		    /* It is not immediately clear whether coupler can be trusted with constant data so I'll assume RW */
 		    /* Also, it holds pointers so it might not be safe to use on lazy data anyway? */
 		    requireWrite(in);
-		    Paso_Coupler_startCollect(coupler, getDataRW(in));
-		    recv_buffer = Paso_Coupler_finishCollect(coupler);
+            paso::Coupler_startCollect(coupler, getDataRW(in));
+		    recv_buffer = paso::Coupler_finishCollect(coupler);
 		    upperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 #pragma omp parallel private(n,k)
 		    {
@@ -274,16 +274,16 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 			}
 		    }
 		}
-		Paso_Coupler_free(coupler);
+        paso::Coupler_free(coupler);
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_NODES)
 	    {
-		coupler = Paso_Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
+		coupler = paso::Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
 		if (Esys_noError())
 		{
 		    requireWrite(in);	/* See comment above about coupler and const */
-		    Paso_Coupler_startCollect(coupler, getDataRW(in));
-		    recv_buffer = Paso_Coupler_finishCollect(coupler);
+            paso::Coupler_startCollect(coupler, getDataRW(in));
+		    recv_buffer = paso::Coupler_finishCollect(coupler);
 		    upperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
 		    requireWrite(out);
 
@@ -306,7 +306,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 			}
 		    }
 		}
-		Paso_Coupler_free(coupler);
+        paso::Coupler_free(coupler);
 	    }
 	    else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM)
 	    {
@@ -349,13 +349,13 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_NODES)
 	    {
-		coupler = Paso_Coupler_alloc(nodes->reducedDegreesOfFreedomConnector, numComps);
+		coupler = paso::Coupler_alloc(nodes->reducedDegreesOfFreedomConnector, numComps);
 		if (Esys_noError())
 		{
 		    upperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
 		    requireWrite(in);	/* See comment about coupler and const */
-		    Paso_Coupler_startCollect(coupler, getDataRW(in));
-		    recv_buffer = Paso_Coupler_finishCollect(coupler);
+            paso::Coupler_startCollect(coupler, getDataRW(in));
+		    recv_buffer = paso::Coupler_finishCollect(coupler);
 		    requireWrite(out);
 #pragma omp parallel private(n,k,l)
 		    {
@@ -376,7 +376,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 			}
 		    }
 		}
-		Paso_Coupler_free(coupler);
+        paso::Coupler_free(coupler);
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM)
 	    {

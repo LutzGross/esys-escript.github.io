@@ -135,9 +135,9 @@ void Dudley_NodeFile_freeTable(Dudley_NodeFile * in)
 	in->degreesOfFreedomDistribution = NULL;
 	Paso_Distribution_free(in->reducedDegreesOfFreedomDistribution);
 	in->reducedDegreesOfFreedomDistribution = NULL;
-	Paso_Connector_free(in->degreesOfFreedomConnector);
+    paso::Connector_free(in->degreesOfFreedomConnector);
 	in->degreesOfFreedomConnector = NULL;
-	Paso_Connector_free(in->reducedDegreesOfFreedomConnector);
+    paso::Connector_free(in->reducedDegreesOfFreedomConnector);
 	in->reducedDegreesOfFreedomConnector = NULL;
 
 	in->numTagsInUse = 0;

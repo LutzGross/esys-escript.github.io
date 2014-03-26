@@ -42,7 +42,7 @@ struct SystemMatrixPattern
     SystemMatrixPattern(int type, Paso_Distribution* output_distribution,
         Paso_Distribution* input_distribution, Paso_Pattern* mainPattern,
         Paso_Pattern* col_couplePattern, Paso_Pattern* row_couplePattern,
-        Paso_Connector* col_connector, Paso_Connector* row_connector);
+        Connector* col_connector, Connector* row_connector);
 
     int type;
 
@@ -51,8 +51,8 @@ struct SystemMatrixPattern
     Paso_Pattern* mainPattern;
     Paso_Pattern* col_couplePattern;
     Paso_Pattern* row_couplePattern;
-    Paso_Connector* col_connector;
-    Paso_Connector* row_connector;
+    Connector* col_connector;
+    Connector* row_connector;
     Paso_Distribution* output_distribution; 
     Paso_Distribution* input_distribution; 
 

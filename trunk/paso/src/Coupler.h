@@ -15,103 +15,126 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: coupler                                            */ 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_COUPLER
-#define INC_PASO_COUPLER
+#ifndef __PASO_COUPLER_H__
+#define __PASO_COUPLER_H__
 
 #include "SharedComponents.h"
-/************************************************************************************/
 
-typedef struct Paso_Connector {
+namespace paso {
 
-  Paso_SharedComponents* send;
-  Paso_SharedComponents* recv;
-  dim_t reference_counter;
-  Esys_MPIInfo *mpi_info;
+struct Connector
+{
+    Paso_SharedComponents* send;
+    Paso_SharedComponents* recv;
+    dim_t reference_counter;
+    Esys_MPIInfo* mpi_info;
+};
 
-} Paso_Connector;
-typedef struct Paso_Coupler {
+struct Coupler
+{
+    Connector* connector;
 
-  dim_t block_size;
+    dim_t block_size;
+    bool in_use;
 
-  Paso_Connector* connector;
-
-  bool in_use;
-  double *data; /* unmanaged pointer to data to be sent */
-  double *send_buffer;
-  double *recv_buffer;
-  #ifdef ESYS_MPI
+    // unmanaged pointer to data to be sent
+    double *data;
+    double *send_buffer;
+    double *recv_buffer;
     MPI_Request* mpi_requests;
     MPI_Status* mpi_stati;
- #else
-    void* mpi_requests;
-    void* mpi_stati;
- #endif
   
-  dim_t reference_counter;
-  Esys_MPIInfo *mpi_info;
-
-} Paso_Coupler;
-
+    dim_t reference_counter;
+    Esys_MPIInfo *mpi_info;
+};
 
 
 PASO_DLL_API
-Paso_Connector* Paso_Connector_alloc(Paso_SharedComponents * send, Paso_SharedComponents* recv);
+Connector* Connector_alloc(Paso_SharedComponents* send, Paso_SharedComponents* recv);
 
 PASO_DLL_API
-Paso_Connector* Paso_Connector_getReference(Paso_Connector*);
+Connector* Connector_getReference(Connector*);
 
 PASO_DLL_API
-Paso_Connector* Paso_Connector_unroll(Paso_Connector* in, index_t block_size);
+Connector* Connector_unroll(Connector* in, index_t block_size);
 
 PASO_DLL_API
-Paso_Connector* Paso_Connector_copy(Paso_Connector* in);
+Connector* Connector_copy(Connector* in);
 
 PASO_DLL_API
-void Paso_Connector_free(Paso_Connector*);
-
-
-PASO_DLL_API
-Paso_Coupler* Paso_Coupler_alloc(Paso_Connector*, dim_t blockSize);
-
-PASO_DLL_API
-Paso_Coupler* Paso_Coupler_getReference(Paso_Coupler*);
-
-PASO_DLL_API
-void Paso_Coupler_startCollect(Paso_Coupler* self,const double* in);
-
-PASO_DLL_API
-double* Paso_Coupler_finishCollect(Paso_Coupler* self);
-
-PASO_DLL_API
-void Paso_Coupler_free(Paso_Coupler* in);
-
-#define Paso_Coupler_borrowLocalData(_in_) (_in_)->data
-#define Paso_Coupler_borrowRemoteData(_in_) (_in_)->recv_buffer
-#define Paso_Coupler_getNumSharedComponents(_in_)  ((_in_)->connector->send->numSharedComponents)
-#define Paso_Coupler_getNumOverlapComponents(_in_) ((_in_)->connector->recv->numSharedComponents)
-#define Paso_Coupler_getNumSharedValues(_in_) ( Paso_Coupler_getNumSharedComponents(_in_) * (_in_)->block_size )
-#define Paso_Coupler_getNumOverlapValues(_in_) ( Paso_Coupler_getNumOverlapComponents(_in_) * (_in_)->block_size )
-#define Paso_Coupler_getLocalLength(_in_) ( (_in_)->connector->send->local_length )
-
-PASO_DLL_API
-void Paso_Coupler_copyAll(const Paso_Coupler* src, Paso_Coupler* target);
+void Connector_free(Connector*);
 
 
 PASO_DLL_API
-void Paso_Coupler_fillOverlap(const dim_t n, double* x, Paso_Coupler *coupler);
+Coupler* Coupler_alloc(Connector*, dim_t blockSize);
 
 PASO_DLL_API
-void Paso_Coupler_max(const dim_t n, double* x, Paso_Coupler *coupler);
+Coupler* Coupler_getReference(Coupler*);
 
-#endif
+PASO_DLL_API
+void Coupler_startCollect(Coupler*, const double* in);
+
+PASO_DLL_API
+double* Coupler_finishCollect(Coupler*);
+
+PASO_DLL_API
+void Coupler_free(Coupler*);
+
+PASO_DLL_API
+void Coupler_copyAll(const Coupler* src, Coupler* target);
+
+PASO_DLL_API
+void Coupler_fillOverlap(dim_t n, double* x, Coupler* coupler);
+
+PASO_DLL_API
+void Coupler_max(dim_t n, double* x, Coupler* coupler);
+
+inline const double* Coupler_borrowLocalData(const Coupler* in)
+{
+    return in->data;
+}
+
+inline const double* Coupler_borrowRemoteData(const Coupler* in)
+{
+    return in->recv_buffer;
+}
+
+inline dim_t Coupler_getNumSharedComponents(const Coupler* in)
+{
+    return in->connector->send->numSharedComponents;
+}
+
+inline dim_t Coupler_getNumOverlapComponents(const Coupler* in)
+{
+    return in->connector->recv->numSharedComponents;
+}
+
+inline dim_t Coupler_getNumSharedValues(const Coupler* in)
+{
+    return Coupler_getNumSharedComponents(in) * in->block_size;
+}
+
+inline dim_t Coupler_getNumOverlapValues(const Coupler* in)
+{
+    return Coupler_getNumOverlapComponents(in) * in->block_size;
+}
+
+inline dim_t Coupler_getLocalLength(const Coupler* in)
+{
+    return in->connector->send->local_length;
+}
+
+} // namespace paso
+
+#endif // __PASO_COUPLER_H__
 

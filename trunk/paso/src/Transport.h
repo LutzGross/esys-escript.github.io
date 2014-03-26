@@ -84,7 +84,7 @@ PASO_DLL_API
 void Paso_TransportProblem_reset(Paso_TransportProblem* in);
 
 PASO_DLL_API
-Paso_Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProblem* in);
+paso::Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProblem* in);
 
 PASO_DLL_API
 index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
