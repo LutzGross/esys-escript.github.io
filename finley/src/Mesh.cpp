@@ -326,7 +326,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
 
-    IndexList* index_list=new IndexList[myNumVertices];
+    IndexListArray index_list(myNumVertices);
     std::vector<int> newGlobalDOFID(len);
     // create the adjacency structure xadj and adjncy
 #pragma omp parallel
@@ -350,14 +350,14 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
                 Nodes->globalDegreesOfFreedom);
     }
     // create the local matrix pattern
-    paso::Pattern *pattern=IndexList_createPattern(0, myNumVertices,
-            index_list, myFirstVertex, myLastVertex, -myFirstVertex);
+    paso::Pattern *pattern=paso::Pattern_fromIndexListArray(0, myNumVertices,
+                                 index_list, myFirstVertex, myLastVertex,
+                                 -myFirstVertex);
 
     if (noError())
         paso::Pattern_reduceBandwidth(pattern, &newGlobalDOFID[0]); 
 
     paso::Pattern_free(pattern);
-    delete[] index_list;
     Esys_MPIInfo_noError(MPIInfo);
 
     if (noError()) {

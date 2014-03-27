@@ -20,13 +20,15 @@
 /* Paso: Pattern */
 
 /****************************************************************************/
- 
+
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
 /****************************************************************************/
 
 #include "Paso.h"
 #include "Pattern.h"
+
+using esysUtils::IndexListArray;
 
 namespace paso {
 
@@ -45,26 +47,26 @@ Pattern* Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr,
         loc_min_index=index_offset;
         loc_max_index=index_offset-1;
         if (type & MATRIX_FORMAT_OFFSET1) {
-#pragma omp for schedule(static) 
+#pragma omp for schedule(static)
             for (i=0; i < numOutput; ++i) {
                 if (ptr[i]<ptr[i+1]) {
 #ifdef USE_QSORTG
-                    qsortG(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex); 
+                    qsortG(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex);
 #else
-                    qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex); 
+                    qsort(&(index[ptr[i]-1]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex);
 #endif
                     loc_min_index=MIN(loc_min_index,index[ptr[i]-1]);
                     loc_max_index=MAX(loc_max_index,index[ptr[i+1]-2]);
                 }
             }
         } else {
-#pragma omp for schedule(static) 
+#pragma omp for schedule(static)
             for (i=0; i < numOutput; ++i) {
                 if (ptr[i] < ptr[i+1]) {
 #ifdef USE_QSORTG
-                    qsortG(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex); 
+                    qsortG(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex);
 #else
-                    qsort(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex); 
+                    qsort(&(index[ptr[i]]),(size_t)(ptr[i+1]-ptr[i]),sizeof(index_t), comparIndex);
 #endif
                     loc_min_index=MIN(loc_min_index,index[ptr[i]]);
                     loc_max_index=MAX(loc_max_index,index[ptr[i+1]-1]);
@@ -112,7 +114,7 @@ Pattern* Pattern_getReference(Pattern* in)
     }
     return in;
 }
-  
+
 /* deallocates a Pattern */
 void Pattern_free(Pattern* in)
 {
@@ -158,43 +160,38 @@ bool Pattern_isEmpty(Pattern* in)
 }
 
 /* creates a pattern from a range of indices */
-Pattern* Pattern_fromIndexListArray(dim_t n0,
-        Paso_IndexListArray* index_list_array,
-        index_t range_min, index_t range_max, index_t index_offset)
+Pattern* Pattern_fromIndexListArray(dim_t n0, dim_t n,
+                                    const IndexListArray& index_list_array,
+                                    index_t range_min, index_t range_max,
+                                    index_t index_offset)
 {
     Pattern* out=NULL;
     index_t* index=NULL;
-    const dim_t n=index_list_array->n;
     dim_t* ptr = new index_t[n+1-n0];
 
-    if (!Esys_checkPtr(ptr)) {
-        Paso_IndexList* index_list = index_list_array->index_list;
-
-        // get the number of connections per row
+    // get the number of connections per row
 #pragma omp parallel for schedule(static)
-        for (dim_t i=n0; i < n; ++i) {
-            ptr[i-n0]=Paso_IndexList_count(&index_list[i],range_min,range_max);
-        }
-        // accumulate ptr
-        dim_t s=0;
-        for (dim_t i=n0; i < n; ++i) {
-            const dim_t itmp=ptr[i-n0];
-            ptr[i-n0]=s;
-            s+=itmp;
-        }
-        ptr[n-n0]=s;
-        // fill index
-        index=new index_t[ptr[n-n0]];
-        if (!Esys_checkPtr(index)) {
-#pragma omp parallel for schedule(static) 
-            for (dim_t i=n0; i < n; ++i) {
-                Paso_IndexList_toArray(&index_list[i], &index[ptr[i-n0]],
-                                       range_min, range_max, index_offset);
-            }
-            out=Pattern_alloc(MATRIX_FORMAT_DEFAULT, n-n0,
-                              range_max+index_offset, ptr, index);
-        }
+    for (dim_t i=n0; i < n; ++i) {
+        ptr[i-n0]=index_list_array[i].count(range_min, range_max);
     }
+    // accumulate ptr
+    dim_t s=0;
+    for (dim_t i=n0; i < n; ++i) {
+        const dim_t itmp=ptr[i-n0];
+        ptr[i-n0]=s;
+        s+=itmp;
+    }
+    ptr[n-n0]=s;
+    // fill index
+    index=new index_t[ptr[n-n0]];
+#pragma omp parallel for schedule(static)
+    for (dim_t i=n0; i < n; ++i) {
+        index_list_array[i].toArray(&index[ptr[i-n0]], range_min, range_max,
+                                    index_offset);
+    }
+    out=Pattern_alloc(MATRIX_FORMAT_DEFAULT, n-n0, range_max+index_offset,
+                      ptr, index);
+
     if (!Esys_noError()) {
         delete[] ptr;
         delete[] index;
@@ -203,7 +200,7 @@ Pattern* Pattern_fromIndexListArray(dim_t n0,
     return out;
 }
 
-index_t* Pattern_borrowMainDiagonalPointer(Pattern* A) 
+index_t* Pattern_borrowMainDiagonalPointer(Pattern* A)
 {
     if (A->main_iptr == NULL) {
         const dim_t n=A->numOutput;
@@ -231,7 +228,7 @@ index_t* Pattern_borrowMainDiagonalPointer(Pattern* A)
     }
     return A->main_iptr;
 }
-              
+
 dim_t Pattern_getNumColors(Pattern* A)
 {
     // make sure numColors is defined
@@ -251,7 +248,7 @@ index_t* Pattern_borrowColoringPointer(Pattern* A)
                 delete[] A->coloring;
                 A->coloring = NULL;
             }
-        } 
+        }
     }
     return A->coloring;
 }

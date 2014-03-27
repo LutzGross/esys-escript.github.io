@@ -107,11 +107,11 @@ paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_
         rowDistribution=Nodes->degreesOfFreedomDistribution;
         row_connector=Nodes->degreesOfFreedomConnector;
     }
-    IndexList* index_list=new IndexList[numRowTargets];
+    IndexListArray index_list(numRowTargets);
   
 #pragma omp parallel
     {
-        // insert contributions from element matrices into columns index index_list:
+        // insert contributions from element matrices into columns in indexlist:
         IndexList_insertElements(index_list, Elements, reduce_row_order,
                                  rowTarget, reduce_col_order, colTarget);
         IndexList_insertElements(index_list, FaceElements,
@@ -125,13 +125,13 @@ paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_
     }
  
     /* create pattern */
-    main_pattern=IndexList_createPattern(0, myNumRowTargets, index_list, 0,
-                                         myNumColTargets, 0);
-    col_couple_pattern=IndexList_createPattern(0, myNumRowTargets, index_list,
-                                               myNumColTargets, numColTargets,
-                                               -myNumColTargets);
-    row_couple_pattern=IndexList_createPattern(myNumRowTargets, numRowTargets,
-                                            index_list, 0, myNumColTargets, 0);
+    main_pattern=paso::Pattern_fromIndexListArray(
+            0, myNumRowTargets, index_list, 0, myNumColTargets, 0);
+    col_couple_pattern=paso::Pattern_fromIndexListArray(
+            0, myNumRowTargets, index_list, myNumColTargets,
+            numColTargets, -myNumColTargets);
+    row_couple_pattern=paso::Pattern_fromIndexListArray(
+            myNumRowTargets, numRowTargets, index_list, 0, myNumColTargets, 0);
 
     // if everything is in order we can create the return value
     if (noError()) {
@@ -140,7 +140,6 @@ paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_
                 col_couple_pattern, row_couple_pattern,
                 col_connector, row_connector);
     }
-    delete[] index_list;
     paso::Pattern_free(main_pattern);
     paso::Pattern_free(col_couple_pattern);
     paso::Pattern_free(row_couple_pattern);
