@@ -28,7 +28,7 @@ namespace ripley {
 
 class WaveAssembler2D : public AbstractAssembler {
 public:
-    WaveAssembler2D(escript::const_Domain_ptr dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
+    WaveAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
                 dim_t *m_NN, std::map<std::string, escript::Data> c);
     ~WaveAssembler2D(){};
 
@@ -59,7 +59,7 @@ public:
 
 private:
     std::map<std::string, escript::Data> c;
-    escript::const_Domain_ptr domain;
+    Rectangle *domain;
     double *m_dx;
     dim_t *m_NX;
     dim_t *m_NE;
