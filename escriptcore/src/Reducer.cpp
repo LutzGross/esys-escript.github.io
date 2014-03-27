@@ -57,6 +57,11 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
 
 }
 
+bool AbstractReducer::hasValue()
+{
+    return valueadded;
+}
+
 
 
 MPIDataReducer::MPIDataReducer(MPI_Op op)

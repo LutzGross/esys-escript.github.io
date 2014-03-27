@@ -55,6 +55,7 @@ private:
     escript::SubWorld_ptr localworld;	// subworld which this process belongs to
     unsigned int swcount;		// number of subwords
     unsigned int localid;		// position of localworld in overall world sequence
+
     
     // details of jobs to be created
     std::vector<boost::python::object> create;
@@ -62,6 +63,7 @@ private:
     std::vector<boost::python::dict> kwargs;
     
     unsigned int jobcounter;		// note that the id of the first job is 1 not 0.
+    bool manualimport;		// if false, all reduced vars will be shipped to all subworlds    
     void clearPendingJobs();
     void distributeJobs();
 };

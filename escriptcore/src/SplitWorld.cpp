@@ -26,7 +26,7 @@ using namespace boost::python;
 using namespace escript;
 
 SplitWorld::SplitWorld(unsigned int numgroups, MPI_Comm global)
-    :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1)
+    :localworld((SubWorld*)0), swcount(numgroups>0?numgroups:1), jobcounter(1), manualimport(false)
 {
     globalcom=esysUtils::makeInfo(global);
     
@@ -167,18 +167,28 @@ void SplitWorld::runJobs()
     distributeJobs();
     int mres=0;
     std::string err;
+    std::vector<char> impexpdetail;
     do
     {
 	// now we actually need to run the jobs
 	// everybody will be executing their localworld's jobs
 	int res=localworld->runJobs(err);	
+
 	// take this opportunity to clean up
-	
 	localworld->clearImportExports();
 	// now we find out about the other worlds
 	if (!checkResultInt(res, mres, globalcom))
 	{
 	    throw SplitWorldException("MPI appears to have failed.");
+	}
+	if (mres>1)	// 1 and 0 are normal returns, >1 is some sort of error
+	{
+	   break; 
+	}
+	if (!localworld->localTransport(impexpdetail, err))
+	{
+	    mres=4;
+	    break;
 	}
     } while (mres==1);
     if (mres==0)
@@ -235,7 +245,7 @@ void SplitWorld::addVariable(std::string name, boost::python::object creator, bo
 	throw SplitWorldException("Creator function did not produce a reducer.");
     }
     Reducer_ptr rp=ex();
-    localworld->addVariable(name, rp);
+    localworld->addVariable(name, rp, manualimport);
 }
 
 
