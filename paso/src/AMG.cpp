@@ -232,7 +232,6 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       out = NULL;
 	    } else {
 	       out=new Paso_Preconditioner_AMG;
-	       if (! Esys_checkPtr(out)) {
 		  out->level = level;
 		  out->A_C = NULL; 
 		  out->P = NULL;  
@@ -245,11 +244,8 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 		  out->AMG_C = NULL;
 		  out->Smoother=NULL;
                   out->merged_solver=NULL;
-	       }
 	       mask_C=new index_t[n];
 	       rows_in_F=new index_t[n_F];
-	       Esys_checkPtr(mask_C);
-	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
 
 		  out->Smoother = Paso_Preconditioner_Smoother_alloc(A_p, (options->smoother == PASO_JACOBI), 0, verbose);
@@ -263,10 +259,6 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 			out->x_C=new double[n_block*my_n_C];
 			out->b_C=new double[n_block*my_n_C];
 			out->r=new double[n_block*my_n];
-		     
-			Esys_checkPtr(out->r);
-			Esys_checkPtr(out->x_C);
-			Esys_checkPtr(out->b_C);
 		     
 			if ( Esys_noError() ) {
 			   /* creates index for F:*/
@@ -332,7 +324,6 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
 	       delete[] rows_in_F;
 	    }
 	 }
-
   }
   delete[] counter;
   delete[] F_marker;

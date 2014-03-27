@@ -77,7 +77,6 @@ void Paso_UMFPACK(paso::SparseMatrix* A,
 	int n = A->numRows;
 	pt=new Paso_UMFPACK_Handler;
 	time0=Esys_timer();
-	if (Esys_checkPtr(pt)) return;
 	A->solver_p = (void*) pt;
         A->solver_package=PASO_UMFPACK;
 	/* call LDU symbolic factorization: */

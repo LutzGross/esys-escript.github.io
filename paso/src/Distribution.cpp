@@ -15,11 +15,11 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: distribution                                       */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
@@ -27,7 +27,6 @@
 
 #include "Distribution.h"
 #include "PasoUtil.h"
-#include "esysUtils/error.h"  /* For checkPtr */
 
 Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info, 
                                             const index_t *first_component,
@@ -36,16 +35,11 @@ Paso_Distribution* Paso_Distribution_alloc( Esys_MPIInfo *mpi_info,
   int i;
   Paso_Distribution *out=NULL;
   out = new Paso_Distribution;
-  if (Esys_checkPtr(out)) return NULL;
   out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
   out->reference_counter = 0;
   out->first_component=NULL;
 
   out->first_component = new index_t[(mpi_info->size)+1];
-  if (Esys_checkPtr(out->first_component)) {
-       Paso_Distribution_free(out);
-       return NULL;
-  }
   for (i=0; i<(mpi_info->size)+1; ++i) out->first_component[i]=m*first_component[i]+b;
   out->reference_counter++;
   return out;

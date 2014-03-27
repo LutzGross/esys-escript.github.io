@@ -95,8 +95,6 @@ void Paso_Solver(Paso_SystemMatrix* A,double* x,double* b,
      
      r=new double[numEqua];
      x0=new double[numEqua];
-     Esys_checkPtr(r);
-     Esys_checkPtr(x0);
      Paso_SystemMatrix_balance(A);
      options->num_level=0;
      options->num_inner_iter=0;

@@ -184,23 +184,19 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
 	       out = NULL;
 	    } else {
 	       out=new Paso_Preconditioner_LocalAMG;
-	       if (! Esys_checkPtr(out)) {
-		  out->level = level;
-		  out->A_C = NULL; 
-		  out->P = NULL;  
-		  out->R = NULL; 	       
-		  out->post_sweeps = options->post_sweeps;
-		  out->pre_sweeps  = options->pre_sweeps;
-		  out->r = NULL;
-		  out->x_C = NULL;
-		  out->b_C = NULL;
-		  out->AMG_C = NULL;
-		  out->Smoother=NULL;
-	       }
+		out->level = level;
+		out->A_C = NULL; 
+		out->P = NULL;  
+		out->R = NULL; 	       
+		out->post_sweeps = options->post_sweeps;
+		out->pre_sweeps  = options->pre_sweeps;
+		out->r = NULL;
+		out->x_C = NULL;
+		out->b_C = NULL;
+		out->AMG_C = NULL;
+		out->Smoother=NULL;
 	       mask_C=new index_t[n];
 	       rows_in_F=new index_t[n_F];
-	       Esys_checkPtr(mask_C);
-	       Esys_checkPtr(rows_in_F);
 	       if ( Esys_noError() ) {
 
 		  out->Smoother = Paso_Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
@@ -214,10 +210,6 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
 			out->x_C=new double[n_block*n_C];
 			out->b_C=new double[n_block*n_C];
 			out->r=new double[n_block*n];
-		     
-			Esys_checkPtr(out->r);
-			Esys_checkPtr(out->x_C);
-			Esys_checkPtr(out->b_C);
 		     
 			if ( Esys_noError() ) {
 			   /* creates index for F */
@@ -513,18 +505,13 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
    if (n<=0) return; /* make sure that the return of Paso_Util_arg_max is not pointing to nirvana */
    
    lambda=new index_t[n];
-   Esys_checkPtr(lambda);
    degree_ST=new dim_t[n]; 
-   Esys_checkPtr(degree_ST);
    ST=new index_t[offset_S[n]];  
-   Esys_checkPtr(ST);
    if (usePanel) {
       if (!SMALL_PANEL) {
 	 notInPanel=new bool[n];
-	 Esys_checkPtr(notInPanel);
       }
       panel=new index_t[n];
-      Esys_checkPtr(panel);
    }
    
    

@@ -47,7 +47,6 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
    Paso_MergedSolver* out = NULL;
    A_temp = Paso_MergedSolver_mergeSystemMatrix(A); 
    out = new Paso_MergedSolver;
-   Esys_checkPtr(out);
    if (Esys_noError()) {
    
        /* merge matrix */
@@ -65,29 +64,27 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
        out->counts = new index_t[size];
        out->offset = new index_t[size];
        
-       if (! (Esys_checkPtr(out->b) || Esys_checkPtr(out->x) || Esys_checkPtr(out->counts) || Esys_checkPtr(out->offset) ) ){
-           #pragma omp parallel for private(i)
-           for (i=0; i<size; i++) {
-             const dim_t p = dist[i];
-             out->counts[i] = (dist[i+1] - p)*n_block;
-             out->offset[i] = p*n_block;
-           }
+       #pragma omp parallel for private(i)
+       for (i=0; i<size; i++) {
+         const dim_t p = dist[i];
+         out->counts[i] = (dist[i+1] - p)*n_block;
+         out->offset[i] = p*n_block;
+       }
 
-          if (rank == 0) {
-             /* solve locally */
-             #ifdef MKL
-               out->A = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_temp);
-               out->A->solver_package = PASO_MKL;
-             #else 
-               #ifdef UMFPACK
-	         out->A  = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_temp);
-	         out->A->solver_package = PASO_UMFPACK;
-               #else
-	         out->A->solver_p = Paso_Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
-	         out->A->solver_package = PASO_SMOOTHER;
-               #endif
-             #endif
-           }
+      if (rank == 0) {
+         /* solve locally */
+         #ifdef MKL
+           out->A = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_temp);
+           out->A->solver_package = PASO_MKL;
+         #else 
+           #ifdef UMFPACK
+             out->A  = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_temp);
+             out->A->solver_package = PASO_UMFPACK;
+           #else
+             out->A->solver_p = Paso_Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
+             out->A->solver_package = PASO_SMOOTHER;
+           #endif
+         #endif
        }
    }
 

@@ -57,7 +57,6 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix * A,bool verbose) {
   double time0=0,time_fac=0;
   /* allocations: */  
   Paso_Solver_ILU* out=new Paso_Solver_ILU;
-  if (Esys_checkPtr(out)) return NULL;
   out->factors=new double[A->len];
   
   if ( ! Esys_checkPtr(out->factors)  ) {

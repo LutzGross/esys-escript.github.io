@@ -61,55 +61,48 @@ Paso_TransportProblem* Paso_TransportProblem_getReference(Paso_TransportProblem*
 
 Paso_TransportProblem* Paso_TransportProblem_alloc(paso::SystemMatrixPattern *pattern, const int block_size) 
 {
-     Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
-     Paso_TransportProblem* out=NULL;
-     dim_t n,i;
+    Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
+    Paso_TransportProblem* out=NULL;
+    dim_t n,i;
      
-     out=new Paso_TransportProblem;
-     if (Esys_checkPtr(out)) return NULL;
-     out->reference_counter=0; 
-     out->dt_max_R=LARGE_POSITIVE_FLOAT;
-     out->dt_max_T=LARGE_POSITIVE_FLOAT;
-     out->valid_matrices=FALSE;
-     out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
-     out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
-     out->iteration_matrix=NULL;
-     out->constraint_mask=NULL;
-     out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
+    out=new Paso_TransportProblem;
+    out->reference_counter=0; 
+    out->dt_max_R=LARGE_POSITIVE_FLOAT;
+    out->dt_max_T=LARGE_POSITIVE_FLOAT;
+    out->valid_matrices=FALSE;
+    out->transport_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
+    out->mass_matrix=Paso_SystemMatrix_alloc(matrix_type,pattern,block_size,block_size,FALSE);
+    out->iteration_matrix=NULL;
+    out->constraint_mask=NULL;
+    out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
 
-     out->lumped_mass_matrix=NULL;
-     out->main_diagonal_low_order_transport_matrix=NULL;
-     out->reactive_matrix=NULL;
-     out->main_diagonal_mass_matrix=NULL;
+    out->lumped_mass_matrix=NULL;
+    out->main_diagonal_low_order_transport_matrix=NULL;
+    out->reactive_matrix=NULL;
+    out->main_diagonal_mass_matrix=NULL;
 
-     if (Esys_noError()) {
-         n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
-         out->constraint_mask=new double[n]; /* ? */
-         out->lumped_mass_matrix=new double[n];  /* ? */
-         out->reactive_matrix=new double[n]; /* ? */
-         out->main_diagonal_mass_matrix=new double[n]; /* ? */	 
-         out->main_diagonal_low_order_transport_matrix=new double[n]; /* ? */
+    if (Esys_noError()) {
+        n=Paso_SystemMatrix_getTotalNumRows(out->transport_matrix);
+        out->constraint_mask=new double[n]; /* ? */
+        out->lumped_mass_matrix=new double[n];  /* ? */
+        out->reactive_matrix=new double[n]; /* ? */
+        out->main_diagonal_mass_matrix=new double[n]; /* ? */	 
+        out->main_diagonal_low_order_transport_matrix=new double[n]; /* ? */
 
-
-         if ( ! (Esys_checkPtr(out->constraint_mask) || 
-	         Esys_checkPtr(out->reactive_matrix) || Esys_checkPtr(out->main_diagonal_mass_matrix) || 
-                 Esys_checkPtr(out->lumped_mass_matrix) || Esys_checkPtr(out->main_diagonal_low_order_transport_matrix)) && Esys_noError()  ) 
-	 {
-                 #pragma omp parallel for schedule(static) private(i)
-                 for (i = 0; i < n; ++i) {
-                    out->lumped_mass_matrix[i]=0.;
-                    out->main_diagonal_low_order_transport_matrix[i]=0.;
+        #pragma omp parallel for schedule(static) private(i)
+        for (i = 0; i < n; ++i) {
+            out->lumped_mass_matrix[i]=0.;
+            out->main_diagonal_low_order_transport_matrix[i]=0.;
 		    out->constraint_mask[i]=0.;
-                 }
-	 }
-  }
-  if (Esys_noError()) {
-     out->reference_counter=1;
-     return out;
-  } else {
-     Paso_TransportProblem_free(out);
-     return NULL;
-  }
+        }
+    }
+    if (Esys_noError()) {
+        out->reference_counter=1;
+        return out;
+    } else {
+        Paso_TransportProblem_free(out);
+        return NULL;
+    }
 } 
 
 void Paso_TransportProblem_reset(Paso_TransportProblem* in) 

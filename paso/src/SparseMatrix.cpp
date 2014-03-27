@@ -107,116 +107,116 @@ void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
    pattern is already unrolled to match the requested block size
    and offsets. Otherwise unrolling and offset adjustment will be performed.
 */
-SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Pattern *pattern,
+SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Pattern* pattern,
                                  int row_block_size, int col_block_size,
                                  bool patternIsUnrolled)
 {
-  SparseMatrix*out=NULL;
-  SparseMatrixType pattern_format_out;
-  bool unroll=FALSE;
+    SparseMatrix* out=NULL;
+    SparseMatrixType pattern_format_out;
+    bool unroll=FALSE;
 
-  if (patternIsUnrolled) {
-     if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
-         Esys_setError(TYPE_ERROR,"SparseMatrix_alloc: requested offset and pattern offset do not match.");
-         return NULL;
-     }
-  }
-  /* do we need to apply unrolling? */
-  unroll
-        /* we don't like non-square blocks */
-    =   (row_block_size!=col_block_size)
-    #ifndef USE_LAPACK
-    /* or any block size bigger than 3 */
-    ||  (col_block_size>3)
-    # endif
-        /* or if block size one requested and the block size is not 1 */
-    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) )
-        /* offsets don't match */
-    || ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1) ) ;
+    if (patternIsUnrolled) {
+        if (! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
+            Esys_setError(TYPE_ERROR,"SparseMatrix_alloc: requested offset and pattern offset do not match.");
+            return NULL;
+        }
+    }
+    /* do we need to apply unrolling? */
+    unroll
+            /* we don't like non-square blocks */
+        =   (row_block_size!=col_block_size)
+#ifndef USE_LAPACK
+            /* or any block size bigger than 3 */
+            ||  (col_block_size>3)
+# endif
+            /* or if block size one requested and the block size is not 1 */
+            ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) )
+            /* offsets don't match */
+            || ( (type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1) );
 
-  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
+    pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
 
-  Esys_resetError();
-  out=new SparseMatrix;
-  if (! Esys_checkPtr(out)) {
-     out->pattern=NULL;
-     out->val=NULL;
-     out->reference_counter=1;
-     out->type=type;
-     out->solver_package=PASO_PASO;
-     out->solver_p=NULL;
+    Esys_resetError();
+    out=new SparseMatrix;
+    out->pattern=NULL;
+    out->val=NULL;
+    out->reference_counter=1;
+    out->type=type;
+    out->solver_package=PASO_PASO;
+    out->solver_p=NULL;
 
-     /* ====== compressed sparse columns === */
-     if (type & MATRIX_FORMAT_CSC) {
-           if (unroll) {
-              if (patternIsUnrolled) {
-                    out->pattern=Pattern_getReference(pattern);
-              } else {
-                    out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
-              }
-              out->row_block_size=1;
-              out->col_block_size=1;
-           } else {
-             out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
-              out->row_block_size=row_block_size;
-              out->col_block_size=col_block_size;
-           }
-           if (Esys_noError()) {
-              out->numRows = out->pattern->numInput;
-              out->numCols = out->pattern->numOutput;
-           }
+    /* ====== compressed sparse columns === */
+    if (type & MATRIX_FORMAT_CSC) {
+        if (unroll) {
+            if (patternIsUnrolled) {
+                out->pattern=Pattern_getReference(pattern);
+            } else {
+                out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,col_block_size,row_block_size);
+            }
+            out->row_block_size=1;
+            out->col_block_size=1;
+        } else {
+            out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
+            out->row_block_size=row_block_size;
+            out->col_block_size=col_block_size;
+        }
+        if (Esys_noError()) {
+            out->numRows = out->pattern->numInput;
+            out->numCols = out->pattern->numOutput;
+        }
 
-     } else {
-     /* ====== compressed sparse row === */
-           if (unroll) {
-              if (patternIsUnrolled) {
-                   out->pattern=Pattern_getReference(pattern);
-              } else {
-                   out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
-              }
-              out->row_block_size=1;
-              out->col_block_size=1;
-           } else {
-              out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
-              out->row_block_size=row_block_size;
-              out->col_block_size=col_block_size;
-           }
-           if (Esys_noError()) {
-               out->numRows = out->pattern->numOutput;
-               out->numCols = out->pattern->numInput;
-           }
-     }
-     if (Esys_noError()) {
-         if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+    } else {
+    /* ====== compressed sparse row === */
+        if (unroll) {
+            if (patternIsUnrolled) {
+                out->pattern=Pattern_getReference(pattern);
+            } else {
+                out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,row_block_size,col_block_size);
+            }
+            out->row_block_size=1;
+            out->col_block_size=1;
+        } else {
+            out->pattern=Pattern_unrollBlocks(pattern,pattern_format_out,1,1);
+            out->row_block_size=row_block_size;
+            out->col_block_size=col_block_size;
+        }
+        if (Esys_noError()) {
+            out->numRows = out->pattern->numOutput;
+            out->numCols = out->pattern->numInput;
+        }
+    }
+    if (Esys_noError()) {
+        if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
             out->block_size=MIN(out->row_block_size,out->col_block_size);
-         } else {
+        } else {
             out->block_size=out->row_block_size*out->col_block_size;
-         }
-         out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
+        }
+        out->len=(size_t)(out->pattern->len)*(size_t)(out->block_size);
 
-         out->val=new double[out->len];
-         if (! Esys_checkPtr(out->val)) SparseMatrix_setValues(out,DBLE(0));
-     }
-  }
-  /* all done: */
-  if (Esys_noError()) {
-    return out;
-  } else {
-    SparseMatrix_free(out);
-    return NULL;
-  }
+        out->val=new double[out->len];
+        SparseMatrix_setValues(out, DBLE(0));
+    }
+    /* all done: */
+    if (Esys_noError()) {
+        return out;
+    } else {
+        SparseMatrix_free(out);
+        return NULL;
+    }
 }
 
 /* returns a reference to SparseMatrix in */
 
-SparseMatrix* SparseMatrix_getReference(SparseMatrix* in) {
+SparseMatrix* SparseMatrix_getReference(SparseMatrix* in)
+{
    if (in!=NULL) ++(in->reference_counter);
    return in;
 }
 
 /* deallocates a SparseMatrix: */
 
-void SparseMatrix_free(SparseMatrix* in) {
+void SparseMatrix_free(SparseMatrix* in)
+{
   if (in!=NULL) {
      in->reference_counter--;
      if (in->reference_counter<=0) {
@@ -243,102 +243,93 @@ void SparseMatrix_free(SparseMatrix* in) {
 
 SparseMatrix* SparseMatrix_loadMM_toCSR( char *fileName_p )
 {
-        index_t *col_ind = NULL;
-        index_t *row_ind = NULL;
-        index_t *row_ptr = NULL;
-        double *val = NULL;
-        FILE *fileHandle_p = NULL;
-        Pattern* mainPattern=NULL;
-        SparseMatrix *out = NULL;
-        int i, curr_row, scan_ret;
-        MM_typecode matrixCode;
-        Esys_resetError();
+    index_t *col_ind = NULL;
+    index_t *row_ind = NULL;
+    index_t *row_ptr = NULL;
+    double *val = NULL;
+    FILE *fileHandle_p = NULL;
+    Pattern* mainPattern=NULL;
+    SparseMatrix *out = NULL;
+    int i, curr_row, scan_ret;
+    MM_typecode matrixCode;
+    Esys_resetError();
 
-        /* open the file */
-        fileHandle_p = fopen( fileName_p, "r" );
-        if( fileHandle_p == NULL )
-        {
-                Esys_setError(IO_ERROR, "SparseMatrix_loadMM_toCSR: Cannot open file for reading.");
-                return NULL;
-        }
+    /* open the file */
+    fileHandle_p = fopen( fileName_p, "r" );
+    if( fileHandle_p == NULL )
+    {
+        Esys_setError(IO_ERROR, "SparseMatrix_loadMM_toCSR: Cannot open file for reading.");
+        return NULL;
+    }
 
-        /* process banner */
-        if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
-        {
-                Esys_setError(IO_ERROR, "SparseMatrix_loadMM_toCSR: Error processing MM banner.");
-                fclose( fileHandle_p );
-                return NULL;
-        }
-        if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
-        {
-
-                Esys_setError(TYPE_ERROR,"SparseMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
-                fclose( fileHandle_p );
-                return NULL;
-        }
-
-        /* get matrix size */
-        if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
-        {
-                Esys_setError(IO_ERROR, "SparseMatrix_loadMM_toCSR: Could not parse matrix size.");
-                fclose( fileHandle_p );
-                return NULL;
-        }
-
-        /* prepare storage */
-        col_ind = new  index_t [ nz];
-        row_ind = new  index_t [ nz];
-        val = new  double [ nz];
-
-        row_ptr = new  index_t [ (M+1)];
-
-        if( col_ind == NULL || row_ind == NULL || val == NULL || row_ptr == NULL )
-        {
-                Esys_setError(MEMORY_ERROR, "SparseMatrix_loadMM_toCSR: Could not allocate memory." );
-                fclose( fileHandle_p );
-                return NULL;
-        }
-
-        /* perform actual read of elements */
-        for( i=0; i<nz; i++ )
-        {
-                scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-                if (scan_ret!=3)
-                {
-                        delete[] val;
-                        delete[] row_ind;
-                        delete[] col_ind;
-                        delete[]row_ptr;
-                        fclose(fileHandle_p);
-                        return NULL;
-                }
-                row_ind[i]--;
-                col_ind[i]--;
-        }
+    /* process banner */
+    if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
+    {
+        Esys_setError(IO_ERROR, "SparseMatrix_loadMM_toCSR: Error processing MM banner.");
         fclose( fileHandle_p );
+        return NULL;
+    }
+    if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
+    {
+        Esys_setError(TYPE_ERROR,"SparseMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
+        fclose( fileHandle_p );
+        return NULL;
+    }
 
-        /* sort the entries */
-        q_sort( row_ind, col_ind, val, 0, nz );
+    /* get matrix size */
+    if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
+    {
+        Esys_setError(IO_ERROR, "SparseMatrix_loadMM_toCSR: Could not parse matrix size.");
+        fclose( fileHandle_p );
+        return NULL;
+    }
 
-        /* setup row_ptr */
-        curr_row = 0;
-        for( i=0; (i<nz && curr_row<M); curr_row++ )
+    /* prepare storage */
+    col_ind = new index_t[nz];
+    row_ind = new index_t[nz];
+    val = new  double [nz];
+    row_ptr = new index_t[(M+1)];
+
+    /* perform actual read of elements */
+    for( i=0; i<nz; i++ )
+    {
+        scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
+        if (scan_ret!=3)
         {
-                while( row_ind[i] != curr_row )
-                        i++;
-                row_ptr[curr_row] = i;
+            delete[] val;
+            delete[] row_ind;
+            delete[] col_ind;
+            delete[]row_ptr;
+            fclose(fileHandle_p);
+            return NULL;
         }
-        row_ptr[M] = nz;
+        row_ind[i]--;
+        col_ind[i]--;
+    }
+    fclose( fileHandle_p );
 
-        mainPattern=Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
-        out  = SparseMatrix_alloc(MATRIX_FORMAT_DEFAULT, mainPattern, 1, 1, TRUE);
-        /* copy values and cleanup temps */
-        for( i=0; i<nz; i++ ) out->val[i] = val[i];
+    /* sort the entries */
+    q_sort( row_ind, col_ind, val, 0, nz );
 
-        Pattern_free(mainPattern);
-        delete[] val;
-        delete[] row_ind;
-        return out;
+    /* setup row_ptr */
+    curr_row = 0;
+    for( i=0; (i<nz && curr_row<M); curr_row++ )
+    {
+        while( row_ind[i] != curr_row )
+            i++;
+        row_ptr[curr_row] = i;
+    }
+    row_ptr[M] = nz;
+
+    mainPattern=Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
+    out  = SparseMatrix_alloc(MATRIX_FORMAT_DEFAULT, mainPattern, 1, 1, TRUE);
+    /* copy values and cleanup temps */
+    for( i=0; i<nz; i++ ) out->val[i] = val[i];
+
+    Pattern_free(mainPattern);
+    delete[] val;
+    delete[] row_ind;
+    return out;
 }
 
 
@@ -456,8 +447,9 @@ double SparseMatrix_getSize(const SparseMatrix* A)
    }
 }
 
-double SparseMatrix_getSparsity(const SparseMatrix* A){
-   return SparseMatrix_getSize(A)/(DBLE(SparseMatrix_getTotalNumRows(A))*DBLE(SparseMatrix_getTotalNumCols(A)));
+double SparseMatrix_getSparsity(const SparseMatrix* A)
+{
+    return SparseMatrix_getSize(A)/(DBLE(SparseMatrix_getTotalNumRows(A))*DBLE(SparseMatrix_getTotalNumCols(A)));
 }
 
 } // namespace paso
