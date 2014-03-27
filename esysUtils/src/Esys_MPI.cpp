@@ -24,6 +24,7 @@
 #include "index.h"
 #include "mem.h"
 #include "error.h"
+#include "EsysException.h"
 
 
 #include <iostream>	// temp for debugging
@@ -33,6 +34,10 @@ namespace esysUtils
   
 JMPI makeInfo(MPI_Comm comm, bool owncom)
 {
+    if (esysUtils::NoCOMM_WORLD::active() && comm==MPI_COMM_WORLD)
+    {
+	throw esysUtils::EsysException("Attempt to use the MPI_COMM_WORLD communicator when it is blocked.");
+    }
     JMPI_* p=new JMPI_(comm, owncom);
     return JMPI(p);
 }
@@ -264,29 +269,29 @@ bool esysUtils::shipString(const char* src, char** dest, MPI_Comm& comm)
   
 }
 
-
 namespace 
 {
-    bool splitworld=false;
-  
+    // true if a split world call is currently running and MPI_COMM_WORLD should not be allowed by default
+    bool nocommworldplease=false;
 }
 
-namespace esysUtils
+esysUtils::NoCOMM_WORLD::NoCOMM_WORLD()
 {
-
-/* has the have sub-communicators been created? */
-bool getSplitWorld()
-{
-    return splitworld;  
+    if (nocommworldplease)
+    {
+	throw EsysException("NoCOMM_WORLD does not nest.");
+    }
+    nocommworldplease=true;
 }
 
-
-/* record that a sub-communicator has been created or used */
-void splitWorld()
+esysUtils::NoCOMM_WORLD::~NoCOMM_WORLD()
 {
-    splitworld=true;
-}
+    nocommworldplease=false;
+}  
 
+bool esysUtils::NoCOMM_WORLD::active()
+{
+    return nocommworldplease;
 }
 
 /**************************************************

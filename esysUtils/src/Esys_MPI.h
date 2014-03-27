@@ -122,18 +122,22 @@ inline std::string appendRankToFileName(const std::string &fileName,
     return result;
 }
 
-/* has the have sub-communicators been created? */
-bool getSplitWorld();
-/* record that a sub-communicator has been created or used */
-void splitWorld();
-
-/* returns the max of inputs on all ranks -- or just sends the input back on nompi */
-bool checkResult(int& input, int& output, MPI_Comm& comm);
-
 // ensure that the any ranks with an empty src argument end up with the string from
 // one of the other ranks
 // with no-mpi, it makes dest point at a copy of src
 bool shipString(const char* src, char** dest, MPI_Comm& comm);
+
+bool checkResult(int& input, int& output, MPI_Comm& comm);
+
+
+// Do not cope with nested calls
+class NoCOMM_WORLD
+{
+public:
+    NoCOMM_WORLD();
+    ~NoCOMM_WORLD();
+    static bool active();
+};
 
 } // namespace esysUtils
 

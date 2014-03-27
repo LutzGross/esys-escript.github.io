@@ -164,6 +164,7 @@ bool checkResultInt(int res, int& mres, esysUtils::JMPI& info)
 // Executes all pending jobs on all subworlds
 void SplitWorld::runJobs()
 {
+    esysUtils::NoCOMM_WORLD ncw;	// it's destructor will unset the flag
     distributeJobs();
     int mres=0;
     std::string err;
