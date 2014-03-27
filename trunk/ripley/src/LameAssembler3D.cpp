@@ -33,7 +33,7 @@ void LameAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
     if (isNotEmpty("D", coefs))
         fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
     if (isNotEmpty("X", coefs))
-        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs["X"].getFunctionSpace().getTypeCode());
     if (isNotEmpty("Y", coefs))
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
