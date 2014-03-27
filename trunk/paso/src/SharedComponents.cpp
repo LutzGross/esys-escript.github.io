@@ -43,56 +43,47 @@ Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
                                                    index_t m, index_t b,
                                                    Esys_MPIInfo *mpi_info)
 {
-  dim_t i,j;
-  register index_t itmp;
-  Paso_SharedComponents* out=NULL;
-  Esys_resetError();
-  out=new Paso_SharedComponents;
-  if (!Esys_checkPtr(out)) {
-      out->local_length=local_length*m;
-      out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
-      out->numNeighbors=numNeighbors;
-      out->neighbor=new Esys_MPI_rank[out->numNeighbors];
-      if (offsetInShared == NULL) {
-          out->numSharedComponents=0;
-      } else {
-          out->numSharedComponents=offsetInShared[numNeighbors]*m;
-      }
-      out->shared=new index_t[out->numSharedComponents];
-      out->offsetInShared=new index_t[out->numNeighbors+1];
-      out->reference_counter=1;
-      if (! (Esys_checkPtr(out->neighbor) ||
-             Esys_checkPtr(out->shared) || 
-             Esys_checkPtr(out->offsetInShared) ) ) {
-
-
-         if ((out->numNeighbors>0) && (offsetInShared!=NULL) ) {
-            #pragma omp parallel
-            {
-               #pragma omp for private(i)
-               for (i=0;i<out->numNeighbors;++i){
-                   out->neighbor[i]=neighbor[i];
-                   out->offsetInShared[i]=offsetInShared[i]*m;
-               }
-               out->offsetInShared[out->numNeighbors]=offsetInShared[numNeighbors]*m;
-               #pragma omp for private(i,j,itmp)
-               for (i=0;i<offsetInShared[numNeighbors];++i){
-                   itmp=m*shared[i]+b;
-                   for (j=0;j<m;++j) out->shared[m*i+j]=itmp+j;
-               }
-            }
-         } else {
-            out->offsetInShared[out->numNeighbors]=0;
-         }
-      }
-
-  }
-  if (Esys_noError()) {
-     return out;
-  } else {
-     Paso_SharedComponents_free(out);
-     return NULL;
-  }
+    dim_t i,j;
+    register index_t itmp;
+    Paso_SharedComponents* out=NULL;
+    Esys_resetError();
+    out=new Paso_SharedComponents;
+    out->local_length=local_length*m;
+    out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
+    out->numNeighbors=numNeighbors;
+    out->neighbor=new Esys_MPI_rank[out->numNeighbors];
+    if (offsetInShared == NULL) {
+        out->numSharedComponents=0;
+    } else {
+        out->numSharedComponents=offsetInShared[numNeighbors]*m;
+    }
+    out->shared=new index_t[out->numSharedComponents];
+    out->offsetInShared=new index_t[out->numNeighbors+1];
+    out->reference_counter=1;
+    if ((out->numNeighbors>0) && (offsetInShared!=NULL) ) {
+        #pragma omp parallel
+        {
+           #pragma omp for private(i)
+           for (i=0;i<out->numNeighbors;++i){
+               out->neighbor[i]=neighbor[i];
+               out->offsetInShared[i]=offsetInShared[i]*m;
+           }
+           out->offsetInShared[out->numNeighbors]=offsetInShared[numNeighbors]*m;
+           #pragma omp for private(i,j,itmp)
+           for (i=0;i<offsetInShared[numNeighbors];++i){
+               itmp=m*shared[i]+b;
+               for (j=0;j<m;++j) out->shared[m*i+j]=itmp+j;
+           }
+        }
+    } else {
+        out->offsetInShared[out->numNeighbors]=0;
+    }
+    if (Esys_noError()) {
+        return out;
+    } else {
+        Paso_SharedComponents_free(out);
+        return NULL;
+    }
 }
 
 /* returns a reference to in */

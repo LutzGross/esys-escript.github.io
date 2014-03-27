@@ -247,25 +247,23 @@ Paso_Solver_RILU* Paso_Solver_getRILU(paso::SparseMatrix *A_p,bool verbose) {
                               out->b_F=new double[n_block*out->n_F];
                               out->x_C=new double[n_block*out->n_C];
                               out->b_C=new double[n_block*out->n_C];
-                              if (! (Esys_checkPtr(out->x_F) || Esys_checkPtr(out->b_F) || Esys_checkPtr(out->x_C) || Esys_checkPtr(out->b_C) ) ) {
-                                  #pragma omp parallel 
-                                  {
-                                    #pragma omp for private(i,k) schedule(static)
-                                    for (i = 0; i < out->n_F; ++i) {
-                                          for (k=0; k<n_block;++k) {
-                                             out->x_F[i*n_block+k]=0.;
-                                             out->b_F[i*n_block+k]=0.;
-                                          }
+                              #pragma omp parallel 
+                              {
+                                #pragma omp for private(i,k) schedule(static)
+                                for (i = 0; i < out->n_F; ++i) {
+                                      for (k=0; k<n_block;++k) {
+                                         out->x_F[i*n_block+k]=0.;
+                                         out->b_F[i*n_block+k]=0.;
+                                      }
+                                }
+                                #pragma omp for private(i,k) schedule(static)
+                                for (i = 0; i < out->n_C; ++i) {
+                                    for (k=0; k<n_block;++k) {
+                                      out->x_C[i*n_block+k]=0.;
+                                      out->b_C[i*n_block+k]=0.;
                                     }
-                                    #pragma omp for private(i,k) schedule(static)
-                                    for (i = 0; i < out->n_C; ++i) {
-                                        for (k=0; k<n_block;++k) {
-                                          out->x_C[i*n_block+k]=0.;
-                                          out->b_C[i*n_block+k]=0.;
-                                        }
-                                    }
-                                  } /* end parallel region */
-                              }
+                                }
+                              } /* end parallel region */
                             }
                          }
                      }

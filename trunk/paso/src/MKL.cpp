@@ -126,7 +126,6 @@ void Paso_MKL(paso::SparseMatrix* A,
      if (pt==NULL) {
         /* allocate address pointer */
         pt=new _MKL_DSS_HANDLE_t[64];
-        if (Esys_checkPtr(pt)) return;
         for (i=0;i<64;++i) pt[i]=NULL;
         A->solver_p=(void*) pt;
 	A->solver_package=PASO_MKL;

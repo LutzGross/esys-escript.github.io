@@ -65,7 +65,6 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
   /* allocations: */  
 /*  printf("n_block= %d, n= %d\n", n_block, n); */
   Paso_Solver_GS* out=new Paso_Solver_GS;
-  if (Paso_checkPtr(out)) return NULL;
   out->colorOf=new index_t[n];
   out->diag=new double[ ((size_t) n) * ((size_t) block_size)];
   /*out->diag=new double[A->len];*/

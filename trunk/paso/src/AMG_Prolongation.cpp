@@ -115,7 +115,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    dist = A_p->pattern->output_distribution->first_component;
    output_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
    dist = new  index_t[size+1]; /* now prepare for col distribution */
-   Esys_checkPtr(dist);
    #ifdef ESYS_MPI
    MPI_Allgather(&my_n_C, 1, MPI_INT, dist, 1, MPI_INT, mpi_info->comm);
    #endif
@@ -133,7 +132,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    /* create pattern for mainBlock and coupleBlock */
    main_p = new index_t[my_n+1];
    couple_p = new index_t[my_n+1];
-   if (!(Esys_checkPtr(main_p) || Esys_checkPtr(couple_p))) {
      /* count the number of entries per row in the Prolongation matrix :*/
      #pragma omp parallel for private(i,l,k,iptr,j,p) schedule(static)
      for (i=0; i<my_n; i++) {
@@ -173,7 +171,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      p = Paso_Util_cumsum(my_n, couple_p);
      couple_p[my_n] = p;
      couple_idx = new index_t[p];
-     if (!(Esys_checkPtr(main_idx) || Esys_checkPtr(couple_idx))) {
 	#pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
 	for (i=0; i<my_n; i++) {
 	  if (counter_C[i]>=0) {
@@ -196,8 +193,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 	    }
 	  }
 	}
-     }
-   }
 
    if (Esys_noError()) {   
      main_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
@@ -214,8 +209,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    /* prepare the receiver for the col_connector. 
       Note that the allocation for "shared" assumes the send and receive buffer
       of the interpolation matrix P is no larger than that of matrix A_p. */
-   neighbor = new  Esys_MPI_rank[size];
-   offsetInShared = new  index_t[size+1];
+   neighbor = new Esys_MPI_rank[size];
+   offsetInShared = new index_t[size+1];
    recv = A_p->col_coupler->connector->recv;
    send = A_p->col_coupler->connector->send;
    i = recv->numSharedComponents;
@@ -224,7 +219,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    k = send->numSharedComponents;
    send_shared = new index_t[k];
    if (k > i) i = k;
-   shared = new  index_t[i];
+   shared = new index_t[i];
 
    #ifdef ESYS_MPI
      mpi_requests=new MPI_Request[size*2];

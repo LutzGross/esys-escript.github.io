@@ -90,8 +90,6 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
           rsolver=Paso_ReactiveSolver_alloc(fctp); 
 	  u_save=new double[n];
 	  u2=new double[n];
-          Esys_checkPtr(u_save);
-	  Esys_checkPtr(u2);
     }
    if (Esys_noError()) {  
        /*

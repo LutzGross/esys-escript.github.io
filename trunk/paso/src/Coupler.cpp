@@ -40,24 +40,22 @@ Connector* Connector_alloc(Paso_SharedComponents* send,
     }
 
     Connector* out = new Connector;
-    if (!Esys_checkPtr(out)) {
-        out->send = Paso_SharedComponents_getReference(send);
-        out->recv = Paso_SharedComponents_getReference(recv);
-        out->mpi_info = Esys_MPIInfo_getReference(send->mpi_info);
-        out->reference_counter = 1;
+    out->send = Paso_SharedComponents_getReference(send);
+    out->recv = Paso_SharedComponents_getReference(recv);
+    out->mpi_info = Esys_MPIInfo_getReference(send->mpi_info);
+    out->reference_counter = 1;
 
 /*
-        for (int i=0; i<out->recv->numNeighbors; ++i) 
-            printf("Coupler: %d receive %d data at %d from %d\n",
-                send->mpi_info->rank, out->recv->offsetInShared[i+1]-out->recv->offsetInShared[i],
-                out->recv->offsetInShared[i],out->recv->neighbor[i]);
-        for (int i=0; i<out->send->numNeighbors; ++i) 
-            printf("Coupler: %d send %d data at %d to %d\n",
-                send->mpi_info->rank, out->send->offsetInShared[i+1]-out->send->offsetInShared[i],
-                out->send->offsetInShared[i],out->send->neighbor[i]);
+    for (int i=0; i<out->recv->numNeighbors; ++i) 
+        printf("Coupler: %d receive %d data at %d from %d\n",
+            send->mpi_info->rank, out->recv->offsetInShared[i+1]-out->recv->offsetInShared[i],
+            out->recv->offsetInShared[i],out->recv->neighbor[i]);
+    for (int i=0; i<out->send->numNeighbors; ++i) 
+        printf("Coupler: %d send %d data at %d to %d\n",
+            send->mpi_info->rank, out->send->offsetInShared[i+1]-out->send->offsetInShared[i],
+            out->send->offsetInShared[i],out->send->neighbor[i]);
 */
 
-    }
 
     if (Esys_noError()) {
         return out;
@@ -143,30 +141,24 @@ Coupler* Coupler_alloc(Connector* connector, dim_t block_size)
     Esys_resetError();
     Esys_MPIInfo *mpi_info = connector->mpi_info;  
     Coupler* out = new Coupler;
-    if (!Esys_checkPtr(out)) {
-        out->data = NULL;
-        out->block_size = block_size;
-        out->connector = Connector_getReference(connector);
-        out->send_buffer = NULL;
-        out->recv_buffer = NULL;
-        out->mpi_requests = NULL;
-        out->mpi_stati = NULL;
-        out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
-        out->reference_counter = 1;
-        out->in_use = FALSE;
+    out->data = NULL;
+    out->block_size = block_size;
+    out->connector = Connector_getReference(connector);
+    out->send_buffer = NULL;
+    out->recv_buffer = NULL;
+    out->mpi_requests = NULL;
+    out->mpi_stati = NULL;
+    out->mpi_info = Esys_MPIInfo_getReference(mpi_info);
+    out->reference_counter = 1;
+    out->in_use = FALSE;
 
 #ifdef ESYS_MPI
-        out->mpi_requests=new MPI_Request[connector->send->numNeighbors+connector->recv->numNeighbors];
-        out->mpi_stati=new MPI_Status[connector->send->numNeighbors+connector->recv->numNeighbors];
-        Esys_checkPtr(out->mpi_requests);
-        Esys_checkPtr(out->mpi_stati);
+    out->mpi_requests=new MPI_Request[connector->send->numNeighbors+connector->recv->numNeighbors];
+    out->mpi_stati=new MPI_Status[connector->send->numNeighbors+connector->recv->numNeighbors];
 #endif
-        if (mpi_info->size > 1) {
-            out->send_buffer=new double[connector->send->numSharedComponents * block_size];
-            out->recv_buffer=new double[connector->recv->numSharedComponents * block_size];
-            Esys_checkPtr(out->send_buffer);
-            Esys_checkPtr(out->recv_buffer);
-        }
+    if (mpi_info->size > 1) {
+        out->send_buffer=new double[connector->send->numSharedComponents * block_size];
+        out->recv_buffer=new double[connector->recv->numSharedComponents * block_size];
     }
     if (Esys_noError()) {
         return out;

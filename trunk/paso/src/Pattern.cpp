@@ -86,22 +86,20 @@ Pattern* Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr,
         }
     }
     Pattern* out = new Pattern;
-    if (!Esys_checkPtr(out)) {
-        out->type = type;
-        out->reference_counter = 1;
-        out->numOutput = numOutput;
-        out->numInput = numInput;
-        out->ptr = ptr;
-        out->index = index;
-        out->main_iptr = NULL;
-        out->coloring = NULL;
-        out->numColors = -1;
+    out->type = type;
+    out->reference_counter = 1;
+    out->numOutput = numOutput;
+    out->numInput = numInput;
+    out->ptr = ptr;
+    out->index = index;
+    out->main_iptr = NULL;
+    out->coloring = NULL;
+    out->numColors = -1;
 
-        if (out->ptr == NULL) {
-            out->len = 0;
-        } else {
-            out->len=out->ptr[out->numOutput] - index_offset;
-        }
+    if (out->ptr == NULL) {
+        out->len = 0;
+    } else {
+        out->len = out->ptr[out->numOutput] - index_offset;
     }
     return out;
 }
@@ -205,25 +203,23 @@ index_t* Pattern_borrowMainDiagonalPointer(Pattern* A)
     if (A->main_iptr == NULL) {
         const dim_t n=A->numOutput;
         A->main_iptr=new index_t[n];
-        if (!Esys_checkPtr(A->main_iptr)) {
-            bool fail = false;
-            // identify the main diagonals
+        bool fail = false;
+        // identify the main diagonals
 #pragma omp parallel for schedule(static)
-            for (index_t i = 0; i < n; ++i) {
-                index_t *index=&(A->index[A->ptr[i]]);
-                index_t *where_p=reinterpret_cast<index_t*>(bsearch(&i,
-                            index, (size_t)(A->ptr[i+1] - A->ptr[i]),
-                            sizeof(index_t), comparIndex));
-                if (where_p == NULL) {
-                    fail = true;
-                } else {
-                    A->main_iptr[i]=A->ptr[i]+(index_t)(where_p-index);
-                }
+        for (index_t i = 0; i < n; ++i) {
+            index_t *index=&(A->index[A->ptr[i]]);
+            index_t *where_p=reinterpret_cast<index_t*>(bsearch(&i, index,
+                        (size_t)(A->ptr[i+1] - A->ptr[i]),
+                        sizeof(index_t), comparIndex));
+            if (where_p == NULL) {
+                fail = true;
+            } else {
+                A->main_iptr[i]=A->ptr[i]+(index_t)(where_p-index);
             }
-            if (fail) {
-                delete[] A->main_iptr;
-                A->main_iptr=NULL;
-            }
+        }
+        if (fail) {
+            delete[] A->main_iptr;
+            A->main_iptr=NULL;
         }
     }
     return A->main_iptr;
@@ -242,12 +238,10 @@ index_t* Pattern_borrowColoringPointer(Pattern* A)
     if (A->coloring == NULL) {
         const dim_t n = A->numInput;
         A->coloring = new index_t[n];
-        if (!Esys_checkPtr(A->coloring)) {
-            Pattern_color(A, &(A->numColors), A->coloring);
-            if (!Esys_noError()) {
-                delete[] A->coloring;
-                A->coloring = NULL;
-            }
+        Pattern_color(A, &(A->numColors), A->coloring);
+        if (!Esys_noError()) {
+            delete[] A->coloring;
+            A->coloring = NULL;
         }
     }
     return A->coloring;

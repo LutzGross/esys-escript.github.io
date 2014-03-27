@@ -31,31 +31,24 @@
 
 Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp) 
 {
-     Paso_FCT_FluxLimiter* out=NULL;
-     const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-     const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
+    Paso_FCT_FluxLimiter* out=NULL;
+    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+    const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
      
-     out=new Paso_FCT_FluxLimiter;
-     if (! Esys_checkPtr(out)) {
-      
-            out->mpi_info = Esys_MPIInfo_getReference(fctp->mpi_info);
-	    out->u_tilde=new double[n];
-	    Esys_checkPtr(out->u_tilde);
+    out=new Paso_FCT_FluxLimiter;
 
-	    out->MQ=new double[2*n];
-	    Esys_checkPtr(out->MQ);
+    out->mpi_info = Esys_MPIInfo_getReference(fctp->mpi_info);
+    out->u_tilde=new double[n];
+    out->MQ=new double[2*n];
+    out->R=new double[2*n];
 
-	    out->R=new double[2*n];
-	    Esys_checkPtr(out->R);
-
-	    out->R_coupler=paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),2*blockSize);
-	    out->u_tilde_coupler=paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
-	    out->antidiffusive_fluxes=Paso_SystemMatrix_alloc(fctp->transport_matrix->type,
-						    fctp->transport_matrix->pattern,
-						    fctp->transport_matrix->row_block_size,
-						    fctp->transport_matrix->col_block_size, TRUE);
-	    out->borrowed_lumped_mass_matrix=fctp->lumped_mass_matrix;
-    }
+    out->R_coupler=paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),2*blockSize);
+    out->u_tilde_coupler=paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp),blockSize);
+    out->antidiffusive_fluxes=Paso_SystemMatrix_alloc(fctp->transport_matrix->type,
+                                                fctp->transport_matrix->pattern,
+                                                fctp->transport_matrix->row_block_size,
+                                                fctp->transport_matrix->col_block_size, TRUE);
+    out->borrowed_lumped_mass_matrix=fctp->lumped_mass_matrix;
     if (Esys_noError()) {
         return out;
     } else {

@@ -87,10 +87,7 @@ err_t  Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportPro
 
 Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp)
 {
-    Paso_ReactiveSolver* out=NULL;
-    out=new Paso_ReactiveSolver;
-    if (Esys_checkPtr(out)) return NULL;
-    return out;
+    return new Paso_ReactiveSolver;
 }
 
 void Paso_ReactiveSolver_free(Paso_ReactiveSolver* in)

@@ -42,7 +42,6 @@ Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options
     const dim_t n =  Paso_TransportProblem_getTotalNumRows(fctp);
    
     out=new Paso_FCT_Solver;
-    if (! Esys_checkPtr(out)) {
       	out->transportproblem  = Paso_TransportProblem_getReference(fctp);
         out->mpi_info          = Esys_MPIInfo_getReference(fctp->mpi_info);
 	out->flux_limiter      = Paso_FCT_FluxLimiter_alloc(fctp);
@@ -68,8 +67,6 @@ Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options
 	    Esys_setError(VALUE_ERROR, "Paso_FCT_Solver_alloc: unknown integration scheme."); 
 	    out->method = UNKNOWN;
 	}
-	  
-    }
     
     if (Esys_noError()) {
         return out;

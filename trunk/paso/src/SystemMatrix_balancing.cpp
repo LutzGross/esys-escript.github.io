@@ -87,9 +87,6 @@ void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
       if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
       } 
-      if (Esys_checkPtr(A->balance_vector)) {
-	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: no memory allocated for balance vector.");
-      } 
       if ( ! ( (Paso_SystemMatrix_getGlobalNumRows(A) == Paso_SystemMatrix_getGlobalNumCols(A)) && (A->row_block_size == A->col_block_size) ) ) {
 	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: matrix needs to be a square matrix.");
       }

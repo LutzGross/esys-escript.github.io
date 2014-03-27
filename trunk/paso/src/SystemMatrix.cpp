@@ -66,7 +66,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
     ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1));
   
   out=new Paso_SystemMatrix;
-  if (! Esys_checkPtr(out)) {  
+  if (! Esys_checkPtr(out)) {
      out->type=type;
      out->pattern=NULL;  
      out->row_distribution=NULL;
@@ -87,7 +87,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
      out->reference_counter=1;
      out->logical_row_block_size=row_block_size;
      out->logical_col_block_size=col_block_size;
-
 
      if (type & MATRIX_FORMAT_CSC) {
          if (unroll) {
@@ -149,10 +148,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
               n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
 	      out->balance_vector=new double[n_norm];
 	      out->is_balanced=FALSE;
-	      if (! Esys_checkPtr(out->balance_vector)) {
-                 #pragma omp parallel for private(i) schedule(static)
-                 for (i=0;i<n_norm;++i) out->balance_vector[i]=1.;
-              }
+             #pragma omp parallel for private(i) schedule(static)
+             for (i=0;i<n_norm;++i) out->balance_vector[i]=1.;
            }
         }
      }

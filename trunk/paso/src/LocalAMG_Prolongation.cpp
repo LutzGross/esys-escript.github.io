@@ -62,8 +62,6 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
    dim_t i,p,z, len_P;
    
    ptr=new index_t[n+1];
-   if (! Esys_checkPtr(ptr)) {
-
       
       /* count the number of entries per row in the Prolongation matrix :*/
    
@@ -87,25 +85,22 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
       /* allocate and create index vector for prolongation: */
       index=new index_t[len_P];
    
-      if (! Esys_checkPtr(index)) {
-	 #pragma omp parallel for private(i,z,iptr,j,p)  schedule(static)
-	 for (i=0;i<n;++i) {
-	    if (counter_C[i]>=0) {
-	       index[ptr[i]]=counter_C[i];  /* i is a C unknown */
-	    } else {
-	       z=0;
-	       iptr=offset_S[i];
-	       for (p=0; p<degree_S[i]; ++p) { 
-		  j=S[iptr+p];  /* this is a strong connection */
-		  if (counter_C[j]>=0) {  /* and is in C */
-		     index[ptr[i]+z]=counter_C[j];
-		     z++; /* and is in C */
-		  }
-	       }
-	    }
-	 } 
-      }
-   }   
+     #pragma omp parallel for private(i,z,iptr,j,p)  schedule(static)
+     for (i=0;i<n;++i) {
+        if (counter_C[i]>=0) {
+           index[ptr[i]]=counter_C[i];  /* i is a C unknown */
+        } else {
+           z=0;
+           iptr=offset_S[i];
+           for (p=0; p<degree_S[i]; ++p) { 
+              j=S[iptr+p];  /* this is a strong connection */
+              if (counter_C[j]>=0) {  /* and is in C */
+                 index[ptr[i]+z]=counter_C[j];
+                 z++; /* and is in C */
+              }
+           }
+        }
+     } 
    if (Esys_noError()) {
 	 outpattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
    } else {

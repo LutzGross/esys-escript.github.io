@@ -111,7 +111,6 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
   }
   recv_offset[mpi_size] = len;
   cols_array = new index_t[len];
-  if (Esys_checkPtr(cols_array)) fprintf(stderr, "rank %d MALLOC has trouble\n", rank);
 
   #ifdef ESYS_MPI
   MPI_Allgatherv(global_id, num_couple_cols, MPI_INT, cols_array, recv_degree, recv_offset, MPI_INT, A->mpi_info->comm);

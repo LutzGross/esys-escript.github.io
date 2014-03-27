@@ -85,11 +85,8 @@ Paso_Preconditioner_BoomerAMG* Paso_Preconditioner_BoomerAMG_alloc(
         return NULL;
      }
 
-     out=new Paso_Preconditioner_BoomerAMG;
-     if (Esys_checkPtr(out)) return NULL;
-
-     pt=new Paso_BOOMERAMG_Handler;
-     if (Esys_checkPtr(pt)) return NULL;
+     out = new Paso_Preconditioner_BoomerAMG;
+     pt = new Paso_BOOMERAMG_Handler;
 
      out->pt = pt;
 

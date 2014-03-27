@@ -57,42 +57,29 @@ void Paso_Preconditioner_LocalSmoother_free(Paso_Preconditioner_LocalSmoother * 
 
 Paso_Preconditioner_Smoother* Paso_Preconditioner_Smoother_alloc(Paso_SystemMatrix * A_p, const bool jacobi, const bool is_local, const bool verbose) 
 {
-  
-  /* allocations: */  
-  Paso_Preconditioner_Smoother* out=new Paso_Preconditioner_Smoother;
-  if (! Esys_checkPtr(out)) {
-     out->localSmoother=Paso_Preconditioner_LocalSmoother_alloc(A_p->mainBlock,jacobi,verbose);
-     out->is_local=is_local;
-  }
-  if (Esys_MPIInfo_noError(A_p->mpi_info)) {
-     return out;
-  } else {
-     Paso_Preconditioner_Smoother_free(out);
-     return NULL;
-  }
+    Paso_Preconditioner_Smoother* out=new Paso_Preconditioner_Smoother;
+    out->localSmoother=Paso_Preconditioner_LocalSmoother_alloc(A_p->mainBlock,jacobi,verbose);
+    out->is_local=is_local;
+    if (Esys_MPIInfo_noError(A_p->mpi_info)) {
+        return out;
+    } else {
+        Paso_Preconditioner_Smoother_free(out);
+        return NULL;
+    }
 }
 Paso_Preconditioner_LocalSmoother* Paso_Preconditioner_LocalSmoother_alloc(paso::SparseMatrix * A_p, const bool jacobi, bool verbose)
 {
-   
    const dim_t n=A_p->numRows;
    const dim_t n_block=A_p->row_block_size;
    const dim_t block_size=A_p->block_size;
-   
    double time0=Esys_timer();
-   /* allocations: */  
    Paso_Preconditioner_LocalSmoother* out=new Paso_Preconditioner_LocalSmoother;
-   if (! Esys_checkPtr(out)) {
-      
-      out->diag=new double[((size_t) n) * ((size_t) block_size)];
-      out->pivot=new index_t[ ((size_t) n) * ((size_t)  n_block)];
-      out->buffer=new double[((size_t) n) * ((size_t)  n_block)];
-      out->Jacobi=jacobi;
-      
-      if ( ! ( Esys_checkPtr(out->diag) || Esys_checkPtr(out->pivot) ) ) {
-          paso::SparseMatrix_invMain(A_p, out->diag, out->pivot );
-      }
-      
-   }
+
+   out->diag=new double[((size_t) n) * ((size_t) block_size)];
+   out->pivot=new index_t[ ((size_t) n) * ((size_t)  n_block)];
+   out->buffer=new double[((size_t) n) * ((size_t)  n_block)];
+   out->Jacobi=jacobi;
+   paso::SparseMatrix_invMain(A_p, out->diag, out->pivot );
    time0=Esys_timer()-time0;
    
    if (Esys_noError()) {
