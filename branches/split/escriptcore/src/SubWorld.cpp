@@ -60,8 +60,84 @@ void SubWorld::clearJobs()
     jobvec.clear();
 }
 
+// takes an vector of bools of size 2*number of variables
+// Each entry in the first group is true if this subworld has at least one job which exports that variable.
+// Each entry in the second group is true if there is at least one Job in this world which wishes
+// to import that variable.
+// The order of the variables is determined by the order of keys in the reducemap
+// Q: Why does it take chars then?
+// A: Because I want raw storage that I can pass via MPI and bool is special cased.
+bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
+{
+    for (size_t i=0;i<jobvec.size();++i)
+    {  
+	bp::dict expmap=bp::extract<bp::dict>(jobvec[i].attr("exportedvalues"))();	
+	bp::list items=expmap.items();
+	size_t l=bp::len(items);
+	for (int j=0;j<l;++j)
+	{
+	    bp::object o1=items[j][0];
+	    bp::object o2=items[j][1];
+	    bp::extract<std::string> ex1(o1);
+	    if (!ex1.check())
+	    {
+		errmsg="Job attempted export using a name which was not a string.";
+		return false;
+	    }
+	    std::string name=ex1();
+	    std::map<std::string, Reducer_ptr>::iterator it=reducemap.find(name);
+	    if (it==reducemap.end())
+	    {
+		errmsg="Attempt to export variable \""+name+"\". SplitWorld was not told about this variable.";
+		return false;
+	    }
+	    // so now we know it is a known name, we check that it is not None and that it is compatible
+	    if (o2.is_none())
+	    {
+		errmsg="Attempt to export variable \""+name+"\" with value of None, this is not permitted.";
+		return false;
+	    }
+	    if (!(it->second)->valueCompatible(o2))
+	    {
+		errmsg="Attempt to export variable \""+name+"\" with an incompatible value.";
+		return false;
+	    }
+	    if (!(it->second)->reduceLocalValue(o2, errmsg))
+	    {
+		return false;	// the error string will be set by the reduceLocalValue
+	    }
+	}
+    }
+
+	// If we get here, all of the (local) exports worked
+	// Now, lets make a record for distrubtion    
+    size_t l=reducemap.size();
+    vb.resize(l*2);
+    size_t i=0;
+    for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it, ++i)
+    {
+	if (it->second->hasValue())
+	{
+	    vb[i]=1;
+	}
+	else
+	{
+	    vb[i]=0;
+	}
+	if (importmap[it->first])
+	{
+	    vb[i+l]=1;
+	}
+	else
+	{
+	    vb[i+l]=0;	  
+	}
+    }     
+    return true;      
+}
+/*
 // Deal with the i-th job's exports
-bool SubWorld::processExports(size_t i, std::string& errmsg)
+bool SubWorld::processExportsLocal(size_t i, std::string& errmsg)
 {
     bp::dict expmap=bp::extract<bp::dict>(jobvec[i].attr("exportedvalues"))();	
     bp::list items=expmap.items();
@@ -100,7 +176,33 @@ bool SubWorld::processExports(size_t i, std::string& errmsg)
 	}
     }
     return true;
-}
+}*/
+/*
+
+void SubWorld::populateVarMoveInfo(vector<char>& vb)
+{
+    size_t l=reducemap.size();
+    vb.resize(l*2);
+    for (str2reduce::iterator it=reducemap.begin(), int i=0;it!=reducemap.end();++it, ++i)
+    {
+	if (it->second->hasValue())
+	{
+	    vb[i]=1;
+	}
+	else
+	{
+	    vb[i]=0;
+	}
+	if (importmap[it->first])
+	{
+	    vb[i+l]=1;
+	}
+	else
+	{
+	    vb[i+l]=0;	  
+	}
+    }
+}*/
 
 // clears out all the old import and export values from _Jobs_
 // does not clear values out of reducers
@@ -133,12 +235,6 @@ char SubWorld::runJobs(std::string& errormsg)
 	    {
 		return 2;	
 	    }
-	    // now we check the exports from that Job,
-	    // Do names and type match?
-	    if (!processExports(i, errormsg))
-	    {    
-		return 4;
-	    }
 	    // check to see if we need to keep running
 	    if (!ex())
 	    {
@@ -170,7 +266,8 @@ char SubWorld::runJobs(std::string& errormsg)
     return ret;
 }
 
-void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
+// if manual import is false, add this new variable to all the Jobs in this world
+void SubWorld::addVariable(std::string& name, Reducer_ptr& rp, bool manualimport)
 {
     if (reducemap.find(name)!=reducemap.end())
     {
@@ -179,6 +276,13 @@ void SubWorld::addVariable(std::string& name, Reducer_ptr& rp)
 	throw SplitWorldException(oss.str());    
     }
     reducemap[name]=rp;
+    if (!manualimport)
+    {
+	for (size_t i=0;i<jobvec.size();++i)
+	{
+	    jobvec[i].attr("requestImport")(name);
+	}
+    }
 }
 
 void SubWorld::removeVariable(std::string& s)

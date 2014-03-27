@@ -111,6 +111,15 @@ class Job(object):
     """
     self.importedvalues.clear()
     
+  def requestImport(self, name):
+    """
+    Adds name to the list of imports
+    """
+    if (not isinstance(name, str)) or len(name)==0:
+      raise ValueError("Imports must be identified with non-empty strings")
+    if not name in self.wantedvalues:
+      self.wantedvalues+=name
+    
   def work(self):
     """
     Need to be overloaded for the job to actually do anthing.

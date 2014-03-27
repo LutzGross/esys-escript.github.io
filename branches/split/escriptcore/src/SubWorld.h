@@ -38,16 +38,22 @@ public:
     char runJobs(std::string& errmsg);
     void clearJobs();
     void clearImportExports();
-    void addVariable(std::string&, Reducer_ptr& red);
-    void removeVariable(std::string& name);    
+    void addVariable(std::string&, Reducer_ptr& red, bool manualimport);
+    void removeVariable(std::string& name);  
+    
+    
+    bool localTransport(std::vector<char>& vb, std::string& errmsg);
     
 private:    
     esysUtils::JMPI mpiinfo;
     escript::Domain_ptr domain;
     std::vector<boost::python::object> jobvec;
-    std::map<std::string, Reducer_ptr> reducemap;
     
-    bool processExports(size_t i, std::string& errmsg);
+typedef std::map<std::string, Reducer_ptr> str2reduce;  
+typedef std::map<std::string, bool> str2bool;
+    str2reduce reducemap;
+    str2bool importmap;
+
 };
 
 typedef boost::shared_ptr<SubWorld> SubWorld_ptr;
