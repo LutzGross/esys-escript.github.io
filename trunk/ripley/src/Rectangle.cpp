@@ -2356,7 +2356,7 @@ void Rectangle::setAssembler(std::string type, std::map<std::string,
             throw RipleyException("Domain already using a different custom assembler");
         assembler_type = WAVE_ASSEMBLER;
         delete assembler;
-        assembler = new WaveAssembler2D(this, m_dx, m_NX, m_NE, m_NN, constants);
+        assembler = new WaveAssembler2D(getPtr(), m_dx, m_NX, m_NE, m_NN, constants);
     } else if (type.compare("LameAssembler") == 0) {
         if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
             throw RipleyException("Domain already using a different custom assembler");

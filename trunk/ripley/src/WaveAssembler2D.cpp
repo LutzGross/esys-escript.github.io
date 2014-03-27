@@ -36,7 +36,7 @@ void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
 
-WaveAssembler2D::WaveAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
+WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
                 dim_t *m_NN, std::map<std::string, escript::Data> c) 
             : AbstractAssembler() {
         domain = dom;
@@ -650,7 +650,8 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
 
                     // add to matrix (if addEM_S) and RHS (if addEM_F)
                     const index_t firstNode=m_NN[0]*k1+k0;
-                    domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
+                    (boost::dynamic_pointer_cast<const Rectangle>(domain))->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, addEM_S,
+		    
                             addEM_F, firstNode, numEq, numComp);
                 } // end k0 loop
             } // end k1 loop
