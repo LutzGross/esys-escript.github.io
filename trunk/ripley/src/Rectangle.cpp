@@ -2321,8 +2321,8 @@ int Rectangle::findNode(const double *coords) const {
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
     // distance in elements
-    int ex = (int) floor(x / m_dx[0]);
-    int ey = (int) floor(y / m_dx[1]);
+    int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
+    int ey = (int) floor(y / m_dx[1] + 0.01*m_dx[1]);
     // set the min distance high enough to be outside the element plus a bit
     int closest = NOT_MINE;
     double minDist = 1;
@@ -2336,7 +2336,7 @@ int Rectangle::findNode(const double *coords) const {
             double ydist = (y - (ey + dy)*m_dx[1]);
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
-                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NE[0] + 1); 
+                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NN[0]); 
                 minDist = total;
             }
         }
