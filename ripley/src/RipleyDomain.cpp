@@ -1423,8 +1423,10 @@ void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
         if (yNotEmpty) {
             const double *EM_F = y.getSampleDataRO(i);
             double *F_p = rhs.getSampleDataRW(0);
-            for (index_t eq = 0; eq < nEq; eq++) {
-                F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+            if (rowIndex[0] < getNumDOF()) {
+                for (index_t eq = 0; eq < nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+                }
             }
         }
         if (dNotEmpty) {
