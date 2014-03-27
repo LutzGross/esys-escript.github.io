@@ -29,13 +29,15 @@
 #include "Paso.h"
 #include "Pattern.h"
 
+using esysUtils::IndexListArray;
+
 namespace paso {
 
 // computes the pattern coming from a matrix-matrix multiplication
 
 Pattern* Pattern_multiply(int type, Pattern* A, Pattern* B)
 {
-    Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
+    IndexListArray index_list(A->numOutput);
 
 #pragma omp parallel for schedule(static)
     for (dim_t i = 0; i < A->numOutput; i++) {
@@ -43,13 +45,12 @@ Pattern* Pattern_multiply(int type, Pattern* A, Pattern* B)
             const dim_t j = A->index[iptrA];
             for (index_t iptrB = B->ptr[j]; iptrB < B->ptr[j+1]; ++iptrB) {
                 const dim_t k = B->index[iptrB];
-                Paso_IndexListArray_insertIndex(index_list, i, k);
+                index_list[i].insertIndex(k);
             }
         }
     }
-    Pattern* out=Pattern_fromIndexListArray(0, index_list, 0, B->numInput, 0);
-
-    Paso_IndexListArray_free(index_list);
+    Pattern* out=Pattern_fromIndexListArray(0, A->numOutput, index_list,
+                                            0, B->numInput, 0);
     return out;
 }
 
@@ -61,7 +62,7 @@ Pattern* Pattern_multiply(int type, Pattern* A, Pattern* B)
  */
 Pattern* Pattern_binop(int type, Pattern* A, Pattern* B)
 {
-    Paso_IndexListArray* index_list = Paso_IndexListArray_alloc(A->numOutput);
+    IndexListArray index_list(A->numOutput);
 
 #pragma omp parallel for schedule(static)
     for (dim_t i = 0; i < B->numOutput; i++) {
@@ -72,32 +73,31 @@ Pattern* Pattern_binop(int type, Pattern* A, Pattern* B)
             const dim_t j = A->index[iptrA];
             const dim_t k = B->index[iptrB];
             if (j < k) {
-                Paso_IndexListArray_insertIndex(index_list, i, j);
+                index_list[i].insertIndex(j);
                 iptrA++;
             } else if (j > k) {
-                Paso_IndexListArray_insertIndex(index_list, i, k);
+                index_list[i].insertIndex(k);
                 iptrB++;
             } else { // (j == k)
-                Paso_IndexListArray_insertIndex(index_list, i, j);
+                index_list[i].insertIndex(j);
                 iptrB++;
                 iptrA++;
             }
         }
         while(iptrA < A->ptr[i+1]) {
             const dim_t j = A->index[iptrA];
-            Paso_IndexListArray_insertIndex(index_list, i, j);
+            index_list[i].insertIndex(j);
             iptrA++;
         }
         while(iptrB < B->ptr[i+1]) {
             const dim_t k = B->index[iptrB];
-            Paso_IndexListArray_insertIndex(index_list, i, k);
+            index_list[i].insertIndex(k);
             iptrB++;
         }
     }
 
-    Pattern* out=Pattern_fromIndexListArray(0, index_list, 0, A->numInput, 0);
-
-    Paso_IndexListArray_free(index_list);
+    Pattern* out=Pattern_fromIndexListArray(0, A->numOutput, index_list, 0,
+                                            A->numInput, 0);
     return out;
 }
 

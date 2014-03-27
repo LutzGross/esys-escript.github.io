@@ -36,7 +36,7 @@
 
 namespace finley {
 
-void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
+void IndexList_insertElements(IndexListArray& index_list, ElementFile* elements,
                               bool reduce_row_order, const int* row_map,
                               bool reduce_col_order, const int* col_map)
 {
@@ -80,7 +80,7 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
                         const int irow=row_map[elements->Nodes[INDEX2(row_node[INDEX2(kr,isub,NN_row)],e,NN)]];
                         for (int kc=0; kc<NN_col; kc++) {
                             const int icol=col_map[elements->Nodes[INDEX2(col_node[INDEX2(kc,isub,NN_col)],e,NN)]];
-                            IndexList_insertIndex(index_list[irow], icol);
+                            index_list[irow].insertIndex(icol);
                         }
                     }
                 }
@@ -89,8 +89,9 @@ void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
     }
 }
 
-void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* index_list,
-                            int firstRow, int lastRow, ElementFile* elements,
+void IndexList_insertElementsWithRowRangeNoMainDiagonal(
+                            IndexListArray& index_list, int firstRow,
+                            int lastRow, ElementFile* elements,
                             int* row_map, int* col_map)
 {
     if (!elements)
@@ -109,7 +110,7 @@ void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* index_list,
                         for (int kc=0; kc<NN; kc++) {
                             const int icol=col_map[elements->Nodes[INDEX2(kc,e,NN)]];
                             if (icol != irow)
-                                IndexList_insertIndex(index_list[irow_loc], icol);
+                                index_list[irow_loc].insertIndex(icol);
                         }
                     }
                 }
@@ -118,71 +119,6 @@ void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* index_list,
     }
 }
 
-/// inserts a row index into the IndexList in if it does not exist
-void IndexList_insertIndex(IndexList& in, int index)
-{
-    if (std::find(in.begin(), in.end(), index) == in.end())
-        in.push_back(index);
-}
-
-/// counts the number of row indices in the IndexList in
-int IndexList_count(const IndexList& in, int range_min, int range_max)
-{
-    int out=0;
-    for (IndexList::const_iterator it=in.begin(); it!=in.end(); it++) {
-        if (*it >= range_min && range_max > *it)
-            ++out;
-    }
-    return out;
-}
-
-/// count the number of row indices in the IndexList in
-void IndexList_toArray(const IndexList& in, int* array, int range_min, int range_max, int index_offset)
-{
-    int idx=0;
-    for (IndexList::const_iterator it=in.begin(); it!=in.end(); it++) {
-        if (*it >= range_min && range_max > *it) {
-            array[idx]=(*it)+index_offset;
-            ++idx;
-        }
-    }
-}
-
-/// creates a paso pattern from a range of indices
-paso::Pattern* IndexList_createPattern(int n0, int n,
-                                      const IndexList* index_list,
-                                      int range_min, int range_max,
-                                      int index_offset)
-{
-    int *ptr=new int[n+1-n0];
-    // get the number of connections per row
-#pragma omp parallel for
-    for (int i=n0; i<n; ++i) {
-        ptr[i-n0]=IndexList_count(index_list[i], range_min, range_max);
-    }
-    // accumulate ptr
-    int s=0;
-    for (int i=n0; i<n; ++i) {
-        const int itmp=ptr[i-n0];
-        ptr[i-n0]=s;
-        s+=itmp;
-    }
-    ptr[n-n0]=s;
-    // fill index
-    int *index=new int[ptr[n-n0]];
-#pragma omp parallel for
-    for (int i=n0; i<n; ++i) {
-        IndexList_toArray(index_list[i], &index[ptr[i-n0]], range_min, range_max, index_offset);
-    }
-
-    paso::Pattern* out=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, n-n0, range_max+index_offset, ptr, index);
-    if (!noError()) {
-        delete[] ptr;
-        delete[] index;
-        paso::Pattern_free(out);
-    }
-    return out;
-}
 
 } // namespace finley
 

@@ -30,7 +30,6 @@ sources = """
 	Functions.cpp
 	GMRES.cpp
 	GMRES2.cpp
-	IndexList.cpp
         MergedSolver.cpp
 	MKL.cpp
 	NewtonGMRES.cpp
@@ -110,7 +109,6 @@ headers = """
 	Distribution.h
         FluxLimiter.h
 	Functions.h
-	IndexList.h
         MergedSolver.h
 	MKL.h
 	Options.h

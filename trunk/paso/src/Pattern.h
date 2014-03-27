@@ -29,7 +29,7 @@
 #define __PASO_PATTERN_H__
 
 #include "Paso.h"
-#include "IndexList.h"
+#include "esysUtils/IndexList.h"
 
 namespace paso {
 
@@ -93,7 +93,9 @@ PASO_DLL_API
 index_t* Pattern_borrowMainDiagonalPointer(Pattern* A);
 
 PASO_DLL_API
-Pattern* Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* index_list_array,index_t range_min,index_t range_max, index_t index_offset);
+Pattern* Pattern_fromIndexListArray(dim_t n0, dim_t n,
+        const esysUtils::IndexListArray& index_list_array, index_t range_min,
+        index_t range_max, index_t index_offset);
 
 PASO_DLL_API
 dim_t Pattern_getNumColors(Pattern* A);

@@ -18,31 +18,32 @@ Import('*')
 local_env = env.Clone()
 
 sources = """
-	EsysAssertException.cpp
-	EsysException.cpp
-	EsysRandom.cpp
-	Esys_MPI.cpp
-	error.cpp
-	esysExceptionTranslator.cpp
-	blocktimer.cpp
+    EsysAssertException.cpp
+    EsysException.cpp
+    EsysRandom.cpp
+    Esys_MPI.cpp
+    error.cpp
+    esysExceptionTranslator.cpp
+    blocktimer.cpp
 """.split()
 
 headers = """
-	EsysAssert.h
-	EsysAssertException.h
-	EsysException.h
-	EsysRandom.h
-	Esys_MPI.h
-	error.h
-	esysExceptionTranslator.h
-	esysFileWriter.h
-	blocktimer.h
-	mem.h
-	mpi_C.h
-	index.h
-	maths.h
-	system_dep.h
-	types.h
+    EsysAssert.h
+    EsysAssertException.h
+    EsysException.h
+    EsysRandom.h
+    Esys_MPI.h
+    IndexList.h
+    error.h
+    esysExceptionTranslator.h
+    esysFileWriter.h
+    blocktimer.h
+    mem.h
+    mpi_C.h
+    index.h
+    maths.h
+    system_dep.h
+    types.h
 """.split()
 
 lib_name = 'esysUtils'
