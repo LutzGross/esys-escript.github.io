@@ -32,7 +32,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 	NULL, i, k, myFirstDOF, myLastDOF, *nodeMask = NULL, firstDOF, lastDOF, *globalDOFIndex, *wanted_DOFs = NULL;
     dim_t mpiSize, len_loc_dof, numNeighbors, n, lastn, numNodes, *rcv_len = NULL, *snd_len = NULL, count;
     Esys_MPI_rank myRank, p, p_min, p_max, *neighbor = NULL;
-    Paso_SharedComponents *rcv_shcomp = NULL, *snd_shcomp = NULL;
+    paso::SharedComponents_ptr rcv_shcomp, snd_shcomp;
     Dudley_NodeMapping *this_mapping = NULL;
     paso::Connector *this_connector = NULL;
     paso::Distribution_ptr dof_distribution;
@@ -229,9 +229,9 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 	for (i = 0; i < offsetInShared[numNeighbors]; ++i)
 	    shared[i] = myLastDOF - myFirstDOF + i;
 
-	rcv_shcomp =
-	    Paso_SharedComponents_alloc(myLastDOF - myFirstDOF, numNeighbors, neighbor, shared, offsetInShared, 1, 0,
-					mpi_info);
+	rcv_shcomp.reset(new paso::SharedComponents(myLastDOF - myFirstDOF,
+                numNeighbors, neighbor, shared, offsetInShared, 1, 0,
+                mpi_info));
 
 	/*
 	 *    now we build the sender
@@ -282,15 +282,13 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 	    shared[i] = locDOFMask[shared[i] - min_DOF];
 	}
 
-	snd_shcomp =
-	    Paso_SharedComponents_alloc(myLastDOF - myFirstDOF, numNeighbors, neighbor, shared, offsetInShared, 1, 0,
-					dof_distribution->mpi_info);
+	snd_shcomp.reset(new paso::SharedComponents(myLastDOF - myFirstDOF,
+                numNeighbors, neighbor, shared, offsetInShared, 1, 0,
+                dof_distribution->mpi_info));
 
 	if (Dudley_noError())
 	    this_connector = paso::Connector_alloc(snd_shcomp, rcv_shcomp);
 	/* assign new DOF labels to nodes */
-	Paso_SharedComponents_free(rcv_shcomp);
-	Paso_SharedComponents_free(snd_shcomp);
     }
     delete[] rcv_len;
     delete[] snd_len;

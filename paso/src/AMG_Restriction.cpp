@@ -47,7 +47,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
    paso::Distribution_ptr input_dist, output_dist;
-   Paso_SharedComponents *send =NULL, *recv=NULL;
+   paso::SharedComponents_ptr send, recv;
    paso::Connector *col_connector=NULL;
    paso::Pattern *couple_pattern=NULL;
    const dim_t row_block_size=P->row_block_size;
@@ -324,8 +324,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    for (i=p; i<numNeighbors; i++) {
      offsetInShared[i+1] = num_Rcouple_cols;
    }
-   recv = Paso_SharedComponents_alloc(n, numNeighbors,
-		neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   recv.reset(new paso::SharedComponents(n, numNeighbors, neighbor, shared,
+               offsetInShared, 1, 0, mpi_info));
    delete[] recv_idx;
 
    /* prepare the sender for the col_connector */
@@ -353,13 +353,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      }
      offsetInShared[p+1] = sum;
    }
-   send = Paso_SharedComponents_alloc(n, numNeighbors,
-                neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   send.reset(new paso::SharedComponents(n, numNeighbors, neighbor, shared,
+               offsetInShared, 1, 0, mpi_info));
 
    /* build the col_connector based on sender and receiver */
    col_connector = paso::Connector_alloc(send, recv);
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
    delete[] offsetInShared;
    delete[] shared;   
 

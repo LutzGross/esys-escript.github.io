@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 
-/**********************************************************************************************/
+/****************************************************************************/
 /* Paso: SystemMatrix							*/
 /*									*/
 /*  Copy mainBlock and col_coupleBlock in other ranks			*/
@@ -23,24 +23,19 @@
 /*									*/
 /*  WARNING: function uses mpi_requests of the coupler attached to A.	*/
 /*									*/
-/**********************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003 */
 /* Author: Lin Gao, l.gao@uq.edu.au */
 
-/**********************************************************************************/
+/****************************************************************************/
 
-#include "Paso.h"
 #include "SystemMatrix.h"
-
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
 void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool recreatePattern){
     paso::Pattern *pattern=NULL;
   paso::Coupler *coupler=NULL;
-  Paso_SharedComponents *send=NULL, *recv=NULL;
+  paso::SharedComponents_ptr send, recv;
   double *cols=NULL, *send_buf=NULL;
   index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
   index_t *send_idx=NULL, *send_offset=NULL, *recv_buf=NULL, *recv_offset=NULL;
@@ -335,6 +330,4 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, const bool re
   delete[] send_degree;
   delete[] send_idx;
 }
-
-
 

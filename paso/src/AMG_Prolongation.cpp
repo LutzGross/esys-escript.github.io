@@ -14,22 +14,22 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: defines AMG prolongation  */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Artak Amirbekyan, artak@uq.edu.au, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
-/************************************************************************************
+/****************************************************************************
 
     Methods necessary for AMG preconditioner
 
@@ -49,15 +49,16 @@
    
 */
 
-Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_p, 
-                                                           const index_t* offset_S, const dim_t* degree_S, const index_t* S,
-							   const dim_t n_C, index_t* counter_C, const index_t interpolation_method) 
+Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(
+        Paso_SystemMatrix* A_p, const index_t* offset_S, const dim_t* degree_S,
+        const index_t* S, const dim_t n_C, index_t* counter_C,
+        const index_t interpolation_method) 
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
    paso::Distribution_ptr input_dist, output_dist;
-   Paso_SharedComponents *send =NULL, *recv=NULL;
+   paso::SharedComponents_ptr send, recv;
    paso::Connector *col_connector=NULL;
    paso::Pattern *main_pattern=NULL, *couple_pattern=NULL;
    const dim_t row_block_size=A_p->row_block_size;
@@ -266,8 +267,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
 		&mpi_requests[i+send->numNeighbors]);
      #endif
    }
-   recv = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
-                                      offsetInShared, 1, 0, mpi_info);
+   recv.reset(new paso::SharedComponents(my_n_C, num_neighbors, neighbor,
+               shared, offsetInShared, 1, 0, mpi_info));
 
    /* now we can build the sender */
    #ifdef ESYS_MPI
@@ -299,11 +300,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
      }
    }
 
-   send = Paso_SharedComponents_alloc(my_n_C, num_neighbors, neighbor, shared,
-				      offsetInShared, 1, 0, mpi_info);
+   send.reset(new paso::SharedComponents(my_n_C, num_neighbors, neighbor,
+               shared, offsetInShared, 1, 0, mpi_info));
    col_connector = paso::Connector_alloc(send, recv);
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
    delete[] recv_shared;
    delete[] send_shared;
    delete[] neighbor;

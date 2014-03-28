@@ -44,7 +44,6 @@ sources = """
         Pattern_multiply.cpp
 	Pattern_reduceBandwidth.cpp
 	Pattern_unrollBlocks.cpp
-	SharedComponents.cpp
 	Solver.cpp
 	Transport.cpp
 	Transport_solve.cpp
