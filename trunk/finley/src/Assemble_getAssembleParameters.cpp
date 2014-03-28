@@ -43,8 +43,8 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     }
     // check the dimensions of S and rhs
     if (sm!=NULL && !rhs.isEmpty()) {
-        if (!rhs.numSamplesEqual(1, (Paso_Distribution_getMyNumComponents(
-                    sm->row_distribution)*sm->row_block_size)/sm->logical_row_block_size)) {
+        if (!rhs.numSamplesEqual(1, (sm->row_distribution->getMyNumComponents()
+                           * sm->row_block_size)/sm->logical_row_block_size)) {
             setError(TYPE_ERROR, "AssembleParameters: number of rows of matrix and length of right hand side don't match.");
             return;
         }
@@ -79,11 +79,13 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     if (sm!=NULL) {
         // Make sure # rows in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
-        if (Paso_Distribution_getMyNumComponents(sm->row_distribution)*sm->row_block_size==this->numEqu*nodes->getNumDegreesOfFreedom()) {
+        if (sm->row_distribution->getMyNumComponents()*sm->row_block_size ==
+                this->numEqu*nodes->getNumDegreesOfFreedom()) {
             this->row_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
             this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
             this->row_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if (Paso_Distribution_getMyNumComponents(sm->row_distribution)*sm->row_block_size==this->numEqu*nodes->getNumReducedDegreesOfFreedom()) {
+        } else if (sm->row_distribution->getMyNumComponents()*sm->row_block_size ==
+                this->numEqu*nodes->getNumReducedDegreesOfFreedom()) {
             this->row_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
             this->row_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
             this->row_jac=ef->borrowJacobians(nodes, true, reducedOrder);
@@ -92,11 +94,12 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         }
         // Make sure # cols in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
-        if (Paso_Distribution_getMyNumComponents(sm->col_distribution)*sm->col_block_size==this->numComp*nodes->getNumDegreesOfFreedom()) {
+        if (sm->col_distribution->getMyNumComponents()*sm->col_block_size ==
+                this->numComp*nodes->getNumDegreesOfFreedom()) {
             this->col_DOF_UpperBound = nodes->getNumDegreesOfFreedom();
             this->col_DOF=nodes->borrowTargetDegreesOfFreedom();
             this->col_jac=ef->borrowJacobians(nodes, false, reducedOrder);
-        } else if (Paso_Distribution_getMyNumComponents(sm->col_distribution)*sm->col_block_size==this->numComp*nodes->getNumReducedDegreesOfFreedom()) {
+        } else if (sm->col_distribution->getMyNumComponents()*sm->col_block_size==this->numComp*nodes->getNumReducedDegreesOfFreedom()) {
             this->col_DOF_UpperBound = nodes->getNumReducedDegreesOfFreedom();
             this->col_DOF=nodes->borrowTargetReducedDegreesOfFreedom();
             this->col_jac=ef->borrowJacobians(nodes, true, reducedOrder);

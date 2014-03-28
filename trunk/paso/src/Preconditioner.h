@@ -109,7 +109,7 @@ void Paso_Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim
 void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMGBlockSelect*split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
-					    paso::Connector* col_connector, Paso_Distribution* col_dist);
+					    paso::Connector* col_connector, paso::const_Distribution_ptr col_dist);
 Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P);
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R);
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R);

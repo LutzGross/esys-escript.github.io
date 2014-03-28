@@ -15,16 +15,16 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: SystemMatrix and SystemVector */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Copyrights by ACcESS Australia 2003,2004,2005,2006 */
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #ifndef INC_PASO_SYSTEMMATRIX
 #define INC_PASO_SYSTEMMATRIX
@@ -38,13 +38,11 @@
 #include "Coupler.h"
 
 
-/************************************************************************************/
-
-/*  this struct holds a stiffness matrix: */
-
 typedef int Paso_SystemMatrixType;
 
-typedef struct Paso_SystemMatrix {
+//  this struct holds a stiffness matrix
+struct Paso_SystemMatrix
+{
   Paso_SystemMatrixType type;
   paso::SystemMatrixPattern *pattern;
 
@@ -57,8 +55,8 @@ typedef struct Paso_SystemMatrix {
   dim_t col_block_size;
   dim_t block_size;
 
-  Paso_Distribution *row_distribution;
-  Paso_Distribution *col_distribution;
+  paso::Distribution_ptr row_distribution;
+  paso::Distribution_ptr col_distribution;
   Esys_MPIInfo *mpi_info;
 
   paso::Coupler* col_coupler;
@@ -73,9 +71,9 @@ typedef struct Paso_SystemMatrix {
 
   bool is_balanced;
   double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
-			      if is_balanced is set, the matrix stored is D*A*D where A is the original matrix.
-		              When the system of linear equations is solved we solve D*A*D*y=c.
-		              So to solve A*x=b one needs to set c=D*b and x=D*y. */
+                             if is_balanced is set, the matrix stored is D*A*D where A is the original matrix.
+                             When the system of linear equations is solved we solve D*A*D*y=c.
+                             So to solve A*x=b one needs to set c=D*b and x=D*y. */
 
   index_t *global_id; /* store the global ids for all cols in col_couplerBlock */
 
@@ -86,8 +84,7 @@ typedef struct Paso_SystemMatrix {
 
   /* this is only used for a trilinos matrix */
   void *trilinos_data; 
-
-} Paso_SystemMatrix;
+};
 
 /*  interfaces: */
 

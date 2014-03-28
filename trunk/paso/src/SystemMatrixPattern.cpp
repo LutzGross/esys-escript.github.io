@@ -32,7 +32,7 @@ namespace paso {
 
 // constructor for a SystemMatrixPattern
 SystemMatrixPattern::SystemMatrixPattern(int patType,
-        Paso_Distribution* outDist, Paso_Distribution* inDist,
+        Distribution_ptr outDist, Distribution_ptr inDist,
         Pattern* mainPat, Pattern* colPat, Pattern* rowPat,
         Connector* colConn, Connector* rowConn) 
 {
@@ -59,10 +59,10 @@ SystemMatrixPattern::SystemMatrixPattern(int patType,
     if (colPat->numOutput != mainPat->numOutput) {
         Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of outputs for couple and main pattern don't match.");
     }
-    if (mainPat->numOutput != Paso_Distribution_getMyNumComponents(outDist)) {
+    if (mainPat->numOutput != outDist->getMyNumComponents()) {
         Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of outputs and given distribution don't match.");
     }
-    if (mainPat->numInput != Paso_Distribution_getMyNumComponents(inDist)) {
+    if (mainPat->numInput != inDist->getMyNumComponents()) {
         Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of input for main pattern and number of send components in connector don't match.");
     }
     if (colPat->numInput != colConn->recv->numSharedComponents) {
@@ -79,8 +79,8 @@ SystemMatrixPattern::SystemMatrixPattern(int patType,
     col_couplePattern=Pattern_getReference(colPat);
     row_connector=Connector_getReference(rowConn);
     col_connector=Connector_getReference(colConn);
-    output_distribution=Paso_Distribution_getReference(outDist);
-    input_distribution=Paso_Distribution_getReference(inDist);
+    output_distribution=outDist;
+    input_distribution=inDist;
     mpi_info = Esys_MPIInfo_getReference(outDist->mpi_info);
 #ifdef Paso_TRACE
     printf("SystemMatrixPattern: system matrix pattern has been allocated.\n");
@@ -107,8 +107,6 @@ void SystemMatrixPattern_free(SystemMatrixPattern* in)
             Pattern_free(in->col_couplePattern);
             Connector_free(in->row_connector);
             Connector_free(in->col_connector);
-            Paso_Distribution_free(in->output_distribution);
-            Paso_Distribution_free(in->input_distribution);
             Esys_MPIInfo_free(in->mpi_info);
             delete in;
 #ifdef Paso_TRACE

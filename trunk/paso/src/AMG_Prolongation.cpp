@@ -56,7 +56,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
-   Paso_Distribution *input_dist=NULL, *output_dist=NULL;
+   paso::Distribution_ptr input_dist, output_dist;
    Paso_SharedComponents *send =NULL, *recv=NULL;
    paso::Connector *col_connector=NULL;
    paso::Pattern *main_pattern=NULL, *couple_pattern=NULL;
@@ -113,8 +113,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    /* ??? should I alloc an new Esys_MPIInfo object or reuse the one in
       system matrix A. for now, I'm reuse A->mpi_info ??? */
    dist = A_p->pattern->output_distribution->first_component;
-   output_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-   dist = new  index_t[size+1]; /* now prepare for col distribution */
+   output_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
+   dist = new index_t[size+1]; /* now prepare for col distribution */
    #ifdef ESYS_MPI
    MPI_Allgather(&my_n_C, 1, MPI_INT, dist, 1, MPI_INT, mpi_info->comm);
    #endif
@@ -126,7 +126,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    }
    dist[size] = global_label;
 
-   input_dist=Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   input_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
    delete[] dist;
 
    /* create pattern for mainBlock and coupleBlock */
@@ -345,8 +345,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(Paso_SystemMatrix* A_
    paso::Pattern_free(main_pattern);
    paso::Pattern_free(couple_pattern);
    paso::Connector_free(col_connector);
-   Paso_Distribution_free(output_dist);
-   Paso_Distribution_free(input_dist);
    if (Esys_noError()) {
       return out;
    } else {

@@ -69,8 +69,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
   if (! Esys_checkPtr(out)) {
      out->type=type;
      out->pattern=NULL;  
-     out->row_distribution=NULL;
-     out->col_distribution=NULL;
      out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
      out->row_coupler=NULL;
      out->col_coupler=NULL;
@@ -103,8 +101,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
               out->col_block_size=col_block_size;
          }
          if (Esys_noError()) {
-           out->row_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
-           out->col_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
+           out->row_distribution=out->pattern->input_distribution;
+           out->col_distribution=out->pattern->output_distribution;
          }
      } else {
          if (unroll) {
@@ -121,16 +119,16 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
               out->col_block_size=col_block_size;
          }
          if (Esys_noError()) {
-              out->row_distribution=Paso_Distribution_getReference(out->pattern->output_distribution);
-              out->col_distribution=Paso_Distribution_getReference(out->pattern->input_distribution);
+              out->row_distribution = out->pattern->output_distribution;
+              out->col_distribution = out->pattern->input_distribution;
          }
      }
      if (Esys_noError()) {
-	if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-	  out->block_size=MIN(out->row_block_size,out->col_block_size);
-	} else {
+        if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+          out->block_size=MIN(out->row_block_size,out->col_block_size);
+        } else {
           out->block_size=out->row_block_size*out->col_block_size;
-	}
+        }
         out->col_coupler=paso::Coupler_alloc(out->pattern->col_connector,out->col_block_size);
         out->row_coupler=paso::Coupler_alloc(out->pattern->row_connector,out->row_block_size);
         /* this should be bypassed if trilinos is used */
@@ -146,8 +144,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
            if (Esys_noError()) {
               /* allocate memory for matrix entries */
               n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
-	      out->balance_vector=new double[n_norm];
-	      out->is_balanced=FALSE;
+              out->balance_vector=new double[n_norm];
+              out->is_balanced=FALSE;
              #pragma omp parallel for private(i) schedule(static)
              for (i=0;i<n_norm;++i) out->balance_vector[i]=1.;
            }
@@ -172,35 +170,34 @@ Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix* in) {
 
 /* deallocates a SystemMatrix: */
 
-void Paso_SystemMatrix_free(Paso_SystemMatrix* in) {
-  if (in!=NULL) {
-     in->reference_counter--;
-     if (in->reference_counter<=0) {
-	
-	Paso_solve_free(in);
-    paso::SystemMatrixPattern_free(in->pattern);
-        Paso_Distribution_free(in->row_distribution);
-        Paso_Distribution_free(in->col_distribution);
-        Esys_MPIInfo_free(in->mpi_info);
-        paso::Coupler_free(in->row_coupler);
-        paso::Coupler_free(in->col_coupler);
-        paso::SparseMatrix_free(in->mainBlock);
-        paso::SparseMatrix_free(in->col_coupleBlock);
-        paso::SparseMatrix_free(in->row_coupleBlock);
-        paso::SparseMatrix_free(in->remote_coupleBlock);
-	
-	delete[] in->balance_vector;
-        if (in->global_id) delete[] in->global_id;
-        #ifdef TRILINOS
-        Paso_TRILINOS_free(in->trilinos_data);
-        #endif
-        delete in;
-        #ifdef Paso_TRACE
-        printf("Paso_SystemMatrix_free: system matrix has been deallocated.\n");
-        #endif
-     }
-   }
+void Paso_SystemMatrix_free(Paso_SystemMatrix* in)
+{
+    if (in!=NULL) {
+        in->reference_counter--;
+        if (in->reference_counter<=0) {
+            Paso_solve_free(in);
+            paso::SystemMatrixPattern_free(in->pattern);
+            Esys_MPIInfo_free(in->mpi_info);
+            paso::Coupler_free(in->row_coupler);
+            paso::Coupler_free(in->col_coupler);
+            paso::SparseMatrix_free(in->mainBlock);
+            paso::SparseMatrix_free(in->col_coupleBlock);
+            paso::SparseMatrix_free(in->row_coupleBlock);
+            paso::SparseMatrix_free(in->remote_coupleBlock);
+
+            delete[] in->balance_vector;
+            if (in->global_id) delete[] in->global_id;
+#ifdef TRILINOS
+            Paso_TRILINOS_free(in->trilinos_data);
+#endif
+            delete in;
+#ifdef Paso_TRACE
+            printf("Paso_SystemMatrix_free: system matrix has been deallocated.\n");
+#endif
+        }
+    }
 }
+
 void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in)
 {
   Paso_SystemMatrix_startColCollect(A,in);
@@ -258,16 +255,16 @@ dim_t Paso_SystemMatrix_getColOverlap(const Paso_SystemMatrix* A)
 
 dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix* A) {
   if (A->type & MATRIX_FORMAT_CSC) {
-      return  Paso_Distribution_getGlobalNumComponents(A->pattern->input_distribution);
+      return A->pattern->input_distribution->getGlobalNumComponents();
   }  else {
-      return  Paso_Distribution_getGlobalNumComponents(A->pattern->output_distribution);
+      return A->pattern->output_distribution->getGlobalNumComponents();
   }
 }
 dim_t Paso_SystemMatrix_getGlobalNumCols(const Paso_SystemMatrix* A) {
   if (A->type & MATRIX_FORMAT_CSC) {
-      return  Paso_Distribution_getGlobalNumComponents(A->pattern->output_distribution);
+      return A->pattern->output_distribution->getGlobalNumComponents();
   }  else {
-      return  Paso_Distribution_getGlobalNumComponents(A->pattern->input_distribution);
+      return A->pattern->input_distribution->getGlobalNumComponents();
   }
 
 }
@@ -281,18 +278,18 @@ dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A){
 double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A) {
    double global_size=0;
    if (A!=NULL) {
-	 double my_size=paso::SparseMatrix_getSize(A->mainBlock)+paso::SparseMatrix_getSize(A->col_coupleBlock);
-	 if (A->mpi_info->size > 1) {
-	 
-	    #ifdef ESYS_MPI 
-	       MPI_Allreduce(&my_size,&global_size, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	    #else
-	       global_size=my_size;
-	    #endif
+         double my_size=paso::SparseMatrix_getSize(A->mainBlock)+paso::SparseMatrix_getSize(A->col_coupleBlock);
+         if (A->mpi_info->size > 1) {
+         
+            #ifdef ESYS_MPI 
+               MPI_Allreduce(&my_size,&global_size, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+            #else
+               global_size=my_size;
+            #endif
 
        } else {
-	    global_size=my_size;
-	 }
+            global_size=my_size;
+         }
    }
    return global_size;
 }
@@ -335,11 +332,11 @@ void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_ove
    #pragma omp parallel for private(ir,ib, rtmp1, rtmp2) schedule(static)
    for (ir=0;ir< n;ir++) {
        for (ib=0;ib<blk; ib++) {
-	     irow=ib+blk*ir;
-	     rtmp1=left_over[irow];
-	     rtmp2=A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib];
-	     A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = -rtmp1;
-	     left_over[irow]=rtmp2+rtmp1;
+             irow=ib+blk*ir;
+             rtmp1=left_over[irow];
+             rtmp2=A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib];
+             A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = -rtmp1;
+             left_over[irow]=rtmp2+rtmp1;
        }
    }
 }

@@ -182,8 +182,8 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
 
     // we pick the points to be used on this processor
     int numNewPoints=0;
-    const int firstDOF=Paso_Distribution_getFirstComponent(Nodes->degreesOfFreedomDistribution);
-    const int lastDOF=Paso_Distribution_getLastComponent(Nodes->degreesOfFreedomDistribution);
+    const int firstDOF=Nodes->degreesOfFreedomDistribution->getFirstComponent();
+    const int lastDOF=Nodes->degreesOfFreedomDistribution->getLastComponent();
 
     for (int i=0; i<numPoints; ++i) {
         if (node_id_p[i]>-1) {

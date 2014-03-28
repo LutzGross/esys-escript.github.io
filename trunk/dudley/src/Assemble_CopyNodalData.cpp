@@ -175,7 +175,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM)
 	    {
-		int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+		int nComps = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel private(n)
 		{
 #pragma omp for schedule(static)
@@ -188,7 +188,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM)
 	    {
-		int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+		int nComps = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel private(n)
 		{
 #pragma omp for schedule(static)
@@ -227,7 +227,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM)
 	    {
-		int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+		int nComps = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel private(n,k)
 		{
 #pragma omp for schedule(static)
@@ -255,7 +255,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 		    requireWrite(in);
             paso::Coupler_startCollect(coupler, getDataRW(in));
 		    recv_buffer = paso::Coupler_finishCollect(coupler);
-		    upperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+		    upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 #pragma omp parallel private(n,k)
 		    {
 #pragma omp for schedule(static)
@@ -284,7 +284,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 		    requireWrite(in);	/* See comment above about coupler and const */
             paso::Coupler_startCollect(coupler, getDataRW(in));
 		    recv_buffer = paso::Coupler_finishCollect(coupler);
-		    upperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+		    upperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 		    requireWrite(out);
 
 #pragma omp parallel private(n,k,l)
@@ -310,7 +310,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_DEGREES_OF_FREEDOM)
 	    {
-		int nComps = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+		int nComps = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 		requireWrite(out);
 #pragma omp parallel private(n)
 		{
@@ -323,7 +323,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM)
 	    {
-		int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+		int nComps = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 		requireWrite(out);
 #pragma omp parallel private(n,k)
 		{
@@ -352,7 +352,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 		coupler = paso::Coupler_alloc(nodes->reducedDegreesOfFreedomConnector, numComps);
 		if (Esys_noError())
 		{
-		    upperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+		    upperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 		    requireWrite(in);	/* See comment about coupler and const */
             paso::Coupler_startCollect(coupler, getDataRW(in));
 		    recv_buffer = paso::Coupler_finishCollect(coupler);
@@ -380,7 +380,7 @@ void Dudley_Assemble_CopyNodalData(Dudley_NodeFile * nodes, escriptDataC * out, 
 	    }
 	    else if (out_data_type == DUDLEY_REDUCED_DEGREES_OF_FREEDOM)
 	    {
-		int nComps = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+		int nComps = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 		requireWrite(out);
 #pragma omp parallel private(n)
 		{

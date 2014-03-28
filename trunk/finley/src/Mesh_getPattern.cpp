@@ -72,7 +72,7 @@ paso::SystemMatrixPattern* Mesh::makePattern(bool reduce_row_order, bool reduce_
     paso::SystemMatrixPattern* out=NULL;
     paso::Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
     paso::Connector *col_connector, *row_connector;
-    Paso_Distribution *colDistribution=NULL, *rowDistribution=NULL;
+    paso::Distribution_ptr colDistribution, rowDistribution;
   
     resetError();
 

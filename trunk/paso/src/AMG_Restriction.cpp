@@ -46,7 +46,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    paso::SparseMatrix *main_block=NULL, *couple_block=NULL;
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
-   Paso_Distribution *input_dist=NULL, *output_dist=NULL;
+   paso::Distribution_ptr input_dist, output_dist;
    Paso_SharedComponents *send =NULL, *recv=NULL;
    paso::Connector *col_connector=NULL;
    paso::Pattern *couple_pattern=NULL;
@@ -366,9 +366,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, n_C,
                         num_Rcouple_cols, ptr, idx);
 
-   input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   input_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
    dist = P->pattern->input_distribution->first_component;
-   output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   output_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
 
    /* now we need to create the System Matrix 
       TO BE FIXED: at this stage, we only construction col_couple_pattern
@@ -394,8 +394,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    paso::SystemMatrixPattern_free(pattern);
    paso::Pattern_free(couple_pattern);
    paso::Connector_free(col_connector);
-   Paso_Distribution_free(output_dist);
-   Paso_Distribution_free(input_dist);
 
    if (Esys_noError()) {
       return out;
