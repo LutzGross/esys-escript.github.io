@@ -1718,15 +1718,13 @@ void Rectangle::createPattern()
     }
     
     // create connector
-    Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
+    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
             numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
-            &offsetInShared[0], 1, 0, m_mpiInfo);
-    Paso_SharedComponents *rcv_shcomp = Paso_SharedComponents_alloc(
+            &offsetInShared[0], 1, 0, m_mpiInfo));
+    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
             numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
-            &offsetInShared[0], 1, 0, m_mpiInfo);
+            &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector = paso::Connector_alloc(snd_shcomp, rcv_shcomp);
-    Paso_SharedComponents_free(snd_shcomp);
-    Paso_SharedComponents_free(rcv_shcomp);
 
     // create main and couple blocks
     paso::Pattern *mainPattern = createMainPattern();

@@ -34,8 +34,8 @@ namespace paso {
 
 struct Connector
 {
-    Paso_SharedComponents* send;
-    Paso_SharedComponents* recv;
+    SharedComponents_ptr send;
+    SharedComponents_ptr recv;
     dim_t reference_counter;
     Esys_MPIInfo* mpi_info;
 };
@@ -60,7 +60,7 @@ struct Coupler
 
 
 PASO_DLL_API
-Connector* Connector_alloc(Paso_SharedComponents* send, Paso_SharedComponents* recv);
+Connector* Connector_alloc(SharedComponents_ptr send, SharedComponents_ptr recv);
 
 PASO_DLL_API
 Connector* Connector_getReference(Connector*);

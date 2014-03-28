@@ -936,9 +936,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     for (int i=0; i<offsetInShared[numNeighbors]; ++i)
         shared[i]=myLastDOF-myFirstDOF+i;
 
-    Paso_SharedComponents *rcv_shcomp=Paso_SharedComponents_alloc(
+    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
             myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], &shared[0],
-            &offsetInShared[0], 1, 0, MPIInfo);
+            &offsetInShared[0], 1, 0, MPIInfo));
 
     /////////////////////////////////
     //   now we build the sender   //
@@ -989,9 +989,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         shared[i]=locDOFMask[shared[i]-min_DOF];
     }
 
-    Paso_SharedComponents* snd_shcomp=Paso_SharedComponents_alloc(
+    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
             myLastDOF-myFirstDOF, numNeighbors, &neighbor[0], &shared[0],
-            &offsetInShared[0], 1, 0, MPIInfo);
+            &offsetInShared[0], 1, 0, MPIInfo));
 
     if (noError()) {
         if (use_reduced_elements) {
@@ -1000,9 +1000,6 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
             degreesOfFreedomConnector=paso::Connector_alloc(snd_shcomp, rcv_shcomp);
         }
     }
-
-    Paso_SharedComponents_free(rcv_shcomp);
-    Paso_SharedComponents_free(snd_shcomp);
 }
 
 void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,

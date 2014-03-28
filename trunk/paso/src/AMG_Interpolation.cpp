@@ -14,22 +14,22 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: defines AMG Interpolation                            */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: l.gao@uq.edu.au                                    */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
-/************************************************************************************
+/****************************************************************************
 
     Methods necessary for AMG preconditioner
 
@@ -38,7 +38,7 @@
 
     The coarsening operator A_C is defined by RAP where R=P^T.
 
-*************************************************************************************/
+*****************************************************************************/
 
 /* Extend system matrix B with extra two sparse matrices: 
 	B_ext_main and B_ext_couple
@@ -61,7 +61,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
 {
     paso::Pattern *pattern_main=NULL, *pattern_couple=NULL;
   paso::Coupler *coupler=NULL;
-  Paso_SharedComponents *send=NULL, *recv=NULL;
+  paso::SharedComponents_ptr send, recv;
   double *cols=NULL, *send_buf=NULL, *ptr_val=NULL, *send_m=NULL, *send_c=NULL;
   index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
   index_t *ptr_main=NULL, *ptr_couple=NULL, *idx_main=NULL, *idx_couple=NULL;
@@ -443,7 +443,7 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 	index_t **p_ptr, index_t **p_idx, double **p_val, 
 	index_t *global_id, index_t block_size) 
 {
-  Paso_SharedComponents *send=NULL, *recv=NULL;
+    paso::SharedComponents_ptr send, recv;
   index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
   index_t i, j, p, m, n, size;
   index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
@@ -595,7 +595,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
    paso::Distribution_ptr input_dist, output_dist;
-   Paso_SharedComponents *send =NULL, *recv=NULL;
    paso::Connector *col_connector=NULL, *row_connector=NULL;
    paso::Pattern *main_pattern=NULL;
    paso::Pattern *col_couple_pattern=NULL, *row_couple_pattern =NULL;
@@ -1746,8 +1745,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      num_neighbors ++;
      offsetInShared[num_neighbors] = i;
    }
-   recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
-			neighbor, shared, offsetInShared, 1, 0, mpi_info);
+
+   paso::SharedComponents_ptr recv(new paso::SharedComponents(
+               num_Pmain_cols, num_neighbors, neighbor, shared,
+               offsetInShared, 1, 0, mpi_info));
 
    #ifdef ESYS_MPI
    MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
@@ -1801,13 +1802,13 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    offset = dist[rank];
    #pragma omp parallel for schedule(static) private(i)
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
-   send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
-			neighbor, shared, offsetInShared, 1, 0, mpi_info);
+
+   paso::SharedComponents_ptr send(new paso::SharedComponents(
+               num_Pmain_cols, num_neighbors, neighbor, shared,
+               offsetInShared, 1, 0, mpi_info));
 
    col_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
@@ -1876,8 +1877,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	offsetInShared[num_neighbors] = k;
      }
    }
-   send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
-                        neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   send.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
+               neighbor, shared, offsetInShared, 1, 0, mpi_info));
 
    /* send/recv number of rows will be sent from current proc 
       recover info for the receiver of row_connector from the sender */
@@ -1903,12 +1904,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols; 
    }
-   recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
-                        neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   recv.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
+               neighbor, shared, offsetInShared, 1, 0, mpi_info));
    row_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
 
    /* send/recv pattern->ptr for rowCoupleBlock */
    num_RAPext_rows = offsetInShared[num_neighbors]; 
@@ -2041,7 +2040,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
    paso::Distribution_ptr input_dist, output_dist;
-   Paso_SharedComponents *send =NULL, *recv=NULL;
+   paso::SharedComponents_ptr send, recv;
    paso::Connector *col_connector=NULL, *row_connector=NULL;
    paso::Pattern *main_pattern=NULL;
    paso::Pattern *col_couple_pattern=NULL, *row_couple_pattern =NULL;
@@ -3171,8 +3170,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      num_neighbors ++;
      offsetInShared[num_neighbors] = i;
    }
-   recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
-			neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   recv.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
+               neighbor, shared, offsetInShared, 1, 0, mpi_info));
 
    #ifdef ESYS_MPI
    MPI_Alltoall(recv_len, 1, MPI_INT, send_len, 1, MPI_INT, mpi_info->comm);
@@ -3225,13 +3224,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    j = offsetInShared[num_neighbors];
    offset = dist[rank];
    for (i=0; i<j; i++) shared[i] = shared[i] - offset;
-   send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors, 
-			neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   send.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
+               neighbor, shared, offsetInShared, 1, 0, mpi_info));
 
    col_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
@@ -3299,8 +3296,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 	offsetInShared[num_neighbors] = k;
      }
    }
-   send = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
-                        neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   send.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
+               neighbor, shared, offsetInShared, 1, 0, mpi_info));
 
    /* send/recv number of rows will be sent from current proc 
       recover info for the receiver of row_connector from the sender */
@@ -3325,12 +3322,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    for (i=0; i<k; i++) {
      shared[i] = i + num_Pmain_cols; 
    }
-   recv = Paso_SharedComponents_alloc(num_Pmain_cols, num_neighbors,
-                        neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   recv.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
+               neighbor, shared, offsetInShared, 1, 0, mpi_info));
    row_connector = paso::Connector_alloc(send, recv);
    delete[] shared;
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
 
    /* send/recv pattern->ptr for rowCoupleBlock */
    num_RAPext_rows = offsetInShared[num_neighbors]; 

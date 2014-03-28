@@ -26,8 +26,8 @@ namespace paso {
  *
  ****************************************************************************/
 
-Connector* Connector_alloc(Paso_SharedComponents* send,
-                           Paso_SharedComponents* recv)
+Connector* Connector_alloc(SharedComponents_ptr send,
+                           SharedComponents_ptr recv)
 {
     Esys_resetError();
     if (send->mpi_info != recv->mpi_info) {
@@ -40,8 +40,8 @@ Connector* Connector_alloc(Paso_SharedComponents* send,
     }
 
     Connector* out = new Connector;
-    out->send = Paso_SharedComponents_getReference(send);
-    out->recv = Paso_SharedComponents_getReference(recv);
+    out->send = send;
+    out->recv = recv;
     out->mpi_info = Esys_MPIInfo_getReference(send->mpi_info);
     out->reference_counter = 1;
 
@@ -82,8 +82,6 @@ void Connector_free(Connector* in)
     if (in != NULL) {
         in->reference_counter--;
         if (in->reference_counter <= 0) {
-            Paso_SharedComponents_free(in->send);
-            Paso_SharedComponents_free(in->recv);
             Esys_MPIInfo_free(in->mpi_info);
             delete in;
 #ifdef Paso_TRACE
@@ -100,28 +98,26 @@ Connector* Connector_copy(Connector* in)
 
 Connector* Connector_unroll(Connector* in, index_t block_size)
 {
-    Paso_SharedComponents *new_send_shcomp=NULL, *new_recv_shcomp=NULL;
+    SharedComponents_ptr new_send_shcomp, new_recv_shcomp;
     Connector *out = NULL;
     if (Esys_noError()) {
         if (block_size > 1) {
-            new_send_shcomp = Paso_SharedComponents_alloc(
-                    in->send->local_length, in->send->numNeighbors,
-                    in->send->neighbor, in->send->shared,
-                    in->send->offsetInShared, block_size, 0, in->mpi_info);
+            new_send_shcomp.reset(new SharedComponents(in->send->local_length,
+                        in->send->numNeighbors, in->send->neighbor,
+                        in->send->shared, in->send->offsetInShared,
+                        block_size, 0, in->mpi_info));
 
-            new_recv_shcomp = Paso_SharedComponents_alloc(
-                    in->recv->local_length, in->recv->numNeighbors,
-                    in->recv->neighbor, in->recv->shared,
-                    in->recv->offsetInShared, block_size, 0, in->mpi_info);
+            new_recv_shcomp.reset(new SharedComponents(in->recv->local_length,
+                    in->recv->numNeighbors, in->recv->neighbor,
+                    in->recv->shared, in->recv->offsetInShared,
+                    block_size, 0, in->mpi_info));
         } else {
-            new_send_shcomp = Paso_SharedComponents_getReference(in->send);
-            new_recv_shcomp = Paso_SharedComponents_getReference(in->recv);
+            new_send_shcomp = in->send;
+            new_recv_shcomp = in->recv;
         }
         if (Esys_noError())
             out = Connector_alloc(new_send_shcomp, new_recv_shcomp);
     }
-    Paso_SharedComponents_free(new_send_shcomp);
-    Paso_SharedComponents_free(new_recv_shcomp);
     if (Esys_noError()) {
         return out;
     } else {
