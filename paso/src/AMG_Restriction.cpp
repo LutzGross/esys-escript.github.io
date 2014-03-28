@@ -48,7 +48,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    paso::SystemMatrixPattern *pattern=NULL;
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
-   paso::Connector *col_connector=NULL;
+   paso::Connector_ptr col_connector;
    paso::Pattern *couple_pattern=NULL;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
@@ -357,7 +357,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
                offsetInShared, 1, 0, mpi_info));
 
    /* build the col_connector based on sender and receiver */
-   col_connector = paso::Connector_alloc(send, recv);
+   col_connector.reset(new paso::Connector(send, recv));
    delete[] offsetInShared;
    delete[] shared;   
 
@@ -391,7 +391,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    paso::SparseMatrix_free(main_block);
    paso::SystemMatrixPattern_free(pattern);
    paso::Pattern_free(couple_pattern);
-   paso::Connector_free(col_connector);
 
    if (Esys_noError()) {
       return out;

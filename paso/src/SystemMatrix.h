@@ -59,8 +59,8 @@ struct Paso_SystemMatrix
   paso::Distribution_ptr col_distribution;
   Esys_MPIInfo *mpi_info;
 
-  paso::Coupler* col_coupler;
-  paso::Coupler* row_coupler;
+  paso::Coupler_ptr col_coupler;
+  paso::Coupler_ptr row_coupler;
 
   /* this comes into play when PASO is used */
   paso::SparseMatrix* mainBlock;           /* main block */

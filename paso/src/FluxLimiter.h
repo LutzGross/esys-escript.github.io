@@ -28,10 +28,10 @@ typedef struct Paso_FCT_FluxLimiter {
       double* u_tilde;
       double* MQ;   /* (M_C* Q_min, M_C* Q_max) */ 
       double* R;   /* (R-, R+) */
-      /* paso::Coupler *MQ_coupler; */
-      paso::Coupler *R_coupler;
-      paso::Coupler *u_tilde_coupler;
-      double*  borrowed_lumped_mass_matrix; /* borrowd reference */
+      /* paso::Coupler_ptr MQ_coupler; */
+      paso::Coupler_ptr R_coupler;
+      paso::Coupler_ptr u_tilde_coupler;
+      double*  borrowed_lumped_mass_matrix; /* borrowed reference */
 } Paso_FCT_FluxLimiter;
 
 #define Paso_FCT_FluxLimiter_getTotalNumRows(_f_) Paso_SystemMatrix_getTotalNumRows((_f_)->antidiffusive_fluxes)

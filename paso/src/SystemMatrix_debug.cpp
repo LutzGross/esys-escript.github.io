@@ -36,24 +36,19 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
    const dim_t block_size=A->block_size;
    const index_t row_offset = A->row_distribution->first_component[me];
    const index_t col_offset = A->col_distribution->first_component[me];
-   paso::Coupler* col_coupler=NULL, *row_coupler=NULL;
-   double *cols=NULL, *rows=NULL; 
-   
-   cols=new double[m];
-   rows=new double[n];
-   col_coupler= paso::Coupler_alloc(A->col_coupler->connector, 1);
-   row_coupler = paso::Coupler_alloc(A->col_coupler->connector, 1);
+   double* cols=new double[m];
+   double* rows=new double[n];
+   paso::Coupler_ptr col_coupler(new paso::Coupler(A->col_coupler->connector, 1));
+   paso::Coupler_ptr row_coupler(new paso::Coupler(A->col_coupler->connector, 1));
    
    #pragma omp parallel for private(i)
    for (i=0; i<n; ++i) rows[i]=row_offset+i;
-   paso::Coupler_startCollect(col_coupler, rows);
+   col_coupler->startCollect(rows);
    
    #pragma omp parallel for private(i)
    for (i=0; i<m; ++i) cols[i]=col_offset+i;
-   paso::Coupler_startCollect(row_coupler, cols);
+   row_coupler->startCollect(cols);
    
-   
-
    /* main block : */
    for (q=0; q< n; ++q){
       for (iPtr =A->mainBlock->pattern->ptr[q]; iPtr<A->mainBlock->pattern->ptr[q+1]; ++iPtr) {
@@ -62,7 +57,7 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
       }
    }
 
-   paso::Coupler_finishCollect(col_coupler);
+   col_coupler->finishCollect();
    if ( A->col_coupleBlock != NULL ){
       for (q=0; q< A->col_coupleBlock->pattern->numOutput; ++q){
 	 for (iPtr =A->col_coupleBlock->pattern->ptr[q]; iPtr<A->col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
@@ -72,7 +67,7 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
       }
    }
    
-   paso::Coupler_finishCollect(row_coupler);
+   row_coupler->finishCollect();
    if ( A->row_coupleBlock != NULL ){
       for (p=0; p< A->row_coupleBlock->pattern->numOutput; ++p){
 	 for (iPtr =A->row_coupleBlock->pattern->ptr[p]; iPtr<A->row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
@@ -84,8 +79,6 @@ void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const dou
    
    delete[] cols;
    delete[] rows;
-   paso::Coupler_free(row_coupler);
-   paso::Coupler_free(col_coupler);
    return; 		      
 }
 

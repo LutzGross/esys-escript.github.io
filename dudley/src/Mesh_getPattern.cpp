@@ -90,7 +90,7 @@ paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_ro
 {
     paso::SystemMatrixPattern *out = NULL;
     paso::Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
-    paso::Connector *col_connector, *row_connector;
+    paso::Connector_ptr col_connector, row_connector;
     Dudley_NodeMapping *colMap = NULL, *rowMap = NULL;
     paso::Distribution_ptr colDistribution, rowDistribution;
 

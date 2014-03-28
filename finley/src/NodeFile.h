@@ -21,13 +21,10 @@
 
 #include "Finley.h"
 #include "NodeMapping.h"
+#include <paso/Coupler.h>
 #include <paso/Distribution.h>
 
 struct Esys_MPIInfo;
-
-namespace paso {
-    struct Connector;
-}
 
 namespace finley {
 
@@ -139,8 +136,8 @@ public:
     paso::Distribution_ptr degreesOfFreedomDistribution;
     paso::Distribution_ptr reducedDegreesOfFreedomDistribution;
 
-    paso::Connector* degreesOfFreedomConnector;
-    paso::Connector *reducedDegreesOfFreedomConnector;
+    paso::Connector_ptr degreesOfFreedomConnector;
+    paso::Connector_ptr reducedDegreesOfFreedomConnector;
   
     /// these are the packed versions of Id
     int *reducedNodesId;        

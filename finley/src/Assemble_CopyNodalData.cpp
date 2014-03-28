@@ -162,12 +162,12 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
     } else if (in_data_type == FINLEY_DEGREES_OF_FREEDOM) {
         out.requireWrite();
         if (out_data_type == FINLEY_NODES) {
-            paso::Coupler *coupler = paso::Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
             if (Esys_noError()) {
                 // Coupler holds the pointer but it doesn't appear to get
                 // used so RO should work.
-                paso::Coupler_startCollect(coupler, in.getSampleDataRO(0));
-                const double *recv_buffer=paso::Coupler_finishCollect(coupler);
+                coupler->startCollect(in.getSampleDataRO(0));
+                const double *recv_buffer=coupler->finishCollect();
                 const int upperBound=nodes->getNumDegreesOfFreedom();
                 const int* target = nodes->borrowTargetDegreesOfFreedom();
 #pragma omp parallel for
@@ -183,12 +183,11 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                     }
                 }
             }
-            paso::Coupler_free(coupler);
         } else if  (out_data_type == FINLEY_REDUCED_NODES) {
-            paso::Coupler *coupler = paso::Coupler_alloc(nodes->degreesOfFreedomConnector, numComps);
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
             if (Esys_noError()) {
-                paso::Coupler_startCollect(coupler, in.getSampleDataRO(0));
-                const double *recv_buffer=paso::Coupler_finishCollect(coupler);
+                coupler->startCollect(in.getSampleDataRO(0));
+                const double *recv_buffer=coupler->finishCollect();
                 const int upperBound=nodes->getNumDegreesOfFreedom();
                 const std::vector<int>& map = nodes->borrowReducedNodesTarget();
                 const int* target = nodes->borrowTargetDegreesOfFreedom();
@@ -206,7 +205,6 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                     }
                 }
             }
-            paso::Coupler_free(coupler);
         } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
 #pragma omp parallel for
             for (int n=0; n<numOut; n++) {
@@ -228,14 +226,14 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         if (out_data_type == FINLEY_NODES) {
             setError(TYPE_ERROR, "Assemble_CopyNodalData: cannot copy from reduced degrees of freedom to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
-            paso::Coupler *coupler=paso::Coupler_alloc(nodes->reducedDegreesOfFreedomConnector,numComps);
+            paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector,numComps));
             if (Esys_noError()) {
-                paso::Coupler_startCollect(coupler, in.getSampleDataRO(0));
+                coupler->startCollect(in.getSampleDataRO(0));
                 out.requireWrite();
                 const int upperBound=nodes->getNumReducedDegreesOfFreedom();
                 const std::vector<int>& map=nodes->borrowReducedNodesTarget();
                 const int* target=nodes->borrowTargetReducedDegreesOfFreedom();
-                const double *recv_buffer=paso::Coupler_finishCollect(coupler);
+                const double *recv_buffer=coupler->finishCollect();
 #pragma omp parallel for
                 for (int n=0; n<map.size(); n++) {
                     const int k=target[map[n]];
@@ -249,7 +247,6 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                     }
                 }
             }
-            paso::Coupler_free(coupler);
         } else if (out_data_type == FINLEY_REDUCED_DEGREES_OF_FREEDOM) {
             out.requireWrite();
 #pragma omp parallel for

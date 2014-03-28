@@ -67,7 +67,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   index_t main_num_rows, couple_num_rows, col_offset, num_cols;
   index_t *main_ptr, *main_idx, *couple_ptr, *couple_idx, *global_id;
   double  *main_val, *couple_val, *rows=NULL;
-  paso::Coupler* coupler=NULL;
+  paso::Coupler_ptr coupler;
 
   if (A->mainBlock->col_block_size!=1 ||
       A->mainBlock->row_block_size!=1 ||
@@ -120,8 +120,8 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
     row_offset = A->row_distribution->first_component[rank];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<main_num_rows; ++i) rows[i]=row_offset+i;
-    coupler= paso::Coupler_alloc(A->col_coupler->connector, 1);
-    paso::Coupler_startCollect(coupler, rows);
+    coupler.reset(new paso::Coupler(A->col_coupler->connector, 1));
+    coupler->startCollect(rows);
   }
 
   /* initialisation, including allocate arrays "ptr", "index" and "val" */
@@ -143,7 +143,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
   j = 0;
 
   if (A->global_id == NULL) {
-      paso::Coupler_finishCollect(coupler);
+      coupler->finishCollect();
     delete[] rows;
     num_cols = A->col_coupleBlock->numCols;
     global_id = new index_t[num_cols];
@@ -151,7 +151,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, inde
     for (i=0; i<num_cols; ++i)
         global_id[i] = coupler->recv_buffer[i];
     A->global_id = global_id;
-    paso::Coupler_free(coupler);
+    coupler.reset();
   }
   global_id = A->global_id;
 
@@ -190,7 +190,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
   index_t main_num_rows, couple_num_rows, col_offset, num_cols, block_size;
   index_t *main_ptr, *main_idx, *couple_ptr, *couple_idx, *global_id;
   double  *main_val, *couple_val, *rows=NULL;
-  paso::Coupler* coupler=NULL;
+  paso::Coupler_ptr coupler;
 
   block_size = A->block_size;
   if (A->mpi_info->size == 1) {
@@ -237,8 +237,8 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
     row_offset = A->row_distribution->first_component[rank];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<main_num_rows; ++i) rows[i]=row_offset+i;
-    coupler= paso::Coupler_alloc(A->col_coupler->connector, 1);
-    paso::Coupler_startCollect(coupler, rows);
+    coupler.reset(new paso::Coupler(A->col_coupler->connector, 1));
+    coupler->startCollect(rows);
   }
 
   /* initialisation, including allocate arrays "ptr", "index" and "val" */
@@ -260,7 +260,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
   j = 0;
 
   if (A->global_id == NULL) {
-      paso::Coupler_finishCollect(coupler);
+      coupler->finishCollect();
     delete[] rows;
     num_cols = A->col_coupleBlock->numCols;
     global_id = new index_t[num_cols];
@@ -268,7 +268,6 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
     for (i=0; i<num_cols; ++i)
         global_id[i] = coupler->recv_buffer[i];
     A->global_id = global_id;
-    paso::Coupler_free(coupler);
   }
   global_id = A->global_id;
 
@@ -298,7 +297,6 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A
       }
       (*p_ptr)[row] = ij_ptr+1;
   }
-
 }
 
 
@@ -315,7 +313,7 @@ void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix* A, inde
   index_t *couple_idx=A->col_coupleBlock->pattern->index;
   double  *couple_val=A->col_coupleBlock->val;
   index_t *couple_global=NULL;
-  paso::Coupler* coupler=A->col_coupler;
+  paso::Coupler_ptr coupler=A->col_coupler;
 */
 }
 

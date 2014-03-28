@@ -58,8 +58,6 @@ Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo * MPIInfo)
     out->reducedNodesId = NULL;
     out->degreesOfFreedomId = NULL;
     out->reducedDegreesOfFreedomId = NULL;
-    out->degreesOfFreedomConnector = NULL;
-    out->reducedDegreesOfFreedomConnector = NULL;
     out->tagsInUse = NULL;
 
     out->MPIInfo = Esys_MPIInfo_getReference(MPIInfo);

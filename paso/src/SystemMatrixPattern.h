@@ -42,7 +42,7 @@ struct SystemMatrixPattern
     SystemMatrixPattern(int type, Distribution_ptr output_distribution,
         Distribution_ptr input_distribution, Pattern* mainPattern,
         Pattern* col_couplePattern, Pattern* row_couplePattern,
-        Connector* col_connector, Connector* row_connector);
+        Connector_ptr col_connector, Connector_ptr row_connector);
 
     int type;
 
@@ -51,8 +51,8 @@ struct SystemMatrixPattern
     Pattern* mainPattern;
     Pattern* col_couplePattern;
     Pattern* row_couplePattern;
-    Connector* col_connector;
-    Connector* row_connector;
+    Connector_ptr col_connector;
+    Connector_ptr row_connector;
     Distribution_ptr output_distribution; 
     Distribution_ptr input_distribution; 
 

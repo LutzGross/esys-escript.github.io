@@ -38,17 +38,18 @@
 #include <omp.h>
 #endif
 
-void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST, index_t* offset_ST, index_t* ST){
-    paso::Coupler *coupler=NULL;
-  double *cols=NULL, *rows=NULL;
-  index_t *global_id=NULL, *B=NULL, *send_buf=NULL;
-  index_t *send_ST=NULL, *recv_ST=NULL, *recv_offset_ST=NULL;
-  index_t i, j, k, p, z, z0, z1, size, rank, offset, my_n, len, overlapped_n;
-  index_t num_main_cols, num_couple_cols;
-  bool flag;
-  dim_t *recv_degree_ST=NULL;
+void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST, index_t* offset_ST, index_t* ST)
+{
+    paso::Coupler_ptr coupler;
+    double *cols=NULL, *rows=NULL;
+    index_t *global_id=NULL, *B=NULL, *send_buf=NULL;
+    index_t *send_ST=NULL, *recv_ST=NULL, *recv_offset_ST=NULL;
+    index_t i, j, k, p, z, z0, z1, size, rank, offset, my_n, len, overlapped_n;
+    index_t num_main_cols, num_couple_cols;
+    bool flag;
+    dim_t *recv_degree_ST=NULL;
 
-  if (A->mpi_info->size == 1) return;
+    if (A->mpi_info->size == 1) return;
 
   /* sending/receiving unknown's global ID */
   num_main_cols = A->mainBlock->numCols;
@@ -58,8 +59,8 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   #pragma omp parallel for private(i) schedule(static)
   for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
   if (A->global_id == NULL) {
-    coupler=paso::Coupler_alloc(A->col_coupler->connector, 1);
-    paso::Coupler_startCollect(coupler, cols);
+    coupler.reset(new paso::Coupler(A->col_coupler->connector, 1));
+    coupler->startCollect(cols);
   }
 
   my_n = A->mainBlock->numRows;
@@ -79,19 +80,18 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
 
   /* waiting for receiving unknown's global ID */
   if (A->global_id == NULL) {
-      paso::Coupler_finishCollect(coupler);
+      coupler->finishCollect();
     global_id = new index_t[num_couple_cols];
     #pragma omp parallel for private(i) schedule(static)
     for (i=0; i<num_couple_cols; ++i) 
 	global_id[i] = coupler->recv_buffer[i];
     A->global_id = global_id;
-    paso::Coupler_free(coupler);
   }
   global_id = A->global_id;
 
   /* sending/receiving the degree_ST */
-  coupler=paso::Coupler_alloc(A->row_coupler->connector, 1);
-  paso::Coupler_startCollect(coupler, rows);
+  coupler.reset(new paso::Coupler(A->row_coupler->connector, 1));
+  coupler->startCollect(rows);
 
   /* prepare ST with global ID */
   B = new index_t[size*2];
@@ -137,7 +137,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
   } 
 
   /* waiting for receiving the degree_ST */
-  paso::Coupler_finishCollect(coupler);
+  coupler->finishCollect();
   delete[] rows;
 
   /* preparing degree_ST and offset_ST for the to-be-received extended rows */
@@ -148,7 +148,7 @@ void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST,
     recv_offset_ST[i+1] = recv_offset_ST[i] + coupler->recv_buffer[i];
   }
   recv_ST = new index_t[recv_offset_ST[overlapped_n]];
-  paso::Coupler_free(coupler);
+  coupler.reset();
 
   /* receiving ST for the extended rows */
   z = 0;

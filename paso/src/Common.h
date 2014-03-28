@@ -28,9 +28,10 @@
 
 /************************************************************************************/
 
+#include "esysUtils/error.h"
+#include "esysUtils/index.h"
 #include "esysUtils/maths.h"
 #include "esysUtils/mem.h"
-#include "esysUtils/index.h"
 #include "esysUtils/types.h"
 
 #include <boost/shared_ptr.hpp>

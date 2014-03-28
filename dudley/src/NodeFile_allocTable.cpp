@@ -131,11 +131,8 @@ void Dudley_NodeFile_freeTable(Dudley_NodeFile * in)
     in->reducedNodesDistribution.reset();
     in->degreesOfFreedomDistribution.reset();
     in->reducedDegreesOfFreedomDistribution.reset();
-    paso::Connector_free(in->degreesOfFreedomConnector);
-	in->degreesOfFreedomConnector = NULL;
-    paso::Connector_free(in->reducedDegreesOfFreedomConnector);
-	in->reducedDegreesOfFreedomConnector = NULL;
-
+    in->degreesOfFreedomConnector.reset();
+    in->reducedDegreesOfFreedomConnector.reset();
 	in->numTagsInUse = 0;
 	in->numNodes = 0;
     }
