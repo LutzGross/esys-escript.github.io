@@ -21,7 +21,7 @@ escript_opts_version = 201
 #cc_flags = ''
 cc_optim = '-O3 -march=native'
 #cc_debug = '-g'
-cxx_extra = '-Wextra -Wno-unused-parameter -g'
+cxx_extra = '-Wextra -Wno-unused-parameter'
 #ld_extra = ''
 #werror = False
 #debug = True
