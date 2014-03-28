@@ -38,7 +38,7 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
     SystemMatrixPattern* out = NULL;
     Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
     Distribution_ptr new_output_distribution, new_input_distribution;
-    Connector *new_col_connector=NULL, *new_row_connector=NULL;
+    Connector_ptr new_col_connector, new_row_connector;
 
     if ( (output_block_size == 1) && (input_block_size == 1) &&
             ((pattern->type & MATRIX_FORMAT_OFFSET1) == (type & MATRIX_FORMAT_OFFSET1)) ) {
@@ -57,22 +57,20 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
                     pattern->output_distribution->mpi_info,
                     pattern->output_distribution->first_component,
                     output_block_size, 0));
-            new_row_connector = Connector_unroll(pattern->row_connector,
-                                                      output_block_size);
+            new_row_connector = pattern->row_connector->unroll(output_block_size);
         } else {
             new_output_distribution = pattern->output_distribution;
-            new_row_connector = Connector_getReference(pattern->row_connector);
+            new_row_connector = pattern->row_connector;
         }
         if (input_block_size > 1) {
             new_input_distribution.reset(new Distribution(
                     pattern->input_distribution->mpi_info,
                     pattern->input_distribution->first_component,
                     input_block_size, 0));
-            new_col_connector = Connector_unroll(pattern->col_connector,
-                    input_block_size);
+            new_col_connector = pattern->col_connector->unroll(input_block_size);
         } else {
             new_input_distribution = pattern->input_distribution;
-            new_col_connector = Connector_getReference(pattern->col_connector);
+            new_col_connector = pattern->col_connector;
         }
 
         if (Esys_noError()) {
@@ -87,8 +85,6 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
         Pattern_free(new_mainPattern);
         Pattern_free(new_col_couplePattern);
         Pattern_free(new_row_couplePattern);
-        Connector_free(new_row_connector);
-        Connector_free(new_col_connector);
     }
 
     if (Esys_noError()) {

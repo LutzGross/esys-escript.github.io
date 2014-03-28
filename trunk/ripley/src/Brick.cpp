@@ -204,7 +204,6 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
 Brick::~Brick()
 {
     paso::SystemMatrixPattern_free(m_pattern);
-    paso::Connector_free(m_connector);
     delete assembler;
 }
 
@@ -2050,14 +2049,14 @@ void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    paso::Coupler* coupler = paso::Coupler_alloc(m_connector, numComp);
+    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    paso::Coupler_startCollect(coupler, in.getSampleDataRO(0));
+    coupler->startCollect(in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
-    const double* buffer = paso::Coupler_finishCollect(coupler);
+    const double* buffer = coupler->finishCollect();
 
 #pragma omp parallel for
     for (index_t i=0; i<getNumNodes(); i++) {
@@ -2066,7 +2065,6 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
-    paso::Coupler_free(coupler);
 }
 
 //private
@@ -2569,7 +2567,7 @@ void Brick::createPattern()
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
             numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
             &offsetInShared[0], 1, 0, m_mpiInfo));
-    m_connector = paso::Connector_alloc(snd_shcomp, rcv_shcomp);
+    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
     // create main and couple blocks
     paso::Pattern *mainPattern = createMainPattern();

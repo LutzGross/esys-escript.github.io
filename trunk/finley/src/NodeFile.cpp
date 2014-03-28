@@ -23,7 +23,6 @@
 
 #include "NodeFile.h"
 #include <escript/Data.h>
-#include <paso/Coupler.h>
 
 #include <limits>
 #include <sstream>
@@ -90,8 +89,6 @@ NodeFile::NodeFile(int nDim, Esys_MPIInfo *mpiInfo) :
     globalReducedDOFIndex(NULL),
     globalReducedNodesIndex(NULL),
     globalNodesIndex(NULL),
-    degreesOfFreedomConnector(NULL),
-    reducedDegreesOfFreedomConnector(NULL),
     reducedNodesId(NULL),
     degreesOfFreedomId(NULL),
     reducedDegreesOfFreedomId(NULL),
@@ -165,10 +162,8 @@ void NodeFile::freeTable()
     reducedNodesDistribution.reset();
     degreesOfFreedomDistribution.reset();
     reducedDegreesOfFreedomDistribution.reset();
-    paso::Connector_free(degreesOfFreedomConnector);
-    degreesOfFreedomConnector=NULL;
-    paso::Connector_free(reducedDegreesOfFreedomConnector);
-    reducedDegreesOfFreedomConnector=NULL;
+    degreesOfFreedomConnector.reset();
+    reducedDegreesOfFreedomConnector.reset();
 
     numNodes=0;
 }
@@ -995,9 +990,9 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 
     if (noError()) {
         if (use_reduced_elements) {
-            reducedDegreesOfFreedomConnector=paso::Connector_alloc(snd_shcomp, rcv_shcomp);
+            reducedDegreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
         } else {
-            degreesOfFreedomConnector=paso::Connector_alloc(snd_shcomp, rcv_shcomp);
+            degreesOfFreedomConnector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
         }
     }
 }
@@ -1114,10 +1109,8 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
         reducedNodesDistribution.reset();
         degreesOfFreedomDistribution.reset();
         reducedDegreesOfFreedomDistribution.reset();
-        paso::Connector_free(degreesOfFreedomConnector);
-        paso::Connector_free(reducedDegreesOfFreedomConnector);
-        degreesOfFreedomConnector=NULL;
-        reducedDegreesOfFreedomConnector=NULL;
+        degreesOfFreedomConnector.reset();
+        reducedDegreesOfFreedomConnector.reset();
     }
 }
 

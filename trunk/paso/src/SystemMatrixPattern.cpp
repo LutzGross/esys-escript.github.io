@@ -34,7 +34,7 @@ namespace paso {
 SystemMatrixPattern::SystemMatrixPattern(int patType,
         Distribution_ptr outDist, Distribution_ptr inDist,
         Pattern* mainPat, Pattern* colPat, Pattern* rowPat,
-        Connector* colConn, Connector* rowConn) 
+        Connector_ptr colConn, Connector_ptr rowConn) 
 {
     Esys_resetError();
 
@@ -77,10 +77,10 @@ SystemMatrixPattern::SystemMatrixPattern(int patType,
     mainPattern=Pattern_getReference(mainPat);
     row_couplePattern=Pattern_getReference(rowPat);
     col_couplePattern=Pattern_getReference(colPat);
-    row_connector=Connector_getReference(rowConn);
-    col_connector=Connector_getReference(colConn);
-    output_distribution=outDist;
-    input_distribution=inDist;
+    row_connector = rowConn;
+    col_connector = colConn;
+    output_distribution = outDist;
+    input_distribution = inDist;
     mpi_info = Esys_MPIInfo_getReference(outDist->mpi_info);
 #ifdef Paso_TRACE
     printf("SystemMatrixPattern: system matrix pattern has been allocated.\n");
@@ -105,8 +105,6 @@ void SystemMatrixPattern_free(SystemMatrixPattern* in)
             Pattern_free(in->mainPattern);
             Pattern_free(in->row_couplePattern);
             Pattern_free(in->col_couplePattern);
-            Connector_free(in->row_connector);
-            Connector_free(in->col_connector);
             Esys_MPIInfo_free(in->mpi_info);
             delete in;
 #ifdef Paso_TRACE

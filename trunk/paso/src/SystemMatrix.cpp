@@ -70,8 +70,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
      out->type=type;
      out->pattern=NULL;  
      out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
-     out->row_coupler=NULL;
-     out->col_coupler=NULL;
      out->mainBlock=NULL;
      out->row_coupleBlock=NULL;
      out->col_coupleBlock=NULL;
@@ -129,8 +127,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,paso::Syst
         } else {
           out->block_size=out->row_block_size*out->col_block_size;
         }
-        out->col_coupler=paso::Coupler_alloc(out->pattern->col_connector,out->col_block_size);
-        out->row_coupler=paso::Coupler_alloc(out->pattern->row_connector,out->row_block_size);
+        out->col_coupler.reset(new paso::Coupler(out->pattern->col_connector,out->col_block_size));
+        out->row_coupler.reset(new paso::Coupler(out->pattern->row_connector,out->row_block_size));
         /* this should be bypassed if trilinos is used */
         if (type & MATRIX_FORMAT_TRILINOS_CRS) {
            #ifdef TRILINOS
@@ -178,8 +176,6 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in)
             Paso_solve_free(in);
             paso::SystemMatrixPattern_free(in->pattern);
             Esys_MPIInfo_free(in->mpi_info);
-            paso::Coupler_free(in->row_coupler);
-            paso::Coupler_free(in->col_coupler);
             paso::SparseMatrix_free(in->mainBlock);
             paso::SparseMatrix_free(in->col_coupleBlock);
             paso::SparseMatrix_free(in->row_coupleBlock);
@@ -209,23 +205,23 @@ double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A)
 
 void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in)
 {
-    paso::Coupler_startCollect(A->col_coupler, in);
-}
-double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A)
-{
-    paso::Coupler_finishCollect(A->col_coupler);
- return A->col_coupler->recv_buffer;
-}
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in)
-{
-    paso::Coupler_startCollect(A->row_coupler, in);
-}
-double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A)
-{
-    paso::Coupler_finishCollect(A->row_coupler);
- return A->row_coupler->recv_buffer;
+    A->col_coupler->startCollect(in);
 }
 
+double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A)
+{
+    return A->col_coupler->finishCollect();
+}
+
+void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in)
+{
+    A->row_coupler->startCollect(in);
+}
+
+double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A)
+{
+    return A->row_coupler->finishCollect();
+}
 
 dim_t Paso_SystemMatrix_getNumRows(const Paso_SystemMatrix* A){
   return A->mainBlock->numRows;
@@ -244,14 +240,13 @@ dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix* A){
 
 dim_t Paso_SystemMatrix_getRowOverlap(const Paso_SystemMatrix* A) 
 {
-  return paso::Coupler_getNumOverlapComponents(A->row_coupler);
+  return A->row_coupler->getNumOverlapComponents();
 }
+
 dim_t Paso_SystemMatrix_getColOverlap(const Paso_SystemMatrix* A)
 {
-  return paso::Coupler_getNumOverlapComponents(A->col_coupler);
+  return A->col_coupler->getNumOverlapComponents();
 }
-
-
 
 dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix* A) {
   if (A->type & MATRIX_FORMAT_CSC) {

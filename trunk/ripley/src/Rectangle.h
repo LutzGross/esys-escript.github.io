@@ -17,11 +17,8 @@
 #ifndef __RIPLEY_RECTANGLE_H__
 #define __RIPLEY_RECTANGLE_H__
 
+#include <paso/Coupler.h>
 #include <ripley/RipleyDomain.h>
-
-namespace paso {
-    struct Connector;
-}
 
 namespace ripley {
 
@@ -285,7 +282,7 @@ private:
 
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes
-    paso::Connector* m_connector;
+    paso::Connector_ptr m_connector;
 
     // the Paso System Matrix pattern
     paso::SystemMatrixPattern* m_pattern;

@@ -53,9 +53,9 @@ Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options
 	     out->du = NULL;
 	     out->z=NULL;
         }
-	out->u_coupler = paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp), blockSize);
-        out->u_old_coupler = paso::Coupler_alloc(Paso_TransportProblem_borrowConnector(fctp), blockSize);
-	out->omega=0;
+    out->u_coupler.reset(new paso::Coupler(Paso_TransportProblem_borrowConnector(fctp), blockSize));
+    out->u_old_coupler.reset(new paso::Coupler(Paso_TransportProblem_borrowConnector(fctp), blockSize));
+    out->omega=0;
  	
 	if ( options->ode_solver == PASO_LINEAR_CRANK_NICOLSON ) {
 	     out->method   = PASO_LINEAR_CRANK_NICOLSON;
@@ -80,17 +80,13 @@ Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options
 void Paso_FCT_Solver_free(Paso_FCT_Solver *in)
 {
     if (in != NULL) {
-          Paso_TransportProblem_free(in->transportproblem);
-	  Paso_FCT_FluxLimiter_free(in->flux_limiter);
-          Esys_MPIInfo_free(in->mpi_info);
-          paso::Coupler_free(in->u_old_coupler);
-          paso::Coupler_free(in->u_coupler);
-
-	  delete[] in->b;
-	  delete[] in->z;
-	  delete[] in->du;
-          delete in;
-      
+        Paso_TransportProblem_free(in->transportproblem);
+        Paso_FCT_FluxLimiter_free(in->flux_limiter);
+        Esys_MPIInfo_free(in->mpi_info);
+        delete[] in->b;
+        delete[] in->z;
+        delete[] in->du;
+        delete in;
     }
 }
 
@@ -218,8 +214,8 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
     err_t errorCode = SOLVER_NO_ERROR;
     double norm_u_tilde;
   
-    paso::Coupler_startCollect(fct_solver->u_old_coupler,u_old);
-    paso::Coupler_finishCollect(fct_solver->u_old_coupler);
+    fct_solver->u_old_coupler->startCollect(u_old);
+    fct_solver->u_old_coupler->finishCollect();
     
     /* b[i]=m*u_tilde[i] = m u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i])  
            = u_tilde[i]   = u_old[i] where constraint m<0.
@@ -297,8 +293,8 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
    bool converged=FALSE, max_m_reached=FALSE,diverged=FALSE;   
    options->num_iter=0;
    
-   paso::Coupler_startCollect(fct_solver->u_old_coupler,u_old);
-   paso::Coupler_finishCollect(fct_solver->u_old_coupler);
+   fct_solver->u_old_coupler->startCollect(u_old);
+   fct_solver->u_old_coupler->finishCollect();
     /* prepare u_tilda and flux limiter */
     if ( fct_solver->method == PASO_BACKWARD_EULER ) {
           /* b[i]=m_i* u_old[i] */
@@ -330,8 +326,8 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
     Paso_Copy(n,u,u_old);
     
     while ( (!converged) && (!diverged) && (! max_m_reached) && Esys_noError()) {
-        paso::Coupler_startCollect(fct_solver->u_coupler,u);
-        paso::Coupler_finishCollect(fct_solver->u_coupler); 
+        fct_solver->u_coupler->startCollect(u);
+        fct_solver->u_coupler->finishCollect(); 
 
          /*  set antidiffusive_flux_{ij} for u */
          if (fct_solver->method == PASO_BACKWARD_EULER) {
@@ -443,19 +439,19 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
 
 void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
                                       const Paso_TransportProblem* fct, 
-				      const double dt,
-			              const paso::Coupler* u_coupler,  
-				      const paso::Coupler* u_old_coupler)
+                                      const double dt,
+                                      paso::const_Coupler_ptr u_coupler,  
+                                      paso::const_Coupler_ptr u_old_coupler)
 {
   dim_t i;
   index_t iptr_ij;
   
-  const double *u    = paso::Coupler_borrowLocalData(u_coupler);
-  const double *u_old= paso::Coupler_borrowLocalData(u_old_coupler);
-  const double *remote_u=paso::Coupler_borrowRemoteData(u_coupler);
-  const double *remote_u_old=paso::Coupler_borrowRemoteData(u_old_coupler);
+  const double *u    = u_coupler->borrowLocalData();
+  const double *u_old= u_old_coupler->borrowLocalData();
+  const double *remote_u=u_coupler->borrowRemoteData();
+  const double *remote_u_old=u_old_coupler->borrowRemoteData();
   const double dt_half= dt/2;
-  const paso::SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
+  const paso::SystemMatrixPattern* pattern=fct->iteration_matrix->pattern;
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fct->iteration_matrix);
 
   #pragma omp parallel for schedule(static) private(i, iptr_ij)
@@ -489,17 +485,17 @@ void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
 
 void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
                                       const Paso_TransportProblem* fct, 
-				      const double dt,
-			              const paso::Coupler* u_coupler,  
-				      const paso::Coupler* u_old_coupler)
+                                      const double dt,
+                                      paso::const_Coupler_ptr u_coupler,  
+                                      paso::const_Coupler_ptr u_old_coupler)
 {
   dim_t i;
   index_t iptr_ij;
   
-  const double *u=paso::Coupler_borrowLocalData(u_coupler);
-  const double *u_old= paso::Coupler_borrowLocalData(u_old_coupler);
-  const double *remote_u=paso::Coupler_borrowRemoteData(u_coupler);
-  const double *remote_u_old=paso::Coupler_borrowRemoteData(u_old_coupler);
+  const double *u = u_coupler->borrowLocalData();
+  const double *u_old = u_old_coupler->borrowLocalData();
+  const double *remote_u = u_coupler->borrowRemoteData();
+  const double *remote_u_old = u_old_coupler->borrowRemoteData();
   const paso::SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
   const dim_t  n=Paso_SystemMatrix_getTotalNumRows(fct->iteration_matrix);
 
@@ -542,18 +538,17 @@ void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
  */
   
 void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix,
-                                            const Paso_TransportProblem* fct, 
-				            const double dt,
-			                    const paso::Coupler* u_tilde_coupler,  
-				            const paso::Coupler* u_old_coupler)
+                        const Paso_TransportProblem* fct, const double dt,
+                        paso::const_Coupler_ptr u_tilde_coupler,
+                        paso::const_Coupler_ptr u_old_coupler)
 {
   dim_t i;
   index_t iptr_ij;
   
-  const double *u_tilde=paso::Coupler_borrowLocalData(u_tilde_coupler);
-  const double *u_old= paso::Coupler_borrowLocalData(u_old_coupler);
-  const double *remote_u_tilde=paso::Coupler_borrowRemoteData(u_tilde_coupler);
-  const double *remote_u_old=paso::Coupler_borrowRemoteData(u_old_coupler);
+  const double *u_tilde = u_tilde_coupler->borrowLocalData();
+  const double *u_old = u_old_coupler->borrowLocalData();
+  const double *remote_u_tilde = u_tilde_coupler->borrowRemoteData();
+  const double *remote_u_old = u_old_coupler->borrowRemoteData();
   const paso::SystemMatrixPattern *pattern=fct->iteration_matrix->pattern;
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fct->iteration_matrix);
 
@@ -684,15 +679,15 @@ printf("a[%d,%d]=%e\n",j,i,rtmp2);
  *
  */
 void Paso_FCT_Solver_setMuPaLu(double* out,
-                              const double* M, 
-                              const paso::Coupler* u_coupler,
-                              const double a,
-                              const Paso_SystemMatrix *L)
+                               const double* M, 
+                               paso::const_Coupler_ptr u_coupler,
+                               const double a,
+                               const Paso_SystemMatrix *L)
 {
   dim_t i;
   const paso::SystemMatrixPattern *pattern = L->pattern;
-  const double *u=paso::Coupler_borrowLocalData(u_coupler);
-  const double *remote_u=paso::Coupler_borrowRemoteData(u_coupler);
+  const double *u = u_coupler->borrowLocalData();
+  const double *remote_u = u_coupler->borrowRemoteData();
   index_t iptr_ij;
   const dim_t n=Paso_SystemMatrix_getTotalNumRows(L);
 
