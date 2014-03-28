@@ -35,7 +35,7 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
     Paso_SharedComponents *rcv_shcomp = NULL, *snd_shcomp = NULL;
     Dudley_NodeMapping *this_mapping = NULL;
     paso::Connector *this_connector = NULL;
-    Paso_Distribution *dof_distribution;
+    paso::Distribution_ptr dof_distribution;
     Esys_MPIInfo *mpi_info = in->MPIInfo;
 #ifdef ESYS_MPI
     MPI_Request *mpi_requests = NULL;
@@ -55,8 +55,8 @@ void Dudley_Mesh_createDOFMappingAndCoupling(Dudley_Mesh * in, bool use_reduced_
 	dof_distribution = in->Nodes->degreesOfFreedomDistribution;
 	globalDOFIndex = in->Nodes->globalDegreesOfFreedom;
     }
-    myFirstDOF = Paso_Distribution_getFirstComponent(dof_distribution);
-    myLastDOF = Paso_Distribution_getLastComponent(dof_distribution);
+    myFirstDOF = dof_distribution->getFirstComponent();
+    myLastDOF = dof_distribution->getLastComponent();
 
     mpiSize = mpi_info->size;
     myRank = mpi_info->rank;
@@ -437,19 +437,19 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	    reduced_nodes_first_component[mpiSize] = globalNumReducedNodes;
 	    reduced_dof_first_component[mpiSize] = globalNumReducedDOF;
 	    /* ==== distribution of Nodes =============================== */
-	    in->Nodes->nodesDistribution = Paso_Distribution_alloc(in->Nodes->MPIInfo, nodes_first_component, 1, 0);
+	    in->Nodes->nodesDistribution.reset(new paso::Distribution(in->Nodes->MPIInfo, nodes_first_component, 1, 0));
 
 	    /* ==== distribution of DOFs =============================== */
-	    in->Nodes->degreesOfFreedomDistribution =
-		Paso_Distribution_alloc(in->Nodes->MPIInfo, dof_first_component, 1, 0);
+	    in->Nodes->degreesOfFreedomDistribution.reset(
+                    new paso::Distribution(in->Nodes->MPIInfo, dof_first_component, 1, 0));
 
 	    /* ==== distribution of reduced Nodes =============================== */
-	    in->Nodes->reducedNodesDistribution =
-		Paso_Distribution_alloc(in->Nodes->MPIInfo, reduced_nodes_first_component, 1, 0);
+	    in->Nodes->reducedNodesDistribution.reset(new paso::Distribution(
+                    in->Nodes->MPIInfo, reduced_nodes_first_component, 1, 0));
 
 	    /* ==== distribution of reduced DOF =============================== */
-	    in->Nodes->reducedDegreesOfFreedomDistribution =
-		Paso_Distribution_alloc(in->Nodes->MPIInfo, reduced_dof_first_component, 1, 0);
+	    in->Nodes->reducedDegreesOfFreedomDistribution.reset(
+                    new paso::Distribution(in->Nodes->MPIInfo, reduced_dof_first_component, 1, 0));
 	}
 	delete[] maskMyReducedDOF;
 	delete[] indexMyReducedDOF;
@@ -509,20 +509,16 @@ void Dudley_Mesh_createNodeFileMappings(Dudley_Mesh * in, dim_t numReducedNodes,
 	Dudley_NodeMapping_free(in->Nodes->reducedNodesMapping);
 	Dudley_NodeMapping_free(in->Nodes->degreesOfFreedomMapping);
 	Dudley_NodeMapping_free(in->Nodes->reducedDegreesOfFreedomMapping);
-	Paso_Distribution_free(in->Nodes->nodesDistribution);
-	Paso_Distribution_free(in->Nodes->reducedNodesDistribution);
-	Paso_Distribution_free(in->Nodes->degreesOfFreedomDistribution);
-	Paso_Distribution_free(in->Nodes->reducedDegreesOfFreedomDistribution);
+    in->Nodes->nodesDistribution.reset();
+    in->Nodes->reducedNodesDistribution.reset();
+    in->Nodes->degreesOfFreedomDistribution.reset();
+    in->Nodes->reducedDegreesOfFreedomDistribution.reset();
     paso::Connector_free(in->Nodes->degreesOfFreedomConnector);
     paso::Connector_free(in->Nodes->reducedDegreesOfFreedomConnector);
 	in->Nodes->nodesMapping = NULL;
 	in->Nodes->reducedNodesMapping = NULL;
 	in->Nodes->degreesOfFreedomMapping = NULL;
 	in->Nodes->reducedDegreesOfFreedomMapping = NULL;
-	in->Nodes->nodesDistribution = NULL;
-	in->Nodes->reducedNodesDistribution = NULL;
-	in->Nodes->degreesOfFreedomDistribution = NULL;
-	in->Nodes->reducedDegreesOfFreedomDistribution = NULL;
 	in->Nodes->degreesOfFreedomConnector = NULL;
 	in->Nodes->reducedDegreesOfFreedomConnector = NULL;
     }

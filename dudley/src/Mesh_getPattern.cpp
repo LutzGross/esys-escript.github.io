@@ -92,7 +92,7 @@ paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_ro
     paso::Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
     paso::Connector *col_connector, *row_connector;
     Dudley_NodeMapping *colMap = NULL, *rowMap = NULL;
-    Paso_Distribution *colDistribution = NULL, *rowDistribution = NULL;
+    paso::Distribution_ptr colDistribution, rowDistribution;
 
     Dudley_resetError();
 
@@ -140,16 +140,15 @@ paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_ro
 
         /* create pattern */
         main_pattern = paso::Pattern_fromIndexListArray(0,
-            Paso_Distribution_getMyNumComponents(rowDistribution), index_list,
-            0, Paso_Distribution_getMyNumComponents(colDistribution), 0);
+            rowDistribution->getMyNumComponents(), index_list,
+            0, colDistribution->getMyNumComponents(), 0);
         col_couple_pattern = paso::Pattern_fromIndexListArray(0,
-            Paso_Distribution_getMyNumComponents(rowDistribution), index_list,
-            Paso_Distribution_getMyNumComponents(colDistribution),
-            colMap->numTargets, -Paso_Distribution_getMyNumComponents(colDistribution));
+            rowDistribution->getMyNumComponents(), index_list,
+            colDistribution->getMyNumComponents(), colMap->numTargets,
+            -colDistribution->getMyNumComponents());
         row_couple_pattern = paso::Pattern_fromIndexListArray(
-            Paso_Distribution_getMyNumComponents(rowDistribution),
-            rowMap->numTargets, index_list, 0,
-            Paso_Distribution_getMyNumComponents(colDistribution), 0);
+            rowDistribution->getMyNumComponents(), rowMap->numTargets,
+            index_list, 0, colDistribution->getMyNumComponents(), 0);
 
         /* if everything is in order we can create the return value */
         if (Dudley_noError())

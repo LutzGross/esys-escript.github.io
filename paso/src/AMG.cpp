@@ -726,18 +726,18 @@ int compareindex(const void *a, const void *b)
 void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMGBlockSelect *split_marker,
 					    const dim_t* degree_S, const index_t* offset_S, const index_t* S,
 					    const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
-					    paso::Connector* col_connector, Paso_Distribution* col_dist) 
+					    paso::Connector* col_connector, paso::const_Distribution_ptr col_dist) 
 {
    dim_t i, numUndefined,   iter=0;
   index_t iptr, jptr, kptr;
   double *random=NULL, *w=NULL, *Status=NULL;
   index_t * ST_flag=NULL;
 
-  paso::Coupler* w_coupler=paso::Coupler_alloc(col_connector  ,1);
+  paso::Coupler* w_coupler=paso::Coupler_alloc(col_connector, 1);
    
   w=new  double[n];
   Status=new  double[n];
-  random = Paso_Distribution_createRandomVector(col_dist,1);
+  random = col_dist->createRandomVector(1);
   ST_flag=new  index_t[offset_ST[n-1]+ degree_ST[n-1]];
 
   #pragma omp parallel for private(i)
@@ -758,7 +758,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
   }   
 
   
-  numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
+  numUndefined = col_dist->numPositives(Status, 1);
   /* printf(" coarsening loop start: num of undefined rows = %d \n",numUndefined);  */
   iter=0; 
   while (numUndefined > 0) {
@@ -880,7 +880,7 @@ void Paso_Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMG
 	 }
 	 
 	 i = numUndefined;
-	 numUndefined = Paso_Distribution_numPositives(Status, col_dist, 1 );
+	 numUndefined = col_dist->numPositives(Status, 1);
 	 if (numUndefined == i) {
 	   Esys_setError(SYSTEM_ERROR, "Can NOT reduce numUndefined."); 
 	   return;

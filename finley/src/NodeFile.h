@@ -134,10 +134,10 @@ public:
     /// assigns each local reduced node a global unique Id in a dense labeling
     int *globalNodesIndex;
 
-    Paso_Distribution *nodesDistribution;
-    Paso_Distribution *reducedNodesDistribution;
-    Paso_Distribution *degreesOfFreedomDistribution;
-    Paso_Distribution *reducedDegreesOfFreedomDistribution;
+    paso::Distribution_ptr nodesDistribution;
+    paso::Distribution_ptr reducedNodesDistribution;
+    paso::Distribution_ptr degreesOfFreedomDistribution;
+    paso::Distribution_ptr reducedDegreesOfFreedomDistribution;
 
     paso::Connector* degreesOfFreedomConnector;
     paso::Connector *reducedDegreesOfFreedomConnector;
@@ -158,17 +158,17 @@ public:
 
 inline int NodeFile::getFirstNode() const
 {
-    return Paso_Distribution_getFirstComponent(nodesDistribution);
+    return nodesDistribution->getFirstComponent();
 }
 
 inline int NodeFile::getLastNode() const
 {
-    return Paso_Distribution_getLastComponent(nodesDistribution);
+    return nodesDistribution->getLastComponent();
 }
 
 inline int NodeFile::getGlobalNumNodes() const
 {
-    return Paso_Distribution_getGlobalNumComponents(nodesDistribution);
+    return nodesDistribution->getGlobalNumComponents();
 }
 
 inline int* NodeFile::borrowGlobalNodesIndex() const
@@ -178,17 +178,17 @@ inline int* NodeFile::borrowGlobalNodesIndex() const
 
 inline int NodeFile::getFirstReducedNode() const
 {
-    return Paso_Distribution_getFirstComponent(reducedNodesDistribution);
+    return reducedNodesDistribution->getFirstComponent();
 }
 
 inline int NodeFile::getLastReducedNode() const
 {
-    return Paso_Distribution_getLastComponent(reducedNodesDistribution);
+    return reducedNodesDistribution->getLastComponent();
 }
 
 inline int NodeFile::getGlobalNumReducedNodes() const
 {
-    return Paso_Distribution_getGlobalNumComponents(reducedNodesDistribution);
+    return reducedNodesDistribution->getGlobalNumComponents();
 }
 
 inline int* NodeFile::borrowGlobalReducedNodesIndex() const
@@ -208,12 +208,12 @@ inline int NodeFile::getNumReducedNodes() const
 
 inline int NodeFile::getNumDegreesOfFreedom() const
 {
-    return Paso_Distribution_getMyNumComponents(degreesOfFreedomDistribution);
+    return degreesOfFreedomDistribution->getMyNumComponents();
 }
 
 inline int NodeFile::getNumReducedDegreesOfFreedom() const
 {
-    return Paso_Distribution_getMyNumComponents(reducedDegreesOfFreedomDistribution);
+    return reducedDegreesOfFreedomDistribution->getMyNumComponents();
 }
 
 inline const std::vector<int>& NodeFile::borrowNodesTarget() const

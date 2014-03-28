@@ -39,8 +39,8 @@ PASO_DLL_API
 struct SystemMatrixPattern
 {
     // constructor
-    SystemMatrixPattern(int type, Paso_Distribution* output_distribution,
-        Paso_Distribution* input_distribution, Pattern* mainPattern,
+    SystemMatrixPattern(int type, Distribution_ptr output_distribution,
+        Distribution_ptr input_distribution, Pattern* mainPattern,
         Pattern* col_couplePattern, Pattern* row_couplePattern,
         Connector* col_connector, Connector* row_connector);
 
@@ -53,8 +53,8 @@ struct SystemMatrixPattern
     Pattern* row_couplePattern;
     Connector* col_connector;
     Connector* row_connector;
-    Paso_Distribution* output_distribution; 
-    Paso_Distribution* input_distribution; 
+    Distribution_ptr output_distribution; 
+    Distribution_ptr input_distribution; 
 
     dim_t reference_counter;
 };

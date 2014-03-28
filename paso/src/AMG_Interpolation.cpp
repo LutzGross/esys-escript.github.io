@@ -594,7 +594,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
-   Paso_Distribution *input_dist=NULL, *output_dist=NULL;
+   paso::Distribution_ptr input_dist, output_dist;
    Paso_SharedComponents *send =NULL, *recv=NULL;
    paso::Connector *col_connector=NULL, *row_connector=NULL;
    paso::Pattern *main_pattern=NULL;
@@ -1811,8 +1811,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
-   input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-   output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   input_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
+   output_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
 
    /* then, prepare the sender/receiver for the row_connector, first, prepare
       the information for sender */
@@ -2022,8 +2022,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    paso::Pattern_free(row_couple_pattern);
    paso::Connector_free(col_connector);
    paso::Connector_free(row_connector);
-   Paso_Distribution_free(output_dist);
-   Paso_Distribution_free(input_dist);
    delete[] RAP_main_val;
    delete[] RAP_couple_val;
    if (Esys_noError()) {
@@ -2042,7 +2040,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern *pattern=NULL;
-   Paso_Distribution *input_dist=NULL, *output_dist=NULL;
+   paso::Distribution_ptr input_dist, output_dist;
    Paso_SharedComponents *send =NULL, *recv=NULL;
    paso::Connector *col_connector=NULL, *row_connector=NULL;
    paso::Pattern *main_pattern=NULL;
@@ -3237,8 +3235,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 
    /* now, create row distribution (output_distri) and col
       distribution (input_distribution) */
-   input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
-   output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   input_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
+   output_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
 
    /* then, prepare the sender/receiver for the row_connector, first, prepare
       the information for sender */
@@ -3445,8 +3443,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    paso::Pattern_free(row_couple_pattern);
    paso::Connector_free(col_connector);
    paso::Connector_free(row_connector);
-   Paso_Distribution_free(output_dist);
-   Paso_Distribution_free(input_dist);
    delete[] RAP_main_val;
    delete[] RAP_couple_val;
    if (Esys_noError()) {

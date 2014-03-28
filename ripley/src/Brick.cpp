@@ -2579,15 +2579,13 @@ void Brick::createPattern()
     createCouplePatterns(colIndices, rowIndices, numShared, &colPattern, &rowPattern);
 
     // allocate paso distribution
-    Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0);
+    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
 
     // finally create the system matrix
     m_pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
             m_connector, m_connector);
-
-    Paso_Distribution_free(distribution);
 
     // useful debug output
     /*

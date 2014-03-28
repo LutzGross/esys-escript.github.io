@@ -33,6 +33,7 @@
 #include "esysUtils/index.h"
 #include "esysUtils/types.h"
 
+#include <boost/shared_ptr.hpp>
 
 #include <float.h>
 #include <stdio.h>

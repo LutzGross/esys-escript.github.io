@@ -51,10 +51,10 @@ struct Dudley_NodeFile {
     Dudley_NodeMapping *degreesOfFreedomMapping;
     Dudley_NodeMapping *reducedDegreesOfFreedomMapping;
 
-    Paso_Distribution *nodesDistribution;
-    Paso_Distribution *reducedNodesDistribution;
-    Paso_Distribution *degreesOfFreedomDistribution;
-    Paso_Distribution *reducedDegreesOfFreedomDistribution;
+    paso::Distribution_ptr nodesDistribution;
+    paso::Distribution_ptr reducedNodesDistribution;
+    paso::Distribution_ptr degreesOfFreedomDistribution;
+    paso::Distribution_ptr reducedDegreesOfFreedomDistribution;
 
     paso::Connector *degreesOfFreedomConnector;
     paso::Connector *reducedDegreesOfFreedomConnector;

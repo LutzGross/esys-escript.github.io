@@ -37,7 +37,7 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
 {
     SystemMatrixPattern* out = NULL;
     Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
-    Paso_Distribution *new_output_distribution=NULL, *new_input_distribution=NULL;
+    Distribution_ptr new_output_distribution, new_input_distribution;
     Connector *new_col_connector=NULL, *new_row_connector=NULL;
 
     if ( (output_block_size == 1) && (input_block_size == 1) &&
@@ -53,25 +53,25 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
                 pattern->row_couplePattern, type, output_block_size,
                 input_block_size);
         if (output_block_size > 1) {
-            new_output_distribution = Paso_Distribution_alloc(
+            new_output_distribution.reset(new Distribution(
                     pattern->output_distribution->mpi_info,
                     pattern->output_distribution->first_component,
-                    output_block_size, 0);
+                    output_block_size, 0));
             new_row_connector = Connector_unroll(pattern->row_connector,
                                                       output_block_size);
         } else {
-            new_output_distribution = Paso_Distribution_getReference(pattern->output_distribution);
+            new_output_distribution = pattern->output_distribution;
             new_row_connector = Connector_getReference(pattern->row_connector);
         }
         if (input_block_size > 1) {
-            new_input_distribution = Paso_Distribution_alloc(
+            new_input_distribution.reset(new Distribution(
                     pattern->input_distribution->mpi_info,
                     pattern->input_distribution->first_component,
-                    input_block_size, 0);
+                    input_block_size, 0));
             new_col_connector = Connector_unroll(pattern->col_connector,
                     input_block_size);
         } else {
-            new_input_distribution = Paso_Distribution_getReference(pattern->input_distribution);
+            new_input_distribution = pattern->input_distribution;
             new_col_connector = Connector_getReference(pattern->col_connector);
         }
 
@@ -87,8 +87,6 @@ SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
         Pattern_free(new_mainPattern);
         Pattern_free(new_col_couplePattern);
         Pattern_free(new_row_couplePattern);
-        Paso_Distribution_free(new_output_distribution);
-        Paso_Distribution_free(new_input_distribution);
         Connector_free(new_row_connector);
         Connector_free(new_col_connector);
     }

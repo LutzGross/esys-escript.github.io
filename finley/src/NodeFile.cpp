@@ -90,10 +90,6 @@ NodeFile::NodeFile(int nDim, Esys_MPIInfo *mpiInfo) :
     globalReducedDOFIndex(NULL),
     globalReducedNodesIndex(NULL),
     globalNodesIndex(NULL),
-    nodesDistribution(NULL),
-    reducedNodesDistribution(NULL),
-    degreesOfFreedomDistribution(NULL),
-    reducedDegreesOfFreedomDistribution(NULL),
     degreesOfFreedomConnector(NULL),
     reducedDegreesOfFreedomConnector(NULL),
     reducedNodesId(NULL),
@@ -165,14 +161,10 @@ void NodeFile::freeTable()
     reducedNodesMapping.clear();
     degreesOfFreedomMapping.clear();
     reducedDegreesOfFreedomMapping.clear();
-    Paso_Distribution_free(nodesDistribution);
-    nodesDistribution=NULL;
-    Paso_Distribution_free(reducedNodesDistribution);
-    nodesDistribution=NULL;
-    Paso_Distribution_free(degreesOfFreedomDistribution);
-    degreesOfFreedomDistribution=NULL;
-    Paso_Distribution_free(reducedDegreesOfFreedomDistribution);
-    reducedDegreesOfFreedomDistribution=NULL;
+    nodesDistribution.reset();
+    reducedNodesDistribution.reset();
+    degreesOfFreedomDistribution.reset();
+    reducedDegreesOfFreedomDistribution.reset();
     paso::Connector_free(degreesOfFreedomConnector);
     degreesOfFreedomConnector=NULL;
     paso::Connector_free(reducedDegreesOfFreedomConnector);
@@ -797,7 +789,7 @@ int NodeFile::createDenseReducedLabeling(const std::vector<short>& reducedMask,
 
 void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements) 
 {
-    Paso_Distribution* dof_distribution;
+    paso::Distribution_ptr dof_distribution;
     const int* globalDOFIndex;
     if (use_reduced_elements) {
         dof_distribution=reducedDegreesOfFreedomDistribution;
@@ -806,8 +798,8 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
         dof_distribution=degreesOfFreedomDistribution;
         globalDOFIndex=globalDegreesOfFreedom;
     }
-    const int myFirstDOF=Paso_Distribution_getFirstComponent(dof_distribution);
-    const int myLastDOF=Paso_Distribution_getLastComponent(dof_distribution);
+    const int myFirstDOF=dof_distribution->getFirstComponent();
+    const int myLastDOF=dof_distribution->getLastComponent();
     const int mpiSize=MPIInfo->size;
     const int myRank=MPIInfo->rank;
 
@@ -1071,13 +1063,14 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
     rdofDist[mpiSize]=globalNumReducedDOF;
 
     // ==== distribution of Nodes ===============================
-    nodesDistribution=Paso_Distribution_alloc(MPIInfo, &nodeDist[0], 1, 0);
+    nodesDistribution.reset(new paso::Distribution(MPIInfo, &nodeDist[0], 1, 0));
     // ==== distribution of DOFs ================================
-    degreesOfFreedomDistribution=Paso_Distribution_alloc(MPIInfo, &dofDist[0], 1,0);
+    degreesOfFreedomDistribution.reset(new paso::Distribution(MPIInfo, &dofDist[0], 1, 0));
     // ==== distribution of reduced Nodes =======================
-    reducedNodesDistribution=Paso_Distribution_alloc(MPIInfo, &rnodeDist[0], 1, 0);
+    reducedNodesDistribution.reset(new paso::Distribution(MPIInfo, &rnodeDist[0], 1, 0));
     // ==== distribution of reduced DOF =========================
-    reducedDegreesOfFreedomDistribution=Paso_Distribution_alloc(MPIInfo, &rdofDist[0], 1, 0);
+    reducedDegreesOfFreedomDistribution.reset(new paso::Distribution(
+                                                MPIInfo, &rdofDist[0], 1, 0));
 
     std::vector<int> nodeMask(numNodes);
 
@@ -1120,16 +1113,12 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
              reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
         }
     } else {
-        Paso_Distribution_free(nodesDistribution);
-        Paso_Distribution_free(reducedNodesDistribution);
-        Paso_Distribution_free(degreesOfFreedomDistribution);
-        Paso_Distribution_free(reducedDegreesOfFreedomDistribution);
+        nodesDistribution.reset();
+        reducedNodesDistribution.reset();
+        degreesOfFreedomDistribution.reset();
+        reducedDegreesOfFreedomDistribution.reset();
         paso::Connector_free(degreesOfFreedomConnector);
         paso::Connector_free(reducedDegreesOfFreedomConnector);
-        nodesDistribution=NULL;
-        reducedNodesDistribution=NULL;
-        degreesOfFreedomDistribution=NULL;
-        reducedDegreesOfFreedomDistribution=NULL;
         degreesOfFreedomConnector=NULL;
         reducedDegreesOfFreedomConnector=NULL;
     }

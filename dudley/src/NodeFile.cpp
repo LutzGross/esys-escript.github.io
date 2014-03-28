@@ -58,10 +58,6 @@ Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t numDim, Esys_MPIInfo * MPIInfo)
     out->reducedNodesId = NULL;
     out->degreesOfFreedomId = NULL;
     out->reducedDegreesOfFreedomId = NULL;
-    out->nodesDistribution = NULL;
-    out->reducedNodesDistribution = NULL;
-    out->degreesOfFreedomDistribution = NULL;
-    out->reducedDegreesOfFreedomDistribution = NULL;
     out->degreesOfFreedomConnector = NULL;
     out->reducedDegreesOfFreedomConnector = NULL;
     out->tagsInUse = NULL;
@@ -86,7 +82,7 @@ index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getFirstComponent(in->reducedNodesDistribution);
+	return in->reducedNodesDistribution->getFirstComponent();
     }
     else
     {
@@ -98,7 +94,7 @@ index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getLastComponent(in->reducedNodesDistribution);
+	return in->reducedNodesDistribution->getLastComponent();
     }
     else
     {
@@ -111,7 +107,7 @@ dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getGlobalNumComponents(in->reducedNodesDistribution);
+	return in->reducedNodesDistribution->getGlobalNumComponents();
     }
     else
     {
@@ -136,7 +132,7 @@ index_t Dudley_NodeFile_getFirstNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getFirstComponent(in->nodesDistribution);
+	return in->nodesDistribution->getFirstComponent();
     }
     else
     {
@@ -148,7 +144,7 @@ index_t Dudley_NodeFile_getLastNode(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getLastComponent(in->nodesDistribution);
+	return in->nodesDistribution->getLastComponent();
     }
     else
     {
@@ -161,7 +157,7 @@ dim_t Dudley_NodeFile_getGlobalNumNodes(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getGlobalNumComponents(in->nodesDistribution);
+	return in->nodesDistribution->getGlobalNumComponents();
     }
     else
     {
@@ -199,7 +195,7 @@ dim_t Dudley_NodeFile_getNumDegreesOfFreedom(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getMyNumComponents(in->degreesOfFreedomDistribution);
+	return in->degreesOfFreedomDistribution->getMyNumComponents();
     }
     else
     {
@@ -223,7 +219,7 @@ dim_t Dudley_NodeFile_getNumReducedDegreesOfFreedom(Dudley_NodeFile * in)
 {
     if (in != NULL)
     {
-	return Paso_Distribution_getMyNumComponents(in->reducedDegreesOfFreedomDistribution);
+	return in->reducedDegreesOfFreedomDistribution->getMyNumComponents();
     }
     else
     {
