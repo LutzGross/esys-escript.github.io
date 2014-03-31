@@ -54,7 +54,7 @@ PASO_DLL_API
 Paso_TransportProblem* Paso_TransportProblem_getReference(Paso_TransportProblem* in);
 
 PASO_DLL_API
-Paso_TransportProblem* Paso_TransportProblem_alloc(paso::SystemMatrixPattern *pattern, int block_size);
+Paso_TransportProblem* Paso_TransportProblem_alloc(paso::SystemMatrixPattern_ptr pattern, int block_size);
 
 PASO_DLL_API
 dim_t Paso_TransportProblem_getBlockSize(const Paso_TransportProblem* in);

@@ -24,8 +24,6 @@
 #include "IndexList.h"
 #include "ElementFile.h"
 
-#include "paso/SystemMatrixPattern.h"
-
 /* Translate from distributed/local array indices to global indices */
 
 /****************************************************************************/

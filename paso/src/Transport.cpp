@@ -59,7 +59,7 @@ Paso_TransportProblem* Paso_TransportProblem_getReference(Paso_TransportProblem*
      return in;
 }    
 
-Paso_TransportProblem* Paso_TransportProblem_alloc(paso::SystemMatrixPattern *pattern, const int block_size) 
+Paso_TransportProblem* Paso_TransportProblem_alloc(paso::SystemMatrixPattern_ptr pattern, const int block_size) 
 {
     Paso_SystemMatrixType matrix_type=MATRIX_FORMAT_DEFAULT+MATRIX_FORMAT_BLK1;  /* at the moment only block size 1 is supported */
     Paso_TransportProblem* out=NULL;

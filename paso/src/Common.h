@@ -34,6 +34,7 @@
 #include "esysUtils/mem.h"
 #include "esysUtils/types.h"
 
+#include <boost/enable_shared_from_this.hpp>
 #include <boost/shared_ptr.hpp>
 
 #include <float.h>

@@ -45,7 +45,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(P->mpi_info);
    paso::SparseMatrix *main_block=NULL, *couple_block=NULL;
    Paso_SystemMatrix *out=NULL;
-   paso::SystemMatrixPattern *pattern=NULL;
+   paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
    paso::Connector_ptr col_connector;
@@ -373,9 +373,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
       and col_connector for Restriction matrix R. To be completed, 
       row_couple_pattern and row_connector need to be constructed as well */
    if (Esys_noError()) {
-     pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
+     pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
 		output_dist, input_dist, main_block->pattern, couple_pattern, 
-		couple_pattern, col_connector, col_connector);
+		couple_pattern, col_connector, col_connector));
      out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
 		row_block_size, col_block_size, FALSE);
    } 
@@ -389,7 +389,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 
    /* clean up */ 
    paso::SparseMatrix_free(main_block);
-   paso::SystemMatrixPattern_free(pattern);
    paso::Pattern_free(couple_pattern);
 
    if (Esys_noError()) {

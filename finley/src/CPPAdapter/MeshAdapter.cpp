@@ -1455,8 +1455,8 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
     }
 
     // generate matrix:
-    paso::SystemMatrixPattern* fsystemMatrixPattern=
-        getFinley_Mesh()->getPattern(reduceRowOrder, reduceColOrder);
+    paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
+            reduceRowOrder, reduceColOrder);
     checkFinleyError();
     Paso_SystemMatrix* fsystemMatrix;
     const int trilinos = 0;
@@ -1465,11 +1465,10 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
         // FIXME: Allocation Epetra_VrbMatrix here...
 #endif
     } else {
-        fsystemMatrix=Paso_SystemMatrix_alloc(type, fsystemMatrixPattern,
-                row_blocksize, column_blocksize, FALSE);
+        fsystemMatrix=Paso_SystemMatrix_alloc(type, pattern, row_blocksize,
+                column_blocksize, FALSE);
     }
     checkPasoError();
-    paso::SystemMatrixPattern_free(fsystemMatrixPattern);
     SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
     return escript::ASM_ptr(sma);
 }
@@ -1494,13 +1493,12 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
     }
 
     // generate transport problem:
-    paso::SystemMatrixPattern* fsystemMatrixPattern=
-        getFinley_Mesh()->getPattern(reduceOrder, reduceOrder);
+    paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
+            reduceOrder, reduceOrder);
     checkFinleyError();
     Paso_TransportProblem* transportProblem;
-    transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern, blocksize);
+    transportProblem=Paso_TransportProblem_alloc(pattern, blocksize);
     checkPasoError();
-    paso::SystemMatrixPattern_free(fsystemMatrixPattern);
     TransportProblemAdapter* tpa=new TransportProblemAdapter(
             transportProblem, blocksize, functionspace);
     return escript::ATP_ptr(tpa);

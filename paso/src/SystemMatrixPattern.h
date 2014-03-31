@@ -35,8 +35,12 @@
 
 namespace paso {
 
+struct SystemMatrixPattern;
+typedef boost::shared_ptr<SystemMatrixPattern> SystemMatrixPattern_ptr;
+typedef boost::shared_ptr<const SystemMatrixPattern> const_SystemMatrixPattern_ptr;
+
 PASO_DLL_API
-struct SystemMatrixPattern
+struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
 {
     // constructor
     SystemMatrixPattern(int type, Distribution_ptr output_distribution,
@@ -44,10 +48,23 @@ struct SystemMatrixPattern
         Pattern* col_couplePattern, Pattern* row_couplePattern,
         Connector_ptr col_connector, Connector_ptr row_connector);
 
+    ~SystemMatrixPattern()
+    {
+        Pattern_free(mainPattern);
+        Pattern_free(row_couplePattern);
+        Pattern_free(col_couplePattern);
+        Esys_MPIInfo_free(mpi_info);
+    }
+
+    inline index_t getNumOutput() const {
+        return mainPattern->numOutput;
+    }
+
+    SystemMatrixPattern_ptr unrollBlocks(int type, dim_t output_block_size,
+                                         dim_t input_block_size);
+
     int type;
-
     Esys_MPIInfo* mpi_info;
-
     Pattern* mainPattern;
     Pattern* col_couplePattern;
     Pattern* row_couplePattern;
@@ -55,25 +72,8 @@ struct SystemMatrixPattern
     Connector_ptr row_connector;
     Distribution_ptr output_distribution; 
     Distribution_ptr input_distribution; 
-
-    dim_t reference_counter;
 };
 
-
-/*  interfaces: */
-
-PASO_DLL_API
-SystemMatrixPattern* SystemMatrixPattern_getReference(SystemMatrixPattern*);
-
-PASO_DLL_API
-void SystemMatrixPattern_free(SystemMatrixPattern*);
-
-SystemMatrixPattern* SystemMatrixPattern_unrollBlocks(
-                                           SystemMatrixPattern* pattern,
-                                           int type, dim_t output_block_size,
-                                           dim_t input_block_size);
-
-index_t SystemMatrixPattern_getNumOutput(const SystemMatrixPattern*);
 
 } // namespace paso
 
