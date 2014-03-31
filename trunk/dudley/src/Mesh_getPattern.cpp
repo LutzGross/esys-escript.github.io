@@ -27,9 +27,9 @@
 
 /* returns a reference to the matrix pattern                  */
 
-paso::SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern_ptr Dudley_getPattern(Dudley_Mesh* mesh, bool reduce_row_order, bool reduce_col_order)
 {
-    paso::SystemMatrixPattern *out = NULL;
+    paso::SystemMatrixPattern_ptr out;
     Dudley_resetError();
     /* make sure that the requested pattern is available */
     if (reduce_row_order)
@@ -64,31 +64,31 @@ paso::SystemMatrixPattern *Dudley_getPattern(Dudley_Mesh * mesh, bool reduce_row
         {
             if (reduce_col_order)
             {
-                out = paso::SystemMatrixPattern_getReference(mesh->ReducedReducedPattern);
+                out = mesh->ReducedReducedPattern;
             }
             else
             {
-                out = paso::SystemMatrixPattern_getReference(mesh->ReducedFullPattern);
+                out = mesh->ReducedFullPattern;
             }
         }
         else
         {
             if (reduce_col_order)
             {
-                out = paso::SystemMatrixPattern_getReference(mesh->FullReducedPattern);
+                out = mesh->FullReducedPattern;
             }
             else
             {
-                out = paso::SystemMatrixPattern_getReference(mesh->FullFullPattern);
+                out = mesh->FullFullPattern;
             }
         }
     }
     return out;
 }
 
-paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_row_order, bool reduce_col_order)
+paso::SystemMatrixPattern_ptr Dudley_makePattern(Dudley_Mesh* mesh, bool reduce_row_order, bool reduce_col_order)
 {
-    paso::SystemMatrixPattern *out = NULL;
+    paso::SystemMatrixPattern_ptr out;
     paso::Pattern *main_pattern = NULL, *col_couple_pattern = NULL, *row_couple_pattern = NULL;
     paso::Connector_ptr col_connector, row_connector;
     Dudley_NodeMapping *colMap = NULL, *rowMap = NULL;
@@ -153,10 +153,10 @@ paso::SystemMatrixPattern *Dudley_makePattern(Dudley_Mesh * mesh, bool reduce_ro
         /* if everything is in order we can create the return value */
         if (Dudley_noError())
         {
-            out = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            out.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                     rowDistribution, colDistribution, main_pattern,
                     col_couple_pattern, row_couple_pattern, col_connector,
-                    row_connector);
+                    row_connector));
         }
     paso::Pattern_free(main_pattern);
     paso::Pattern_free(col_couple_pattern);

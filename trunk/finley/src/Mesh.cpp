@@ -36,11 +36,7 @@ Mesh::Mesh(const std::string name, int numDim, Esys_MPIInfo *mpi_info) :
     Elements(NULL),
     FaceElements(NULL),
     ContactElements(NULL),
-    Points(NULL),
-    FullFullPattern(NULL),
-    FullReducedPattern(NULL),
-    ReducedFullPattern(NULL),
-    ReducedReducedPattern(NULL)
+    Points(NULL)
 {
     MPIInfo = Esys_MPIInfo_getReference(mpi_info);
 
@@ -57,10 +53,6 @@ Mesh::~Mesh()
     delete ContactElements;
     delete Points;
     tagMap.clear();
-    paso::SystemMatrixPattern_free(FullFullPattern);
-    paso::SystemMatrixPattern_free(FullReducedPattern);
-    paso::SystemMatrixPattern_free(ReducedFullPattern);
-    paso::SystemMatrixPattern_free(ReducedReducedPattern);
     Esys_MPIInfo_free(MPIInfo);
 }
 

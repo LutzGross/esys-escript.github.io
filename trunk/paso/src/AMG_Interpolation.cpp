@@ -592,7 +592,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
    paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
-   paso::SystemMatrixPattern *pattern=NULL;
+   paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
    paso::Connector_ptr col_connector, row_connector;
    paso::Pattern *main_pattern=NULL;
@@ -2001,9 +2001,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 			row_couple_ptr, row_couple_idx); 
 
    /* next, create the system matrix */
-   pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+   pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, main_pattern, col_couple_pattern,
-                row_couple_pattern, col_connector, row_connector);
+                row_couple_pattern, col_connector, row_connector));
    out = Paso_SystemMatrix_alloc(A->type, pattern,
                 row_block_size, col_block_size, FALSE);
 
@@ -2013,18 +2013,16 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    memcpy(out->col_coupleBlock->val, RAP_couple_val,
 		out->col_coupleBlock->len * sizeof(double));
 
-   /* Clean up */
-   paso::SystemMatrixPattern_free(pattern);
    paso::Pattern_free(main_pattern);
    paso::Pattern_free(col_couple_pattern);
    paso::Pattern_free(row_couple_pattern);
    delete[] RAP_main_val;
    delete[] RAP_couple_val;
    if (Esys_noError()) {
-     return out;
+        return out;
    } else {
-     Paso_SystemMatrix_free(out);
-     return NULL;
+        Paso_SystemMatrix_free(out);
+        return NULL;
    }
 }
 
@@ -2035,7 +2033,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
    paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
-   paso::SystemMatrixPattern *pattern=NULL;
+   paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
    paso::Connector_ptr col_connector, row_connector;
@@ -3416,9 +3414,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 			row_couple_ptr, row_couple_idx); 
 
    /* next, create the system matrix */
-   pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+   pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, main_pattern, col_couple_pattern,
-                row_couple_pattern, col_connector, row_connector);
+                row_couple_pattern, col_connector, row_connector));
    out = Paso_SystemMatrix_alloc(A->type, pattern,
                 row_block_size, col_block_size, FALSE);
 
@@ -3429,7 +3427,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 		out->col_coupleBlock->len * sizeof(double));
 
    /* Clean up */
-   paso::SystemMatrixPattern_free(pattern);
    paso::Pattern_free(main_pattern);
    paso::Pattern_free(col_couple_pattern);
    paso::Pattern_free(row_couple_pattern);

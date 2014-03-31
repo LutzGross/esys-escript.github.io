@@ -203,7 +203,6 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
 
 Brick::~Brick()
 {
-    paso::SystemMatrixPattern_free(m_pattern);
     delete assembler;
 }
 
@@ -2579,9 +2578,9 @@ void Brick::createPattern()
             const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
 
     // finally create the system matrix
-    m_pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector);
+            m_connector, m_connector));
 
     // useful debug output
     /*

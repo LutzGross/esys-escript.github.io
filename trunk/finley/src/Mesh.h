@@ -97,8 +97,8 @@ public:
     void addTagMap(const char* name, int tag_key);
     int getTag(const char* name) const;
     bool isValidTagName(const char* name) const;
-    paso::SystemMatrixPattern* getPattern(bool reduce_row_order, bool reduce_col_order);
-    paso::SystemMatrixPattern* makePattern(bool reduce_row_order, bool reduce_col_order);
+    paso::SystemMatrixPattern_ptr getPattern(bool reduce_row_order, bool reduce_col_order);
+    paso::SystemMatrixPattern_ptr makePattern(bool reduce_row_order, bool reduce_col_order);
     void printInfo(bool);
 
     void setCoordinates(const escript::Data& newX);
@@ -121,9 +121,6 @@ public:
 
     void findMatchingFaces(double, double, int*, int*, int*, int*);
     void print();
-    int FindMinDegreeNode(paso::SystemMatrixPattern* pattern_p, int* available, int indicator);
-    int getDegree(paso::SystemMatrixPattern* pattern_p, int *label);
-
 
 private:
     void createColoring(const std::vector<int>& dofMap);
@@ -156,10 +153,10 @@ public:
     TagMap tagMap;
 
     // pointers to the sparse matrix patterns
-    paso::SystemMatrixPattern *FullFullPattern;
-    paso::SystemMatrixPattern *FullReducedPattern;
-    paso::SystemMatrixPattern *ReducedFullPattern;
-    paso::SystemMatrixPattern *ReducedReducedPattern;
+    paso::SystemMatrixPattern_ptr FullFullPattern;
+    paso::SystemMatrixPattern_ptr FullReducedPattern;
+    paso::SystemMatrixPattern_ptr ReducedFullPattern;
+    paso::SystemMatrixPattern_ptr ReducedReducedPattern;
     Esys_MPIInfo *MPIInfo;
 };
 

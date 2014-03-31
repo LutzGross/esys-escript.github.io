@@ -30,11 +30,15 @@
 
 namespace paso {
 
-// constructor for a SystemMatrixPattern
 SystemMatrixPattern::SystemMatrixPattern(int patType,
         Distribution_ptr outDist, Distribution_ptr inDist,
         Pattern* mainPat, Pattern* colPat, Pattern* rowPat,
-        Connector_ptr colConn, Connector_ptr rowConn) 
+        Connector_ptr colConn, Connector_ptr rowConn) :
+    type(patType),
+    col_connector(colConn),
+    row_connector(rowConn),
+    output_distribution(outDist),
+    input_distribution(inDist)
 {
     Esys_resetError();
 
@@ -72,54 +76,10 @@ SystemMatrixPattern::SystemMatrixPattern(int patType,
         Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of inputs for row couple pattern and number of received components in connector don't match.");
     }
 
-    type=patType;
-    reference_counter=1;
-    mainPattern=Pattern_getReference(mainPat);
-    row_couplePattern=Pattern_getReference(rowPat);
-    col_couplePattern=Pattern_getReference(colPat);
-    row_connector = rowConn;
-    col_connector = colConn;
-    output_distribution = outDist;
-    input_distribution = inDist;
+    mainPattern = Pattern_getReference(mainPat);
+    row_couplePattern = Pattern_getReference(rowPat);
+    col_couplePattern = Pattern_getReference(colPat);
     mpi_info = Esys_MPIInfo_getReference(outDist->mpi_info);
-#ifdef Paso_TRACE
-    printf("SystemMatrixPattern: system matrix pattern has been allocated.\n");
-#endif
-}
-
-// returns a reference to in
-SystemMatrixPattern* SystemMatrixPattern_getReference(SystemMatrixPattern* in)
-{
-    if (in != NULL) {
-        ++(in->reference_counter);
-    }
-    return in;
-}
-  
-// deallocates a SystemMatrixPattern
-void SystemMatrixPattern_free(SystemMatrixPattern* in)
-{
-    if (in != NULL) {
-        in->reference_counter--;
-        if (in->reference_counter <= 0) {
-            Pattern_free(in->mainPattern);
-            Pattern_free(in->row_couplePattern);
-            Pattern_free(in->col_couplePattern);
-            Esys_MPIInfo_free(in->mpi_info);
-            delete in;
-#ifdef Paso_TRACE
-            printf("SystemMatrixPattern_free: system matrix pattern has been deallocated.\n");
-#endif
-        }
-    }
-}
-
-dim_t SystemMatrixPattern_getNumOutput(const SystemMatrixPattern* in)
-{
-    if (in != NULL) {
-        return in->mainPattern->numOutput;
-    }
-    return 0;
 }
 
 } // namespace paso

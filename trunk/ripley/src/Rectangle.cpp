@@ -168,7 +168,6 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
 Rectangle::~Rectangle()
 {
-    paso::SystemMatrixPattern_free(m_pattern);
     delete assembler;
 }
 
@@ -1734,9 +1733,9 @@ void Rectangle::createPattern()
             const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
 
     // finally create the system matrix
-    m_pattern = new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector);
+            m_connector, m_connector));
 
     // useful debug output
     /*

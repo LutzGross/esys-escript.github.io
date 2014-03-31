@@ -27,20 +27,21 @@
 #undef BADPYTHONMACROS
 #endif
 
-
 #include <boost/python/tuple.hpp>
 #include <boost/python/list.hpp>
 
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
 #include <ripley/AbstractAssembler.h>
+
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 
+#include <paso/SystemMatrixPattern.h>
+
 namespace paso {
     struct Pattern;
-    struct SystemMatrixPattern;
 }
 
 struct Paso_SystemMatrix;
@@ -792,7 +793,7 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
     /// returns the Paso system matrix pattern
-    virtual paso::SystemMatrixPattern* getPattern(bool reducedRowOrder,
+    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder,
             bool reducedColOrder) const = 0;
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
