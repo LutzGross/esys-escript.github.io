@@ -244,7 +244,7 @@ elif cc_name[:3] == 'g++':
     # see mantis #691
     cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
     cc_optim     = "-O3"
-    cc_debug     = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
+    cc_debug     = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK --param=max-vartrack-size=90000000" #avoids vartrack limit being exceeded with escriptcpp.cpp
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
