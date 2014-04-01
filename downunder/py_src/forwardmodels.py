@@ -27,7 +27,7 @@ __all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticMo
 
 from esys.escript import unitsSI as U
 from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary
-from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
 from esys.escript.util import *
 from math import pi as PI
@@ -751,7 +751,7 @@ class AcousticWaveForm(ForwardModel):
 
             if getEscriptParamInt("PASO_DIRECT")==0:
                 raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
-            pde.getSolverOptions().setSolverMethod(pde.getSolverOptions().DIRECT)
+            pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
         else:

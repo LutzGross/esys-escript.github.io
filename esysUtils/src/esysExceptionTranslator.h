@@ -28,10 +28,17 @@
 namespace esysUtils {
   /**
      \brief
-     Function which translates an EsysException into a python exception
+     Function which translates an EsysException into a python RuntimeError
   */
   ESYSUTILS_DLL_API
-  void esysExceptionTranslator(EsysException const& e);
+  void RuntimeErrorTranslator(EsysException const& e);
+
+  /**
+     \brief
+     Function which translates an EsysException into a python ValueError
+  */
+  ESYSUTILS_DLL_API
+  void ValueErrorTranslator(EsysException const& e);
 } // end of namespace
 
 #endif

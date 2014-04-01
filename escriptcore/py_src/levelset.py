@@ -54,7 +54,7 @@ class LevelSet(object):
 
 
     self.__reinitPDE = lpe.LinearPDE(self.__domain, numEquations=1)
-    self.__reinitPDE.getSolverOptions().setSolverMethod(self.__reinitPDE.getSolverOptions().LUMPING)
+    self.__reinitPDE.getSolverOptions().setSolverMethod(lpe.SolverOptions.LUMPING)
     if useReducedOrder: self.__reinitPDE.setReducedOrderOn()
     self.__reinitPDE.setValue(D=1.0)
 

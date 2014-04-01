@@ -43,7 +43,7 @@ BOOST_PYTHON_MODULE(pasowrapcpp)
 #endif
 
 
-  register_exception_translator<paso::PasoException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<paso::PasoException>(&(esysUtils::RuntimeErrorTranslator));
 
   class_<paso::SystemMatrixAdapter, bases<escript::AbstractSystemMatrix> >
       ("OperatorAdapter","A concrete class representing an operator. For more details, please see the c++ documentation.", no_init)

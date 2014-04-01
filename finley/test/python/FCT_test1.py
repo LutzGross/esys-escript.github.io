@@ -46,7 +46,7 @@ __url__="https://launchpad.net/escript-finley"
 #
 
 from esys.escript import *
-from esys.escript.linearPDEs import TransportPDE
+from esys.escript.linearPDEs import TransportPDE, SolverOptions
 from esys.finley import Rectangle, Brick
 #from esys.ripley import Rectangle, Brick
 from esys.weipa import saveVTK
@@ -105,9 +105,9 @@ V=OMEGA0*((0.5-x[0])*[0,1]+(0.5-x[1])*[-1,0])
 
 fc=TransportPDE(dom,numEquations=1)
 fc.getSolverOptions().setVerbosityOn()
-#fc.getSolverOptions().setODESolver(fc.getSolverOptions().BACKWARD_EULER)
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().LINEAR_CRANK_NICOLSON)
-fc.getSolverOptions().setODESolver(fc.getSolverOptions().CRANK_NICOLSON)
+#fc.getSolverOptions().setODESolver(SolverOptions.BACKWARD_EULER)
+fc.getSolverOptions().setODESolver(SolverOptions.LINEAR_CRANK_NICOLSON)
+fc.getSolverOptions().setODESolver(SolverOptions.CRANK_NICOLSON)
 x=Function(dom).getX()
 fc.setValue(M=1,C=V)
 

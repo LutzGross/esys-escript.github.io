@@ -75,7 +75,7 @@ BOOST_PYTHON_MODULE(finleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<finley::FinleyAdapterException>(&(esysUtils::RuntimeErrorTranslator));
 
   def("LoadMesh",finley::loadMesh,
       (arg("fileName")="file.nc"),":rtype: `Domain`"

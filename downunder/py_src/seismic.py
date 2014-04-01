@@ -30,7 +30,7 @@ import sys
 import time
 from esys.escript import *
 import esys.escript.unitsSI as U
-from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE, SolverOptions
 
 class Wavelet(object):
         """
@@ -356,7 +356,7 @@ class SonicWave(WaveBase):
 
            self.__wavelet=wavelet
            self.__mypde=LinearSinglePDE(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=1./v_p**2)
            self.__source_tag=source_tag
@@ -449,8 +449,7 @@ class VTIWave(WaveBase):
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
 
         if lumping: 
-            self.__mypde.getSolverOptions().setSolverMethod(
-                    self.__mypde.getSolverOptions().HRZ_LUMPING)
+            self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
         self.__mypde.setSymmetryOn()
         self.__mypde.setValue(D=rho*kronecker(DIM))
         self.__source_tag=source_tag
@@ -581,7 +580,7 @@ class HTIWave(WaveBase):
                 self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
            
            if lumping: 
-                self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+                self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=rho*kronecker(DIM))
            self.__source_tag=source_tag
@@ -706,7 +705,7 @@ class TTIWave(WaveBase):
            self.__wavelet=wavelet
 
            self.__mypde=LinearPDESystem(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=rho*kronecker(DIM), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag
@@ -808,7 +807,7 @@ class SonicHTIWave(WaveBase):
            self.__wavelet=wavelet
            
            self.__mypde=LinearPDESystem(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=kronecker(2), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag

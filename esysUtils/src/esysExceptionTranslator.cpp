@@ -23,9 +23,14 @@ using namespace std;
 
 namespace esysUtils {
 
-void esysExceptionTranslator(EsysException const& e) 
+void RuntimeErrorTranslator(EsysException const& e) 
   {
     PyErr_SetString(PyExc_RuntimeError,e.what());
   }
+
+void ValueErrorTranslator(EsysException const& e) 
+{
+    PyErr_SetString(PyExc_ValueError,e.what());
+}
 
 }  // end of namespace
