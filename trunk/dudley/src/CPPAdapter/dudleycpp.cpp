@@ -55,7 +55,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
   // NOTE: The return_value_policy is necessary for functions that
   // return pointers.
   //
-  register_exception_translator<dudley::DudleyAdapterException>(&(esysUtils::esysExceptionTranslator));
+  register_exception_translator<dudley::DudleyAdapterException>(&(esysUtils::RuntimeErrorTranslator));
 
   def("LoadMesh",dudley::loadMesh,
       (arg("fileName")="file.nc"),":rtype: `Domain`"

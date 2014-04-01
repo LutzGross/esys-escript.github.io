@@ -308,7 +308,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
     docstring_options docopt(true, true, false);
 #endif
 
-    register_exception_translator<ripley::RipleyException>(&(esysUtils::esysExceptionTranslator));
+    register_exception_translator<ripley::RipleyException>(&(esysUtils::RuntimeErrorTranslator));
 
     scope().attr("__doc__") = "To use this module, please import esys.ripley";
     scope().attr("BYTEORDER_NATIVE") = (int)ripley::BYTEORDER_NATIVE;

@@ -28,7 +28,7 @@ matplotlib.use('agg')    #For interactive use, you can comment out this line
 import matplotlib.pyplot as plt
 from numpy import zeros,ones
 from esys.escript import *
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.pdetools import Locator
 from esys.dudley import Brick
 from esys.weipa import saveVTK
@@ -53,7 +53,7 @@ def wavePropagation(domain,h,tend,lam,mu,rho, xc, src_radius, U0):
    x=domain.getX()
    # ... open new PDE ...
    mypde=LinearPDE(domain)
-   mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+   mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
    kron=kronecker(mypde.getDim())
 
    dunit=numpy.array([1.,0.,0.]) # defines direction of point source

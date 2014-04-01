@@ -46,8 +46,10 @@ import numpy
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
+SolverOptions = escore.SolverOptions
+SolverBuddy = escore.SolverBuddy
 
-class SolverOptions(object):
+class SolverOptionsBOB(object):
     """
     this class defines the solver options for a linear or non-linear solver.
     
@@ -1839,8 +1841,8 @@ class LinearProblem(object):
        :note: The symmetry flag of options is overwritten by the symmetry flag of the `LinearProblem`.
        """
        if options==None:
-          self.__solver_options=SolverOptions()
-       elif isinstance(options, SolverOptions):
+          self.__solver_options=SolverBuddy()
+       elif isinstance(options, SolverBuddy):
           self.__solver_options=options
        else:
           raise ValueError("options must be a SolverOptions object.")
