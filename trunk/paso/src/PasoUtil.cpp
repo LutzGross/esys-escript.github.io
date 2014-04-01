@@ -29,6 +29,14 @@
 #include "PasoUtil.h"
 #include "Paso.h"
 
+namespace paso {
+
+int comparIndex(const void* index1, const void* index2)
+{
+    return *(index_t*)index1 - *(index_t*)index2;
+}
+
+} // namespace paso
 
 /* returns true if array contains value */
 bool Paso_Util_isAny(dim_t N,index_t* array,index_t value) {

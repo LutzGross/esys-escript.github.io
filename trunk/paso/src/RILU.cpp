@@ -106,7 +106,7 @@ Paso_Solver_RILU* Paso_Solver_getRILU(paso::SparseMatrix *A_p,bool verbose) {
      time0=Esys_timer();
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n;++i) mis_marker[i]=-1;
-     paso::Pattern_mis(A_p->pattern,mis_marker);
+     A_p->pattern->mis(mis_marker);
      /*time2=Esys_timer()-time0;*/
      if (Esys_noError()) {
         #pragma omp parallel for private(i) schedule(static)

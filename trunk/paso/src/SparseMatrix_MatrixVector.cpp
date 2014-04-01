@@ -57,7 +57,7 @@ void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
         }
     }
 
-    if (Pattern_isEmpty(A->pattern))
+    if (A->pattern->isEmpty())
         return;
 
     if (ABS(alpha) > 0) {

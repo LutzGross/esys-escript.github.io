@@ -59,7 +59,7 @@
    on q. */
 void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
 {
-    paso::Pattern *pattern_main=NULL, *pattern_couple=NULL;
+    paso::Pattern_ptr pattern_main, pattern_couple;
   paso::Coupler_ptr coupler;
   paso::SharedComponents_ptr send, recv;
   double *cols=NULL, *send_buf=NULL, *ptr_val=NULL, *send_m=NULL, *send_c=NULL;
@@ -349,21 +349,19 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   delete[] ptr_idx;
 
   /* allocate pattern and sparsematrix for B_ext_main */
-  pattern_main = paso::Pattern_alloc(B->col_coupleBlock->pattern->type,
-                len, num_main_cols, ptr_main, idx_main);
+  pattern_main.reset(new paso::Pattern(B->col_coupleBlock->pattern->type,
+                len, num_main_cols, ptr_main, idx_main));
   B->row_coupleBlock = paso::SparseMatrix_alloc(B->col_coupleBlock->type,
 		pattern_main, B->row_block_size, B->col_block_size,
 		FALSE);
-  paso::Pattern_free(pattern_main);
 
   /* allocate pattern and sparsematrix for B_ext_couple */
-  pattern_couple = paso::Pattern_alloc(B->col_coupleBlock->pattern->type,
+  pattern_couple.reset(new paso::Pattern(B->col_coupleBlock->pattern->type,
                 len, B->col_distribution->first_component[size], 
-		ptr_couple, idx_couple);
+                ptr_couple, idx_couple));
   B->remote_coupleBlock = paso::SparseMatrix_alloc(B->col_coupleBlock->type,
                 pattern_couple, B->row_block_size, B->col_block_size,
                 FALSE);
-  paso::Pattern_free(pattern_couple);
 
   /* send/receive value array */
   j=0;
@@ -595,8 +593,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
    paso::Connector_ptr col_connector, row_connector;
-   paso::Pattern *main_pattern=NULL;
-   paso::Pattern *col_couple_pattern=NULL, *row_couple_pattern =NULL;
    const dim_t row_block_size=A->row_block_size;
    const dim_t col_block_size=A->col_block_size;
    const dim_t block_size = A->block_size;
@@ -680,11 +676,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	}
      }
      if (iptr) {
-	#ifdef USE_QSORTG
-	  qsortG(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#else
 	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#endif
 	num_Pext_cols = 1;
 	i = temp[0];
 	for (j=1; j<iptr; j++) {
@@ -1101,11 +1093,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      }
 
      if (iptr) {
-	#ifdef USE_QSORTG
-	  qsortG(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#else
 	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#endif
 	num_RAPext_cols = 1;
 	i = temp[0];
 	for (j=1; j<iptr; j++) {
@@ -1613,11 +1601,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 	for (iptr=0; iptr<offset; iptr++)
 	  temp[iptr] = RAP_main_idx[row_marker+iptr];
 	if (offset > 0) {
-	  #ifdef USE_QSORTG
-	    qsortG(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-	  #else
 	    qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-	  #endif
 	}
 	temp_val = new double[offset * block_size];
 	#pragma omp parallel for schedule(static) private(iptr,k)
@@ -1641,11 +1625,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_couple_idx[row_marker_ext+iptr];
         if (offset > 0) {
-          #ifdef USE_QSORTG
-            qsortG(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-          #else
             qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-          #endif
         }
         temp_val = new double[offset * block_size];
 	#pragma omp parallel for schedule(static) private(iptr, k)
@@ -1991,14 +1971,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    Esys_MPIInfo_free(mpi_info);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
-   main_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,
-			num_Pmain_cols, RAP_main_ptr, RAP_main_idx);
-   col_couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, 
-			num_Pmain_cols, num_RAPext_cols, 
-			RAP_couple_ptr, RAP_couple_idx);
-   row_couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-			num_RAPext_rows, num_Pmain_cols,
-			row_couple_ptr, row_couple_idx); 
+   paso::Pattern_ptr main_pattern(new paso::Pattern(MATRIX_FORMAT_DEFAULT,
+               num_Pmain_cols, num_Pmain_cols, RAP_main_ptr, RAP_main_idx));
+   paso::Pattern_ptr col_couple_pattern(new paso::Pattern(
+               MATRIX_FORMAT_DEFAULT, num_Pmain_cols, num_RAPext_cols,
+               RAP_couple_ptr, RAP_couple_idx));
+   paso::Pattern_ptr row_couple_pattern(new paso::Pattern(
+               MATRIX_FORMAT_DEFAULT, num_RAPext_rows, num_Pmain_cols,
+               row_couple_ptr, row_couple_idx));
 
    /* next, create the system matrix */
    pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
@@ -2013,9 +1993,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    memcpy(out->col_coupleBlock->val, RAP_couple_val,
 		out->col_coupleBlock->len * sizeof(double));
 
-   paso::Pattern_free(main_pattern);
-   paso::Pattern_free(col_couple_pattern);
-   paso::Pattern_free(row_couple_pattern);
    delete[] RAP_main_val;
    delete[] RAP_couple_val;
    if (Esys_noError()) {
@@ -2037,8 +2014,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
    paso::Connector_ptr col_connector, row_connector;
-   paso::Pattern *main_pattern=NULL;
-   paso::Pattern *col_couple_pattern=NULL, *row_couple_pattern =NULL;
    const dim_t row_block_size=A->row_block_size;
    const dim_t col_block_size=A->col_block_size;
    const dim_t block_size = A->block_size;
@@ -2110,11 +2085,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 	}
      }
      if (iptr) {
-	#ifdef USE_QSORTG
-	  qsortG(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#else
 	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#endif
 	num_Pext_cols = 1;
 	i = temp[0];
 	for (j=1; j<iptr; j++) {
@@ -2531,11 +2502,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      }
 
      if (iptr) {
-	#ifdef USE_QSORTG
-	  qsortG(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#else
 	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	#endif
 	num_RAPext_cols = 1;
 	i = temp[0];
 	for (j=1; j<iptr; j++) {
@@ -3040,11 +3007,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 	for (iptr=0; iptr<offset; iptr++)
 	  temp[iptr] = RAP_main_idx[row_marker+iptr];
 	if (offset > 0) {
-	  #ifdef USE_QSORTG
-	    qsortG(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-	  #else
 	    qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-	  #endif
 	}
 	temp_val = new double[offset * block_size];
 	for (iptr=0; iptr<offset; iptr++){
@@ -3065,11 +3028,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_couple_idx[row_marker_ext+iptr];
         if (offset > 0) {
-          #ifdef USE_QSORTG
-            qsortG(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-          #else
             qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-          #endif
         }
         temp_val = new double[offset * block_size];
         for (iptr=0; iptr<offset; iptr++){
@@ -3404,14 +3363,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    Esys_MPIInfo_free(mpi_info);
 
    /* Now, we can create pattern for mainBlock and coupleBlock */
-   main_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, num_Pmain_cols,
-			num_Pmain_cols, RAP_main_ptr, RAP_main_idx);
-   col_couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, 
-			num_Pmain_cols, num_RAPext_cols, 
-			RAP_couple_ptr, RAP_couple_idx);
-   row_couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,
-			num_RAPext_rows, num_Pmain_cols,
-			row_couple_ptr, row_couple_idx); 
+   paso::Pattern_ptr main_pattern(new paso::Pattern(MATRIX_FORMAT_DEFAULT,
+               num_Pmain_cols, num_Pmain_cols, RAP_main_ptr, RAP_main_idx));
+   paso::Pattern_ptr col_couple_pattern(new paso::Pattern(
+               MATRIX_FORMAT_DEFAULT, num_Pmain_cols, num_RAPext_cols,
+               RAP_couple_ptr, RAP_couple_idx));
+   paso::Pattern_ptr row_couple_pattern(new paso::Pattern(
+               MATRIX_FORMAT_DEFAULT, num_RAPext_rows, num_Pmain_cols,
+               row_couple_ptr, row_couple_idx));
 
    /* next, create the system matrix */
    pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
@@ -3426,10 +3385,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    memcpy(out->col_coupleBlock->val, RAP_couple_val,
 		out->col_coupleBlock->len * sizeof(double));
 
-   /* Clean up */
-   paso::Pattern_free(main_pattern);
-   paso::Pattern_free(col_couple_pattern);
-   paso::Pattern_free(row_couple_pattern);
    delete[] RAP_main_val;
    delete[] RAP_couple_val;
    if (Esys_noError()) {

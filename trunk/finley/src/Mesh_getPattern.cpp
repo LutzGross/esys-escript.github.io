@@ -70,7 +70,6 @@ paso::SystemMatrixPattern_ptr Mesh::getPattern(bool reduce_row_order, bool reduc
 paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool reduce_col_order)
 {
     paso::SystemMatrixPattern_ptr out;
-    paso::Pattern *main_pattern = NULL, *col_couple_pattern=NULL, *row_couple_pattern=NULL;
     paso::Connector_ptr col_connector, row_connector;
     paso::Distribution_ptr colDistribution, rowDistribution;
   
@@ -125,12 +124,13 @@ paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool redu
     }
  
     /* create pattern */
-    main_pattern=paso::Pattern_fromIndexListArray(
+    paso::Pattern_ptr main_pattern, col_couple_pattern, row_couple_pattern;
+    main_pattern=paso::Pattern::fromIndexListArray(
             0, myNumRowTargets, index_list, 0, myNumColTargets, 0);
-    col_couple_pattern=paso::Pattern_fromIndexListArray(
+    col_couple_pattern=paso::Pattern::fromIndexListArray(
             0, myNumRowTargets, index_list, myNumColTargets,
             numColTargets, -myNumColTargets);
-    row_couple_pattern=paso::Pattern_fromIndexListArray(
+    row_couple_pattern=paso::Pattern::fromIndexListArray(
             myNumRowTargets, numRowTargets, index_list, 0, myNumColTargets, 0);
 
     // if everything is in order we can create the return value
@@ -140,9 +140,6 @@ paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool redu
                 col_couple_pattern, row_couple_pattern,
                 col_connector, row_connector));
     }
-    paso::Pattern_free(main_pattern);
-    paso::Pattern_free(col_couple_pattern);
-    paso::Pattern_free(row_couple_pattern);
     Esys_MPIInfo_noError(MPIInfo);
     return out;
 }

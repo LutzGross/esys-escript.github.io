@@ -35,7 +35,6 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
                         dim_t input_block_size)
 {
     SystemMatrixPattern_ptr out;
-    Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
     Distribution_ptr new_output_distribution, new_input_distribution;
     Connector_ptr new_col_connector, new_row_connector;
 
@@ -43,14 +42,12 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
             ((type & MATRIX_FORMAT_OFFSET1) == (newType & MATRIX_FORMAT_OFFSET1)) ) {
         out = shared_from_this();
     } else {
-        new_mainPattern = Pattern_unrollBlocks(mainPattern, newType,
-                output_block_size, input_block_size);
-        new_col_couplePattern = Pattern_unrollBlocks(
-                col_couplePattern, newType, output_block_size,
-                input_block_size);
-        new_row_couplePattern = Pattern_unrollBlocks(
-                row_couplePattern, newType, output_block_size,
-                input_block_size);
+        Pattern_ptr new_mainPattern(mainPattern->unrollBlocks(newType,
+                output_block_size, input_block_size));
+        Pattern_ptr new_col_couplePattern(col_couplePattern->unrollBlocks(
+                newType, output_block_size, input_block_size));
+        Pattern_ptr new_row_couplePattern(row_couplePattern->unrollBlocks(
+                newType, output_block_size, input_block_size));
         if (output_block_size > 1) {
             new_output_distribution.reset(new Distribution(
                     output_distribution->mpi_info,
@@ -81,9 +78,6 @@ SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
                                               new_col_connector,
                                               new_row_connector));
         }
-        Pattern_free(new_mainPattern);
-        Pattern_free(new_col_couplePattern);
-        Pattern_free(new_row_couplePattern);
     }
 
     if (!Esys_noError()) {

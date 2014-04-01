@@ -50,7 +50,7 @@ struct SparseMatrix {
 
     dim_t numRows;
     dim_t numCols;
-    Pattern* pattern;
+    Pattern_ptr pattern;
     dim_t len;
 
     /// this is used for classical CSR or CSC
@@ -65,7 +65,7 @@ struct SparseMatrix {
 
 /*  interfaces: */
 
-SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Pattern* pattern,
+SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Pattern_ptr pattern,
                                  dim_t row_block_size, dim_t col_block_size,
                                  bool patternIsUnrolled);
 

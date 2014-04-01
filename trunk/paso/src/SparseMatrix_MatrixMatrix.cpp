@@ -26,7 +26,7 @@
 *****************************************************************************/
 
 #include "SparseMatrix.h"
-#include "Paso.h"
+#include "PasoUtil.h" // comparIndex
 
 namespace paso {
 
@@ -44,7 +44,6 @@ SparseMatrix* SparseMatrix_MatrixMatrix(const SparseMatrix* A, const SparseMatri
 {
    SparseMatrixType C_type;
    
-   Pattern* outpattern=NULL;
    SparseMatrix *out=NULL;
    if ( !  ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) || (A->type & MATRIX_FORMAT_DEFAULT) || (MATRIX_FORMAT_BLK1 & A->type ) )  ) {
       Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: Unsupported matrix format of A.");
@@ -62,21 +61,19 @@ SparseMatrix* SparseMatrix_MatrixMatrix(const SparseMatrix* A, const SparseMatri
       Esys_setError(TYPE_ERROR,"SparseMatrix_MatrixMatrix: number of columns of A and number of rows of B must match.");
       return NULL;
    }
-   
-   
+
    if ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) && (B->type & MATRIX_FORMAT_DIAGONAL_BLOCK) ) {
       C_type=MATRIX_FORMAT_DIAGONAL_BLOCK;
    } else {
       C_type=MATRIX_FORMAT_DEFAULT;
    }
 
-   outpattern=Pattern_multiply(MATRIX_FORMAT_DEFAULT,A->pattern,B->pattern);
-   
+   Pattern_ptr outpattern(A->pattern->multiply(MATRIX_FORMAT_DEFAULT, B->pattern));
+
    if (Esys_noError()) {
       out=SparseMatrix_alloc(C_type, outpattern, A->row_block_size, B->col_block_size, FALSE);
    }
-   Pattern_free(outpattern);
-   
+
    if (Esys_noError()) {
       if ( (A->row_block_size == 1) && (B->col_block_size ==1 ) && (A->col_block_size ==1) ) {
 	 SparseMatrix_MatrixMatrix_DD(out, A,B);

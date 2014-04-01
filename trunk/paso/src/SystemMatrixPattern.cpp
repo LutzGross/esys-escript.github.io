@@ -30,11 +30,13 @@
 
 namespace paso {
 
-SystemMatrixPattern::SystemMatrixPattern(int patType,
-        Distribution_ptr outDist, Distribution_ptr inDist,
-        Pattern* mainPat, Pattern* colPat, Pattern* rowPat,
-        Connector_ptr colConn, Connector_ptr rowConn) :
+SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
+        Distribution_ptr inDist, Pattern_ptr mainPat, Pattern_ptr colPat,
+        Pattern_ptr rowPat, Connector_ptr colConn, Connector_ptr rowConn) :
     type(patType),
+    mainPattern(mainPat),
+    col_couplePattern(colPat),
+    row_couplePattern(rowPat),
     col_connector(colConn),
     row_connector(rowConn),
     output_distribution(outDist),
@@ -76,9 +78,6 @@ SystemMatrixPattern::SystemMatrixPattern(int patType,
         Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of inputs for row couple pattern and number of received components in connector don't match.");
     }
 
-    mainPattern = Pattern_getReference(mainPat);
-    row_couplePattern = Pattern_getReference(rowPat);
-    col_couplePattern = Pattern_getReference(colPat);
     mpi_info = Esys_MPIInfo_getReference(outDist->mpi_info);
 }
 

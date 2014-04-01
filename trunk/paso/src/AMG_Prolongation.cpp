@@ -60,7 +60,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
    paso::Connector_ptr col_connector;
-   paso::Pattern *main_pattern=NULL, *couple_pattern=NULL;
+   paso::Pattern_ptr main_pattern, couple_pattern;
    const dim_t row_block_size=A_p->row_block_size;
    const dim_t col_block_size=A_p->col_block_size;
    const dim_t my_n=A_p->mainBlock->numCols;
@@ -196,10 +196,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(
 	}
 
    if (Esys_noError()) {   
-     main_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
-			my_n_C, main_p, main_idx);
-     couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, my_n, 
-			sum, couple_p, couple_idx);
+     main_pattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT, my_n, 
+			my_n_C, main_p, main_idx));
+     couple_pattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT, my_n, 
+			sum, couple_p, couple_idx));
    } else {
      delete[] main_p;
      delete[] main_idx;
@@ -340,8 +340,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(
    }  
 
    /* clean up */ 
-   paso::Pattern_free(main_pattern);
-   paso::Pattern_free(couple_pattern);
    if (Esys_noError()) {
       return out;
    } else {
@@ -368,11 +366,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getProlongation(
 
 void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P, 
 	Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
-        const index_t* S, const index_t *counter_C) { 
+        const index_t* S, const index_t *counter_C)
+{
     paso::SparseMatrix *main_block=P->mainBlock;
     paso::SparseMatrix *couple_block=P->col_coupleBlock;
-    paso::Pattern *main_pattern=main_block->pattern;
-    paso::Pattern *couple_pattern=couple_block->pattern;
+    paso::Pattern_ptr main_pattern(main_block->pattern);
+    paso::Pattern_ptr couple_pattern(couple_block->pattern);
    const dim_t my_n=A->mainBlock->numRows;
    index_t range;
 
@@ -504,11 +503,12 @@ void Paso_Preconditioner_AMG_setDirectProlongation(Paso_SystemMatrix* P,
 
 void Paso_Preconditioner_AMG_setDirectProlongation_Block(Paso_SystemMatrix* P,
         Paso_SystemMatrix* A, const index_t* offset_S, const dim_t* degree_S,
-        const index_t* S, const index_t *counter_C) {
+        const index_t* S, const index_t *counter_C)
+{
     paso::SparseMatrix *main_block=P->mainBlock;
     paso::SparseMatrix *couple_block=P->col_coupleBlock;
-    paso::Pattern *main_pattern=main_block->pattern;
-    paso::Pattern *couple_pattern=couple_block->pattern;
+    paso::Pattern_ptr main_pattern(main_block->pattern);
+    paso::Pattern_ptr couple_pattern(couple_block->pattern);
    const dim_t row_block_size=A->row_block_size;
    const dim_t A_block = A->block_size;
    const dim_t my_n=A->mainBlock->numRows;
@@ -701,8 +701,8 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
 	const index_t* S, const index_t *counter_C) { 
     paso::SparseMatrix *main_block=P->mainBlock;
     paso::SparseMatrix *couple_block=P->col_coupleBlock;
-    paso::Pattern *main_pattern=main_block->pattern;
-    paso::Pattern *couple_pattern=couple_block->pattern;
+    paso::Pattern_ptr main_pattern(main_block->pattern);
+    paso::Pattern_ptr couple_pattern(couple_block->pattern);
    const dim_t my_n=A->mainBlock->numRows;
    index_t range, range_j;
 
@@ -927,11 +927,12 @@ void Paso_Preconditioner_AMG_setClassicProlongation(Paso_SystemMatrix* P,
 
 void Paso_Preconditioner_AMG_setClassicProlongation_Block(
 	Paso_SystemMatrix* P, Paso_SystemMatrix* A, const index_t* offset_S,
-	const dim_t* degree_S, const index_t* S, const index_t *counter_C) {
+	const dim_t* degree_S, const index_t* S, const index_t *counter_C)
+{
     paso::SparseMatrix *main_block=P->mainBlock;
     paso::SparseMatrix *couple_block=P->col_coupleBlock;
-    paso::Pattern *main_pattern=main_block->pattern;
-    paso::Pattern *couple_pattern=couple_block->pattern;
+    paso::Pattern_ptr main_pattern(main_block->pattern);
+    paso::Pattern_ptr couple_pattern(couple_block->pattern);
    const dim_t row_block=A->row_block_size;
    const dim_t my_n=A->mainBlock->numRows;
    const dim_t A_block = A->block_size;
@@ -1180,3 +1181,4 @@ void Paso_Preconditioner_AMG_setClassicProlongation_Block(
         delete[] a;
      }    /* end of parallel region */
 }
+

@@ -39,11 +39,8 @@ sources = """
 	PCG.cpp
 	PasoUtil.cpp
 	Pattern.cpp
-	Pattern_getSubpattern.cpp
 	Pattern_mis.cpp
-        Pattern_multiply.cpp
 	Pattern_reduceBandwidth.cpp
-	Pattern_unrollBlocks.cpp
 	Solver.cpp
 	Transport.cpp
 	Transport_solve.cpp
