@@ -25,8 +25,8 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "SparseMatrix.h"
+#include "PasoUtil.h" // comparIndex
 
 namespace paso {
 

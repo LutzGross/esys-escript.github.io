@@ -45,7 +45,6 @@ SparseMatrix* SparseMatrix_getSubmatrix(const SparseMatrix* A,int n_row_sub,
                                         int n_col_sub, const index_t* row_list,
                                         const index_t* new_col_index)
 {
-    Pattern* sub_pattern=NULL;
     SparseMatrix* out=NULL;
     index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     int i,k,tmp,m,subpattern_row;
@@ -54,8 +53,8 @@ SparseMatrix* SparseMatrix_getSubmatrix(const SparseMatrix* A,int n_row_sub,
     if (A->type & MATRIX_FORMAT_CSC) {
         Esys_setError(TYPE_ERROR, "SparseMatrix_getSubmatrix: gathering submatrices supports CSR matrix format only.");
     } else {
-        sub_pattern=Pattern_getSubpattern(A->pattern, n_row_sub, n_col_sub,
-                                          row_list, new_col_index);
+        Pattern_ptr sub_pattern(A->pattern->getSubpattern(n_row_sub, n_col_sub,
+                                          row_list, new_col_index));
         if (Esys_noError()) {
             /* create the return object */
             out=SparseMatrix_alloc(type,sub_pattern,A->row_block_size,A->col_block_size,TRUE);
@@ -78,7 +77,6 @@ SparseMatrix* SparseMatrix_getSubmatrix(const SparseMatrix* A,int n_row_sub,
                 }
             }
         }
-        Pattern_free(sub_pattern);
     }
     return out;
 }

@@ -31,10 +31,8 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
-#include "PasoUtil.h"
 #include "Pattern.h"
-#include "esysUtils/mpi_C.h"
+#include "PasoUtil.h"
 
 namespace paso {
 
@@ -46,15 +44,15 @@ static double Pattern_mis_seed=.4142135623730951;
 #define IS_IN_MIS -3
 #define IS_CONNECTED_TO_MIS -4
 
-void Pattern_mis(Pattern* pattern_p, index_t* mis_marker)
+void Pattern::mis(index_t* mis_marker) const
 {
-    const index_t index_offset=(pattern_p->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-    if (pattern_p->numOutput != pattern_p->numInput) {
-        Esys_setError(VALUE_ERROR, "Pattern_mis: pattern must be square.");
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    if (numOutput != numInput) {
+        Esys_setError(VALUE_ERROR, "Pattern::mis: pattern must be square.");
         return;
     }
 
-    const dim_t n=pattern_p->numOutput;
+    const dim_t n = numOutput;
     double* value = new double[n];
 
     // is there any vertex available?
@@ -84,8 +82,8 @@ void Pattern_mis(Pattern* pattern_p, index_t* mis_marker)
         for (dim_t i=0; i < n; ++i) {
             if (mis_marker[i]==IS_AVAILABLE) {
                 index_t flag=IS_IN_MIS_NOW;
-                for (index_t iptr=pattern_p->ptr[i]-index_offset; iptr<pattern_p->ptr[i+1]-index_offset; ++iptr) {
-                    const index_t naib=pattern_p->index[iptr]-index_offset;
+                for (index_t iptr=ptr[i]-index_offset; iptr<ptr[i+1]-index_offset; ++iptr) {
+                    const index_t naib=index[iptr]-index_offset;
                     if (naib != i && value[naib] <= value[i]) {
                         flag=IS_AVAILABLE;
                         break;
@@ -99,8 +97,8 @@ void Pattern_mis(Pattern* pattern_p, index_t* mis_marker)
 #pragma omp parallel for schedule(static)
         for (dim_t i=0; i < n; i++) {
             if (mis_marker[i]==IS_IN_MIS_NOW) {
-                for (index_t iptr=pattern_p->ptr[i]-index_offset; iptr<pattern_p->ptr[i+1]-index_offset; ++iptr) {
-                    const index_t naib=pattern_p->index[iptr]-index_offset;
+                for (index_t iptr=ptr[i]-index_offset; iptr<ptr[i+1]-index_offset; ++iptr) {
+                    const index_t naib=index[iptr]-index_offset;
                     if (naib != i)
                         mis_marker[naib]=IS_CONNECTED_TO_MIS;
                 }
@@ -118,34 +116,6 @@ void Pattern_mis(Pattern* pattern_p, index_t* mis_marker)
 #undef IS_IN_MIS_NOW 
 #undef IS_IN_MIS 
 #undef IS_CONNECTED_TO_MIS 
-
-void Pattern_color(Pattern* pattern, index_t* num_colors, index_t* colorOf)
-{
-    index_t out=0, *mis_marker=NULL;
-    dim_t n=pattern->numOutput;
-    mis_marker=new index_t[n];
-    // get coloring
-#pragma omp parallel for schedule(static)
-    for (index_t i = 0; i < n; ++i) {
-        colorOf[i]=-1;
-        mis_marker[i]=-1;
-    }
-
-    while (Paso_Util_isAny(n, colorOf, -1) && Esys_noError()) {
-        /*#pragma omp parallel for private(i) schedule(static)
-        for (i = 0; i < n; ++i) mis_marker[i]=colorOf[i];*/
-        Pattern_mis(pattern, mis_marker);
-
-#pragma omp parallel for schedule(static)
-        for (index_t i = 0; i < n; ++i) {
-            if (mis_marker[i]) colorOf[i]=out;
-            mis_marker[i] = colorOf[i];
-        }
-        ++out;
-    }
-    delete[] mis_marker;
-    *num_colors=out;
-}
 
 } // namespace paso
 

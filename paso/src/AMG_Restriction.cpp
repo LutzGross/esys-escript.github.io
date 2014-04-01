@@ -49,7 +49,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
    paso::Connector_ptr col_connector;
-   paso::Pattern *couple_pattern=NULL;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
    const dim_t n=P->mainBlock->numRows;
@@ -280,11 +279,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
       and convert the global id in "idx" into local id */
    num_Rcouple_cols = 0;
    if (sum) {
-     #ifdef USE_QSORTG
-       qsortG(recv_idx, (size_t)sum, sizeof(index_t), paso::comparIndex);
-     #else
-       qsort(recv_idx, (size_t)sum, sizeof(index_t), paso::comparIndex);
-     #endif
+     qsort(recv_idx, (size_t)sum, sizeof(index_t), paso::comparIndex);
      num_Rcouple_cols = 1;
      i = recv_idx[0];
      for (j=1; j<sum; j++) {
@@ -333,7 +328,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    numNeighbors = P->col_coupler->connector->recv->numNeighbors;
    neighbor = P->col_coupler->connector->recv->neighbor;
    shared = new index_t[n * numNeighbors];
-   couple_pattern = P->col_coupleBlock->pattern;
+   paso::Pattern_ptr couple_pattern(P->col_coupleBlock->pattern);
    sum=0;
    memset(offsetInShared, 0, sizeof(index_t) * (size+1));
    for (p=0; p<numNeighbors; p++) {
@@ -361,8 +356,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    delete[] offsetInShared;
    delete[] shared;   
 
-   couple_pattern = paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, n_C,
-                        num_Rcouple_cols, ptr, idx);
+   couple_pattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT, n_C,
+                        num_Rcouple_cols, ptr, idx));
 
    input_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
    dist = P->pattern->input_distribution->first_component;
@@ -389,7 +384,6 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
 
    /* clean up */ 
    paso::SparseMatrix_free(main_block);
-   paso::Pattern_free(couple_pattern);
 
    if (Esys_noError()) {
       return out;

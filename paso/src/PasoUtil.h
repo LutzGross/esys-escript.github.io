@@ -37,6 +37,13 @@
 
 /************************************************************************************/
 
+namespace paso {
+
+// this comparison function is used by qsort/bsearch in various places
+int comparIndex(const void* index1, const void* index2);
+
+} // namespace paso
+
 index_t Paso_Util_cumsum(dim_t,index_t*);
 bool Paso_Util_isAny(dim_t N,index_t* array,index_t value);
 void Paso_zeroes(const dim_t n, double* x);

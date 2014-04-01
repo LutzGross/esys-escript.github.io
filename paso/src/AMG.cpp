@@ -151,7 +151,10 @@ Paso_Preconditioner_AMG* Paso_Preconditioner_AMG_alloc(Paso_SystemMatrix *A_p,di
      /* Start Coarsening : */
      
      /* this is the table for strong connections combining mainBlock, col_coupleBlock and row_coupleBlock */
-     const dim_t len_S=A_p->mainBlock->pattern->len + A_p->col_coupleBlock->pattern->len + A_p->row_coupleBlock->pattern->len  + A_p->row_coupleBlock->numRows * A_p->col_coupleBlock->numCols;
+     const dim_t len_S = A_p->mainBlock->pattern->len +
+         A_p->col_coupleBlock->pattern->len +
+         A_p->row_coupleBlock->pattern->len +
+         A_p->row_coupleBlock->numRows * A_p->col_coupleBlock->numCols;
 
      dim_t* degree_S=new  dim_t[n];
      index_t *offset_S=new  index_t[n];

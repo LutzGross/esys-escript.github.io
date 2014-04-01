@@ -130,7 +130,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *fileName_p)
         index_t *row_ptr = NULL;
         double *val = NULL;
         FILE *fileHandle_p = NULL;
-        paso::Pattern* mainPattern=NULL, *couplePattern=NULL;
+        paso::Pattern_ptr mainPattern, couplePattern;
         paso::SystemMatrixPattern_ptr pattern;
         Paso_SystemMatrix *out = NULL;
         paso::Connector_ptr connector;
@@ -232,8 +232,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *fileName_p)
         paso::Distribution_ptr output_dist(new paso::Distribution(mpi_info, dist,1,0));
         dist[1]=N;
         paso::Distribution_ptr input_dist(new paso::Distribution(mpi_info, dist,1,0));
-        mainPattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind);
-        couplePattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,M,N,NULL,NULL);
+        mainPattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT,M,N,row_ptr,col_ind));
+        couplePattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT,M,N,NULL,NULL));
         dist[0]=M;
         paso::SharedComponents_ptr send(new paso::SharedComponents(
                     M, 0, NULL, NULL, dist, 1, 0, mpi_info));
@@ -247,8 +247,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *fileName_p)
         /* copy values and cleanup temps */
         for( i=0; i<nz; i++ ) out->mainBlock->val[i] = val[i];
 
-    paso::Pattern_free(mainPattern);
-    paso::Pattern_free(couplePattern);
         Esys_MPIInfo_free(mpi_info);
         delete[]  val ;
         delete[]  row_ind ;
@@ -259,7 +257,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *fileName_p)
 {
         index_t dist[2];
         FILE *fileHandle_p = NULL;
-        paso::Pattern* mainPattern=NULL, *couplePattern=NULL;
+        paso::Pattern_ptr mainPattern, couplePattern;
         paso::SystemMatrixPattern_ptr pattern;
         Paso_SystemMatrix *out = NULL;
         paso::Connector_ptr connector;
@@ -356,8 +354,8 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *fileName_p)
         paso::Distribution_ptr output_dist(new paso::Distribution(mpi_info, dist,1,0));
         dist[1]=M;
         paso::Distribution_ptr input_dist(new paso::Distribution(mpi_info, dist,1,0));
-        mainPattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,N,M,col_ptr,col_ind);
-        couplePattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,N,M,NULL,NULL);
+        mainPattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT,N,M,col_ptr,col_ind));
+        couplePattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT,N,M,NULL,NULL));
         paso::SharedComponents_ptr send(new paso::SharedComponents(
                     N, 0, NULL, NULL, NULL, 1, 0, mpi_info));
         connector.reset(new paso::Connector(send,send));
@@ -369,8 +367,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *fileName_p)
         for( i=0; i<nz; i++ )
                 out->mainBlock->val[i] = val[i];
 
-    paso::Pattern_free(mainPattern);
-    paso::Pattern_free(couplePattern);
     Esys_MPIInfo_free(mpi_info);
     delete[] val;
     delete[] row_ind;

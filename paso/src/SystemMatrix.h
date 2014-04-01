@@ -246,7 +246,7 @@ PASO_DLL_API
 void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A);
 
 PASO_DLL_API
-void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, const bool recreatePattern);
+void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, bool recreatePattern);
 
 PASO_DLL_API
 void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const double f1);

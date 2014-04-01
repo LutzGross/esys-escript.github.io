@@ -55,7 +55,6 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
 							   const dim_t n_C, const index_t* counter_C, const index_t interpolation_method) 
 {
     paso::SparseMatrix* out=NULL;
-    paso::Pattern *outpattern=NULL;
    const dim_t n_block=A_p->row_block_size;
    index_t *ptr=NULL, *index=NULL,j, iptr;
    const dim_t n =A_p->numRows; 
@@ -101,8 +100,9 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
            }
         }
      } 
+   paso::Pattern_ptr outpattern;
    if (Esys_noError()) {
-	 outpattern=paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index);
+	 outpattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT,n,n_C,ptr,index));
    } else {
       delete[] ptr;
       delete[] index;
@@ -127,7 +127,6 @@ paso::SparseMatrix* Paso_Preconditioner_LocalAMG_getProlongation(paso::SparseMat
       	}
       }
    }
-   paso::Pattern_free(outpattern);
    if (Esys_noError()) {
       return out;
    } else {

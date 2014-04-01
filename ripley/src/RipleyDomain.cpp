@@ -1095,7 +1095,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 }
 
 //protected
-paso::Pattern* RipleyDomain::createPasoPattern(const IndexVector& ptr,
+paso::Pattern_ptr RipleyDomain::createPasoPattern(const IndexVector& ptr,
         const IndexVector& index, const dim_t M, const dim_t N) const
 {
     // paso will manage the memory
@@ -1103,11 +1103,11 @@ paso::Pattern* RipleyDomain::createPasoPattern(const IndexVector& ptr,
     index_t* ptrC = new index_t[ptr.size()];
     copy(index.begin(), index.end(), indexC);
     copy(ptr.begin(), ptr.end(), ptrC);
-    return paso::Pattern_alloc(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC);
+    return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC));
 }
 
 //protected
-paso::Pattern* RipleyDomain::createMainPattern() const
+paso::Pattern_ptr RipleyDomain::createMainPattern() const
 {
     IndexVector ptr(1,0);
     IndexVector index;
@@ -1124,8 +1124,8 @@ paso::Pattern* RipleyDomain::createMainPattern() const
 
 //protected
 void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
-        const vector<IndexVector>& rowIndices,
-        const dim_t N, paso::Pattern** colPattern, paso::Pattern** rowPattern) const
+        const vector<IndexVector>& rowIndices, const dim_t N,
+        paso::Pattern_ptr& colPattern, paso::Pattern_ptr& rowPattern) const
 {
     IndexVector ptr(1,0);
     IndexVector index;
@@ -1135,7 +1135,7 @@ void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
     }
 
     const dim_t M=ptr.size()-1;
-    *colPattern=createPasoPattern(ptr, index, M, N);
+    colPattern=createPasoPattern(ptr, index, M, N);
 
     IndexVector rowPtr(1,0);
     IndexVector rowIndex;
@@ -1145,7 +1145,7 @@ void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
     }
 
     // M and N are now reversed
-    *rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
+    rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
 }
 
 //protected

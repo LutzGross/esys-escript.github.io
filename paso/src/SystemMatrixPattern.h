@@ -44,15 +44,12 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
 {
     // constructor
     SystemMatrixPattern(int type, Distribution_ptr output_distribution,
-        Distribution_ptr input_distribution, Pattern* mainPattern,
-        Pattern* col_couplePattern, Pattern* row_couplePattern,
+        Distribution_ptr input_distribution, Pattern_ptr mainPattern,
+        Pattern_ptr col_couplePattern, Pattern_ptr row_couplePattern,
         Connector_ptr col_connector, Connector_ptr row_connector);
 
     ~SystemMatrixPattern()
     {
-        Pattern_free(mainPattern);
-        Pattern_free(row_couplePattern);
-        Pattern_free(col_couplePattern);
         Esys_MPIInfo_free(mpi_info);
     }
 
@@ -65,9 +62,9 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
 
     int type;
     Esys_MPIInfo* mpi_info;
-    Pattern* mainPattern;
-    Pattern* col_couplePattern;
-    Pattern* row_couplePattern;
+    Pattern_ptr mainPattern;
+    Pattern_ptr col_couplePattern;
+    Pattern_ptr row_couplePattern;
     Connector_ptr col_connector;
     Connector_ptr row_connector;
     Distribution_ptr output_distribution; 

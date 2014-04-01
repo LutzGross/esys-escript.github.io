@@ -26,6 +26,7 @@
 *****************************************************************************/
 
 #include "SparseMatrix.h"
+#include "PasoUtil.h" // comparIndex
 
 using esysUtils::IndexListArray;
 
@@ -33,9 +34,6 @@ namespace paso {
 
 SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
 {
-    Pattern *ATpattern=NULL;
-    SparseMatrix *AT=NULL;
-
     const dim_t m=A->numCols;
     const dim_t n=A->numRows;
     const dim_t block_size=A->block_size;
@@ -53,9 +51,8 @@ SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A)
         }
     }
 
-    ATpattern=Pattern_fromIndexListArray(0, m, index_list, 0, n, 0);
-    AT=SparseMatrix_alloc(A->type,ATpattern,col_block_size_A,row_block_size_A,FALSE);
-    Pattern_free(ATpattern);
+    Pattern_ptr ATpattern(Pattern::fromIndexListArray(0, m, index_list, 0, n, 0));
+    SparseMatrix *AT=SparseMatrix_alloc(A->type, ATpattern, col_block_size_A, row_block_size_A, FALSE);
 
     if ( ( (A->type & MATRIX_FORMAT_DIAGONAL_BLOCK) && (block_size == 1 ) ) ||
          ( (row_block_size_A == 1 ) && (col_block_size_A == 1)            )  ) {

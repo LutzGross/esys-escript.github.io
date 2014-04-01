@@ -102,8 +102,8 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
        
         // create the local matrix pattern
         const int globalNumVertices=distribution[mpiSize];
-        paso::Pattern *pattern=paso::Pattern_fromIndexListArray(0,
-                myNumVertices, index_list, 0, globalNumVertices, 0);
+        paso::Pattern_ptr pattern(paso::Pattern::fromIndexListArray(0,
+                myNumVertices, index_list, 0, globalNumVertices, 0));
         // set the coordinates
         std::vector<float> xyz(myNumVertices*dim);
 #pragma omp parallel for
@@ -126,7 +126,6 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
                               NULL, NULL, &wgtflag, &numflag, &dim, &xyz[0],
                               &ncon, &mpiSize, &tpwgts[0], &ubvec[0], options,
                               &edgecut, &partition[0], &MPIInfo->comm);
-        paso::Pattern_free(pattern);
     } else {
         for (int i=0; i<myNumVertices; ++i)
             partition[i]=0; // CPU 0 owns all

@@ -40,10 +40,6 @@
 
 #include <paso/SystemMatrixPattern.h>
 
-namespace paso {
-    struct Pattern;
-}
-
 struct Paso_SystemMatrix;
 
 namespace ripley {
@@ -744,19 +740,19 @@ protected:
     void updateTagsInUse(int fsType) const;
 
     /// allocates and returns a Paso pattern structure
-    paso::Pattern* createPasoPattern(const IndexVector& ptr,
+    paso::Pattern_ptr createPasoPattern(const IndexVector& ptr,
             const IndexVector& index, const dim_t M, const dim_t N) const;
 
     /// creates the pattern for the main block of the system matrix
-    paso::Pattern* createMainPattern() const;
+    paso::Pattern_ptr createMainPattern() const;
 
     /// creates the pattern for the column and row couple blocks of the system
     /// matrix. colIndices[i] contains all IDs of DOFs that are connected with
     /// DOF i but remote and 'N' is the total number of remote components
     void createCouplePatterns(const std::vector<IndexVector>& colIndices,
                               const std::vector<IndexVector>& rowIndices,
-                              const dim_t N, paso::Pattern** colPattern,
-                              paso::Pattern** rowPattern) const;
+                              const dim_t N, paso::Pattern_ptr& colPattern,
+                              paso::Pattern_ptr& rowPattern) const;
 
     void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
             dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,

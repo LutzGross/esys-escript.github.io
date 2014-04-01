@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/*   Paso: CSC/CSR pattern                                                  */
+/*   Paso: CSC/CSR sparse matrix pattern                                    */
 
 /****************************************************************************/
 
@@ -33,8 +33,75 @@
 
 namespace paso {
 
-struct Pattern
+struct Pattern;
+typedef boost::shared_ptr<Pattern> Pattern_ptr;
+typedef boost::shared_ptr<const Pattern> const_Pattern_ptr;
+
+PASO_DLL_API
+struct Pattern : boost::enable_shared_from_this<Pattern>
 {
+    Pattern(int type, dim_t numOutput, dim_t numInput, index_t* ptr,
+            index_t* index);
+
+    ~Pattern();
+
+    Pattern_ptr unrollBlocks(int newType, dim_t outputBlockSize,
+                             dim_t inputBlockSize);
+
+    Pattern_ptr getSubpattern(dim_t newNumRows, dim_t newNumCols,
+                              const index_t* rowList,
+                              const index_t* newColIndex) const;
+
+    /// Searches for a maximal independent set MIS in the matrix pattern
+    void mis(index_t* mis_marker) const;
+
+    void reduceBandwidth(index_t* oldToNew);
+
+    Pattern_ptr multiply(int type, const_Pattern_ptr other) const;
+
+    Pattern_ptr binop(int type, const_Pattern_ptr other) const;
+
+    index_t* borrowMainDiagonalPointer();
+
+    static Pattern_ptr fromIndexListArray(dim_t n0, dim_t n,
+            const esysUtils::IndexListArray& index_list_array,
+            index_t range_min, index_t range_max, index_t index_offset);
+
+    index_t* borrowColoringPointer();
+
+    dim_t getBandwidth(index_t* label) const;
+
+    inline bool isEmpty() const
+    {
+        return (!ptr && !index);
+    }
+
+    inline dim_t getNumColors()
+    {
+        // make sure numColors is defined
+        borrowColoringPointer();
+        return numColors;
+    }
+
+    inline dim_t maxDeg() const
+    {
+        dim_t deg = 0;
+#pragma omp parallel
+        {
+            dim_t loc_deg=0;
+#pragma omp for
+            for (dim_t i = 0; i < numInput; ++i) {
+                loc_deg=MAX(loc_deg, ptr[i+1]-ptr[i]);
+            }
+#pragma omp critical
+            {
+                deg = MAX(deg, loc_deg);
+            }
+        }
+        return deg;
+    }
+
+
     int type;
     // Number of rows in the ptr array [CSR] / number of cols for CSC
     dim_t numOutput;
@@ -47,64 +114,13 @@ struct Pattern
     // Non-major indices of non-zeros (in CSR this will be col numbers)
     index_t* index;
     // pointer to main diagonal entry
-    index_t *main_iptr;
+    index_t* main_iptr;
     // number of colors
     dim_t numColors;
     // coloring index: inputs with the same color are not connected
     index_t* coloring;
-    dim_t reference_counter;
 };
 
-PASO_DLL_API
-Pattern* Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
-
-PASO_DLL_API
-Pattern* Pattern_getReference(Pattern*);
-
-PASO_DLL_API
-void Pattern_free(Pattern*);
-
-PASO_DLL_API
-int comparIndex(const void *, const void *);
-
-PASO_DLL_API
-Pattern* Pattern_unrollBlocks(Pattern*, int, dim_t, dim_t);
-
-PASO_DLL_API
-Pattern* Pattern_getSubpattern(Pattern*, dim_t, dim_t, const index_t*, const index_t*);
-
-PASO_DLL_API
-bool Pattern_isEmpty(Pattern* in);
-
-PASO_DLL_API
-void Pattern_mis(Pattern* pattern_p, index_t* mis_marker);
-
-PASO_DLL_API
-void Pattern_reduceBandwidth(Pattern* self, index_t* oldToNew);
-
-PASO_DLL_API
-void Pattern_color(Pattern* patter, index_t* num_colors, index_t* colorOf);
-Pattern* Pattern_multiply(int type, Pattern* A, Pattern* B);
-
-PASO_DLL_API
-Pattern* Pattern_binop(int type, Pattern* A, Pattern* B);
-
-PASO_DLL_API
-index_t* Pattern_borrowMainDiagonalPointer(Pattern* A);
-
-PASO_DLL_API
-Pattern* Pattern_fromIndexListArray(dim_t n0, dim_t n,
-        const esysUtils::IndexListArray& index_list_array, index_t range_min,
-        index_t range_max, index_t index_offset);
-
-PASO_DLL_API
-dim_t Pattern_getNumColors(Pattern* A);
-
-PASO_DLL_API
-index_t* Pattern_borrowColoringPointer(Pattern* A);
-
-PASO_DLL_API
-dim_t Pattern_maxDeg(Pattern* A);
 
 } // namespace paso
 

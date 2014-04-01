@@ -2569,9 +2569,9 @@ void Brick::createPattern()
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
     // create main and couple blocks
-    paso::Pattern *mainPattern = createMainPattern();
-    paso::Pattern *colPattern, *rowPattern;
-    createCouplePatterns(colIndices, rowIndices, numShared, &colPattern, &rowPattern);
+    paso::Pattern_ptr mainPattern = createMainPattern();
+    paso::Pattern_ptr colPattern, rowPattern;
+    createCouplePatterns(colIndices, rowIndices, numShared, colPattern, rowPattern);
 
     // allocate paso distribution
     paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
@@ -2639,10 +2639,6 @@ void Brick::createPattern()
         cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
     }
     */
-
-    paso::Pattern_free(mainPattern);
-    paso::Pattern_free(colPattern);
-    paso::Pattern_free(rowPattern);
 }
 
 //private

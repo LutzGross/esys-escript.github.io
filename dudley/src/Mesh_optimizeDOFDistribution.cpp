@@ -74,7 +74,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     index_t myFirstVertex, myLastVertex, firstVertex, lastVertex, *newGlobalDOFID = NULL;
     size_t mpiSize_size;
     index_t *partition = NULL;
-    paso::Pattern *pattern = NULL;
+    paso::Pattern_ptr pattern;
     Esys_MPI_rank myRank, current_rank, rank;
     float *xyz = NULL;
     int c;
@@ -150,7 +150,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    }
 
 	    /* create the local matrix pattern */
-	    pattern = paso::Pattern_fromIndexListArray(0, myNumVertices, index_list, 0, globalNumVertices, 0);
+	    pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list, 0, globalNumVertices, 0);
 
 	    if (Dudley_noError())
 	    {
@@ -190,8 +190,6 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 #endif
 
 	    }
-
-        paso::Pattern_free(pattern);
 
 	    /* create a new distribution and labelling of the DOF */
 	    memset(new_distribution, 0, mpiSize_size);
