@@ -143,14 +143,14 @@ public:
     /**
         Returns the name of a given key
 
-        /param key a valid key from SolverOptions
+        \param key a valid key from SolverOptions
     */
     ESCRIPT_DLL_API const char *getName(int key) const;
 
     /**
         Resets the diagnostics
 
-        /param all if ``all`` is ``true`` all diagnostics including accumulative
+        \param all if ``all`` is ``true`` all diagnostics including accumulative
                 counters are reset.
     */
     ESCRIPT_DLL_API void resetDiagnostics(bool all=false);
@@ -158,15 +158,15 @@ public:
     /**
         Updates diagnostic information
 
-        /param key name of diagnostic (a python string in the list "num_iter",
+        \param key name of diagnostic (a python string in the list "num_iter",
                  "num_level", "num_inner_iter", "time", "set_up_time",
                  "net_time", "residual_norm", "converged").
-        /param value new value of the diagnostic information
+        \param value new value of the diagnostic information
     */
     ESCRIPT_DLL_API void updateDiagnostics(std::string key, boost::python::object value);
 
     /**
-    Returns the diagnostic information ``name``. Possible values are:
+    Returns the diagnostic information for the given ``name``. Possible values are:
 
     - "num_iter": the number of iteration steps
     - "cum_num_iter": the cumulative number of iteration steps
@@ -180,23 +180,24 @@ public:
     - "net_time": net execution time, excluding setup time for the solver and execution time for preconditioner
     - "cum_net_time": cumulative net execution time
     - "preconditioner_size": size of preconditioner [Bytes]
-    - "converged": return True if solution has converged.
-    - "time_step_backtracking_used": returns True if time step back tracking has been used.
+    - "converged": return true if solution has converged.
+    - "time_step_backtracking_used": returns true if time step back tracking has been used.
     - "coarse_level_sparsity": returns the sparsity of the matrix on the coarsest level
     - "num_coarse_unknowns": returns the number of unknowns on the coarsest level
 
 
-    /param name name of diagnostic information to return
-    :type name: ``str`` in the list above.
-    :return: requested value. 0 is returned if the value is yet to be defined.
-    :note: If the solver has thrown an exception diagnostic values have an undefined status.
+    \param name name of diagnostic information to return
+    
+    \returns requested value. 0 is returned if the value is yet to be defined.
+
+    \note If the solver has thrown an exception diagnostic values have an undefined status.
     */
     ESCRIPT_DLL_API double getDiagnostics(std::string name) const;
 
     /**
-        Returns ``True`` if the last solver call has been finalized successfully.
+        Returns ``true`` if the last solver call has been finalized successfully.
 
-        :note: if an exception has been thrown by the solver the status of this
+        \note if an exception has been thrown by the solver the status of this
                  flag is undefined.
     */
     ESCRIPT_DLL_API bool hasConverged() const;
@@ -204,8 +205,8 @@ public:
     /**
     Sets the key of the coarsening method to be applied in AMG or AMLI or BoomerAMG
 
-    /param coarsening selects the coarsening method .
-    :type method: in `ESCRIPT_DEFAULT`, `ESCRIPT_YAIR_SHAPIRA_COARSENING`,
+    \param coarsening selects the coarsening method, should be in
+            `ESCRIPT_DEFAULT`, `ESCRIPT_YAIR_SHAPIRA_COARSENING`,
             `ESCRIPT_RUGE_STUEBEN_COARSENING`, `ESCRIPT_AGGREGATION_COARSENING`,
             `ESCRIPT_CIJP_FIXED_RANDOM_COARSENING`, `ESCRIPT_CIJP_COARSENING`,
             `ESCRIPT_FALGOUT_COARSENING`, `ESCRIPT_PMIS_COARSENING`,
@@ -217,18 +218,13 @@ public:
         Returns the key of the coarsening algorithm to be applied AMG, AMLI
         or BoomerAMG
 
-        :rtype: in the list `ESCRIPT_DEFAULT`, `ESCRIPT_YAIR_SHAPIRA_COARSENING`,
-         `ESCRIPT_RUGE_STUEBEN_COARSENING`, `ESCRIPT_AGGREGATION_COARSENING`,
-         `ESCRIPT_CIJP_FIXED_RANDOM_COARSENING`, `ESCRIPT_CIJP_COARSENING`,
-         `ESCRIPT_FALGOUT_COARSENING`, `ESCRIPT_PMIS_COARSENING`,
-         `ESCRIPT_HMIS_COARSENING`
     */
     ESCRIPT_DLL_API SolverOptions getCoarsening() const;
 
     /**
         Sets the minimum size of the coarsest level matrix in AMG or AMLI
 
-        /param size minimum size of the coarsest level matrix .
+        \param size minimum size of the coarsest level matrix .
     */
     ESCRIPT_DLL_API void setMinCoarseMatrixSize(int size);
 
@@ -240,13 +236,14 @@ public:
     /**
     Sets the preconditioner to be used.
 
-    /param preconditioner: key of the preconditioner to be used.
-    :type preconditioner: in `ESCRIPT_ILU0`, `ESCRIPT_ILUT`,
+    \param preconditioner key of the preconditioner to be used, should be in
+        `ESCRIPT_ILU0`, `ESCRIPT_ILUT`,
         `ESCRIPT_JACOBI`, `ESCRIPT_AMG`, `ESCRIPT_AMLI`,
         `ESCRIPT_REC_ILU`, `ESCRIPT_GAUSS_SEIDEL`,
         `ESCRIPT_RILU`, `ESCRIPT_BOOMERAMG`,
         `ESCRIPT_NO_PRECONDITIONER`
-    :note: Not all packages support all preconditioner. It can be assumed that
+    
+    \note Not all packages support all preconditioner. It can be assumed that
             a package makes a reasonable choice if it encounters an unknown
             preconditioner.
     */
@@ -255,20 +252,16 @@ public:
     /**
     Returns the key of the preconditioner to be used.
 
-    :rtype: in the list `ESCRIPT_ILU0`, `ESCRIPT_ILUT`,
-        `ESCRIPT_JACOBI`, `ESCRIPT_AMLI`, `ESCRIPT_AMG`,
-        `ESCRIPT_REC_ILU`, `ESCRIPT_GAUSS_SEIDEL`,
-        `ESCRIPT_RILU`, `ESCRIPT_BOOMERAMG`,
-        `ESCRIPT_NO_PRECONDITIONER`
     */
     ESCRIPT_DLL_API SolverOptions getPreconditioner() const;
 
     /**
     Sets the smoother to be used.
 
-    /param smoother: key of the smoother to be used.
-    :type smoother: in `ESCRIPT_JACOBI`, `ESCRIPT_GAUSS_SEIDEL`
-    :note: Not all packages support all smoothers. It can be assumed that a
+    \param smoother key of the smoother to be used, should be in 
+            `ESCRIPT_JACOBI`, `ESCRIPT_GAUSS_SEIDEL`
+
+    \note Not all packages support all smoothers. It can be assumed that a
             package makes a reasonable choice if it encounters an unknown
             smoother.
     */
@@ -277,7 +270,6 @@ public:
     /**
     Returns key of the smoother to be used.
 
-    :rtype: in the list `ESCRIPT_JACOBI`, `ESCRIPT_GAUSS_SEIDEL`
     */
     ESCRIPT_DLL_API SolverOptions getSmoother() const;
 
@@ -287,13 +279,14 @@ public:
     use ``method``=``ESCRIPT_ITERATIVE`` to indicate that an iterative rather
     than a direct solver should be used.
 
-    /param method key of the solver method to be used.
-    :type method: in `ESCRIPT_DEFAULT`, `ESCRIPT_DIRECT`, `ESCRIPT_CHOLEVSKY`,
+    \param method key of the solver method to be used, should be in
+            `ESCRIPT_DEFAULT`, `ESCRIPT_DIRECT`, `ESCRIPT_CHOLEVSKY`,
             `ESCRIPT_PCG`, `ESCRIPT_CR`, `ESCRIPT_CGS`, `ESCRIPT_BICGSTAB`,
             `ESCRIPT_GMRES`, `ESCRIPT_PRES20`, `ROWSUM_ESCRIPT_LUMPING`,
             `HRZ_ESCRIPT_LUMPING`, `ESCRIPT_ITERATIVE`,
             `ESCRIPT_NONLINEAR_GMRES`, `ESCRIPT_TFQMR`, `ESCRIPT_MINRES`
-    :note: Not all packages support all solvers. It can be assumed that a
+    
+    \note Not all packages support all solvers. It can be assumed that a
             package makes a reasonable choice if it encounters an unknown
             solver method.
     */
@@ -302,22 +295,18 @@ public:
     /**
     Returns key of the solver method to be used.
 
-    :rtype: in the list `ESCRIPT_DEFAULT`, `ESCRIPT_DIRECT`,
-            `ESCRIPT_CHOLEVSKY`, `ESCRIPT_PCG`, `ESCRIPT_CR`, `ESCRIPT_CGS`,
-            `ESCRIPT_BICGSTAB`, `ESCRIPT_GMRES`, `ESCRIPT_PRES20`,
-            `ROWSUM_ESCRIPT_LUMPING`, `HRZ_ESCRIPT_LUMPING`, `ESCRIPT_MINRES`,
-            `ESCRIPT_ITERATIVE`, `ESCRIPT_NONLINEAR_GMRES`, `ESCRIPT_TFQMR`
     */
     ESCRIPT_DLL_API SolverOptions getSolverMethod() const;
 
     /**
     Sets the solver package to be used as a solver.
 
-    /param package key of the solver package to be used.
-    :type package: in `ESCRIPT_DEFAULT`, `ESCRIPT_PASO`, `ESCRIPT_SUPER_LU`,
+    \param package key of the solver package to be used, should be in 
+            `ESCRIPT_DEFAULT`, `ESCRIPT_PASO`, `ESCRIPT_SUPER_LU`,
             `ESCRIPT_PASTIX`, `ESCRIPT_MKL`, `ESCRIPT_UMFPACK`,
             `ESCRIPT_TRILINOS`
-    :note: Not all packages are support on all implementation. An exception may
+
+    \note Not all packages are support on all implementation. An exception may
             be thrown on some platforms if a particular is requested.
     */
     ESCRIPT_DLL_API void setPackage(int package);
@@ -325,9 +314,6 @@ public:
     /**
     Returns the solver package key
 
-    :rtype: in the list `ESCRIPT_DEFAULT`, `ESCRIPT_PASO`, `ESCRIPT_SUPER_LU`,
-            `ESCRIPT_PASTIX`, `ESCRIPT_MKL`, `ESCRIPT_UMFPACK`,
-            `ESCRIPT_TRILINOS`
     */
     ESCRIPT_DLL_API SolverOptions getPackage() const;
 
@@ -336,8 +322,8 @@ public:
     solver. Some direct solvers support reordering
     to optimize compute time and storage use during elimination.
 
-    /param ordering selects the reordering strategy.
-    :type ordering: in 'ESCRIPT_NO_REORDERING', 'ESCRIPT_MINIMUM_FILL_IN',
+    \param ordering selects the reordering strategy, should be in 
+            'ESCRIPT_NO_REORDERING', 'ESCRIPT_MINIMUM_FILL_IN',
             'ESCRIPT_NESTED_DISSECTION', 'ESCRIPT_DEFAULT_REORDERING'
     */
     ESCRIPT_DLL_API void setReordering(int ordering);
@@ -346,16 +332,13 @@ public:
     Returns the key of the reordering method to be applied if supported by the
     solver.
 
-    :rtype: in `ESCRIPT_NO_REORDERING`,
-        `ESCRIPT_MINIMUM_FILL_IN`, `ESCRIPT_NESTED_DISSECTION`,
-        `ESCRIPT_DEFAULT_REORDERING`
     */
     ESCRIPT_DLL_API SolverOptions getReordering() const;
 
     /**
     Sets the number of iterations steps after which GMRES performs a restart.
 
-    /param restart number of iteration steps after which to perform a
+    \param restart number of iteration steps after which to perform a
         restart. If 0 no restart is performed.
     */
     ESCRIPT_DLL_API void setRestart(int restart);
@@ -392,14 +375,12 @@ public:
     Sets the number of residuals in GMRES to be stored for orthogonalization.
     The more residuals are stored the faster GMRES converged but
 
-
     */
     ESCRIPT_DLL_API void setTruncation(int truncation);
 
     /**
     Returns the number of residuals in GMRES to be stored for orthogonalization
 
-    :rtype: ``int``
     */
     ESCRIPT_DLL_API int getTruncation() const;
 
@@ -419,7 +400,7 @@ public:
     /**
     Sets the maximum number of iteration steps
 
-    /param iter_max maximum number of iteration steps
+    \param iter_max maximum number of iteration steps
     */
     ESCRIPT_DLL_API void setIterMax(int iter_max);
 
@@ -433,7 +414,7 @@ public:
     Sets the maximum number of coarsening levels to be used in an algebraic
     multi level solver or preconditioner
 
-    /param level_max maximum number of levels
+    \param level_max maximum number of levels
     */
     ESCRIPT_DLL_API void setLevelMax(int level_max);
 
@@ -448,7 +429,7 @@ public:
     Sets the cycle type (V-cycle or W-cycle) to be used in an algebraic multi
     level solver or preconditioner
 
-    /param cycle_type the type of cycle
+    \param cycle_type the type of cycle
     */
     ESCRIPT_DLL_API void setCycleType(int cycle_type);
 
@@ -463,7 +444,7 @@ public:
     Sets the threshold for coarsening in the algebraic multi level solver or
     preconditioner
 
-    /param theta threshold for coarsening
+    \param theta threshold for coarsening
     */
     ESCRIPT_DLL_API void setCoarseningThreshold(double theta);
 
@@ -477,7 +458,7 @@ public:
     /**
     Sets the number of sweeps in a Jacobi or Gauss-Seidel/SOR preconditioner.
 
-    /param sweeps number of sweeps
+    \param sweeps number of sweeps
     */
     ESCRIPT_DLL_API void setNumSweeps(int sweeps);
 
@@ -491,7 +472,7 @@ public:
     Sets the number of sweeps in the pre-smoothing step of a multi level
     solver or preconditioner
 
-    /param sweeps number of sweeps
+    \param sweeps number of sweeps
     */
     ESCRIPT_DLL_API void setNumPreSweeps(int sweeps);
 
@@ -506,12 +487,12 @@ public:
     Sets the number of sweeps in the post-smoothing step of a multi level
     solver or preconditioner
 
-    /param sweeps number of sweeps
+    \param sweeps number of sweeps
     */
     ESCRIPT_DLL_API void setNumPostSweeps(int sweeps);
 
     /**
-    Returns he number of sweeps in the post-smoothing step of a multi level
+    Returns the number of sweeps in the post-smoothing step of a multi level
     solver or preconditioner
 
     */
@@ -520,7 +501,7 @@ public:
     /**
     Sets the relative tolerance for the solver
 
-    /param rtol relative tolerance
+    \param rtol relative tolerance
     */
     ESCRIPT_DLL_API void setTolerance(double rtol);
 
@@ -533,7 +514,7 @@ public:
     /**
     Sets the absolute tolerance for the solver
 
-    /param atol absolute tolerance
+    \param atol absolute tolerance
     */
     ESCRIPT_DLL_API void setAbsoluteTolerance(double atol);
 
@@ -547,7 +528,7 @@ public:
      Sets the relative tolerance for an inner iteration scheme for instance on
      the coarsest level in a multi-level scheme.
 
-    /param rtol inner relative tolerance
+    \param rtol inner relative tolerance
     */
     ESCRIPT_DLL_API void setInnerTolerance(double rtol);
 
@@ -560,7 +541,7 @@ public:
     /**
     Sets the relative drop tolerance in ILUT
 
-    /param drop_tol drop tolerance
+    \param drop_tol drop tolerance
     */
     ESCRIPT_DLL_API void setDropTolerance(double drop_tol);
 
@@ -571,11 +552,11 @@ public:
     ESCRIPT_DLL_API double getDropTolerance() const;
 
     /**
-    Sets the maximum allowed increase in storage for ILUT. ``storage`` =2 would
+    Sets the maximum allowed increase in storage for ILUT. An increase of 2 would
     mean that a doubling of the storage needed for the coefficient matrix is
-    allowed in the ILUT factorization.
+    allowed during ILUT factorization.
 
-    /param storage allowed storage increase
+    \param storage allowed storage increase
     */
     ESCRIPT_DLL_API void setDropStorage(double drop);
 
@@ -589,10 +570,10 @@ public:
     Sets the relaxation factor used to add dropped elements in RILU to the
     main diagonal.
 
-    /param factor relaxation factor
-    :note: RILU with a relaxation factor 0 is identical to ILU0
+    \param factor relaxation factor
+    \note RILU with a relaxation factor 0 is identical to ILU0
     */
-    ESCRIPT_DLL_API void setRelaxationFactor(double relaxation);
+    ESCRIPT_DLL_API void setRelaxationFactor(double factor);
 
 
     /**
@@ -603,9 +584,9 @@ public:
     ESCRIPT_DLL_API double getRelaxationFactor() const;
 
     /**
-    Checks if symmetry of the  coefficient matrix is indicated.
+    Checks if symmetry of the coefficient matrix is indicated.
 
-    :return: True if a symmetric PDE is indicated, False otherwise
+    \return true if a symmetric PDE is indicated, false otherwise
     */
     ESCRIPT_DLL_API bool isSymmetric() const;
 
@@ -622,13 +603,13 @@ public:
     /**
     Sets the symmetry flag for the coefficient matrix to ``flag``.
 
-    /param flag If True, the symmetry flag is set otherwise reset.
+    \param flag If true, the symmetry flag is set otherwise reset.
     */ESCRIPT_DLL_API void setSymmetry(bool symmetry);
 
     /**
-    Returns ``True`` if the solver is expected to be verbose.
+    Returns ``true`` if the solver is expected to be verbose.
 
-    :return: True if verbosity of switched on.
+    \return true if verbosity is switched on.
     */
     ESCRIPT_DLL_API bool isVerbose() const;
 
@@ -645,16 +626,16 @@ public:
     /**
     Sets the verbosity flag for the solver to ``flag``.
 
-    /param verbose If ``True``, the verbosity of the solver is switched on.
+    \param verbose If ``true``, the verbosity of the solver is switched on.
     */
     ESCRIPT_DLL_API void setVerbosity(bool verbosity);
 
     /**
-    Returns ``True`` if the tolerance of the inner solver is selected
+    Returns ``true`` if the tolerance of the inner solver is selected
     automatically. Otherwise the inner tolerance set by `setInnerTolerance` is
     used.
 
-    :return: ``True`` if inner tolerance adaption is chosen.
+    \returns ``true`` if inner tolerance adaption is chosen.
     */
     ESCRIPT_DLL_API bool adaptInnerTolerance() const;
 
@@ -671,19 +652,19 @@ public:
     /**
     Sets the flag to indicate automatic selection of the inner tolerance.
 
-    /param adapt If ``True``, the inner tolerance is selected automatically.
+    \param adapt If ``true``, the inner tolerance is selected automatically.
     */
     ESCRIPT_DLL_API void setInnerToleranceAdaption(bool adaption);
 
     /**
-    Returns ``True`` if a failure to meet the stopping criteria within the
+    Returns ``true`` if a failure to meet the stopping criteria within the
     given number of iteration steps is not raising in exception. This is useful
     if a solver is used in a non-linear context where the non-linear solver can
     continue even if the returned the solution does not necessarily meet the
     stopping criteria. One can use the `hasConverged` method to check if the
     last call to the solver was successful.
 
-    :return: ``True`` if a failure to achieve convergence is accepted.
+    \returns ``true`` if a failure to achieve convergence is accepted.
     */
     ESCRIPT_DLL_API bool acceptConvergenceFailure() const;
 
@@ -700,43 +681,41 @@ public:
     /**
     Sets the flag to indicate the acceptance of a failure of convergence.
 
-    /param accept If ``True``, any failure to achieve convergence is accepted.
+    \param accept If ``true``, any failure to achieve convergence is accepted.
     */
     ESCRIPT_DLL_API void setAcceptanceConvergenceFailure(bool acceptance);
 
     /**
-    Returns ``True`` if the preconditoner is applied locally on each MPI. This
+    Returns ``true`` if the preconditoner is applied locally on each MPI. This
     reduces communication costs and speeds up the application of the
     preconditioner but at the costs of more iteration steps. This can be an
     advantage on clusters with slower interconnects.
-
-    :return: ``True`` if local preconditioning is applied
     */
     ESCRIPT_DLL_API bool useLocalPreconditioner() const;
 
     /**
-    Sets the flag to use  local preconditioning to on
+    Sets the flag to use local preconditioning to on
     */
     ESCRIPT_DLL_API void setLocalPreconditionerOn();
 
     /**
-    Sets the flag to use  local preconditioning to off
+    Sets the flag to use local preconditioning to off
     */
     ESCRIPT_DLL_API void setLocalPreconditionerOff();
 
     /**
-    Sets the flag to use  local preconditioning
+    Sets the flag to use local preconditioning
 
-    /param use If ``True``, local proconditioning on each MPI rank is applied
+    \param use If ``true``, local proconditioning on each MPI rank is applied
     */
     ESCRIPT_DLL_API void setLocalPreconditioner(bool local);
 
     /**
-    Sets the minimum sparsity on the coarsest level. Typically
+    Sets the minimum sparsity at the coarsest level. Typically
     a direct solver is used when the sparsity becomes bigger than
     the set limit.
 
-    /param sparsity minimual sparsity
+    \param sparsity minimal sparsity
     */
     ESCRIPT_DLL_API void setMinCoarseMatrixSparsity(double sparsity);
 
@@ -745,7 +724,7 @@ public:
     a direct solver is used when the sparsity becomes bigger than
     the set limit.
 
-    :return: minimual sparsity
+    \returns minimal sparsity
     */
     ESCRIPT_DLL_API double getMinCoarseMatrixSparsity() const;
 
@@ -753,7 +732,7 @@ public:
     Sets the number of refinement steps to refine the solution when a direct
     solver is applied.
 
-    /param refinements number of refinements
+    \param refinements number of refinements
     */
     ESCRIPT_DLL_API void setNumRefinements(int refinements);
 
@@ -768,7 +747,7 @@ public:
     Sets the number of refinement steps to refine the solution on the coarsest
     level when a direct solver is applied.
 
-    /param refinements number of refinements
+    \param refinements number of refinements
     */
     ESCRIPT_DLL_API void setNumCoarseMatrixRefinements(int refinements);
 
@@ -780,11 +759,10 @@ public:
     ESCRIPT_DLL_API int getNumCoarseMatrixRefinements() const;
 
     /**
-    Returns ``True`` if a panel is used to serach for unknown in the AMG
+    Returns ``true`` if a panel is used to search for unknown in the AMG
     coarsening, The panel approach is normally faster
     but can lead to larger coarse level systems.
 
-    :return: ``True`` if a panel is used to find unknowns in AMG coarsening
     */
     ESCRIPT_DLL_API bool usePanel() const;
 
@@ -801,15 +779,15 @@ public:
     /**
     Sets the flag to use  a panel to find unknowns in AMG coarsening
 
-    /param use If ``True``,a panel is used to find unknowns in AMG coarsening
+    \param use If ``true``,a panel is used to find unknowns in AMG coarsening
     */
     ESCRIPT_DLL_API void setUsePanel(bool use);
 
     /**
     Set the interpolation method for the AMG preconditioner.
 
-    /param method key of the interpolation method to be used.
-    :type method: in `ESCRIPT_CLASSIC_INTERPOLATION_WITH_FF_COUPLING`,
+    \param method key of the interpolation method to be used, should be in 
+            `ESCRIPT_CLASSIC_INTERPOLATION_WITH_FF_COUPLING`,
             `ESCRIPT_CLASSIC_INTERPOLATION`, `ESCRIPT_DIRECT_INTERPOLATION`
     */
     ESCRIPT_DLL_API void setAMGInterpolation(int interpolation);
@@ -817,26 +795,21 @@ public:
     /**
     Returns key of the interpolation method for the SAMG preconditioner
 
-    :rtype: in the list `ESCRIPT_CLASSIC_INTERPOLATION_WITH_FF_COUPLING`,
-            `ESCRIPT_CLASSIC_INTERPOLATION`, `ESCRIPT_DIRECT_INTERPOLATION`
     */
     ESCRIPT_DLL_API SolverOptions getAMGInterpolation() const;
 
     /**
     Set the solver method for ODEs.
 
-    /param method key of the ODE solver method to be used.
-    :type method: in `ESCRIPT_CRANK_NICOLSON`, `ESCRIPT_BACKWARD_EULER`,
-            `LINEAR_CRANK_NICOLSON`
+    \param method key of the ODE solver method to be used, should be in 
+            `ESCRIPT_CRANK_NICOLSON`, `ESCRIPT_BACKWARD_EULER`,
+            `ESCRIPT_LINEAR_CRANK_NICOLSON`
     */
     ESCRIPT_DLL_API void setODESolver(int solver);
 
     /**
     Returns key of the solver method for ODEs.
 
-    /param method key of the ODE solver method to be used.
-    :type method: in `ESCRIPT_CRANK_NICOLSON`, `ESCRIPT_BACKWARD_EULER`,
-            `LINEAR_CRANK_NICOLSON`
     */
     ESCRIPT_DLL_API SolverOptions getODESolver() const;
 
