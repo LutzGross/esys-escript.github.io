@@ -404,7 +404,7 @@ void SolverBuddy::setPreconditioner(int precon) {
         case ESCRIPT_RILU:
         case ESCRIPT_BOOMERAMG:
         case ESCRIPT_NO_PRECONDITIONER:
-#ifdef ESYS_MPI
+#ifndef ESYS_MPI
         case ESCRIPT_AMG:
             this->preconditioner = preconditioner;
             break;
