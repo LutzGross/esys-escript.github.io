@@ -3326,6 +3326,12 @@ int Brick::findNode(const double *coords) const {
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
     double z = coords[2] - m_origin[2];
+    
+    //check if the point is even inside the domain
+    if (x < 0 || y < 0 || z < 0 
+            || x > m_length[0] || y > m_length[1] || z > m_length[2])
+        return NOT_MINE;
+        
     // distance in elements
     int ex = (int) floor(x / m_dx[0]);
     int ey = (int) floor(y / m_dx[1]);
