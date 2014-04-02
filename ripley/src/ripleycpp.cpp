@@ -175,17 +175,20 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
         z1=extract<double>(l2);
     } else
         throw RipleyException("Argument l2 must be a float or 2-tuple");
-
     boost::python::list pypoints=extract<boost::python::list>(objpoints);
     boost::python::list pytags=extract<boost::python::list>(objtags);
     int numpts=extract<int>(pypoints.attr("__len__")());
     int numtags=extract<int>(pytags.attr("__len__")());
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
     std::vector<double> points;
     std::vector<int> tags;
     tags.resize(numtags, -1);
     for (int i=0;i<numpts;++i) {
-        boost::python::object temp=pypoints[i];
+        tuple temp = extract<tuple>(pypoints[i]);
         int l=extract<int>(temp.attr("__len__")());
+        if (l != 3)
+            throw RipleyException("Number of coordinates for each dirac point must match dimensions.");
         for (int k=0;k<l;++k) {
             points.push_back(extract<double>(temp[k]));
         }
@@ -251,17 +254,20 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
         y1=extract<double>(l1);
     } else
         throw RipleyException("Argument l1 must be a float or 2-tuple");
-        
     boost::python::list pypoints=extract<boost::python::list>(objpoints);
     boost::python::list pytags=extract<boost::python::list>(objtags);
     int numpts=extract<int>(pypoints.attr("__len__")());
     int numtags=extract<int>(pytags.attr("__len__")());
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
     std::vector<double> points;
     std::vector<int> tags;
     tags.resize(numtags, -1);
     for (int i=0;i<numpts;++i) {
-        boost::python::object temp=pypoints[i];
+        tuple temp = extract<tuple>(pypoints[i]);
         int l=extract<int>(temp.attr("__len__")());
+        if (l != 2)
+            throw RipleyException("Number of coordinates for each dirac point must match dimensions.");
         for (int k=0;k<l;++k) {
             points.push_back(extract<double>(temp[k]));
         }
