@@ -492,20 +492,9 @@ args("solver", "preconditioner", "package", "symmetry"),
         .def("getMPIRank",&ripley::RipleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
         .def("MPIBarrier",&ripley::RipleyDomain::MPIBarrier,"Wait until all processes have reached this point")
         .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
-
+    /* These two class exports are necessary to ensure that the extra methods added by ripley make it to python.
+     * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
-/*    
-    .def("randomFill", &ripley::Brick::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
-":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
-"guassian blur and s is the sigma parameter."
-    );
-*/    
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
-/*    
-    .def("randomFill", &ripley::Rectangle::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
-":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
-"guassian blur and s is the sigma parameter."
-    );
-*/    
 }
 
