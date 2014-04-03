@@ -206,7 +206,7 @@ SparseMatrix::~SparseMatrix()
             break;
 
         case PASO_UMFPACK:
-            Paso_UMFPACK_free(this);
+            UMFPACK_free(this);
             break;
     }
     delete[] val;

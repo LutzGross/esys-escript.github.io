@@ -32,7 +32,7 @@
 #include "PasoUtil.h"
 #include "UMFPACK.h"
 #include "MKL.h"
-#include<stdio.h>
+#include <cstdio>
 
 Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* options)
 {
@@ -309,7 +309,7 @@ void Paso_MergedSolver_solve(Paso_MergedSolver* ms, double* local_x, double* loc
                   Paso_MKL(ms->A, ms->x,ms->b, ms->reordering, ms->refinements, ms->verbose);
                   break;
                case (PASO_UMFPACK):
-                  Paso_UMFPACK(ms->A, ms->x,ms->b, ms->refinements, ms->verbose);
+                  paso::UMFPACK_solve(ms->A, ms->x,ms->b, ms->refinements, ms->verbose);
                   break;
                case (PASO_SMOOTHER):
                   Paso_Preconditioner_LocalSmoother_solve(ms->A, reinterpret_cast<Paso_Preconditioner_LocalSmoother*>(ms->A->solver_p),ms->x,ms->b,ms->sweeps, FALSE);
