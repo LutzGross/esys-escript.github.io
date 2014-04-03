@@ -85,7 +85,7 @@ void Paso_solve(Paso_SystemMatrix* A,
 	    options->converged=FALSE;
 	    options->time=Esys_timer();
 	    Performance_startMonitor(&pp,PERFORMANCE_ALL);
-	    Paso_UMFPACK(A->mainBlock, out, in, options->refinements, options->verbose);
+        paso::UMFPACK_solve(A->mainBlock, out, in, options->refinements, options->verbose);
 	    A->solver_package=PASO_UMFPACK;
 	    Performance_stopMonitor(&pp,PERFORMANCE_ALL);
 	    options->time=Esys_timer()-options->time;
@@ -134,7 +134,7 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
           break;
 
         case PASO_UMFPACK:
-          Paso_UMFPACK_free(in->mainBlock.get()); 
+          paso::UMFPACK_free(in->mainBlock.get()); 
           break;
 
    }

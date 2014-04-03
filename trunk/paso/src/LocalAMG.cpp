@@ -338,7 +338,7 @@ void Paso_Preconditioner_LocalAMG_solve(paso::SparseMatrix_ptr A, Paso_Precondit
                   Paso_MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_UMFPACK):
-                  Paso_UMFPACK(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
+                  paso::UMFPACK_solve(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_SMOOTHER):
                   Paso_Preconditioner_LocalSmoother_solve(amg->A_C, reinterpret_cast<Paso_Preconditioner_LocalSmoother*>(amg->A_C->solver_p),amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);

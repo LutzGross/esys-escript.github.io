@@ -55,7 +55,6 @@ sources = """
     Solver_Function.cpp
     SparseMatrix.cpp
     SparseMatrix_getSubmatrix.cpp
-    SparseMatrix_invMain.cpp
     SparseMatrix_nullifyRowsAndCols.cpp
     SparseMatrix_saveHB.cpp
     SparseMatrix_MatrixMatrix.cpp
