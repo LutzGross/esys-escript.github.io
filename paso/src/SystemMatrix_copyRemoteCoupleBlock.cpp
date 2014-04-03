@@ -45,11 +45,14 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, bool recreate
   index_t *recv_degree=NULL, *send_degree=NULL;
   dim_t rank=A->mpi_info->rank, mpi_size=A->mpi_info->size;
 
-  if (mpi_size == 1) return;
+  if (mpi_size == 1)
+      return;
 
-  if (recreatePattern) paso::SparseMatrix_free(A->remote_coupleBlock);
+  if (recreatePattern)
+      A->remote_coupleBlock.reset();
 
-  if (A->remote_coupleBlock) return;
+  if (A->remote_coupleBlock)
+      return;
 
   /* sending/receiving unknown's global ID */
   num_main_cols = A->mainBlock->numCols;
@@ -279,9 +282,8 @@ void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix* A, bool recreate
   /* allocate pattern and sparsematrix for remote_coupleBlock */
   paso::Pattern_ptr pattern(new paso::Pattern(A->row_coupleBlock->pattern->type,
                 overlapped_n, num_couple_cols, ptr_ptr, ptr_idx));
-  A->remote_coupleBlock = paso::SparseMatrix_alloc(A->row_coupleBlock->type,
-                pattern, A->row_block_size, A->col_block_size, 
-                FALSE);
+  A->remote_coupleBlock.reset(new paso::SparseMatrix(A->row_coupleBlock->type,
+                pattern, A->row_block_size, A->col_block_size, false));
 
   /* send/receive value array */
   j=0;

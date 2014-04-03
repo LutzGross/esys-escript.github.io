@@ -37,28 +37,24 @@
 
 /*  free any extra stuff possibly used by the UMFPACK library */
 
-void Paso_UMFPACK_free(paso::SparseMatrix* A) {
-     Paso_UMFPACK_Handler* pt =NULL;
-     if ( (A->solver_p!=NULL) && (A->solver_package == PASO_UMFPACK) ) {
-           pt=(Paso_UMFPACK_Handler*)(A->solver_p);
-	   #ifdef UMFPACK
-	   umfpack_di_free_symbolic(&(pt->symbolic));
-	   umfpack_di_free_numeric(&(pt->numeric));
-	   #endif
-	   delete pt;
-           A->solver_p=NULL;
-     }
+void Paso_UMFPACK_free(paso::SparseMatrix* A)
+{
+    if (A && A->solver_p) {
+        Paso_UMFPACK_Handler* pt = (Paso_UMFPACK_Handler*) A->solver_p;
+#ifdef UMFPACK
+        umfpack_di_free_symbolic(&pt->symbolic);
+        umfpack_di_free_numeric(&pt->numeric);
+#endif
+        delete pt;
+        A->solver_p = NULL;
+    }
 }
-
 
 
 /*  call the solver: */
 
-void Paso_UMFPACK(paso::SparseMatrix* A,
-                          double* out,
-                          double* in,
-		          dim_t numRefinements,
-		          bool verbose) 
+void Paso_UMFPACK(paso::SparseMatrix_ptr A, double* out, double* in,
+                  dim_t numRefinements, bool verbose) 
 {
 #ifdef UMFPACK
      double time0;
@@ -74,78 +70,78 @@ void Paso_UMFPACK(paso::SparseMatrix* A,
      umfpack_di_defaults(control);
      
      if (pt==NULL) {
-	int n = A->numRows;
-	pt=new Paso_UMFPACK_Handler;
-	time0=Esys_timer();
-	A->solver_p = (void*) pt;
+        int n = A->numRows;
+        pt=new Paso_UMFPACK_Handler;
+        time0=Esys_timer();
+        A->solver_p = (void*) pt;
         A->solver_package=PASO_UMFPACK;
-	/* call LDU symbolic factorization: */
-	error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
-	if (error == UMFPACK_ERROR_out_of_memory ) {
-	    if (verbose) printf("UMFPACK: symbolic factorization failed because of memory overflow.\n");
-	   Esys_setError(MEMORY_ERROR,"UMFPACK: symbolic factorization failed because of memory overflow.");
-	   return;
-	} else if (error == UMFPACK_WARNING_singular_matrix ) {
-	   if (verbose) printf("UMFPACK: symbolic factorization failed because of singular matrix.\n");
-	   Esys_setError(ZERO_DIVISION_ERROR,"UMFPACK: symbolic factorization failed because of singular matrix.");
-	   return;
-	} else if ( (error == UMFPACK_WARNING_determinant_underflow ) || ( error == UMFPACK_WARNING_determinant_overflow ) ) {
-	   if (verbose) printf("UMFPACK: symbolic factorization failed because of under/overflow.\n");
-	   Esys_setError(FLOATING_POINT_ERROR,"UMFPACK: symbolic factorization failed because of under/overflow.");
-	   return;	 
+        /* call LDU symbolic factorization: */
+        error=umfpack_di_symbolic(n,n,A->pattern->ptr,A->pattern->index,A->val,&(pt->symbolic),control,info);
+        if (error == UMFPACK_ERROR_out_of_memory ) {
+            if (verbose) printf("UMFPACK: symbolic factorization failed because of memory overflow.\n");
+           Esys_setError(MEMORY_ERROR,"UMFPACK: symbolic factorization failed because of memory overflow.");
+           return;
+        } else if (error == UMFPACK_WARNING_singular_matrix ) {
+           if (verbose) printf("UMFPACK: symbolic factorization failed because of singular matrix.\n");
+           Esys_setError(ZERO_DIVISION_ERROR,"UMFPACK: symbolic factorization failed because of singular matrix.");
+           return;
+        } else if ( (error == UMFPACK_WARNING_determinant_underflow ) || ( error == UMFPACK_WARNING_determinant_overflow ) ) {
+           if (verbose) printf("UMFPACK: symbolic factorization failed because of under/overflow.\n");
+           Esys_setError(FLOATING_POINT_ERROR,"UMFPACK: symbolic factorization failed because of under/overflow.");
+           return;       
        }  else if (error != UMFPACK_OK) {
-	   if (verbose) printf("UMFPACK: symbolic factorization failed. Error code = %d.\n",error);
-	   Esys_setError(SYSTEM_ERROR,"UMFPACK: symbolic factorization failed.");
-	   return;
-	} else {
-	   /* call LDU factorization: */
-	    error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,pt->symbolic,&(pt->numeric),control,info);
-	    if (error == UMFPACK_ERROR_out_of_memory ) {
-		if (verbose) printf("UMFPACK: LDU factorization failed because of memory overflow.\n");
-	      Esys_setError(MEMORY_ERROR,"UMFPACK: LDU factorization failed because of memory overflow.");
-	      return;
-	    } else if (error == UMFPACK_WARNING_singular_matrix ) {
-	      if (verbose) printf("UMFPACK: LDU factorization failed because of singular matrix.\n");
-	      Esys_setError(ZERO_DIVISION_ERROR,"UMFPACK: LDU factorization failed because of singular matrix.");
-	      return;
-	    } else if ( (error == UMFPACK_WARNING_determinant_underflow ) || ( error == UMFPACK_WARNING_determinant_overflow ) ) {
-	      if (verbose) printf("UMFPACK: symbolic factorization failed because of under/overflow.\n");
-	      Esys_setError(FLOATING_POINT_ERROR,"UMFPACK: symbolic factorization failed because of under/overflow.");
-	      return;	
-	    } else if (error != UMFPACK_OK) {
-	      if (verbose) printf("UMFPACK: LDU factorization failed. Error code = %d.\n",error);
-	      Esys_setError(SYSTEM_ERROR,"UMFPACK: factorization failed.");
-	      return;
-	    }
-	    if (verbose) printf("UMFPACK: LDU factorization completed (time = %e).\n",Esys_timer()-time0);
-	}
+           if (verbose) printf("UMFPACK: symbolic factorization failed. Error code = %d.\n",error);
+           Esys_setError(SYSTEM_ERROR,"UMFPACK: symbolic factorization failed.");
+           return;
+        } else {
+           /* call LDU factorization: */
+            error= umfpack_di_numeric(A->pattern->ptr,A->pattern->index,A->val,pt->symbolic,&(pt->numeric),control,info);
+            if (error == UMFPACK_ERROR_out_of_memory ) {
+                if (verbose) printf("UMFPACK: LDU factorization failed because of memory overflow.\n");
+              Esys_setError(MEMORY_ERROR,"UMFPACK: LDU factorization failed because of memory overflow.");
+              return;
+            } else if (error == UMFPACK_WARNING_singular_matrix ) {
+              if (verbose) printf("UMFPACK: LDU factorization failed because of singular matrix.\n");
+              Esys_setError(ZERO_DIVISION_ERROR,"UMFPACK: LDU factorization failed because of singular matrix.");
+              return;
+            } else if ( (error == UMFPACK_WARNING_determinant_underflow ) || ( error == UMFPACK_WARNING_determinant_overflow ) ) {
+              if (verbose) printf("UMFPACK: symbolic factorization failed because of under/overflow.\n");
+              Esys_setError(FLOATING_POINT_ERROR,"UMFPACK: symbolic factorization failed because of under/overflow.");
+              return;   
+            } else if (error != UMFPACK_OK) {
+              if (verbose) printf("UMFPACK: LDU factorization failed. Error code = %d.\n",error);
+              Esys_setError(SYSTEM_ERROR,"UMFPACK: factorization failed.");
+              return;
+            }
+            if (verbose) printf("UMFPACK: LDU factorization completed (time = %e).\n",Esys_timer()-time0);
+        }
      }
      if (Esys_noError())  {
-	/* call forward backward substitution: */
-	control[UMFPACK_IRSTEP]=numRefinements; /* number of refinement steps */
-	time0=Esys_timer();
-	error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
-	if (error == UMFPACK_ERROR_out_of_memory ) {
-		if (verbose) printf("UMFPACK: forward/backward substitution failed because of memory overflow.\n");
-	      Esys_setError(MEMORY_ERROR,"UMFPACK: forward/backward substitution failed because of memory overflow.");
-	      return;
-	} else if (error == UMFPACK_WARNING_singular_matrix ) {
-	      if (verbose) printf("UMFPACK: forward/backward substitution because of singular matrix.\n");
-	      Esys_setError(ZERO_DIVISION_ERROR,"UMFPACK: forward/backward substitution failed because of singular matrix.");
-	      return;
-	} else if ( (error == UMFPACK_WARNING_determinant_underflow ) || ( error == UMFPACK_WARNING_determinant_overflow ) ) {
-	      if (verbose) printf("UMFPACK: forward/backward substitution failed because of under/overflow.\n");
-	      Esys_setError(FLOATING_POINT_ERROR,"UMFPACK: forward/backward substitution failed because of under/overflow.");
-	      return;	
-	} else if (error != UMFPACK_OK) {
-	   if (verbose) printf("UMFPACK: forward/backward substitution failed. Error code = %d.\n", error);
-	   Esys_setError(SYSTEM_ERROR,"UMFPACK: forward/backward substitution failed.");
-	   return;
-	}
-	if (verbose) printf("UMFPACK: forward/backward substitution completed (time = %e).\n",Esys_timer()-time0);
+        /* call forward backward substitution: */
+        control[UMFPACK_IRSTEP]=numRefinements; /* number of refinement steps */
+        time0=Esys_timer();
+        error=umfpack_di_solve(UMFPACK_A,A->pattern->ptr,A->pattern->index,A->val,out,in,pt->numeric,control,info);
+        if (error == UMFPACK_ERROR_out_of_memory ) {
+                if (verbose) printf("UMFPACK: forward/backward substitution failed because of memory overflow.\n");
+              Esys_setError(MEMORY_ERROR,"UMFPACK: forward/backward substitution failed because of memory overflow.");
+              return;
+        } else if (error == UMFPACK_WARNING_singular_matrix ) {
+              if (verbose) printf("UMFPACK: forward/backward substitution because of singular matrix.\n");
+              Esys_setError(ZERO_DIVISION_ERROR,"UMFPACK: forward/backward substitution failed because of singular matrix.");
+              return;
+        } else if ( (error == UMFPACK_WARNING_determinant_underflow ) || ( error == UMFPACK_WARNING_determinant_overflow ) ) {
+              if (verbose) printf("UMFPACK: forward/backward substitution failed because of under/overflow.\n");
+              Esys_setError(FLOATING_POINT_ERROR,"UMFPACK: forward/backward substitution failed because of under/overflow.");
+              return;   
+        } else if (error != UMFPACK_OK) {
+           if (verbose) printf("UMFPACK: forward/backward substitution failed. Error code = %d.\n", error);
+           Esys_setError(SYSTEM_ERROR,"UMFPACK: forward/backward substitution failed.");
+           return;
+        }
+        if (verbose) printf("UMFPACK: forward/backward substitution completed (time = %e).\n",Esys_timer()-time0);
      }
      #else
-	 Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK: UMFPACK is not available.");
+         Esys_setError(SYSTEM_ERROR,"Paso_UMFPACK: UMFPACK is not available.");
      #endif
 }
 

@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix                                         */
 
@@ -27,20 +27,20 @@
 /*  are set to main_diagonal_value                            */
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
 
-void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value) {
- 
-  double* remote_values;
-  /*Esys_MPIInfo *mpi_info=A->mpi_info;*/
-  if (A ->col_block_size==1 && A ->row_block_size ==1) {
+void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row,
+                                   double main_diagonal_value)
+{
+    double* remote_values;
+    if (A->col_block_size==1 && A->row_block_size ==1) {
        if (A->type & MATRIX_FORMAT_CSC) {
            Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");
            return;
@@ -50,28 +50,26 @@ void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, doubl
        } else {
          if (Esys_noError()) {
             Paso_SystemMatrix_startRowCollect(A,mask_row);
-            paso::SparseMatrix_nullifyRows_CSR_BLK1(A->mainBlock,mask_row,main_diagonal_value);
-            paso::SparseMatrix_nullifyRows_CSR_BLK1(A->col_coupleBlock,mask_row,0.); 
+            A->mainBlock->nullifyRows_CSR_BLK1(mask_row, main_diagonal_value);
+            A->col_coupleBlock->nullifyRows_CSR_BLK1(mask_row, 0.); 
             remote_values=Paso_SystemMatrix_finishRowCollect(A);
-            paso::SparseMatrix_nullifyRows_CSR_BLK1(A->row_coupleBlock,remote_values,0.);
+            A->row_coupleBlock->nullifyRows_CSR_BLK1(remote_values, 0.);
          }
        }
   } else {
        if (A->type & MATRIX_FORMAT_CSC) {
            Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: CSC is not supported by MPI.");
-           return;
        } else if (A->type & MATRIX_FORMAT_TRILINOS_CRS) {
            Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_nullifyRows: TRILINOS is not supported with MPI.");
-           return;
        } else {
-         if (Esys_noError()) {
-            Paso_SystemMatrix_startRowCollect(A,mask_row);
-            paso::SparseMatrix_nullifyRows_CSR(A->mainBlock,mask_row,main_diagonal_value);
-            paso::SparseMatrix_nullifyRows_CSR(A->col_coupleBlock,mask_row,0.);
-            remote_values=Paso_SystemMatrix_finishRowCollect(A);
-            paso::SparseMatrix_nullifyRows_CSR(A->row_coupleBlock,remote_values,0.);
-         }
+            if (Esys_noError()) {
+                Paso_SystemMatrix_startRowCollect(A, mask_row);
+                A->mainBlock->nullifyRows_CSR(mask_row, main_diagonal_value);
+                A->col_coupleBlock->nullifyRows_CSR(mask_row, 0.);
+                remote_values=Paso_SystemMatrix_finishRowCollect(A);
+                A->row_coupleBlock->nullifyRows_CSR(remote_values, 0.);
+            }
        }
-  } 
+    }
 }
 

@@ -15,16 +15,16 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix: interface to intel UMFPACK sparse solver */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2006 */
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #ifndef INC_PASO_UMFPACK
 #define INC_PASO_UMFPACK
@@ -42,5 +42,7 @@ typedef struct {
 } Paso_UMFPACK_Handler;
 
 void Paso_UMFPACK_free(paso::SparseMatrix* A);
-void Paso_UMFPACK(paso::SparseMatrix* A, double* out, double* in, dim_t numRefinements, bool verbose);
+void Paso_UMFPACK(paso::SparseMatrix_ptr A, double* out, double* in,
+                  dim_t numRefinements, bool verbose);
 #endif
+

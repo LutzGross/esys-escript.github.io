@@ -41,7 +41,7 @@
 *****************************************************************************/
 
 /* Extend system matrix B with extra two sparse matrices: 
-	B_ext_main and B_ext_couple
+        B_ext_main and B_ext_couple
    The combination of this two sparse matrices represents  
    the portion of B that is stored on neighbour procs and 
    needed locally for triple matrix product (B^T) A B.
@@ -60,51 +60,48 @@
 void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
 {
     paso::Pattern_ptr pattern_main, pattern_couple;
-  paso::Coupler_ptr coupler;
-  paso::SharedComponents_ptr send, recv;
-  double *cols=NULL, *send_buf=NULL, *ptr_val=NULL, *send_m=NULL, *send_c=NULL;
-  index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
-  index_t *ptr_main=NULL, *ptr_couple=NULL, *idx_main=NULL, *idx_couple=NULL;
-  index_t *send_idx=NULL, *send_offset=NULL, *recv_buf=NULL, *recv_offset=NULL;
-  index_t *idx_m=NULL, *idx_c=NULL;
-  index_t i, j, k, m, p, q, j_ub, k_lb, k_ub, m_lb, m_ub, l_m, l_c, i0;
-  index_t offset, len, block_size, block_size_size, max_num_cols;
-  index_t num_main_cols, num_couple_cols, num_neighbors, row, neighbor;
-  dim_t *recv_degree=NULL, *send_degree=NULL;
-  dim_t rank=A->mpi_info->rank, size=A->mpi_info->size;
+    paso::Coupler_ptr coupler;
+    paso::SharedComponents_ptr send, recv;
+    double *cols=NULL, *send_buf=NULL, *ptr_val=NULL, *send_m=NULL, *send_c=NULL;
+    index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
+    index_t *ptr_main=NULL, *ptr_couple=NULL, *idx_main=NULL, *idx_couple=NULL;
+    index_t *send_idx=NULL, *send_offset=NULL, *recv_buf=NULL, *recv_offset=NULL;
+    index_t *idx_m=NULL, *idx_c=NULL;
+    index_t i, j, k, m, p, q, j_ub, k_lb, k_ub, m_lb, m_ub, l_m, l_c, i0;
+    index_t offset, len, block_size, block_size_size, max_num_cols;
+    index_t num_main_cols, num_couple_cols, num_neighbors, row, neighbor;
+    dim_t *recv_degree=NULL, *send_degree=NULL;
+    dim_t rank=A->mpi_info->rank, size=A->mpi_info->size;
 
-  if (size == 1) return;
+    if (size == 1) return;
 
-  if (B->row_coupleBlock) {
-      paso::SparseMatrix_free(B->row_coupleBlock);
-    B->row_coupleBlock = NULL;
-  }
+    B->row_coupleBlock.reset();
 
-  if (B->row_coupleBlock || B->remote_coupleBlock) {
-    Esys_setError(VALUE_ERROR, "Paso_Preconditioner_AMG_extendB: the link to row_coupleBlock or to remote_coupleBlock has already been set.");
-    return;
-  }
+    if (B->remote_coupleBlock.get()) {
+        Esys_setError(VALUE_ERROR, "Paso_Preconditioner_AMG_extendB: the link to remote_coupleBlock has already been set.");
+        return;
+    }
 
-  /* sending/receiving unknown's global ID */
-  num_main_cols = B->mainBlock->numCols;
-  cols = new double[num_main_cols];
-  offset = B->col_distribution->first_component[rank];
+    /* sending/receiving unknown's global ID */
+    num_main_cols = B->mainBlock->numCols;
+    cols = new double[num_main_cols];
+    offset = B->col_distribution->first_component[rank];
+    #pragma omp parallel for private(i) schedule(static)
+    for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
+    if (B->global_id == NULL) {
+        coupler.reset(new paso::Coupler(B->col_coupler->connector, 1));
+        coupler->startCollect(cols);
+    }
+
+    recv_buf = new index_t[size];
+    recv_degree = new dim_t[size];
+    recv_offset = new index_t[size+1];
   #pragma omp parallel for private(i) schedule(static)
-  for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
-  if (B->global_id == NULL) {
-    coupler.reset(new paso::Coupler(B->col_coupler->connector, 1));
-    coupler->startCollect(cols);
-  }
-
-  recv_buf = new index_t[size];
-  recv_degree = new dim_t[size];
-  recv_offset = new index_t[size+1];
-  #pragma omp parallel for private(i) schedule(static)
-  for (i=0; i<size; i++){
-    recv_buf[i] = 0;
-    recv_degree[i] = 1;
-    recv_offset[i] = i;
-  }
+    for (i=0; i<size; i++){
+        recv_buf[i] = 0;
+        recv_degree[i] = 1;
+        recv_offset[i] = i;
+    }
 
   block_size = B->block_size;
   block_size_size = block_size * sizeof(double);
@@ -148,7 +145,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
     recv_offset[i] = len;
     len += recv_buf[i];
     if (max_num_cols < recv_buf[i]) 
-	max_num_cols = recv_buf[i];
+        max_num_cols = recv_buf[i];
   }
   recv_offset[size] = len;
   cols_array = new index_t[len];
@@ -181,69 +178,69 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
     m_ub = B->col_distribution->first_component[neighbor + 1];
     j_ub = send->offsetInShared[p + 1];
     for (j=send->offsetInShared[p]; j<j_ub; j++) {
-	row = send->shared[j];
-	l_m = 0;
-	l_c = 0;
-	k_ub = B->col_coupleBlock->pattern->ptr[row + 1];
-	k_lb = B->col_coupleBlock->pattern->ptr[row];
+        row = send->shared[j];
+        l_m = 0;
+        l_c = 0;
+        k_ub = B->col_coupleBlock->pattern->ptr[row + 1];
+        k_lb = B->col_coupleBlock->pattern->ptr[row];
 
-	/* check part of col_coupleBlock for data to be passed @row */ 
-	for (k=k_lb; k<k_ub; k++) {
-	  m = global_id[B->col_coupleBlock->pattern->index[k]];
-	  if (m > offset) break;
-	  if (m>= m_lb && m < m_ub) {
-	    /* data to be passed to sparse matrix B_ext_main */
-	    idx_m[l_m] = m - m_lb;
-	    memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
-	    l_m++;
-	  } else { 
-	    /* data to be passed to sparse matrix B_ext_couple */
-	    idx_c[l_c] = m;
-	    memcpy(&(send_c[l_c*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
-	    l_c++;
-	  } 
-	}
-	k_lb = k;
-
-	/* check mainBlock for data to be passed @row to sparse 
-	   matrix B_ext_couple */
-	k_ub = B->mainBlock->pattern->ptr[row + 1];
-	k = B->mainBlock->pattern->ptr[row];
-	memcpy(&(send_c[l_c*block_size]), &(B->mainBlock->val[block_size*k]), block_size_size * (k_ub-k));
-	for (; k<k_ub; k++) {
-	  m = B->mainBlock->pattern->index[k] + offset;
-	  idx_c[l_c] = m;
-	  l_c++;
-	}
-
-	/* check the rest part of col_coupleBlock for data to 
-	   be passed @row to sparse matrix B_ext_couple */
-	k = k_lb;
-	k_ub = B->col_coupleBlock->pattern->ptr[row + 1];
-	for (k=k_lb; k<k_ub; k++) {
+        /* check part of col_coupleBlock for data to be passed @row */ 
+        for (k=k_lb; k<k_ub; k++) {
           m = global_id[B->col_coupleBlock->pattern->index[k]];
-	  if (m>= m_lb && m < m_ub) {
-	    /* data to be passed to sparse matrix B_ext_main */
-	    idx_m[l_m] = m - m_lb;
-	    memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
-	    l_m++;
-	  } else {
-	    /* data to be passed to sparse matrix B_ext_couple */
-	    idx_c[l_c] = m;
-	    memcpy(&(send_c[l_c*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
-	    l_c++;
-	  }
-	}
+          if (m > offset) break;
+          if (m>= m_lb && m < m_ub) {
+            /* data to be passed to sparse matrix B_ext_main */
+            idx_m[l_m] = m - m_lb;
+            memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
+            l_m++;
+          } else { 
+            /* data to be passed to sparse matrix B_ext_couple */
+            idx_c[l_c] = m;
+            memcpy(&(send_c[l_c*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
+            l_c++;
+          } 
+        }
+        k_lb = k;
 
-	memcpy(&(send_buf[len*block_size]), send_m, block_size_size*l_m);
-	memcpy(&(send_idx[len]), idx_m, l_m * sizeof(index_t));
+        /* check mainBlock for data to be passed @row to sparse 
+           matrix B_ext_couple */
+        k_ub = B->mainBlock->pattern->ptr[row + 1];
+        k = B->mainBlock->pattern->ptr[row];
+        memcpy(&(send_c[l_c*block_size]), &(B->mainBlock->val[block_size*k]), block_size_size * (k_ub-k));
+        for (; k<k_ub; k++) {
+          m = B->mainBlock->pattern->index[k] + offset;
+          idx_c[l_c] = m;
+          l_c++;
+        }
+
+        /* check the rest part of col_coupleBlock for data to 
+           be passed @row to sparse matrix B_ext_couple */
+        k = k_lb;
+        k_ub = B->col_coupleBlock->pattern->ptr[row + 1];
+        for (k=k_lb; k<k_ub; k++) {
+          m = global_id[B->col_coupleBlock->pattern->index[k]];
+          if (m>= m_lb && m < m_ub) {
+            /* data to be passed to sparse matrix B_ext_main */
+            idx_m[l_m] = m - m_lb;
+            memcpy(&(send_m[l_m*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
+            l_m++;
+          } else {
+            /* data to be passed to sparse matrix B_ext_couple */
+            idx_c[l_c] = m;
+            memcpy(&(send_c[l_c*block_size]), &(B->col_coupleBlock->val[block_size*k]), block_size_size);
+            l_c++;
+          }
+        }
+
+        memcpy(&(send_buf[len*block_size]), send_m, block_size_size*l_m);
+        memcpy(&(send_idx[len]), idx_m, l_m * sizeof(index_t));
         send_offset[2*i] = l_m;
-	len += l_m;
-	memcpy(&(send_buf[len*block_size]), send_c, block_size_size*l_c);
-	memcpy(&(send_idx[len]), idx_c, l_c * sizeof(index_t));
-	send_offset[2*i+1] = l_c;
-	len += l_c;
-	i++;
+        len += l_m;
+        memcpy(&(send_buf[len*block_size]), send_c, block_size_size*l_c);
+        memcpy(&(send_idx[len]), idx_c, l_c * sizeof(index_t));
+        send_offset[2*i+1] = l_c;
+        len += l_c;
+        i++;
     }
 
     /* sending */
@@ -299,13 +296,13 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
     m = recv->offsetInShared[p+1];
     i = ptr_main[m] - ptr_main[k] + ptr_couple[m] - ptr_couple[k];
     if (i > 0) {
-	k_ub ++;
-	#ifdef ESYS_MPI
+        k_ub ++;
+        #ifdef ESYS_MPI
         MPI_Irecv(&(ptr_idx[j]), i, MPI_INT, recv->neighbor[p],
                 A->mpi_info->msg_tag_counter+recv->neighbor[p],
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p]));
-	#endif
+        #endif
     }
     j += i;
   }
@@ -315,13 +312,13 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   for (p=0; p<num_neighbors; p++) {
     i = send_degree[p] - j;
     if (i > 0){
-	k_ub ++;
-	#ifdef ESYS_MPI
+        k_ub ++;
+        #ifdef ESYS_MPI
         MPI_Issend(&(send_idx[j]), i, MPI_INT, send->neighbor[p],
                 A->mpi_info->msg_tag_counter+rank,
                 A->mpi_info->comm,
                 &(A->col_coupler->mpi_requests[p+recv->numNeighbors]));
-	#endif
+        #endif
     }
     j = send_degree[p];
   }
@@ -339,11 +336,11 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
     k = ptr_main[i+1];
     m = ptr_couple[i];
     for (p=j; p<k; p++) {
-	idx_main[p] = ptr_idx[m+p];
+        idx_main[p] = ptr_idx[m+p];
     }
     j = ptr_couple[i+1];
     for (p=m; p<j; p++) {
-	idx_couple[p] = ptr_idx[k+p];
+        idx_couple[p] = ptr_idx[k+p];
     }
   }
   delete[] ptr_idx;
@@ -351,17 +348,17 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
   /* allocate pattern and sparsematrix for B_ext_main */
   pattern_main.reset(new paso::Pattern(B->col_coupleBlock->pattern->type,
                 len, num_main_cols, ptr_main, idx_main));
-  B->row_coupleBlock = paso::SparseMatrix_alloc(B->col_coupleBlock->type,
-		pattern_main, B->row_block_size, B->col_block_size,
-		FALSE);
+  B->row_coupleBlock.reset(new paso::SparseMatrix(B->col_coupleBlock->type,
+                pattern_main, B->row_block_size, B->col_block_size,
+                false));
 
   /* allocate pattern and sparsematrix for B_ext_couple */
   pattern_couple.reset(new paso::Pattern(B->col_coupleBlock->pattern->type,
                 len, B->col_distribution->first_component[size], 
                 ptr_couple, idx_couple));
-  B->remote_coupleBlock = paso::SparseMatrix_alloc(B->col_coupleBlock->type,
+  B->remote_coupleBlock.reset(new paso::SparseMatrix(B->col_coupleBlock->type,
                 pattern_couple, B->row_block_size, B->col_block_size,
-                FALSE);
+                false));
 
   /* send/receive value array */
   j=0;
@@ -406,63 +403,63 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
     k = ptr_main[i+1];
     m = ptr_couple[i];
     for (p=j; p<k; p++) {
-	memcpy(&(B->row_coupleBlock->val[p*block_size]), &(ptr_val[(m+p)*block_size]), block_size_size);
+        memcpy(&(B->row_coupleBlock->val[p*block_size]), &(ptr_val[(m+p)*block_size]), block_size_size);
     }
     j = ptr_couple[i+1];
     for (p=m; p<j; p++) {
-	memcpy(&(B->remote_coupleBlock->val[p*block_size]), &(ptr_val[(k+p)*block_size]), block_size_size);
+        memcpy(&(B->remote_coupleBlock->val[p*block_size]), &(ptr_val[(k+p)*block_size]), block_size_size);
     }
   }
   delete[] ptr_val;
 
 
-  /* release all temp memory allocation */
-  delete[] cols;
-  delete[] cols_array;
-  delete[] recv_offset;
-  delete[] recv_degree;
-  delete[] recv_buf;
-  delete[] send_buf;
-  delete[] send_offset;
-  delete[] send_degree;
-  delete[] send_idx;
+    /* release all temp memory allocation */
+    delete[] cols;
+    delete[] cols_array;
+    delete[] recv_offset;
+    delete[] recv_degree;
+    delete[] recv_buf;
+    delete[] send_buf;
+    delete[] send_offset;
+    delete[] send_degree;
+    delete[] send_idx;
 }
 
 /* As defined, sparse matrix (let's called it T) defined by T(ptr, idx, val) 
    has the same number of rows as P->col_coupleBlock->numCols. Now, we need 
    to copy block of data in T to neighbour processors, defined by 
-	P->col_coupler->connector->recv->neighbor[k] where k is in 
-	[0, P->col_coupler->connector->recv->numNeighbors).
+        P->col_coupler->connector->recv->neighbor[k] where k is in 
+        [0, P->col_coupler->connector->recv->numNeighbors).
    Rows to be copied to neighbor processor k is in the list defined by
-	P->col_coupler->connector->recv->offsetInShared[k] ...
-	P->col_coupler->connector->recv->offsetInShared[k+1]  */
+        P->col_coupler->connector->recv->offsetInShared[k] ...
+        P->col_coupler->connector->recv->offsetInShared[k+1]  */
 void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P, 
-	index_t **p_ptr, index_t **p_idx, double **p_val, 
-	index_t *global_id, index_t block_size) 
+        index_t **p_ptr, index_t **p_idx, double **p_val, 
+        index_t *global_id, index_t block_size) 
 {
     paso::SharedComponents_ptr send, recv;
-  index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
-  index_t i, j, p, m, n, size;
-  index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
-  index_t *ptr=*p_ptr, *idx=*p_idx;
-  double  *val=*p_val, *recv_val=NULL;
+    index_t send_neighbors, recv_neighbors, send_rows, recv_rows;
+    index_t i, j, p, m, n, size;
+    index_t *send_degree=NULL, *recv_ptr=NULL, *recv_idx=NULL;
+    index_t *ptr=*p_ptr, *idx=*p_idx;
+    double  *val=*p_val, *recv_val=NULL;
   #ifdef ESYS_MPI
-  index_t rank = P->mpi_info->rank;
+    index_t rank = P->mpi_info->rank;
   #endif
 
-  size = P->mpi_info->size;
-  send = P->col_coupler->connector->recv;
-  recv = P->col_coupler->connector->send;
-  send_neighbors = send->numNeighbors;
-  recv_neighbors = recv->numNeighbors;
-  send_rows = P->col_coupleBlock->numCols;
-  recv_rows = recv->offsetInShared[recv_neighbors];
+    size = P->mpi_info->size;
+    send = P->col_coupler->connector->recv;
+    recv = P->col_coupler->connector->send;
+    send_neighbors = send->numNeighbors;
+    recv_neighbors = recv->numNeighbors;
+    send_rows = P->col_coupleBlock->numCols;
+    recv_rows = recv->offsetInShared[recv_neighbors];
 
-  send_degree = new index_t[send_rows];
-  recv_ptr = new index_t[recv_rows + 1];
+    send_degree = new index_t[send_rows];
+    recv_ptr = new index_t[recv_rows + 1];
   #pragma omp for schedule(static) private(i)
-  for (i=0; i<send_rows; i++) 
-    send_degree[i] = ptr[i+1] - ptr[i];
+    for (i=0; i<send_rows; i++) 
+        send_degree[i] = ptr[i+1] - ptr[i];
 
   /* First, send/receive the degree */
   for (p=0; p<recv_neighbors; p++) { /* Receiving */
@@ -470,9 +467,9 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
     n = recv->offsetInShared[p+1];
     #ifdef ESYS_MPI
     MPI_Irecv(&(recv_ptr[m]), n-m, MPI_INT, recv->neighbor[p],
-		P->mpi_info->msg_tag_counter + recv->neighbor[p],
-		P->mpi_info->comm,
-		&(P->col_coupler->mpi_requests[p]));
+                P->mpi_info->msg_tag_counter + recv->neighbor[p],
+                P->mpi_info->comm,
+                &(P->col_coupler->mpi_requests[p]));
     #endif
   }
   for (p=0; p<send_neighbors; p++) { /* Sending */
@@ -480,15 +477,15 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
     n = send->offsetInShared[p+1];
     #ifdef ESYS_MPI
     MPI_Issend(&(send_degree[m]), n-m, MPI_INT, send->neighbor[p],
-		P->mpi_info->msg_tag_counter + rank,
-		P->mpi_info->comm,
-		&(P->col_coupler->mpi_requests[p+recv_neighbors]));
+                P->mpi_info->msg_tag_counter + rank,
+                P->mpi_info->comm,
+                &(P->col_coupler->mpi_requests[p+recv_neighbors]));
     #endif
   }
   #ifdef ESYS_MPI
   MPI_Waitall(send_neighbors+recv_neighbors, 
-		P->col_coupler->mpi_requests,
-		P->col_coupler->mpi_stati);
+                P->col_coupler->mpi_requests,
+                P->col_coupler->mpi_stati);
   #endif
   ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
@@ -507,9 +504,9 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
     if (i > 0) {
       #ifdef ESYS_MPI
       MPI_Irecv(&(recv_idx[j]), i, MPI_INT, recv->neighbor[p],
-		P->mpi_info->msg_tag_counter + recv->neighbor[p],
-		P->mpi_info->comm,
-		&(P->col_coupler->mpi_requests[p]));
+                P->mpi_info->msg_tag_counter + recv->neighbor[p],
+                P->mpi_info->comm,
+                &(P->col_coupler->mpi_requests[p]));
       #endif
     } 
     j += i;
@@ -521,19 +518,19 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
     n = send->offsetInShared[p+1];
     i = ptr[n] - ptr[m];
     if (i >0) {
-	#ifdef ESYS_MPI
-	MPI_Issend(&(idx[j]), i, MPI_INT, send->neighbor[p],
-		P->mpi_info->msg_tag_counter + rank,
-		P->mpi_info->comm,
-		&(P->col_coupler->mpi_requests[p+recv_neighbors]));
-	#endif
-	j += i;
+        #ifdef ESYS_MPI
+        MPI_Issend(&(idx[j]), i, MPI_INT, send->neighbor[p],
+                P->mpi_info->msg_tag_counter + rank,
+                P->mpi_info->comm,
+                &(P->col_coupler->mpi_requests[p+recv_neighbors]));
+        #endif
+        j += i;
     } 
   }
   #ifdef ESYS_MPI
   MPI_Waitall(send_neighbors+recv_neighbors, 
-		P->col_coupler->mpi_requests,
-		P->col_coupler->mpi_stati);
+                P->col_coupler->mpi_requests,
+                P->col_coupler->mpi_stati);
   #endif
   ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
@@ -546,9 +543,9 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
     #ifdef ESYS_MPI
     if (i > 0) 
       MPI_Irecv(&(recv_val[j]), i*block_size, MPI_DOUBLE, recv->neighbor[p],
-		P->mpi_info->msg_tag_counter + recv->neighbor[p],
-		P->mpi_info->comm,
-		&(P->col_coupler->mpi_requests[p]));
+                P->mpi_info->msg_tag_counter + recv->neighbor[p],
+                P->mpi_info->comm,
+                &(P->col_coupler->mpi_requests[p]));
     #endif
     j += (i*block_size);
   }
@@ -559,19 +556,19 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
     n = send->offsetInShared[p+1];
     i = ptr[n] - ptr[m];
     if (i >0) {
-	#ifdef ESYS_MPI
-	MPI_Issend(&(val[j]), i * block_size, MPI_DOUBLE, send->neighbor[p],
-		P->mpi_info->msg_tag_counter + rank,
-		P->mpi_info->comm,
-		&(P->col_coupler->mpi_requests[p+recv_neighbors]));
-	#endif
-	j += i * block_size;
+        #ifdef ESYS_MPI
+        MPI_Issend(&(val[j]), i * block_size, MPI_DOUBLE, send->neighbor[p],
+                P->mpi_info->msg_tag_counter + rank,
+                P->mpi_info->comm,
+                &(P->col_coupler->mpi_requests[p+recv_neighbors]));
+        #endif
+        j += i * block_size;
     }
   }
   #ifdef ESYS_MPI
   MPI_Waitall(send_neighbors+recv_neighbors, 
-		P->col_coupler->mpi_requests,
-		P->col_coupler->mpi_stati);
+                P->col_coupler->mpi_requests,
+                P->col_coupler->mpi_stati);
   #endif
   ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
@@ -585,10 +582,9 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
 }
 
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
-	Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
+        Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-   paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
@@ -629,16 +625,17 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
-   R_main = paso::SparseMatrix_getTranspose(P->mainBlock);
+   paso::SparseMatrix_ptr R_main(P->mainBlock->getTranspose());
+   paso::SparseMatrix_ptr R_couple;
    if (size > 1) 
-     R_couple = paso::SparseMatrix_getTranspose(P->col_coupleBlock);
+     R_couple = P->col_coupleBlock->getTranspose();
 
    /* generate P_ext, i.e. portion of P that is stored on neighbor procs
       and needed locally for triple matrix product RAP 
       to be specific, P_ext (on processor k) are group of rows in P, where 
       the list of rows from processor q is given by 
-	A->col_coupler->connector->send->shared[rPtr...] 
-	rPtr=A->col_coupler->connector->send->OffsetInShared[k]
+        A->col_coupler->connector->send->shared[rPtr...] 
+        rPtr=A->col_coupler->connector->send->OffsetInShared[k]
       on q. 
       P_ext is represented by two sparse matrices P_ext_main and 
       P_ext_couple */
@@ -663,57 +660,57 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    num_Pext_cols = 0;
    if (P->global_id) {
      /* first count the number of cols "num_Pext_cols" in both P_ext_couple 
-	and P->col_coupleBlock */
+        and P->col_coupleBlock */
      iptr = 0;
      if (num_Pcouple_cols || sum > 0) {
-	temp = new index_t[num_Pcouple_cols+sum];
-	#pragma omp parallel for lastprivate(iptr) schedule(static)
-	for (iptr=0; iptr<sum; iptr++){ 
-	  temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
-	}
-	for (j=0; j<num_Pcouple_cols; j++, iptr++){
-	  temp[iptr] = P->global_id[j];
-	}
+        temp = new index_t[num_Pcouple_cols+sum];
+        #pragma omp parallel for lastprivate(iptr) schedule(static)
+        for (iptr=0; iptr<sum; iptr++){ 
+          temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
+        }
+        for (j=0; j<num_Pcouple_cols; j++, iptr++){
+          temp[iptr] = P->global_id[j];
+        }
      }
      if (iptr) {
-	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	num_Pext_cols = 1;
-	i = temp[0];
-	for (j=1; j<iptr; j++) {
-	  if (temp[j] > i) {
-	    i = temp[j];
-	    temp[num_Pext_cols++] = i;
-	  }
-	}
+          qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
+        num_Pext_cols = 1;
+        i = temp[0];
+        for (j=1; j<iptr; j++) {
+          if (temp[j] > i) {
+            i = temp[j];
+            temp[num_Pext_cols++] = i;
+          }
+        }
      }
      /* resize the pattern of P_ext_couple */
      if(num_Pext_cols){
-	global_id_P = new index_t[num_Pext_cols];
-	#pragma omp parallel for private(i) schedule(static)
-	for (i=0; i<num_Pext_cols; i++)
-	  global_id_P[i] = temp[i];
+        global_id_P = new index_t[num_Pext_cols];
+        #pragma omp parallel for private(i) schedule(static)
+        for (i=0; i<num_Pext_cols; i++)
+          global_id_P[i] = temp[i];
      }
      if (num_Pcouple_cols || sum > 0) 
-	delete[] temp;
+        delete[] temp;
      #pragma omp parallel for private(i, where_p) schedule(static)
      for (i=0; i<sum; i++) {
-	where_p = (index_t *)bsearch(
-			&(P->remote_coupleBlock->pattern->index[i]),
-			global_id_P, num_Pext_cols, 
+        where_p = (index_t *)bsearch(
+                        &(P->remote_coupleBlock->pattern->index[i]),
+                        global_id_P, num_Pext_cols, 
                         sizeof(index_t), paso::comparIndex);
-	P->remote_coupleBlock->pattern->index[i] = 
-			(index_t)(where_p -global_id_P);
+        P->remote_coupleBlock->pattern->index[i] = 
+                        (index_t)(where_p -global_id_P);
      }  
 
      /* build the mapping */
      if (num_Pcouple_cols) {
-	Pcouple_to_Pext = new index_t[num_Pcouple_cols];
-	iptr = 0;
-	for (i=0; i<num_Pext_cols; i++)
-	  if (global_id_P[i] == P->global_id[iptr]) {
-	    Pcouple_to_Pext[iptr++] = i;
-	    if (iptr == num_Pcouple_cols) break;
-	  }
+        Pcouple_to_Pext = new index_t[num_Pcouple_cols];
+        iptr = 0;
+        for (i=0; i<num_Pext_cols; i++)
+          if (global_id_P[i] == P->global_id[iptr]) {
+            Pcouple_to_Pext[iptr++] = i;
+            if (iptr == num_Pcouple_cols) break;
+          }
      }
    }
 
@@ -733,73 +730,73 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_couple->pattern->index[j1];
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
+        i1 = R_couple->pattern->index[j1];
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
-	  }
-	}
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		/* note that we need to map the column index in 
-		   P->col_coupleBlock back into the column index in 
-		   P_ext_couple */
-		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
-	  }
-	}
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                /* note that we need to map the column index in 
+                   P->col_coupleBlock back into the column index in 
+                   P_ext_couple */
+                i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
+          }
+        }
      }
    }
 
@@ -824,233 +821,214 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_couple->pattern->index[j1];
-	R_val = &(R_couple->val[j1*P_block_size]);
+        i1 = R_couple->pattern->index[j1];
+        R_val = &(R_couple->val[j1*P_block_size]);
 
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
-	  temp_val = &(A->col_coupleBlock->val[j2*block_size]);
-	  for (irb=0; irb<row_block_size; irb++) 
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
+          temp_val = &(A->col_coupleBlock->val[j2*block_size]);
+          for (irb=0; irb<row_block_size; irb++) 
             for (icb=0; icb<col_block_size; icb++) 
                 RA_val[irb+row_block_size*icb] = ZERO;
-	  for (irb=0; irb<P_block_size; irb++) {
-	    rtmp=R_val[irb];
-	    for (icb=0; icb<col_block_size; icb++) {
-		RA_val[irb+row_block_size*icb] += rtmp * temp_val[irb+col_block_size*icb];
-	    }
-	  }
-
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
-
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
-		temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb] = ZERO;
-		for (icb=0; icb<P_block_size; icb++) {
-		  rtmp = temp_val[icb];
-		  for (irb=0; irb<row_block_size; irb++) {
-		    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
-		  }
-		}
-
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_ext_idx[sum] = i_c + offset; 
-		  sum++;
-		} else {
-		  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
-		  for (ib=0; ib<block_size; ib++) {
-		    temp_val[ib] += RAP_val[ib];
-		  }
-		}
-	    }
-
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-                temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
-                for (icb=0; icb<P_block_size; icb++) {
-		  rtmp = temp_val[icb];
-                  for (irb=0; irb<row_block_size; irb++) {
-                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
-                  }
-                }
-
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-		  sum++;
-		} else {
-                  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
-                  for (ib=0; ib<block_size; ib++) {
-                    temp_val[ib] += RAP_val[ib];
-                  }
-		}
-	    }
-
-	  /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
-	     Only the contributions are added. */
-	  } else {
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
-                temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
-                for (icb=0; icb<P_block_size; icb++) {
-		  rtmp = temp_val[icb];
-                  for (irb=0; irb<row_block_size; irb++) {
-                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
-                  }
-                }
-
-                temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
-                for (ib=0; ib<block_size; ib++) {
-                  temp_val[ib] += RAP_val[ib];
-                }
-	    }
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-                temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
-                for (icb=0; icb<P_block_size; icb++) {
-		  rtmp = temp_val[icb];
-                  for (irb=0; irb<row_block_size; irb++) {
-                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
-                  }
-                }
-
-                temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
-                for (ib=0; ib<block_size; ib++) {
-                  temp_val[ib] += RAP_val[ib];
-                }
-	    }
-	  }
-	}
-
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
-          temp_val = &(A->mainBlock->val[j2*block_size]);
-	  for (irb=0; irb<row_block_size; irb++)
-	    for (icb=0; icb<col_block_size; icb++)
-		RA_val[irb+row_block_size*icb]=ZERO;
           for (irb=0; irb<P_block_size; irb++) {
-	    rtmp=R_val[irb];
+            rtmp=R_val[irb];
             for (icb=0; icb<col_block_size; icb++) {
                 RA_val[irb+row_block_size*icb] += rtmp * temp_val[irb+col_block_size*icb];
             }
           }
 
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
-                temp_val = &(P->mainBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
+
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
+                temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb] = ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp = temp_val[icb];
+                  rtmp = temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
 
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_ext_idx[sum] = i_c + offset;
-		  sum++;
-		} else {
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_ext_idx[sum] = i_c + offset; 
+                  sum++;
+                } else {
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-                temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++) 
-                  for (icb=0; icb<col_block_size; icb++) 
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                }
+            }
+
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
+                temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp = temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
 
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
                   RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-		  sum++;
-		} else {
+                  sum++;
+                } else {
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
-	  } else {
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+                }
+            }
+
+          /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
+             Only the contributions are added. */
+          } else {
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
+                temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (icb=0; icb<P_block_size; icb++) {
+                  rtmp = temp_val[icb];
+                  for (irb=0; irb<row_block_size; irb++) {
+                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
+                  }
+                }
+
+                temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
+                for (ib=0; ib<block_size; ib++) {
+                  temp_val[ib] += RAP_val[ib];
+                }
+            }
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
+                temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (icb=0; icb<P_block_size; icb++) {
+                  rtmp = temp_val[icb];
+                  for (irb=0; irb<row_block_size; irb++) {
+                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
+                  }
+                }
+
+                temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
+                for (ib=0; ib<block_size; ib++) {
+                  temp_val[ib] += RAP_val[ib];
+                }
+            }
+          }
+        }
+
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
+          temp_val = &(A->mainBlock->val[j2*block_size]);
+          for (irb=0; irb<row_block_size; irb++)
+            for (icb=0; icb<col_block_size; icb++)
+                RA_val[irb+row_block_size*icb]=ZERO;
+          for (irb=0; irb<P_block_size; irb++) {
+            rtmp=R_val[irb];
+            for (icb=0; icb<col_block_size; icb++) {
+                RA_val[irb+row_block_size*icb] += rtmp * temp_val[irb+col_block_size*icb];
+            }
+          }
+
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp = temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
 
-                temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
-                for (ib=0; ib<block_size; ib++) {
-                  temp_val[ib] += RAP_val[ib];
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_ext_idx[sum] = i_c + offset;
+                  sum++;
+                } else {
+                  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
+                  for (ib=0; ib<block_size; ib++) {
+                    temp_val[ib] += RAP_val[ib];
+                  }
                 }
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++) 
+                  for (icb=0; icb<col_block_size; icb++) 
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		    rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
+                  for (irb=0; irb<row_block_size; irb++) {
+                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
+                  }
+                }
+
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
+                  sum++;
+                } else {
+                  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
+                  for (ib=0; ib<block_size; ib++) {
+                    temp_val[ib] += RAP_val[ib];
+                  }
+                }
+            }
+          } else {
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
+                temp_val = &(P->mainBlock->val[j3*P_block_size]);
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (icb=0; icb<P_block_size; icb++) {
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
@@ -1060,9 +1038,28 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (icb=0; icb<P_block_size; icb++) {
+                    rtmp=temp_val[icb];
+                  for (irb=0; irb<row_block_size; irb++) {
+                    RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
+                  }
+                }
+
+                temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
+                for (ib=0; ib<block_size; ib++) {
+                  temp_val[ib] += RAP_val[ib];
+                }
+            }
+          }
+        }
      }
      RAP_ext_ptr[i_r+1] = sum;
    }
@@ -1076,7 +1073,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
       be passed to neighbouring processors, and added to corresponding
       RAP[r,c] entries in the neighbouring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
-		&RAP_ext_val, global_id_P, block_size);
+                &RAP_ext_val, global_id_P, block_size);
 
    num_RAPext_rows = P->col_coupler->connector->send->offsetInShared[P->col_coupler->connector->send->numNeighbors];
    sum = RAP_ext_ptr[num_RAPext_rows];
@@ -1085,23 +1082,23 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      temp = new index_t[num_Pext_cols+sum];
      j1_ub = offset + num_Pmain_cols;
      for (i=0, iptr=0; i<sum; i++) {
-	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ 
-	  temp[iptr++] = RAP_ext_idx[i];		  /* XXX */
+        if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ 
+          temp[iptr++] = RAP_ext_idx[i];                  /* XXX */
      }
      for (j=0; j<num_Pext_cols; j++, iptr++){
-	temp[iptr] = global_id_P[j];
+        temp[iptr] = global_id_P[j];
      }
 
      if (iptr) {
-	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	num_RAPext_cols = 1;
-	i = temp[0];
-	for (j=1; j<iptr; j++) {
-	  if (temp[j] > i) {
-	    i = temp[j];
-	    temp[num_RAPext_cols++] = i;
-	  }
-	}
+          qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
+        num_RAPext_cols = 1;
+        i = temp[0];
+        for (j=1; j<iptr; j++) {
+          if (temp[j] > i) {
+            i = temp[j];
+            temp[num_RAPext_cols++] = i;
+          }
+        }
      }
    }
 
@@ -1110,7 +1107,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      global_id_RAP = new index_t[num_RAPext_cols];
      #pragma omp parallel for private(i) schedule(static)
      for (i=0; i<num_RAPext_cols; i++)
-	global_id_RAP[i] = temp[i];
+        global_id_RAP[i] = temp[i];
    }
    if (num_Pext_cols || sum > 0)
      delete[] temp;
@@ -1118,11 +1115,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    #pragma omp parallel for private(i, where_p) schedule(static)
    for (i=0; i<sum; i++) {
      if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub){
-	where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
-/*XXX*/			num_RAPext_cols, sizeof(index_t), paso::comparIndex);
-	RAP_ext_idx[i] = num_Pmain_cols + (index_t)(where_p - global_id_RAP);
+        where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
+/*XXX*/                 num_RAPext_cols, sizeof(index_t), paso::comparIndex);
+        RAP_ext_idx[i] = num_Pmain_cols + (index_t)(where_p - global_id_RAP);
      } else 
-	RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
+        RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
    }
 
    /* build the mapping */
@@ -1130,20 +1127,20 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      Pcouple_to_RAP = new index_t[num_Pcouple_cols];
      iptr = 0;
      for (i=0; i<num_RAPext_cols; i++) 
-	if (global_id_RAP[i] == P->global_id[iptr]) {
-	  Pcouple_to_RAP[iptr++] = i;
-	  if (iptr == num_Pcouple_cols) break;
-	}
+        if (global_id_RAP[i] == P->global_id[iptr]) {
+          Pcouple_to_RAP[iptr++] = i;
+          if (iptr == num_Pcouple_cols) break;
+        }
    }
 
    if (num_Pext_cols) {
      Pext_to_RAP = new index_t[num_Pext_cols];
      iptr = 0;
      for (i=0; i<num_RAPext_cols; i++)
-	if (global_id_RAP[i] == global_id_P[iptr]) {
-	  Pext_to_RAP[iptr++] = i;
-	  if (iptr == num_Pext_cols) break;
-	}
+        if (global_id_RAP[i] == global_id_P[iptr]) {
+          Pext_to_RAP[iptr++] = i;
+          if (iptr == num_Pext_cols) break;
+        }
    }
 
    if (global_id_P){
@@ -1171,102 +1168,102 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      row_marker_ext = j;
 
      /* Mark the diagonal element RAP[i_r, i_r], and other elements
-	in RAP_ext */
+        in RAP_ext */
      P_marker[i_r] = i;
      i++;
      for (j1=0; j1<num_neighbors; j1++) {
-	for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
-	  if (shared[j2] == i_r) {
-	    for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
-	      i_c = RAP_ext_idx[k];
-	      if (i_c < num_Pmain_cols) {
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  i++;
-		}
-	      } else {
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  j++;
-		}
-	      }
-	    }
-	    break;
-	  }
-	}
+        for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
+          if (shared[j2] == i_r) {
+            for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
+              i_c = RAP_ext_idx[k];
+              if (i_c < num_Pmain_cols) {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  i++;
+                }
+              } else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  j++;
+                }
+              }
+            }
+            break;
+          }
+        }
      }
 
      /* then, loop over elements in row i_r of R_main */
      j1_ub = R_main->pattern->ptr[i_r+1];
      for (j1=R_main->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_main->pattern->index[j1];
+        i1 = R_main->pattern->index[j1];
 
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  i++;
-		}
-	    }
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  i++;
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  j++;
-		}
-	    }
-	  }
-	}
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  j++;
+                }
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  i++;
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		/* note that we need to map the column index in 
-		   P->col_coupleBlock back into the column index in 
-		   P_ext_couple */
-		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  j++;
-		}
-	    }
-	  }
-	}
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  i++;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                /* note that we need to map the column index in 
+                   P->col_coupleBlock back into the column index in 
+                   P_ext_couple */
+                i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  j++;
+                }
+            }
+          }
+        }
      }
    }
 
@@ -1301,7 +1298,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      RAP_couple_ptr[i_r] = row_marker_ext;
 
      /* Mark and setup the diagonal element RAP[i_r, i_r], and elements
-	in row i_r of RAP_ext */
+        in row i_r of RAP_ext */
      P_marker[i_r] = i;
      for (ib=0; ib<block_size; ib++)
        RAP_main_val[i*block_size+ib] = ZERO;
@@ -1309,142 +1306,142 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      i++;
 
      for (j1=0; j1<num_neighbors; j1++) {
-	for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
-	  if (shared[j2] == i_r) {
-	    for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
-	      i_c = RAP_ext_idx[k];
-	      if (i_c < num_Pmain_cols) {
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  memcpy(&(RAP_main_val[i*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
-		  RAP_main_idx[i] = i_c;
-		  i++;
-		} else {
-		  t1_val = &(RAP_ext_val[k*block_size]);
-		  t2_val = &(RAP_main_val[P_marker[i_c]*block_size]);
-		  for (ib=0; ib<block_size; ib++)
-		    t2_val[ib] += t1_val[ib];
-		}
-	      } else {
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  memcpy(&(RAP_couple_val[j*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
-		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
-		  j++;
-		} else {
-		  t1_val = &(RAP_ext_val[k*block_size]);
-		  t2_val = &(RAP_couple_val[P_marker[i_c]*block_size]);
-		  for (ib=0; ib<block_size; ib++)
-		    t2_val[ib] += t1_val[ib];
-		}
-	      }
-	    }
-	    break;
-	  }
-	}
+        for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
+          if (shared[j2] == i_r) {
+            for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
+              i_c = RAP_ext_idx[k];
+              if (i_c < num_Pmain_cols) {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  memcpy(&(RAP_main_val[i*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
+                  RAP_main_idx[i] = i_c;
+                  i++;
+                } else {
+                  t1_val = &(RAP_ext_val[k*block_size]);
+                  t2_val = &(RAP_main_val[P_marker[i_c]*block_size]);
+                  for (ib=0; ib<block_size; ib++)
+                    t2_val[ib] += t1_val[ib];
+                }
+              } else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  memcpy(&(RAP_couple_val[j*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
+                  RAP_couple_idx[j] = i_c - num_Pmain_cols;
+                  j++;
+                } else {
+                  t1_val = &(RAP_ext_val[k*block_size]);
+                  t2_val = &(RAP_couple_val[P_marker[i_c]*block_size]);
+                  for (ib=0; ib<block_size; ib++)
+                    t2_val[ib] += t1_val[ib];
+                }
+              }
+            }
+            break;
+          }
+        }
      }
 
      /* then, loop over elements in row i_r of R_main */
      j1_ub = R_main->pattern->ptr[i_r+1];
      for (j1=R_main->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_main->pattern->index[j1];
-	R_val = &(R_main->val[j1*P_block_size]);
+        i1 = R_main->pattern->index[j1];
+        R_val = &(R_main->val[j1*P_block_size]);
 
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
           temp_val = &(A->col_coupleBlock->val[j2*block_size]);
-	  for (irb=0; irb<row_block_size; irb++)
-	    for (icb=0; icb<col_block_size; icb++)
-		RA_val[irb+row_block_size*icb]=ZERO;
+          for (irb=0; irb<row_block_size; irb++)
+            for (icb=0; icb<col_block_size; icb++)
+                RA_val[irb+row_block_size*icb]=ZERO;
           for (irb=0; irb<P_block_size; irb++) {
-	    rtmp=R_val[irb];
+            rtmp=R_val[irb];
             for (icb=0; icb<col_block_size; icb++) {
                 RA_val[irb+col_block_size*icb] += rtmp * temp_val[irb+col_block_size*icb];
             }
           }
 
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
 
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_main_idx[i] = i_c;
-		  i++;
-		} else {
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_main_idx[i] = i_c;
+                  i++;
+                } else {
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
 
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
-		  j++;
-		} else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_couple_idx[j] = i_c - num_Pmain_cols;
+                  j++;
+                } else {
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	  /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
-	     Only the contributions are added. */
-	  } else {
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+          /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
+             Only the contributions are added. */
+          } else {
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
@@ -1454,16 +1451,16 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            }
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->remote_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
@@ -1473,93 +1470,93 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
-	  for (irb=0; irb<row_block_size; irb++)
-	    for (icb=0; icb<col_block_size; icb++)
-		RA_val[irb+row_block_size*icb]=ZERO;
+          for (irb=0; irb<row_block_size; irb++)
+            for (icb=0; icb<col_block_size; icb++)
+                RA_val[irb+row_block_size*icb]=ZERO;
           for (irb=0; irb<P_block_size; irb++) {
-	    rtmp=R_val[irb];
+            rtmp=R_val[irb];
             for (icb=0; icb<col_block_size; icb++) {
                 RA_val[irb+row_block_size*icb] += rtmp * temp_val[irb+col_block_size*icb];
             }
           }
 
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_main_idx[i] = i_c;
-		  i++;
-		} else {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_main_idx[i] = i_c;
+                  i++;
+                } else {
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		/* note that we need to map the column index in 
-		   P->col_coupleBlock back into the column index in 
-		   P_ext_couple */
-		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                /* note that we need to map the column index in 
+                   P->col_coupleBlock back into the column index in 
+                   P_ext_couple */
+                i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
                 }
 
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
-		  j++;
-		} else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_couple_idx[j] = i_c - num_Pmain_cols;
+                  j++;
+                } else {
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	  } else {
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+          } else {
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp=temp_val[icb];
+                  rtmp=temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
@@ -1569,16 +1566,16 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*P_block_size]);
-		for (irb=0; irb<row_block_size; irb++)
-		  for (icb=0; icb<col_block_size; icb++)
-		    RAP_val[irb+row_block_size*icb]=ZERO;
+                for (irb=0; irb<row_block_size; irb++)
+                  for (icb=0; icb<col_block_size; icb++)
+                    RAP_val[irb+row_block_size*icb]=ZERO;
                 for (icb=0; icb<P_block_size; icb++) {
-		  rtmp = temp_val[icb];
+                  rtmp = temp_val[icb];
                   for (irb=0; irb<row_block_size; irb++) {
                     RAP_val[irb+row_block_size*icb] += RA_val[irb+row_block_size*icb] * rtmp;
                   }
@@ -1588,56 +1585,56 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+          }
+        }
      }
 
      /* sort RAP_XXXX_idx and reorder RAP_XXXX_val accordingly */
      if (i > row_marker) {
-	offset = i - row_marker;
-	temp = new index_t[offset];
-	#pragma omp parallel for schedule(static) private(iptr)
-	for (iptr=0; iptr<offset; iptr++)
-	  temp[iptr] = RAP_main_idx[row_marker+iptr];
-	if (offset > 0) {
-	    qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-	}
-	temp_val = new double[offset * block_size];
-	#pragma omp parallel for schedule(static) private(iptr,k)
-	for (iptr=0; iptr<offset; iptr++){
-	  k = P_marker[temp[iptr]];
-	  memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
-	  P_marker[temp[iptr]] = iptr + row_marker;
-	}
-	#pragma omp parallel for schedule(static) private(iptr)
-	for (iptr=0; iptr<offset; iptr++){
-	  RAP_main_idx[row_marker+iptr] = temp[iptr];
-	  memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
-	}
-	delete[] temp;
-	delete[] temp_val;
+        offset = i - row_marker;
+        temp = new index_t[offset];
+        #pragma omp parallel for schedule(static) private(iptr)
+        for (iptr=0; iptr<offset; iptr++)
+          temp[iptr] = RAP_main_idx[row_marker+iptr];
+        if (offset > 0) {
+            qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
+        }
+        temp_val = new double[offset * block_size];
+        #pragma omp parallel for schedule(static) private(iptr,k)
+        for (iptr=0; iptr<offset; iptr++){
+          k = P_marker[temp[iptr]];
+          memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
+          P_marker[temp[iptr]] = iptr + row_marker;
+        }
+        #pragma omp parallel for schedule(static) private(iptr)
+        for (iptr=0; iptr<offset; iptr++){
+          RAP_main_idx[row_marker+iptr] = temp[iptr];
+          memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
+        }
+        delete[] temp;
+        delete[] temp_val;
      }
      if (j > row_marker_ext) {
         offset = j - row_marker_ext;
         temp = new index_t[offset];
-	#pragma omp parallel for schedule(static) private(iptr)
+        #pragma omp parallel for schedule(static) private(iptr)
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_couple_idx[row_marker_ext+iptr];
         if (offset > 0) {
             qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
         }
         temp_val = new double[offset * block_size];
-	#pragma omp parallel for schedule(static) private(iptr, k)
+        #pragma omp parallel for schedule(static) private(iptr, k)
         for (iptr=0; iptr<offset; iptr++){
           k = P_marker[temp[iptr] + num_Pmain_cols];
-	  memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
+          memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
           P_marker[temp[iptr] + num_Pmain_cols] = iptr + row_marker_ext;
         }
-	#pragma omp parallel for schedule(static) private(iptr)
+        #pragma omp parallel for schedule(static) private(iptr)
         for (iptr=0; iptr<offset; iptr++){
           RAP_couple_idx[row_marker_ext+iptr] = temp[iptr];
-	  memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
+          memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
         }
         delete[] temp;
         delete[] temp_val;
@@ -1652,8 +1649,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    delete[] RAP_ext_ptr;
    delete[] RAP_ext_idx;
    delete[] RAP_ext_val;
-   paso::SparseMatrix_free(R_main);
-   paso::SparseMatrix_free(R_couple);
+   R_main.reset();
+   R_couple.reset();
 
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)
@@ -1664,8 +1661,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    for (i=0; i<j; i++) {
      i1 = RAP_couple_idx[i];
      if (P_marker[i1]) {
-	P_marker[i1] = 0;
-	k++;
+        P_marker[i1] = 0;
+        k++;
      }
    }
 
@@ -1674,15 +1671,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      temp = new index_t[k];
      k = 0;
      for (i=0; i<num_RAPext_cols; i++) 
-	if (!P_marker[i]) {
-	  P_marker[i] = k;
-	  temp[k] = global_id_RAP[i];
-	  k++;
-	}
+        if (!P_marker[i]) {
+          P_marker[i] = k;
+          temp[k] = global_id_RAP[i];
+          k++;
+        }
      #pragma omp parallel for schedule(static) private(i, i1)
      for (i=0; i<j; i++) {
-	i1 = RAP_couple_idx[i];
-	RAP_couple_idx[i] = P_marker[i1];
+        i1 = RAP_couple_idx[i];
+        RAP_couple_idx[i] = P_marker[i1];
      }
      num_RAPext_cols = k;
      delete[] global_id_RAP;
@@ -1707,15 +1704,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
-	if (recv_len[j] > 0) {
-	  neighbor[num_neighbors] = j;
-	  num_neighbors ++;
-	  offsetInShared[num_neighbors] = i;
-	}
-	while (k <= global_id_RAP[i]) {
-	  j++;
-	  k = dist[j+1];
-	}
+        if (recv_len[j] > 0) {
+          neighbor[num_neighbors] = j;
+          num_neighbors ++;
+          offsetInShared[num_neighbors] = i;
+        }
+        while (k <= global_id_RAP[i]) {
+          j++;
+          k = dist[j+1];
+        }
      }
      recv_len[j] ++;
    }
@@ -1745,10 +1742,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    offsetInShared[0] = 0;
    for (i=0; i<size; i++) {
      if (send_len[i] > 0) {
-	neighbor[num_neighbors] = i;
-	num_neighbors ++;
-	j += send_len[i];
-	offsetInShared[num_neighbors] = j;
+        neighbor[num_neighbors] = i;
+        num_neighbors ++;
+        j += send_len[i];
+        offsetInShared[num_neighbors] = j;
      }
    }
    delete[] shared;
@@ -1757,8 +1754,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      k = neighbor[i];
      #ifdef ESYS_MPI
      MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k, 
-		mpi_info->msg_tag_counter+k,
-		mpi_info->comm, &mpi_requests[i]);
+                mpi_info->msg_tag_counter+k,
+                mpi_info->comm, &mpi_requests[i]);
      #endif
      j += send_len[k];
    }
@@ -1766,14 +1763,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      k = recv->neighbor[i];
      #ifdef ESYS_MPI
      MPI_Issend(&(global_id_RAP[j]), recv_len[k], MPI_INT, k,
-		mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[i+num_neighbors]);
+                mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[i+num_neighbors]);
      #endif
      j += recv_len[k];
    }
    #ifdef ESYS_MPI
    MPI_Waitall(num_neighbors + recv->numNeighbors, 
-		mpi_requests, mpi_stati); 
+                mpi_requests, mpi_stati); 
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size); 
 
@@ -1813,22 +1810,22 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      i1 = RAP_couple_ptr[i_r];
      i2 = RAP_couple_ptr[i_r+1];
      if (i2 > i1) {
-	/* then row i_r will be in the sender of row_connector, now check
-	   how many neighbours i_r needs to be send to */
-	for (j=i1; j<i2; j++) {
-	  i_c = RAP_couple_idx[j];
-	  /* find out the corresponding neighbor "p" of column i_c */
-	  for (p=0; p<recv->numNeighbors; p++) {
-	    if (i_c < recv->offsetInShared[p+1]) {
-	      k = recv->neighbor[p];
-	      if (send_ptr[k][i_r] == 0) sum++;
-	      send_ptr[k][i_r] ++;
-	      send_idx[k][len[k]] = global_id_RAP[i_c];
-	      len[k] ++;
-	      break;
-	    }
-	  }
-	}
+        /* then row i_r will be in the sender of row_connector, now check
+           how many neighbours i_r needs to be send to */
+        for (j=i1; j<i2; j++) {
+          i_c = RAP_couple_idx[j];
+          /* find out the corresponding neighbor "p" of column i_c */
+          for (p=0; p<recv->numNeighbors; p++) {
+            if (i_c < recv->offsetInShared[p+1]) {
+              k = recv->neighbor[p];
+              if (send_ptr[k][i_r] == 0) sum++;
+              send_ptr[k][i_r] ++;
+              send_idx[k][len[k]] = global_id_RAP[i_c];
+              len[k] ++;
+              break;
+            }
+          }
+        }
      }
    }
    if (global_id_RAP) {
@@ -1843,17 +1840,17 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    offsetInShared[0] = 0;
    for (p=0, k=0; p<size; p++) {
      for (i=0; i<num_Pmain_cols; i++) {
-	if (send_ptr[p][i] > 0) {
-	  shared[k] = i;
-	  k++;
-	  send_ptr[p][send_len[p]] = send_ptr[p][i];
-	  send_len[p]++;
-	}
+        if (send_ptr[p][i] > 0) {
+          shared[k] = i;
+          k++;
+          send_ptr[p][send_len[p]] = send_ptr[p][i];
+          send_len[p]++;
+        }
      }
      if (k > offsetInShared[num_neighbors]) {
-	neighbor[num_neighbors] = p;
-	num_neighbors ++;
-	offsetInShared[num_neighbors] = k;
+        neighbor[num_neighbors] = p;
+        num_neighbors ++;
+        offsetInShared[num_neighbors] = k;
      }
    }
    send.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
@@ -1869,10 +1866,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    j = 0;
    for (i=0; i<size; i++) {
      if (i != rank && recv_len[i] > 0) {
-	neighbor[num_neighbors] = i;
-	num_neighbors ++;
-	j += recv_len[i];
-	offsetInShared[num_neighbors] = j;
+        neighbor[num_neighbors] = i;
+        num_neighbors ++;
+        j += recv_len[i];
+        offsetInShared[num_neighbors] = j;
      }
    }
    delete[] shared;
@@ -1896,22 +1893,22 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      i = offsetInShared[p+1];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
-		mpi_info->msg_tag_counter+neighbor[p],
-		mpi_info->comm, &mpi_requests[p]);
+                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->comm, &mpi_requests[p]);
      #endif
    }
    send = row_connector->send;
    for (p=0; p<send->numNeighbors; p++) {
      #ifdef ESYS_MPI
      MPI_Issend(send_ptr[send->neighbor[p]], send_len[send->neighbor[p]], 
-		MPI_INT, send->neighbor[p],
-		mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[p+num_neighbors]);
+                MPI_INT, send->neighbor[p],
+                mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
    #ifdef ESYS_MPI
    MPI_Waitall(num_neighbors + send->numNeighbors,
-	mpi_requests, mpi_stati); 
+        mpi_requests, mpi_stati); 
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size); 
    delete[] send_len;
@@ -1932,21 +1929,21 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
      j2 = row_couple_ptr[offsetInShared[p+1]];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_idx[j1]), j2-j1, MPI_INT, neighbor[p],
-		mpi_info->msg_tag_counter+neighbor[p],
-		mpi_info->comm, &mpi_requests[p]);
+                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->comm, &mpi_requests[p]);
      #endif
    }
    for (p=0; p<send->numNeighbors; p++) {
      #ifdef ESYS_MPI
      MPI_Issend(send_idx[send->neighbor[p]], len[send->neighbor[p]], 
-		MPI_INT, send->neighbor[p],
-		mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[p+num_neighbors]);
+                MPI_INT, send->neighbor[p],
+                mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
    #ifdef ESYS_MPI
    MPI_Waitall(num_neighbors + send->numNeighbors, 
-		mpi_requests, mpi_stati); 
+                mpi_requests, mpi_stati); 
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size);
 
@@ -1989,9 +1986,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
    /* finally, fill in the data*/
    memcpy(out->mainBlock->val, RAP_main_val, 
-		out->mainBlock->len* sizeof(double));
+                out->mainBlock->len* sizeof(double));
    memcpy(out->col_coupleBlock->val, RAP_couple_val,
-		out->col_coupleBlock->len * sizeof(double));
+                out->col_coupleBlock->len * sizeof(double));
 
    delete[] RAP_main_val;
    delete[] RAP_couple_val;
@@ -2005,10 +2002,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
 
 
 Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
-	Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
+        Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-   paso::SparseMatrix *R_main=NULL, *R_couple=NULL;
    Paso_SystemMatrix *out=NULL;
    paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
@@ -2046,15 +2042,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    /* two sparse matrices R_main and R_couple will be generate, as the 
       transpose of P_main and P_col_couple, respectively. Note that, 
       R_couple is actually the row_coupleBlock of R (R=P^T) */
-   R_main = paso::SparseMatrix_getTranspose(P->mainBlock);
-   R_couple = paso::SparseMatrix_getTranspose(P->col_coupleBlock);
+   paso::SparseMatrix_ptr R_main(P->mainBlock->getTranspose());
+   paso::SparseMatrix_ptr R_couple(P->col_coupleBlock->getTranspose());
 
    /* generate P_ext, i.e. portion of P that is stored on neighbor procs
       and needed locally for triple matrix product RAP 
       to be specific, P_ext (on processor k) are group of rows in P, where 
       the list of rows from processor q is given by 
-	A->col_coupler->connector->send->shared[rPtr...] 
-	rPtr=A->col_coupler->connector->send->OffsetInShared[k]
+        A->col_coupler->connector->send->shared[rPtr...] 
+        rPtr=A->col_coupler->connector->send->OffsetInShared[k]
       on q. 
       P_ext is represented by two sparse matrices P_ext_main and 
       P_ext_couple */
@@ -2073,55 +2069,55 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    num_Pext_cols = 0;
    if (P->global_id) {
      /* first count the number of cols "num_Pext_cols" in both P_ext_couple 
-	and P->col_coupleBlock */
+        and P->col_coupleBlock */
      iptr = 0;
      if (num_Pcouple_cols || sum > 0) {
-	temp = new index_t[num_Pcouple_cols+sum];
-	for (; iptr<sum; iptr++){ 
-	  temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
-	}
-	for (j=0; j<num_Pcouple_cols; j++, iptr++){
-	  temp[iptr] = P->global_id[j];
-	}
+        temp = new index_t[num_Pcouple_cols+sum];
+        for (; iptr<sum; iptr++){ 
+          temp[iptr] = P->remote_coupleBlock->pattern->index[iptr];
+        }
+        for (j=0; j<num_Pcouple_cols; j++, iptr++){
+          temp[iptr] = P->global_id[j];
+        }
      }
      if (iptr) {
-	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	num_Pext_cols = 1;
-	i = temp[0];
-	for (j=1; j<iptr; j++) {
-	  if (temp[j] > i) {
-	    i = temp[j];
-	    temp[num_Pext_cols++] = i;
-	  }
-	}
+          qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
+        num_Pext_cols = 1;
+        i = temp[0];
+        for (j=1; j<iptr; j++) {
+          if (temp[j] > i) {
+            i = temp[j];
+            temp[num_Pext_cols++] = i;
+          }
+        }
      }
 
      /* resize the pattern of P_ext_couple */
      if(num_Pext_cols){
-	global_id_P = new index_t[num_Pext_cols];
-	for (i=0; i<num_Pext_cols; i++)
-	  global_id_P[i] = temp[i];
+        global_id_P = new index_t[num_Pext_cols];
+        for (i=0; i<num_Pext_cols; i++)
+          global_id_P[i] = temp[i];
      }
      if (num_Pcouple_cols || sum > 0) 
-	delete[] temp;
+        delete[] temp;
      for (i=0; i<sum; i++) {
-	where_p = (index_t *)bsearch(
-			&(P->remote_coupleBlock->pattern->index[i]),
-			global_id_P, num_Pext_cols, 
+        where_p = (index_t *)bsearch(
+                        &(P->remote_coupleBlock->pattern->index[i]),
+                        global_id_P, num_Pext_cols, 
                         sizeof(index_t), paso::comparIndex);
-	P->remote_coupleBlock->pattern->index[i] = 
-			(index_t)(where_p -global_id_P);
+        P->remote_coupleBlock->pattern->index[i] = 
+                        (index_t)(where_p -global_id_P);
      }  
 
      /* build the mapping */
      if (num_Pcouple_cols) {
-	Pcouple_to_Pext = new index_t[num_Pcouple_cols];
-	iptr = 0;
-	for (i=0; i<num_Pext_cols; i++)
-	  if (global_id_P[i] == P->global_id[iptr]) {
-	    Pcouple_to_Pext[iptr++] = i;
-	    if (iptr == num_Pcouple_cols) break;
-	  }
+        Pcouple_to_Pext = new index_t[num_Pcouple_cols];
+        iptr = 0;
+        for (i=0; i<num_Pext_cols; i++)
+          if (global_id_P[i] == P->global_id[iptr]) {
+            Pcouple_to_Pext[iptr++] = i;
+            if (iptr == num_Pcouple_cols) break;
+          }
      }
    }
 
@@ -2141,73 +2137,73 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_couple->pattern->index[j1];
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
+        i1 = R_couple->pattern->index[j1];
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
-	  }
-	}
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		/* note that we need to map the column index in 
-		   P->col_coupleBlock back into the column index in 
-		   P_ext_couple */
-		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  sum++;
-		}
-	    }
-	  }
-	}
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                /* note that we need to map the column index in 
+                   P->col_coupleBlock back into the column index in 
+                   P_ext_couple */
+                i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  sum++;
+                }
+            }
+          }
+        }
      }
    }
 
@@ -2232,67 +2228,67 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      /* then, loop over elements in row i_r of R_couple */
      j1_ub = R_couple->pattern->ptr[i_r+1];
      for (j1=R_couple->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_couple->pattern->index[j1];
-	R_val = &(R_couple->val[j1*block_size]);
+        i1 = R_couple->pattern->index[j1];
+        R_val = &(R_couple->val[j1*block_size]);
 
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
-	  temp_val = &(A->col_coupleBlock->val[j2*block_size]);
-	  for (irb=0; irb<row_block_size; irb++) {
-	    for (icb=0; icb<col_block_size; icb++) {
-		rtmp = ZERO;
-		for (ib=0; ib<col_block_size; ib++) {
-		  rtmp+= R_val[irb+row_block_size*ib]*temp_val[ib+col_block_size*icb];
-		}
-		RA_val[irb+row_block_size*icb]=rtmp;
-	    }
-	  }
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
+          temp_val = &(A->col_coupleBlock->val[j2*block_size]);
+          for (irb=0; irb<row_block_size; irb++) {
+            for (icb=0; icb<col_block_size; icb++) {
+                rtmp = ZERO;
+                for (ib=0; ib<col_block_size; ib++) {
+                  rtmp+= R_val[irb+row_block_size*ib]*temp_val[ib+col_block_size*icb];
+                }
+                RA_val[irb+row_block_size*icb]=rtmp;
+            }
+          }
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
-		temp_val = &(P->row_coupleBlock->val[j3*block_size]);
-		for (irb=0; irb<row_block_size; irb++) {
-		  for (icb=0; icb<col_block_size; icb++) {
-		    rtmp = ZERO;
-		    for (ib=0; ib<col_block_size; ib++) {
-			rtmp+= RA_val[irb+row_block_size*ib]*temp_val[ib+col_block_size*icb];
-		    }
-		    RAP_val[irb+row_block_size*icb]=rtmp;
-		  }
-		}
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
+                temp_val = &(P->row_coupleBlock->val[j3*block_size]);
+                for (irb=0; irb<row_block_size; irb++) {
+                  for (icb=0; icb<col_block_size; icb++) {
+                    rtmp = ZERO;
+                    for (ib=0; ib<col_block_size; ib++) {
+                        rtmp+= RA_val[irb+row_block_size*ib]*temp_val[ib+col_block_size*icb];
+                    }
+                    RAP_val[irb+row_block_size*icb]=rtmp;
+                  }
+                }
 
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_ext_idx[sum] = i_c + offset; 
-		  sum++;
-		} else {
-		  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
-		  for (ib=0; ib<block_size; ib++) {
-		    temp_val[ib] += RAP_val[ib];
-		  }
-		}
-	    }
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_ext_idx[sum] = i_c + offset; 
+                  sum++;
+                } else {
+                  temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
+                  for (ib=0; ib<block_size; ib++) {
+                    temp_val[ib] += RAP_val[ib];
+                  }
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2304,25 +2300,25 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                   }
                 }
 
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-		  sum++;
-		} else {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
+                  sum++;
+                } else {
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	  /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
-	     Only the contributions are added. */
-	  } else {
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+          /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
+             Only the contributions are added. */
+          } else {
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2338,10 +2334,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
+            }
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->remote_coupleBlock->pattern->index[j3] + num_Pmain_cols;
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2357,15 +2353,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
           for (irb=0; irb<row_block_size; irb++) {
             for (icb=0; icb<col_block_size; icb++) {
@@ -2377,11 +2373,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
             }
           }
 
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2393,21 +2389,21 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                   }
                 }
 
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_ext_idx[sum] = i_c + offset;
-		  sum++;
-		} else {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_ext_idx[sum] = i_c + offset;
+                  sum++;
+                } else {
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2419,22 +2415,22 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                   }
                 }
 
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = sum;
-		  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = sum;
+                  memcpy(&(RAP_ext_val[sum*block_size]), RAP_val, block_size*sizeof(double));
                   RAP_ext_idx[sum] = global_id_P[i_c - num_Pmain_cols];
-		  sum++;
-		} else {
+                  sum++;
+                } else {
                   temp_val = &(RAP_ext_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
-	  } else {
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+                }
+            }
+          } else {
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2450,10 +2446,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pcouple_to_Pext[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2469,9 +2465,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+          }
+        }
      }
      RAP_ext_ptr[i_r+1] = sum;
    }
@@ -2485,7 +2481,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
       be passed to neighbouring processors, and added to corresponding
       RAP[r,c] entries in the neighbouring processors */
    Paso_Preconditioner_AMG_CopyRemoteData(P, &RAP_ext_ptr, &RAP_ext_idx,
-		&RAP_ext_val, global_id_P, block_size);
+                &RAP_ext_val, global_id_P, block_size);
 
    num_RAPext_rows = P->col_coupler->connector->send->offsetInShared[P->col_coupler->connector->send->numNeighbors];
    sum = RAP_ext_ptr[num_RAPext_rows];
@@ -2494,23 +2490,23 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      temp = new index_t[num_Pext_cols+sum];
      j1_ub = offset + num_Pmain_cols;
      for (i=0, iptr=0; i<sum; i++) {
-	if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ 
-	  temp[iptr++] = RAP_ext_idx[i];		  /* XXX */
+        if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub)  /* XXX */ 
+          temp[iptr++] = RAP_ext_idx[i];                  /* XXX */
      }
      for (j=0; j<num_Pext_cols; j++, iptr++){
-	temp[iptr] = global_id_P[j];
+        temp[iptr] = global_id_P[j];
      }
 
      if (iptr) {
-	  qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
-	num_RAPext_cols = 1;
-	i = temp[0];
-	for (j=1; j<iptr; j++) {
-	  if (temp[j] > i) {
-	    i = temp[j];
-	    temp[num_RAPext_cols++] = i;
-	  }
-	}
+          qsort(temp, (size_t)iptr, sizeof(index_t), paso::comparIndex);
+        num_RAPext_cols = 1;
+        i = temp[0];
+        for (j=1; j<iptr; j++) {
+          if (temp[j] > i) {
+            i = temp[j];
+            temp[num_RAPext_cols++] = i;
+          }
+        }
      }
    }
 
@@ -2518,18 +2514,18 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    if(num_RAPext_cols){
      global_id_RAP = new index_t[num_RAPext_cols];
      for (i=0; i<num_RAPext_cols; i++)
-	global_id_RAP[i] = temp[i];
+        global_id_RAP[i] = temp[i];
    }
    if (num_Pext_cols || sum > 0)
      delete[] temp;
    j1_ub = offset + num_Pmain_cols;
    for (i=0; i<sum; i++) {
      if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub){
-	where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
-/*XXX*/			num_RAPext_cols, sizeof(index_t), paso::comparIndex);
-	RAP_ext_idx[i] = num_Pmain_cols + (index_t)(where_p - global_id_RAP);
+        where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
+/*XXX*/                 num_RAPext_cols, sizeof(index_t), paso::comparIndex);
+        RAP_ext_idx[i] = num_Pmain_cols + (index_t)(where_p - global_id_RAP);
      } else 
-	RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
+        RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
    }
 
    /* build the mapping */
@@ -2537,20 +2533,20 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      Pcouple_to_RAP = new index_t[num_Pcouple_cols];
      iptr = 0;
      for (i=0; i<num_RAPext_cols; i++) 
-	if (global_id_RAP[i] == P->global_id[iptr]) {
-	  Pcouple_to_RAP[iptr++] = i;
-	  if (iptr == num_Pcouple_cols) break;
-	}
+        if (global_id_RAP[i] == P->global_id[iptr]) {
+          Pcouple_to_RAP[iptr++] = i;
+          if (iptr == num_Pcouple_cols) break;
+        }
    }
 
    if (num_Pext_cols) {
      Pext_to_RAP = new index_t[num_Pext_cols];
      iptr = 0;
      for (i=0; i<num_RAPext_cols; i++)
-	if (global_id_RAP[i] == global_id_P[iptr]) {
-	  Pext_to_RAP[iptr++] = i;
-	  if (iptr == num_Pext_cols) break;
-	}
+        if (global_id_RAP[i] == global_id_P[iptr]) {
+          Pext_to_RAP[iptr++] = i;
+          if (iptr == num_Pext_cols) break;
+        }
    }
 
    if (global_id_P){
@@ -2578,102 +2574,102 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      row_marker_ext = j;
 
      /* Mark the diagonal element RAP[i_r, i_r], and other elements
-	in RAP_ext */
+        in RAP_ext */
      P_marker[i_r] = i;
      i++;
      for (j1=0; j1<num_neighbors; j1++) {
-	for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
-	  if (shared[j2] == i_r) {
-	    for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
-	      i_c = RAP_ext_idx[k];
-	      if (i_c < num_Pmain_cols) {
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  i++;
-		}
-	      } else {
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  j++;
-		}
-	      }
-	    }
-	    break;
-	  }
-	}
+        for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
+          if (shared[j2] == i_r) {
+            for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
+              i_c = RAP_ext_idx[k];
+              if (i_c < num_Pmain_cols) {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  i++;
+                }
+              } else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  j++;
+                }
+              }
+            }
+            break;
+          }
+        }
      }
 
      /* then, loop over elements in row i_r of R_main */
      j1_ub = R_main->pattern->ptr[i_r+1];
      for (j1=R_main->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_main->pattern->index[j1];
+        i1 = R_main->pattern->index[j1];
 
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  i++;
-		}
-	    }
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  i++;
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  j++;
-		}
-	    }
-	  }
-	}
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  j++;
+                }
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  i++;
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		/* note that we need to map the column index in 
-		   P->col_coupleBlock back into the column index in 
-		   P_ext_couple */
-		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  j++;
-		}
-	    }
-	  }
-	}
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  i++;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                /* note that we need to map the column index in 
+                   P->col_coupleBlock back into the column index in 
+                   P_ext_couple */
+                i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  j++;
+                }
+            }
+          }
+        }
      }
    }
 
@@ -2708,58 +2704,58 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      RAP_couple_ptr[i_r] = row_marker_ext;
 
      /* Mark and setup the diagonal element RAP[i_r, i_r], and elements
-	in row i_r of RAP_ext */
+        in row i_r of RAP_ext */
      P_marker[i_r] = i;
      RAP_main_val[i] = ZERO;
      RAP_main_idx[i] = i_r;
      i++;
 
      for (j1=0; j1<num_neighbors; j1++) {
-	for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
-	  if (shared[j2] == i_r) {
-	    for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
-	      i_c = RAP_ext_idx[k];
-	      if (i_c < num_Pmain_cols) {
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  memcpy(&(RAP_main_val[i*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
-		  RAP_main_idx[i] = i_c;
-		  i++;
-		} else {
-		  temp_val = &(RAP_ext_val[k*block_size]);
-		  RAP_val = &(RAP_main_val[P_marker[i_c]*block_size]);
-		  for (ib=0; ib<block_size; ib++)
-		    RAP_val[ib] += temp_val[ib];
-		}
-	      } else {
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  memcpy(&(RAP_couple_val[j*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
-		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
-		  j++;
-		} else {
-		  temp_val = &(RAP_ext_val[k*block_size]);
-		  RAP_val = &(RAP_couple_val[P_marker[i_c]*block_size]);
-		  for (ib=0; ib<block_size; ib++)
-		    RAP_val[ib] += temp_val[ib];
-		}
-	      }
-	    }
-	    break;
-	  }
-	}
+        for (j2=offsetInShared[j1]; j2<offsetInShared[j1+1]; j2++) {
+          if (shared[j2] == i_r) {
+            for (k=RAP_ext_ptr[j2]; k<RAP_ext_ptr[j2+1]; k++) {
+              i_c = RAP_ext_idx[k];
+              if (i_c < num_Pmain_cols) {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  memcpy(&(RAP_main_val[i*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
+                  RAP_main_idx[i] = i_c;
+                  i++;
+                } else {
+                  temp_val = &(RAP_ext_val[k*block_size]);
+                  RAP_val = &(RAP_main_val[P_marker[i_c]*block_size]);
+                  for (ib=0; ib<block_size; ib++)
+                    RAP_val[ib] += temp_val[ib];
+                }
+              } else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  memcpy(&(RAP_couple_val[j*block_size]), &(RAP_ext_val[k*block_size]), block_size*sizeof(double));
+                  RAP_couple_idx[j] = i_c - num_Pmain_cols;
+                  j++;
+                } else {
+                  temp_val = &(RAP_ext_val[k*block_size]);
+                  RAP_val = &(RAP_couple_val[P_marker[i_c]*block_size]);
+                  for (ib=0; ib<block_size; ib++)
+                    RAP_val[ib] += temp_val[ib];
+                }
+              }
+            }
+            break;
+          }
+        }
      }
 
      /* then, loop over elements in row i_r of R_main */
      j1_ub = R_main->pattern->ptr[i_r+1];
      for (j1=R_main->pattern->ptr[i_r]; j1<j1_ub; j1++){
-	i1 = R_main->pattern->index[j1];
-	R_val = &(R_main->val[j1*block_size]);
+        i1 = R_main->pattern->index[j1];
+        R_val = &(R_main->val[j1*block_size]);
 
-	/* then, loop over elements in row i1 of A->col_coupleBlock */
-	j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
-	for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->col_coupleBlock->pattern->index[j2];
+        /* then, loop over elements in row i1 of A->col_coupleBlock */
+        j2_ub = A->col_coupleBlock->pattern->ptr[i1+1];
+        for (j2=A->col_coupleBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->col_coupleBlock->pattern->index[j2];
           temp_val = &(A->col_coupleBlock->val[j2*block_size]);
           for (irb=0; irb<row_block_size; irb++) {
             for (icb=0; icb<col_block_size; icb++) {
@@ -2772,17 +2768,17 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
           }
 
 
-	  /* check whether entry RA[i_r, i2] has been previously visited.
-	     RAP new entry is possible only if entry RA[i_r, i2] has not
-	     been visited yet */
-	  if (A_marker[i2] != i_r) {
-	    /* first, mark entry RA[i_r,i2] as visited */
-	    A_marker[i2] = i_r; 
+          /* check whether entry RA[i_r, i2] has been previously visited.
+             RAP new entry is possible only if entry RA[i_r, i2] has not
+             been visited yet */
+          if (A_marker[i2] != i_r) {
+            /* first, mark entry RA[i_r,i2] as visited */
+            A_marker[i2] = i_r; 
 
-	    /* then loop over elements in row i2 of P_ext_main */
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+            /* then loop over elements in row i2 of P_ext_main */
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2795,26 +2791,26 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 }
 
 
-		/* check whether entry RAP[i_r,i_c] has been created. 
-		   If not yet created, create the entry and increase 
-		   the total number of elements in RAP_ext */
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_main_idx[i] = i_c;
-		  i++;
-		} else {
+                /* check whether entry RAP[i_r,i_c] has been created. 
+                   If not yet created, create the entry and increase 
+                   the total number of elements in RAP_ext */
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_main_idx[i] = i_c;
+                  i++;
+                } else {
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	    /* loop over elements in row i2 of P_ext_couple, do the same */
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            /* loop over elements in row i2 of P_ext_couple, do the same */
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2826,25 +2822,25 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                   }
                 }
 
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
-		  j++;
-		} else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_couple_idx[j] = i_c - num_Pmain_cols;
+                  j++;
+                } else {
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	  /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
-	     Only the contributions are added. */
-	  } else {
-	    j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->row_coupleBlock->pattern->index[j3];
+          /* If entry RA[i_r, i2] is visited, no new RAP entry is created.
+             Only the contributions are added. */
+          } else {
+            j3_ub = P->row_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->row_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->row_coupleBlock->pattern->index[j3];
                 temp_val = &(P->row_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2860,10 +2856,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	    j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            }
+            j3_ub = P->remote_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->remote_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pext_to_RAP[P->remote_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->remote_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2879,15 +2875,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+          }
+        }
 
-	/* now loop over elements in row i1 of A->mainBlock, repeat
-	   the process we have done to block A->col_coupleBlock */
-	j2_ub = A->mainBlock->pattern->ptr[i1+1];
-	for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
-	  i2 = A->mainBlock->pattern->index[j2];
+        /* now loop over elements in row i1 of A->mainBlock, repeat
+           the process we have done to block A->col_coupleBlock */
+        j2_ub = A->mainBlock->pattern->ptr[i1+1];
+        for (j2=A->mainBlock->pattern->ptr[i1]; j2<j2_ub; j2++) {
+          i2 = A->mainBlock->pattern->index[j2];
           temp_val = &(A->mainBlock->val[j2*block_size]);
           for (irb=0; irb<row_block_size; irb++) {
             for (icb=0; icb<col_block_size; icb++) {
@@ -2899,11 +2895,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
             }
           }
 
-	  if (A_marker[i2 + num_Acouple_cols] != i_r) {
-	    A_marker[i2 + num_Acouple_cols] = i_r;
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+          if (A_marker[i2 + num_Acouple_cols] != i_r) {
+            A_marker[i2 + num_Acouple_cols] = i_r;
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2915,24 +2911,24 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                   }
                 }
 
-		if (P_marker[i_c] < row_marker) {
-		  P_marker[i_c] = i;
-		  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_main_idx[i] = i_c;
-		  i++;
-		} else {
+                if (P_marker[i_c] < row_marker) {
+                  P_marker[i_c] = i;
+                  memcpy(&(RAP_main_val[i*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_main_idx[i] = i_c;
+                  i++;
+                } else {
                   temp_val = &(RAP_main_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		/* note that we need to map the column index in 
-		   P->col_coupleBlock back into the column index in 
-		   P_ext_couple */
-		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+                }
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                /* note that we need to map the column index in 
+                   P->col_coupleBlock back into the column index in 
+                   P_ext_couple */
+                i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2944,23 +2940,23 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                   }
                 }
 
-		if (P_marker[i_c] < row_marker_ext) {
-		  P_marker[i_c] = j;
-		  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
-		  RAP_couple_idx[j] = i_c - num_Pmain_cols;
-		  j++;
-		} else {
+                if (P_marker[i_c] < row_marker_ext) {
+                  P_marker[i_c] = j;
+                  memcpy(&(RAP_couple_val[j*block_size]), RAP_val, block_size*sizeof(double));
+                  RAP_couple_idx[j] = i_c - num_Pmain_cols;
+                  j++;
+                } else {
                   temp_val = &(RAP_couple_val[P_marker[i_c] * block_size]);
                   for (ib=0; ib<block_size; ib++) {
                     temp_val[ib] += RAP_val[ib];
                   }
-		}
-	    }
+                }
+            }
 
-	  } else {
-	    j3_ub = P->mainBlock->pattern->ptr[i2+1];
-	    for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = P->mainBlock->pattern->index[j3];
+          } else {
+            j3_ub = P->mainBlock->pattern->ptr[i2+1];
+            for (j3=P->mainBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = P->mainBlock->pattern->index[j3];
                 temp_val = &(P->mainBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2976,10 +2972,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	    j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
-	    for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
-		i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
+            }
+            j3_ub = P->col_coupleBlock->pattern->ptr[i2+1];
+            for (j3=P->col_coupleBlock->pattern->ptr[i2]; j3<j3_ub; j3++) {
+                i_c = Pcouple_to_RAP[P->col_coupleBlock->pattern->index[j3]] + num_Pmain_cols;
                 temp_val = &(P->col_coupleBlock->val[j3*block_size]);
                 for (irb=0; irb<row_block_size; irb++) {
                   for (icb=0; icb<col_block_size; icb++) {
@@ -2995,32 +2991,32 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
                 for (ib=0; ib<block_size; ib++) {
                   temp_val[ib] += RAP_val[ib];
                 }
-	    }
-	  }
-	}
+            }
+          }
+        }
      }
 
      /* sort RAP_XXXX_idx and reorder RAP_XXXX_val accordingly */
      if (i > row_marker) {
-	offset = i - row_marker;
-	temp = new index_t[offset];
-	for (iptr=0; iptr<offset; iptr++)
-	  temp[iptr] = RAP_main_idx[row_marker+iptr];
-	if (offset > 0) {
-	    qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
-	}
-	temp_val = new double[offset * block_size];
-	for (iptr=0; iptr<offset; iptr++){
-	  k = P_marker[temp[iptr]];
-	  memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
-	  P_marker[temp[iptr]] = iptr + row_marker;
-	}
-	for (iptr=0; iptr<offset; iptr++){
-	  RAP_main_idx[row_marker+iptr] = temp[iptr];
-	  memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
-	}
-	delete[] temp;
-	delete[] temp_val;
+        offset = i - row_marker;
+        temp = new index_t[offset];
+        for (iptr=0; iptr<offset; iptr++)
+          temp[iptr] = RAP_main_idx[row_marker+iptr];
+        if (offset > 0) {
+            qsort(temp, (size_t)offset, sizeof(index_t), paso::comparIndex);
+        }
+        temp_val = new double[offset * block_size];
+        for (iptr=0; iptr<offset; iptr++){
+          k = P_marker[temp[iptr]];
+          memcpy(&(temp_val[iptr*block_size]), &(RAP_main_val[k*block_size]), block_size*sizeof(double));
+          P_marker[temp[iptr]] = iptr + row_marker;
+        }
+        for (iptr=0; iptr<offset; iptr++){
+          RAP_main_idx[row_marker+iptr] = temp[iptr];
+          memcpy(&(RAP_main_val[(row_marker+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
+        }
+        delete[] temp;
+        delete[] temp_val;
      }
      if (j > row_marker_ext) {
         offset = j - row_marker_ext;
@@ -3033,12 +3029,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
         temp_val = new double[offset * block_size];
         for (iptr=0; iptr<offset; iptr++){
           k = P_marker[temp[iptr] + num_Pmain_cols];
-	  memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
+          memcpy(&(temp_val[iptr*block_size]), &(RAP_couple_val[k*block_size]), block_size*sizeof(double));
           P_marker[temp[iptr] + num_Pmain_cols] = iptr + row_marker_ext;
         }
         for (iptr=0; iptr<offset; iptr++){
           RAP_couple_idx[row_marker_ext+iptr] = temp[iptr];
-	  memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
+          memcpy(&(RAP_couple_val[(row_marker_ext+iptr)*block_size]), &(temp_val[iptr*block_size]), block_size*sizeof(double));
         }
         delete[] temp;
         delete[] temp_val;
@@ -3053,8 +3049,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    delete[] RAP_ext_ptr;
    delete[] RAP_ext_idx;
    delete[] RAP_ext_val;
-   paso::SparseMatrix_free(R_main);
-   paso::SparseMatrix_free(R_couple);
+   R_main.reset();
+   R_couple.reset();
 
    /* Check whether there are empty columns in RAP_couple */ 
    #pragma omp parallel for schedule(static) private(i)
@@ -3065,8 +3061,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    for (i=0; i<j; i++) {
      i1 = RAP_couple_idx[i];
      if (P_marker[i1]) {
-	P_marker[i1] = 0;
-	k++;
+        P_marker[i1] = 0;
+        k++;
      }
    }
 
@@ -3075,14 +3071,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      temp = new index_t[k];
      k = 0;
      for (i=0; i<num_RAPext_cols; i++) 
-	if (!P_marker[i]) {
-	  P_marker[i] = k;
-	  temp[k] = global_id_RAP[i];
-	  k++;
-	}
+        if (!P_marker[i]) {
+          P_marker[i] = k;
+          temp[k] = global_id_RAP[i];
+          k++;
+        }
      for (i=0; i<j; i++) {
-	i1 = RAP_couple_idx[i];
-	RAP_couple_idx[i] = P_marker[i1];
+        i1 = RAP_couple_idx[i];
+        RAP_couple_idx[i] = P_marker[i1];
      }
      num_RAPext_cols = k;
      delete[] global_id_RAP;
@@ -3107,15 +3103,15 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    for (i=0, j=0, k=dist[j+1]; i<num_RAPext_cols; i++) {
      shared[i] = i + num_Pmain_cols;
      if (k <= global_id_RAP[i]) {
-	if (recv_len[j] > 0) {
-	  neighbor[num_neighbors] = j;
-	  num_neighbors ++;
-	  offsetInShared[num_neighbors] = i;
-	}
-	while (k <= global_id_RAP[i]) {
-	  j++;
-	  k = dist[j+1];
-	}
+        if (recv_len[j] > 0) {
+          neighbor[num_neighbors] = j;
+          num_neighbors ++;
+          offsetInShared[num_neighbors] = i;
+        }
+        while (k <= global_id_RAP[i]) {
+          j++;
+          k = dist[j+1];
+        }
      }
      recv_len[j] ++;
    }
@@ -3143,10 +3139,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    offsetInShared[0] = 0;
    for (i=0; i<size; i++) {
      if (send_len[i] > 0) {
-	neighbor[num_neighbors] = i;
-	num_neighbors ++;
-	j += send_len[i];
-	offsetInShared[num_neighbors] = j;
+        neighbor[num_neighbors] = i;
+        num_neighbors ++;
+        j += send_len[i];
+        offsetInShared[num_neighbors] = j;
      }
    }
    delete[] shared;
@@ -3155,8 +3151,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      k = neighbor[i];
      #ifdef ESYS_MPI
      MPI_Irecv(&shared[j], send_len[k] , MPI_INT, k, 
-		mpi_info->msg_tag_counter+k,
-		mpi_info->comm, &mpi_requests[i]);
+                mpi_info->msg_tag_counter+k,
+                mpi_info->comm, &mpi_requests[i]);
      #endif
      j += send_len[k];
    }
@@ -3164,14 +3160,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      k = recv->neighbor[i];
      #ifdef ESYS_MPI
      MPI_Issend(&(global_id_RAP[j]), recv_len[k], MPI_INT, k,
-		mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[i+num_neighbors]);
+                mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[i+num_neighbors]);
      #endif
      j += recv_len[k];
    }
    #ifdef ESYS_MPI
    MPI_Waitall(num_neighbors + recv->numNeighbors, 
-		mpi_requests, mpi_stati); 
+                mpi_requests, mpi_stati); 
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size); 
 
@@ -3207,22 +3203,22 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      i1 = RAP_couple_ptr[i_r];
      i2 = RAP_couple_ptr[i_r+1];
      if (i2 > i1) {
-	/* then row i_r will be in the sender of row_connector, now check
-	   how many neighbours i_r needs to be send to */
-	for (j=i1; j<i2; j++) {
-	  i_c = RAP_couple_idx[j];
-	  /* find out the corresponding neighbor "p" of column i_c */
-	  for (p=0; p<recv->numNeighbors; p++) {
-	    if (i_c < recv->offsetInShared[p+1]) {
-	      k = recv->neighbor[p];
-	      if (send_ptr[k][i_r] == 0) sum++;
-	      send_ptr[k][i_r] ++;
-	      send_idx[k][len[k]] = global_id_RAP[i_c];
-	      len[k] ++;
-	      break;
-	    }
-	  }
-	}
+        /* then row i_r will be in the sender of row_connector, now check
+           how many neighbours i_r needs to be send to */
+        for (j=i1; j<i2; j++) {
+          i_c = RAP_couple_idx[j];
+          /* find out the corresponding neighbor "p" of column i_c */
+          for (p=0; p<recv->numNeighbors; p++) {
+            if (i_c < recv->offsetInShared[p+1]) {
+              k = recv->neighbor[p];
+              if (send_ptr[k][i_r] == 0) sum++;
+              send_ptr[k][i_r] ++;
+              send_idx[k][len[k]] = global_id_RAP[i_c];
+              len[k] ++;
+              break;
+            }
+          }
+        }
      }
    }
    if (global_id_RAP) {
@@ -3237,17 +3233,17 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    offsetInShared[0] = 0;
    for (p=0, k=0; p<size; p++) {
      for (i=0; i<num_Pmain_cols; i++) {
-	if (send_ptr[p][i] > 0) {
-	  shared[k] = i;
-	  k++;
-	  send_ptr[p][send_len[p]] = send_ptr[p][i];
-	  send_len[p]++;
-	}
+        if (send_ptr[p][i] > 0) {
+          shared[k] = i;
+          k++;
+          send_ptr[p][send_len[p]] = send_ptr[p][i];
+          send_len[p]++;
+        }
      }
      if (k > offsetInShared[num_neighbors]) {
-	neighbor[num_neighbors] = p;
-	num_neighbors ++;
-	offsetInShared[num_neighbors] = k;
+        neighbor[num_neighbors] = p;
+        num_neighbors ++;
+        offsetInShared[num_neighbors] = k;
      }
    }
    send.reset(new paso::SharedComponents(num_Pmain_cols, num_neighbors,
@@ -3263,10 +3259,10 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    j = 0;
    for (i=0; i<size; i++) {
      if (i != rank && recv_len[i] > 0) {
-	neighbor[num_neighbors] = i;
-	num_neighbors ++;
-	j += recv_len[i];
-	offsetInShared[num_neighbors] = j;
+        neighbor[num_neighbors] = i;
+        num_neighbors ++;
+        j += recv_len[i];
+        offsetInShared[num_neighbors] = j;
      }
    }
    delete[] shared;
@@ -3289,22 +3285,22 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      i = offsetInShared[p+1];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_ptr[j]), i-j, MPI_INT, neighbor[p],
-		mpi_info->msg_tag_counter+neighbor[p],
-		mpi_info->comm, &mpi_requests[p]);
+                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->comm, &mpi_requests[p]);
      #endif
    }
    send = row_connector->send;
    for (p=0; p<send->numNeighbors; p++) {
      #ifdef ESYS_MPI
      MPI_Issend(send_ptr[send->neighbor[p]], send_len[send->neighbor[p]], 
-		MPI_INT, send->neighbor[p],
-		mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[p+num_neighbors]);
+                MPI_INT, send->neighbor[p],
+                mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
    #ifdef ESYS_MPI
    MPI_Waitall(num_neighbors + send->numNeighbors,
-	mpi_requests, mpi_stati); 
+        mpi_requests, mpi_stati); 
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size); 
    delete[] send_len;
@@ -3325,21 +3321,21 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
      j2 = row_couple_ptr[offsetInShared[p+1]];
      #ifdef ESYS_MPI
      MPI_Irecv(&(row_couple_idx[j1]), j2-j1, MPI_INT, neighbor[p],
-		mpi_info->msg_tag_counter+neighbor[p],
-		mpi_info->comm, &mpi_requests[p]);
+                mpi_info->msg_tag_counter+neighbor[p],
+                mpi_info->comm, &mpi_requests[p]);
      #endif
    }
    for (p=0; p<send->numNeighbors; p++) {
      #ifdef ESYS_MPI
      MPI_Issend(send_idx[send->neighbor[p]], len[send->neighbor[p]], 
-		MPI_INT, send->neighbor[p],
-		mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[p+num_neighbors]);
+                MPI_INT, send->neighbor[p],
+                mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[p+num_neighbors]);
      #endif
    }
    #ifdef ESYS_MPI
    MPI_Waitall(num_neighbors + send->numNeighbors, 
-		mpi_requests, mpi_stati); 
+                mpi_requests, mpi_stati); 
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size);
 
@@ -3381,9 +3377,9 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
 
    /* finally, fill in the data*/
    memcpy(out->mainBlock->val, RAP_main_val, 
-		out->mainBlock->len* sizeof(double));
+                out->mainBlock->len* sizeof(double));
    memcpy(out->col_coupleBlock->val, RAP_couple_val,
-		out->col_coupleBlock->len * sizeof(double));
+                out->col_coupleBlock->len * sizeof(double));
 
    delete[] RAP_main_val;
    delete[] RAP_couple_val;

@@ -15,42 +15,41 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: ILU preconditioner with reordering                 */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003,2004,2005              */
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* free all memory used by ILU                                */
 
-void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
-     if (in!=NULL) {
+void Paso_Solver_ILU_free(Paso_Solver_ILU * in)
+{
+    if (in!=NULL) {
         delete[] in->factors;
         delete in;
-     }
+    }
 }
 
-/************************************************************************************/
-
 /*   constructs the incomplete block factorization            */
-
-Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix * A,bool verbose) {
+Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
+{
   const dim_t n=A->numRows;
   const dim_t n_block=A->row_block_size;
   const index_t* colorOf = A->pattern->borrowColoringPointer();
   const dim_t num_colors = A->pattern->getNumColors();
-  const index_t *ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A);
+  const index_t *ptr_main = A->borrowMainDiagonalPointer();
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
   register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
@@ -321,7 +320,9 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix * A,bool verbose) {
    vector is available.
 */
 
-void Paso_Solver_solveILU(paso::SparseMatrix * A, Paso_Solver_ILU * ilu, double * x, const double * b) {
+void Paso_Solver_solveILU(paso::SparseMatrix_ptr A, Paso_Solver_ILU* ilu,
+                          double* x, const double* b)
+{
      register dim_t i,k;
      register index_t color,iptr_ik,iptr_main;
      register double S1,S2,S3,R1,R2,R3;
@@ -329,8 +330,7 @@ void Paso_Solver_solveILU(paso::SparseMatrix * A, Paso_Solver_ILU * ilu, double 
      const dim_t n_block=A->row_block_size;
      const index_t* colorOf = A->pattern->borrowColoringPointer();
      const dim_t num_colors = A->pattern->getNumColors();
-     const index_t *ptr_main = paso::SparseMatrix_borrowMainDiagonalPointer(A);
-
+     const index_t *ptr_main = A->borrowMainDiagonalPointer();
 
      /* copy x into b */
      #pragma omp parallel for private(i) schedule(static)

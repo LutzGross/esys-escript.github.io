@@ -15,29 +15,30 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: updates A_CC <- ACC-ACF AFF^{-1} AFC                 */
 
 /* no check of consistency of matrices !!!!                   */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003,2004,2005              */
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 #include "Solver.h"
 
-/************************************************************************************/
+/****************************************************************************/
 
 
-
-void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix* A_CC,paso::SparseMatrix *A_CF,double* invA_FF,index_t* A_FF_pivot,paso::SparseMatrix *A_FC) {
-
+void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
+        paso::SparseMatrix_ptr A_CF, double* invA_FF, index_t* A_FF_pivot,
+        paso::SparseMatrix_ptr A_FC)
+{
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;
   bool set_A;
@@ -197,15 +198,4 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix* A_CC,paso::
       } /* end of irow loop */
    }
 }
-/*
- * $Log$
- * Revision 1.2  2005/09/15 03:44:40  jgs
- * Merge of development branch dev-02 back to main trunk on 2005-09-15
- *
- * Revision 1.1.2.1  2005/09/05 06:29:50  gross
- * These files have been extracted from finley to define a stand alone library for iterative
- * linear solvers on the ALTIX. main entry through Paso_solve. this version compiles but
- * has not been tested yet.
- *
- *
- */
+

@@ -38,157 +38,122 @@
 
 namespace paso {
 
-void SparseMatrix_nullifyRowsAndCols_CSC_BLK1(SparseMatrix* A,
-                                              const double* mask_row,
-                                              const double* mask_col,
-                                              double main_diagonal_value)
+void SparseMatrix::nullifyRowsAndCols_CSC_BLK1(const double* mask_row,
+                                               const double* mask_col,
+                                               double main_diagonal_value)
 {
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t irow, iptr, icol;
-  #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-  for (icol=0;icol< A->pattern->numOutput;icol++) {
-     #pragma ivdep
-     for (iptr=A->pattern->ptr[icol]-index_offset;iptr<A->pattern->ptr[icol+1]-index_offset; iptr++) {
-	  irow=A->pattern->index[iptr]-index_offset;
-	  if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-            if (irow==icol) {
-	      A->val[iptr]=main_diagonal_value;
-            } else {
-	      A->val[iptr]=0;
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+#pragma omp parallel for
+    for (index_t icol=0; icol < pattern->numOutput; icol++) {
+        #pragma ivdep
+        for (index_t iptr=pattern->ptr[icol]-index_offset; iptr < pattern->ptr[icol+1]-index_offset; iptr++) {
+            const index_t irow = pattern->index[iptr]-index_offset;
+            if (mask_col[icol]>0. || mask_row[irow]>0.) {
+                val[iptr] = (irow==icol ? main_diagonal_value : 0);
             }
-	  }
-	}
+        }
     }
 }
 
-void SparseMatrix_nullifyRowsAndCols_CSR_BLK1(SparseMatrix* A,
-                                              const double* mask_row,
-                                              const double* mask_col,
-                                              double main_diagonal_value)
+void SparseMatrix::nullifyRowsAndCols_CSR_BLK1(const double* mask_row,
+                                               const double* mask_col,
+                                               double main_diagonal_value)
 {
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t irow, iptr, icol;
-  #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-  for (irow=0;irow< A->pattern->numOutput;irow++) {
-      /* TODO: test mask_row here and not inside every loop */
-      #pragma ivdep
-      for (iptr=A->pattern->ptr[irow]-index_offset;iptr<A->pattern->ptr[irow+1]-index_offset; iptr++) {
-        icol=A->pattern->index[iptr]-index_offset;
-        if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-           if (irow==icol) {
-	      A->val[iptr]=main_diagonal_value;
-            } else {
-	      A->val[iptr]=0;
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+#pragma omp parallel for
+    for (index_t irow=0; irow < pattern->numOutput; irow++) {
+        #pragma ivdep
+        for (index_t iptr=pattern->ptr[irow]-index_offset; iptr < pattern->ptr[irow+1]-index_offset; iptr++) {
+            const index_t icol = pattern->index[iptr]-index_offset;
+            if (mask_col[icol]>0. || mask_row[irow]>0.) {
+                val[iptr] = (irow==icol ? main_diagonal_value : 0);
             }
-	}
-     }
-  } 
+        }
+    }
 }
 
-void SparseMatrix_nullifyRowsAndCols_CSC(SparseMatrix* A,
-                                         const double* mask_row,
-                                         const double* mask_col,
-                                         double main_diagonal_value)
+void SparseMatrix::nullifyRowsAndCols_CSC(const double* mask_row,
+                                          const double* mask_col,
+                                          double main_diagonal_value)
 {
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t icol,iptr,icb,irb,irow,ic,l;
-  #pragma omp parallel for private(l,irow, iptr,icol,ic,irb,icb) schedule(static)
-  for (ic=0;ic< A->pattern->numOutput;ic++) {
-	for (iptr=A->pattern->ptr[ic]-index_offset;iptr<A->pattern->ptr[ic+1]-index_offset; iptr++) {
-	  for (irb=0;irb< A->row_block_size;irb++) {
-	    irow=irb+A->row_block_size*(A->pattern->index[iptr]-index_offset);
-            #pragma ivdep
-	    for (icb=0;icb< A->col_block_size;icb++) {
-	      icol=icb+A->col_block_size*ic;
-	      if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-                l=iptr*A->block_size+irb+A->row_block_size*icb;
-		if (irow==icol) {
-		  A->val[l]=main_diagonal_value;
-		} else {
-		  A->val[l]=0;
-		}
-	      }
-	    }
-	  }
-	}
-  }
-}
-
-void SparseMatrix_nullifyRowsAndCols_CSR(SparseMatrix* A,
-                                         const double* mask_row,
-                                         const double* mask_col,
-                                         double main_diagonal_value)
-{
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t ir,icol,iptr,icb,irb,irow,l;
-  #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
-  for (ir=0;ir< A->pattern->numOutput;ir++) {
-	for (iptr=A->pattern->ptr[ir]-index_offset;iptr<A->pattern->ptr[ir+1]-index_offset; iptr++) {
-	  for (irb=0;irb< A->row_block_size;irb++) {
-	    irow=irb+A->row_block_size*ir;
-            #pragma ivdep
-	    for (icb=0;icb< A->col_block_size;icb++) {
-	      icol=icb+A->col_block_size*(A->pattern->index[iptr]-index_offset);
-	      if (mask_col[icol]>0. || mask_row[irow]>0. ) {
-                l=iptr*A->block_size+irb+A->row_block_size*icb;
-		if (irow==icol) {
-		  A->val[l]=main_diagonal_value;
-		} else {
-		  A->val[l]=0;
-		}
-	      }
-	    }
-	  }
-	}
-  }
-}
-
-void SparseMatrix_nullifyRows_CSR_BLK1(SparseMatrix* A, const double* mask_row,
-                                       double main_diagonal_value)
-{
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t irow, iptr, icol;
-  #pragma omp parallel for private(irow, iptr,icol) schedule(static)
-  for (irow=0;irow< A->pattern->numOutput;irow++) {
-      if (mask_row[irow]>0.) {
-         #pragma ivdep
-         for (iptr=A->pattern->ptr[irow]-index_offset;iptr<A->pattern->ptr[irow+1]-index_offset; iptr++) {
-           icol=A->pattern->index[iptr]-index_offset;
-           if (irow==icol) {
-	      A->val[iptr]=main_diagonal_value;
-            } else {
-	      A->val[iptr]=0;
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+#pragma omp parallel for
+    for (index_t ic=0; ic < pattern->numOutput; ic++) {
+        for (index_t iptr=pattern->ptr[ic]-index_offset; iptr < pattern->ptr[ic+1]-index_offset; iptr++) {
+            for (index_t irb=0; irb < row_block_size; irb++) {
+                const index_t irow=irb+row_block_size*(pattern->index[iptr]-index_offset);
+                #pragma ivdep
+                for (index_t icb=0; icb < col_block_size; icb++) {
+                    const index_t icol=icb+col_block_size*ic;
+                    if (mask_col[icol]>0. || mask_row[irow]>0.) {
+                        const index_t l=iptr*block_size+irb+row_block_size*icb;
+                        val[l] = (irow==icol ? main_diagonal_value : 0);
+                    }
+                }
             }
-	 }
-     }
-  } 
+        }
+    }
 }
 
-void SparseMatrix_nullifyRows_CSR(SparseMatrix* A, const double* mask_row,
-                                  double main_diagonal_value)
+void SparseMatrix::nullifyRowsAndCols_CSR(const double* mask_row,
+                                          const double* mask_col,
+                                          double main_diagonal_value)
 {
-  index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-  index_t ir,icol,iptr,icb,irb,irow,l;
-  #pragma omp parallel for private(l,irow, iptr,icol,ir,irb,icb) schedule(static)
-  for (ir=0;ir< A->pattern->numOutput;ir++) {
-	for (iptr=A->pattern->ptr[ir]-index_offset;iptr<A->pattern->ptr[ir+1]-index_offset; iptr++) {
-	  for (irb=0;irb< A->row_block_size;irb++) {
-	    irow=irb+A->row_block_size*ir;
-	    if (mask_row[irow]>0. ) {
-               #pragma ivdep
-	       for (icb=0;icb< A->col_block_size;icb++) {
-	           icol=icb+A->col_block_size*(A->pattern->index[iptr]-index_offset);
-                   l=iptr*A->block_size+irb+A->row_block_size*icb;
-	           if (irow==icol) {
-		      A->val[l]=main_diagonal_value;
-		    } else {
-		      A->val[l]=0;
-		    }
-	          }
-	       }
-	    }
-	}
-  }
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+#pragma omp parallel for
+    for (index_t ir=0; ir < pattern->numOutput; ir++) {
+        for (index_t iptr=pattern->ptr[ir]-index_offset; iptr < pattern->ptr[ir+1]-index_offset; iptr++) {
+            for (index_t irb=0; irb < row_block_size; irb++) {
+                const index_t irow=irb+row_block_size*ir;
+                #pragma ivdep
+                for (index_t icb=0; icb < col_block_size; icb++) {
+                    const index_t icol=icb+col_block_size*(pattern->index[iptr]-index_offset);
+                    if (mask_col[icol]>0. || mask_row[irow]>0.) {
+                        const index_t l=iptr*block_size+irb+row_block_size*icb;
+                        val[l] = (irow==icol ? main_diagonal_value : 0);
+                    }
+                }
+            }
+        }
+    }
+}
+
+void SparseMatrix::nullifyRows_CSR_BLK1(const double* mask_row,
+                                        double main_diagonal_value)
+{
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+#pragma omp parallel for
+    for (index_t irow=0; irow < pattern->numOutput; irow++) {
+        if (mask_row[irow]>0.) {
+            #pragma ivdep
+            for (index_t iptr=pattern->ptr[irow]-index_offset; iptr < pattern->ptr[irow+1]-index_offset; iptr++) {
+                const index_t icol = pattern->index[iptr]-index_offset;
+                val[iptr] = (irow==icol ? main_diagonal_value : 0);
+            }
+        }
+    } 
+}
+
+void SparseMatrix::nullifyRows_CSR(const double* mask_row,
+                                   double main_diagonal_value)
+{
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+#pragma omp parallel for
+    for (index_t ir=0; ir < pattern->numOutput; ir++) {
+        for (index_t iptr=pattern->ptr[ir]-index_offset; iptr < pattern->ptr[ir+1]-index_offset; iptr++) {
+            for (index_t irb=0; irb < row_block_size; irb++) {
+                const index_t irow = irb+row_block_size*ir;
+                if (mask_row[irow]>0.) {
+                    #pragma ivdep
+                    for (index_t icb=0; icb < col_block_size; icb++) {
+                        const index_t icol=icb+col_block_size*(pattern->index[iptr]-index_offset);
+                        const index_t l=iptr*block_size+irb+row_block_size*icb;
+                        val[l] = (irow==icol ? main_diagonal_value : 0);
+                    }
+                }
+            }
+        }
+    }
 }
 
 } // namespace paso

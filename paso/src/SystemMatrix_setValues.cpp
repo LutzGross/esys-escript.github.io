@@ -15,28 +15,28 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix :                                       */
 /*  sets the values of the system matrix to a value           */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
 
-/************************************************************************************/
+/****************************************************************************/
 
-void  Paso_SystemMatrix_setValues(Paso_SystemMatrix* in,double value) {
-
-  if (in!=NULL) {
-      paso::SparseMatrix_setValues(in->mainBlock, value);
-      paso::SparseMatrix_setValues(in->col_coupleBlock, value);
-      paso::SparseMatrix_setValues(in->row_coupleBlock, value);
-      in->is_balanced=FALSE;
-  }
+void  Paso_SystemMatrix_setValues(Paso_SystemMatrix* in,double value)
+{
+    if (in!=NULL) {
+        in->mainBlock->setValues(value);
+        in->col_coupleBlock->setValues(value);
+        in->row_coupleBlock->setValues(value);
+        in->is_balanced = false;
+    }
 }

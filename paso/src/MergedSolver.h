@@ -38,7 +38,7 @@
 typedef struct Paso_MergedSolver
 {
     Esys_MPIInfo *mpi_info;
-    paso::SparseMatrix *A;
+    paso::SparseMatrix_ptr A;
 
     double* x;
     double* b;
@@ -51,7 +51,7 @@ typedef struct Paso_MergedSolver
 
 } Paso_MergedSolver;
 
-paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A);
+paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A);
 Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* options);
 void Paso_MergedSolver_free(Paso_MergedSolver* in);
 void Paso_MergedSolver_solve(Paso_MergedSolver* ms, double* local_x, double* local_b) ;

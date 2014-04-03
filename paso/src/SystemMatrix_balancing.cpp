@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix                                         */
 
@@ -24,12 +24,12 @@
 /*  If the vector is in valid a new vector is calculated as the  */
 /*  inverse of the sum of the absolute value in each row/column. */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2005 */
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
@@ -42,15 +42,15 @@ void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x
    
    if (A->is_balanced) {
       if (RHS) {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0; i<nrow ; ++i) {
-	    x[i]*=A->balance_vector[i];
-	 }
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0; i<nrow ; ++i) {
+            x[i]*=A->balance_vector[i];
+         }
       } else {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0; i<ncol ; ++i) {
-	    x[i]*=A->balance_vector[i];
-	 }
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0; i<ncol ; ++i) {
+            x[i]*=A->balance_vector[i];
+         }
       }
    }
    return;
@@ -64,75 +64,76 @@ void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, c
    
    if (A->is_balanced) {
       if (RHS) {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0; i<nrow ; ++i) {
-	    x_out[i]=x[i]*A->balance_vector[i];
-	 }
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0; i<nrow ; ++i) {
+            x_out[i]=x[i]*A->balance_vector[i];
+         }
       } else {
-	 #pragma omp parallel for private(i) schedule(static)
-	 for (i=0; i<ncol ; ++i) {
-	    x_out[i]=x[i]*A->balance_vector[i];
-	 }
+         #pragma omp parallel for private(i) schedule(static)
+         for (i=0; i<ncol ; ++i) {
+            x_out[i]=x[i]*A->balance_vector[i];
+         }
       }
    }
    return;
 }
 
-void Paso_SystemMatrix_balance(Paso_SystemMatrix* A) {
-   dim_t irow;
-   const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
-   register double fac;
+void Paso_SystemMatrix_balance(Paso_SystemMatrix* A)
+{
+    dim_t irow;
+    const dim_t nrow=Paso_SystemMatrix_getTotalNumRows(A);
+    register double fac;
 
-   if (!A->is_balanced) {
-      if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
-        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
-      } 
-      if ( ! ( (Paso_SystemMatrix_getGlobalNumRows(A) == Paso_SystemMatrix_getGlobalNumCols(A)) && (A->row_block_size == A->col_block_size) ) ) {
-	 Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: matrix needs to be a square matrix.");
-      }
-      if (Esys_noError() ) {
-
-             /* calculate absolute max value over each row */
-             #pragma omp parallel for private(irow) schedule(static)
-             for (irow=0; irow<nrow ; ++irow) {
-		A->balance_vector[irow]=0;
-             }
-             paso::SparseMatrix_maxAbsRow_CSR_OFFSET0(A->mainBlock,A->balance_vector);
-             if(A->col_coupleBlock->pattern->ptr!=NULL) {
-                 paso::SparseMatrix_maxAbsRow_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector);  
-             }
+    if (!A->is_balanced) {
+        if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
+            Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
+        } 
+        if ( ! ( (Paso_SystemMatrix_getGlobalNumRows(A) == Paso_SystemMatrix_getGlobalNumCols(A)) && (A->row_block_size == A->col_block_size) ) ) {
+            Esys_setError(SYSTEM_ERROR,"Paso_SystemMatrix_balance: matrix needs to be a square matrix.");
+        }
+        if (Esys_noError() ) {
+            /* calculate absolute max value over each row */
+            #pragma omp parallel for private(irow) schedule(static)
+            for (irow=0; irow<nrow ; ++irow) {
+                A->balance_vector[irow]=0;
+            }
+            A->mainBlock->maxAbsRow_CSR_OFFSET0(A->balance_vector);
+            if(A->col_coupleBlock->pattern->ptr!=NULL) {
+                 A->col_coupleBlock->maxAbsRow_CSR_OFFSET0(A->balance_vector);
+            }
              
-             /* set balancing vector */
-             #pragma omp parallel
-             {
+            /* set balancing vector */
+            #pragma omp parallel
+            {
                 #pragma omp for private(irow,fac) schedule(static)
                 for (irow=0; irow<nrow ; ++irow) {
-		    fac=A->balance_vector[irow];
+                    fac=A->balance_vector[irow];
                     if (fac>0) {
-		       A->balance_vector[irow]=sqrt(1./fac);
+                       A->balance_vector[irow]=sqrt(1./fac);
                     } else {
-		       A->balance_vector[irow]=1.;
+                       A->balance_vector[irow]=1.;
                     }
                 }
-	    }
+            }
             {
-		  /* rescale matrix: */
-		  double *remote_values=NULL;
-		  /* start exchange */
-		  Paso_SystemMatrix_startCollect(A, A->balance_vector);
-		  /* process main block */
-          paso::SparseMatrix_applyDiagonal_CSR_OFFSET0(A->mainBlock,A->balance_vector, A->balance_vector);
-		  /* finish exchange */
-		  remote_values=Paso_SystemMatrix_finishCollect(A);
-		  /* process couple block */
-		  if (A->col_coupleBlock->pattern->ptr!=NULL) {
-              paso::SparseMatrix_applyDiagonal_CSR_OFFSET0(A->col_coupleBlock,A->balance_vector, remote_values); 
-		  }
-		  if (A->row_coupleBlock->pattern->ptr!=NULL) {
-              paso::SparseMatrix_applyDiagonal_CSR_OFFSET0(A->row_coupleBlock, remote_values, A->balance_vector); 
-		  }
-	     }
-             A->is_balanced=TRUE;
-          }
-      }
+                  /* rescale matrix: */
+                  double *remote_values=NULL;
+                  /* start exchange */
+                  Paso_SystemMatrix_startCollect(A, A->balance_vector);
+                  /* process main block */
+                  A->mainBlock->applyDiagonal_CSR_OFFSET0(A->balance_vector, A->balance_vector);
+                  /* finish exchange */
+                  remote_values=Paso_SystemMatrix_finishCollect(A);
+                  /* process couple block */
+                  if (A->col_coupleBlock->pattern->ptr!=NULL) {
+                    A->col_coupleBlock->applyDiagonal_CSR_OFFSET0(A->balance_vector, remote_values); 
+                  }
+                  if (A->row_coupleBlock->pattern->ptr!=NULL) {
+                    A->row_coupleBlock->applyDiagonal_CSR_OFFSET0(remote_values, A->balance_vector); 
+                  }
+            }
+            A->is_balanced=true;
+        }
+    }
 }
+

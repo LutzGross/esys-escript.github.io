@@ -15,16 +15,16 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix: interface to intel MKL sparse solver */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2006 */
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #ifndef INC_PASO_MKL
 #define INC_PASO_MKL
@@ -62,5 +62,6 @@
 
 
 void Paso_MKL_free(paso::SparseMatrix* A);
-void Paso_MKL(paso::SparseMatrix* A, double* out, double* in, index_t reordering, dim_t numRefinements, bool verbose);
+void Paso_MKL(paso::SparseMatrix_ptr A, double* out, double* in,
+              index_t reordering, dim_t numRefinements, bool verbose);
 #endif

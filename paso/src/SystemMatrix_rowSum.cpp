@@ -15,32 +15,32 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix: calculates row sum                     */
 
-
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: l.gross@auq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
 
-void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum) {
-   dim_t irow, nrow;
-   if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
-        Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_rowSum: No normalization available for compressed sparse column or index offset 1.");
-      } else {
-         nrow=A->mainBlock->numRows*A->row_block_size;
-         #pragma omp parallel for private(irow) schedule(static)
-         for (irow=0; irow<nrow ; ++irow) {
-               row_sum[irow]=0.;
-         }
-         paso::SparseMatrix_addRow_CSR_OFFSET0(A->mainBlock,row_sum);
-         paso::SparseMatrix_addRow_CSR_OFFSET0(A->col_coupleBlock,row_sum);
-   }
+void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum)
+{
+    dim_t irow, nrow;
+    if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1)) {
+        Esys_setError(TYPE_ERROR, "Paso_SystemMatrix_rowSum: No normalization available for compressed sparse column or index offset 1.");
+    } else {
+        nrow=A->mainBlock->numRows*A->row_block_size;
+        #pragma omp parallel for private(irow) schedule(static)
+        for (irow=0; irow<nrow ; ++irow) {
+            row_sum[irow]=0.;
+        }
+        A->mainBlock->addRow_CSR_OFFSET0(row_sum);
+        A->col_coupleBlock->addRow_CSR_OFFSET0(row_sum);
+    }
 }
 
