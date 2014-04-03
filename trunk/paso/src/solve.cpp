@@ -111,7 +111,6 @@ void Paso_solve(Paso_SystemMatrix* A,
   }
   Performance_close(&pp,options->verbose);
   /* Paso_Options_showDiagnostics(options); */
-  return;
 }
 
 /*  free memory possibly reserved for a recall */
@@ -131,11 +130,11 @@ void Paso_solve_free(Paso_SystemMatrix* in) {
 	  break;
 	  
         case PASO_MKL:
-          Paso_MKL_free(in->mainBlock); 
+          Paso_MKL_free(in->mainBlock.get());
           break;
 
         case PASO_UMFPACK:
-          Paso_UMFPACK_free(in->mainBlock); 
+          Paso_UMFPACK_free(in->mainBlock.get()); 
           break;
 
    }

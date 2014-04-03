@@ -42,15 +42,12 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
    const dim_t n_block = A->mainBlock->row_block_size;
    const dim_t* dist = A->pattern->input_distribution->first_component;
    dim_t i;
-   paso::SparseMatrix *A_temp;
 
    Paso_MergedSolver* out = NULL;
-   A_temp = Paso_MergedSolver_mergeSystemMatrix(A); 
+   paso::SparseMatrix_ptr A_temp(Paso_MergedSolver_mergeSystemMatrix(A));
    out = new Paso_MergedSolver;
    if (Esys_noError()) {
-   
        /* merge matrix */
-       out->A = NULL;
        out->mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
        out->reordering = options->reordering;
        out->refinements = options->coarse_matrix_refinements;
@@ -73,22 +70,19 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
 
       if (rank == 0) {
          /* solve locally */
-         #ifdef MKL
-           out->A = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, A_temp);
+#ifdef MKL
+           out->A = A_temp->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1);
            out->A->solver_package = PASO_MKL;
-         #else 
-           #ifdef UMFPACK
-             out->A  = paso::SparseMatrix_unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC, A_temp);
-             out->A->solver_package = PASO_UMFPACK;
-           #else
-             out->A->solver_p = Paso_Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
-             out->A->solver_package = PASO_SMOOTHER;
-           #endif
-         #endif
+#elif defined UMFPACK
+           out->A = A_temp->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC);
+           out->A->solver_package = PASO_UMFPACK;
+#else
+           out->A->solver_p = Paso_Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
+           out->A->solver_package = PASO_SMOOTHER;
+#endif
        }
    }
 
-   paso::SparseMatrix_free(A_temp);
    if ( Esys_noError()) {
       return out;
    } else {
@@ -97,20 +91,21 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(Paso_SystemMatrix *A, Paso_Options* o
    }
 }
 
-void Paso_MergedSolver_free(Paso_MergedSolver* in) {
-     if (in!=NULL) {
-         paso::SparseMatrix_free(in->A);
-	delete[] in->x;
-	delete[] in->b;
-	delete[] in->counts;
-	delete[] in->offset;
-	delete in;
-     }
+void Paso_MergedSolver_free(Paso_MergedSolver* in)
+{
+    if (in!=NULL) {
+        delete[] in->x;
+        delete[] in->b;
+        delete[] in->counts;
+        delete[] in->offset;
+        delete in;
+    }
 }
 
 /* Merge the system matrix which is distributed on ranks into a complete 
    matrix on rank 0, then solve this matrix on rank 0 only */
-paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
+paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A)
+{
   index_t i, iptr, j, n, remote_n, global_n, len, offset, tag;
   index_t row_block_size, col_block_size, block_size;
   index_t size=A->mpi_info->size;
@@ -118,7 +113,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
   index_t *ptr=NULL, *idx=NULL, *ptr_global=NULL, *idx_global=NULL;
   index_t *temp_n=NULL, *temp_len=NULL;
   double  *val=NULL;
-  paso::SparseMatrix *out=NULL;
+  paso::SparseMatrix_ptr out;
   #ifdef ESYS_MPI
     MPI_Request* mpi_requests=NULL;
     MPI_Status* mpi_stati=NULL;
@@ -131,7 +126,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     ptr = new index_t[n]; 
     #pragma omp parallel for private(i)
     for (i=0; i<n; i++) ptr[i] = i;
-    out = paso::SparseMatrix_getSubmatrix(A->mainBlock, n, n, ptr, ptr);
+    out = A->mainBlock->getSubmatrix(n, n, ptr, ptr);
     delete[] ptr;
     return out;
   }
@@ -169,12 +164,12 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     /* Second, receive ptr values from other ranks */
     for (i=1; i<size; i++) {
       remote_n = A->row_distribution->first_component[i+1] -
-		 A->row_distribution->first_component[i];
+                 A->row_distribution->first_component[i];
       #ifdef ESYS_MPI
       MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i, 
-			A->mpi_info->msg_tag_counter+i,
-			A->mpi_info->comm,
-			&mpi_requests[i]);
+                        A->mpi_info->msg_tag_counter+i,
+                        A->mpi_info->comm,
+                        &mpi_requests[i]);
       #endif
       temp_n[i] = remote_n;
       iptr += remote_n;
@@ -189,11 +184,11 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     offset = -1;
     for (i=0; i<size; i++) {
       if (temp_n[i] > 0) {
-	offset += temp_n[i];
-	len += ptr_global[offset];
-	temp_len[i] = ptr_global[offset];
+        offset += temp_n[i];
+        len += ptr_global[offset];
+        temp_len[i] = ptr_global[offset];
       }else 
-	temp_len[i] = 0;
+        temp_len[i] = 0;
     }
 
     idx_global = new index_t[len];
@@ -203,13 +198,13 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
       len = temp_len[i];
       #ifdef ESYS_MPI
       MPI_Irecv(&(idx_global[iptr]), len, MPI_INT, i,
-			A->mpi_info->msg_tag_counter+i,
-			A->mpi_info->comm,
-			&mpi_requests[i]);
+                        A->mpi_info->msg_tag_counter+i,
+                        A->mpi_info->comm,
+                        &mpi_requests[i]);
       #endif
       remote_n = temp_n[i];
       for (j=0; j<remote_n; j++) {
-	ptr_global[j+offset] = ptr_global[j+offset] + iptr;
+        ptr_global[j+offset] = ptr_global[j+offset] + iptr;
       }
       offset += remote_n;
       iptr += len;
@@ -227,8 +222,8 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     /* Then generate the sparse matrix */
     paso::Pattern_ptr pattern(new paso::Pattern(A->mainBlock->pattern->type,
                 global_n, global_n, ptr_global, idx_global));
-    out = paso::SparseMatrix_alloc(A->mainBlock->type, pattern, 
-			row_block_size, col_block_size, FALSE);
+    out.reset(new paso::SparseMatrix(A->mainBlock->type, pattern, 
+                        row_block_size, col_block_size, false));
 
     /* Finally, receive and copy the value */
     iptr = temp_len[0] * block_size;
@@ -255,7 +250,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     tag = A->mpi_info->msg_tag_counter+rank;
     #ifdef ESYS_MPI
     MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm, 
-			&mpi_requests[0]);
+                        &mpi_requests[0]);
     #endif
 
     /* Next, send out the local idx */
@@ -263,7 +258,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     tag += size;
     #ifdef ESYS_MPI
     MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm, 
-			&mpi_requests[1]);
+                        &mpi_requests[1]);
     #endif
 
     /* At last, send out the local val */
@@ -271,7 +266,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     tag += size;
     #ifdef ESYS_MPI
     MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm, 
-			&mpi_requests[2]);
+                        &mpi_requests[2]);
 
     MPI_Waitall(3, mpi_requests, mpi_stati);
     #endif
@@ -279,8 +274,7 @@ paso::SparseMatrix* Paso_MergedSolver_mergeSystemMatrix(Paso_SystemMatrix* A) {
     delete[] ptr;
     delete[] idx;
     delete[] val;
-
-    out = NULL;
+    out.reset();
   }
 
   delete[] mpi_requests;

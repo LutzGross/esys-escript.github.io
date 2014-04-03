@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/*   Paso: SparseMatrix and SystemVector */
+/*   Paso: SparseMatrix */
 
 /****************************************************************************/
 
@@ -25,29 +25,143 @@
 
 /****************************************************************************/
 
-#ifndef INC_PASO_SPARSEMATRIX
-#define INC_PASO_SPARSEMATRIX
+#ifndef __PASO_SPARSEMATRIX_H__
+#define __PASO_SPARSEMATRIX_H__
 
-#include "Common.h"
 #include "Pattern.h"
-#include "Options.h"
-#include "Paso.h"
-
-/****************************************************************************/
 
 namespace paso {
 
+struct SparseMatrix;
+typedef boost::shared_ptr<SparseMatrix> SparseMatrix_ptr;
+typedef boost::shared_ptr<const SparseMatrix> const_SparseMatrix_ptr;
+
 typedef int SparseMatrixType;
 
-// this struct holds a stiffness matrix
-struct SparseMatrix {
-    SparseMatrixType type;
-    dim_t reference_counter;
+// this struct holds a sparse matrix
+struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
+{
+    SparseMatrix(SparseMatrixType type, Pattern_ptr pattern,
+                 dim_t rowBlockSize, dim_t colBlockSize,
+                 bool patternIsUnrolled);
 
+    ~SparseMatrix();
+
+    void setValues(double value);
+
+    void copyFromMainDiagonal(double* out) const;
+
+    void copyToMainDiagonal(const double* in);
+
+    void copyBlockFromMainDiagonal(double* out) const;
+
+    void copyBlockToMainDiagonal(const double* in);
+
+    void applyBlockMatrix(double* block_diag, int* pivot, double* x,
+                          const double* b) const;
+
+    void invMain(double* inv_diag, int* pivot) const;
+
+    SparseMatrix_ptr unroll(SparseMatrixType type) const;
+    SparseMatrix_ptr getSubmatrix(dim_t n_row_sub,
+                                  dim_t n_col_sub,
+                                  const index_t* row_list,
+                                  const index_t* new_col_index) const;
+
+    SparseMatrix_ptr getBlock(int blockid) const;
+
+    SparseMatrix_ptr getTranspose() const;
+
+    void saveHB_CSC(FILE* handle) const;
+
+    void saveMM_CSC(FILE* handle) const;
+
+    void saveMM(const char* filename) const;
+
+    inline index_t* borrowMainDiagonalPointer() const
+    {
+        return pattern->borrowMainDiagonalPointer();
+    }
+
+    inline index_t* borrowColoringPointer() const
+    {
+       return pattern->borrowColoringPointer();
+    }
+
+    inline dim_t getNumColors() const
+    {
+       return pattern->getNumColors();
+    }
+
+    inline dim_t maxDeg() const
+    {
+       return pattern->maxDeg();
+    }
+
+    inline dim_t getTotalNumRows() const
+    {
+       return numRows * row_block_size;
+    }
+
+    inline dim_t getTotalNumCols() const
+    {
+       return numCols * col_block_size;
+    }
+
+    inline dim_t getNumRows() const
+    {
+       return numRows;
+    }
+
+    inline dim_t getNumCols() const
+    {
+       return numCols;
+    }
+
+    inline double getSize() const
+    {
+        return DBLE(len);
+    }
+
+    inline double getSparsity() const
+    {
+        return getSize()/(DBLE(getTotalNumRows())*DBLE(getTotalNumCols()));
+    }
+
+    static SparseMatrix_ptr loadMM_toCSR(const char* filename);
+
+
+    void nullifyRowsAndCols_CSC_BLK1(const double* mask_row,
+                                     const double* mask_col,
+                                     double main_diagonal_value);
+
+    void nullifyRowsAndCols_CSR_BLK1(const double* mask_row,
+                                     const double* mask_col,
+                                     double main_diagonal_value);
+
+    void nullifyRowsAndCols_CSC(const double* mask_row, const double* mask_col,
+                                double main_diagonal_value);
+
+    void nullifyRowsAndCols_CSR(const double* mask_row, const double* mask_col,
+                                double main_diagonal_value);
+
+    void nullifyRows_CSR_BLK1(const double* mask_row,
+                              double main_diagonal_value);
+
+    void nullifyRows_CSR(const double* mask_row, double main_diagonal_value);
+
+    void maxAbsRow_CSR_OFFSET0(double* array) const;
+
+    void addAbsRow_CSR_OFFSET0(double* array) const;
+
+    void addRow_CSR_OFFSET0(double* array) const;
+
+    void applyDiagonal_CSR_OFFSET0(const double* left, const double* right);
+
+    SparseMatrixType type;
     dim_t row_block_size;
     dim_t col_block_size;
     dim_t block_size;
-
     dim_t numRows;
     dim_t numCols;
     Pattern_ptr pattern;
@@ -63,135 +177,41 @@ struct SparseMatrix {
     void* solver_p;
 };
 
-/*  interfaces: */
-
-SparseMatrix* SparseMatrix_alloc(SparseMatrixType type, Pattern_ptr pattern,
-                                 dim_t row_block_size, dim_t col_block_size,
-                                 bool patternIsUnrolled);
-
-SparseMatrix* SparseMatrix_getReference(SparseMatrix* mat);
-
-dim_t SparseMatrix_getNumColors(const SparseMatrix* mat);
-
-void SparseMatrix_applyDiagonal_CSR_OFFSET0(SparseMatrix* A,
-                                            const double* left,
-                                            const double* right);
-
-index_t* SparseMatrix_borrowColoringPointer(const SparseMatrix* mat);
-
-void SparseMatrix_free(SparseMatrix* mat);
+//  interfaces:
 
 void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
-                                           const SparseMatrix* A,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
                                            const double beta, double* out);
 
 void SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
-                                           const SparseMatrix* A,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
                                            const double beta, double* out);
 
 void SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
-                                           const SparseMatrix* A,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
                                            const double beta, double* out);
 
 void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
-                                           const SparseMatrix* A,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
                                            const double beta, double* out);
 
 void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
-                                                const SparseMatrix* A,
+                                                const_SparseMatrix_ptr A,
                                                 const double* in,
                                                 const double beta, double* out);
 
-void SparseMatrix_maxAbsRow_CSR_OFFSET0(const SparseMatrix* A, double* array);
+SparseMatrix_ptr SparseMatrix_MatrixMatrix(const_SparseMatrix_ptr A,
+                                           const_SparseMatrix_ptr B);
 
-void SparseMatrix_addAbsRow_CSR_OFFSET0(const SparseMatrix* A, double* array);
-
-void SparseMatrix_addRow_CSR_OFFSET0(const SparseMatrix* A, double* array);
-
-void SparseMatrix_nullifyRowsAndCols_CSC_BLK1(SparseMatrix* A,
-                                              const double* mask_row,
-                                              const double* mask_col,
-                                              double main_diagonal_value);
-
-void SparseMatrix_nullifyRowsAndCols_CSR_BLK1(SparseMatrix* A,
-                                              const double* mask_row,
-                                              const double* mask_col,
-                                              double main_diagonal_value);
-
-void SparseMatrix_nullifyRowsAndCols_CSC(SparseMatrix* A,
-                                         const double* mask_row,
-                                         const double* mask_col,
-                                         double main_diagonal_value);
-
-void SparseMatrix_nullifyRowsAndCols_CSR(SparseMatrix* A,
-                                         const double* mask_row,
-                                         const double* mask_col,
-                                         double main_diagonal_value);
-
-void SparseMatrix_nullifyRows_CSR_BLK1(SparseMatrix* A, const double* mask_row,
-                                       double main_diagonal_value);
-
-void SparseMatrix_nullifyRows_CSR(SparseMatrix* A, const double* mask_row,
-                                  double main_diagonal_value);
-
-SparseMatrix* SparseMatrix_getSubmatrix(const SparseMatrix* A, dim_t n_row_sub,
-                                        dim_t n_col_sub,
-                                        const index_t* row_list,
-                                        const index_t* new_col_index);
-
-SparseMatrix* SparseMatrix_getBlock(const SparseMatrix* A, int blockid);
-
-SparseMatrix* SparseMatrix_MatrixMatrix(const SparseMatrix* A,
-                                        const SparseMatrix* B);
-
-SparseMatrix* SparseMatrix_MatrixMatrixTranspose(const SparseMatrix* A,
-                                                 const SparseMatrix* B,
-                                                 const SparseMatrix* T);
-
-SparseMatrix* SparseMatrix_unroll(SparseMatrixType type, const SparseMatrix* A);
-
-SparseMatrix* SparseMatrix_getTranspose(const SparseMatrix* A);
-
-void SparseMatrix_setValues(SparseMatrix* A, double value);
-
-void SparseMatrix_saveHB_CSC(const SparseMatrix* A, FILE* handle);
-
-void SparseMatrix_saveMM_CSC(const SparseMatrix* A, FILE* handle);
-
-SparseMatrix* SparseMatrix_loadMM_toCSR(const char* fileName);
-
-void SparseMatrix_saveMM(const SparseMatrix* A, const char* fileName);
-
-index_t* SparseMatrix_borrowMainDiagonalPointer(const SparseMatrix* A);
-
-void SparseMatrix_copyFromMainDiagonal(const SparseMatrix* A, double* out);
-
-void SparseMatrix_copyToMainDiagonal(SparseMatrix* A, const double* in);
-
-void SparseMatrix_copyBlockFromMainDiagonal(const SparseMatrix* A, double* out);
-
-void SparseMatrix_copyBlockToMainDiagonal(SparseMatrix* A, const double* in);
-
-void SparseMatrix_applyBlockMatrix(const SparseMatrix* A,
-                                   double* block_diag, int* pivot,
-                                   double* x, const double* b);
-
-void SparseMatrix_invMain(const SparseMatrix* A, double* inv_diag,
-                          int* pivot);
-
-dim_t SparseMatrix_maxDeg(const SparseMatrix* A);
-dim_t SparseMatrix_getTotalNumRows(const SparseMatrix* A);
-dim_t SparseMatrix_getTotalNumCols(const SparseMatrix* A);
-dim_t SparseMatrix_getNumRows(const SparseMatrix* A);
-dim_t SparseMatrix_getNumCols(const SparseMatrix* A);
-double SparseMatrix_getSize(const SparseMatrix* A);
-double SparseMatrix_getSparsity(const SparseMatrix* A);
+SparseMatrix_ptr SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr A,
+                                                    const_SparseMatrix_ptr B,
+                                                    const_SparseMatrix_ptr T);
 
 } // namespace paso
 
-#endif // INC_PASO_SPARSEMATRIX
+#endif // __PASO_SPARSEMATRIX_H__
 

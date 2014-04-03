@@ -63,11 +63,15 @@ struct Paso_SystemMatrix
   paso::Coupler_ptr row_coupler;
 
   /* this comes into play when PASO is used */
-  paso::SparseMatrix* mainBlock;           /* main block */
-  paso::SparseMatrix* col_coupleBlock;     /* coupling to neighbouring processors (row - col) */
-  paso::SparseMatrix* row_coupleBlock;     /* coupling to neighbouring processors (col - row)  */
-  paso::SparseMatrix* remote_coupleBlock;  /* coupling of rows-cols on neighbouring processors 
-                                              don't assume that this is set */
+  /// main block
+  paso::SparseMatrix_ptr mainBlock;
+  /// coupling to neighbouring processors (row - col)
+  paso::SparseMatrix_ptr col_coupleBlock;
+  /// coupling to neighbouring processors (col - row)
+  paso::SparseMatrix_ptr row_coupleBlock;
+  /// coupling of rows-cols on neighbouring processors,
+  /// don't assume that this is set
+  paso::SparseMatrix_ptr remote_coupleBlock;
 
   bool is_balanced;
   double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)

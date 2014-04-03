@@ -96,7 +96,7 @@ void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const 
 PASO_DLL_API
 void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q);
 
-#define Paso_TransportProblem_borrowMainDiagonalPointer(_fct_) paso::SparseMatrix_borrowMainDiagonalPointer((_fct_)->mass_matrix->mainBlock)
+#define Paso_TransportProblem_borrowMainDiagonalPointer(_fct_) (_fct_)->mass_matrix->mainBlock->borrowMainDiagonalPointer()
 #define Paso_TransportProblem_getBlockSize(__in__) (__in__)->transport_matrix->row_block_size
 #define Paso_TransportProblem_borrowConnector(__in__) (__in__)->transport_matrix->pattern->col_connector
 #define Paso_TransportProblem_borrowTransportMatrix(__in__) (__in__)->transport_matrix

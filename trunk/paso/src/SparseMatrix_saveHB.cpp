@@ -85,7 +85,6 @@ void fmt_str(int nvalues, int integer, int *width, int *nlines, int *nperline, c
 void print_data(FILE *fp, int n_perline, int width, int nval, char *fmt,
                 const void *ptr, int integer, int adjust)
 {
-    const double *data = reinterpret_cast<const double*>(ptr);
     int entries_done = 0;
     int padding, i;
     char pad_fmt[10];
@@ -109,6 +108,7 @@ void print_data(FILE *fp, int n_perline, int width, int nval, char *fmt,
             }
         }
     } else {
+        const double *data = reinterpret_cast<const double*>(ptr);
         for (i=0; i<nval; i++) {
             fprintf(fp, fmt, data[i]);
             entries_done++;
@@ -171,52 +171,45 @@ void generate_HB(FILE *fp, dim_t *col_ptr, dim_t *row_ind, const double *val)
     print_data(fp, val_perline, val_width, nz, val_fmt, val, 0, 0);
 }
 
-void SparseMatrix_saveHB_CSC(const SparseMatrix *A, FILE* fileHandle)
+void SparseMatrix::saveHB_CSC(FILE* fileHandle) const
 {
     int i, curr_col,j ;
     int iPtr, iCol, ir, ic;
-    index_t index_offset=(A->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     dim_t *row_ind=NULL, *col_ind = NULL, *col_ptr=NULL;
-    int nz = A->len;
 
-    if (A->val == NULL) {
-        Esys_setError(TYPE_ERROR,"SparseMatrix_saveHB_CSC: unsupported format detected.\n");
-        return;
-    }
-        
-    if (A->row_block_size == 1 && A->col_block_size == 1) {
-        M = A->numRows;
-        N = A->numCols;
-        generate_HB(fileHandle, A->pattern->ptr, A->pattern->index, A->val);
+    if (row_block_size == 1 && col_block_size == 1) {
+        M = numRows;
+        N = numCols;
+        generate_HB(fileHandle, pattern->ptr, pattern->index, val);
     } else {
-        M = A->numRows*A->row_block_size;
-        N = A->numCols*A->col_block_size;
+        M = numRows*row_block_size;
+        N = numCols*col_block_size;
 
-        row_ind = new dim_t [nz];
-        col_ind = new dim_t [nz];
+        row_ind = new dim_t[len];
+        col_ind = new dim_t[len];
 
         i = 0;
-        for( iCol=0; iCol<A->pattern->numOutput; iCol++ )
-            for( ic=0; ic<A->col_block_size; ic++)
-                for( iPtr=A->pattern->ptr[iCol]-index_offset; iPtr<A->pattern->ptr[iCol+1]-index_offset; iPtr++)
-                    for( ir=0; ir<A->row_block_size; ir++ ) {
-                        row_ind[i] = (A->pattern->index[iPtr]-index_offset)*A->row_block_size+ir+1;
-                        col_ind[i] = iCol*A->col_block_size+ic+1;
+        for (iCol=0; iCol<pattern->numOutput; iCol++)
+            for (ic=0; ic<col_block_size; ic++)
+                for (iPtr=pattern->ptr[iCol]-index_offset; iPtr<pattern->ptr[iCol+1]-index_offset; iPtr++)
+                    for (ir=0; ir<row_block_size; ir++) {
+                        row_ind[i] = (pattern->index[iPtr]-index_offset)*row_block_size+ir+1;
+                        col_ind[i] = iCol*col_block_size+ic+1;
                         i++;
                     }
         /* get the col_ptr */
-        col_ptr = new dim_t [(N+1)];
+        col_ptr = new dim_t[(N+1)];
 
         curr_col = 0;
-        for(j=0; (j<nz && curr_col<N); curr_col++ ) {
-            while( col_ind[j] != curr_col )
-            j++;
+        for (j=0; (j<len && curr_col<N); curr_col++) {
+            while( col_ind[j] != curr_col) j++;
             col_ptr[curr_col] = j;
         }
-        col_ptr[N] = nz;
+        col_ptr[N] = len;
 
         /* generate the HB file */
-        generate_HB(fileHandle, col_ptr, row_ind, A->val);
+        generate_HB(fileHandle, col_ptr, row_ind, val);
 
         /* free the allocated memory */
         delete[] col_ptr;

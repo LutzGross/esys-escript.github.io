@@ -15,20 +15,19 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: SystemMatrix */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "SystemMatrix.h"
 #include "Preconditioner.h"
 
-/************************************************************************************/
 
 /* Allocates a SystemMatrix of given type using the given matrix pattern.
    Values are initialized with zero. 
@@ -70,11 +69,7 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,
   if (! Esys_checkPtr(out)) {
      out->type=type;
      out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
-     out->mainBlock=NULL;
-     out->row_coupleBlock=NULL;
-     out->col_coupleBlock=NULL;
-     out->remote_coupleBlock=NULL;
-     out->is_balanced=FALSE;
+     out->is_balanced=false;
      out->balance_vector=NULL; 
      out->global_id=NULL;
      out->solver_package=PASO_PASO;  
@@ -136,15 +131,15 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,
            #endif
         } else {
            out->solver_package=PASO_PASO;  
-           out->mainBlock=paso::SparseMatrix_alloc(type,out->pattern->mainPattern,row_block_size,col_block_size,TRUE);
-           out->col_coupleBlock=paso::SparseMatrix_alloc(type,out->pattern->col_couplePattern,row_block_size,col_block_size,TRUE);
-           out->row_coupleBlock=paso::SparseMatrix_alloc(type,out->pattern->row_couplePattern,row_block_size,col_block_size,TRUE);
+           out->mainBlock.reset(new paso::SparseMatrix(type, out->pattern->mainPattern, row_block_size, col_block_size, true));
+           out->col_coupleBlock.reset(new paso::SparseMatrix(type, out->pattern->col_couplePattern, row_block_size, col_block_size, true));
+           out->row_coupleBlock.reset(new paso::SparseMatrix(type, out->pattern->row_couplePattern, row_block_size, col_block_size, true));
            if (Esys_noError()) {
-              /* allocate memory for matrix entries */
+              // allocate memory for matrix entries
               n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
-              out->balance_vector=new double[n_norm];
-              out->is_balanced=FALSE;
-             #pragma omp parallel for private(i) schedule(static)
+              out->balance_vector = new double[n_norm];
+              out->is_balanced = false;
+#pragma omp parallel for private(i) schedule(static)
              for (i=0;i<n_norm;++i) out->balance_vector[i]=1.;
            }
         }
@@ -160,7 +155,6 @@ Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,
 }
 
 /* returns a reference to Paso_SystemMatrix in */
-
 Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix* in) {
    if (in!=NULL) ++(in->reference_counter);
    return in;
@@ -175,13 +169,8 @@ void Paso_SystemMatrix_free(Paso_SystemMatrix* in)
         if (in->reference_counter<=0) {
             Paso_solve_free(in);
             Esys_MPIInfo_free(in->mpi_info);
-            paso::SparseMatrix_free(in->mainBlock);
-            paso::SparseMatrix_free(in->col_coupleBlock);
-            paso::SparseMatrix_free(in->row_coupleBlock);
-            paso::SparseMatrix_free(in->remote_coupleBlock);
-
             delete[] in->balance_vector;
-            if (in->global_id) delete[] in->global_id;
+            delete[] in->global_id;
 #ifdef TRILINOS
             Paso_TRILINOS_free(in->trilinos_data);
 #endif
@@ -272,22 +261,22 @@ dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A){
 double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A) {
    double global_size=0;
    if (A!=NULL) {
-         double my_size=paso::SparseMatrix_getSize(A->mainBlock)+paso::SparseMatrix_getSize(A->col_coupleBlock);
+         double my_size=A->mainBlock->getSize()+A->col_coupleBlock->getSize();
          if (A->mpi_info->size > 1) {
-         
-            #ifdef ESYS_MPI 
-               MPI_Allreduce(&my_size,&global_size, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-            #else
-               global_size=my_size;
-            #endif
-
+#ifdef ESYS_MPI 
+             MPI_Allreduce(&my_size,&global_size, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+#else
+            global_size=my_size;
+#endif
        } else {
             global_size=my_size;
-         }
+       }
    }
    return global_size;
 }
-double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix*A) {
+
+double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix* A)
+{
    return Paso_SystemMatrix_getGlobalSize(A)/(DBLE(Paso_SystemMatrix_getGlobalTotalNumRows(A))*DBLE(Paso_SystemMatrix_getGlobalTotalNumCols(A)));
 }
 
@@ -296,23 +285,21 @@ dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A)
    return A->pattern->getNumOutput();
 }
 
-index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix * A_p) 
+index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix* A_p) 
 {
-    index_t* out=NULL;
     int fail=0;
-    out=paso::SparseMatrix_borrowMainDiagonalPointer(A_p->mainBlock);
+    index_t* out = A_p->mainBlock->borrowMainDiagonalPointer();
     if (out==NULL) fail=1;
-    #ifdef ESYS_MPI
-    {
-         int fail_loc = fail;
-         MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A_p->mpi_info->comm);
-    }
-    #endif
-    if (fail>0) Esys_setError(VALUE_ERROR, "Paso_SystemMatrix_borrowMainDiagonalPointer: no main diagonal");
+#ifdef ESYS_MPI
+    int fail_loc = fail;
+    MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A_p->mpi_info->comm);
+#endif
+    if (fail>0)
+        Esys_setError(VALUE_ERROR, "SystemMatrix_borrowMainDiagonalPointer: no main diagonal");
     return out;
 }
 
-void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_over) 
+void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix* A_p, double* left_over) 
 {
    index_t ir, ib, irow;
    register double rtmp1, rtmp2;
@@ -320,8 +307,7 @@ void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_ove
    const dim_t nblk = A_p->block_size;
    const dim_t blk = A_p->row_block_size;
    const index_t* main_ptr=Paso_SystemMatrix_borrowMainDiagonalPointer(A_p);
-   
-   
+
    Paso_SystemMatrix_rowSum(A_p, left_over); /* left_over now holds the row sum */
 
    #pragma omp parallel for private(ir,ib, rtmp1, rtmp2) schedule(static)
@@ -335,25 +321,24 @@ void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_ove
        }
    }
 }
-void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double* out)
+void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix* A_p, double* out)
 {
-    paso::SparseMatrix_copyBlockFromMainDiagonal(A_p->mainBlock, out);
-    return;
+    A_p->mainBlock->copyBlockFromMainDiagonal(out);
 }
-void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
+
+void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix* A_p, const double* in) 
 {
-    paso::SparseMatrix_copyBlockToMainDiagonal(A_p->mainBlock, in);
-    return;
+    A_p->mainBlock->copyBlockToMainDiagonal(in);
 }
-void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out)
+
+void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix* A_p, double* out)
 {
-    paso::SparseMatrix_copyFromMainDiagonal(A_p->mainBlock, out);
-    return;
+    A_p->mainBlock->copyFromMainDiagonal(out);
 }
+
 void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
 {
-    paso::SparseMatrix_copyToMainDiagonal(A_p->mainBlock, in);
-    return;
+    A_p->mainBlock->copyToMainDiagonal(in);
 }
 
 void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
@@ -378,3 +363,4 @@ void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A) {
       A->solver_p=NULL;
    }
 }
+

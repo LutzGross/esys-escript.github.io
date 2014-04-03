@@ -30,18 +30,20 @@
 namespace paso {
 
 // forward declaration
-void SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
-        const dim_t nRows, const dim_t row_block_size,
-        const dim_t col_block_size, const index_t* ptr,
-        const index_t* index, const double* val, const double* in,
-        const double beta, double* out);
+void SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(double alpha, dim_t nRows,
+                                                  dim_t row_block_size,
+                                                  dim_t col_block_size,
+                                                  const index_t* ptr,
+                                                  const index_t* index,
+                                                  const double* val,
+                                                  const double* in,
+                                                  double beta, double* out);
 
 /* CSC format with offset 0 */
-void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
-                                           const SparseMatrix* A,
+void SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
-                                           const double beta,
-                                           double* out)
+                                           double beta, double* out)
 {
     if (ABS(beta) > 0) {
         if (beta != 1.) {
@@ -113,11 +115,10 @@ void SparseMatrix_MatrixVector_CSC_OFFSET0(const double alpha,
 }
 
 /* CSC format with offset 1 */
-void SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
-                                           const SparseMatrix* A,
+void SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
-                                           const double beta,
-                                           double* out)
+                                           double beta, double* out)
 {
     if (ABS(beta) > 0) {
         if (beta != 1.) {
@@ -185,9 +186,10 @@ void SparseMatrix_MatrixVector_CSC_OFFSET1(const double alpha,
 }
 
 /* CSR format with offset 1 */
-void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
-        const SparseMatrix* A, const double* in, const double beta,
-        double* out)
+void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
+                                           const_SparseMatrix_ptr A,
+                                           const double* in,
+                                           double beta, double* out)
 {
     if (ABS(beta) > 0) {
         if (beta != 1.) {
@@ -270,11 +272,10 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(const double alpha,
 }
 
 /* CSR format with offset 0 */
-void SparseMatrix_MatrixVector_CSR_OFFSET0(const double alpha,
-                                           const SparseMatrix* A,
+void SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
+                                           const_SparseMatrix_ptr A,
                                            const double* in,
-                                           const double beta,
-                                           double* out)
+                                           double beta, double* out)
 {
 /*#define PASO_DYNAMIC_SCHEDULING_MVM */
 
@@ -415,9 +416,10 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_stripe(const double alpha,
 }
 
 /* CSR format with offset 0 (diagonal only) */
-void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(const double alpha,
-        const SparseMatrix* A, const double* in, const double beta,
-        double* out)
+void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(double alpha,
+                                                const_SparseMatrix_ptr A,
+                                                const double* in,
+                                                double beta, double* out)
 {
     if (ABS(beta) > 0) {
         if (beta != 1.) {
