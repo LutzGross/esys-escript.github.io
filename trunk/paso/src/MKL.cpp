@@ -26,8 +26,8 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "MKL.h"
+#include "Options.h"
 #ifdef _OPENMP
 #include <omp.h>
 #endif
@@ -40,7 +40,7 @@ void Paso_MKL_free(paso::SparseMatrix* A)
 {
 #ifdef MKL
     index_t i;
-    if (A.get()) {
+    if (A) {
         if (A->solver_p && A->solver_package==PASO_MKL) {
             _INTEGER_t mtype = MKL_MTYPE_UNSYM;
             _INTEGER_t n = A->numRows;
@@ -132,7 +132,7 @@ void Paso_MKL(paso::SparseMatrix_ptr A, double* out, double* in,
         if (error != MKL_ERROR_NO) {
              if (verbose) printf("MKL: symbolic factorization failed.\n");
              Esys_setError(VALUE_ERROR,"symbolic factorization in PARDISO library failed.");
-             Paso_MKL_free(A);
+             Paso_MKL_free(A.get());
         } else {
             /* LDU factorization */
             phase = MKL_PHASE_FACTORIZATION;
@@ -142,7 +142,7 @@ void Paso_MKL(paso::SparseMatrix_ptr A, double* out, double* in,
             if (error != MKL_ERROR_NO) {
                 if (verbose) printf("MKL: LDU factorization failed.\n");
                 Esys_setError(ZERO_DIVISION_ERROR, "factorization in PARDISO library failed. Most likely the matrix is singular.");
-                Paso_MKL_free(A);
+                Paso_MKL_free(A.get());
            }
            if (verbose)
                printf("MKL: LDU factorization completed (time = %e).\n", Esys_timer()-time0);
