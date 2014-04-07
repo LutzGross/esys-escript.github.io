@@ -117,25 +117,23 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
     solver_package(PASO_PASO),
     solver_p(NULL)
 {
-    bool unroll=false;
-
     if (patternIsUnrolled) {
         if (!XNOR(ntype & MATRIX_FORMAT_OFFSET1, npattern->type & MATRIX_FORMAT_OFFSET1)) {
             Esys_setError(TYPE_ERROR, "SparseMatrix: requested offset and pattern offset do not match.");
         }
     }
     // do we need to apply unrolling?
-    unroll
-            // we don't like non-square blocks
-        =   (rowBlockSize != colBlockSize)
+    bool unroll
+          // we don't like non-square blocks
+        = (rowBlockSize != colBlockSize)
 #ifndef USE_LAPACK
-            // or any block size bigger than 3
-            ||  (colBlockSize > 3)
+          // or any block size bigger than 3
+          || (colBlockSize > 3)
 # endif
-            // or if block size one requested and the block size is not 1
-            ||  ((ntype & MATRIX_FORMAT_BLK1) && (colBlockSize > 1))
-            // or if offsets don't match
-            || ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1));
+          // or if block size one requested and the block size is not 1
+          || ((ntype & MATRIX_FORMAT_BLK1) && (colBlockSize > 1))
+          // or if offsets don't match
+          || ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1));
 
     SparseMatrixType pattern_format_out = (ntype & MATRIX_FORMAT_OFFSET1)
                              ? MATRIX_FORMAT_OFFSET1 : MATRIX_FORMAT_DEFAULT;

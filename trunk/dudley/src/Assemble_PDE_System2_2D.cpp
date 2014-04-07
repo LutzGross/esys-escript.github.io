@@ -44,7 +44,7 @@
 /************************************************************************************/
 
 void Dudley_Assemble_PDE_System2_2D(Dudley_Assemble_Parameters p, Dudley_ElementFile * elements,
-				    Paso_SystemMatrix * Mat, escriptDataC * F,
+				    paso::SystemMatrix_ptr Mat, escriptDataC * F,
 				    escriptDataC * A, escriptDataC * B, escriptDataC * C, escriptDataC * D,
 				    escriptDataC * X, escriptDataC * Y)
 {

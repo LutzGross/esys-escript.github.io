@@ -171,8 +171,14 @@ void generate_HB(FILE *fp, dim_t *col_ptr, dim_t *row_ind, const double *val)
     print_data(fp, val_perline, val_width, nz, val_fmt, val, 0, 0);
 }
 
-void SparseMatrix::saveHB_CSC(FILE* fileHandle) const
+void SparseMatrix::saveHB_CSC(const char* filename) const
 {
+    FILE* fileHandle = fopen(filename, "w");
+    if (!fileHandle) {
+        Esys_setError(IO_ERROR, "SparseMatrix::saveHB_CSC: File could not be opened for writing.");
+        return;
+    }
+
     int i, curr_col,j ;
     int iPtr, iCol, ir, ic;
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
@@ -216,6 +222,7 @@ void SparseMatrix::saveHB_CSC(FILE* fileHandle) const
         delete[] col_ind;
         delete[] row_ind;
     }
+    fclose(fileHandle);
 }
 
 } // namespace paso

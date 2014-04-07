@@ -32,22 +32,22 @@
 Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp) 
 {
     Paso_FCT_FluxLimiter* out=NULL;
-    const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+    const dim_t n = fctp->transport_matrix->getTotalNumRows();
     const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
      
     out=new Paso_FCT_FluxLimiter;
 
     out->mpi_info = Esys_MPIInfo_getReference(fctp->mpi_info);
-    out->u_tilde=new double[n];
-    out->MQ=new double[2*n];
-    out->R=new double[2*n];
+    out->u_tilde = new double[n];
+    out->MQ = new double[2*n];
+    out->R = new double[2*n];
 
     out->R_coupler.reset(new paso::Coupler(Paso_TransportProblem_borrowConnector(fctp),2*blockSize));
     out->u_tilde_coupler.reset(new paso::Coupler(Paso_TransportProblem_borrowConnector(fctp),blockSize));
-    out->antidiffusive_fluxes=Paso_SystemMatrix_alloc(fctp->transport_matrix->type,
-                                                fctp->transport_matrix->pattern,
-                                                fctp->transport_matrix->row_block_size,
-                                                fctp->transport_matrix->col_block_size, TRUE);
+    out->antidiffusive_fluxes.reset(new paso::SystemMatrix(
+                fctp->transport_matrix->type, fctp->transport_matrix->pattern,
+                fctp->transport_matrix->row_block_size,
+                fctp->transport_matrix->col_block_size, true));
     out->borrowed_lumped_mass_matrix=fctp->lumped_mass_matrix;
     if (Esys_noError()) {
         return out;
@@ -61,7 +61,6 @@ void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in)
 {
    if (in!=NULL) {
        Esys_MPIInfo_free(in->mpi_info);
-       Paso_SystemMatrix_free(in->antidiffusive_fluxes);
        delete[] in->u_tilde;
        delete[] in->MQ;
        delete[] in->R;
@@ -159,7 +158,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limi
   paso::const_SystemMatrixPattern_ptr pattern(Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter));
   const double* u_tilde = flux_limiter->u_tilde;
   const double* remote_u_tilde=flux_limiter->u_tilde_coupler->borrowRemoteData();
-  Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
+  paso::SystemMatrix_ptr adf(flux_limiter->antidiffusive_fluxes);
   index_t iptr_ij;
   dim_t i;
  
@@ -231,7 +230,7 @@ void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_l
 {
   const dim_t n=Paso_FCT_FluxLimiter_getTotalNumRows(flux_limiter);
   paso::const_SystemMatrixPattern_ptr pattern(Paso_FCT_FluxLimiter_getFluxPattern(flux_limiter));
-  const Paso_SystemMatrix * adf=flux_limiter->antidiffusive_fluxes;
+  paso::const_SystemMatrix_ptr adf(flux_limiter->antidiffusive_fluxes);
   double *R = flux_limiter->R;
   dim_t i;
   index_t iptr_ij;

@@ -61,21 +61,12 @@ sources = """
     SparseMatrix_MatrixMatrixTranspose.cpp
     SparseMatrix_MatrixVector.cpp
     SystemMatrix.cpp
-    SystemMatrix_copyColCoupleBlock.cpp
     SystemMatrix_MatrixVector.cpp
-    SystemMatrix_balancing.cpp
     SystemMatrix_copyRemoteCoupleBlock.cpp
     SystemMatrix_debug.cpp
     SystemMatrix_extendedRows.cpp
-    SystemMatrix_getSystemMatrixTypeId.cpp
     SystemMatrix_loadMM.cpp
     SystemMatrix_mergeMainAndCouple.cpp
-    SystemMatrix_nullifyRows.cpp
-    SystemMatrix_nullifyRowsAndCols.cpp
-    SystemMatrix_rowSum.cpp
-    SystemMatrix_saveHB.cpp
-    SystemMatrix_saveMM.cpp
-    SystemMatrix_setValues.cpp
     SystemMatrixPattern.cpp
     SystemMatrixPattern_unrollBlocks.cpp
     Transport.cpp

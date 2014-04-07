@@ -72,7 +72,7 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
 
     SparseMatrix_ptr getTranspose() const;
 
-    void saveHB_CSC(FILE* handle) const;
+    void saveHB_CSC(const char* filename) const;
 
     void saveMM_CSC(FILE* handle) const;
 

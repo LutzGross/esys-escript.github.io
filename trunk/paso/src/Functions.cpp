@@ -91,7 +91,7 @@ err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso
    if (F!=NULL) {
       switch(F->kind) {
           case LINEAR_SYSTEM:
-               return Paso_Function_LinearSystem_call(F, value, arg,pp);
+               return Paso_Function_LinearSystem_call((Paso_Function_LinearSystem*)F, value, arg,pp);
 	       break;
           default:
                return SYSTEM_ERROR;
@@ -104,12 +104,12 @@ err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso
 /*
  * clear Paso_Function
  */
-void Paso_Function_free(Paso_Function * F) {
+void Paso_Function_free(Paso_Function* F) {
    if (F!=NULL) {
 
       switch(F->kind) {
           case LINEAR_SYSTEM:
-               Paso_Function_LinearSystem_free(F);
+               Paso_Function_LinearSystem_free((Paso_Function_LinearSystem*)F);
                break;
           default:
                delete F;

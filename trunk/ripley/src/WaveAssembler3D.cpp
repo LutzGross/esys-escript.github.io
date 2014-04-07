@@ -22,7 +22,8 @@ using namespace std;
 namespace ripley {
 
 void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const {
+            std::map<std::string, escript::Data> coefs) const
+{
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
     if (isNotEmpty("B", coefs))
@@ -38,9 +39,10 @@ void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
 }
 
 
-WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
-                dim_t *m_NN, std::map<std::string, escript::Data> c) 
-            : AbstractAssembler() {
+WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX,
+              dim_t *m_NE, dim_t *m_NN, std::map<std::string, escript::Data> c) 
+            : AbstractAssembler()
+{
         domain = dom;
         this->m_dx = m_dx;
         this->m_NX = m_NX;
@@ -70,7 +72,7 @@ WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m
         c44 = c.find("c44")->second, c66 = c.find("c66")->second;
 }
 
-void WaveAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
+void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -2445,5 +2447,5 @@ EM_F[INDEX2(2,7,numEq)]+=Ctmp17 + Ctmp23 + Ctmp37 + Ctmp54 + Ctmp55 + Ctmp56 + C
     } // end of parallel region
 }
 
-}
+} // namespace ripley
 

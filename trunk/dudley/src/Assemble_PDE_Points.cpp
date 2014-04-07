@@ -46,7 +46,7 @@
 
 void  Dudley_Assemble_PDE_Points(Dudley_Assemble_Parameters p,
                                  Dudley_ElementFile* elements,
-                                 Paso_SystemMatrix* Mat, escriptDataC* F,
+                                 paso::SystemMatrix_ptr Mat, escriptDataC* F,
                                  escriptDataC* d_dirac, escriptDataC* y_dirac) {
 
     index_t color, e, row_index;

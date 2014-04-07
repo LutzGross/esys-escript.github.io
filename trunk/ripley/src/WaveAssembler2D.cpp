@@ -68,7 +68,7 @@ WaveAssembler2D::WaveAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_
         c44 = c.find("c44")->second, c66 = c.find("c66")->second;
 }
 
-void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
+void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -658,5 +658,5 @@ void WaveAssembler2D::assemblePDESystem(Paso_SystemMatrix* mat,
     } // end of parallel region
 }
 
-}
+} // namespace ripley
 

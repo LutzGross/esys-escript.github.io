@@ -13,8 +13,8 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-#ifndef __ABSTRACT_ASSEMBLER_H__
-#define __ABSTRACT_ASSEMBLER_H__
+#ifndef __RIPLEY_ABSTRACTASSEMBLER_H__
+#define __RIPLEY_ABSTRACTASSEMBLER_H__
 
 #include <map>
 #include <escript/Data.h>
@@ -39,7 +39,7 @@ public:
     
     /// assembles a single PDE into the system matrix 'mat' and the right hand
     /// side 'rhs'
-    void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDESingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const {
@@ -49,7 +49,7 @@ public:
 
     /// assembles boundary conditions of a single PDE into the system matrix
     /// 'mat' and the right hand side 'rhs'
-    void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -58,7 +58,7 @@ public:
 
     /// assembles a single PDE with reduced order into the system matrix 'mat'
     /// and the right hand side 'rhs'
-    void assemblePDESingleReduced(Paso_SystemMatrix* mat,
+    void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const {
@@ -68,7 +68,7 @@ public:
     
     /// assembles boundary conditions of a single PDE with reduced order into
     /// the system matrix 'mat' and the right hand side 'rhs'
-    void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -77,7 +77,7 @@ public:
     
     /// assembles a system of PDEs into the system matrix 'mat' and the right
     /// hand side 'rhs'
-    void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) {
@@ -87,7 +87,7 @@ public:
     
     /// assembles boundary conditions of a system of PDEs into the system
     /// matrix 'mat' and the right hand side 'rhs'
-    void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -96,7 +96,7 @@ public:
 
     /// assembles a system of PDEs with reduced order into the system matrix
     /// 'mat' and the right hand side 'rhs'
-    void assemblePDESystemReduced(Paso_SystemMatrix* mat,
+    void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) {
@@ -106,7 +106,7 @@ public:
 
     /// assembles boundary conditions of a system of PDEs with reduced order
     /// into the system matrix 'mat' and the right hand side 'rhs'
-    void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+    void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, const escript::Data& d,
             const escript::Data& y) const {
         throw RipleyException("This assembler does not support "
@@ -114,34 +114,37 @@ public:
     }
     
     /* The new interface for assemblers */
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDESingle(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDESystem(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+                    escript::Data& rhs,
+                    std::map<std::string, escript::Data> coefs) const = 0;
 
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
             std::map<std::string, escript::Data> coefs) const = 0;
 };
 
-}
+} // namespace ripley
 
 
-#endif
+#endif // __RIPLEY_ABSTRACTASSEMBLER_H__
+

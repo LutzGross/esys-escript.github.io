@@ -28,339 +28,480 @@
 #include "SystemMatrix.h"
 #include "Preconditioner.h"
 
+namespace paso {
 
-/* Allocates a SystemMatrix of given type using the given matrix pattern.
-   Values are initialized with zero. 
-   If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed
-   that the pattern is already unrolled to match the requested block size
-   and offsets. Otherwise unrolling and offset adjustment will be performed. */
-
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType type,
-        paso::SystemMatrixPattern_ptr pattern, int row_block_size,
-        int col_block_size, bool patternIsUnrolled)
+/// Allocates a SystemMatrix of given type using the given matrix pattern.
+/// Values are initialized with zero. 
+/// If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed
+/// that the pattern is already unrolled to match the requested block size
+/// and offsets. Otherwise unrolling and offset adjustment will be performed.
+SystemMatrix::SystemMatrix(SystemMatrixType ntype,
+                           SystemMatrixPattern_ptr npattern, int rowBlockSize,
+                           int colBlockSize, bool patternIsUnrolled) :
+    type(ntype),
+    logical_row_block_size(rowBlockSize),
+    logical_col_block_size(colBlockSize),
+    is_balanced(false),
+    balance_vector(NULL), 
+    global_id(NULL),
+    solver_package(PASO_PASO),
+    solver_p(NULL),
+    trilinos_data(NULL)
 {
-  Paso_SystemMatrix*out=NULL;
-  dim_t n_norm,i;
-  Paso_SystemMatrixType pattern_format_out;
-  bool unroll=FALSE;
-
-  pattern_format_out= (type & MATRIX_FORMAT_OFFSET1)? MATRIX_FORMAT_OFFSET1:  MATRIX_FORMAT_DEFAULT;
-  Esys_resetError();
-  if (patternIsUnrolled) {
-     if ( ! XNOR(type & MATRIX_FORMAT_OFFSET1, pattern->type & MATRIX_FORMAT_OFFSET1) ) {
-         Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_alloc: requested offset and pattern offset do not match.");
-         return NULL;
-     }
-  }
-  /* do we need to apply unrolling? */
-  unroll  
-        /* we don't like non-square blocks */
-    =   (row_block_size!=col_block_size)
-    #ifndef USE_LAPACK
-        /* or any block size bigger than 3 */
-    ||  (col_block_size>3) 
-    # endif
-        /* or if lock size one requested and the block size is not 1 */
-    ||  ((type & MATRIX_FORMAT_BLK1) &&  (col_block_size>1) )
-        /* or the offsets are wrong */
-    ||  ((type & MATRIX_FORMAT_OFFSET1) != ( pattern->type & MATRIX_FORMAT_OFFSET1));
-  
-  out=new Paso_SystemMatrix;
-  if (! Esys_checkPtr(out)) {
-     out->type=type;
-     out->mpi_info=Esys_MPIInfo_getReference(pattern->mpi_info);
-     out->is_balanced=false;
-     out->balance_vector=NULL; 
-     out->global_id=NULL;
-     out->solver_package=PASO_PASO;  
-     out->solver_p=NULL;  
-     out->trilinos_data=NULL;
-     out->reference_counter=1;
-     out->logical_row_block_size=row_block_size;
-     out->logical_col_block_size=col_block_size;
-
-     if (type & MATRIX_FORMAT_CSC) {
-         if (unroll) {
-               if (patternIsUnrolled) {
-                  out->pattern=pattern;
-               } else {
-                  out->pattern=pattern->unrollBlocks(pattern_format_out, col_block_size, row_block_size);
-               }
-               out->row_block_size=1;
-               out->col_block_size=1;
-         } else {
-              out->pattern=pattern->unrollBlocks(pattern_format_out, 1, 1);
-              out->row_block_size=row_block_size;
-              out->col_block_size=col_block_size;
-         }
-         if (Esys_noError()) {
-           out->row_distribution=out->pattern->input_distribution;
-           out->col_distribution=out->pattern->output_distribution;
-         }
-     } else {
-         if (unroll) {
-              if (patternIsUnrolled) {
-                  out->pattern = pattern;
-              } else {
-                  out->pattern=pattern->unrollBlocks(pattern_format_out, row_block_size, col_block_size);
-              }
-              out->row_block_size=1;
-              out->col_block_size=1;
-         } else {
-              out->pattern=pattern->unrollBlocks(pattern_format_out, 1, 1);
-              out->row_block_size=row_block_size;
-              out->col_block_size=col_block_size;
-         }
-         if (Esys_noError()) {
-              out->row_distribution = out->pattern->output_distribution;
-              out->col_distribution = out->pattern->input_distribution;
-         }
-     }
-     if (Esys_noError()) {
-        if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
-          out->block_size=MIN(out->row_block_size,out->col_block_size);
-        } else {
-          out->block_size=out->row_block_size*out->col_block_size;
+    Esys_resetError();
+    if (patternIsUnrolled) {
+        if (!XNOR(ntype & MATRIX_FORMAT_OFFSET1, npattern->type & MATRIX_FORMAT_OFFSET1)) {
+            Esys_setError(TYPE_ERROR, "SystemMatrix: requested offset and pattern offset do not match.");
         }
-        out->col_coupler.reset(new paso::Coupler(out->pattern->col_connector,out->col_block_size));
-        out->row_coupler.reset(new paso::Coupler(out->pattern->row_connector,out->row_block_size));
-        /* this should be bypassed if trilinos is used */
-        if (type & MATRIX_FORMAT_TRILINOS_CRS) {
-           #ifdef TRILINOS
-           out->trilinos_data=Paso_TRILINOS_alloc();
-           #endif
+    }
+    // do we need to apply unrolling?
+    bool unroll  
+          // we don't like non-square blocks
+        = (rowBlockSize != colBlockSize)
+#ifndef USE_LAPACK
+          // or any block size bigger than 3
+          || (colBlockSize > 3) 
+# endif
+          // or if block size one requested and the block size is not 1
+          || ((ntype & MATRIX_FORMAT_BLK1) && colBlockSize > 1)
+          // or the offsets don't match
+          || ((ntype & MATRIX_FORMAT_OFFSET1) != (npattern->type & MATRIX_FORMAT_OFFSET1));
+
+    SystemMatrixType pattern_format_out = (ntype & MATRIX_FORMAT_OFFSET1)
+                             ? MATRIX_FORMAT_OFFSET1 : MATRIX_FORMAT_DEFAULT;
+
+    mpi_info = Esys_MPIInfo_getReference(npattern->mpi_info);
+
+    if (ntype & MATRIX_FORMAT_CSC) {
+        if (unroll) {
+            if (patternIsUnrolled) {
+                pattern=npattern;
+            } else {
+                pattern = npattern->unrollBlocks(pattern_format_out,
+                                                 colBlockSize, rowBlockSize);
+            }
+            row_block_size = 1;
+            col_block_size = 1;
         } else {
-           out->solver_package=PASO_PASO;  
-           out->mainBlock.reset(new paso::SparseMatrix(type, out->pattern->mainPattern, row_block_size, col_block_size, true));
-           out->col_coupleBlock.reset(new paso::SparseMatrix(type, out->pattern->col_couplePattern, row_block_size, col_block_size, true));
-           out->row_coupleBlock.reset(new paso::SparseMatrix(type, out->pattern->row_couplePattern, row_block_size, col_block_size, true));
-           if (Esys_noError()) {
-              // allocate memory for matrix entries
-              n_norm = MAX(out->mainBlock->numCols * out->col_block_size, out->mainBlock->numRows * out->row_block_size);
-              out->balance_vector = new double[n_norm];
-              out->is_balanced = false;
-#pragma omp parallel for private(i) schedule(static)
-             for (i=0;i<n_norm;++i) out->balance_vector[i]=1.;
-           }
+            pattern = npattern->unrollBlocks(pattern_format_out, 1, 1);
+            row_block_size = rowBlockSize;
+            col_block_size = colBlockSize;
         }
-     }
-  }
-  /* all done: */
-  if (! Esys_noError()) {
-    Paso_SystemMatrix_free(out);
-    return NULL;
-  } else {
-    return out;
-  }
-}
-
-/* returns a reference to Paso_SystemMatrix in */
-Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix* in) {
-   if (in!=NULL) ++(in->reference_counter);
-   return in;
-}
-
-/* deallocates a SystemMatrix: */
-
-void Paso_SystemMatrix_free(Paso_SystemMatrix* in)
-{
-    if (in!=NULL) {
-        in->reference_counter--;
-        if (in->reference_counter<=0) {
-            Paso_solve_free(in);
-            Esys_MPIInfo_free(in->mpi_info);
-            delete[] in->balance_vector;
-            delete[] in->global_id;
+        if (Esys_noError()) {
+            row_distribution = pattern->input_distribution;
+            col_distribution = pattern->output_distribution;
+        }
+    } else {
+        if (unroll) {
+            if (patternIsUnrolled) {
+                pattern = npattern;
+            } else {
+                pattern = npattern->unrollBlocks(pattern_format_out,
+                                                 rowBlockSize, colBlockSize);
+            }
+            row_block_size = 1;
+            col_block_size = 1;
+        } else {
+            pattern = npattern->unrollBlocks(pattern_format_out, 1, 1);
+            row_block_size = rowBlockSize;
+            col_block_size = colBlockSize;
+        }
+        if (Esys_noError()) {
+            row_distribution = pattern->output_distribution;
+            col_distribution = pattern->input_distribution;
+        }
+    }
+    if (Esys_noError()) {
+        if (ntype & MATRIX_FORMAT_DIAGONAL_BLOCK) {
+            block_size = MIN(row_block_size, col_block_size);
+        } else {
+            block_size = row_block_size*col_block_size;
+        }
+        col_coupler.reset(new paso::Coupler(pattern->col_connector, col_block_size));
+        row_coupler.reset(new paso::Coupler(pattern->row_connector, row_block_size));
+        if (ntype & MATRIX_FORMAT_TRILINOS_CRS) {
 #ifdef TRILINOS
-            Paso_TRILINOS_free(in->trilinos_data);
+            trilinos_data = Paso_TRILINOS_alloc();
 #endif
-            delete in;
-#ifdef Paso_TRACE
-            printf("Paso_SystemMatrix_free: system matrix has been deallocated.\n");
-#endif
+        } else {
+            mainBlock.reset(new paso::SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
+            col_coupleBlock.reset(new paso::SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
+            row_coupleBlock.reset(new paso::SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
+            const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
+            balance_vector = new double[n_norm];
+#pragma omp parallel for
+            for (dim_t i=0; i<n_norm; ++i)
+                balance_vector[i] = 1.;
         }
     }
 }
 
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in)
+// deallocates a SystemMatrix
+SystemMatrix::~SystemMatrix()
 {
-  Paso_SystemMatrix_startColCollect(A,in);
-}
-double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A)
-{
- return Paso_SystemMatrix_finishColCollect(A);
-}
-
-void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in)
-{
-    A->col_coupler->startCollect(in);
-}
-
-double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A)
-{
-    return A->col_coupler->finishCollect();
-}
-
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in)
-{
-    A->row_coupler->startCollect(in);
-}
-
-double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A)
-{
-    return A->row_coupler->finishCollect();
-}
-
-dim_t Paso_SystemMatrix_getNumRows(const Paso_SystemMatrix* A){
-  return A->mainBlock->numRows;
-}
-
-dim_t Paso_SystemMatrix_getNumCols(const Paso_SystemMatrix* A){
-  return A->mainBlock->numCols;
-}
-
-dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A){
-  return  Paso_SystemMatrix_getNumRows(A) * A->row_block_size;
-}
-dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix* A){
-  return Paso_SystemMatrix_getNumCols(A) * A->col_block_size;
-}
-
-dim_t Paso_SystemMatrix_getRowOverlap(const Paso_SystemMatrix* A) 
-{
-  return A->row_coupler->getNumOverlapComponents();
-}
-
-dim_t Paso_SystemMatrix_getColOverlap(const Paso_SystemMatrix* A)
-{
-  return A->col_coupler->getNumOverlapComponents();
-}
-
-dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix* A) {
-  if (A->type & MATRIX_FORMAT_CSC) {
-      return A->pattern->input_distribution->getGlobalNumComponents();
-  }  else {
-      return A->pattern->output_distribution->getGlobalNumComponents();
-  }
-}
-dim_t Paso_SystemMatrix_getGlobalNumCols(const Paso_SystemMatrix* A) {
-  if (A->type & MATRIX_FORMAT_CSC) {
-      return A->pattern->output_distribution->getGlobalNumComponents();
-  }  else {
-      return A->pattern->input_distribution->getGlobalNumComponents();
-  }
-
-}
-dim_t Paso_SystemMatrix_getGlobalTotalNumRows(const Paso_SystemMatrix* A){
-   return Paso_SystemMatrix_getGlobalNumRows(A) * A->row_block_size;
-}
-
-dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A){
-   return Paso_SystemMatrix_getGlobalNumCols(A) * A->col_block_size;
-}
-double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A) {
-   double global_size=0;
-   if (A!=NULL) {
-         double my_size=A->mainBlock->getSize()+A->col_coupleBlock->getSize();
-         if (A->mpi_info->size > 1) {
-#ifdef ESYS_MPI 
-             MPI_Allreduce(&my_size,&global_size, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-#else
-            global_size=my_size;
+    Paso_solve_free(this);
+    Esys_MPIInfo_free(mpi_info);
+    delete[] balance_vector;
+    delete[] global_id;
+#ifdef TRILINOS
+    Paso_TRILINOS_free(trilinos_data);
 #endif
-       } else {
-            global_size=my_size;
-       }
-   }
-   return global_size;
+#ifdef Paso_TRACE
+    printf("SystemMatrix: system matrix has been deallocated.\n");
+#endif
 }
 
-double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix* A)
+void SystemMatrix::setPreconditioner(Paso_Options* options)
 {
-   return Paso_SystemMatrix_getGlobalSize(A)/(DBLE(Paso_SystemMatrix_getGlobalTotalNumRows(A))*DBLE(Paso_SystemMatrix_getGlobalTotalNumCols(A)));
+    if (!solver_p) {
+        solver_p = Paso_Preconditioner_alloc(shared_from_this(), options);
+    }
 }
 
-dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A)
+void SystemMatrix::solvePreconditioner(double* x, double* b)
 {
-   return A->pattern->getNumOutput();
+    Paso_Preconditioner* prec=(Paso_Preconditioner*)solver_p;
+    Paso_Preconditioner_solve(prec, shared_from_this(), x, b);
 }
 
-index_t* Paso_SystemMatrix_borrowMainDiagonalPointer(Paso_SystemMatrix* A_p) 
+void SystemMatrix::freePreconditioner()
+{
+    Paso_Preconditioner* prec = (Paso_Preconditioner*) solver_p;
+    Paso_Preconditioner_free(prec);
+    solver_p = NULL;
+}
+
+double SystemMatrix::getGlobalSize() const
+{
+    double global_size=0;
+    double my_size = mainBlock->getSize() + col_coupleBlock->getSize();
+    if (mpi_info->size > 1) {
+#ifdef ESYS_MPI 
+        MPI_Allreduce(&my_size, &global_size, 1, MPI_DOUBLE, MPI_SUM, mpi_info->comm);
+#else
+        global_size = my_size;
+#endif
+    } else {
+        global_size = my_size;
+    }
+    return global_size;
+}
+
+index_t* SystemMatrix::borrowMainDiagonalPointer() const
 {
     int fail=0;
-    index_t* out = A_p->mainBlock->borrowMainDiagonalPointer();
+    index_t* out = mainBlock->borrowMainDiagonalPointer();
     if (out==NULL) fail=1;
 #ifdef ESYS_MPI
     int fail_loc = fail;
-    MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, A_p->mpi_info->comm);
+    MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, mpi_info->comm);
 #endif
     if (fail>0)
-        Esys_setError(VALUE_ERROR, "SystemMatrix_borrowMainDiagonalPointer: no main diagonal");
+        Esys_setError(VALUE_ERROR, "SystemMatrix::borrowMainDiagonalPointer: no main diagonal");
     return out;
 }
 
-void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix* A_p, double* left_over) 
+void SystemMatrix::makeZeroRowSums(double* left_over) 
 {
-   index_t ir, ib, irow;
-   register double rtmp1, rtmp2;
-   const dim_t n = A_p->pattern->getNumOutput();
-   const dim_t nblk = A_p->block_size;
-   const dim_t blk = A_p->row_block_size;
-   const index_t* main_ptr=Paso_SystemMatrix_borrowMainDiagonalPointer(A_p);
+    const dim_t n = pattern->getNumOutput();
+    const dim_t nblk = block_size;
+    const dim_t blk = row_block_size;
+    const index_t* main_ptr = borrowMainDiagonalPointer();
 
-   Paso_SystemMatrix_rowSum(A_p, left_over); /* left_over now holds the row sum */
+    rowSum(left_over);
+    // left_over now holds the row sum
 
-   #pragma omp parallel for private(ir,ib, rtmp1, rtmp2) schedule(static)
-   for (ir=0;ir< n;ir++) {
-       for (ib=0;ib<blk; ib++) {
-             irow=ib+blk*ir;
-             rtmp1=left_over[irow];
-             rtmp2=A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib];
-             A_p->mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = -rtmp1;
-             left_over[irow]=rtmp2+rtmp1;
-       }
-   }
+#pragma omp parallel for
+    for (index_t ir=0; ir<n; ir++) {
+        for (index_t ib=0; ib<blk; ib++) {
+            const index_t irow = ib+blk*ir;
+            const double rtmp1 = left_over[irow];
+            const double rtmp2 = mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib];
+            mainBlock->val[main_ptr[ir]*nblk+ib+blk*ib] = -rtmp1;
+            left_over[irow]=rtmp2+rtmp1;
+        }
+    }
 }
-void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix* A_p, double* out)
+
+void SystemMatrix::nullifyRows(double* mask_row, double main_diagonal_value)
 {
-    A_p->mainBlock->copyBlockFromMainDiagonal(out);
+    if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_TRILINOS_CRS)) {
+        Esys_setError(SYSTEM_ERROR,
+                "SystemMatrix::nullifyRows: Only CSR format is supported.");
+        return;
+    }
+
+    if (col_block_size==1 && row_block_size==1) {
+        startRowCollect(mask_row);
+        mainBlock->nullifyRows_CSR_BLK1(mask_row, main_diagonal_value);
+        col_coupleBlock->nullifyRows_CSR_BLK1(mask_row, 0.);
+        double* remote_values = finishRowCollect();
+        row_coupleBlock->nullifyRows_CSR_BLK1(remote_values, 0.);
+    } else {
+        startRowCollect(mask_row);
+        mainBlock->nullifyRows_CSR(mask_row, main_diagonal_value);
+        col_coupleBlock->nullifyRows_CSR(mask_row, 0.);
+        double* remote_values = finishRowCollect();
+        row_coupleBlock->nullifyRows_CSR(remote_values, 0.);
+    }
 }
 
-void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix* A_p, const double* in) 
+void SystemMatrix::nullifyRowsAndCols(double* mask_row, double* mask_col,
+                                      double main_diagonal_value)
 {
-    A_p->mainBlock->copyBlockToMainDiagonal(in);
+    if (type & MATRIX_FORMAT_TRILINOS_CRS) {
+        Esys_setError(SYSTEM_ERROR,
+               "SystemMatrix::nullifyRowsAndCols: TRILINOS is not supported.");
+        return;
+    }
+
+    if (mpi_info->size > 1) {
+        if (type & MATRIX_FORMAT_CSC) {
+            Esys_setError(SYSTEM_ERROR, "SystemMatrix::nullifyRowsAndCols: "
+                                        "CSC is not supported with MPI.");
+            return;
+        }
+
+        startColCollect(mask_col);
+        startRowCollect(mask_row);
+        if (col_block_size==1 && row_block_size==1) {
+            mainBlock->nullifyRowsAndCols_CSR_BLK1(mask_row, mask_col, main_diagonal_value);
+            double* remote_values = finishColCollect();
+            col_coupleBlock->nullifyRowsAndCols_CSR_BLK1(mask_row, remote_values, 0.);
+            remote_values = finishRowCollect();
+            row_coupleBlock->nullifyRowsAndCols_CSR_BLK1(remote_values, mask_col, 0.);
+        } else {
+            mainBlock->nullifyRowsAndCols_CSR(mask_row, mask_col, main_diagonal_value);
+            double* remote_values = finishColCollect();
+            col_coupleBlock->nullifyRowsAndCols_CSR(mask_row, remote_values, 0.);
+            remote_values = finishRowCollect();
+            row_coupleBlock->nullifyRowsAndCols_CSR(remote_values, mask_col, 0.); 
+        } 
+    } else { 
+        if (col_block_size==1 && row_block_size==1) {
+            if (type & MATRIX_FORMAT_CSC) {
+                mainBlock->nullifyRowsAndCols_CSC_BLK1(mask_row, mask_col, main_diagonal_value);
+            } else {
+                mainBlock->nullifyRowsAndCols_CSR_BLK1(mask_row, mask_col, main_diagonal_value);
+            }
+        } else {
+            if (type & MATRIX_FORMAT_CSC) {
+                mainBlock->nullifyRowsAndCols_CSC(mask_row, mask_col, main_diagonal_value);
+            } else {
+                mainBlock->nullifyRowsAndCols_CSR(mask_row, mask_col, main_diagonal_value);
+            }
+        }
+    }
 }
 
-void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix* A_p, double* out)
+void SystemMatrix::copyColCoupleBlock()
 {
-    A_p->mainBlock->copyFromMainDiagonal(out);
+    if (mpi_info->size == 1) {
+        // nothing to do
+        return;
+    } else if (!row_coupleBlock) {
+        Esys_setError(VALUE_ERROR, "SystemMatrix::copyColCoupleBlock: "
+                    "creation of row_coupleBlock pattern not supported yet.");
+        return;
+    } else if (row_coupler->in_use) {
+        Esys_setError(SYSTEM_ERROR,
+                "SystemMatrix::copyColCoupleBlock: Coupler in use.");
+        return;
+    }
+
+    // start receiving
+    for (dim_t p=0; p<row_coupler->connector->recv->numNeighbors; p++) {
+#ifdef ESYS_MPI
+        const index_t irow1 = row_coupler->connector->recv->offsetInShared[p];
+        const index_t irow2 = row_coupler->connector->recv->offsetInShared[p+1];
+        const index_t a = row_coupleBlock->pattern->ptr[irow1];
+        const index_t b = row_coupleBlock->pattern->ptr[irow2];
+         
+        MPI_Irecv(&row_coupleBlock->val[a*block_size], (b-a) * block_size,
+                MPI_DOUBLE, row_coupler->connector->recv->neighbor[p],
+                mpi_info->msg_tag_counter+row_coupler->connector->recv->neighbor[p],
+                mpi_info->comm, &row_coupler->mpi_requests[p]);
+
+#endif
+    }
+
+    // start sending
+    index_t z0 = 0;
+    double* send_buffer = new double[col_coupleBlock->len];
+    const size_t block_size_size = block_size*sizeof(double);
+    
+    for (dim_t p=0; p<row_coupler->connector->send->numNeighbors; p++) {
+        // j_min, j_max defines the range of columns to be sent to processor p
+        const index_t j_min = col_coupler->connector->recv->offsetInShared[p];
+        const index_t j_max = col_coupler->connector->recv->offsetInShared[p+1];
+        index_t z = z0;
+     
+        // run over the rows to be connected to processor p
+        for (index_t rPtr=row_coupler->connector->send->offsetInShared[p];
+                rPtr < row_coupler->connector->send->offsetInShared[p+1]; ++rPtr) {
+            const index_t row = row_coupler->connector->send->shared[rPtr];
+
+            // collect the entries in the col couple block referring to
+            // columns on processor p
+            for (index_t iPtr=col_coupleBlock->pattern->ptr[row];
+                    iPtr < col_coupleBlock->pattern->ptr[row+1]; ++iPtr) {
+                const index_t j = col_coupleBlock->pattern->index[iPtr];
+                if (j_min <= j && j < j_max) {
+                    memcpy(&send_buffer[z],
+                           &col_coupleBlock->val[block_size*iPtr],
+                           block_size_size);
+                    z+=block_size;
+                }
+            }
+        }
+#ifdef ESYS_MPI
+        MPI_Issend(&send_buffer[z0], z-z0, MPI_DOUBLE,
+                   row_coupler->connector->send->neighbor[p], 
+                   mpi_info->msg_tag_counter+mpi_info->rank,
+                   mpi_info->comm,
+                   &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
+#endif
+        z0 = z;
+    }
+
+    // wait until everything is done
+#ifdef ESYS_MPI
+    MPI_Waitall(row_coupler->connector->send->numNeighbors+row_coupler->connector->recv->numNeighbors,
+                row_coupler->mpi_requests,
+                row_coupler->mpi_stati);
+#endif
+    ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size);
+    delete[] send_buffer;
 }
 
-void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in) 
+void SystemMatrix::applyBalanceInPlace(double* x, const bool RHS) const
 {
-    A_p->mainBlock->copyToMainDiagonal(in);
+    if (is_balanced) {
+        if (RHS) {
+            const dim_t nrow = getTotalNumRows();
+#pragma omp parallel for
+            for (index_t i=0; i<nrow; ++i) {
+                x[i] *= balance_vector[i];
+            }
+        } else {
+            const dim_t ncol = getTotalNumCols();
+#pragma omp parallel for
+            for (index_t i=0; i<ncol; ++i) {
+                x[i] *= balance_vector[i];
+            }
+        }
+    }
 }
 
-void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options) {
-   if (A->solver_p==NULL) {
-      A->solver_p=Paso_Preconditioner_alloc(A,options);
-   }
+void SystemMatrix::applyBalance(double* x_out, const double* x, bool RHS) const
+{
+    if (is_balanced) {
+        if (RHS) {
+            const dim_t nrow = getTotalNumRows();
+#pragma omp parallel for
+            for (index_t i=0; i<nrow; ++i) {
+                x_out[i] = x[i] * balance_vector[i];
+            }
+        } else {
+            const dim_t ncol = getTotalNumCols();
+#pragma omp parallel for
+            for (index_t i=0; i<ncol; ++i) {
+                x_out[i] = x[i] * balance_vector[i];
+            }
+        }
+    }
 }
 
-/* Applies the preconditioner. */
-/* Has to be called within a parallel region. */
-/* Barrier synchronization is performed before the evaluation to make sure
-   that the input vector is available */
-void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b){
-   Paso_Preconditioner* prec=(Paso_Preconditioner*) A->solver_p;
-   Paso_Preconditioner_solve(prec, A,x,b);
+void SystemMatrix::balance()
+{
+    const dim_t nrow = getTotalNumRows();
+
+    if (!is_balanced) {
+        if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_OFFSET1)) {
+            Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
+        }
+        if (getGlobalNumRows() != getGlobalNumCols() ||
+                row_block_size != col_block_size) {
+            Esys_setError(SYSTEM_ERROR,"SystemMatrix::balance: matrix needs to be a square matrix.");
+        }
+        if (Esys_noError()) {
+            // calculate absolute max value over each row
+#pragma omp parallel for
+            for (dim_t irow=0; irow<nrow; ++irow) {
+                balance_vector[irow]=0;
+            }
+            mainBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
+            if (col_coupleBlock->pattern->ptr != NULL) {
+                col_coupleBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
+            }
+             
+            // set balancing vector
+            #pragma omp parallel for
+            for (dim_t irow=0; irow<nrow; ++irow) {
+                const double fac = balance_vector[irow];
+                if (fac > 0) {
+                    balance_vector[irow]=sqrt(1./fac);
+                } else {
+                    balance_vector[irow]=1.;
+                }
+            }
+            ///// rescale matrix /////
+            // start exchange
+            startCollect(balance_vector);
+            // process main block
+            mainBlock->applyDiagonal_CSR_OFFSET0(balance_vector, balance_vector);
+            // finish exchange
+            double* remote_values = finishCollect();
+            // process couple block
+            if (col_coupleBlock->pattern->ptr != NULL) {
+                col_coupleBlock->applyDiagonal_CSR_OFFSET0(balance_vector, remote_values); 
+            }
+            if (row_coupleBlock->pattern->ptr != NULL) {
+                row_coupleBlock->applyDiagonal_CSR_OFFSET0(remote_values, balance_vector); 
+            }
+            is_balanced = true;
+        }
+    }
 }
-void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A) {
-   Paso_Preconditioner* prec=NULL;
-   if (A!=NULL) {
-      prec=(Paso_Preconditioner*) A->solver_p;
-      Paso_Preconditioner_free(prec);
-      A->solver_p=NULL;
-   }
+
+index_t SystemMatrix::getSystemMatrixTypeId(index_t solver,
+                                            index_t preconditioner,
+                                            index_t package,
+                                            bool symmetry,
+                                            Esys_MPIInfo* mpi_info)
+{
+    index_t out = -1;
+    index_t true_package = Paso_Options_getPackage(solver, package, symmetry, mpi_info);
+
+    switch(true_package) {
+        case PASO_PASO:
+            out = MATRIX_FORMAT_DEFAULT;
+        break;
+
+        case PASO_MKL:
+            out = MATRIX_FORMAT_BLK1 | MATRIX_FORMAT_OFFSET1;
+        break;
+
+        case PASO_UMFPACK:
+            if (mpi_info->size > 1) {
+                Esys_setError(VALUE_ERROR, "The selected solver UMFPACK "
+                        "requires CSC format which is not supported with "
+                        "more than one rank.");
+            } else {
+                out = MATRIX_FORMAT_CSC | MATRIX_FORMAT_BLK1;
+            }
+        break;
+
+        case PASO_TRILINOS:
+            // Distributed CRS
+            out=MATRIX_FORMAT_TRILINOS_CRS | MATRIX_FORMAT_BLK1;
+        break;
+
+        default:
+            Esys_setError(VALUE_ERROR, "unknown package code");
+    }
+    return out;
 }
+
+} // namespace paso
 

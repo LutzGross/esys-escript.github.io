@@ -32,10 +32,10 @@ typedef struct Paso_TransportProblem {
     double dt_max_T;       /* safe time step size for transport  part */
     double* constraint_mask;
 
-    Paso_SystemMatrix * transport_matrix;
-    Paso_SystemMatrix * mass_matrix;
- 
-    Paso_SystemMatrix * iteration_matrix;
+    paso::SystemMatrix_ptr transport_matrix;
+    paso::SystemMatrix_ptr mass_matrix;
+    paso::SystemMatrix_ptr iteration_matrix;
+
     double* main_diagonal_low_order_transport_matrix;
     double* lumped_mass_matrix;     /* 'relevant' lumped mass matrix is assumed to be positive. 
                                        values with corresponding constraint_mask>0 value are set to -1
@@ -63,10 +63,10 @@ PASO_DLL_API
 double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* in);
 
 PASO_DLL_API
-Paso_SystemMatrix* Paso_TransportProblem_borrowTransportMatrix(Paso_TransportProblem* in);
+paso::SystemMatrix_ptr Paso_TransportProblem_borrowTransportMatrix(Paso_TransportProblem* in);
 
 PASO_DLL_API
-Paso_SystemMatrix* Paso_TransportProblem_borrowMassMatrix(Paso_TransportProblem* in);
+paso::SystemMatrix_ptr Paso_TransportProblem_borrowMassMatrix(Paso_TransportProblem* in);
 
 PASO_DLL_API
 void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options);
@@ -102,9 +102,8 @@ void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const d
 #define Paso_TransportProblem_borrowTransportMatrix(__in__) (__in__)->transport_matrix
 #define Paso_TransportProblem_borrowMassMatrix(__in__) (__in__)->mass_matrix
 #define Paso_TransportProblem_borrowLumpedMassMatrix(__in__) (__in__)->lumped_mass_matrix
-#define Paso_TransportProblem_getTotalNumRows(__in__) Paso_SystemMatrix_getTotalNumRows((__in__)->transport_matrix)
-
-
+#define Paso_TransportProblem_getTotalNumRows(__in__) (__in__)->transport_matrix->getTotalNumRows()
 
 
 #endif /* #ifndef INC_PASOTRANSPORT */
+

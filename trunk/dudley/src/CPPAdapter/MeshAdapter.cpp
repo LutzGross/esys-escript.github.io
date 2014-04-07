@@ -771,13 +771,13 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _y=y.getDataC();
    escriptDataC _y_dirac=y_dirac.getDataC();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, paso::SystemMatrix_ptr(), &_rhs, 0, 0, 0, 0, &_X, &_Y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, paso::SystemMatrix_ptr(), &_rhs, 0, 0, 0, 0, 0, &_y );
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, 0, &_rhs, 0, 0, 0, 0, 0, &_y_dirac );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, paso::SystemMatrix_ptr(), &_rhs, 0, 0, 0, 0, 0, &_y_dirac );
    checkDudleyError();
 }
 //
@@ -1408,7 +1408,7 @@ ASM_ptr MeshAdapter::newSystemMatrix(
  
    paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder));
    checkDudleyError();
-   Paso_SystemMatrix* fsystemMatrix;
+   paso::SystemMatrix_ptr fsystemMatrix;
    int trilinos = 0;
    if (trilinos) {
 #ifdef TRILINOS
@@ -1416,7 +1416,7 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 #endif
    }
    else {
-      fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize,FALSE);
+      fsystemMatrix.reset(new paso::SystemMatrix(type, fsystemMatrixPattern, row_blocksize, column_blocksize,false));
    }
    checkPasoError();
    SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace, column_blocksize,column_functionspace);

@@ -38,7 +38,6 @@
 *  MINRES solves the linear system A*x = b
 *
 *  Convergence test: norm( b - A*x )< TOL.
-*  For other measures, see the above reference.
 *
 *  Arguments
 *  =========
@@ -66,22 +65,17 @@
 
 
 
-err_t Paso_Solver_MINRES(
-    Paso_SystemMatrix * A,
-    double * R,
-    double * X,
-    dim_t *iter,
-    double * tolerance,
-    Paso_Performance* pp) 
+err_t Paso_Solver_MINRES(paso::SystemMatrix_ptr A, double* R, double* X,
+                         dim_t* iter, double* tolerance, Paso_Performance* pp) 
 {
 
-   double    delta,gamma=0.,gamma_old=0.,eta=0.,dp0=0., c=1.0,c_old=1.0,c_ancient=1.,s=0.0,s_old=0.0,s_ancient, norm_of_residual=0., rnorm_prec=1;
-   double tol=1., norm_scal=1.;
+    double delta,gamma=0.,gamma_old=0.,eta=0.,dp0=0., c=1.0,c_old=1.0,c_ancient=1.,s=0.0,s_old=0.0,s_ancient, norm_of_residual=0., rnorm_prec=1;
+    double tol=1., norm_scal=1.;
     const dim_t maxit = *iter;
     double    alpha_0,alpha_1,alpha_2,alpha_3,dp = 0.0;
     dim_t     num_iter = 0;
     double    *Z=NULL, *W=NULL, *AZ=NULL, *R_old=NULL, *R_ancient=NULL, *W_old=NULL, *W_ancient=NULL, *ZNEW=NULL;
-    const dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+    const dim_t n = A->getTotalNumRows();
     bool convergeFlag=FALSE;
     err_t status = SOLVER_NO_ERROR;
 /*                                                                 
@@ -112,7 +106,7 @@ err_t Paso_Solver_MINRES(
       
    if (status ==SOLVER_NO_ERROR) { 
       
-      Paso_SystemMatrix_solvePreconditioner(A, Z, R); /*     z  <- Prec*r       */
+      A->solvePreconditioner(Z, R); /*     z  <- Prec*r       */
       /* gamma <- r'*z */
           dp=Paso_InnerProduct(n, R ,Z,A->mpi_info); /* gamma <- r'*z */
 	  dp0=dp;
@@ -135,7 +129,7 @@ err_t Paso_Solver_MINRES(
            Paso_Scale(n, Z,1./gamma);        
 
         /*      Az <- A*z   */
-           Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, Z,PASO_ZERO,AZ); 
+           paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, Z,PASO_ZERO,AZ); 
 
 	/*  delta <- Az'.z */
 	    delta=Paso_InnerProduct(n,AZ,Z,A->mpi_info); 
@@ -148,7 +142,7 @@ err_t Paso_Solver_MINRES(
 	  if (num_iter>0) Paso_AXPY(n, R, -gamma/gamma_old, R_ancient);   /*  r <- r - gamma/gamma_old r__ancient  */
 
 	/*  z <- prec*r   */
-	  Paso_SystemMatrix_solvePreconditioner(A, ZNEW, R); 
+	  A->solvePreconditioner(ZNEW, R); 
         
 	
 	 dp=Paso_InnerProduct(n,R,ZNEW,A->mpi_info);

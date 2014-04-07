@@ -70,14 +70,9 @@
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-err_t Paso_Solver_TFQMR(
-    Paso_SystemMatrix * A,
-    double * r,
-    double * x,
-    dim_t *iter,
-    double * tolerance,
-    Paso_Performance* pp) {
-
+err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
+                        dim_t* iter, double* tolerance, Paso_Performance* pp)
+{
   /* Local variables */
   
   int m=1;  
@@ -86,7 +81,7 @@ err_t Paso_Solver_TFQMR(
   dim_t num_iter=0,maxit;
   bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
-  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+  const dim_t n = A->getTotalNumRows();
   double  *u1=NULL, *u2=NULL, *y1=NULL, *y2=NULL, *d=NULL, *w=NULL, *v=NULL, *temp_vector=NULL,*res=NULL;
 
   double eta,theta,tau,rho,beta,alpha,sigma,rhon,c;
@@ -124,7 +119,7 @@ err_t Paso_Solver_TFQMR(
   Paso_zeroes(n,x);
   
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  Paso_SystemMatrix_solvePreconditioner(A,res,r);
+  A->solvePreconditioner(res,r);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
   
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
@@ -139,13 +134,13 @@ err_t Paso_Solver_TFQMR(
   
   Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
   Performance_startMonitor(pp,PERFORMANCE_MVM);
-  Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1,PASO_ZERO,temp_vector);
+  paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1,PASO_ZERO,temp_vector);
   Performance_stopMonitor(pp,PERFORMANCE_MVM);
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
   
   Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-  Paso_SystemMatrix_solvePreconditioner(A,v,temp_vector);
+  A->solvePreconditioner(v,temp_vector);
   Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
   /* v = P^{-1} * A y1 */
@@ -179,13 +174,13 @@ err_t Paso_Solver_TFQMR(
           
           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
           Performance_startMonitor(pp,PERFORMANCE_MVM);
-          Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y2,PASO_ZERO,temp_vector);
+          paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y2,PASO_ZERO,temp_vector);
           Performance_stopMonitor(pp,PERFORMANCE_MVM);
           Performance_startMonitor(pp,PERFORMANCE_SOLVER);
           
           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
           Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-	  Paso_SystemMatrix_solvePreconditioner(A,u2,temp_vector);  
+          A->solvePreconditioner(u2,temp_vector);  
           Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
           Performance_startMonitor(pp,PERFORMANCE_SOLVER);
           /* u2 = P^{-1} * A y2 */
@@ -219,11 +214,11 @@ err_t Paso_Solver_TFQMR(
 
      Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
      Performance_startMonitor(pp,PERFORMANCE_MVM);
-     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1,PASO_ZERO,temp_vector);
+     paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1,PASO_ZERO,temp_vector);
      Performance_stopMonitor(pp,PERFORMANCE_MVM);
      
      Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-     Paso_SystemMatrix_solvePreconditioner(A,u1,temp_vector);
+     A->solvePreconditioner(u1,temp_vector);
      Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
      Performance_startMonitor(pp,PERFORMANCE_SOLVER);
      /*  u1 = P^{-1} * A y1 */

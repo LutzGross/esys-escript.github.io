@@ -752,7 +752,7 @@ void MeshAdapter::addPDEToSystem(
         throw FinleyAdapterException("finley only supports Paso system matrices.");
 
     Mesh* mesh=m_finleyMesh.get();
-    Paso_SystemMatrix* S = smat->getPaso_SystemMatrix();
+    paso::SystemMatrix_ptr S(smat->getPaso_SystemMatrix());
     Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
     checkFinleyError();
 
@@ -795,22 +795,22 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
     Mesh* mesh=m_finleyMesh.get();
-    Assemble_PDE(mesh->Nodes, mesh->Elements, 0, rhs,
+    Assemble_PDE(mesh->Nodes, mesh->Elements, paso::SystemMatrix_ptr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             X, Y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, 0, rhs,
-            escript::Data(), escript::Data(), escript::Data(), escript::Data(),
-            escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, paso::SystemMatrix_ptr(),
+            rhs, escript::Data(), escript::Data(), escript::Data(),
+            escript::Data(), escript::Data(), y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->ContactElements, 0, rhs,
-            escript::Data(), escript::Data(), escript::Data(),
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, paso::SystemMatrix_ptr(),
+            rhs, escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), escript::Data(), y_contact);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->Points, 0, rhs,
+    Assemble_PDE(mesh->Nodes, mesh->Points, paso::SystemMatrix_ptr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), y_dirac);
     checkFinleyError();
@@ -1458,15 +1458,15 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
     paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
             reduceRowOrder, reduceColOrder);
     checkFinleyError();
-    Paso_SystemMatrix* fsystemMatrix;
+    paso::SystemMatrix_ptr fsystemMatrix;
     const int trilinos = 0;
     if (trilinos) {
 #ifdef TRILINOS
         // FIXME: Allocation Epetra_VrbMatrix here...
 #endif
     } else {
-        fsystemMatrix=Paso_SystemMatrix_alloc(type, pattern, row_blocksize,
-                column_blocksize, FALSE);
+        fsystemMatrix.reset(new paso::SystemMatrix(type, pattern,
+                            row_blocksize, column_blocksize, false));
     }
     checkPasoError();
     SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);

@@ -62,39 +62,26 @@
 #include "Common.h"
 #include "SystemMatrix.h"
 #include "Solver.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
-err_t Paso_Solver_GMRES(
-    Paso_SystemMatrix * A,
-    double * r,
-    double * x,
-    dim_t *iter,
-    double * tolerance,dim_t Length_of_recursion,dim_t restart,
-    Paso_Performance* pp) {
+err_t Paso_Solver_GMRES(paso::SystemMatrix_ptr A, double* r, double* x,
+                        dim_t* iter, double* tolerance,
+                        dim_t Length_of_recursion, dim_t restart,
+                        Paso_Performance* pp)
+{
+    const int num_threads=omp_get_max_threads();
+    double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
+    double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
+    double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
+    double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual=0,diff,L2_R,Norm_of_residual_global=0;
+    double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
+    dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
+    dim_t i,z,order, Length_of_mem, th, local_n , rest, n_start ,n_end;
+    bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
+    err_t Status=SOLVER_NO_ERROR;
 
-   /* Local variables */
-
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
-  double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
-  double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
-  double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
-  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual=0,diff,L2_R,Norm_of_residual_global=0;
-  double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
-  dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
-  dim_t i,z,order,n, Length_of_mem, th, local_n , rest, n_start ,n_end;
-  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
-  err_t Status=SOLVER_NO_ERROR;
-
-  
-  /* adapt original routine parameters */
-  n = Paso_SystemMatrix_getTotalNumRows(A);
-  Length_of_mem=MAX(Length_of_recursion,0)+1;
+    /* adapt original routine parameters */
+    const dim_t n = A->getTotalNumRows();
+    Length_of_mem=MAX(Length_of_recursion,0)+1;
 
   /*     Test the input parameters. */
   if (restart>0) restart=MAX(Length_of_recursion,restart);
@@ -171,11 +158,11 @@ err_t Paso_Solver_GMRES(
          /***                                                                 
          *** calculate new search direction P from R_PRES
          ***/
-	 Paso_SystemMatrix_solvePreconditioner(A,&P_PRES[0][0], &R_PRES[0][0]);
+         A->solvePreconditioner(&P_PRES[0][0], &R_PRES[0][0]);
          /***                                                                 
          *** apply A to P to get AP 
          ***/
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0],PASO_ZERO, &AP[0]);
+         paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0], PASO_ZERO, &AP[0]);
          /***                                                                 
          ***** calculation of the norm of R and the scalar products of       
          ***   the residuals and A*P:                                        
@@ -602,12 +589,12 @@ err_t Paso_Solver_GMRES(
         }
         /* end of iteration */
         Norm_of_residual_global=norm_of_residual;
-	Num_iter_global=num_iter;
-	if (maxIterFlag) { 
-	       Status = SOLVER_MAXITER_REACHED;
-	   } else if (breakFlag) {
-	       Status = SOLVER_BREAKDOWN;
-	}
+        Num_iter_global=num_iter;
+        if (maxIterFlag) { 
+               Status = SOLVER_MAXITER_REACHED;
+           } else if (breakFlag) {
+               Status = SOLVER_BREAKDOWN;
+        }
     }
     for (i=0; i<Length_of_mem; i++) {
        delete[] X_PRES[i];

@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/* Paso: SystemMatrix: interface to intel MKL sparse solver */
+/* Paso: interface to intel MKL sparse solver */
 
 /****************************************************************************/
 
