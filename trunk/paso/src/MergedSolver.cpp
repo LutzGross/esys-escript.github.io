@@ -316,7 +316,7 @@ void Paso_MergedSolver_solve(Paso_MergedSolver* ms, double* local_x, double* loc
     /* now we need to distribute the solution to all ranks */
     MPI_Scatterv(ms->x, ms->counts, ms->offset, MPI_DOUBLE, local_x, count, MPI_DOUBLE, 0, ms->mpi_info->comm);
 #else
-#pragma omp parallel for private(i)
+#pragma omp parallel for
     for (dim_t i=0; i<count; i++)
         local_x[i] = ms->x[i];
 #endif
