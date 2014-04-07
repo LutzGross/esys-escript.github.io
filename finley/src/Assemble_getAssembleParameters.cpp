@@ -27,7 +27,7 @@ namespace finley {
 
 AssembleParameters::AssembleParameters(const NodeFile* nodes,
                                        const ElementFile* ef,
-                                       Paso_SystemMatrix* sm,
+                                       paso::SystemMatrix_ptr sm,
                                        escript::Data& rhs,
                                        bool reducedOrder)
     : elements(ef),
@@ -42,7 +42,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         return;
     }
     // check the dimensions of S and rhs
-    if (sm!=NULL && !rhs.isEmpty()) {
+    if (sm.get()!=NULL && !rhs.isEmpty()) {
         if (!rhs.numSamplesEqual(1, (sm->row_distribution->getMyNumComponents()
                            * sm->row_block_size)/sm->logical_row_block_size)) {
             setError(TYPE_ERROR, "AssembleParameters: number of rows of matrix and length of right hand side don't match.");
@@ -51,7 +51,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     }
 
     // get the number of equations and components
-    if (sm==NULL) {
+    if (sm.get()==NULL) {
         if (rhs.isEmpty()) {
             this->numEqu=1;
             this->numComp=1;
@@ -76,7 +76,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
     this->row_DOF=nodes->borrowTargetDegreesOfFreedom();
     // get the information for the labeling of the degrees of freedom from
     // the matrix
-    if (sm!=NULL) {
+    if (sm.get()) {
         // Make sure # rows in matrix == num DOF for one of:
         // full or reduced (use numLocalDOF for MPI)
         if (sm->row_distribution->getMyNumComponents()*sm->row_block_size ==
@@ -124,7 +124,7 @@ AssembleParameters::AssembleParameters(const NodeFile* nodes,
         } else {
             setError(TYPE_ERROR, "AssembleParameters: length of RHS vector does not match the number of degrees of freedom in mesh");
         }
-        if (sm==NULL) {
+        if (sm.get()==NULL) {
             this->col_DOF_UpperBound=this->row_DOF_UpperBound;
             this->col_DOF=this->row_DOF;
             this->col_jac=this->row_jac;

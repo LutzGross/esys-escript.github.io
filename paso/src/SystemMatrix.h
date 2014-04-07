@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/*   Paso: SystemMatrix and SystemVector */
+/*   Paso: SystemMatrix */
 
 /****************************************************************************/
 
@@ -26,254 +26,324 @@
 
 /****************************************************************************/
 
-#ifndef INC_PASO_SYSTEMMATRIX
-#define INC_PASO_SYSTEMMATRIX
+#ifndef __PASO_SYSTEMMATRIX_H__
+#define __PASO_SYSTEMMATRIX_H__
 
 #include "Common.h"
+#include "Coupler.h"
 #include "SparseMatrix.h"
 #include "SystemMatrixPattern.h"
 #include "Options.h"
 #include "esysUtils/Esys_MPI.h"
-#include "Paso.h"
-#include "Coupler.h"
 
+namespace paso {
 
-typedef int Paso_SystemMatrixType;
+struct SystemMatrix;
+typedef boost::shared_ptr<SystemMatrix> SystemMatrix_ptr;
+typedef boost::shared_ptr<const SystemMatrix> const_SystemMatrix_ptr;
 
-//  this struct holds a stiffness matrix
-struct Paso_SystemMatrix
+typedef int SystemMatrixType;
+
+//  this struct holds a (distributed) stiffness matrix
+PASO_DLL_API
+struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
 {
-  Paso_SystemMatrixType type;
-  paso::SystemMatrixPattern_ptr pattern;
+    SystemMatrix(SystemMatrixType, SystemMatrixPattern_ptr, dim_t, dim_t,
+                 bool patternIsUnrolled);
 
-  dim_t reference_counter;
+    ~SystemMatrix();
 
-  dim_t logical_row_block_size;
-  dim_t logical_col_block_size;
+    /// Nullifies rows and columns in the matrix.
+    /// The rows and columns are marked by positive values in mask_row and
+    /// mask_col. Values on the main diagonal which are marked to set to
+    /// zero by both mask_row and mask_col are set to main_diagonal_value.
+    void nullifyRowsAndCols(double* mask_row, double* mask_col,
+                            double main_diagonal_value);
 
-  dim_t row_block_size;
-  dim_t col_block_size;
-  dim_t block_size;
+    /// Nullifies rows in the matrix.
+    /// The rows are marked by positive values in mask_row. Values on the
+    /// main diagonal which are marked to set to zero by mask_row are set
+    /// to main_diagonal_value.
+    void nullifyRows(double* mask_row, double main_diagonal_value);
 
-  paso::Distribution_ptr row_distribution;
-  paso::Distribution_ptr col_distribution;
-  Esys_MPIInfo *mpi_info;
+    void add(dim_t, index_t*, dim_t, dim_t, index_t*, dim_t, double*);
 
-  paso::Coupler_ptr col_coupler;
-  paso::Coupler_ptr row_coupler;
+    void makeZeroRowSums(double* left_over); 
 
-  /* this comes into play when PASO is used */
-  /// main block
-  paso::SparseMatrix_ptr mainBlock;
-  /// coupling to neighbouring processors (row - col)
-  paso::SparseMatrix_ptr col_coupleBlock;
-  /// coupling to neighbouring processors (col - row)
-  paso::SparseMatrix_ptr row_coupleBlock;
-  /// coupling of rows-cols on neighbouring processors,
-  /// don't assume that this is set
-  paso::SparseMatrix_ptr remote_coupleBlock;
+    /// copies the col_coupleBlock into row_coupleBlock. 
+    /// WARNING: this method uses mpi_requests of the coupler attached to the
+    /// matrix. No reordering on the received columns is performed.
+    /// In practice this means that components in
+    /// row_coupleBlock->pattern->index  and
+    /// row_coupler->connector->recv->shared
+    /// are ordered by increasing value.
+    /// Note that send and receive row_coupler->connectors are swapping roles.
+    void copyColCoupleBlock();
 
-  bool is_balanced;
-  double *balance_vector; /* matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
-                             if is_balanced is set, the matrix stored is D*A*D where A is the original matrix.
-                             When the system of linear equations is solved we solve D*A*D*y=c.
-                             So to solve A*x=b one needs to set c=D*b and x=D*y. */
+    void copyRemoteCoupleBlock(bool recreatePattern);
 
-  index_t *global_id; /* store the global ids for all cols in col_couplerBlock */
+    void fillWithGlobalCoordinates(double f1);
 
-  
-  
-  index_t solver_package;  /* package controlling the solver pointer */
-  void* solver_p;  /* pointer to data needed by a solver */
+    void print() const;
 
-  /* this is only used for a trilinos matrix */
-  void *trilinos_data; 
+    void mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val);
+
+    void mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val);
+    void mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val);
+
+    void mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val);
+
+    void copyMain_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val);
+
+    void extendedRowsForST(dim_t* degree_ST, index_t* offset_ST, index_t* ST);
+
+    void applyBalanceInPlace(double* x, bool RHS) const;
+
+    void applyBalance(double* x_out, const double* x, bool RHS) const;
+
+    void balance();
+
+    double getGlobalSize() const;
+
+    void setPreconditioner(Paso_Options* options);
+
+    /// Applies the preconditioner.
+    /// This method needs to be called within a parallel region. 
+    /// Barrier synchronization is performed before the evaluation to make
+    /// sure that the input vector is available
+    void solvePreconditioner(double* x, double* b);
+
+    void freePreconditioner();
+
+    index_t* borrowMainDiagonalPointer() const;
+
+    inline void startCollect(const double* in)
+    {
+        startColCollect(in);
+    }
+
+    inline double* finishCollect()
+    {
+        return finishColCollect();
+    }
+
+    inline void startColCollect(const double* in)
+    {
+        col_coupler->startCollect(in);
+    }
+
+    inline double* finishColCollect()
+    {
+        return col_coupler->finishCollect();
+    }
+
+    inline void startRowCollect(const double* in)
+    {
+        row_coupler->startCollect(in);
+    }
+
+    inline double* finishRowCollect()
+    {
+        return row_coupler->finishCollect();
+    }
+
+    inline dim_t getNumRows() const
+    {
+        return mainBlock->numRows;
+    }
+
+    inline dim_t getNumCols() const
+    {
+        return mainBlock->numCols;
+    }
+
+    inline dim_t getTotalNumRows() const
+    {
+        return getNumRows() * row_block_size;
+    }
+
+    inline dim_t getTotalNumCols() const
+    {
+        return getNumCols() * col_block_size;
+    }
+
+    inline dim_t getRowOverlap()  const
+    {
+        return row_coupler->getNumOverlapComponents();
+    }
+
+    inline dim_t getColOverlap() const
+    {
+        return col_coupler->getNumOverlapComponents();
+    }
+
+    inline dim_t getGlobalNumRows() const
+    {
+        if (type & MATRIX_FORMAT_CSC) {
+            return pattern->input_distribution->getGlobalNumComponents();
+        }
+        return pattern->output_distribution->getGlobalNumComponents();
+    }
+
+    inline dim_t getGlobalNumCols() const
+    {
+        if (type & MATRIX_FORMAT_CSC) {
+            return pattern->output_distribution->getGlobalNumComponents();
+        }
+        return pattern->input_distribution->getGlobalNumComponents();
+    }
+
+    inline dim_t getGlobalTotalNumRows() const
+    {
+        return getGlobalNumRows() * row_block_size;
+    }
+
+    inline dim_t getGlobalTotalNumCols() const
+    {
+        return getGlobalNumCols() * col_block_size;
+    }
+
+    inline double getSparsity() const
+    {
+        return getGlobalSize() /
+                 (DBLE(getGlobalTotalNumRows())*getGlobalTotalNumCols());
+    }
+
+    inline dim_t getNumOutput() const
+    {
+       return pattern->getNumOutput();
+    }
+
+    inline void copyBlockFromMainDiagonal(double* out) const
+    {
+        mainBlock->copyBlockFromMainDiagonal(out);
+    }
+
+    inline void copyBlockToMainDiagonal(const double* in)
+    {
+        mainBlock->copyBlockToMainDiagonal(in);
+    }
+
+    inline void copyFromMainDiagonal(double* out) const
+    {
+        mainBlock->copyFromMainDiagonal(out);
+    }
+
+    inline void copyToMainDiagonal(const double* in)
+    {
+        mainBlock->copyToMainDiagonal(in);
+    }
+
+    inline void setValues(double value)
+    {
+        mainBlock->setValues(value);
+        col_coupleBlock->setValues(value);
+        row_coupleBlock->setValues(value);
+        is_balanced = false;
+    }
+
+    inline void saveMM(const char* filename) const
+    {
+        if (mpi_info->size > 1) {
+            Esys_setError(IO_ERROR, "SystemMatrix::saveMM: Only single rank supported.");
+        } else {
+            mainBlock->saveMM(filename);
+        }
+    }
+
+    inline void saveHB(const char *filename) const
+    {
+        if (mpi_info->size > 1) {
+            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only single rank supported.");
+        } else if (!(type & MATRIX_FORMAT_CSC)) {
+            Esys_setError(TYPE_ERROR, "SystemMatrix::saveHB: Only CSC format supported.");
+        } else {
+            mainBlock->saveHB_CSC(filename);
+        }
+    }
+
+    inline void rowSum(double* row_sum) const
+    {
+        if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_OFFSET1)) {
+            Esys_setError(TYPE_ERROR, "SystemMatrix::rowSum: No normalization "
+                  "available for compressed sparse column or index offset 1.");
+        } else {
+            const dim_t nrow = mainBlock->numRows*row_block_size;
+#pragma omp parallel for
+            for (index_t irow=0; irow<nrow; ++irow) {
+                row_sum[irow]=0.;
+            }
+            mainBlock->addRow_CSR_OFFSET0(row_sum);
+            col_coupleBlock->addRow_CSR_OFFSET0(row_sum);
+        }
+    }
+
+    static SystemMatrix_ptr loadMM_toCSR(const char* filename);
+
+    static SystemMatrix_ptr loadMM_toCSC(const char* filename);
+
+    static index_t getSystemMatrixTypeId(index_t solver,
+                                         index_t preconditioner,
+                                         index_t package, bool symmetry,
+                                         Esys_MPIInfo* mpi_info);
+
+    SystemMatrixType type;
+    SystemMatrixPattern_ptr pattern;
+
+    dim_t logical_row_block_size;
+    dim_t logical_col_block_size;
+
+    dim_t row_block_size;
+    dim_t col_block_size;
+    dim_t block_size;
+
+    Distribution_ptr row_distribution;
+    Distribution_ptr col_distribution;
+    Esys_MPIInfo *mpi_info;
+
+    Coupler_ptr col_coupler;
+    Coupler_ptr row_coupler;
+
+    /// main block
+    SparseMatrix_ptr mainBlock;
+    /// coupling to neighbouring processors (row - col)
+    SparseMatrix_ptr col_coupleBlock;
+    /// coupling to neighbouring processors (col - row)
+    SparseMatrix_ptr row_coupleBlock;
+    /// coupling of rows-cols on neighbouring processors (may not be valid)
+    SparseMatrix_ptr remote_coupleBlock;
+
+    bool is_balanced;
+
+    /// matrix may be balanced by a diagonal matrix D=diagonal(balance_vector)
+    /// if is_balanced is true, the matrix stored is D*A*D where A is the
+    /// original matrix.
+    /// When the system of linear equations is solved we solve D*A*D*y=c.
+    /// So to solve A*x=b one needs to set c=D*b and x=D*y.
+    double* balance_vector;
+
+    /// stores the global ids for all cols in col_coupleBlock
+    index_t* global_id;
+
+    /// package code controlling the solver pointer
+    index_t solver_package;
+
+    /// pointer to data needed by a solver
+    void* solver_p;
+
+    /// this is only used for a trilinos matrix
+    void* trilinos_data; 
 };
 
-/*  interfaces: */
 
-PASO_DLL_API
-Paso_SystemMatrix* Paso_SystemMatrix_alloc(Paso_SystemMatrixType, paso::SystemMatrixPattern_ptr, dim_t, dim_t, bool patternIsUnrolled);
+void SystemMatrix_MatrixVector(double alpha, SystemMatrix_ptr A, const double* in, double beta, double* out);
 
-PASO_DLL_API
-Paso_SystemMatrix* Paso_SystemMatrix_getReference(Paso_SystemMatrix*);
+void SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, SystemMatrix_ptr A, const double* in, double beta, double* out);
 
-PASO_DLL_API
-void Paso_SystemMatrix_free(Paso_SystemMatrix*);
+void Paso_RHS_loadMM_toCSR(const char* filename, double* b, dim_t size);
 
 
-PASO_DLL_API
-void Paso_SystemMatrix_MatrixVector(const double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
-
-PASO_DLL_API
-void Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, Paso_SystemMatrix* A, const double* in, const double beta, double* out);
-
-PASO_DLL_API
-void Paso_SystemMatrix_nullifyRowsAndCols(Paso_SystemMatrix* A, double* mask_row, double* mask_col, double main_diagonal_value);
-
-PASO_DLL_API
-void Paso_SystemMatrix_applyBalanceInPlace(const Paso_SystemMatrix* A, double* x, const bool RHS);
-
-PASO_DLL_API
-void Paso_SystemMatrix_applyBalance(const Paso_SystemMatrix* A, double* x_out, const double* x, const bool RHS);
-
-PASO_DLL_API
-void Paso_SystemMatrix_balance(Paso_SystemMatrix* A);
-
-
-PASO_DLL_API
-void Paso_solve(Paso_SystemMatrix* A, double* out, double* in, Paso_Options* options);
-
-PASO_DLL_API
-void Paso_solve_free(Paso_SystemMatrix* in);
-
-PASO_DLL_API
-void  Paso_SystemMatrix_startCollect(Paso_SystemMatrix* A,const double* in);
-
-PASO_DLL_API
-double* Paso_SystemMatrix_finishCollect(Paso_SystemMatrix* A);
-
-PASO_DLL_API
-void  Paso_SystemMatrix_startColCollect(Paso_SystemMatrix* A,const double* in);
-
-PASO_DLL_API
-double* Paso_SystemMatrix_finishColCollect(Paso_SystemMatrix* A);
-
-PASO_DLL_API
-void  Paso_SystemMatrix_startRowCollect(Paso_SystemMatrix* A,const double* in);
-
-PASO_DLL_API
-double* Paso_SystemMatrix_finishRowCollect(Paso_SystemMatrix* A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getTotalNumRows(const Paso_SystemMatrix* A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getTotalNumCols(const Paso_SystemMatrix*);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getGlobalNumRows(const Paso_SystemMatrix*);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getGlobalNumCols(const Paso_SystemMatrix*);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getGlobalTotalNumRows(const Paso_SystemMatrix* A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getGlobalTotalNumCols(const Paso_SystemMatrix* A);
-
-PASO_DLL_API
-double Paso_SystemMatrix_getGlobalSize(const Paso_SystemMatrix*A);
-
-PASO_DLL_API
-double Paso_SystemMatrix_getSparsity(const Paso_SystemMatrix*A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getNumRows(const Paso_SystemMatrix* A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getNumCols(const Paso_SystemMatrix* A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getRowOverlap(const Paso_SystemMatrix* A);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getColOverlap(const Paso_SystemMatrix* A);
-
-
-
-
-PASO_DLL_API
-void Paso_SystemMatrix_saveMM(Paso_SystemMatrix *, char *);
-
-PASO_DLL_API
-void Paso_SystemMatrix_saveHB(Paso_SystemMatrix *, char *);
-
-PASO_DLL_API
-Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSR(char *);
-
-PASO_DLL_API
-Paso_SystemMatrix* Paso_SystemMatrix_loadMM_toCSC(char *);
-
-PASO_DLL_API
-void Paso_RHS_loadMM_toCSR( char *fileName_p, double *b, dim_t size);
-
-
-PASO_DLL_API
-int Paso_SystemMatrix_getSystemMatrixTypeId(const index_t solver,const index_t preconditioner, const  index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
-
-PASO_DLL_API
-dim_t Paso_SystemMatrix_getNumOutput(Paso_SystemMatrix* A);
-
-
-PASO_DLL_API
-void Paso_SystemMatrix_setValues(Paso_SystemMatrix*,double);
-
-PASO_DLL_API
-void Paso_SystemMatrix_add(Paso_SystemMatrix*,dim_t,index_t*, dim_t,dim_t,index_t*,dim_t, double*);
-
-PASO_DLL_API
-void Paso_SystemMatrix_rowSum(Paso_SystemMatrix* A, double* row_sum);
-
-PASO_DLL_API
-void Paso_SystemMatrix_nullifyRows(Paso_SystemMatrix* A, double* mask_row, double main_diagonal_value);
-
-
-PASO_DLL_API
-void Paso_SystemMatrix_makeZeroRowSums(Paso_SystemMatrix * A_p, double* left_over); 
-
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyBlockFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyBlockToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyFromMainDiagonal(Paso_SystemMatrix * A_p, double* out);
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyToMainDiagonal(Paso_SystemMatrix * A_p, const double* in); 
-
-
-PASO_DLL_API
-void Paso_SystemMatrix_solvePreconditioner(Paso_SystemMatrix* A,double* x,double* b);
-
-PASO_DLL_API
-void Paso_SystemMatrix_setPreconditioner(Paso_SystemMatrix* A,Paso_Options* options);
-
-PASO_DLL_API
-void Paso_SystemMatrix_freePreconditioner(Paso_SystemMatrix* A);
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyColCoupleBlock(Paso_SystemMatrix *A);
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyRemoteCoupleBlock(Paso_SystemMatrix *A, bool recreatePattern);
-
-PASO_DLL_API
-void Paso_SystemMatrix_fillWithGlobalCoordinates(Paso_SystemMatrix *A, const double f1);
-
-PASO_DLL_API
-void Paso_SystemMatrix_print(Paso_SystemMatrix *A);
-
-
-PASO_DLL_API
-void Paso_SystemMatrix_mergeMainAndCouple(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
-
-PASO_DLL_API
-void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
-void Paso_SystemMatrix_mergeMainAndCouple_CSR_OFFSET0_Block(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
-
-PASO_DLL_API
-void Paso_SystemMatrix_mergeMainAndCouple_CSC_OFFSET1(Paso_SystemMatrix *A, index_t **p_ptr, index_t **p_idx, double **p_val);
-
-PASO_DLL_API
-void Paso_SystemMatrix_copyMain_CSC_OFFSET1(Paso_SystemMatrix* A, index_t** p_ptr, index_t** p_idx, double** p_val);
-
-void Paso_SystemMatrix_extendedRowsForST(Paso_SystemMatrix* A, dim_t* degree_ST, index_t* offset_ST, index_t* ST);
-
+} // namespace paso
   
-#endif /* #ifndef INC_PASO_SYSTEMMATRIX */
+#endif // __PASO_SYSTEMMATRIX_H__
 

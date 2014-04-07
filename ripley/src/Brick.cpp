@@ -2642,7 +2642,7 @@ void Brick::createPattern()
 }
 
 //private
-void Brick::addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
+void Brick::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {

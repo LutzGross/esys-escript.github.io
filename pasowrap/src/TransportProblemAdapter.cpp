@@ -136,15 +136,15 @@ void TransportProblemAdapter::copyConstraint(escript::Data& source, escript::Dat
       double* q_dp=q.getSampleDataRW(0);
     
        cout << "v1\n";
-       Paso_SystemMatrix_MatrixVector(-1., transp->mass_matrix, r2_dp, 1., source_dp);
+       SystemMatrix_MatrixVector(-1., transp->mass_matrix, r2_dp, 1., source_dp);
        checkPasoError();
 
        /* insert 0 rows into transport matrix */
-       Paso_SystemMatrix_nullifyRows(transp->transport_matrix,q_dp, 0.);
+       transp->transport_matrix->nullifyRows(q_dp, 0.);
        checkPasoError();
 
        /* insert 0 rows amd 1 in main diagonal into mass matrix */
-       Paso_SystemMatrix_nullifyRowsAndCols(transp->mass_matrix,q_dp,q_dp,1.);
+       transp->mass_matrix->nullifyRowsAndCols(q_dp, q_dp, 1.);
        checkPasoError();
 
        source.copyWithMask(escript::Data(0.,q.getDataPointShape(),q.getFunctionSpace()),q);

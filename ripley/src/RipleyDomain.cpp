@@ -795,8 +795,8 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
 
     // generate matrix
     paso::SystemMatrixPattern_ptr pattern(getPattern(reduceRowOrder, reduceColOrder));
-    Paso_SystemMatrix* matrix = Paso_SystemMatrix_alloc(type, pattern,
-            row_blocksize, column_blocksize, FALSE);
+    paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
+            row_blocksize, column_blocksize, false));
     paso::checkPasoError();
     escript::ASM_ptr sma(new SystemMatrixAdapter(matrix, row_blocksize,
                 row_functionspace, column_blocksize, column_functionspace));
@@ -817,7 +817,7 @@ void RipleyDomain::addToSystem(
         throw RipleyException(
                     "addToSystem: Ripley only accepts Paso system matrices");
 
-    Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+    paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
 
     assemblePDE(S, rhs, coefs);
     assemblePDEBoundary(S, rhs, coefs);
@@ -847,7 +847,7 @@ void RipleyDomain::addPDEToSystem(
     if (!sma)
         throw RipleyException("addPDEToSystem: Ripley only accepts Paso system matrices");
 
-    Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+    paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
 
     std::map<std::string, escript::Data> coefs;
     coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
@@ -881,14 +881,14 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
     {
         std::map<std::string, escript::Data> coefs;
         coefs["X"] = X; coefs["Y"] = Y;
-        assemblePDE(NULL, rhs, coefs);
+        assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs);
     }
     std::map<std::string, escript::Data> coefs;
     coefs["y"] = y;
-    assemblePDEBoundary(NULL, rhs, coefs);
+    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs);
     map<string, escript::Data> dirac;
     dirac["y_dirac"] = y_dirac;
-    assemblePDEDirac(NULL, rhs, dirac);
+    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, dirac);
 }
 
 void RipleyDomain::setAssemblerFromPython(std::string type,
@@ -922,9 +922,9 @@ void RipleyDomain::addToRHS(escript::Data& rhs,
             return;
     }
 
-    assemblePDE(NULL, rhs, coefs);
-    assemblePDEBoundary(NULL, rhs, coefs);
-    assemblePDEDirac(NULL, rhs, coefs);
+    assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs);
+    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs);
+    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, coefs);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -1149,7 +1149,7 @@ void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
 }
 
 //protected
-void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat, 
+void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat, 
        const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
        dim_t num_Sol, const vector<double>& array) const
 {
@@ -1278,7 +1278,7 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
 }
 
 //private
-void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
         std::map<std::string, escript::Data> coefs) const
 {
     if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
@@ -1337,7 +1337,7 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
 }
 
 //private
-void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
+void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
       escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     std::map<std::string, escript::Data>::iterator iy = coefs.find("y"),
@@ -1393,7 +1393,7 @@ void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
     }
 }
 
-void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
+void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     bool yNotEmpty = isNotEmpty("y_dirac", coefs),

@@ -39,32 +39,32 @@ void LameAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
 }
 
 
-void LameAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const 
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
 
-void LameAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
@@ -746,19 +746,19 @@ void LameAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
     } // end of parallel region
 }
 
-void LameAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESystemReduced not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDEBoundarySystemReduced not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
+void LameAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data lambda = unpackData("lame_lambda", coefs),
@@ -4415,4 +4415,5 @@ void LameAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
     } // end of parallel region
 }
 
-}
+} // namespace ripley
+

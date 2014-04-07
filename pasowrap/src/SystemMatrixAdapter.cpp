@@ -16,55 +16,36 @@
 
 #include "SystemMatrixAdapter.h" 
 #include <escript/SolverOptions.h>
+#include <paso/Preconditioner.h>
 
 using namespace std;
 
 namespace paso {
 
-struct null_deleter
-{
-   void operator()(void const *ptr) const
-      {
-      }   
-};
-
-PASOWRAP_DLL_API
 SystemMatrixAdapter::SystemMatrixAdapter()
 {
    throw PasoException("Error - Illegal to generate default SystemMatrixAdapter.");
 }
 
-PASOWRAP_DLL_API
-SystemMatrixAdapter::SystemMatrixAdapter(Paso_SystemMatrix* system_matrix,
-                                         const int row_blocksize,
-                                         const escript::FunctionSpace& row_functionspace,
-                                         const int column_blocksize,
-                                         const escript::FunctionSpace& column_functionspace):
-AbstractSystemMatrix(row_blocksize,row_functionspace,column_blocksize,column_functionspace)
+SystemMatrixAdapter::SystemMatrixAdapter(SystemMatrix_ptr system_matrix,
+        const int row_blocksize, const escript::FunctionSpace& row_fs,
+        const int column_blocksize, const escript::FunctionSpace& column_fs) :
+    AbstractSystemMatrix(row_blocksize,row_fs,column_blocksize,column_fs),
+    m_system_matrix(system_matrix)
 {
-   m_system_matrix.reset(system_matrix,null_deleter());
 }
 
-PASOWRAP_DLL_API
 SystemMatrixAdapter::~SystemMatrixAdapter()
 { 
-   if (m_system_matrix.unique()) {
-      Paso_SystemMatrix* mat=m_system_matrix.get();
-      Paso_SystemMatrix_free(mat);
-   }
 }
 
-PASOWRAP_DLL_API
-Paso_SystemMatrix* SystemMatrixAdapter::getPaso_SystemMatrix() const 
+SystemMatrix_ptr SystemMatrixAdapter::getPaso_SystemMatrix() const 
 {
-   return m_system_matrix.get();
+   return m_system_matrix;
 }
 
-PASOWRAP_DLL_API
 void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const 
 {
-   Paso_SystemMatrix* mat=getPaso_SystemMatrix();
-
    if ( x.getDataPointSize()  != getColumnBlockSize()) {
       throw PasoException("matrix vector product : column block size does not match the number of components in input.");
    } else if (y.getDataPointSize() != getRowBlockSize()) {
@@ -80,11 +61,10 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    y.requireWrite();
    double* x_dp=x.getSampleDataRW(0);
    double* y_dp=y.getSampleDataRW(0);
-   Paso_SystemMatrix_MatrixVector(1., mat,x_dp, 1.,y_dp);
+   SystemMatrix_MatrixVector(1., m_system_matrix, x_dp, 1., y_dp);
    checkPasoError();
 }
 
-PASOWRAP_DLL_API
 int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
 
    switch (option) {
@@ -193,29 +173,27 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
-PASOWRAP_DLL_API
 int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner,
         const int package, const bool symmetry, Esys_MPIInfo* mpiInfo)
 {
-    int out=Paso_SystemMatrix_getSystemMatrixTypeId(mapOptionToPaso(solver),
+    int out=SystemMatrix::getSystemMatrixTypeId(mapOptionToPaso(solver),
             mapOptionToPaso(preconditioner), mapOptionToPaso(package),
             symmetry?1:0, mpiInfo);
     checkPasoError();
     return out;
 }
 
-PASOWRAP_DLL_API
 void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 {
-    Paso_SystemMatrix* mat=m_system_matrix.get();
-    int first_row_index  = mat->row_distribution->first_component[mat->mpi_info->rank];
-    int last_row_index   = mat->row_distribution->first_component[mat->mpi_info->rank+1]-1;
-    int first_col_index  = mat->col_distribution->first_component[mat->mpi_info->rank];
-    int last_col_index   = mat->col_distribution->first_component[mat->mpi_info->rank+1]-1;
+    int first_row_index = m_system_matrix->row_distribution->first_component[m_system_matrix->mpi_info->rank];
+    int last_row_index  = m_system_matrix->row_distribution->first_component[m_system_matrix->mpi_info->rank+1]-1;
+    int first_col_index = m_system_matrix->col_distribution->first_component[m_system_matrix->mpi_info->rank];
+    int last_col_index  = m_system_matrix->col_distribution->first_component[m_system_matrix->mpi_info->rank+1]-1;
 
-    fprintf(stdout, "Print_Matrix_Info running on CPU %d of %d\n", mat->mpi_info->rank, mat->mpi_info->size);
+    fprintf(stdout, "Print_Matrix_Info running on CPU %d of %d\n",
+            m_system_matrix->mpi_info->rank, m_system_matrix->mpi_info->size);
 
-    switch (mat->type) {
+    switch (m_system_matrix->type) {
         case MATRIX_FORMAT_DEFAULT:      
             fprintf(stdout, "\tMatrix type MATRIX_FORMAT_DEFAULT\n"); 
             break;
@@ -238,27 +216,25 @@ void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 
    fprintf(stdout, "\trow indices run from %d to %d\n", first_row_index, last_row_index);
    fprintf(stdout, "\tcol indices run from %d to %d\n", first_col_index, last_col_index);
-   fprintf(stdout, "\tmainBlock numRows %d\n", mat->mainBlock->numRows);
-   fprintf(stdout, "\tmainBlock numCols %d\n", mat->mainBlock->numCols);
-   fprintf(stdout, "\tmainBlock pattern numOutput %d\n", mat->mainBlock->pattern->numOutput);
-   fprintf(stdout, "\tcol_coupleBlock numRows %d\n", mat->col_coupleBlock->numRows);
-   fprintf(stdout, "\tcol_coupleBlock numCols %d\n", mat->col_coupleBlock->numCols);
-   fprintf(stdout, "\tcol_coupleBlock pattern numOutput %d\n", mat->col_coupleBlock->pattern->numOutput);
-   fprintf(stdout, "\trow_coupleBlock numRows %d\n", mat->row_coupleBlock->numRows);
-   fprintf(stdout, "\trow_coupleBlock numCols %d\n", mat->row_coupleBlock->numCols);
-   fprintf(stdout, "\trow_coupleBlock pattern numOutput %d\n", mat->row_coupleBlock->pattern->numOutput);
-   fprintf(stdout, "\trow_block_size %d\n", mat->row_block_size);
-   fprintf(stdout, "\tcol_block_size %d\n", mat->col_block_size);
-   fprintf(stdout, "\tblock_size %d\n", mat->block_size);
-   fprintf(stdout, "\tlogical_row_block_size %d\n", mat->logical_row_block_size);
-   fprintf(stdout, "\tlogical_col_block_size %d\n", mat->logical_col_block_size);
+   fprintf(stdout, "\tmainBlock numRows %d\n", m_system_matrix->mainBlock->numRows);
+   fprintf(stdout, "\tmainBlock numCols %d\n", m_system_matrix->mainBlock->numCols);
+   fprintf(stdout, "\tmainBlock pattern numOutput %d\n", m_system_matrix->mainBlock->pattern->numOutput);
+   fprintf(stdout, "\tcol_coupleBlock numRows %d\n", m_system_matrix->col_coupleBlock->numRows);
+   fprintf(stdout, "\tcol_coupleBlock numCols %d\n", m_system_matrix->col_coupleBlock->numCols);
+   fprintf(stdout, "\tcol_coupleBlock pattern numOutput %d\n", m_system_matrix->col_coupleBlock->pattern->numOutput);
+   fprintf(stdout, "\trow_coupleBlock numRows %d\n", m_system_matrix->row_coupleBlock->numRows);
+   fprintf(stdout, "\trow_coupleBlock numCols %d\n", m_system_matrix->row_coupleBlock->numCols);
+   fprintf(stdout, "\trow_coupleBlock pattern numOutput %d\n", m_system_matrix->row_coupleBlock->pattern->numOutput);
+   fprintf(stdout, "\trow_block_size %d\n", m_system_matrix->row_block_size);
+   fprintf(stdout, "\tcol_block_size %d\n", m_system_matrix->col_block_size);
+   fprintf(stdout, "\tblock_size %d\n", m_system_matrix->block_size);
+   fprintf(stdout, "\tlogical_row_block_size %d\n", m_system_matrix->logical_row_block_size);
+   fprintf(stdout, "\tlogical_col_block_size %d\n", m_system_matrix->logical_col_block_size);
 
 }
 
-PASOWRAP_DLL_API
 void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, boost::python::object& options) const
 {
-   Paso_SystemMatrix* mat=getPaso_SystemMatrix();
    Paso_Options paso_options;
    options.attr("resetDiagnostics")();
    escriptToPasoOptions(&paso_options,options);
@@ -275,16 +251,13 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    in.expand();
    double* out_dp=out.getSampleDataRW(0);        
    double* in_dp=in.getSampleDataRW(0);                
-   Paso_solve(mat,out_dp,in_dp,&paso_options);
+   Paso_solve(m_system_matrix, out_dp, in_dp, &paso_options);
    pasoToEscriptOptions(&paso_options,options);
    checkPasoError();
-
 }
 
-PASOWRAP_DLL_API
 void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data& col_q, const double mdv) const
 {
-   Paso_SystemMatrix* mat = getPaso_SystemMatrix();
    if ( col_q.getDataPointSize()  != getColumnBlockSize()) {
       throw PasoException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
    } else if ( row_q.getDataPointSize() != getRowBlockSize()) {
@@ -300,56 +273,29 @@ void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data&
    col_q.requireWrite();
    double* row_q_dp=row_q.getSampleDataRW(0);
    double* col_q_dp=col_q.getSampleDataRW(0);
-   Paso_SystemMatrix_nullifyRowsAndCols(mat,row_q_dp,col_q_dp, mdv);
+   m_system_matrix->nullifyRowsAndCols(row_q_dp, col_q_dp, mdv);
    checkPasoError();
 }
 
-PASOWRAP_DLL_API
-void SystemMatrixAdapter::saveMM(const std::string& fileName) const
+void SystemMatrixAdapter::saveMM(const std::string& filename) const
 {
-   if( fileName.size() == 0 )
-   {
-      throw PasoException("Null file name!");
-   }
-
-   char *fName = TMPMEMALLOC(fileName.size()+1,char);
-        
-   strcpy(fName,fileName.c_str());
-   Paso_SystemMatrix* mat = getPaso_SystemMatrix();
-   Paso_SystemMatrix_saveMM(mat,fName);
+   m_system_matrix->saveMM(filename.c_str());
    checkPasoError();
-   TMPMEMFREE(fName);
-
 }
 
-PASOWRAP_DLL_API
-void SystemMatrixAdapter::saveHB(const std::string& fileName) const
+void SystemMatrixAdapter::saveHB(const std::string& filename) const
 {
-   if( fileName.size() == 0 )
-   {
-      throw PasoException("Null file name!");
-   }
-
-   char *fName = TMPMEMALLOC(fileName.size()+1,char);
-
-   strcpy(fName,fileName.c_str());
-   Paso_SystemMatrix* mat = getPaso_SystemMatrix();
-   Paso_SystemMatrix_saveHB(mat,fName);
+   m_system_matrix->saveHB(filename.c_str());
    checkPasoError();
-   TMPMEMFREE(fName);
-
 }
 
-PASOWRAP_DLL_API
 void SystemMatrixAdapter::resetValues() const
 {
-   Paso_SystemMatrix* mat = getPaso_SystemMatrix();
-   Paso_SystemMatrix_setValues(mat,0.);
-   Paso_solve_free(mat);
+   m_system_matrix->setValues(0.);
+   Paso_solve_free(m_system_matrix.get());
    checkPasoError();
 }
 
-PASOWRAP_DLL_API
 void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options) 
 {
 #define SET(__key__,__val__,__type__) options.attr("_updateDiagnostics")(__key__,(__type__)paso_options->__val__)
@@ -367,10 +313,9 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
 #undef SET
 }
 
-PASOWRAP_DLL_API
-void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options) 
+void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options,
+                                         const boost::python::object& options) 
 {
-
     escript::SolverBuddy sb = boost::python::extract<escript::SolverBuddy>(options);
 
     Paso_Options_setDefaults(paso_options);
@@ -412,3 +357,4 @@ void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options, const
  
 
 }  // end of namespace
+

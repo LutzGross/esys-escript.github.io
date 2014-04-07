@@ -39,7 +39,6 @@
 *  A has to be symmetric.
 *
 *  Convergence test: norm( b - A*x )< TOL.
-*  For other measures, see the above reference.
 *
 *  Arguments
 *  =========
@@ -71,14 +70,9 @@
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-err_t Paso_Solver_PCG(
-    Paso_SystemMatrix * A,
-    double * r,
-    double * x,
-    dim_t *iter,
-    double * tolerance,
-    Paso_Performance* pp) {
-
+err_t Paso_Solver_PCG(paso::SystemMatrix_ptr A, double* r, double* x,
+                      dim_t* iter, double* tolerance, Paso_Performance* pp)
+{
   /* Local variables */
   dim_t num_iter=0,maxit,num_iter_global, len,rest, np, ipp;
 #ifdef USE_DYNAMIC_SCHEDULING
@@ -88,7 +82,7 @@ err_t Paso_Solver_PCG(
   dim_t i0, istart, iend;
   bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   err_t status = SOLVER_NO_ERROR;
-  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+  const dim_t n = A->getTotalNumRows();
   double *resid = tolerance, *rs=NULL, *p=NULL, *v=NULL, *x2=NULL ;
   double tau_old,tau,beta,delta,gamma_1,gamma_2,alpha,sum_1,sum_2,sum_3,sum_4,sum_5,tol;
 #ifdef ESYS_MPI
@@ -183,11 +177,11 @@ err_t Paso_Solver_PCG(
 
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-	   Paso_SystemMatrix_solvePreconditioner(A,v,r);
+           A->solvePreconditioner(v,r);
            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
 
-	   sum_1 = 0;
+           sum_1 = 0;
            #pragma omp parallel private(i0, istart, iend, ipp, ss)
            {
                   ss=0;
@@ -202,7 +196,7 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
- 			  #pragma ivdep
+                          #pragma ivdep
                           for (i0=istart;i0<iend;i0++) ss+=v[i0]*r[i0];
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
@@ -215,10 +209,10 @@ err_t Paso_Solver_PCG(
                   }
            }
            #ifdef ESYS_MPI
-	        /* In case we have many MPI processes, each of which may have several OMP threads:
-	           OMP master participates in an MPI reduction to get global sum_1 */
-	        loc_sum[0] = sum_1;
-	        MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                /* In case we have many MPI processes, each of which may have several OMP threads:
+                   OMP master participates in an MPI reduction to get global sum_1 */
+                loc_sum[0] = sum_1;
+                MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            tau_old=tau;
            tau=sum_1;
@@ -237,11 +231,11 @@ err_t Paso_Solver_PCG(
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
                           if (num_iter==1) {
- 			      #pragma ivdep
+                              #pragma ivdep
                               for (i0=istart;i0<iend;i0++) p[i0]=v[i0];
                           } else {
                               beta=tau/tau_old;
- 			      #pragma ivdep
+                              #pragma ivdep
                               for (i0=istart;i0<iend;i0++) p[i0]=v[i0]+beta*p[i0];
                           }
                   #ifdef USE_DYNAMIC_SCHEDULING
@@ -253,12 +247,12 @@ err_t Paso_Solver_PCG(
            /* v=A*p */
            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
            Performance_startMonitor(pp,PERFORMANCE_MVM);
-	   Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, p,PASO_ZERO,v);
+           paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, p,PASO_ZERO,v);
            Performance_stopMonitor(pp,PERFORMANCE_MVM);
            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
 
            /* delta=p*v */
-	   sum_2 = 0;
+           sum_2 = 0;
            #pragma omp parallel private(i0, istart, iend, ipp,ss)
            {
                   ss=0;
@@ -273,7 +267,7 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
- 			  #pragma ivdep
+                          #pragma ivdep
                           for (i0=istart;i0<iend;i0++) ss+=v[i0]*p[i0];
                   #ifdef USE_DYNAMIC_SCHEDULING
                     }
@@ -286,16 +280,16 @@ err_t Paso_Solver_PCG(
                   }
            }
            #ifdef ESYS_MPI
-	      loc_sum[0] = sum_2;
-	      MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+              loc_sum[0] = sum_2;
+              MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            delta=sum_2;
            alpha=tau/delta;
    
            if (! (breakFlag = (ABS(delta) <= TOLERANCE_FOR_SCALARS))) {
                /* smoother */
-	       sum_3 = 0;
-	       sum_4 = 0;
+               sum_3 = 0;
+               sum_4 = 0;
                #pragma omp parallel private(i0, istart, iend, ipp,d, ss, ss1)
                {
                   ss=0;
@@ -311,7 +305,7 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
- 			  #pragma ivdep
+                          #pragma ivdep
                           for (i0=istart;i0<iend;i0++) {
                                 r[i0]-=alpha*v[i0];
                                 d=r[i0]-rs[i0];
@@ -330,13 +324,13 @@ err_t Paso_Solver_PCG(
                   }
                }
                #ifdef ESYS_MPI
-	           loc_sum[0] = sum_3;
-	           loc_sum[1] = sum_4;
-	           MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
-	           sum_3=sum[0];
-	           sum_4=sum[1];
+                   loc_sum[0] = sum_3;
+                   loc_sum[1] = sum_4;
+                   MPI_Allreduce(loc_sum, sum, 2, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                   sum_3=sum[0];
+                   sum_4=sum[1];
                 #endif
-	        sum_5 = 0;
+                sum_5 = 0;
                 #pragma omp parallel private(i0, istart, iend, ipp, ss, gamma_1,gamma_2)
                 {
                   gamma_1= ( (ABS(sum_3)<= PASO_ZERO) ? 0 : -sum_4/sum_3) ;
@@ -353,7 +347,7 @@ err_t Paso_Solver_PCG(
                           istart=len*ipp+MIN(ipp,rest);
                           iend=len*(ipp+1)+MIN(ipp+1,rest);
                   #endif
- 			  #pragma ivdep
+                          #pragma ivdep
                           for (i0=istart;i0<iend;i0++) {
                               rs[i0]=gamma_2*rs[i0]+gamma_1*r[i0];
                               x2[i0]+=alpha*p[i0];
@@ -371,8 +365,8 @@ err_t Paso_Solver_PCG(
                   }
                 }
                 #ifdef ESYS_MPI
-	           loc_sum[0] = sum_5;
-	           MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
+                   loc_sum[0] = sum_5;
+                   MPI_Allreduce(loc_sum, &sum_5, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                 #endif
                 norm_of_residual=sqrt(sum_5);
                 convergeFlag = norm_of_residual <= tol;

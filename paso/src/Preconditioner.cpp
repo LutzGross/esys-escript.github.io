@@ -15,26 +15,25 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: preconditioner  set up                               */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
-/*********************************************************************************************************/
 
 /*  free space */
-
-void Paso_Preconditioner_free(Paso_Preconditioner* in) {
+void Paso_Preconditioner_free(Paso_Preconditioner* in)
+{
     if (in!=NULL) {
       Paso_Preconditioner_Smoother_free(in->jacobi);
       Paso_Preconditioner_Smoother_free(in->gs);
@@ -48,15 +47,16 @@ void Paso_Preconditioner_free(Paso_Preconditioner* in) {
     }
 }
 
-Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options* options) {
-
+Paso_Preconditioner* Paso_Preconditioner_alloc(paso::SystemMatrix_ptr A,
+                                               Paso_Options* options)
+{
     Paso_Preconditioner* prec = new Paso_Preconditioner;
     prec->type=UNKNOWN;
     prec->jacobi=NULL;
     prec->gs=NULL;
     prec->amg=NULL;
     
-    /*********************************/	
+    /*********************************/ 
     prec->rilu=NULL;
     prec->ilu=NULL;
     /*********************************/
@@ -116,39 +116,41 @@ Paso_Preconditioner* Paso_Preconditioner_alloc(Paso_SystemMatrix* A,Paso_Options
     }
     if (! Esys_noError() ){
          Paso_Preconditioner_free(prec);
-	return NULL;
+        return NULL;
     } else {
-	return prec;
+        return prec;
     }
 }
 
 /* Applies the preconditioner. */
 /* Has to be called within a parallel region. */
 /* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
-void Paso_Preconditioner_solve(Paso_Preconditioner* prec, Paso_SystemMatrix* A,double* x,double* b){
+void Paso_Preconditioner_solve(Paso_Preconditioner* prec,
+                               paso::SystemMatrix_ptr A, double* x, double* b)
+{
     dim_t n=0;
 
     switch (prec->type) {
         default:
         case PASO_JACOBI:
-	   Paso_Preconditioner_Smoother_solve(A, prec->jacobi,x,b,prec->sweeps, FALSE);
+           Paso_Preconditioner_Smoother_solve(A, prec->jacobi,x,b,prec->sweeps, FALSE);
            break;   
-	case PASO_GS:
-	   Paso_Preconditioner_Smoother_solve(A, prec->gs,x,b,prec->sweeps, FALSE);
-	   break;
-	case PASO_AMG:
+        case PASO_GS:
+           Paso_Preconditioner_Smoother_solve(A, prec->gs,x,b,prec->sweeps, FALSE);
+           break;
+        case PASO_AMG:
            Paso_Preconditioner_AMG_Root_solve(A, prec->amg ,x,b);
-	   break;
-	   
-	/*=========================================================*/   
+           break;
+           
+        /*=========================================================*/   
         case PASO_ILU0:
            Paso_Solver_solveILU(A->mainBlock, prec->ilu,x,b);
            break;
         case PASO_RILU:
-	   Paso_Solver_solveRILU(prec->rilu,x,b);
+           Paso_Solver_solveRILU(prec->rilu,x,b);
            break;
         case PASO_NO_PRECONDITIONER:
-            n = MIN(Paso_SystemMatrix_getTotalNumCols(A),Paso_SystemMatrix_getTotalNumRows(A));
+            n = MIN(A->getTotalNumCols(), A->getTotalNumRows());
             Paso_Copy(n,x,b);
             break;
 

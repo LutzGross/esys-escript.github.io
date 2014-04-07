@@ -38,9 +38,7 @@
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 
-#include <paso/SystemMatrixPattern.h>
-
-struct Paso_SystemMatrix;
+#include <paso/SystemMatrix.h>
 
 namespace ripley {
 
@@ -754,8 +752,9 @@ protected:
                               const dim_t N, paso::Pattern_ptr& colPattern,
                               paso::Pattern_ptr& rowPattern) const;
 
-    void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
-            dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
+    void addToSystemMatrix(paso::SystemMatrix_ptr in,
+            const IndexVector& nodes_Eq, dim_t num_Eq,
+            const IndexVector& nodes_Sol, dim_t num_Sol,
             const DoubleVector& array) const;
 
     void addPoints(int numPoints, const double* points_ptr,
@@ -812,15 +811,15 @@ protected:
 
 private:
     /// calls the right PDE assembly routines after performing input checks
-    void assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
-    void assemblePDEBoundary(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDEBoundary(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
-    void assemblePDEDirac(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDEDirac(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
     // finds the node that the given point belongs to

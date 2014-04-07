@@ -57,7 +57,8 @@
         A->col_coupler->connector->send->shared[rPtr...] 
         rPtr=A->col_coupler->connector->send->OffsetInShared[k]
    on q. */
-void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
+void Paso_Preconditioner_AMG_extendB(paso::SystemMatrix_ptr A,
+                                     paso::SystemMatrix_ptr B)
 {
     paso::Pattern_ptr pattern_main, pattern_couple;
     paso::Coupler_ptr coupler;
@@ -433,7 +434,7 @@ void Paso_Preconditioner_AMG_extendB(Paso_SystemMatrix* A, Paso_SystemMatrix* B)
    Rows to be copied to neighbor processor k is in the list defined by
         P->col_coupler->connector->recv->offsetInShared[k] ...
         P->col_coupler->connector->recv->offsetInShared[k+1]  */
-void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P, 
+void Paso_Preconditioner_AMG_CopyRemoteData(paso::SystemMatrix_ptr P, 
         index_t **p_ptr, index_t **p_idx, double **p_val, 
         index_t *global_id, index_t block_size) 
 {
@@ -581,11 +582,12 @@ void Paso_Preconditioner_AMG_CopyRemoteData(Paso_SystemMatrix* P,
   *p_val = recv_val;
 }
 
-Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
-        Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
+paso::SystemMatrix_ptr Paso_Preconditioner_AMG_buildInterpolationOperator(
+        paso::SystemMatrix_ptr A, paso::SystemMatrix_ptr P,
+        paso::SystemMatrix_ptr R)
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-   Paso_SystemMatrix *out=NULL;
+   paso::SystemMatrix_ptr out;
    paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
    paso::Connector_ptr col_connector, row_connector;
@@ -1947,65 +1949,64 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperator(
    #endif
    ESYS_MPI_INC_COUNTER(*mpi_info, size);
 
-   offset = input_dist->first_component[rank];
-   k = row_couple_ptr[num_RAPext_rows];
-   #pragma omp parallel for schedule(static) private(i)
-   for (i=0; i<k; i++) {
-     row_couple_idx[i] -= offset;
-   }
-   #pragma omp parallel for schedule(static) private(i)
-   for (i=0; i<size; i++) {
-     delete[] send_ptr[i];
-     delete[] send_idx[i];
-   }
-   delete[] send_ptr;
-   delete[] send_idx;
-   delete[] len;
-   delete[] offsetInShared;
-   delete[] neighbor;
-   delete[] mpi_requests;
-   delete[] mpi_stati;
-   Esys_MPIInfo_free(mpi_info);
+    offset = input_dist->first_component[rank];
+    k = row_couple_ptr[num_RAPext_rows];
+    #pragma omp parallel for schedule(static) private(i)
+    for (i=0; i<k; i++) {
+        row_couple_idx[i] -= offset;
+    }
+    #pragma omp parallel for schedule(static) private(i)
+    for (i=0; i<size; i++) {
+        delete[] send_ptr[i];
+        delete[] send_idx[i];
+    }
+    delete[] send_ptr;
+    delete[] send_idx;
+    delete[] len;
+    delete[] offsetInShared;
+    delete[] neighbor;
+    delete[] mpi_requests;
+    delete[] mpi_stati;
+    Esys_MPIInfo_free(mpi_info);
 
-   /* Now, we can create pattern for mainBlock and coupleBlock */
-   paso::Pattern_ptr main_pattern(new paso::Pattern(MATRIX_FORMAT_DEFAULT,
+    /* Now, we can create pattern for mainBlock and coupleBlock */
+    paso::Pattern_ptr main_pattern(new paso::Pattern(MATRIX_FORMAT_DEFAULT,
                num_Pmain_cols, num_Pmain_cols, RAP_main_ptr, RAP_main_idx));
-   paso::Pattern_ptr col_couple_pattern(new paso::Pattern(
+    paso::Pattern_ptr col_couple_pattern(new paso::Pattern(
                MATRIX_FORMAT_DEFAULT, num_Pmain_cols, num_RAPext_cols,
                RAP_couple_ptr, RAP_couple_idx));
-   paso::Pattern_ptr row_couple_pattern(new paso::Pattern(
+    paso::Pattern_ptr row_couple_pattern(new paso::Pattern(
                MATRIX_FORMAT_DEFAULT, num_RAPext_rows, num_Pmain_cols,
                row_couple_ptr, row_couple_idx));
 
-   /* next, create the system matrix */
-   pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+    /* next, create the system matrix */
+    pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, main_pattern, col_couple_pattern,
                 row_couple_pattern, col_connector, row_connector));
-   out = Paso_SystemMatrix_alloc(A->type, pattern,
-                row_block_size, col_block_size, FALSE);
+    out.reset(new paso::SystemMatrix(A->type, pattern, row_block_size,
+                                    col_block_size, false));
 
-   /* finally, fill in the data*/
-   memcpy(out->mainBlock->val, RAP_main_val, 
+    /* finally, fill in the data*/
+    memcpy(out->mainBlock->val, RAP_main_val, 
                 out->mainBlock->len* sizeof(double));
-   memcpy(out->col_coupleBlock->val, RAP_couple_val,
+    memcpy(out->col_coupleBlock->val, RAP_couple_val,
                 out->col_coupleBlock->len * sizeof(double));
 
-   delete[] RAP_main_val;
-   delete[] RAP_couple_val;
-   if (Esys_noError()) {
-        return out;
-   } else {
-        Paso_SystemMatrix_free(out);
-        return NULL;
-   }
+    delete[] RAP_main_val;
+    delete[] RAP_couple_val;
+    if (!Esys_noError()) {
+        out.reset();
+    }
+    return out;
 }
 
 
-Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
-        Paso_SystemMatrix* A, Paso_SystemMatrix* P, Paso_SystemMatrix* R)
+paso::SystemMatrix_ptr Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
+        paso::SystemMatrix_ptr A, paso::SystemMatrix_ptr P,
+        paso::SystemMatrix_ptr R)
 {
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-   Paso_SystemMatrix *out=NULL;
+   paso::SystemMatrix_ptr out;
    paso::SystemMatrixPattern_ptr pattern;
    paso::Distribution_ptr input_dist, output_dist;
    paso::SharedComponents_ptr send, recv;
@@ -3372,8 +3373,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
                 output_dist, input_dist, main_pattern, col_couple_pattern,
                 row_couple_pattern, col_connector, row_connector));
-   out = Paso_SystemMatrix_alloc(A->type, pattern,
-                row_block_size, col_block_size, FALSE);
+   out.reset(new paso::SystemMatrix(A->type, pattern, row_block_size,
+                                    col_block_size, false));
 
    /* finally, fill in the data*/
    memcpy(out->mainBlock->val, RAP_main_val, 
@@ -3381,12 +3382,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_buildInterpolationOperatorBlock(
    memcpy(out->col_coupleBlock->val, RAP_couple_val,
                 out->col_coupleBlock->len * sizeof(double));
 
-   delete[] RAP_main_val;
-   delete[] RAP_couple_val;
-   if (Esys_noError()) {
-     return out;
-   } else {
-     Paso_SystemMatrix_free(out);
-     return NULL;
-   }
+    delete[] RAP_main_val;
+    delete[] RAP_couple_val;
+    if (!Esys_noError()) {
+        out.reset();
+    }
+    return out;
 }
+

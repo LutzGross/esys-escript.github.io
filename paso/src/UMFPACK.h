@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/* Paso: SystemMatrix: interface to UMFPACK sparse solver */
+/* Paso: interface to UMFPACK sparse solver */
 
 /****************************************************************************/
 

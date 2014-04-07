@@ -51,12 +51,12 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, Paso_SystemMatrix * S,
-			 escriptDataC * F, escriptDataC * A, escriptDataC * B, escriptDataC * C, escriptDataC * D,
-			 escriptDataC * X, escriptDataC * Y)
+void Dudley_Assemble_PDE(Dudley_NodeFile* nodes, Dudley_ElementFile* elements,
+                         paso::SystemMatrix_ptr S, escriptDataC* F,
+                         escriptDataC* A, escriptDataC* B, escriptDataC* C,
+                         escriptDataC* D, escriptDataC* X, escriptDataC* Y)
 {
-
-    bool reducedIntegrationOrder = FALSE;
+    bool reducedIntegrationOrder = false;
     char error_msg[LenErrorMsg_MAX];
     Dudley_Assemble_Parameters p;
     dim_t dimensions[ESCRIPT_MAX_DATA_RANK];
@@ -122,23 +122,23 @@ void Dudley_Assemble_PDE(Dudley_NodeFile * nodes, Dudley_ElementFile * elements,
     /* check if all function spaces are the same */
     if (funcspace == DUDLEY_ELEMENTS)
     {
-	reducedIntegrationOrder = FALSE;
+	reducedIntegrationOrder = false;
     }
     else if (funcspace == DUDLEY_FACE_ELEMENTS)
     {
-	reducedIntegrationOrder = FALSE;
+	reducedIntegrationOrder = false;
     }
     else if (funcspace == DUDLEY_REDUCED_ELEMENTS)
     {
-	reducedIntegrationOrder = TRUE;
+	reducedIntegrationOrder = true;
     }
     else if (funcspace == DUDLEY_REDUCED_FACE_ELEMENTS)
     {
-	reducedIntegrationOrder = TRUE;
+	reducedIntegrationOrder = true;
     }
     else if (funcspace == DUDLEY_POINTS)
     {
-	reducedIntegrationOrder = TRUE;
+	reducedIntegrationOrder = true;
     }
     else
     {

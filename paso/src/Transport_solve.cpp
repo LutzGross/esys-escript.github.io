@@ -20,7 +20,7 @@
 /* Paso: Transport solver
  *
  * solves Mu_t=Ku+q
- *        
+ *
  *  using an operator splitting approach (K=L+D where L is row sum zero and D is a diagonal matrix):
  *
  *   - Mu_t=Du+q u(0)=u             (reactive part)
@@ -45,30 +45,31 @@
 #include "PasoUtil.h"
 
 
-void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options) {
+void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options)
+{
    const double reduction_after_divergence_factor = 0.5;
    const dim_t num_failures_max=50;
-   
+
    Paso_Performance pp;
    Paso_ReactiveSolver *rsolver=NULL;
    Paso_FCT_Solver *fctsolver=NULL;
-      
+
 
    dim_t i_substeps=0, n_substeps=1, num_failures=0;
    double *u_save=NULL, *u2=NULL;
    double  dt2,t=0, dt3;
    err_t errorCode=SOLVER_NO_ERROR;
-   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
+   const dim_t n = fctp->transport_matrix->getTotalNumRows();
    const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
    options->time_step_backtracking_used=FALSE;
-   options->num_iter=0;   
+   options->num_iter=0;
 
    if (dt<=0.) {
        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: dt must be positive.");
    }
    if (blockSize>1) {
        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: block size >1 is not supported.");
-    } 
+    }
    if (options->verbose) {
       if (options->ode_solver == PASO_BACKWARD_EULER) {
          printf("Paso_TransportProblem_solve: Backward Euler is used (dt = %e)\n",dt);
@@ -77,21 +78,21 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
       } else  if (options->ode_solver == PASO_CRANK_NICOLSON) {
          printf("Paso_TransportProblem_solve: Crank-Nicolson is used (dt = %e).\n",dt);
       } else {
-	 Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: unknown ODE solver."); 
+	 Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: unknown ODE solver.");
       }
    }
    if (Esys_noError()) {
-         Paso_TransportProblem_getSafeTimeStepSize(fctp); 
-        /* 
+         Paso_TransportProblem_getSafeTimeStepSize(fctp);
+        /*
          *  allocate memory
          *
          */
           fctsolver=Paso_FCT_Solver_alloc(fctp,options);
-          rsolver=Paso_ReactiveSolver_alloc(fctp); 
+          rsolver=Paso_ReactiveSolver_alloc(fctp);
 	  u_save=new double[n];
 	  u2=new double[n];
     }
-   if (Esys_noError()) {  
+   if (Esys_noError()) {
        /*
         * let the show begin!!!!
         *
@@ -102,7 +103,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	if (dt_R < LARGE_POSITIVE_FLOAT) dt2 = MIN(dt_R *2, dt); /* as we half the steps size for the RT bit */
 	if (dt_T < LARGE_POSITIVE_FLOAT) {
 	      if ( ( options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) || ( options->ode_solver == PASO_CRANK_NICOLSON ) ) {
-	         dt2 = MIN(dt_T, dt); 
+	         dt2 = MIN(dt_T, dt);
 	      } /* PASO_BACKWARD_EULER does not require a restriction */
 	}
 	
@@ -114,7 +115,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	    n_substeps=ceil((dt-t)/dt2);
 	    if ( n_substeps <= 0) {
 	       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: time stepping break down.");
-	    } else { 
+	    } else {
 	      dt3=(dt-t)/n_substeps;
 	      if (options->verbose) printf("Paso_TransportProblem_solve: number of substeps = %d with dt = %e.\n",n_substeps,dt3);
 	      	      /* initialize the iteration matrix */
@@ -127,15 +128,15 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	        if (options->verbose) printf("Paso_TransportProblem_solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
    	        Paso_Copy(n,u_save, u); /* create copy for restart in case of failure */
 		/* updates u */
-	        errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u ,q, options, &pp); /* Mu_t=Du+q u(0)=u */ 
-	        if (errorCode == SOLVER_NO_ERROR) { 
+	        errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u ,q, options, &pp); /* Mu_t=Du+q u(0)=u */
+	        if (errorCode == SOLVER_NO_ERROR) {
                   errorCode=Paso_FCT_Solver_update(fctsolver, u, u2,options, &pp); /* Mv_t=Lv   v(0)=u(dt/2) */
-	             
+
 	        }
-	        if (errorCode == SOLVER_NO_ERROR) {   
+	        if (errorCode == SOLVER_NO_ERROR) {
                    errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u, q, options, &pp); /*  Mu_t=Du+q u(dt/2)=v(dt/2) */
 	        }
-                
+
 
                 /*
 	         * error handling:
@@ -171,8 +172,8 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	      }
 	    }
 	}
-     } /* end of time loop */ 
-    /* 
+     } /* end of time loop */
+    /*
      *  clean-up:
      *
      */
@@ -188,17 +189,16 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 {
    double dt_max=0., dt_R=LARGE_POSITIVE_FLOAT, dt_T=LARGE_POSITIVE_FLOAT;
    index_t fail_loc=0;
-   const dim_t n=Paso_SystemMatrix_getTotalNumRows(fctp->transport_matrix);
-   
+   const dim_t n = fctp->transport_matrix->getTotalNumRows();
+
    if ( ! fctp->valid_matrices) {
      /* set row-sum of mass_matrix */
-     Paso_SystemMatrix_rowSum(fctp->mass_matrix,fctp->lumped_mass_matrix);
-     {  
+     fctp->mass_matrix->rowSum(fctp->lumped_mass_matrix);
+     {
         /* check for positive entries in lumped_mass_matrix and set negative value for constraints */
 	index_t fail=0, i;
         #pragma omp parallel private(i,fail_loc )
         {
-	       
                fail_loc=0;
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
@@ -209,13 +209,13 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 		      fail_loc=1;
 		  }
                }
-               #pragma omp critical 
+               #pragma omp critical
                {
 		  fail=MAX(fail, fail_loc);
                }
         }
         #ifdef ESYS_MPI
-        { 
+        {
 	       fail_loc=fail;
                MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, fctp->mpi_info->comm);
 	}
@@ -224,9 +224,9 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 	   Esys_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
      }
      /* split off row-sum from transport_matrix */
-     Paso_SystemMatrix_makeZeroRowSums(fctp->transport_matrix,fctp->reactive_matrix);
+     fctp->transport_matrix->makeZeroRowSums(fctp->reactive_matrix);
      /* get a copy of the main diagonal of the mass matrix */
-     Paso_SystemMatrix_copyFromMainDiagonal(fctp->mass_matrix,fctp->main_diagonal_mass_matrix);
+     fctp->mass_matrix->copyFromMainDiagonal(fctp->main_diagonal_mass_matrix);
 
      if (Esys_noError()) {
           dt_R=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
@@ -243,3 +243,4 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
    }
    return dt_max;
 }
+

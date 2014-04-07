@@ -17,7 +17,7 @@
 
 /************************************************************************************/
 
-/* Paso: SystemMatrix: interface to HYPRE, a software library of
+/* Paso: interface to HYPRE, a software library of
    high performance preconditioners and solvers. We use the 
    BoomerAMG provided in this library */
 
@@ -29,9 +29,6 @@
 
 #ifndef INC_PASO_BOOMERAMG
 #define INC_PASO_BOOMERAMG
-
-#include "SystemMatrix.h"
-#include "performance.h"
 
 #ifdef BOOMERAMG
 #include <HYPRE_krylov.h> 
@@ -52,4 +49,6 @@ typedef struct {
   void* n;
 #endif
 } Paso_BOOMERAMG_Handler;
+
 #endif
+

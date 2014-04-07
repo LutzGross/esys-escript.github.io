@@ -76,15 +76,10 @@
 *  ==============================================================
 */
 
-err_t Paso_Solver_BiCGStab(
-    Paso_SystemMatrix * A,
-    double * r,
-    double * x,
-    dim_t *iter,
-    double * tolerance,
-    Paso_Performance* pp) {
-
-
+err_t Paso_Solver_BiCGStab(paso::SystemMatrix_ptr A, double* r, double* x,
+                           dim_t *iter, double* tolerance,
+                           Paso_Performance* pp)
+{
   /* Local variables */
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;/*, *buf1=NULL, *buf0=NULL;*/
   double beta,norm_of_residual=0,sum_1,sum_2,sum_3,sum_4,norm_of_residual_global=0;
@@ -97,25 +92,21 @@ err_t Paso_Solver_BiCGStab(
   bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
   dim_t status = SOLVER_NO_ERROR;
   double *resid = tolerance;
-  dim_t n = Paso_SystemMatrix_getTotalNumRows(A);
+  dim_t n = A->getTotalNumRows();
 
-  /* Executable Statements */
-
-  /*     allocate memory: */
-  rtld=new double[n];
-  p=new double[n];
-  v=new double[n];
-  t=new double[n];
-  phat=new double[n];
-  shat=new double[n];
-  s=new double[n];
-  /*     Test the input parameters. */
+  /* Test the input parameters. */
 
   if (n < 0) {
     status = SOLVER_INPUT_ERROR;
-  } else if (rtld==NULL || p==NULL || v==NULL || t==NULL || phat==NULL || shat==NULL || s==NULL) {
-    status = SOLVER_MEMORY_ERROR;
   } else {
+    /* allocate memory: */
+    rtld=new double[n];
+    p=new double[n];
+    v=new double[n];
+    t=new double[n];
+    phat=new double[n];
+    shat=new double[n];
+    s=new double[n];
 
     /* now bicgstab starts : */
     maxit = *iter;
@@ -130,12 +121,12 @@ err_t Paso_Solver_BiCGStab(
  
     #pragma omp parallel for private(i0) schedule(static)
     for (i0 = 0; i0 < n; i0++) {
-	rtld[i0]=0;
-	p[i0]=0;
-	v[i0]=0;
-	t[i0]=0;
-	phat[i0]=0;
-	shat[i0]=0;
+        rtld[i0]=0;
+        p[i0]=0;
+        v[i0]=0;
+        t[i0]=0;
+        phat[i0]=0;
+        shat[i0]=0;
         rtld[i0] = r[i0];
     }
    
@@ -143,11 +134,11 @@ err_t Paso_Solver_BiCGStab(
    
     L10:
       ++(num_iter);
-	sum_1 = 0;
-	sum_2 = 0;
-	sum_3 = 0;
-	sum_4 = 0;
-	omegaNumtr = 0.0;
+        sum_1 = 0;
+        sum_2 = 0;
+        sum_3 = 0;
+        sum_4 = 0;
+        omegaNumtr = 0.0;
       omegaDenumtr = 0.0;
       #pragma omp parallel for private(i0) reduction(+:sum_1) schedule(static)
       for (i0 = 0; i0 < n; i0++) sum_1 += rtld[i0] * r[i0];
@@ -158,59 +149,59 @@ err_t Paso_Solver_BiCGStab(
       rho = sum_1;
       
       if (! (breakFlag = (ABS(rho) <= TOLERANCE_FOR_SCALARS))) {
-	/*        Compute vector P. */
+        /*        Compute vector P. */
       
-	if (num_iter > 1) {
-	  beta = rho / rho1 * (alpha / omega);
+        if (num_iter > 1) {
+          beta = rho / rho1 * (alpha / omega);
           #pragma omp parallel for private(i0) schedule(static)
-	  for (i0 = 0; i0 < n; i0++) p[i0] = r[i0] + beta * (p[i0] - omega * v[i0]);
-	} else {
+          for (i0 = 0; i0 < n; i0++) p[i0] = r[i0] + beta * (p[i0] - omega * v[i0]);
+        } else {
           #pragma omp parallel for private(i0) schedule(static)
-	  for (i0 = 0; i0 < n; i0++) p[i0] = r[i0];
-	}
+          for (i0 = 0; i0 < n; i0++) p[i0] = r[i0];
+        }
    
-	/*        Compute direction adjusting vector PHAT and scalar ALPHA. */
+        /*        Compute direction adjusting vector PHAT and scalar ALPHA. */
    
-	Paso_SystemMatrix_solvePreconditioner(A,&phat[0], &p[0]);
-	Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0],PASO_ZERO, &v[0]);
+        A->solvePreconditioner(&phat[0], &p[0]);
+        paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0], PASO_ZERO, &v[0]);
    
         #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
-	for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
+        for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
         #ifdef ESYS_MPI
            loc_sum[0] = sum_2;
             MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
         #endif
         if (! (breakFlag = (ABS(sum_2) <= TOLERANCE_FOR_SCALARS))) {
-	   alpha = rho / sum_2;
+           alpha = rho / sum_2;
 
            #pragma omp parallel for private(i0) reduction(+:sum_3) schedule(static) 
-	   for (i0 = 0; i0 < n; i0++) {
-	     r[i0] -= alpha * v[i0];
-	     s[i0] = r[i0];
-	     sum_3 += s[i0] * s[i0];
-	   }
+           for (i0 = 0; i0 < n; i0++) {
+             r[i0] -= alpha * v[i0];
+             s[i0] = r[i0];
+             sum_3 += s[i0] * s[i0];
+           }
            #ifdef ESYS_MPI
                loc_sum[0] = sum_3;
                MPI_Allreduce(loc_sum, &sum_3, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
-	   norm_of_residual = sqrt(sum_3);
+           norm_of_residual = sqrt(sum_3);
         
-	   /*        Early check for tolerance. */
-	   if ( (convergeFlag = (norm_of_residual <= tol)) ) {
+           /*        Early check for tolerance. */
+           if ( (convergeFlag = (norm_of_residual <= tol)) ) {
              #pragma omp parallel for  private(i0) schedule(static)
-	     for (i0 = 0; i0 < n; i0++) x[i0] += alpha * phat[i0];
-	     maxIterFlag = FALSE;
-	     breakFlag = FALSE;
-	   } else {
-	     /*           Compute stabilizer vector SHAT and scalar OMEGA. */
-	     Paso_SystemMatrix_solvePreconditioner(A,&shat[0], &s[0]);
-	     Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
+             for (i0 = 0; i0 < n; i0++) x[i0] += alpha * phat[i0];
+             maxIterFlag = FALSE;
+             breakFlag = FALSE;
+           } else {
+             /*           Compute stabilizer vector SHAT and scalar OMEGA. */
+             A->solvePreconditioner(&shat[0], &s[0]);
+             paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
    
              #pragma omp parallel for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
-	     for (i0 = 0; i0 < n; i0++) {
-	       omegaNumtr +=t[i0] * s[i0];
-	       omegaDenumtr += t[i0] * t[i0];
-	     }
+             for (i0 = 0; i0 < n; i0++) {
+               omegaNumtr +=t[i0] * s[i0];
+               omegaDenumtr += t[i0] * t[i0];
+             }
              #ifdef ESYS_MPI
                 loc_sum[0] = omegaNumtr;
                 loc_sum[1] = omegaDenumtr;
@@ -219,49 +210,49 @@ err_t Paso_Solver_BiCGStab(
                 omegaDenumtr=sum[1];
              #endif
              if (! (breakFlag = (ABS(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
-	        omega = omegaNumtr / omegaDenumtr;
+                omega = omegaNumtr / omegaDenumtr;
    
                 #pragma omp parallel for private(i0) reduction(+:sum_4) schedule(static)
-	        for (i0 = 0; i0 < n; i0++) {
-	          x[i0] += alpha * phat[i0] + omega * shat[i0];
-	          r[i0] = s[i0]-omega * t[i0];
-	          sum_4 += r[i0] * r[i0];
-	        }
+                for (i0 = 0; i0 < n; i0++) {
+                  x[i0] += alpha * phat[i0] + omega * shat[i0];
+                  r[i0] = s[i0]-omega * t[i0];
+                  sum_4 += r[i0] * r[i0];
+                }
                 #ifdef ESYS_MPI
                    loc_sum[0] = sum_4;
                     MPI_Allreduce(loc_sum, &sum_4, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
                 #endif
-	        norm_of_residual = sqrt(sum_4);
-	        convergeFlag = norm_of_residual <= tol;
-	        maxIterFlag = num_iter > maxit;
-	        breakFlag = (ABS(omega) <= TOLERANCE_FOR_SCALARS);
-	      }
-	   }
-	}
-	if (!(convergeFlag || maxIterFlag || breakFlag)) {
-	  rho1 = rho;
-	  goto L10;
-	}
+                norm_of_residual = sqrt(sum_4);
+                convergeFlag = norm_of_residual <= tol;
+                maxIterFlag = num_iter > maxit;
+                breakFlag = (ABS(omega) <= TOLERANCE_FOR_SCALARS);
+              }
+           }
+        }
+        if (!(convergeFlag || maxIterFlag || breakFlag)) {
+          rho1 = rho;
+          goto L10;
+        }
       }
       /* end of iteration */
       num_iter_global=num_iter;
       norm_of_residual_global=norm_of_residual;
       if (maxIterFlag) { 
-	    status = SOLVER_MAXITER_REACHED;
+            status = SOLVER_MAXITER_REACHED;
       } else if (breakFlag) {
-	    status = SOLVER_BREAKDOWN;
+            status = SOLVER_BREAKDOWN;
       }
-  }
-  delete[] rtld;
-  delete[] p;
-  delete[] v;
-  delete[] t;
-  delete[] phat;
-  delete[] shat;
-  delete[] s;
-  *iter=num_iter_global;
-  *resid=norm_of_residual_global;
+    }
+    delete[] rtld;
+    delete[] p;
+    delete[] v;
+    delete[] t;
+    delete[] phat;
+    delete[] shat;
+    delete[] s;
+    *iter=num_iter_global;
+    *resid=norm_of_residual_global;
 
-  /*     End of BICGSTAB */
-  return status;
+    return status;
 }
+

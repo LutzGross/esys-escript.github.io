@@ -19,22 +19,24 @@
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"
+
 /*
  * generate Linear System (mainly for test purposes)
  *
  */
-Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options)
+Paso_Function_LinearSystem* Paso_Function_LinearSystem_alloc(
+        paso::SystemMatrix_ptr A, double* b, Paso_Options* options)
 {
-    Paso_Function * out=NULL;
-    Paso_SystemMatrix_setPreconditioner(A,options);
-    if (! Esys_noError()) return NULL;
-    out=new Paso_Function;
-    out->kind=LINEAR_SYSTEM;
-    out->mpi_info=Esys_MPIInfo_getReference(A->mpi_info);
-    out->n=Paso_SystemMatrix_getTotalNumRows(A);
-    out->more=(void*)Paso_SystemMatrix_getReference(A);
-    out->b=b;
-    out->tmp=new double[out->n];
+    Paso_Function_LinearSystem* out=NULL;
+    A->setPreconditioner(options);
+    if (!Esys_noError()) return NULL;
+    out=new Paso_Function_LinearSystem();
+    out->kind = LINEAR_SYSTEM;
+    out->mpi_info = Esys_MPIInfo_getReference(A->mpi_info);
+    out->n = A->getTotalNumRows();
+    out->mat = A;
+    out->b = b;
+    out->tmp = new double[out->n];
     if (Esys_noError()) {
         return out;
     } else {
@@ -43,11 +45,10 @@ Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b
     }
 }
 
-void Paso_Function_LinearSystem_free(Paso_Function * F) 
+void Paso_Function_LinearSystem_free(Paso_Function_LinearSystem* F) 
 {
    if (F!=NULL) {
        Esys_MPIInfo_free(F->mpi_info);
-       Paso_SystemMatrix_free((Paso_SystemMatrix*)(F->more));
        delete[] F->tmp;
        delete F;
    }
@@ -56,11 +57,13 @@ void Paso_Function_LinearSystem_free(Paso_Function * F)
  * evaluates value=P*(b-Ax)
  *
  */
-err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp)
+err_t Paso_Function_LinearSystem_call(Paso_Function_LinearSystem* F,
+                                      double* value, const double* arg,
+                                      Paso_Performance *pp)
 {
-    Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
-    Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */
-    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, arg,-PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
-    Paso_SystemMatrix_solvePreconditioner(A,value,F->tmp);  /* value=P*tmp */
+    Paso_Copy(F->n, F->tmp, F->b); /* tmp=b */
+    paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, F->mat, arg, -PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
+    F->mat->solvePreconditioner(value, F->tmp);  /* value=P*tmp */
     return NO_ERROR;
 }
+

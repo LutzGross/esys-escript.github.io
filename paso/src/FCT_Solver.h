@@ -60,17 +60,17 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
 PASO_DLL_API
 err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
 
-void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix, const Paso_TransportProblem* fct, 
+void Paso_FCT_setAntiDiffusionFlux_linearCN(paso::SystemMatrix_ptr flux_matrix, const Paso_TransportProblem* fct, 
 				            const double dt, paso::const_Coupler_ptr u_tilde_coupler,  
 				            paso::const_Coupler_ptr u_old_coupler);
 
-void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
+void Paso_FCT_setAntiDiffusionFlux_BE(paso::SystemMatrix_ptr flux_matrix,
                                       const Paso_TransportProblem* fct, 
 				      const double dt,
 			              paso::const_Coupler_ptr u_coupler,  
 				      paso::const_Coupler_ptr u_old_coupler);
 
-void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
+void Paso_FCT_setAntiDiffusionFlux_CN(paso::SystemMatrix_ptr flux_matrix,
                                       const Paso_TransportProblem* fct, 
 				      const double dt,
 			          paso::const_Coupler_ptr u_coupler,  
@@ -78,7 +78,7 @@ void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
 
 void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Paso_Options* options, Paso_Performance* pp) ;
 double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp);
-void Paso_FCT_Solver_setMuPaLu(double* out, const double* M, paso::const_Coupler_ptr u_coupler, const double a, const Paso_SystemMatrix *L);
+void Paso_FCT_Solver_setMuPaLu(double* out, const double* M, paso::const_Coupler_ptr u_coupler, const double a, paso::const_SystemMatrix_ptr L);
 
 #define Paso_FCT_Solver_getTheta(_fct_) ( ( (_fct_)->method == PASO_BACKWARD_EULER ) ? 1. : 0.5 )
 

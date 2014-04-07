@@ -35,16 +35,14 @@
 
 /************************************************************************************/
 
-void Paso_solve(Paso_SystemMatrix* A,
-                double* out,
-                double* in,
-                Paso_Options* options) {
-
+void Paso_solve(paso::SystemMatrix_ptr A, double* out, double* in,
+                Paso_Options* options)
+{
   Paso_Performance pp;
   index_t package;
   Esys_resetError();
-  if (Paso_SystemMatrix_getGlobalNumCols(A) != Paso_SystemMatrix_getGlobalNumRows(A)
-                || A->col_block_size!=A->row_block_size) {
+  if (A->getGlobalNumCols() != A->getGlobalNumRows()
+                || A->col_block_size != A->row_block_size) {
        Esys_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
        return;
   }
@@ -115,12 +113,11 @@ void Paso_solve(Paso_SystemMatrix* A,
 
 /*  free memory possibly reserved for a recall */
 
-void Paso_solve_free(Paso_SystemMatrix* in) { 
-
-     if (in==NULL) return;
+void Paso_solve_free(paso::SystemMatrix* in)
+{ 
+     if (!in) return;
 
      switch(in->solver_package) {
-
         case PASO_PASO:
           Paso_Solver_free(in);
           break;
