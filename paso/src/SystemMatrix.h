@@ -105,7 +105,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
 
     double getGlobalSize() const;
 
-    void setPreconditioner(Paso_Options* options);
+    void setPreconditioner(Options* options);
 
     /// Applies the preconditioner.
     /// This method needs to be called within a parallel region. 

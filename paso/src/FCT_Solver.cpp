@@ -35,7 +35,7 @@
 #include "PasoUtil.h"
 
 
-Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options* options)
+Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, paso::Options* options)
 {
     Paso_FCT_Solver* out=NULL;
     const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
@@ -131,7 +131,7 @@ double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 }
 
 /* modifies the main diagonal of the iteration matrix to introduce new dt */
-void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Paso_Options* options, Paso_Performance* pp)
+void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, paso::Options* options, Paso_Performance* pp)
 {
    Paso_TransportProblem* fctp = fct_solver->transportproblem;
    const index_t* main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fctp);
@@ -139,7 +139,7 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
    const double theta = Paso_FCT_Solver_getTheta(fct_solver);
    const double omega=1./(dt* theta);
    dim_t i;
-   Paso_Options options2;
+   paso::Options options2;
 
 
 
@@ -162,9 +162,8 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
     }
 
     /* allocate preconditioner/solver */
-    Paso_Options_setDefaults(&options2);
     options2.verbose = options->verbose;
-    if (fct_solver->method == PASO_LINEAR_CRANK_NICOLSON  ) {
+    if (fct_solver->method == PASO_LINEAR_CRANK_NICOLSON) {
         options2.preconditioner = PASO_GS;
     } else  {
         options2.preconditioner = PASO_JACOBI;
@@ -179,7 +178,7 @@ void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Pa
 }
 
 /* entry point for update procedures */
-err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_old,  Paso_Options* options, Paso_Performance *pp)
+err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_old,  paso::Options* options, Paso_Performance *pp)
 {
     const index_t method=fct_solver->method;
     err_t err_out = SOLVER_NO_ERROR;
@@ -197,7 +196,7 @@ err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_o
 }
 
 /* linear crank-nicolson update */
-err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, Paso_Options* options, Paso_Performance *pp)
+err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, paso::Options* options, Paso_Performance *pp)
 {
     double const dt = fct_solver->dt;
     dim_t sweep_max, i;
@@ -264,7 +263,7 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
 
 }
 
-err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, Paso_Options* options, Paso_Performance *pp)
+err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, paso::Options* options, Paso_Performance *pp)
 {
    const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
    const double critical_rate=0.95;   /* expected value of convergence rate */

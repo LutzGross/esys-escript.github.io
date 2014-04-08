@@ -38,9 +38,9 @@
 #include <omp.h>
 #endif
 err_t Paso_Solver_NewtonGMRES(
-    Paso_Function *F,    /* function evaluation */
+    Paso_Function* F,    /* function evaluation */
     double *x,           /* in: initial guess, out: new approximation */
-    Paso_Options* options,
+    paso::Options* options,
     Paso_Performance* pp) 
 
 {

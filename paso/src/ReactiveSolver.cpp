@@ -40,7 +40,7 @@
 err_t Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support,
                                 Paso_TransportProblem* fctp, double* u,
                                 double* u_old, const double* source,
-                                Paso_Options* options, Paso_Performance* pp)
+                                paso::Options* options, Paso_Performance* pp)
 {
     const double EXP_LIM_MIN =PASO_RT_EXP_LIM_MIN;
     const double EXP_LIM_MAX =PASO_RT_EXP_LIM_MAX;
@@ -138,7 +138,7 @@ double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 }
 
 void Paso_ReactiveSolver_initialize(double dt, Paso_ReactiveSolver* rsolver,
-                                    Paso_Options* options)
+                                    paso::Options* options)
 {
     rsolver->dt=dt;
 }

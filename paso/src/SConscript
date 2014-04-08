@@ -39,9 +39,7 @@ sources = """
     MergedSolver.cpp
     MKL.cpp
     NewtonGMRES.cpp
-    Options_getPackage.cpp
-    Options_getSolver.cpp
-    Options_setDefaults.cpp
+    Options.cpp
     PCG.cpp
     PasoUtil.cpp
     Pattern.cpp

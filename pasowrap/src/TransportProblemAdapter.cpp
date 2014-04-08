@@ -63,8 +63,8 @@ PASOWRAP_DLL_API
 void TransportProblemAdapter::setToSolution(escript::Data& out, escript::Data& u0, escript::Data& source, const double dt, boost::python::object& options) const
 {
     Paso_TransportProblem* transp=getPaso_TransportProblem();
-    Paso_Options paso_options;
-    SystemMatrixAdapter::escriptToPasoOptions(&paso_options,options);
+    Options paso_options;
+    SystemMatrixAdapter::escriptToPasoOptions(&paso_options, options);
     options.attr("resetDiagnostics")();
     if ( out.getDataPointSize()  != getBlockSize()) {
      throw PasoException("solve : block size of solution does not match block size of transport problems.");

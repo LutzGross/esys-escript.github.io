@@ -25,7 +25,7 @@
  *
  */
 Paso_Function_LinearSystem* Paso_Function_LinearSystem_alloc(
-        paso::SystemMatrix_ptr A, double* b, Paso_Options* options)
+        paso::SystemMatrix_ptr A, double* b, paso::Options* options)
 {
     Paso_Function_LinearSystem* out=NULL;
     A->setPreconditioner(options);

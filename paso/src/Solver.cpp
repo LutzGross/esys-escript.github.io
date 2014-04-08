@@ -38,7 +38,7 @@ void Paso_Solver_free(paso::SystemMatrix* A)
 
 /*  call the iterative solver: */
 void Paso_Solver(paso::SystemMatrix_ptr A, double* x, double* b,
-                 Paso_Options* options, Paso_Performance* pp)
+                 paso::Options* options, Paso_Performance* pp)
 {
    double norm2_of_b,tol,tolerance,time_iter,net_time_start;
    double *r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b;
@@ -64,7 +64,7 @@ void Paso_Solver(paso::SystemMatrix_ptr A, double* x, double* b,
     if (tolerance >1.) {
        Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance must be less than one.");
     }
-    method=Paso_Options_getSolver(options->method,PASO_PASO,options->symmetric,A->mpi_info);
+    method=paso::Options::getSolver(options->method, PASO_PASO, options->symmetric, A->mpi_info);
     /* check matrix type */
     if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) ) {
        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");

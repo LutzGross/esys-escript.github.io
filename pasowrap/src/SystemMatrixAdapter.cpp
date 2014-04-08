@@ -235,7 +235,7 @@ void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 
 void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, boost::python::object& options) const
 {
-   Paso_Options paso_options;
+   Options paso_options;
    options.attr("resetDiagnostics")();
    escriptToPasoOptions(&paso_options,options);
    if ( out.getDataPointSize()  != getColumnBlockSize()) {
@@ -296,7 +296,8 @@ void SystemMatrixAdapter::resetValues() const
    checkPasoError();
 }
 
-void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,boost::python::object& options) 
+void SystemMatrixAdapter::pasoToEscriptOptions(const Options* paso_options,
+                                               boost::python::object& options) 
 {
 #define SET(__key__,__val__,__type__) options.attr("_updateDiagnostics")(__key__,(__type__)paso_options->__val__)
    SET("num_iter", num_iter, int);
@@ -313,12 +314,12 @@ void SystemMatrixAdapter::pasoToEscriptOptions(const Paso_Options* paso_options,
 #undef SET
 }
 
-void SystemMatrixAdapter::escriptToPasoOptions(Paso_Options* paso_options,
+void SystemMatrixAdapter::escriptToPasoOptions(Options* paso_options,
                                          const boost::python::object& options) 
 {
     escript::SolverBuddy sb = boost::python::extract<escript::SolverBuddy>(options);
 
-    Paso_Options_setDefaults(paso_options);
+    paso_options->setDefaults();
     paso_options->method = mapOptionToPaso(sb.getSolverMethod());
     paso_options->package = mapOptionToPaso(sb.getPackage());
     paso_options->verbose = sb.isVerbose();

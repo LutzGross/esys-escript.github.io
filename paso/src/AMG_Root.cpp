@@ -43,7 +43,7 @@ void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in)
 }
 
 Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
-                                                       Paso_Options* options)
+                                                       Options* options)
 {
     Preconditioner_AMG_Root* prec=new Preconditioner_AMG_Root;
     prec->amg = NULL;

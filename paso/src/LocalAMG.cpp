@@ -86,7 +86,7 @@ dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG
    Constructs AMG
    
 ******************************************************************************/
-Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim_t level, Paso_Options* options)
+Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim_t level, Options* options)
 {
   Preconditioner_LocalAMG* out=NULL;
   bool verbose=options->verbose;

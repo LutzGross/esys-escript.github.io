@@ -25,8 +25,8 @@
 #include "performance.h"
 #include "Paso.h"
 
-typedef struct Paso_TransportProblem {
-
+typedef struct Paso_TransportProblem
+{
     bool valid_matrices;
     double dt_max_R;       /* safe time step size for reactive  part */
     double dt_max_T;       /* safe time step size for transport  part */
@@ -69,7 +69,7 @@ PASO_DLL_API
 paso::SystemMatrix_ptr Paso_TransportProblem_borrowMassMatrix(Paso_TransportProblem* in);
 
 PASO_DLL_API
-void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options);
+void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, paso::Options* options);
 
 PASO_DLL_API
 double* Paso_TransportProblem_borrowLumpedMassMatrix(Paso_TransportProblem* in);
