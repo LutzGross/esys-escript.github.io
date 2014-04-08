@@ -29,42 +29,42 @@
 #include "Preconditioner.h"
 #include "BOOMERAMG.h"
 
+namespace paso {
 
-/*  free space */
-void Paso_Preconditioner_AMG_Root_free(Paso_Preconditioner_AMG_Root* in)
+void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in)
 {
     if (in) {
-        Paso_Preconditioner_AMG_free(in->amg);
-        Paso_Preconditioner_LocalAMG_free(in->localamg);
-        Paso_Preconditioner_BoomerAMG_free(in->boomeramg);
-        Paso_Preconditioner_Smoother_free(in->amgsubstitute);
+        Preconditioner_AMG_free(in->amg);
+        Preconditioner_LocalAMG_free(in->localamg);
+        Preconditioner_BoomerAMG_free(in->boomeramg);
+        Preconditioner_Smoother_free(in->amgsubstitute);
         delete in;
     }
 }
 
-Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(
-        paso::SystemMatrix_ptr A, Paso_Options* options)
+Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
+                                                       Paso_Options* options)
 {
-    Paso_Preconditioner_AMG_Root* prec=new Paso_Preconditioner_AMG_Root;
+    Preconditioner_AMG_Root* prec=new Preconditioner_AMG_Root;
     prec->amg = NULL;
     prec->localamg = NULL;
     prec->amgsubstitute = NULL;
     prec->boomeramg = NULL;
     if (options->preconditioner == PASO_BOOMERAMG) {
-        prec->boomeramg = Paso_Preconditioner_BoomerAMG_alloc(A,options);
+        prec->boomeramg = Preconditioner_BoomerAMG_alloc(A,options);
     } else {
         prec->is_local = (A->mpi_info->size == 1) || options->use_local_preconditioner;
         if (prec->is_local) {
-            prec->localamg = Paso_Preconditioner_LocalAMG_alloc(A->mainBlock, 1, options);
+            prec->localamg = Preconditioner_LocalAMG_alloc(A->mainBlock, 1, options);
             Esys_MPIInfo_noError(A->mpi_info);
         } else {
-            prec->amg = Paso_Preconditioner_AMG_alloc(A, 1, options);
+            prec->amg = Preconditioner_AMG_alloc(A, 1, options);
         }
     }
     if (Esys_noError()) {
         if (options->verbose) {
             if (prec->localamg || prec->amg || prec->boomeramg) {
-                printf("Paso_Preconditioner_AMG_Root:  Smoother is ");
+                printf("Preconditioner_AMG_Root:  Smoother is ");
                 if (options->smoother == PASO_JACOBI) {
                     printf("Jacobi");
                 } else {
@@ -79,33 +79,33 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(
                     printf( " and direct interpolation.\n");
                 }
             } else {
-                printf("Paso_Preconditioner_AMG_Root:  no coarsening constructed.\n");
+                printf("Preconditioner_AMG_Root:  no coarsening constructed.\n");
             }
         } // verbose?
 
         if (prec->localamg != NULL) {
-            options->num_level=Paso_Preconditioner_LocalAMG_getMaxLevel(prec->localamg);
-            options->coarse_level_sparsity=Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(prec->localamg);
-            options->num_coarse_unknowns=Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(prec->localamg);
+            options->num_level=Preconditioner_LocalAMG_getMaxLevel(prec->localamg);
+            options->coarse_level_sparsity=Preconditioner_LocalAMG_getCoarseLevelSparsity(prec->localamg);
+            options->num_coarse_unknowns=Preconditioner_LocalAMG_getNumCoarseUnknowns(prec->localamg);
         } else if (prec->amg != NULL) {
-            options->num_level=Paso_Preconditioner_AMG_getMaxLevel(prec->amg);
-            options->coarse_level_sparsity=Paso_Preconditioner_AMG_getCoarseLevelSparsity(prec->amg);
-            options->num_coarse_unknowns=Paso_Preconditioner_AMG_getNumCoarseUnknwons(prec->amg);
+            options->num_level=Preconditioner_AMG_getMaxLevel(prec->amg);
+            options->coarse_level_sparsity=Preconditioner_AMG_getCoarseLevelSparsity(prec->amg);
+            options->num_coarse_unknowns=Preconditioner_AMG_getNumCoarseUnknowns(prec->amg);
         } else if (prec->boomeramg == NULL) {
             prec->sweeps=options->sweeps;
-            prec->amgsubstitute=Paso_Preconditioner_Smoother_alloc(A, (options->smoother == PASO_JACOBI), prec->is_local, options->verbose);
+            prec->amgsubstitute=Preconditioner_Smoother_alloc(A, (options->smoother == PASO_JACOBI), prec->is_local, options->verbose);
             options->num_level=0;
             if (options->verbose) { 
                 if (options->smoother == PASO_JACOBI) {
-                    printf("Paso_Preconditioner: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
+                    printf("Preconditioner: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
                 } else {
-                    printf("Paso_Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",prec->sweeps);
+                    printf("Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",prec->sweeps);
                 }
             }
         }
     }
     if (!Esys_noError() ){
-        Paso_Preconditioner_AMG_Root_free(prec);
+        Preconditioner_AMG_Root_free(prec);
         return NULL;
     } else {
         return prec;
@@ -115,17 +115,21 @@ Paso_Preconditioner_AMG_Root* Paso_Preconditioner_AMG_Root_alloc(
 /* Applies the preconditioner. */
 /* Has to be called within a parallel region. */
 /* Barrier synchronization is performed before the evaluation to make sure that the input vector is available */
-void Paso_Preconditioner_AMG_Root_solve(paso::SystemMatrix_ptr A,
-                       Paso_Preconditioner_AMG_Root* prec, double* x,double* b)
+void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A,
+                                   Preconditioner_AMG_Root* prec,
+                                   double* x, double* b)
 {
     if (prec->localamg != NULL) {
-        Paso_Preconditioner_LocalAMG_solve(A->mainBlock, prec->localamg, x, b);
+        Preconditioner_LocalAMG_solve(A->mainBlock, prec->localamg, x, b);
     } else if ( prec->amg != NULL) {
-        Paso_Preconditioner_AMG_solve(A, prec->amg,x,b);
+        Preconditioner_AMG_solve(A, prec->amg,x,b);
     } else if ( prec->boomeramg != NULL) {
-        Paso_Preconditioner_BoomerAMG_solve(A, prec->boomeramg, x, b);
+        Preconditioner_BoomerAMG_solve(A, prec->boomeramg, x, b);
     } else {
-        Paso_Preconditioner_Smoother_solve(A, prec->amgsubstitute, x, b, prec->sweeps, FALSE);
+        Preconditioner_Smoother_solve(A, prec->amgsubstitute, x, b,
+                                      prec->sweeps, false);
     }
 }
+
+} // namespace paso
 

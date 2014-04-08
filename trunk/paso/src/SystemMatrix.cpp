@@ -154,20 +154,20 @@ SystemMatrix::~SystemMatrix()
 void SystemMatrix::setPreconditioner(Paso_Options* options)
 {
     if (!solver_p) {
-        solver_p = Paso_Preconditioner_alloc(shared_from_this(), options);
+        solver_p = Preconditioner_alloc(shared_from_this(), options);
     }
 }
 
 void SystemMatrix::solvePreconditioner(double* x, double* b)
 {
-    Paso_Preconditioner* prec=(Paso_Preconditioner*)solver_p;
-    Paso_Preconditioner_solve(prec, shared_from_this(), x, b);
+    Preconditioner* prec=(Preconditioner*)solver_p;
+    Preconditioner_solve(prec, shared_from_this(), x, b);
 }
 
 void SystemMatrix::freePreconditioner()
 {
-    Paso_Preconditioner* prec = (Paso_Preconditioner*) solver_p;
-    Paso_Preconditioner_free(prec);
+    Preconditioner* prec = (Preconditioner*) solver_p;
+    Preconditioner_free(prec);
     solver_p = NULL;
 }
 

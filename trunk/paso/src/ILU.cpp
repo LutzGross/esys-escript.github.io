@@ -30,11 +30,9 @@
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 
-/****************************************************************************/
+namespace paso {
 
-/* free all memory used by ILU                                */
-
-void Paso_Solver_ILU_free(Paso_Solver_ILU * in)
+void Solver_ILU_free(Solver_ILU * in)
 {
     if (in!=NULL) {
         delete[] in->factors;
@@ -42,8 +40,8 @@ void Paso_Solver_ILU_free(Paso_Solver_ILU * in)
     }
 }
 
-/*   constructs the incomplete block factorization            */
-Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
+/// constructs the incomplete block factorization
+Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
 {
   const dim_t n=A->numRows;
   const dim_t n_block=A->row_block_size;
@@ -55,7 +53,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
   register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
   double time0=0,time_fac=0;
   /* allocations: */
-  Paso_Solver_ILU* out=new Paso_Solver_ILU;
+  Solver_ILU* out=new Solver_ILU;
   out->factors=new double[A->len];
 
   if ( ! Esys_checkPtr(out->factors)  ) {
@@ -109,7 +107,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
                              }
                           }
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -178,7 +176,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
                              }
                           }
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -289,12 +287,12 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
                              }
                           }
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
               } else {
-                 Esys_setError(VALUE_ERROR, "Paso_Solver_getILU: block size greater than 3 is not supported.");
+                 Esys_setError(VALUE_ERROR, "Solver_getILU: block size greater than 3 is not supported.");
               }
               #pragma omp barrier
        }
@@ -304,7 +302,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
       if (verbose) printf("timing: ILU: coloring/elimination: %e sec\n",time_fac);
      return out;
   } else  {
-     Paso_Solver_ILU_free(out);
+     Solver_ILU_free(out);
      return NULL;
   }
 }
@@ -320,8 +318,8 @@ Paso_Solver_ILU* Paso_Solver_getILU(paso::SparseMatrix_ptr A, bool verbose)
    vector is available.
 */
 
-void Paso_Solver_solveILU(paso::SparseMatrix_ptr A, Paso_Solver_ILU* ilu,
-                          double* x, const double* b)
+void Solver_solveILU(SparseMatrix_ptr A, Solver_ILU* ilu, double* x,
+                     const double* b)
 {
      register dim_t i,k;
      register index_t color,iptr_ik,iptr_main;
@@ -469,4 +467,6 @@ void Paso_Solver_solveILU(paso::SparseMatrix_ptr A, Paso_Solver_ILU* ilu,
          #pragma omp barrier
      }
 }
+
+} // namespace paso
 
