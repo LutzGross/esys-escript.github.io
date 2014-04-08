@@ -26,7 +26,6 @@
 int main( int argc, char **argv ) {
   int status = 0;
   int provided;
-  Esys_MPIInfo *mpi_info=NULL;
   try
   {
     /*
@@ -38,9 +37,13 @@ int main( int argc, char **argv ) {
       std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
       return status;
     }
-    mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
+    int rank=0;
+    if (MPI_Comm_rank(MPI_COMM_WORLD, &rank)!=MPI_SUCCESS)
+    {
+	MPI_Abort(MPI_COMM_WORLD,1);
+    }
 
-    if( mpi_info->rank )
+    if( rank )
     {
       #ifdef _WIN32
          if ( freopen( "NUL", "w+", stdout ) == NULL ) {
@@ -97,7 +100,6 @@ int main( int argc, char **argv ) {
      */
         MPI_Finalize();
     }
-    Esys_MPIInfo_free( mpi_info );
   }
   catch (std::runtime_error &e)
   {
