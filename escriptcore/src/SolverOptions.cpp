@@ -268,9 +268,9 @@ void SolverBuddy::resetDiagnostics(bool all) {
 
 void SolverBuddy::updateDiagnostics(std::string name, boost::python::object value) {
 
-        int i;
-        double d;
-        bool b;
+        int i=0;
+        double d=0;	// to keep older compilers happy
+        bool b=false;
         bool ib = convert<int>(value, i);
         bool db = convert<double>(value, d);
         bool bb = convert<bool>(value, b);
