@@ -151,7 +151,7 @@ SystemMatrix::~SystemMatrix()
 #endif
 }
 
-void SystemMatrix::setPreconditioner(Paso_Options* options)
+void SystemMatrix::setPreconditioner(Options* options)
 {
     if (!solver_p) {
         solver_p = Preconditioner_alloc(shared_from_this(), options);
@@ -471,7 +471,7 @@ index_t SystemMatrix::getSystemMatrixTypeId(index_t solver,
                                             Esys_MPIInfo* mpi_info)
 {
     index_t out = -1;
-    index_t true_package = Paso_Options_getPackage(solver, package, symmetry, mpi_info);
+    index_t true_package = Options::getPackage(solver, package, symmetry, mpi_info);
 
     switch(true_package) {
         case PASO_PASO:

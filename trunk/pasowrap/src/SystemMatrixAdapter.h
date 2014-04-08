@@ -134,13 +134,13 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix
      \brief extract paso options from SolutionOptions class
   */
  
-  static void escriptToPasoOptions(Paso_Options* paso_options, const boost::python::object& options);
+  static void escriptToPasoOptions(Options* paso_options, const boost::python::object& options);
 
   /**
      \brief copies diagnostic data back to the solver options
   */
  
-  static void pasoToEscriptOptions(const Paso_Options* paso_options, boost::python::object& options);
+  static void pasoToEscriptOptions(const Options* paso_options, boost::python::object& options);
  
   /**
      \brief prints information about a system matrix

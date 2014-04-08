@@ -32,7 +32,7 @@
 #include "MKL.h"
 
 Paso_MergedSolver* Paso_MergedSolver_alloc(paso::SystemMatrix_ptr A,
-                                           Paso_Options* options)
+                                           paso::Options* options)
 {
     const index_t rank = A->mpi_info->rank;
     const index_t size = A->mpi_info->size;

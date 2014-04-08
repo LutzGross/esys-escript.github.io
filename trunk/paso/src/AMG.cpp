@@ -87,7 +87,7 @@ dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in)
 
 *****************************************************************************/
 Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
-                                             Paso_Options* options)
+                                             Options* options)
 {
     Preconditioner_AMG* out = NULL;
     const bool verbose = options->verbose;

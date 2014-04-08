@@ -51,8 +51,8 @@ void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG * in)
 }
 
 // allocate necessary space for the BoomerAMG library
-Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(
-                        SystemMatrix_ptr A, Paso_Options* options)
+Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A,
+                                                         Options* options)
 {
 #ifdef BOOMERAMG
     index_t ilower; /* first row in current processor, number is given by

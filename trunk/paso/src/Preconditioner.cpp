@@ -44,7 +44,7 @@ void Preconditioner_free(Preconditioner* in)
     }
 }
 
-Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Paso_Options* options)
+Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
 {
     Preconditioner* prec = new Preconditioner;
     prec->type=UNKNOWN;

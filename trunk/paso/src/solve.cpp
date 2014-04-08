@@ -36,7 +36,7 @@
 namespace paso {
 
 void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
-                Paso_Options* options)
+                Options* options)
 {
     Paso_Performance pp;
     index_t package;
@@ -46,12 +46,11 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
         Esys_setError(VALUE_ERROR,"Paso_solve: matrix has to be a square matrix.");
         return;
     }
-    /* Paso_Options_show(options); */
+    //options->show();
     Performance_open(&pp,options->verbose);
-    package=Paso_Options_getPackage(options->method,options->package,options->symmetric, A->mpi_info);
+    package = Options::getPackage(options->method, options->package, options->symmetric, A->mpi_info);
     if (Esys_noError()) {
         switch(package) {
-
             case PASO_PASO:
                 Paso_Solver(A,out,in,options,&pp);
                 A->solver_package=PASO_PASO;
@@ -108,7 +107,7 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
         } 
     }
     Performance_close(&pp,options->verbose);
-    /* Paso_Options_showDiagnostics(options); */
+    //options->showDiagnostics();
 }
 
 void Paso_solve_free(SystemMatrix* in)

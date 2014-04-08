@@ -59,8 +59,8 @@ struct Preconditioner
 };
 
 void Preconditioner_free(Preconditioner*);
-Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A,Paso_Options* options);
-void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,double*,double*);
+Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options);
+void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A, double*, double*);
 
 
 // GAUSS SEIDEL & Jacobi
@@ -81,13 +81,12 @@ struct Preconditioner_Smoother
 void Preconditioner_Smoother_free(Preconditioner_Smoother * in);
 void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother * in);
 
-void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
-                Paso_Options* options);
+void Paso_solve(SystemMatrix_ptr A, double* out, double* in, Options* options);
 
 void Paso_solve_free(SystemMatrix* A);
 
 Preconditioner_Smoother* Preconditioner_Smoother_alloc(
-        SystemMatrix_ptr A_p, bool jacobi, bool is_local, bool verbose);
+        SystemMatrix_ptr A, bool jacobi, bool is_local, bool verbose);
 
 Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
         SparseMatrix_ptr A, bool jacobi, bool verbose);
@@ -141,7 +140,7 @@ struct Preconditioner_AMG
 };
 
 void Preconditioner_AMG_free(Preconditioner_AMG * in);
-Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A_p,dim_t level,Paso_Options* options);
+Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level, Options* options);
 void Preconditioner_AMG_solve(SystemMatrix_ptr A, Preconditioner_AMG * amg, double * x, double * b);
 void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,  dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
 void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A, dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
@@ -188,7 +187,7 @@ struct Preconditioner_LocalAMG {
 };
 
 void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG * in);
-Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim_t level, Paso_Options* options);
+Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A, dim_t level, Options* options);
 void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A, Preconditioner_LocalAMG * amg, double * x, double * b);
 
 void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, AMGBlockSelect*split_marker, const bool usePanel);
@@ -217,7 +216,7 @@ struct Preconditioner_BoomerAMG
 };
 
 void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG * in);
-Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A_p, Paso_Options* options);
+Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A, Options* options);
 void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr A, Preconditioner_BoomerAMG * amg, double * x, double * b);
 
 
@@ -231,7 +230,7 @@ struct Preconditioner_AMG_Root
   Preconditioner_Smoother* amgsubstitute;
 };
 
-Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A, Paso_Options* options);
+Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A, Options* options);
 void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root * in);
 void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A, Preconditioner_AMG_Root * amg, double * x, double * b);
 

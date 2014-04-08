@@ -23,9 +23,6 @@
 #include "Solver.h"
 
 
-
-
-
 typedef struct Paso_FCT_Solver {
       Paso_TransportProblem* transportproblem;
       Esys_MPIInfo *mpi_info;
@@ -42,23 +39,23 @@ typedef struct Paso_FCT_Solver {
 } Paso_FCT_Solver;
 
 PASO_DLL_API
-Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options* options);
+Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, paso::Options* options);
 
 PASO_DLL_API
 void Paso_FCT_Solver_free(Paso_FCT_Solver *in);
 
 PASO_DLL_API
-err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double *u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
+err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double *u, double *u_old, paso::Options* options, Paso_Performance *pp) ;
 
 
 PASO_DLL_API
 void Paso_FCT_setLowOrderOperator(Paso_TransportProblem * fc);
 
 PASO_DLL_API
-err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
+err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, paso::Options* options, Paso_Performance *pp) ;
 
 PASO_DLL_API
-err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
+err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, paso::Options* options, Paso_Performance *pp) ;
 
 void Paso_FCT_setAntiDiffusionFlux_linearCN(paso::SystemMatrix_ptr flux_matrix, const Paso_TransportProblem* fct, 
 				            const double dt, paso::const_Coupler_ptr u_tilde_coupler,  
@@ -76,7 +73,7 @@ void Paso_FCT_setAntiDiffusionFlux_CN(paso::SystemMatrix_ptr flux_matrix,
 			          paso::const_Coupler_ptr u_coupler,  
 				      paso::const_Coupler_ptr u_old_coupler);
 
-void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Paso_Options* options, Paso_Performance* pp) ;
+void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, paso::Options* options, Paso_Performance* pp) ;
 double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp);
 void Paso_FCT_Solver_setMuPaLu(double* out, const double* M, paso::const_Coupler_ptr u_coupler, const double a, paso::const_SystemMatrix_ptr L);
 

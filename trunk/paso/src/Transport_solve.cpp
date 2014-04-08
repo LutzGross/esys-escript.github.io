@@ -45,7 +45,7 @@
 #include "PasoUtil.h"
 
 
-void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, Paso_Options* options)
+void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, paso::Options* options)
 {
    const double reduction_after_divergence_factor = 0.5;
    const dim_t num_failures_max=50;
