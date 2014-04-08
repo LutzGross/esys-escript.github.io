@@ -28,12 +28,7 @@
 #ifndef INC_PASO_MERGEDSOLVER
 #define INC_PASO_MERGEDSOLVER
 
-#include "Paso.h"
 #include "SystemMatrix.h"
-#include "Options.h"
-#include "esysUtils/Esys_MPI.h"
-#include "Paso.h"
-
 
 typedef struct Paso_MergedSolver
 {

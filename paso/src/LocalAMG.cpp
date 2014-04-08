@@ -15,15 +15,15 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: AMG preconditioner  (local version)                  */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: artak@uq.edu.au, l.gross@uq.edu.au l.gao@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #define SHOW_TIMING FALSE
 #define USE_TRANSPOSE TRUE
@@ -36,15 +36,13 @@
 #include "UMFPACK.h"
 #include "MKL.h"
 
-/************************************************************************************/
+namespace paso {
 
-/* free all memory used by AMG                                */
-
-void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in)
+void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG * in)
 {
     if (in!=NULL) {
-        Paso_Preconditioner_LocalSmoother_free(in->Smoother);
-        Paso_Preconditioner_LocalAMG_free(in->AMG_C);
+        Preconditioner_LocalSmoother_free(in->Smoother);
+        Preconditioner_LocalAMG_free(in->AMG_C);
         delete[] in->r;
         delete[] in->x_C;
         delete[] in->b_C;
@@ -52,36 +50,35 @@ void Paso_Preconditioner_LocalAMG_free(Paso_Preconditioner_LocalAMG * in)
     }
 }
 
-index_t Paso_Preconditioner_LocalAMG_getMaxLevel(const Paso_Preconditioner_LocalAMG * in) {
-   if (in->AMG_C == NULL) {
-      return in->level; 
-   } else {
-      return Paso_Preconditioner_LocalAMG_getMaxLevel(in->AMG_C);
-   }
+index_t Preconditioner_LocalAMG_getMaxLevel(const Preconditioner_LocalAMG * in) {
+    if (in->AMG_C == NULL) {
+        return in->level; 
+    }
+    return Preconditioner_LocalAMG_getMaxLevel(in->AMG_C);
 }
 
-double Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(const Paso_Preconditioner_LocalAMG * in) {
-      if (in->AMG_C == NULL) {
-         if (in->A_C == NULL) {
+double Preconditioner_LocalAMG_getCoarseLevelSparsity(const Preconditioner_LocalAMG* in)
+{
+    if (in->AMG_C == NULL) {
+        if (in->A_C == NULL) {
             return 1.;
-         } else {
+        } else {
             return in->A_C->getSparsity();
-         }
-      } else {
-            return Paso_Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
-      }
+        }
+    }
+    return Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
 }
 
-dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditioner_LocalAMG * in) {
-   if (in->AMG_C == NULL) {
-      if (in->A_C == NULL) {
-         return 0;
-      } else {
-         return in->A_C->getTotalNumRows();
-      }
-   } else {
-         return Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(in->AMG_C);
+dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG * in)
+{
+    if (in->AMG_C == NULL) {
+        if (in->A_C == NULL) {
+            return 0;
+        } else {
+            return in->A_C->getTotalNumRows();
+        }
    }
+   return Preconditioner_LocalAMG_getNumCoarseUnknowns(in->AMG_C);
 }
 
 /*****************************************************************************
@@ -89,12 +86,12 @@ dim_t Paso_Preconditioner_LocalAMG_getNumCoarseUnknwons(const Paso_Preconditione
    Constructs AMG
    
 ******************************************************************************/
-Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMatrix_ptr A_p, dim_t level, Paso_Options* options)
+Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim_t level, Paso_Options* options)
 {
-  Paso_Preconditioner_LocalAMG* out=NULL;
+  Preconditioner_LocalAMG* out=NULL;
   bool verbose=options->verbose;
   
-  paso::SparseMatrix_ptr A_C;
+  SparseMatrix_ptr A_C;
   const dim_t n=A_p->numRows;
   const dim_t n_block=A_p->row_block_size;
   AMGBlockSelect* F_marker=NULL;
@@ -121,7 +118,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
         - 'SIZE' = min_coarse_matrix_size exceeded
         - 'LEVEL' = level_max exceeded
         */
-        printf("Paso_Preconditioner: AMG: termination of coarsening by "); 
+        printf("Preconditioner: AMG: termination of coarsening by "); 
         
         if (sparsity >= options->min_coarse_sparsity)
            printf("SPAR");
@@ -134,7 +131,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
         
         printf("\n");
         
-        printf("Paso_Preconditioner: AMG level %d (limit = %d) stopped. Sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
+        printf("Preconditioner: AMG level %d (limit = %d) stopped. Sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
                level,  options->level_max, sparsity, options->min_coarse_sparsity, total_n, options->min_coarse_matrix_size);  
                
      } 
@@ -153,16 +150,16 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
          */
          time0=Esys_timer();
          if (n_block>1) {
-               Paso_Preconditioner_LocalAMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
+               Preconditioner_LocalAMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
          } else {
-               Paso_Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
+               Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
          }
 
-         Paso_Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
+         Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 
          /* in BoomerAMG if interpolation is used FF connectivity is required: */
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
-                             Paso_Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
+                             Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
          options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
          
          if (Esys_noError() ) {
@@ -174,12 +171,12 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
             */
             n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker);
             n_C=n-n_F;
-            if (verbose) printf("Paso_Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+            if (verbose) printf("Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
          
             if ( n_F == 0 ) {  /* This is a nasty case. A direct solver should be used, return NULL */
                out = NULL;
             } else {
-               out=new Paso_Preconditioner_LocalAMG;
+               out=new Preconditioner_LocalAMG;
                 out->level = level;
                 out->post_sweeps = options->post_sweeps;
                 out->pre_sweeps  = options->pre_sweeps;
@@ -192,7 +189,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
                rows_in_F=new index_t[n_F];
                if ( Esys_noError() ) {
 
-                  out->Smoother = Paso_Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
+                  out->Smoother = Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
           
                   if (n_C != 0) {
                            /* if nothing has been removed we have a diagonal
@@ -228,7 +225,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
                               get Prolongation :         
                            */                                   
                            time0=Esys_timer();
-                           out->P=Paso_Preconditioner_LocalAMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
+                           out->P=Preconditioner_LocalAMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
                            if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
                         }
                         /*      
@@ -237,19 +234,19 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
                         if ( Esys_noError()) {
                            time0=Esys_timer();
                            out->R = out->P->getTranspose();
-                           if (SHOW_TIMING) printf("timing: level %d: paso::SparseMatrix::getTranspose: %e\n",level,Esys_timer()-time0);
+                           if (SHOW_TIMING) printf("timing: level %d: SparseMatrix::getTranspose: %e\n",level,Esys_timer()-time0);
                         }               
                         /* 
                         construct coarse level matrix:
                         */
                         if ( Esys_noError()) {
-                           paso::SparseMatrix_ptr Atemp;
+                           SparseMatrix_ptr Atemp;
                            time0=Esys_timer();
                            if (USE_TRANSPOSE)
-                             Atemp = paso::SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
+                             Atemp = SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
                            else
-                             Atemp = paso::SparseMatrix_MatrixMatrix(A_p,out->P);
-                           A_C=paso::SparseMatrix_MatrixMatrix(out->R, Atemp);
+                             Atemp = SparseMatrix_MatrixMatrix(A_p,out->P);
+                           A_C=SparseMatrix_MatrixMatrix(out->R, Atemp);
                            if (SHOW_TIMING) printf("timing: level %d: construct coarse matrix: %e\n",level,Esys_timer()-time0);                        
                         }
 
@@ -259,7 +256,7 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
                            
                         */
                         if ( Esys_noError()) {
-                           out->AMG_C=Paso_Preconditioner_LocalAMG_alloc(A_C,level+1,options);
+                           out->AMG_C=Preconditioner_LocalAMG_alloc(A_C,level+1,options);
                         }
                         if ( Esys_noError()) {
                            if ( out->AMG_C == NULL ) { 
@@ -270,18 +267,18 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
                                     out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1);
                                     A_C.reset();
                                     out->A_C->solver_package = PASO_MKL;
-                                    if (verbose) printf("Paso_Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
+                                    if (verbose) printf("Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
                               #else
                                     #ifdef UMFPACK
                                        out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC); 
                                        A_C.reset();
                                        out->A_C->solver_package = PASO_UMFPACK;
-                                       if (verbose) printf("Paso_Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
+                                       if (verbose) printf("Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block); 
                                     #else
                                        out->A_C=A_C;
-                                       out->A_C->solver_p=Paso_Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
+                                       out->A_C->solver_p=Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
                                        out->A_C->solver_package = PASO_SMOOTHER;
-                                       if (verbose) printf("Paso_Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
+                                       if (verbose) printf("Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
                                     #endif
                               #endif
                            } else {
@@ -304,13 +301,15 @@ Paso_Preconditioner_LocalAMG* Paso_Preconditioner_LocalAMG_alloc(paso::SparseMat
   if (Esys_noError()) {
      return out;
   } else  {
-     Paso_Preconditioner_LocalAMG_free(out);
+     Preconditioner_LocalAMG_free(out);
      return NULL;
   }
 }
 
 
-void Paso_Preconditioner_LocalAMG_solve(paso::SparseMatrix_ptr A, Paso_Preconditioner_LocalAMG * amg, double * x, double * b)
+void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
+                                   Preconditioner_LocalAMG* amg,
+                                   double* x, double* b)
 {
      const dim_t n = A->numRows * A->row_block_size;
      double time0=0;
@@ -319,15 +318,15 @@ void Paso_Preconditioner_LocalAMG_solve(paso::SparseMatrix_ptr A, Paso_Precondit
 
      /* presmoothing */
      time0=Esys_timer();
-     Paso_Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
+     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
      time0=Esys_timer()-time0;
      if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0); 
      /* end of presmoothing */
         
      time0=Esys_timer();
      Paso_Copy(n, amg->r, b);                            /*  r <- b */
-     paso::SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-     paso::SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+     SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+     SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
      time0=Esys_timer()-time0;
      /* coarse level solve */
      if ( amg->AMG_C == NULL) {
@@ -338,28 +337,27 @@ void Paso_Preconditioner_LocalAMG_solve(paso::SparseMatrix_ptr A, Paso_Precondit
                   Paso_MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_UMFPACK):
-                  paso::UMFPACK_solve(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
+                  UMFPACK_solve(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_SMOOTHER):
-                  Paso_Preconditioner_LocalSmoother_solve(amg->A_C, reinterpret_cast<Paso_Preconditioner_LocalSmoother*>(amg->A_C->solver_p),amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
+                  Preconditioner_LocalSmoother_solve(amg->A_C, reinterpret_cast<Preconditioner_LocalSmoother*>(amg->A_C->solver_p),amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
                   break;
             }
             if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
      } else {
-            Paso_Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
+            Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
      }  
      time0=time0+Esys_timer();
-     paso::SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
+     SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */    
         
      /*postsmoothing*/
     
      /*solve Ax=b with initial guess x */
      time0=Esys_timer();
-     Paso_Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
+     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
      time0=Esys_timer()-time0;
      if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
      /*end of postsmoothing*/
-     return;
 }
 
 /* theta = threshold for strong connections */
@@ -370,21 +368,20 @@ void Paso_Preconditioner_LocalAMG_solve(paso::SparseMatrix_ptr A, Paso_Precondit
 in the sense that |A_{ij}| >= theta * max_k |A_{ik}| 
 */
 
-void Paso_Preconditioner_LocalAMG_setStrongConnections(paso::SparseMatrix_ptr A, 
+void Preconditioner_LocalAMG_setStrongConnections(SparseMatrix_ptr A, 
                                           dim_t *degree_S, index_t *S,
                                           const double theta, const double tau)
 {
-   const dim_t n=A->numRows;
-   index_t iptr, i;
+    const dim_t n=A->numRows;
+    index_t iptr, i;
 
-
-      #pragma omp parallel for private(i,iptr) schedule(static)
-      for (i=0;i<n;++i) {        
-         register double max_offdiagonal = 0.;
-         register double sum_row=0;
-         register double main_row=0;
-         #pragma ivdep
-         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+#pragma omp parallel for private(i,iptr) schedule(static)
+    for (i=0;i<n;++i) {        
+        register double max_offdiagonal = 0.;
+        register double sum_row=0;
+        register double main_row=0;
+        #pragma ivdep
+        for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             register index_t j=A->pattern->index[iptr];
             register double fnorm=ABS(A->val[iptr]);
             
@@ -394,8 +391,8 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections(paso::SparseMatrix_ptr A,
             } else {
                main_row=fnorm;
             }
-         }
-         {
+        }
+        {
             const double threshold = theta*max_offdiagonal;
             register dim_t kdeg=0;
             if (tau*main_row < sum_row) { /* no diagonal dominance */
@@ -409,9 +406,8 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections(paso::SparseMatrix_ptr A,
                }
             }
             degree_S[i]=kdeg;
-         }
-      }
-
+        }
+    }
 }
 
 /* theta = threshold for strong connections */
@@ -420,18 +416,18 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections(paso::SparseMatrix_ptr A,
 
 in the sense that |A_{ij}|_F >= theta * max_k |A_{ik}|_F 
 */
-void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(paso::SparseMatrix_ptr A, 
-                                                        dim_t *degree_S, index_t *S,
-                                                        const double theta, const double tau)
-
+void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A, 
+                                                        dim_t* degree_S,
+                                                        index_t* S,
+                                                        double theta,
+                                                        double tau)
 {
-   const dim_t n_block=A->row_block_size;
-   const dim_t n=A->numRows;
-   index_t iptr, i, bi;
-   
-   
-      #pragma omp parallel private(i, iptr,  bi)
-      {
+    const dim_t n_block=A->row_block_size;
+    const dim_t n=A->numRows;
+    index_t iptr, i, bi;
+
+#pragma omp parallel private(i, iptr,  bi)
+    {
          dim_t max_deg=0; /* this is local on each thread */
          double* rtmp=NULL;
 
@@ -480,14 +476,13 @@ void Paso_Preconditioner_LocalAMG_setStrongConnections_Block(paso::SparseMatrix_
                }
                degree_S[i]=kdeg;
             }
-         }      
-         delete[] rtmp;
-      } /* end of parallel region */
- 
-}   
+        }      
+        delete[] rtmp;
+    } // end of parallel region
+}
 
 /* the Runge Stueben coarsening algorithm: */
-void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
+void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
                                                 const dim_t* degree_S, const index_t* S, 
                                                 AMGBlockSelect*split_marker, const bool usePanel)
 {
@@ -697,54 +692,58 @@ void Paso_Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_
          }
          i=Paso_Util_arg_max(n,lambda);
       }
-          
-   }
-   delete[] lambda;
-   delete[] ST;
-   delete[] degree_ST;
-   if (usePanel) {
-     delete[] panel;
-     if (!SMALL_PANEL) delete[] notInPanel;
-   }
+    }
+    delete[] lambda;
+    delete[] ST;
+    delete[] degree_ST;
+    if (usePanel) {
+        delete[] panel;
+        if (!SMALL_PANEL) delete[] notInPanel;
+    }
 }
 
-/* ensures that two F nodes are connected via a C node :*/
-void Paso_Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S,
-                                                const dim_t* degree_S, const index_t* S, 
-                                                AMGBlockSelect* split_marker)
+/// ensures that two F nodes are connected via a C node
+void Preconditioner_LocalAMG_enforceFFConnectivity(dim_t n,
+            const index_t* offset_S, const dim_t* degree_S, const index_t* S, 
+            AMGBlockSelect* split_marker)
 {
-      dim_t i, p, q;
-
-      /* now we make sure that two (strongly) connected F nodes are (strongly) connected via a C node. */
-      for (i=0;i<n;++i) {
-            if ( (split_marker[i]==PASO_AMG_IN_F) && (degree_S[i]>0) ) {
-               for (p=0; p<degree_S[i]; ++p) {
-                  register index_t j=S[offset_S[i]+p];
-                  if ( (split_marker[j]==PASO_AMG_IN_F)  && (degree_S[j]>0) )  {
-                      /* i and j are now two F nodes which are strongly connected */
-                      /* is there a C node they share ? */
-                      register index_t sharing=-1;
-                      for (q=0; q<degree_S[i]; ++q) {
-                         index_t k=S[offset_S[i]+q];
-                         if (split_marker[k]==PASO_AMG_IN_C) {
-                            register index_t* where_k=(index_t*)bsearch(&k, &(S[offset_S[j]]), degree_S[j], sizeof(index_t), paso::comparIndex);
+    dim_t i, p, q;
+    // now we make sure that two (strongly) connected F nodes are (strongly)
+    // connected via a C node.
+    for (i=0; i<n; ++i) {
+        if (split_marker[i]==PASO_AMG_IN_F && degree_S[i]>0) {
+            for (p=0; p<degree_S[i]; ++p) {
+                register index_t j=S[offset_S[i]+p];
+                if ( (split_marker[j]==PASO_AMG_IN_F)  && (degree_S[j]>0) )  {
+                    // i and j are now two F nodes which are strongly connected
+                    // is there a C node they share ?
+                    register index_t sharing=-1;
+                    for (q=0; q<degree_S[i]; ++q) {
+                        index_t k=S[offset_S[i]+q];
+                        if (split_marker[k]==PASO_AMG_IN_C) {
+                            register index_t* where_k = (index_t*)bsearch(
+                                    &k, &(S[offset_S[j]]), degree_S[j],
+                                    sizeof(index_t), comparIndex);
                             if (where_k != NULL) {
-                               sharing=k;
-                               break;
+                                sharing=k;
+                                break;
                             }
-                         }
-                      }
-                      if (sharing<0) {
-                           if (i<j) {
-                              split_marker[j]=PASO_AMG_IN_C; 
-                           } else {
-                              split_marker[i]=PASO_AMG_IN_C; 
-                              break;  /* no point to look any further as i is now a C node */
-                           }
-                      }
-                  }
-               }
+                        }
+                    }
+                    if (sharing < 0) {
+                        if (i < j) {
+                            split_marker[j] = PASO_AMG_IN_C; 
+                        } else {
+                            split_marker[i] = PASO_AMG_IN_C; 
+                            // no point to look any further as i is now a C node
+                            break;
+                        }
+                    }
+                }
             }
-       }
+        }
+    }
 }
+
+} // namespace paso
 

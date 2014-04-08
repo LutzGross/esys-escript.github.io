@@ -39,15 +39,9 @@ namespace paso {
 
 using esysUtils::IndexListArray;
 
-static void swap( index_t*, index_t*, double*, int, int );
-static void q_sort( index_t*, index_t*, double*, int, int );
-/*static void print_entries( index_t*, index_t*, double* );*/
-
-static int M, N, nz;
-
 /* debug: print the entries */
 /*
-void print_entries(index_t *r, index_t *c, double *v)
+void print_entries(index_t *r, index_t *c, double *v, int nz)
 {
     for(int i=0; i<nz; i++)
         printf("(%ld, %ld) == %e\n", (long)r[i], (long)c[i], v[i]);
@@ -55,7 +49,7 @@ void print_entries(index_t *r, index_t *c, double *v)
 */
 
 /* swap function */
-void swap( index_t *r, index_t *c, double *v, int left, int right )
+void swap(index_t *r, index_t *c, double *v, int left, int right)
 {
     double v_temp;
     index_t temp;
@@ -73,32 +67,29 @@ void swap( index_t *r, index_t *c, double *v, int left, int right )
     v[right] = v_temp;
 }
 
-void q_sort( index_t *row, index_t *col, double *val, int begin, int end )
+void q_sort(index_t *row, index_t *col, double *val, int begin, int end, int N)
 {
     int l, r;
     index_t pivot, lval;
 
-    if( end > begin )
-    {
+    if (end > begin) {
         pivot = N * row[begin] + col[begin];
         l = begin + 1;
         r = end;
 
-        while( l < r )
-        {
+        while (l < r) {
             lval = N * row[l] + col[l];
-            if( lval < pivot )
+            if (lval < pivot)
                 l++;
-            else
-            {
+            else {
                 r--;
                 swap( row, col, val, l, r );
             }
         }
         l--;
-        swap( row, col, val, begin, l );
-        q_sort( row, col, val, begin, l );
-        q_sort( row, col, val, r, end );
+        swap(row, col, val, begin, l);
+        q_sort(row, col, val, begin, l, N);
+        q_sort(row, col, val, r, end, N);
     }
 }
 
@@ -114,8 +105,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
                            bool patternIsUnrolled) :
     type(ntype),
     val(NULL),
-    solver_package(PASO_PASO),
-    solver_p(NULL)
+    solver_package(PASO_PASO)
 {
     if (patternIsUnrolled) {
         if (!XNOR(ntype & MATRIX_FORMAT_OFFSET1, npattern->type & MATRIX_FORMAT_OFFSET1)) {
@@ -196,7 +186,7 @@ SparseMatrix::~SparseMatrix()
 {
     switch (solver_package) {
         case PASO_SMOOTHER:
-            Paso_Preconditioner_LocalSmoother_free((Paso_Preconditioner_LocalSmoother*) solver_p);
+            Preconditioner_LocalSmoother_free((Preconditioner_LocalSmoother*) solver_p);
             break;
 
         case PASO_MKL:
@@ -238,6 +228,8 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
     }
 
     // get matrix size
+    int M, N, nz;
+
     if (mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0)
     {
         Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Could not parse matrix size.");
@@ -268,7 +260,7 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
     fclose(fileHandle_p);
 
     // sort the entries
-    q_sort(row_ind, col_ind, val, 0, nz);
+    q_sort(row_ind, col_ind, val, 0, nz, N);
 
     // setup row_ptr
     int curr_row = 0;

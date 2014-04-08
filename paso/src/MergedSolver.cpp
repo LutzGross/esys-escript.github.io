@@ -25,14 +25,11 @@
 
 /****************************************************************************/
 
-
-#include "Paso.h"
 #include "MergedSolver.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 #include "UMFPACK.h"
 #include "MKL.h"
-#include <cstdio>
 
 Paso_MergedSolver* Paso_MergedSolver_alloc(paso::SystemMatrix_ptr A,
                                            Paso_Options* options)
@@ -78,7 +75,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(paso::SystemMatrix_ptr A,
             out->A = A_temp->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC);
             out->A->solver_package = PASO_UMFPACK;
 #else
-            out->A->solver_p = Paso_Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
+            out->A->solver_p = paso::Preconditioner_LocalSmoother_alloc(out->A, (options->smoother == PASO_JACOBI), out->verbose);
             out->A->solver_package = PASO_SMOOTHER;
 #endif
         }
@@ -87,7 +84,7 @@ Paso_MergedSolver* Paso_MergedSolver_alloc(paso::SystemMatrix_ptr A,
     if ( Esys_noError()) {
         return out;
     } else {
-        Paso_MergedSolver_free(out); 
+        Paso_MergedSolver_free(out);
         return NULL;
     }
 }
@@ -103,7 +100,7 @@ void Paso_MergedSolver_free(Paso_MergedSolver* in)
     }
 }
 
-/* Merge the system matrix which is distributed on ranks into a complete 
+/* Merge the system matrix which is distributed on ranks into a complete
    matrix on rank 0, then solve this matrix on rank 0 only */
 paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_ptr A)
 {
@@ -124,7 +121,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
 
     if (size == 1) {
         n = A->mainBlock->numRows;
-        ptr = new index_t[n]; 
+        ptr = new index_t[n];
 #pragma omp parallel for private(i)
         for (i=0; i<n; i++) ptr[i] = i;
         out = A->mainBlock->getSubmatrix(n, n, ptr, ptr);
@@ -136,8 +133,8 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
     block_size = A->block_size;
 
     /* Merge MainBlock and CoupleBlock to get a complete column entries
-     for each row allocated to current rank. Output (ptr, idx, val) 
-     contains all info needed from current rank to merge a system 
+     for each row allocated to current rank. Output (ptr, idx, val)
+     contains all info needed from current rank to merge a system
      matrix  */
     A->mergeMainAndCouple(&ptr, &idx, &val);
 
@@ -149,7 +146,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
     mpi_stati=new int[size*2];
 #endif
 
-    /* Now, pass all info to rank 0 and merge them into one sparse 
+    /* Now, pass all info to rank 0 and merge them into one sparse
        matrix */
     if (rank == 0) {
         /* First, copy local ptr values into ptr_global */
@@ -161,13 +158,13 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
         temp_n = new index_t[size];
         temp_len = new index_t[size];
         temp_n[0] = iptr;
-    
+
         /* Second, receive ptr values from other ranks */
         for (i=1; i<size; i++) {
             remote_n = A->row_distribution->first_component[i+1] -
                        A->row_distribution->first_component[i];
 #ifdef ESYS_MPI
-            MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i, 
+            MPI_Irecv(&(ptr_global[iptr]), remote_n, MPI_INT, i,
                         A->mpi_info->msg_tag_counter+i,
                         A->mpi_info->comm,
                         &mpi_requests[i]);
@@ -188,7 +185,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
                 offset += temp_n[i];
                 len += ptr_global[offset];
                 temp_len[i] = ptr_global[offset];
-            } else 
+            } else
                 temp_len[i] = 0;
         }
 
@@ -223,7 +220,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
         /* Then generate the sparse matrix */
         paso::Pattern_ptr pattern(new paso::Pattern(A->mainBlock->pattern->type,
                                 global_n, global_n, ptr_global, idx_global));
-        out.reset(new paso::SparseMatrix(A->mainBlock->type, pattern, 
+        out.reset(new paso::SparseMatrix(A->mainBlock->type, pattern,
                             row_block_size, col_block_size, false));
 
         /* Finally, receive and copy the value */
@@ -250,7 +247,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
         /* First, send out the local ptr */
         tag = A->mpi_info->msg_tag_counter+rank;
 #ifdef ESYS_MPI
-        MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm, 
+        MPI_Issend(&(ptr[1]), n, MPI_INT, 0, tag, A->mpi_info->comm,
                    &mpi_requests[0]);
 #endif
 
@@ -258,7 +255,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
         len = ptr[n];
         tag += size;
 #ifdef ESYS_MPI
-        MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm, 
+        MPI_Issend(idx, len, MPI_INT, 0, tag, A->mpi_info->comm,
                    &mpi_requests[1]);
 #endif
 
@@ -266,7 +263,7 @@ paso::SparseMatrix_ptr Paso_MergedSolver_mergeSystemMatrix(paso::SystemMatrix_pt
         len *= block_size;
         tag += size;
 #ifdef ESYS_MPI
-        MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm, 
+        MPI_Issend(val, len, MPI_DOUBLE, 0, tag, A->mpi_info->comm,
                    &mpi_requests[2]);
 
         MPI_Waitall(3, mpi_requests, mpi_stati);
@@ -308,7 +305,7 @@ void Paso_MergedSolver_solve(Paso_MergedSolver* ms, double* local_x, double* loc
                 paso::UMFPACK_solve(ms->A, ms->x,ms->b, ms->refinements, ms->verbose);
                 break;
             case (PASO_SMOOTHER):
-                Paso_Preconditioner_LocalSmoother_solve(ms->A, reinterpret_cast<Paso_Preconditioner_LocalSmoother*>(ms->A->solver_p),ms->x,ms->b,ms->sweeps, FALSE);
+                paso::Preconditioner_LocalSmoother_solve(ms->A, reinterpret_cast<paso::Preconditioner_LocalSmoother*>(ms->A->solver_p),ms->x,ms->b,ms->sweeps, FALSE);
                 break;
         }
     }
