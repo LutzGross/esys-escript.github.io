@@ -274,7 +274,7 @@ void Solver_RILU_free(Solver_RILU* in);
 Solver_RILU* Solver_getRILU(SparseMatrix_ptr A, bool verbose);
 void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b);
 
-void Paso_Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
+void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
         SparseMatrix_ptr A_CF, double* invA_FF, index_t* A_FF_pivot,
         SparseMatrix_ptr A_FC);
 

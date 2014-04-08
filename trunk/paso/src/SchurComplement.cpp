@@ -34,10 +34,11 @@
 
 /****************************************************************************/
 
+namespace paso {
 
-void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
-        paso::SparseMatrix_ptr A_CF, double* invA_FF, index_t* A_FF_pivot,
-        paso::SparseMatrix_ptr A_FC)
+void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
+        SparseMatrix_ptr A_CF, double* invA_FF, index_t* A_FF_pivot,
+        SparseMatrix_ptr A_FC)
 {
   index_t iPtr_CC,*index_CC,col_CF,col_FC, *where_p,iPtr_CC_2,i,iPtr_CF,iPtr_FC;
   dim_t index_CC_len;
@@ -48,7 +49,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
          invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,
          A11=0,A21=0,A31=0,A12=0,A22=0,A32=0,A13=0,A23=0,A33=0,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33;
   if (n_block==1) {
-     #pragma omp parallel for firstprivate(A11) private(i,iPtr_CC,index_CC,index_CC_len,col_CF,set_A,iPtr_CF,iPtr_FC,col_FC,where_p) schedule(static)
+#pragma omp parallel for firstprivate(A11) private(i,iPtr_CC,index_CC,index_CC_len,col_CF,set_A,iPtr_CF,iPtr_FC,col_FC,where_p) schedule(static)
      for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
@@ -60,7 +61,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-               where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),paso::comparIndex);
+               where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),comparIndex);
                 if (where_p!=NULL) { 
                     if (set_A) {
                        A11=A_CF->val[iPtr_CF]*invA_FF[col_CF];
@@ -72,7 +73,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
          } /* end of iPtr_CF loop */
       } /* end of irow loop */
    } else if (n_block==2) {
-      #pragma omp parallel for firstprivate(A11,A21,A12,A22) private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_12,A_CF_22,invA_FF_11,invA_FF_21,invA_FF_12,invA_FF_22,A_FC_11,A_FC_21,A_FC_12,A_FC_22) schedule(static)
+#pragma omp parallel for firstprivate(A11,A21,A12,A22) private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_12,A_CF_22,invA_FF_11,invA_FF_21,invA_FF_12,invA_FF_22,A_FC_11,A_FC_21,A_FC_12,A_FC_22) schedule(static)
      for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
@@ -84,7 +85,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),paso::comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),comparIndex);
                 if (where_p!=NULL) {
                     iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
                     /* this calculates A_CF*invA_FF(i,col_CF) */
@@ -122,7 +123,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
          } /* end of iPtr_CF loop */
       } /* end of irow loop */
    } else if (n_block==3) {
-      #pragma omp parallel for firstprivate(A11,A21,A31,A12,A22,A32,A13,A23,A33) private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33) schedule(static)
+#pragma omp parallel for firstprivate(A11,A21,A31,A12,A22,A32,A13,A23,A33) private(i,iPtr_CC,index_CC,index_CC_len,iPtr_CF,col_CF,iPtr_FC,col_FC,where_p,iPtr_CC_2,set_A,A_CF_11,A_CF_21,A_CF_31,A_CF_12,A_CF_22,A_CF_32,A_CF_13,A_CF_23,A_CF_33,invA_FF_11,invA_FF_21,invA_FF_31,invA_FF_12,invA_FF_22,invA_FF_32,invA_FF_13,invA_FF_23,invA_FF_33,A_FC_11,A_FC_21,A_FC_31,A_FC_12,A_FC_22,A_FC_32,A_FC_13,A_FC_23,A_FC_33) schedule(static)
      for (i = 0; i < n_loc_rows;++i) {
         iPtr_CC=A_CC->pattern->ptr[i];
         index_CC=&(A_CC->pattern->index[iPtr_CC]);
@@ -134,7 +135,7 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
-                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),paso::comparIndex);
+                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),comparIndex);
                 if (where_p!=NULL) {
                     iPtr_CC_2=iPtr_CC+(index_t)(where_p-index_CC);
                     /* this calculates A_CF*invA_FF(i,col_CF) */
@@ -198,4 +199,6 @@ void Paso_Solver_updateIncompleteSchurComplement(paso::SparseMatrix_ptr A_CC,
       } /* end of irow loop */
    }
 }
+
+} // namespace paso
 
