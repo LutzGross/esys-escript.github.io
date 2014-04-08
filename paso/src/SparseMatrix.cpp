@@ -105,7 +105,8 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
                            bool patternIsUnrolled) :
     type(ntype),
     val(NULL),
-    solver_package(PASO_PASO)
+    solver_package(PASO_PASO),
+    solver_p(NULL)
 {
     if (patternIsUnrolled) {
         if (!XNOR(ntype & MATRIX_FORMAT_OFFSET1, npattern->type & MATRIX_FORMAT_OFFSET1)) {

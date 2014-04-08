@@ -230,7 +230,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
                 if (Esys_noError()) {
                     time1=Esys_timer();
                     /* update A_CC block to get Schur complement and then apply RILU to it */
-                    Paso_Solver_updateIncompleteSchurComplement(schur, out->A_CF, out->inv_A_FF, out->A_FF_pivot, out->A_FC);
+                    Solver_updateIncompleteSchurComplement(schur, out->A_CF, out->inv_A_FF, out->A_FF_pivot, out->A_FC);
                     time1=Esys_timer()-time1;
                     out->RILU_of_Schur = Solver_getRILU(schur, verbose);
                     schur.reset();

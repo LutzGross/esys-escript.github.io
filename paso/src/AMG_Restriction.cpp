@@ -29,6 +29,8 @@
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
+namespace paso {
+
 /****************************************************************************
 
     Methods necessary for AMG preconditioner
@@ -40,13 +42,12 @@
  
 *****************************************************************************/
 
-paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
-                                                     paso::SystemMatrix_ptr P)
+SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
 { 
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(P->mpi_info);
-   paso::Distribution_ptr input_dist, output_dist;
-   paso::SharedComponents_ptr send, recv;
-   paso::Connector_ptr col_connector;
+   Distribution_ptr input_dist, output_dist;
+   SharedComponents_ptr send, recv;
+   Connector_ptr col_connector;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
    const dim_t n=P->mainBlock->numRows;
@@ -69,12 +70,12 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
    #endif
 
    /* get main_block of R from the transpose of P->mainBlock */
-   paso::SparseMatrix_ptr main_block(P->mainBlock->getTranspose());
+   SparseMatrix_ptr main_block(P->mainBlock->getTranspose());
 
    /* prepare "ptr" for the col_coupleBlock of R, start with get info about
       the degree_set (associated with "ptr"), offset_set (associated with
       "idx" and data_set (associated with "val") to be sent to other ranks */
-   paso::SparseMatrix_ptr couple_block(P->col_coupleBlock);
+   SparseMatrix_ptr couple_block(P->col_coupleBlock);
    num_Pcouple_cols = couple_block->numCols;
    block_size = P->block_size;
    copy_block_size = block_size * sizeof(double);
@@ -277,7 +278,7 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
       and convert the global id in "idx" into local id */
    num_Rcouple_cols = 0;
    if (sum) {
-     qsort(recv_idx, (size_t)sum, sizeof(index_t), paso::comparIndex);
+     qsort(recv_idx, (size_t)sum, sizeof(index_t), comparIndex);
      num_Rcouple_cols = 1;
      i = recv_idx[0];
      for (j=1; j<sum; j++) {
@@ -290,7 +291,7 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
      #pragma omp parallel for private(i,where_p) schedule(static)
      for (i=0; i<sum; i++) {
         where_p = (index_t *)bsearch(&(idx[i]), recv_idx, num_Rcouple_cols,
-                                sizeof(index_t), paso::comparIndex);
+                                sizeof(index_t), comparIndex);
         idx[i] = (index_t)(where_p - recv_idx);
      }
    }
@@ -317,7 +318,7 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
    for (i=p; i<numNeighbors; i++) {
      offsetInShared[i+1] = num_Rcouple_cols;
    }
-   recv.reset(new paso::SharedComponents(n, numNeighbors, neighbor, shared,
+   recv.reset(new SharedComponents(n, numNeighbors, neighbor, shared,
                offsetInShared, 1, 0, mpi_info));
    delete[] recv_idx;
 
@@ -326,7 +327,7 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
    numNeighbors = P->col_coupler->connector->recv->numNeighbors;
    neighbor = P->col_coupler->connector->recv->neighbor;
    shared = new index_t[n * numNeighbors];
-   paso::Pattern_ptr couple_pattern(P->col_coupleBlock->pattern);
+   Pattern_ptr couple_pattern(P->col_coupleBlock->pattern);
    sum=0;
    memset(offsetInShared, 0, sizeof(index_t) * (size+1));
    for (p=0; p<numNeighbors; p++) {
@@ -346,32 +347,32 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
      }
      offsetInShared[p+1] = sum;
    }
-   send.reset(new paso::SharedComponents(n, numNeighbors, neighbor, shared,
+   send.reset(new SharedComponents(n, numNeighbors, neighbor, shared,
                offsetInShared, 1, 0, mpi_info));
 
    /* build the col_connector based on sender and receiver */
-   col_connector.reset(new paso::Connector(send, recv));
+   col_connector.reset(new Connector(send, recv));
    delete[] offsetInShared;
    delete[] shared;   
 
-   couple_pattern.reset(new paso::Pattern(MATRIX_FORMAT_DEFAULT, n_C,
+   couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n_C,
                         num_Rcouple_cols, ptr, idx));
 
-   input_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
+   input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
    dist = P->pattern->input_distribution->first_component;
-   output_dist.reset(new paso::Distribution(mpi_info, dist, 1, 0));
+   output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
 
     /* now we need to create the System Matrix 
        TO BE FIXED: at this stage, we only construction col_couple_pattern
        and col_connector for Restriction matrix R. To be completed, 
        row_couple_pattern and row_connector need to be constructed as well */
-    paso::SystemMatrix_ptr out;
-    paso::SystemMatrixPattern_ptr pattern;
+    SystemMatrix_ptr out;
+    SystemMatrixPattern_ptr pattern;
     if (Esys_noError()) {
-        pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
+        pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
                   output_dist, input_dist, main_block->pattern, couple_pattern, 
                   couple_pattern, col_connector, col_connector));
-        out.reset(new paso::SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
+        out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
                   row_block_size, col_block_size, false));
     } 
 
@@ -387,4 +388,6 @@ paso::SystemMatrix_ptr Paso_Preconditioner_AMG_getRestriction(
     }
     return out;
 }
+
+} // namespace paso
 

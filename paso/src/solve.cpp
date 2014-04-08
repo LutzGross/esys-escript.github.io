@@ -33,8 +33,9 @@
 #include "MKL.h"
 #include "UMFPACK.h"
 
+namespace paso {
 
-void Paso_solve(paso::SystemMatrix_ptr A, double* out, double* in,
+void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
                 Paso_Options* options)
 {
     Paso_Performance pp;
@@ -82,7 +83,7 @@ void Paso_solve(paso::SystemMatrix_ptr A, double* out, double* in,
                 options->converged=FALSE;
                 options->time=Esys_timer();
                 Performance_startMonitor(&pp,PERFORMANCE_ALL);
-                paso::UMFPACK_solve(A->mainBlock, out, in, options->refinements, options->verbose);
+                UMFPACK_solve(A->mainBlock, out, in, options->refinements, options->verbose);
                 A->solver_package=PASO_UMFPACK;
                 Performance_stopMonitor(&pp,PERFORMANCE_ALL);
                 options->time=Esys_timer()-options->time;
@@ -110,7 +111,7 @@ void Paso_solve(paso::SystemMatrix_ptr A, double* out, double* in,
     /* Paso_Options_showDiagnostics(options); */
 }
 
-void Paso_solve_free(paso::SystemMatrix* in)
+void Paso_solve_free(SystemMatrix* in)
 { 
     if (!in) return;
 
@@ -120,7 +121,7 @@ void Paso_solve_free(paso::SystemMatrix* in)
             break;
 
         case PASO_SMOOTHER:
-            paso::Preconditioner_Smoother_free((paso::Preconditioner_Smoother*) in->solver_p);
+            Preconditioner_Smoother_free((Preconditioner_Smoother*) in->solver_p);
             break;
           
         case PASO_MKL:
@@ -128,9 +129,11 @@ void Paso_solve_free(paso::SystemMatrix* in)
             break;
 
         case PASO_UMFPACK:
-            paso::UMFPACK_free(in->mainBlock.get()); 
+            UMFPACK_free(in->mainBlock.get()); 
             break;
 
    }
 }
+
+} // namespace paso
 
