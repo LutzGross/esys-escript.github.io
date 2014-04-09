@@ -86,12 +86,16 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
 
     void print() const;
 
-    void mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val);
+    /// Merges the system matrix which is distributed on several MPI ranks
+    /// into a complete sparse matrix on rank 0. Used by the Merged Solver.
+    SparseMatrix_ptr mergeSystemMatrix() const;
 
-    void mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val);
-    void mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val);
+    void mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val) const;
 
-    void mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val);
+    void mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val) const;
+    void mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val) const;
+
+    void mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val) const;
 
     void copyMain_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val);
 
@@ -323,7 +327,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     double* balance_vector;
 
     /// stores the global ids for all cols in col_coupleBlock
-    index_t* global_id;
+    mutable index_t* global_id;
 
     /// package code controlling the solver pointer
     index_t solver_package;
