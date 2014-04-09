@@ -121,43 +121,57 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
 struct Preconditioner_AMG
 {
     dim_t level;
-    SystemMatrix_ptr A_C; /* coarse level matrix */
-    SystemMatrix_ptr P;   /* prolongation n x n_C*/ 
-    SystemMatrix_ptr R;   /* restriction  n_C x n */
+    /// coarse level matrix
+    SystemMatrix_ptr A_C;
+    /// prolongation n x n_C
+    SystemMatrix_ptr P;
+    /// restriction  n_C x n
+    SystemMatrix_ptr R;
    
     Preconditioner_Smoother* Smoother;
     dim_t post_sweeps;
     dim_t pre_sweeps;
-    dim_t options_smoother;  /* used in direct solver */
-    bool verbose;            /* used in direct solver */
-    index_t reordering;  /* applied reordering in direct solver */
-    dim_t refinements;  /* number of refinements in direct solver (typically =0) */
-    double* r;         /* buffer for residual */
-    double* x_C;       /* solution of coarse level system */
-    double* b_C;       /* right hand side of coarse level system */
-    Paso_MergedSolver* merged_solver; /* used on the coarsest level */
+    /// used in direct solver
+    dim_t options_smoother;
+    /// used in direct solver
+    bool verbose;
+    /// applied reordering in direct solver
+    index_t reordering;
+    /// number of refinements in direct solver (typically =0)
+    dim_t refinements;
+    /// buffer for residual
+    double* r;
+    /// solution of coarse level system
+    double* x_C;
+    /// right hand side of coarse level system
+    double* b_C;
+    /// used on the coarsest level
+    MergedSolver* merged_solver;
     Preconditioner_AMG* AMG_C;
 };
 
-void Preconditioner_AMG_free(Preconditioner_AMG * in);
+void Preconditioner_AMG_free(Preconditioner_AMG* in);
 Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level, Options* options);
-void Preconditioner_AMG_solve(SystemMatrix_ptr A, Preconditioner_AMG * amg, double * x, double * b);
-void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,  dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
-void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A, dim_t *degree_S, index_t* offset_S, index_t *S, const double theta, const double tau);
-SystemMatrix_ptr Preconditioner_AMG_getProlongation(SystemMatrix_ptr A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const dim_t n_C, index_t* counter_C, const index_t interpolation_method);
+void Preconditioner_AMG_solve(SystemMatrix_ptr A, Preconditioner_AMG* amg, double* x, double* b);
+void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,  dim_t* degree_S, index_t* offset_S, index_t* S, double theta, double tau);
+void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A, dim_t* degree_S, index_t* offset_S, index_t* S, double theta, double tau);
+SystemMatrix_ptr Preconditioner_AMG_getProlongation(SystemMatrix_ptr A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, dim_t n_C, index_t* counter_C, index_t interpolation_method);
 void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
-void Preconditioner_AMG_setClassicProlongation_Block(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
-void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
-void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
-double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG * in);
-dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG * in);
-index_t Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG * in);
-void Preconditioner_AMG_transposeStrongConnections(const dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S, const dim_t nT, dim_t *degree_ST, index_t* offset_ST,index_t* ST);
-void Preconditioner_AMG_CIJPCoarsening(const dim_t n, const dim_t my_n, AMGBlockSelect*split_marker,
-                                            const dim_t* degree_S, const index_t* offset_S, const index_t* S,
-                                            const dim_t* degree_ST, const index_t* offset_ST, const index_t* ST,
-                                            Connector_ptr col_connector, const_Distribution_ptr col_dist);
+void Preconditioner_AMG_setClassicProlongation_Block(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t* counter_C);
+void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t* counter_C);
+void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t* counter_C);
+double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG* in);
+dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in);
+index_t Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in);
+void Preconditioner_AMG_transposeStrongConnections(dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S, dim_t nT, dim_t* degree_ST, index_t* offset_ST, index_t* ST);
+void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
+        AMGBlockSelect* split_marker, const dim_t* degree_S,
+        const index_t* offset_S, const index_t* S, const dim_t* degree_ST,
+        const index_t* offset_ST, const index_t* ST,
+        Connector_ptr col_connector, const_Distribution_ptr col_dist);
+
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P);
+
 SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         SystemMatrix_ptr A, SystemMatrix_ptr P, SystemMatrix_ptr R);
 

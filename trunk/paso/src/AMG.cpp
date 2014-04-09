@@ -44,7 +44,7 @@ void Preconditioner_AMG_free(Preconditioner_AMG* in)
         delete[] in->r;
         delete[] in->x_C;
         delete[] in->b_C;
-        Paso_MergedSolver_free(in->merged_solver);
+        delete in->merged_solver;
         delete in;
     }
 }
@@ -275,7 +275,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
                             // merge the system matrix into 1 rank when
                             // it's not suitable coarsening due to the
                             // total number of unknowns being too small
-                            out->merged_solver = Paso_MergedSolver_alloc(A_C, options);
+                            out->merged_solver = new MergedSolver(A_C, options);
                         }
                     }
                     delete[] mask_C;
@@ -330,7 +330,7 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
     if (amg->AMG_C == NULL) {
         time0 = Esys_timer();
         // A_C is the coarsest level
-        Paso_MergedSolver_solve(amg->merged_solver,amg->x_C, amg->b_C);
+        amg->merged_solver->solve(amg->x_C, amg->b_C);
         if (SHOW_TIMING)
             printf("timing: level %d: DIRECT SOLVER: %e\n", amg->level, Esys_timer()-time0);
     } else {

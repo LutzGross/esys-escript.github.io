@@ -15,19 +15,18 @@
 *****************************************************************************/
 
 
-/****************************************************************************/
-/* Paso: SystemMatrix                                       */
-/*                                                          */
-/*  Merge the MainBlock and CoupleBlock in the matrix       */
-/*  Input: SystemMatrix A                                   */
-/*  Output:                                                 */
-/*      p_ptr: the pointer to a vector of locations that    */
-/*             start a row.                                 */
-/*      p_idx: the pointer to the column indices for each   */
-/*             of the rows, ordered by rows.                */
-/*      p_val: the pointer to the data corresponding        */
-/*             directly to the column entries in p_idx.     */
-/****************************************************************************/
+/****************************************************************************
+ * Paso: SystemMatrix
+ *
+ *  Merge the MainBlock and CoupleBlock in the matrix
+ *  Input: SystemMatrix A
+ *  Output:
+ *      p_ptr: the pointer to a vector of locations that start a row.
+ *      p_idx: the pointer to the column indices for each of the rows,
+ *             ordered by rows.
+ *      p_val: the pointer to the data corresponding directly to the
+ *             column entries in p_idx.
+ ****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003 */
 /* Author: Lin Gao, l.gao@uq.edu.au */
@@ -37,13 +36,9 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
-
 namespace paso {
 
-void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val)
+void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     if (type & MATRIX_FORMAT_DEFAULT) {
         mergeMainAndCouple_CSR_OFFSET0(p_ptr, p_idx, p_val);
@@ -61,7 +56,7 @@ void SystemMatrix::mergeMainAndCouple(index_t** p_ptr, index_t** p_idx, double**
     }
 }
 
-void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val)
+void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     if (mainBlock->col_block_size != 1 || mainBlock->row_block_size != 1 ||
             col_coupleBlock->col_block_size != 1 ||
@@ -175,7 +170,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0(index_t** p_ptr, index_t** p_i
 }
 
 
-void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val)
+void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     const index_t main_num_rows = mainBlock->numRows;
     index_t* main_ptr = mainBlock->pattern->ptr;
@@ -285,7 +280,7 @@ void SystemMatrix::mergeMainAndCouple_CSR_OFFSET0_Block(index_t** p_ptr, index_t
     }
 }
 
-void SystemMatrix::mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val)
+void SystemMatrix::mergeMainAndCouple_CSC_OFFSET1(index_t** p_ptr, index_t** p_idx, double** p_val) const
 {
     Esys_setError(TYPE_ERROR, "SystemMatrix_mergeMainAndCouple_CSC_OFFSET1: not implemented.");
 }

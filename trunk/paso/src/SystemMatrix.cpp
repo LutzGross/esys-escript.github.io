@@ -503,5 +503,145 @@ index_t SystemMatrix::getSystemMatrixTypeId(index_t solver,
     return out;
 }
 
+SparseMatrix_ptr SystemMatrix::mergeSystemMatrix() const
+{
+    const index_t n = mainBlock->numRows;
+
+    if (mpi_info->size == 1) {
+        index_t* ptr = new index_t[n];
+#pragma omp parallel for
+        for (index_t i=0; i<n; i++)
+            ptr[i] = i;
+        SparseMatrix_ptr out(mainBlock->getSubmatrix(n, n, ptr, ptr));
+        delete[] ptr;
+        return out;
+    }
+
+#ifdef ESYS_MPI
+    const index_t size=mpi_info->size;
+    const index_t rank=mpi_info->rank;
+
+    // Merge main block and couple block to get the complete column entries
+    // for each row allocated to current rank. Output (ptr, idx, val)
+    // contains all info needed from current rank to merge a system matrix
+    index_t *ptr, *idx;
+    double  *val;
+    mergeMainAndCouple(&ptr, &idx, &val);
+
+    std::vector<MPI_Request> mpi_requests(size*2);
+    std::vector<MPI_Status> mpi_stati(size*2);
+
+    // Now, pass all info to rank 0 and merge them into one sparse matrix
+    if (rank == 0) {
+        // First, copy local ptr values into ptr_global
+        const index_t global_n = getGlobalNumRows();
+        index_t* ptr_global = new index_t[global_n+1];
+        memcpy(ptr_global, ptr, (n+1)*sizeof(index_t));
+        delete[] ptr;
+        index_t iptr = n+1;
+        index_t* temp_n = new index_t[size];
+        index_t* temp_len = new index_t[size];
+        temp_n[0] = iptr;
+
+        // Second, receive ptr values from other ranks
+        for (index_t i=1; i<size; i++) {
+            const index_t remote_n = row_distribution->first_component[i+1] -
+                                        row_distribution->first_component[i];
+            MPI_Irecv(&ptr_global[iptr], remote_n, MPI_INT, i,
+                        mpi_info->msg_tag_counter+i, mpi_info->comm,
+                        &mpi_requests[i]);
+            temp_n[i] = remote_n;
+            iptr += remote_n;
+        }
+        MPI_Waitall(size-1, &mpi_requests[1], &mpi_stati[0]);
+        ESYS_MPI_INC_COUNTER(*mpi_info, size);
+
+        // Then, prepare to receive idx and val from other ranks
+        index_t len = 0;
+        index_t offset = -1;
+        for (index_t i=0; i<size; i++) {
+            if (temp_n[i] > 0) {
+                offset += temp_n[i];
+                len += ptr_global[offset];
+                temp_len[i] = ptr_global[offset];
+            } else
+                temp_len[i] = 0;
+        }
+
+        index_t* idx_global = new index_t[len];
+        iptr = temp_len[0];
+        offset = n+1;
+        for (index_t i=1; i<size; i++) {
+            len = temp_len[i];
+            MPI_Irecv(&idx_global[iptr], len, MPI_INT, i,
+                        mpi_info->msg_tag_counter+i,
+                        mpi_info->comm, &mpi_requests[i]);
+            const index_t remote_n = temp_n[i];
+            for (index_t j=0; j<remote_n; j++) {
+                ptr_global[j+offset] = ptr_global[j+offset] + iptr;
+            }
+            offset += remote_n;
+            iptr += len;
+        }
+        memcpy(idx_global, idx, temp_len[0]*sizeof(index_t));
+        delete[] idx;
+        MPI_Waitall(size-1, &mpi_requests[1], &mpi_stati[0]);
+        ESYS_MPI_INC_COUNTER(*mpi_info, size);
+        delete[] temp_n;
+
+        // Then generate the sparse matrix
+        const index_t rowBlockSize = mainBlock->row_block_size;
+        const index_t colBlockSize = mainBlock->col_block_size;
+        Pattern_ptr pat(new Pattern(mainBlock->pattern->type,
+                        global_n, global_n, ptr_global, idx_global));
+        SparseMatrix_ptr out(new SparseMatrix(mainBlock->type, pat,
+                                   rowBlockSize, colBlockSize, false));
+
+        // Finally, receive and copy the values
+        iptr = temp_len[0] * block_size;
+        for (index_t i=1; i<size; i++) {
+            len = temp_len[i];
+            MPI_Irecv(&out->val[iptr], len * block_size, MPI_DOUBLE, i,
+                        mpi_info->msg_tag_counter+i, mpi_info->comm,
+                        &mpi_requests[i]);
+            iptr += len*block_size;
+        }
+        memcpy(out->val, val, temp_len[0] * sizeof(double) * block_size);
+        delete[] val;
+        MPI_Waitall(size-1, &mpi_requests[1], &mpi_stati[0]);
+        ESYS_MPI_INC_COUNTER(*mpi_info, size);
+        delete[] temp_len;
+        return out;
+
+    } else { // it's not rank 0
+
+        // First, send out the local ptr
+        index_t tag = mpi_info->msg_tag_counter+rank;
+        MPI_Issend(&ptr[1], n, MPI_INT, 0, tag, mpi_info->comm,
+                   &mpi_requests[0]);
+
+        // Next, send out the local idx
+        index_t len = ptr[n];
+        tag += size;
+        MPI_Issend(idx, len, MPI_INT, 0, tag, mpi_info->comm,
+                   &mpi_requests[1]);
+
+        // At last, send out the local val
+        len *= block_size;
+        tag += size;
+        MPI_Issend(val, len, MPI_DOUBLE, 0, tag, mpi_info->comm,
+                   &mpi_requests[2]);
+
+        MPI_Waitall(3, &mpi_requests[0], &mpi_stati[0]);
+        ESYS_MPI_SET_COUNTER(*mpi_info, tag + size - rank)
+        delete[] ptr;
+        delete[] idx;
+        delete[] val;
+    } // rank
+#endif
+
+    return SparseMatrix_ptr();
+}
+
 } // namespace paso
 
