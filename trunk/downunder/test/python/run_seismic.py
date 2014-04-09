@@ -48,6 +48,8 @@ writeFailMessage = "This feature (SimpleSEGYWriter.write()) depends on obspy, wh
 
 
 class TestSeismicTools(unittest.TestCase):
+    @unittest.skipIf(getMPISizeWorld() > 1,
+            "segywriters don't support multiple ranks")
     def test_segy_writer1(self):
         sw= SimpleSEGYWriter(receiver_group=[0.,1.,2.], source=1., sampling_interval=10*U.msec, text="testing")
         self.assertRaises(ValueError, sw.addRecord, [1])
@@ -61,7 +63,9 @@ class TestSeismicTools(unittest.TestCase):
             if str(e) == writeFailMessage:
                 raise unittest.SkipTest("obspy not installed")
             raise e
-        
+
+    @unittest.skipIf(getMPISizeWorld() > 1,
+            "segywriters don't support multiple ranks")
     def test_segy_writer2(self):
         sw= SimpleSEGYWriter(receiver_group=[(0.,0.),(1.,-1.),(2.,-2)], source=(3,3), sampling_interval=10*U.msec, text="testing")
         self.assertRaises(ValueError, sw.addRecord, [1])
