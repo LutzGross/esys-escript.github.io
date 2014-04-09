@@ -289,6 +289,9 @@ class Symbol(object):
         :return: list of atoms of specified type
         :rtype: ``set``
         """
+        for t in types:
+            if t == type(self):
+                types=types+(type(sympy.Symbol("t")),)
         s=set()
         for el in self._arr.flat:
             if isinstance(el,sympy.Basic):
