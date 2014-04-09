@@ -57,7 +57,7 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
 #pragma omp for schedule(static)
             for (dim_t i=0; i < numOut; ++i) {
                 if (inPtr[i] < inPtr[i+1]) {
-                    qsort(&(idx[inPtr[i]-1]),(size_t)(inPtr[i+1]-inPtr[i]),sizeof(index_t), comparIndex);
+                    qsort(&(idx[inPtr[i]-1]),(size_t)(inPtr[i+1]-inPtr[i]),sizeof(index_t), util::comparIndex);
                     loc_min_index = MIN(loc_min_index, idx[inPtr[i]-1]);
                     loc_max_index = MAX(loc_max_index, idx[inPtr[i+1]-2]);
                 }
@@ -66,7 +66,7 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
 #pragma omp for schedule(static)
             for (dim_t i=0; i < numOut; ++i) {
                 if (inPtr[i] < inPtr[i+1]) {
-                    qsort(&(idx[inPtr[i]]),(size_t)(inPtr[i+1]-inPtr[i]),sizeof(index_t), comparIndex);
+                    qsort(&(idx[inPtr[i]]),(size_t)(inPtr[i+1]-inPtr[i]),sizeof(index_t), util::comparIndex);
                     loc_min_index = MIN(loc_min_index, idx[inPtr[i]]);
                     loc_max_index = MAX(loc_max_index, idx[inPtr[i+1]-1]);
                 }
@@ -147,7 +147,7 @@ index_t* Pattern::borrowMainDiagonalPointer()
             index_t* idx = &index[ptr[i]];
             index_t* where_p=reinterpret_cast<index_t*>(bsearch(&i, idx,
                         (size_t)(ptr[i+1] - ptr[i]),
-                        sizeof(index_t), comparIndex));
+                        sizeof(index_t), util::comparIndex));
             if (where_p == NULL) {
                 fail = true;
             } else {
@@ -177,7 +177,7 @@ index_t* Pattern::borrowColoringPointer()
             mis_marker[i] = -1;
         }
 
-        while (Paso_Util_isAny(n, coloring, -1) && Esys_noError()) {
+        while (util::isAny(n, coloring, -1) && Esys_noError()) {
             mis(mis_marker);
 
 #pragma omp parallel for schedule(static)
@@ -224,7 +224,7 @@ Pattern_ptr Pattern::getSubpattern(int newNumRows, int newNumCols,
     } // parallel section
 
     // accumulate ptr
-    newPtr[newNumRows]=Paso_Util_cumsum(newNumRows, newPtr);
+    newPtr[newNumRows]=util::cumsum(newNumRows, newPtr);
     index_t* newIndex = new index_t[newPtr[newNumRows]];
 
     // find the number of column entries in each row

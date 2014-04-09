@@ -185,8 +185,8 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
             F_marker[i] = (F_marker[i]==PASO_AMG_IN_F ? PASO_AMG_IN_C : PASO_AMG_IN_F);
 
         // count number of unknowns to be eliminated:
-        dim_t my_n_F = Paso_Util_cumsum_maskedTrue(my_n, counter, F_marker);
-        const dim_t n_F = Paso_Util_cumsum_maskedTrue(n, counter, F_marker);
+        dim_t my_n_F = util::cumsum_maskedTrue(my_n, counter, F_marker);
+        const dim_t n_F = util::cumsum_maskedTrue(n, counter, F_marker);
         // collect my_n_F values on all processes, a direct solver should
         // be used if any my_n_F value is 0
         dim_t* F_set = new dim_t[A->mpi_info->size];
@@ -229,8 +229,8 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
                     index_t* mask_C = new index_t[n];
                     index_t* rows_in_F = new index_t[n_F];
                     // create mask of C nodes with value >-1, gives new id
-                    const dim_t n_C = Paso_Util_cumsum_maskedFalse(n,
-                                                             mask_C, F_marker);
+                    const dim_t n_C = util::cumsum_maskedFalse(n, mask_C,
+                                                               F_marker);
                     const dim_t my_n_C = my_n-my_n_F;
                     // if nothing has been removed we have a diagonal dominant
                     // matrix and we just run a few steps of the smoother
@@ -319,7 +319,7 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
 
     time0=Esys_timer();
     // r <- b
-    Paso_Copy(n, amg->r, b);
+    util::copy(n, amg->r, b);
     // r = r-Ax
     SystemMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r);
     // b_C = R*r
@@ -656,11 +656,6 @@ void Preconditioner_AMG_transposeStrongConnections(dim_t n,
     }
 }
 
-int compareindex(const void *a, const void *b)
-{
-  return (*(int *)a - *(int *)b);
-}
-
 void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                                        AMGBlockSelect* split_marker,
                                        const dim_t* degree_S,
@@ -716,7 +711,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                 for (iptr=0; iptr < degree_S[i]; ++iptr) {
                     const index_t k=S[offset_S[i]+iptr];
                     const index_t* start_p = &ST[offset_ST[k]];
-                    const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), comparIndex);
+                    const index_t* where_p=(index_t*)bsearch(&i, start_p, degree_ST[k], sizeof(index_t), util::comparIndex);
 
                     if (ST_flag[offset_ST[k] + (index_t)(where_p-start_p)]>0) {
                         if (wi <= w[k]) {
@@ -789,7 +784,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                             const index_t k=ST[offset_ST[j]+kptr];
                             // k in ST[i]?
                             if (bsearch(&k, start_p, degree_ST[i],
-                                        sizeof(index_t), comparIndex)) {
+                                        sizeof(index_t), util::comparIndex)) {
                                 if (ST_flag[offset_ST[j]+kptr] > 0) {
                                     if (j< my_n) {
                                         w[j]--;

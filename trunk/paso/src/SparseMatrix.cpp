@@ -546,7 +546,7 @@ void SparseMatrix::applyBlockMatrix(double* block_diag, int* pivot, double* x,
 {
     const dim_t n = numRows;
     const dim_t n_block = row_block_size;
-    Paso_Copy(n_block*n, x, b);
+    util::copy(n_block*n, x, b);
     Paso_BlockOps_solveAll(n_block, n, block_diag, pivot, x);
 }
 
@@ -576,7 +576,7 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
                 const index_t* start_p = &pattern->index[jptr_A];
                 const index_t* where_p=(index_t*)bsearch(&i, start_p,
                                           pattern->ptr[j+1]-jptr_A,
-                                          sizeof(index_t), comparIndex);
+                                          sizeof(index_t), util::comparIndex);
                 if (where_p != NULL) { // this should always be the case
                     jptr_A += (index_t)(where_p-start_p);
                     AT->val[iptr_AT] = val[jptr_A];
@@ -593,7 +593,7 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
                     const index_t* start_p = &pattern->index[jptr_A];
                     const index_t* where_p = (index_t*)bsearch(&i, start_p,
                                          pattern->ptr[j+1]-jptr_A,
-                                         sizeof(index_t), comparIndex);
+                                         sizeof(index_t), util::comparIndex);
                     if (where_p != NULL) { // this should always be the case
                         jptr_A += (index_t)(where_p-start_p);
                         for (dim_t ib=0; ib < block_size; ++ib)
@@ -610,7 +610,7 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
                     const index_t* start_p = &pattern->index[jptr_A];
                     const index_t* where_p=(index_t*)bsearch(&i, start_p,
                                        pattern->ptr[j + 1]-jptr_A,
-                                       sizeof(index_t), comparIndex);
+                                       sizeof(index_t), util::comparIndex);
                     if (where_p != NULL) { // this should always be the case
                         jptr_A += (index_t)(where_p-start_p);
                         for (index_t irb=0; irb < row_block_size; ++irb) {
@@ -649,7 +649,7 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
                             const index_t irow=row_block_size*i+irb+out_offset;
                             const index_t* where_p = (index_t*)bsearch(&irow,
                                         start_p, l_col, sizeof(index_t),
-                                        comparIndex);                   
+                                        util::comparIndex);                   
                             if (where_p != NULL) 
                                 out->val[out->pattern->ptr[icol]-out_offset+(index_t)(where_p-start_p)] =
                                     val[block_size*iptr+irb+row_block_size*icb];
@@ -670,7 +670,7 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
                             const index_t icol=j*col_block_size+icb+out_offset;
                             const index_t* where_p = (index_t*)bsearch(&icol,
                                         start_p, l_row,sizeof(index_t),
-                                        comparIndex);                  
+                                        util::comparIndex);                  
                             if (where_p != NULL)
                                 out->val[out->pattern->ptr[irow]-out_offset+(index_t)(where_p-start_p)] =
                                     val[block_size*iptr+irb+row_block_size*icb];

@@ -106,7 +106,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
         for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
         out->n=n;
         out->n_block=n_block;
-        out->n_F=Paso_Util_cumsum(n,counter);
+        out->n_F=util::cumsum(n,counter);
         out->mask_F=new index_t[n];
         out->rows_in_F=new index_t[out->n_F];
         out->inv_A_FF=new double[n_block*n_block*out->n_F];
@@ -134,7 +134,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
                                     index,
                                     A_p->pattern->ptr[out->rows_in_F[i] + 1]-A_p->pattern->ptr[out->rows_in_F[i]],
                                     sizeof(index_t),
-                                    comparIndex);
+                                    util::comparIndex);
             if (where_p==NULL) {
                 Esys_setError(VALUE_ERROR, "Solver_getRILU: main diagonal element missing.");
             } else {
@@ -201,7 +201,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
                 /* creates an index for C from mask */
                 #pragma omp parallel for private(i) schedule(static)
                 for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
-                Paso_Util_cumsum(n,counter);
+                util::cumsum(n,counter);
                 #pragma omp parallel
                 {
                       #pragma omp for private(i) schedule(static)
@@ -310,7 +310,7 @@ void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b)
      
     if (rilu->n_C==0) {
         /* x=invA_FF*b  */
-        Paso_Copy(n_block*rilu->n_F, x, b);
+        util::copy(n_block*rilu->n_F, x, b);
         Paso_BlockOps_solveAll(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,x);
     } else {
         /* b->[b_F,b_C]     */
@@ -330,7 +330,7 @@ void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b)
                     rilu->b_C[rilu->n_block*i+k]=b[n_block*rilu->rows_in_C[i]+k];
         }
         /* x_F=invA_FF*b_F  */
-        Paso_Copy(n_block*rilu->n_F, rilu->x_F,rilu->b_F);
+        util::copy(n_block*rilu->n_F, rilu->x_F,rilu->b_F);
         Paso_BlockOps_solveAll(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F);
         /* b_C=b_C-A_CF*x_F */
         SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_CF,rilu->x_F,1.,rilu->b_C);
@@ -339,7 +339,7 @@ void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b)
         /* b_F=b_F-A_FC*x_C */
         SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,rilu->A_FC,rilu->x_C,1.,rilu->b_F);
         /* x_F=invA_FF*b_F  */
-        Paso_Copy(n_block*rilu->n_F, rilu->x_F,rilu->b_F);
+        util::copy(n_block*rilu->n_F, rilu->x_F,rilu->b_F);
         Paso_BlockOps_solveAll(n_block,rilu->n_F,rilu->inv_A_FF,rilu->A_FF_pivot,rilu->x_F);
         /* x<-[x_F,x_C]     */
         if (n_block==1) {

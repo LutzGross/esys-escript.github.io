@@ -106,7 +106,7 @@ void Paso_TransportProblem_reset(Paso_TransportProblem* in)
     in->transport_matrix->setValues(0.);
     in->mass_matrix->setValues(0.);
     Paso_solve_free(in->iteration_matrix.get());
-    Paso_zeroes(n, in->constraint_mask);
+    paso::util::zeroes(n, in->constraint_mask);
     in->valid_matrices=FALSE;
 }
 

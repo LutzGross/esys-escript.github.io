@@ -116,7 +116,7 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
     status=SOLVER_INPUT_ERROR;
   }
   
-  Paso_zeroes(n,x);
+  paso::util::zeroes(n,x);
   
   Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
   A->solvePreconditioner(res,r);
@@ -124,13 +124,13 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
   
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
   
-  Paso_zeroes(n,u2);
-  Paso_zeroes(n,y2);
+  paso::util::zeroes(n,u2);
+  paso::util::zeroes(n,y2);
   
-  Paso_Copy(n,w,res);
-  Paso_Copy(n,y1,res);
+  paso::util::copy(n,w,res);
+  paso::util::copy(n,y1,res);
       
-  Paso_zeroes(n,d);
+  paso::util::zeroes(n,d);
   
   Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
   Performance_startMonitor(pp,PERFORMANCE_MVM);
@@ -145,12 +145,12 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
   Performance_startMonitor(pp,PERFORMANCE_SOLVER);
   /* v = P^{-1} * A y1 */
   
-  Paso_Copy(n,u1,v);
+  paso::util::copy(n,u1,v);
     
   theta = 0.0;
   eta = 0.0;
   
-  tau = Paso_l2(n,res,A->mpi_info);
+  tau = paso::util::l2(n,res,A->mpi_info);
   
   rho = tau * tau;
       
@@ -160,7 +160,7 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
   {
           
  
-     sigma=Paso_InnerProduct(n,res,v,A->mpi_info);
+     sigma=paso::util::innerProduct(n,res,v,A->mpi_info);
      
      if (! (breakFlag = (ABS(sigma) == 0.))) {
      
@@ -170,7 +170,7 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
        {
          /*  Compute y2 and u2 only if you have to */
          if ( j == 1 ){
-          Paso_LinearCombination(n,y2,PASO_ONE,y1,-alpha,v); /* y2 = y1 - alpha*v */
+             paso::util::linearCombination(n,y2,PASO_ONE,y1,-alpha,v); /* y2 = y1 - alpha*v */
           
           Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
           Performance_startMonitor(pp,PERFORMANCE_MVM);
@@ -188,29 +188,29 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
          m = 2 * (num_iter+1) - 2 + (j+1);
 
           if (j==0) { 
-            Paso_Update(n,1.,w,-alpha,u1); /* w = w - alpha * u1 */
-            Paso_Update(n,( theta * theta * eta / alpha ),d,1.,y1); /* d = ( theta * theta * eta / alpha )*d + y1 */
+              paso::util::update(n,1.,w,-alpha,u1); /* w = w - alpha * u1 */
+              paso::util::update(n,( theta * theta * eta / alpha ),d,1.,y1); /* d = ( theta * theta * eta / alpha )*d + y1 */
           }
           if (j==1) {
-            Paso_Update(n,1.,w,-alpha,u2);  /* w = w - -alpha * u2 */
-            Paso_Update(n,( theta * theta * eta / alpha ),d,1.,y2); /* d = ( theta * theta * eta / alpha )*d + y2 */
+              paso::util::update(n,1.,w,-alpha,u2);  /* w = w - -alpha * u2 */
+              paso::util::update(n,( theta * theta * eta / alpha ),d,1.,y2); /* d = ( theta * theta * eta / alpha )*d + y2 */
           } 
          
-         theta =Paso_l2(n,w,A->mpi_info)/tau;
-         /*printf("tau = %e, %e %e\n",tau, Paso_l2(n,w,A->mpi_info)/tau, theta);*/
+         theta =paso::util::l2(n,w,A->mpi_info)/tau;
+         /*printf("tau = %e, %e %e\n",tau, paso::util::l2(n,w,A->mpi_info)/tau, theta);*/
          c = PASO_ONE / sqrt ( PASO_ONE + theta * theta );
          tau = tau * theta * c;
          eta = c * c * alpha;
-         Paso_Update(n,1.,x,eta,d);       
+         paso::util::update(n,1.,x,eta,d);       
        }
 
      breakFlag = (ABS(rho) == 0);
 
-     rhon = Paso_InnerProduct(n,res,w,A->mpi_info);
+     rhon = paso::util::innerProduct(n,res,w,A->mpi_info);
      beta = rhon / rho;
      rho = rhon;
   
-     Paso_LinearCombination(n,y1, PASO_ONE,w,beta,y2); /* y1 = w + beta * y2 */
+     paso::util::linearCombination(n,y1, PASO_ONE,w,beta,y2); /* y1 = w + beta * y2 */
 
      Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
      Performance_startMonitor(pp,PERFORMANCE_MVM);
@@ -223,8 +223,8 @@ err_t Paso_Solver_TFQMR(paso::SystemMatrix_ptr A, double* r, double* x,
      Performance_startMonitor(pp,PERFORMANCE_SOLVER);
      /*  u1 = P^{-1} * A y1 */
      
-     Paso_LinearCombination(n,temp_vector,PASO_ONE,u2,beta,v); /* t = u2 + beta * v */
-     Paso_LinearCombination(n,v,PASO_ONE,u1,beta,temp_vector); /* v = u1 + beta * t */
+     paso::util::linearCombination(n,temp_vector,PASO_ONE,u2,beta,v); /* t = u2 + beta * v */
+     paso::util::linearCombination(n,v,PASO_ONE,u1,beta,temp_vector); /* v = u1 + beta * t */
      }
      maxIterFlag = (num_iter > maxit);
      norm_of_residual=tau*sqrt ( (double) (m + 1 ) );

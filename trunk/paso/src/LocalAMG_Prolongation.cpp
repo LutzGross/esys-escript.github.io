@@ -79,7 +79,7 @@ SparseMatrix_ptr Preconditioner_LocalAMG_getProlongation(SparseMatrix_ptr A_p,
             }
             ptr[i]=z;
     }
-    len_P=Paso_Util_cumsum(n,ptr);
+    len_P=util::cumsum(n,ptr);
     ptr[n]=len_P;
 
     /* allocate and create index vector for prolongation: */
@@ -198,7 +198,7 @@ void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p,
                   where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                             P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
                                             sizeof(index_t),
-                                            comparIndex);
+                                            util::comparIndex);
                   if (! (where_p == NULL) ) { /* yes i strongly connected with j */
                         offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
                         P_p->val[offset]=A_ij; /* will be modified later */
@@ -296,7 +296,7 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
                      where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                              P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
                                              sizeof(index_t),
-                                             comparIndex);
+                                             util::comparIndex);
                      if (! (where_p == NULL) ) { /* yes i strongly connected with j */
                               offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
                               for (ib =0; ib<row_block; ++ib) {
@@ -377,7 +377,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
    const dim_t n =A_p->numRows;
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
-   const dim_t ll = Paso_Util_iMax(n, degree_S);
+   const dim_t ll = util::iMax(n, degree_S);
    const index_t *ptr_main_A = A_p->borrowMainDiagonalPointer();
 
    #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j)
@@ -405,12 +405,12 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                  const double A_ij=A_p->val[iPtr];
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection? */
-                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), comparIndex);
+                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;  
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), comparIndex);
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_LocalAMG_setClassicProlongation: Interpolation point is missing.");
                                } else {
@@ -427,7 +427,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                                     const double A_jm=A_p->val[iPtr_j];
                                     const index_t m=A_p->pattern->index[iPtr_j];
                                     /* is m an interpolation point? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          if (! SAMESIGN(A_ii,A_jm)) {
@@ -475,7 +475,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
    const dim_t n =A_p->numRows;
    double *D_s=NULL;
    index_t *D_s_offset=NULL, iPtr, iPtr_j;
-   const dim_t ll = Paso_Util_iMax(n, degree_S);
+   const dim_t ll = util::iMax(n, degree_S);
    const index_t *ptr_main_A = A_p->borrowMainDiagonalPointer();
 
    #pragma omp parallel  private(D_s, D_s_offset, iPtr, q, iPtr_j,ib)
@@ -506,12 +506,12 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
 
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
-                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), comparIndex);
+                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), comparIndex);
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_LocalAMG_setClassicProlongation_Block: Interpolation point is missing.");
                                } else {
@@ -527,7 +527,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                                     const double* A_jm=&(A_p->val[iPtr_j*A_block]);
                                     const index_t m=A_p->pattern->index[iPtr_j];
                                     /* is m an interpolation point? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          for (ib=0; ib<row_block; ib++) {

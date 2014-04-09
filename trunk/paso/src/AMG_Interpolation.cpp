@@ -472,7 +472,7 @@ void Preconditioner_AMG_CopyRemoteData(SystemMatrix_ptr P,
   ESYS_MPI_INC_COUNTER(*(P->mpi_info),size);
 
   delete[] send_degree;
-  m = Paso_Util_cumsum(recv_rows, recv_ptr);
+  m = util::cumsum(recv_rows, recv_ptr);
   recv_ptr[recv_rows] = m;
   recv_idx = new index_t[m];
   recv_val = new double[m * block_size];
@@ -656,7 +656,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         }
      }
      if (iptr) {
-          qsort(temp, (size_t)iptr, sizeof(index_t), comparIndex);
+          qsort(temp, (size_t)iptr, sizeof(index_t), util::comparIndex);
         num_Pext_cols = 1;
         i = temp[0];
         for (j=1; j<iptr; j++) {
@@ -680,7 +680,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         where_p = (index_t *)bsearch(
                         &(P->remote_coupleBlock->pattern->index[i]),
                         global_id_P, num_Pext_cols,
-                        sizeof(index_t), comparIndex);
+                        sizeof(index_t), util::comparIndex);
         P->remote_coupleBlock->pattern->index[i] =
                         (index_t)(where_p -global_id_P);
      }
@@ -1073,7 +1073,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
      }
 
      if (iptr) {
-          qsort(temp, (size_t)iptr, sizeof(index_t), comparIndex);
+          qsort(temp, (size_t)iptr, sizeof(index_t), util::comparIndex);
         num_RAPext_cols = 1;
         i = temp[0];
         for (j=1; j<iptr; j++) {
@@ -1099,7 +1099,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
    for (i=0; i<sum; i++) {
      if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub){
         where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
-/*XXX*/                 num_RAPext_cols, sizeof(index_t), comparIndex);
+/*XXX*/                 num_RAPext_cols, sizeof(index_t), util::comparIndex);
         RAP_ext_idx[i] = num_Pmain_cols + (index_t)(where_p - global_id_RAP);
      } else
         RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
@@ -1581,7 +1581,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_main_idx[row_marker+iptr];
         if (offset > 0) {
-            qsort(temp, (size_t)offset, sizeof(index_t), comparIndex);
+            qsort(temp, (size_t)offset, sizeof(index_t), util::comparIndex);
         }
         temp_val = new double[offset * block_size];
         #pragma omp parallel for schedule(static) private(iptr,k)
@@ -1605,7 +1605,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperator(
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_couple_idx[row_marker_ext+iptr];
         if (offset > 0) {
-            qsort(temp, (size_t)offset, sizeof(index_t), comparIndex);
+            qsort(temp, (size_t)offset, sizeof(index_t), util::comparIndex);
         }
         temp_val = new double[offset * block_size];
         #pragma omp parallel for schedule(static) private(iptr, k)
@@ -2063,7 +2063,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         }
      }
      if (iptr) {
-          qsort(temp, (size_t)iptr, sizeof(index_t), comparIndex);
+          qsort(temp, (size_t)iptr, sizeof(index_t), util::comparIndex);
         num_Pext_cols = 1;
         i = temp[0];
         for (j=1; j<iptr; j++) {
@@ -2086,7 +2086,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         where_p = (index_t *)bsearch(
                         &(P->remote_coupleBlock->pattern->index[i]),
                         global_id_P, num_Pext_cols,
-                        sizeof(index_t), comparIndex);
+                        sizeof(index_t), util::comparIndex);
         P->remote_coupleBlock->pattern->index[i] =
                         (index_t)(where_p -global_id_P);
      }
@@ -2480,7 +2480,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
      }
 
      if (iptr) {
-          qsort(temp, (size_t)iptr, sizeof(index_t), comparIndex);
+          qsort(temp, (size_t)iptr, sizeof(index_t), util::comparIndex);
         num_RAPext_cols = 1;
         i = temp[0];
         for (j=1; j<iptr; j++) {
@@ -2504,7 +2504,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
    for (i=0; i<sum; i++) {
      if (RAP_ext_idx[i] < offset || RAP_ext_idx[i] >= j1_ub){
         where_p = (index_t *) bsearch(&(RAP_ext_idx[i]), global_id_RAP,
-/*XXX*/                 num_RAPext_cols, sizeof(index_t), comparIndex);
+/*XXX*/                 num_RAPext_cols, sizeof(index_t), util::comparIndex);
         RAP_ext_idx[i] = num_Pmain_cols + (index_t)(where_p - global_id_RAP);
      } else
         RAP_ext_idx[i] = RAP_ext_idx[i] - offset;
@@ -2985,7 +2985,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_main_idx[row_marker+iptr];
         if (offset > 0) {
-            qsort(temp, (size_t)offset, sizeof(index_t), comparIndex);
+            qsort(temp, (size_t)offset, sizeof(index_t), util::comparIndex);
         }
         temp_val = new double[offset * block_size];
         for (iptr=0; iptr<offset; iptr++){
@@ -3006,7 +3006,7 @@ SystemMatrix_ptr Preconditioner_AMG_buildInterpolationOperatorBlock(
         for (iptr=0; iptr<offset; iptr++)
           temp[iptr] = RAP_couple_idx[row_marker_ext+iptr];
         if (offset > 0) {
-            qsort(temp, (size_t)offset, sizeof(index_t), comparIndex);
+            qsort(temp, (size_t)offset, sizeof(index_t), util::comparIndex);
         }
         temp_val = new double[offset * block_size];
         for (iptr=0; iptr<offset; iptr++){

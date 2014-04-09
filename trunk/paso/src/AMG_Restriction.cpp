@@ -278,7 +278,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
       and convert the global id in "idx" into local id */
    num_Rcouple_cols = 0;
    if (sum) {
-     qsort(recv_idx, (size_t)sum, sizeof(index_t), comparIndex);
+     qsort(recv_idx, (size_t)sum, sizeof(index_t), util::comparIndex);
      num_Rcouple_cols = 1;
      i = recv_idx[0];
      for (j=1; j<sum; j++) {
@@ -291,7 +291,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      #pragma omp parallel for private(i,where_p) schedule(static)
      for (i=0; i<sum; i++) {
         where_p = (index_t *)bsearch(&(idx[i]), recv_idx, num_Rcouple_cols,
-                                sizeof(index_t), comparIndex);
+                                sizeof(index_t), util::comparIndex);
         idx[i] = (index_t)(where_p - recv_idx);
      }
    }

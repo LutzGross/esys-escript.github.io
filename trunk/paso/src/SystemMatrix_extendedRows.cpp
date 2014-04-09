@@ -248,7 +248,7 @@ void SystemMatrix::extendedRowsForST(dim_t* degree_ST, index_t* offset_ST,
         j = my_n + i;
         degree_ST[j] = len - offset_ST[j];
         offset_ST[j+1] = len;
-        qsort(&ST[offset_ST[j]], (size_t) degree_ST[j], sizeof(index_t), comparIndex);
+        qsort(&ST[offset_ST[j]], (size_t) degree_ST[j], sizeof(index_t), util::comparIndex);
     }
 
     // release memory

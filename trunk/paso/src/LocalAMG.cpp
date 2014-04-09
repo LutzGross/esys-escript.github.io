@@ -169,7 +169,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim
             /*
                count number of unknowns to be eliminated:
             */
-            n_F=Paso_Util_cumsum_maskedTrue(n,counter, F_marker);
+            n_F=util::cumsum_maskedTrue(n,counter, F_marker);
             n_C=n-n_F;
             if (verbose) printf("Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
          
@@ -211,7 +211,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim
                               }
                            }
                            /*  create mask of C nodes with value >-1 gives new id */
-                           i=Paso_Util_cumsum_maskedFalse(n,counter, F_marker);
+                           i=util::cumsum_maskedFalse(n,counter, F_marker);
 
                            #pragma omp parallel for private(i) schedule(static)
                            for (i = 0; i < n; ++i) {
@@ -324,7 +324,7 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
      /* end of presmoothing */
         
      time0=Esys_timer();
-     Paso_Copy(n, amg->r, b);                            /*  r <- b */
+     util::copy(n, amg->r, b);                            /*  r <- b */
      SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
      SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
      time0=Esys_timer()-time0;
@@ -491,7 +491,7 @@ void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* of
    dim_t i,k, p, q, *degree_ST=NULL, len_panel, len_panel_new;
    register index_t j, itmp;
    
-   if (n<=0) return; /* make sure that the return of Paso_Util_arg_max is not pointing to nirvana */
+   if (n<=0) return; /* make sure that the return of util::arg_max is not pointing to nirvana */
    
    lambda=new index_t[n];
    degree_ST=new dim_t[n]; 
@@ -549,7 +549,7 @@ void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* of
          for (i=0;i<n;++i) notInPanel[i]=TRUE;
       }
       /* start search :*/
-      i=Paso_Util_arg_max(n,lambda); 
+      i=util::arg_max(n,lambda); 
       while (lambda[i]>-1) { /* is there any undecided unknown? */
          if (SMALL_PANEL) {
             do {
@@ -690,7 +690,7 @@ void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* of
             }
             
          }
-         i=Paso_Util_arg_max(n,lambda);
+         i=util::arg_max(n,lambda);
       }
     }
     delete[] lambda;
@@ -723,7 +723,7 @@ void Preconditioner_LocalAMG_enforceFFConnectivity(dim_t n,
                         if (split_marker[k]==PASO_AMG_IN_C) {
                             register index_t* where_k = (index_t*)bsearch(
                                     &k, &(S[offset_S[j]]), degree_S[j],
-                                    sizeof(index_t), comparIndex);
+                                    sizeof(index_t), util::comparIndex);
                             if (where_k != NULL) {
                                 sharing=k;
                                 break;
