@@ -52,8 +52,8 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
     if (Esys_noError()) {
         switch(package) {
             case PASO_PASO:
-                Paso_Solver(A,out,in,options,&pp);
-                A->solver_package=PASO_PASO;
+                Solver(A, out, in, options, &pp);
+                A->solver_package = PASO_PASO;
             break;
 
             case PASO_MKL:
@@ -116,7 +116,7 @@ void Paso_solve_free(SystemMatrix* in)
 
     switch(in->solver_package) {
         case PASO_PASO:
-            Paso_Solver_free(in);
+            Solver_free(in);
             break;
 
         case PASO_SMOOTHER:

@@ -22,9 +22,8 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 #include "Solver.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+
+namespace paso {
 
 /*  -- Iterative template routine --
 *     Univ. of Tennessee and Oak Ridge National Laboratory
@@ -76,9 +75,8 @@
 *  ==============================================================
 */
 
-err_t Paso_Solver_BiCGStab(paso::SystemMatrix_ptr A, double* r, double* x,
-                           dim_t *iter, double* tolerance,
-                           Paso_Performance* pp)
+err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+                      double* tolerance, Paso_Performance* pp)
 {
   /* Local variables */
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;/*, *buf1=NULL, *buf0=NULL;*/
@@ -255,4 +253,6 @@ err_t Paso_Solver_BiCGStab(paso::SystemMatrix_ptr A, double* r, double* x,
 
     return status;
 }
+
+} // namespace paso
 
