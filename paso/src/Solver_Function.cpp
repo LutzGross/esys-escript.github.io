@@ -61,7 +61,7 @@ err_t Paso_Function_LinearSystem_call(Paso_Function_LinearSystem* F,
                                       double* value, const double* arg,
                                       Paso_Performance *pp)
 {
-    Paso_Copy(F->n, F->tmp, F->b); /* tmp=b */
+    paso::util::copy(F->n, F->tmp, F->b); /* tmp=b */
     paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, F->mat, arg, -PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
     F->mat->solvePreconditioner(value, F->tmp);  /* value=P*tmp */
     return NO_ERROR;

@@ -108,7 +108,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	}
 	
         num_failures=0;
-	Paso_Copy(n,u,u0); /* copy initial value to return */
+        paso::util::copy(n,u,u0); /* copy initial value to return */
 		
 	while( (dt-t)>dt*sqrt(EPSILON) && Esys_noError()) {
 
@@ -126,7 +126,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
 	      /* start iteration */
 	      for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
 	        if (options->verbose) printf("Paso_TransportProblem_solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
-   	        Paso_Copy(n,u_save, u); /* create copy for restart in case of failure */
+            paso::util::copy(n,u_save, u); /* create copy for restart in case of failure */
 		/* updates u */
 	        errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u ,q, options, &pp); /* Mu_t=Du+q u(0)=u */
 	        if (errorCode == SOLVER_NO_ERROR) {
@@ -144,7 +144,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
                 if (errorCode == SOLVER_NO_ERROR) {
                     num_failures=0;
 		    t+=dt3;
-		    Paso_Copy(n,u, u2);
+            paso::util::copy(n,u, u2);
 		}
 	      }
 	      if (errorCode == SOLVER_NO_ERROR) {
@@ -157,7 +157,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
                        if (options->verbose) printf("Paso_TransportProblem_solve: no convergence. Time step size is reduced.\n");
                        dt2=dt3*reduction_after_divergence_factor;
                        num_failures++;
-		       Paso_Copy(n,u, u_save); /* reset initial value */
+                       paso::util::copy(n,u, u_save); /* reset initial value */
                     }
 	      } else if (errorCode == SOLVER_INPUT_ERROR) {
 	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");

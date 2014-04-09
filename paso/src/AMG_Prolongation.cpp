@@ -166,10 +166,10 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      }
 
      /* allocate and create index vector for prolongation: */
-     p = Paso_Util_cumsum(my_n, main_p);
+     p = util::cumsum(my_n, main_p);
      main_p[my_n] = p;
      main_idx = new index_t[p];
-     p = Paso_Util_cumsum(my_n, couple_p);
+     p = util::cumsum(my_n, couple_p);
      couple_p[my_n] = p;
      couple_idx = new index_t[p];
         #pragma omp parallel for private(i,k,l,iptr,j,p)  schedule(static)
@@ -414,7 +414,7 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
                   where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                             main_pattern->ptr[i + 1] - main_pattern->ptr[i],
                                             sizeof(index_t),
-                                            comparIndex);
+                                            util::comparIndex);
                   if (! (where_p == NULL) ) { /* yes i strongly connected with j */
                         offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p);
                         main_block->val[offset]=A_ij; /* will be modified later */
@@ -446,7 +446,7 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
                   where_p=(index_t*)bsearch(&(counter_C[j+my_n]), start_p,
                                             couple_pattern->ptr[i + 1] - couple_pattern->ptr[i],
                                             sizeof(index_t),
-                                            comparIndex);
+                                            util::comparIndex);
                   if (! (where_p == NULL) ) { /* yes i strongly connect with j */
                         offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
                         couple_block->val[offset]=A_ij; /* will be modified later */
@@ -568,7 +568,7 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
                      where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                              main_pattern->ptr[i + 1]-main_pattern->ptr[i],
                                              sizeof(index_t),
-                                             comparIndex);
+                                             util::comparIndex);
                      if (! (where_p == NULL) ) { /* yes i strongly connected with j */
                               offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p);
                               for (ib =0; ib<row_block_size; ++ib) {
@@ -605,7 +605,7 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
                      where_p=(index_t*)bsearch(&(counter_C[j+my_n]), start_p,
                                              couple_pattern->ptr[i + 1]-couple_pattern->ptr[i],
                                              sizeof(index_t),
-                                             comparIndex);
+                                             util::comparIndex);
                      if (! (where_p == NULL) ) { /* yes i strongly connect with j */
                               offset = couple_pattern->ptr[i]+ (index_t)(where_p-start_p);
                               for (ib =0; ib<row_block_size; ++ib) {
@@ -748,12 +748,12 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                  const double A_ij=A->mainBlock->val[iPtr];
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
-                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), comparIndex);
+                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;  
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), comparIndex);
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_setClassicProlongation: interpolation point is missing.");
                                } else {
@@ -771,7 +771,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const double A_jm=A->mainBlock->val[iPtr_j];
                                     const index_t m=A->mainBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
@@ -791,7 +791,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const double A_jm=A->col_coupleBlock->val[iPtr_j];
                                     const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
@@ -831,12 +831,12 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
                     index_t t=j+my_n;
-                    const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), comparIndex);
+                    const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
                         a+=A_ij;
                     } else {   /* yes i strongly connect with j */
                         if  (counter_C[t]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), comparIndex);
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_AMG_setClassicProlongation: interpolation point is missing.");
                                } else {
@@ -854,7 +854,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const double A_jm=A->row_coupleBlock->val[iPtr_j];
                                     const index_t m=A->row_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
@@ -873,7 +873,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const double A_jm=A->remote_coupleBlock->val[iPtr_j];
                                     const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i, degree_p_couple_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i, degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          if (! SAMESIGN(A_ii,A_jm)) {
@@ -980,12 +980,12 @@ void Preconditioner_AMG_setClassicProlongation_Block(
 
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
-                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), comparIndex);
+                    const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), comparIndex);
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
                                } else {
@@ -1002,7 +1002,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     const double* A_jm=&(A->mainBlock->val[iPtr_j*A_block]);
                                     const index_t m=A->mainBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
@@ -1023,7 +1023,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     const double* A_jm=&(A->col_coupleBlock->val[iPtr_j*A_block]);
                                     const index_t m=A->col_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          for (ib=0; ib<row_block; ib++) {
@@ -1070,12 +1070,12 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                  if ( (i!=j) && (degree_S[j]>0) ) {
                     /* is (i,j) a strong connection ?*/
                     index_t t=j+my_n;
-                    const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), comparIndex);
+                    const index_t *where_s=(index_t*)bsearch(&t, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
                         for (ib=0; ib<row_block; ib++) a[ib]+=A_ij[(row_block+1)*ib];
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[t]>=0)  { /* j is an interpolation point : add A_ij into P */
-                               const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), comparIndex);
+                               const index_t *where_p=(index_t*)bsearch(&counter_C[t], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                if (where_p == NULL)  {
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_AMG_setClassicProlongation_Block: interpolation point is missing.");
 
@@ -1096,7 +1096,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     A_jm=&(A->row_coupleBlock->val[iPtr_j*A_block]);
                                     m=A->row_coupleBlock->pattern->index[iPtr_j];
 
-                                    where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), comparIndex);
+                                    where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
@@ -1118,7 +1118,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     const double* A_jm=&(A->remote_coupleBlock->val[iPtr_j*A_block]);
                                     const index_t m=A->remote_coupleBlock->pattern->index[iPtr_j];
                                     /* is m an interpolation point ? */
-                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), comparIndex);
+                                    const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          for (ib=0; ib<row_block; ib++) {

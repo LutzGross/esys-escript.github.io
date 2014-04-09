@@ -108,7 +108,7 @@ err_t Paso_Solver_MINRES(paso::SystemMatrix_ptr A, double* R, double* X,
       
       A->solvePreconditioner(Z, R); /*     z  <- Prec*r       */
       /* gamma <- r'*z */
-          dp=Paso_InnerProduct(n, R ,Z,A->mpi_info); /* gamma <- r'*z */
+          dp=paso::util::innerProduct(n, R ,Z,A->mpi_info); /* gamma <- r'*z */
 	  dp0=dp;
       if (dp<0) {
 	 status=SOLVER_NEGATIVE_NORM_ERROR;
@@ -118,7 +118,7 @@ err_t Paso_Solver_MINRES(paso::SystemMatrix_ptr A, double* R, double* X,
             gamma   = sqrt(dp); /*  gamma <- sqrt(r'*z)  */
             eta  = gamma;
             rnorm_prec = gamma;
-            norm_of_residual=Paso_l2(n, R, A->mpi_info);
+            norm_of_residual=paso::util::l2(n, R, A->mpi_info);
             norm_scal=rnorm_prec/norm_of_residual;
             tol=(*tolerance)*norm_scal;
       }
@@ -126,26 +126,26 @@ err_t Paso_Solver_MINRES(paso::SystemMatrix_ptr A, double* R, double* X,
    while (!(convergeFlag || (status !=SOLVER_NO_ERROR) ))
    {
         /*    z <- z / gamma     */
-           Paso_Scale(n, Z,1./gamma);        
+       paso::util::scale(n, Z,1./gamma);        
 
         /*      Az <- A*z   */
            paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, Z,PASO_ZERO,AZ); 
 
 	/*  delta <- Az'.z */
-	    delta=Paso_InnerProduct(n,AZ,Z,A->mpi_info); 
+	    delta=paso::util::innerProduct(n,AZ,Z,A->mpi_info); 
 
        /*  r_new <- Az-delta/gamma * r - gamma/gamma_old r_old */
-          if (num_iter>0) Paso_Copy(n, R_ancient, R_old);   /*  r__ancient <- r_old */
-          Paso_Copy(n, R_old, R);       /*  r_old <- r */
-          Paso_Copy(n, R, AZ);       /*  r <- Az */
-	  Paso_AXPY(n, R, -delta/gamma, R_old);     /*  r <- r - delta/gamma v     */
-	  if (num_iter>0) Paso_AXPY(n, R, -gamma/gamma_old, R_ancient);   /*  r <- r - gamma/gamma_old r__ancient  */
+          if (num_iter>0) paso::util::copy(n, R_ancient, R_old);   /*  r__ancient <- r_old */
+          paso::util::copy(n, R_old, R);       /*  r_old <- r */
+          paso::util::copy(n, R, AZ);       /*  r <- Az */
+          paso::util::AXPY(n, R, -delta/gamma, R_old);     /*  r <- r - delta/gamma v     */
+	  if (num_iter>0) paso::util::AXPY(n, R, -gamma/gamma_old, R_ancient);   /*  r <- r - gamma/gamma_old r__ancient  */
 
 	/*  z <- prec*r   */
 	  A->solvePreconditioner(ZNEW, R); 
         
 	
-	 dp=Paso_InnerProduct(n,R,ZNEW,A->mpi_info);
+	 dp=paso::util::innerProduct(n,R,ZNEW,A->mpi_info);
 	 if (dp < 0.) {
 		  status=SOLVER_NEGATIVE_NORM_ERROR;
 	 } else if (ABS(dp) == 0.) {
@@ -173,21 +173,21 @@ err_t Paso_Solver_MINRES(paso::SystemMatrix_ptr A, double* R, double* X,
 
                /* w_new <- (z-alpha_3 w - alpha_2 w_old)/alpha_1 */
 	 
-	             if (num_iter>1) Paso_Copy(n, W_ancient, W_old);     /*  w__ancient <- w_old      */
-	             if (num_iter>0) Paso_Copy(n, W_old, W);         /*  w_old  <- w          */
+	             if (num_iter>1) paso::util::copy(n, W_ancient, W_old);     /*  w__ancient <- w_old      */
+	             if (num_iter>0) paso::util::copy(n, W_old, W);         /*  w_old  <- w          */
 	 
-	             Paso_Copy(n, W, Z);
-	             if (num_iter>1) Paso_AXPY(n, W,- alpha_3,W_ancient); /*  w <- w - alpha_3 w__ancient */
-	             if (num_iter>0) Paso_AXPY(n, W,- alpha_2,W_old);  /*  w <- w - alpha_2 w_old  */
-   	             Paso_Scale(n, W, 1.0 / alpha_1);      /*  w <- w / alpha_1        */
+                 paso::util::copy(n, W, Z);
+	             if (num_iter>1) paso::util::AXPY(n, W,- alpha_3,W_ancient); /*  w <- w - alpha_3 w__ancient */
+	             if (num_iter>0) paso::util::AXPY(n, W,- alpha_2,W_old);  /*  w <- w - alpha_2 w_old  */
+                 paso::util::scale(n, W, 1.0 / alpha_1);      /*  w <- w / alpha_1        */
                /*                                                        */
-	       Paso_AXPY(n, X,c * eta,W);      /*  x <- x + c eta w     */ 
+                 paso::util::AXPY(n, X,c * eta,W);      /*  x <- x + c eta w     */ 
 	       eta = - s * eta;
 	       convergeFlag = rnorm_prec <= tol;
 	 } else {
 		   status=SOLVER_BREAKDOWN;
 	 }
-         Paso_Copy(n, Z, ZNEW);       
+     paso::util::copy(n, Z, ZNEW);       
 	 ++(num_iter);
 	 if ( !convergeFlag && (num_iter>=maxit)) status = SOLVER_MAXITER_REACHED;
    }

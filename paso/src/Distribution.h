@@ -90,7 +90,7 @@ struct Distribution
     inline dim_t numPositives(const double* x, dim_t block) const
     {
         const dim_t my_n = block * getMyNumComponents();
-        dim_t my_out = Paso_Util_numPositives(my_n, x);
+        dim_t my_out = util::numPositives(my_n, x);
         dim_t out;
 
 #ifdef ESYS_MPI

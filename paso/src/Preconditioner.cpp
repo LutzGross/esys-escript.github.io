@@ -148,7 +148,7 @@ void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,
             break;
         case PASO_NO_PRECONDITIONER:
             n = MIN(A->getTotalNumCols(), A->getTotalNumRows());
-            Paso_Copy(n,x,b);
+            util::copy(n,x,b);
             break;
     }
 }

@@ -119,16 +119,16 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
         Preconditioner_LocalSmoother_solve(A->mainBlock,smoother->localSmoother,x,b,sweeps,x_is_initial);
     } else {
         if (! x_is_initial) {
-            Paso_Copy(n, x, b);
+            util::copy(n, x, b);
 
             Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,x);
             nsweeps--;
         }
         while (nsweeps > 0 ) {
-            Paso_Copy(n, b_new, b);
+            util::copy(n, b_new, b);
             SystemMatrix_MatrixVector_CSR_OFFSET0((-1.), A, x, 1., b_new); /* b_new = b - A*x */
             Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);  
-            Paso_AXPY(n, x, 1., b_new); 
+            util::AXPY(n, x, 1., b_new); 
             nsweeps--;
         }
     }
@@ -146,22 +146,22 @@ err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
    err_t errorCode = PRECONDITIONER_NO_ERROR;
 
    if (! x_is_initial) {
-         Paso_Copy(n, x, b);
-         Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,x);
-         norm_dx=Paso_lsup(n,x,A->mpi_info);
-         s++;
+        util::copy(n, x, b);
+        Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,x);
+        norm_dx=util::lsup(n,x,A->mpi_info);
+        s++;
    }
    while (norm_dx > atol) {
-         Paso_Copy(n, b_new, b);
-         SystemMatrix_MatrixVector((-1.), A, x, 1., b_new); /* b_new = b - A*x */
-         Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);
-         norm_dx=Paso_lsup(n,b_new,A->mpi_info);
-         Paso_AXPY(n, x, 1., b_new);
-         if (s >= max_sweeps) {
+        util::copy(n, b_new, b);
+        SystemMatrix_MatrixVector((-1.), A, x, 1., b_new); /* b_new = b - A*x */
+        Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);
+        norm_dx=util::lsup(n,b_new,A->mpi_info);
+        util::AXPY(n, x, 1., b_new);
+        if (s >= max_sweeps) {
               errorCode = PRECONDITIONER_MAXITER_REACHED;
               break;
-         }
-         s++;
+        }
+        s++;
    }
    *sweeps=s;
    return errorCode;
@@ -175,17 +175,17 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A, Preconditioner_Local
    dim_t nsweeps=sweeps;
    
    if (! x_is_initial) {
-      Paso_Copy(n, x, b);
-      Preconditioner_LocalSmoother_Sweep(A, smoother, x);
-      nsweeps--;
+        util::copy(n, x, b);
+        Preconditioner_LocalSmoother_Sweep(A, smoother, x);
+        nsweeps--;
    }
    
    while (nsweeps > 0 ) {
-         Paso_Copy(n, b_new, b);
+       util::copy(n, b_new, b);
 
      SparseMatrix_MatrixVector_CSR_OFFSET0((-1.), A, x, 1., b_new); /* b_new = b - A*x */
          Preconditioner_LocalSmoother_Sweep(A, smoother, b_new);
-         Paso_AXPY(n, x, 1., b_new);
+         util::AXPY(n, x, 1., b_new);
          nsweeps--;
    }
 }

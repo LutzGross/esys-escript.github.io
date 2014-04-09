@@ -233,7 +233,7 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
    Paso_FCT_FluxLimiter_addLimitedFluxes_Start(fct_solver->flux_limiter);
    Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(fct_solver->flux_limiter, b);
 
-   Paso_Scale(n, b,fct_solver->omega );
+   paso::util::scale(n, b,fct_solver->omega );
    /* solve (m-dt/2*L) u = b in the form (omega*m-L) u = b * omega with omega*dt/2=1 */
    #pragma omp for private(i) schedule(static)
    for (i = 0; i < n; ++i) {
@@ -243,10 +243,10 @@ err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double
        }
    }
    /* initial guess is u<- -u + 2*u_tilde */
-   Paso_Update(n, -1., u, 2., fct_solver->flux_limiter->u_tilde);
+   paso::util::update(n, -1., u, 2., fct_solver->flux_limiter->u_tilde);
 
    sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
-   norm_u_tilde=Paso_lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
+   norm_u_tilde=paso::util::lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
    if (options->verbose) {
        printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL * norm_u_tilde ,sweep_max);
    }
@@ -311,13 +311,13 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
     /* u_tilda_connector is completed */
     /************************************************************************/
     /* calculate stopping criterion */
-    norm_u_tilde=Paso_lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
+    norm_u_tilde=paso::util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
     ATOL= rtol * norm_u_tilde + atol ;
     if (options->verbose) printf("Paso_FCT_Solver_updateNL: iteration starts u_tilda lsup = %e (abs. tol = %e)\n",norm_u_tilde,ATOL);
     /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
 
     /* u_old is an initial guess for u*/
-    Paso_Copy(n,u,u_old);
+    paso::util::copy(n,u,u_old);
 
     while ( (!converged) && (!diverged) && (! max_m_reached) && Esys_noError()) {
         fct_solver->u_coupler->startCollect(u);
@@ -347,7 +347,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
               Paso_FCT_Solver_setMuPaLu(z, fctp->lumped_mass_matrix, fct_solver->u_coupler, dt/2, fctp->iteration_matrix);
           }
 
-          Paso_Update(n,-1.,z,1.,b);  /* z=b-z */
+          paso::util::update(n,-1.,z,1.,b);  /* z=b-z */
 
           /* z_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
           Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(flux_limiter, z);
@@ -355,7 +355,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
           /* we solve (m/omega - L ) * du = z */
           if (fct_solver->method == PASO_BACKWARD_EULER) {
               dim_t cntIter = options->iter_max;
-              double tol= Paso_l2(n, z, fctp->mpi_info) ;
+              double tol= paso::util::l2(n, z, fctp->mpi_info) ;
 
               if ( m ==0) {
                   tol *=0.5;
@@ -363,7 +363,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
                   tol *= MIN(MAX(rate*rate, 1e-2), 0.5);
               }
               /* use BiCGSTab with jacobi preconditioner ( m - omega * L ) */
-              Paso_zeroes(n,du);
+              paso::util::zeroes(n,du);
               errorCode = Paso_Solver_BiCGStab(fctp->iteration_matrix, z, du, &cntIter, &tol, pp);
 
               /* errorCode =  Paso_Solver_GMRES(fctp->iteration_matrix, z, du, &cntIter, &tol, 10, 2000, pp); */
@@ -379,9 +379,9 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
               options->num_iter++;
            }
 
-           Paso_Update(n,1.,u,fct_solver->omega,du);
+          paso::util::update(n,1.,u,fct_solver->omega,du);
            norm_du_old=norm_du;
-           norm_du=Paso_lsup(n,du, fctp->mpi_info);
+           norm_du=paso::util::lsup(n,du, fctp->mpi_info);
            if (m ==0) {
                 if (options->verbose) printf("Paso_FCT_Solver_updateNL: step %d: increment= %e\n",m+1, norm_du * fct_solver->omega);
            } else {

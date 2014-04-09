@@ -56,7 +56,7 @@ void Pattern::mis(index_t* mis_marker) const
     double* value = new double[n];
 
     // is there any vertex available?
-    while (Paso_Util_isAny(n, mis_marker, IS_AVAILABLE)) {
+    while (util::isAny(n, mis_marker, IS_AVAILABLE)) {
         /* step 1: assign a random number in [0,1] to each vertex
          * step 2: if the vertex is available, check if its value is smaller
          *         than all values of its neighbours. If the answer is yes,
