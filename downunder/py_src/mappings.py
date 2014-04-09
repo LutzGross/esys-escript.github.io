@@ -76,9 +76,11 @@ class LinearMapping(Mapping):
     """
 
     def __init__(self, a=1, p0=0):
+        a = float(a)
+        p0 = float(p0)
         self.__a=a
         self.__p0=p0
-        self.__a_inv = 1/a
+        self.__a_inv = 1./a
 
     def getValue(self, m):
         """
