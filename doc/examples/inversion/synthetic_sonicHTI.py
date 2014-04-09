@@ -1,3 +1,4 @@
+from __future__ import division
 from __future__ import print_function
 ##############################################################################
 #
@@ -57,7 +58,7 @@ src_dir=[0,1]
 absorption_zone=1000*U.m
 
 # location of source in crossing array lines with in 0..numRcvInLine one needs to be None
-srcEW=numRcvPerLine/2
+srcEW=numRcvPerLine//2
 srcNS=None
 # dommain dimension
 width_x=rangeRcv + 2*absorption_zone
@@ -67,16 +68,16 @@ ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create array 
 #
-receiver_line=[  absorption_zone  + i * (rangeRcv/(numRcvPerLine-1) ) for i in range(numRcvPerLine) ]
+receiver_line=[  absorption_zone  + i * (rangeRcv//(numRcvPerLine-1) ) for i in range(numRcvPerLine) ]
 #
 #   set source location with tag "source""
 #
 src_tags=["source"]
 
 if srcEW:
-      srcNS=numRcvPerLine/2
+      srcNS=numRcvPerLine//2
 elif srcNS:
-      srcEW=numRcvPerLine/2
+      srcEW=numRcvPerLine//2
 else:
     raise ValueError("on of the variables srcEW or srcNS must be None!")
 if DIM == 2:    
@@ -92,7 +93,7 @@ else:
 # East-west line of receiver
 rcv_locations=[]
 rg=[]
-mid_point=receiver_line[len(receiver_line)/2]
+mid_point=receiver_line[len(receiver_line)//2]
 
 for ix in range(len(receiver_line)):
         if DIM == 2:

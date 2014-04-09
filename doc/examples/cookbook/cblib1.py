@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland

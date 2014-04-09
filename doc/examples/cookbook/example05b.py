@@ -1,3 +1,4 @@
+from __future__ import division
 from __future__ import print_function
 ##############################################################################
 #
@@ -157,7 +158,7 @@ print("Solution has been plotted  ...")
 proj=Projector(domain)
 #move data to a regular grid for plotting
 xi,yi,zi = toRegGrid(T,200,200)
-cut=int(len(xi)/2)
+cut=int(len(xi)//2)
 pl.clf()
 pl.plot(zi[:,cut],yi)
 pl.title("Temperature Depth Profile")
@@ -170,7 +171,7 @@ pl.clf()
 # grid the data.
 qu=proj(-kappa*grad(T))
 xiq,yiq,ziq = toRegGrid(qu[1],50,50)
-cut=int(len(xiq)/2)
+cut=int(len(xiq)//2)
 pl.plot(ziq[:,cut]*1000.,yiq)
 pl.title("Vertical Heat Flow Depth Profile")
 pl.xlabel("Heat Flow (mW/m^2)")
@@ -181,7 +182,7 @@ pl.clf()
 # Temperature Gradient Depth Profile at x[50]
 zT=proj(-grad(T))
 xt,yt,zt=toRegGrid(zT[1],200,200)
-cut=int(len(xt)/2)
+cut=int(len(xt)//2)
 pl.plot(zt[:,cut]*1000.,yt)
 pl.title("Vertical Temperature Gradient \n Depth Profile")
 pl.xlabel("Temperature gradient (K/Km)")
@@ -191,7 +192,7 @@ pl.clf()
 
 # Thermal Conditions Depth Profile    
 xk,yk,zk = toRegGrid(proj(kappa),200,200)
-cut=int(len(xk)/2)
+cut=int(len(xk)//2)
 pl.plot(zk[:,cut],yk)
 pl.title("Thermal Conductivity Depth Profile")
 pl.xlabel("Conductivity (W/K/m)")
