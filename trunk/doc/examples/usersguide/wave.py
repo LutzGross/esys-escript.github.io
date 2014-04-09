@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -24,7 +24,6 @@ __url__="https://launchpad.net/escript-finley"
 import matplotlib
 matplotlib.use('agg')    #For interactive use, you can comment out this line
 #It's just here to make testing easier
-
 import matplotlib.pyplot as plt
 from numpy import zeros,ones
 from esys.escript import *
