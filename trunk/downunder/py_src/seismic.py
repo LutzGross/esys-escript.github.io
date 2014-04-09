@@ -178,6 +178,7 @@ class SimpleSEGYWriter(object):
             :param filename: file name
             :note: the function uses the `obspy` module.
             """
+
             try:
                 from obspy import Trace, Stream, UTCDateTime
                 from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
@@ -186,6 +187,10 @@ class SimpleSEGYWriter(object):
                 raise RuntimeError("This feature (SimpleSEGYWriter.write())"+\
                         " depends on obspy, which is not installed, see "+\
                         "https://github.com/obspy/obspy for install guide")
+
+            if getMPISizeWorld() > 1:
+                raise RuntimeError("Writing segy files with multiple ranks is"+\
+                        " not yet supported.")
 
             stream=Stream()
 
