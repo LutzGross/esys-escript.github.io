@@ -364,7 +364,7 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
               }
               /* use BiCGSTab with jacobi preconditioner ( m - omega * L ) */
               paso::util::zeroes(n,du);
-              errorCode = Paso_Solver_BiCGStab(fctp->iteration_matrix, z, du, &cntIter, &tol, pp);
+              errorCode = paso::Solver_BiCGStab(fctp->iteration_matrix, z, du, &cntIter, &tol, pp);
 
               /* errorCode =  Paso_Solver_GMRES(fctp->iteration_matrix, z, du, &cntIter, &tol, 10, 2000, pp); */
               if (options->verbose) printf("Paso_FCT_Solver_updateNL: BiCGStab is completed after %d steps (residual =%e).\n",cntIter, tol);

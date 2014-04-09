@@ -20,50 +20,39 @@
 #include "PasoUtil.h"
 #include "Solver.h"
 
+namespace paso {
+
 /*
  * generate Linear System (mainly for test purposes)
- *
  */
-Paso_Function_LinearSystem* Paso_Function_LinearSystem_alloc(
-        paso::SystemMatrix_ptr A, double* b, paso::Options* options)
+LinearSystem::LinearSystem(SystemMatrix_ptr A, double* _b, Options* options) :
+    Function(A->mpi_info)
 {
-    Paso_Function_LinearSystem* out=NULL;
     A->setPreconditioner(options);
-    if (!Esys_noError()) return NULL;
-    out=new Paso_Function_LinearSystem();
-    out->kind = LINEAR_SYSTEM;
-    out->mpi_info = Esys_MPIInfo_getReference(A->mpi_info);
-    out->n = A->getTotalNumRows();
-    out->mat = A;
-    out->b = b;
-    out->tmp = new double[out->n];
-    if (Esys_noError()) {
-        return out;
-    } else {
-        Paso_Function_LinearSystem_free(out);
-        return NULL;
-    }
+    n = A->getTotalNumRows();
+    mat = A;
+    b = _b;
+    tmp = new double[n];
 }
 
-void Paso_Function_LinearSystem_free(Paso_Function_LinearSystem* F) 
+LinearSystem::~LinearSystem() 
 {
-   if (F!=NULL) {
-       Esys_MPIInfo_free(F->mpi_info);
-       delete[] F->tmp;
-       delete F;
-   }
+    delete[] tmp;
 }
+
 /*
  * evaluates value=P*(b-Ax)
- *
  */
-err_t Paso_Function_LinearSystem_call(Paso_Function_LinearSystem* F,
-                                      double* value, const double* arg,
-                                      Paso_Performance *pp)
+err_t LinearSystem::call(double* value, const double* arg, Paso_Performance* pp)
 {
-    paso::util::copy(F->n, F->tmp, F->b); /* tmp=b */
-    paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, F->mat, arg, -PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
-    F->mat->solvePreconditioner(value, F->tmp);  /* value=P*tmp */
+    // tmp = b
+    util::copy(n, tmp, b);
+    // tmp = (A*arg-tmp)
+    SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, mat, arg, -PASO_ONE, tmp);
+    // value = P*tmp
+    mat->solvePreconditioner(value, tmp);
     return NO_ERROR;
 }
+
+} // namespace paso
 
