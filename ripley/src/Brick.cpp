@@ -63,6 +63,10 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              const simap_t& tagnamestonums) :
     RipleyDomain(3)
 {
+    if (n0 <= 0 || n1 <= 0 || n2 <= 0)
+        throw RipleyException("Number of elements in each spatial dimension "
+                "must be positive");
+
     // ignore subdivision parameters for serial run
     if (m_mpiInfo->size == 1) {
         d0=1;
