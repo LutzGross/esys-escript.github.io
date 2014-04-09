@@ -1,3 +1,4 @@
+from __future__ import division
 from __future__ import print_function
 ##############################################################################
 #
@@ -56,8 +57,8 @@ try:
     ERROR = np.ones((NY, NX)) * SIGMA
 
     # Use MISSING where data is invalid/not available, example:
-    DATA[NY/2,NX/2]=MISSING
-    ERROR[NY/2,NX/2]=MISSING
+    DATA[NY//2,NX//2]=MISSING
+    ERROR[NY//2,NX//2]=MISSING
 
     ##############################################################################
     ###################### Keep everything below this line #######################

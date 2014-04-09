@@ -1,4 +1,5 @@
 #!/usr/bin/env python
+from __future__ import print_function
 
 import os
 import inspect
@@ -23,7 +24,7 @@ def dumpPackage(mname, ignorelist, modset, banset):
   except ImportError:
     return
   modset.add(mname)
-  print "Starting dump on "+mname+' with ignore at '+str(ignorelist)
+  print("Starting dump on "+mname+' with ignore at '+str(ignorelist))
   pack=open(os.path.join(outdir,mname+'.rst'),'w')
   pack.write(mname+' Package\n')
   pack.write('='*len(mname)+'========\n\n')
@@ -35,16 +36,16 @@ def dumpPackage(mname, ignorelist, modset, banset):
   norecurse=[]
   try:
     norecurse=PP.__nodocorecursion
-    print "Supressing the following packages"
+    print("Supressing the following packages")
     for n in norecurse:
-      print mname+'.'+n
+      print(mname+'.'+n)
       banset.add(mname+'.'+n)
-    print '---------'
+    print('---------')
   except AttributeError:
     pass
   # esys.escript.models does not get picked up by this loop
   for (name, mem) in inspect.getmembers(PP):
-      print "    "+name
+      print("    "+name)
       if inspect.ismodule(mem):
         if not name in ignorelist:
            try:
@@ -57,9 +58,9 @@ def dumpPackage(mname, ignorelist, modset, banset):
            if ppdir==memdir:
               if not mem.__name__ in modset:
                 if not mem.__name__ in banset:
-                  print "About to dump "+name+"("+mem.__name__+")"
+                  print("About to dump "+name+"("+mem.__name__+")")
                   dumpPackage(mem.__name__, [], modset, banset)
-                  print "Dump of "+mname+" complete"
+                  print("Dump of "+mname+" complete")
         #pack.write('Module '+name+'\n')
       elif inspect.isclass(mem):
         clist+=[(name, mem)]
@@ -110,16 +111,16 @@ def listmods():
   for z in W:
     if z[0].endswith('__pycache__'): continue
     #if z[0].find('escript')==-1: continue
-    print "Beginning ",z[0]
+    print("Beginning ",z[0])
     # Now make the package name
     n=startpackage+'.'.join(z[0][len(startdir):].split(os.path.sep))
     dumpPackage(n, z[1], modset, banset)
-    print "-------------"+n
+    print("-------------"+n)
     
     for m in z[2]:        #This will list the files
       if m.split('.')[1]=='pyc' and m!='__init__.pyc':
-        print ".."+n+"."+m
-        print ".."+(n+'.'+m)[:-4]
+        print(".."+n+"."+m)
+        print(".."+(n+'.'+m)[:-4])
         if not (n+'.'+m)[:-4] in banset:
           dumpPackage((n+'.'+m)[:-4],[],modset, banset)
   l=list(modset)

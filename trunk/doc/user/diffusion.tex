@@ -216,11 +216,11 @@ the given PDE is symmetric.
 \begin{python}
   mypde = LinearPDE(mydomain)
   mypde.setValue(A=kappa*kronecker(mydomain), d=eta)
-  print mypde.checkSymmetry() # returns True
+  print(mypde.checkSymmetry()) # returns True
   mypde.setValue(B=kronecker(mydomain)[0])
-  print mypde.checkSymmetry() # returns False
+  print(mypde.checkSymmetry()) # returns False
   mypde.setValue(C=kronecker(mydomain)[0])
-  print mypde.checkSymmetry() # returns True
+  print(mypde.checkSymmetry()) # returns True
 \end{python}
 Unfortunately, calling \method{checkSymmetry} is very expensive and is only
 recommended for testing and debugging purposes.

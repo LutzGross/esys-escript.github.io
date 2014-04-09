@@ -1,3 +1,4 @@
+from __future__ import division
 from __future__ import print_function
 ##############################################################################
 #
@@ -105,7 +106,7 @@ pl.ylabel("Depth (m)")
 pl.savefig(os.path.join(save_path,"Ucontour.png"))
 print("Solution has been plotted  ...")
 
-cut=int(len(xi)/2)
+cut=int(len(xi)//2)
 
 pl.clf()
 
