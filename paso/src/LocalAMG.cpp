@@ -86,65 +86,61 @@ dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG
    Constructs AMG
    
 ******************************************************************************/
-Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim_t level, Options* options)
+Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
+                                                 dim_t level, Options* options)
 {
-  Preconditioner_LocalAMG* out=NULL;
-  bool verbose=options->verbose;
+    Preconditioner_LocalAMG* out=NULL;
+    bool verbose=options->verbose;
   
-  SparseMatrix_ptr A_C;
-  const dim_t n=A_p->numRows;
-  const dim_t n_block=A_p->row_block_size;
-  AMGBlockSelect* F_marker=NULL;
-  index_t *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
-  dim_t n_F=0, n_C=0, i;
-  double time0=0;
-  const double theta = options->coarsening_threshold;
-  const double tau = options->diagonal_dominance_threshold;
-  const double sparsity = A_p->getSparsity();
-  const dim_t total_n = A_p->getTotalNumRows();
+    SparseMatrix_ptr A_C;
+    const dim_t n=A_p->numRows;
+    const dim_t n_block=A_p->row_block_size;
+    AMGBlockSelect* F_marker=NULL;
+    index_t *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
+    dim_t n_F=0, n_C=0, i;
+    double time0=0;
+    const double theta = options->coarsening_threshold;
+    const double tau = options->diagonal_dominance_threshold;
+    const double sparsity = A_p->getSparsity();
+    const dim_t total_n = A_p->getTotalNumRows();
   
-  /*
-  is the input matrix A suitable for coarsening
-  
-  */
-  if ( (sparsity >= options->min_coarse_sparsity) || 
-     (total_n <= options->min_coarse_matrix_size) || 
-     (level > options->level_max) ) {
+    // is the input matrix A suitable for coarsening
+    if ( (sparsity >= options->min_coarse_sparsity) || 
+            (total_n <= options->min_coarse_matrix_size) || 
+            (level > options->level_max) ) {
      
-     if (verbose) { 
-        /* 
-        print stopping condition:
-        - 'SPAR' = min_coarse_matrix_sparsity exceeded
-        - 'SIZE' = min_coarse_matrix_size exceeded
-        - 'LEVEL' = level_max exceeded
-        */
-        printf("Preconditioner: AMG: termination of coarsening by "); 
-        
-        if (sparsity >= options->min_coarse_sparsity)
-           printf("SPAR");
-        
-        if (total_n <= options->min_coarse_matrix_size)
-           printf("SIZE");
-        
-        if (level > options->level_max)
-           printf("LEVEL");
-        
-        printf("\n");
-        
-        printf("Preconditioner: AMG level %d (limit = %d) stopped. Sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n", 
-               level,  options->level_max, sparsity, options->min_coarse_sparsity, total_n, options->min_coarse_matrix_size);  
-               
-     } 
+        if (verbose) { 
+            /* 
+            print stopping condition:
+            - 'SPAR' = min_coarse_matrix_sparsity exceeded
+            - 'SIZE' = min_coarse_matrix_size exceeded
+            - 'LEVEL' = level_max exceeded
+            */
+            printf("Preconditioner: AMG: termination of coarsening by "); 
 
-     return NULL;
-  } 
-     /* Start Coarsening : */
+            if (sparsity >= options->min_coarse_sparsity)
+                printf("SPAR");
+            else if (total_n <= options->min_coarse_matrix_size)
+                printf("SIZE");
+            else if (level > options->level_max)
+                printf("LEVEL");
 
-     F_marker=new AMGBlockSelect[n];
-     counter=new index_t[n];
-     degree_S=new dim_t[n];
-     S=new index_t[A_p->pattern->len];
-     if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(S) ) ) {
+            printf("\nPreconditioner: AMG level %d (limit = %d) stopped. "
+                   "Sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n",
+                   level,  options->level_max, sparsity,
+                   options->min_coarse_sparsity, total_n,
+                   options->min_coarse_matrix_size);  
+        }
+        return NULL;
+    }
+
+    // Start Coarsening
+
+    F_marker=new AMGBlockSelect[n];
+    counter=new index_t[n];
+    degree_S=new dim_t[n];
+    S=new index_t[A_p->pattern->len];
+    if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(S) ) ) {
          /* 
               set splitting of unknowns:
          */
@@ -291,19 +287,19 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p, dim
                delete[] mask_C;
                delete[] rows_in_F;
             }
-         }
-  }
-  delete[] counter;
-  delete[] F_marker;
-  delete[] degree_S;
-  delete[] S;
+        }
+    }
+    delete[] counter;
+    delete[] F_marker;
+    delete[] degree_S;
+    delete[] S;
 
-  if (Esys_noError()) {
-     return out;
-  } else  {
-     Preconditioner_LocalAMG_free(out);
-     return NULL;
-  }
+    if (Esys_noError()) {
+        return out;
+    } else  {
+        Preconditioner_LocalAMG_free(out);
+        return NULL;
+    }
 }
 
 
@@ -334,7 +330,7 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
             /*  A_C is the coarsest level */
             switch (amg->A_C->solver_package) {
                case (PASO_MKL):
-                  Paso_MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
+                  MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_UMFPACK):
                   UMFPACK_solve(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
@@ -343,7 +339,8 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
                   Preconditioner_LocalSmoother_solve(amg->A_C, reinterpret_cast<Preconditioner_LocalSmoother*>(amg->A_C->solver_p),amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
                   break;
             }
-            if (SHOW_TIMING) printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
+            if (SHOW_TIMING)
+                printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
      } else {
             Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
      }  

@@ -73,8 +73,8 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
      */
     F->call(f, x, pp);
     iteration_count++;
-    norm2_f=paso::util::l2(n,f,F->mpi_info);
-    normsup_f=paso::util::lsup(n,f,F->mpi_info);
+    norm2_f=util::l2(n,f,F->mpi_info);
+    normsup_f=util::lsup(n,f,F->mpi_info);
     /*
      * stopping criterion:
      */
@@ -117,11 +117,11 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
                 Status=SOLVER_NO_ERROR;
                 // update x
                 norm2_fo=norm2_f; 
-                paso::util::update(n,1.,x,1.,step);
+                util::update(n,1.,x,1.,step);
                 F->call(f, x, pp);
                 iteration_count++;
-                norm2_f=paso::util::l2(n,f,F->mpi_info);
-                normsup_f=paso::util::lsup(n,f,F->mpi_info);
+                norm2_f=util::l2(n,f,F->mpi_info);
+                normsup_f=util::lsup(n,f,F->mpi_info);
                 reduction_f=norm2_f/norm2_fo;
                 // adjust inner_tolerance
                 if (adapt_inner_tolerance) {

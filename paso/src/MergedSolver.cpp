@@ -104,7 +104,7 @@ void MergedSolver::solve(double* local_x, const double* local_b)
     if (rank == 0) {
         switch (A->solver_package) {
             case PASO_MKL:
-                Paso_MKL(A, x, b, reordering, refinements, verbose);
+                MKL(A, x, b, reordering, refinements, verbose);
                 break;
             case PASO_UMFPACK:
                 UMFPACK_solve(A, x, b, refinements, verbose);

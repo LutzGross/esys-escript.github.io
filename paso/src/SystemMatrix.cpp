@@ -117,16 +117,16 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
         } else {
             block_size = row_block_size*col_block_size;
         }
-        col_coupler.reset(new paso::Coupler(pattern->col_connector, col_block_size));
-        row_coupler.reset(new paso::Coupler(pattern->row_connector, row_block_size));
+        col_coupler.reset(new Coupler(pattern->col_connector, col_block_size));
+        row_coupler.reset(new Coupler(pattern->row_connector, row_block_size));
         if (ntype & MATRIX_FORMAT_TRILINOS_CRS) {
 #ifdef TRILINOS
             trilinos_data = Paso_TRILINOS_alloc();
 #endif
         } else {
-            mainBlock.reset(new paso::SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
-            col_coupleBlock.reset(new paso::SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
-            row_coupleBlock.reset(new paso::SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
+            mainBlock.reset(new SparseMatrix(type, pattern->mainPattern, row_block_size, col_block_size, true));
+            col_coupleBlock.reset(new SparseMatrix(type, pattern->col_couplePattern, row_block_size, col_block_size, true));
+            row_coupleBlock.reset(new SparseMatrix(type, pattern->row_couplePattern, row_block_size, col_block_size, true));
             const dim_t n_norm = MAX(mainBlock->numCols*col_block_size, mainBlock->numRows*row_block_size);
             balance_vector = new double[n_norm];
 #pragma omp parallel for

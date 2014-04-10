@@ -15,7 +15,7 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: Transport solver
  *
@@ -30,12 +30,11 @@
  *  to return u(dt)
  *
 */
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: l.gross@uq.edu.au */
 
-/************************************************************************************/
-
+/****************************************************************************/
 
 
 #include "Transport.h"
@@ -78,7 +77,7 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
       } else  if (options->ode_solver == PASO_CRANK_NICOLSON) {
          printf("Paso_TransportProblem_solve: Crank-Nicolson is used (dt = %e).\n",dt);
       } else {
-	 Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: unknown ODE solver.");
+         Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: unknown ODE solver.");
       }
    }
    if (Esys_noError()) {
@@ -89,66 +88,66 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
          */
           fctsolver=Paso_FCT_Solver_alloc(fctp,options);
           rsolver=Paso_ReactiveSolver_alloc(fctp);
-	  u_save=new double[n];
-	  u2=new double[n];
+          u_save=new double[n];
+          u2=new double[n];
     }
    if (Esys_noError()) {
        /*
         * let the show begin!!!!
         *
         */
-	const double dt_R=fctp->dt_max_R;
+        const double dt_R=fctp->dt_max_R;
         const double dt_T=fctp->dt_max_T;
-	dt2=dt;
-	if (dt_R < LARGE_POSITIVE_FLOAT) dt2 = MIN(dt_R *2, dt); /* as we half the steps size for the RT bit */
-	if (dt_T < LARGE_POSITIVE_FLOAT) {
-	      if ( ( options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) || ( options->ode_solver == PASO_CRANK_NICOLSON ) ) {
-	         dt2 = MIN(dt_T, dt);
-	      } /* PASO_BACKWARD_EULER does not require a restriction */
-	}
-	
+        dt2=dt;
+        if (dt_R < LARGE_POSITIVE_FLOAT) dt2 = MIN(dt_R *2, dt); /* as we half the steps size for the RT bit */
+        if (dt_T < LARGE_POSITIVE_FLOAT) {
+              if ( ( options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) || ( options->ode_solver == PASO_CRANK_NICOLSON ) ) {
+                 dt2 = MIN(dt_T, dt);
+              } /* PASO_BACKWARD_EULER does not require a restriction */
+        }
+        
         num_failures=0;
         paso::util::copy(n,u,u0); /* copy initial value to return */
-		
-	while( (dt-t)>dt*sqrt(EPSILON) && Esys_noError()) {
+                
+        while( (dt-t)>dt*sqrt(EPSILON) && Esys_noError()) {
 
-	    n_substeps=ceil((dt-t)/dt2);
-	    if ( n_substeps <= 0) {
-	       Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: time stepping break down.");
-	    } else {
-	      dt3=(dt-t)/n_substeps;
-	      if (options->verbose) printf("Paso_TransportProblem_solve: number of substeps = %d with dt = %e.\n",n_substeps,dt3);
-	      	      /* initialize the iteration matrix */
-	      Paso_FCT_Solver_initialize(dt3, fctsolver, options, &pp);
-	      Paso_ReactiveSolver_initialize(dt3/2, rsolver, options);
-	      errorCode = SOLVER_NO_ERROR;
+            n_substeps=ceil((dt-t)/dt2);
+            if ( n_substeps <= 0) {
+               Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: time stepping break down.");
+            } else {
+              dt3=(dt-t)/n_substeps;
+              if (options->verbose) printf("Paso_TransportProblem_solve: number of substeps = %d with dt = %e.\n",n_substeps,dt3);
+                      /* initialize the iteration matrix */
+              Paso_FCT_Solver_initialize(dt3, fctsolver, options, &pp);
+              Paso_ReactiveSolver_initialize(dt3/2, rsolver, options);
+              errorCode = SOLVER_NO_ERROR;
 
-	      /* start iteration */
-	      for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
-	        if (options->verbose) printf("Paso_TransportProblem_solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
+              /* start iteration */
+              for (i_substeps =0; (i_substeps<n_substeps) && (errorCode==SOLVER_NO_ERROR) && Esys_noError(); i_substeps++) {
+                if (options->verbose) printf("Paso_TransportProblem_solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
             paso::util::copy(n,u_save, u); /* create copy for restart in case of failure */
-		/* updates u */
-	        errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u ,q, options, &pp); /* Mu_t=Du+q u(0)=u */
-	        if (errorCode == SOLVER_NO_ERROR) {
+                /* updates u */
+                errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u ,q, options, &pp); /* Mu_t=Du+q u(0)=u */
+                if (errorCode == SOLVER_NO_ERROR) {
                   errorCode=Paso_FCT_Solver_update(fctsolver, u, u2,options, &pp); /* Mv_t=Lv   v(0)=u(dt/2) */
 
-	        }
-	        if (errorCode == SOLVER_NO_ERROR) {
+                }
+                if (errorCode == SOLVER_NO_ERROR) {
                    errorCode=Paso_ReactiveSolver_solve(rsolver,fctp,u2, u, q, options, &pp); /*  Mu_t=Du+q u(dt/2)=v(dt/2) */
-	        }
+                }
 
 
                 /*
-	         * error handling:
-	         */
+                 * error handling:
+                 */
                 if (errorCode == SOLVER_NO_ERROR) {
                     num_failures=0;
-		    t+=dt3;
+                    t+=dt3;
             paso::util::copy(n,u, u2);
-		}
-	      }
-	      if (errorCode == SOLVER_NO_ERROR) {
-	      } else if ( (errorCode == SOLVER_MAXITER_REACHED) || (errorCode == SOLVER_DIVERGENCE) ) {
+                }
+              }
+              if (errorCode == SOLVER_NO_ERROR) {
+              } else if ( (errorCode == SOLVER_MAXITER_REACHED) || (errorCode == SOLVER_DIVERGENCE) ) {
                     /* if num_failures_max failures in a row: give up */
                     if (num_failures >= num_failures_max) {
                        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: No convergence after time step reductions.");
@@ -159,19 +158,19 @@ void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double 
                        num_failures++;
                        paso::util::copy(n,u, u_save); /* reset initial value */
                     }
-	      } else if (errorCode == SOLVER_INPUT_ERROR) {
-	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
-	      } else if (errorCode == SOLVER_MEMORY_ERROR) {
-	        Esys_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allocation failed.");
-	      } else if (errorCode == SOLVER_BREAKDOWN) {
-	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
-	      } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
-	        Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: negative norm.");
-	      } else {
-	        Esys_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
-	      }
-	    }
-	}
+              } else if (errorCode == SOLVER_INPUT_ERROR) {
+                Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: input error for solver.");
+              } else if (errorCode == SOLVER_MEMORY_ERROR) {
+                Esys_setError(MEMORY_ERROR,"Paso_TransportProblem_solve: memory allocation failed.");
+              } else if (errorCode == SOLVER_BREAKDOWN) {
+                Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: solver break down.");
+              } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
+                Esys_setError(VALUE_ERROR,"Paso_TransportProblem_solve: negative norm.");
+              } else {
+                Esys_setError(SYSTEM_ERROR,"Paso_TransportProblem_solve: general error.");
+              }
+            }
+        }
      } /* end of time loop */
     /*
      *  clean-up:
@@ -196,32 +195,32 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
      fctp->mass_matrix->rowSum(fctp->lumped_mass_matrix);
      {
         /* check for positive entries in lumped_mass_matrix and set negative value for constraints */
-	index_t fail=0, i;
+        index_t fail=0, i;
         #pragma omp parallel private(i,fail_loc )
         {
                fail_loc=0;
                #pragma omp for schedule(static)
                for (i=0;i<n;++i) {
                   const double m_i=fctp->lumped_mass_matrix[i];
-		  if ( m_i > 0 ) {
-		     if (fctp->constraint_mask[i] > 0 ) fctp->lumped_mass_matrix[i]=-1.;
-		  } else {
-		      fail_loc=1;
-		  }
+                  if ( m_i > 0 ) {
+                     if (fctp->constraint_mask[i] > 0 ) fctp->lumped_mass_matrix[i]=-1.;
+                  } else {
+                      fail_loc=1;
+                  }
                }
                #pragma omp critical
                {
-		  fail=MAX(fail, fail_loc);
+                  fail=MAX(fail, fail_loc);
                }
         }
         #ifdef ESYS_MPI
         {
-	       fail_loc=fail;
+               fail_loc=fail;
                MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, fctp->mpi_info->comm);
-	}
+        }
         #endif
         if (fail < 0 )
-	   Esys_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
+           Esys_setError(VALUE_ERROR, "Paso_FCTSolver_getSafeTimeStepSize: negative mass matrix entries detected.");
      }
      /* split off row-sum from transport_matrix */
      fctp->transport_matrix->makeZeroRowSums(fctp->reactive_matrix);
@@ -230,13 +229,13 @@ double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* fctp)
 
      if (Esys_noError()) {
           dt_R=Paso_ReactiveSolver_getSafeTimeStepSize(fctp);
-	  dt_T=Paso_FCT_Solver_getSafeTimeStepSize(fctp);
+          dt_T=Paso_FCT_Solver_getSafeTimeStepSize(fctp);
      }
      if (Esys_noError()) {
           fctp->dt_max_R=dt_R;
           fctp->dt_max_T=dt_T;
           fctp->valid_matrices=TRUE;
-	  dt_max=MIN( 2 * dt_R,dt_T);
+          dt_max=MIN( 2 * dt_R,dt_T);
        }
    } else {
         dt_max=MIN(2 * fctp->dt_max_R,fctp->dt_max_T);   /* factor 2 as we use operator splitting */

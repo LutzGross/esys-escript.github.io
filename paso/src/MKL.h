@@ -26,13 +26,15 @@
 
 /****************************************************************************/
 
-#ifndef INC_PASO_MKL
-#define INC_PASO_MKL
+#ifndef __PASO_MKL_H__
+#define __PASO_MKL_H__
 
 #include "SparseMatrix.h"
 #include "performance.h"
 
-# if defined(_WIN32) || defined(_WIN64)
+namespace paso {
+
+#if defined(_WIN32) || defined(_WIN64)
 #define PARDISO pardiso
 #else
 #define PARDISO pardiso_
@@ -61,7 +63,11 @@
 */
 
 
-void Paso_MKL_free(paso::SparseMatrix* A);
-void Paso_MKL(paso::SparseMatrix_ptr A, double* out, double* in,
-              index_t reordering, dim_t numRefinements, bool verbose);
-#endif
+void MKL_free(SparseMatrix* A);
+void MKL(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
+         dim_t numRefinements, bool verbose);
+
+} // namespace paso
+
+#endif // __PASO_MKL_H__
+
