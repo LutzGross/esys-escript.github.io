@@ -15,6 +15,7 @@
 *****************************************************************************/
 
 #include <algorithm>
+#include <limits>
 
 #include <ripley/Rectangle.h>
 #include <paso/SystemMatrix.h>
@@ -52,6 +53,11 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      const simap_t& tagnamestonums) :
     RipleyDomain(2)
 {
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
+            > std::numeric_limits<int>::max())
+        throw RipleyException("The number of elements has overflowed, this "
+                "limit may be raised in future releases.");
+    
     if (n0 <= 0 || n1 <= 0)
         throw RipleyException("Number of elements in each spatial dimension "
                 "must be positive");
@@ -1480,9 +1486,12 @@ void Rectangle::populateSampleIds()
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
     try {
+        std::cerr << sizeof(int) << "i  l" << sizeof(long) << "\n";
+        std::cerr << "attempting to set arrays to: " << getNumNodes() << ", " << numDOF << ", " << getNumElements() << "\n";
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
+        std::cerr << "arrays set to: " << m_nodeId.capacity() << ", " << m_dofId.capacity() << ", " << m_elementId.capacity() << "\n";
     } catch (const std::length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
