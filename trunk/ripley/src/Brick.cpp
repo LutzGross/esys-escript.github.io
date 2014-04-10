@@ -2088,10 +2088,15 @@ void Brick::populateSampleIds()
         m_nodeDistribution[k]=k*numDOF;
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-    m_nodeId.resize(getNumNodes());
-    m_dofId.resize(numDOF);
-    m_elementId.resize(getNumElements());
-
+    
+    try {
+        m_nodeId.resize(getNumNodes());
+        m_dofId.resize(numDOF);
+        m_elementId.resize(getNumElements());
+    } catch (const std::length_error& le) {
+        throw RipleyException("The system does not have sufficient memory for a domain of this size.");
+    }
+    
     // populate face element counts
     //left
     if (m_offset[0]==0)
