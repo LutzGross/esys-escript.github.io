@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#include <limits>
+
 #include <ripley/Brick.h>
 #include <paso/SystemMatrix.h>
 #include <esysUtils/esysFileWriter.h>
@@ -63,6 +65,11 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              const simap_t& tagnamestonums) :
     RipleyDomain(3)
 {
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
+            * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())
+        throw RipleyException("The number of elements has overflowed, this "
+                "limit may be raised in future releases.");
+
     if (n0 <= 0 || n1 <= 0 || n2 <= 0)
         throw RipleyException("Number of elements in each spatial dimension "
                 "must be positive");
