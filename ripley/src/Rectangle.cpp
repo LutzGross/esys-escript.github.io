@@ -1486,12 +1486,9 @@ void Rectangle::populateSampleIds()
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
     try {
-        std::cerr << sizeof(int) << "i  l" << sizeof(long) << "\n";
-        std::cerr << "attempting to set arrays to: " << getNumNodes() << ", " << numDOF << ", " << getNumElements() << "\n";
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-        std::cerr << "arrays set to: " << m_nodeId.capacity() << ", " << m_dofId.capacity() << ", " << m_elementId.capacity() << "\n";
     } catch (const std::length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
