@@ -191,7 +191,7 @@ SparseMatrix::~SparseMatrix()
             break;
 
         case PASO_MKL:
-            Paso_MKL_free(this);
+            MKL_free(this);
             break;
 
         case PASO_UMFPACK:

@@ -57,21 +57,22 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
             break;
 
             case PASO_MKL:
-                if (A->mpi_info->size>1) {
+                if (A->mpi_info->size > 1) {
                     Esys_setError(VALUE_ERROR,"Paso_solve: MKL package does not support MPI.");
                     return;
                 }
-                options->converged=FALSE;
-                options->time=Esys_timer();
-                Performance_startMonitor(&pp,PERFORMANCE_ALL);
-                Paso_MKL(A->mainBlock, out, in, options->reordering, options->refinements, options->verbose);
-                A->solver_package=PASO_MKL;
-                Performance_stopMonitor(&pp,PERFORMANCE_ALL);
-                options->time=Esys_timer()-options->time;
-                options->set_up_time=0;
-                options->residual_norm=0.;
-                options->num_iter=0;
-                if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
+                options->converged = false;
+                options->time = Esys_timer();
+                Performance_startMonitor(&pp, PERFORMANCE_ALL);
+                MKL(A->mainBlock, out, in, options->reordering, options->refinements, options->verbose);
+                A->solver_package = PASO_MKL;
+                Performance_stopMonitor(&pp, PERFORMANCE_ALL);
+                options->time = Esys_timer()-options->time;
+                options->set_up_time = 0;
+                options->residual_norm = 0.;
+                options->num_iter = 0;
+                if (Esys_MPIInfo_noError(A->mpi_info))
+                    options->converged = true;
             break;
 
             case PASO_UMFPACK:
@@ -79,21 +80,22 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
                     Esys_setError(VALUE_ERROR,"Paso_solve: UMFPACK package does not support MPI.");
                     return;
                 }
-                options->converged=FALSE;
-                options->time=Esys_timer();
-                Performance_startMonitor(&pp,PERFORMANCE_ALL);
+                options->converged = false;
+                options->time = Esys_timer();
+                Performance_startMonitor(&pp, PERFORMANCE_ALL);
                 UMFPACK_solve(A->mainBlock, out, in, options->refinements, options->verbose);
-                A->solver_package=PASO_UMFPACK;
-                Performance_stopMonitor(&pp,PERFORMANCE_ALL);
-                options->time=Esys_timer()-options->time;
-                options->set_up_time=0;
-                options->residual_norm=0.;
-                options->num_iter=0;
-                if (Esys_MPIInfo_noError(A->mpi_info)) options->converged=TRUE;
+                A->solver_package = PASO_UMFPACK;
+                Performance_stopMonitor(&pp, PERFORMANCE_ALL);
+                options->time = Esys_timer()-options->time;
+                options->set_up_time = 0;
+                options->residual_norm = 0.;
+                options->num_iter = 0;
+                if (Esys_MPIInfo_noError(A->mpi_info))
+                    options->converged = true;
             break;
 
             default:
-                Esys_setError(VALUE_ERROR,"Paso_solve: unknown package code");
+                Esys_setError(VALUE_ERROR, "Paso_solve: unknown package code");
             break;
         }
     }
@@ -106,7 +108,7 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
             if (options->verbose) printf("PASO: failed convergence error has been canceled as requested.\n");
         } 
     }
-    Performance_close(&pp,options->verbose);
+    Performance_close(&pp, options->verbose);
     //options->showDiagnostics();
 }
 
@@ -124,13 +126,12 @@ void Paso_solve_free(SystemMatrix* in)
             break;
           
         case PASO_MKL:
-            Paso_MKL_free(in->mainBlock.get());
+            MKL_free(in->mainBlock.get());
             break;
 
         case PASO_UMFPACK:
             UMFPACK_free(in->mainBlock.get()); 
             break;
-
    }
 }
 

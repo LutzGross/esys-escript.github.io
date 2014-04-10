@@ -161,7 +161,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         /*        Compute direction adjusting vector PHAT and scalar ALPHA. */
    
         A->solvePreconditioner(&phat[0], &p[0]);
-        paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0], PASO_ZERO, &v[0]);
+        SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0], PASO_ZERO, &v[0]);
    
         #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
         for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
@@ -193,7 +193,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
            } else {
              /*           Compute stabilizer vector SHAT and scalar OMEGA. */
              A->solvePreconditioner(&shat[0], &s[0]);
-             paso::SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
+             SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
    
              #pragma omp parallel for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
              for (i0 = 0; i0 < n; i0++) {
