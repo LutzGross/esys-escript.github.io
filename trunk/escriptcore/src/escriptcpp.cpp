@@ -65,11 +65,9 @@ using namespace boost::python;
  *
  * - \ref weipa
  *
- * Depending on your system, only one of the following will work:
- *
- * - <a href="../../sphinx_api/index.html">Python module documentation (sphinx generated)</a>
- *
- * - <a href="../../epydoc/index.html">Python module documentation (epydoc generated)</a>
+ * This documentation describes the C++ layer of escript and related libraries.
+ * For documentation of the python API, please see:
+ * <a href="../../sphinx_api/index.html">Here</a>
  *
  */
 
