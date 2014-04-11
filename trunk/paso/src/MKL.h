@@ -64,8 +64,8 @@ namespace paso {
 
 
 void MKL_free(SparseMatrix* A);
-void MKL(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
-         dim_t numRefinements, bool verbose);
+void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
+               dim_t numRefinements, bool verbose);
 
 } // namespace paso
 

@@ -62,8 +62,8 @@ void MKL_free(SparseMatrix* A)
 #endif
 }
 
-void MKL(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
-         dim_t numRefinements, bool verbose)
+void MKL_solve(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
+               dim_t numRefinements, bool verbose)
 {
 #ifdef MKL
     if (! (A->type & (MATRIX_FORMAT_OFFSET1 + MATRIX_FORMAT_BLK1)) ) {
@@ -112,7 +112,7 @@ void MKL(SparseMatrix_ptr A, double* out, double* in, index_t reordering,
     if (pt==NULL) {
         // allocate address pointer
         pt = new _MKL_DSS_HANDLE_t[64];
-        for (i=0; i<64; ++i)
+        for (index_t i=0; i<64; ++i)
             pt[i] = NULL;
         A->solver_p = (void*) pt;
         A->solver_package = PASO_MKL;

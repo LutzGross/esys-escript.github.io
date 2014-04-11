@@ -64,7 +64,7 @@ void Paso_solve(SystemMatrix_ptr A, double* out, double* in,
                 options->converged = false;
                 options->time = Esys_timer();
                 Performance_startMonitor(&pp, PERFORMANCE_ALL);
-                MKL(A->mainBlock, out, in, options->reordering, options->refinements, options->verbose);
+                MKL_solve(A->mainBlock, out, in, options->reordering, options->refinements, options->verbose);
                 A->solver_package = PASO_MKL;
                 Performance_stopMonitor(&pp, PERFORMANCE_ALL);
                 options->time = Esys_timer()-options->time;

@@ -330,7 +330,7 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
             /*  A_C is the coarsest level */
             switch (amg->A_C->solver_package) {
                case (PASO_MKL):
-                  MKL(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
+                  MKL_solve(amg->A_C, amg->x_C,amg->b_C, amg->reordering, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_UMFPACK):
                   UMFPACK_solve(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
