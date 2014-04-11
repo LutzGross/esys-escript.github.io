@@ -82,30 +82,30 @@ sources = """
 
 headers = """
     BlockOps.h
+    BOOMERAMG.h
     Common.h
     Coupler.h
     Distribution.h
+    FCT_Solver.h
     FluxLimiter.h
     Functions.h
     MergedSolver.h
     MKL.h
+    mmio.h
     Options.h
     Paso.h
     PasoUtil.h
     Pattern.h
+    performance.h
     Preconditioner.h
+    ReactiveSolver.h
     SharedComponents.h
     Solver.h
-    Transport.h
-    FCT_Solver.h
-    ReactiveSolver.h
     SparseMatrix.h
     SystemMatrix.h
     SystemMatrixPattern.h
-    BOOMERAMG.h
+    Transport.h
     UMFPACK.h
-    mmio.h
-    performance.h
 """.split()
 
 # And just for blocktimer cancer.....

@@ -15,95 +15,101 @@
 *****************************************************************************/
 
 
-#ifndef INC_PASOTRANSPORT
-#define INC_PASOTRANSPORT
+#ifndef __PASO_TRANSPORT_H__
+#define __PASO_TRANSPORT_H__
 
 #define DT_FACTOR_MAX 100000.
 
 #include "SystemMatrix.h"
 #include "Options.h"
-#include "performance.h"
-#include "Paso.h"
 
-typedef struct Paso_TransportProblem
+namespace paso {
+
+struct TransportProblem;
+typedef boost::shared_ptr<TransportProblem> TransportProblem_ptr;
+typedef boost::shared_ptr<const TransportProblem> const_TransportProblem_ptr;
+
+PASO_DLL_API
+struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
 {
+    TransportProblem(SystemMatrixPattern_ptr pattern, int block_size);
+    ~TransportProblem();
+
+    void reset();
+
+    void solve(double* u, double dt, double* u0, double* q, Options* options);
+
+    double getSafeTimeStepSize();
+
+    void insertConstraint(const double* r,  double* source);
+
+    void setUpConstraint(const double* q);
+
+    inline dim_t getBlockSize() const
+    {
+        return transport_matrix->row_block_size;
+    }
+
+    inline SystemMatrix_ptr borrowTransportMatrix() const
+    {
+        return transport_matrix;
+    }
+
+    inline SystemMatrix_ptr borrowMassMatrix() const
+    {
+        return mass_matrix;
+    }
+
+    inline double* borrowLumpedMassMatrix() const
+    {
+        return lumped_mass_matrix;
+    }
+
+    inline dim_t getTotalNumRows() const
+    {
+        return transport_matrix->getTotalNumRows();
+    }
+
+    inline Connector_ptr borrowConnector() const
+    {
+        return transport_matrix->pattern->col_connector;
+    }
+
+    inline index_t* borrowMainDiagonalPointer() const
+    {
+       return mass_matrix->mainBlock->borrowMainDiagonalPointer();
+    }
+
+    inline static index_t getTypeId(index_t solver, index_t preconditioner,
+                                    index_t package, bool symmetry,
+                                    Esys_MPIInfo* mpi_info)
+    {
+        return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
+    }
+
+    SystemMatrix_ptr transport_matrix;
+    SystemMatrix_ptr mass_matrix;
+    SystemMatrix_ptr iteration_matrix;
+
     bool valid_matrices;
-    double dt_max_R;       /* safe time step size for reactive  part */
-    double dt_max_T;       /* safe time step size for transport  part */
+    /// safe time step size for reactive part
+    double dt_max_R;
+    /// safe time step size for transport part
+    double dt_max_T;
     double* constraint_mask;
 
-    paso::SystemMatrix_ptr transport_matrix;
-    paso::SystemMatrix_ptr mass_matrix;
-    paso::SystemMatrix_ptr iteration_matrix;
-
     double* main_diagonal_low_order_transport_matrix;
-    double* lumped_mass_matrix;     /* 'relevant' lumped mass matrix is assumed to be positive. 
-                                       values with corresponding constraint_mask>0 value are set to -1
-                                       to indicate the value infinity */
+    /// 'relevant' lumped mass matrix is assumed to be positive.
+    /// Values with corresponding constraint_mask > 0 value are set to -1
+    /// to indicate the value infinity
+    double* lumped_mass_matrix;
     double* reactive_matrix;
     double* main_diagonal_mass_matrix;
 
-    Esys_MPIInfo *mpi_info;
-    dim_t reference_counter;
+    Esys_MPIInfo* mpi_info;
+};
 
-} Paso_TransportProblem;
+} // namespace paso
 
-
-
-PASO_DLL_API
-Paso_TransportProblem* Paso_TransportProblem_getReference(Paso_TransportProblem* in);
-
-PASO_DLL_API
-Paso_TransportProblem* Paso_TransportProblem_alloc(paso::SystemMatrixPattern_ptr pattern, int block_size);
-
-PASO_DLL_API
-dim_t Paso_TransportProblem_getBlockSize(const Paso_TransportProblem* in);
-
-PASO_DLL_API
-double Paso_TransportProblem_getSafeTimeStepSize(Paso_TransportProblem* in);
-
-PASO_DLL_API
-paso::SystemMatrix_ptr Paso_TransportProblem_borrowTransportMatrix(Paso_TransportProblem* in);
-
-PASO_DLL_API
-paso::SystemMatrix_ptr Paso_TransportProblem_borrowMassMatrix(Paso_TransportProblem* in);
-
-PASO_DLL_API
-void Paso_TransportProblem_solve(Paso_TransportProblem* fctp, double* u, double dt, double* u0, double* q, paso::Options* options);
-
-PASO_DLL_API
-double* Paso_TransportProblem_borrowLumpedMassMatrix(Paso_TransportProblem* in);
-
-PASO_DLL_API
-dim_t Paso_TransportProblem_getTotalNumRows(Paso_TransportProblem* in);
-
-PASO_DLL_API
-void Paso_TransportProblem_free(Paso_TransportProblem* in);
-
-PASO_DLL_API
-void Paso_TransportProblem_reset(Paso_TransportProblem* in);
-
-PASO_DLL_API
-paso::Connector* Paso_TransportProblem_borrowConnector(const Paso_TransportProblem* in);
-
-PASO_DLL_API
-index_t Paso_TransportProblem_getTypeId(const index_t solver,const index_t preconditioner, const index_t package,const  bool symmetry, Esys_MPIInfo *mpi_info);
-
-PASO_DLL_API
-void Paso_TransportProblem_insertConstraint(Paso_TransportProblem* fctp,  const double* r,  double* source);
-
-
-PASO_DLL_API
-void Paso_TransportProblem_setUpConstraint(Paso_TransportProblem* fctp,  const double* q);
-
-#define Paso_TransportProblem_borrowMainDiagonalPointer(_fct_) (_fct_)->mass_matrix->mainBlock->borrowMainDiagonalPointer()
-#define Paso_TransportProblem_getBlockSize(__in__) (__in__)->transport_matrix->row_block_size
-#define Paso_TransportProblem_borrowConnector(__in__) (__in__)->transport_matrix->pattern->col_connector
-#define Paso_TransportProblem_borrowTransportMatrix(__in__) (__in__)->transport_matrix
-#define Paso_TransportProblem_borrowMassMatrix(__in__) (__in__)->mass_matrix
-#define Paso_TransportProblem_borrowLumpedMassMatrix(__in__) (__in__)->lumped_mass_matrix
-#define Paso_TransportProblem_getTotalNumRows(__in__) (__in__)->transport_matrix->getTotalNumRows()
-
-
-#endif /* #ifndef INC_PASOTRANSPORT */
+#endif // __PASO_TRANSPORT_H__
 

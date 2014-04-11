@@ -30,7 +30,6 @@
 #include "MKL.h"
 #include "Preconditioner.h"
 #include "UMFPACK.h"
-#include "TRILINOS.h"
 #include "mmio.h"
 
 /****************************************************************************/

@@ -834,7 +834,7 @@ void MeshAdapter::addPDEToTransportProblem(
     source.expand();
 
     Mesh* mesh=m_finleyMesh.get();
-    Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
+    paso::TransportProblem_ptr _tp(tpa->getPaso_TransportProblem());
 
     Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->mass_matrix, source,
                         escript::Data(), escript::Data(), escript::Data(),
@@ -1496,8 +1496,8 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
     paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
             reduceOrder, reduceOrder);
     checkFinleyError();
-    Paso_TransportProblem* transportProblem;
-    transportProblem=Paso_TransportProblem_alloc(pattern, blocksize);
+    paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
+                                                pattern, blocksize));
     checkPasoError();
     TransportProblemAdapter* tpa=new TransportProblemAdapter(
             transportProblem, blocksize, functionspace);

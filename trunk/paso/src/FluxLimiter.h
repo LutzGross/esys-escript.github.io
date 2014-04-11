@@ -14,34 +14,46 @@
 *
 *****************************************************************************/
 
-
 #ifndef __PASO_FLUXLIMITER_H__
 #define __PASO_FLUXLIMITER_H__
 
 #include "Transport.h"
 
-struct Paso_FCT_FluxLimiter
+namespace paso {
+
+PASO_DLL_API 
+struct FCT_FluxLimiter
 {
-    paso::SystemMatrix_ptr antidiffusive_fluxes;
-    Esys_MPIInfo *mpi_info;
+    FCT_FluxLimiter(const_TransportProblem_ptr tp);
+    ~FCT_FluxLimiter();
+
+    inline dim_t getTotalNumRows() const
+    {
+        return antidiffusive_fluxes->getTotalNumRows();
+    }
+
+    inline SystemMatrixPattern_ptr getFluxPattern() const
+    {
+        return antidiffusive_fluxes->pattern;
+    }
+
+    void setU_tilde(const double* Mu_tilde);
+    void addLimitedFluxes_Start();
+    void addLimitedFluxes_Complete(double* b);
+
+    SystemMatrix_ptr antidiffusive_fluxes;
+    Esys_MPIInfo* mpi_info;
     double dt;
     double* u_tilde;
-    double* MQ;   /* (M_C* Q_min, M_C* Q_max) */ 
-    double* R;   /* (R-, R+) */
-    /* paso::Coupler_ptr MQ_coupler; */
-    paso::Coupler_ptr R_coupler;
-    paso::Coupler_ptr u_tilde_coupler;
-    double*  borrowed_lumped_mass_matrix; /* borrowed reference */
+    double* MQ;  // (M_C* Q_min, M_C* Q_max)
+    double* R;   // (R-, R+)
+    //Coupler_ptr MQ_coupler;
+    Coupler_ptr R_coupler;
+    Coupler_ptr u_tilde_coupler;
+    double* borrowed_lumped_mass_matrix; // borrowed reference
 };
 
-#define Paso_FCT_FluxLimiter_getTotalNumRows(_f_) (_f_)->antidiffusive_fluxes->getTotalNumRows()
-#define Paso_FCT_FluxLimiter_getFluxPattern(_f_) ((_f_)->antidiffusive_fluxes->pattern)
-
-PASO_DLL_API Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp);
-PASO_DLL_API void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in);
-PASO_DLL_API void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const double *Mu_tilda);
-PASO_DLL_API void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limiter);
-PASO_DLL_API void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_limiter, double* b);
+} // namespace paso
 
 #endif // __PASO_FLUXLIMITER_H__
 

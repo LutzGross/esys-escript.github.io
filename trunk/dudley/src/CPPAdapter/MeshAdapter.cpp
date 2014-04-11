@@ -820,7 +820,7 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _y_dirac=y_dirac.getDataC();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
-   Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
+   paso::TransportProblem_ptr _tp(tpa->getPaso_TransportProblem());
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->mass_matrix, &_source, 0, 0, 0, &_M, 0, 0 );
    checkDudleyError();
@@ -1426,20 +1426,19 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 //
 // creates a TransportProblemAdapter
 //
-ATP_ptr MeshAdapter::newTransportProblem(
-                                                         const int blocksize,
-                                                         const escript::FunctionSpace& functionspace,
-                                                         const int type) const
+ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
+                                         const escript::FunctionSpace& fs,
+                                         const int type) const
 {
    int reduceOrder=0;
    // is the domain right?
-   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(functionspace.getDomain()));
+   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(fs.getDomain()));
    if (domain!=*this) 
       throw DudleyAdapterException("Error - domain of function space does not match the domain of transport problem generator.");
    // is the function space type right 
-   if (functionspace.getTypeCode()==DegreesOfFreedom) {
+   if (fs.getTypeCode()==DegreesOfFreedom) {
       reduceOrder=0;
-   } else if (functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+   } else if (fs.getTypeCode()==ReducedDegreesOfFreedom) {
       reduceOrder=1;
    } else {
       throw DudleyAdapterException("Error - illegal function space type for system matrix rows.");
@@ -1448,10 +1447,10 @@ ATP_ptr MeshAdapter::newTransportProblem(
  
    paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder));
    checkDudleyError();
-   Paso_TransportProblem* transportProblem;
-   transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern,blocksize);
+   paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
+                                            fsystemMatrixPattern, blocksize));
    checkPasoError();
-   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem,blocksize,functionspace);
+   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem, blocksize, fs);
    return ATP_ptr(atp);
 }
 
