@@ -943,7 +943,8 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
 
     // generate matrix
     paso::SystemMatrixPattern_ptr pattern(getPattern(reduceOrder, reduceOrder));
-    Paso_TransportProblem* tp = Paso_TransportProblem_alloc(pattern, blocksize);
+    paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
+                                                             blocksize));
     paso::checkPasoError();
     escript::ATP_ptr atp(new TransportProblemAdapter(tp, blocksize, functionspace));
     return atp;
@@ -961,11 +962,11 @@ void RipleyDomain::addPDEToTransportProblem(
     if (!d_contact.isEmpty() || !y_contact.isEmpty())
         throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
 
-    paso::TransportProblemAdapter* tpa=dynamic_cast<paso::TransportProblemAdapter*>(&tp);
+    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
     if (!tpa)
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
-    Paso_TransportProblem* ptp = tpa->getPaso_TransportProblem();
+    paso::TransportProblem_ptr ptp(tpa->getPaso_TransportProblem());
     std::map<std::string, escript::Data> coefs;
     coefs["D"] = M;
     assemblePDE(ptp->mass_matrix, source, coefs);

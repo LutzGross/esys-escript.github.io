@@ -34,303 +34,232 @@
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 
+namespace paso {
 
-Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, paso::Options* options)
+FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
+    transportproblem(tp),
+    omega(0),
+    z(NULL),
+    du(NULL)
 {
-    Paso_FCT_Solver* out=NULL;
-    const dim_t blockSize=Paso_TransportProblem_getBlockSize(fctp);
-    const dim_t n =  Paso_TransportProblem_getTotalNumRows(fctp);
-
-    out=new Paso_FCT_Solver;
-    out->transportproblem  = Paso_TransportProblem_getReference(fctp);
-    out->mpi_info          = Esys_MPIInfo_getReference(fctp->mpi_info);
-    out->flux_limiter      = Paso_FCT_FluxLimiter_alloc(fctp);
-    out->b                 = new double[n];
-    if ( (options->ode_solver == PASO_CRANK_NICOLSON) || (options->ode_solver == PASO_BACKWARD_EULER) ) {
-        out->du = new double[n];
-        out->z = new double[n];
-    } else {
-        out->du = NULL;
-        out->z=NULL;
+    const dim_t blockSize = tp->getBlockSize();
+    const dim_t n = tp->getTotalNumRows();
+    mpi_info = Esys_MPIInfo_getReference(tp->mpi_info);
+    flux_limiter = new FCT_FluxLimiter(tp);
+    b = new double[n];
+    if (options->ode_solver == PASO_CRANK_NICOLSON || options->ode_solver == PASO_BACKWARD_EULER) {
+        du = new double[n];
+        z = new double[n];
     }
-    out->u_coupler.reset(new paso::Coupler(Paso_TransportProblem_borrowConnector(fctp), blockSize));
-    out->u_old_coupler.reset(new paso::Coupler(Paso_TransportProblem_borrowConnector(fctp), blockSize));
-    out->omega=0;
+    u_coupler.reset(new Coupler(tp->borrowConnector(), blockSize));
+    u_old_coupler.reset(new Coupler(tp->borrowConnector(), blockSize));
 
-    if ( options->ode_solver == PASO_LINEAR_CRANK_NICOLSON ) {
-        out->method   = PASO_LINEAR_CRANK_NICOLSON;
-    } else if ( options->ode_solver == PASO_CRANK_NICOLSON ) {
-        out->method = PASO_CRANK_NICOLSON;
-    } else if ( options->ode_solver == PASO_BACKWARD_EULER ) {
-        out->method = PASO_BACKWARD_EULER;
+    if (options->ode_solver == PASO_LINEAR_CRANK_NICOLSON) {
+        method = PASO_LINEAR_CRANK_NICOLSON;
+    } else if (options->ode_solver == PASO_CRANK_NICOLSON) {
+        method = PASO_CRANK_NICOLSON;
+    } else if (options->ode_solver == PASO_BACKWARD_EULER) {
+        method = PASO_BACKWARD_EULER;
     } else {
-        Esys_setError(VALUE_ERROR, "Paso_FCT_Solver_alloc: unknown integration scheme.");
-        out->method = UNKNOWN;
-    }
-
-    if (Esys_noError()) {
-        return out;
-    } else {
-        Paso_FCT_Solver_free(out);
-        return NULL;
+        Esys_setError(VALUE_ERROR, "FCT_Solver: unknown integration scheme.");
+        method = UNKNOWN;
     }
 }
 
-void Paso_FCT_Solver_free(Paso_FCT_Solver *in)
+FCT_Solver::~FCT_Solver()
 {
-    if (in != NULL) {
-        Paso_TransportProblem_free(in->transportproblem);
-        Paso_FCT_FluxLimiter_free(in->flux_limiter);
-        Esys_MPIInfo_free(in->mpi_info);
-        delete[] in->b;
-        delete[] in->z;
-        delete[] in->du;
-        delete in;
-    }
+    delete flux_limiter;
+    Esys_MPIInfo_free(mpi_info);
+    delete[] b;
+    delete[] z;
+    delete[] du;
 }
 
-double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp)
+// modifies the main diagonal of the iteration matrix to introduce new dt
+void FCT_Solver::initialize(double _dt, Options* options, Paso_Performance* pp)
 {
-   dim_t i;
-   double dt_max_loc=LARGE_POSITIVE_FLOAT;
-   double dt_max=LARGE_POSITIVE_FLOAT;
-   const dim_t n = fctp->transport_matrix->getTotalNumRows();
-   /* set low order transport operator */
-   Paso_FCT_setLowOrderOperator(fctp);
+    const_TransportProblem_ptr fctp(transportproblem);
+    const index_t* main_iptr = fctp->borrowMainDiagonalPointer();
+    const dim_t n = fctp->transport_matrix->getTotalNumRows();
+    const double theta = getTheta();
+    omega = 1. / (_dt * theta);
+    dim_t i;
+    Options options2;
 
-   if (Esys_noError()) {
-        /*
-         *  calculate time step size:
-        */
-        dt_max=LARGE_POSITIVE_FLOAT;
-        #pragma omp parallel private(i, dt_max_loc)
-        {
-               dt_max_loc=LARGE_POSITIVE_FLOAT;
-               #pragma omp for schedule(static)
-               for (i=0;i<n;++i) {
-                  const double l_ii=fctp->main_diagonal_low_order_transport_matrix[i];
-                  const double m_i=fctp->lumped_mass_matrix[i];
-                  if ( m_i > 0 ) {
-                      if (l_ii<0) dt_max_loc=MIN(dt_max_loc,m_i/(-l_ii));
-                  }
-               }
-               #pragma omp critical
-               {
-                  dt_max=MIN(dt_max,dt_max_loc);
-               }
-        }
-        #ifdef ESYS_MPI
-        {
-               dt_max_loc=dt_max;
-               MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
-        }
-        #endif
-        if (dt_max<LARGE_POSITIVE_FLOAT) dt_max*=2.;
-   }
-   return dt_max;
-}
-
-/* modifies the main diagonal of the iteration matrix to introduce new dt */
-void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, paso::Options* options, Paso_Performance* pp)
-{
-   Paso_TransportProblem* fctp = fct_solver->transportproblem;
-   const index_t* main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fctp);
-   const dim_t n = fctp->transport_matrix->getTotalNumRows();
-   const double theta = Paso_FCT_Solver_getTheta(fct_solver);
-   const double omega=1./(dt* theta);
-   dim_t i;
-   paso::Options options2;
-
-
-
-   Paso_solve_free(fctp->iteration_matrix.get());
-   /*
-    *   fctp->iteration_matrix[i,i]=m[i]/(dt theta) -l[i,i]
-    *
-   */
-    fct_solver->omega=omega;
-    fct_solver->dt = dt;
+    Paso_solve_free(fctp->iteration_matrix.get());
+    //   fctp->iteration_matrix[i,i]=m[i]/(dt theta) -l[i,i]
+    dt = _dt;
     #pragma omp parallel for private(i)
     for (i = 0; i < n; ++i) {
-           const double m_i=fctp->lumped_mass_matrix[i];
-           const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
-           if ( m_i > 0 ) {
-               fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = m_i * omega - l_ii;
-           } else {
-               fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = ABS(m_i * omega - l_ii)/(EPSILON*EPSILON);
-           }
+        const double m_i = fctp->lumped_mass_matrix[i];
+        const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
+        if ( m_i > 0 ) {
+            fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = m_i * omega - l_ii;
+        } else {
+            fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = ABS(m_i * omega - l_ii)/(EPSILON*EPSILON);
+        }
     }
 
-    /* allocate preconditioner/solver */
+    // allocate preconditioner/solver
     options2.verbose = options->verbose;
-    if (fct_solver->method == PASO_LINEAR_CRANK_NICOLSON) {
+    if (method == PASO_LINEAR_CRANK_NICOLSON) {
         options2.preconditioner = PASO_GS;
-    } else  {
+    } else {
         options2.preconditioner = PASO_JACOBI;
-/* options2.preconditioner = PASO_GS; */
+        //options2.preconditioner = PASO_GS;
     }
-    options2.use_local_preconditioner = FALSE;
-    options2.sweeps=-1;
+    options2.use_local_preconditioner = false;
+    options2.sweeps = -1;
 
     Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
     fctp->iteration_matrix->setPreconditioner(&options2);
     Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
 }
 
-/* entry point for update procedures */
-err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double* u, double *u_old,  paso::Options* options, Paso_Performance *pp)
+// entry point for update procedures
+err_t FCT_Solver::update(double* u, double* u_old, Options* options, Paso_Performance* pp)
 {
-    const index_t method=fct_solver->method;
     err_t err_out = SOLVER_NO_ERROR;
 
     if (method == PASO_LINEAR_CRANK_NICOLSON) {
-        err_out=Paso_FCT_Solver_update_LCN(fct_solver, u, u_old, options, pp);
+        err_out = updateLCN(u, u_old, options, pp);
     } else if (method == PASO_CRANK_NICOLSON) {
-        err_out=Paso_FCT_Solver_updateNL(fct_solver, u, u_old, options, pp);
+        err_out = updateNL(u, u_old, options, pp);
     } else if (method == PASO_BACKWARD_EULER) {
-        err_out=Paso_FCT_Solver_updateNL(fct_solver, u, u_old, options, pp);
+        err_out = updateNL(u, u_old, options, pp);
     } else {
         err_out = SOLVER_INPUT_ERROR;
     }
     return err_out;
 }
 
-/* linear crank-nicolson update */
-err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, paso::Options* options, Paso_Performance *pp)
+/// linear crank-nicolson update
+err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Paso_Performance *pp)
 {
-    double const dt = fct_solver->dt;
     dim_t sweep_max, i;
-    double *b = fct_solver->b;
     double const RTOL = options->tolerance;
-    const dim_t n=Paso_TransportProblem_getTotalNumRows(fct_solver->transportproblem);
-    paso::SystemMatrix_ptr iteration_matrix(fct_solver->transportproblem->iteration_matrix);
-    const index_t*  main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fct_solver->transportproblem);
+    const dim_t n = transportproblem->getTotalNumRows();
+    SystemMatrix_ptr iteration_matrix(transportproblem->iteration_matrix);
+    const index_t* main_iptr = transportproblem->borrowMainDiagonalPointer();
     err_t errorCode = SOLVER_NO_ERROR;
     double norm_u_tilde;
 
-    fct_solver->u_old_coupler->startCollect(u_old);
-    fct_solver->u_old_coupler->finishCollect();
+    u_old_coupler->startCollect(u_old);
+    u_old_coupler->finishCollect();
 
-    /* b[i]=m*u_tilde[i] = m u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i])
-           = u_tilde[i]   = u_old[i] where constraint m<0.
-        * note that iteration_matrix stores the negative values of the
-        * low order transport matrix l. Therefore a=-dt*0.5 is used. */
+    // b[i]=m*u_tilde[i] = m u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i])
+    //     = u_tilde[i]  = u_old[i] where constraint m<0.
+    //  note that iteration_matrix stores the negative values of the
+    //  low order transport matrix l. Therefore a=-dt*0.5 is used.
 
-    Paso_FCT_Solver_setMuPaLu(b, fct_solver->transportproblem->lumped_mass_matrix,
-                             fct_solver->u_old_coupler, -dt*0.5, iteration_matrix);
+    setMuPaLu(b, u_old_coupler, -dt*0.5);
     /* solve for u_tilde : u_tilda = m^{-1} * b   */
-    Paso_FCT_FluxLimiter_setU_tilda(fct_solver->flux_limiter, b);
-    /* u_tilda_connector is completed */
+    flux_limiter->setU_tilde(b);
+    // u_tilde_connector is completed
 
-    /* calculate anti-diffusive fluxes for u_tilda */
-    Paso_FCT_setAntiDiffusionFlux_linearCN(fct_solver->flux_limiter->antidiffusive_fluxes,
-                                           fct_solver->transportproblem, dt,
-                                           fct_solver->flux_limiter->u_tilde_coupler,
-                                           fct_solver->u_old_coupler);
+    // calculate anti-diffusive fluxes for u_tilde
+    setAntiDiffusionFlux_linearCN(flux_limiter->antidiffusive_fluxes);
 
+    /* b_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
+    flux_limiter->addLimitedFluxes_Start();
+    flux_limiter->addLimitedFluxes_Complete(b);
 
-   /* b_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
-   Paso_FCT_FluxLimiter_addLimitedFluxes_Start(fct_solver->flux_limiter);
-   Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(fct_solver->flux_limiter, b);
-
-   paso::util::scale(n, b,fct_solver->omega );
-   /* solve (m-dt/2*L) u = b in the form (omega*m-L) u = b * omega with omega*dt/2=1 */
+    util::scale(n, b, omega);
+    // solve (m-dt/2*L) u = b in the form (omega*m-L) u = b * omega with omega*dt/2=1
    #pragma omp for private(i) schedule(static)
-   for (i = 0; i < n; ++i) {
-       if (! (fct_solver->transportproblem->lumped_mass_matrix[i] > 0 ) ) {
-         b[i] = fct_solver->flux_limiter->u_tilde[i]
-             * fct_solver->transportproblem->iteration_matrix->mainBlock->val[main_iptr[i]];
+    for (i = 0; i < n; ++i) {
+       if (!(transportproblem->lumped_mass_matrix[i] > 0)) {
+         b[i] = flux_limiter->u_tilde[i]
+             * transportproblem->iteration_matrix->mainBlock->val[main_iptr[i]];
        }
-   }
-   /* initial guess is u<- -u + 2*u_tilde */
-   paso::util::update(n, -1., u, 2., fct_solver->flux_limiter->u_tilde);
+    }
+    // initial guess is u<- -u + 2*u_tilde
+    util::update(n, -1., u, 2., flux_limiter->u_tilde);
 
-   sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
-   norm_u_tilde=paso::util::lsup(n, fct_solver->flux_limiter->u_tilde, fct_solver->flux_limiter->mpi_info);
-   if (options->verbose) {
-       printf("Paso_FCT_Solver_update_LCN: u_tilda lsup = %e (rtol = %e, max. sweeps = %d)\n",norm_u_tilde,RTOL * norm_u_tilde ,sweep_max);
-   }
-   errorCode = paso::Preconditioner_Smoother_solve_byTolerance( iteration_matrix,  ((paso::Preconditioner*) (iteration_matrix->solver_p))->gs,
-                                                   u, b, RTOL, &sweep_max, TRUE);
-   if (errorCode == PRECONDITIONER_NO_ERROR) {
-      if (options->verbose) printf("Paso_FCT_Solver_update_LCN: convergence after %d Gauss-Seidel steps.\n",sweep_max);
-      errorCode=SOLVER_NO_ERROR;
-   } else {
-      if (options->verbose) printf("Paso_FCT_Solver_update_LCN: Gauss-Seidel failed within %d stesp (rel. tolerance %e).\n",sweep_max,RTOL);
-      errorCode= SOLVER_MAXITER_REACHED;
-   }
-   return errorCode;
-
+    sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
+    norm_u_tilde = util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
+    if (options->verbose) {
+        printf("FCT_Solver::updateLCN: u_tilde lsup = %e (rtol = %e, max. sweeps = %d)\n", norm_u_tilde, RTOL*norm_u_tilde, sweep_max);
+    }
+    errorCode = Preconditioner_Smoother_solve_byTolerance(iteration_matrix,
+            ((Preconditioner*)(iteration_matrix->solver_p))->gs, u, b, RTOL,
+            &sweep_max, true);
+    if (errorCode == PRECONDITIONER_NO_ERROR) {
+        if (options->verbose) printf("FCT_Solver::updateLCN: convergence after %d Gauss-Seidel steps.\n",sweep_max);
+        errorCode = SOLVER_NO_ERROR;
+    } else {
+        if (options->verbose) printf("FCT_Solver::updateLCN: Gauss-Seidel failed within %d stesp (rel. tolerance %e).\n",sweep_max,RTOL);
+        errorCode = SOLVER_MAXITER_REACHED;
+    }
+    return errorCode;
 }
 
-err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, paso::Options* options, Paso_Performance *pp)
+err_t FCT_Solver::updateNL(double* u, double *u_old, Options* options,
+                           Paso_Performance *pp)
 {
-   const dim_t num_critical_rates_max=3; /* number of rates >=critical_rate accepted before divergence is triggered */
-   const double critical_rate=0.95;   /* expected value of convergence rate */
+    // number of rates >=critical_rate accepted before divergence is triggered
+    const dim_t num_critical_rates_max = 3;
+    // expected value of convergence rate
+    const double critical_rate = 0.95;
 
-   double *b = fct_solver->b;
-   double *z = fct_solver->z;
-   double *du = fct_solver->du;
-   double const dt = fct_solver->dt;
-   Paso_TransportProblem* fctp = fct_solver->transportproblem;
-   Paso_FCT_FluxLimiter* flux_limiter = fct_solver->flux_limiter;
-   dim_t i;
-   double norm_u_tilde, ATOL, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, rate=1.;
-   err_t errorCode=SOLVER_NO_ERROR;
-   const dim_t n = fctp->transport_matrix->getTotalNumRows();
-   const double atol=options->absolute_tolerance;
-   const double rtol=options->tolerance;
-   const dim_t max_m=options->iter_max;
-   dim_t m=0, num_critical_rates=0 ;
-  /* ////////////////////////////////////////////////////////////////////// */
+    const_TransportProblem_ptr fctp(transportproblem);
+    dim_t i;
+    double norm_u_tilde, norm_du=LARGE_POSITIVE_FLOAT, norm_du_old, rate=1.;
+    const dim_t n = fctp->transport_matrix->getTotalNumRows();
+    const double atol = options->absolute_tolerance;
+    const double rtol = options->tolerance;
+    const dim_t max_m = options->iter_max;
+    dim_t m = 0, num_critical_rates = 0;
+    err_t errorCode = SOLVER_NO_ERROR;
+    bool converged=false, max_m_reached=false, diverged=false;
+    /* //////////////////////////////////////////////////////////////////// */
 
-   bool converged=FALSE, max_m_reached=FALSE,diverged=FALSE;
-   options->num_iter=0;
-
-   fct_solver->u_old_coupler->startCollect(u_old);
-   fct_solver->u_old_coupler->finishCollect();
-    /* prepare u_tilda and flux limiter */
-    if ( fct_solver->method == PASO_BACKWARD_EULER ) {
-          /* b[i]=m_i* u_old[i] */
-          #pragma omp for private(i) schedule(static)
-          for (i = 0; i < n; ++i) {
-               if (fctp->lumped_mass_matrix[i] > 0 ) {
-                   b[i]=u_old[i]* fctp->lumped_mass_matrix[i];
-               } else {
-                   b[i]=u_old[i];
-               }
-          }
+    options->num_iter=0;
+    u_old_coupler->startCollect(u_old);
+    u_old_coupler->finishCollect();
+    // prepare u_tilde and flux limiter
+    if (method == PASO_BACKWARD_EULER) {
+        // b[i]=m_i* u_old[i]
+        #pragma omp for private(i) schedule(static)
+        for (i = 0; i < n; ++i) {
+            if (fctp->lumped_mass_matrix[i] > 0 ) {
+                b[i]=u_old[i]* fctp->lumped_mass_matrix[i];
+            } else {
+                b[i]=u_old[i];
+            }
+        }
     } else {
        /* b[i]=m_i* u_old[i] + dt/2 sum_{j <> i} l_{ij}*(u_old[j]-u_old[i]) = m_i * u_tilde_i where m_i>0
         *     = u_old[i]  otherwise
         * note that iteration_matrix stores the negative values of the
         * low order transport matrix l. Therefore a=-dt*0.5 is used. */
-       Paso_FCT_Solver_setMuPaLu(b,fctp->lumped_mass_matrix,fct_solver->u_old_coupler,-dt*0.5,fctp->iteration_matrix);
+        setMuPaLu(b, u_old_coupler, -dt*0.5);
     }
-    Paso_FCT_FluxLimiter_setU_tilda(flux_limiter, b); /* u_tilda = m^{-1} b */
-    /* u_tilda_connector is completed */
+    flux_limiter->setU_tilde(b); // u_tilde = m^{-1} b */
+    // u_tilde_connector is completed
     /************************************************************************/
-    /* calculate stopping criterion */
-    norm_u_tilde=paso::util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
-    ATOL= rtol * norm_u_tilde + atol ;
-    if (options->verbose) printf("Paso_FCT_Solver_updateNL: iteration starts u_tilda lsup = %e (abs. tol = %e)\n",norm_u_tilde,ATOL);
-    /* ///////////////////////////////////////////////////////////////////////////////////////////////////////////////////// */
+    // calculate stopping criterion
+    norm_u_tilde=util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
+    const double ATOL = rtol * norm_u_tilde + atol;
+    if (options->verbose)
+        printf("FCT_Solver::updateNL: iteration starts u_tilde lsup = %e "
+               "(abs. tol = %e)\n", norm_u_tilde, ATOL);
 
-    /* u_old is an initial guess for u*/
-    paso::util::copy(n,u,u_old);
+    // u_old is an initial guess for u
+    util::copy(n, u, u_old);
 
-    while ( (!converged) && (!diverged) && (! max_m_reached) && Esys_noError()) {
-        fct_solver->u_coupler->startCollect(u);
-        fct_solver->u_coupler->finishCollect();
+    while (!converged && !diverged && !max_m_reached && Esys_noError()) {
+        u_coupler->startCollect(u);
+        u_coupler->finishCollect();
 
-         /*  set antidiffusive_flux_{ij} for u */
-         if (fct_solver->method == PASO_BACKWARD_EULER) {
-             Paso_FCT_setAntiDiffusionFlux_BE(fct_solver->flux_limiter->antidiffusive_fluxes, fctp, dt, fct_solver->u_coupler, fct_solver->u_old_coupler);
+        // set antidiffusive_flux_{ij} for u
+        if (method == PASO_BACKWARD_EULER) {
+             setAntiDiffusionFlux_BE(flux_limiter->antidiffusive_fluxes);
          } else {
-             Paso_FCT_setAntiDiffusionFlux_CN(fct_solver->flux_limiter->antidiffusive_fluxes, fctp, dt, fct_solver->u_coupler, fct_solver->u_old_coupler);
+             setAntiDiffusionFlux_CN(flux_limiter->antidiffusive_fluxes);
          }
-         /* start the calculation of the limitation factors_{fct_solver->ij} */
-         Paso_FCT_FluxLimiter_addLimitedFluxes_Start(flux_limiter); /* uses u_tilde */
+         // start the calculation of the limitation factors_{fct_solver->ij}
+         flux_limiter->addLimitedFluxes_Start(); // uses u_tilde
 
          /*
           * z_m[i]=b[i] - (m_i*u[i] - omega*sum_{j<>i} l_{ij} (u[j]-u[i]) ) where m_i>0
@@ -341,76 +270,84 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
           * note that iteration_matrix stores the negative values of the
           * low order transport matrix l. Therefore a=dt*theta is used.
           */
-          if (fct_solver-> method == PASO_BACKWARD_EULER) {
-              Paso_FCT_Solver_setMuPaLu(z, fctp->lumped_mass_matrix, fct_solver->u_coupler, dt, fctp->iteration_matrix);
+          if (method == PASO_BACKWARD_EULER) {
+              setMuPaLu(z, u_coupler, dt);
           } else {
-              Paso_FCT_Solver_setMuPaLu(z, fctp->lumped_mass_matrix, fct_solver->u_coupler, dt/2, fctp->iteration_matrix);
+              setMuPaLu(z, u_coupler, dt/2);
           }
 
-          paso::util::update(n,-1.,z,1.,b);  /* z=b-z */
+        util::update(n, -1., z, 1., b);  // z=b-z
 
-          /* z_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij} */
-          Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(flux_limiter, z);
+        // z_i += sum_{j} limitation factor_{ij} * antidiffusive_flux_{ij}
+        flux_limiter->addLimitedFluxes_Complete(z);
 
-          /* we solve (m/omega - L ) * du = z */
-          if (fct_solver->method == PASO_BACKWARD_EULER) {
-              dim_t cntIter = options->iter_max;
-              double tol= paso::util::l2(n, z, fctp->mpi_info) ;
+        // we solve (m/omega - L ) * du = z
+        if (method == PASO_BACKWARD_EULER) {
+            dim_t cntIter = options->iter_max;
+            double tol= util::l2(n, z, fctp->mpi_info) ;
 
-              if ( m ==0) {
-                  tol *=0.5;
-              } else {
-                  tol *= MIN(MAX(rate*rate, 1e-2), 0.5);
-              }
-              /* use BiCGSTab with jacobi preconditioner ( m - omega * L ) */
-              paso::util::zeroes(n,du);
-              errorCode = paso::Solver_BiCGStab(fctp->iteration_matrix, z, du, &cntIter, &tol, pp);
+            if (m==0) {
+                tol *= 0.5;
+            } else {
+                tol *= MIN(MAX(rate*rate, 1e-2), 0.5);
+            }
+            // use BiCGStab with Jacobi preconditioner ( m - omega * L )
+            util::zeroes(n,du);
+            errorCode = Solver_BiCGStab(fctp->iteration_matrix, z, du, &cntIter, &tol, pp);
 
-              /* errorCode =  Paso_Solver_GMRES(fctp->iteration_matrix, z, du, &cntIter, &tol, 10, 2000, pp); */
-              if (options->verbose) printf("Paso_FCT_Solver_updateNL: BiCGStab is completed after %d steps (residual =%e).\n",cntIter, tol);
-              options->num_iter+=cntIter;
-              if ( errorCode !=  SOLVER_NO_ERROR) break;
-           } else {
-              /* just use the main diagonal of (m/omega - L ) */
+            // errorCode = Solver_GMRES(fctp->iteration_matrix, z, du, &cntIter, &tol, 10, 2000, pp);
+            if (options->verbose)
+                printf("FCT_Solver::updateNL: BiCGStab completed after %d steps (residual =%e).\n",cntIter, tol);
+            options->num_iter += cntIter;
+            if (errorCode != SOLVER_NO_ERROR) break;
+        } else {
+            // just use the main diagonal of (m/omega - L )
 
-               paso::Preconditioner_Smoother_solve(fctp->iteration_matrix, ((paso::Preconditioner*) (fctp->iteration_matrix->solver_p))->jacobi,
-                                          du, z, 1, FALSE);
+            Preconditioner_Smoother_solve(fctp->iteration_matrix,
+                ((Preconditioner*) (fctp->iteration_matrix->solver_p))->jacobi,
+                du, z, 1, false);
 
-              options->num_iter++;
-           }
+            options->num_iter++;
+        }
 
-          paso::util::update(n,1.,u,fct_solver->omega,du);
-           norm_du_old=norm_du;
-           norm_du=paso::util::lsup(n,du, fctp->mpi_info);
-           if (m ==0) {
-                if (options->verbose) printf("Paso_FCT_Solver_updateNL: step %d: increment= %e\n",m+1, norm_du * fct_solver->omega);
-           } else {
-                if (norm_du_old > 0.) {
-                    rate=norm_du/norm_du_old;
-                } else if (norm_du <= 0.) {
-                     rate=0.;
-                } else {
-                     rate=LARGE_POSITIVE_FLOAT;
-                }
-                if (options->verbose) printf("Paso_FCT_Solver_updateNL: step %d: increment= %e (rate = %e)\n",m+1, norm_du * fct_solver->omega, rate);
-                num_critical_rates+=( rate<critical_rate ? 0 : 1);
-                max_m_reached=(m>max_m);
-                diverged = (num_critical_rates >= num_critical_rates_max);
-                converged=(norm_du * fct_solver->omega  <= ATOL);
-           }
-           m++;
-      } /* end of while loop */
-      if (errorCode == SOLVER_NO_ERROR) {
-                if (converged) {
-                    if (options->verbose) printf("Paso_FCT_Solver_updateNL: iteration is completed.\n");
-                    errorCode=SOLVER_NO_ERROR;
-                } else if (diverged) {
-                    if (options->verbose) printf("Paso_FCT_Solver_updateNL: divergence.\n");
-                    errorCode=SOLVER_DIVERGENCE;
-                } else if (max_m_reached) {
-                     if (options->verbose) printf("Paso_FCT_Solver_updateNL: maximum number of iteration steps reached.\n");
-                    errorCode=SOLVER_MAXITER_REACHED;
-                }
+        util::update(n, 1., u, omega, du);
+        norm_du_old = norm_du;
+        norm_du = util::lsup(n, du, fctp->mpi_info);
+        if (m == 0) {
+            if (options->verbose)
+                printf("FCT_Solver::updateNL: step %d: increment= %e\n", m+1,
+                        norm_du * omega);
+        } else {
+            if (norm_du_old > 0.) {
+                rate = norm_du/norm_du_old;
+            } else if (norm_du <= 0.) {
+                rate = 0.;
+            } else {
+                rate = LARGE_POSITIVE_FLOAT;
+            }
+            if (options->verbose)
+                printf("FCT_Solver::updateNL: step %d: increment= %e (rate = %e)\n",m+1, norm_du * omega, rate);
+            num_critical_rates += (rate<critical_rate ? 0 : 1);
+            max_m_reached = (m>max_m);
+            diverged = (num_critical_rates >= num_critical_rates_max);
+            converged = (norm_du * omega <= ATOL);
+        }
+        m++;
+    } // end of while loop
+    if (errorCode == SOLVER_NO_ERROR) {
+        if (converged) {
+            if (options->verbose)
+                printf("FCT_Solver::updateNL: iteration is completed.\n");
+            errorCode = SOLVER_NO_ERROR;
+        } else if (diverged) {
+            if (options->verbose)
+                printf("FCT_Solver::updateNL: divergence.\n");
+            errorCode = SOLVER_DIVERGENCE;
+        } else if (max_m_reached) {
+            if (options->verbose)
+                printf("FCT_Solver::updateNL: maximum number of iteration steps reached.\n");
+            errorCode = SOLVER_MAXITER_REACHED;
+        }
     }
     return errorCode;
 }
@@ -424,160 +361,207 @@ err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u
  *     m=fc->mass matrix
  *     d=artificial diffusion matrix = L - K = - fc->iteration matrix - fc->transport matrix (away from main diagonal)
  *
- *   for CN : theta =0.5
+ *   for CN : theta = 0.5
  *   for BE : theta = 1.
  */
 
-void Paso_FCT_setAntiDiffusionFlux_CN(paso::SystemMatrix_ptr flux_matrix,
-                                      const Paso_TransportProblem* fct,
-                                      const double dt,
-                                      paso::const_Coupler_ptr u_coupler,
-                                      paso::const_Coupler_ptr u_old_coupler)
+void FCT_Solver::setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix)
 {
-  dim_t i;
-  index_t iptr_ij;
+    const double* u = u_coupler->borrowLocalData();
+    const double* u_old = u_old_coupler->borrowLocalData();
+    const double* remote_u = u_coupler->borrowRemoteData();
+    const double* remote_u_old = u_old_coupler->borrowRemoteData();
+    const double dt_half = dt/2;
+    const_TransportProblem_ptr fct(transportproblem);
+    const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
+    const dim_t n = fct->iteration_matrix->getTotalNumRows();
 
-  const double *u    = u_coupler->borrowLocalData();
-  const double *u_old= u_old_coupler->borrowLocalData();
-  const double *remote_u=u_coupler->borrowRemoteData();
-  const double *remote_u_old=u_old_coupler->borrowRemoteData();
-  const double dt_half= dt/2;
-  paso::const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
-  const dim_t n = fct->iteration_matrix->getTotalNumRows();
+#pragma omp parallel for
+    for (dim_t i = 0; i < n; ++i) {
+        const double u_i = u[i];
+        const double u_old_i = u_old[i];
 
-  #pragma omp parallel for schedule(static) private(i, iptr_ij)
-  for (i = 0; i < n; ++i) {
-      const double u_i     = u[i];
-      const double u_old_i = u_old[i];
+        #pragma ivdep
+        for (index_t iptr_ij = pattern->mainPattern->ptr[i];
+                     iptr_ij < pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+            const index_t j   = pattern->mainPattern->index[iptr_ij];
+            const double m_ij = fct->mass_matrix->mainBlock->val[iptr_ij];
+            // this is in fact -d_ij
+            const double d_ij = fct->transport_matrix->mainBlock->val[iptr_ij]+
+                fct->iteration_matrix->mainBlock->val[iptr_ij];
+            const double u_old_j = u_old[j];
+            const double u_j = u[j];
 
-      #pragma ivdep
-      for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-        const index_t j      = pattern->mainPattern->index[iptr_ij];
-        const double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
-        const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
-        const double u_old_j = u_old[j];
-        const double u_j     = u[j];
+            // (m_{ij} - dt (1-theta) d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt theta d_{ij}) (u[j]-u[i])
+            flux_matrix->mainBlock->val[iptr_ij] =
+                (m_ij+dt_half*d_ij)*(u_old_j-u_old_i) -
+                        (m_ij-dt_half*d_ij)*(u_j-u_i);
 
-        /* (m_{ij} - dt (1-theta) d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt theta d_{ij}) (u[j]-u[i]) */
-        flux_matrix->mainBlock->val[iptr_ij]=(m_ij+dt_half*d_ij)*(u_old_j-u_old_i) - (m_ij-dt_half*d_ij)*(u_j-u_i);
-
-      }
-      #pragma ivdep
-      for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-        const index_t j      = pattern->col_couplePattern->index[iptr_ij];
-        const double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
-        const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij]; /* this is in fact -d_ij */
-        const double u_old_j = remote_u_old[j];
-        const double u_j     = remote_u[j];
-        flux_matrix->col_coupleBlock->val[iptr_ij]=(m_ij+dt_half*d_ij)*(u_old_j-u_old_i)- (m_ij-dt_half*d_ij)*(u_j-u_i);
-      }
-  }
+        }
+        #pragma ivdep
+        for (index_t iptr_ij = pattern->col_couplePattern->ptr[i];
+                   iptr_ij < pattern->col_couplePattern->ptr[i+1]; iptr_ij++) {
+            const index_t j = pattern->col_couplePattern->index[iptr_ij];
+            const double m_ij = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
+            // this is in fact -d_ij
+            const double d_ij =
+                fct->transport_matrix->col_coupleBlock->val[iptr_ij] +
+                fct->iteration_matrix->col_coupleBlock->val[iptr_ij];
+            const double u_old_j = remote_u_old[j];
+            const double u_j = remote_u[j];
+            flux_matrix->col_coupleBlock->val[iptr_ij] =
+                (m_ij+dt_half*d_ij)*(u_old_j-u_old_i) -
+                        (m_ij-dt_half*d_ij)*(u_j-u_i);
+        }
+    }
 }
 
-void Paso_FCT_setAntiDiffusionFlux_BE(paso::SystemMatrix_ptr flux_matrix,
-                                      const Paso_TransportProblem* fct,
-                                      const double dt,
-                                      paso::const_Coupler_ptr u_coupler,
-                                      paso::const_Coupler_ptr u_old_coupler)
+void FCT_Solver::setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix)
 {
-  dim_t i;
-  index_t iptr_ij;
+    const double* u = u_coupler->borrowLocalData();
+    const double* u_old = u_old_coupler->borrowLocalData();
+    const double* remote_u = u_coupler->borrowRemoteData();
+    const double* remote_u_old = u_old_coupler->borrowRemoteData();
+    const_TransportProblem_ptr fct(transportproblem);
+    const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
+    const dim_t n = fct->iteration_matrix->getTotalNumRows();
 
-  const double *u = u_coupler->borrowLocalData();
-  const double *u_old = u_old_coupler->borrowLocalData();
-  const double *remote_u = u_coupler->borrowRemoteData();
-  const double *remote_u_old = u_old_coupler->borrowRemoteData();
-  paso::const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
-  const dim_t n = fct->iteration_matrix->getTotalNumRows();
+#pragma omp parallel for
+    for (dim_t i = 0; i < n; ++i) {
+        const double u_i = u[i];
+        const double u_old_i = u_old[i];
+        #pragma ivdep
+        for (index_t iptr_ij = pattern->mainPattern->ptr[i];
+                     iptr_ij < pattern->mainPattern->ptr[i+1]; iptr_ij++) {
+            const index_t j = pattern->mainPattern->index[iptr_ij];
+            const double m_ij = fct->mass_matrix->mainBlock->val[iptr_ij];
+            // this is in fact -d_ij
+            const double d_ij = fct->transport_matrix->mainBlock->val[iptr_ij]+
+                fct->iteration_matrix->mainBlock->val[iptr_ij];
+            const double u_old_j = u_old[j];
+            const double u_j = u[j];
 
-  #pragma omp parallel for schedule(static) private(i, iptr_ij)
-  for (i = 0; i < n; ++i) {
-      const double u_i     = u[i];
-      const double u_old_i = u_old[i];
-      #pragma ivdep
-      for (iptr_ij=pattern->mainPattern->ptr[i]; iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+            flux_matrix->mainBlock->val[iptr_ij] =
+                m_ij*(u_old_j-u_old_i) - (m_ij-dt*d_ij)*(u_j-u_i);
+        }
+        #pragma ivdep
+        for (index_t iptr_ij = pattern->col_couplePattern->ptr[i];
+                   iptr_ij < pattern->col_couplePattern->ptr[i+1]; iptr_ij++) {
+            const index_t j = pattern->col_couplePattern->index[iptr_ij];
+            const double m_ij = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
+            // this is in fact -d_ij
+            const double d_ij =
+                fct->transport_matrix->col_coupleBlock->val[iptr_ij] +
+                fct->iteration_matrix->col_coupleBlock->val[iptr_ij];
+            const double u_old_j = remote_u_old[j];
+            const double u_j = remote_u[j];
 
-        const index_t j      = pattern->mainPattern->index[iptr_ij];
-        const double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
-        const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
-        const double u_old_j = u_old[j];
-        const double u_j     = u[j];
-
-        flux_matrix->mainBlock->val[iptr_ij]=m_ij*(u_old_j-u_old_i)- (m_ij-dt*d_ij)*(u_j-u_i);
-      }
-      #pragma ivdep
-      for (iptr_ij=pattern->col_couplePattern->ptr[i]; iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-        const index_t j      = pattern->col_couplePattern->index[iptr_ij];
-        const double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij]; /* this is in fact -d_ij */
-        const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];
-        const double u_old_j = remote_u_old[j];
-        const double u_j     = remote_u[j];
-
-        flux_matrix->col_coupleBlock->val[iptr_ij]=m_ij*(u_old_j-u_old_i)- (m_ij-dt*d_ij)*(u_j-u_i);
-      }
-  }
+            flux_matrix->col_coupleBlock->val[iptr_ij] =
+                m_ij*(u_old_j-u_old_i) - (m_ij-dt*d_ij)*(u_j-u_i);
+        }
+    }
 }
 
-/* special version of the ant-diffusive fluxes for the linear Crank-Nicolson scheme
- * in fact this is evaluated for u = 2*u_tilde - u_old which is the predictor
- * of the solution of the the stabilised problem at time dt using the forward Euler scheme
+/* special version of the ant-diffusive fluxes for the linear Crank-Nicolson
+ * scheme. In fact this is evaluated for u = 2*u_tilde - u_old which is the
+ * predictor of the solution of the the stabilised problem at time dt using
+ * the forward Euler scheme
  *
- *   f_{ij} = (m_{ij} - dt/2 d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt/2 d_{ij}) (u[j]-u[i])
+ * f_{ij} = (m_{ij} - dt/2 d_{ij}) (u_old[j]-u_old[i]) - (m_{ij} + dt/2 d_{ij}) (u[j]-u[i])
  *    =  (m_{ij} - dt/2 d_{ij}) * (u_old[j]-u_old[i]) - (m_{ij} + dt/2 d_{ij}) * ( 2*(u_tilde[j]-u_tilde[i]) - (u_old[j] -u_old [i]) )
  *    =  2*  m_{ij} * ( (u_old[j]-u_tilde[j] - (u_old[i]) - u_tilde[i]) ) - dt d_{ij} * (u_tilde[j]-u_tilde[i])
  *
  */
-
-void Paso_FCT_setAntiDiffusionFlux_linearCN(paso::SystemMatrix_ptr flux_matrix,
-                        const Paso_TransportProblem* fct, const double dt,
-                        paso::const_Coupler_ptr u_tilde_coupler,
-                        paso::const_Coupler_ptr u_old_coupler)
+void FCT_Solver::setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix)
 {
-  dim_t i;
-  index_t iptr_ij;
+    const_Coupler_ptr u_tilde_coupler(flux_limiter->u_tilde_coupler);
+    const double* u_tilde = u_tilde_coupler->borrowLocalData();
+    const double* u_old = u_old_coupler->borrowLocalData();
+    const double* remote_u_tilde = u_tilde_coupler->borrowRemoteData();
+    const double* remote_u_old = u_old_coupler->borrowRemoteData();
+    const_TransportProblem_ptr fct(transportproblem);
+    const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
+    const dim_t n = fct->iteration_matrix->getTotalNumRows();
 
-  const double *u_tilde = u_tilde_coupler->borrowLocalData();
-  const double *u_old = u_old_coupler->borrowLocalData();
-  const double *remote_u_tilde = u_tilde_coupler->borrowRemoteData();
-  const double *remote_u_old = u_old_coupler->borrowRemoteData();
-  paso::const_SystemMatrixPattern_ptr pattern(fct->iteration_matrix->pattern);
-  const dim_t n = fct->iteration_matrix->getTotalNumRows();
+#pragma omp parallel for
+    for (dim_t i = 0; i < n; ++i) {
+        const double u_tilde_i = u_tilde[i];
+        const double u_old_i = u_old[i];
+        const double du_i = u_tilde_i - u_old_i;
+        #pragma ivdep
+        for (index_t iptr_ij = pattern->mainPattern->ptr[i];
+                     iptr_ij < pattern->mainPattern->ptr[i+1]; iptr_ij++) {
+            const index_t j = pattern->mainPattern->index[iptr_ij];
+            const double m_ij = fct->mass_matrix->mainBlock->val[iptr_ij];
+            // this is in fact -d_ij
+            const double d_ij = fct->transport_matrix->mainBlock->val[iptr_ij]+
+                fct->iteration_matrix->mainBlock->val[iptr_ij];
+            const double u_tilde_j = u_tilde[j];
+            const double u_old_j = u_old[j];
+            const double du_j = u_tilde_j - u_old_j;
 
-  #pragma omp parallel for schedule(static) private(i, iptr_ij)
-  for (i = 0; i < n; ++i) {
-      const double u_tilde_i = u_tilde[i];
-      const double u_old_i   = u_old[i];
-      const double du_i      = u_tilde_i - u_old_i;
-      #pragma ivdep
-      for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+            flux_matrix->mainBlock->val[iptr_ij] = 2 * m_ij * ( du_i - du_j ) -
+                                          dt * d_ij * ( u_tilde_i - u_tilde_j);
+        }
+        #pragma ivdep
+        for (index_t iptr_ij=pattern->col_couplePattern->ptr[i];
+                     iptr_ij<pattern->col_couplePattern->ptr[i+1]; iptr_ij++) {
 
-          const index_t j      = pattern->mainPattern->index[iptr_ij];
-          const double m_ij    = fct->mass_matrix->mainBlock->val[iptr_ij];
-          const double d_ij    = fct->transport_matrix->mainBlock->val[iptr_ij]+fct->iteration_matrix->mainBlock->val[iptr_ij]; /* this is in fact -d_ij */
-          const double u_tilde_j = u_tilde[j];
-          const double u_old_j = u_old[j];
-          const double du_j    = u_tilde_j - u_old_j;
+            const index_t j = pattern->col_couplePattern->index[iptr_ij];
+            const double m_ij = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
+            // this is in fact -d_ij
+            const double d_ij =
+                fct->transport_matrix->col_coupleBlock->val[iptr_ij] +
+                fct->iteration_matrix->col_coupleBlock->val[iptr_ij];
+            const double u_tilde_j = remote_u_tilde[j];
+            const double u_old_j = remote_u_old[j];
+            const double du_j = u_tilde_j - u_old_j;
 
-          flux_matrix->mainBlock->val[iptr_ij]= 2 * m_ij * ( du_i - du_j ) - dt * d_ij * ( u_tilde_i - u_tilde_j);
-      }
-      #pragma ivdep
-      for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-
-        const index_t j      = pattern->col_couplePattern->index[iptr_ij];
-        const double m_ij    = fct->mass_matrix->col_coupleBlock->val[iptr_ij];
-        const double d_ij    = fct->transport_matrix->col_coupleBlock->val[iptr_ij]+fct->iteration_matrix->col_coupleBlock->val[iptr_ij];/* this is in fact -d_ij */
-        const double u_tilde_j = remote_u_tilde[j];
-        const double u_old_j = remote_u_old[j];
-        const double du_j    = u_tilde_j - u_old_j;
-
-        flux_matrix->col_coupleBlock->val[iptr_ij]= 2 * m_ij * ( du_i - du_j ) - dt * d_ij *  ( u_tilde_i - u_tilde_j);
-
-      }
-  }
-
+            flux_matrix->col_coupleBlock->val[iptr_ij] =
+                2*m_ij * ( du_i - du_j ) - dt * d_ij * (u_tilde_i - u_tilde_j);
+        }
+    }
 }
 
 /****************************************************************************/
+
+double FCT_Solver::getSafeTimeStepSize(TransportProblem_ptr fctp)
+{
+    double dt_max = LARGE_POSITIVE_FLOAT;
+    const dim_t n = fctp->transport_matrix->getTotalNumRows();
+
+    // set low order transport operator
+    setLowOrderOperator(fctp);
+
+    if (Esys_noError()) {
+        // calculate time step size
+        dt_max = LARGE_POSITIVE_FLOAT;
+#pragma omp parallel
+        {
+            double dt_max_loc = LARGE_POSITIVE_FLOAT;
+#pragma omp for schedule(static)
+            for (dim_t i=0; i<n; ++i) {
+                const double l_ii = fctp->main_diagonal_low_order_transport_matrix[i];
+                const double m_i = fctp->lumped_mass_matrix[i];
+                if (m_i > 0) {
+                    if (l_ii<0)
+                        dt_max_loc = MIN(dt_max_loc,m_i/(-l_ii));
+                }
+            }
+            #pragma omp critical
+            {
+                dt_max = MIN(dt_max,dt_max_loc);
+            }
+        }
+#ifdef ESYS_MPI
+        double dt_max_loc = dt_max;
+        MPI_Allreduce(&dt_max_loc, &dt_max, 1, MPI_DOUBLE, MPI_MIN, fctp->mpi_info->comm);
+#endif
+        if (dt_max < LARGE_POSITIVE_FLOAT)
+            dt_max *= 2.;
+    }
+    return dt_max;
+}
 
 /* Creates the low order transport matrix and stores its negative values
  * into the iteration_matrix except for the main diagonal which is stored
@@ -594,74 +578,66 @@ void Paso_FCT_setAntiDiffusionFlux_linearCN(paso::SystemMatrix_ptr flux_matrix,
  *    c[i]-=d_ij
  */
 
-void Paso_FCT_setLowOrderOperator(Paso_TransportProblem * fc)
+void FCT_Solver::setLowOrderOperator(TransportProblem_ptr fc)
 {
-  dim_t i;
-  index_t iptr_ij, iptr_ji;
-  const index_t*  main_iptr=Paso_TransportProblem_borrowMainDiagonalPointer(fc);
+    const index_t* main_iptr = fc->borrowMainDiagonalPointer();
 
-  if (!fc->iteration_matrix.get()) {
-      fc->iteration_matrix.reset(new paso::SystemMatrix(
+    if (!fc->iteration_matrix.get()) {
+        fc->iteration_matrix.reset(new SystemMatrix(
                   fc->transport_matrix->type, fc->transport_matrix->pattern,
                   fc->transport_matrix->row_block_size,
                   fc->transport_matrix->col_block_size, true));
-  }
+    }
 
-  if (Esys_noError()) {
-      paso::const_SystemMatrixPattern_ptr pattern(fc->iteration_matrix->pattern);
-      const dim_t n = fc->iteration_matrix->getTotalNumRows();
-      #pragma omp parallel for private(i, iptr_ij, iptr_ji)  schedule(static)
-      for (i = 0; i < n; ++i) {
-          double sum=fc->transport_matrix->mainBlock->val[main_iptr[i]];
+    const_SystemMatrixPattern_ptr pattern(fc->iteration_matrix->pattern);
+    const dim_t n = fc->iteration_matrix->getTotalNumRows();
+#pragma omp parallel for
+    for (dim_t i = 0; i < n; ++i) {
+        double sum = fc->transport_matrix->mainBlock->val[main_iptr[i]];
+        //printf("sum[%d] = %e -> ", i, sum);
 
-/* printf("sum[%d] = %e -> ", i, sum); */
-          /* look at a[i,j] */
-          for (iptr_ij=pattern->mainPattern->ptr[i];iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-              const index_t j    = pattern->mainPattern->index[iptr_ij];
-              const double rtmp1 = fc->transport_matrix->mainBlock->val[iptr_ij];
-              if (j!=i) {
-                 /* find entry a[j,i] */
-                 #pragma ivdep
-                 for (iptr_ji=pattern->mainPattern->ptr[j]; iptr_ji<pattern->mainPattern->ptr[j+1]; ++iptr_ji) {
+        // look at a[i,j]
+        for (index_t iptr_ij=pattern->mainPattern->ptr[i];iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
+            const index_t j = pattern->mainPattern->index[iptr_ij];
+            const double rtmp1 = fc->transport_matrix->mainBlock->val[iptr_ij];
+            if (j != i) {
+                // find entry a[j,i]
+                #pragma ivdep
+                for (index_t iptr_ji=pattern->mainPattern->ptr[j]; iptr_ji<pattern->mainPattern->ptr[j+1]; ++iptr_ji) {
 
-                    if ( pattern->mainPattern->index[iptr_ji] == i) {
+                    if (pattern->mainPattern->index[iptr_ji] == i) {
                         const double rtmp2=fc->transport_matrix->mainBlock->val[iptr_ji];
-/*
-printf("a[%d,%d]=%e\n",i,j,rtmp1);
-printf("a[%d,%d]=%e\n",j,i,rtmp2);
-*/
-
+                        //printf("a[%d,%d]=%e\n",i,j,rtmp1);
+                        //printf("a[%d,%d]=%e\n",j,i,rtmp2);
                         const double d_ij=-MIN3(0.,rtmp1,rtmp2);
                         fc->iteration_matrix->mainBlock->val[iptr_ij]=-(rtmp1+d_ij);
-/* printf("l[%d,%d]=%e\n",i,j,fc->iteration_matrix->mainBlock->val[iptr_ij]); */
+//printf("l[%d,%d]=%e\n",i,j,fc->iteration_matrix->mainBlock->val[iptr_ij]);
                         sum-=d_ij;
                         break;
                     }
-                 }
-             }
-          }
-          for (iptr_ij=pattern->col_couplePattern->ptr[i];iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-              const index_t    j = pattern->col_couplePattern->index[iptr_ij];
-              const double  rtmp1 = fc->transport_matrix->col_coupleBlock->val[iptr_ij];
-              /* find entry a[j,i] */
-              #pragma ivdep
-              for (iptr_ji=pattern->row_couplePattern->ptr[j]; iptr_ji<pattern->row_couplePattern->ptr[j+1]; ++iptr_ji) {
-                    if (pattern->row_couplePattern->index[iptr_ji]==i) {
-                        const double rtmp2=fc->transport_matrix->row_coupleBlock->val[iptr_ji];
-                        const double d_ij=-MIN3(0.,rtmp1,rtmp2);
-                        fc->iteration_matrix->col_coupleBlock->val[iptr_ij]=-(rtmp1+d_ij);
-                        fc->iteration_matrix->row_coupleBlock->val[iptr_ji]=-(rtmp2+d_ij);
-                        sum-=d_ij;
-                        break;
-                    }
-              }
-         }
-         /* set main diagonal entry */
-         fc->main_diagonal_low_order_transport_matrix[i]=sum;
-/*       printf("%e \n", sum); */
-      }
-
-  }
+                }
+            }
+        }
+        for (index_t iptr_ij=pattern->col_couplePattern->ptr[i];iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
+            const index_t j = pattern->col_couplePattern->index[iptr_ij];
+            const double rtmp1 = fc->transport_matrix->col_coupleBlock->val[iptr_ij];
+            // find entry a[j,i]
+            #pragma ivdep
+            for (index_t iptr_ji=pattern->row_couplePattern->ptr[j]; iptr_ji<pattern->row_couplePattern->ptr[j+1]; ++iptr_ji) {
+                if (pattern->row_couplePattern->index[iptr_ji]==i) {
+                    const double rtmp2=fc->transport_matrix->row_coupleBlock->val[iptr_ji];
+                    const double d_ij=-MIN3(0.,rtmp1,rtmp2);
+                    fc->iteration_matrix->col_coupleBlock->val[iptr_ij]=-(rtmp1+d_ij);
+                    fc->iteration_matrix->row_coupleBlock->val[iptr_ji]=-(rtmp2+d_ij);
+                    sum-=d_ij;
+                    break;
+                }
+            }
+        }
+        // set main diagonal entry
+        fc->main_diagonal_low_order_transport_matrix[i] = sum;
+        //printf("%e\n", sum);
+    }
 }
 
 /*
@@ -669,48 +645,50 @@ printf("a[%d,%d]=%e\n",j,i,rtmp2);
  *       = u_i                                        where m_i<=0
  *
  */
-void Paso_FCT_Solver_setMuPaLu(double* out,
-                               const double* M,
-                               paso::const_Coupler_ptr u_coupler,
-                               const double a,
-                               paso::const_SystemMatrix_ptr L)
+void FCT_Solver::setMuPaLu(double* out, const_Coupler_ptr coupler, double a)
 {
-  dim_t i;
-  paso::const_SystemMatrixPattern_ptr pattern(L->pattern);
-  const double *u = u_coupler->borrowLocalData();
-  const double *remote_u = u_coupler->borrowRemoteData();
-  index_t iptr_ij;
-  const dim_t n = L->getTotalNumRows();
+    const_SystemMatrix_ptr L(transportproblem->iteration_matrix);
+    const double* M = transportproblem->lumped_mass_matrix;
+    const_SystemMatrixPattern_ptr pattern(L->pattern);
+    const double* u = coupler->borrowLocalData();
+    const double* remote_u = coupler->borrowRemoteData();
+    const dim_t n = L->getTotalNumRows();
 
-  #pragma omp parallel for private(i) schedule(static)
-  for (i = 0; i < n; ++i) {
-      if ( M[i] > 0.) {
-          out[i]=M[i]*u[i];
-      } else {
-          out[i]=u[i];
-      }
-  }
-  if (ABS(a)>0) {
-      #pragma omp parallel for schedule(static) private(i, iptr_ij)
-      for (i = 0; i < n; ++i) {
-        if ( M[i] > 0.) {
-          double sum=0;
-          const double u_i=u[i];
-          #pragma ivdep
-          for (iptr_ij=(pattern->mainPattern->ptr[i]);iptr_ij<pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
-               const index_t j=pattern->mainPattern->index[iptr_ij];
-               const double l_ij=L->mainBlock->val[iptr_ij];
-               sum+=l_ij*(u[j]-u_i);
-          }
-          #pragma ivdep
-          for (iptr_ij=(pattern->col_couplePattern->ptr[i]);iptr_ij<pattern->col_couplePattern->ptr[i+1]; ++iptr_ij) {
-               const index_t j=pattern->col_couplePattern->index[iptr_ij];
-               const double l_ij=L->col_coupleBlock->val[iptr_ij];
-               sum+=l_ij*(remote_u[j]-u_i);
-          }
-          out[i]+=a*sum;
+#pragma omp parallel for
+    for (dim_t i = 0; i < n; ++i) {
+        if (M[i] > 0.) {
+            out[i] = M[i]*u[i];
+        } else {
+            out[i] = u[i];
         }
-      }
-  }
+    }
+    if (ABS(a) > 0) {
+#pragma omp parallel for
+        for (dim_t i = 0; i < n; ++i) {
+            if (M[i] > 0.) {
+                double sum = 0;
+                const double u_i = u[i];
+                #pragma ivdep
+                for (index_t iptr_ij = pattern->mainPattern->ptr[i];
+                             iptr_ij < pattern->mainPattern->ptr[i+1];
+                             iptr_ij++) {
+                    const index_t j = pattern->mainPattern->index[iptr_ij];
+                    const double l_ij = L->mainBlock->val[iptr_ij];
+                    sum += l_ij*(u[j]-u_i);
+                }
+                #pragma ivdep
+                for (index_t iptr_ij = pattern->col_couplePattern->ptr[i];
+                             iptr_ij < pattern->col_couplePattern->ptr[i+1];
+                             iptr_ij++) {
+                    const index_t j=pattern->col_couplePattern->index[iptr_ij];
+                    const double l_ij = L->col_coupleBlock->val[iptr_ij];
+                    sum += l_ij*(remote_u[j]-u_i);
+                }
+                out[i] += a*sum;
+            }
+        }
+    }
 }
+
+} // namespace paso
 
