@@ -73,7 +73,7 @@ err_t ReactiveSolver::solve(double* u, double* u_old, const double* source,
     index_t fail_loc = fail;
     MPI_Allreduce(&fail_loc, &fail, 1, MPI_INT, MPI_MAX, tp->mpi_info->comm);
 #endif
-    if (fail < 0) {
+    if (fail > 0) {
         return SOLVER_DIVERGENCE;
     } else {
         return SOLVER_NO_ERROR;

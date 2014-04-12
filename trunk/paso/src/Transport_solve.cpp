@@ -174,7 +174,7 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                 } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
                     Esys_setError(VALUE_ERROR, "TransportProblem::solve: "
                                                "negative norm.");
-                } else {
+                } else if (errorCode != SOLVER_NO_ERROR) {
                     Esys_setError(SYSTEM_ERROR, "TransportProblem::solve: "
                                                 "general error.");
                 }
