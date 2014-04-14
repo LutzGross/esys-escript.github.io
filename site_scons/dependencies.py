@@ -255,7 +255,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [papi_lib_path])
         env.AppendUnique(LIBS = env['papi_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], papi_lib_path)
-        env.Append(CPPDEFINES = ['BLOCKPAPI'])
+        env.Append(CPPDEFINES = ['PAPI'])
         env['buildvars']['papi_inc_path']=papi_inc_path
         env['buildvars']['papi_lib_path']=papi_lib_path
     env['buildvars']['papi']=int(env['papi'])
