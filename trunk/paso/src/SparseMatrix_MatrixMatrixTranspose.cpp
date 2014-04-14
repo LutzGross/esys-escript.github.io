@@ -27,7 +27,6 @@
 *****************************************************************************/
 
 #include "SparseMatrix.h"
-#include "Paso.h"
 
 namespace paso {
 
@@ -1227,7 +1226,7 @@ void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                    A_ik=&(A->val[ik_ptrA*A_block_size]);
                    B_kj=&(T->val[kj_ptrB*B_block_size]);
-                   for (ib=0; ib<MIN(A_block_size, B_block_size); ++ib) C_ij[ib]+=A_ik[ib]*B_kj[ib];
+                   for (ib=0; ib<std::min(A_block_size, B_block_size); ++ib) C_ij[ib]+=A_ik[ib]*B_kj[ib];
                    ik_ptrA ++;
                    kj_ptrB ++;
                    if (ik_ptrA >= ikb || kj_ptrB >= kjb) break;

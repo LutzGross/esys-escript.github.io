@@ -29,12 +29,9 @@
 #ifndef __PASO_SYSTEMMATRIX_H__
 #define __PASO_SYSTEMMATRIX_H__
 
-#include "Common.h"
-#include "Coupler.h"
 #include "SparseMatrix.h"
 #include "SystemMatrixPattern.h"
 #include "Options.h"
-#include "esysUtils/Esys_MPI.h"
 
 namespace paso {
 
@@ -210,7 +207,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     inline double getSparsity() const
     {
         return getGlobalSize() /
-                 (DBLE(getGlobalTotalNumRows())*getGlobalTotalNumCols());
+                 ((double)getGlobalTotalNumRows()*getGlobalTotalNumCols());
     }
 
     inline dim_t getNumOutput() const
@@ -344,7 +341,7 @@ void SystemMatrix_MatrixVector(double alpha, SystemMatrix_ptr A, const double* i
 
 void SystemMatrix_MatrixVector_CSR_OFFSET0(double alpha, SystemMatrix_ptr A, const double* in, double beta, double* out);
 
-void Paso_RHS_loadMM_toCSR(const char* filename, double* b, dim_t size);
+void RHS_loadMM_toCSR(const char* filename, double* b, dim_t size);
 
 
 } // namespace paso

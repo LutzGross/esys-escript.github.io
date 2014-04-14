@@ -35,33 +35,37 @@ namespace paso {
 
 #define TOLERANCE_FOR_SCALARS (double)(0.)
 
+void solve(SystemMatrix_ptr A, double* out, double* in, Options* options);
+
+void solve_free(SystemMatrix* A);
+
 PASO_DLL_API
-void Solver(SystemMatrix_ptr, double*, double*, Options*, Paso_Performance* pp);
+void Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
 
 PASO_DLL_API
 void Solver_free(SystemMatrix*);
 
 err_t Solver_BiCGStab(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
-                      double* tolerance, Paso_Performance* pp);
+                      double* tolerance, Performance* pp);
 
 err_t Solver_PCG(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
-                 double* tolerance, Paso_Performance* pp);
+                 double* tolerance, Performance* pp);
 
 err_t Solver_TFQMR(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
-                   double* tolerance, Paso_Performance* pp);
+                   double* tolerance, Performance* pp);
 
 err_t Solver_MINRES(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
-                    double* tolerance, Paso_Performance* pp);
+                    double* tolerance, Performance* pp);
 
 err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* num_iter,
                    double* tolerance, dim_t length_of_recursion, dim_t restart,
-                   Paso_Performance* pp);
+                   Performance* pp);
 
 err_t Solver_GMRES2(Function* F, const double* f0, const double* x0, double* x,
-                    dim_t* iter, double* tolerance, Paso_Performance* pp);
+                    dim_t* iter, double* tolerance, Performance* pp);
 
 err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
-                         Paso_Performance* pp);
+                         Performance* pp);
 
 } // namespace paso
 

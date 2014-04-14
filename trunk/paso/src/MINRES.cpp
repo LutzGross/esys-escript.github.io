@@ -57,10 +57,8 @@ namespace paso {
 *  ==============================================================
 */
 
-
-
 err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
-                    dim_t* iter, double* tolerance, Paso_Performance* pp)
+                    dim_t* iter, double* tolerance, Performance* pp)
 {
     const dim_t maxit = *iter;
     if (maxit <= 0) {

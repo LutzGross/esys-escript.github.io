@@ -61,12 +61,12 @@ namespace paso {
 #endif
 
 err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                 double* tolerance, Paso_Performance* pp)
+                 double* tolerance, Performance* pp)
 {
     dim_t maxit,num_iter_global, len,rest, np, ipp;
     register double ss,ss1;
     dim_t i0, istart, iend;
-    bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+    bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
     err_t status = SOLVER_NO_ERROR;
     const dim_t n = A->getTotalNumRows();
     double *resid = tolerance;
@@ -85,7 +85,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     chksz_chr=getenv("PASO_CHUNK_SIZE_PCG");
     if (chksz_chr!=NULL) sscanf(chksz_chr, "%d",&chunk_size);
     np=omp_get_max_threads();
-    chunk_size=MIN(MAX(1,chunk_size),n/np);
+    chunk_size=std::min(std::max(1,chunk_size),n/np);
     n_chunks=n/chunk_size;
     if (n_chunks*chunk_size<n) n_chunks+=1;
 #else
@@ -101,7 +101,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
 
     maxit = *iter;
     tol = *resid;
-    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+    Performance_startMonitor(pp, PERFORMANCE_SOLVER);
 
     // initialize data
     #pragma omp parallel private(i0, istart, iend, ipp)
@@ -110,12 +110,12 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         #pragma omp for schedule(dynamic, 1)
         for (ipp=0; ipp < n_chunks; ++ipp) {
             istart=chunk_size*ipp;
-            iend=MIN(istart+chunk_size,n);
+            iend=std::min(istart+chunk_size,n);
 #else
         #pragma omp for schedule(static)
         for (ipp=0; ipp <np; ++ipp) {
-            istart=len*ipp+MIN(ipp,rest);
-            iend=len*(ipp+1)+MIN(ipp+1,rest);
+            istart=len*ipp+std::min(ipp,rest);
+            iend=len*(ipp+1)+std::min(ipp+1,rest);
 #endif
             #pragma ivdep
             for (i0=istart;i0<iend;i0++) {
@@ -144,11 +144,11 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         /* tau=v*r; */
         /* leading to the use of an uninitialised var below */
 
-        Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-        Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
-        A->solvePreconditioner(v,r);
-        Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
-        Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+        Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
+        Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
+        A->solvePreconditioner(v, r);
+        Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
+        Performance_startMonitor(pp, PERFORMANCE_SOLVER);
 
         sum_1 = 0;
         #pragma omp parallel private(i0, istart, iend, ipp, ss)
@@ -158,12 +158,12 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             #pragma omp for schedule(dynamic, 1)
             for (ipp=0; ipp < n_chunks; ++ipp) {
                 istart=chunk_size*ipp;
-                iend=MIN(istart+chunk_size,n);
+                iend=std::min(istart+chunk_size,n);
 #else
             #pragma omp for schedule(static) 
             for (ipp=0; ipp <np; ++ipp) {
-                istart=len*ipp+MIN(ipp,rest);
-                iend=len*(ipp+1)+MIN(ipp+1,rest);
+                istart=len*ipp+std::min(ipp,rest);
+                iend=len*(ipp+1)+std::min(ipp+1,rest);
 #endif
                 #pragma ivdep
                 for (i0=istart;i0<iend;i0++) ss+=v[i0]*r[i0];
@@ -193,12 +193,12 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             #pragma omp for schedule(dynamic, 1)
             for (ipp=0; ipp < n_chunks; ++ipp) {
                      istart=chunk_size*ipp;
-                     iend=MIN(istart+chunk_size,n);
+                     iend=std::min(istart+chunk_size,n);
 #else
             #pragma omp for schedule(static)
             for (ipp=0; ipp <np; ++ipp) {
-                istart=len*ipp+MIN(ipp,rest);
-                iend=len*(ipp+1)+MIN(ipp+1,rest);
+                istart=len*ipp+std::min(ipp,rest);
+                iend=len*(ipp+1)+std::min(ipp+1,rest);
 #endif
                 if (num_iter==1) {
                     #pragma ivdep
@@ -215,11 +215,11 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
 #endif
         }
         // v = A*p
-        Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-        Performance_startMonitor(pp,PERFORMANCE_MVM);
+        Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
+        Performance_startMonitor(pp, PERFORMANCE_MVM);
         SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, p,PASO_ZERO,v);
-        Performance_stopMonitor(pp,PERFORMANCE_MVM);
-        Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+        Performance_stopMonitor(pp, PERFORMANCE_MVM);
+        Performance_startMonitor(pp, PERFORMANCE_SOLVER);
 
         // delta=p*v
         sum_2 = 0;
@@ -230,12 +230,12 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             #pragma omp for schedule(dynamic, 1)
             for (ipp=0; ipp < n_chunks; ++ipp) {
                 istart=chunk_size*ipp;
-                iend=MIN(istart+chunk_size,n);
+                iend=std::min(istart+chunk_size,n);
 #else
             #pragma omp for schedule(static)
             for (ipp=0; ipp <np; ++ipp) {
-                istart=len*ipp+MIN(ipp,rest);
-                iend=len*(ipp+1)+MIN(ipp+1,rest);
+                istart=len*ipp+std::min(ipp,rest);
+                iend=len*(ipp+1)+std::min(ipp+1,rest);
 #endif
                 #pragma ivdep
                 for (i0=istart;i0<iend;i0++) ss+=v[i0]*p[i0];
@@ -256,7 +256,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         delta=sum_2;
         alpha=tau/delta;
 
-        if (! (breakFlag = (ABS(delta) <= TOLERANCE_FOR_SCALARS))) {
+        if (! (breakFlag = (std::abs(delta) <= TOLERANCE_FOR_SCALARS))) {
             // smoother
             sum_3 = 0;
             sum_4 = 0;
@@ -268,12 +268,12 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                 #pragma omp for schedule(dynamic, 1)
                 for (ipp=0; ipp < n_chunks; ++ipp) {
                     istart=chunk_size*ipp;
-                    iend=MIN(istart+chunk_size,n);
+                    iend=std::min(istart+chunk_size,n);
 #else
                 #pragma omp for schedule(static)
                 for (ipp=0; ipp <np; ++ipp) {
-                    istart=len*ipp+MIN(ipp,rest);
-                    iend=len*(ipp+1)+MIN(ipp+1,rest);
+                    istart=len*ipp+std::min(ipp,rest);
+                    iend=len*(ipp+1)+std::min(ipp+1,rest);
 #endif
                     #pragma ivdep
                     for (i0=istart;i0<iend;i0++) {
@@ -303,19 +303,19 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             sum_5 = 0;
             #pragma omp parallel private(i0, istart, iend, ipp, ss, gamma_1,gamma_2)
             {
-                gamma_1= ( (ABS(sum_3)<= PASO_ZERO) ? 0 : -sum_4/sum_3) ;
-                gamma_2= PASO_ONE-gamma_1;
+                gamma_1 = ((std::abs(sum_3)<=PASO_ZERO) ? 0 : -sum_4/sum_3);
+                gamma_2 = PASO_ONE-gamma_1;
                 ss=0;
 #ifdef USE_DYNAMIC_SCHEDULING
                 #pragma omp for schedule(dynamic, 1)
                 for (ipp=0; ipp < n_chunks; ++ipp) {
                     istart=chunk_size*ipp;
-                    iend=MIN(istart+chunk_size,n);
+                    iend=std::min(istart+chunk_size,n);
 #else
                 #pragma omp for schedule(static)
                 for (ipp=0; ipp <np; ++ipp) {
-                    istart=len*ipp+MIN(ipp,rest);
-                    iend=len*(ipp+1)+MIN(ipp+1,rest);
+                    istart=len*ipp+std::min(ipp,rest);
+                    iend=len*(ipp+1)+std::min(ipp+1,rest);
 #endif
                     #pragma ivdep
                     for (i0=istart;i0<iend;i0++) {
@@ -341,7 +341,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             norm_of_residual=sqrt(sum_5);
             convergeFlag = norm_of_residual <= tol;
             maxIterFlag = num_iter > maxit;
-            breakFlag = (ABS(tau) <= TOLERANCE_FOR_SCALARS);
+            breakFlag = (std::abs(tau) <= TOLERANCE_FOR_SCALARS);
         }
     }
     // end of iterations
@@ -352,7 +352,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     } else if (breakFlag) {
         status = SOLVER_BREAKDOWN;
     }
-    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
+    Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
     delete[] rs;
     delete[] x2;
     delete[] v;

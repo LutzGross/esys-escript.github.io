@@ -76,7 +76,7 @@ FCT_Solver::~FCT_Solver()
 }
 
 // modifies the main diagonal of the iteration matrix to introduce new dt
-void FCT_Solver::initialize(double _dt, Options* options, Paso_Performance* pp)
+void FCT_Solver::initialize(double _dt, Options* options, Performance* pp)
 {
     const_TransportProblem_ptr fctp(transportproblem);
     const index_t* main_iptr = fctp->borrowMainDiagonalPointer();
@@ -86,7 +86,7 @@ void FCT_Solver::initialize(double _dt, Options* options, Paso_Performance* pp)
     dim_t i;
     Options options2;
 
-    Paso_solve_free(fctp->iteration_matrix.get());
+    solve_free(fctp->iteration_matrix.get());
     //   fctp->iteration_matrix[i,i]=m[i]/(dt theta) -l[i,i]
     dt = _dt;
     #pragma omp parallel for private(i)
@@ -96,7 +96,7 @@ void FCT_Solver::initialize(double _dt, Options* options, Paso_Performance* pp)
         if ( m_i > 0 ) {
             fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = m_i * omega - l_ii;
         } else {
-            fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = ABS(m_i * omega - l_ii)/(EPSILON*EPSILON);
+            fctp->iteration_matrix->mainBlock->val[main_iptr[i]] = std::abs(m_i * omega - l_ii)/(EPSILON*EPSILON);
         }
     }
 
@@ -111,13 +111,13 @@ void FCT_Solver::initialize(double _dt, Options* options, Paso_Performance* pp)
     options2.use_local_preconditioner = false;
     options2.sweeps = -1;
 
-    Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+    Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
     fctp->iteration_matrix->setPreconditioner(&options2);
-    Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+    Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
 }
 
 // entry point for update procedures
-err_t FCT_Solver::update(double* u, double* u_old, Options* options, Paso_Performance* pp)
+err_t FCT_Solver::update(double* u, double* u_old, Options* options, Performance* pp)
 {
     err_t err_out = SOLVER_NO_ERROR;
 
@@ -134,7 +134,7 @@ err_t FCT_Solver::update(double* u, double* u_old, Options* options, Paso_Perfor
 }
 
 /// linear crank-nicolson update
-err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Paso_Performance *pp)
+err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Performance* pp)
 {
     dim_t sweep_max, i;
     double const RTOL = options->tolerance;
@@ -176,7 +176,7 @@ err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Paso_Per
     // initial guess is u<- -u + 2*u_tilde
     util::update(n, -1., u, 2., flux_limiter->u_tilde);
 
-    sweep_max = MAX((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
+    sweep_max = std::max((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
     norm_u_tilde = util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
     if (options->verbose) {
         printf("FCT_Solver::updateLCN: u_tilde lsup = %e (rtol = %e, max. sweeps = %d)\n", norm_u_tilde, RTOL*norm_u_tilde, sweep_max);
@@ -194,8 +194,8 @@ err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Paso_Per
     return errorCode;
 }
 
-err_t FCT_Solver::updateNL(double* u, double *u_old, Options* options,
-                           Paso_Performance *pp)
+err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
+                           Performance* pp)
 {
     // number of rates >=critical_rate accepted before divergence is triggered
     const dim_t num_critical_rates_max = 3;
@@ -289,7 +289,7 @@ err_t FCT_Solver::updateNL(double* u, double *u_old, Options* options,
             if (m==0) {
                 tol *= 0.5;
             } else {
-                tol *= MIN(MAX(rate*rate, 1e-2), 0.5);
+                tol *= std::min(std::max(rate*rate, 1e-2), 0.5);
             }
             // use BiCGStab with Jacobi preconditioner ( m - omega * L )
             util::zeroes(n,du);
@@ -545,12 +545,12 @@ double FCT_Solver::getSafeTimeStepSize(TransportProblem_ptr fctp)
                 const double m_i = fctp->lumped_mass_matrix[i];
                 if (m_i > 0) {
                     if (l_ii<0)
-                        dt_max_loc = MIN(dt_max_loc,m_i/(-l_ii));
+                        dt_max_loc = std::min(dt_max_loc,m_i/(-l_ii));
                 }
             }
             #pragma omp critical
             {
-                dt_max = MIN(dt_max,dt_max_loc);
+                dt_max = std::min(dt_max,dt_max_loc);
             }
         }
 #ifdef ESYS_MPI
@@ -662,7 +662,7 @@ void FCT_Solver::setMuPaLu(double* out, const_Coupler_ptr coupler, double a)
             out[i] = u[i];
         }
     }
-    if (ABS(a) > 0) {
+    if (std::abs(a) > 0) {
 #pragma omp parallel for
         for (dim_t i = 0; i < n; ++i) {
             if (M[i] > 0.) {

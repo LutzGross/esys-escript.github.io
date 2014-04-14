@@ -19,7 +19,6 @@
 
 #include "SystemMatrix.h"
 #include "BOOMERAMG.h"
-#include "MergedSolver.h"
 
 #define PRECONDITIONER_NO_ERROR 0
 #define PRECONDITIONER_MAXITER_REACHED 1
@@ -31,6 +30,7 @@
 
 namespace paso {
 
+struct MergedSolver;
 struct Preconditioner;
 typedef boost::shared_ptr<Preconditioner> Preconditioner_ptr;
 typedef boost::shared_ptr<const Preconditioner> const_Preconditioner_ptr;
@@ -45,16 +45,15 @@ struct Preconditioner
 {
     dim_t type;
     dim_t sweeps;
-    /* jacobi preconditioner */
+    /// Jacobi preconditioner
     Preconditioner_Smoother* jacobi;
-    /* Gauss-Seidel preconditioner */
+    /// Gauss-Seidel preconditioner
     Preconditioner_Smoother* gs;  
-    /* amg preconditioner */
-    Preconditioner_AMG_Root *amg;
-
-    /* ilu preconditioner */
+    /// AMG preconditioner
+    Preconditioner_AMG_Root* amg;
+    /// ILU preconditioner
     Solver_ILU* ilu;
-    /* rilu preconditioner */
+    /// RILU preconditioner
     Solver_RILU* rilu;
 };
 
@@ -80,10 +79,6 @@ struct Preconditioner_Smoother
 
 void Preconditioner_Smoother_free(Preconditioner_Smoother * in);
 void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother * in);
-
-void Paso_solve(SystemMatrix_ptr A, double* out, double* in, Options* options);
-
-void Paso_solve_free(SystemMatrix* A);
 
 Preconditioner_Smoother* Preconditioner_Smoother_alloc(
         SystemMatrix_ptr A, bool jacobi, bool is_local, bool verbose);
@@ -117,7 +112,14 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* gs, double* x);
 
 
-/* Local preconditioner */
+typedef enum 
+{
+    PASO_AMG_UNDECIDED=-1,
+    PASO_AMG_IN_F=0,
+    PASO_AMG_IN_C=1
+} AMGBlockSelect;
+
+/// Local preconditioner
 struct Preconditioner_AMG
 {
     dim_t level;
@@ -182,8 +184,9 @@ SparseMatrix_ptr Preconditioner_AMG_mergeSystemMatrix(SystemMatrix_ptr A);
 
 void Preconditioner_AMG_mergeSolve(Preconditioner_AMG* amg);
 
-/* Local AMG preconditioner */
-struct Preconditioner_LocalAMG {
+/// Local AMG preconditioner
+struct Preconditioner_LocalAMG
+{
    dim_t level;
    SparseMatrix_ptr A_C;  /* coarse level matrix */
    SparseMatrix_ptr P;    /* prolongation n x n_C*/ 
@@ -224,16 +227,6 @@ dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG
 void Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, AMGBlockSelect*split_marker);
 
 
-struct Preconditioner_BoomerAMG
-{
-    Paso_BOOMERAMG_Handler* pt;
-};
-
-void Preconditioner_BoomerAMG_free(Preconditioner_BoomerAMG * in);
-Preconditioner_BoomerAMG* Preconditioner_BoomerAMG_alloc(SystemMatrix_ptr A, Options* options);
-void Preconditioner_BoomerAMG_solve(SystemMatrix_ptr A, Preconditioner_BoomerAMG * amg, double * x, double * b);
-
-
 struct Preconditioner_AMG_Root 
 {
   bool is_local;
@@ -248,14 +241,13 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A, Optio
 void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root * in);
 void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A, Preconditioner_AMG_Root * amg, double * x, double * b);
 
-/*===============================================*/
-/* ILU preconditioner */
+/// ILU preconditioner
 struct Solver_ILU
 {
     double* factors;
 };
 
-/* RILU preconditioner */
+/// RILU preconditioner
 struct Solver_RILU
 {
     dim_t n;
@@ -277,8 +269,6 @@ struct Solver_RILU
     Solver_RILU* RILU_of_Schur;
 };
 
-
-/*******************************************/
 void Solver_ILU_free(Solver_ILU * in);
 Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose);
 void Solver_solveILU(SparseMatrix_ptr A, Solver_ILU* ilu, double* x, const double* b);

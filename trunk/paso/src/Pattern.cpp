@@ -58,8 +58,8 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
             for (dim_t i=0; i < numOut; ++i) {
                 if (inPtr[i] < inPtr[i+1]) {
                     qsort(&(idx[inPtr[i]-1]),(size_t)(inPtr[i+1]-inPtr[i]),sizeof(index_t), util::comparIndex);
-                    loc_min_index = MIN(loc_min_index, idx[inPtr[i]-1]);
-                    loc_max_index = MAX(loc_max_index, idx[inPtr[i+1]-2]);
+                    loc_min_index = std::min(loc_min_index, idx[inPtr[i]-1]);
+                    loc_max_index = std::max(loc_max_index, idx[inPtr[i+1]-2]);
                 }
             }
         } else {
@@ -67,15 +67,15 @@ Pattern::Pattern(int ntype, dim_t numOut, dim_t numIn, index_t* inPtr,
             for (dim_t i=0; i < numOut; ++i) {
                 if (inPtr[i] < inPtr[i+1]) {
                     qsort(&(idx[inPtr[i]]),(size_t)(inPtr[i+1]-inPtr[i]),sizeof(index_t), util::comparIndex);
-                    loc_min_index = MIN(loc_min_index, idx[inPtr[i]]);
-                    loc_max_index = MAX(loc_max_index, idx[inPtr[i+1]-1]);
+                    loc_min_index = std::min(loc_min_index, idx[inPtr[i]]);
+                    loc_max_index = std::max(loc_max_index, idx[inPtr[i+1]-1]);
                 }
             }
         }
         #pragma omp critical
         {
-            min_index=MIN(loc_min_index, min_index);
-            max_index=MAX(loc_max_index, max_index);
+            min_index=std::min(loc_min_index, min_index);
+            max_index=std::max(loc_max_index, max_index);
         }
       } // parallel section
 

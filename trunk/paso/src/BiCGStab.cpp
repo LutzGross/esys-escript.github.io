@@ -76,7 +76,7 @@ namespace paso {
 */
 
 err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                      double* tolerance, Paso_Performance* pp)
+                      double* tolerance, Performance* pp)
 {
   /* Local variables */
   double *rtld=NULL,*p=NULL,*v=NULL,*t=NULL,*phat=NULL,*shat=NULL,*s=NULL;/*, *buf1=NULL, *buf0=NULL;*/
@@ -87,7 +87,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
 #endif
   dim_t num_iter=0,maxit,num_iter_global=0;
   dim_t i0;
-  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+  bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
   dim_t status = SOLVER_NO_ERROR;
   double *resid = tolerance;
   dim_t n = A->getTotalNumRows();
@@ -111,9 +111,9 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     tol = *resid;
    
     num_iter =0;
-    convergeFlag=FALSE;
-    maxIterFlag=FALSE;
-    breakFlag=FALSE;
+    convergeFlag=false;
+    maxIterFlag=false;
+    breakFlag=false;
 
     /* initialise arrays */
  
@@ -146,7 +146,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
       #endif
       rho = sum_1;
       
-      if (! (breakFlag = (ABS(rho) <= TOLERANCE_FOR_SCALARS))) {
+      if (! (breakFlag = (std::abs(rho) <= TOLERANCE_FOR_SCALARS))) {
         /*        Compute vector P. */
       
         if (num_iter > 1) {
@@ -169,7 +169,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
            loc_sum[0] = sum_2;
             MPI_Allreduce(loc_sum, &sum_2, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
         #endif
-        if (! (breakFlag = (ABS(sum_2) <= TOLERANCE_FOR_SCALARS))) {
+        if (! (breakFlag = (std::abs(sum_2) <= TOLERANCE_FOR_SCALARS))) {
            alpha = rho / sum_2;
 
            #pragma omp parallel for private(i0) reduction(+:sum_3) schedule(static) 
@@ -188,8 +188,8 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
            if ( (convergeFlag = (norm_of_residual <= tol)) ) {
              #pragma omp parallel for  private(i0) schedule(static)
              for (i0 = 0; i0 < n; i0++) x[i0] += alpha * phat[i0];
-             maxIterFlag = FALSE;
-             breakFlag = FALSE;
+             maxIterFlag = false;
+             breakFlag = false;
            } else {
              /*           Compute stabilizer vector SHAT and scalar OMEGA. */
              A->solvePreconditioner(&shat[0], &s[0]);
@@ -207,7 +207,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                 omegaNumtr=sum[0];
                 omegaDenumtr=sum[1];
              #endif
-             if (! (breakFlag = (ABS(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
+             if (! (breakFlag = (std::abs(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
                 omega = omegaNumtr / omegaDenumtr;
    
                 #pragma omp parallel for private(i0) reduction(+:sum_4) schedule(static)
@@ -223,7 +223,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                 norm_of_residual = sqrt(sum_4);
                 convergeFlag = norm_of_residual <= tol;
                 maxIterFlag = num_iter > maxit;
-                breakFlag = (ABS(omega) <= TOLERANCE_FOR_SCALARS);
+                breakFlag = (std::abs(omega) <= TOLERANCE_FOR_SCALARS);
               }
            }
         }

@@ -15,7 +15,6 @@
 *****************************************************************************/
 
 
-#include "Common.h"
 #include "Solver.h"
 #include "PasoUtil.h"
 
@@ -23,7 +22,7 @@ namespace paso {
 
 err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
                     double* dx, dim_t* iter, double* tolerance,
-                    Paso_Performance* pp) 
+                    Performance* pp) 
 {
     static double RENORMALIZATION_CONST=0.001;
     const dim_t l=(*iter)+1, iter_max=*iter;

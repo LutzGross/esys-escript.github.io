@@ -15,7 +15,6 @@
 *****************************************************************************/
 
 
-#include "Common.h"
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"
@@ -33,8 +32,7 @@ Function::~Function()
 }
 
 err_t Function::derivative(double* J0w, const double* w, const double* f0,
-                           const double* x0, double* setoff,
-                           Paso_Performance* pp) 
+                           const double* x0, double* setoff, Performance* pp) 
 {
     err_t err = SOLVER_NO_ERROR;
     dim_t i;
@@ -53,12 +51,12 @@ err_t Function::derivative(double* J0w, const double* w, const double* f0,
         for (i=0;i<n;++i) {
             aw=fabs(w[i]);
             if ( aw>ttt ) {
-                local_s=MAX(local_s,fabs(x0[i])/aw);
+                local_s=std::max(local_s,fabs(x0[i])/aw);
             }
         }
 #pragma omp critical
         {
-            s=MAX(s,local_s);
+            s=std::max(s,local_s);
         }
     }
 #ifdef ESYS_MPI
@@ -76,7 +74,7 @@ err_t Function::derivative(double* J0w, const double* w, const double* f0,
         s=s*epsnew;
         //printf("s = %e\n",s);
         util::linearCombination(n,setoff,1.,x0,s,w); 
-        err = call(J0w,setoff,pp);
+        err = call(J0w, setoff, pp);
         if (err==SOLVER_NO_ERROR) {
             util::update(n,1./s,J0w,-1./s,f0); // J0w = (J0w - f0)/epsnew;
             //for (int i=0;i<n; i++) printf("df[%d]=%e %e\n",i,J0w[i],w[i]);

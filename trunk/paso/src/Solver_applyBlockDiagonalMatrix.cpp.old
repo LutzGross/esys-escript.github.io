@@ -35,7 +35,7 @@
 /************************************************************************************/
 
 
-void Paso_Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b) {
+void Solver_applyBlockDiagonalMatrix(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x,double* b) {
      dim_t i;
      register dim_t i3,i9;
      register double b0,b1,b2,D00,D10,D20,D01,D11,D21,D02,D12,D22;

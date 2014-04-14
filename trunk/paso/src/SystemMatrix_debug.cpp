@@ -26,7 +26,8 @@
 *****************************************************************************/
 
 #include "SystemMatrix.h"
-#include "esysUtils/error.h"
+
+#include <cstring> // strcat
 
 namespace paso {
 

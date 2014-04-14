@@ -59,15 +59,14 @@
 *  ==============================================================
 */
 
-#include "Common.h"
-#include "SystemMatrix.h"
 #include "Solver.h"
 
+#include <cstring> // memset&memcpy
 namespace paso {
 
 err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                    double* tolerance, dim_t Length_of_recursion, dim_t restart,
-                   Paso_Performance* pp)
+                   Performance* pp)
 {
     if (Length_of_recursion <= 0) {
         return SOLVER_INPUT_ERROR;
@@ -80,21 +79,21 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
     dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
     dim_t i,z,order, Length_of_mem, th, local_n , rest, n_start ,n_end;
-    bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
+    bool breakFlag=false, maxIterFlag=false, convergeFlag=false,restartFlag=false;
     err_t Status=SOLVER_NO_ERROR;
 
     // adapt original routine parameters
     const dim_t n = A->getTotalNumRows();
-    Length_of_mem=MAX(Length_of_recursion,0)+1;
+    Length_of_mem=std::max(Length_of_recursion,0)+1;
 
     if (restart > 0)
-        restart = MAX(Length_of_recursion, restart);
+        restart = std::max(Length_of_recursion, restart);
 
     X_PRES=new double*[Length_of_mem];
     R_PRES=new double*[Length_of_mem];
     P_PRES=new double*[Length_of_mem];
-    loc_dots=new double[MAX(Length_of_mem+1,3)];
-    dots=new double[MAX(Length_of_mem+1,3)];
+    loc_dots=new double[std::max(Length_of_mem+1,3)];
+    dots=new double[std::max(Length_of_mem+1,3)];
     P_PRES_dot_AP=new double[Length_of_mem];
     R_PRES_dot_P_PRES=new double[Length_of_mem];
     BREAKF=new double[Length_of_mem];
@@ -118,8 +117,8 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     for (th=0;th<num_threads;++th) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
-        n_start=local_n*th+MIN(th,rest);
-        n_end=local_n*(th+1)+MIN(th+1,rest);
+        n_start=local_n*th+std::min(th,rest);
+        n_end=local_n*(th+1)+std::min(th+1,rest);
         memset(&AP[n_start],0,sizeof(double)*(n_end-n_start));
         for(i=0;i<Length_of_mem;++i) {
             memset(&P_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
@@ -135,18 +134,18 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             for (th=0;th<num_threads;++th) {
                 local_n=n/num_threads;
                 rest=n-local_n*num_threads;
-                n_start=local_n*th+MIN(th,rest);
-                n_end=local_n*(th+1)+MIN(th+1,rest);
+                n_start=local_n*th+std::min(th,rest);
+                n_end=local_n*(th+1)+std::min(th+1,rest);
                 memcpy(&R_PRES[0][n_start],&r[n_start],sizeof(double)*(n_end-n_start));
                 memcpy(&X_PRES[0][n_start],&x[n_start],sizeof(double)*(n_end-n_start));
             }
             num_iter_restart=0;
-            restartFlag=FALSE;
+            restartFlag=false;
         }
         ++num_iter;
         ++num_iter_restart;
         /* order is the dimension of the space on which the residual is minimized: */
-        order=MIN(num_iter_restart,Length_of_recursion);
+        order=std::min(num_iter_restart,Length_of_recursion);
         /***                                                                 
          *** calculate new search direction P from R_PRES
          ***/
@@ -164,8 +163,8 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         for (th=0;th<num_threads;++th) {
             local_n=n/num_threads;
             rest=n-local_n*num_threads;
-            n_start=local_n*th+MIN(th,rest);
-            n_end=local_n*(th+1)+MIN(th+1,rest);
+            n_start=local_n*th+std::min(th,rest);
+            n_end=local_n*(th+1)+std::min(th+1,rest);
             if (order==0) {
                 R_PRES_dot_P=PASO_ZERO;
                 #pragma ivdep
@@ -359,9 +358,9 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
          sum_BREAKF=0.;
          #pragma ivdep
          for (i=0;i<order;++i) sum_BREAKF +=BREAKF[i];
-         breakFlag=!((ABS(R_PRES_dot_AP0) > PASO_ZERO) &&  (sum_BREAKF >PASO_ZERO));
+         breakFlag=!((std::abs(R_PRES_dot_AP0) > PASO_ZERO) && (sum_BREAKF >PASO_ZERO));
          if (!breakFlag) {
-            breakFlag=FALSE;
+            breakFlag=false;
             /***
             ***** X_PRES and R_PRES are moved to memory:
             ***/
@@ -389,7 +388,7 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
              X_PRES[0]=save_XPRES;
              P_PRES[0]=save_P_PRES;
 
-             if (ABS(Factor)<=PASO_ZERO) {
+             if (std::abs(Factor)<=PASO_ZERO) {
                   Factor=1.;
                   BREAKF[0]=PASO_ZERO;
              } else {
@@ -410,8 +409,8 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             for (th=0;th<num_threads;++th) {
                local_n=n/num_threads;
                rest=n-local_n*num_threads;
-               n_start=local_n*th+MIN(th,rest);
-               n_end=local_n*(th+1)+MIN(th+1,rest);
+               n_start=local_n*th+std::min(th,rest);
+               n_end=local_n*(th+1)+std::min(th+1,rest);
                if (order==0) {
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
@@ -520,8 +519,8 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
               for (th=0;th<num_threads;++th) {
                   local_n=n/num_threads;
                   rest=n-local_n*num_threads;
-                  n_start=local_n*th+MIN(th,rest);
-                  n_end=local_n*(th+1)+MIN(th+1,rest);
+                  n_start=local_n*th+std::min(th,rest);
+                  n_end=local_n*(th+1)+std::min(th+1,rest);
                   SC1=PASO_ZERO;
                   SC2=PASO_ZERO;
                   #pragma ivdep
@@ -549,8 +548,8 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
               for (th=0;th<num_threads;++th) {
                   local_n=n/num_threads;
                   rest=n-local_n*num_threads;
-                  n_start=local_n*th+MIN(th,rest);
-                  n_end=local_n*(th+1)+MIN(th+1,rest);
+                  n_start=local_n*th+std::min(th,rest);
+                  n_end=local_n*(th+1)+std::min(th+1,rest);
                   L2_R=PASO_ZERO;
                   #pragma ivdep
                   for (z=n_start; z < n_end; ++z) {
@@ -573,8 +572,8 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
               convergeFlag = (norm_of_residual <= tol);
               if (restart>0) restartFlag=(num_iter_restart >= restart);
             } else { 
-              convergeFlag=FALSE;
-              restartFlag=FALSE;
+              convergeFlag=false;
+              restartFlag=false;
             }
             maxIterFlag = (num_iter >= maxit);
          }

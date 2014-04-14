@@ -25,9 +25,9 @@
 
 /****************************************************************************/
 
-#define SHOW_TIMING FALSE
-#define USE_TRANSPOSE TRUE
-#define SMALL_PANEL TRUE
+#define SHOW_TIMING false
+#define USE_TRANSPOSE true
+#define SMALL_PANEL true
 
 #include "Paso.h"
 #include "Preconditioner.h"
@@ -156,7 +156,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
          /* in BoomerAMG if interpolation is used FF connectivity is required: */
          if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
                              Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);  
-         options->coarsening_selection_time=Esys_timer()-time0 + MAX(0, options->coarsening_selection_time);
+         options->coarsening_selection_time=Esys_timer()-time0 + std::max(0., options->coarsening_selection_time);
          
          if (Esys_noError() ) {
             #pragma omp parallel for private(i) schedule(static)
@@ -165,7 +165,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
             /*
                count number of unknowns to be eliminated:
             */
-            n_F=util::cumsum_maskedTrue(n,counter, F_marker);
+            n_F=util::cumsum_maskedTrue(n,counter, (int*)F_marker);
             n_C=n-n_F;
             if (verbose) printf("Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
          
@@ -207,7 +207,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
                               }
                            }
                            /*  create mask of C nodes with value >-1 gives new id */
-                           i=util::cumsum_maskedFalse(n,counter, F_marker);
+                           i=util::cumsum_maskedFalse(n,counter, (int*)F_marker);
 
                            #pragma omp parallel for private(i) schedule(static)
                            for (i = 0; i < n; ++i) {
@@ -314,7 +314,7 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
 
      /* presmoothing */
      time0=Esys_timer();
-     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, FALSE); 
+     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, false); 
      time0=Esys_timer()-time0;
      if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0); 
      /* end of presmoothing */
@@ -336,7 +336,7 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
                   UMFPACK_solve(amg->A_C, amg->x_C,amg->b_C, amg->refinements, SHOW_TIMING);
                   break;
                case (PASO_SMOOTHER):
-                  Preconditioner_LocalSmoother_solve(amg->A_C, reinterpret_cast<Preconditioner_LocalSmoother*>(amg->A_C->solver_p),amg->x_C,amg->b_C,pre_sweeps+post_sweeps, FALSE);
+                  Preconditioner_LocalSmoother_solve(amg->A_C, reinterpret_cast<Preconditioner_LocalSmoother*>(amg->A_C->solver_p),amg->x_C,amg->b_C,pre_sweeps+post_sweeps, false);
                   break;
             }
             if (SHOW_TIMING)
@@ -351,7 +351,7 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
     
      /*solve Ax=b with initial guess x */
      time0=Esys_timer();
-     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, TRUE); 
+     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, true); 
      time0=Esys_timer()-time0;
      if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
      /*end of postsmoothing*/
@@ -374,33 +374,33 @@ void Preconditioner_LocalAMG_setStrongConnections(SparseMatrix_ptr A,
 
 #pragma omp parallel for private(i,iptr) schedule(static)
     for (i=0;i<n;++i) {        
-        register double max_offdiagonal = 0.;
+        double max_offdiagonal = 0.;
         register double sum_row=0;
         register double main_row=0;
         #pragma ivdep
         for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
             register index_t j=A->pattern->index[iptr];
-            register double fnorm=ABS(A->val[iptr]);
+            const double fnorm=std::abs(A->val[iptr]);
             
-            if( j != i) {
-               max_offdiagonal = MAX(max_offdiagonal,fnorm);
-               sum_row+=fnorm;
+            if(j != i) {
+                max_offdiagonal = std::max(max_offdiagonal,fnorm);
+                sum_row+=fnorm;
             } else {
-               main_row=fnorm;
+                main_row=fnorm;
             }
         }
         {
             const double threshold = theta*max_offdiagonal;
             register dim_t kdeg=0;
             if (tau*main_row < sum_row) { /* no diagonal dominance */
-               #pragma ivdep
-               for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
-                  register index_t j=A->pattern->index[iptr];
-                  if(ABS(A->val[iptr])>threshold && i!=j) {
-                     S[A->pattern->ptr[i]+kdeg] = j;
-                     kdeg++;
-                  }
-               }
+                #pragma ivdep
+                for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
+                    register index_t j=A->pattern->index[iptr];
+                    if (std::abs(A->val[iptr])>threshold && i!=j) {
+                        S[A->pattern->ptr[i]+kdeg] = j;
+                        kdeg++;
+                    }
+                }
             }
             degree_S[i]=kdeg;
         }
@@ -429,30 +429,30 @@ void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A,
          double* rtmp=NULL;
 
          #pragma omp for schedule(static)
-         for (i=0;i<n;++i) max_deg=MAX(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
+         for (i=0;i<n;++i) max_deg=std::max(max_deg, A->pattern->ptr[i+1]-A->pattern->ptr[i]);
       
          rtmp=new double[max_deg];
       
          #pragma omp for schedule(static)
          for (i=0;i<n;++i) {
          
-            register double max_offdiagonal = 0.;
+            double max_offdiagonal = 0.;
             register double sum_row=0;
             register double main_row=0;
 
             for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; ++iptr) {
                register index_t j=A->pattern->index[iptr];
-               register double fnorm=0;
+               double fnorm=0;
                #pragma ivdep
                for(bi=0;bi<n_block*n_block;++bi) {
-                   register double rtmp2 = A->val[iptr*n_block*n_block+bi];
+                   const double rtmp2 = A->val[iptr*n_block*n_block+bi];
                    fnorm+=rtmp2*rtmp2;
                }
                fnorm=sqrt(fnorm);
 
                rtmp[iptr-A->pattern->ptr[i]]=fnorm;
                if( j != i) {
-                  max_offdiagonal = MAX(max_offdiagonal,fnorm);
+                  max_offdiagonal = std::max(max_offdiagonal,fnorm);
                   sum_row+=fnorm;
                } else {
                   main_row=fnorm;
@@ -479,223 +479,217 @@ void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A,
 }
 
 /* the Runge Stueben coarsening algorithm: */
-void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset_S,
-                                                const dim_t* degree_S, const index_t* S, 
-                                                AMGBlockSelect*split_marker, const bool usePanel)
+void Preconditioner_LocalAMG_RungeStuebenSearch(dim_t n,
+        const index_t* offset_S, const dim_t* degree_S, const index_t* S, 
+        AMGBlockSelect* split_marker, bool usePanel)
 {
-   bool* notInPanel=NULL;
-   index_t *lambda=NULL, *ST=NULL, *panel=NULL, lambda_max, lambda_k;
-   dim_t i,k, p, q, *degree_ST=NULL, len_panel, len_panel_new;
-   register index_t j, itmp;
+    bool* notInPanel=NULL;
+    index_t *lambda=NULL, *ST=NULL, *panel=NULL, lambda_max, lambda_k;
+    dim_t i,k, p, q, *degree_ST=NULL, len_panel, len_panel_new;
+    register index_t j, itmp;
    
-   if (n<=0) return; /* make sure that the return of util::arg_max is not pointing to nirvana */
+    // make sure that the return of util::arg_max is not pointing to nirvana
+    if (n<=0)
+        return;
    
-   lambda=new index_t[n];
-   degree_ST=new dim_t[n]; 
-   ST=new index_t[offset_S[n]];  
-   if (usePanel) {
-      if (!SMALL_PANEL) {
-         notInPanel=new bool[n];
-      }
-      panel=new index_t[n];
-   }
-   
-   
-   
-   if (Esys_noError() ) {
-      /* initialize split_marker: */
-      /* Those unknowns which are not influenced go into F, the rest is available for F or C */
-      #pragma omp parallel for private(i) schedule(static)
-      for (i=0;i<n;++i) {
-         degree_ST[i]=0;
-         if (degree_S[i]>0) {
-            lambda[i]=0;
-            split_marker[i]=PASO_AMG_UNDECIDED;
-         } else {
-            split_marker[i]=PASO_AMG_IN_F;
-            lambda[i]=-1;
-         } 
-      }
-      /* create transpose :*/
-      for (i=0;i<n;++i) {
+    lambda=new index_t[n];
+    degree_ST=new dim_t[n]; 
+    ST=new index_t[offset_S[n]];  
+    if (usePanel) {
+        if (!SMALL_PANEL) {
+            notInPanel=new bool[n];
+        }
+        panel=new index_t[n];
+    }
+
+    if (Esys_noError() ) {
+        /* initialize split_marker: */
+        /* Those unknowns which are not influenced go into F, the rest is available for F or C */
+        #pragma omp parallel for private(i) schedule(static)
+        for (i=0;i<n;++i) {
+            degree_ST[i]=0;
+            if (degree_S[i]>0) {
+                lambda[i]=0;
+                split_marker[i]=PASO_AMG_UNDECIDED;
+            } else {
+                split_marker[i]=PASO_AMG_IN_F;
+                lambda[i]=-1;
+            } 
+        }
+        /* create transpose :*/
+        for (i=0;i<n;++i) {
             for (p=0; p<degree_S[i]; ++p) {
                j=S[offset_S[i]+p];
                ST[offset_S[j]+degree_ST[j]]=i;
                degree_ST[j]++;
             }
-      }
+        }
 
-      /* lambda[i] = |undecided k in ST[i]| + 2 * |F-unknown in ST[i]| */
-      #pragma omp parallel for private(i, j, p, itmp) schedule(static)
-      for (i=0;i<n;++i) {
-         if (split_marker[i]==PASO_AMG_UNDECIDED) {
-            itmp=lambda[i];
-            for (p=0; p<degree_ST[i]; ++p) {
-               j=ST[offset_S[i]+p];
-               if (split_marker[j]==PASO_AMG_UNDECIDED) {
-                  itmp++;
-               } else {  /* at this point there are no C points */
-                  itmp+=2;
-               }
+        /* lambda[i] = |undecided k in ST[i]| + 2 * |F-unknown in ST[i]| */
+        #pragma omp parallel for private(i, j, p, itmp) schedule(static)
+        for (i=0;i<n;++i) {
+            if (split_marker[i]==PASO_AMG_UNDECIDED) {
+                itmp=lambda[i];
+                for (p=0; p<degree_ST[i]; ++p) {
+                    j=ST[offset_S[i]+p];
+                    if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                        itmp++;
+                    } else {  /* at this point there are no C points */
+                        itmp+=2;
+                    }
+                }
+                lambda[i]=itmp;
             }
-            lambda[i]=itmp;
-         }
-      }
-      if (usePanel && !SMALL_PANEL) {
-         #pragma omp parallel for private(i) schedule(static)
-         for (i=0;i<n;++i) notInPanel[i]=TRUE;
-      }
-      /* start search :*/
-      i=util::arg_max(n,lambda); 
-      while (lambda[i]>-1) { /* is there any undecided unknown? */
-         if (SMALL_PANEL) {
-            do {
-               len_panel=0;
-               /* the unknown i is moved to C */
-               split_marker[i]=PASO_AMG_IN_C;
-               lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
+        }
+        if (usePanel && !SMALL_PANEL) {
+            #pragma omp parallel for private(i) schedule(static)
+            for (i=0;i<n;++i)
+                notInPanel[i]=true;
+        }
 
-               /* all undecided unknowns strongly coupled to i are moved to F */
-               for (p=0; p<degree_ST[i]; ++p) {
-                  j=ST[offset_S[i]+p];
+        // start search
+        i=util::arg_max(n,lambda); 
+        while (lambda[i] > -1) { // is there any undecided unknown?
+            if (SMALL_PANEL) {
+                do {
+                    len_panel=0;
+                    // the unknown i is moved to C
+                    split_marker[i]=PASO_AMG_IN_C;
+                    lambda[i]=-1; // lambda from unavailable unknowns is set to -1
 
-                  if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                    // all undecided unknowns strongly coupled to i are moved to F
+                    for (p=0; p<degree_ST[i]; ++p) {
+                        j=ST[offset_S[i]+p];
 
-                     split_marker[j]=PASO_AMG_IN_F;
-                     lambda[j]=-1;
-                     for (q=0; q<degree_S[j]; ++q) {
-                        k=S[offset_S[j]+q];
-                        if (split_marker[k]==PASO_AMG_UNDECIDED) {
-                           lambda[k]++;
-                           panel[len_panel]=k;
-                           len_panel++;
-
-                        } 
-                     }
-
-                  }
-               }
-               for (p=0; p<degree_S[i]; ++p) {
-                  j=S[offset_S[i]+p];
-                  if (split_marker[j]==PASO_AMG_UNDECIDED) {
-                     lambda[j]--;
-                     panel[len_panel]=j;
-                     len_panel++;
-                  }
-               }
-
-               lambda_max=-1;
-               for (q=0; q<len_panel; q++) {
-                  k = panel[q];
-                  j = lambda[k];
-                  if (lambda_max < j) {
-                    lambda_max = j;
-                    i = k;
-                  }
-               } 
-            } while (len_panel>0);
-         } else if (usePanel) {
-            len_panel=0;
-            do {
-               /* the unknown i is moved to C */
-               split_marker[i]=PASO_AMG_IN_C;
-               lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
-               
-               /* all undecided unknowns strongly coupled to i are moved to F */
-               for (p=0; p<degree_ST[i]; ++p) {
-                  j=ST[offset_S[i]+p];
-                  
-                  if (split_marker[j]==PASO_AMG_UNDECIDED) {
-                     
-                     split_marker[j]=PASO_AMG_IN_F;
-                     lambda[j]=-1;
-                     
-                     for (q=0; q<degree_S[j]; ++q) {
-                        k=S[offset_S[j]+q];
-                        if (split_marker[k]==PASO_AMG_UNDECIDED) {
-                           lambda[k]++;
-                           if (notInPanel[k]) { 
-                              notInPanel[k]=FALSE; 
-                              panel[len_panel]=k;
-                              len_panel++; 
-                           }
-
-                        }        /* the unknown i is moved to C */
-                        split_marker[i]=PASO_AMG_IN_C;
-                        lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
-                     }
-                     
-                  }
-               }
-               for (p=0; p<degree_S[i]; ++p) {
-                  j=S[offset_S[i]+p];
-                  if (split_marker[j]==PASO_AMG_UNDECIDED) {
-                     lambda[j]--;
-                     if (notInPanel[j]) { 
-                        notInPanel[j]=FALSE; 
-                        panel[len_panel]=j;
-                        len_panel++; 
-                     }
-                  }
-               }
-
-               /* consolidate panel */
-               /* remove lambda[q]=-1 */
-               lambda_max=-1;
-               i=-1;
-               len_panel_new=0;
-               for (q=0; q<len_panel; q++) {
-                     k=panel[q];
-                     lambda_k=lambda[k];
-                     if (split_marker[k]==PASO_AMG_UNDECIDED) {
-                        panel[len_panel_new]=k;
-                        len_panel_new++;
-
-                        if (lambda_max == lambda_k) {
-                           if (k<i) i=k;
-                        } else if (lambda_max < lambda_k) {
-                           lambda_max =lambda_k;
-                           i=k;
+                        if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                            split_marker[j]=PASO_AMG_IN_F;
+                            lambda[j]=-1;
+                            for (q=0; q<degree_S[j]; ++q) {
+                                k=S[offset_S[j]+q];
+                                if (split_marker[k]==PASO_AMG_UNDECIDED) {
+                                    lambda[k]++;
+                                    panel[len_panel]=k;
+                                    len_panel++;
+                                } 
+                            }
                         }
-                     }
-               }
-               len_panel=len_panel_new;
-            } while (len_panel>0);    
-         } else {
-            /* the unknown i is moved to C */
-            split_marker[i]=PASO_AMG_IN_C;
-            lambda[i]=-1;  /* lambda from unavailable unknowns is set to -1 */
-            
-            /* all undecided unknowns strongly coupled to i are moved to F */
-            for (p=0; p<degree_ST[i]; ++p) {
-               j=ST[offset_S[i]+p];
-               if (split_marker[j]==PASO_AMG_UNDECIDED) {
-            
-                  split_marker[j]=PASO_AMG_IN_F;
-                  lambda[j]=-1;
-            
-                  for (q=0; q<degree_S[j]; ++q) {
-                     k=S[offset_S[j]+q];
-                     if (split_marker[k]==PASO_AMG_UNDECIDED) lambda[k]++;
-                  }
+                    }
+                    for (p=0; p<degree_S[i]; ++p) {
+                        j=S[offset_S[i]+p];
+                        if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                            lambda[j]--;
+                            panel[len_panel]=j;
+                            len_panel++;
+                        }
+                    }
 
-               }
-            }
-            for (p=0; p<degree_S[i]; ++p) {
-               j=S[offset_S[i]+p];
-               if(split_marker[j]==PASO_AMG_UNDECIDED) lambda[j]--;
-            }
+                    lambda_max=-1;
+                    for (q=0; q<len_panel; q++) {
+                        k = panel[q];
+                        j = lambda[k];
+                        if (lambda_max < j) {
+                            lambda_max = j;
+                            i = k;
+                        }
+                    } 
+                } while (len_panel>0);
+            } else if (usePanel) {
+                len_panel=0;
+                do {
+                    // the unknown i is moved to C
+                    split_marker[i]=PASO_AMG_IN_C;
+                    lambda[i]=-1; // lambda from unavailable unknowns is set to -1
+               
+                    // all undecided unknowns strongly coupled to i are moved to F
+                    for (p=0; p<degree_ST[i]; ++p) {
+                        j=ST[offset_S[i]+p];
+                        if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                            split_marker[j]=PASO_AMG_IN_F;
+                            lambda[j]=-1;
+                            for (q=0; q<degree_S[j]; ++q) {
+                                k=S[offset_S[j]+q];
+                                if (split_marker[k]==PASO_AMG_UNDECIDED) {
+                                    lambda[k]++;
+                                    if (notInPanel[k]) { 
+                                        notInPanel[k]=false; 
+                                        panel[len_panel]=k;
+                                        len_panel++; 
+                                    }
+                                } // the unknown i is moved to C
+                                split_marker[i]=PASO_AMG_IN_C;
+                                lambda[i]=-1; // lambda from unavailable unknowns is set to -1
+                            }
+                        }
+                    }
+                    for (p=0; p<degree_S[i]; ++p) {
+                        j=S[offset_S[i]+p];
+                        if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                            lambda[j]--;
+                            if (notInPanel[j]) { 
+                                notInPanel[j]=false; 
+                                panel[len_panel]=j;
+                                len_panel++; 
+                            }
+                        }
+                    }
+
+                    // consolidate panel
+                    // remove lambda[q]=-1
+                    lambda_max=-1;
+                    i=-1;
+                    len_panel_new=0;
+                    for (q=0; q<len_panel; q++) {
+                        k=panel[q];
+                        lambda_k=lambda[k];
+                        if (split_marker[k]==PASO_AMG_UNDECIDED) {
+                            panel[len_panel_new]=k;
+                            len_panel_new++;
+
+                            if (lambda_max == lambda_k) {
+                                if (k<i) i=k;
+                            } else if (lambda_max < lambda_k) {
+                                lambda_max =lambda_k;
+                                i=k;
+                            }
+                        }
+                    }
+                    len_panel=len_panel_new;
+                } while (len_panel>0);    
+            } else {
+                // the unknown i is moved to C
+                split_marker[i]=PASO_AMG_IN_C;
+                lambda[i]=-1; // lambda from unavailable unknowns is set to -1
             
-         }
-         i=util::arg_max(n,lambda);
-      }
+                // all undecided unknowns strongly coupled to i are moved to F
+                for (p=0; p<degree_ST[i]; ++p) {
+                    j=ST[offset_S[i]+p];
+                    if (split_marker[j]==PASO_AMG_UNDECIDED) {
+                        split_marker[j]=PASO_AMG_IN_F;
+                        lambda[j]=-1;
+            
+                        for (q=0; q<degree_S[j]; ++q) {
+                            k=S[offset_S[j]+q];
+                            if (split_marker[k]==PASO_AMG_UNDECIDED)
+                                lambda[k]++;
+                        }
+                    }
+                }
+                for (p=0; p<degree_S[i]; ++p) {
+                    j=S[offset_S[i]+p];
+                    if (split_marker[j]==PASO_AMG_UNDECIDED)
+                        lambda[j]--;
+                }
+            }
+            i=util::arg_max(n,lambda);
+        }
     }
     delete[] lambda;
     delete[] ST;
     delete[] degree_ST;
     if (usePanel) {
         delete[] panel;
-        if (!SMALL_PANEL) delete[] notInPanel;
+        if (!SMALL_PANEL)
+            delete[] notInPanel;
     }
 }
 

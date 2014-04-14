@@ -67,7 +67,7 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
                     printf("Preconditioner: Jacobi preconditioner is used.\n");
                 }
             }
-            prec->jacobi=Preconditioner_Smoother_alloc(A, TRUE, options->use_local_preconditioner, options->verbose);
+            prec->jacobi=Preconditioner_Smoother_alloc(A, true, options->use_local_preconditioner, options->verbose);
             prec->type=PASO_JACOBI;
             prec->sweeps=options->sweeps;
             break;
@@ -147,7 +147,7 @@ void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,
             Solver_solveRILU(prec->rilu, x, b);
             break;
         case PASO_NO_PRECONDITIONER:
-            n = MIN(A->getTotalNumCols(), A->getTotalNumRows());
+            n = std::min(A->getTotalNumCols(), A->getTotalNumRows());
             util::copy(n,x,b);
             break;
     }

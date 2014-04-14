@@ -120,12 +120,12 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
 
     inline double getSize() const
     {
-        return DBLE(len);
+        return (double)len;
     }
 
     inline double getSparsity() const
     {
-        return getSize()/(DBLE(getTotalNumRows())*DBLE(getTotalNumCols()));
+        return getSize() / ((double)getTotalNumRows()*getTotalNumCols());
     }
 
     static SparseMatrix_ptr loadMM_toCSR(const char* filename);

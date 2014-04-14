@@ -29,6 +29,8 @@
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
+#include <cstring> // memset
+
 namespace paso {
 
 /****************************************************************************
@@ -714,7 +716,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
    dim_t len, ll, main_len, len_D_s;
 
    len = A->col_coupleBlock->numCols;
-   len = MAX(A->remote_coupleBlock->numCols, len);
+   len = std::max(A->remote_coupleBlock->numCols, len);
    ll = len + my_n;
    main_len = main_pattern->len;
 
@@ -774,7 +776,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
-                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                         if (!util::samesign(A_ii, A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
                                               D_s[len_D_s]=0.;
@@ -794,7 +796,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i,degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
-                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                         if (!util::samesign(A_ii, A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
                                               D_s[len_D_s]=0.;
@@ -806,7 +808,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                }
 
                                for (q=0;q<len_D_s;++q) s+=D_s[q];
-                               if (ABS(s)>0) {
+                               if (std::abs(s)>0) {
                                    s=A_ij/s;
                                    for (q=0;q<len_D_s;++q) {
                                         if (D_s_offset[q] < main_len) 
@@ -857,7 +859,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
-                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                         if (!util::samesign(A_ii, A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
                                               D_s[len_D_s]=0.;
@@ -876,7 +878,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                     const index_t *where_p_m=(index_t*)bsearch(&counter_C[m+my_n], start_p_couple_i, degree_p_couple_i, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
-                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                         if (!util::samesign(A_ii, A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
                                               D_s[len_D_s]=0.;
@@ -887,7 +889,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                }
 
                                for (q=0;q<len_D_s;++q) s+=D_s[q];
-                               if (ABS(s)>0) {
+                               if (std::abs(s)>0) {
                                    s=A_ij/s;
                                    for (q=0;q<len_D_s;++q) {
                                         if (D_s_offset[q] < main_len)
@@ -905,7 +907,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
               }
 
               /* i has been processed, now we need to do some rescaling */
-              if (ABS(a)>0.) {
+              if (std::abs(a)>0.) {
                    a=-1./a;
                    range = main_pattern->ptr[i + 1];
                    for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {
@@ -945,7 +947,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
     const index_t *ptr_main_A = A->mainBlock->borrowMainDiagonalPointer();
 
     len = A->col_coupleBlock->numCols;
-    len = MAX(A->remote_coupleBlock->numCols, len);
+    len = std::max(A->remote_coupleBlock->numCols, len);
     ll = len + my_n;
     main_len = main_pattern->len;
 #pragma omp parallel private(D_s,D_s_offset,i,ib,start_p_main_i,start_p_couple_i,degree_p_main_i,degree_p_couple_i,range,iPtr,q,range_j,iPtr_j,len_D_s)
@@ -1006,7 +1008,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
-                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                              if (!util::samesign(A_ii[(row_block+1)*ib], A_jm[(row_block+1)*ib])) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
                                               } else {
                                                    D_s[len_D_s*row_block+ib]=0.;
@@ -1027,7 +1029,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          for (ib=0; ib<row_block; ib++) {
-                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                              if (!util::samesign(A_ii[(row_block+1)*ib], A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
                                               } else {
                                                    D_s[len_D_s*row_block+ib]=0.;
@@ -1042,7 +1044,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
                         
-                                   if (ABS(s)>0) {
+                                   if (std::abs(s)>0) {
                                      s=A_ij[(row_block+1)*ib]/s;
                                      for (q=0; q<len_D_s; q++) { 
                                        if (D_s_offset[q] < main_len) 
@@ -1100,7 +1102,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = main_pattern->ptr[i]+ (index_t)(where_p_m-start_p_main_i);
                                          for (ib=0; ib<row_block; ib++) {
-                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                              if (!util::samesign(A_ii[(row_block+1)*ib], A_jm[(row_block+1)*ib])) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
                                               } else {
                                                    D_s[len_D_s*row_block+ib]=0.;
@@ -1122,7 +1124,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = couple_pattern->ptr[i]+ (index_t)(where_p_m-start_p_couple_i);
                                          for (ib=0; ib<row_block; ib++) {
-                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                              if (!util::samesign(A_ii[(row_block+1)*ib], A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
                                               } else {
                                                    D_s[len_D_s*row_block+ib]=0.;
@@ -1138,7 +1140,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
                         
-                                   if (ABS(s)>0) {
+                                   if (std::abs(s)>0) {
                                        s=A_ij[(row_block+1)*ib]/s;
                                        for (q=0;q<len_D_s;++q) {
                                          if (D_s_offset[q] < main_len) 
@@ -1159,7 +1161,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
               /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) { 
                    register double a2=a[ib];
-                   if (ABS(a2)>0.) {
+                   if (std::abs(a2)>0.) {
                         a2=-1./a2;
                         range = main_pattern->ptr[i + 1];
                         for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {

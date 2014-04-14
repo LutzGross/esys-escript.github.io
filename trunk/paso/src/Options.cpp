@@ -28,7 +28,6 @@
 
 #include "Paso.h"
 #include "Options.h"
-#include "esysUtils/Esys_MPI.h"
 
 namespace paso {
 

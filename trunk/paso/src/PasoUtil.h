@@ -29,8 +29,7 @@
 
 /****************************************************************************/
 
-#include "Common.h"
-#include "esysUtils/Esys_MPI.h"
+#include "Paso.h"
 
 namespace paso {
 
@@ -49,9 +48,9 @@ int comparIndex(const void* index1, const void* index2);
 /// calculates the cumulative sum in array and returns the total sum
 index_t cumsum(dim_t N, index_t* array);
 
-index_t cumsum_maskedTrue(dim_t N, index_t* array, AMGBlockSelect* mask);
+index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask);
 
-index_t cumsum_maskedFalse(dim_t N, index_t* array, AMGBlockSelect* mask);
+index_t cumsum_maskedFalse(dim_t N, index_t* array, int* mask);
 
 /// returns the maximum value in integer array
 index_t iMax(dim_t N, const index_t* array);
@@ -102,10 +101,10 @@ inline void AXPY(dim_t N, double* x, double a, const double* y)
     update(N, 1., x, a, y);
 }
 
-/// copies the (short) array source to target using memcpy
-inline void copyShortDouble(dim_t N, const double* source, double* target)
+/// returns true if both arguments have the same sign, false otherwise
+inline bool samesign(double a, double b)
 {
-    memcpy(target, source, sizeof(double)*(size_t)N);
+    return (a>=0 && b>=0) || (a<=0 && b<=0);
 }
 
 } // namespace util

@@ -430,7 +430,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                                     const index_t *where_p_m=(index_t*)bsearch(&counter_C[m], start_p_j,degree_P_j, sizeof(index_t), util::comparIndex);
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
-                                         if (! SAMESIGN(A_ii,A_jm)) {
+                                         if (!util::samesign(A_ii,A_jm)) {
                                               D_s[len_D_s]=A_jm;
                                          } else {
                                               D_s[len_D_s]=0.;
@@ -440,7 +440,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                                     }
                                }
                                for (q=0;q<len_D_s;++q) s+=D_s[q];
-                               if (ABS(s)>0) {
+                               if (std::abs(s)>0) {
                                    s=A_ij/s;
                                    for (q=0;q<len_D_s;++q) {
                                         P_p->val[D_s_offset[q]]+=s*D_s[q];
@@ -452,7 +452,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                      }
                  }
               }  /* i has been processed, now we need to do some rescaling */
-              if (ABS(a)>0.) {
+              if (std::abs(a)>0.) {
                    a=-1./a;
                    for (iPtr=P_p->pattern->ptr[i]; iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
                         P_p->val[iPtr]*=a;
@@ -531,7 +531,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                                     if (! (where_p_m==NULL)) {
                                          const index_t offset_m = P_p->pattern->ptr[i]+ (index_t)(where_p_m-start_p_j);
                                          for (ib=0; ib<row_block; ib++) {
-                                              if (! SAMESIGN(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
+                                              if (!util::samesign(A_ii[(row_block+1)*ib],A_jm[(row_block+1)*ib]) ) {
                                                    D_s[len_D_s*row_block+ib]=A_jm[(row_block+1)*ib];
                                               } else {
                                                    D_s[len_D_s*row_block+ib]=0.;
@@ -545,7 +545,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
                         
-                                   if (ABS(s)>0) {
+                                   if (std::abs(s)>0) {
                                        s=A_ij[(row_block+1)*ib]/s;
                                        for (q=0;q<len_D_s;++q) {
                                             P_p->val[D_s_offset[q]*row_block+ib]+=s*D_s[q*row_block+ib];
@@ -560,7 +560,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
               }  /* i has been processed, now we need to do some rescaling */
               for (ib=0; ib<row_block; ib++) { 
                    register double a2=a[ib];
-                   if (ABS(a2)>0.) {
+                   if (std::abs(a2)>0.) {
                         a2=-1./a2;
                         for (iPtr=P_p->pattern->ptr[i]; iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
                              P_p->val[iPtr*row_block+ib]*=a2;

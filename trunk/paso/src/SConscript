@@ -26,7 +26,6 @@ sources = """
     AMG_Restriction.cpp
     AMG_Root.cpp
     BiCGStab.cpp
-    BlockOps.cpp
     Coupler.cpp
     Distribution.cpp
     FCT_Solver.cpp
@@ -83,7 +82,6 @@ sources = """
 headers = """
     BlockOps.h
     BOOMERAMG.h
-    Common.h
     Coupler.h
     Distribution.h
     FCT_Solver.h

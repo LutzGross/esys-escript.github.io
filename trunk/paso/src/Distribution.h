@@ -28,9 +28,8 @@
 #ifndef __PASO_DISTRIBUTION_H__
 #define __PASO_DISTRIBUTION_H__
 
-#include "Common.h"
+#include "Paso.h"
 #include "PasoUtil.h"
-#include "esysUtils/Esys_MPI.h"
 
 namespace paso {
 

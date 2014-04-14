@@ -18,36 +18,25 @@
 #ifndef INC_ESYS_MEM
 #define INC_ESYS_MEM
 
-/************************************************************************************/
+/****************************************************************************/
 /*   Macros to deal with memory management */
 /********************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 /*    memory allocation:                                      */
 /*    Wise to not use PASO_MALLOC/FREE/REALLOC and            */
 /*    PASO_THREAD... directly. These are only for tailoring   */
 /*    the main macros that follow                             */
-/************************************************************************************/
+/****************************************************************************/
 
 
-/*#if defined(_WIN32) */ /* Use python for memory management on windows. */
-/*
-  #include <python.h>
+#include <stdlib.h>
 
-  #define PASO_MALLOC PyMem_Malloc
-  #define PASO_FREE PyMem_Free
-  #define PASO_REALLOC PyMem_Realloc
+#define PASO_MALLOC malloc
+#define PASO_FREE free
+#define PASO_REALLOC realloc
 
-#else
-*/
-  #include <stdlib.h>
-
-  #define PASO_MALLOC malloc
-  #define PASO_FREE free
-  #define PASO_REALLOC realloc
-
-/*#endif */
 
 /* FIXME: This is not satisfactory.                                */
 /* _ECC, __INTEL_COMPILER, and other                               */
@@ -63,23 +52,6 @@
 #else
   #define PASO_THREAD_MALLOC PASO_MALLOC
   #define PASO_THREAD_FREE PASO_FREE
-#endif
-
-
-/* Prepare for the day that this becomes sharable. */
-/* and we wish to do multi-file optimisations on windows */
-
-#define PASO_DLL_API
-
-#ifdef _WIN32
-#   ifndef PASO_STATIC_LIB
-#      undef PASO_DLL_API
-#      ifdef PASO_EXPORTS
-#         define PASO_DLL_API __declspec(dllexport)
-#      else
-#         define PASO_DLL_API __declspec(dllimport)
-#      endif
-#   endif
 #endif
 
 

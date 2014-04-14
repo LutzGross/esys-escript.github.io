@@ -16,7 +16,7 @@
 
 #include "SystemMatrixAdapter.h" 
 #include <escript/SolverOptions.h>
-#include <paso/Preconditioner.h>
+#include <paso/Solver.h>
 
 using namespace std;
 
@@ -251,7 +251,7 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    in.expand();
    double* out_dp=out.getSampleDataRW(0);        
    double* in_dp=in.getSampleDataRW(0);                
-   Paso_solve(m_system_matrix, out_dp, in_dp, &paso_options);
+   paso::solve(m_system_matrix, out_dp, in_dp, &paso_options);
    pasoToEscriptOptions(&paso_options,options);
    checkPasoError();
 }
@@ -292,7 +292,7 @@ void SystemMatrixAdapter::saveHB(const std::string& filename) const
 void SystemMatrixAdapter::resetValues() const
 {
    m_system_matrix->setValues(0.);
-   Paso_solve_free(m_system_matrix.get());
+   solve_free(m_system_matrix.get());
    checkPasoError();
 }
 

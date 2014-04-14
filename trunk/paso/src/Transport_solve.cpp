@@ -51,7 +51,7 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     const double reduction_after_divergence_factor = 0.5;
     const dim_t num_failures_max=50;
 
-    Paso_Performance pp;
+    Performance pp;
     ReactiveSolver* rsolver=NULL;
     FCT_Solver* fctsolver=NULL;
 

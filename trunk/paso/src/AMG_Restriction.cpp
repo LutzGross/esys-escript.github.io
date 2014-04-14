@@ -29,6 +29,8 @@
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
+#include <cstring> // memcpy
+
 namespace paso {
 
 /****************************************************************************

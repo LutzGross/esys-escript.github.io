@@ -38,7 +38,7 @@
 namespace paso {
 
 err_t ReactiveSolver::solve(double* u, double* u_old, const double* source,
-                            Options* options, Paso_Performance* pp)
+                            Options* options, Performance* pp)
 {
     const double EXP_LIM_MIN = PASO_RT_EXP_LIM_MIN;
     const double EXP_LIM_MAX = PASO_RT_EXP_LIM_MAX;
