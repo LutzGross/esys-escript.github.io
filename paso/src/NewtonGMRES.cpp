@@ -31,19 +31,18 @@
 *
 */
 
-#include "Common.h"
 #include "Solver.h"
 #include "PasoUtil.h"
 
 namespace paso {
 
 err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
-                         Paso_Performance* pp) 
+                         Performance* pp) 
 {
     const double inner_tolerance_safety=.9;
     dim_t gmres_iter;
     double stop_tol, norm2_f,norm2_fo, normsup_f,reduction_f, gmres_tol, rtmp, quad_tolerance;
-    bool convergeFlag=FALSE, maxIterFlag=FALSE, breakFlag=FALSE;
+    bool convergeFlag=false, maxIterFlag=false, breakFlag=false;
     double *f=NULL, *step=NULL;
     err_t Status=SOLVER_NO_ERROR;
     const bool debug=options->verbose;
@@ -109,8 +108,8 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
             // call GMRES to get increment
             gmres_iter=lmaxit;
             gmres_tol=inner_tolerance;
-            Status = Solver_GMRES2(F,f,x,step,&gmres_iter,&gmres_tol,pp);
-            inner_tolerance=MAX(inner_tolerance, gmres_tol/norm2_f);
+            Status = Solver_GMRES2(F, f, x, step, &gmres_iter, &gmres_tol, pp);
+            inner_tolerance=std::max(inner_tolerance, gmres_tol/norm2_f);
             printf("NewtonGMRES: actual rel. inner tolerance = %e\n",inner_tolerance);
             iteration_count+=gmres_iter;
             if ((Status==SOLVER_NO_ERROR) || (Status==SOLVER_MAXITER_REACHED)) {
@@ -128,11 +127,11 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
                     quad_tolerance = inner_tolerance_safety * reduction_f * reduction_f;
                     rtmp=inner_tolerance_safety * inner_tolerance * inner_tolerance;
                     if (rtmp>.1)  {
-                        inner_tolerance=MIN(max_inner_tolerance, MAX(quad_tolerance,rtmp));
+                        inner_tolerance=std::min(max_inner_tolerance, std::max(quad_tolerance,rtmp));
                     } else {
-                        inner_tolerance=MIN(max_inner_tolerance, quad_tolerance); 
+                        inner_tolerance=std::min(max_inner_tolerance, quad_tolerance); 
                     }
-                    inner_tolerance=MIN(max_inner_tolerance, MAX(inner_tolerance, .5*stop_tol/normsup_f));
+                    inner_tolerance=std::min(max_inner_tolerance, std::max(inner_tolerance, .5*stop_tol/normsup_f));
                 }
                 convergeFlag = (normsup_f <= stop_tol);
             } else {

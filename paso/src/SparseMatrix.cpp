@@ -178,7 +178,7 @@ SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
         len = (size_t)(pattern->len)*(size_t)(block_size);
 
         val=new double[len];
-        setValues(DBLE(0));
+        setValues(0.);
     }
 }
 
@@ -490,7 +490,7 @@ void SparseMatrix::setValues(double value)
 
 void SparseMatrix::invMain(double* inv_diag, int* pivot) const
 {
-    index_t failed=0;
+    int failed = 0;
     double A11;
     const dim_t n=numRows;
     const dim_t n_block=row_block_size;
@@ -518,20 +518,20 @@ void SparseMatrix::invMain(double* inv_diag, int* pivot) const
 #pragma omp parallel for private(i, iPtr) schedule(static)
             for (i = 0; i < n; i++) {
                 iPtr = main_ptr[i];
-                Paso_BlockOps_invM_2(&inv_diag[i*4], &val[iPtr*4], &failed);
+                BlockOps_invM_2(&inv_diag[i*4], &val[iPtr*4], &failed);
             }
         } else if (n_block==3) {
 #pragma omp parallel for private(i, iPtr) schedule(static)
             for (i = 0; i < n; i++) {
                 iPtr = main_ptr[i];
-                Paso_BlockOps_invM_3(&inv_diag[i*9], &val[iPtr*9], &failed);
+                BlockOps_invM_3(&inv_diag[i*9], &val[iPtr*9], &failed);
             }
         } else {    
 #pragma omp parallel for private(i, iPtr) schedule(static)
             for (i = 0; i < n; i++) {
                 iPtr = main_ptr[i];
-                Paso_BlockOps_Cpy_N(block_size, &inv_diag[i*block_size], &val[iPtr*block_size]);
-                Paso_BlockOps_invM_N(n_block, &inv_diag[i*block_size], &pivot[i*n_block], &failed);
+                BlockOps_Cpy_N(block_size, &inv_diag[i*block_size], &val[iPtr*block_size]);
+                BlockOps_invM_N(n_block, &inv_diag[i*block_size], &pivot[i*n_block], &failed);
             }
         }
     }
@@ -546,7 +546,7 @@ void SparseMatrix::applyBlockMatrix(double* block_diag, int* pivot, double* x,
     const dim_t n = numRows;
     const dim_t n_block = row_block_size;
     util::copy(n_block*n, x, b);
-    Paso_BlockOps_solveAll(n_block, n, block_diag, pivot, x);
+    BlockOps_solveAll(n_block, n, block_diag, pivot, x);
 }
 
 SparseMatrix_ptr SparseMatrix::getTranspose() const

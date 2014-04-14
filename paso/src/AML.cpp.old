@@ -49,37 +49,37 @@
 #define PASO_COARSENING_IN_C FALSE
 */
 
-void Paso_Coarsening_Local(index_t* marker_F, Paso_SparseMatrix* A,  Paso_Options* options);
-void Paso_Coarsening_Local_Aggregation(Paso_SparseMatrix* A, index_t* marker_F, const double theta);
-void Paso_Coarsening_Local_Aggregation_blk(Paso_SparseMatrix* A, index_t* marker_F, const double theta);
-void Paso_Coarsening_Local_YS(Paso_SparseMatrix* A, index_t* marker_F, const double theta);
-void Paso_Coarsening_Local_YS_blk(Paso_SparseMatrix* A, index_t* marker_F, const double theta);
+void Coarsening_Local(index_t* marker_F, SparseMatrix* A,  Options* options);
+void Coarsening_Local_Aggregation(SparseMatrix* A, index_t* marker_F, const double theta);
+void Coarsening_Local_Aggregation_blk(SparseMatrix* A, index_t* marker_F, const double theta);
+void Coarsening_Local_YS(SparseMatrix* A, index_t* marker_F, const double theta);
+void Coarsening_Local_YS_blk(SparseMatrix* A, index_t* marker_F, const double theta);
 
-void Paso_Coarsening_Local_RS(Paso_SparseMatrix* A, index_t* marker_F, double theta);
+void Coarsening_Local_RS(SparseMatrix* A, index_t* marker_F, double theta);
 
-void Paso_Coarsening_Local_Partition(paso::Pattern* pattern,index_t* marker_F);
-void Paso_Coarsening_Local_greedy(paso::Pattern* pattern, index_t* marker_F);
+void Coarsening_Local_Partition(Pattern* pattern,index_t* marker_F);
+void Coarsening_Local_greedy(Pattern* pattern, index_t* marker_F);
 
 
 
 /*=== REVISE ============*/
-void Paso_Coarsening_Local_greedy_color(paso::Pattern* pattern, index_t* marker_F);
-void Paso_Coarsening_Local_greedy_diag(Paso_SparseMatrix* A, index_t* marker_F, double thershold);
+void Coarsening_Local_greedy_color(Pattern* pattern, index_t* marker_F);
+void Coarsening_Local_greedy_diag(SparseMatrix* A, index_t* marker_F, double thershold);
 
-void Paso_Coarsening_Local_YS_plus(Paso_SparseMatrix* A, index_t* marker_F, double alpha, double taw, double delta);
-void Paso_Coarsening_Local_Standard(Paso_SparseMatrix* A, index_t* marker_F, double theta);
-void Paso_Coarsening_Local_greedy_RS(Paso_SparseMatrix* A, index_t* marker_F, double theta);
-void Paso_Coarsening_Local_greedy_Agg(Paso_SparseMatrix* A, index_t* marker_F, double theta);
+void Coarsening_Local_YS_plus(SparseMatrix* A, index_t* marker_F, double alpha, double taw, double delta);
+void Coarsening_Local_Standard(SparseMatrix* A, index_t* marker_F, double theta);
+void Coarsening_Local_greedy_RS(SparseMatrix* A, index_t* marker_F, double theta);
+void Coarsening_Local_greedy_Agg(SparseMatrix* A, index_t* marker_F, double theta);
 /*dim_t how_many(dim_t n,dim_t* S_i, int value1, dim_t* addedSet, int value2);*/
-void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_F, double theta);
+void Coarsening_Local_Standard_Block(SparseMatrix* A, index_t* marker_F, double theta);
 
-dim_t how_many(dim_t i,paso::Pattern * S, bool_t transpose);
+dim_t how_many(dim_t i,Pattern * S, bool_t transpose);
 dim_t arg_max(dim_t n, dim_t* lambda, dim_t mask);
-paso::Pattern* Paso_Coarsening_Local_getTranspose(paso::Pattern* P);
+Pattern* Coarsening_Local_getTranspose(Pattern* P);
 
-void Paso_Coarsening_Local_getReport(dim_t n,index_t* marker_F);
-void Paso_Coarsening_Local_Read(char *fileName,dim_t n,index_t* marker_F);
-void Paso_Coarsening_Local_Write(char *fileName,dim_t n,index_t* marker_F);
+void Coarsening_Local_getReport(dim_t n,index_t* marker_F);
+void Coarsening_Local_Read(char *fileName,dim_t n,index_t* marker_F);
+void Coarsening_Local_Write(char *fileName,dim_t n,index_t* marker_F);
 
 
 #endif
@@ -89,12 +89,12 @@ void Paso_Coarsening_Local_Write(char *fileName,dim_t n,index_t* marker_F);
 
 /* free all memory used by AMLI                                */
 
-void Paso_Solver_AMLI_System_free(Paso_Solver_AMLI_System * in) {
+void Solver_AMLI_System_free(Solver_AMLI_System * in) {
      dim_t i;
      if (in!=NULL) {
         for (i=0;i<in->block_size;++i) {
-          Paso_Solver_AMLI_free(in->amliblock[i]);
-          Paso_SparseMatrix_free(in->block[i]);
+          Solver_AMLI_free(in->amliblock[i]);
+          SparseMatrix_free(in->block[i]);
         }
         delete in;
      }
@@ -103,22 +103,22 @@ void Paso_Solver_AMLI_System_free(Paso_Solver_AMLI_System * in) {
 
 /* free all memory used by AMLI                                */
 
-void Paso_Solver_AMLI_free(Paso_Solver_AMLI * in) {
+void Solver_AMLI_free(Solver_AMLI * in) {
      if (in!=NULL) {
-        Paso_Preconditioner_LocalSmoother_free(in->Smoother);
+        Preconditioner_LocalSmoother_free(in->Smoother);
 
         delete[] in->inv_A_FF;
         delete[] in->A_FF_pivot;
-        Paso_SparseMatrix_free(in->A_FC);
-        Paso_SparseMatrix_free(in->A_CF);
-        Paso_SparseMatrix_free(in->A);
+        SparseMatrix_free(in->A_FC);
+        SparseMatrix_free(in->A_CF);
+        SparseMatrix_free(in->A);
         if(in->coarsest_level==TRUE) {
         #ifdef MKL
-          Paso_MKL_free1(in->AOffset1);
-          Paso_SparseMatrix_free(in->AOffset1);
+          MKL_free1(in->AOffset1);
+          SparseMatrix_free(in->AOffset1);
         #else
           #ifdef UMFPACK
-          Paso_UMFPACK1_free((Paso_UMFPACK_Handler*)(in->solver));
+          UMFPACK1_free((UMFPACK_Handler*)(in->solver));
           #endif
         #endif
         }
@@ -131,7 +131,7 @@ void Paso_Solver_AMLI_free(Paso_Solver_AMLI * in) {
         delete[] in->x_C;
         delete[] in->b_C;
         in->solver=NULL;
-        Paso_Solver_AMLI_free(in->AMLI_of_Schur);
+        Solver_AMLI_free(in->AMLI_of_Schur);
         delete[] in->b_C;
         delete in;
      }
@@ -156,10 +156,10 @@ to
    then AMLI is applied to S again until S becomes empty
 
 */
-Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Options* options) {
-  Paso_Solver_AMLI* out=NULL;
-  paso::Pattern* temp1=NULL;
-  paso::Pattern* temp2=NULL;
+Solver_AMLI* Solver_getAMLI(SparseMatrix *A_p,dim_t level,Options* options) {
+  Solver_AMLI* out=NULL;
+  Pattern* temp1=NULL;
+  Pattern* temp2=NULL;
   bool_t verbose=options->verbose;
   dim_t n=A_p->numRows;
   dim_t n_block=A_p->row_block_size;
@@ -167,26 +167,26 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
   index_t* counter=NULL;
   index_t iPtr,*index, *where_p, iPtr_s;
   dim_t i,j;
-  Paso_SparseMatrix * schur=NULL;
-  Paso_SparseMatrix * schur_withFillIn=NULL;
+  SparseMatrix * schur=NULL;
+  SparseMatrix * schur_withFillIn=NULL;
   double S=0;
 
  /* char filename[8];
   sprintf(filename,"AMLILevel%d",level);
 
- Paso_SparseMatrix_saveMM(A_p,filename);
+ SparseMatrix_saveMM(A_p,filename);
   */
 
   /*Make sure we have block sizes 1*/
   if (A_p->col_block_size>1) {
-     Esys_setError(TYPE_ERROR,"Paso_Solver_getAMLI: AMLI requires column block size 1.");
+     Esys_setError(TYPE_ERROR,"Solver_getAMLI: AMLI requires column block size 1.");
      return NULL;
   }
   if (A_p->row_block_size>1) {
-     Esys_setError(TYPE_ERROR,"Paso_Solver_getAMLI: AMLI requires row block size 1.");
+     Esys_setError(TYPE_ERROR,"Solver_getAMLI: AMLI requires row block size 1.");
      return NULL;
   }
-  out=new Paso_Solver_AMLI;
+  out=new Solver_AMLI;
   /* identify independent set of rows/columns */
   mis_marker=new index_t[n];
   counter=new index_t[n];
@@ -204,10 +204,10 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
      out->b_F=NULL;
      out->x_C=NULL;
      out->b_C=NULL;
-     out->A=Paso_SparseMatrix_getReference(A_p);
+     out->A=SparseMatrix_getReference(A_p);
      out->Smoother=NULL;
      out->solver=NULL;
-     /*out->GS=Paso_Solver_getGS(A_p,verbose);*/
+     /*out->GS=Solver_getGS(A_p,verbose);*/
      out->level=level;
      out->n=n;
      out->n_F=n+1;
@@ -218,7 +218,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
      if (level==0 || n<=options->min_coarse_matrix_size) {
          out->coarsest_level=TRUE;
          #ifdef MKL
-                  out->AOffset1=Paso_SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->A->pattern,1,1, FALSE);
+                  out->AOffset1=SparseMatrix_alloc(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1, out->A->pattern,1,1, FALSE);
                   #pragma omp parallel for private(i) schedule(static)
                   for (i=0;i<out->A->len;++i) {
                        out->AOffset1->val[i]=out->A->val[i];
@@ -226,14 +226,14 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
          #else
             #ifdef UMFPACK
             #else
-            out->Smoother=Paso_Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
+            out->Smoother=Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
             #endif
          #endif
      } else {
          out->coarsest_level=FALSE;
-         out->Smoother=Paso_Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
+         out->Smoother=Preconditioner_LocalSmoother_alloc(A_p,TRUE,verbose);
 
-         Paso_Coarsening_Local(mis_marker,A_p, options->coarsening_threshold, options->coarsening_method);
+         Coarsening_Local(mis_marker,A_p, options->coarsening_threshold, options->coarsening_method);
 
         #pragma omp parallel for private(i) schedule(static)
         for (i = 0; i < n; ++i) {
@@ -242,7 +242,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
 
         }
 
-        out->n_F=Paso_Util_cumsum(n,counter);
+        out->n_F=Util_cumsum(n,counter);
 
         if (out->n_F==0) {
            out->coarsest_level=TRUE;
@@ -264,7 +264,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
               if (Esys_noError()) {
                  /*#pragma omp parallel for private(i) schedule(static)
                  for (i = 0; i < n; ++i) counter[i]=mis_marker[i];
-                 out->n_F=Paso_Util_cumsum(n,counter);
+                 out->n_F=Util_cumsum(n,counter);
                  */
 
                  /*if(level==3) {
@@ -326,7 +326,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                          /* creates an index for C from mask */
                          #pragma omp parallel for private(i) schedule(static)
                          for (i = 0; i < n; ++i) counter[i]=! mis_marker[i];
-                         Paso_Util_cumsum(n,counter);
+                         Util_cumsum(n,counter);
                          #pragma omp parallel for private(i) schedule(static)
                          for (i = 0; i < out->n_C; ++i) out->rows_in_C[i]=-1;
                          #pragma omp parallel for private(i) schedule(static)
@@ -342,19 +342,19 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
               }
               if ( Esys_noError()) {
                       /* get A_CF block: */
-                      out->A_CF=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
+                      out->A_CF=SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_F,out->rows_in_C,out->mask_F);
                       /* get A_FC block: */
-                      out->A_FC=Paso_SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
+                      out->A_FC=SparseMatrix_getSubmatrix(A_p,out->n_F,out->n_C,out->rows_in_F,out->mask_C);
                       /* get A_CC block: */
-                      schur=Paso_SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
+                      schur=SparseMatrix_getSubmatrix(A_p,out->n_C,out->n_C,out->rows_in_C,out->mask_C);
               }
               if ( Esys_noError()) {
                      /*find the pattern of the schur complement with fill in*/
-                    temp1=paso::Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
-                    temp2=paso::Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
-                    schur_withFillIn=Paso_SparseMatrix_alloc(A_p->type,temp2,1,1, TRUE);
-                    paso::Pattern_free(temp1);
-                    paso::Pattern_free(temp2);
+                    temp1=Pattern_multiply(PATTERN_FORMAT_DEFAULT,out->A_CF->pattern,out->A_FC->pattern);
+                    temp2=Pattern_binop(PATTERN_FORMAT_DEFAULT, schur->pattern, temp1);
+                    schur_withFillIn=SparseMatrix_alloc(A_p->type,temp2,1,1, TRUE);
+                    Pattern_free(temp1);
+                    Pattern_free(temp2);
               }
               if ( Esys_noError()) {
                     /* copy values over*/
@@ -368,14 +368,14 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                                               index,
                                               schur->pattern->ptr[i + 1]-schur->pattern->ptr[i],
                                               sizeof(index_t),
-                                              paso::comparIndex);
+                                              comparIndex);
                          if (where_p!=NULL) {
                                 schur_withFillIn->val[iPtr]=schur->val[iPtr_s+(index_t)(where_p-index)];
                          }
                        }
                     }
-                    Paso_Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
-                    out->AMLI_of_Schur=Paso_Solver_getAMLI(schur_withFillIn,level-1,options);
+                    Solver_updateIncompleteSchurComplement(schur_withFillIn,out->A_CF,out->inv_A_FF,out->A_FF_pivot,out->A_FC);
+                    out->AMLI_of_Schur=Solver_getAMLI(schur_withFillIn,level-1,options);
               }
               /* allocate work arrays for AMLI application */
               if (Esys_noError()) {
@@ -397,8 +397,8 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
                               }
                          }
               }
-            Paso_SparseMatrix_free(schur);
-            Paso_SparseMatrix_free(schur_withFillIn);
+            SparseMatrix_free(schur);
+            SparseMatrix_free(schur_withFillIn);
          }
      }
   }
@@ -411,7 +411,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
      }
      return out;
   } else  {
-     Paso_Solver_AMLI_free(out);
+     Solver_AMLI_free(out);
      return NULL;
   }
 }
@@ -440,7 +440,7 @@ Paso_Solver_AMLI* Paso_Solver_getAMLI(Paso_SparseMatrix *A_p,dim_t level,Paso_Op
 
 */
 
-void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
+void Solver_solveAMLI(Solver_AMLI * amli, double * x, double * b) {
      dim_t i;
      double time0=0;
      double *r=NULL, *x0=NULL,*x_F_temp=NULL;
@@ -450,7 +450,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      dim_t pre_sweeps=amli->pre_sweeps;
 
      #ifdef UMFPACK
-          Paso_UMFPACK_Handler * ptr=NULL;
+          UMFPACK_Handler * ptr=NULL;
      #endif
 
      r=new double[amli->n];
@@ -462,18 +462,18 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
       time0=Esys_timer();
       /*If all unknown are eliminated then Jacobi is the best preconditioner*/
       if (amli->n_F==0 || amli->n_F==amli->n) {
-         Paso_Preconditioner_LocalSmoother_solve(amli->A, amli->Smoother,x,b,1,FALSE);
+         Preconditioner_LocalSmoother_solve(amli->A, amli->Smoother,x,b,1,FALSE);
       }
        else {
        #ifdef MKL
-          Paso_MKL1(amli->AOffset1,x,b,verbose);
+          MKL1(amli->AOffset1,x,b,verbose);
        #else
           #ifdef UMFPACK
-             ptr=(Paso_UMFPACK_Handler *)(amli->solver);
-             Paso_UMFPACK1(&ptr,amli->A,x,b,verbose);
+             ptr=(UMFPACK_Handler *)(amli->solver);
+             UMFPACK1(&ptr,amli->A,x,b,verbose);
              amli->solver=(void*) ptr;
           #else
-          Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,1,FALSE);
+          Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,1,FALSE);
          #endif
        #endif
        }
@@ -483,7 +483,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
      } else {
         /* presmoothing */
          time0=Esys_timer();
-         Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,pre_sweeps,FALSE);
+         Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,pre_sweeps,FALSE);
          time0=Esys_timer()-time0;
          if (verbose) fprintf(stderr,"timing: Presmoothing: %e\n",time0);
         /* end of presmoothing */
@@ -493,7 +493,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
          for (i=0;i<amli->n;++i) r[i]=b[i];
 
          /*r=b-Ax*/
-         Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
+         SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A,x,1.,r);
 
         /* r->[b_F,b_C]     */
         #pragma omp parallel for private(i) schedule(static)
@@ -503,25 +503,25 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
         for (i=0;i<amli->n_C;++i) amli->b_C[i]=r[amli->rows_in_C[i]];
 
         /* x_F=invA_FF*b_F  */
-        Paso_Copy(amli->n_F, amli->x_F,amli->b_F);
-        Paso_BlockOps_solveAll(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,amli->x_F);
+        Copy(amli->n_F, amli->x_F,amli->b_F);
+        BlockOps_solveAll(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,amli->x_F);
 
         /* b_C=b_C-A_CF*x_F */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_CF,amli->x_F,1.,amli->b_C);
+        SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_CF,amli->x_F,1.,amli->b_C);
 
         time0=Esys_timer()-time0;
         if (verbose) fprintf(stderr,"timing: Before next level: %e\n",time0);
 
         /* x_C=AMLI(b_C)     */
-        Paso_Solver_solveAMLI(amli->AMLI_of_Schur,amli->x_C,amli->b_C);
+        Solver_solveAMLI(amli->AMLI_of_Schur,amli->x_C,amli->b_C);
 
         time0=Esys_timer();
 
         /* b_F=-A_FC*x_C */
-        Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_FC,amli->x_C,0.,amli->b_F);
+        SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,amli->A_FC,amli->x_C,0.,amli->b_F);
         /* x_F_temp=invA_FF*b_F  */
-        Paso_Copy(amli->n_F, x_F_temp,amli->b_F);
-        Paso_BlockOps_solveAll(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,x_F_temp);
+        Copy(amli->n_F, x_F_temp,amli->b_F);
+        BlockOps_solveAll(1,amli->n_F,amli->inv_A_FF,amli->A_FF_pivot,x_F_temp);
 
         #pragma omp parallel for private(i) schedule(static)
         for (i=0;i<amli->n_F;++i) {
@@ -543,7 +543,7 @@ void Paso_Solver_solveAMLI(Paso_Solver_AMLI * amli, double * x, double * b) {
 
      /*postsmoothing*/
      time0=Esys_timer();
-     Paso_Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,post_sweeps,TRUE);
+     Preconditioner_LocalSmoother_solve(amli->A,amli->Smoother,x,b,post_sweeps,TRUE);
      time0=Esys_timer()-time0;
      if (verbose) fprintf(stderr,"timing: Postsmoothing: %e\n",time0);
 
@@ -614,13 +614,13 @@ Author: artak@uq.edu.au, l.gross@uq.edu.au
 
 
 
-/*Used in Paso_Coarsening_Local_RS_MI*/
+/*Used in Coarsening_Local_RS_MI*/
 
 /*Computes how many connections unknown i have in S.
 bool_t transpose - TRUE if we want to compute how many strong connection of i in S^T, FALSE otherwise.
 Note that if we first transpose S and then call method on S^T then "transpose" should be set to FALSE.
 */
-dim_t how_many(dim_t i,paso::Pattern * S, bool_t transpose) {
+dim_t how_many(dim_t i,Pattern * S, bool_t transpose) {
    dim_t j,n;
    dim_t total,ltotal;
    index_t *index,*where_p;
@@ -642,7 +642,7 @@ dim_t how_many(dim_t i,paso::Pattern * S, bool_t transpose) {
                                       index,
                                       S->ptr[j + 1]-S->ptr[j],
                                       sizeof(index_t),
-                                      paso::comparIndex);
+                                      comparIndex);
                                       if (where_p!=NULL) {
                                          ltotal++;
                                       }
@@ -673,15 +673,15 @@ dim_t how_many(dim_t i,paso::Pattern * S, bool_t transpose) {
 
 
 
-paso::Pattern* Paso_Coarsening_Local_getTranspose(paso::Pattern* P)
+Pattern* Coarsening_Local_getTranspose(Pattern* P)
 {
-    paso::Pattern *outpattern=NULL;
+    Pattern *outpattern=NULL;
     dim_t C=P->numInput;
     dim_t F=P->numOutput-C;
     dim_t n=C+F;
     dim_t i,j;
     index_t iptr;
-    paso::IndexListArray index_list(C);
+    IndexListArray index_list(C);
 
    /*#pragma omp parallel for private(i,iptr,j) schedule(static)*/
     for (i=0; i<n; ++i) {
@@ -691,14 +691,14 @@ paso::Pattern* Paso_Coarsening_Local_getTranspose(paso::Pattern* P)
         }
     }
 
-    outpattern=paso::Pattern_fromIndexListArray(0, index_list, 0, n, 0);
+    outpattern=Pattern_fromIndexListArray(0, index_list, 0, n, 0);
     return outpattern;
 }
 
 
 /************** BLOCK COARSENING *********************/
 
-void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_F, double theta)
+void Coarsening_Local_Standard_Block(SparseMatrix* A, index_t* marker_F, double theta)
 {
    const dim_t n=A->numRows;
 
@@ -716,13 +716,13 @@ void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_
    double fnorm=0;
    dim_t bi;
 
-   paso::Pattern *S=NULL;
-   paso::Pattern *ST=NULL;
-   paso::IndexListArray index_list(n);
+   Pattern *S=NULL;
+   Pattern *ST=NULL;
+   IndexListArray index_list(n);
 
    time0=Esys_timer();
    k=0;
-   /*Paso_Coarsening_Local_getReport(n,marker_F);*/
+   /*Coarsening_Local_getReport(n,marker_F);*/
    /*printf("Blocks %d %d\n",n_block,A->len);*/
 
    /*S_i={j \in N_i; i strongly coupled to j}*/
@@ -760,8 +760,8 @@ void Paso_Coarsening_Local_Standard_Block(Paso_SparseMatrix* A, index_t* marker_
       }
    }
 
-   S=paso::Pattern_fromIndexListArray(0, index_list, 0, A->pattern->numInput, 0);
-   ST=Paso_Coarsening_Local_getTranspose(S);
+   S=Pattern_fromIndexListArray(0, index_list, 0, A->pattern->numInput, 0);
+   ST=Coarsening_Local_getTranspose(S);
 
    /*printf("Patterns len %d %d\n",S->len,ST->len);*/
 
@@ -814,9 +814,9 @@ if(k==0) {
 
    time0=Esys_timer();
 
-   /*Paso_Coarsening_Local_getReport(n,marker_F);*/
+   /*Coarsening_Local_getReport(n,marker_F);*/
 
-   while (Paso_Util_isAny(n,marker_F,IS_AVAILABLE)) {
+   while (Util_isAny(n,marker_F,IS_AVAILABLE)) {
       if(index_maxlambda<0) {
          break;
       }
@@ -860,7 +860,7 @@ if(k==0) {
                      index,
                      S->ptr[j + 1]-S->ptr[j],
                      sizeof(index_t),
-             paso::comparIndex);
+             comparIndex);
                      if (where_p!=NULL) {
                         marker_F[j]=TRUE;
                         lambda[j]=-1;
@@ -883,18 +883,18 @@ if(k==0) {
    time0=Esys_timer()-time0;
    if (verbose) fprintf(stdout,"timing: Loop : %e\n",time0);
 
-   /*Paso_Coarsening_Local_getReport(n,marker_F);*/
+   /*Coarsening_Local_getReport(n,marker_F);*/
    #pragma omp parallel for private(i) schedule(static)
    for (i=0;i<n;++i)
       if(marker_F[i]==IS_AVAILABLE) {
          marker_F[i]=TRUE;
       }
 
-      /*Paso_Coarsening_Local_getReport(n,marker_F);*/
+      /*Coarsening_Local_getReport(n,marker_F);*/
 
       delete[] lambda;
 
-   paso::Pattern_free(S);
+   Pattern_free(S);
 
    /* swap to TRUE/FALSE in marker_F */
    #pragma omp parallel for private(i) schedule(static)

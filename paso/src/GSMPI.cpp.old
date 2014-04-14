@@ -36,13 +36,13 @@
 
 /* free all memory used by GS                                */
 
-void Paso_Solver_GSMPI_free(Paso_Solver_GS * in) {
+void Solver_GSMPI_free(Solver_GS * in) {
      if (in!=NULL) {
         delete[] in->colorOf;
-        Paso_SparseMatrix_free(in->factors);
+        SparseMatrix_free(in->factors);
         delete[] in->diag;
         delete[] in->main_iptr;
-        paso::Pattern_free(in->pattern);   
+        Pattern_free(in->pattern);   
         delete in;
      }
 }
@@ -51,10 +51,10 @@ void Paso_Solver_GSMPI_free(Paso_Solver_GS * in) {
 /************************************************************************************/
 
 /*   gs->diag saves the matrix of D{-1}
-     This is different from Paso_Solver_getGS(), in which, gs->diag
+     This is different from Solver_getGS(), in which, gs->diag
      is the matrix D. 
 */
-Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
+Solver_GS* Solver_getGSMPI(SparseMatrix * A,bool_t verbose) {
   dim_t n=A->numRows;
   dim_t n_block=A->row_block_size;
   dim_t block_size=A->block_size;
@@ -64,25 +64,25 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
 
   /* allocations: */  
 /*  printf("n_block= %d, n= %d\n", n_block, n); */
-  Paso_Solver_GS* out=new Paso_Solver_GS;
+  Solver_GS* out=new Solver_GS;
   out->colorOf=new index_t[n];
   out->diag=new double[ ((size_t) n) * ((size_t) block_size)];
   /*out->diag=new double[A->len];*/
   out->main_iptr=new index_t[n];
-  out->pattern=paso::Pattern_getReference(A->pattern);
-  out->factors=Paso_SparseMatrix_getReference(A);
+  out->pattern=Pattern_getReference(A->pattern);
+  out->factors=SparseMatrix_getReference(A);
   out->n_block=n_block;
   out->n=n;
 
-  if ( !(Paso_checkPtr(out->colorOf) || Paso_checkPtr(out->main_iptr) || Paso_checkPtr(out->factors)) ) {
-    time0=Paso_timer();
-    paso::Pattern_color(A->pattern,&out->num_colors,out->colorOf);
-    time_color=Paso_timer()-time0;
+  if ( !(checkPtr(out->colorOf) || checkPtr(out->main_iptr) || checkPtr(out->factors)) ) {
+    time0=timer();
+    Pattern_color(A->pattern,&out->num_colors,out->colorOf);
+    time_color=timer()-time0;
 
-    if (Paso_noError()) {
-       time0=Paso_timer();
+    if (noError()) {
+       time0=timer();
 
-       if (! (Paso_checkPtr(out->diag))) {
+       if (! (checkPtr(out->diag))) {
              if (n_block==1) {
                 #pragma omp parallel for private(i,iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
@@ -95,7 +95,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
                            if (ABS(A->val[iPtr]) > 0.) {
                                 out->diag[i]=1./(A->val[iPtr]);
                            } else {
-                                Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
+                                setError(ZERO_DIVISION_ERROR, "Solver_getGSMPI: non-regular main diagonal block.");
                            }
                            break;
                        }
@@ -126,7 +126,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
                                 out->diag[i*4+2]= -A12*D;
                                 out->diag[i*4+3]=  A11*D;
                            } else {
-                                Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
+                                setError(ZERO_DIVISION_ERROR, "Solver_getGSMPI: non-regular main diagonal block.");
                            }
                            break;
                        }
@@ -172,7 +172,7 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
                                   out->diag[i*9+7]= (A13*A21-A11*A23)*D;
                                   out->diag[i*9+8]= (A11*A22-A12*A21)*D;
                            } else {
-                                Paso_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getGSMPI: non-regular main diagonal block.");
+                                setError(ZERO_DIVISION_ERROR, "Solver_getGSMPI: non-regular main diagonal block.");
                            }
                            break;
                        }
@@ -182,22 +182,22 @@ Paso_Solver_GS* Paso_Solver_getGSMPI(Paso_SparseMatrix * A,bool_t verbose) {
              }
        }
 
-       time_fac=Paso_timer()-time0;
+       time_fac=timer()-time0;
      }
   }
-  if (Paso_noError()) {
+  if (noError()) {
       if (verbose) {
          printf("GS_MPI: %d color used \n",out->num_colors);
          printf("timing: GS_MPI: coloring/elimination : %e/%e\n",time_color,time_fac);
      }
      return out;
   } else  {
-     Paso_Solver_GSMPI_free(out);
+     Solver_GSMPI_free(out);
      return NULL;
   }
 }
 
-void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, double * b);
+void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b);
 
 /************************************************************************************/
 
@@ -235,7 +235,7 @@ void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x,
            backward phase: x{m+1} = diag(Ai){-1} (b' - F*{m+1} - E*x{m})
 */
 
-void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, double * b) {
+void Solver_solveGSMPI(SystemMatrix* A, Solver_GS * gs, double * x, double * b) {
      register dim_t i;
      dim_t n_block=gs->n_block;
      dim_t n=gs->n;
@@ -249,7 +249,7 @@ void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * 
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n*n_block;++i) x[i]=0;
 
-     Paso_Solver_GS_local(A,gs,x,b);
+     Solver_GS_local(A,gs,x,b);
 
      if (sweeps > 1) {
           double *new_b=new double[n*n_block];
@@ -262,12 +262,12 @@ void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * 
                for (i=0;i<n*n_block;++i) new_b[i]=b[i];
 
                if (A->col_coupleBlock->pattern->ptr!=NULL){
-                    Paso_SystemMatrix_startCollect(A,x);
-                    remote_x=Paso_SystemMatrix_finishCollect(A);
-                    Paso_SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1),A->col_coupleBlock,remote_x,DBLE(1), new_b);
+                    SystemMatrix_startCollect(A,x);
+                    remote_x=SystemMatrix_finishCollect(A);
+                    SparseMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1),A->col_coupleBlock,remote_x,DBLE(1), new_b);
                }
 
-               Paso_Solver_GS_local(A,gs,x,new_b);
+               Solver_GS_local(A,gs,x,new_b);
                sweeps --;
           }
           delete[] new_b;
@@ -277,7 +277,7 @@ void Paso_Solver_solveGSMPI(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * 
 }
 
 /* Locally solve A'x=b, where A' is the mainBlock of global system matrix A */
-void Paso_Solver_GS_local(Paso_SystemMatrix* A, Paso_Solver_GS * gs, double * x, double * b) {
+void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b) {
      dim_t n_block=gs->n_block;
      dim_t n=gs->n;
      double sum0, sum1, sum2, X0, X1, X2;

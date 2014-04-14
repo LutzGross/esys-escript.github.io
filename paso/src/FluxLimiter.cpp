@@ -92,8 +92,8 @@ void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
                          iptr_ij < pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
                 const index_t j=pattern->mainPattern->index[iptr_ij];
                 const double u_j = u_tilde[j];
-                u_min_i = MIN(u_min_i, u_j);
-                u_max_i = MAX(u_max_i, u_j);
+                u_min_i = std::min(u_min_i, u_j);
+                u_max_i = std::max(u_max_i, u_j);
             }
             MQ[2*i] = u_min_i;   
             MQ[2*i+1] = u_max_i;
@@ -121,8 +121,8 @@ void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
                          iptr_ij++) {
                 const index_t j = pattern->col_couplePattern->index[iptr_ij];
                 const double u_j = remote_u_tilde[j];
-                u_min_i = MIN(u_min_i, u_j);
-                u_max_i = MAX(u_max_i, u_j);
+                u_min_i = std::min(u_min_i, u_j);
+                u_max_i = std::max(u_max_i, u_j);
             }
             MQ[2*i  ] = (u_min_i-u_i)*borrowed_lumped_mass_matrix[i];//M_C*Q_min
             MQ[2*i+1] = (u_max_i-u_i)*borrowed_lumped_mass_matrix[i];//M_C*Q_max
@@ -188,8 +188,8 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
                 }
             }
             /* finally the R+ and R- are calculated */
-            if (P_N_i<0) R_N_i=MIN(1,MQ_min/P_N_i);
-            if (P_P_i>0) R_P_i=MIN(1,MQ_max/P_P_i);
+            if (P_N_i<0) R_N_i=std::min(1., MQ_min/P_N_i);
+            if (P_P_i>0) R_P_i=std::min(1., MQ_max/P_P_i);
         }
         R[2*i]   = R_N_i;
         R[2*i+1] = R_P_i;
@@ -222,7 +222,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
             const double f_ij = adf->mainBlock->val[iptr_ij];
             const double R_P_j = R[2*j+1];
             const double R_N_j = R[2*j];
-            const double rtmp=(f_ij>=0 ? MIN(R_P_i, R_N_j) : MIN(R_N_i, R_P_j));
+            const double rtmp=(f_ij>=0 ? std::min(R_P_i, R_N_j) : std::min(R_N_i, R_P_j));
             f_i += f_ij*rtmp;
         }
         #pragma ivdep
@@ -232,7 +232,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
             const double f_ij = adf->col_coupleBlock->val[iptr_ij];
             const double R_P_j = remote_R[2*j+1];
             const double R_N_j = remote_R[2*j];
-            const double rtmp=(f_ij>=0) ? MIN(R_P_i, R_N_j) : MIN(R_N_i, R_P_j);
+            const double rtmp=(f_ij>=0) ? std::min(R_P_i, R_N_j) : std::min(R_N_i, R_P_j);
             f_i += f_ij*rtmp;
         }
         b[i]=f_i;

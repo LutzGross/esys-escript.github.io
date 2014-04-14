@@ -41,7 +41,7 @@ struct ReactiveSolver
     }
 
     err_t solve(double* u, double* u_old, const double* source,
-                Options* options, Paso_Performance* pp);
+                Options* options, Performance* pp);
 
     static double getSafeTimeStepSize(const_TransportProblem_ptr tp);
 

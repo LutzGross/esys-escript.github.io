@@ -16,7 +16,8 @@
 
 
 #include "Coupler.h"
-#include "esysUtils/error.h"
+
+#include <cstring> // memcpy
 
 namespace paso {
 
@@ -167,7 +168,7 @@ void Coupler::max(dim_t n, double* x)
 
 #pragma omp parallel for
     for (dim_t i=0; i < overlap_n; ++i)
-        x[my_n+i] = MAX(x[my_n+i], remote_values[i]);
+        x[my_n+i] = std::max(x[my_n+i], remote_values[i]);
 }
 
 } // namespace paso

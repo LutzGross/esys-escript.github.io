@@ -91,11 +91,11 @@ struct Pattern : boost::enable_shared_from_this<Pattern>
             dim_t loc_deg=0;
 #pragma omp for
             for (dim_t i = 0; i < numInput; ++i) {
-                loc_deg=MAX(loc_deg, ptr[i+1]-ptr[i]);
+                loc_deg=std::max(loc_deg, ptr[i+1]-ptr[i]);
             }
 #pragma omp critical
             {
-                deg = MAX(deg, loc_deg);
+                deg = std::max(deg, loc_deg);
             }
         }
         return deg;

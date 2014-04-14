@@ -25,9 +25,7 @@
 
 /****************************************************************************/
 
-#include "Common.h"
 #include "PasoUtil.h"
-#include "Paso.h"
 
 namespace paso {
 
@@ -40,13 +38,13 @@ int comparIndex(const void* index1, const void* index2)
 
 bool isAny(dim_t N, index_t* array, index_t value)
 {
-    bool out=FALSE;
+    bool out=false;
     register bool out2;
     dim_t i;
 
     #pragma omp parallel private(i, out2) 
     {
-        out2=FALSE;
+        out2=false;
         #pragma omp for schedule(static)
         for (i=0;i<N;i++) out2 = out2 || (array[i]==value);
         #pragma omp critical
@@ -86,18 +84,18 @@ dim_t numPositives(dim_t N, const double *x)
 index_t iMax(dim_t N, const index_t* array)
 {
     index_t out=INDEX_T_MIN;
-    register index_t out2;
+    index_t out2;
     dim_t i;
     if (N>0) {
         #pragma omp parallel private(i, out2) 
         {
             out2=INDEX_T_MIN;
             #pragma omp for schedule(static)
-            for (i=0;i<N;i++) out2 = MAX(out2, array[i]);
+            for (i=0;i<N;i++) out2 = std::max(out2, array[i]);
 
             #pragma omp critical
             {
-                out = MAX(out, out2);
+                out = std::max(out, out2);
             }
         }
     }
@@ -152,7 +150,7 @@ index_t cumsum(dim_t N, index_t* array)
     return out;
 }
 
-index_t cumsum_maskedTrue(dim_t N, index_t* array, AMGBlockSelect* mask)
+index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
 {
     index_t out=0,tmp;
     dim_t i;
@@ -213,7 +211,7 @@ index_t cumsum_maskedTrue(dim_t N, index_t* array, AMGBlockSelect* mask)
     return out;
 }
 
-index_t cumsum_maskedFalse(dim_t N, index_t* array, AMGBlockSelect* mask)
+index_t cumsum_maskedFalse(dim_t N, index_t* array, int* mask)
 {
     index_t out=0,tmp=0;
     dim_t i;
@@ -329,8 +327,8 @@ void zeroes(dim_t n, double* x)
     for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
-        n_start=local_n*i+MIN(i,rest);
-        n_end=local_n*(i+1)+MIN(i+1,rest);
+        n_start=local_n*i+std::min(i,rest);
+        n_end=local_n*(i+1)+std::min(i+1,rest);
         #pragma ivdep
         for (q=n_start;q<n_end;++q) x[q]=0;
     }
@@ -345,8 +343,8 @@ void update(dim_t n, double a, double* x, double b, const double* y)
     for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
-        n_start=local_n*i+MIN(i,rest);
-        n_end=local_n*(i+1)+MIN(i+1,rest);
+        n_start=local_n*i+std::min(i,rest);
+        n_end=local_n*(i+1)+std::min(i+1,rest);
         if (a==1.) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
@@ -357,17 +355,17 @@ void update(dim_t n, double a, double* x, double b, const double* y)
             for (q=n_start;q<n_end;++q) {
                 x[q]+=y[q];
             }
-        } else if ((ABS(a)==0) && (ABS(b)==0)) {
+        } else if ((std::abs(a)==0) && (std::abs(b)==0)) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
                 x[q]=0.;
             }
-        } else if ((ABS(a)==0) && (b==1)) {
+        } else if ((std::abs(a)==0) && (b==1)) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
                 x[q]=y[q];
             }
-        } else if (ABS(a)==0) {
+        } else if (std::abs(a)==0) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
                 x[q]=b*y[q];
@@ -391,19 +389,19 @@ void linearCombination(dim_t n, double* z, double a, const double* x,
     for (i=0;i<num_threads;++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
-        n_start=local_n*i+MIN(i,rest);
-        n_end=local_n*(i+1)+MIN(i+1,rest);
-        if (((ABS(a)==0) && (ABS(b)==0)) || (y==NULL) || (x==NULL)) {
+        n_start=local_n*i+std::min(i,rest);
+        n_end=local_n*(i+1)+std::min(i+1,rest);
+        if (((std::abs(a)==0) && (std::abs(b)==0)) || (y==NULL) || (x==NULL)) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
                 z[q]=0.;
             }
-        } else if ( ((ABS(a)==0) && (ABS(b)>0.)) || (x==NULL) )  {
+        } else if ( ((std::abs(a)==0) && (std::abs(b)>0.)) || (x==NULL) )  {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
                 z[q]=b*y[q];
             }
-        } else if (((ABS(a)>0) && (ABS(b)==0.)) || (y==NULL) ) {
+        } else if (((std::abs(a)>0) && (std::abs(b)==0.)) || (y==NULL) ) {
             #pragma ivdep
             for (q=n_start;q<n_end;++q) {
                 z[q]=a*x[q];
@@ -429,8 +427,8 @@ double innerProduct(const dim_t n,const double* x, const double* y,
         local_out = 0;
         local_n = n/num_threads;
         rest = n-local_n*num_threads;
-        n_start = local_n*i+MIN(i,rest);
-        n_end = local_n*(i+1)+MIN(i+1,rest);
+        n_start = local_n*i+std::min(i,rest);
+        n_end = local_n*(i+1)+std::min(i+1,rest);
         #pragma ivdep
         for (q=n_start; q<n_end; ++q)
             local_out += x[q]*y[q];
@@ -461,14 +459,14 @@ double lsup(dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
     for (i=0; i<num_threads; ++i) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
-        n_start=local_n*i+MIN(i,rest);
-        n_end=local_n*(i+1)+MIN(i+1,rest);
+        n_start=local_n*i+std::min(i,rest);
+        n_end=local_n*(i+1)+std::min(i+1,rest);
         local_out=0;
         for (q=n_start; q<n_end; ++q)
-            local_out = MAX(ABS(x[q]), local_out);
+            local_out = std::max(std::abs(x[q]), local_out);
 #pragma omp critical
         {
-            my_out = MAX(my_out,local_out);
+            my_out = std::max(my_out,local_out);
         }
     }
 #ifdef ESYS_MPI
@@ -492,8 +490,8 @@ double l2(dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
     for (dim_t i=0; i<num_threads; ++i) {
         const dim_t local_n = n/num_threads;
         const dim_t rest = n-local_n*num_threads;
-        const dim_t n_start = local_n*i+MIN(i,rest);
-        const dim_t n_end = local_n*(i+1)+MIN(i+1,rest);
+        const dim_t n_start = local_n*i+std::min(i,rest);
+        const dim_t n_end = local_n*(i+1)+std::min(i+1,rest);
         double local_out = 0.;
         for (dim_t q=n_start; q<n_end; ++q)
             local_out += x[q]*x[q];

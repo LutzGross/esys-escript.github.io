@@ -29,10 +29,11 @@
 
 #include "Paso.h"
 #include "Preconditioner.h"
+#include "MergedSolver.h"
 #include "Options.h"
 #include "PasoUtil.h"
-#include "UMFPACK.h"
 #include "MKL.h"
+#include "UMFPACK.h"
 
 namespace paso {
 
@@ -178,15 +179,15 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
     //    Preconditioner_AMG_enforceFFConnectivity(n, A->pattern->ptr, degree_S, S, F_marker);
 
     options->coarsening_selection_time = Esys_timer()-time0 +
-                                    MAX(0, options->coarsening_selection_time);
+                               std::max(0., options->coarsening_selection_time);
     if (Esys_noError()) {
 #pragma omp parallel for
         for (dim_t i = 0; i < n; ++i)
             F_marker[i] = (F_marker[i]==PASO_AMG_IN_F ? PASO_AMG_IN_C : PASO_AMG_IN_F);
 
         // count number of unknowns to be eliminated:
-        dim_t my_n_F = util::cumsum_maskedTrue(my_n, counter, F_marker);
-        const dim_t n_F = util::cumsum_maskedTrue(n, counter, F_marker);
+        dim_t my_n_F = util::cumsum_maskedTrue(my_n, counter, (int*)F_marker);
+        const dim_t n_F = util::cumsum_maskedTrue(n, counter, (int*)F_marker);
         // collect my_n_F values on all processes, a direct solver should
         // be used if any my_n_F value is 0
         dim_t* F_set = new dim_t[A->mpi_info->size];
@@ -230,7 +231,7 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
                     index_t* rows_in_F = new index_t[n_F];
                     // create mask of C nodes with value >-1, gives new id
                     const dim_t n_C = util::cumsum_maskedFalse(n, mask_C,
-                                                               F_marker);
+                                                               (int*)F_marker);
                     const dim_t my_n_C = my_n-my_n_F;
                     // if nothing has been removed we have a diagonal dominant
                     // matrix and we just run a few steps of the smoother
@@ -369,7 +370,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
 
 #pragma omp parallel for private(i,iptr) schedule(static)
     for (i=0;i<my_n;++i) {
-        register double max_offdiagonal = 0.;
+        double max_offdiagonal = 0.;
         register double sum_row=0;
         register double main_row=0;
         register dim_t kdeg=0;
@@ -379,9 +380,9 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
         #pragma ivdep
         for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
             register index_t j=A->mainBlock->pattern->index[iptr];
-            register double fnorm=ABS(A->mainBlock->val[iptr]);
+            const double fnorm=std::abs(A->mainBlock->val[iptr]);
             if(j != i) {
-                max_offdiagonal = MAX(max_offdiagonal,fnorm);
+                max_offdiagonal = std::max(max_offdiagonal,fnorm);
                 sum_row+=fnorm;
             } else {
                 main_row=fnorm;
@@ -390,9 +391,9 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
 
         #pragma ivdep
         for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-            register double fnorm=ABS(A->col_coupleBlock->val[iptr]);
+            const double fnorm = std::abs(A->col_coupleBlock->val[iptr]);
 
-            max_offdiagonal = MAX(max_offdiagonal,fnorm);
+            max_offdiagonal = std::max(max_offdiagonal,fnorm);
             sum_row+=fnorm;
         }
 
@@ -405,7 +406,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
                 #pragma ivdep
                 for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
                     const index_t j=A->mainBlock->pattern->index[iptr];
-                    if(ABS(A->mainBlock->val[iptr])>threshold && i!=j) {
+                    if(std::abs(A->mainBlock->val[iptr])>threshold && i!=j) {
                         S[koffset+kdeg] = j;
                         kdeg++;
                     }
@@ -413,7 +414,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
                 #pragma ivdep
                 for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
                     const index_t j=A->col_coupleBlock->pattern->index[iptr];
-                    if(ABS(A->col_coupleBlock->val[iptr])>threshold) {
+                    if(std::abs(A->col_coupleBlock->val[iptr])>threshold) {
                         S[koffset+kdeg] = j + my_n;
                         kdeg++;
                     }
@@ -446,7 +447,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
                 #pragma ivdep
                 for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
                   register index_t j=A->row_coupleBlock->pattern->index[iptr];
-                  if(ABS(A->row_coupleBlock->val[iptr])>threshold) {
+                  if(std::abs(A->row_coupleBlock->val[iptr])>threshold) {
                      S[koffset+kdeg] = j ;
                      kdeg++;
                   }
@@ -455,7 +456,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
                 #pragma ivdep
                 for (iptr=A->remote_coupleBlock->pattern->ptr[i];iptr<A->remote_coupleBlock->pattern->ptr[i+1]; iptr++) {
                   register index_t j=A->remote_coupleBlock->pattern->index[iptr];
-                  if(ABS(A->remote_coupleBlock->val[iptr])>threshold && i!=j) {
+                  if(std::abs(A->remote_coupleBlock->val[iptr])>threshold && i!=j) {
                       S[koffset+kdeg] = j + my_n;
                       kdeg++;
                   }
@@ -477,7 +478,6 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
                                                    index_t* offset_S,
                                                    index_t* S,
                                                    double theta, double tau)
-
 {
     const dim_t block_size=A->block_size;
     const dim_t my_n=A->mainBlock->numRows;
@@ -491,14 +491,14 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
 
         #pragma omp for schedule(static)
         for (i=0; i<my_n; ++i)
-            max_deg=MAX(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
+            max_deg=std::max(max_deg, A->mainBlock->pattern->ptr[i+1]-A->mainBlock->pattern->ptr[i]
                                 +A->col_coupleBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i]);
 
         double* rtmp = new double[max_deg];
 
         #pragma omp for schedule(static)
         for (i=0;i<my_n;++i) {
-            register double max_offdiagonal = 0.;
+            double max_offdiagonal = 0.;
             register double sum_row=0;
             register double main_row=0;
             register index_t rtmp_offset=-A->mainBlock->pattern->ptr[i];
@@ -508,17 +508,17 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
             /* collect information for row i: */
             for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
                 const index_t j=A->mainBlock->pattern->index[iptr];
-                register double fnorm=0;
+                double fnorm=0;
                 #pragma ivdep
                 for(bi=0;bi<block_size;++bi) {
-                    register double  rtmp2= A->mainBlock->val[iptr*block_size+bi];
+                    const double rtmp2 = A->mainBlock->val[iptr*block_size+bi];
                     fnorm+=rtmp2*rtmp2;
                 }
                 fnorm=sqrt(fnorm);
                 rtmp[iptr+rtmp_offset]=fnorm;
 
                 if( j != i) {
-                    max_offdiagonal = MAX(max_offdiagonal,fnorm);
+                    max_offdiagonal = std::max(max_offdiagonal,fnorm);
                     sum_row+=fnorm;
                 } else {
                     main_row=fnorm;
@@ -526,16 +526,16 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
             }
             rtmp_offset+=A->mainBlock->pattern->ptr[i+1]-A->col_coupleBlock->pattern->ptr[i];
             for (iptr=A->col_coupleBlock->pattern->ptr[i];iptr<A->col_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-                register double fnorm=0;
+                double fnorm=0;
                 #pragma ivdep
                 for(bi=0;bi<block_size;++bi) {
-                    register double rtmp2 = A->col_coupleBlock->val[iptr*block_size+bi];
+                    const double rtmp2 = A->col_coupleBlock->val[iptr*block_size+bi];
                     fnorm+=rtmp2*rtmp2;
                 }
                 fnorm=sqrt(fnorm);
 
                 rtmp[iptr+rtmp_offset]=fnorm;
-                max_offdiagonal = MAX(max_offdiagonal,fnorm);
+                max_offdiagonal = std::max(max_offdiagonal,fnorm);
                 sum_row+=fnorm;
             }
 
@@ -593,11 +593,11 @@ void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
             if (remote_threshold[2*i]>0) {
                 #pragma ivdep
                 for (iptr=A->row_coupleBlock->pattern->ptr[i];iptr<A->row_coupleBlock->pattern->ptr[i+1]; ++iptr) {
-                    register index_t j=A->row_coupleBlock->pattern->index[iptr];
-                    register double fnorm2=0;
+                    const index_t j=A->row_coupleBlock->pattern->index[iptr];
+                    double fnorm2=0;
                     #pragma ivdep
                     for(bi=0;bi<block_size;++bi) {
-                        register double rtmp2 = A->row_coupleBlock->val[iptr*block_size+bi];
+                        const double rtmp2 = A->row_coupleBlock->val[iptr*block_size+bi];
                         fnorm2+=rtmp2*rtmp2;
                     }
 

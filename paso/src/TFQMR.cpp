@@ -49,8 +49,6 @@
 *  ==============================================================
 */
 
-#include "SystemMatrix.h"
-#include "Paso.h"
 #include "Solver.h"
 #include "PasoUtil.h"
 
@@ -62,7 +60,7 @@ namespace paso {
 #endif
 
 err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
-                   double* tolerance, Paso_Performance* pp)
+                   double* tolerance, Performance* pp)
 {
     int m=1;  
     int j=0;
@@ -103,17 +101,17 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     util::zeroes(n,d);
     Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
 
-    Performance_startMonitor(pp,PERFORMANCE_MVM);
+    Performance_startMonitor(pp, PERFORMANCE_MVM);
     SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1, PASO_ZERO, temp_vector);
-    Performance_stopMonitor(pp,PERFORMANCE_MVM);
-    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+    Performance_stopMonitor(pp, PERFORMANCE_MVM);
+    Performance_startMonitor(pp, PERFORMANCE_SOLVER);
 
-    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-    Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
+    Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
+    Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
     A->solvePreconditioner(v,temp_vector);
-    Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
+    Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
 
-    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+    Performance_startMonitor(pp, PERFORMANCE_SOLVER);
     // v = P^{-1} * A y1
     util::copy(n, u1, v);
 
@@ -133,17 +131,17 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                     // y2 = y1 - alpha*v
                     util::linearCombination(n, y2, PASO_ONE, y1, -alpha, v);
 
-                    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-                    Performance_startMonitor(pp,PERFORMANCE_MVM);
+                    Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
+                    Performance_startMonitor(pp, PERFORMANCE_MVM);
                     SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y2,PASO_ZERO,temp_vector);
-                    Performance_stopMonitor(pp,PERFORMANCE_MVM);
-                    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+                    Performance_stopMonitor(pp, PERFORMANCE_MVM);
+                    Performance_startMonitor(pp, PERFORMANCE_SOLVER);
           
-                    Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-                    Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
+                    Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
+                    Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
                     A->solvePreconditioner(u2,temp_vector);  
-                    Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
-                    Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+                    Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
+                    Performance_startMonitor(pp, PERFORMANCE_SOLVER);
                     // u2 = P^{-1} * A y2
                 } 
                 m = 2 * (num_iter+1) - 2 + (j+1);
@@ -177,15 +175,15 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             // y1 = w + beta * y2
             util::linearCombination(n,y1, PASO_ONE,w,beta,y2);
 
-            Performance_stopMonitor(pp,PERFORMANCE_SOLVER);
-            Performance_startMonitor(pp,PERFORMANCE_MVM);
+            Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
+            Performance_startMonitor(pp, PERFORMANCE_MVM);
             SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1, PASO_ZERO, temp_vector);
-            Performance_stopMonitor(pp,PERFORMANCE_MVM);
+            Performance_stopMonitor(pp, PERFORMANCE_MVM);
      
-            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER);
+            Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
             A->solvePreconditioner(u1, temp_vector);
-            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER);
-            Performance_startMonitor(pp,PERFORMANCE_SOLVER);
+            Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
+            Performance_startMonitor(pp, PERFORMANCE_SOLVER);
             //  u1 = P^{-1} * A y1
 
             // t = u2 + beta * v

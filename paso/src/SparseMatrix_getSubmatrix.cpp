@@ -26,9 +26,8 @@
 
 /****************************************************************************/
 
-#include "Paso.h"
 #include "SparseMatrix.h"
-#include "PasoUtil.h"
+#include "BlockOps.h"
 
 namespace paso {
 
@@ -71,7 +70,7 @@ SparseMatrix_ptr SparseMatrix::getSubmatrix(int n_row_sub, int n_col_sub,
                         for (index_t m=out->pattern->ptr[i]-index_offset;
                                 m < out->pattern->ptr[i+1]-index_offset; ++m) {
                             if (out->pattern->index[m]==tmp+index_offset) {
-                                util::copyShortDouble(block_size, &val[k*block_size], &out->val[m*block_size]);
+                                BlockOps_Cpy_N(block_size, &out->val[m*block_size], &val[k*block_size]);
                                 break;
                             }
                         }

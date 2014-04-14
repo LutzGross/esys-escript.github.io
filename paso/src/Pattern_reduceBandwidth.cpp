@@ -49,12 +49,12 @@ dim_t Pattern::getBandwidth(index_t* label) const
         for (dim_t i=0; i < numOutput; ++i) {
             const index_t k = label[i];
             for (index_t iptr=ptr[i]; iptr < ptr[i+1]; ++iptr) {
-                local_bandwidth = MAX(local_bandwidth,ABS(k-label[index[iptr]]));
+                local_bandwidth = std::max(local_bandwidth,std::abs(k-label[index[iptr]]));
             }
         }
 #pragma omp critical
         {
-            bandwidth=MAX(local_bandwidth, bandwidth);
+            bandwidth=std::max(local_bandwidth, bandwidth);
         }
     }
     return bandwidth;
@@ -200,7 +200,7 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
                             __LINE__, i, N); exit(1);
                 }
 #endif
-                max_LevelWidth=MAX(max_LevelWidth, firstVertexInLevel[i+1]-firstVertexInLevel[i]);
+                max_LevelWidth=std::max(max_LevelWidth, firstVertexInLevel[i+1]-firstVertexInLevel[i]);
             }
             // find a vertex in the last level which has minimum degree
             dim_t min_deg = N+1;

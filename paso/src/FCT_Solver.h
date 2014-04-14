@@ -24,18 +24,19 @@
 namespace paso {
 
 PASO_DLL_API
-struct FCT_Solver {
+struct FCT_Solver
+{
     FCT_Solver(const_TransportProblem_ptr tp, Options* options);
 
     ~FCT_Solver();
 
-    err_t update(double* u, double* u_old, Options* options, Paso_Performance* pp);
+    err_t update(double* u, double* u_old, Options* options, Performance* pp);
 
-    err_t updateNL(double* u, double* u_old, Options* options, Paso_Performance* pp);
+    err_t updateNL(double* u, double* u_old, Options* options, Performance* pp);
 
-    err_t updateLCN(double* u, double* u_old, Options* options, Paso_Performance* pp);
+    err_t updateLCN(double* u, double* u_old, Options* options, Performance* pp);
 
-    void initialize(double dt, Options* options, Paso_Performance* pp);
+    void initialize(double dt, Options* options, Performance* pp);
 
     static double getSafeTimeStepSize(TransportProblem_ptr tp);
 

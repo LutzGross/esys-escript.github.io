@@ -34,9 +34,7 @@
 #include "Paso.h"
 #include "SystemMatrix.h"
 
-#ifdef _OPENMP
-#include <omp.h>
-#endif
+#include <cstring> // memcpy
 
 namespace paso {
 

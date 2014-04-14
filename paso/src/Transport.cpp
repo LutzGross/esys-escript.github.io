@@ -28,6 +28,7 @@
 #include "Transport.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
+#include "Solver.h" // only for resetting
 
 namespace paso {
 
@@ -84,7 +85,7 @@ void TransportProblem::reset()
     const dim_t n = transport_matrix->getTotalNumRows();
     transport_matrix->setValues(0.);
     mass_matrix->setValues(0.);
-    Paso_solve_free(iteration_matrix.get());
+    solve_free(iteration_matrix.get());
     util::zeroes(n, constraint_mask);
     valid_matrices = false;
 }

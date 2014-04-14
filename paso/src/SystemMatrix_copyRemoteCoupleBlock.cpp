@@ -32,6 +32,8 @@
 
 #include "SystemMatrix.h"
 
+#include <cstring> // memcpy
+
 namespace paso {
 
 void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)

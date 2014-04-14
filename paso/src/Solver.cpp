@@ -39,7 +39,7 @@ void Solver_free(SystemMatrix* A)
 
 ///  calls the iterative solver
 void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
-            Paso_Performance* pp)
+            Performance* pp)
 {
     double norm2_of_b,tol,tolerance,time_iter,net_time_start;
     double *r=NULL,norm2_of_residual,last_norm2_of_residual,norm_max_of_b;
@@ -60,21 +60,21 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     Esys_resetError();
     tolerance=options->tolerance;
     if (tolerance < 100.* EPSILON) {
-        Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance is too small.");
+        Esys_setError(VALUE_ERROR,"Solver: Tolerance is too small.");
     }
     if (tolerance >1.) {
-        Esys_setError(VALUE_ERROR,"Paso_Solver: Tolerance must be less than one.");
+        Esys_setError(VALUE_ERROR,"Solver: Tolerance must be less than one.");
     }
     method=Options::getSolver(options->method, PASO_PASO, options->symmetric, A->mpi_info);
     /* check matrix type */
     if ((A->type & MATRIX_FORMAT_CSC) || (A->type & MATRIX_FORMAT_OFFSET1) ) {
-        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
+        Esys_setError(TYPE_ERROR,"Solver: Iterative solver requires CSR format with unsymmetric storage scheme and index offset 0.");
     }
     if (A->col_block_size != A->row_block_size) {
-        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires row and column block sizes to be equal.");
+        Esys_setError(TYPE_ERROR,"Solver: Iterative solver requires row and column block sizes to be equal.");
     }
     if (A->getGlobalNumCols() != A->getGlobalNumRows()) {
-        Esys_setError(TYPE_ERROR,"Paso_Solver: Iterative solver requires a square matrix.");
+        Esys_setError(TYPE_ERROR,"Solver: Iterative solver requires a square matrix.");
         return;
     }
     time_iter=Esys_timer();
@@ -98,7 +98,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
      
     /* ========================= */
     if (Esys_noError()) {
-        Performance_startMonitor(pp,PERFORMANCE_ALL);
+        Performance_startMonitor(pp, PERFORMANCE_ALL);
         A->applyBalance(r, b, true);
         /* get the norm of the right hand side */
         norm2_of_b=0.;
@@ -128,7 +128,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         norm2_of_b=sqrt(norm2_of_b);
         /* if norm2_of_b==0 we are ready: x=0 */
         if (IS_NAN(norm2_of_b) || IS_NAN(norm_max_of_b)) {
-            Esys_setError(VALUE_ERROR, "Paso_Solver: Matrix or right hand side contains undefined values.");
+            Esys_setError(VALUE_ERROR, "Solver: Matrix or right hand side contains undefined values.");
         } else if (norm2_of_b <= 0.) {
 #pragma omp parallel for private(i) schedule(static)
             for (i = 0; i < numSol; i++) x[i]=0.;
@@ -136,29 +136,29 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                 printf("right hand side is identical to zero.\n");
         } else {
             if (options->verbose) {
-                printf("Paso_Solver: l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
-                printf("Paso_Solver: l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
+                printf("Solver: l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
+                printf("Solver: l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
                 switch (method) {
                     case PASO_BICGSTAB:
-                        printf("Paso_Solver: Iterative method is BiCGStab.\n");
+                        printf("Solver: Iterative method is BiCGStab.\n");
                     break;
                     case PASO_PCG:
-                        printf("Paso_Solver: Iterative method is PCG.\n");
+                        printf("Solver: Iterative method is PCG.\n");
                     break;
                     case PASO_TFQMR:
-                        printf("Paso_Solver: Iterative method is TFQMR.\n");
+                        printf("Solver: Iterative method is TFQMR.\n");
                     break;
                     case PASO_MINRES:
-                        printf("Paso_Solver: Iterative method is MINRES.\n");
+                        printf("Solver: Iterative method is MINRES.\n");
                     break;
                     case PASO_PRES20:
-                        printf("Paso_Solver: Iterative method is PRES20.\n");
+                        printf("Solver: Iterative method is PRES20.\n");
                     break;
                     case PASO_GMRES:
                         if (options->restart>0) {
-                            printf("Paso_Solver: Iterative method is GMRES(%d,%d)\n",options->truncation,options->restart);
+                            printf("Solver: Iterative method is GMRES(%d,%d)\n",options->truncation,options->restart);
                         } else {
-                            printf("Paso_Solver: Iterative method is GMRES(%d)\n",options->truncation);
+                            printf("Solver: Iterative method is GMRES(%d)\n",options->truncation);
                         }
                     break;
                 }
@@ -166,9 +166,9 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
 
             // construct the preconditioner
             blocktimer_precond = blocktimer_time();
-            Performance_startMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+            Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
             A->setPreconditioner(options);
-            Performance_stopMonitor(pp,PERFORMANCE_PRECONDITIONER_INIT);
+            Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER_INIT);
             blocktimer_increment("Solver_setPreconditioner()", blocktimer_precond);
             options->set_up_time=Esys_timer()-time_iter;
             if (Esys_noError()) {
@@ -192,7 +192,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                         A->applyBalance(r, b, true);
                     }
 
-                    SystemMatrix_MatrixVector_CSR_OFFSET0(DBLE(-1), A, x, DBLE(1), r);
+                    SystemMatrix_MatrixVector_CSR_OFFSET0(-1., A, x, 1., r);
                     norm2_of_residual = 0;
                     norm_max_of_residual = 0;
                     #pragma omp parallel private(norm2_of_residual_local,norm_max_of_residual_local)
@@ -221,12 +221,12 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                     options->residual_norm=norm2_of_residual;
 
                     if (options->verbose)
-                        printf("Paso_Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
+                        printf("Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
 
                     if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
 
                         if (options->verbose) printf(" divergence!\n");
-                        Esys_setError(DIVERGED, "Paso_Solver: No improvement during iteration. Iterative solver gives up.");
+                        Esys_setError(DIVERGED, "Solver: No improvement during iteration. Iterative solver gives up.");
 
                     } else {
                         if (norm2_of_residual>tolerance*norm2_of_b ||
@@ -272,31 +272,31 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                             if (errorCode == SOLVER_NO_ERROR) {
                                 finalizeIteration = false;
                             } else if (errorCode == SOLVER_MAXITER_REACHED) {
-                                Esys_setError(DIVERGED, "Paso_Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
+                                Esys_setError(DIVERGED, "Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
                                 if (options->verbose)
-                                    printf("Paso_Solver: Maximum number of iterations reached.\n");
+                                    printf("Solver: Maximum number of iterations reached.\n");
                             } else if (errorCode == SOLVER_INPUT_ERROR) {
-                                Esys_setError(SYSTEM_ERROR, "Paso_Solver: illegal dimension in iterative solver.");
+                                Esys_setError(SYSTEM_ERROR, "Solver: illegal dimension in iterative solver.");
                                 if (options->verbose)
-                                    printf("Paso_Solver: Internal error!\n");
+                                    printf("Solver: Internal error!\n");
                             } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
-                                Esys_setError(VALUE_ERROR, "Paso_Solver: negative energy norm (try other solver or preconditioner).");
+                                Esys_setError(VALUE_ERROR, "Solver: negative energy norm (try other solver or preconditioner).");
                                 if (options->verbose)
-                                    printf("Paso_Solver: negative energy norm (try other solver or preconditioner)!\n");
+                                    printf("Solver: negative energy norm (try other solver or preconditioner)!\n");
                             } else if (errorCode == SOLVER_BREAKDOWN) {
                                 if (cntIter <= 1) {
-                                    Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver: fatal break down in iterative solver.");
+                                    Esys_setError(ZERO_DIVISION_ERROR, "Solver: fatal break down in iterative solver.");
                                     if (options->verbose)
-                                        printf("Paso_Solver: Uncurable break down!\n");
+                                        printf("Solver: Uncurable break down!\n");
                                 } else {
                                     if (options->verbose)
-                                        printf("Paso_Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", totIter, tol);
+                                        printf("Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", totIter, tol);
                                     finalizeIteration = false;
                                 }
                             } else {
-                                Esys_setError(SYSTEM_ERROR, "Paso_Solver: Generic error in solver.");
+                                Esys_setError(SYSTEM_ERROR, "Solver: Generic error in solver.");
                                 if (options->verbose)
-                                    printf("Paso_Solver: Generic error in solver!\n");
+                                    printf("Solver: Generic error in solver!\n");
                             }
                         } else {
                             if (options->verbose)
@@ -315,7 +315,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
     delete[] x0;
     options->time = Esys_timer()-time_iter;
     Performance_stopMonitor(pp, PERFORMANCE_ALL);
-    blocktimer_increment("Paso_Solver()", blocktimer_start);
+    blocktimer_increment("Solver()", blocktimer_start);
 }
 
 } // namespace paso

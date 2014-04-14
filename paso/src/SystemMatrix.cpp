@@ -27,6 +27,9 @@
 
 #include "SystemMatrix.h"
 #include "Preconditioner.h"
+#include "Solver.h" // only for destructor
+
+#include <cstring> // memcpy
 
 namespace paso {
 
@@ -136,13 +139,10 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
 // deallocates a SystemMatrix
 SystemMatrix::~SystemMatrix()
 {
-    Paso_solve_free(this);
+    solve_free(this);
     Esys_MPIInfo_free(mpi_info);
     delete[] balance_vector;
     delete[] global_id;
-#ifdef Paso_TRACE
-    printf("SystemMatrix: system matrix has been deallocated.\n");
-#endif
 }
 
 void SystemMatrix::setPreconditioner(Options* options)
@@ -412,7 +412,7 @@ void SystemMatrix::balance()
 
     if (!is_balanced) {
         if ((type & MATRIX_FORMAT_CSC) || (type & MATRIX_FORMAT_OFFSET1)) {
-            Esys_setError(TYPE_ERROR,"Paso_SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
+            Esys_setError(TYPE_ERROR,"SystemMatrix_balance: No normalization available for compressed sparse column or index offset 1.");
         }
         if (getGlobalNumRows() != getGlobalNumCols() ||
                 row_block_size != col_block_size) {

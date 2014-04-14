@@ -14,8 +14,6 @@
 *
 *****************************************************************************/
 
-
-#include "Common.h"
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"
@@ -43,7 +41,7 @@ LinearSystem::~LinearSystem()
 /*
  * evaluates value=P*(b-Ax)
  */
-err_t LinearSystem::call(double* value, const double* arg, Paso_Performance* pp)
+err_t LinearSystem::call(double* value, const double* arg, Performance* pp)
 {
     // tmp = b
     util::copy(n, tmp, b);

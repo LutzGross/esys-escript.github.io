@@ -28,8 +28,7 @@
 #ifndef __PASO_SHAREDCOMPONENTS_H__
 #define __PASO_SHAREDCOMPONENTS_H__
 
-#include "Common.h"
-#include "esysUtils/Esys_MPI.h"
+#include "Paso.h"
 
 namespace paso {
 
