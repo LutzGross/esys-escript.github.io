@@ -32,7 +32,7 @@ Function::~Function()
 }
 
 err_t Function::derivative(double* J0w, const double* w, const double* f0,
-                           const double* x0, double* setoff, Performance* pp) 
+                           const double* x0, double* setoff, Performance* pp)
 {
     err_t err = SOLVER_NO_ERROR;
     dim_t i;
@@ -40,14 +40,14 @@ err_t Function::derivative(double* J0w, const double* w, const double* f0,
     const double epsnew = sqrt(EPSILON);
     double ttt, s=epsnew, local_s, norm_w=0.;
     const dim_t n = getLen();
-   
+
     //double norm_x0=util::lsup(n,x0,mpi_info);
     norm_w=util::lsup(n, w, mpi_info);
     ttt=sqrt(EPSILON)*norm_w;
-#pragma omp parallel private(local_s) 
+#pragma omp parallel private(local_s)
     {
         local_s=s;
-#pragma omp for private(i, aw) 
+#pragma omp for private(i, aw)
         for (i=0;i<n;++i) {
             aw=fabs(w[i]);
             if ( aw>ttt ) {
@@ -73,7 +73,7 @@ err_t Function::derivative(double* J0w, const double* w, const double* f0,
     if (norm_w>0) {
         s=s*epsnew;
         //printf("s = %e\n",s);
-        util::linearCombination(n,setoff,1.,x0,s,w); 
+        util::linearCombination(n,setoff,1.,x0,s,w);
         err = call(J0w, setoff, pp);
         if (err==SOLVER_NO_ERROR) {
             util::update(n,1./s,J0w,-1./s,f0); // J0w = (J0w - f0)/epsnew;

@@ -149,7 +149,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
             if (counter_C[j]>=0) { /* and is in C */
                 if (j <my_n) k++;
                 else {
-                  l++; 
+                  l++;
                 }
             }
           }
@@ -181,13 +181,13 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
           } else {
             k = 0;
             l = 0;
-            iptr = offset_S[i]; 
+            iptr = offset_S[i];
             for (p=0; p<degree_S[i]; p++) {
               j = S[iptr+p]; /* this is a strong connection */
               if (counter_C[j] >=0) { /* and is in C */
                 if (j < my_n) {
                   main_idx[main_p[i]+k] = counter_C[j];
-                  k++; 
+                  k++;
                 } else {
                   couple_idx[couple_p[i]+l] = counter_C[j];
                   l++;
@@ -197,10 +197,10 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
           }
         }
 
-   if (Esys_noError()) {   
-     main_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n, 
+   if (Esys_noError()) {
+     main_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
                         my_n_C, main_p, main_idx));
-     couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n, 
+     couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, my_n,
                         sum, couple_p, couple_idx));
    } else {
      delete[] main_p;
@@ -209,7 +209,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      delete[] couple_idx;
    }
 
-   /* prepare the receiver for the col_connector. 
+   /* prepare the receiver for the col_connector.
       Note that the allocation for "shared" assumes the send and receive buffer
       of the interpolation matrix P is no larger than that of matrix A_p. */
    neighbor = new Esys_MPI_rank[size];
@@ -263,7 +263,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
         offsetInShared[num_neighbors] = q;
      }
      #ifdef ESYS_MPI
-     MPI_Issend(&(recv_shared[recv->offsetInShared[i]]), 
+     MPI_Issend(&(recv_shared[recv->offsetInShared[i]]),
                 k-recv->offsetInShared[i], MPI_INT, recv->neighbor[i],
                 mpi_info->msg_tag_counter+rank, mpi_info->comm,
                 &mpi_requests[i+send->numNeighbors]);
@@ -289,7 +289,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
      k = send->offsetInShared[i+1];
      for (j=send->offsetInShared[i]; j<k; j++) {
         if (send_shared[j] == 1) {
-          shared[q] = counter_C[send->shared[j]];  
+          shared[q] = counter_C[send->shared[j]];
           q++;
           l = 1;
         }
@@ -311,23 +311,23 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
    delete[] offsetInShared;
    delete[] shared;
 
-   /* now we need to create the System Matrix 
+   /* now we need to create the System Matrix
       TO BE FIXED: at this stage, we only construct col_couple_pattern
-      and col_connector for interpolation matrix P. To be completed, 
+      and col_connector for interpolation matrix P. To be completed,
       row_couple_pattern and row_connector need to be constructed as well */
    SystemMatrix_ptr out;
    SystemMatrixPattern_ptr pattern;
    if (Esys_noError()) {
-     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
-                output_dist, input_dist, main_pattern, couple_pattern, 
+     pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+                output_dist, input_dist, main_pattern, couple_pattern,
                 couple_pattern, col_connector, col_connector));
      out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
                                       row_block_size, col_block_size, false));
-   } 
+   }
 
    /* now fill in the matrix */
    if (Esys_noError()) {
-     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) 
+     if ((interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
         || ( interpolation_method == PASO_CLASSIC_INTERPOLATION) ) {
         if (row_block_size == 1) {
           Preconditioner_AMG_setClassicProlongation(out, A_p, offset_S, degree_S, S, counter_C);
@@ -335,13 +335,13 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
           Preconditioner_AMG_setClassicProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
         }
      } else {
-        if (row_block_size == 1) { 
+        if (row_block_size == 1) {
           Preconditioner_AMG_setDirectProlongation(out, A_p, offset_S, degree_S, S, counter_C);
         } else {
           Preconditioner_AMG_setDirectProlongation_Block(out, A_p, offset_S, degree_S, S, counter_C);
         }
      }
-   }  
+   }
 
     if (!Esys_noError()) {
         out.reset();
@@ -355,16 +355,16 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
 
     If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise.
     If row i is not C, then P[i,j] = - a[i] * A[i,k]/A[i,i] with j=counter_C[k]>=0 and k in S
-   
-   and    a[i]= 
+
+   and    a[i]=
              alpha[i] = sum_s min(A[i,s],0)/(sum_{s in S and C} min(A[i,s],0))   A[i,k]<0
                    or                                                         if
              beta[i] = sum_s max(A[i,s],0)/(sum_{s in S and C} max(A[i,s],0))   A[i,k]>0
-              
+
 
 */
 
-void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P, 
+void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
         SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C)
 {
@@ -377,15 +377,15 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
 
    dim_t i;
    register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
-   register index_t iPtr, j, offset; 
+   register index_t iPtr, j, offset;
    index_t *where_p, *start_p;
-   
+
    #pragma omp parallel for private(i,offset,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp) schedule(static)
    for (i=0; i<my_n; i++) {
       if (counter_C[i]>=0) {
             offset = main_pattern->ptr[i];
             main_block->val[offset]=1.;  /* i is a C row */
-      } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) || 
+      } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
                  (couple_pattern->ptr[i +1] > couple_pattern->ptr[i])) {
          /* if i is an F row we first calculate alpha and beta: */
 
@@ -393,7 +393,7 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
          sum_all_pos=0; /* sum of all positive values in row i of A */
          sum_strong_neg=0; /* sum of all negative values A_ij where j is in C and strongly connected to i*/
          sum_strong_pos=0; /* sum of all positive values A_ij where j is in C and strongly connected to i*/
-         A_ii=0; 
+         A_ii=0;
 
          /* first check the mainBlock */
          range = A->mainBlock->pattern->ptr[i + 1];
@@ -403,15 +403,15 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
             if(j==i) {
                A_ii=A_ij;
             } else {
-               
+
                if(A_ij< 0)  {
                   sum_all_neg+=A_ij;
                } else {
                   sum_all_pos+=A_ij;
                }
-               
+
                if (counter_C[j]>=0) {
-                  /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */ 
+                  /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */
                   start_p=&(main_pattern->index[main_pattern->ptr[i]]);
                   where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                             main_pattern->ptr[i + 1] - main_pattern->ptr[i],
@@ -426,9 +426,9 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
                            sum_strong_pos+=A_ij;
                         }
                   }
-               } 
+               }
 
-            } 
+            }
          }
 
          /* now we deal with the col_coupleBlock */
@@ -461,7 +461,7 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
             }
          }
 
-         if(sum_strong_neg<0) { 
+         if(sum_strong_neg<0) {
             alpha= sum_all_neg/sum_strong_neg;
          } else {
             alpha=0;
@@ -498,7 +498,7 @@ void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
             }
          }
       }
-   } 
+   }
 }
 
 void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
@@ -517,9 +517,9 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
    dim_t i;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
    register double A_ij, rtmp;
-   register index_t iPtr, j, offset, ib; 
+   register index_t iPtr, j, offset, ib;
    index_t *where_p, *start_p;
-   
+
    #pragma omp parallel private(i,offset,ib,sum_all_neg,sum_all_pos,sum_strong_neg,sum_strong_pos,A_ii,range,iPtr,j,A_ij,start_p,where_p,alpha,beta,rtmp)
    {
       sum_all_neg=new  double[row_block_size]; /* sum of all negative values in row i of A */
@@ -529,13 +529,13 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
       alpha=new  double[row_block_size];
       beta=new  double[row_block_size];
       A_ii=new  double[row_block_size];
-      
+
       #pragma omp for schedule(static)
       for (i=0;i<my_n;++i) {
          if (counter_C[i]>=0) { /* i is a C row */
             offset = main_pattern->ptr[i];
-            for (ib =0; ib<row_block_size; ++ib) 
-                main_block->val[row_block_size*offset+ib]=1.; 
+            for (ib =0; ib<row_block_size; ++ib)
+                main_block->val[row_block_size*offset+ib]=1.;
          } else if ((main_pattern->ptr[i + 1] > main_pattern->ptr[i]) ||
                     (couple_pattern->ptr[i + 1] > couple_pattern->ptr[i])) {
             /* if i is an F row we first calculate alpha and beta: */
@@ -552,7 +552,7 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
             for (iPtr=A->mainBlock->pattern->ptr[i]; iPtr<range; iPtr++) {
                j=A->mainBlock->pattern->index[iPtr];
                if(j==i) {
-                  for (ib =0; ib<row_block_size; ++ib) 
+                  for (ib =0; ib<row_block_size; ++ib)
                     A_ii[ib]=A->mainBlock->val[A_block*iPtr+ib+row_block_size*ib];
                } else {
                   for (ib =0; ib<row_block_size; ++ib) {
@@ -563,9 +563,9 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
                         sum_all_pos[ib]+=A_ij;
                      }
                   }
-               
+
                   if (counter_C[j]>=0) {
-                     /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */ 
+                     /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */
                      start_p=&(main_pattern->index[main_pattern->ptr[i]]);
                      where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                              main_pattern->ptr[i + 1]-main_pattern->ptr[i],
@@ -583,9 +583,9 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
                                  }
                               }
                      }
-                  } 
-            
-               } 
+                  }
+
+               }
             }
 
             /* now we deal with the col_coupleBlock */
@@ -625,7 +625,7 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
             }
 
             for (ib =0; ib<row_block_size; ++ib) {
-               if(sum_strong_neg[ib]<0) { 
+               if(sum_strong_neg[ib]<0) {
                   alpha[ib]= sum_all_neg[ib]/sum_strong_neg[ib];
                } else {
                   alpha[ib]=0;
@@ -643,7 +643,7 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
                }
             }
 
-            range = main_pattern->ptr[i + 1];      
+            range = main_pattern->ptr[i + 1];
             for (iPtr=main_pattern->ptr[i]; iPtr<range; iPtr++) {
                for (ib =0; ib<row_block_size; ++ib) {
                   A_ij=main_block->val[row_block_size*iPtr+ib];
@@ -670,10 +670,10 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
 
          }
       }/* end i loop */
-      delete[] sum_all_neg; 
-      delete[] sum_all_pos; 
-      delete[] sum_strong_neg; 
-      delete[] sum_strong_pos; 
+      delete[] sum_all_neg;
+      delete[] sum_all_pos;
+      delete[] sum_strong_neg;
+      delete[] sum_strong_pos;
       delete[] alpha;
       delete[] beta;
       delete[] A_ii;
@@ -685,18 +685,18 @@ void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
     -------------------
 
     If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise.
-    If row i is not C, then P[i,j] = - 1/a[i] * ( A[i,k] + sum_{l} A[i,l]*A+[l,k]/B[i,k]) 
-             where the summation over l is considering columns which are strongly connected 
-             to i (l in S[i]) and not in C (counter_C[l]<0) and 
+    If row i is not C, then P[i,j] = - 1/a[i] * ( A[i,k] + sum_{l} A[i,l]*A+[l,k]/B[i,k])
+             where the summation over l is considering columns which are strongly connected
+             to i (l in S[i]) and not in C (counter_C[l]<0) and
 
                 B[i,k]=sum_{m in S_i and in C} A+[k,m]
                 a[i]=A[i,i]+sum{l not strongly connected to i} A[i,l]
 
             A+[i,k]=A[i,k] if sign(A[i,k])==sign(A[i,i])  or 0 otherwise
-              
+
 
 */
-void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P, 
+void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
         SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S,
         const index_t* S, const index_t *counter_C)
 {
@@ -752,7 +752,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                     /* is (i,j) a strong connection ?*/
                     const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
-                        a+=A_ij;  
+                        a+=A_ij;
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p_main_i,degree_p_main_i, sizeof(index_t), util::comparIndex);
@@ -760,7 +760,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_setClassicProlongation: interpolation point is missing.");
                                } else {
                                     const index_t offset = main_pattern->ptr[i]+ (index_t)(where_p-start_p_main_i);
-                                    main_block->val[offset]+=A_ij; 
+                                    main_block->val[offset]+=A_ij;
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
@@ -803,7 +803,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                          }
                                          D_s_offset[len_D_s]=offset_m + main_len;
                                          len_D_s++;
-                                    } 
+                                    }
                                  }
                                }
 
@@ -811,9 +811,9 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                                if (std::abs(s)>0) {
                                    s=A_ij/s;
                                    for (q=0;q<len_D_s;++q) {
-                                        if (D_s_offset[q] < main_len) 
+                                        if (D_s_offset[q] < main_len)
                                           main_block->val[D_s_offset[q]]+=s*D_s[q];
-                                        else 
+                                        else
                                           couple_block->val[D_s_offset[q]-main_len]+=s*D_s[q];
                                    }
                                } else {
@@ -822,7 +822,7 @@ void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
                           }
                      }
                  }
-              }  
+              }
 
               if (A->mpi_info->size > 1) {
               /* now, deal with the coupleBlock */
@@ -1040,14 +1040,14 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                     }
                                }
 
-                               for (ib=0; ib<row_block; ib++) { 
+                               for (ib=0; ib<row_block; ib++) {
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
-                        
+
                                    if (std::abs(s)>0) {
                                      s=A_ij[(row_block+1)*ib]/s;
-                                     for (q=0; q<len_D_s; q++) { 
-                                       if (D_s_offset[q] < main_len) 
+                                     for (q=0; q<len_D_s; q++) {
+                                       if (D_s_offset[q] < main_len)
                                             main_block->val[D_s_offset[q]*row_block+ib]+=s*D_s[q*row_block+ib];
                                        else{
                                             couple_block->val[(D_s_offset[q]-main_len)*row_block+ib]+=s*D_s[q*row_block+ib];
@@ -1060,7 +1060,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                           }
                      }
                  }
-              }  
+              }
 
               if (A->mpi_info->size > 1) {
               /* now, deal with the coupleBlock */
@@ -1132,18 +1132,18 @@ void Preconditioner_AMG_setClassicProlongation_Block(
                                          }
                                          D_s_offset[len_D_s]=offset_m + main_len;
                                          len_D_s++;
-                                    } 
+                                    }
                                  }
                                }
 
-                               for (ib=0; ib<row_block; ib++) { 
+                               for (ib=0; ib<row_block; ib++) {
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
-                        
+
                                    if (std::abs(s)>0) {
                                        s=A_ij[(row_block+1)*ib]/s;
                                        for (q=0;q<len_D_s;++q) {
-                                         if (D_s_offset[q] < main_len) 
+                                         if (D_s_offset[q] < main_len)
                                             main_block->val[D_s_offset[q]*row_block+ib]+=s*D_s[q*row_block+ib];
                                          else
                                             couple_block->val[(D_s_offset[q]-main_len)*row_block+ib]+=s*D_s[q*row_block+ib];
@@ -1159,7 +1159,7 @@ void Preconditioner_AMG_setClassicProlongation_Block(
               }
 
               /* i has been processed, now we need to do some rescaling */
-              for (ib=0; ib<row_block; ib++) { 
+              for (ib=0; ib<row_block; ib++) {
                    register double a2=a[ib];
                    if (std::abs(a2)>0.) {
                         a2=-1./a2;

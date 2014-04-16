@@ -22,7 +22,7 @@ namespace paso {
 
 err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
                     double* dx, dim_t* iter, double* tolerance,
-                    Performance* pp) 
+                    Performance* pp)
 {
     static double RENORMALIZATION_CONST=0.001;
     const dim_t l=(*iter)+1, iter_max=*iter;
@@ -30,7 +30,7 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
     const dim_t n=F->getLen();
     const double rel_tol=*tolerance;
     double abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual=0.;
-    bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE;
+    bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
 
     if (n < 0 || iter_max<=0 || l<1 || rel_tol<0) {
         return SOLVER_INPUT_ERROR;
@@ -50,7 +50,7 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
 
     util::zeroes(n,dx);
 
-    /*     
+    /*
      *  the show begins:
      */
     normf0 = util::l2(n,f0,F->mpi_info);
@@ -77,7 +77,7 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
             for (j=0; j<k; j++){
                 hh = util::innerProduct(n,v[j],v[k],F->mpi_info);
                 util::update(n,1.,v[k],(-hh),v[j]); // v[k]-hh*v[j]
-                h[INDEX2(j,k-1,l)]=hh; 
+                h[INDEX2(j,k-1,l)]=hh;
                 //printf("%d :  %d = %e\n",k,j,hh);
             }
             normv2=util::l2(n,v[k],F->mpi_info);
@@ -96,12 +96,12 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
                 normv2=util::l2(n,v[k],F->mpi_info);
                 h[INDEX2(k,k-1,l)]=normv2;
             }
-            /* 
+            /*
              * watch out for happy breakdown
              */
             if (normv2 > 0.) {
                 util::update(n,1./normv2,v[k],0.,v[k]); /* normalize v[k] */
-            } 
+            }
             /*
              * Form and store the information for the new Givens rotation
              */

@@ -60,7 +60,7 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
     double  dt2,t=0, dt3;
     err_t errorCode=SOLVER_NO_ERROR;
     const dim_t n = transport_matrix->getTotalNumRows();
-    options->time_step_backtracking_used=FALSE;
+    options->time_step_backtracking_used = false;
     options->num_iter=0;
 
     if (dt <= 0.) {

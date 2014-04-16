@@ -46,13 +46,13 @@ void MKL_free(SparseMatrix* A)
         _INTEGER_t error=MKL_ERROR_NO; // error code
         _INTEGER_t iparm[64];          // parameters
         _MKL_DSS_HANDLE_t* pt = (_MKL_DSS_HANDLE_t*)A->solver_p;
-        _INTEGER_t phase = MKL_PHASE_RELEASE_MEMORY;  
+        _INTEGER_t phase = MKL_PHASE_RELEASE_MEMORY;
         for (index_t i=0; i<64; ++i)
-            iparm[i]=0;  
+            iparm[i]=0;
 
         PARDISO(pt, &maxfct, &mnum, &mtype, &phase, &n, A->val,
                 A->pattern->ptr, A->pattern->index, &idum, &nrhs,
-                iparm, &msglvl,&ddum, &ddum, &error);  
+                iparm, &msglvl,&ddum, &ddum, &error);
         delete[] A->solver_p;
         A->solver_p=NULL;
         if (error != MKL_ERROR_NO)

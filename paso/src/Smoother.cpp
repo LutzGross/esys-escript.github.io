@@ -43,7 +43,7 @@ void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother* in)
 {
     if (in!=NULL) {
         delete[] in->diag;
-        delete[] in->pivot; 
+        delete[] in->pivot;
         delete[] in->buffer;
         delete in;
     }
@@ -52,7 +52,7 @@ void Preconditioner_LocalSmoother_free(Preconditioner_LocalSmoother* in)
 
 /// constructs the symmetric Gauss-Seidel preconditioner
 Preconditioner_Smoother* Preconditioner_Smoother_alloc(SystemMatrix_ptr A,
-        bool jacobi, bool is_local, bool verbose) 
+        bool jacobi, bool is_local, bool verbose)
 {
     Preconditioner_Smoother* out=new Preconditioner_Smoother;
     out->localSmoother=Preconditioner_LocalSmoother_alloc(A->mainBlock,
@@ -81,7 +81,7 @@ Preconditioner_LocalSmoother* Preconditioner_LocalSmoother_alloc(
     out->Jacobi=jacobi;
     A->invMain(out->diag, out->pivot);
     time0=Esys_timer()-time0;
-   
+
     if (Esys_noError()) {
         return out;
     } else {
@@ -110,7 +110,7 @@ The MPI-versioned smoother works in the following way:
 */
 void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
         Preconditioner_Smoother* smoother, double* x, const double* b,
-        dim_t sweeps, bool x_is_initial) 
+        dim_t sweeps, bool x_is_initial)
 {
     const dim_t n = A->mainBlock->numRows * A->mainBlock->row_block_size;
     double *b_new = smoother->localSmoother->buffer;
@@ -127,8 +127,8 @@ void Preconditioner_Smoother_solve(SystemMatrix_ptr A,
         while (nsweeps > 0 ) {
             util::copy(n, b_new, b);
             SystemMatrix_MatrixVector_CSR_OFFSET0((-1.), A, x, 1., b_new); /* b_new = b - A*x */
-            Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);  
-            util::AXPY(n, x, 1., b_new); 
+            Preconditioner_LocalSmoother_Sweep(A->mainBlock,smoother->localSmoother,b_new);
+            util::AXPY(n, x, 1., b_new);
             nsweeps--;
         }
     }
@@ -167,19 +167,21 @@ err_t Preconditioner_Smoother_solve_byTolerance(SystemMatrix_ptr A,
    return errorCode;
 }
 
-void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A, Preconditioner_LocalSmoother * smoother, double * x, const double * b, 
-                                             const dim_t sweeps, const bool x_is_initial) 
+void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A,
+                                        Preconditioner_LocalSmoother* smoother,
+                                        double* x, const double* b,
+                                        dim_t sweeps, bool x_is_initial)
 {
    const dim_t n = A->numRows * A->row_block_size;
    double *b_new = smoother->buffer;
    dim_t nsweeps=sweeps;
-   
+
    if (! x_is_initial) {
         util::copy(n, x, b);
         Preconditioner_LocalSmoother_Sweep(A, smoother, x);
         nsweeps--;
    }
-   
+
    while (nsweeps > 0 ) {
        util::copy(n, b_new, b);
 
@@ -191,7 +193,7 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A, Preconditioner_Local
 }
 
 /*
-  Gauss-Seidel sweep to calculate /delta x_{n+1} from matrix A and 
+  Gauss-Seidel sweep to calculate /delta x_{n+1} from matrix A and
   residual r_n. It has two steps: forward substitution and backward
   substitution.
   Forward substitution: (D+L) * /delta x_{n+1/2} = r_n
@@ -206,7 +208,7 @@ void Preconditioner_LocalSmoother_solve(SparseMatrix_ptr A, Preconditioner_Local
   Output: /delta x_{n+1} (in x)
 */
 void Preconditioner_LocalSmoother_Sweep(SparseMatrix_ptr A,
-        Preconditioner_LocalSmoother* smoother, double* x) 
+        Preconditioner_LocalSmoother* smoother, double* x)
 {
     const dim_t nt=omp_get_max_threads();
     if (smoother->Jacobi) {
@@ -227,8 +229,8 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
     const dim_t n=A->numRows;
     const dim_t n_block=A->row_block_size;
     double *diag = smoother->diag;
-    index_t* pivot = smoother->pivot; 
-    const dim_t block_len=A->block_size; 
+    index_t* pivot = smoother->pivot;
+    const dim_t block_len=A->block_size;
     register dim_t i,k;
     register index_t iptr_ik, mm;
     register double rtmp;
@@ -247,7 +249,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
             /* x_i=x_i-a_ik*x_k (with k<i) */
             rtmp=x[i];
             for (iptr_ik=A->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
-                k=A->pattern->index[iptr_ik]; 
+                k=A->pattern->index[iptr_ik];
                 rtmp-=A->val[iptr_ik]*x[k];
             }
             x[i]=rtmp*diag[i];
@@ -257,7 +259,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
         for (i = 1; i < n; ++i) {
             mm=ptr_main[i];
             for (iptr_ik=A->pattern->ptr[i];iptr_ik<mm; ++iptr_ik) {
-                k=A->pattern->index[iptr_ik];                          
+                k=A->pattern->index[iptr_ik];
                 BlockOps_SMV_2(&x[2*i], &A->val[4*iptr_ik], &x[2*k]);
             }
             BlockOps_MViP_2(&diag[4*i], &x[2*i]);
@@ -270,7 +272,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
                 k=A->pattern->index[iptr_ik];
                 BlockOps_SMV_3(&x[3*i], &A->val[9*iptr_ik], &x[3*k]);
             }
-            BlockOps_MViP_3(&diag[9*i], &x[3*i]); 
+            BlockOps_MViP_3(&diag[9*i], &x[3*i]);
         }
     } else {
         BlockOps_solve_N(n_block, &x[0], &diag[0], &pivot[0], &failed);
@@ -286,7 +288,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
 
     // backward sweeps
     if (n_block==1) {
-        for (i = n-2; i > -1; --i) {             
+        for (i = n-2; i > -1; --i) {
             mm=ptr_main[i];
             rtmp=x[i]*A->val[mm];
             for (iptr_ik=mm+1; iptr_ik < A->pattern->ptr[i+1]; ++iptr_ik) {
@@ -300,7 +302,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
             mm=ptr_main[i];
             BlockOps_MViP_2(&A->val[4*mm], &x[2*i]);
             for (iptr_ik=mm+1; iptr_ik < A->pattern->ptr[i+1]; ++iptr_ik) {
-                k=A->pattern->index[iptr_ik]; 
+                k=A->pattern->index[iptr_ik];
                 BlockOps_SMV_2(&x[2*i], &A->val[4*iptr_ik], &x[2*k]);
             }
             BlockOps_MViP_2(&diag[i*4], &x[2*i]);
@@ -310,7 +312,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
             mm=ptr_main[i];
             BlockOps_MViP_3(&A->val[9*mm], &x[3*i]);
             for (iptr_ik=mm+1; iptr_ik < A->pattern->ptr[i+1]; ++iptr_ik) {
-                k=A->pattern->index[iptr_ik];    
+                k=A->pattern->index[iptr_ik];
                 BlockOps_SMV_3(&x[3*i], &A->val[9*iptr_ik], &x[3*k]);
             }
             BlockOps_MViP_3(&diag[i*9], &x[3*i]);
@@ -321,7 +323,7 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
             mm=ptr_main[i];
             BlockOps_MV_N(n_block, &y[0], &A->val[block_len*mm], &x[n_block*i]);
             for (iptr_ik=mm+1; iptr_ik < A->pattern->ptr[i+1]; ++iptr_ik) {
-                k=A->pattern->index[iptr_ik];    
+                k=A->pattern->index[iptr_ik];
                 BlockOps_SMV_N(n_block, &y[0], &A->val[block_len*iptr_ik], &x[n_block*k]);
             }
             BlockOps_Cpy_N(n_block ,&x[n_block*i], &y[0]);
@@ -329,31 +331,31 @@ void Preconditioner_LocalSmoother_Sweep_sequential(SparseMatrix_ptr A,
         }
         delete[] y;
     }
-   
+
     if (failed > 0) {
         Esys_setError(ZERO_DIVISION_ERROR, "Preconditioner_LocalSmoother_Sweep_sequential: non-regular main diagonal block.");
     }
 }
-       
+
 void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
-        Preconditioner_LocalSmoother* smoother, double* x) 
+        Preconditioner_LocalSmoother* smoother, double* x)
 {
     const dim_t n=A->numRows;
     const dim_t n_block=A->row_block_size;
     double *diag = smoother->diag;
-    index_t* pivot = smoother->pivot;   
-    const dim_t block_len=A->block_size;   
+    index_t* pivot = smoother->pivot;
+    const dim_t block_len=A->block_size;
     double *y;
-   
+
     register dim_t i,k;
     register index_t color,iptr_ik, mm;
     register double rtmp;
     int failed = 0;
-   
+
     const index_t* coloring = A->pattern->borrowColoringPointer();
     const dim_t num_colors = A->pattern->getNumColors();
     const index_t* ptr_main = A->borrowMainDiagonalPointer();
-   
+
     (void)pivot;                 /* These vars are dropped by some macros*/
     (void)block_len;
 
@@ -367,8 +369,8 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
         /* forward substitution */
 
         /* color = 0 */
-        if (n_block==1) { 
-            #pragma omp  for schedule(static) 
+        if (n_block==1) {
+            #pragma omp  for schedule(static)
             for (i = 0; i < n; ++i) {
                 if (coloring[i]== 0 ) x[i]*=diag[i];
             }
@@ -394,11 +396,11 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                 #pragma omp for schedule(static)
                 for (i = 0; i < n; ++i) {
                     if (coloring[i]==color) {
-                        /* x_i=x_i-a_ik*x_k */  
+                        /* x_i=x_i-a_ik*x_k */
                         rtmp=x[i];
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                             k=A->pattern->index[iptr_ik];
-                            if (coloring[k]<color) rtmp-=A->val[iptr_ik]*x[k]; 
+                            if (coloring[k]<color) rtmp-=A->val[iptr_ik]*x[k];
                         }
                         x[i]=diag[i]*rtmp;
                     }
@@ -408,8 +410,8 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                 for (i = 0; i < n; ++i) {
                     if (coloring[i]==color) {
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
-                            if (coloring[k]<color) BlockOps_SMV_2(&x[2*i], &A->val[4*iptr_ik], &x[2*k]); 
+                            k=A->pattern->index[iptr_ik];
+                            if (coloring[k]<color) BlockOps_SMV_2(&x[2*i], &A->val[4*iptr_ik], &x[2*k]);
                         }
                         BlockOps_MViP_2(&diag[4*i], &x[2*i]);
                     }
@@ -419,7 +421,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                 for (i = 0; i < n; ++i) {
                     if (coloring[i]==color) {
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
+                            k=A->pattern->index[iptr_ik];
                             if (coloring[k]<color) BlockOps_SMV_3(&x[3*i], &A->val[9*iptr_ik], &x[3*k]);
                         }
                         BlockOps_MViP_3(&diag[9*i], &x[3*i]);
@@ -430,7 +432,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                 for (i = 0; i < n; ++i) {
                     if (coloring[i] == color) {
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
+                            k=A->pattern->index[iptr_ik];
                             if (coloring[k]<color) BlockOps_SMV_N(n_block, &x[n_block*i], &A->val[block_len*iptr_ik], &x[n_block*k]);
                         }
                         BlockOps_solve_N(n_block, &x[n_block*i], &diag[block_len*i], &pivot[n_block*i], &failed);
@@ -438,7 +440,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                 }
             }
         } // end of coloring loop
-      
+
         // backward substitution
 
         // Note: color=(num_colors)-1 is not required
@@ -450,7 +452,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                         mm=ptr_main[i];
                         rtmp=A->val[mm]*x[i];
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
+                            k=A->pattern->index[iptr_ik];
                             if (coloring[k]>color) rtmp-=A->val[iptr_ik]*x[k];
                         }
                         x[i]= rtmp*diag[i];
@@ -463,7 +465,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                         mm=ptr_main[i];
                         BlockOps_MViP_2(&A->val[4*mm], &x[2*i]);
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
+                            k=A->pattern->index[iptr_ik];
                             if (coloring[k]>color) BlockOps_SMV_2(&x[2*i], &A->val[4*iptr_ik], &x[2*k]);
                         }
                         BlockOps_MViP_2(&diag[4*i], &x[2*i]);
@@ -476,7 +478,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                         mm=ptr_main[i];
                         BlockOps_MViP_3(&A->val[9*mm], &x[3*i]);
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
+                            k=A->pattern->index[iptr_ik];
                             if (coloring[k]>color) BlockOps_SMV_3(&x[3*i], &A->val[9*iptr_ik], &x[3*k]);
                         }
                         BlockOps_MViP_3(&diag[9*i], &x[3*i]);
@@ -489,7 +491,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
                         mm=ptr_main[i];
                         BlockOps_MV_N(n_block, &y[0], &A->val[block_len*mm], &x[n_block*i]);
                         for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                            k=A->pattern->index[iptr_ik];                          
+                            k=A->pattern->index[iptr_ik];
                             if (coloring[k]>color) BlockOps_SMV_N(n_block, &y[0], &A->val[block_len*iptr_ik], &x[n_block*k]);
                         }
                         BlockOps_Cpy_N(n_block ,&x[n_block*i], &y[0]);

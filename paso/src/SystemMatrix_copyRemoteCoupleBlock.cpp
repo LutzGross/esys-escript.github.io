@@ -86,14 +86,14 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
         coupler->finishCollect();
         global_id = new index_t[num_couple_cols+1];
 #pragma omp parallel for
-        for (index_t i=0; i<num_couple_cols; ++i) 
+        for (index_t i=0; i<num_couple_cols; ++i)
             global_id[i] = coupler->recv_buffer[i];
         coupler.reset();
     }
 
     // distribute the number of cols in current col_coupleBlock to all ranks
     MPI_Allgatherv(&num_couple_cols, 1, MPI_INT, recv_buf, recv_degree,
-                   recv_offset, MPI_INT, mpi_info->comm); 
+                   recv_offset, MPI_INT, mpi_info->comm);
 
     // distribute global_ids of cols to be considered to all ranks
     index_t len = 0;
@@ -113,7 +113,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     for (index_t p=0; p<recv->numNeighbors; p++) {
         const index_t row = recv->offsetInShared[p];
         const index_t i = recv->offsetInShared[p+1];
-        MPI_Irecv(&(ptr_ptr[row]), i-row, MPI_INT, recv->neighbor[p], 
+        MPI_Irecv(&(ptr_ptr[row]), i-row, MPI_INT, recv->neighbor[p],
                 mpi_info->msg_tag_counter+recv->neighbor[p],
                 mpi_info->comm,
                 &(row_coupler->mpi_requests[p]));
@@ -124,7 +124,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     len = 0;
     for (index_t i=0; i<num_neighbors; i++) {
         // #cols per row X #rows
-        len += recv_buf[send->neighbor[i]] * 
+        len += recv_buf[send->neighbor[i]] *
                 (send->offsetInShared[i+1] - send->offsetInShared[i]);
     }
     double* send_buf = new double[len*block_size];
@@ -172,7 +172,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
 
             // check mainBlock for data to be passed @row
             k_ub = mainBlock->pattern->ptr[row+1];
-            k=mainBlock->pattern->ptr[row]; 
+            k=mainBlock->pattern->ptr[row];
             while (k<k_ub && l<l_ub) {
                 m = mainBlock->pattern->index[k] + offset;
                 n = cols_array[l];
@@ -181,14 +181,14 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
                     memcpy(&send_buf[len*block_size],
                            &mainBlock->val[block_size*k], block_size_size);
                     len++;
-                    l++; 
+                    l++;
                     k++;
                 } else if (m < n) {
                     k++;
                 } else {
                     l++;
                 }
-            } 
+            }
 
             // check col_coupleBlock for data to be passed @row
             k_ub = col_coupleBlock->pattern->ptr[row+1];
@@ -242,7 +242,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     index_t j=0;
     for (p=0; p<recv->numNeighbors; p++) {
         const index_t i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
-        if (i > 0) 
+        if (i > 0)
             MPI_Irecv(&ptr_idx[j], i, MPI_INT, recv->neighbor[p],
                 mpi_info->msg_tag_counter+recv->neighbor[p], mpi_info->comm,
                 &row_coupler->mpi_requests[p]);
@@ -252,7 +252,7 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     j=0;
     for (p=0; p<num_neighbors; p++) {
         const index_t i = send_degree[p] - j;
-        if (i > 0) 
+        if (i > 0)
             MPI_Issend(&send_idx[j], i, MPI_INT, send->neighbor[p],
                 mpi_info->msg_tag_counter+rank, mpi_info->comm,
                 &row_coupler->mpi_requests[p+recv->numNeighbors]);
@@ -274,8 +274,8 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     j=0;
     for (p=0; p<recv->numNeighbors; p++) {
         const index_t i = ptr_ptr[recv->offsetInShared[p+1]] - ptr_ptr[recv->offsetInShared[p]];
-        if (i > 0) 
-            MPI_Irecv(&remote_coupleBlock->val[j], i * block_size, 
+        if (i > 0)
+            MPI_Irecv(&remote_coupleBlock->val[j], i * block_size,
                 MPI_DOUBLE, recv->neighbor[p],
                 mpi_info->msg_tag_counter+recv->neighbor[p], mpi_info->comm,
                 &row_coupler->mpi_requests[p]);

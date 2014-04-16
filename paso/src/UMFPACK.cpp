@@ -51,7 +51,7 @@ void UMFPACK_free(SparseMatrix* A)
 
 /// calls the solver
 void UMFPACK_solve(SparseMatrix_ptr A, double* out, double* in,
-                   dim_t numRefinements, bool verbose) 
+                   dim_t numRefinements, bool verbose)
 {
 #ifdef UMFPACK
     if (!( (A->type & MATRIX_FORMAT_BLK1) && (A->type & MATRIX_FORMAT_CSC)) ) {

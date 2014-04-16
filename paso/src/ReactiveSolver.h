@@ -28,7 +28,7 @@
 #define PASO_RT_EXP_LIM_MAX log(1./sqrt(EPSILON))
 
 namespace paso {
-    
+
 PASO_DLL_API
 struct ReactiveSolver
 {
@@ -48,7 +48,6 @@ struct ReactiveSolver
     const_TransportProblem_ptr tp;
     double dt;
 };
-
 
 
 } // namespace paso

@@ -48,7 +48,7 @@ struct Preconditioner
     /// Jacobi preconditioner
     Preconditioner_Smoother* jacobi;
     /// Gauss-Seidel preconditioner
-    Preconditioner_Smoother* gs;  
+    Preconditioner_Smoother* gs;
     /// AMG preconditioner
     Preconditioner_AMG_Root* amg;
     /// ILU preconditioner
@@ -112,7 +112,7 @@ void Preconditioner_LocalSmoother_Sweep_colored(SparseMatrix_ptr A,
         Preconditioner_LocalSmoother* gs, double* x);
 
 
-typedef enum 
+typedef enum
 {
     PASO_AMG_UNDECIDED=-1,
     PASO_AMG_IN_F=0,
@@ -129,7 +129,7 @@ struct Preconditioner_AMG
     SystemMatrix_ptr P;
     /// restriction  n_C x n
     SystemMatrix_ptr R;
-   
+
     Preconditioner_Smoother* Smoother;
     dim_t post_sweeps;
     dim_t pre_sweeps;
@@ -189,7 +189,7 @@ struct Preconditioner_LocalAMG
 {
    dim_t level;
    SparseMatrix_ptr A_C;  /* coarse level matrix */
-   SparseMatrix_ptr P;    /* prolongation n x n_C*/ 
+   SparseMatrix_ptr P;    /* prolongation n x n_C*/
    SparseMatrix_ptr R;    /* restriction  n_C x n */
 
    Preconditioner_LocalSmoother* Smoother;
@@ -227,7 +227,7 @@ dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG
 void Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, AMGBlockSelect*split_marker);
 
 
-struct Preconditioner_AMG_Root 
+struct Preconditioner_AMG_Root
 {
   bool is_local;
   Preconditioner_AMG* amg;

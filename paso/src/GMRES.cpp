@@ -20,11 +20,11 @@
 *  =======
 *
 *  GMRES solves the linear system A*x=b using the
-*  truncated and restarted GMRES method with preconditioning. 
+*  truncated and restarted GMRES method with preconditioning.
 *
 *  Convergence test: norm( b - A*x )< TOL.
 *
-*  
+*
 *
 *  Arguments
 *  =========
@@ -146,17 +146,17 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         ++num_iter_restart;
         /* order is the dimension of the space on which the residual is minimized: */
         order=std::min(num_iter_restart,Length_of_recursion);
-        /***                                                                 
+        /***
          *** calculate new search direction P from R_PRES
          ***/
         A->solvePreconditioner(&P_PRES[0][0], &R_PRES[0][0]);
-        /***                                                                 
-         *** apply A to P to get AP 
+        /***
+         *** apply A to P to get AP
          ***/
         SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0], PASO_ZERO, &AP[0]);
-        /***                                                                 
-         ***** calculation of the norm of R and the scalar products of       
-         ***   the residuals and A*P:                                        
+        /***
+         ***** calculation of the norm of R and the scalar products of
+         ***   the residuals and A*P:
          ***/
         memset(loc_dots,0,sizeof(double)*(order+1));
 #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end, R_PRES_dot_P, P_PRES_dot_AP0, P_PRES_dot_AP1, P_PRES_dot_AP2, P_PRES_dot_AP3, P_PRES_dot_AP4, P_PRES_dot_AP5, P_PRES_dot_AP6)
@@ -396,13 +396,13 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                   BREAKF[0]=PASO_ONE;
             }
             for (i=0;i<order;++i) ALPHA[i]*=Factor;
-            /*                                                                 
-            ***** Update of solution X_PRES and its residual R_PRES:            
-            ***                                                               
-            ***   P is used to accumulate X and AP to accumulate R. X and R     
-            ***   are still needed until they are put into the X and R memory   
-            ***   R_PRES and X_PRES                                     
-            ***                                                                 
+            /*
+            ***** Update of solution X_PRES and its residual R_PRES:
+            ***
+            ***   P is used to accumulate X and AP to accumulate R. X and R
+            ***   are still needed until they are put into the X and R memory
+            ***   R_PRES and X_PRES
+            ***
             **/
             breakf0=BREAKF[0];
             #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
@@ -571,7 +571,7 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
               norm_of_residual=sqrt(L2_R);
               convergeFlag = (norm_of_residual <= tol);
               if (restart>0) restartFlag=(num_iter_restart >= restart);
-            } else { 
+            } else {
               convergeFlag=false;
               restartFlag=false;
             }
@@ -581,7 +581,7 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         /* end of iteration */
         Norm_of_residual_global=norm_of_residual;
         Num_iter_global=num_iter;
-        if (maxIterFlag) { 
+        if (maxIterFlag) {
                Status = SOLVER_MAXITER_REACHED;
            } else if (breakFlag) {
                Status = SOLVER_BREAKDOWN;

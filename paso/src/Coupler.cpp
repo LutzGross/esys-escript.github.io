@@ -58,7 +58,7 @@ Coupler::~Coupler()
 #ifdef ESYS_MPI
     delete[] mpi_requests;
     delete[] mpi_stati;
-#endif                
+#endif
     Esys_MPIInfo_free(mpi_info);
 }
 
@@ -74,7 +74,7 @@ void Coupler::startCollect(const double* in)
 #ifdef ESYS_MPI
             MPI_Irecv(&recv_buffer[connector->recv->offsetInShared[i]*block_size],
                     (connector->recv->offsetInShared[i+1]-connector->recv->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->recv->neighbor[i], 
+                    MPI_DOUBLE, connector->recv->neighbor[i],
                     mpi_info->msg_tag_counter+connector->recv->neighbor[i],
                     mpi_info->comm, &mpi_requests[i]);
 #endif
@@ -99,10 +99,10 @@ void Coupler::startCollect(const double* in)
 #ifdef ESYS_MPI
             MPI_Issend(&send_buffer[connector->send->offsetInShared[i]*block_size],
                     (connector->send->offsetInShared[i+1] - connector->send->offsetInShared[i])*block_size,
-                    MPI_DOUBLE, connector->send->neighbor[i], 
+                    MPI_DOUBLE, connector->send->neighbor[i],
                     mpi_info->msg_tag_counter+mpi_info->rank, mpi_info->comm,
                     &mpi_requests[i+connector->recv->numNeighbors]);
-#endif 
+#endif
         }
         ESYS_MPI_INC_COUNTER(*mpi_info, mpi_info->size)
         in_use = true;
@@ -129,7 +129,7 @@ double* Coupler::finishCollect()
 
 void Coupler::copyAll(Coupler_ptr target) const
 {
-#pragma omp parallel 
+#pragma omp parallel
     {
 #pragma omp for
         for (dim_t i=0; i < getNumOverlapValues(); ++i) {
@@ -150,11 +150,11 @@ void Coupler::fillOverlap(dim_t n, double* x)
 
     startCollect(x);
     double* remote_values = finishCollect();
-      
+
 #pragma omp parallel for
     for (dim_t i=0; i < overlap_n * block_size; ++i) {
         x[offset+i] = remote_values[i];
-    } 
+    }
 }
 
 /* adjusts max values across shared values x */
@@ -162,7 +162,7 @@ void Coupler::max(dim_t n, double* x)
 {
     const dim_t overlap_n = getNumOverlapValues();
     const dim_t my_n = n - overlap_n;
-   
+
     startCollect(x);
     double* remote_values = finishCollect();
 

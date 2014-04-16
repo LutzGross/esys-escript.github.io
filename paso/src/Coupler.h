@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/*   Paso: coupler                                            */ 
+/*   Paso: coupler                                            */
 
 /****************************************************************************/
 
@@ -93,11 +93,11 @@ struct Connector
 
     //inline debug() const
     //{
-    //    for (int i=0; i<recv->numNeighbors; ++i) 
+    //    for (int i=0; i<recv->numNeighbors; ++i)
     //        printf("Coupler: %d receive %d data at %d from %d\n",
     //            s->mpi_info->rank,recv->offsetInShared[i+1]-recv->offsetInShared[i],
     //            recv->offsetInShared[i],recv->neighbor[i]);
-    //    for (int i=0; i<send->numNeighbors; ++i) 
+    //    for (int i=0; i<send->numNeighbors; ++i)
     //        printf("Coupler: %d send %d data at %d to %d\n",
     //            s->mpi_info->rank,send->offsetInShared[i+1]-send->offsetInShared[i],
     //            send->offsetInShared[i],send->neighbor[i]);

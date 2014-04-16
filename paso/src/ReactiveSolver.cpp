@@ -17,9 +17,9 @@
 
 /****************************************************************************/
 
-/* Paso: reactive solver (D is a diagonal matrix) 
- *        
- *   - Mv_t=Dv+q   v(0)=u       
+/* Paso: reactive solver (D is a diagonal matrix)
+ *
+ *   - Mv_t=Dv+q   v(0)=u
  *
  *  to return v(dt)
  *

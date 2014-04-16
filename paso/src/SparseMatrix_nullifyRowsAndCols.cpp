@@ -131,7 +131,7 @@ void SparseMatrix::nullifyRows_CSR_BLK1(const double* mask_row,
                 val[iptr] = (irow==icol ? main_diagonal_value : 0);
             }
         }
-    } 
+    }
 }
 
 void SparseMatrix::nullifyRows_CSR(const double* mask_row,

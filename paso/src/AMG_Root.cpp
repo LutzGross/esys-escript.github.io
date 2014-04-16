@@ -95,7 +95,7 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
             prec->sweeps=options->sweeps;
             prec->amgsubstitute=Preconditioner_Smoother_alloc(A, (options->smoother == PASO_JACOBI), prec->is_local, options->verbose);
             options->num_level=0;
-            if (options->verbose) { 
+            if (options->verbose) {
                 if (options->smoother == PASO_JACOBI) {
                     printf("Preconditioner: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
                 } else {

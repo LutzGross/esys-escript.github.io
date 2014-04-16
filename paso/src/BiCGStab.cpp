@@ -47,13 +47,13 @@ namespace paso {
 *  Arguments
 *  =========
 *
-*  A       (input) 
+*  A       (input)
 *
 *  R       (input) DOUBLE PRECISION array, dimension N.
 *          On entry, residual of initial guess X
 *
 *  X       (input/output) DOUBLE PRECISION array, dimension N.
-*          On input, the initial guess. 
+*          On input, the initial guess.
 *
 *  ITER    (input/output) INT
 *          On input, the maximum iterations to be performed.
@@ -61,7 +61,7 @@ namespace paso {
 *
 *  RESID   (input/output) DOUBLE PRECISION
 *          On input, the allowable convergence measure for
-*          norm( b - A*x ) 
+*          norm( b - A*x )
 *          On output, the final value of this measure.
 *
 *  return value
@@ -109,14 +109,14 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     /* now bicgstab starts : */
     maxit = *iter;
     tol = *resid;
-   
+
     num_iter =0;
     convergeFlag=false;
     maxIterFlag=false;
     breakFlag=false;
 
     /* initialise arrays */
- 
+
     #pragma omp parallel for private(i0) schedule(static)
     for (i0 = 0; i0 < n; i0++) {
         rtld[i0]=0;
@@ -127,9 +127,9 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         shat[i0]=0;
         rtld[i0] = r[i0];
     }
-   
+
     /*     Perform BiConjugate Gradient Stabilized iteration. */
-   
+
     L10:
       ++(num_iter);
         sum_1 = 0;
@@ -145,10 +145,10 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
           MPI_Allreduce(loc_sum, &sum_1, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
       #endif
       rho = sum_1;
-      
+
       if (! (breakFlag = (std::abs(rho) <= TOLERANCE_FOR_SCALARS))) {
         /*        Compute vector P. */
-      
+
         if (num_iter > 1) {
           beta = rho / rho1 * (alpha / omega);
           #pragma omp parallel for private(i0) schedule(static)
@@ -157,12 +157,12 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
           #pragma omp parallel for private(i0) schedule(static)
           for (i0 = 0; i0 < n; i0++) p[i0] = r[i0];
         }
-   
+
         /*        Compute direction adjusting vector PHAT and scalar ALPHA. */
-   
+
         A->solvePreconditioner(&phat[0], &p[0]);
         SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &phat[0], PASO_ZERO, &v[0]);
-   
+
         #pragma omp parallel for private(i0) reduction(+:sum_2) schedule(static)
         for (i0 = 0; i0 < n; i0++) sum_2 += rtld[i0] * v[i0];
         #ifdef ESYS_MPI
@@ -172,7 +172,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         if (! (breakFlag = (std::abs(sum_2) <= TOLERANCE_FOR_SCALARS))) {
            alpha = rho / sum_2;
 
-           #pragma omp parallel for private(i0) reduction(+:sum_3) schedule(static) 
+           #pragma omp parallel for private(i0) reduction(+:sum_3) schedule(static)
            for (i0 = 0; i0 < n; i0++) {
              r[i0] -= alpha * v[i0];
              s[i0] = r[i0];
@@ -183,7 +183,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                MPI_Allreduce(loc_sum, &sum_3, 1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
            #endif
            norm_of_residual = sqrt(sum_3);
-        
+
            /*        Early check for tolerance. */
            if ( (convergeFlag = (norm_of_residual <= tol)) ) {
              #pragma omp parallel for  private(i0) schedule(static)
@@ -194,7 +194,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
              /*           Compute stabilizer vector SHAT and scalar OMEGA. */
              A->solvePreconditioner(&shat[0], &s[0]);
              SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &shat[0],PASO_ZERO,&t[0]);
-   
+
              #pragma omp parallel for private(i0) reduction(+:omegaNumtr,omegaDenumtr) schedule(static)
              for (i0 = 0; i0 < n; i0++) {
                omegaNumtr +=t[i0] * s[i0];
@@ -209,7 +209,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
              #endif
              if (! (breakFlag = (std::abs(omegaDenumtr) <= TOLERANCE_FOR_SCALARS))) {
                 omega = omegaNumtr / omegaDenumtr;
-   
+
                 #pragma omp parallel for private(i0) reduction(+:sum_4) schedule(static)
                 for (i0 = 0; i0 < n; i0++) {
                   x[i0] += alpha * phat[i0] + omega * shat[i0];
@@ -235,7 +235,7 @@ err_t Solver_BiCGStab(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
       /* end of iteration */
       num_iter_global=num_iter;
       norm_of_residual_global=norm_of_residual;
-      if (maxIterFlag) { 
+      if (maxIterFlag) {
             status = SOLVER_MAXITER_REACHED;
       } else if (breakFlag) {
             status = SOLVER_BREAKDOWN;

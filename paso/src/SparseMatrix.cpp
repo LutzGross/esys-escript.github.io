@@ -389,7 +389,7 @@ void SparseMatrix::addRow_CSR_OFFSET0(double* array) const
             dim_t irow=irb+row_block_size*ir;
             double fac=0.;
             for (index_t iptr=pattern->ptr[ir]; iptr<pattern->ptr[ir+1]; iptr++) {
-                for (dim_t icb=0; icb < col_block_size; icb++) 
+                for (dim_t icb=0; icb < col_block_size; icb++)
                     fac += val[iptr*block_size+irb+row_block_size*icb];
 
             }
@@ -508,7 +508,7 @@ void SparseMatrix::invMain(double* inv_diag, int* pivot) const
             for (i = 0; i < n; i++) {
                 iPtr = main_ptr[i];
                 A11 = val[iPtr];
-                if (ABS(A11) > 0.) { 
+                if (ABS(A11) > 0.) {
                     inv_diag[i]=1./A11;
                 } else {
                     failed=1;
@@ -526,7 +526,7 @@ void SparseMatrix::invMain(double* inv_diag, int* pivot) const
                 iPtr = main_ptr[i];
                 BlockOps_invM_3(&inv_diag[i*9], &val[iPtr*9], &failed);
             }
-        } else {    
+        } else {
 #pragma omp parallel for private(i, iPtr) schedule(static)
             for (i = 0; i < n; i++) {
                 iPtr = main_ptr[i];
@@ -629,7 +629,7 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
 {
     const index_t out_type = (newType & MATRIX_FORMAT_BLK1) ? newType : newType + MATRIX_FORMAT_BLK1;
     SparseMatrix_ptr out(new SparseMatrix(out_type, pattern, row_block_size, col_block_size, false));
-  
+
     const dim_t n = numRows;
     const index_t A_offset = (type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
     const index_t out_offset = (out_type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
@@ -648,8 +648,8 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
                             const index_t irow=row_block_size*i+irb+out_offset;
                             const index_t* where_p = (index_t*)bsearch(&irow,
                                         start_p, l_col, sizeof(index_t),
-                                        util::comparIndex);                   
-                            if (where_p != NULL) 
+                                        util::comparIndex);
+                            if (where_p != NULL)
                                 out->val[out->pattern->ptr[icol]-out_offset+(index_t)(where_p-start_p)] =
                                     val[block_size*iptr+irb+row_block_size*icb];
                         }
@@ -668,8 +668,8 @@ SparseMatrix_ptr SparseMatrix::unroll(SparseMatrixType newType) const
                         for (dim_t icb=0; icb<col_block_size; ++icb) {
                             const index_t icol=j*col_block_size+icb+out_offset;
                             const index_t* where_p = (index_t*)bsearch(&icol,
-                                        start_p, l_row,sizeof(index_t),
-                                        util::comparIndex);                  
+                                        start_p, l_row, sizeof(index_t),
+                                        util::comparIndex);
                             if (where_p != NULL)
                                 out->val[out->pattern->ptr[irow]-out_offset+(index_t)(where_p-start_p)] =
                                     val[block_size*iptr+irb+row_block_size*icb];

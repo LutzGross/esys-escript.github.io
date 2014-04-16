@@ -376,7 +376,7 @@ void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
         register dim_t kdeg=0;
         register const index_t koffset=A->mainBlock->pattern->ptr[i]+A->col_coupleBlock->pattern->ptr[i];
 
-        // collect information for row i: 
+        // collect information for row i:
         #pragma ivdep
         for (iptr=A->mainBlock->pattern->ptr[i];iptr<A->mainBlock->pattern->ptr[i+1]; ++iptr) {
             register index_t j=A->mainBlock->pattern->index[iptr];

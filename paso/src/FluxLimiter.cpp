@@ -29,11 +29,11 @@
 
 namespace paso {
 
-FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp) 
+FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
 {
     const dim_t n = tp->transport_matrix->getTotalNumRows();
     const dim_t blockSize = tp->getBlockSize();
-     
+
     mpi_info = Esys_MPIInfo_getReference(tp->mpi_info);
     u_tilde = new double[n];
     MQ = new double[2*n];
@@ -77,8 +77,8 @@ void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
     u_tilde_coupler->startCollect(u_tilde);
 
     // calculate
-    //   MQ_P[i] = lumped_mass_matrix[i] * max_{j} (\tilde{u}[j]- \tilde{u}[i]) 
-    //   MQ_N[i] = lumped_mass_matrix[i] * min_{j} (\tilde{u}[j]- \tilde{u}[i]) 
+    //   MQ_P[i] = lumped_mass_matrix[i] * max_{j} (\tilde{u}[j]- \tilde{u}[i])
+    //   MQ_N[i] = lumped_mass_matrix[i] * min_{j} (\tilde{u}[j]- \tilde{u}[i])
 
     // first we calculate the min and max of u_tilde in the main block
     // QP, QN are used to hold the result
@@ -95,9 +95,9 @@ void FCT_FluxLimiter::setU_tilde(const double* Mu_tilde)
                 u_min_i = std::min(u_min_i, u_j);
                 u_max_i = std::max(u_max_i, u_j);
             }
-            MQ[2*i] = u_min_i;   
+            MQ[2*i] = u_min_i;
             MQ[2*i+1] = u_max_i;
-        
+
         } else {
             MQ[2*i  ] = LARGE_POSITIVE_FLOAT;
             MQ[2*i+1] = LARGE_POSITIVE_FLOAT;
@@ -138,7 +138,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
     const double* remote_u_tilde = u_tilde_coupler->borrowRemoteData();
     SystemMatrix_ptr adf(antidiffusive_fluxes);
- 
+
 #pragma omp parallel for
     for (dim_t i = 0; i < n; ++i) {
         double R_N_i = 1;
@@ -148,7 +148,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
             double P_P_i = 0.;
             double P_N_i = 0.;
             const double MQ_min = MQ[2*i];
-            const double MQ_max = MQ[2*i+1]; 
+            const double MQ_max = MQ[2*i+1];
             #pragma ivdep
             for (index_t iptr_ij = pattern->mainPattern->ptr[i];
                          iptr_ij < pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
@@ -168,7 +168,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
                     }
                 }
             }
-                
+
             // now the couple matrix
             #pragma ivdep
             for (index_t iptr_ij = pattern->col_couplePattern->ptr[i];
@@ -197,12 +197,12 @@ void FCT_FluxLimiter::addLimitedFluxes_Start()
 
     // now we kick off the distribution of the R's
     R_coupler->startCollect(R);
-} 
+}
 
 
 // completes the exchange of the R factors and adds the weighted
 // antidiffusion fluxes to the residual b
-void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b) 
+void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
 {
     const dim_t n = getTotalNumRows();
     const_SystemMatrixPattern_ptr pattern(getFluxPattern());
@@ -214,7 +214,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
         const double R_N_i = R[2*i];
         const double R_P_i = R[2*i+1];
         double f_i = b[i];
-     
+
         #pragma ivdep
         for (index_t iptr_ij = pattern->mainPattern->ptr[i];
                      iptr_ij < pattern->mainPattern->ptr[i+1]; ++iptr_ij) {
@@ -237,7 +237,7 @@ void FCT_FluxLimiter::addLimitedFluxes_Complete(double* b)
         }
         b[i]=f_i;
     } // end of i loop
-} 
+}
 
 } // namespace paso
 

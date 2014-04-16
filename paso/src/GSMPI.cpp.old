@@ -42,7 +42,7 @@ void Solver_GSMPI_free(Solver_GS * in) {
         SparseMatrix_free(in->factors);
         delete[] in->diag;
         delete[] in->main_iptr;
-        Pattern_free(in->pattern);   
+        Pattern_free(in->pattern);
         delete in;
      }
 }
@@ -52,7 +52,7 @@ void Solver_GSMPI_free(Solver_GS * in) {
 
 /*   gs->diag saves the matrix of D{-1}
      This is different from Solver_getGS(), in which, gs->diag
-     is the matrix D. 
+     is the matrix D.
 */
 Solver_GS* Solver_getGSMPI(SparseMatrix * A,bool_t verbose) {
   dim_t n=A->numRows;
@@ -62,7 +62,7 @@ Solver_GS* Solver_getGSMPI(SparseMatrix * A,bool_t verbose) {
   double time0=0,time_color=0,time_fac=0;
   double D, A11, A21, A31, A12, A22, A32, A13, A23, A33;
 
-  /* allocations: */  
+  /* allocations: */
 /*  printf("n_block= %d, n= %d\n", n_block, n); */
   Solver_GS* out=new Solver_GS;
   out->colorOf=new index_t[n];
@@ -86,7 +86,7 @@ Solver_GS* Solver_getGSMPI(SparseMatrix * A,bool_t verbose) {
              if (n_block==1) {
                 #pragma omp parallel for private(i,iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
-                   iptr_main=0; 
+                   iptr_main=0;
                    out->diag[i]=1.;
                    /* find main diagonal */
                    for (iPtr = A->pattern->ptr[i]; iPtr < A->pattern->ptr[i + 1]; iPtr++) {
@@ -132,7 +132,7 @@ Solver_GS* Solver_getGSMPI(SparseMatrix * A,bool_t verbose) {
                        }
                    }
                    out->main_iptr[i]=iptr_main;
-                }  
+                }
              } else if (n_block==3) {
                 #pragma omp parallel for private(i, iPtr,iptr_main) schedule(static)
                 for (i = 0; i < A->pattern->numOutput; i++) {
@@ -206,8 +206,8 @@ void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b);
      In fact it solves Ax=b in two steps:
      step 1: among different nodes (MPI ranks), we use block Jacobi
 	   x{k} = x{k-1} + D{-1}(b-A*x{k-1})
-        => D*x{k} = b - (E+F)x{k-1} 
-	      where matrix D is (let p be the number of nodes): 
+        => D*x{k} = b - (E+F)x{k-1}
+	      where matrix D is (let p be the number of nodes):
 	       --------------------
 	       |A1|  |  | ...  |  |
 	       --------------------
@@ -219,13 +219,13 @@ void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b);
 	       --------------------
                |  |  |  | ...  |Ap|
 	       --------------------
-	      and Ai (i \in [1,p]) represents the mainBlock of matrix 
+	      and Ai (i \in [1,p]) represents the mainBlock of matrix
 	      A on node i. Matrix (E+F) is represented as the coupleBlock
-              of matrix A on each node (annotated as ACi). 
+              of matrix A on each node (annotated as ACi).
            Therefore, step 1 can be turned into the following for node i:
-       => Ai * x{k} = b - ACi * x{k-1} 
-           where both x{k} and b are the segment of x and b on node i, 
-	   and x{k-1} is the old segment values of x on all other nodes. 
+       => Ai * x{k} = b - ACi * x{k-1}
+           where both x{k} and b are the segment of x and b on node i,
+	   and x{k-1} is the old segment values of x on all other nodes.
 
      step 2: inside node i, we use Gauss-Seidel
          let b'= b - ACi * x{k-1} we have Ai * x{k} = b' for node i
@@ -377,10 +377,10 @@ void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b) {
      /* One Gauss-Seidel iteration
         In case of forward iteration x{k} = D{-1}(b - E*x{k} - F*x{k-1})
            => into a loop (without coloring):
-            for i in [0,n-1] do     
+            for i in [0,n-1] do
                x_i = (1/a_ii) *
                  (b_i - \sum{j=0}{i-1}(a_ij*x_j) - \sum{j=i+1}{n-1}(a_ij*x_j))
-        where the first "\sum" sums up newly updated values of x elements 
+        where the first "\sum" sums up newly updated values of x elements
         while the second "\sum" sums up previous (old) values of x elements.
         In case of backward iteration x{k} = D{-1}(b - F*x{k} - E*x{k-1})
      */
@@ -448,7 +448,7 @@ void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b) {
          }
 #else
          }
-#endif 
+#endif
      } else if (n_block == 3) {
 #ifdef _OPENMP
          #pragma omp parallel for private(t,istart,iend,i,xi,ai,sum0,sum1,sum2,iptr,j,xj,aj,X0,X1,X2) schedule(static)
@@ -489,10 +489,10 @@ void Solver_GS_local(SystemMatrix* A, Solver_GS * gs, double * x, double * b) {
          }
 #else
          }
-#endif 
+#endif
      }
 
-     /* step 2: backward iteration 
+     /* step 2: backward iteration
                x{k} = D{-1}(b - F*x{k} - E*x{k-1}) */
      if (n_block == 1){
 #ifdef _OPENMP

@@ -207,7 +207,7 @@ Pattern_ptr Pattern::getSubpattern(int newNumRows, int newNumCols,
     {
 #pragma omp for schedule(static)
         for (dim_t i=0; i < newNumRows+1; ++i) newPtr[i]=0;
-    
+
         // find the number of column entries in each row
 #pragma omp for schedule(static)
         for (dim_t i=0; i < newNumRows; ++i) {
@@ -274,33 +274,33 @@ Pattern_ptr Pattern::unrollBlocks(int newType, dim_t output_block_size,
             #pragma omp for schedule(static)
             for (dim_t i=0; i < new_numOutput+1; ++i)
                 newPtr[i]=index_offset_out;
-   
+
             #pragma omp single
             newPtr[new_numOutput]=new_len+index_offset_out;
-   
-            #pragma omp for schedule(static) 
+
+            #pragma omp for schedule(static)
             for (dim_t i=0; i < numOutput; ++i) {
                 for (dim_t k=0; k < output_block_size; ++k) {
                     newPtr[i*output_block_size+k]=(ptr[i]-index_offset_in)*block_size+
                                                        (ptr[i+1]-ptr[i])*input_block_size*k+index_offset_out;
                 }
             }
-             
-#pragma omp for schedule(static) 
+
+#pragma omp for schedule(static)
             for (dim_t i=0; i < new_numOutput; ++i) {
                 #pragma ivdep
                 for (index_t iPtr=newPtr[i]-index_offset_out; iPtr<newPtr[i+1]-index_offset_out; ++iPtr) {
                     newIndex[iPtr]=index_offset_out;
                 }
             }
-   
-            #pragma omp for schedule(static) 
+
+            #pragma omp for schedule(static)
             for (dim_t i=0; i < numOutput; ++i) {
                 for (index_t iPtr=ptr[i]-index_offset_in; iPtr < ptr[i+1]-index_offset_in; ++iPtr) {
                     for (dim_t k=0; k < output_block_size; ++k) {
                         #pragma ivdep
                         for (dim_t j=0; j < input_block_size; ++j) {
-                            newIndex[newPtr[i*output_block_size+k]-index_offset_out+(iPtr-(ptr[i]-index_offset_in))*input_block_size+j] = 
+                            newIndex[newPtr[i*output_block_size+k]-index_offset_out+(iPtr-(ptr[i]-index_offset_in))*input_block_size+j] =
                                 (index[iPtr]-index_offset_in)*input_block_size+j+index_offset_out;
                         }
                     }

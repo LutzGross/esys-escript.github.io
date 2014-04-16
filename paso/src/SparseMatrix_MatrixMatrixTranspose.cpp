@@ -18,7 +18,7 @@
 /****************************************************************************
 
  Paso: Sparse matrix product (for efficiency, use the transpose
-       of Matrix B when B^T is available) 
+       of Matrix B when B^T is available)
 
 *****************************************************************************
 
@@ -79,7 +79,7 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr A,
     }
 
     Pattern_ptr outpattern(A->pattern->multiply(MATRIX_FORMAT_DEFAULT, B->pattern));
-   
+
     if (Esys_noError()) {
         out.reset(new SparseMatrix(C_type, outpattern, A->row_block_size, B->col_block_size, false));
     }
@@ -109,19 +109,19 @@ SparseMatrix_ptr SparseMatrix_MatrixMatrixTranspose(const_SparseMatrix_ptr A,
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T) 
+void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
    const dim_t col_block_size = C->col_block_size;
-   const dim_t A_col_block_size = A->col_block_size; 
+   const dim_t A_col_block_size = A->col_block_size;
    const dim_t C_block_size =C->block_size;
    const dim_t B_block_size =B->block_size;
    const dim_t A_block_size =A->block_size;
    double *C_ij, *A_ik, *B_kj;
    register double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
    dim_t i, ib, irb, icb;
-   index_t ij_ptrC, j, ik_ptrA, kj_ptrB, kA, kB, ikb, kjb;  
+   index_t ij_ptrC, j, ik_ptrA, kj_ptrB, kA, kB, ikb, kjb;
 
    if ( (row_block_size == 2) && (col_block_size ==2 ) && (A_col_block_size == 2) ) {
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, A_ik,B_kj,C_ij_00, C_ij_10, C_ij_01, C_ij_11)
@@ -130,7 +130,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_01=0;
@@ -175,7 +175,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
             }
          }
       } /* end of parallel region */
-      
+
    } else if ( (row_block_size == 3) && (col_block_size ==3 ) && (A_col_block_size == 3)  ){
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, A_ik,B_kj,C_ij_00, C_ij_10, C_ij_20, C_ij_01, C_ij_11, C_ij_21, C_ij_02, C_ij_12, C_ij_22)
       {
@@ -183,7 +183,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_20=0;
@@ -193,7 +193,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                C_ij_02=0;
                C_ij_12=0;
                C_ij_22=0;
-               
+
                C_ij=&(C->val[ij_ptrC*9]);
 
                ik_ptrA=A->pattern->ptr[i];
@@ -214,7 +214,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                         A_ik=&(A->val[ik_ptrA*9]);
                         B_kj=&(T->val[kj_ptrB*9]);
-                        
+
                         C_ij_00 +=A_ik[0+3*0]*B_kj[0+3*0]
                                  +A_ik[0+3*1]*B_kj[1+3*0]
                                  +A_ik[0+3*2]*B_kj[2+3*0];
@@ -224,7 +224,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                         C_ij_20 +=A_ik[2+3*0]*B_kj[0+3*0]
                                  +A_ik[2+3*1]*B_kj[1+3*0]
                                  +A_ik[2+3*2]*B_kj[2+3*0];
-                                 
+
                         C_ij_01 +=A_ik[0+3*0]*B_kj[0+3*1]
                                  +A_ik[0+3*1]*B_kj[1+3*1]
                                  +A_ik[0+3*2]*B_kj[2+3*1];
@@ -234,7 +234,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                         C_ij_21 +=A_ik[2+3*0]*B_kj[0+3*1]
                                  +A_ik[2+3*1]*B_kj[1+3*1]
                                  +A_ik[2+3*2]*B_kj[2+3*1];
- 
+
                         C_ij_01 +=A_ik[0+3*0]*B_kj[0+3*2]
                                  +A_ik[0+3*1]*B_kj[1+3*2]
                                  +A_ik[0+3*2]*B_kj[2+3*2];
@@ -270,7 +270,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_20=0;
@@ -286,8 +286,8 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                C_ij_03=0;
                C_ij_13=0;
                C_ij_23=0;
-               C_ij_33=0;              
-               
+               C_ij_33=0;
+
                C_ij=&(C->val[ij_ptrC*16]);
 
                ik_ptrA=A->pattern->ptr[i];
@@ -308,7 +308,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                            A_ik=&(A->val[ik_ptrA*16]);
                            B_kj=&(T->val[kj_ptrB*16]);
-                           
+
                            C_ij_00 +=A_ik[0+4*0]*B_kj[0+4*0]
                                     +A_ik[0+4*1]*B_kj[1+4*0]
                                     +A_ik[0+4*2]*B_kj[2+4*0]
@@ -325,7 +325,7 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                                     +A_ik[3+4*1]*B_kj[1+4*0]
                                     +A_ik[3+4*2]*B_kj[2+4*0]
                                     +A_ik[3+4*3]*B_kj[3+4*0];
-                                    
+
                            C_ij_01 +=A_ik[0+4*0]*B_kj[0+4*1]
                                     +A_ik[0+4*1]*B_kj[1+4*1]
                                     +A_ik[0+4*2]*B_kj[2+4*1]
@@ -398,11 +398,11 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
                 C_ij[0+4*3]=C_ij_03;
                 C_ij[1+4*3]=C_ij_13;
                 C_ij[2+4*3]=C_ij_23;
-                C_ij[3+4*3]=C_ij_33;              
+                C_ij[3+4*3]=C_ij_33;
             }
          }
       } /* end of parallel region */
-         
+
    } else {
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, rtmp, A_ik,B_kj )
       {
@@ -449,24 +449,23 @@ void SparseMatrix_MatrixMatrixTranspose_BB(SparseMatrix_ptr C, const_SparseMatri
             }
          }
       } /* end of parallel region */
-      
    }
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T) 
+void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
    const dim_t col_block_size = C->col_block_size;
-   const dim_t A_col_block_size = A->col_block_size; 
+   const dim_t A_col_block_size = A->col_block_size;
    const dim_t C_block_size =C->block_size;
    const dim_t B_block_size =B->block_size;
    const dim_t A_block_size =A->block_size;
    double *C_ij, *A_ik, *B_kj;
    register double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
    dim_t i, ib, irb, icb;
-   index_t ij_ptrC, j, ik_ptrA, kj_ptrB, kA, kB, ikb, kjb;  
+   index_t ij_ptrC, j, ik_ptrA, kj_ptrB, kA, kB, ikb, kjb;
 
    if ( (row_block_size == 2) && (col_block_size ==2 ) && (A_block_size == 2) ) {
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, A_ik,B_kj,C_ij_00, C_ij_10, C_ij_01, C_ij_11)
@@ -475,7 +474,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_01=0;
@@ -501,10 +500,10 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                         A_ik=&(A->val[ik_ptrA*2]);
                         B_kj=&(T->val[kj_ptrB*4]);
-                        
+
                         C_ij_00 +=A_ik[0]*B_kj[0+2*0];
                         C_ij_10 +=A_ik[1]*B_kj[1+2*0];
-                                 
+
                         C_ij_01 +=A_ik[0]*B_kj[0+2*1];
                         C_ij_11 +=A_ik[1]*B_kj[1+2*1];
                         ik_ptrA ++;
@@ -523,7 +522,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
             }
          }
       } /* end of parallel region */
-      
+
    } else if ( (row_block_size == 3) && (col_block_size ==3 ) && (A_block_size == 3)  ){
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, A_ik,B_kj,C_ij_00, C_ij_10, C_ij_20, C_ij_01, C_ij_11, C_ij_21, C_ij_02, C_ij_12, C_ij_22)
       {
@@ -531,7 +530,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_20=0;
@@ -541,7 +540,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                C_ij_02=0;
                C_ij_12=0;
                C_ij_22=0;
-               
+
                C_ij=&(C->val[ij_ptrC*9]);
 
                ik_ptrA=A->pattern->ptr[i];
@@ -562,15 +561,15 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                         A_ik=&(A->val[ik_ptrA*3]);
                         B_kj=&(T->val[kj_ptrB*9]);
-                        
+
                         C_ij_00 +=A_ik[0]*B_kj[0+3*0];
                         C_ij_10 +=A_ik[1]*B_kj[1+3*0];
                         C_ij_20 +=A_ik[2]*B_kj[2+3*0];
-                        
+
                         C_ij_01 +=A_ik[0]*B_kj[0+3*1];
                         C_ij_11 +=A_ik[1]*B_kj[1+3*1];
                         C_ij_21 +=A_ik[2]*B_kj[2+3*1];
-                        
+
                         C_ij_02 +=A_ik[0]*B_kj[0+3*2];
                         C_ij_12 +=A_ik[1]*B_kj[1+3*2];
                         C_ij_22 +=A_ik[2]*B_kj[2+3*2];
@@ -600,7 +599,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_20=0;
@@ -616,8 +615,8 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                C_ij_03=0;
                C_ij_13=0;
                C_ij_23=0;
-               C_ij_33=0;              
-               
+               C_ij_33=0;
+
                C_ij=&(C->val[ij_ptrC*16]);
 
                ik_ptrA=A->pattern->ptr[i];
@@ -638,22 +637,22 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                            A_ik=&(A->val[ik_ptrA*4]);
                            B_kj=&(T->val[kj_ptrB*16]);
-                           
+
                            C_ij_00 +=A_ik[0]*B_kj[0+4*0];
                            C_ij_10 +=A_ik[1]*B_kj[1+4*0];
                            C_ij_20 +=A_ik[2]*B_kj[2+4*0];
                            C_ij_30 +=A_ik[3]*B_kj[3+4*0];
-                                    
+
                            C_ij_01 +=A_ik[0]*B_kj[0+4*1];
                            C_ij_11 +=A_ik[1]*B_kj[1+4*1];
                            C_ij_21 +=A_ik[2]*B_kj[2+4*1];
                            C_ij_31 +=A_ik[3]*B_kj[3+4*1];
-                           
+
                            C_ij_02 +=A_ik[0]*B_kj[0+4*2];
                            C_ij_12 +=A_ik[1]*B_kj[1+4*2];
                            C_ij_22 +=A_ik[2]*B_kj[2+4*2];
                            C_ij_32 +=A_ik[3]*B_kj[3+4*2];
-                           
+
                            C_ij_03 +=A_ik[0]*B_kj[0+4*3];
                            C_ij_13 +=A_ik[1]*B_kj[1+4*3];
                            C_ij_23 +=A_ik[2]*B_kj[2+4*3];
@@ -677,15 +676,15 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                C_ij[0+4*2]=C_ij_02;
                C_ij[1+4*2]=C_ij_12;
                C_ij[2+4*2]=C_ij_22;
-               C_ij[3+4*2]=C_ij_32;     
+               C_ij[3+4*2]=C_ij_32;
                C_ij[0+4*3]=C_ij_03;
                C_ij[1+4*3]=C_ij_13;
                C_ij[2+4*3]=C_ij_23;
-               C_ij[3+4*3]=C_ij_33;               
+               C_ij[3+4*3]=C_ij_33;
             }
          }
       } /* end of parallel region */
-         
+
    } else {
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, rtmp, A_ik,B_kj )
       {
@@ -713,7 +712,7 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                        A_ik=&(A->val[ik_ptrA*A_block_size]);
                        B_kj=&(T->val[kj_ptrB*B_block_size]);
-                       
+
                        for (irb=0; irb<A_block_size; ++irb) {
                           rtmp=A_ik[irb];
                           for (icb=0; icb<col_block_size; ++icb) {
@@ -730,12 +729,12 @@ void SparseMatrix_MatrixMatrixTranspose_DB(SparseMatrix_ptr C, const_SparseMatri
             }
          }
       } /* end of parallel region */
-      
+
    }
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T) 
+void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
 {
    const dim_t n = C->numRows;
    const dim_t row_block_size = C->row_block_size;
@@ -746,7 +745,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
    double *C_ij, *A_ik, *B_kj;
    register double rtmp, C_ij_00, C_ij_10, C_ij_20, C_ij_30, C_ij_01, C_ij_11, C_ij_21, C_ij_31, C_ij_02, C_ij_12, C_ij_22, C_ij_32, C_ij_03, C_ij_13, C_ij_23, C_ij_33;
    dim_t i, ib, irb, icb;
-   index_t ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB;  
+   index_t ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB;
 
    if ( (row_block_size == 2) && (col_block_size ==2 ) && (B_block_size == 2) ) {
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, A_ik,B_kj,C_ij_00, C_ij_10, C_ij_01, C_ij_11)
@@ -755,7 +754,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_01=0;
@@ -781,10 +780,10 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                         A_ik=&(A->val[ik_ptrA*4]);
                         B_kj=&(T->val[kj_ptrB*2]);
-                        
+
                         C_ij_00 +=A_ik[0+2*0]*B_kj[0];
                         C_ij_10 +=A_ik[1+2*0]*B_kj[0];
-                                 
+
                         C_ij_01 +=A_ik[0+2*1]*B_kj[1];
                         C_ij_11 +=A_ik[1+2*1]*B_kj[1];
 
@@ -803,7 +802,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
             }
          }
       } /* end of parallel region */
-      
+
    } else if ( (row_block_size == 3) && (col_block_size ==3 ) && (B_block_size == 3)  ){
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, A_ik,B_kj,C_ij_00, C_ij_10, C_ij_20, C_ij_01, C_ij_11, C_ij_21, C_ij_02, C_ij_12, C_ij_22)
       {
@@ -811,7 +810,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_20=0;
@@ -821,7 +820,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
                C_ij_02=0;
                C_ij_12=0;
                C_ij_22=0;
-               
+
                C_ij=&(C->val[ij_ptrC*9]);
 
                ik_ptrA=A->pattern->ptr[i];
@@ -842,15 +841,15 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                         A_ik=&(A->val[ik_ptrA*9]);
                         B_kj=&(T->val[kj_ptrB*3]);
-                        
+
                         C_ij_00 +=A_ik[0+3*0]*B_kj[0];
                         C_ij_10 +=A_ik[1+3*0]*B_kj[0];
                         C_ij_20 +=A_ik[2+3*0]*B_kj[0];
-                        
+
                         C_ij_01 +=A_ik[0+3*1]*B_kj[1];
                         C_ij_11 +=A_ik[1+3*1]*B_kj[1];
                         C_ij_21 +=A_ik[2+3*1]*B_kj[1];
- 
+
                         C_ij_02 +=A_ik[0+3*2]*B_kj[2];
                         C_ij_12 +=A_ik[1+3*2]*B_kj[2];
                         C_ij_22 +=A_ik[2+3*2]*B_kj[2];
@@ -881,7 +880,7 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
          for(i = 0; i < n; i++) {
             for(ij_ptrC = C->pattern->ptr[i]; ij_ptrC < C->pattern->ptr[i+1]; ++ij_ptrC) {
                j = C->pattern->index[ij_ptrC];
-               
+
                C_ij_00=0;
                C_ij_10=0;
                C_ij_20=0;
@@ -897,8 +896,8 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
                C_ij_03=0;
                C_ij_13=0;
                C_ij_23=0;
-               C_ij_33=0;              
-               
+               C_ij_33=0;
+
                C_ij=&(C->val[ij_ptrC*16]);
 
                ik_ptrA=A->pattern->ptr[i];
@@ -919,12 +918,12 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
                  } else {
                            A_ik=&(A->val[ik_ptrA*16]);
                            B_kj=&(T->val[kj_ptrB*4]);
-                           
+
                            C_ij_00 +=A_ik[0+4*0]*B_kj[0];
                            C_ij_10 +=A_ik[1+4*0]*B_kj[0];
                            C_ij_20 +=A_ik[2+4*0]*B_kj[0];
                            C_ij_30 +=A_ik[3+4*0]*B_kj[0];
-                                    
+
                            C_ij_01 +=A_ik[0+4*1]*B_kj[1];
                            C_ij_11 +=A_ik[1+4*1]*B_kj[1];
                            C_ij_21 +=A_ik[2+4*1]*B_kj[1];
@@ -962,11 +961,11 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
                C_ij[0+4*3]=C_ij_03;
                C_ij[1+4*3]=C_ij_13;
                C_ij[2+4*3]=C_ij_23;
-               C_ij[3+4*3]=C_ij_33;               
+               C_ij[3+4*3]=C_ij_33;
             }
          }
       } /* end of parallel region */
-         
+
    } else {
       #pragma omp parallel private(C_ij, i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, irb, icb, ib, rtmp, A_ik,B_kj )
       {
@@ -1012,12 +1011,11 @@ void SparseMatrix_MatrixMatrixTranspose_BD(SparseMatrix_ptr C, const_SparseMatri
             }
          }
       } /* end of parallel region */
-      
    }
 }
 
 /* not good for block size 1 */
-void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T) 
+void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr C, const_SparseMatrix_ptr A, const_SparseMatrix_ptr B, const_SparseMatrix_ptr T)
 {
    const dim_t n = C->numRows;
    const dim_t C_block_size =C->block_size;
@@ -1026,7 +1024,7 @@ void SparseMatrix_MatrixMatrixTranspose_DD(SparseMatrix_ptr C, const_SparseMatri
    double *C_ij, *A_ik, *B_kj;
    register double C_ij_0, C_ij_1, C_ij_2, C_ij_3;
    dim_t i, ib;
-   index_t ij_ptrC, j, ik_ptrA, kA, kB, kj_ptrB, ikb, kjb; 
+   index_t ij_ptrC, j, ik_ptrA, kA, kB, kj_ptrB, ikb, kjb;
 
    if ( (A_block_size == 1) && (B_block_size ==1) && (C_block_size == 1) ) {
       #pragma omp parallel private(i, ij_ptrC, j, ik_ptrA, kj_ptrB, ikb, kjb, kA, kB, C_ij_0)

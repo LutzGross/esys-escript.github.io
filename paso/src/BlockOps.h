@@ -179,7 +179,7 @@ inline void BlockOps_solve_N(dim_t N, double* X, double* mat, int* pivot, int* f
     PASO_MISSING_CLAPACK;
 #endif
 }
-   
+
 /// inplace matrix vector product - order 2
 inline void BlockOps_MViP_2(const double* mat, double* V)
 {
@@ -242,6 +242,6 @@ inline void BlockOps_solveAll(dim_t n_block, dim_t n, double* D,
 }
 
 } // namespace paso
-        
+
 #endif // __PASO_BLOCKOPS_H__
 
