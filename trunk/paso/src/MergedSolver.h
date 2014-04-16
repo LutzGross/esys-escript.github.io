@@ -43,7 +43,7 @@ struct MergedSolver
     SparseMatrix_ptr A;
     double* x;
     double* b;
-    index_t* counts; 
+    index_t* counts;
     index_t* offset;
     index_t reordering;
     index_t refinements;

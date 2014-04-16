@@ -33,9 +33,9 @@ namespace paso {
 
 /*****************************************************************************
 
-    Returns the submatrix of A where rows are gathered by index row_list 
+    Returns the submatrix of A where rows are gathered by index row_list
     and columns are selected by non-negative values of new_col_index.
-    If new_col_index[i]>-1 new_col_index[i] gives the column of i in 
+    If new_col_index[i]>-1 new_col_index[i] gives the column of i in
     the returned submatrix.
 */
 

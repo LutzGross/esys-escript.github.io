@@ -17,7 +17,7 @@
 
 /****************************************************************************/
 
-/* Paso: Pattern: Pattern_mis 
+/* Paso: Pattern: Pattern_mis
 
    Searches for a maximal independent set MIS in the matrix pattern.
    Vertices in the maximal independent set are marked in mis_marker.
@@ -62,7 +62,7 @@ void Pattern::mis(index_t* mis_marker) const
          *         than all values of its neighbours. If the answer is yes,
          *         the vertex is put into the independent set and all its
          *         neighbours are removed from the graph by setting
-         *         mis_marker to FALSE
+         *         mis_marker to false
          */
         /* assign random number in [0,1] to each vertex */
 #pragma omp parallel for schedule(static)
@@ -78,7 +78,7 @@ void Pattern::mis(index_t* mis_marker) const
 
         // detect independent vertices as those vertices that have a value
         // less than all values of its neighbours
-#pragma omp parallel for schedule(static) 
+#pragma omp parallel for schedule(static)
         for (dim_t i=0; i < n; ++i) {
             if (mis_marker[i]==IS_AVAILABLE) {
                 index_t flag=IS_IN_MIS_NOW;
@@ -106,16 +106,16 @@ void Pattern::mis(index_t* mis_marker) const
             }
         }
     }
-    // swap to TRUE/FALSE in mis_marker
+    // swap to true/false in mis_marker
 #pragma omp parallel for schedule(static)
     for (dim_t i=0; i < n; i++)
         mis_marker[i] = (mis_marker[i]==IS_IN_MIS);
     delete[] value;
 }
-#undef IS_AVAILABLE 
-#undef IS_IN_MIS_NOW 
-#undef IS_IN_MIS 
-#undef IS_CONNECTED_TO_MIS 
+#undef IS_AVAILABLE
+#undef IS_IN_MIS_NOW
+#undef IS_IN_MIS
+#undef IS_CONNECTED_TO_MIS
 
 } // namespace paso
 

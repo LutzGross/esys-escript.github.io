@@ -53,7 +53,7 @@ Preconditioner* Preconditioner_alloc(SystemMatrix_ptr A, Options* options)
     prec->amg=NULL;
     prec->rilu=NULL;
     prec->ilu=NULL;
-    
+
     if (options->verbose && options->use_local_preconditioner)
         printf("Paso: Applying preconditioner locally only.\n");
 
@@ -133,7 +133,7 @@ void Preconditioner_solve(Preconditioner* prec, SystemMatrix_ptr A,
         default:
         case PASO_JACOBI:
             Preconditioner_Smoother_solve(A, prec->jacobi, x, b, prec->sweeps, false);
-            break;   
+            break;
         case PASO_GS:
             Preconditioner_Smoother_solve(A, prec->gs, x, b, prec->sweeps, false);
             break;

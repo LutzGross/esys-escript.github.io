@@ -34,7 +34,7 @@
 namespace paso {
 
 /// Allocates a SystemMatrix of given type using the given matrix pattern.
-/// Values are initialized with zero. 
+/// Values are initialized with zero.
 /// If patternIsUnrolled and type & MATRIX_FORMAT_BLK1, it is assumed
 /// that the pattern is already unrolled to match the requested block size
 /// and offsets. Otherwise unrolling and offset adjustment will be performed.
@@ -45,7 +45,7 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     logical_row_block_size(rowBlockSize),
     logical_col_block_size(colBlockSize),
     is_balanced(false),
-    balance_vector(NULL), 
+    balance_vector(NULL),
     global_id(NULL),
     solver_package(PASO_PASO),
     solver_p(NULL),
@@ -58,12 +58,12 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
         }
     }
     // do we need to apply unrolling?
-    bool unroll  
+    bool unroll
           // we don't like non-square blocks
         = (rowBlockSize != colBlockSize)
 #ifndef USE_LAPACK
           // or any block size bigger than 3
-          || (colBlockSize > 3) 
+          || (colBlockSize > 3)
 # endif
           // or if block size one requested and the block size is not 1
           || ((ntype & MATRIX_FORMAT_BLK1) && colBlockSize > 1)
@@ -170,7 +170,7 @@ double SystemMatrix::getGlobalSize() const
     double global_size=0;
     double my_size = mainBlock->getSize() + col_coupleBlock->getSize();
     if (mpi_info->size > 1) {
-#ifdef ESYS_MPI 
+#ifdef ESYS_MPI
         MPI_Allreduce(&my_size, &global_size, 1, MPI_DOUBLE, MPI_SUM, mpi_info->comm);
 #else
         global_size = my_size;
@@ -195,7 +195,7 @@ index_t* SystemMatrix::borrowMainDiagonalPointer() const
     return out;
 }
 
-void SystemMatrix::makeZeroRowSums(double* left_over) 
+void SystemMatrix::makeZeroRowSums(double* left_over)
 {
     const dim_t n = pattern->getNumOutput();
     const dim_t nblk = block_size;
@@ -269,9 +269,9 @@ void SystemMatrix::nullifyRowsAndCols(double* mask_row, double* mask_col,
             double* remote_values = finishColCollect();
             col_coupleBlock->nullifyRowsAndCols_CSR(mask_row, remote_values, 0.);
             remote_values = finishRowCollect();
-            row_coupleBlock->nullifyRowsAndCols_CSR(remote_values, mask_col, 0.); 
-        } 
-    } else { 
+            row_coupleBlock->nullifyRowsAndCols_CSR(remote_values, mask_col, 0.);
+        }
+    } else {
         if (col_block_size==1 && row_block_size==1) {
             if (type & MATRIX_FORMAT_CSC) {
                 mainBlock->nullifyRowsAndCols_CSC_BLK1(mask_row, mask_col, main_diagonal_value);
@@ -310,7 +310,7 @@ void SystemMatrix::copyColCoupleBlock()
         const index_t irow2 = row_coupler->connector->recv->offsetInShared[p+1];
         const index_t a = row_coupleBlock->pattern->ptr[irow1];
         const index_t b = row_coupleBlock->pattern->ptr[irow2];
-         
+
         MPI_Irecv(&row_coupleBlock->val[a*block_size], (b-a) * block_size,
                 MPI_DOUBLE, row_coupler->connector->recv->neighbor[p],
                 mpi_info->msg_tag_counter+row_coupler->connector->recv->neighbor[p],
@@ -323,13 +323,13 @@ void SystemMatrix::copyColCoupleBlock()
     index_t z0 = 0;
     double* send_buffer = new double[col_coupleBlock->len];
     const size_t block_size_size = block_size*sizeof(double);
-    
+
     for (dim_t p=0; p<row_coupler->connector->send->numNeighbors; p++) {
         // j_min, j_max defines the range of columns to be sent to processor p
         const index_t j_min = col_coupler->connector->recv->offsetInShared[p];
         const index_t j_max = col_coupler->connector->recv->offsetInShared[p+1];
         index_t z = z0;
-     
+
         // run over the rows to be connected to processor p
         for (index_t rPtr=row_coupler->connector->send->offsetInShared[p];
                 rPtr < row_coupler->connector->send->offsetInShared[p+1]; ++rPtr) {
@@ -350,7 +350,7 @@ void SystemMatrix::copyColCoupleBlock()
         }
 #ifdef ESYS_MPI
         MPI_Issend(&send_buffer[z0], z-z0, MPI_DOUBLE,
-                   row_coupler->connector->send->neighbor[p], 
+                   row_coupler->connector->send->neighbor[p],
                    mpi_info->msg_tag_counter+mpi_info->rank,
                    mpi_info->comm,
                    &row_coupler->mpi_requests[p+row_coupler->connector->recv->numNeighbors]);
@@ -428,7 +428,7 @@ void SystemMatrix::balance()
             if (col_coupleBlock->pattern->ptr != NULL) {
                 col_coupleBlock->maxAbsRow_CSR_OFFSET0(balance_vector);
             }
-             
+
             // set balancing vector
             #pragma omp parallel for
             for (dim_t irow=0; irow<nrow; ++irow) {
@@ -448,10 +448,10 @@ void SystemMatrix::balance()
             double* remote_values = finishCollect();
             // process couple block
             if (col_coupleBlock->pattern->ptr != NULL) {
-                col_coupleBlock->applyDiagonal_CSR_OFFSET0(balance_vector, remote_values); 
+                col_coupleBlock->applyDiagonal_CSR_OFFSET0(balance_vector, remote_values);
             }
             if (row_coupleBlock->pattern->ptr != NULL) {
-                row_coupleBlock->applyDiagonal_CSR_OFFSET0(remote_values, balance_vector); 
+                row_coupleBlock->applyDiagonal_CSR_OFFSET0(remote_values, balance_vector);
             }
             is_balanced = true;
         }

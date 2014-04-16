@@ -16,7 +16,7 @@
 
 /****************************************************************************/
 
-/* Paso: SystemMatrix: controls iterative linear system solvers  */ 
+/* Paso: SystemMatrix: controls iterative linear system solvers  */
 
 /****************************************************************************/
 
@@ -89,13 +89,13 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         delete F;
         return;
     }
-     
+
     r = new double[numEqua];
     x0 = new double[numEqua];
     A->balance();
     options->num_level=0;
     options->num_inner_iter=0;
-     
+
     /* ========================= */
     if (Esys_noError()) {
         Performance_startMonitor(pp, PERFORMANCE_ALL);
@@ -103,8 +103,8 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
         /* get the norm of the right hand side */
         norm2_of_b=0.;
         norm_max_of_b=0.;
-        #pragma omp parallel private(norm2_of_b_local,norm_max_of_b_local) 
-        { 
+        #pragma omp parallel private(norm2_of_b_local,norm_max_of_b_local)
+        {
             norm2_of_b_local=0.;
             norm_max_of_b_local=0.;
             #pragma omp for private(i) schedule(static)
@@ -176,7 +176,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                 A->solvePreconditioner(x, r);
 
                 totIter = 1;
-                finalizeIteration = FALSE;
+                finalizeIteration = false;
                 last_norm2_of_residual=norm2_of_b;
                 last_norm_max_of_residual=norm_max_of_b;
                 net_time_start=Esys_timer();
@@ -241,13 +241,13 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                             // call the solver
                             switch (method) {
                                 case PASO_BICGSTAB:
-                                    errorCode = Solver_BiCGStab(A, r, x, &cntIter, &tol, pp); 
+                                    errorCode = Solver_BiCGStab(A, r, x, &cntIter, &tol, pp);
                                 break;
                                 case PASO_PCG:
                                     errorCode = Solver_PCG(A, r, x, &cntIter, &tol, pp);
                                 break;
                                 case PASO_TFQMR:
-                                    tol=tolerance*norm2_of_residual/norm2_of_b; 
+                                    tol=tolerance*norm2_of_residual/norm2_of_b;
                                     errorCode = Solver_TFQMR(A, r, x0, &cntIter, &tol, pp);
                                     #pragma omp for private(i) schedule(static)
                                     for (i = 0; i < numEqua; i++) {
@@ -259,7 +259,7 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                                     errorCode = Solver_MINRES(A, r, x, &cntIter, &tol, pp);
                                 break;
                                 case PASO_PRES20:
-                                    errorCode = Solver_GMRES(A, r, x, &cntIter, &tol, 5, 20, pp); 
+                                    errorCode = Solver_GMRES(A, r, x, &cntIter, &tol, 5, 20, pp);
                                 break;
                                 case PASO_GMRES:
                                     errorCode = Solver_GMRES(A, r, x, &cntIter, &tol, options->truncation, options->restart, pp);

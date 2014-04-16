@@ -65,9 +65,9 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
 
     void add(dim_t, index_t*, dim_t, dim_t, index_t*, dim_t, double*);
 
-    void makeZeroRowSums(double* left_over); 
+    void makeZeroRowSums(double* left_over);
 
-    /// copies the col_coupleBlock into row_coupleBlock. 
+    /// copies the col_coupleBlock into row_coupleBlock.
     /// WARNING: this method uses mpi_requests of the coupler attached to the
     /// matrix. No reordering on the received columns is performed.
     /// In practice this means that components in
@@ -109,7 +109,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     void setPreconditioner(Options* options);
 
     /// Applies the preconditioner.
-    /// This method needs to be called within a parallel region. 
+    /// This method needs to be called within a parallel region.
     /// Barrier synchronization is performed before the evaluation to make
     /// sure that the input vector is available
     void solvePreconditioner(double* x, double* b);
@@ -333,7 +333,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     void* solver_p;
 
     /// this is only used for a trilinos matrix
-    void* trilinos_data; 
+    void* trilinos_data;
 };
 
 
@@ -345,6 +345,6 @@ void RHS_loadMM_toCSR(const char* filename, double* b, dim_t size);
 
 
 } // namespace paso
-  
+
 #endif // __PASO_SYSTEMMATRIX_H__
 

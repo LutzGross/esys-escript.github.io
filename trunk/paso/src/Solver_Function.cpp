@@ -33,7 +33,7 @@ LinearSystem::LinearSystem(SystemMatrix_ptr A, double* _b, Options* options) :
     tmp = new double[n];
 }
 
-LinearSystem::~LinearSystem() 
+LinearSystem::~LinearSystem()
 {
     delete[] tmp;
 }

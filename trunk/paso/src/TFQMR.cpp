@@ -29,10 +29,10 @@
 *  =========
 *
 *  r       (input) DOUBLE PRECISION array, dimension N.
-*        
+*
 *
 *  x       (input/output) DOUBLE PRECISION array, dimension N.
-*         
+*
 *
 *  ITER    (input/output) INT
 *          On input, the maximum iterations to be performed.
@@ -55,14 +55,14 @@
 namespace paso {
 
 //#define PASO_DYNAMIC_SCHEDULING_MVM
-#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
+#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
 err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                    double* tolerance, Performance* pp)
 {
-    int m=1;  
+    int m=1;
     int j=0;
     dim_t num_iter=0;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
@@ -80,19 +80,19 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     double* v = new double[n];
     double* temp_vector = new double[n];
     double* res = new double[n];
- 
+
     dim_t maxit = *iter;
 
     if (maxit <= 0) {
         status = SOLVER_INPUT_ERROR;
     }
-  
+
     util::zeroes(n, x);
-  
+
     Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
     A->solvePreconditioner(res, r);
     Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
-  
+
     Performance_startMonitor(pp, PERFORMANCE_SOLVER);
     util::zeroes(n,u2);
     util::zeroes(n,y2);
@@ -120,7 +120,7 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     tau = util::l2(n,res,A->mpi_info);
     rho = tau * tau;
     norm_of_residual=tau;
-  
+
     while (!(convergeFlag || maxIterFlag || breakFlag || (status !=SOLVER_NO_ERROR) )) {
         sigma = util::innerProduct(n,res,v,A->mpi_info);
         if (! (breakFlag = (ABS(sigma) == 0.))) {
@@ -136,17 +136,17 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                     SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y2,PASO_ZERO,temp_vector);
                     Performance_stopMonitor(pp, PERFORMANCE_MVM);
                     Performance_startMonitor(pp, PERFORMANCE_SOLVER);
-          
+
                     Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
                     Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
-                    A->solvePreconditioner(u2,temp_vector);  
+                    A->solvePreconditioner(u2,temp_vector);
                     Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
                     Performance_startMonitor(pp, PERFORMANCE_SOLVER);
                     // u2 = P^{-1} * A y2
-                } 
+                }
                 m = 2 * (num_iter+1) - 2 + (j+1);
 
-                if (j==0) { 
+                if (j==0) {
                     // w = w - alpha * u1
                     util::update(n, 1., w, -alpha, u1);
                     // d = (theta * theta * eta / alpha)*d + y1
@@ -156,14 +156,14 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                     util::update(n, 1., w, -alpha, u2);
                     // d = (theta * theta * eta / alpha)*d + y2
                     util::update(n, (theta * theta * eta / alpha), d, 1., y2);
-                } 
-         
+                }
+
                 theta =util::l2(n,w,A->mpi_info)/tau;
                 //printf("tau = %e, %e %e\n",tau, util::l2(n,w,A->mpi_info)/tau, theta);
                 c = PASO_ONE / sqrt(PASO_ONE + theta * theta);
                 tau = tau * theta * c;
                 eta = c * c * alpha;
-                util::update(n,1.,x,eta,d);       
+                util::update(n,1.,x,eta,d);
             }
 
             breakFlag = (ABS(rho) == 0);
@@ -179,7 +179,7 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
             Performance_startMonitor(pp, PERFORMANCE_MVM);
             SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, y1, PASO_ZERO, temp_vector);
             Performance_stopMonitor(pp, PERFORMANCE_MVM);
-     
+
             Performance_startMonitor(pp, PERFORMANCE_PRECONDITIONER);
             A->solvePreconditioner(u1, temp_vector);
             Performance_stopMonitor(pp, PERFORMANCE_PRECONDITIONER);
@@ -202,15 +202,15 @@ err_t Solver_TFQMR(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
         }
         ++num_iter;
     } // end of iterations
-    
+
     Performance_stopMonitor(pp, PERFORMANCE_SOLVER);
     delete[] u1;
     delete[] u2;
-    delete[] y1; 
+    delete[] y1;
     delete[] y2;
     delete[] d;
-    delete[] w; 
-    delete[] v; 
+    delete[] w;
+    delete[] v;
     delete[] temp_vector;
     delete[] res;
     *iter=num_iter;

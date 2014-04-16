@@ -21,7 +21,7 @@
 
 *****************************************************************************
 
- Author: Lutz Gross, l.gross@uq.edu.au 
+ Author: Lutz Gross, l.gross@uq.edu.au
 
 *****************************************************************************/
 
@@ -50,7 +50,7 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
         rows[i]=row_offset+i;
 
     col_couple->startCollect(rows);
-   
+
 #pragma omp parallel for
     for (dim_t i=0; i<m; ++i)
         cols[i]=col_offset+i;
@@ -90,9 +90,9 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
                     row_coupleBlock->val[iPtr*block_size+ib] =
                         row_couple->recv_buffer[p]*f1+cols[q];
             }
-        }      
+        }
     }
-   
+
     delete[] cols;
     delete[] rows;
 }
@@ -105,7 +105,7 @@ void SystemMatrix::print() const
     char *str1, *str2;
     str1 = new char[n*n*block_size*30+100];
     str2 = new char[30];
-   
+
     sprintf(str1, "rank %d Main Block:\n-----------\n", rank);
     for (q=0; q<n; ++q){
         sprintf(str2, "Row %d: ",q);
@@ -129,9 +129,9 @@ void SystemMatrix::print() const
             sprintf(str2, "Row %d: ", q);
             strcat(str1, str2);
             for (iPtr=col_coupleBlock->pattern->ptr[q]; iPtr<col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-                if (global_id) 
+                if (global_id)
                     sprintf(str2, "(%d %f),", global_id[col_coupleBlock->pattern->index[iPtr]], col_coupleBlock->val[iPtr*block_size]);
-                else 
+                else
                     sprintf(str2, "(%d %f),", col_coupleBlock->pattern->index[iPtr], col_coupleBlock->val[iPtr*block_size]);
                 strcat(str1, str2);
             }

@@ -45,7 +45,7 @@ void Performance_open(Performance* pp, int verbose)
         } else if (retval < 0) {
             Esys_setError(SYSTEM_ERROR,"performance: PAPI initialization error.");
         } else {
-            if (PAPI_create_eventset(&(pp->event_set)) != PAPI_OK) 
+            if (PAPI_create_eventset(&(pp->event_set)) != PAPI_OK)
                 Esys_setError(SYSTEM_ERROR,"performance: PAPI event set up failed.");
         }
         if (Esys_noError()) {
@@ -83,7 +83,7 @@ void Performance_open(Performance* pp, int verbose)
 int Performance_getEventIndex(Performance* pp, int event_id)
 {
 #ifdef PAPI
-    for (int i=0; i<pp->num_events; ++i) 
+    for (int i=0; i<pp->num_events; ++i)
         if (pp->events[i]==event_id)
             return i;
 #endif
@@ -139,9 +139,9 @@ void Performance_close(Performance* pp, int verbose)
                     if (pp->set[i]==PERFORMANCE_CLOSED) {
                         if (i_ops != PERFORMANCE_UNMONITORED_EVENT)
                             printf(" %12.5e |",(((double)(pp->values[i][i_ops]))/((double)(pp->cycles[i]))));
-                        if (i_ops!=PERFORMANCE_UNMONITORED_EVENT && i_l1_miss!=PERFORMANCE_UNMONITORED_EVENT) 
+                        if (i_ops!=PERFORMANCE_UNMONITORED_EVENT && i_l1_miss!=PERFORMANCE_UNMONITORED_EVENT)
                             printf(" %13.5e |",(((double)(pp->values[i][i_l1_miss]))/((double)(pp->values[i][i_ops]))));
-                        if (i_ops!=PERFORMANCE_UNMONITORED_EVENT && i_l2_miss!=PERFORMANCE_UNMONITORED_EVENT) 
+                        if (i_ops!=PERFORMANCE_UNMONITORED_EVENT && i_l2_miss!=PERFORMANCE_UNMONITORED_EVENT)
                             printf(" %13.5e |",(((double)(pp->values[i][i_l2_miss]))/((double)(pp->values[i][i_ops]))));
                         if (i_ops!=PERFORMANCE_UNMONITORED_EVENT && i_l3_miss!=PERFORMANCE_UNMONITORED_EVENT)
                             printf(" %13.5e |",(((double)(pp->values[i][i_l3_miss]))/((double)(pp->values[i][i_ops]))));

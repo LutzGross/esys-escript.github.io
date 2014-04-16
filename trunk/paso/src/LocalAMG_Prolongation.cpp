@@ -37,32 +37,31 @@ namespace paso {
     Methods necessary for AMG preconditioner
 
     Construct the n x n_C prolongation matrix P from A_p.
-    
+
     The columns in A_p to be considered are marked by counter_C[n] where
-    an unknown i to be considered in P is marked by 0<= counter_C[i] < n_C 
+    an unknown i to be considered in P is marked by 0<= counter_C[i] < n_C
     and counter_C[i]  gives the new column number in P.
     S defines the strong connections.
-    
+
     The pattern of P is formed as follows:
 
     If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise
-    If row i is not C, then P[i,j] <> 0 if counter_C[k]==j (k in C) and (i,k) is strong connection.  
-    
+    If row i is not C, then P[i,j] <> 0 if counter_C[k]==j (k in C) and (i,k) is strong connection.
+
     Two settings for P are implemented (see below).
 */
 
- 
 SparseMatrix_ptr Preconditioner_LocalAMG_getProlongation(SparseMatrix_ptr A_p,
         const index_t* offset_S, const dim_t* degree_S, const index_t* S,
-        dim_t n_C, const index_t* counter_C, index_t interpolation_method) 
+        dim_t n_C, const index_t* counter_C, index_t interpolation_method)
 {
     const dim_t n_block=A_p->row_block_size;
     index_t *ptr=NULL, *index=NULL,j, iptr;
-    const dim_t n =A_p->numRows; 
+    const dim_t n =A_p->numRows;
     dim_t i,p,z, len_P;
-   
+
     ptr=new index_t[n+1];
-      
+
     // count the number of entries per row in the Prolongation matrix
 
 #pragma omp parallel for private(i,z,iptr,j,p) schedule(static)
@@ -164,9 +163,9 @@ void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p,
    dim_t i;
    const dim_t n =A_p->numRows;
    register double alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos, A_ij, A_ii, rtmp;
-   register index_t iPtr, j, offset; 
+   register index_t iPtr, j, offset;
    index_t *where_p, *start_p;
-   
+
    #pragma omp parallel for private(A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij , rtmp)  schedule(static)
    for (i=0;i<n;++i) {
       if (counter_C[i]>=0) {
@@ -178,22 +177,22 @@ void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p,
          sum_all_pos=0; /* sum of all positive values in row i of A */
          sum_strong_neg=0; /* sum of all negative values A_ij where j is in C and strongly connected to i*/
          sum_strong_pos=0; /* sum of all positive values A_ij where j is in C and strongly connected to i*/
-         A_ii=0; 
+         A_ii=0;
          for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
             j=A_p->pattern->index[iPtr];
             A_ij=A_p->val[iPtr];
             if(j==i) {
                A_ii=A_ij;
             } else {
-               
+
                if(A_ij< 0)  {
                   sum_all_neg+=A_ij;
                } else {
                   sum_all_pos+=A_ij;
                }
-               
+
                if (counter_C[j]>=0) {
-                  /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */ 
+                  /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */
                   start_p=&(P_p->pattern->index[P_p->pattern->ptr[i]]);
                   where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                             P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
@@ -208,11 +207,10 @@ void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p,
                            sum_strong_pos+=A_ij;
                         }
                   }
-               } 
-
-            } 
+               }
+            }
          }
-         if(sum_strong_neg<0) { 
+         if(sum_strong_neg<0) {
             alpha= sum_all_neg/sum_strong_neg;
          } else {
             alpha=0;
@@ -237,22 +235,22 @@ void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p,
             }
          }
       }
-   } 
+   }
 }
 
 void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
         const_SparseMatrix_ptr A_p, const index_t* counter_C)
-{ 
+{
    dim_t i;
    const dim_t n =A_p->numRows;
    const dim_t row_block=A_p->row_block_size;
    const dim_t A_block = A_p->block_size;
    double *alpha, *beta, *sum_all_neg, *sum_all_pos, *sum_strong_neg, *sum_strong_pos, *A_ii;
    register double A_ij, rtmp;
-   register index_t iPtr, j, offset, ib; 
+   register index_t iPtr, j, offset, ib;
    index_t *where_p, *start_p;
-   
-   #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )  
+
+   #pragma omp parallel private(ib, rtmp, A_ii, offset, where_p, start_p, i, alpha, beta, sum_all_neg, sum_all_pos, sum_strong_neg, sum_strong_pos,iPtr,j, A_ij )
    {
       sum_all_neg=new  double[row_block]; /* sum of all negative values in row i of A */
       sum_all_pos=new double[row_block]; /* sum of all positive values in row i of A */
@@ -261,7 +259,7 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
       alpha=new double[row_block];
       beta=new double[row_block];
       A_ii=new double[row_block];
-      
+
       #pragma omp for schedule(static)
       for (i=0;i<n;++i) {
          if (counter_C[i]>=0) {
@@ -289,9 +287,9 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
                         sum_all_pos[ib]+=A_ij;
                      }
                   }
-               
+
                   if (counter_C[j]>=0) {
-                     /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */ 
+                     /* is i strongly connected with j? We search for counter_C[j] in P[i,:] */
                      start_p=&(P_p->pattern->index[P_p->pattern->ptr[i]]);
                      where_p=(index_t*)bsearch(&(counter_C[j]), start_p,
                                              P_p->pattern->ptr[i + 1]-P_p->pattern->ptr[i],
@@ -309,12 +307,11 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
                                  }
                               }
                      }
-                  } 
-            
-               } 
+                  }
+               }
             }
             for (ib =0; ib<row_block; ++ib) {
-               if(sum_strong_neg[ib]<0) { 
+               if(sum_strong_neg[ib]<0) {
                   alpha[ib]= sum_all_neg[ib]/sum_strong_neg[ib];
                } else {
                   alpha[ib]=0;
@@ -331,7 +328,7 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
                   beta[ib]*=rtmp;
                }
             }
-      
+
             for (iPtr=P_p->pattern->ptr[i];iPtr<P_p->pattern->ptr[i + 1]; ++iPtr) {
                for (ib =0; ib<row_block; ++ib) {
                   A_ij=P_p->val[row_block*iPtr+ib];
@@ -344,10 +341,10 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
             }
          }
       }/* end i loop */
-      delete[] sum_all_neg; 
-      delete[] sum_all_pos; 
-      delete[] sum_strong_neg; 
-      delete[] sum_strong_pos; 
+      delete[] sum_all_neg;
+      delete[] sum_all_pos;
+      delete[] sum_strong_neg;
+      delete[] sum_strong_pos;
       delete[] alpha;
       delete[] beta;
       delete[] A_ii;
@@ -359,9 +356,9 @@ void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p,
     -------------------
 
     If row i is in C (counter_C[i]>=0), then P[i,j]=1 if j==counter_C[i] or 0 otherwise.
-    If row i is not C, then P[i,j] = - 1/a[i] * ( A[i,k] + sum_{l} A[i,l]*A+[l,k]/B[i,k]) 
-             where the summation over l is considering columns which are strongly connected 
-             to i (l in S[i]) and not in C (counter_C[l]<0) and 
+    If row i is not C, then P[i,j] = - 1/a[i] * ( A[i,k] + sum_{l} A[i,l]*A+[l,k]/B[i,k])
+             where the summation over l is considering columns which are strongly connected
+             to i (l in S[i]) and not in C (counter_C[l]<0) and
 
                 B[i,k]=sum_{m in S_i and in C} A+[k,m]
                 a[i]=A[i,i]+sum{l not strongly connected to i} A[i,l]
@@ -407,7 +404,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                     /* is (i,j) a strong connection? */
                     const index_t *where_s=(index_t*)bsearch(&j, start_s,degree_S[i],sizeof(index_t), util::comparIndex);
                     if (where_s == NULL) { /* weak connections are accumulated */
-                        a+=A_ij;  
+                        a+=A_ij;
                     } else {   /* yes i strongly connected with j */
                         if  (counter_C[j]>=0)  { /* j is an interpolation point : add A_ij into P */
                                const index_t *where_p=(index_t*)bsearch(&counter_C[j], start_p,degree_P_i, sizeof(index_t), util::comparIndex);
@@ -415,7 +412,7 @@ void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p,
                                        Esys_setError(SYSTEM_ERROR, "Preconditioner_LocalAMG_setClassicProlongation: Interpolation point is missing.");
                                } else {
                                     const index_t offset = P_p->pattern->ptr[i]+ (index_t)(where_p-start_p);
-                                    P_p->val[offset]+=A_ij; 
+                                    P_p->val[offset]+=A_ij;
                                }
                           } else {  /* j is not an interpolation point */
                                /* find all interpolation points m of k */
@@ -498,7 +495,6 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                * (=no interpolation nodes) */
               const double *A_ii = &(A_p->val[ptr_main_A[i]*A_block]);
               for (ib=0; ib<row_block; ib++) a[ib]=A_ii[(row_block+1)*ib];
-              
 
               for (iPtr=A_p->pattern->ptr[i];iPtr<A_p->pattern->ptr[i + 1]; ++iPtr) {
                  const index_t j=A_p->pattern->index[iPtr];
@@ -541,10 +537,10 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                                          len_D_s++;
                                     }
                                }
-                               for (ib=0; ib<row_block; ib++) { 
+                               for (ib=0; ib<row_block; ib++) {
                                    double s=0;
                                    for (q=0;q<len_D_s;++q) s+=D_s[q*row_block+ib];
-                        
+
                                    if (std::abs(s)>0) {
                                        s=A_ij[(row_block+1)*ib]/s;
                                        for (q=0;q<len_D_s;++q) {
@@ -558,7 +554,7 @@ void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p,
                      }
                  }
               }  /* i has been processed, now we need to do some rescaling */
-              for (ib=0; ib<row_block; ib++) { 
+              for (ib=0; ib<row_block; ib++) {
                    register double a2=a[ib];
                    if (std::abs(a2)>0.) {
                         a2=-1./a2;

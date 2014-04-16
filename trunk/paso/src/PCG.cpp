@@ -56,7 +56,7 @@
 namespace paso {
 
 //#define PASO_DYNAMIC_SCHEDULING_MVM
-#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP 
+#if defined PASO_DYNAMIC_SCHEDULING_MVM && defined __OPENMP
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
@@ -123,7 +123,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                 x2[i0]=x[i0];
                 p[i0]=0;
                 v[i0]=0;
-            } 
+            }
 #ifdef USE_DYNAMIC_SCHEDULING
         }
 #else
@@ -160,7 +160,7 @@ err_t Solver_PCG(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
                 istart=chunk_size*ipp;
                 iend=std::min(istart+chunk_size,n);
 #else
-            #pragma omp for schedule(static) 
+            #pragma omp for schedule(static)
             for (ipp=0; ipp <np; ++ipp) {
                 istart=len*ipp+std::min(ipp,rest);
                 iend=len*(ipp+1)+std::min(ipp+1,rest);

@@ -67,8 +67,8 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
     Pattern_ptr row_couplePattern;
     Connector_ptr col_connector;
     Connector_ptr row_connector;
-    Distribution_ptr output_distribution; 
-    Distribution_ptr input_distribution; 
+    Distribution_ptr output_distribution;
+    Distribution_ptr input_distribution;
 };
 
 

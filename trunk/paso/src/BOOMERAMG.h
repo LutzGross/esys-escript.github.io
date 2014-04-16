@@ -34,7 +34,7 @@
 #include "SystemMatrix.h"
 
 #ifdef BOOMERAMG
-#include <HYPRE_krylov.h> 
+#include <HYPRE_krylov.h>
 #include <HYPRE.h>
 #include <HYPRE_parcsr_ls.h>
 #endif

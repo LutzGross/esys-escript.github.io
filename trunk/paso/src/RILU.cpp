@@ -52,29 +52,29 @@ void Solver_RILU_free(Solver_RILU* in)
 
 /****************************************************************************/
 
-/*   constructs the block-block factorization of 
+/*   constructs the block-block factorization of
 
         [ A_FF A_FC ]
-   A_p= 
+   A_p=
         [ A_CF A_FF ]
 
-to 
+to
 
-  [      I         0  ]  [ A_FF 0 ] [ I    invA_FF*A_FF ]  
-  [ A_CF*invA_FF   I  ]  [   0  S ] [ 0          I      ] 
+  [      I         0  ]  [ A_FF 0 ] [ I    invA_FF*A_FF ]
+  [ A_CF*invA_FF   I  ]  [   0  S ] [ 0          I      ]
 
 
    where S=A_FF-ACF*invA_FF*A_FC within the shape of S
 
-   then RILU is applied to S again until S becomes empty 
+   then RILU is applied to S again until S becomes empty
 */
 Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
 {
     Solver_RILU* out=NULL;
     dim_t n=A_p->numRows;
     dim_t n_block=A_p->row_block_size;
-    index_t* mis_marker=NULL;  
-    index_t* counter=NULL;  
+    index_t* mis_marker=NULL;
+    index_t* counter=NULL;
     index_t iPtr,*index, *where_p;
     dim_t i,k;
     SparseMatrix_ptr schur;
@@ -111,7 +111,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
         out->rows_in_F=new index_t[out->n_F];
         out->inv_A_FF=new double[n_block*n_block*out->n_F];
         out->A_FF_pivot=NULL; /* later use for block size>3 */
-#pragma omp parallel 
+#pragma omp parallel
         {
           /* creates an index for F from mask */
           #pragma omp for private(i) schedule(static)
@@ -241,7 +241,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
                     out->b_F=new double[n_block*out->n_F];
                     out->x_C=new double[n_block*out->n_C];
                     out->b_C=new double[n_block*out->n_C];
-                    #pragma omp parallel 
+                    #pragma omp parallel
                     {
 #pragma omp for private(i,k) schedule(static)
                         for (i = 0; i < out->n_F; ++i) {
@@ -270,7 +270,7 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
         //    if (out->n_C>0) {
         //        printf("timing: RILU: MIS/reordering/elimination : %e/%e/%e\n",time2,time0,time1);
         //    } else {
-        //        printf("timing: RILU: MIS: %e\n",time2); 
+        //        printf("timing: RILU: MIS: %e\n",time2);
         //    }
         //}
         return out;
@@ -282,16 +282,16 @@ Solver_RILU* Solver_getRILU(SparseMatrix_ptr A_p, bool verbose)
 
 /****************************************************************************/
 
-/* apply RILU precondition b-> x                               
+/* apply RILU precondition b-> x
 
-     in fact it solves 
+     in fact it solves
 
   [      I         0  ]  [ A_FF 0 ] [ I    invA_FF*A_FF ]  [ x_F ]  = [b_F]
   [ A_CF*invA_FF   I  ]  [   0  S ] [ 0          I      ]  [ x_C ]  = [b_C]
 
- in the form 
+ in the form
 
-   b->[b_F,b_C] 
+   b->[b_F,b_C]
    x_F=invA_FF*b_F
    b_C=b_C-A_CF*x_F
    x_C=RILU(b_C)
@@ -307,7 +307,7 @@ void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b)
 {
     dim_t i,k;
     dim_t n_block=rilu->n_block;
-     
+
     if (rilu->n_C==0) {
         /* x=invA_FF*b  */
         util::copy(n_block*rilu->n_F, x, b);
@@ -321,11 +321,11 @@ void Solver_solveRILU(Solver_RILU* rilu, double* x, double* b)
             for (i=0;i<rilu->n_C;++i) rilu->b_C[i]=b[rilu->rows_in_C[i]];
         } else {
             #pragma omp parallel for private(i,k) schedule(static)
-            for (i=0; i<rilu->n_F; i++) 
+            for (i=0; i<rilu->n_F; i++)
                 for (k=0; k<n_block; k++)
                     rilu->b_F[rilu->n_block*i+k]=b[n_block*rilu->rows_in_F[i]+k];
             #pragma omp parallel for private(i,k) schedule(static)
-            for (i=0; i<rilu->n_C; i++) 
+            for (i=0; i<rilu->n_C; i++)
                 for (k=0; k<n_block; k++)
                     rilu->b_C[rilu->n_block*i+k]=b[n_block*rilu->rows_in_C[i]+k];
         }

@@ -148,7 +148,7 @@ struct Options
     bool usePanel;
     index_t interpolation_method;
     index_t ode_solver;
-    
+
     // diagnostic values
     dim_t num_iter;
     dim_t num_level;

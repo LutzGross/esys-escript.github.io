@@ -57,15 +57,15 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
         /* now we run through the columns of A_CF in row  i */
         for (iPtr_CF = A_CF->pattern->ptr[i]; iPtr_CF < A_CF->pattern->ptr[i + 1]; ++iPtr_CF) {
              col_CF=A_CF->pattern->index[iPtr_CF];
-             set_A=TRUE;
+             set_A=true;
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
                where_p=(index_t*)bsearch(&col_FC,index_CC,index_CC_len,sizeof(index_t),util::comparIndex);
-                if (where_p!=NULL) { 
+                if (where_p!=NULL) {
                     if (set_A) {
                        A11=A_CF->val[iPtr_CF]*invA_FF[col_CF];
-                       set_A=FALSE;
+                       set_A=false;
                    }
                    A_CC->val[iPtr_CC+(index_t)(where_p-index_CC)]-=A11*A_FC->val[iPtr_FC];
                 }
@@ -81,7 +81,7 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
         /* now we run through the columns of A_CF in row  i */
         for (iPtr_CF = A_CF->pattern->ptr[i]; iPtr_CF < A_CF->pattern->ptr[i + 1]; ++iPtr_CF) {
              col_CF=A_CF->pattern->index[iPtr_CF];
-             set_A=TRUE;
+             set_A=true;
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
@@ -104,8 +104,8 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
                        A21=A_CF_21*invA_FF_11+A_CF_22*invA_FF_21;
                        A12=A_CF_11*invA_FF_12+A_CF_12*invA_FF_22;
                        A22=A_CF_21*invA_FF_12+A_CF_22*invA_FF_22;
- 
-                       set_A=FALSE;
+
+                       set_A=false;
                    }
 
                    A_FC_11=A_FC->val[4*iPtr_FC  ];
@@ -131,7 +131,7 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
         /* now we run through the columns of A_CF in row  i */
         for (iPtr_CF = A_CF->pattern->ptr[i]; iPtr_CF < A_CF->pattern->ptr[i + 1]; ++iPtr_CF) {
              col_CF=A_CF->pattern->index[iPtr_CF];
-             set_A=TRUE;
+             set_A = true;
              for (iPtr_FC = A_FC->pattern->ptr[col_CF]; iPtr_FC < A_FC->pattern->ptr[col_CF + 1]; ++iPtr_FC) {
                 col_FC=A_FC->pattern->index[iPtr_FC];
                 /* is (i,col_FC) in the shape of A_CC ? */
@@ -169,8 +169,8 @@ void Solver_updateIncompleteSchurComplement(SparseMatrix_ptr A_CC,
                        A13=A_CF_11*invA_FF_13+A_CF_12*invA_FF_23+A_CF_13*invA_FF_33;
                        A23=A_CF_21*invA_FF_13+A_CF_22*invA_FF_23+A_CF_23*invA_FF_33;
                        A33=A_CF_31*invA_FF_13+A_CF_32*invA_FF_23+A_CF_33*invA_FF_33;
- 
-                       set_A=FALSE;
+
+                       set_A=false;
                    }
 
                    A_FC_11=A_FC->val[9*iPtr_FC  ];

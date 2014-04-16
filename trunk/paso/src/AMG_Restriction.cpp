@@ -38,14 +38,14 @@ namespace paso {
     Methods necessary for AMG preconditioner
 
     construct n_C x n the Restriction matrix R from A_p.
-    
+
     R->mainBlock is the transpose of P->mainBlock, but we need
     to recover R->col_coupleBlock from P's data in other ranks.
- 
+
 *****************************************************************************/
 
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
-{ 
+{
    Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(P->mpi_info);
    Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
@@ -155,7 +155,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
         #ifdef ESYS_MPI
         MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
                 mpi_info->msg_tag_counter+send->neighbor[p],
-                mpi_info->comm, &mpi_requests[msgs]); 
+                mpi_info->comm, &mpi_requests[msgs]);
         #endif
         msgs++;
      }
@@ -168,7 +168,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
      if (k > 0) {
         #ifdef ESYS_MPI
         MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
-                mpi_info->msg_tag_counter+rank, mpi_info->comm, 
+                mpi_info->msg_tag_counter+rank, mpi_info->comm,
                 &mpi_requests[msgs]);
         #endif
         msgs++;
@@ -203,8 +203,8 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
                 send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
                 mpi_info->comm, &mpi_requests[msgs]);
         msgs++;
-        MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size, 
-                MPI_DOUBLE, send->neighbor[p], 
+        MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size,
+                MPI_DOUBLE, send->neighbor[p],
                 mpi_info->msg_tag_counter+send->neighbor[p]+size,
                 mpi_info->comm, &mpi_requests[msgs]);
         offset += degree_set[p];
@@ -263,7 +263,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
             offset = ptr[i] + icb;
             len = recv_ptr[j];
             memcpy(&idx[offset], &recv_idx[temp[j]], sizeof(index_t)*len);
-            memcpy(&val[offset*block_size], &recv_val[temp[j]*block_size], sizeof(double)*len*block_size); 
+            memcpy(&val[offset*block_size], &recv_val[temp[j]*block_size], sizeof(double)*len*block_size);
             icb += len;
             break;
           }
@@ -276,7 +276,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    delete[] recv_ptr;
    delete[] recv_val;
 
-   /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock, 
+   /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock,
       and convert the global id in "idx" into local id */
    num_Rcouple_cols = 0;
    if (sum) {
@@ -309,7 +309,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    for (i=0, p=0; i<num_Rcouple_cols; i++) {
      /* cols i is received from rank neighbor[p] when it's still smaller
         than "offset", otherwise, it is received from rank neighbor[p+1] */
-     while (recv_idx[i] >= offset) { 
+     while (recv_idx[i] >= offset) {
         p++;
         offsetInShared[p] = i;
         offset = dist[neighbor[p] + 1];
@@ -355,7 +355,7 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    /* build the col_connector based on sender and receiver */
    col_connector.reset(new Connector(send, recv));
    delete[] offsetInShared;
-   delete[] shared;   
+   delete[] shared;
 
    couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n_C,
                         num_Rcouple_cols, ptr, idx));
@@ -364,22 +364,22 @@ SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
    dist = P->pattern->input_distribution->first_component;
    output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
 
-    /* now we need to create the System Matrix 
+    /* now we need to create the System Matrix
        TO BE FIXED: at this stage, we only construction col_couple_pattern
-       and col_connector for Restriction matrix R. To be completed, 
+       and col_connector for Restriction matrix R. To be completed,
        row_couple_pattern and row_connector need to be constructed as well */
     SystemMatrix_ptr out;
     SystemMatrixPattern_ptr pattern;
     if (Esys_noError()) {
-        pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT, 
-                  output_dist, input_dist, main_block->pattern, couple_pattern, 
+        pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+                  output_dist, input_dist, main_block->pattern, couple_pattern,
                   couple_pattern, col_connector, col_connector));
         out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
                   row_block_size, col_block_size, false));
-    } 
+    }
 
     /* now fill in the matrix */
-    memcpy(out->mainBlock->val, main_block->val, 
+    memcpy(out->mainBlock->val, main_block->val,
                 main_block->len * sizeof(double));
     memcpy(out->col_coupleBlock->val, val,
                 out->col_coupleBlock->len * sizeof(double));

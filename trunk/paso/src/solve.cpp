@@ -107,14 +107,14 @@ void solve(SystemMatrix_ptr A, double* out, double* in, Options* options)
             Esys_resetError();
             if (options->verbose)
                 printf("paso: failed convergence error has been canceled as requested.\n");
-        } 
+        }
     }
     Performance_close(&pp, options->verbose);
     //options->showDiagnostics();
 }
 
 void solve_free(SystemMatrix* in)
-{ 
+{
     if (!in) return;
 
     switch(in->solver_package) {
@@ -125,13 +125,13 @@ void solve_free(SystemMatrix* in)
         case PASO_SMOOTHER:
             Preconditioner_Smoother_free((Preconditioner_Smoother*) in->solver_p);
             break;
-          
+
         case PASO_MKL:
             MKL_free(in->mainBlock.get());
             break;
 
         case PASO_UMFPACK:
-            UMFPACK_free(in->mainBlock.get()); 
+            UMFPACK_free(in->mainBlock.get());
             break;
    }
 }

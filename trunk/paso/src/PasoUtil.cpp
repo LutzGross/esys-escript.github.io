@@ -42,7 +42,7 @@ bool isAny(dim_t N, index_t* array, index_t value)
     register bool out2;
     dim_t i;
 
-    #pragma omp parallel private(i, out2) 
+    #pragma omp parallel private(i, out2)
     {
         out2=false;
         #pragma omp for schedule(static)
@@ -65,8 +65,8 @@ dim_t numPositives(dim_t N, const double *x)
     dim_t out=0;
     register dim_t out2;
     dim_t i;
-   
-    #pragma omp parallel private(i, out2) 
+
+    #pragma omp parallel private(i, out2)
     {
         out2=0;
         #pragma omp for schedule(static)
@@ -87,7 +87,7 @@ index_t iMax(dim_t N, const index_t* array)
     index_t out2;
     dim_t i;
     if (N>0) {
-        #pragma omp parallel private(i, out2) 
+        #pragma omp parallel private(i, out2)
         {
             out2=INDEX_T_MIN;
             #pragma omp for schedule(static)
@@ -109,7 +109,7 @@ index_t cumsum(dim_t N, index_t* array)
     index_t *partial_sums=NULL,sum;
     const int num_threads=omp_get_max_threads();
     int thread_num;
-   
+
     if (num_threads>1) {
         partial_sums=new index_t[num_threads];
         #pragma omp parallel private(sum,thread_num ,i,tmp)
@@ -128,7 +128,7 @@ index_t cumsum(dim_t N, index_t* array)
                     tmp=out;
                     out+=partial_sums[i];
                     partial_sums[i]=tmp;
-                } 
+                }
             }
             #pragma omp barrier
             sum=partial_sums[thread_num];
@@ -137,7 +137,7 @@ index_t cumsum(dim_t N, index_t* array)
                 tmp=sum;
                 sum+=array[i];
                 array[i]=tmp;
-            } 
+            }
         }
         delete[] partial_sums;
     } else {
@@ -157,7 +157,7 @@ index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
     index_t *partial_sums=NULL,sum;
     const int num_threads=omp_get_max_threads();
     int thread_num;
- 
+
     if (num_threads>1) {
         partial_sums=new index_t[num_threads];
         #pragma omp parallel private(sum,i,thread_num,tmp)
@@ -182,7 +182,7 @@ index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
                     tmp=out;
                     out+=partial_sums[i];
                     partial_sums[i]=tmp;
-                } 
+                }
             }
             #pragma omp barrier
             sum=partial_sums[thread_num];
@@ -195,14 +195,14 @@ index_t cumsum_maskedTrue(dim_t N, index_t* array, int* mask)
                 } else {
                     array[i]=-1;
                 }
-            } 
+            }
         }
         delete[] partial_sums;
     } else { /* num_threads=1 */
         for (i=0;i<N;++i) {
             if (mask[i]) {
                 array[i]=out;
-                out++;  
+                out++;
             } else {
                 array[i]=-1;
             }
@@ -243,7 +243,7 @@ index_t cumsum_maskedFalse(dim_t N, index_t* array, int* mask)
                     tmp=out;
                     out+=partial_sums[i];
                     partial_sums[i]=tmp;
-                } 
+                }
             }
             #pragma omp barrier
             sum=partial_sums[thread_num];
@@ -263,7 +263,7 @@ index_t cumsum_maskedFalse(dim_t N, index_t* array, int* mask)
         for (i=0;i<N;++i) {
             if (! mask[i]) {
                 array[i]=out;
-                out++;  
+                out++;
             } else {
                 array[i]=-1;
             }
@@ -280,7 +280,7 @@ index_t arg_max(dim_t n, dim_t* lambda)
     index_t lmax=-1;
     index_t li=-1;
     const int num_threads=omp_get_max_threads();
-   
+
     if (n>0) {
         max=lambda[0];
         argmax=0;
@@ -303,7 +303,7 @@ index_t arg_max(dim_t n, dim_t* lambda)
                         argmax=li;
                     } else if (max==lmax && argmax>li) {
                         argmax=li;
-                    } 
+                    }
                 }
             }
         } else {
@@ -318,7 +318,7 @@ index_t arg_max(dim_t n, dim_t* lambda)
     return argmax;
 }
 
-void zeroes(dim_t n, double* x) 
+void zeroes(dim_t n, double* x)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     const int num_threads=omp_get_max_threads();
@@ -334,7 +334,7 @@ void zeroes(dim_t n, double* x)
     }
 }
 
-void update(dim_t n, double a, double* x, double b, const double* y) 
+void update(dim_t n, double a, double* x, double b, const double* y)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     const int num_threads=omp_get_max_threads();
@@ -449,7 +449,7 @@ double innerProduct(const dim_t n,const double* x, const double* y,
     return out;
 }
 
-double lsup(dim_t n, const double* x, Esys_MPIInfo* mpiinfo) 
+double lsup(dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0., local_out=0., out=0.;

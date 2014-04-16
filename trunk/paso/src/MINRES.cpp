@@ -64,7 +64,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
     if (maxit <= 0) {
         return SOLVER_INPUT_ERROR;
     }
-   
+
     double delta,gamma=0.,gamma_old=0.,eta=0.,dp0=0., c=1.0,c_old=1.0;
     double c_ancient=1.,s=0.0,s_old=0.0,s_ancient, norm_of_residual=0., rnorm_prec=1;
     double tol=1., norm_scal=1.;
@@ -111,7 +111,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
         SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, Z, PASO_ZERO, AZ);
 
         //  delta <- Az'.z
-        delta = util::innerProduct(n, AZ, Z, A->mpi_info); 
+        delta = util::innerProduct(n, AZ, Z, A->mpi_info);
 
         //  r_new <- Az-delta/gamma * r - gamma/gamma_old r_old
         if (num_iter>0)
@@ -124,7 +124,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
             util::AXPY(n, R, -gamma/gamma_old, R_ancient); // r <- r - gamma/gamma_old r__ancient
 
         //  z <- prec*r
-        A->solvePreconditioner(ZNEW, R); 
+        A->solvePreconditioner(ZNEW, R);
 
         dp = util::innerProduct(n, R, ZNEW, A->mpi_info);
         if (dp < 0.) {
@@ -137,14 +137,14 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
             gamma_old = gamma;
             gamma = sqrt(dp);
             // QR factorisation
-            c_ancient = c_old; c_old = c; 
+            c_ancient = c_old; c_old = c;
             s_ancient = s_old; s_old = s;
-         
+
             alpha_0 = c_old * delta - c_ancient * s_old * gamma_old;
             alpha_1 = sqrt(alpha_0*alpha_0 + gamma*gamma);
             alpha_2 = s_old * delta + c_ancient * c_old * gamma_old;
             alpha_3 = s_ancient * gamma_old;
-         
+
             // Givens rotation
             c = alpha_0 / alpha_1;
             s = gamma / alpha_1;
@@ -157,7 +157,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
                 util::copy(n, W_ancient, W_old); //  w__ancient <- w_old
             if (num_iter > 0)
                 util::copy(n, W_old, W); //  w_old <- w
-         
+
             util::copy(n, W, Z);
             if (num_iter > 1)
                 util::AXPY(n, W, -alpha_3, W_ancient); // w <- w - alpha_3 w__ancient
@@ -171,7 +171,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
         } else {
             status = SOLVER_BREAKDOWN;
         }
-        util::copy(n, Z, ZNEW);       
+        util::copy(n, Z, ZNEW);
         ++num_iter;
         if (!convergeFlag && num_iter >= maxit)
             status = SOLVER_MAXITER_REACHED;
@@ -184,7 +184,7 @@ err_t Solver_MINRES(SystemMatrix_ptr A, double* R, double* X,
     delete[] W;
     delete[] W_old;
     delete[] W_ancient;
-      
+
     *iter=num_iter;
     *tolerance=rnorm_prec/norm_scal;
     return status;

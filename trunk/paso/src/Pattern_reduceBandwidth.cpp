@@ -98,10 +98,10 @@ int comparDegreeAndIdx(const void *arg1, const void *arg2)
  *  max_LevelWidth_abort - input param which triggers early return if
  *                         LevelWidth becomes >= max_LevelWidth_abort
  */
-bool dropTree(index_t root, const Pattern* pattern, index_t* AssignedLevel, 
+bool dropTree(index_t root, const Pattern* pattern, index_t* AssignedLevel,
               index_t* VerticesInTree, dim_t* numLevels,
               index_t* firstVertexInLevel, dim_t max_LevelWidth_abort,
-              dim_t N) 
+              dim_t N)
 {
 #pragma omp parallel for
     for (dim_t i=0; i < pattern->numInput; ++i)
@@ -169,15 +169,15 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
 
     // get the initial bandwidth
 #pragma omp parallel for private(i)
-    for (i=0; i<N; ++i) oldToNew[i]=i; 
+    for (i=0; i<N; ++i) oldToNew[i]=i;
 
     dim_t initial_bandwidth = getBandwidth(oldToNew);
     // printf("initial bandwidth = %d\n",initial_bandwidth);
 
     #pragma omp parallel for private(i)
     for (i=0; i<N; ++i) {
-        oldToNew[i] = -1; 
-        degAndIdx[i].idx = i; 
+        oldToNew[i] = -1;
+        degAndIdx[i].idx = i;
         degAndIdx[i].deg = ptr[i+1] - ptr[i];
     }
 
@@ -211,7 +211,7 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
                 if (deg<min_deg) {
                     min_deg=deg;
                     root=k;
-                } 
+                }
             }
             // save the vertices in the current tree
             numVerticesInTree=firstVertexInLevel[numLevels];
@@ -244,7 +244,7 @@ void Pattern::reduceBandwidth(index_t* oldToNew)
     if (bandwidth >= initial_bandwidth) {
         //printf("initial labeling used.\n");
 #pragma omp parallel for private(i)
-        for (i=0; i<N; ++i) oldToNew[i]=i; 
+        for (i=0; i<N; ++i) oldToNew[i]=i;
     }
     delete[] degAndIdx;
     delete[] oldLabel;

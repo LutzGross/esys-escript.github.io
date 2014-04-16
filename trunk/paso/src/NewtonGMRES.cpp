@@ -37,7 +37,7 @@
 namespace paso {
 
 err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
-                         Performance* pp) 
+                         Performance* pp)
 {
     const double inner_tolerance_safety=.9;
     dim_t gmres_iter;
@@ -46,14 +46,14 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
     double *f=NULL, *step=NULL;
     err_t Status=SOLVER_NO_ERROR;
     const bool debug=options->verbose;
-    const dim_t n = F->getLen(); 
+    const dim_t n = F->getLen();
     dim_t iteration_count=0;
     const double atol=options->absolute_tolerance;  /* absolute tolerance */
     const double rtol=options->tolerance;           /* relative tolerance */
     const dim_t maxit=options->iter_max;            /* max iteration counter */
     const dim_t lmaxit=options->inner_iter_max*10;  /* max inner iteration counter */
     const bool adapt_inner_tolerance=options->adapt_inner_tolerance;
-    const double max_inner_tolerance=options->inner_tolerance *1.e-11;  
+    const double max_inner_tolerance=options->inner_tolerance *1.e-11;
     double inner_tolerance=max_inner_tolerance;
     /*
    * max_inner_tolerance = Maximum error tolerance for residual in inner
@@ -64,10 +64,10 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
    *              adapt_inner_tolerance is set, otherwise
    *              inner_tolerance = max_inner_tolerance iteration.
     */
-  
+
     f=new double[n];
     step=new double[n];
-    /* 
+    /*
      * initial evaluation of F
      */
     F->call(f, x, pp);
@@ -95,7 +95,7 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
                 printf("NewtonGMRES: inner l2 tolerance (GMRES) = %e\n",inner_tolerance);
             }
         }
-        /* 
+        /*
          *  main iteration loop
          */
         while (! (convergeFlag || maxIterFlag || breakFlag)) {
@@ -115,7 +115,7 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
             if ((Status==SOLVER_NO_ERROR) || (Status==SOLVER_MAXITER_REACHED)) {
                 Status=SOLVER_NO_ERROR;
                 // update x
-                norm2_fo=norm2_f; 
+                norm2_fo=norm2_f;
                 util::update(n,1.,x,1.,step);
                 F->call(f, x, pp);
                 iteration_count++;
@@ -129,7 +129,7 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
                     if (rtmp>.1)  {
                         inner_tolerance=std::min(max_inner_tolerance, std::max(quad_tolerance,rtmp));
                     } else {
-                        inner_tolerance=std::min(max_inner_tolerance, quad_tolerance); 
+                        inner_tolerance=std::min(max_inner_tolerance, quad_tolerance);
                     }
                     inner_tolerance=std::min(max_inner_tolerance, std::max(inner_tolerance, .5*stop_tol/normsup_f));
                 }
