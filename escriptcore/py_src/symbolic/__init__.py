@@ -29,7 +29,7 @@ __nodocorecursion=['symbol', 'evaluator']
 from esys.escriptcore.start import HAVE_SYMBOLS
 if HAVE_SYMBOLS:
     from . import functions as symfn
-    from . import symconstants as symconsts
+    from . import symconstants as Symconsts
     from .pretty import pretty_print, pprint
     from .utils import *
 
