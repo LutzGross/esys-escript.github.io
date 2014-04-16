@@ -179,8 +179,6 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
     boost::python::list pytags=extract<boost::python::list>(objtags);
     int numpts=extract<int>(pypoints.attr("__len__")());
     int numtags=extract<int>(pytags.attr("__len__")());
-    if (numtags != numpts)
-        throw RipleyException("Number of tags does not match number of points.");
     std::vector<double> points;
     std::vector<int> tags;
     tags.resize(numtags, -1);
@@ -219,6 +217,8 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
             throw RipleyException("Error - Unable to extract tag value.");
         }
     }
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
                                             points, tags, tagstonames));
 }
@@ -258,8 +258,6 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     boost::python::list pytags=extract<boost::python::list>(objtags);
     int numpts=extract<int>(pypoints.attr("__len__")());
     int numtags=extract<int>(pytags.attr("__len__")());
-    if (numtags != numpts)
-        throw RipleyException("Number of tags does not match number of points.");
     std::vector<double> points;
     std::vector<int> tags;
     tags.resize(numtags, -1);
@@ -298,6 +296,8 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
             throw RipleyException("Error - Unable to extract tag value.");
         }
     }
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                              points, tags, tagstonames));
 }
