@@ -55,8 +55,8 @@ class Test_DiracPoints(unittest.TestCase):
                     ref += 1
         return result
             
-    def getBrickRefs(self, splitAxis):
-        dims = [i+1 for i in self.dims[splitAxis]]
+    def getBrickRefs(self, splitAxis, dims):
+        dims = [i+1 for i in dims]
         results = [[[-1 for z in range(dims[2])] for y in range(dims[1])] for x in range(dims[0])]
         ref = 0
         rankDim = [i for i in dims]
@@ -68,29 +68,32 @@ class Test_DiracPoints(unittest.TestCase):
                     for x in range(rankDim[0]):
                         results[x+rc[0]][y+rc[1]][z+rc[2]] = ref
                         ref += 1
+            rc[splitAxis] += rankDim[splitAxis]
         return results
 
     def generateRects(self, a, b):
-        self.rectX = Rectangle(self.longEdge, self.shortEdge, l0=self.longEdge,
+        rectX = Rectangle(self.longEdge, self.shortEdge, l0=self.longEdge,
                 l1=self.shortEdge, d0=self.numRanks, diracPoints=[(a,b)], diracTags=["test"])
-        self.rectY = Rectangle(self.shortEdge, self.longEdge, l0=self.shortEdge,
+        rectY = Rectangle(self.shortEdge, self.longEdge, l0=self.shortEdge,
                 l1=self.longEdge, d1=self.numRanks, diracPoints=[(b,a)], diracTags=["test"])
+        return [rectX, rectY]
 
     def generateBricks(self, a, b, c):
-        self.brickX = Brick(self.longEdge, 5, 5, 
+        brickX = Brick(self.longEdge, 5, 5, 
                 l0=self.longEdge, l1=5, l2=5,
                 d0=self.numRanks,
                 diracPoints=[(a,b,c)], diracTags=["test"])
-        self.brickY = Brick(5, self.longEdge, 5, 
+        brickY = Brick(5, self.longEdge, 5, 
                 l0=5, l1=self.longEdge, l2=self.shortEdge,
                 d1=self.numRanks,
                 diracPoints=[(c,a,b)], diracTags=["test"])
-        self.brickZ = Brick(5, 5, self.longEdge,
+        brickZ = Brick(5, 5, self.longEdge,
                 l0=5, l1=5, l2=self.longEdge, 
                 d2=self.numRanks,
                 diracPoints=[(b,c,a)], diracTags=["test"])
-        self.dims = [ [self.longEdge, 5, 5], [5, self.longEdge, 5], 
+        dims = [ [self.longEdge, 5, 5], [5, self.longEdge, 5], 
                       [5, 5, self.longEdge]]
+        return [brickX, brickY, brickZ], dims
 
     def owns(self, refs, y, x, xLong):
         if xLong and self.rank*3 - 1 <= x <= self.rank*3 + 3:
@@ -113,13 +116,12 @@ class Test_DiracPoints(unittest.TestCase):
             return "( id: 0, ref: {0}, pnt: 0) (0) {1}\n( id: 0, ref: {0}, pnt: 0) (1) {2}".format(refs[y][x], x, y)
         return self.empty
 
-    def brickMessage(self, loc, splitAxis):
-        dims = [i + 1 for i in self.dims[splitAxis]]
+    def brickMessage(self, loc, splitAxis, refs, dims):
+        dims = [i + 1 for i in dims[splitAxis]]
         for n in range(3):
             if not 0 <= loc[n] <= dims[n]:
                 return self.empty
         loc = [int(round(i - 1e-8)) for i in loc]
-        refs = self.getBrickRefs(splitAxis)
         if self.rank*3 - 1 <= loc[splitAxis] <= self.rank*3 + 3:
             x, y, z = loc
             return "( id: 0, ref: {0}, pnt: 0) (0) {1}\n( id: 0, ref: {0}, pnt: 0) (1) {2}\n( id: 0, ref: {0}, pnt: 0) (2) {3}".format(refs[x][y][z], x, y, z)
@@ -132,7 +134,14 @@ class Test_DiracPoints(unittest.TestCase):
         self.longEdge = 3*self.numRanks-1
         self.empty = "(data contains no samples)\n"
 
-    def test_creation(self):
+    def tearDown(self):
+        del self.numRanks
+        del self.rank
+        del self.shortEdge
+        del self.longEdge
+        del self.empty
+
+    def test_Creation(self):
         r = self.numRanks
         el = self.numRanks*3-1
 
@@ -175,46 +184,50 @@ class Test_DiracPoints(unittest.TestCase):
             a = a//2.
             c = 2.5
             for b in range(self.shortEdge):
-                self.generateBricks(a,b,c)
-                for n, dom in enumerate([self.brickX, self.brickY, self.brickZ]):
+                doms, dims = self.generateBricks(a,b,c)
+                for n, dom in enumerate(doms):
                     points = [a,b,c]
                     for i in range(n): #rotate points to match
                         points = [points.pop()] + points
-                    refs = self.getBrickRefs(n)
-                    crap = "\n".join([str(i) for i in refs])
+                    refs = self.getBrickRefs(n, dims[n])
                     i = interpolate(dom.getX(), DiracDeltaFunctions(dom))
-                    expected = self.brickMessage(tuple(points),n)
+                    expected = self.brickMessage(tuple(points), n, refs, dims)
                     got = str(i)
+                    global_result = getMPIWorldSum(1 if got != expected else 0)
                     self.assertEqual(got, expected, 
                             "{0} not mapped correctly on rank {1} for d{2} splits".format(tuple(points), self.rank, n) + \
                             "\nexpected === \n{0}\ngot === \n{1}".format(expected,got)+ \
-                            "\nlongedge=%d, shortedge=%d\n%s"%(self.longEdge, self.shortEdge, crap))
+                            "\nlongedge=%d, shortedge=%d\n"%(self.longEdge, self.shortEdge))
+                    #remaining ranks must also exit, otherwise we'll lock up
+                    self.assertEqual(global_result, 0, "One or more ranks failed")
 
 
     def test_RectangleInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
             for b in range(self.shortEdge):
-                self.generateRects(a,b)
-                i = interpolate(self.rectX.getX(), DiracDeltaFunctions(self.rectX))
+                rectX, rectY = self.generateRects(a,b)
+                i = interpolate(rectX.getX(), DiracDeltaFunctions(rectX))
                 got = str(i)
                 refs = self.getRectRefs(False)
                 expected = self.rectMessage((a,b),True)
+                global_result = getMPIWorldSum(1 if got != expected else 0)
                 self.assertEqual(got, expected,
                         "({0},{1}) not mapped correctly on rank {2} for d0 splits".format(a,b, self.rank) + \
                         "\nexpected === \n{0}\ngot === \n{1}".format(expected, got)+\
-                        "\nlongedge=%d, shortedge=%d\n%s\n%s"%(self.longEdge, self.shortEdge, got.replace("\n", "\\n"), expected.replace("\n", "\\n")))
-
-                i = interpolate(self.rectY.getX(), DiracDeltaFunctions(self.rectY))
+                        "\nlongedge=%d, shortedge=%d\n"%(self.longEdge, self.shortEdge))
+                #remaining ranks must also exit, otherwise we'll lock up
+                self.assertEqual(global_result, 0, "One or more ranks failed")
+                i = interpolate(rectY.getX(), DiracDeltaFunctions(rectY))
                 expected = self.rectMessage((b,a),False)
                 got = str(i)
+                global_result = getMPIWorldSum(1 if got != expected else 0)
                 self.assertEqual(got, expected, 
                         "({0},{1}) not mapped correctly on rank {2} for d1 splits".format(b,a, self.rank) + \
                         "\nexpected === \n{0}\ngot === \n{1}".format(expected, got)+\
                         "\nlongedge={0}, shortedge={1}\n".format(self.longEdge, self.shortEdge))
-
-    def test_BrickMPIInterpolation(self):
-        pass
+                #remaining ranks must also exit, otherwise we'll lock up
+                self.assertEqual(global_result, 0, "One or more ranks failed")
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
