@@ -18,6 +18,35 @@
 
 \subsection*{3.4 to 3.4.1}
 \begin{itemize}
+ \item Changes to SolverOptions: Most of this is under the hood at this point but any code which accesses 
+    parameters from a SolverOptions object like this:
+ \begin{python}
+   variable.getSolverOptions().DIRECT
+ \end{python}
+ Will need to be modified to:
+ \begin{python}
+   SolverOptions.DIRECT
+ \end{python}
+
+ \item Data objects can be created using smoothed random data.
+ \item Support for OSX10.9
+ \item Support for additional problem types in downunder.
+ \item More efficient ripley domains for large compute clusters
+ \item Added symbolic toolbox and associated documentation
+ \item Paso is now in its own namespace
+ \item Ripley now supports Dirac delta functions.
+ \item Improved reading of netcdf files
+ \item Examples have been updated to use Python3 behaviour (with future imports for Python2).
+ \item Ripley supports reading from gzipped files.
+ \item Fixed fault in documentation generation
+ \item Fixes to keep clang++ happy
+ 
+ 
+\end{itemize}
+
+
+\subsection*{3.4 to 3.4.1}
+\begin{itemize}
  \item Renamed design.Design to design.AbstractDesign as a more explicit/descriptive name, {\bf this will break any existing custom implementation} until changed to match.
 
  \item Efficiency improvements in esys.downunder inversions.
