@@ -1,11 +1,13 @@
+%!TEX root = user.tex
 \chapter{Symbolic}
 \label{CHAP: Symbolic}
 \section{Introduction}
-The Symbol class in escript is used to define symbolic objects. These objects act as place holders for a single mathematical symbol, 
+The Symbol class in escript is used to define symbolic objects. The class extend Sympy\cite{Sympy}, a Python library for symbolic mathematics. The key 
+addition in escript is the support for escript objects. Symbol objects act as place holders for a single mathematical symbol, 
 such as x, or for arbitrarily complex mathematical expressions such as
-c*x**4+alpha*exp(x)-2*sin(beta*x), where alpha, beta, c, and x
-are also Symbols (the symbolic 'atoms' of the expression).
-With the help of the 'Evaluator' class these symbols and expressions can
+c * x**4 + alpha * exp(x) - 2 * sin(beta * x), where alpha, beta, c, and x
+are also Symbols (the symbolic atoms of the expression).
+With the help of the Evaluator class these symbols and expressions can
 be resolved by substituting numeric values and/or escript \Data objects
 for the atoms. To facilitate the use of \Data objects a Symbol has a
 shape (and thus a rank) as well as a dimension.
@@ -26,19 +28,19 @@ evaluated=evalu.evaluate()
 print evaluated
 \end{python}
 Running this code evaluates to (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi) to get the answer evaluated we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183).This shows how the Symbols can be put into expressions and evaluated. The diff member used on p takes the derivative of p with respect to u. The use of these Symbols becomes more interesting in the context of escript when they are integrated with escript objects such as the \Data Object. 
-\section{NonLinearPDE}
-The NonLinearPDE class in escript has been implemented using interaction between escript symbols and escript objects such as domains. The NonLinearPDE class allows for the solution of PDEs of the form:
+\section{NonlinearPDE}
+The NonlinearPDE class in escript has been implemented using interaction between escript symbols and escript objects such as domains. The NonlinearPDE class allows for the solution of PDEs of the form:
 \begin{equation}
 -div(X) + Y = 0
 \label{symbolic eq1}
 \end{equation}
 where $X$ and $Y$ are function of $grad(u)$ and $u$ (the unknown function implemented as a Symbol).
 The intention is that X can be defined as an arbitrary function of the unknown function $u$ or $grad(u)$ to implement a desired equation.
-The NonLinearPDE class uses the Symbolic class to solve the nonlinear PDE given in \eqn{symbolic eq1}
+The NonlinearPDE class uses the Symbolic class to solve the nonlinear PDE given in \eqn{symbolic eq1}
 The class works by using Newton's method to find the zeroes of the left hand side of \eqn{symbolic eq1} and as a consequence finding the
 $X$ and $Y$ which satisfy \eqn{symbolic eq1}. 
 Newton's method involves evaluating the gradient of the function at $u_n$ and letting it go to 0 to get a $u_n$ from $u_{n-1}$. Consecutive updates are calculated until the equation is
-satisfied to the desired level of accuracy. The solution to each update step involves solving a linear PDE. The NonLinearPDE class uses $X$ and $Y$ to produce the coefficient of the linear PDE for the update step. The linear PDE class given in \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step. The coefficients of the linear PDE to be solved are calculated as follows: \\\\
+satisfied to the desired level of accuracy. The solution to each update step involves solving a linear PDE. The NonlinearPDE class uses $X$ and $Y$ to produce the coefficient of the linear PDE for the update step. The linear PDE class given in \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step. The coefficients of the linear PDE to be solved are calculated as follows: \\\\
 {
 \centering 
  A = $\frac{\partial \text{X}}{\partial grad(u)}$   B = $\frac{\partial \text{X}}{\partial u}$   C = $\frac{\partial \text{Y}}{\partial grad(u)}$    D = $\frac{\partial \text{Y}}{\partial u}$
@@ -72,28 +74,33 @@ Where $\epsilon = symmetric(grad(u)) \text{ or } \epsilon_{ij}=\frac{1}{2}\left(
 u is the unknown function. To fit this to the nonlinear PDE class' standard form, X, is set to $c \times Symmetric(\text{grad(}u)))$ where $c$ is the stiffness matrix from \eqn{symbolic eq3}
 The following python extracts show how an example 2D plane strain problem can be set up. 
 
+
 \begin{python}
+from esys.escript import *
+from esys.finley import Rectangle
 #set up domain and symbols
 mydomain = Rectangle(l0=1.,l1=1.,n0=10, n1=10)
 u = Symbol('u',(2,), dim=2)
-q = Symbol('q', (2,2))
+q = Symbol('q', (2,2)
 sigma = Symbol('sigma',(2,2))
 theta = Symbol('theta')
-# q is a rotation matrix represented by a Symbol. Values can be substituted for theta.
+# q is a rotation matrix represented by a Symbol. Values can be substituted for 
+# theta.
 q[0,0]=cos(theta)
 q[0,1]=-sin(theta)
 q[1,0]=sin(theta)
 q[1,1]=cos(theta)
-# Theta gets substituted by pi/4 and masked to lie between .3 and .7 in the vertical direction. 
-# Using this masking means that when q is used it will apply only to the specified area of the
-# domain. 
+# Theta gets substituted by pi/4 and masked to lie between .3 and .7 in the 
+# vertical direction. Using this masking means that when q is used it will apply
+# only to the specified area of the domain. 
 x = Function(mydomain).getX()
 q=q.subs(theta,(symconstants.pi/4)*whereNonNegative(x[1]-.30)*whereNegative(x[1]-.70))
 # epsilon is defined in terms of u and has the rotation applied. 
 epsilon0 = symmetric(grad(u))
 epsilon = matrixmult(matrixmult(q,epsilon0),q.transpose(1))
-# For the purposes of demonstration, an arbitrary c with isotropic constraints is chosen here.
-# In order to act as an isotropic material c is chosen such that c00 = c11 = c01+c1+2*c55
+# For the purposes of demonstration, an arbitrary c with isotropic constraints 
+# is chosen here. In order to act as an isotropic material c is chosen such that 
+# c00 = c11 = c01+c1+2*c55
 c00 = 10
 c01 = 8; c11 = 10
 c05 = 0; c15 = 0; c55 = 1
@@ -102,13 +109,15 @@ sigma[0,0] = c00*epsilon[0,0]+c01*epsilon[1,1]+c05*2*epsilon[1,0]
 sigma[1,1] = c01*epsilon[0,0]+c11*epsilon[1,1]+c15*2*epsilon[1,0]
 sigma[0,1] = c05*epsilon[0,0]+c15*epsilon[1,1]+c55*2*epsilon[1,0]
 sigma[1,0] = sigma[0,1]
+sigma0=matrixmult(matrixmult(q.transpose(1),sigma),q)
 # set up boundary conditions
 x=mydomain.getX()
 gammaD=whereZero(x[1])*[1,1]
 yconstraint = FunctionOnBoundary(mydomain).getX()[1]
-# The nonlinear PDE is set up, the values are substituted in and the solution is calculated
-# y represents an external shearing force acting on the domain. In this case a force of magnitude 50 acting in the x[0] direction.
-p = NonLinearPDE(mydomain, u, debug=NonLinearPDE.DEBUG0)
+# The nonlinear PDE is set up, the values are substituted in and the solution is
+# calculated y represents an external shearing force acting on the domain. 
+# In this case a force of magnitude 50 acting in the x[0] direction.
+p = NonlinearPDE(mydomain, u, debug=NonlinearPDE.DEBUG0)
 p.setValue(X=sigma0,q=gammaD,y=[-50,0]*whereZero(yconstraint-1),r=[1,1])
 v = p.getSolution(u=[0,0])
 \end{python}
@@ -128,7 +137,7 @@ Running the script calculates the unknown function u and assigns it to v. We can
   difference & \includegraphics[scale=0.2]{diffaniso} & \includegraphics[scale=0.2]{diffiso}\\ 
   \hline
 \end{tabular}
-\caption{Displacement vectors calculated using NonLinearPDE}
+\caption{Displacement vectors calculated using NonlinearPDE}
 \label{isovsaniso}
 \end{table}
 Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both an isotropic and ansisotropic case are considered for the anisotropic case c is chosen such that c00 = c11 = c01+c1+2*c55 does not hold. Two cases of theta are also considered one with a masked 60\textdegree rotation in the middle and one with no rotation. The last row of the table shows the difference between rotation in the middle and no rotation. In the isotropic case it can be seen the there is no deference in the output when the rotation is applied. there is however an obvious difference when the anisotropic case is considered.   
@@ -156,18 +165,18 @@ If x is a scalar symbol then x is searched in all components of
 this symbol. Otherwise the shapes must match and the coefficients are
 checked component by component.
 Example:
-\begin{python} 
-x=Symbol('x', (2,2))
-y=3*x
-print y.coeff(x)
-print y.coeff(x[1,1])
+\begin{python}
+     x=Symbol('x', (2,2))
+     y=3*x
+     print y.coeff(x)
+     print y.coeff(x[1,1])
 \end{python}
 will print:
 \begin{python}
-   [[3 3]
-     [3 3]]
-    [[0 0]
-     [0 3]]
+     [[3 3]
+      [3 3]]
+     [[0 0]
+      [0 3]]
 \end{python} 
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{diff}{symbols}
@@ -207,11 +216,11 @@ Applies the sympy.simplify operation on all elements in this symbol
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{subs}{old,new}
 Substitutes or replaces a symbol specified in old with whatever is in new for the symbol which it is called on. Consider:
-\begin{python}
-import esys.escript as es
-u=es.Symbol("u")
-expr=2*u
-expr.subs(u,2)
+  \begin{python}
+     import esys.escript as es
+     u=es.Symbol("u")
+     expr=2*u
+     expr.subs(u,2)
 \end{python}
 This prints 4
 \end{methoddesc}
@@ -237,45 +246,45 @@ Args can be provided to make any substitutions before the expression is evaluate
 Substitutes or replaces a symbol specified in old with whatever is in new for all expressions in the evaluator.
 \end{methoddesc}
 
-\subsection{NonLinearPDE class}
-\begin{classdesc}{NonLinearPDE}{domain, u}
+\subsection{NonlinearPDE class}
+\begin{classdesc}{NonlinearPDE}{domain, u}
 Defines a general nonlinear, steady, second order PDE for an unknown function \var{u} on a given domain defined through a \Domain object \var{domain}. \var(u) is a Symbol object.
 The general form is -div(X) + Y = 0 
 \end{classdesc}
 \iffalse
-\begin{methoddesc}[NonLinearPDE]{concatenateRow}{}
+\begin{methoddesc}[NonlinearPDE]{concatenateRow}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{createCoefficient}{}
+\begin{methoddesc}[NonlinearPDE]{createCoefficient}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getUnknownSymbol}{}
+\begin{methoddesc}[NonlinearPDE]{getUnknownSymbol}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getLinearSolverOptions}{}
+\begin{methoddesc}[NonlinearPDE]{getLinearSolverOptions}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getLinearPDE}{}
+\begin{methoddesc}[NonlinearPDE]{getLinearPDE}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getNumSolutions}{}
+\begin{methoddesc}[NonlinearPDE]{getNumSolutions}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getShapeOfCoefficient}{}
+\begin{methoddesc}[NonlinearPDE]{getShapeOfCoefficient}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getCoefficient}{}
+\begin{methoddesc}[NonlinearPDE]{getCoefficient}{}
 test
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{getSensitivity}{}
+\begin{methoddesc}[NonlinearPDE]{getSensitivity}{}
 test
 \end{methoddesc}
 \fi
-\begin{methoddesc}[NonLinearPDE]{getSolution}{subs}
-Returns the solution of the PDE. Substitutions for all symbols used in the coefficients including the initial value for the unknown *u*.
+\begin{methoddesc}[NonlinearPDE]{getSolution}{subs}
+Returns the solution of the PDE. Substitutions for all symbols used in the coefficients including the initial value for the unknown u.
 \end{methoddesc}
 \pagebreak
-\begin{methoddesc}[NonLinearPDE]{setOptions}{opts}
+\begin{methoddesc}[NonlinearPDE]{setOptions}{opts}
 \begin{verbatim}
 Allows setting options for the nonlinear PDE.
 The supported options are:
@@ -301,7 +310,7 @@ The supported options are:
 \end{verbatim}
 
 \end{methoddesc}
-\begin{methoddesc}[NonLinearPDE]{setValue}{
+\begin{methoddesc}[NonlinearPDE]{setValue}{
 \optional{X}\optional{, Y}
 \optional{, d}\optional{, y}
 \optional{, d_contact}\optional{, y_contact}
