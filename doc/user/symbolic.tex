@@ -180,7 +180,7 @@ will print:
 \end{python} 
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{diff}{symbols}
-Takes the derivative of the symbol object which the method belongs to with respect to the symbols specified in the argument symbols.
+Takes the derivative of the \SYMBOL object which the method belongs to with respect to the symbols specified in the argument symbols.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{evalf}{}
 Applies the sympy.evalf operation on all elements of the \SYMBOL which are of type or inherit from sympy.Basic 
@@ -281,32 +281,32 @@ test
 \end{methoddesc}
 \fi
 \begin{methoddesc}[NonlinearPDE]{getSolution}{subs}
-Returns the solution of the PDE. Substitutions for all symbols used in the coefficients including the initial value for the unknown u.
+Returns the solution of the PDE. Subs contatins the Substitutions for all symbols used in the coefficients including the initial value for the unknown u.
 \end{methoddesc}
 \pagebreak
 \begin{methoddesc}[NonlinearPDE]{setOptions}{opts}
 \begin{verbatim}
-Allows setting options for the nonlinear PDE.
-The supported options are:
-  tolerance
-      error tolerance for the Newton method
-  iteration_steps_max
-      maximum number of Newton iterations
-  omega_min
-      minimum relaxation factor
-  atol
-      solution norms less than atol are assumed to be atol.
-      This can be useful if one of your solutions is expected to
-      be zero.
-  quadratic_convergence_limit
-      if the norm of the Newton-Raphson correction is reduced by
-      less than quadratic_convergence_limit between two iteration
-      steps, quadratic convergence is assumed.
-  simplified_newton_limit
-      if the norm of the defect is reduced by less than
-      simplified_newton_limit between two iteration steps and
-      quadratic convergence is detected, the iteration switches to the
-      simplified Newton-Raphson scheme.
+  Allows setting options for the nonlinear PDE.
+  The supported options are:
+    tolerance
+        error tolerance for the Newton method
+    iteration_steps_max
+        maximum number of Newton iterations
+    omega_min
+        minimum relaxation factor
+    atol
+        solution norms less than atol are assumed to be atol.
+        This can be useful if one of your solutions is expected to
+        be zero.
+    quadratic_convergence_limit
+        if the norm of the Newton-Raphson correction is reduced by
+        less than quadratic_convergence_limit between two iteration
+        steps, quadratic convergence is assumed.
+    simplified_newton_limit
+        if the norm of the defect is reduced by less than
+        simplified_newton_limit between two iteration steps and
+        quadratic convergence is detected, the iteration switches to the
+        simplified Newton-Raphson scheme.
 \end{verbatim}
 
 \end{methoddesc}
@@ -327,10 +327,8 @@ If the new coefficient value is not a \Data object, it is converted into a
 Symconsts provides symbolic constants for use in symbolic expressions. These constants are preferred to floating point implementation as they can cancel perfectly when mathematical expressions are evaluated, avoiding numerical imprecision. 
 \begin{verbatim}
 usage:
-  symconsts.pi this provides a \SYMBOL object
-  
+  symconsts.pi this provides a Symbol object
+
 Available constants currently include:
   pi and e 
 \end{verbatim}
-
-
