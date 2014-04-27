@@ -1,15 +1,14 @@
 %!TEX root = user.tex
 \chapter{Symbolic}
-\label{CHAP: Symbolic}
+\label{CHAP: The escript symbolic toolbox}
 \section{Introduction}
-The \SYMBOL class in escript is used to define symbolic objects. The class extends Sympy\cite{Sympy}, a Python library for symbolic mathematics. The key 
-addition in escript is the support for escript objects. \SYMBOL objects act as place holders for a single mathematical symbol, 
+Escript builds on the existing Sympy\cite{Sympy} symbolic maths library to provide a \SYMBOL class with support for escript Data objects. \SYMBOL objects act as place holder's for a single mathematical symbol, 
 such as x, or for arbitrarily complex mathematical expressions such as
 c * x**4 + alpha * exp(x) - 2 * sin(beta * x), where alpha, beta, c, and x
 are also Symbols (the symbolic ``atoms" of the expression).
-With the help of the \EVALUATOR class these symbols and expressions can
+With the help of the \EVALUATOR class, these symbols and expressions can
 be evaluated by substituting numeric values and/or escript \Data objects
-for the atoms. To facilitate the use of \Data objects, a \SYMBOL has a
+for the atoms. Escripts \SYMBOL class has a
 shape (and thus a rank) as well as a dimension.
 Symbols are useful to perform mathematical simplifications,
 compute derivatives, take gradients and in the case of escript describe PDE's. As an example of how the symbolic toolbox can be used, consider the following code extract.
@@ -18,7 +17,7 @@ import esys.escript as es
 u = es.Symbol('u')
 p = 2*u**2+3*u+1
 p2 = es.sin(u)
-p3 = p.diff(u)
+p3 = p.diff(u)            #p3 = derivative of p with respect to u
 evalu = es.Evaluator()
 evalu.addExpression(p)
 evalu.addExpression(p2)
@@ -27,19 +26,18 @@ evalu.subs(u=2*es.symconstants.pi)
 evaluated=evalu.evaluate()
 print evaluated
 \end{python}
-Running this code evaluates to (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi).  To get the answer evaluated we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183). This shows how the Symbols can be put into expressions and evaluated. The diff member used on p takes the derivative of p with respect to u. The use of these Symbols becomes more interesting in the context of escript when they are integrated with escript objects such as \Data objects. 
+Running this code outputs (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi).  To get the numeric value of the expression we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183). The use of these Symbols becomes more interesting in the context of escript when they are integrated with escript \Data objects. 
 \section{NonlinearPDE}
-The NonlinearPDE class in escript has been implemented using interaction between escript symbols and escript objects such as domains. The NonlinearPDE class allows for the solution of PDEs of the form:
+The NonlinearPDE class in escript makes use of the escript \SYMBOL class. The NonlinearPDE class allows for the solution of PDEs of the form:
 \begin{equation}
 -div(X) + Y = 0
 \label{symbolic eq1}
 \end{equation}
-where $X$ and $Y$ are function of $grad(u)$ and $u$ (the unknown function implemented as a \SYMBOL).
-The intention is that X can be defined as an arbitrary function of the unknown function $u$ or $grad(u)$ to implement a desired equation.
+where $X$ and $Y$ are both functions of $grad(u)$ and $u$. Where $u$ is the unknown function implemented as a \SYMBOL. div(x) denotes divergence of x.
 The NonlinearPDE class uses the Symbolic class to solve the nonlinear PDE given in \eqn{symbolic eq1}
 The class works by using Newton's method to find the zeroes of the left hand side of \eqn{symbolic eq1} and as a consequence finding the
 $X$ and $Y$ which satisfy \eqn{symbolic eq1}. 
-Newton's method involves evaluating the gradient of the function at $u_n$ and letting it go to 0 to get a $u_n$ from $u_{n-1}$. Consecutive updates are calculated until the equation is
+Consecutive updates are calculated until the equation is
 satisfied to the desired level of accuracy. The solution to each update step involves solving a linear PDE. The NonlinearPDE class uses $X$ and $Y$ to produce the coefficient of the linear PDE for the update step. The linear PDE class given in \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step. The coefficients of the linear PDE to be solved are calculated as follows: 
 \begin{equation*}
  A = \frac{\partial \text{X}}{\partial grad(u)},   B = \frac{\partial \text{X}}{\partial u},   C = \frac{\partial \text{Y}}{\partial grad(u)},    D = \frac{\partial \text{Y}}{\partial u}
@@ -69,9 +67,8 @@ c_{05} & c_{15} & c_{55}\\
 \end{array} \right]
 \label{symbolic eq3}
 \end{equation}
-Where $\epsilon = symmetric(grad(u)) \text{ or } \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + {\frac{\partial u_j}{\partial x_i}}\right)$ and 
-u is the unknown function. To fit this to the nonlinear PDE class' standard form, X, is set to $c \times Symmetric(\text{grad(}u)))$ where $c$ is the stiffness matrix from \eqn{symbolic eq3}
-The following python extracts show how an example 2D plane strain problem can be set up. 
+Where $\epsilon = symmetric(grad(u)) \text{ or } \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + {\frac{\partial u_j}{\partial x_i}}\right)$, u is the unknown function and $c_{ij}b$ is the stiffness matrix. To fit this to the nonlinear PDE class' standard form, X, is set to $c \times Symmetric(\text{grad(}u)))$.
+The following python extract show how an example 2D plane strain problem can be set up. 
 
 
 \begin{python}
@@ -133,20 +130,20 @@ Running the script calculates the unknown function u and assigns it to v. We can
   \hline
   60\textdegree rotation & \includegraphics[scale=0.2]{MidRotAniso} & \includegraphics[scale=0.2]{MidRotIso}\\ 
   \hline
-  difference & \includegraphics[scale=0.2]{diffaniso} & \includegraphics[scale=0.2]{diffiso}\\ 
+  difference & \includegraphics[scale=0.2]{diffaniso} & no difference\\ 
   \hline
 \end{tabular}
 \caption{Displacement vectors calculated using NonlinearPDE}
 \label{isovsaniso}
 \end{table}
-Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both an isotropic and ansisotropic case are considered.  For the anisotropic case, c is chosen such that c00 = c11 = c01+c1+2*c55 does not hold. Two cases of theta are also considered; one with a masked 60\textdegree rotation in the middle and one with no rotation. The last row of the table shows the difference between rotation in the middle and no rotation. In the isotropic case it can be seen that there is no difference in the output when the rotation is applied. There is however an obvious difference when the anisotropic case is considered.   
+Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both isotropic and ansisotropic cases are considered.  For the anisotropic case, $c_{ij}$ is chosen such that c00 = c11 = c01+c1+2*c55 does not hold. Two values of theta are also considered; one with a masked 60\textdegree rotation in the middle and one with no rotation. The last row of the table shows the difference between rotation in the middle and no rotation. In the isotropic case it can be seen that there is no difference in the output when the rotation is applied. There is however, an obvious difference when the anisotropic case is considered.   
 
 \newpage
 \section{Classes}
 A number of classes are associated with escript symbols. A detailed listing of the definitions and usage is provided below. 
 \subsection{Symbol class}
 \begin{classdesc}{Symbol}{symbol \optional{, shape} \optional{, Dim}}
-Defines a \SYMBOL object. The first argument \SYMBOL is a string given to represent the \SYMBOL. The string typically matches the name of the object, for instance u=Symbol('u'). Next the shape defines whether the \SYMBOL is a vector or a matrix etc up to a 4 tensor and the length or size of it. Dim is used to define the dimensionality of the object contained in the \SYMBOL.
+Defines a \SYMBOL object. The first argument \SYMBOL is a string given to represent the \SYMBOL. The string typically matches the name of the object, for instance \texttt{u=Symbol('u')}. Next the shape defines whether the \SYMBOL is a vector or a matrix etc up to a 4 tensor and the length or size of it. Dim is used to define the dimensionality of the object contained in the \SYMBOL.
 For a \SYMBOL definition u = Symbol('u',(10,), dim=2), u will be a 10 component vector of 2 dimensional objects.
 \end{classdesc}
 \subsubsection{Symbol class methods}
@@ -182,7 +179,7 @@ will print:
 Takes the derivative of the \SYMBOL object which the method belongs to with respect to the symbols specified in the argument symbols.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{evalf}{}
-Applies the sympy.evalf operation on all elements of the \SYMBOL which are of type or inherit from sympy.Basic 
+Applies the sympy.evalf operation on all elements of the \SYMBOL which are of type or inherit from sympy.Basic.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{expand}{}
 Applies the sympy.expand operation on all elements in this \SYMBOL.
@@ -190,7 +187,7 @@ Applies the sympy.expand operation on all elements in this \SYMBOL.
 %\begin{methoddesc}[Symbol]{getDataSubstitutions}{}
 %end{methoddesc}
 \begin{methoddesc}[Symbol]{getDim}{}
-Returns the symbol's spatial dimensionality, or -1 if undefined
+Returns the symbol's spatial dimensionality, or -1 if undefined.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{getRank}{}
 Returns the symbol's rank which is equal to the length of the shape.
@@ -247,7 +244,7 @@ Substitutes or replaces a \SYMBOL specified in old with whatever is in new for a
 
 \subsection{NonlinearPDE class}
 \begin{classdesc}{NonlinearPDE}{domain, u}
-Defines a general nonlinear, steady, second order PDE for an unknown function \var{u} on a given domain defined through a \Domain object \var{domain}. \var(u) is a \SYMBOL object.
+Defines a general nonlinear, steady, second order PDE for an unknown function \var{u} on a given domain defined through a \Domain object \var{domain}. \var{u} is a \SYMBOL object.
 The general form is -div(X) + Y = 0 
 \end{classdesc}
 \iffalse
@@ -311,8 +308,8 @@ Returns the solution of the PDE. Subs contatins the Substitutions for all symbol
 \end{methoddesc}
 \begin{methoddesc}[NonlinearPDE]{setValue}{
 \optional{X}\optional{, Y}
-\optional{, d}\optional{, y}
-\optional{, d_contact}\optional{, y_contact}
+\optional{, y}\optional{, y_contact}
+\optional{, y_dirac}
 \optional{, q}\optional{, r}}
 Assigns new values to coefficients. By default all values are assumed to be
 zero\footnote{In fact, it is assumed they are not present by assigning the
