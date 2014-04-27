@@ -6,9 +6,9 @@ The \SYMBOL class in escript is used to define symbolic objects. The class exten
 addition in escript is the support for escript objects. \SYMBOL objects act as place holders for a single mathematical symbol, 
 such as x, or for arbitrarily complex mathematical expressions such as
 c * x**4 + alpha * exp(x) - 2 * sin(beta * x), where alpha, beta, c, and x
-are also Symbols (the symbolic atoms of the expression).
+are also Symbols (the symbolic ``atoms" of the expression).
 With the help of the \EVALUATOR class these symbols and expressions can
-be resolved by substituting numeric values and/or escript \Data objects
+be evaluated by substituting numeric values and/or escript \Data objects
 for the atoms. To facilitate the use of \Data objects, a \SYMBOL has a
 shape (and thus a rank) as well as a dimension.
 Symbols are useful to perform mathematical simplifications,
@@ -27,7 +27,7 @@ evalu.subs(u=2*es.symconstants.pi)
 evaluated=evalu.evaluate()
 print evaluated
 \end{python}
-Running this code evaluates to (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi).  To get the answer evaluated we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183). This shows how the Symbols can be put into expressions and evaluated. The diff member used on p takes the derivative of p with respect to u. The use of these Symbols becomes more interesting in the context of escript when they are integrated with escript objects such as the \Data Object. 
+Running this code evaluates to (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi).  To get the answer evaluated we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183). This shows how the Symbols can be put into expressions and evaluated. The diff member used on p takes the derivative of p with respect to u. The use of these Symbols becomes more interesting in the context of escript when they are integrated with escript objects such as \Data objects. 
 \section{NonlinearPDE}
 The NonlinearPDE class in escript has been implemented using interaction between escript symbols and escript objects such as domains. The NonlinearPDE class allows for the solution of PDEs of the form:
 \begin{equation}
@@ -40,11 +40,10 @@ The NonlinearPDE class uses the Symbolic class to solve the nonlinear PDE given 
 The class works by using Newton's method to find the zeroes of the left hand side of \eqn{symbolic eq1} and as a consequence finding the
 $X$ and $Y$ which satisfy \eqn{symbolic eq1}. 
 Newton's method involves evaluating the gradient of the function at $u_n$ and letting it go to 0 to get a $u_n$ from $u_{n-1}$. Consecutive updates are calculated until the equation is
-satisfied to the desired level of accuracy. The solution to each update step involves solving a linear PDE. The NonlinearPDE class uses $X$ and $Y$ to produce the coefficient of the linear PDE for the update step. The linear PDE class given in \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step. The coefficients of the linear PDE to be solved are calculated as follows: \\\\
-{
-\centering 
- A = $\frac{\partial \text{X}}{\partial grad(u)}$   B = $\frac{\partial \text{X}}{\partial u}$   C = $\frac{\partial \text{Y}}{\partial grad(u)}$    D = $\frac{\partial \text{Y}}{\partial u}$
-}
+satisfied to the desired level of accuracy. The solution to each update step involves solving a linear PDE. The NonlinearPDE class uses $X$ and $Y$ to produce the coefficient of the linear PDE for the update step. The linear PDE class given in \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step. The coefficients of the linear PDE to be solved are calculated as follows: 
+\begin{equation*}
+ A = \frac{\partial \text{X}}{\partial grad(u)},   B = \frac{\partial \text{X}}{\partial u},   C = \frac{\partial \text{Y}}{\partial grad(u)},    D = \frac{\partial \text{Y}}{\partial u}
+\end{equation*}
 \section{2D Plane Strain Problem}
 The NonLinearPDE class can be used to solve a 2D plane strain problem. In continuous media, stress is given by Lame's equation, \eqn{symbolic eq2}.
 \begin{equation} 
@@ -81,7 +80,7 @@ from esys.finley import Rectangle
 #set up domain and symbols
 mydomain = Rectangle(l0=1.,l1=1.,n0=10, n1=10)
 u = Symbol('u',(2,), dim=2)
-q = Symbol('q', (2,2)
+q = Symbol('q', (2,2))
 sigma = Symbol('sigma',(2,2))
 theta = Symbol('theta')
 # q is a rotation matrix represented by a Symbol. Values can be substituted for 
@@ -155,11 +154,11 @@ For a \SYMBOL definition u = Symbol('u',(10,), dim=2), u will be a 10 component 
 Returns the atoms that form the current \SYMBOL.
 By default, only objects that are truly atomic and cannot be divided
 into smaller pieces are returned: symbols, numbers, and number
-symbols like I and pi. It is possible to request atoms of any type,
+symbols like e and pi. It is possible to request atoms of any type,
 however.
 \end{methoddesc}
 
-\begin{methoddesc}[Symbol]{coeff}{x \optional{, expan=true}}
+\begin{methoddesc}[Symbol]{coeff}{x \optional{, expand=true}}
 Returns the coefficient of the term x or 0 if there is no x.
 If x is a scalar \SYMBOL then x is searched in all components of
 this \SYMBOL. Otherwise the shapes must match and the coefficients are
