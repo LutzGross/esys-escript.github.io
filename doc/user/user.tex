@@ -13,11 +13,11 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 \documentclass{esysdoc}
-\usepackage{makeidx}    %already in the esysdoc class but putting it here prompts kile to run makeidx
+\usepackage{makeidx} %already in the esysdoc class but putting it here prompts kile to run makeidx
 
 % grab the handy definitions and \usepackage statements etc
 \input{user_defs}
-\usepackage{upquote}    %used to precent LaTeX from mucking up '
+\usepackage{upquote} %used to precent LaTeX from mucking up '
 
 % \newcommand{\hackscore}{_}
 
@@ -25,11 +25,11 @@
 \title{\emph{esys-Escript} User's Guide:\\ Solving Partial Differential Equations\\ with Escript and Finley}
 \author{Lutz Gross\etal~(Editor)}
 \authoraddress{
-Earth Systems Science Computational Centre (ESSCC) \\
+Centre for Geoscience Computing (GeoComp) \\
 School of Earth Sciences \\
 The University of Queensland \\
 Brisbane, Australia \\
-Email: \email{esys@esscc.uq.edu.au}
+%Email: \email{esys@esscc.uq.edu.au}
 }
 \date{\today}
 %\release{3.4.1}
@@ -67,16 +67,16 @@ It consists of five major components
 \item a model library.
 \item an inversion library.
 \end{itemize}
-The current version supports parallelization through both MPI for distributed memory and OpenMP for distributed shared memory.
+The current version supports parallelization through both MPI for distributed
+memory and OpenMP for shared memory.
 
 In this release there are a number of small changes which are not backwards compatible.
 Please see Appendix~\ref{app:changes} to see if your scripts will be affected.
 
-
 If you use this software in your research, then we would appreciate (but do not require) a citation.
 Some relevant references can be found in Appendix~\ref{app:ourrefs}.
 
-For Python3 support, see Appendix~\ref{app:py3}.
+For Python 3 support, see Appendix~\ref{app:py3}.
 \end{abstract}
 \input{currentdev}
 \cleardoublepage\pdfbookmark[0]{Contents}{contents}%

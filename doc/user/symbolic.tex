@@ -1,21 +1,26 @@
 %!TEX root = user.tex
-\chapter{Symbolic}
-\label{CHAP: The escript symbolic toolbox}
+\chapter{The escript symbolic toolbox}
+\label{CHAP:Symbolic}
 \section{Introduction}
-Escript builds on the existing Sympy\cite{Sympy} symbolic maths library to provide a \SYMBOL class with support for escript Data objects. \SYMBOL objects act as place holder's for a single mathematical symbol, 
-such as x, or for arbitrarily complex mathematical expressions such as
-c * x**4 + alpha * exp(x) - 2 * sin(beta * x), where alpha, beta, c, and x
-are also Symbols (the symbolic ``atoms" of the expression).
+Escript builds on the existing Sympy~\cite{Sympy} symbolic maths library to
+provide a \SYMBOL class with support for escript Data objects. \SYMBOL objects
+act as placeholders for a single mathematical symbol, such as \texttt{x}, or
+for arbitrarily complex mathematical expressions such as
+\texttt{c*x**4 + alpha*exp(x) - 2*sin(beta * x)}, where \texttt{alpha},
+\texttt{beta}, \texttt{c}, and \texttt{x} are also symbols (the symbolic
+``atoms" of the expression).
 With the help of the \EVALUATOR class, these symbols and expressions can
 be evaluated by substituting numeric values and/or escript \Data objects
-for the atoms. Escripts \SYMBOL class has a
-shape (and thus a rank) as well as a dimension.
-Symbols are useful to perform mathematical simplifications,
-compute derivatives, take gradients and in the case of escript describe PDE's. As an example of how the symbolic toolbox can be used, consider the following code extract.
+for the atoms. Escript's \SYMBOL class has a shape (and thus a rank) as well
+as a dimensionality.
+Symbols are useful to perform mathematical simplifications, compute
+derivatives, take gradients and in the case of escript describe PDEs.
+As an example of how the symbolic toolbox can be used, consider the following
+code extract.
 \begin{python}
 import esys.escript as es
 u = es.Symbol('u')
-p = 2*u**2+3*u+1
+p = 2*u**2 + 3*u + 1
 p2 = es.sin(u)
 p3 = p.diff(u)            #p3 = derivative of p with respect to u
 evalu = es.Evaluator()
@@ -24,28 +29,44 @@ evalu.addExpression(p2)
 evalu.addExpression(p3)
 evalu.subs(u=2*es.symconstants.pi)
 evaluated=evalu.evaluate()
-print evaluated
+print(evaluated)
 \end{python}
-Running this code outputs (1 + 6*pi + 8*pi**2, 0, 3 + 8*pi).  To get the numeric value of the expression we replace evalu.evaluate() with evalu.evaluate(evalf=True) this results in (98.8063911302536, 0, 28.1327412287183). The use of these Symbols becomes more interesting in the context of escript when they are integrated with escript \Data objects. 
+Running this code outputs \texttt{(1 + 6*pi + 8*pi**2, 0, 3 + 8*pi)}.
+To get the numeric value of the expression we replace \texttt{evalu.evaluate()}
+with \texttt{evalu.evaluate(evalf=True)}. This results in
+\texttt{(98.8063911302536, 0, 28.1327412287183)}.
+The use of these Symbols becomes more interesting in the context of escript
+when they are integrated with escript \Data objects.
+
 \section{NonlinearPDE}
-The NonlinearPDE class in escript makes use of the escript \SYMBOL class. The NonlinearPDE class allows for the solution of PDEs of the form:
+The \NLPDE class in escript makes use of the escript \SYMBOL class and allows
+for the solution of PDEs of the form:
 \begin{equation}
--div(X) + Y = 0
+-\nabla\cdotp X + Y = 0
 \label{symbolic eq1}
 \end{equation}
-where $X$ and $Y$ are both functions of $grad(u)$ and $u$. Where $u$ is the unknown function implemented as a \SYMBOL. div(x) denotes divergence of x.
-The NonlinearPDE class uses the Symbolic class to solve the nonlinear PDE given in \eqn{symbolic eq1}
-The class works by using Newton's method to find the zeroes of the left hand side of \eqn{symbolic eq1} and as a consequence finding the
-$X$ and $Y$ which satisfy \eqn{symbolic eq1}. 
-Consecutive updates are calculated until the equation is
-satisfied to the desired level of accuracy. The solution to each update step involves solving a linear PDE. The NonlinearPDE class uses $X$ and $Y$ to produce the coefficient of the linear PDE for the update step. The linear PDE class given in \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step. The coefficients of the linear PDE to be solved are calculated as follows: 
+where $X$ and $Y$ are both functions of $\nabla u$ and $u$, and $u$ is the
+unknown function implemented as a \SYMBOL. $\nabla\cdotp x$ denotes divergence
+of $x$.
+The \NLPDE class uses the \SYMBOL class to solve the nonlinear PDE given in
+\eqn{symbolic eq1}.
+The class incorporates Newton's method to find the zeroes of the left hand side
+of \eqn{symbolic eq1} and as a consequence finding the $X$ and $Y$ which
+satisfy \eqn{symbolic eq1}. 
+Consecutive updates are calculated until the equation is satisfied to the
+desired level of accuracy. The solution to each update step involves solving a
+linear PDE. The \NLPDE class uses $X$ and $Y$ to produce the coefficients of
+the linear PDE for the update step. The linear PDE class given in
+\Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step.
+The coefficients of the linear PDE to be solved are calculated as follows: 
 \begin{equation*}
- A = \frac{\partial \text{X}}{\partial grad(u)},   B = \frac{\partial \text{X}}{\partial u},   C = \frac{\partial \text{Y}}{\partial grad(u)},    D = \frac{\partial \text{Y}}{\partial u}
+ A = \frac{\partial \text{X}}{\partial \nabla u}, B = \frac{\partial \text{X}}{\partial u}, C = \frac{\partial \text{Y}}{\partial \nabla u}, D = \frac{\partial \text{Y}}{\partial u}
 \end{equation*}
 \section{2D Plane Strain Problem}
-The NonLinearPDE class can be used to solve a 2D plane strain problem. In continuous media, stress is given by Lame's equation, \eqn{symbolic eq2}.
+The \NLPDE class can be used to solve a 2D plane strain problem. In continuous
+media, stress is given by Lam\'e's \eqn{symbolic eq2}.
 \begin{equation} 
--div(\sigma)=f
+-\nabla\cdotp\sigma=f
 \label{symbolic eq2}
 \end{equation} 
 Hook's Law provides a relation between $\sigma$ and $\epsilon$ in the following form
@@ -67,9 +88,13 @@ c_{05} & c_{15} & c_{55}\\
 \end{array} \right]
 \label{symbolic eq3}
 \end{equation}
-Where $\epsilon = symmetric(grad(u)) \text{ or } \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + {\frac{\partial u_j}{\partial x_i}}\right)$, u is the unknown function and $c_{ij}$ is the stiffness matrix. To fit this to the nonlinear PDE class' standard form, X, is set to $c \times Symmetric(\text{grad(}u)))$.
-The following python extract show how an example 2D plane strain problem can be set up. 
-
+Where $\epsilon = symmetric(grad(u)) \text{ or } %
+\epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + %
+{\frac{\partial u_j}{\partial x_i}}\right)$, $u$ is the unknown function and
+$c_{ij}$ is the stiffness matrix. To fit this to the nonlinear PDE class'
+standard form, X is set to $c \times symmetric(grad(u))$.
+The following \PYTHON extract shows how an example 2D plane strain problem can
+be set up. 
 
 \begin{python}
 from esys.escript import *
@@ -133,35 +158,47 @@ Running the script calculates the unknown function u and assigns it to v. We can
   difference & \includegraphics[scale=0.2]{diffaniso} & \raisebox{2cm}{no difference}\\ 
   \hline
 \end{tabular}
-\caption{Displacement vectors calculated using NonlinearPDE}
+\caption{Displacement vectors calculated using \NLPDE}
 \label{isovsaniso}
 \end{table}
-Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both isotropic and anisotropic cases are considered.  For the anisotropic case, $c_{ij}$ is chosen such that c00 = c11 = c01+c1+2*c55 does not hold. Two values of theta are also considered; one with a masked 60\textdegree rotation in the middle and one with no rotation. The last row of the table shows the difference between rotation in the middle and no rotation. In the isotropic case it can be seen that there is no difference in the output when the rotation is applied. There is however, an obvious difference when the anisotropic case is considered.   
+Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both isotropic and anisotropic cases are considered.  For the anisotropic case, $c_{ij}$ is chosen such that
+$c00 = c11 = c01+c1+2*c55$ does not hold.
+Two values of theta are also considered; one with a masked 60\textdegree
+rotation in the middle and one with no rotation.
+The last row of the table shows the difference between rotation in the middle
+and no rotation. In the isotropic case it can be seen that there is no
+difference in the output when the rotation is applied.
+There is however, an obvious difference when the anisotropic case is considered.
 
-\newpage
 \section{Classes}
 A number of classes are associated with escript symbols. A detailed listing of the definitions and usage is provided below. 
 \subsection{Symbol class}
 \begin{classdesc}{Symbol}{symbol \optional{, shape} \optional{, Dim}}
-Defines a \SYMBOL object. The first argument \SYMBOL is a string given to represent the \SYMBOL. The string typically matches the name of the object, for instance \texttt{u=Symbol('u')}. Next the shape defines whether the \SYMBOL is a vector or a matrix etc up to a 4 tensor and the length or size of it. Dim is used to define the dimensionality of the object contained in the \SYMBOL.
-For a \SYMBOL definition u = Symbol('u',(10,), dim=2), the value of u will be a vector with 10 components. 
-The domain on which u will be used is 2 dimensional(this is relevant with operations such as grad where the number of spacial direction is important). 
+Defines a \SYMBOL object. The first argument \member{symbol} is a string given
+to represent the \SYMBOL. The string typically matches the name of the object,
+for instance \texttt{u=Symbol('u')}. Next optional \member{shape} argument
+defines whether the \SYMBOL is a scalar, vector, matrix, or tensor and the
+length or size of it. \member{dim} is used to define the dimensionality of the
+object contained in the \SYMBOL.
+For a \SYMBOL definition \texttt{u = Symbol('u',(10,), dim=2)}, the value of u
+will be a vector with 10 components and the domain on which u will be used is
+2-dimensional (this is relevant with operations such as \textt{grad} where the
+number of spatial dimensions is important). 
 \end{classdesc}
 \subsubsection{Symbol class methods}
 \begin{methoddesc}[Symbol]{atoms}{\optional{types}}
 Returns the atoms that form the current \SYMBOL.
-By default, only objects that are truly atomic and cannot be divided
-into smaller pieces are returned: symbols, numbers, and number
-symbols like e and pi. It is possible to request atoms of any type,
-however.
+By default, only objects that are truly atomic and cannot be divided into
+smaller pieces are returned: symbols, numbers, and number symbols like $e$ and
+$pi$. It is possible to request atoms of any type via the \member{types}
+argument, however.
 \end{methoddesc}
 
 \begin{methoddesc}[Symbol]{coeff}{x \optional{, expand=true}}
-Returns the coefficient of the term x or 0 if there is no x.
-If x is a scalar \SYMBOL then x is searched in all components of
-this \SYMBOL. Otherwise the shapes must match and the coefficients are
-checked component by component.
-Example:
+Returns the coefficient of the term \texttt{x} or $0$ if there is no \texttt{x}.
+If \texttt{x} is a scalar \SYMBOL then \texttt{x} is searched in all components
+of this \SYMBOL. Otherwise the shapes must match and the coefficients are
+checked component by component. For example:
 \begin{python}
      x=Symbol('x', (2,2))
      y=3*x
@@ -177,27 +214,34 @@ will print:
 \end{python} 
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{diff}{symbols}
-Takes the derivative of the \SYMBOL object which the method belongs to with respect to the symbols specified in the argument symbols.
+Takes the derivative of the \SYMBOL object of which the method is called with
+respect to the symbols specified in the argument \member{symbols}.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{evalf}{}
-Applies the sympy.evalf operation on all elements of the \SYMBOL which are of type or inherit from sympy.Basic.
+Applies the \texttt{sympy.evalf} operation on all elements of the \SYMBOL which
+are of type or inherit from \texttt{sympy.Basic}.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{expand}{}
-Applies the sympy.expand operation on all elements in this \SYMBOL.
+Applies the \texttt{sympy.expand} operation on all elements in this \SYMBOL.
 \end{methoddesc}
 %\begin{methoddesc}[Symbol]{getDataSubstitutions}{}
 %end{methoddesc}
 \begin{methoddesc}[Symbol]{getDim}{}
-Returns the symbol's spatial dimensionality, or -1 if undefined.
+Returns the \SYMBOL's spatial dimensionality, or -1 if undefined.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{getRank}{}
-Returns the symbol's rank which is equal to the length of the shape.
+Returns the \SYMBOL's rank which is equal to the length of the shape.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{getShape}{}
 Returns the shape of this \SYMBOL.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{grad}{\optional{where=none}}
-Returns the gradient of the \SYMBOL to which the function is applied. The \SYMBOL must have a dimensionality defined in order for grad to work. As with the normal escript grad a \FunctionSpace can be specified using the where argument. The \FunctionSpace should be wrapped in a \SYMBOL. To do this, set up a \SYMBOL and then use the `subs' function to substitute in the \FunctionSpace.
+Returns the gradient of this \SYMBOL. The \SYMBOL must have a dimensionality
+defined in order for \texttt{grad} to work. As with the normal escript
+\texttt{grad} function a \FunctionSpace can be specified using the
+\member{where} argument. The \FunctionSpace should be wrapped in a \SYMBOL.
+To do this, set up a \SYMBOL and then use the \texttt{subs} function to
+substitute in the \FunctionSpace.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{inverse}{}
 Find the inverse of the \SYMBOL to which the function is applied. Inverse is only valid for square rank 2 symbols.
@@ -208,10 +252,11 @@ Find the inverse of the \SYMBOL to which the function is applied. Inverse is onl
 %test
 %\end{methoddesc}
 \begin{methoddesc}[Symbol]{simplify}{}
-Applies the sympy.simplify operation on all elements in this \SYMBOL.
+Applies the \texttt{sympy.simplify} operation on all elements in this \SYMBOL.
 \end{methoddesc}
-\begin{methoddesc}[Symbol]{subs}{old,new}
-Substitutes or replaces a \SYMBOL specified in old with whatever is in new for the \SYMBOL which it is called on. Consider:
+\begin{methoddesc}[Symbol]{subs}{old, new}
+Substitutes or replaces a \SYMBOL specified in \member{old} with whatever is in
+\member{new} for this \SYMBOL. Consider:
   \begin{python}
      import esys.escript as es
      u=es.Symbol("u")
@@ -224,27 +269,35 @@ This prints 4.
 Returns the trace of the \SYMBOL object.
 \end{methoddesc}
 
-
 \subsection{Evaluator class}
-The \EVALUATOR class is intended to have a group of expressions added to it, substitutions can be made across all expressions and the expressions can then all be evaluated.
+The \EVALUATOR class is intended to have a group of expressions added to it,
+substitutions can be made across all expressions and the expressions can then
+all be evaluated.
 \subsubsection{Evaluator class methods}
 \begin{classdesc}{Evaluator}{\optional{expressions}}
-An \EVALUATOR object is initiated via Evaluator() with an optional argument of expressions to store.
+An \EVALUATOR object is initiated via \texttt{Evaluator()} with an optional
+argument of expressions to store.
 \end{classdesc}
 \begin{methoddesc}[Evaluator]{addExpression}{expression}
 Adds an expression to this \EVALUATOR.
 \end{methoddesc}
 \begin{methoddesc}[Evaluator]{evaluate}{\optional{evalf=False}\optional{, args}}
-Evaluates all expressions in this \EVALUATOR and returns the result as a tuple.  Evalf can be set to true to call evalf on any sympy symbols which may be part of the expression.
-Args can be provided to make any substitutions before the expression is evaluated.
+Evaluates all expressions in this \EVALUATOR and returns the result as a tuple.
+\member{evalf} can be set to \texttt{True} to call \texttt{evalf} on any sympy
+symbols which may be part of the expression.
+\member{args} can be provided to make any substitutions before the expression
+is evaluated.
 \end{methoddesc}
 \begin{methoddesc}[Evaluator]{subs}{old,new}
-Substitutes or replaces a \SYMBOL specified in old with whatever is in new for all expressions in the \EVALUATOR.
+Substitutes or replaces a \SYMBOL specified in \member{old} with whatever is
+in \member{new} for all expressions in the \EVALUATOR.
 \end{methoddesc}
 
 \subsection{NonlinearPDE class}
 \begin{classdesc}{NonlinearPDE}{domain, u}
-Defines a general nonlinear, steady, second order PDE for an unknown function \var{u} on a given domain defined through a \Domain object \var{domain}. \var{u} is a \SYMBOL object.
+Defines a general nonlinear, steady, second order PDE for an unknown function
+\var{u} on a given domain defined through a \Domain object \var{domain}.
+\var{u} is a \SYMBOL object.
 The general form is -div(X) + Y = 0 
 \end{classdesc}
 \iffalse
@@ -277,7 +330,9 @@ test
 \end{methoddesc}
 \fi
 \begin{methoddesc}[NonlinearPDE]{getSolution}{subs}
-Returns the solution of the PDE. Subs contatins the Substitutions for all symbols used in the coefficients including the initial value for the unknown u.
+Returns the solution of the PDE. \member{subs} contatins the substitutions for
+all symbols used in the coefficients including the initial value for the
+unknown \texttt{u}.
 \end{methoddesc}
 \begin{methoddesc}[NonlinearPDE]{setOptions}{opts}
 \begin{verbatim}
