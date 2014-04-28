@@ -16,8 +16,8 @@
 \section{The First Steps}\label{FirstSteps} 
 In this chapter we give an introduction how to use \escript to solve 
 a partial differential equation\index{partial differential equation} (PDE\index{partial differential equation!PDE}).
-We assume you are at least a little familiar with Python.
-The knowledge presented in the Python tutorial at \url{http://docs.python.org/tut/tut.html} is more than sufficient.
+We assume you are at least a little familiar with \PYTHON.
+The knowledge presented in the \PYTHON tutorial at \url{http://docs.python.org/tut/tut.html} is more than sufficient.
 
 The PDE\index{partial differential equation} we wish to solve is the Poisson equation\index{Poisson equation} 
 \begin{equation}
@@ -148,7 +148,7 @@ example of a FEM mesh with four elements in the $x_0$ and four elements
 in the $x_1$ direction over the unit square.
 For more details we refer the reader to the literature, for instance \Ref{Zienc,NumHand}.
 
-The \escript solver we want to use to solve this problem is embedded into the python interpreter language.
+The \escript solver we want to use to solve this problem is embedded into the \PYTHON interpreter language.
 So you can solve the problem interactively but you will learn quickly that it
 is more efficient to use scripts which you can edit with your favorite editor.
 To enter the escript environment, use the \program{run-escript}
@@ -158,21 +158,21 @@ If you run under Windows you can just use the \program{python} command and the
 \begin{verbatim}
 run-escript
 \end{verbatim}
-which will pass you on to the python prompt
+which will pass you on to the \PYTHON prompt
 \begin{verbatim}
-Python 2.5.2 (r252:60911, Oct  5 2008, 19:29:17) 
-[GCC 4.3.2] on linux2
+Python 2.7.6 (default, Mar 22 2014, 15:40:47) 
+[GCC 4.8.2] on linux2
 Type "help", "copyright", "credits" or "license" for more information.
 >>> 
 \end{verbatim}
-Here you can use all available python commands and language features\footnote{Throughout our examples, we use the python3 form of 
-print.   That is, print(1) instead of print 1.}, for instance
+Here you can use all available \PYTHON commands and language features\footnote{Throughout our examples, we use the python 3 form of 
+print. That is, print(1) instead of print 1.}, for instance
 \begin{python}
   >>> x=2+3
   >>> print("2+3=",x)
   2+3= 5
 \end{python}
-We refer to the python user's guide if you not familiar with python.
+We refer to the \PYTHON user's guide if you are not familiar with \PYTHON.
 
 \escript provides the class \Poisson to define a Poisson equation\index{Poisson equation}.
 (We will discuss a more general form of a PDE\index{partial differential equation!PDE} 
@@ -301,13 +301,13 @@ Now we can write the script to solve our Poisson problem
   gammaD = whereZero(x[0])+whereZero(x[1])
   # define PDE and get its solution u
   mypde = Poisson(domain=mydomain)
-  mypde.setValue(f=1,q=gammaD)
+  mypde.setValue(f=1, q=gammaD)
   u = mypde.getSolution()
 \end{python}
 The question is what we do with the calculated solution \var{u}.
 Besides postprocessing, e.g. calculating the gradient or the average value, which will be discussed later, plotting the solution is one of the things you might want to do.
 \escript offers two ways to do this, both based on external modules or packages and so data need to converted to hand over the solution.
-The first option is using the \MATPLOTLIB module which allows plotting 2D results relatively quickly from within the Python script, see~\cite{matplotlib}.
+The first option is using the \MATPLOTLIB module which allows plotting 2D results relatively quickly from within the \PYTHON script, see~\cite{matplotlib}.
 However, there are limitations when using this tool, especially for large problems and when solving 3-dimensional problems.
 Therefore, \escript provides functionality to export data as files which can subsequently be read by third-party software packages such as \mayavi\cite{mayavi} or \VisIt~\cite{VisIt}.
 
