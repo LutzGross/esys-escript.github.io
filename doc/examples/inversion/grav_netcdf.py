@@ -40,7 +40,7 @@ PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
-n_cells_v = 25
+n_cells_v = 15
 MU = 0.1
 
 COORDINATES=CartesianReferenceSystem()
