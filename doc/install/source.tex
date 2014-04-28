@@ -168,19 +168,19 @@ directory which is ahead of you Macports directory in the various paths (\texttt
 % The packaging system (also known as the package manager) is the tool you use to search for and install new open source software.
 % For Linux, there will be one set up by default: the apt tools on Debian and Ubuntu, yast on Suse, yum on the RedHat family.
 % On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
-% 
+
 % For MacOS, this is a bit more tricky.
 % There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, 
 % but we have not experimented with that.}, but they do not come pre-installed so if you want to make use of one you will need
 % you will need to install it.
-% 
+
 % Packaging systems will make changes to your computer based on programs configured by other people from 
 % various places around the internet.
 % It is important to satisfy yourself as to the security of those systems.
-% 
+
 % If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{sec:build}.
-% 
-% 
+
+
 % \textsl{This whole section could be moved to an appendix.
 % Need to make it clear somewhere near that it is not intended to be complicated but to give options.
 % }
@@ -202,7 +202,9 @@ directory which is ahead of you Macports directory in the various paths (\texttt
 To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
 systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
-If your particular system is not in the above list, or if you want a more customised 
+The \texttt{_options.py} files are locate in the scons/os directory. We suggest that the file most relavent to your os 
+be coppied from the os directory to the scons directory and renamed to the form XXXX_options.py where XXXX should be replaced with your computer's name.
+If your particular system is not in the list below, or if you want a more customised 
 build\footnote{for example, you want MPI functionality or you wish to use a different compiler}, 
 see Section~\ref{sec:othersrc} for instructions.
 \begin{itemize}
