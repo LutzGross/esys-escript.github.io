@@ -196,7 +196,6 @@ Returns the symbol's rank which is equal to the length of the shape.
 \begin{methoddesc}[Symbol]{getShape}{}
 Returns the shape of this \SYMBOL.
 \end{methoddesc}
-\pagebreak
 \begin{methoddesc}[Symbol]{grad}{\optional{where=none}}
 Returns the gradient of the \SYMBOL to which the function is applied. The \SYMBOL must have a dimensionality defined in order for grad to work. As with the normal escript grad a \FunctionSpace can be specified using the where argument. The \FunctionSpace should be wrapped in a \SYMBOL. To do this, set up a \SYMBOL and then use the `subs' function to substitute in the \FunctionSpace.
 \end{methoddesc}
@@ -280,7 +279,6 @@ test
 \begin{methoddesc}[NonlinearPDE]{getSolution}{subs}
 Returns the solution of the PDE. Subs contatins the Substitutions for all symbols used in the coefficients including the initial value for the unknown u.
 \end{methoddesc}
-\pagebreak
 \begin{methoddesc}[NonlinearPDE]{setOptions}{opts}
 \begin{verbatim}
   Allows setting options for the nonlinear PDE.
