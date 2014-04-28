@@ -67,7 +67,7 @@ c_{05} & c_{15} & c_{55}\\
 \end{array} \right]
 \label{symbolic eq3}
 \end{equation}
-Where $\epsilon = symmetric(grad(u)) \text{ or } \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + {\frac{\partial u_j}{\partial x_i}}\right)$, u is the unknown function and $c_{ij}b$ is the stiffness matrix. To fit this to the nonlinear PDE class' standard form, X, is set to $c \times Symmetric(\text{grad(}u)))$.
+Where $\epsilon = symmetric(grad(u)) \text{ or } \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + {\frac{\partial u_j}{\partial x_i}}\right)$, u is the unknown function and $c_{ij}$ is the stiffness matrix. To fit this to the nonlinear PDE class' standard form, X, is set to $c \times Symmetric(\text{grad(}u)))$.
 The following python extract show how an example 2D plane strain problem can be set up. 
 
 
@@ -128,15 +128,15 @@ Running the script calculates the unknown function u and assigns it to v. We can
   \hline
   No rotation & \includegraphics[scale=0.2]{0RotAniso} & \includegraphics[scale=0.2]{0RotIso}\\
   \hline
-  60\textdegree rotation & \includegraphics[scale=0.2]{MidRotAniso} & \includegraphics[scale=0.2]{MidRotIso}\\ 
+  60\textdegree\ rotation & \includegraphics[scale=0.2]{MidRotAniso} & \includegraphics[scale=0.2]{MidRotIso}\\ 
   \hline
-  difference & \includegraphics[scale=0.2]{diffaniso} & no difference\\ 
+  difference & \includegraphics[scale=0.2]{diffaniso} & \raisebox{2cm}{no difference}\\ 
   \hline
 \end{tabular}
 \caption{Displacement vectors calculated using NonlinearPDE}
 \label{isovsaniso}
 \end{table}
-Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both isotropic and ansisotropic cases are considered.  For the anisotropic case, $c_{ij}$ is chosen such that c00 = c11 = c01+c1+2*c55 does not hold. Two values of theta are also considered; one with a masked 60\textdegree rotation in the middle and one with no rotation. The last row of the table shows the difference between rotation in the middle and no rotation. In the isotropic case it can be seen that there is no difference in the output when the rotation is applied. There is however, an obvious difference when the anisotropic case is considered.   
+Table \ref{isovsaniso}, shows the result of running the above script under varying values of c and theta. Both isotropic and anisotropic cases are considered.  For the anisotropic case, $c_{ij}$ is chosen such that c00 = c11 = c01+c1+2*c55 does not hold. Two values of theta are also considered; one with a masked 60\textdegree rotation in the middle and one with no rotation. The last row of the table shows the difference between rotation in the middle and no rotation. In the isotropic case it can be seen that there is no difference in the output when the rotation is applied. There is however, an obvious difference when the anisotropic case is considered.   
 
 \newpage
 \section{Classes}
@@ -144,7 +144,8 @@ A number of classes are associated with escript symbols. A detailed listing of t
 \subsection{Symbol class}
 \begin{classdesc}{Symbol}{symbol \optional{, shape} \optional{, Dim}}
 Defines a \SYMBOL object. The first argument \SYMBOL is a string given to represent the \SYMBOL. The string typically matches the name of the object, for instance \texttt{u=Symbol('u')}. Next the shape defines whether the \SYMBOL is a vector or a matrix etc up to a 4 tensor and the length or size of it. Dim is used to define the dimensionality of the object contained in the \SYMBOL.
-For a \SYMBOL definition u = Symbol('u',(10,), dim=2), u will be a 10 component vector of 2 dimensional objects.
+For a \SYMBOL definition u = Symbol('u',(10,), dim=2), the value of u will be a vector with 10 components. 
+The domain on which u will be used is 2 dimensional(this is relevant with operations such as grad where the number of spacial direction is important). 
 \end{classdesc}
 \subsubsection{Symbol class methods}
 \begin{methoddesc}[Symbol]{atoms}{\optional{types}}
@@ -197,7 +198,7 @@ Returns the shape of this \SYMBOL.
 \end{methoddesc}
 \pagebreak
 \begin{methoddesc}[Symbol]{grad}{\optional{where=none}}
-Returns the gradient of the \SYMBOL to which the function is applied. The \SYMBOL must have a dimensionality defined in order for grad to work. As with the normal escript grad a \FunctionSpace can be specified using the where argument. The \FunctionSpace should be wrapped in a \SYMBOL. To do this, set up a \SYMBOL and then use the 'subs' function to substitute in the \FunctionSpace.
+Returns the gradient of the \SYMBOL to which the function is applied. The \SYMBOL must have a dimensionality defined in order for grad to work. As with the normal escript grad a \FunctionSpace can be specified using the where argument. The \FunctionSpace should be wrapped in a \SYMBOL. To do this, set up a \SYMBOL and then use the `subs' function to substitute in the \FunctionSpace.
 \end{methoddesc}
 \begin{methoddesc}[Symbol]{inverse}{}
 Find the inverse of the \SYMBOL to which the function is applied. Inverse is only valid for square rank 2 symbols.
