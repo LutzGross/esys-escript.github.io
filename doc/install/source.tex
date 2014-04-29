@@ -95,12 +95,10 @@ Once you have the pieces in this section, go to Section~\ref{sec:build} for buil
 
 Even if you wish to install and use a different compiler later, the first step is generally 
 to get some compiler onto your system.
-This is a bit harder on MacOS than on other systems which either provide a compiler as part of the base install (BSD) or allow 
-people to download one as part of the install process (Linux).
-In earlier releases of its operating system (``Snow Leopard'' and earlier), Apple included an optional ``developer tools'' package (\texttt{XCode}) on the install media.
-For more recent releases, \texttt{XCode} is available for ``free'' from Apple's application store.
-Why the quotes around ``free''? 
-The only way to access the application store is with an AppleID which requires either:
+
+As of OSX10.9, the command \texttt{xcodebuild} will allow you to download and install the commandline tools seemingly
+without an AppleID.
+For previous releases, it seems to be trickier to get the basic compiler without doing one of the following:
 \begin{itemize}
  \item purchasing an iTunes gift card.
  \item giving Apple access to your credit card.
