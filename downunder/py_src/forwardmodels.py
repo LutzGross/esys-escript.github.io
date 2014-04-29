@@ -597,7 +597,9 @@ class AcousticWaveForm(ForwardModel):
     where w are weighting factors, data are the measured data (as a 2-comp vector of real and imaginary part)  for real frequency omega, 
     and u is the coresponding result produced by the forward model. u (as a 2-comp vector) is the solution of the 
     complex Helmholtz equation for frequency omega, source F and complex, inverse, squared p-velocity sigma:
-       * -u_{ii} - omega**2 * sigma * u = F
+        
+        * -u_{ii} - omega**2 * sigma * u = F
+        
     It is assumed that the exact scale of source F is unknown and the scaling factor a of F is calculated by minimizing the
     defect 
     """
