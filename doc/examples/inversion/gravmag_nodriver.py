@@ -135,6 +135,13 @@ def work():
 
   print("All done. Have a nice day!")
 
+try:
+    import pyproj
+except ImportError:
+    print("This example requires pyproj to be installed.")
+    import sys
+    sys.exit(0)
+
 if 'NetCdfData' in dir():
   work()
 else:
