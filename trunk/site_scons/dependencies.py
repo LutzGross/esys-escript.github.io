@@ -224,7 +224,7 @@ def checkOptionalModules(env):
         import sympy as sp
         spVer=sp.__version__
         spl=spVer.split('.')
-        if not spl[1] >= '7':
+        if int(spl[0]) == 0 and int(spl[1]) < 7:
             env['sympy']=False
             env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
     ######## pyproj

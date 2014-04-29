@@ -38,6 +38,18 @@ from esys.escript import *
 import unittest
 import numpy
 
+sympyavail=True
+try:
+    import sympy as sp
+    spVer=sp.__version__
+    spl=spVer.split('.')
+    if int(spl[0]) == 0 and int(spl[1]) < 7:
+        sympyavail=False
+except ImportError as e:
+    sympyavail=False
+
+    
+@unittest.skipIf(not sympyavail, 'sympy not available')
 class SymbolicTestCase(unittest.TestCase):
 
     # number of digits that have to match for results to be considered equal
