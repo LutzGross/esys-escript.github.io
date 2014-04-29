@@ -220,7 +220,13 @@ def checkOptionalModules(env):
     ######## sympy
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
-
+    else:
+        import sympy as sp
+        spVer=sp.__version__
+        spl=spVer.split('.')
+        if not spl[1] >= '7':
+            env['sympy']=False
+            env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
     ######## pyproj
     if not detectModule(env, 'pyproj'):
         env['warnings'].append("Cannot import pyproj. Inversions may not work.")
