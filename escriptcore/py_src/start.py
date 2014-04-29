@@ -33,8 +33,13 @@ except:
     pass
 
 try:
-    import sympy
-    HAVE_SYMBOLS=True
+    import sympy as sp
+    spVer=sp.__version__
+    spl=spVer.split('.')
+    if int(spl[0]) == 0 and int(spl[1]) < 7:
+        HAVE_SYMBOLS=False
+    else:
+        HAVE_SYMBOLS=True
 except ImportError:
     HAVE_SYMBOLS=False
 
