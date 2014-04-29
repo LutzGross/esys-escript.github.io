@@ -1,3 +1,4 @@
+%!TEX root = install.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2012-2014 by University of Queensland
 % http://www.uq.edu.au
@@ -313,12 +314,13 @@ scons -j1 py_tests options_file=scons/os/opensuse12.3_options.py
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
 
 \subsection{Centos}\label{sec:centossrc}
-These instructions were prepared using release $6.4$.
+These instructions were prepared using release $6.5$.
+The core of escript works, however some functionality is not availible because the default packages for some dependencies in Centos are too old.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
 yum install python-devel numpy scipy scons boost-devel
-yum install python-matplotlib gcc-g++
+yum install python-matplotlib gcc-c++
 yum install boost-python 
 \end{shellCode}
 
@@ -333,7 +335,7 @@ rpm -U http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noar
 \end{shellCode}
 
 \begin{shellCode}
-yum install netcdf-devel sympy gdal-python
+yum install netcdf-devel gdal-python
 \end{shellCode}
 \end{optionalstep}
 
@@ -344,12 +346,7 @@ If it turns out to be necessary for your particular application, the source can 
 \noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/os/centos6.4_options.py
-\end{shellCode}
-
-\noindent If you wish to test your build, you can use the following:
-\begin{shellCode}
-scons -j1 py_tests options_file=scons/os/centos6.4_options.py 
+scons -j1 options_file=scons/os/centos6.5_options.py
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
