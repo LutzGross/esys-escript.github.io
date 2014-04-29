@@ -42,7 +42,7 @@ try:
     import sympy as sp
     spVer=sp.__version__
     spl=spVer.split('.')
-    if not spl[1] >= '7':
+    if int(spl[0]) == 0 and int(spl[1]) < 7:
         sympyavail=False
 except ImportError as e:
     sympyavail=False
