@@ -156,7 +156,7 @@ Apart from giving up, there are two ways to try to solve this problem.
 \item Changing the compiler that your package manager uses to compile its packages.
 \emph{This is not for the faint hearted!} But we do provide some instructions in Appendix~\ref{chap:chcomp}.
 \item Install most of the libraries using your package manager to install most things and then compile the c++ parts yourself.
-(The most important one is texttt{boost}).
+(The most important one is \texttt{boost}).
 We have tested this on Macports and it works well. The only trick is to make sure that your ``replacement'' components are in a separate 
 directory which is ahead of you Macports directory in the various paths (\texttt{PATH, LD\_LIBRARY\_PATH, DYLD\_LIBRARY\_PATH}).
 \end{enumerate}
@@ -203,7 +203,7 @@ To simplify things for people, we have prepared \texttt{_options.py} files for a
 systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
 The \texttt{_options.py} files are locate in the scons/os directory. We suggest that the file most relavent to your os 
-be coppied from the os directory to the scons directory and renamed to the form XXXX_options.py where XXXX should be replaced with your computer's name.
+be copied from the os directory to the scons directory and renamed to the form XXXX_options.py where XXXX should be replaced with your computer's name.
 If your particular system is not in the list below, or if you want a more customised 
 build\footnote{for example, you want MPI functionality or you wish to use a different compiler}, 
 see Section~\ref{sec:othersrc} for instructions.
