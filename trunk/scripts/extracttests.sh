@@ -31,7 +31,7 @@ find . -name '*.tex' | xargs rm -rf
 cd doc
 rm -rf epydoc cookbook doxygen install inversion manpage user *.sh *.cls
 cd ..
-find . -name '*.pyc' | xargs rm
+find . -name '*.pyc' | xargs rm -f
 
 cd ..
 tar -czf testfiles.tar.gz testfiles

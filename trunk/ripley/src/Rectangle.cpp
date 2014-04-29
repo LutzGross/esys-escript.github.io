@@ -2284,7 +2284,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
             }
         }
         delete[] src;
-        return resdat;      
+        return resdat;
     }
     else                // filter enabled       
     {    

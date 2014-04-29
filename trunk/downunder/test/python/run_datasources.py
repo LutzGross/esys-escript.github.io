@@ -249,6 +249,7 @@ class TestErMapperData(unittest.TestCase):
 class TestNetCdfData(unittest.TestCase):
     @unittest.skipIf(not haveProj, 'pyproj not available')
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+    @unittest.skipIf(not haveProj, 'pyproj not available')
     def test_cdf_with_padding(self):
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()
