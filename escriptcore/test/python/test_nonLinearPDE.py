@@ -47,8 +47,6 @@ try:
 except ImportError as e:
     sympyavail=False
 
-print "sympy=",sympyavail
-
 class Test_nonLinearPDEs(unittest.TestCase):
     DEBUG=False
     VERBOSE=False
