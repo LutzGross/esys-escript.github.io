@@ -18,7 +18,7 @@
 #include <ripley/Rectangle.h>
 #include <esysUtils/esysExceptionTranslator.h>
 
-#include <boost/python.hpp>
+#include <boost/python.hpp> 
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/detail/defaults_gen.hpp>

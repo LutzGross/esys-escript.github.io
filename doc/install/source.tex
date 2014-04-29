@@ -1,3 +1,4 @@
+%!TEX root = install.tex
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % Copyright (c) 2012-2014 by University of Queensland
 % http://www.uq.edu.au
@@ -95,12 +96,10 @@ Once you have the pieces in this section, go to Section~\ref{sec:build} for buil
 
 Even if you wish to install and use a different compiler later, the first step is generally 
 to get some compiler onto your system.
-This is a bit harder on MacOS than on other systems which either provide a compiler as part of the base install (BSD) or allow 
-people to download one as part of the install process (Linux).
-In earlier releases of its operating system (``Snow Leopard'' and earlier), Apple included an optional ``developer tools'' package (\texttt{XCode}) on the install media.
-For more recent releases, \texttt{XCode} is available for ``free'' from Apple's application store.
-Why the quotes around ``free''? 
-The only way to access the application store is with an AppleID which requires either:
+
+As of OSX10.9, the command \texttt{xcodebuild} will allow you to download and install the commandline tools seemingly
+without an AppleID.
+For previous releases, it seems to be trickier to get the basic compiler without doing one of the following:
 \begin{itemize}
  \item purchasing an iTunes gift card.
  \item giving Apple access to your credit card.
@@ -156,7 +155,7 @@ Apart from giving up, there are two ways to try to solve this problem.
 \item Changing the compiler that your package manager uses to compile its packages.
 \emph{This is not for the faint hearted!} But we do provide some instructions in Appendix~\ref{chap:chcomp}.
 \item Install most of the libraries using your package manager to install most things and then compile the c++ parts yourself.
-(The most important one is texttt{boost}).
+(The most important one is \texttt{boost}).
 We have tested this on Macports and it works well. The only trick is to make sure that your ``replacement'' components are in a separate 
 directory which is ahead of you Macports directory in the various paths (\texttt{PATH, LD\_LIBRARY\_PATH, DYLD\_LIBRARY\_PATH}).
 \end{enumerate}
@@ -168,19 +167,19 @@ directory which is ahead of you Macports directory in the various paths (\texttt
 % The packaging system (also known as the package manager) is the tool you use to search for and install new open source software.
 % For Linux, there will be one set up by default: the apt tools on Debian and Ubuntu, yast on Suse, yum on the RedHat family.
 % On BSD systems this will be a combination of \texttt{pkg_add} and the \texttt{ports} tree.
-% 
+
 % For MacOS, this is a bit more tricky.
 % There are a number of possible systems including \texttt{macports} and \texttt{homebrew}\footnote{There is also \texttt{fink}, 
 % but we have not experimented with that.}, but they do not come pre-installed so if you want to make use of one you will need
 % you will need to install it.
-% 
+
 % Packaging systems will make changes to your computer based on programs configured by other people from 
 % various places around the internet.
 % It is important to satisfy yourself as to the security of those systems.
-% 
+
 % If you are using Linux or have decided that you don't want to use OpenMP skip to Section~\ref{sec:build}.
-% 
-% 
+
+
 % \textsl{This whole section could be moved to an appendix.
 % Need to make it clear somewhere near that it is not intended to be complicated but to give options.
 % }
@@ -202,7 +201,9 @@ directory which is ahead of you Macports directory in the various paths (\texttt
 To simplify things for people, we have prepared \texttt{_options.py} files for a number of 
 systems\footnote{These are correct a time of writing but later versions of those systems may require tweaks. 
 Also, these systems represent a cross section of possible platforms rather than meaning those systems get particular support.}.
-If your particular system is not in the above list, or if you want a more customised 
+The \texttt{_options.py} files are locate in the scons/os directory. We suggest that the file most relavent to your os 
+be copied from the os directory to the scons directory and renamed to the form XXXX_options.py where XXXX should be replaced with your computer's name.
+If your particular system is not in the list below, or if you want a more customised 
 build\footnote{for example, you want MPI functionality or you wish to use a different compiler}, 
 see Section~\ref{sec:othersrc} for instructions.
 \begin{itemize}
@@ -314,11 +315,12 @@ scons -j1 py_tests options_file=scons/os/opensuse13.1_options.py
 
 \subsection{Centos}\label{sec:centossrc}
 These instructions were prepared using release $6.5$.
+The core of escript works, however some functionality is not availible because the default packages for some dependencies in Centos are too old.
 
 \noindent Install packages from the main distribution:
 \begin{shellCode}
 yum install python-devel numpy scipy scons boost-devel
-yum install python-matplotlib gcc-g++
+yum install python-matplotlib gcc-c++
 yum install boost-python 
 \end{shellCode}
 
@@ -333,7 +335,7 @@ rpm -U http://download.fedoraproject.org/pub/epel/6/x86_64/epel-release-6-8.noar
 \end{shellCode}
 
 \begin{shellCode}
-yum install netcdf-devel sympy gdal-python
+yum install netcdf-devel gdal-python
 \end{shellCode}
 \end{optionalstep}
 
@@ -344,12 +346,7 @@ If it turns out to be necessary for your particular application, the source can 
 \noindent Now to build escript itself.
 In the escript source directory:
 \begin{shellCode}
-scons -j1 options_file=scons/os/centos6.4_options.py
-\end{shellCode}
-
-\noindent If you wish to test your build, you can use the following:
-\begin{shellCode}
-scons -j1 py_tests options_file=scons/os/centos6.4_options.py 
+scons -j1 options_file=scons/os/centos6.5_options.py
 \end{shellCode}
 
 \noindent Now go to Section~\ref{sec:cleanup} for cleanup.
