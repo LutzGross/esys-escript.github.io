@@ -93,7 +93,9 @@ class SimpleSEGYWriter(object):
            from esys.escript import unitsSI as U
            sw=SimpleSEGYWriter([0.,100*U.m,200*U,m,300.], source=200*U.m, sampling_interval=4*U.msec)
            while n < 10:
-                sw.addRecord([i*2., i*0.67, i**2, -i*7])
+
+              sw.addRecord([i*2., i*0.67, i**2, -i*7])
+           
            sw.write('example.segy')
 
         :note: the writer uses `obspy`
