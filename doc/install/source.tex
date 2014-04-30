@@ -440,10 +440,12 @@ scons -j1 options_file=scons/os/homebrew_options.py
 
 
 \subsection{FreeBSD}\label{sec:freebsdsrc}
-The following was tested on the $9.1$ release of FreeBSD.
-It passes the majority of tests but there is an issue related to some features in the inversion library.
-The following set of installations ``works'' but is not guaranteed to be minimal\footnote{Depending on your needs you might be able to
-get by with a smaller set of packages.}.
+\subsubsection{Release 9.1}
+The following passes the majority of tests but there is an issue related to
+some features in the inversion library.
+The list of installations ``works'' but is not guaranteed to be
+minimal\footnote{Depending on your needs you might be able to get by with a
+smaller set of packages.}.
 
 Install the following packages:
 \begin{itemize}
@@ -456,11 +458,12 @@ Install the following packages:
 Now install the following ports:
 \begin{itemize}
  \item science/py-scipy
- \item science/py-netCDF4
+ \item science/netcdf
+ \item science/silo
  \item math/py-sympy
  \item graphics/py-pyproj
  \item graphics/py-gdal
- \item net/openmpi
+ \item net/openmpi (optional)
 \end{itemize}
 
 You will need to add \texttt{/usr/local/mpi/openmpi/bin} to your path if you wish to build with MPI.
@@ -478,7 +481,41 @@ In the escript source directory (where ZZZ is your options file):
 scons -j1 options_file=ZZZ
 \end{shellCode}
 
+\subsubsection{Release 10.0}
 
+Install the following packages:
+\begin{itemize}
+ \item python
+ \item scons
+ \item boost-python-libs
+ \item bash
+ \item netcdf
+ \item silo
+ \item py27-scipy
+ \item py27-gdal
+ \item py27-matplotlib
+ \item py27-pyproj
+ \item py27-sympy
+\end{itemize}
+
+\noindent Next choose (or create) your options file.
+For the setup as above the escript source comes with a prepared file in
+\texttt{scons/os/freebsd10.0_options.py}.
+Finally to build escript issue the following in the escript source directory
+(replace the options file as required):
+\begin{shellCode}
+scons -j1 options_file=scons/os/freebsd10.0_options.py
+\end{shellCode}
+
+\emph{Note:} Some packages installed above are built with gcc 4.7. Somewhere
+in the toolchain a system-installed gcc library is pulled in which is
+incompatible with the one from version 4.7 and would prevent escript from
+executing successfully. As explained in the FreeBSD
+documentation\footnote{see \url{http://www.freebsd.org/doc/en/articles/custom-gcc/article.html}}
+this can be fixed by adding a line to \texttt{/etc/libmap.conf}:
+\begin{shellCode}
+libgcc_s.so.1 gcc47/libgcc_s.so.1
+\end{shellCode}
 
 \subsection{Other Systems / Custom Builds}\label{sec:othersrc}
 
