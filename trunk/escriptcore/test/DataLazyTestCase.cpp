@@ -40,16 +40,16 @@ using namespace boost;
 namespace
 {
 
-DataReady_ptr
-resolveAndDelete(DataAbstract* p)
-{
-   DataReady_ptr p2=p->resolve();
-   if (p!=p2.get())
-   {
-	delete p;
-   }
-   return p2;
-}
+//DataReady_ptr
+//resolveAndDelete(DataAbstract* p)
+//{
+//   DataReady_ptr p2=p->resolve();
+//   if (p!=p2.get())
+//   {
+//	delete p;
+//   }
+//   return p2;
+//}
 
 
 DataAbstract_ptr
