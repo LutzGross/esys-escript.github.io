@@ -246,7 +246,8 @@ netcdf_libs = ['netcdf_c++', 'netcdf']
 # Additional environmental variables to export to the tools
 #env_export = []
 
-#tools_names = ['default']
+# comment this line out to use g++
+tools_names = ['clang']
 
 #iknowwhatimdoing = False
 

@@ -392,6 +392,17 @@ install py27-netcdf4
 install netcdf-cxx
 \end{shellCode}
 
+The options file we provide as an example below uses \texttt{clang} as its compiler.
+If you wish to use \texttt{g++}, then you will need to modify the 
+\begin{verbatim}
+tools_names = ['clang']
+\end{verbatim}
+to
+\begin{verbatim}
+tools_names = ['default']
+\end{verbatim}
+
+
 \begin{shellCode}
 scons -j1 options_file=scons/os/macports_options.py 
 \end{shellCode}
