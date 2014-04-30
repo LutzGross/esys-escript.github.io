@@ -1,3 +1,8 @@
+python-escript (3.4.2) wheezy; urgency=low
+  * Release 3.4.2
+  * User guide has summary of changes
+ -- Joel Fenwick <joelfenwick@uq.edu.au>  Thu, 1 May 2014 12:00:00 +1000
+
 python-escript (3.4.1) wheezy; urgency=low
   * Release 3.4.1
   * User guide has summary of changes
