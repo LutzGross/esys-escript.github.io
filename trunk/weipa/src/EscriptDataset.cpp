@@ -50,7 +50,10 @@ using namespace std;
 namespace weipa {
 
 const char* MESH_VARS = "mesh_vars/";
+
+#if HAVE_MPI
 const int NUM_SILO_FILES = 1;
+#endif
 
 //
 // Default constructor
@@ -63,6 +66,7 @@ EscriptDataset::EscriptDataset() :
     mpiRank(0),
     mpiSize(1)
 {
+	(void)NUM_SILO_FILES;	// silence unused warning for now
 }
 
 //
