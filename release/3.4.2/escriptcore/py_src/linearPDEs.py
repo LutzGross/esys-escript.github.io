@@ -2338,7 +2338,7 @@ class LameEquation(LinearPDE):
 
     """
 
-    def __init__(self,domain,debug=False,useFast=True):
+    def __init__(self,domain,debug=False,useFast=False):
         """
         Initializes a new Lame equation.
 
