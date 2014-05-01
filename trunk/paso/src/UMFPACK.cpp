@@ -30,6 +30,7 @@
 #include "Paso.h"
 #include "Options.h"
 
+#include <iostream>
 #include <sstream>
 
 namespace paso {
