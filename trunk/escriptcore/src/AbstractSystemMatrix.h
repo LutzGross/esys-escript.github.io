@@ -145,10 +145,13 @@ class AbstractSystemMatrix {
   
   /**
     \brief
-    nullifyRowsAndCols - calls Paso_SystemMatrix_nullifyRowsAndCols.
+    sets matrix entries to zero in specified rows and columns.
+    The rows and columns are marked by positive values in row_q and col_q.
+    Values on the main diagonal which are marked to set to zero by both
+    row_q and col_q are set to mdv (main diagonal value).
   */
   ESCRIPT_DLL_API
-  virtual void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const;  
+  virtual void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, double mdv) const;  
   
 
   /**
