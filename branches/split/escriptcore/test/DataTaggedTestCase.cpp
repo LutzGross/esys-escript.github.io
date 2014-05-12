@@ -83,17 +83,17 @@ getRefRO(DataTagged& data,int offset, int i, int j, int k)
    return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j,k)];
 }
 
-ValueType::const_reference
-getRefRO(DataTagged& data,int offset, int i, int j, int k, int l)
-{
-   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j,k,l)];
-}
-
-ValueType::const_reference
-getRefRO(DataTagged& data,int offset, int i, int j)
-{
-   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j)];
-}
+//ValueType::const_reference
+//getRefRO(DataTagged& data,int offset, int i, int j, int k, int l)
+//{
+//   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j,k,l)];
+//}
+//
+//ValueType::const_reference
+//getRefRO(DataTagged& data,int offset, int i, int j)
+//{
+//   return data.getVectorRO()[offset+getRelIndex(data.getShape(),i,j)];
+//}
 
 ValueType::const_reference
 getRefRO(const DataTagged& data,int offset, int i)

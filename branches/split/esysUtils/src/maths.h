@@ -46,8 +46,6 @@
 #elif defined _isnan
   #define IS_NAN(__VAL__) (_isnan(__VAL__))
 #else
-/* If we do not have isnan then we can't reliably check for NaN - return false */
-//  #define IS_NAN(__VAL__) (0)
   // This is not guaranteed to work if the optimiser thinks it can optimise this check away
   #define IS_NAN(__VAL__) (!((__VAL__)==(__VAL__)))
 #endif

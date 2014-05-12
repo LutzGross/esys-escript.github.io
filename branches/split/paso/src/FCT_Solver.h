@@ -14,73 +14,62 @@
 *
 *****************************************************************************/
 
-
-#ifndef INC_PASOFCT_SOLVER
-#define INC_PASOFCT_SOLVER
+#ifndef __PASO_FCTSOLVER_H__
+#define __PASO_FCTSOLVER_H__
 
 #include "Transport.h"
 #include "FluxLimiter.h"
 #include "Solver.h"
 
-
-
-
-
-typedef struct Paso_FCT_Solver {
-      Paso_TransportProblem* transportproblem;
-      esysUtils::JMPI mpi_info;
-      Paso_FCT_FluxLimiter* flux_limiter;
-      index_t method;
-      double omega;
-      double dt;
-      double *b;
-      double *z;
-      double *du;
-      Paso_Coupler *u_coupler;
-      Paso_Coupler *u_old_coupler; /* last time step */
-      
-} Paso_FCT_Solver;
+namespace paso {
 
 PASO_DLL_API
-Paso_FCT_Solver* Paso_FCT_Solver_alloc(Paso_TransportProblem *fctp, Paso_Options* options);
+struct FCT_Solver
+{
+    FCT_Solver(const_TransportProblem_ptr tp, Options* options);
 
-PASO_DLL_API
-void Paso_FCT_Solver_free(Paso_FCT_Solver *in);
+    ~FCT_Solver();
 
-PASO_DLL_API
-err_t Paso_FCT_Solver_update(Paso_FCT_Solver *fct_solver, double *u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
+    err_t update(double* u, double* u_old, Options* options, Performance* pp);
+
+    err_t updateNL(double* u, double* u_old, Options* options, Performance* pp);
+
+    err_t updateLCN(double* u, double* u_old, Options* options, Performance* pp);
+
+    void initialize(double dt, Options* options, Performance* pp);
+
+    static double getSafeTimeStepSize(TransportProblem_ptr tp);
+
+    static void setLowOrderOperator(TransportProblem_ptr tp);
+
+    void setAntiDiffusionFlux_linearCN(SystemMatrix_ptr flux_matrix);
+
+    void setAntiDiffusionFlux_BE(SystemMatrix_ptr flux_matrix);
+
+    void setAntiDiffusionFlux_CN(SystemMatrix_ptr flux_matrix);
+
+    void setMuPaLu(double* out, const_Coupler_ptr coupler, double a);
+
+    inline double getTheta()
+    {
+        return method == PASO_BACKWARD_EULER ? 1. : 0.5;
+    }
+
+    const_TransportProblem_ptr transportproblem;
+    esysUtils::JMPI mpi_info;
+    FCT_FluxLimiter* flux_limiter;
+    index_t method;
+    double omega;
+    double dt;
+    double* b;
+    double* z;
+    double* du;
+    Coupler_ptr u_coupler;
+    Coupler_ptr u_old_coupler; /* last time step */
+};
 
 
-PASO_DLL_API
-void Paso_FCT_setLowOrderOperator(Paso_TransportProblem * fc);
+} // namespace paso
 
-PASO_DLL_API
-err_t Paso_FCT_Solver_updateNL(Paso_FCT_Solver *fct_solver, double* u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
-
-PASO_DLL_API
-err_t Paso_FCT_Solver_update_LCN(Paso_FCT_Solver *fct_solver, double * u, double *u_old, Paso_Options* options, Paso_Performance *pp) ;
-
-void Paso_FCT_setAntiDiffusionFlux_linearCN(Paso_SystemMatrix *flux_matrix, const Paso_TransportProblem* fct, 
-				            const double dt, const Paso_Coupler* u_tilde_coupler,  
-				            const Paso_Coupler* u_old_coupler);
-
-void Paso_FCT_setAntiDiffusionFlux_BE(Paso_SystemMatrix *flux_matrix,
-                                      const Paso_TransportProblem* fct, 
-				      const double dt,
-			              const Paso_Coupler* u_coupler,  
-				      const Paso_Coupler* u_old_coupler);
-
-void Paso_FCT_setAntiDiffusionFlux_CN(Paso_SystemMatrix *flux_matrix,
-                                      const Paso_TransportProblem* fct, 
-				      const double dt,
-			              const Paso_Coupler* u_coupler,  
-				      const Paso_Coupler* u_old_coupler);
-
-void Paso_FCT_Solver_initialize(const double dt, Paso_FCT_Solver *fct_solver, Paso_Options* options, Paso_Performance* pp) ;
-double Paso_FCT_Solver_getSafeTimeStepSize(Paso_TransportProblem* fctp);
-void Paso_FCT_Solver_setMuPaLu(double* out, const double* M, const Paso_Coupler* u_coupler, const double a, const Paso_SystemMatrix *L);
-
-#define Paso_FCT_Solver_getTheta(_fct_) ( ( (_fct_)->method == PASO_BACKWARD_EULER ) ? 1. : 0.5 )
-
-#endif /* #ifndef INC_PASOFCT_SOLVER */
+#endif // __PASO_FCTSOLVER_H__
 

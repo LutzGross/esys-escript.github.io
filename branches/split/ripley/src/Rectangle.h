@@ -17,9 +17,8 @@
 #ifndef __RIPLEY_RECTANGLE_H__
 #define __RIPLEY_RECTANGLE_H__
 
+#include <paso/Coupler.h>
 #include <ripley/RipleyDomain.h>
-
-struct Paso_Connector;
 
 namespace ripley {
 
@@ -79,6 +78,12 @@ public:
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const;
+#ifdef USE_BOOSTIO
+    /**
+    */
+    virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
+                                const ReaderParameters& params) const;
+#endif
 
     /**
     */
@@ -196,7 +201,7 @@ protected:
                                   const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
-    virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder, bool reducedColOrder) const;
+    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -209,13 +214,17 @@ protected:
 private:
     void populateSampleIds();
     void createPattern();
-    void addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
+    void addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
                             const ReaderParameters& params) const;
+
+    template<typename ValueType>
+    void readBinaryGridZippedImpl(escript::Data& out, 
+            const std::string& filename, const ReaderParameters& params) const;
 
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,
@@ -275,10 +284,10 @@ private:
 
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes
-    Paso_Connector* m_connector;
+    paso::Connector_ptr m_connector;
 
     // the Paso System Matrix pattern
-    Paso_SystemMatrixPattern* m_pattern;
+    paso::SystemMatrixPattern_ptr m_pattern;
 
     friend class DefaultAssembler2D;
     friend class WaveAssembler2D;
@@ -310,8 +319,8 @@ inline boost::python::tuple Rectangle::getGridParameters() const
             boost::python::make_tuple(m_gNE[0], m_gNE[1]));
 }
 
-inline Paso_SystemMatrixPattern* Rectangle::getPattern(bool reducedRowOrder,
-                                                   bool reducedColOrder) const
+inline paso::SystemMatrixPattern_ptr Rectangle::getPattern(bool reducedRowOrder,
+                                                           bool reducedColOrder) const
 {
     // TODO: reduced
     return m_pattern;

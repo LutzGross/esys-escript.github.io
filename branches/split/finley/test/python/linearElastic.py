@@ -22,7 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys import finley
 from esys.weipa import saveVTK
 
@@ -56,8 +56,8 @@ mypde.setValue(A=mu * ( swap_axes(k3Xk3,0,3)+swap_axes(k3Xk3,1,3) ) + lame*k3Xk3
 mypde.setSymmetryOn()
 mypde.getSolverOptions().setVerbosityOn()
 # use direct solver (default is iterative)
-#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().DIRECT)
-# mypde.getSolverOptions().setPreconditioner(mypde.getSolverOptions().AMG)
+#mypde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
+# mypde.getSolverOptions().setPreconditioner(SolverOptions.AMG)
 # solve for the displacements:
 u_d=mypde.getSolution()
 

@@ -15,22 +15,40 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
-/*    Paso finite element solver */
+/*    Paso finite element solver library                                    */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*  Copyrights by ACcESS Australia, 2003,2004,2005 */
 /*  Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO
-#define INC_PASO
+#ifndef __PASO_H__
+#define __PASO_H__
 
-#include "Common.h"
-#include "esysUtils/error.h"
+#include <cfloat>
+#include <esysUtils/error.h>
+#include <esysUtils/Esys_MPI.h>
+#include <esysUtils/index.h>
+#include <esysUtils/maths.h>
+
+#include <boost/enable_shared_from_this.hpp>
+#include <boost/shared_ptr.hpp>
+
+#define PASO_DLL_API
+#ifdef _WIN32
+#   ifndef PASO_STATIC_LIB
+#      undef PASO_DLL_API
+#      ifdef PASO_EXPORTS
+#         define PASO_DLL_API __declspec(dllexport)
+#      else
+#         define PASO_DLL_API __declspec(dllimport)
+#      endif
+#   endif
+#endif
 
 #define MATRIX_FORMAT_DEFAULT 1
 #define MATRIX_FORMAT_CSC 2
@@ -42,4 +60,5 @@
 #define PASO_ONE (double)(1.0)
 #define PASO_ZERO (double)(0.0)
 
-#endif /* #ifndef INC_PASO */
+#endif // __PASO_H__
+

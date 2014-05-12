@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -89,7 +90,7 @@ output="mpl"
 
 
 
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 x=domain.getX()
 
 ## boundary conditions
@@ -172,7 +173,7 @@ abc=abcleft*abcright*abcbottom*abctop
 mypde=LinearPDE(domain)
 print(mypde.isUsingLumping())
 print(mypde.getSolverOptions())
-#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+#mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
 mypde.setSymmetryOn()
 kmat = kronecker(domain)
 mypde.setValue(D=kmat*rho)

@@ -15,34 +15,42 @@
 *****************************************************************************/
 
 
-#ifndef INC_PASOREACTIVE
-#define INC_PASOREACTIVE
+#ifndef __PASO_REACTIVESOLVER_H__
+#define __PASO_REACTIVESOLVER_H__
 
+#include "performance.h"
 #include "Transport.h"
 
-#define PASO_RT_EXP_LIM_MIN  sqrt(EPSILON) /* exp(h)-1 ~ h + h**2/2 for abs(h) <  PASO_RT_EXP_LIM_MIN */
-#define PASO_RT_EXP_LIM_MAX  log(1./sqrt(EPSILON)) /* it is assumed that exp(h) with  h>PASO_RT_EXP_LIM_MAX is not reliable */ 
+// exp(h)-1 ~ h + h**2/2 for abs(h) <  PASO_RT_EXP_LIM_MIN
+#define PASO_RT_EXP_LIM_MIN sqrt(EPSILON)
 
-    
-typedef struct Paso_ReactiveSolver {
-  double A;
-  double dt;
-} Paso_ReactiveSolver;
+// it is assumed that exp(h) with  h>PASO_RT_EXP_LIM_MAX is not reliable
+#define PASO_RT_EXP_LIM_MAX log(1./sqrt(EPSILON))
 
+namespace paso {
 
 PASO_DLL_API
-err_t Paso_ReactiveSolver_solve(Paso_ReactiveSolver* support, Paso_TransportProblem* fctp, double* u, double* u_old,  const double* source, Paso_Options* options, Paso_Performance *pp);
+struct ReactiveSolver
+{
+    ReactiveSolver(const_TransportProblem_ptr _tp) : tp(_tp) {}
+    ~ReactiveSolver() {}
 
-PASO_DLL_API
-Paso_ReactiveSolver* Paso_ReactiveSolver_alloc(Paso_TransportProblem* fctp);
+    inline void initialize(double _dt, Options*)
+    {
+        dt = _dt;
+    }
 
-PASO_DLL_API
-void Paso_ReactiveSolver_free(Paso_ReactiveSolver* in);
+    err_t solve(double* u, double* u_old, const double* source,
+                Options* options, Performance* pp);
 
-PASO_DLL_API
-double Paso_ReactiveSolver_getSafeTimeStepSize(Paso_TransportProblem* fctp);
+    static double getSafeTimeStepSize(const_TransportProblem_ptr tp);
 
-PASO_DLL_API
-void Paso_ReactiveSolver_initialize(const double dt, Paso_ReactiveSolver* rsolver, Paso_Options* options);
+    const_TransportProblem_ptr tp;
+    double dt;
+};
 
-#endif /* #ifndef INC_PASOREACTIVE */
+
+} // namespace paso
+
+#endif // __PASO_REACTIVESOLVER_H__
+

@@ -38,6 +38,18 @@ from esys.escript import *
 import unittest
 import numpy
 
+sympyavail=True
+try:
+    import sympy as sp
+    spVer=sp.__version__
+    spl=spVer.split('.')
+    if int(spl[0]) == 0 and int(spl[1]) < 7:
+        sympyavail=False
+except ImportError as e:
+    sympyavail=False
+
+    
+@unittest.skipIf(not sympyavail, 'sympy not available')
 class SymbolicTestCase(unittest.TestCase):
 
     # number of digits that have to match for results to be considered equal
@@ -86,6 +98,20 @@ class SymbolicTestCase(unittest.TestCase):
         for i in range(len(ref)):
             self.assertTrue(isinstance(res[i], numpy.ndarray), "substituted expression not a numpy array object")
             self.assertAlmostEqual(Lsup(res[i]-ref[i]), 0.0, self.TOL_DIGITS, "wrong result after substitution with Data object")
+        u = Symbol('u')
+        p=2*u**2+3*u+1
+        p2=sin(u)
+        p3 = p.diff(u)
+        evalu = Evaluator()
+        evalu.addExpression(p)
+        evalu.addExpression(p2)
+        evalu.addExpression(p3)
+        evalu.subs(u=2*symconstants.pi)
+        evaluated=evalu.evaluate(evalf=True)
+        sumEvaluated=sum(evaluated)
+        self.assertAlmostEqual(numpy.float64(sumEvaluated),126.939132358972,self.TOL_DIGITS,"evalf not working properly")
+
+
 
     #++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
     def test_acos_Symbol_rank0(self):
@@ -8586,6 +8612,17 @@ class SymbolicTestCase(unittest.TestCase):
         res=Evaluator(z)(x=xx,y=yy)
         self.assertAlmostEqual(Lsup(res-ref), 0.0, self.TOL_DIGITS, "wrong result")
 
+    def test_subs(self):
+        #tests for preservation of data substitution 
+        u=Symbol('u',(2,))
+        a=Symbol('a',(2,))
+        dat=Data([1,0],FunctionSpace())
+        dat2=Data([0,1],FunctionSpace())
+        u=u.subs(u,dat)
+        a=a.subs(a,dat2)
+        a[0]=u[0]
+        self.assertEqual(u._subs, u[0]._subs, "indexing did not preserve data substitution")
+        self.assertTrue(list(u[0]._subs.keys())[0] in a[0]._subs, "indexing did not preserve data substitution")
 
 if __name__ == "__main__":
     import sys

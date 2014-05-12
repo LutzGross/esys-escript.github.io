@@ -36,11 +36,7 @@ Mesh::Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info) :
     Elements(NULL),
     FaceElements(NULL),
     ContactElements(NULL),
-    Points(NULL),
-    FullFullPattern(NULL),
-    FullReducedPattern(NULL),
-    ReducedFullPattern(NULL),
-    ReducedReducedPattern(NULL)
+    Points(NULL)
 {
     MPIInfo = mpi_info;
 
@@ -57,10 +53,6 @@ Mesh::~Mesh()
     delete ContactElements;
     delete Points;
     tagMap.clear();
-    Paso_SystemMatrixPattern_free(FullFullPattern);
-    Paso_SystemMatrixPattern_free(FullReducedPattern);
-    Paso_SystemMatrixPattern_free(ReducedFullPattern);
-    Paso_SystemMatrixPattern_free(ReducedReducedPattern);
 }
 
 void Mesh::setElements(ElementFile *elements)
@@ -325,7 +317,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
 
-    IndexList* index_list=new IndexList[myNumVertices];
+    IndexListArray index_list(myNumVertices);
     std::vector<int> newGlobalDOFID(len);
     // create the adjacency structure xadj and adjncy
 #pragma omp parallel
@@ -349,14 +341,13 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
                 Nodes->globalDegreesOfFreedom);
     }
     // create the local matrix pattern
-    Paso_Pattern *pattern=IndexList_createPattern(0, myNumVertices,
-            index_list, myFirstVertex, myLastVertex, -myFirstVertex);
+    paso::Pattern_ptr pattern=paso::Pattern::fromIndexListArray(0,
+            myNumVertices, index_list, myFirstVertex, myLastVertex,
+            -myFirstVertex);
 
     if (noError())
-        Paso_Pattern_reduceBandwidth(pattern, &newGlobalDOFID[0]); 
+        pattern->reduceBandwidth(&newGlobalDOFID[0]); 
 
-    Paso_Pattern_free(pattern);
-    delete[] index_list;
     esysUtils::Esys_MPIInfo_noError(MPIInfo);
 
     if (noError()) {

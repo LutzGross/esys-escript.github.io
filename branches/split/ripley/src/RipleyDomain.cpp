@@ -19,6 +19,7 @@
 #include <escript/FunctionSpaceFactory.h>
 #include <pasowrap/SystemMatrixAdapter.h>
 #include <pasowrap/TransportProblemAdapter.h>
+#include <ripley/domainhelpers.h>
 
 #include <iomanip>
 
@@ -27,11 +28,6 @@ using paso::SystemMatrixAdapter;
 using paso::TransportProblemAdapter;
 
 namespace ripley {
-
-bool isNotEmpty(string target, map<string, escript::Data> mapping) {
-    map<string, escript::Data>::iterator i = mapping.find(target);
-    return i != mapping.end() && !i->second.isEmpty();
-}
 
 void tupleListToMap(map<string, escript::Data>& mapping,
         boost::python::list& list) {
@@ -62,6 +58,7 @@ RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
     {
 	m_mpiInfo = p->getMPI();
     }
+    assembler_type = DEFAULT_ASSEMBLER;
 }
 
 RipleyDomain::~RipleyDomain()
@@ -800,10 +797,13 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix: illegal function space type for system matrix columns");
 
+    if (type & MATRIX_FORMAT_TRILINOS_CRS)
+        throw RipleyException("newSystemMatrix: Ripley does not support matrix format TRILINOS_CRS");
+
     // generate matrix
-    Paso_SystemMatrixPattern* pattern=getPattern(reduceRowOrder, reduceColOrder);
-    Paso_SystemMatrix* matrix = Paso_SystemMatrix_alloc(type, pattern,
-            row_blocksize, column_blocksize, FALSE);
+    paso::SystemMatrixPattern_ptr pattern(getPattern(reduceRowOrder, reduceColOrder));
+    paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
+            row_blocksize, column_blocksize, false));
     paso::checkPasoError();
     escript::ASM_ptr sma(new SystemMatrixAdapter(matrix, row_blocksize,
                 row_functionspace, column_blocksize, column_functionspace));
@@ -824,7 +824,8 @@ void RipleyDomain::addToSystem(
         throw RipleyException(
                     "addToSystem: Ripley only accepts Paso system matrices");
 
-    Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+    paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
+
     assemblePDE(S, rhs, coefs);
     assemblePDEBoundary(S, rhs, coefs);
     assemblePDEDirac(S, rhs, coefs);
@@ -853,7 +854,7 @@ void RipleyDomain::addPDEToSystem(
     if (!sma)
         throw RipleyException("addPDEToSystem: Ripley only accepts Paso system matrices");
 
-    Paso_SystemMatrix* S = sma->getPaso_SystemMatrix();
+    paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
 
     std::map<std::string, escript::Data> coefs;
     coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
@@ -887,14 +888,14 @@ void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
     {
         std::map<std::string, escript::Data> coefs;
         coefs["X"] = X; coefs["Y"] = Y;
-        assemblePDE(NULL, rhs, coefs);
+        assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs);
     }
     std::map<std::string, escript::Data> coefs;
     coefs["y"] = y;
-    assemblePDEBoundary(NULL, rhs, coefs);
+    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs);
     map<string, escript::Data> dirac;
     dirac["y_dirac"] = y_dirac;
-    assemblePDEDirac(NULL, rhs, dirac);
+    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, dirac);
 }
 
 void RipleyDomain::setAssemblerFromPython(std::string type,
@@ -928,9 +929,9 @@ void RipleyDomain::addToRHS(escript::Data& rhs,
             return;
     }
 
-    assemblePDE(NULL, rhs, coefs);
-    assemblePDEBoundary(NULL, rhs, coefs);
-    assemblePDEDirac(NULL, rhs, coefs);
+    assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs);
+    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs);
+    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, coefs);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -948,8 +949,9 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
         throw RipleyException("newTransportProblem: illegal function space type for transport problem");
 
     // generate matrix
-    Paso_SystemMatrixPattern* pattern=getPattern(reduceOrder, reduceOrder);
-    Paso_TransportProblem* tp = Paso_TransportProblem_alloc(pattern, blocksize);
+    paso::SystemMatrixPattern_ptr pattern(getPattern(reduceOrder, reduceOrder));
+    paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
+                                                             blocksize));
     paso::checkPasoError();
     escript::ATP_ptr atp(new TransportProblemAdapter(tp, blocksize, functionspace));
     return atp;
@@ -967,11 +969,11 @@ void RipleyDomain::addPDEToTransportProblem(
     if (!d_contact.isEmpty() || !y_contact.isEmpty())
         throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
 
-    paso::TransportProblemAdapter* tpa=dynamic_cast<paso::TransportProblemAdapter*>(&tp);
+    TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
     if (!tpa)
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
-    Paso_TransportProblem* ptp = tpa->getPaso_TransportProblem();
+    paso::TransportProblem_ptr ptp(tpa->getPaso_TransportProblem());
     std::map<std::string, escript::Data> coefs;
     coefs["D"] = M;
     assemblePDE(ptp->mass_matrix, source, coefs);
@@ -1101,19 +1103,19 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 }
 
 //protected
-Paso_Pattern* RipleyDomain::createPasoPattern(const IndexVector& ptr,
+paso::Pattern_ptr RipleyDomain::createPasoPattern(const IndexVector& ptr,
         const IndexVector& index, const dim_t M, const dim_t N) const
 {
     // paso will manage the memory
-    index_t* indexC = new  index_t[index.size()];
-    index_t* ptrC = new  index_t[ptr.size()];
+    index_t* indexC = new index_t[index.size()];
+    index_t* ptrC = new index_t[ptr.size()];
     copy(index.begin(), index.end(), indexC);
     copy(ptr.begin(), ptr.end(), ptrC);
-    return Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC);
+    return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC));
 }
 
 //protected
-Paso_Pattern* RipleyDomain::createMainPattern() const
+paso::Pattern_ptr RipleyDomain::createMainPattern() const
 {
     IndexVector ptr(1,0);
     IndexVector index;
@@ -1130,8 +1132,8 @@ Paso_Pattern* RipleyDomain::createMainPattern() const
 
 //protected
 void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
-        const vector<IndexVector>& rowIndices,
-        const dim_t N, Paso_Pattern** colPattern, Paso_Pattern** rowPattern) const
+        const vector<IndexVector>& rowIndices, const dim_t N,
+        paso::Pattern_ptr& colPattern, paso::Pattern_ptr& rowPattern) const
 {
     IndexVector ptr(1,0);
     IndexVector index;
@@ -1141,7 +1143,7 @@ void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
     }
 
     const dim_t M=ptr.size()-1;
-    *colPattern=createPasoPattern(ptr, index, M, N);
+    colPattern=createPasoPattern(ptr, index, M, N);
 
     IndexVector rowPtr(1,0);
     IndexVector rowIndex;
@@ -1151,17 +1153,14 @@ void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
     }
 
     // M and N are now reversed
-    *rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
+    rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
 }
 
 //protected
-void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat, 
+void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat, 
        const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
        dim_t num_Sol, const vector<double>& array) const
 {
-    if (mat->type & MATRIX_FORMAT_TRILINOS_CRS)
-        throw RipleyException("addToSystemMatrix: TRILINOS_CRS not supported");
-
     const dim_t numMyCols = mat->pattern->mainPattern->numInput;
     const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
     const dim_t numSubblocks_Eq = num_Eq / mat->row_block_size;
@@ -1287,7 +1286,7 @@ void RipleyDomain::addToSystemMatrix(Paso_SystemMatrix* mat,
 }
 
 //private
-void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
         std::map<std::string, escript::Data> coefs) const
 {
     if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
@@ -1295,20 +1294,7 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
                     "provided but no right hand side vector given");
 
     vector<int> fsTypes;
-    if (isNotEmpty("A", coefs))
-        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("B", coefs))
-        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("C", coefs))
-        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("D", coefs))
-        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("X", coefs)) //may not exist for some custom assemblers
-        fsTypes.push_back(coefs["X"].getFunctionSpace().getTypeCode());
-    else if (isNotEmpty("du", coefs)) //used for (some) custom assemblers
-        fsTypes.push_back(coefs["du"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("Y", coefs))
-        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+    assembler->collateFunctionSpaceTypes(fsTypes, coefs);
     
     if (fsTypes.empty()) {
         return;
@@ -1359,7 +1345,7 @@ void RipleyDomain::assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
 }
 
 //private
-void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
+void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
       escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     std::map<std::string, escript::Data>::iterator iy = coefs.find("y"),
@@ -1415,7 +1401,7 @@ void RipleyDomain::assemblePDEBoundary(Paso_SystemMatrix* mat,
     }
 }
 
-void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
+void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     bool yNotEmpty = isNotEmpty("y_dirac", coefs),
@@ -1445,8 +1431,10 @@ void RipleyDomain::assemblePDEDirac(Paso_SystemMatrix* mat,
         if (yNotEmpty) {
             const double *EM_F = y.getSampleDataRO(i);
             double *F_p = rhs.getSampleDataRW(0);
-            for (index_t eq = 0; eq < nEq; eq++) {
-                F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+            if (rowIndex[0] < getNumDOF()) {
+                for (index_t eq = 0; eq < nEq; eq++) {
+                    F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+                }
             }
         }
         if (dNotEmpty) {

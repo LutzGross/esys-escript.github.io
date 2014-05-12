@@ -161,7 +161,7 @@ class Test_SiloSaver(unittest.TestCase):
         p2=SiloReader()
         self.assertTrue(p1.open(file1), "Invalid Silo file '%s'"%file1)
         p2.open(file2)
-        self.assertEquals(p1.getTimeAndCycle(), p2.getTimeAndCycle())
+        self.assertEqual(p1.getTimeAndCycle(), p2.getTimeAndCycle())
 
         dirNames1=p1.getDirNames()
         dirNames2=p2.getDirNames()
@@ -178,10 +178,10 @@ class Test_SiloSaver(unittest.TestCase):
 
             cx1,cy1,cz1=p1.getCellCoords(elementName)
             cx2,cy2,cz2=p2.getCellCoords(elementName)
-            self.assertEquals(len(cx1), len(cx2))
-            self.assertEquals(len(cy1), len(cy2))
+            self.assertEqual(len(cx1), len(cx2))
+            self.assertEqual(len(cy1), len(cy2))
             if cz2 is not None:
-                self.assertEquals(len(cz1), len(cz2))
+                self.assertEqual(len(cz1), len(cz2))
                 coords1=zip(cx1,cy1,cz1)
                 coords2=zip(cx2,cy2,cz2)
             else:
@@ -202,7 +202,7 @@ class Test_SiloSaver(unittest.TestCase):
 
             extents1=p1.getCellExtents(elementName)
             extents2=p2.getCellExtents(elementName)
-            self.assertEquals(extents1, extents2)
+            self.assertEqual(extents1, extents2)
 
             nodelist1=p1.getCellNodeList(elementName)
             nodelist2=p2.getCellNodeList(elementName)
@@ -219,7 +219,7 @@ class Test_SiloSaver(unittest.TestCase):
         # TODO: The Silo module does not allow checking for the mesh of
         # a variable yet so we cannot compare permuted entries using the
         # node mappings from above (see vtk tests)
-        self.assertEquals(len(data1), len(data2))
+        self.assertEqual(len(data1), len(data2))
         for name in data2:
             self.assertTrue(name in data1, "Variable '%s' missing"%name)
             if name.startswith('data'):

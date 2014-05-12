@@ -247,7 +247,9 @@ class TestErMapperData(unittest.TestCase):
 
 @unittest.skipIf('NetCdfData' not in dir(), 'netCDF not available')
 class TestNetCdfData(unittest.TestCase):
+    @unittest.skipIf(not haveProj, 'pyproj not available')
     @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+    @unittest.skipIf(not haveProj, 'pyproj not available')
     def test_cdf_with_padding(self):
         source = NetCdfData(DataSource.GRAVITY, NC_DATA, ALT, scale_factor=1e-6)
         domainbuilder=DomainBuilder()
@@ -360,27 +362,30 @@ class TestNetCdfData(unittest.TestCase):
                 msg="Wrong values in padding area")
 class TestSeimicSource(unittest.TestCase):
     def test_seismic_source(self):
-        ss= SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.])
+        ss= SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.], elevation=7.)
         self.assertEqual(ss.getLocation(), (1.,2) )
         self.assertEqual(ss.getFrequency(), 3.)
         self.assertEqual(ss.getPower(), complex(4.,-4.) ) 
         self.assertEqual(ss.getOrientation(), [5.,6.])
+        self.assertEqual(ss.getElevation(), 7.)
         
-        self.assertTrue( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertFalse( ss == SeismicSource(x=-1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertFalse( ss == SeismicSource(x=1., y=-2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=-3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(-4.,-4.), orientation=[5.,6.]) )
-        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,4.), orientation=[5.,6.]) )
-        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.]) )
+        self.assertTrue( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=-1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=1., y=-2., omega=3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=-3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(-4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,4.), orientation=[5.,6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.],elevation=7.) )
+        self.assertFalse( ss == SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.],elevation=-7.) )
 
-        self.assertFalse( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertTrue( ss != SeismicSource(x=-1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertTrue( ss != SeismicSource(x=1., y=-2., omega=3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=-3., power = complex(4.,-4.), orientation=[5.,6.]) )
-        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(-4.,-4.), orientation=[5.,6.]) )
-        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,4.), orientation=[5.,6.]) )
-        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.]) )
+        self.assertFalse( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=-1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=1., y=-2., omega=3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=-3., power = complex(4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(-4.,-4.), orientation=[5.,6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,4.), orientation=[5.,6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.],elevation=7.) )
+        self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.],elevation=-7.) )
         
 if __name__ == "__main__":
     suite = unittest.TestSuite()

@@ -23,12 +23,11 @@
 *   (Version 1.01, 5/2003)
 */
 
-#include "Common.h"
 #include "mmio.h"
 
 #define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) { perror(reason); return -1;} }
 
-#include <string.h>
+#include <cstring>
 #include <ctype.h>
 
 

@@ -12,6 +12,7 @@ case "$distr" in
     "oneiric") opf="oneiric";;
     "raring") opf="raring";;
     "saucy" ) opf="saucy";;
+    "trusty") opf="trusty";;
     *) echo "No file found" >&2; exit 1;;
 esac
 rm -f debian/substvars

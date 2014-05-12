@@ -59,7 +59,8 @@ void Assemble_LumpedSystem(const NodeFile* nodes, const ElementFile* elements,
     }
 
     // initialize parameters
-    AssembleParameters p(nodes, elements, NULL, lumpedMat, reducedOrder);
+    AssembleParameters p(nodes, elements, paso::SystemMatrix_ptr(), lumpedMat,
+                         reducedOrder);
     if (!noError())
         return;
 

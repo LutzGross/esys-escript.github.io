@@ -184,10 +184,12 @@ class Symbol(object):
         if isinstance(res, sympy.Basic) or isinstance(res, numpy.ndarray):
             res=Symbol(res)
             res._dim=self._dim
+        res._subs.update(self._subs)
         return res
 
     def __setitem__(self, key, value):
         if isinstance(value, Symbol):
+            self._subs.update(value._subs)
             if value.getRank()==0:
                 self._arr[key]=value.item()
             elif hasattr(self._arr[key], "shape"):
@@ -287,6 +289,9 @@ class Symbol(object):
         :return: list of atoms of specified type
         :rtype: ``set``
         """
+        for t in types:
+            if t == type(self):
+                types=types+(type(sympy.Symbol("t")),)
         s=set()
         for el in self._arr.flat:
             if isinstance(el,sympy.Basic):
@@ -393,13 +398,20 @@ class Symbol(object):
         dataSubs={}
         old._ensureShapeCompatible(new)
         if isinstance(new, Data):
+            if old.getShape()==() and new.getShape()!=():
+                raise ValueError("Only a scalar Data object can be substituted into a scalar\
+                        symbol")
             subs=self._subs.copy()
-            if isinstance(old, Symbol) and old.getRank()>0:
-                old=Symbol(old.atoms(sympy.Symbol)[0])
-            subs[old]=new
-            result=Symbol(self._arr, dim=self._dim, subs=subs)
+            name='data'+str(id(new))
+            newsym=Symbol(name, new.getShape(), dim=self._dim)
+            subs.update({Symbol(name):new})
+            result=numpy.empty(self.getShape(), dtype=object)
+            for idx in numpy.ndindex(self.getShape()):
+                result[idx]=self._arr[idx].subs(old._arr[idx], newsym._arr[idx])
+            result=Symbol(result, dim=self._dim, subs=subs)
         elif isinstance(old, Symbol) and old.getRank()>0:
-            dataSubs=new.getDataSubstitutions()    
+            if isinstance(new, Symbol):
+                dataSubs=new.getDataSubstitutions()    
             if hasattr(new, '__array__'):
                 new=new.__array__()
             else:
@@ -408,12 +420,10 @@ class Symbol(object):
             result=numpy.empty(self.getShape(), dtype=object)
             if new.ndim>0:
                 for idx in numpy.ndindex(self.getShape()):
-                    for symidx in numpy.ndindex(new.shape):
-                        result[idx]=self._arr[idx].subs(old._arr[symidx], new[symidx])
+                    result[idx]=self._arr[idx].subs(old._arr[idx], new[idx])
             else: # substitute scalar for non-scalar
                 for idx in numpy.ndindex(self.getShape()):
-                    for symidx in numpy.ndindex(old.getShape()):
-                        result[idx]=self._arr[idx].subs(old._arr[symidx], new.item())
+                    result[idx]=self._arr[idx].subs(old._arr[idx], new.item())
             result=Symbol(result, dim=self._dim, subs=self._subs)
         else: # scalar
             if isinstance(new, Symbol):
@@ -689,7 +699,13 @@ class Symbol(object):
         Applies the sympy.simplify operation on all elements in this symbol
         """
         return self.applyfunc(sympy.simplify, sympy.Basic)
-
+    
+    def evalf(self):
+        """
+        Applies the sympy.evalf operation on all elements in this symbol
+        """
+        evalf_s=lambda item: getattr(item, 'evalf')()
+        return self.applyfunc(evalf_s, sympy.Basic)
     # unary/binary operators follow
 
     def __pos__(self):

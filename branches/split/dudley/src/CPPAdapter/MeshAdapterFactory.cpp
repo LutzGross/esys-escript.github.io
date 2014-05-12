@@ -198,13 +198,13 @@ namespace dudley {
                    if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
                        cleanupAndThrow(mesh_p, "get(Elements_Color)");
                    // Elements_Nodes
-                   int *Elements_Nodes = TMPMEMALLOC(num_Elements*num_Elements_numNodes,int);
+                   int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
-                       TMPMEMFREE(Elements_Nodes);
+                       delete[] Elements_Nodes;
                        cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
-                       TMPMEMFREE(Elements_Nodes);
+                       delete[] Elements_Nodes;
                        cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
                    }
 
@@ -215,7 +215,7 @@ namespace dudley {
                                 = Elements_Nodes[INDEX2(j,i,num_Elements_numNodes)];
                        }
                    }
-                   TMPMEMFREE(Elements_Nodes);
+                   delete[] Elements_Nodes;
                    Dudley_ElementFile_setTagsInUse(mesh_p->Elements);
                 } /* num_Elements>0 */
             }
@@ -251,13 +251,13 @@ namespace dudley {
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
                        cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
                    // FaceElements_Nodes
-                   int *FaceElements_Nodes = TMPMEMALLOC(num_FaceElements*num_FaceElements_numNodes,int);
+                   int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
-                       TMPMEMFREE(FaceElements_Nodes);
+                       delete[] FaceElements_Nodes;
                        cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
-                       TMPMEMFREE(FaceElements_Nodes);
+                       delete[] FaceElements_Nodes;
                        cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->FaceElements->Nodes
@@ -266,7 +266,7 @@ namespace dudley {
                            mesh_p->FaceElements->Nodes[INDEX2(j,i,num_FaceElements_numNodes)] = FaceElements_Nodes[INDEX2(j,i,num_FaceElements_numNodes)];
                        }
                    }
-                   TMPMEMFREE(FaceElements_Nodes);
+                   delete[] FaceElements_Nodes;
                    Dudley_ElementFile_setTagsInUse(mesh_p->FaceElements);
                 } /* num_FaceElements>0 */
             }
@@ -302,20 +302,20 @@ namespace dudley {
                    if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
                        cleanupAndThrow(mesh_p, "get(Points_Color)");
                    // Points_Nodes
-                   int *Points_Nodes = TMPMEMALLOC(num_Points,int);
+                   int *Points_Nodes = new int[num_Points];
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
-                       TMPMEMFREE(Points_Nodes);
+                       delete[] Points_Nodes;
                        cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
-                       TMPMEMFREE(Points_Nodes);
+                       delete[] Points_Nodes;
                        cleanupAndThrow(mesh_p, "get(Points_Nodes)");
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
                        mesh_p->Points->Id[mesh_p->Points->Nodes[INDEX2(0,i,1)]] = Points_Nodes[i];
                    }
-                   TMPMEMFREE(Points_Nodes);
+                   delete[] Points_Nodes;
                    Dudley_ElementFile_setTagsInUse(mesh_p->Points);
                 } /* num_Points>0 */
             }
@@ -325,24 +325,24 @@ namespace dudley {
         if (Dudley_noError()) {
           if (num_Tags>0) {
             // Temp storage to gather node IDs
-            int *Tags_keys = TMPMEMALLOC(num_Tags, int);
+            int *Tags_keys = new int[num_Tags];
             char name_temp[4096];
             int i;
 
             // Tags_keys
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
-                TMPMEMFREE(Tags_keys);
+                delete[] Tags_keys;
                 cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
             }
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
-                TMPMEMFREE(Tags_keys);
+                delete[] Tags_keys;
                 cleanupAndThrow(mesh_p, "get(Tags_keys)");
             }
             for (i=0; i<num_Tags; i++) {
               // Retrieve tag name
               sprintf(name_temp, "Tags_name_%d", i);
               if (! (attr=dataFile.get_att(name_temp)) ) {
-                  TMPMEMFREE(Tags_keys);
+                  delete[] Tags_keys;
                   sprintf(error_msg,"get_att(%s)", name_temp);
                   cleanupAndThrow(mesh_p, error_msg);
               }
@@ -350,37 +350,37 @@ namespace dudley {
               delete attr;
               Dudley_Mesh_addTagMap(mesh_p, name.get(), Tags_keys[i]);
             }
-            TMPMEMFREE(Tags_keys);
+            delete[] Tags_keys;
           }
         }
    
         if (Dudley_noError()) {
             // Nodes_DofDistribution
-            first_DofComponent = TMPMEMALLOC(mpi_size+1,index_t);
+            first_DofComponent = new index_t[mpi_size+1];
             if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
-                TMPMEMFREE(first_DofComponent);
+                delete[] first_DofComponent;
                 cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
             }
             if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
-                TMPMEMFREE(first_DofComponent);
+                delete[] first_DofComponent;
                 cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
-            first_NodeComponent = TMPMEMALLOC(mpi_size+1,index_t);
+            first_NodeComponent = new index_t[mpi_size+1];
             if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
-                TMPMEMFREE(first_DofComponent);
-                TMPMEMFREE(first_NodeComponent);
+                delete[] first_DofComponent;
+                delete[] first_NodeComponent;
                 cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
             }
             if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
-                TMPMEMFREE(first_DofComponent);
-                TMPMEMFREE(first_NodeComponent);
+                delete[] first_DofComponent;
+                delete[] first_NodeComponent;
                 cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
             }
             Dudley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
-            TMPMEMFREE(first_DofComponent);
-            TMPMEMFREE(first_NodeComponent);
+            delete[] first_DofComponent;
+            delete[] first_NodeComponent;
         }
 
     } /* Dudley_noError() after Dudley_Mesh_alloc() */
@@ -414,7 +414,7 @@ namespace dudley {
        throw DataException("Null file name!");
     }
 
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+    char *fName = new char[fileName.size()+1];
         
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
@@ -423,8 +423,7 @@ namespace dudley {
     checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
-    /* win32 refactor */
-    TMPMEMFREE(fName);
+    delete[] fName;
     
     blocktimer_increment("ReadMesh()", blocktimer_start);
     return temp->getPtr();
@@ -447,7 +446,7 @@ namespace dudley {
        throw DataException("Null file name!");
     }
 
-    char *fName = TMPMEMALLOC(fileName.size()+1,char);
+    char *fName = new char[fileName.size()+1];
         
     strcpy(fName,fileName.c_str());
     double blocktimer_start = blocktimer_time();
@@ -456,8 +455,7 @@ namespace dudley {
     checkDudleyError();
     AbstractContinuousDomain* temp=new MeshAdapter(fMesh);
     
-    /* win32 refactor */
-    TMPMEMFREE(fName);
+    delete[] fName;
     
     blocktimer_increment("ReadGmsh()", blocktimer_start);
     return temp->getPtr();

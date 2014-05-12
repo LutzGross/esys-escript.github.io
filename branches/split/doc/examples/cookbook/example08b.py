@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -42,7 +43,7 @@ import numpy as np
 
 import pylab as pl
 import matplotlib.cm as cm
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -127,7 +128,7 @@ x=domain.getX() # get the locations of the nodes in the domani
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=kmat*rho) #set the general form value D
 
@@ -186,7 +187,7 @@ src_dir=numpy.array([0.,1.]) # defines direction of point source as down
 y=y*src_dir
 mypde.setValue(y=y) #set the source as a function on the boundary
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
 # for first two time steps
 u=[0.0,0.0]*wherePositive(x)
 u_m1=u

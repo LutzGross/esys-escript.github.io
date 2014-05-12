@@ -1088,13 +1088,7 @@ class Simulation(Model):
 
     def doStep(self,dt):
         """
-        Executes the iteration step at a time step for all models::
-
-            self.doStepPreprocessing(dt)
-            while not self.terminateIteration():
-                for all models:
-                self.doStep(dt)
-                self.doStepPostprocessing(dt)
+        Executes the iteration step at a time step for all models
         """
         self.iter=0
         while not self.terminateIteration():

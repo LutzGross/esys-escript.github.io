@@ -88,7 +88,7 @@ void Dudley_Assemble_LumpedSystem(Dudley_NodeFile * nodes, Dudley_ElementFile * 
 	return;
 
     /* set all parameters in p */
-    Dudley_Assemble_getAssembleParameters(nodes, elements, NULL, lumpedMat, reducedIntegrationOrder, &p);
+    Dudley_Assemble_getAssembleParameters(nodes, elements, paso::SystemMatrix_ptr(), lumpedMat, reducedIntegrationOrder, &p);
     if (!Dudley_noError())
 	return;
 

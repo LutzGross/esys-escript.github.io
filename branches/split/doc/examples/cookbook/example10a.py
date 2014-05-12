@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -105,11 +106,11 @@ pl.ylabel("Depth (m)")
 pl.savefig(os.path.join(save_path,"Ucontour.png"))
 print("Solution has been plotted  ...")
 
-cut=int(len(xi)/2)
+cut=int(len(xi)//2)
 
 pl.clf()
 
-r=np.linspace(0,mx/2,100)
+r=np.linspace(0.0000001,mx/2,100)	# starting point would be 0 but that would cause division by zero later
 m=2*pl.pi*10*10*200*-G/(r*r)
 
 pl.plot(xi,zi[:,cut])

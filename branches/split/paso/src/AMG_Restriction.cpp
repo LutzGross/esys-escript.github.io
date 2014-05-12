@@ -14,42 +14,42 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: defines AMG Restriction Operator  */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lin Gao, lgao@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "SparseMatrix.h"
 #include "PasoUtil.h"
 #include "Preconditioner.h"
 
-/************************************************************************************
+#include <cstring> // memcpy
+
+namespace paso {
+
+/****************************************************************************
 
     Methods necessary for AMG preconditioner
 
     construct n_C x n the Restriction matrix R from A_p.
-    
+
     R->mainBlock is the transpose of P->mainBlock, but we need
     to recover R->col_coupleBlock from P's data in other ranks.
- 
-*************************************************************************************/
 
-Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
-{ 
+*****************************************************************************/
+
+SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P)
+{
    esysUtils::JMPI& mpi_info=P->mpi_info;
-   Paso_SparseMatrix *main_block=NULL, *couple_block=NULL;
-   Paso_SystemMatrix *out=NULL;
-   Paso_SystemMatrixPattern *pattern=NULL;
-   Paso_Distribution *input_dist=NULL, *output_dist=NULL;
-   Paso_SharedComponents *send =NULL, *recv=NULL;
-   Paso_Connector *col_connector=NULL;
-   Paso_Pattern *couple_pattern=NULL;
+   Distribution_ptr input_dist, output_dist;
+   SharedComponents_ptr send, recv;
+   Connector_ptr col_connector;
    const dim_t row_block_size=P->row_block_size;
    const dim_t col_block_size=P->col_block_size;
    const dim_t n=P->mainBlock->numRows;
@@ -72,12 +72,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    #endif
 
    /* get main_block of R from the transpose of P->mainBlock */
-   main_block = Paso_SparseMatrix_getTranspose(P->mainBlock);
+   SparseMatrix_ptr main_block(P->mainBlock->getTranspose());
 
    /* prepare "ptr" for the col_coupleBlock of R, start with get info about
       the degree_set (associated with "ptr"), offset_set (associated with
       "idx" and data_set (associated with "val") to be sent to other ranks */
-   couple_block = P->col_coupleBlock;
+   SparseMatrix_ptr couple_block(P->col_coupleBlock);
    num_Pcouple_cols = couple_block->numCols;
    block_size = P->block_size;
    copy_block_size = block_size * sizeof(double);
@@ -87,8 +87,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    for (i=0; i<n; i++) {
      iptr_ub = couple_block->pattern->ptr[i+1];
      for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
-	j = couple_block->pattern->index[iptr];
-	degree_set[j] ++;
+        j = couple_block->pattern->index[iptr];
+        degree_set[j] ++;
      }
    }
 
@@ -107,12 +107,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      for (i=0; i<n; i++) {
        iptr_ub = couple_block->pattern->ptr[i+1];
        for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
-	j = couple_block->pattern->index[iptr];
-	k = send_ptr[j] + degree_set[j];
-	offset_set[k] = i + offset;   /* now we have the global id for row i,
+        j = couple_block->pattern->index[iptr];
+        k = send_ptr[j] + degree_set[j];
+        offset_set[k] = i + offset;   /* now we have the global id for row i,
                                         which will be used as col index of R */
-	memcpy(&(data_set[k*block_size]), &(couple_block->val[iptr*block_size]), copy_block_size);
-	degree_set[j] ++;
+        memcpy(&(data_set[k*block_size]), &(couple_block->val[iptr*block_size]), copy_block_size);
+        degree_set[j] ++;
        }
      }
    } else {
@@ -120,14 +120,14 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
        iptr_ub = couple_block->pattern->ptr[i+1];
        for (iptr=couple_block->pattern->ptr[i]; iptr<iptr_ub; iptr++) {
         j = couple_block->pattern->index[iptr];
-	k = send_ptr[j] + degree_set[j];
-	offset_set[k] = i + offset;   /* now we have the global id for row i,
-					which will be used as col index of R */
-	for (irb=0 ; irb < row_block_size; irb++) {
-	  for (icb =0 ; icb < col_block_size; icb++) {
-	    data_set[k*block_size+icb+col_block_size*irb] = couple_block->val[iptr*block_size+irb+row_block_size*icb];
-	  }
-	}
+        k = send_ptr[j] + degree_set[j];
+        offset_set[k] = i + offset;   /* now we have the global id for row i,
+                                        which will be used as col index of R */
+        for (irb=0 ; irb < row_block_size; irb++) {
+          for (icb =0 ; icb < col_block_size; icb++) {
+            data_set[k*block_size+icb+col_block_size*irb] = couple_block->val[iptr*block_size+irb+row_block_size*icb];
+          }
+        }
         degree_set[j] ++;
        }
      }
@@ -152,12 +152,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      j = send->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
-	#ifdef ESYS_MPI
-	MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
-		mpi_info->msg_tag_counter+send->neighbor[p],
-		mpi_info->comm, &mpi_requests[msgs]); 
-	#endif
-	msgs++;
+        #ifdef ESYS_MPI
+        MPI_Irecv(&(recv_ptr[i]), k, MPI_INT, send->neighbor[p],
+                mpi_info->msg_tag_counter+send->neighbor[p],
+                mpi_info->comm, &mpi_requests[msgs]);
+        #endif
+        msgs++;
      }
    }
 
@@ -166,12 +166,12 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      j = recv->offsetInShared[p+1];
      k = j - i;
      if (k > 0) {
-	#ifdef ESYS_MPI
-	MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
-		mpi_info->msg_tag_counter+rank, mpi_info->comm, 
+        #ifdef ESYS_MPI
+        MPI_Issend(&(degree_set[i]), k, MPI_INT, recv->neighbor[p],
+                mpi_info->msg_tag_counter+rank, mpi_info->comm,
                 &mpi_requests[msgs]);
-	#endif
-	msgs++;
+        #endif
+        msgs++;
      }
    }
 
@@ -186,7 +186,7 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    for (p=0, sum=0; p<send->numNeighbors; p++) {
      iptr_ub = send->offsetInShared[p+1];
      for (iptr = send->offsetInShared[p]; iptr < iptr_ub; iptr++){
-	degree_set[p] += recv_ptr[iptr];
+        degree_set[p] += recv_ptr[iptr];
      }
      sum += degree_set[p];
    }
@@ -198,18 +198,18 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    recv_val = new double[sum * block_size];
    for (p=0, offset=0; p<send->numNeighbors; p++) {
      if (degree_set[p]) {
-	#ifdef ESYS_MPI
-	MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
-		send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
-		mpi_info->comm, &mpi_requests[msgs]);
-	msgs++;
-	MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size, 
-		MPI_DOUBLE, send->neighbor[p], 
-		mpi_info->msg_tag_counter+send->neighbor[p]+size,
-		mpi_info->comm, &mpi_requests[msgs]);
-	offset += degree_set[p];
-	#endif
-	msgs++;
+        #ifdef ESYS_MPI
+        MPI_Irecv(&(recv_idx[offset]), degree_set[p], MPI_INT,
+                send->neighbor[p], mpi_info->msg_tag_counter+send->neighbor[p],
+                mpi_info->comm, &mpi_requests[msgs]);
+        msgs++;
+        MPI_Irecv(&(recv_val[offset*block_size]), degree_set[p] * block_size,
+                MPI_DOUBLE, send->neighbor[p],
+                mpi_info->msg_tag_counter+send->neighbor[p]+size,
+                mpi_info->comm, &mpi_requests[msgs]);
+        offset += degree_set[p];
+        #endif
+        msgs++;
      }
    }
 
@@ -218,16 +218,16 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
      j = recv->offsetInShared[p+1];
      k = send_ptr[j] - send_ptr[i];
      if (k > 0) {
-	#ifdef ESYS_MPI
-	MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
-		recv->neighbor[p], mpi_info->msg_tag_counter+rank,
-		mpi_info->comm, &mpi_requests[msgs]);
-	msgs++;
-	MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
-		recv->neighbor[p], mpi_info->msg_tag_counter+rank+size,
-		mpi_info->comm, &mpi_requests[msgs]);
-	#endif
-	msgs++;
+        #ifdef ESYS_MPI
+        MPI_Issend(&(offset_set[send_ptr[i]]), k, MPI_INT,
+                recv->neighbor[p], mpi_info->msg_tag_counter+rank,
+                mpi_info->comm, &mpi_requests[msgs]);
+        msgs++;
+        MPI_Issend(&(data_set[send_ptr[i]*block_size]), k*block_size, MPI_DOUBLE,
+                recv->neighbor[p], mpi_info->msg_tag_counter+rank+size,
+                mpi_info->comm, &mpi_requests[msgs]);
+        #endif
+        msgs++;
      }
    }
 
@@ -260,11 +260,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
         k = send->offsetInShared[p+1];
         for (j=send->offsetInShared[p]; j<k; j++) {
           if (send->shared[j] == i) {
-	    offset = ptr[i] + icb;
-	    len = recv_ptr[j];
-	    memcpy(&idx[offset], &recv_idx[temp[j]], sizeof(index_t)*len);
-	    memcpy(&val[offset*block_size], &recv_val[temp[j]*block_size], sizeof(double)*len*block_size); 
-	    icb += len;
+            offset = ptr[i] + icb;
+            len = recv_ptr[j];
+            memcpy(&idx[offset], &recv_idx[temp[j]], sizeof(index_t)*len);
+            memcpy(&val[offset*block_size], &recv_val[temp[j]*block_size], sizeof(double)*len*block_size);
+            icb += len;
             break;
           }
         }
@@ -276,29 +276,25 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    delete[] recv_ptr;
    delete[] recv_val;
 
-   /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock, 
+   /* count the number of cols (num_Rcouple_cols) in R->col_coupleBlock,
       and convert the global id in "idx" into local id */
    num_Rcouple_cols = 0;
    if (sum) {
-     #ifdef USE_QSORTG
-       qsortG(recv_idx, (size_t)sum, sizeof(index_t), Paso_comparIndex);
-     #else
-       qsort(recv_idx, (size_t)sum, sizeof(index_t), Paso_comparIndex);
-     #endif
+     qsort(recv_idx, (size_t)sum, sizeof(index_t), util::comparIndex);
      num_Rcouple_cols = 1;
      i = recv_idx[0];
      for (j=1; j<sum; j++) {
-	if (recv_idx[j] > i) {
-	  i = recv_idx[j];
-	  recv_idx[num_Rcouple_cols] = i;
-	  num_Rcouple_cols++;
-	}
+        if (recv_idx[j] > i) {
+          i = recv_idx[j];
+          recv_idx[num_Rcouple_cols] = i;
+          num_Rcouple_cols++;
+        }
      }
      #pragma omp parallel for private(i,where_p) schedule(static)
      for (i=0; i<sum; i++) {
-	where_p = (index_t *)bsearch(&(idx[i]), recv_idx, num_Rcouple_cols,
-				sizeof(index_t), Paso_comparIndex);
-	idx[i] = (index_t)(where_p - recv_idx);
+        where_p = (index_t *)bsearch(&(idx[i]), recv_idx, num_Rcouple_cols,
+                                sizeof(index_t), util::comparIndex);
+        idx[i] = (index_t)(where_p - recv_idx);
      }
    }
 
@@ -312,11 +308,11 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    if (num_Rcouple_cols > 0) offset = dist[neighbor[0] + 1];
    for (i=0, p=0; i<num_Rcouple_cols; i++) {
      /* cols i is received from rank neighbor[p] when it's still smaller
-	than "offset", otherwise, it is received from rank neighbor[p+1] */
-     while (recv_idx[i] >= offset) { 
-	p++;
-	offsetInShared[p] = i;
-	offset = dist[neighbor[p] + 1];
+        than "offset", otherwise, it is received from rank neighbor[p+1] */
+     while (recv_idx[i] >= offset) {
+        p++;
+        offsetInShared[p] = i;
+        offset = dist[neighbor[p] + 1];
      }
      shared[i] = i + n;  /* n is the number of cols in R->mainBlock */
    }
@@ -324,8 +320,8 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    for (i=p; i<numNeighbors; i++) {
      offsetInShared[i+1] = num_Rcouple_cols;
    }
-   recv = Paso_SharedComponents_alloc(n, numNeighbors,
-		neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   recv.reset(new SharedComponents(n, numNeighbors, neighbor, shared,
+               offsetInShared, 1, 0, mpi_info));
    delete[] recv_idx;
 
    /* prepare the sender for the col_connector */
@@ -333,75 +329,67 @@ Paso_SystemMatrix* Paso_Preconditioner_AMG_getRestriction(Paso_SystemMatrix* P)
    numNeighbors = P->col_coupler->connector->recv->numNeighbors;
    neighbor = P->col_coupler->connector->recv->neighbor;
    shared = new index_t[n * numNeighbors];
-   couple_pattern = P->col_coupleBlock->pattern;
+   Pattern_ptr couple_pattern(P->col_coupleBlock->pattern);
    sum=0;
    memset(offsetInShared, 0, sizeof(index_t) * (size+1));
    for (p=0; p<numNeighbors; p++) {
      j = P->col_coupler->connector->recv->offsetInShared[p];
      j_ub = P->col_coupler->connector->recv->offsetInShared[p+1];
      for (i=0; i<n; i++) {
-	iptr = couple_pattern->ptr[i];
-	iptr_ub = couple_pattern->ptr[i+1];
-	for (; iptr<iptr_ub; iptr++) {
-	  k = couple_pattern->index[iptr];
-	  if (k >= j && k < j_ub) {
-	    shared[sum] = i;
-	    sum++;
-	    break;
-	  }
-	}
+        iptr = couple_pattern->ptr[i];
+        iptr_ub = couple_pattern->ptr[i+1];
+        for (; iptr<iptr_ub; iptr++) {
+          k = couple_pattern->index[iptr];
+          if (k >= j && k < j_ub) {
+            shared[sum] = i;
+            sum++;
+            break;
+          }
+        }
      }
      offsetInShared[p+1] = sum;
    }
-   send = Paso_SharedComponents_alloc(n, numNeighbors,
-                neighbor, shared, offsetInShared, 1, 0, mpi_info);
+   send.reset(new SharedComponents(n, numNeighbors, neighbor, shared,
+               offsetInShared, 1, 0, mpi_info));
 
    /* build the col_connector based on sender and receiver */
-   col_connector = Paso_Connector_alloc(send, recv);
-   Paso_SharedComponents_free(recv);
-   Paso_SharedComponents_free(send);
+   col_connector.reset(new Connector(send, recv));
    delete[] offsetInShared;
-   delete[] shared;   
+   delete[] shared;
 
-   couple_pattern = Paso_Pattern_alloc(MATRIX_FORMAT_DEFAULT, n_C,
-                        num_Rcouple_cols, ptr, idx);
+   couple_pattern.reset(new Pattern(MATRIX_FORMAT_DEFAULT, n_C,
+                        num_Rcouple_cols, ptr, idx));
 
-   input_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   input_dist.reset(new Distribution(mpi_info, dist, 1, 0));
    dist = P->pattern->input_distribution->first_component;
-   output_dist = Paso_Distribution_alloc(mpi_info, dist, 1, 0);
+   output_dist.reset(new Distribution(mpi_info, dist, 1, 0));
 
-   /* now we need to create the System Matrix 
-      TO BE FIXED: at this stage, we only construction col_couple_pattern
-      and col_connector for Restriction matrix R. To be completed, 
-      row_couple_pattern and row_connector need to be constructed as well */
-   if (Esys_noError()) {
-     pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT, 
-		output_dist, input_dist, main_block->pattern, couple_pattern, 
-		couple_pattern, col_connector, col_connector);
-     out = Paso_SystemMatrix_alloc(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
-		row_block_size, col_block_size, FALSE);
-   } 
+    /* now we need to create the System Matrix
+       TO BE FIXED: at this stage, we only construction col_couple_pattern
+       and col_connector for Restriction matrix R. To be completed,
+       row_couple_pattern and row_connector need to be constructed as well */
+    SystemMatrix_ptr out;
+    SystemMatrixPattern_ptr pattern;
+    if (Esys_noError()) {
+        pattern.reset(new SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+                  output_dist, input_dist, main_block->pattern, couple_pattern,
+                  couple_pattern, col_connector, col_connector));
+        out.reset(new SystemMatrix(MATRIX_FORMAT_DIAGONAL_BLOCK, pattern,
+                  row_block_size, col_block_size, false));
+    }
 
-   /* now fill in the matrix */
-   memcpy(out->mainBlock->val, main_block->val, 
-		main_block->len * sizeof(double));
-   memcpy(out->col_coupleBlock->val, val,
-		out->col_coupleBlock->len * sizeof(double));
-   delete[] val;
+    /* now fill in the matrix */
+    memcpy(out->mainBlock->val, main_block->val,
+                main_block->len * sizeof(double));
+    memcpy(out->col_coupleBlock->val, val,
+                out->col_coupleBlock->len * sizeof(double));
+    delete[] val;
 
-   /* clean up */ 
-   Paso_SparseMatrix_free(main_block);
-   Paso_SystemMatrixPattern_free(pattern);
-   Paso_Pattern_free(couple_pattern);
-   Paso_Connector_free(col_connector);
-   Paso_Distribution_free(output_dist);
-   Paso_Distribution_free(input_dist);
-
-   if (Esys_noError()) {
-      return out;
-   } else {
-      Paso_SystemMatrix_free(out);
-      return NULL;
-   }
+    if (!Esys_noError()) {
+        out.reset();
+    }
+    return out;
 }
+
+} // namespace paso
 

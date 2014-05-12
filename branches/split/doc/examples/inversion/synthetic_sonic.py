@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -47,7 +49,7 @@ numRcvPerLine=101
 rangeRcv=800*U.m
 
 # location of source in crossing array lines with in 0..numRcvInLine one needs to be None
-srcEW=numRcvPerLine/2
+srcEW=numRcvPerLine//2
 srcNS=None
 
 # dommain dimension
@@ -56,7 +58,7 @@ width_y=width_x
 #
 # create array 
 #
-receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
+receiver_line=[2*absorption_zone + i * (rangeRcv//(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
 #
 #   set source location with tag "source""
 #
@@ -66,9 +68,9 @@ if DIM == 2:
    src_loc_2D=(receiver_line[srcEW], 0.)
 else:
    if srcEW:
-      srcNS=numRcvPerLine/2
+      srcNS=numRcvPerLine//2
    elif srcNS:
-      srcNS=numRcvPerLine/2
+      srcNS=numRcvPerLine//2
    else:
        raise ValueError("on of the variables srcEW or srcNS must be None!")
    src_locations  = [ (receiver_line[srcEW], receiver_line[srcNS], depth)]
@@ -79,7 +81,7 @@ else:
 # East-west line of receiver
 rcvEW_locations=[]
 rgEW=[]
-mid_point=receiver_line[len(receiver_line)/2]
+mid_point=receiver_line[len(receiver_line)//2]
 
 for ix in range(len(receiver_line)):
         if DIM == 2:
@@ -126,7 +128,7 @@ while t < t_end:
     tracerEW.addRecord(locEW(p))
     if DIM==3: tracerNS.addRecord(locNS(p))
     print(t, locEW(p)[:4], wl.getValue(t))
-    if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n/5,), p=p)
+    if n%5 == 0 : saveSilo("tmp/u_%d.silo"%(n//5,), p=p)
     n+=1
 tracerEW.write('lineEW.sgy')
 if DIM == 3: tracerNS.write('lineNS.sgy')

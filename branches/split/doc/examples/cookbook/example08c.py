@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -40,7 +41,7 @@ import os #file path tool
 from math import * # math package
 from esys.escript import *
 from esys.escript.unitsSI import *
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.escript.pdetools import Projector
 from esys.weipa import saveVTK
 from cblib import toRegGrid, subsample
@@ -199,7 +200,7 @@ rho.setTaggedValue("bottom",rho2)
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-#mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().LUMPING)
+#mypde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=rho*kmat) #set the general form value D
 

@@ -108,7 +108,7 @@ class Regularization(CostFunction):
         DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
         self.__trafo=makeTranformation(domain, coordinates)
-        self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets)
+        self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
         try:
@@ -152,10 +152,10 @@ class Regularization(CostFunction):
             s0=w0.getShape()
             if numLevelSets == 1:
                 if not s0 == () :
-                    raise ValueError("Unexpected shape %s for weight w0."%s0)
+                    raise ValueError("Unexpected shape %s for weight w0."%(s0,))
             else:
                 if not s0 == (numLevelSets,):
-                    raise ValueError("Unexpected shape %s for weight w0."%s0)
+                    raise ValueError("Unexpected shape %s for weight w0."%(s0,))
             if not self.__trafo.isCartesian():
                 w0*=self.__trafo.getVolumeFactor()
         if not w1 is None:
@@ -163,10 +163,10 @@ class Regularization(CostFunction):
             s1=w1.getShape()
             if numLevelSets == 1 :
                 if not s1 == (DIM,) :
-                    raise ValueError("Unexpected shape %s for weight w1."%s1)
+                    raise ValueError("Unexpected shape %s for weight w1."%(s1,))
             else:
                 if not s1 == (numLevelSets,DIM):
-                    raise ValueError("Unexpected shape %s for weight w1."%s1)
+                    raise ValueError("Unexpected shape %s for weight w1."%(s1,))
             if not self.__trafo.isCartesian():
                 f=self.__trafo.getScalingFactors()**2*self.__trafo.getVolumeFactor()
                 if numLevelSets == 1:

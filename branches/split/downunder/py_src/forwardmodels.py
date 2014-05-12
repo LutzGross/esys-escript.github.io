@@ -27,7 +27,7 @@ __all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticMo
 
 from esys.escript import unitsSI as U
 from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary
-from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
 from esys.escript.util import *
 from math import pi as PI
@@ -81,7 +81,7 @@ class ForwardModelWithPotential(ForwardModel):
         :param data: data
         :type data: ``Vector`` or list of ``Vector``
         :param coordinates: defines coordinate system to be used
-        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
+        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
         :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
@@ -597,7 +597,9 @@ class AcousticWaveForm(ForwardModel):
     where w are weighting factors, data are the measured data (as a 2-comp vector of real and imaginary part)  for real frequency omega, 
     and u is the coresponding result produced by the forward model. u (as a 2-comp vector) is the solution of the 
     complex Helmholtz equation for frequency omega, source F and complex, inverse, squared p-velocity sigma:
-       * -u_{ii} - omega**2 * sigma * u = F
+        
+        * -u_{ii} - omega**2 * sigma * u = F
+        
     It is assumed that the exact scale of source F is unknown and the scaling factor a of F is calculated by minimizing the
     defect 
     """
@@ -751,7 +753,7 @@ class AcousticWaveForm(ForwardModel):
 
             if getEscriptParamInt("PASO_DIRECT")==0:
                 raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
-            pde.getSolverOptions().setSolverMethod(pde.getSolverOptions().DIRECT)
+            pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
         else:

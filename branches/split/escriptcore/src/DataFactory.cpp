@@ -16,10 +16,11 @@
 
 
 #include "DataFactory.h"
-#include "esysUtils/esys_malloc.h"
 #include "esysUtils/Esys_MPI.h"
 
 #include <boost/python/extract.hpp>
+#include <boost/scoped_array.hpp>
+
 #include <iostream>
 #include <exception>
 #ifdef USE_NETCDF
@@ -214,15 +215,14 @@ load(const std::string fileName,
    /* recover type attribute */
    int type=-1;
    if ((type_att=dataFile.get_att("type")) ) {
-       char* type_str = type_att->as_string(0);
-       if (strncmp(type_str, "constant", strlen("constant")) == 0 ) {
-          type =0;
-       } else if (strncmp(type_str, "tagged", strlen("tagged")) == 0 ) {
-           type =1;
-       } else if (strncmp(type_str, "expanded", strlen("expanded")) == 0 ) {
-           type =2;
+       boost::scoped_array<char> type_str(type_att->as_string(0));
+       if (strncmp(type_str.get(), "constant", strlen("constant")) == 0 ) {
+          type = 0;
+       } else if (strncmp(type_str.get(), "tagged", strlen("tagged")) == 0 ) {
+           type = 1;
+       } else if (strncmp(type_str.get(), "expanded", strlen("expanded")) == 0 ) {
+           type = 2;
        }
-       esysUtils::free(type_str);
    } else {
       if (! (type_att=dataFile.get_att("type_id")) )
   	throw DataException("Error - load:: cannot recover type attribute from escript netCDF file.");
@@ -280,7 +280,7 @@ load(const std::string fileName,
           if (! (d_dim=dataFile.get_dim("l")) )
               throw DataException("Error - load:: unable to recover d0 for scalar constant data in netCDF file.");
           int d0 = d_dim->size();
-          if (! d0 == 1) 
+          if (d0 != 1)
               throw DataException("Error - load:: d0 is expected to be one for scalar constant data in netCDF file.");
           dims[0]=1;
       }

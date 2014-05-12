@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2012-2014 by University of Queensland
@@ -132,6 +134,13 @@ def work():
          g_data=g, sigma_g=sigma_g, B_data=B, sigma_B=sigma_B)
 
   print("All done. Have a nice day!")
+
+try:
+    import pyproj
+except ImportError:
+    print("This example requires pyproj to be installed.")
+    import sys
+    sys.exit(0)
 
 if 'NetCdfData' in dir():
   work()

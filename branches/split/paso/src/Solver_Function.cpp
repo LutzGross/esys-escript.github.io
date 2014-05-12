@@ -14,54 +14,43 @@
 *
 *****************************************************************************/
 
-
-#include "Common.h"
 #include "Functions.h"
 #include "PasoUtil.h"
 #include "Solver.h"
+
+namespace paso {
+
 /*
  * generate Linear System (mainly for test purposes)
- *
  */
-Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options)
+LinearSystem::LinearSystem(SystemMatrix_ptr A, double* _b, Options* options) :
+    Function(A->mpi_info)
 {
-    Paso_Function * out=NULL;
-    Paso_SystemMatrix_setPreconditioner(A,options);
-    if (! Esys_noError()) return NULL;
-    out=new Paso_Function;
-    if (! Esys_checkPtr(out)) {
-        out->kind=LINEAR_SYSTEM;
-        out->mpi_info=A->mpi_info;
-        out->n=Paso_SystemMatrix_getTotalNumRows(A);
-        out->more=(void*)Paso_SystemMatrix_getReference(A);
-        out->b=b;
-        out->tmp=new double[out->n];
-        Esys_checkPtr(out->tmp);
-    }
-    if (Esys_noError()) {
-        return out;
-    } else {
-        Paso_Function_LinearSystem_free(out);
-        return NULL;
-    }
+    A->setPreconditioner(options);
+    n = A->getTotalNumRows();
+    mat = A;
+    b = _b;
+    tmp = new double[n];
 }
-void Paso_Function_LinearSystem_free(Paso_Function * F) 
+
+LinearSystem::~LinearSystem()
 {
-   if (F!=NULL) {
-       Paso_SystemMatrix_free((Paso_SystemMatrix*)(F->more));
-       delete[] F->tmp;
-       delete F;
-   }
+    delete[] tmp;
 }
+
 /*
  * evaluates value=P*(b-Ax)
- *
  */
-err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp)
+err_t LinearSystem::call(double* value, const double* arg, Performance* pp)
 {
-    Paso_SystemMatrix* A=(Paso_SystemMatrix*)(F->more);
-    Paso_Copy(F->n,F->tmp,F->b); /* tmp=b */
-    Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, arg,-PASO_ONE, F->tmp); /* tmp=(A*arg-tmp) */
-    Paso_SystemMatrix_solvePreconditioner(A,value,F->tmp);  /* value=P*tmp */
+    // tmp = b
+    util::copy(n, tmp, b);
+    // tmp = (A*arg-tmp)
+    SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, mat, arg, -PASO_ONE, tmp);
+    // value = P*tmp
+    mat->solvePreconditioner(value, tmp);
     return NO_ERROR;
 }
+
+} // namespace paso
+

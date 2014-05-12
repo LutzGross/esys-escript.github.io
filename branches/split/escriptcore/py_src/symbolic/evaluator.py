@@ -95,7 +95,7 @@ class Evaluator(object):
         self._subsdict.update(args)
         return self
 
-    def evaluate(self, **args):
+    def evaluate(self, evalf=False, **args):
         """
         Evaluates all expressions in this evaluator and returns the result
         as a tuple.
@@ -103,8 +103,10 @@ class Evaluator(object):
         :return: the evaluated expressions in the order they were added to
                  this Evaluator.
         """
+        from esys import escript
         self.subs(**args)
         res=()
+        resEvaled=()
         for i in range(len(self.lambdas)):
             x=self.symbols[i]
             subslist=[self._subsdict[a.name] for a in x if a.name in self._subsdict]
@@ -112,10 +114,17 @@ class Evaluator(object):
                 res+=self.lambdas[i](*subslist),
             else:
                 raise RuntimeError("Not all symbols have a value")
+            if evalf:
+                if isinstance(res[i], escript.Symbol):
+                    resEvaled+=(res[i].evalf(),)
+                else:
+                    resEvaled+=(res[i],)
+            else:
+                resEvaled+=(res[i],)
         if len(res)==1:
-            return res[0]
+            return resEvaled[0]
         else:
-            return res
+            return resEvaled
 
     def __call__(self, **args):
         """

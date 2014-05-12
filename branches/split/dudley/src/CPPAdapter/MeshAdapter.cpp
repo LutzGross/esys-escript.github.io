@@ -115,11 +115,11 @@ Dudley_Mesh* MeshAdapter::getDudley_Mesh() const {
 
 void MeshAdapter::write(const string& fileName) const
 {
-   char *fName = (fileName.size()+1>0) ? TMPMEMALLOC(fileName.size()+1,char) : (char*)NULL;
+   char *fName = (fileName.size()+1>0) ? new char[fileName.size()+1] : (char*)NULL;
    strcpy(fName,fileName.c_str());
    Dudley_Mesh_write(m_dudleyMesh.get(),fName);
    checkDudleyError();
-   TMPMEMFREE(fName);
+   delete[] fName;
 }
 
 void MeshAdapter::Print_Mesh_Info(const bool full) const
@@ -433,7 +433,7 @@ void MeshAdapter::dump(const string& fileName) const
    if (num_Tags>0) {
 
       // Temp storage to gather node IDs
-      int *Tags_keys = TMPMEMALLOC(num_Tags, int);
+      int *Tags_keys = new int[num_Tags];
       char name_temp[4096];
 
       /* Copy tag data into temp arrays */
@@ -469,7 +469,7 @@ void MeshAdapter::dump(const string& fileName) const
          }
       }
 
-      TMPMEMFREE(Tags_keys);
+      delete[] Tags_keys;
    }
 
 /* Send token to next MPI process so he can take his turn */
@@ -771,13 +771,13 @@ void MeshAdapter::addPDEToRHS( escript::Data& rhs, const  escript::Data& X,const
    escriptDataC _y=y.getDataC();
    escriptDataC _y_dirac=y_dirac.getDataC();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, 0, &_rhs, 0, 0, 0, 0, &_X, &_Y );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements, paso::SystemMatrix_ptr(), &_rhs, 0, 0, 0, 0, &_X, &_Y);
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, 0, &_rhs, 0, 0, 0, 0, 0, &_y );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->FaceElements, paso::SystemMatrix_ptr(), &_rhs, 0, 0, 0, 0, 0, &_y );
    checkDudleyError();
 
-   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, 0, &_rhs, 0, 0, 0, 0, 0, &_y_dirac );
+   Dudley_Assemble_PDE(mesh->Nodes,mesh->Points, paso::SystemMatrix_ptr(), &_rhs, 0, 0, 0, 0, 0, &_y_dirac );
    checkDudleyError();
 }
 //
@@ -820,7 +820,7 @@ void MeshAdapter::addPDEToTransportProblem(
    escriptDataC _y_dirac=y_dirac.getDataC();
 
    Dudley_Mesh* mesh=m_dudleyMesh.get();
-   Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
+   paso::TransportProblem_ptr _tp(tpa->getPaso_TransportProblem());
 
    Dudley_Assemble_PDE(mesh->Nodes,mesh->Elements,_tp->mass_matrix, &_source, 0, 0, 0, &_M, 0, 0 );
    checkDudleyError();
@@ -1406,9 +1406,9 @@ ASM_ptr MeshAdapter::newSystemMatrix(
    }
    // generate matrix:
  
-   Paso_SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder);
+   paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceRowOrder,reduceColOrder));
    checkDudleyError();
-   Paso_SystemMatrix* fsystemMatrix;
+   paso::SystemMatrix_ptr fsystemMatrix;
    int trilinos = 0;
    if (trilinos) {
 #ifdef TRILINOS
@@ -1416,10 +1416,9 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 #endif
    }
    else {
-      fsystemMatrix=Paso_SystemMatrix_alloc(type,fsystemMatrixPattern,row_blocksize,column_blocksize,FALSE);
+      fsystemMatrix.reset(new paso::SystemMatrix(type, fsystemMatrixPattern, row_blocksize, column_blocksize,false));
    }
    checkPasoError();
-   Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
    SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix,row_blocksize,row_functionspace, column_blocksize,column_functionspace);
    return ASM_ptr(sma);
 }
@@ -1427,33 +1426,31 @@ ASM_ptr MeshAdapter::newSystemMatrix(
 //
 // creates a TransportProblemAdapter
 //
-ATP_ptr MeshAdapter::newTransportProblem(
-                                                         const int blocksize,
-                                                         const escript::FunctionSpace& functionspace,
-                                                         const int type) const
+ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
+                                         const escript::FunctionSpace& fs,
+                                         const int type) const
 {
    int reduceOrder=0;
    // is the domain right?
-   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(functionspace.getDomain()));
+   const MeshAdapter& domain=dynamic_cast<const MeshAdapter&>(*(fs.getDomain()));
    if (domain!=*this) 
       throw DudleyAdapterException("Error - domain of function space does not match the domain of transport problem generator.");
    // is the function space type right 
-   if (functionspace.getTypeCode()==DegreesOfFreedom) {
+   if (fs.getTypeCode()==DegreesOfFreedom) {
       reduceOrder=0;
-   } else if (functionspace.getTypeCode()==ReducedDegreesOfFreedom) {
+   } else if (fs.getTypeCode()==ReducedDegreesOfFreedom) {
       reduceOrder=1;
    } else {
       throw DudleyAdapterException("Error - illegal function space type for system matrix rows.");
    }
    // generate matrix:
  
-   Paso_SystemMatrixPattern* fsystemMatrixPattern=Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder);
+   paso::SystemMatrixPattern_ptr fsystemMatrixPattern(Dudley_getPattern(getDudley_Mesh(),reduceOrder,reduceOrder));
    checkDudleyError();
-   Paso_TransportProblem* transportProblem;
-   transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern,blocksize);
+   paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
+                                            fsystemMatrixPattern, blocksize));
    checkPasoError();
-   Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
-   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem,blocksize,functionspace);
+   AbstractTransportProblem* atp=new TransportProblemAdapter(transportProblem, blocksize, fs);
    return ATP_ptr(atp);
 }
 

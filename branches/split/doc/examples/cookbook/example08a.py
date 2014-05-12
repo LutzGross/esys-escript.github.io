@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -36,7 +37,7 @@ import os
 from esys.escript.pdetools import Projector, Locator
 from esys.escript.unitsSI import *
 import numpy as np
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -86,7 +87,7 @@ x=domain.getX() # get the locations of the nodes in the domani
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=kmat*rho) #set the general form value D
 

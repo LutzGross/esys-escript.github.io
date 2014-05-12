@@ -28,6 +28,8 @@ testruns += ['run_simplesolve.py']
 testruns += ['run_linearPDEsOnRipley1.py']
 testruns += ['run_nlpde2dOnRipley.py']
 testruns += ['run_nlpde3dOnRipley.py']
+testruns += ['run_customAssemblers.py']
+testruns.append('run_diracOnRipley.py')
 
 #Add Unit Test to target alias
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)

@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -39,7 +40,7 @@ PAD_X = 0.2
 PAD_Y = 0.2
 thickness = 40. * U.km
 l_air = 6. * U.km
-n_cells_v = 25
+n_cells_v = 15
 MU = 0.1
 
 COORDINATES=CartesianReferenceSystem()
@@ -77,6 +78,13 @@ def work():
   print("Results saved in result_gravity.csv")
 
   print("All done. Have a nice day!")
+
+try:
+    import pyproj
+except ImportError:
+    print("This example requires pyproj to be installed.")
+    import sys
+    sys.exit(0)
 
 if 'NetCdfData' in dir():
   work()

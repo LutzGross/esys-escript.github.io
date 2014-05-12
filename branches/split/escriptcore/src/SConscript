@@ -61,6 +61,8 @@ sources = """
     TransportProblemException.cpp
     Utils.cpp
     WrappedArray.cpp
+    SolverOptions.cpp
+    SolverOptionsException.cpp
 """.split()
     # blocktimer.c
 headers = """
@@ -109,6 +111,8 @@ headers = """
     Utils.h
     WrappedArray.h
     system_dep.h
+    SolverOptions.h
+    SolverOptionsException.h
 """.split()
     # blocktimer.h
 

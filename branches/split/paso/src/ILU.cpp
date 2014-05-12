@@ -15,51 +15,47 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Paso: ILU preconditioner with reordering                 */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Copyrights by ACcESS Australia 2003,2004,2005              */
 /* Author: Lutz Gross, l.gross@uq.edu.au                      */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"
 
-/************************************************************************************/
+namespace paso {
 
-/* free all memory used by ILU                                */
-
-void Paso_Solver_ILU_free(Paso_Solver_ILU * in) {
-     if (in!=NULL) {
+void Solver_ILU_free(Solver_ILU * in)
+{
+    if (in!=NULL) {
         delete[] in->factors;
         delete in;
-     }
+    }
 }
 
-/************************************************************************************/
-
-/*   constructs the incomplete block factorization            */
-
-Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
+/// constructs the incomplete block factorization
+Solver_ILU* Solver_getILU(SparseMatrix_ptr A, bool verbose)
+{
   const dim_t n=A->numRows;
   const dim_t n_block=A->row_block_size;
-  const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);
-  const dim_t num_colors = Paso_Pattern_getNumColors(A->pattern);
-  const index_t *ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A);
+  const index_t* colorOf = A->pattern->borrowColoringPointer();
+  const dim_t num_colors = A->pattern->getNumColors();
+  const index_t *ptr_main = A->borrowMainDiagonalPointer();
   register double A11,A12,A13,A21,A22,A23,A31,A32,A33,D;
   register double S11,S12,S13,S21,S22,S23,S31,S32,S33;
   register index_t i,iptr_main,iptr_ik,k,iptr_kj,j,iptr_ij,color,color2, iptr;
   double time0=0,time_fac=0;
-  /* allocations: */  
-  Paso_Solver_ILU* out=new Paso_Solver_ILU;
-  if (Esys_checkPtr(out)) return NULL;
+  /* allocations: */
+  Solver_ILU* out=new Solver_ILU;
   out->factors=new double[A->len];
-  
+
   if ( ! Esys_checkPtr(out->factors)  ) {
 
        time0=Esys_timer();
@@ -69,7 +65,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                for (iptr=A->pattern->ptr[i];iptr<A->pattern->ptr[i+1]; iptr++) {
                      for (k=0;k<n_block*n_block;++k) out->factors[n_block*n_block*iptr+k]=A->val[n_block*n_block*iptr+k];
                }
-       }	
+       }
        /* start factorization */
        for (color=0;color<num_colors && Esys_noError();++color) {
               if (n_block==1) {
@@ -78,13 +74,13 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                     if (colorOf[i]==color) {
                        for (color2=0;color2<color;++color2) {
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                             k=A->pattern->index[iptr_ik];                          
+                             k=A->pattern->index[iptr_ik];
                              if (colorOf[k]==color2) {
-                                A11=out->factors[iptr_ik]; 
+                                A11=out->factors[iptr_ik];
                                 /* a_ij=a_ij-a_ik*a_kj */
                                 for (iptr_kj=A->pattern->ptr[k];iptr_kj<A->pattern->ptr[k+1]; iptr_kj++) {
                                    j=A->pattern->index[iptr_kj];
-                                   if (colorOf[j]>color2) { 
+                                   if (colorOf[j]>color2) {
                                       S11=out->factors[iptr_kj];
                                       for (iptr_ij=A->pattern->ptr[i];iptr_ij<A->pattern->ptr[i+1]; iptr_ij++) {
                                          if (j==A->pattern->index[iptr_ij]) {
@@ -108,10 +104,10 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                              if (colorOf[k]>color) {
                                 A11=out->factors[iptr_ik];
                                 out->factors[iptr_ik]=A11*D;
-                             }                               
+                             }
                           }
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -121,8 +117,8 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                     if (colorOf[i]==color) {
                        for (color2=0;color2<color;++color2) {
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                             k=A->pattern->index[iptr_ik];                          
-                             if (colorOf[k]==color2) { 
+                             k=A->pattern->index[iptr_ik];
+                             if (colorOf[k]==color2) {
                                 A11=out->factors[iptr_ik*4  ];
                                 A21=out->factors[iptr_ik*4+1];
                                 A12=out->factors[iptr_ik*4+2];
@@ -130,7 +126,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                                 /* a_ij=a_ij-a_ik*a_kj */
                                 for (iptr_kj=A->pattern->ptr[k];iptr_kj<A->pattern->ptr[k+1]; iptr_kj++) {
                                    j=A->pattern->index[iptr_kj];
-                                   if (colorOf[j]>color2) { 
+                                   if (colorOf[j]>color2) {
                                       S11=out->factors[iptr_kj*4];
                                       S21=out->factors[iptr_kj*4+1];
                                       S12=out->factors[iptr_kj*4+2];
@@ -177,10 +173,10 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                                 out->factors[4*iptr_ik+1]=S21*A11+S22*A21;
                                 out->factors[4*iptr_ik+2]=S11*A12+S12*A22;
                                 out->factors[4*iptr_ik+3]=S21*A12+S22*A22;
-                             }                               
+                             }
                           }
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
@@ -190,8 +186,8 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                     if (colorOf[i]==color) {
                        for (color2=0;color2<color;++color2) {
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                             k=A->pattern->index[iptr_ik];                          
-                             if (colorOf[k]==color2) { 
+                             k=A->pattern->index[iptr_ik];
+                             if (colorOf[k]==color2) {
                                 A11=out->factors[iptr_ik*9  ];
                                 A21=out->factors[iptr_ik*9+1];
                                 A31=out->factors[iptr_ik*9+2];
@@ -204,7 +200,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                                 /* a_ij=a_ij-a_ik*a_kj */
                                 for (iptr_kj=A->pattern->ptr[k];iptr_kj<A->pattern->ptr[k+1]; iptr_kj++) {
                                    j=A->pattern->index[iptr_kj];
-                                   if (colorOf[j]>color2) { 
+                                   if (colorOf[j]>color2) {
                                       S11=out->factors[iptr_kj*9  ];
                                       S21=out->factors[iptr_kj*9+1];
                                       S31=out->factors[iptr_kj*9+2];
@@ -213,16 +209,16 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                                       S32=out->factors[iptr_kj*9+5];
                                       S13=out->factors[iptr_kj*9+6];
                                       S23=out->factors[iptr_kj*9+7];
-                                      S33=out->factors[iptr_kj*9+8];                                
+                                      S33=out->factors[iptr_kj*9+8];
                                       for (iptr_ij=A->pattern->ptr[i];iptr_ij<A->pattern->ptr[i+1]; iptr_ij++) {
                                          if (j==A->pattern->index[iptr_ij]) {
-                                            out->factors[iptr_ij*9  ]-=A11*S11+A12*S21+A13*S31;                             
+                                            out->factors[iptr_ij*9  ]-=A11*S11+A12*S21+A13*S31;
                                             out->factors[iptr_ij*9+1]-=A21*S11+A22*S21+A23*S31;
                                             out->factors[iptr_ij*9+2]-=A31*S11+A32*S21+A33*S31;
-                                            out->factors[iptr_ij*9+3]-=A11*S12+A12*S22+A13*S32;                             
+                                            out->factors[iptr_ij*9+3]-=A11*S12+A12*S22+A13*S32;
                                             out->factors[iptr_ij*9+4]-=A21*S12+A22*S22+A23*S32;
                                             out->factors[iptr_ij*9+5]-=A31*S12+A32*S22+A33*S32;
-                                            out->factors[iptr_ij*9+6]-=A11*S13+A12*S23+A13*S33;                             
+                                            out->factors[iptr_ij*9+6]-=A11*S13+A12*S23+A13*S33;
                                             out->factors[iptr_ij*9+7]-=A21*S13+A22*S23+A23*S33;
                                             out->factors[iptr_ij*9+8]-=A31*S13+A32*S23+A33*S33;
                                             break;
@@ -255,7 +251,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                           S13=(A12*A23-A13*A22)*D;
                           S23=(A13*A21-A11*A23)*D;
                           S33=(A11*A22-A12*A21)*D;
-   
+
                           out->factors[iptr_main*9  ]=S11;
                           out->factors[iptr_main*9+1]=S21;
                           out->factors[iptr_main*9+2]=S31;
@@ -265,7 +261,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                           out->factors[iptr_main*9+6]=S13;
                           out->factors[iptr_main*9+7]=S23;
                           out->factors[iptr_main*9+8]=S33;
-   
+
                           /* a_ik=a_ii^{-1}*a_ik */
                           for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
                              k=A->pattern->index[iptr_ik];
@@ -279,25 +275,25 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
                                 A13=out->factors[iptr_ik*9+6];
                                 A23=out->factors[iptr_ik*9+7];
                                 A33=out->factors[iptr_ik*9+8];
-                                out->factors[iptr_ik*9  ]=S11*A11+S12*A21+S13*A31;                             
+                                out->factors[iptr_ik*9  ]=S11*A11+S12*A21+S13*A31;
                                 out->factors[iptr_ik*9+1]=S21*A11+S22*A21+S23*A31;
                                 out->factors[iptr_ik*9+2]=S31*A11+S32*A21+S33*A31;
-                                out->factors[iptr_ik*9+3]=S11*A12+S12*A22+S13*A32;                             
+                                out->factors[iptr_ik*9+3]=S11*A12+S12*A22+S13*A32;
                                 out->factors[iptr_ik*9+4]=S21*A12+S22*A22+S23*A32;
                                 out->factors[iptr_ik*9+5]=S31*A12+S32*A22+S33*A32;
-                                out->factors[iptr_ik*9+6]=S11*A13+S12*A23+S13*A33;                             
+                                out->factors[iptr_ik*9+6]=S11*A13+S12*A23+S13*A33;
                                 out->factors[iptr_ik*9+7]=S21*A13+S22*A23+S23*A33;
                                 out->factors[iptr_ik*9+8]=S31*A13+S32*A23+S33*A33;
-                             }                               
+                             }
                           }
                        } else {
-                            Esys_setError(ZERO_DIVISION_ERROR, "Paso_Solver_getILU: non-regular main diagonal block.");
+                            Esys_setError(ZERO_DIVISION_ERROR, "Solver_getILU: non-regular main diagonal block.");
                        }
                     }
                  }
               } else {
-                 Esys_setError(VALUE_ERROR, "Paso_Solver_getILU: block size greater than 3 is not supported.");
-              }       
+                 Esys_setError(VALUE_ERROR, "Solver_getILU: block size greater than 3 is not supported.");
+              }
               #pragma omp barrier
        }
        time_fac=Esys_timer()-time0;
@@ -306,7 +302,7 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
       if (verbose) printf("timing: ILU: coloring/elimination: %e sec\n",time_fac);
      return out;
   } else  {
-     Paso_Solver_ILU_free(out);
+     Solver_ILU_free(out);
      return NULL;
   }
 }
@@ -315,24 +311,25 @@ Paso_Solver_ILU* Paso_Solver_getILU(Paso_SparseMatrix * A,bool verbose) {
 
 /* Applies ILU precondition b-> x
 
-   In fact it solves LUx=b in the form x= U^{-1} L^{-1}b 
+   In fact it solves LUx=b in the form x= U^{-1} L^{-1}b
 
    Should be called within a parallel region.
    Barrier synchronization should be performed to make sure that the input
    vector is available.
 */
 
-void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double * x, const double * b) {
+void Solver_solveILU(SparseMatrix_ptr A, Solver_ILU* ilu, double* x,
+                     const double* b)
+{
      register dim_t i,k;
      register index_t color,iptr_ik,iptr_main;
      register double S1,S2,S3,R1,R2,R3;
      const dim_t n=A->numRows;
      const dim_t n_block=A->row_block_size;
-     const index_t* colorOf = Paso_Pattern_borrowColoringPointer(A->pattern);
-     const dim_t num_colors = Paso_Pattern_getNumColors(A->pattern);
-     const index_t *ptr_main = Paso_SparseMatrix_borrowMainDiagonalPointer(A);
-     
-     
+     const index_t* colorOf = A->pattern->borrowColoringPointer();
+     const dim_t num_colors = A->pattern->getNumColors();
+     const index_t *ptr_main = A->borrowMainDiagonalPointer();
+
      /* copy x into b */
      #pragma omp parallel for private(i) schedule(static)
      for (i=0;i<n*n_block;++i) x[i]=b[i];
@@ -342,12 +339,12 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
               #pragma omp parallel for schedule(static) private(i,iptr_ik,k,S1,R1,iptr_main)
               for (i = 0; i < n; ++i) {
                    if (colorOf[i]==color) {
-                     /* x_i=x_i-a_ik*x_k */                     
+                     /* x_i=x_i-a_ik*x_k */
                      S1=x[i];
                      for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=A->pattern->index[iptr_ik];                          
+                          k=A->pattern->index[iptr_ik];
                           if (colorOf[k]<color) {
-                             R1=x[k];                              
+                             R1=x[k];
                              S1-=ilu->factors[iptr_ik]*R1;
                           }
                      }
@@ -363,7 +360,7 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
                      S1=x[2*i];
                      S2=x[2*i+1];
                      for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=A->pattern->index[iptr_ik];                          
+                          k=A->pattern->index[iptr_ik];
                           if (colorOf[k]<color) {
                              R1=x[2*k];
                              R2=x[2*k+1];
@@ -386,7 +383,7 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
                      S2=x[3*i+1];
                      S3=x[3*i+2];
                      for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=A->pattern->index[iptr_ik];                          
+                          k=A->pattern->index[iptr_ik];
                           if (colorOf[k]<color) {
                              R1=x[3*k];
                              R2=x[3*k+1];
@@ -413,9 +410,9 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
                      /* x_i=x_i-a_ik*x_k */
                      S1=x[i];
                      for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=A->pattern->index[iptr_ik];                          
+                          k=A->pattern->index[iptr_ik];
                           if (colorOf[k]>color) {
-                             R1=x[k]; 
+                             R1=x[k];
                              S1-=ilu->factors[iptr_ik]*R1;
                           }
                      }
@@ -430,7 +427,7 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
                      S1=x[2*i];
                      S2=x[2*i+1];
                      for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=A->pattern->index[iptr_ik];                          
+                          k=A->pattern->index[iptr_ik];
                           if (colorOf[k]>color) {
                              R1=x[2*k];
                              R2=x[2*k+1];
@@ -451,7 +448,7 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
                      S2=x[3*i+1];
                      S3=x[3*i+2];
                      for (iptr_ik=A->pattern->ptr[i];iptr_ik<A->pattern->ptr[i+1]; ++iptr_ik) {
-                          k=A->pattern->index[iptr_ik];                          
+                          k=A->pattern->index[iptr_ik];
                           if (colorOf[k]>color) {
                              R1=x[3*k];
                              R2=x[3*k+1];
@@ -470,4 +467,6 @@ void Paso_Solver_solveILU(Paso_SparseMatrix * A, Paso_Solver_ILU * ilu, double *
          #pragma omp barrier
      }
 }
+
+} // namespace paso
 

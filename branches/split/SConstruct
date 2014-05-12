@@ -46,7 +46,7 @@ if not options_file:
 if not os.path.isfile(options_file):
     print("\nWARNING:\nOptions file %s" % options_file)
     print("not found! Default options will be used which is most likely suboptimal.")
-    print("We recommend that you copy one of the TEMPLATE files in the scons/")
+    print("We recommend that you copy the most relavent options file in the scons/os/")
     print("subdirectory and customize it to your needs.\n")
     options_file = None
 
@@ -135,6 +135,8 @@ vars.AddVariables(
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
   BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
+  BoolVariable('compressed_files','Enables reading from compressed binary files', True),
+  ('compression_libs', 'Compression libraries to link with', ['boost_iostreams'])
 )
 
 ##################### Create environment and help text #######################
@@ -230,8 +232,8 @@ if cc_name == 'icpc':
     # Intel compiler
     # #1875: offsetof applied to non-POD types is nonstandard (in boost)
     # removed -std=c99 because icpc doesn't like it and we aren't using c anymore
-    cc_flags    = "-fPIC -w2 -wd1875 -Wno-unknown-pragmas -DBLOCKTIMER -DCORE_ID1"
-    cc_optim    = "-O3 -ftz -fno-alias -ipo -xHost"
+    cc_flags    = "-fPIC -w2 -wd1875 -Wno-unknown-pragmas"
+    cc_optim    = "-O3 -ftz -fno-alias -inline-level=2 -ipo -xHost"
     cc_debug    = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
     omp_flags   = "-openmp"
     omp_ldflags = "-openmp -openmp_report=1"
@@ -240,9 +242,9 @@ elif cc_name[:3] == 'g++':
     # GNU C on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
-    cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -DBLOCKTIMER  -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
+    cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
     cc_optim     = "-O3"
-    cc_debug     = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK"
+    cc_debug     = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK --param=max-vartrack-size=90000000" #avoids vartrack limit being exceeded with escriptcpp.cpp
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
@@ -371,7 +373,7 @@ for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
         env['ENV'][key] = 1
 
 env_export=env['env_export']
-env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH','HOME','KMP_MONITOR_STACKSIZE','TMPDIR','TEMP','TMP'])
+env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH','HOME','KMP_MONITOR_STACKSIZE','TMPDIR','TEMP','TMP','LD_PRELOAD'])
 
 for key in set(env_export):
     try:
@@ -653,6 +655,7 @@ def print_summary():
         print("            gmsh:  FOUND")
     else:
         print("            gmsh:  NOT FOUND")
+    print(    "            gzip:  " + ("YES" if env['compressed_files'] else "NO"))
 
     if ((fatalwarning != '') and (env['werror'])):
         print("  Treating warnings as errors")
@@ -661,6 +664,10 @@ def print_summary():
     print("")
     for w in env['warnings']:
         print("WARNING: %s"%w)
+    if len(GetBuildFailures()):
+        print("\nERROR: build stopped due to errors\n")
+    else:
+        print("\nSUCCESS: build complete\n")
 
 atexit.register(print_summary)
 

@@ -13,8 +13,8 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-#ifndef __LAME_ASSEMBLER2D_H__
-#define __LAME_ASSEMBLER2D_H__
+#ifndef __RIPLEY_LAMEASSEMBLER2D_H__
+#define __RIPLEY_LAMEASSEMBLER2D_H__
 
 #include <map>
 #include <escript/Data.h>
@@ -39,27 +39,31 @@ public:
     ~LameAssembler2D(){};
     
     /* The new interface for assemblers */
-    virtual void assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+    virtual void assemblePDESingle(paso::SystemMatrix_ptr mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESingleReduced(Paso_SystemMatrix* mat,
+    virtual void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+    virtual void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+    virtual void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESystemReduced(Paso_SystemMatrix* mat,
+    virtual void assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+            std::map<std::string, escript::Data> coefs) const;
+    virtual void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+    virtual void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs,
+            std::map<std::string, escript::Data> coefs) const;
+    virtual void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs,
+            std::map<std::string, escript::Data> coefs) const;
+            
+    void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
             std::map<std::string, escript::Data> coefs) const;
 protected:
     Rectangle *domain;
@@ -69,7 +73,7 @@ protected:
     dim_t *m_NN;
 };
 
-}
+} // namespace ripley
 
+#endif // __RIPLEY_LAMEASSEMBLER2D_H__
 
-#endif

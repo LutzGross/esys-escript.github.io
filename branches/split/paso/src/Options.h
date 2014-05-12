@@ -15,24 +15,23 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: Options */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Copyrights by ACcESS Australia 2003,2004,2005 */
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_OPTIONS
-#define INC_PASO_OPTIONS
+#ifndef __PASO_OPTIONS_H__
+#define __PASO_OPTIONS_H__
 
-#include "esysUtils/Esys_MPI.h"
+#include "esysUtils/types.h"
 
-/* solver options */
-
+// valid solver options
 #define PASO_DEFAULT 0
 #define PASO_DIRECT 1
 #define PASO_CHOLEVSKY 2
@@ -46,11 +45,11 @@
 #define PASO_GMRES 11
 #define PASO_PRES20 12
 #define PASO_LUMPING 13
+#define PASO_MKL 15
+#define PASO_UMFPACK 16
 #define PASO_NO_REORDERING 17
 #define PASO_MINIMUM_FILL_IN 18
 #define PASO_NESTED_DISSECTION 19
-#define PASO_MKL 15
-#define PASO_UMFPACK 16
 #define PASO_ITERATIVE 20
 #define PASO_PASO 21
 #define PASO_AMG 22
@@ -65,13 +64,13 @@
 #define PASO_DEFAULT_REORDERING 30
 #define PASO_SUPER_LU 31
 #define PASO_PASTIX 32
-#define PASO_STANDARD_COARSENING 39
 #define PASO_YAIR_SHAPIRA_COARSENING 33
 #define PASO_RUGE_STUEBEN_COARSENING 34
 #define PASO_AGGREGATION_COARSENING 35
 #define PASO_NO_PRECONDITIONER 36
 #define PASO_MIN_COARSE_MATRIX_SIZE 37
 #define PASO_AMLI 38
+#define PASO_STANDARD_COARSENING 39
 #define PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING 50
 #define PASO_CLASSIC_INTERPOLATION 51
 #define PASO_DIRECT_INTERPOLATION 52
@@ -81,17 +80,37 @@
 #define PASO_FALGOUT_COARSENING 63
 #define PASO_PMIS_COARSENING 64
 #define PASO_HMIS_COARSENING 65
-
 #define PASO_LINEAR_CRANK_NICOLSON 66
 #define PASO_CRANK_NICOLSON 67
 #define PASO_BACKWARD_EULER 68
 
-
-
-
 #define PASO_SMOOTHER 99999999
 
-typedef struct {
+namespace paso {
+
+PASO_DLL_API
+struct Options
+{
+    Options() { setDefaults(); }
+
+    /// sets the default values for solver options
+    void setDefaults();
+
+    /// prints current option values
+    void show() const;
+
+    /// prints diagnostic data
+    void showDiagnostics() const;
+
+    static const char* name(index_t key);
+
+    static index_t getPackage(index_t solver, index_t package, bool symmetry,
+                              const esysUtils::JMPI& mpi_info);
+
+    /// returns the solver to be used with given combination
+    static index_t getSolver(index_t solver, index_t package, bool symmetry,
+                             const esysUtils::JMPI& mpi_info);
+
     index_t method;
     index_t package;
     bool symmetric;
@@ -127,8 +146,8 @@ typedef struct {
     bool usePanel;
     index_t interpolation_method;
     index_t ode_solver;
-    
-    /* diagnostic values */
+
+    // diagnostic values
     dim_t num_iter;
     dim_t num_level;
     dim_t num_inner_iter;
@@ -139,29 +158,13 @@ typedef struct {
     double net_time;
     double residual_norm;
     bool converged;
-    double preconditioner_size; /* in Mbytes */
+    double preconditioner_size; // in Mbytes
     bool time_step_backtracking_used;
     double coarse_level_sparsity;
     dim_t num_coarse_unknowns;
+};
 
-} Paso_Options;
+} // namespace paso
 
-/*  interfaces: */
+#endif // __PASO_OPTIONS_H__
 
-
-PASO_DLL_API
-void Paso_Options_setDefaults(Paso_Options* in);
-
-PASO_DLL_API
-void Paso_Options_show(const Paso_Options* options);
-
-PASO_DLL_API
-void Paso_Options_showDiagnostics(const Paso_Options* options);
-const char* Paso_Options_name(const index_t key);
-index_t Paso_Options_getPackage(index_t solver,index_t package, bool symmetry, const esysUtils::JMPI& mpi_info);
-
-index_t Paso_Options_getSolver(index_t solver,index_t package, bool symmetry, const esysUtils::JMPI& mpi_info);
-
-#define Paso_Options_copy(in,out) memcpy((Paso_Options*)out,(Paso_Options*)in,sizeof(Paso_Options))
-
-#endif /* #ifndef INC_PASO_OPTIONS */

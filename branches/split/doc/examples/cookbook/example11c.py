@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -43,6 +44,7 @@ from esys.escript.linearPDEs import LinearPDE # This defines LinearPDE as Linear
 from esys.escript.pdetools import Projector
 from esys.escript.unitsSI import * 
 from esys.finley import ReadMesh,Rectangle
+from esys.weipa import saveVTK
 
 from cblib import toRegGrid
 
@@ -101,6 +103,8 @@ mypde.setValue(A=con*kro,Y=sourceg,q=q,r=0)
 #mypde.setSymmetryOn()
 sol=mypde.getSolution()
 
+res.expand()
+
 # Save the output to file.
 saveVTK(os.path.join(save_path,"ex11c.vtu"),\
         source=sourceg,\
@@ -109,3 +113,4 @@ saveVTK(os.path.join(save_path,"ex11c.vtu"),\
         curden=-con*grad(sol),\
         abscd=length(-con*grad(sol)),\
         efield=-grad(sol))
+

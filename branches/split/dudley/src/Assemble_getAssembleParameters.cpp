@@ -25,7 +25,7 @@
 
 /************************************************************************************/
 
-void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, Paso_SystemMatrix * S,
+void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_ElementFile * elements, paso::SystemMatrix_ptr S,
 				    escriptDataC * F, bool reducedIntegrationOrder, Dudley_Assemble_Parameters * parm)
 {
     Dudley_resetError();
@@ -45,7 +45,7 @@ void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_Eleme
     {
 	if (!numSamplesEqual
 	    (F, 1,
-	     (Paso_Distribution_getMyNumComponents(S->row_distribution) * S->row_block_size) /
+	     (S->row_distribution->getMyNumComponents() * S->row_block_size) /
 	     S->logical_row_block_size))
 	{
 	    Dudley_setError(TYPE_ERROR,
@@ -92,17 +92,17 @@ void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_Eleme
     if (S != NULL)
     {
 	/* Make sure # rows in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
-	if (Paso_Distribution_getMyNumComponents(S->row_distribution) * S->row_block_size ==
-	    parm->numEqu * Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution))
+	if (S->row_distribution->getMyNumComponents() * S->row_block_size ==
+	    parm->numEqu * nodes->degreesOfFreedomDistribution->getMyNumComponents())
 	{
-	    parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+	    parm->row_DOF_UpperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 	    parm->row_DOF = nodes->degreesOfFreedomMapping->target;
 	    parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
 	}
-	else if (Paso_Distribution_getMyNumComponents(S->row_distribution) * S->row_block_size ==
-		 parm->numEqu * Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))
+	else if (S->row_distribution->getMyNumComponents() * S->row_block_size ==
+		 parm->numEqu * nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents())
 	{
-	    parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+	    parm->row_DOF_UpperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 	    parm->row_DOF = nodes->reducedDegreesOfFreedomMapping->target;
 	    parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
 	}
@@ -112,17 +112,17 @@ void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_Eleme
 			    "Dudley_Assemble_getAssembleParameters: number of rows in matrix does not match the number of degrees of freedom in mesh");
 	}
 	/* Make sure # cols in matrix == num DOF for one of: full or reduced (use numLocalDOF for MPI) */
-	if (Paso_Distribution_getMyNumComponents(S->col_distribution) * S->col_block_size ==
-	    parm->numComp * Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution))
+	if (S->col_distribution->getMyNumComponents() * S->col_block_size ==
+	    parm->numComp * nodes->degreesOfFreedomDistribution->getMyNumComponents())
 	{
-	    parm->col_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+	    parm->col_DOF_UpperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 	    parm->col_DOF = nodes->degreesOfFreedomMapping->target;
 	    parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
 	}
-	else if (Paso_Distribution_getMyNumComponents(S->col_distribution) * S->col_block_size ==
-		 parm->numComp * Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution))
+	else if (S->col_distribution->getMyNumComponents() * S->col_block_size ==
+		 parm->numComp * nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents())
 	{
-	    parm->col_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+	    parm->col_DOF_UpperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 	    parm->col_DOF = nodes->reducedDegreesOfFreedomMapping->target;
 	    parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
 	}
@@ -137,16 +137,16 @@ void Dudley_Assemble_getAssembleParameters(Dudley_NodeFile * nodes, Dudley_Eleme
     /* get the information from right hand side */
     if (!isEmpty(F))
     {
-	if (numSamplesEqual(F, 1, Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution)))
+	if (numSamplesEqual(F, 1, nodes->degreesOfFreedomDistribution->getMyNumComponents()))
 	{
-	    parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->degreesOfFreedomDistribution);
+	    parm->row_DOF_UpperBound = nodes->degreesOfFreedomDistribution->getMyNumComponents();
 	    parm->row_DOF = nodes->degreesOfFreedomMapping->target;
 	    parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
 	}
 	else if (numSamplesEqual
-		 (F, 1, Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution)))
+		 (F, 1, nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents()))
 	{
-	    parm->row_DOF_UpperBound = Paso_Distribution_getMyNumComponents(nodes->reducedDegreesOfFreedomDistribution);
+	    parm->row_DOF_UpperBound = nodes->reducedDegreesOfFreedomDistribution->getMyNumComponents();
 	    parm->row_DOF = nodes->reducedDegreesOfFreedomMapping->target;
 	    parm->row_jac = Dudley_ElementFile_borrowJacobeans(elements, nodes, reducedIntegrationOrder);
 	}

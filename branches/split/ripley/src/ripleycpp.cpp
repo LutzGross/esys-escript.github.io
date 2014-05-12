@@ -18,7 +18,7 @@
 #include <ripley/Rectangle.h>
 #include <esysUtils/esysExceptionTranslator.h>
 
-#include <boost/python.hpp>
+#include <boost/python.hpp> 
 #include <boost/python/module.hpp>
 #include <boost/python/def.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
@@ -80,6 +80,33 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     dom->readBinaryGrid(res, filename, params);
     return res;
 }
+
+#ifdef USE_BOOSTIO
+escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSpace fs,
+        const object& pyShape, double fill, int byteOrder, int dataType,
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyReverse)
+{
+    int dim=fs.getDim();
+    ReaderParameters params;
+
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    params.byteOrder = byteOrder;
+    params.dataType = dataType;
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
+
+    const RipleyDomain* dom=dynamic_cast<const RipleyDomain*>(fs.getDomain().get());
+    if (!dom)
+        throw RipleyException("Function space must be on a ripley domain");
+
+    escript::Data res(fill, shape, fs, true);
+    dom->readBinaryGridFromZipped(res, filename, params);
+    return res;
+}
+#endif
 
 escript::Data readNcGrid(std::string filename, std::string varname,
         escript::FunctionSpace fs, const object& pyShape, double fill,
@@ -150,7 +177,6 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
         z1=extract<double>(l2);
     } else
         throw RipleyException("Argument l2 must be a float or 2-tuple");
-
     boost::python::list pypoints=extract<boost::python::list>(objpoints);
     boost::python::list pytags=extract<boost::python::list>(objtags);
     int numpts=extract<int>(pypoints.attr("__len__")());
@@ -159,8 +185,10 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
     std::vector<int> tags;
     tags.resize(numtags, -1);
     for (int i=0;i<numpts;++i) {
-        boost::python::object temp=pypoints[i];
+        tuple temp = extract<tuple>(pypoints[i]);
         int l=extract<int>(temp.attr("__len__")());
+        if (l != 3)
+            throw RipleyException("Number of coordinates for each dirac point must match dimensions.");
         for (int k=0;k<l;++k) {
             points.push_back(extract<double>(temp[k]));
         }
@@ -191,11 +219,14 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
             throw RipleyException("Error - Unable to extract tag value.");
         }
     }
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
                                             points, tags, tagstonames, world));
 }
 
-const int _q[]={0x61686969,0x746c4144,0x79616e43};
+//const int _q[]={0x61686969,0x746c4144,0x79616e43};
+const int _q[]={0x62207363, 0x6574735F, 0x2020214e};
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1, 
                                const object& objpoints, const object& objtags,
@@ -227,7 +258,6 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
         y1=extract<double>(l1);
     } else
         throw RipleyException("Argument l1 must be a float or 2-tuple");
-        
     boost::python::list pypoints=extract<boost::python::list>(objpoints);
     boost::python::list pytags=extract<boost::python::list>(objtags);
     int numpts=extract<int>(pypoints.attr("__len__")());
@@ -236,8 +266,10 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     std::vector<int> tags;
     tags.resize(numtags, -1);
     for (int i=0;i<numpts;++i) {
-        boost::python::object temp=pypoints[i];
+        tuple temp = extract<tuple>(pypoints[i]);
         int l=extract<int>(temp.attr("__len__")());
+        if (l != 2)
+            throw RipleyException("Number of coordinates for each dirac point must match dimensions.");
         for (int k=0;k<l;++k) {
             points.push_back(extract<double>(temp[k]));
         }
@@ -268,6 +300,8 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
             throw RipleyException("Error - Unable to extract tag value.");
         }
     }
+    if (numtags != numpts)
+        throw RipleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
                                              points, tags, tagstonames, world));
 }
@@ -284,7 +318,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
     docstring_options docopt(true, true, false);
 #endif
 
-    register_exception_translator<ripley::RipleyException>(&(esysUtils::esysExceptionTranslator));
+    register_exception_translator<ripley::RipleyException>(&(esysUtils::RuntimeErrorTranslator));
 
     scope().attr("__doc__") = "To use this module, please import esys.ripley";
     scope().attr("BYTEORDER_NATIVE") = (int)ripley::BYTEORDER_NATIVE;
@@ -322,7 +356,13 @@ BOOST_PYTHON_MODULE(ripleycpp)
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
 "Reads a binary Grid");
-
+#ifdef USE_BOOSTIO
+    def("_readBinaryGridFromZipped", &ripley::readBinaryGridFromZipped, (arg("filename"),
+                arg("functionspace"), arg("shape"), arg("fill")=0.,
+                arg("byteOrder"), arg("dataType"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a binary Grid");
+#endif
     def("_readNcGrid", &ripley::readNcGrid, (arg("filename"), arg("varname"),
                 arg("functionspace"), arg("shape"), arg("fill"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),
@@ -463,20 +503,9 @@ args("solver", "preconditioner", "package", "symmetry"),
         .def("getMPIRank",&ripley::RipleyDomain::getMPIRank,":return: the rank of this process\n:rtype: ``int``")
         .def("MPIBarrier",&ripley::RipleyDomain::MPIBarrier,"Wait until all processes have reached this point")
         .def("onMasterProcessor",&ripley::RipleyDomain::onMasterProcessor,":return: True if this code is executing on the master process\n:rtype: `bool`");
-
+    /* These two class exports are necessary to ensure that the extra methods added by ripley make it to python.
+     * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
-/*    
-    .def("randomFill", &ripley::Brick::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
-":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
-"guassian blur and s is the sigma parameter."
-    );
-*/    
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
-/*    
-    .def("randomFill", &ripley::Rectangle::randomFill,":return: random data\n:rtype: `Data`\n:param seed: pass zero to use system generated seed\n:type seed: `int`\n"
-":param details: more info about the type of randomness\nCurrently, the only acceptable value for this tuple is ('gaussian', r, s) where r is the radius of the"
-"guassian blur and s is the sigma parameter."
-    );
-*/    
 }
 

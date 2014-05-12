@@ -57,6 +57,7 @@ NE=6 # number of element in each spatial direction (must be even)
 class Test_LinearPDEOnDudleyTet2DOrder1(Test_LinearPDE,Test_pdetools,Test_assemblage_2Do1, Test_TransportPDE):
    RES_TOL=1.e-7
    ABS_TOL=1.e-8
+   VERBOSE=False
    def setUp(self):
         self.domain = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"tet_2D_order1.fly"),optimize=False)
         self.order = 1

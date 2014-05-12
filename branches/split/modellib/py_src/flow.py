@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import Data, kronecker, Lsup, div, inf, sup
 from esys.escript.modelframe import Model,IterationDivergenceError
-from esys.escript.linearPDEs import LameEquation
+from esys.escript.linearPDEs import LameEquation, SolverOptions
 
 class SteadyIncompressibleFlow(Model):
        """
@@ -61,7 +61,7 @@ class SteadyIncompressibleFlow(Model):
            self.__p_very_old=None
            self.__dt_old=None
            self.__pde=LameEquation(self.domain)
-           self.__pde.getSolverOptions().setSolverMethod(self.__pde.getSolverOptions().DIRECT)
+           self.__pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
            if self.location_prescribed_velocity == None: self.location_prescribed_velocit=Data()
            if self.prescribed_velocity == None: self.prescribed_velocity=Data()
 

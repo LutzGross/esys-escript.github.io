@@ -130,7 +130,7 @@ of the problem.
      x=domain.getX()
      # ... open new PDE ...
      mypde=LinearPDE(domain)
-     mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+     mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
      kronecker=identity(mypde.getDim())
      dunit=numpy.array([1., 0., 0.]) # defines direction of point source
      mypde.setValue(D=kronecker*rho, q=whereNegative(length(x-xc)-src_radius)*dunit)
@@ -191,7 +191,7 @@ information as much as possible when iterating over time.
 
 The statement
 \begin{python}
-  mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING) 
+  mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING) 
 \end{python}
 switches on the use of an aggressive approximation of the PDE operator as a
 diagonal matrix formed from the coefficient \var{D}.
@@ -332,7 +332,7 @@ as \gnuplot, Excel or OpenOffice.org Calc to read the data for further analysis.
 The following code shows one possible way to write the data to the file \file{./data/U_pc.csv}:
 \begin{python}
   u_pc_data=FileWriter('./data/U_pc.csv')
-  for i in xrange(len(ts)):
+  for i in range(len(ts)):
       u_pc_data.write("%f %f %f %f\n"%(ts[i],u_pc0[i],u_pc1[i],u_pc2[i]))
   u_pc_data.close()
 \end{python}

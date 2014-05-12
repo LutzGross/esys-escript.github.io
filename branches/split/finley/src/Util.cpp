@@ -196,7 +196,7 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
                 A11=A[INDEX3(0,0,q,2,dim1)];
                 A21=A[INDEX3(1,0,q,2,dim1)];
                 length = sqrt(A11*A11+A21*A21);
-                if (! length>0) {
+                if (length <= 0) {
                     setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                     return;
                 } else {
@@ -218,7 +218,7 @@ void normalVector(int len, int dim, int dim1, const double* A, double* Normal)
                 CO_A23=A31*A12-A11*A32;
                 CO_A33=A11*A22-A21*A12;
                 length=sqrt(CO_A13*CO_A13+CO_A23*CO_A23+CO_A33*CO_A33);
-                if (! length>0) {
+                if (length <= 0) {
                     setError(ZERO_DIVISION_ERROR, __FILE__ ": area equals zero.");
                     return;
                 } else {

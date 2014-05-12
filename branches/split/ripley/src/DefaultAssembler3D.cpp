@@ -13,14 +13,30 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-
 #include <ripley/DefaultAssembler3D.h>
+#include <ripley/domainhelpers.h>
 
 using namespace std;
+
 namespace ripley {
 
+void DefaultAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const {
+    if (isNotEmpty("A", coefs))
+        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("B", coefs))
+        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("C", coefs))
+        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("D", coefs))
+        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("X", coefs))
+        fsTypes.push_back(coefs["X"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("Y", coefs))
+        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+}
 
-void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -30,14 +46,14 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat,
 
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const 
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySingle(mat, rhs, d, y);
 }
 
-void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -46,14 +62,14 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
     assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySingleReduced(mat, rhs, d, y);
 }
 
-void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -62,14 +78,14 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
     assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySystem(mat, rhs, d, y);
 }
 
-void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -78,7 +94,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
     assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
@@ -86,7 +102,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
 }
 
 
-void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data& rhs,
+void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -2158,7 +2174,7 @@ void DefaultAssembler3D::assemblePDESingle(Paso_SystemMatrix* mat, escript::Data
 }
 
 //protected
-void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -2532,7 +2548,7 @@ void DefaultAssembler3D::assemblePDESingleReduced(Paso_SystemMatrix* mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data& rhs,
+void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -4646,7 +4662,7 @@ void DefaultAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat, escript::Data
 }
 
 //protected
-void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -5049,7 +5065,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(Paso_SystemMatrix* mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double SQRT3 = 1.73205080756887719318;
@@ -5652,7 +5668,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(Paso_SystemMatrix* mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double w0 = m_dx[0]*m_dx[1]/16;
@@ -5954,7 +5970,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(Paso_SystemMatrix* mat
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     dim_t numEq, numComp;
@@ -6636,7 +6652,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(Paso_SystemMatrix* mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat,
+void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     dim_t numEq, numComp;
@@ -6986,4 +7002,5 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(Paso_SystemMatrix* mat
     } // end of parallel region
 }
 
-}
+} // namespace ripley
+

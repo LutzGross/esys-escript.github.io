@@ -15,31 +15,49 @@
 *****************************************************************************/
 
 
-#ifndef INC_PASO_FUNCTIONS
-#define INC_PASO_FUNCTIONS
+#ifndef __PASO_FUNCTIONS_H__
+#define __PASO_FUNCTIONS_H__
 
-
-#include "Common.h"
-#include "esysUtils/Esys_MPI.h"
 #include "performance.h"
+#include "SystemMatrix.h"
 
-enum Paso_FunctionType {
-  LINEAR_SYSTEM
+namespace paso {
+
+struct Function
+{
+    Function(esysUtils::JMPI& mpi_info);
+    virtual ~Function();
+
+    /// sets value=F(arg)
+    virtual err_t call(double* value, const double* arg, Performance* pp) = 0;
+
+    /// numerical calculation of the directional derivative J0w of F at x0 in
+    /// the direction w. f0 is the value of F at x0. setoff is workspace
+    err_t derivative(double* J0w, const double* w, const double* f0,
+                     const double* x0, double* setoff, Performance* pp);
+
+    /// returns the length of the vectors used by this function
+    virtual dim_t getLen() = 0;
+
+    esysUtils::JMPI mpi_info;
 };
 
-typedef enum Paso_FunctionType Paso_FunctionType;
+struct LinearSystem : public Function
+{
+    LinearSystem(SystemMatrix_ptr A, double* b, Options* options);
+    virtual ~LinearSystem();
 
-typedef struct Paso_Function {
-  Paso_FunctionType kind;
-  dim_t n;
-  esysUtils::JMPI mpi_info;
-  double *b;
-  double *tmp;
-  void *more;
-} Paso_Function;
+    virtual err_t call(double* value, const double* arg, Performance* pp);
 
-err_t Paso_FunctionDerivative(double* J0w, const double* w, Paso_Function* F, const double *f0, const double *x0, double* setoff, Paso_Performance *pp);
-err_t Paso_FunctionCall(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp);
-void Paso_Function_free(Paso_Function * F);
+    virtual dim_t getLen() { return n; }
 
-#endif
+    SystemMatrix_ptr mat;
+    double* tmp;
+    double* b;
+    dim_t n;
+};
+
+} // namespace paso
+
+#endif // __PASO_FUNCTIONS_H__
+

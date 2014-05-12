@@ -1122,6 +1122,14 @@ def atan(arg):
    else:
       raise TypeError("atan: Unknown argument type.")
 
+def atan2(arg0, arg1):
+   """
+   Returns inverse tangent of argument ``arg0`` over ``arg1`` 
+   """
+   m=whereZero(arg1, rtol=EPSILON)
+   m2=whereNegative(arg1*arg0)
+   return atan(arg0/(arg1+m))*(1-m)+(numpy.pi/2)*(1-2*m2)* m
+      
 def sinh(arg):
    """
    Returns the hyperbolic sine of argument ``arg``.

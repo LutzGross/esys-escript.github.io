@@ -51,13 +51,13 @@ struct Dudley_NodeFile {
     Dudley_NodeMapping *degreesOfFreedomMapping;
     Dudley_NodeMapping *reducedDegreesOfFreedomMapping;
 
-    Paso_Distribution *nodesDistribution;
-    Paso_Distribution *reducedNodesDistribution;
-    Paso_Distribution *degreesOfFreedomDistribution;
-    Paso_Distribution *reducedDegreesOfFreedomDistribution;
+    paso::Distribution_ptr nodesDistribution;
+    paso::Distribution_ptr reducedNodesDistribution;
+    paso::Distribution_ptr degreesOfFreedomDistribution;
+    paso::Distribution_ptr reducedDegreesOfFreedomDistribution;
 
-    Paso_Connector *degreesOfFreedomConnector;
-    Paso_Connector *reducedDegreesOfFreedomConnector;
+    paso::Connector_ptr degreesOfFreedomConnector;
+    paso::Connector_ptr reducedDegreesOfFreedomConnector;
 
     /* these a the packed versions of Id */
     index_t *reducedNodesId;

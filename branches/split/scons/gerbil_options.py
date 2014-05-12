@@ -17,7 +17,7 @@
 escript_opts_version = 201
 #prefix = '/usr/local'
 #build_dir = 'build'
-#cxx = 'g++-4.8'
+cxx = 'g++-4.9'
 #cc_flags = ''
 cc_optim = '-O3 -march=native'
 #cc_debug = '-g'

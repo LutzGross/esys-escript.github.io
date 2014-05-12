@@ -53,11 +53,11 @@ escript_opts_version = 201
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-g -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-DCORE_ID1 -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib'
+ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib -ipo-jobs4'
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -89,10 +89,10 @@ openmp = True
 mpi = 'INTELMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/sw/sdev/intel/impi/4.1.2.040/intel64'
+mpi_prefix = '/sw/sdev/intel/impi/4.1.3.049/intel64'
 
 # MPI libraries to link against
-mpi_libs = ['mpi']
+#mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
 boost_prefix = '/sw/libs/boost/x86_64/gcc-4.3.2/python-2.7.3/boost_1_51_0'
@@ -145,7 +145,7 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composer_xe_2013_sp1.1.106/mkl/include', '/sw/sdev/intel/composer_xe_2013_sp1.1.106/mkl/lib/intel64']
+mkl_prefix = ['/sw/sdev/intel/composer_xe_2013_sp1.2.144/mkl/include', '/sw/sdev/intel/composer_xe_2013_sp1.2.144/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
@@ -220,7 +220,7 @@ visit_prefix = '/sw/apps/visit/2.7.0/linux-x86_64/libsim/V2'
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013_sp1.1.106'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013_sp1.2.144'})]
 
 
 #iknowwhatimdoing = False

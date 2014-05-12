@@ -220,7 +220,13 @@ def checkOptionalModules(env):
     ######## sympy
     if not detectModule(env, 'sympy'):
         env['warnings'].append("Cannot import sympy. Symbolic toolbox and nonlinear PDEs will not be available.")
-
+    else:
+        import sympy as sp
+        spVer=sp.__version__
+        spl=spVer.split('.')
+        if int(spl[0]) == 0 and int(spl[1]) < 7:
+            env['sympy']=False
+            env['warnings'].append("sympy version too old. Symbolic toolbox and nonlinear PDEs will not be available.")
     ######## pyproj
     if not detectModule(env, 'pyproj'):
         env['warnings'].append("Cannot import pyproj. Inversions may not work.")
@@ -255,7 +261,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [papi_lib_path])
         env.AppendUnique(LIBS = env['papi_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], papi_lib_path)
-        env.Append(CPPDEFINES = ['BLOCKPAPI'])
+        env.Append(CPPDEFINES = ['PAPI'])
         env['buildvars']['papi_inc_path']=papi_inc_path
         env['buildvars']['papi_lib_path']=papi_lib_path
     env['buildvars']['papi']=int(env['papi'])
@@ -398,7 +404,18 @@ def checkOptionalLibraries(env):
             env['gmsh']='s'
     except OSError:
         env['gmsh']=False
-
+    
+    
+######## boost::iostreams
+    if env['compressed_files']:
+        try:
+            boost_inc_path, boost_lib_path = findLibWithHeader(env, env['compression_libs'], 'boost/iostreams/filter/gzip.hpp', env['boost_prefix'], lang='c++')
+            env.Append(CPPDEFINES = ['USE_BOOSTIO'])
+            env.AppendUnique(LIBS = env['compression_libs'])
+        except RuntimeError as e:
+            env['compressed_files'] = False
+    env['buildvars']['compressed_files']=int(env['compressed_files'])
+    
     return env
 
 def checkPDFLatex(env):

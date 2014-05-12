@@ -15,78 +15,75 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
-/* Paso: SystemMatrixPattern_unrollBlocks */
+/* Paso: SystemMatrixPattern::unrollBlocks */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /* Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
 #include "SystemMatrixPattern.h"
-#include "Paso.h"
-#include "esysUtils/error.h"
 
-/************************************************************************************/
+namespace paso {
 
-/* creates SystemMatrixPattern  */
+SystemMatrixPattern_ptr SystemMatrixPattern::unrollBlocks(
+                        int newType, dim_t output_block_size,
+                        dim_t input_block_size)
+{
+    SystemMatrixPattern_ptr out;
+    Distribution_ptr new_output_distribution, new_input_distribution;
+    Connector_ptr new_col_connector, new_row_connector;
 
+    if ( (output_block_size == 1) && (input_block_size == 1) &&
+            ((type & MATRIX_FORMAT_OFFSET1) == (newType & MATRIX_FORMAT_OFFSET1)) ) {
+        out = shared_from_this();
+    } else {
+        Pattern_ptr new_mainPattern(mainPattern->unrollBlocks(newType,
+                output_block_size, input_block_size));
+        Pattern_ptr new_col_couplePattern(col_couplePattern->unrollBlocks(
+                newType, output_block_size, input_block_size));
+        Pattern_ptr new_row_couplePattern(row_couplePattern->unrollBlocks(
+                newType, output_block_size, input_block_size));
+        if (output_block_size > 1) {
+            new_output_distribution.reset(new Distribution(
+                    output_distribution->mpi_info,
+                    output_distribution->first_component,
+                    output_block_size, 0));
+            new_row_connector = row_connector->unroll(output_block_size);
+        } else {
+            new_output_distribution = output_distribution;
+            new_row_connector = row_connector;
+        }
+        if (input_block_size > 1) {
+            new_input_distribution.reset(new Distribution(
+                    input_distribution->mpi_info,
+                    input_distribution->first_component,
+                    input_block_size, 0));
+            new_col_connector = col_connector->unroll(input_block_size);
+        } else {
+            new_input_distribution = input_distribution;
+            new_col_connector = col_connector;
+        }
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern, 
-                                           int type, dim_t output_block_size,dim_t input_block_size) {
-  Paso_SystemMatrixPattern*out=NULL;
-  Paso_Pattern *new_mainPattern=NULL, *new_col_couplePattern=NULL, *new_row_couplePattern=NULL;
-  Paso_Distribution* new_output_distribution=NULL, *new_input_distribution=NULL;
-  Paso_Connector *new_col_connector=NULL, *new_row_connector=NULL;
+        if (Esys_noError()) {
+            out.reset(new SystemMatrixPattern(newType, new_output_distribution,
+                                              new_input_distribution,
+                                              new_mainPattern,
+                                              new_col_couplePattern,
+                                              new_row_couplePattern,
+                                              new_col_connector,
+                                              new_row_connector));
+        }
+    }
 
-  if ( ( output_block_size == 1 ) && (input_block_size == 1) && ((pattern->type & MATRIX_FORMAT_OFFSET1) == (type & MATRIX_FORMAT_OFFSET1) ) ) {
-     out = Paso_SystemMatrixPattern_getReference(pattern);
-  } else {
-     new_mainPattern=Paso_Pattern_unrollBlocks(pattern->mainPattern,type,output_block_size,input_block_size);
-     new_col_couplePattern=Paso_Pattern_unrollBlocks(pattern->col_couplePattern,type,output_block_size,input_block_size);
-     new_row_couplePattern=Paso_Pattern_unrollBlocks(pattern->row_couplePattern,type,output_block_size,input_block_size);
-     if (output_block_size>1) {
-          new_output_distribution=Paso_Distribution_alloc(pattern->output_distribution->mpi_info,
-                                                          pattern->output_distribution->first_component,
-                                                          output_block_size,0);
-          new_row_connector=Paso_Connector_unroll(pattern->row_connector,output_block_size);
-     } else {
-          new_output_distribution=Paso_Distribution_getReference(pattern->output_distribution);
-          new_row_connector= Paso_Connector_getReference(pattern->row_connector);
-     }
-     if (input_block_size>1) {
-          new_input_distribution=Paso_Distribution_alloc(pattern->input_distribution->mpi_info,
-                                                          pattern->input_distribution->first_component,
-                                                          input_block_size,0);
-          new_col_connector=Paso_Connector_unroll(pattern->col_connector,input_block_size);
-     } else {
-          new_input_distribution=Paso_Distribution_getReference(pattern->input_distribution);
-          new_col_connector=Paso_Connector_getReference(pattern->col_connector);
-     }
-     if (Esys_noError()) {
-        out=Paso_SystemMatrixPattern_alloc(type,
-                                           new_output_distribution,
-                                           new_input_distribution,
-                                           new_mainPattern,
-                                           new_col_couplePattern,
-                                           new_row_couplePattern,
-                                           new_col_connector,
-                                           new_row_connector);
-     }
-     Paso_Pattern_free(new_mainPattern);
-     Paso_Pattern_free(new_col_couplePattern);
-     Paso_Pattern_free(new_row_couplePattern);
-     Paso_Distribution_free(new_output_distribution);
-     Paso_Distribution_free(new_input_distribution);
-     Paso_Connector_free(new_row_connector);
-     Paso_Connector_free(new_col_connector);
-  }
-  if (Esys_noError()) {
-      return out;
-  } else {
-     Paso_SystemMatrixPattern_free(out);
-     return NULL;
-  }
+    if (!Esys_noError()) {
+        return SystemMatrixPattern_ptr();
+    }
+    return out;
 }
+
+} // namespace paso
+

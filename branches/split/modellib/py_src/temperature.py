@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import Data, inf, sup, length, grad, inner
 from esys.escript.modelframe import Model,IterationDivergenceError
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
 
 
@@ -60,7 +60,7 @@ class TemperatureAdvection(Model):
            self.__pde=LinearPDE(self.domain)
            self.__pde.setSymmetryOn()
            self.__pde.setReducedOrderOn()
-           self.__pde.getSolverOptions().setSolverMethod(self.__pde.getSolverOptions().LUMPING)
+           self.__pde.getSolverOptions().setSolverMethod(SolverOptions.LUMPING)
            self.__pde.setValue(D=self.heat_capacity*self.density)
 
        def getSafeTimeStepSize(self,dt):

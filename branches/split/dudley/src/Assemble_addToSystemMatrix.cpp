@@ -30,11 +30,10 @@
 /************************************************************************************/
 
 #include "Assemble.h"
-#include "IndexList.h"
 
 /************************************************************************************/
 
-void Dudley_Assemble_addToSystemMatrix(Paso_SystemMatrix * in, const dim_t NN_Equa, const index_t * Nodes_Equa, const dim_t num_Equa,
+void Dudley_Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in, const dim_t NN_Equa, const index_t * Nodes_Equa, const dim_t num_Equa,
 				       const dim_t NN_Sol, const index_t * Nodes_Sol, const dim_t num_Sol, const double *array)
 {
     index_t index_offset = (in->type & MATRIX_FORMAT_OFFSET1 ? 1 : 0);
