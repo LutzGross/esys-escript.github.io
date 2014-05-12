@@ -60,9 +60,9 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix
      Constructor for SystemMatrixAdapter.
   */
   SystemMatrixAdapter(SystemMatrix_ptr system_matrix,
-                      const int row_blocksize,
+                      int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
-                      const int column_blocksize,
+                      int column_blocksize,
                       const escript::FunctionSpace& colum_functionspace);
 
 
@@ -101,7 +101,7 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix
     \brief
     nullifyRowsAndCols - calls SystemMatrix::nullifyRowsAndCols.
   */
-  void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const;
+  void nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, double mdv);
 
   /**
      \brief writes the matrix to a file using the Matrix Market file format
@@ -116,19 +116,19 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix
   /**
      \brief sets the matrix entries to zero
   */
-  virtual void resetValues() const;
+  virtual void resetValues();
 
   /**
      \brief maps escript options onto Paso options
   */
-  static int mapOptionToPaso(const int option);
+  static int mapOptionToPaso(int option);
 
   /**
      \brief returns the identifier of the matrix type to be used for the global
      stiffness matrix when the given solver, preconditioner and package is
      used
   */
-  static int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry, Esys_MPIInfo* mpiInfo);
+  static int getSystemMatrixTypeId(int solver, int preconditioner, int package, bool symmetry, Esys_MPIInfo* mpiInfo);
 
   /**
      \brief extract paso options from SolutionOptions class
@@ -145,7 +145,7 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix
   /**
      \brief prints information about a system matrix
   */
-  void Print_Matrix_Info(const bool) const;
+  void Print_Matrix_Info(bool) const;
 
  protected:
 
