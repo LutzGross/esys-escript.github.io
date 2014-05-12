@@ -28,8 +28,8 @@ SystemMatrixAdapter::SystemMatrixAdapter()
 }
 
 SystemMatrixAdapter::SystemMatrixAdapter(SystemMatrix_ptr system_matrix,
-        const int row_blocksize, const escript::FunctionSpace& row_fs,
-        const int column_blocksize, const escript::FunctionSpace& column_fs) :
+        int row_blocksize, const escript::FunctionSpace& row_fs,
+        int column_blocksize, const escript::FunctionSpace& column_fs) :
     AbstractSystemMatrix(row_blocksize,row_fs,column_blocksize,column_fs),
     m_system_matrix(system_matrix)
 {
@@ -44,7 +44,7 @@ SystemMatrix_ptr SystemMatrixAdapter::getPaso_SystemMatrix() const
    return m_system_matrix;
 }
 
-void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const 
+void SystemMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const 
 {
    if ( x.getDataPointSize()  != getColumnBlockSize()) {
       throw PasoException("matrix vector product : column block size does not match the number of components in input.");
@@ -65,8 +65,8 @@ void SystemMatrixAdapter::ypAx(escript::Data& y,escript::Data& x) const
    checkPasoError();
 }
 
-int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
-
+int SystemMatrixAdapter::mapOptionToPaso(int option)
+{
    switch (option) {
        case  escript::ESCRIPT_DEFAULT:
           return PASO_DEFAULT;
@@ -173,8 +173,8 @@ int SystemMatrixAdapter::mapOptionToPaso(const int option)  {
     }
 }
 
-int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner,
-        const int package, const bool symmetry, const esysUtils::JMPI& mpiInfo)
+int SystemMatrixAdapter::getSystemMatrixTypeId(int solver, int preconditioner,
+        int package, bool symmetry, const esysUtils::JMPI& mpiInfo)
 {
     int out=SystemMatrix::getSystemMatrixTypeId(mapOptionToPaso(solver),
             mapOptionToPaso(preconditioner), mapOptionToPaso(package),
@@ -183,7 +183,7 @@ int SystemMatrixAdapter::getSystemMatrixTypeId(const int solver, const int preco
     return out;
 }
 
-void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
+void SystemMatrixAdapter::Print_Matrix_Info(bool full=false) const
 {
     int first_row_index = m_system_matrix->row_distribution->first_component[m_system_matrix->mpi_info->rank];
     int last_row_index  = m_system_matrix->row_distribution->first_component[m_system_matrix->mpi_info->rank+1]-1;
@@ -233,7 +233,8 @@ void SystemMatrixAdapter::Print_Matrix_Info(const bool full=false) const
 
 }
 
-void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, boost::python::object& options) const
+void SystemMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,
+                                        boost::python::object& options) const
 {
    Options paso_options;
    options.attr("resetDiagnostics")();
@@ -256,7 +257,8 @@ void SystemMatrixAdapter::setToSolution(escript::Data& out,escript::Data& in, bo
    checkPasoError();
 }
 
-void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,escript::Data& col_q, const double mdv) const
+void SystemMatrixAdapter::nullifyRowsAndCols(escript::Data& row_q,
+                                             escript::Data& col_q, double mdv)
 {
    if ( col_q.getDataPointSize()  != getColumnBlockSize()) {
       throw PasoException("nullifyRowsAndCols : column block size does not match the number of components of column mask.");
@@ -289,7 +291,7 @@ void SystemMatrixAdapter::saveHB(const std::string& filename) const
    checkPasoError();
 }
 
-void SystemMatrixAdapter::resetValues() const
+void SystemMatrixAdapter::resetValues()
 {
    m_system_matrix->setValues(0.);
    solve_free(m_system_matrix.get());

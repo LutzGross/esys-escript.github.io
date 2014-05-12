@@ -89,7 +89,7 @@ void AbstractSystemMatrix::setToSolution(Data& out, Data& in,
 
 void AbstractSystemMatrix::nullifyRowsAndCols(Data& row_q,
                                               Data& col_q,
-                                              double mdv) const
+                                              double mdv)
 {
     throw SystemMatrixException("nullifyRowsAndCols() is not implemented.");
 }
@@ -104,7 +104,7 @@ void AbstractSystemMatrix::saveHB(const std::string& fileName) const
     throw SystemMatrixException("Harwell-Boeing interface not available.");
 }
 
-void AbstractSystemMatrix::resetValues() const
+void AbstractSystemMatrix::resetValues()
 {
     throw SystemMatrixException("resetValues() is not implemented.");
 }
