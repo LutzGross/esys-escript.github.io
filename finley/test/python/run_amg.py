@@ -126,7 +126,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().DIRECT_INTERPOLATION)
+        pde.getSolverOptions().setAMGInterpolation(SolverOptions.DIRECT_INTERPOLATION)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -162,7 +162,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+        pde.getSolverOptions().setAMGInterpolation(SolverOptions.CLASSIC_INTERPOLATION)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -198,7 +198,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
+        pde.getSolverOptions().setAMGInterpolation(SolverOptions.CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -396,7 +396,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+        pde.getSolverOptions().setAMGInterpolation(SolverOptions.CLASSIC_INTERPOLATION)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -438,7 +438,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+        pde.getSolverOptions().setAMGInterpolation(SolverOptions.CLASSIC_INTERPOLATION)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------
@@ -483,7 +483,7 @@ class Test_AMG(unittest.TestCase):
         if MIN_MATRIX_SIZE!= None: pde.getSolverOptions().setMinCoarseMatrixSize(MIN_MATRIX_SIZE)
         if MIN_SPARSITY!=None: pde.getSolverOptions().setMinCoarseMatrixSparsity(MIN_SPARSITY)
         if MAX_LEVEL!=None: pde.getSolverOptions().setLevelMax(MAX_LEVEL)
-        pde.getSolverOptions().setAMGInterpolation(pde.getSolverOptions().CLASSIC_INTERPOLATION)
+        pde.getSolverOptions().setAMGInterpolation(SolverOptions.CLASSIC_INTERPOLATION)
 
         u=pde.getSolution()
         # -------- test the solution ---------------------------

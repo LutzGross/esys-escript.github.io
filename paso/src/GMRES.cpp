@@ -20,11 +20,11 @@
 *  =======
 *
 *  GMRES solves the linear system A*x=b using the
-*  truncated and restarted GMRES method with preconditioning. 
+*  truncated and restarted GMRES method with preconditioning.
 *
 *  Convergence test: norm( b - A*x )< TOL.
 *
-*  
+*
 *
 *  Arguments
 *  =========
@@ -59,310 +59,288 @@
 *  ==============================================================
 */
 
-#include "Common.h"
-#include "SystemMatrix.h"
 #include "Solver.h"
-#ifdef _OPENMP
-#include <omp.h>
-#endif
 
-err_t Paso_Solver_GMRES(
-    Paso_SystemMatrix * A,
-    double * r,
-    double * x,
-    dim_t *iter,
-    double * tolerance,dim_t Length_of_recursion,dim_t restart,
-    Paso_Performance* pp) {
+#include <cstring> // memset&memcpy
+namespace paso {
 
-   /* Local variables */
+err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
+                   double* tolerance, dim_t Length_of_recursion, dim_t restart,
+                   Performance* pp)
+{
+    if (Length_of_recursion <= 0) {
+        return SOLVER_INPUT_ERROR;
+    }
+    const int num_threads=omp_get_max_threads();
+    double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
+    double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
+    double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
+    double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual=0,diff,L2_R,Norm_of_residual_global=0;
+    double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
+    dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
+    dim_t i,z,order, Length_of_mem, th, local_n , rest, n_start ,n_end;
+    bool breakFlag=false, maxIterFlag=false, convergeFlag=false,restartFlag=false;
+    err_t Status=SOLVER_NO_ERROR;
 
-   #ifdef _OPENMP
-       const int num_threads=omp_get_max_threads();
-   #else
-       const int num_threads=1;
-   #endif
-  double *AP,**X_PRES,**R_PRES,**P_PRES, *dots, *loc_dots;
-  double *P_PRES_dot_AP,*R_PRES_dot_P_PRES,*BREAKF,*ALPHA;
-  double R_PRES_dot_AP0,P_PRES_dot_AP0,P_PRES_dot_AP1,P_PRES_dot_AP2,P_PRES_dot_AP3,P_PRES_dot_AP4,P_PRES_dot_AP5,P_PRES_dot_AP6,R_PRES_dot_P,breakf0;
-  double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual=0,diff,L2_R,Norm_of_residual_global=0;
-  double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
-  dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
-  dim_t i,z,order,n, Length_of_mem, th, local_n , rest, n_start ,n_end;
-  bool breakFlag=FALSE, maxIterFlag=FALSE, convergeFlag=FALSE,restartFlag=FALSE;
-  err_t Status=SOLVER_NO_ERROR;
+    // adapt original routine parameters
+    const dim_t n = A->getTotalNumRows();
+    Length_of_mem=std::max(Length_of_recursion,0)+1;
 
-  
-  /* adapt original routine parameters */
-  n = Paso_SystemMatrix_getTotalNumRows(A);
-  Length_of_mem=MAX(Length_of_recursion,0)+1;
+    if (restart > 0)
+        restart = std::max(Length_of_recursion, restart);
 
-  /*     Test the input parameters. */
-  if (restart>0) restart=MAX(Length_of_recursion,restart);
-  if (n < 0 || Length_of_recursion<=0) {
-    return SOLVER_INPUT_ERROR;
-  }
-
-  /*     allocate memory: */
-  X_PRES=new double*[Length_of_mem];
-  R_PRES=new double*[Length_of_mem];
-  P_PRES=new double*[Length_of_mem];
-  loc_dots=new double[MAX(Length_of_mem+1,3)];
-  dots=new double[MAX(Length_of_mem+1,3)];
-  P_PRES_dot_AP=new double[Length_of_mem];
-  R_PRES_dot_P_PRES=new double[Length_of_mem];
-  BREAKF=new double[Length_of_mem];
-  ALPHA=new double[Length_of_mem];
-  AP=new double[n];
-  if (AP==NULL || X_PRES ==NULL || R_PRES == NULL || P_PRES == NULL || 
-         P_PRES_dot_AP == NULL || R_PRES_dot_P_PRES ==NULL || BREAKF == NULL || ALPHA == NULL || dots==NULL || loc_dots==NULL) {
-     Status=SOLVER_MEMORY_ERROR;
-  } else {
-     for (i=0;i<Length_of_mem;i++) {
+    X_PRES=new double*[Length_of_mem];
+    R_PRES=new double*[Length_of_mem];
+    P_PRES=new double*[Length_of_mem];
+    loc_dots=new double[std::max(Length_of_mem+1,3)];
+    dots=new double[std::max(Length_of_mem+1,3)];
+    P_PRES_dot_AP=new double[Length_of_mem];
+    R_PRES_dot_P_PRES=new double[Length_of_mem];
+    BREAKF=new double[Length_of_mem];
+    ALPHA=new double[Length_of_mem];
+    AP=new double[n];
+    for (i=0;i<Length_of_mem;i++) {
        X_PRES[i]=new double[n];
        R_PRES[i]=new double[n];
        P_PRES[i]=new double[n];
-       if (X_PRES[i]==NULL || R_PRES[i]==NULL ||  P_PRES[i]==NULL) Status=SOLVER_MEMORY_ERROR;
-     }
-  }
-  if ( Status ==SOLVER_NO_ERROR ) {
+    }
 
-    /* now PRES starts : */
-    maxit=*iter;
-    tol=*tolerance;
+    // now PRES starts
+    maxit = *iter;
+    tol = *tolerance;
 
-     /* initialization */
+    // initialization
+    restartFlag = true;
+    num_iter=0;
 
-      restartFlag=TRUE;
-      num_iter=0;
-
-      #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
-      for (th=0;th<num_threads;++th) {
+#pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
+    for (th=0;th<num_threads;++th) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
-        n_start=local_n*th+MIN(th,rest);
-        n_end=local_n*(th+1)+MIN(th+1,rest);
+        n_start=local_n*th+std::min(th,rest);
+        n_end=local_n*(th+1)+std::min(th+1,rest);
         memset(&AP[n_start],0,sizeof(double)*(n_end-n_start));
         for(i=0;i<Length_of_mem;++i) {
-           memset(&P_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
-           memset(&R_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
-           memset(&X_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+            memset(&P_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+            memset(&R_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+            memset(&X_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
         }
-      }
+    }
 
-      while (! (convergeFlag || maxIterFlag || breakFlag))  {
-         if (restartFlag) {
-             BREAKF[0]=PASO_ONE;
-             #pragma omp parallel for private(th,z, local_n, rest, n_start, n_end)
-             for (th=0;th<num_threads;++th) {
-               local_n=n/num_threads;
-               rest=n-local_n*num_threads;
-               n_start=local_n*th+MIN(th,rest);
-               n_end=local_n*(th+1)+MIN(th+1,rest);
-               memcpy(&R_PRES[0][n_start],&r[n_start],sizeof(double)*(n_end-n_start));
-               memcpy(&X_PRES[0][n_start],&x[n_start],sizeof(double)*(n_end-n_start));
-             }
-             num_iter_restart=0;
-             restartFlag=FALSE;
-         }
-         ++num_iter;
-         ++num_iter_restart;
-         /* order is the dimension of the space on which the residual is minimized: */
-         order=MIN(num_iter_restart,Length_of_recursion);
-         /***                                                                 
+    while (! (convergeFlag || maxIterFlag || breakFlag))  {
+        if (restartFlag) {
+            BREAKF[0]=PASO_ONE;
+#pragma omp parallel for private(th,z, local_n, rest, n_start, n_end)
+            for (th=0;th<num_threads;++th) {
+                local_n=n/num_threads;
+                rest=n-local_n*num_threads;
+                n_start=local_n*th+std::min(th,rest);
+                n_end=local_n*(th+1)+std::min(th+1,rest);
+                memcpy(&R_PRES[0][n_start],&r[n_start],sizeof(double)*(n_end-n_start));
+                memcpy(&X_PRES[0][n_start],&x[n_start],sizeof(double)*(n_end-n_start));
+            }
+            num_iter_restart=0;
+            restartFlag=false;
+        }
+        ++num_iter;
+        ++num_iter_restart;
+        /* order is the dimension of the space on which the residual is minimized: */
+        order=std::min(num_iter_restart,Length_of_recursion);
+        /***
          *** calculate new search direction P from R_PRES
          ***/
-	 Paso_SystemMatrix_solvePreconditioner(A,&P_PRES[0][0], &R_PRES[0][0]);
-         /***                                                                 
-         *** apply A to P to get AP 
+        A->solvePreconditioner(&P_PRES[0][0], &R_PRES[0][0]);
+        /***
+         *** apply A to P to get AP
          ***/
-	 Paso_SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0],PASO_ZERO, &AP[0]);
-         /***                                                                 
-         ***** calculation of the norm of R and the scalar products of       
-         ***   the residuals and A*P:                                        
+        SystemMatrix_MatrixVector_CSR_OFFSET0(PASO_ONE, A, &P_PRES[0][0], PASO_ZERO, &AP[0]);
+        /***
+         ***** calculation of the norm of R and the scalar products of
+         ***   the residuals and A*P:
          ***/
-         memset(loc_dots,0,sizeof(double)*(order+1));
-         #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end, R_PRES_dot_P, P_PRES_dot_AP0, P_PRES_dot_AP1, P_PRES_dot_AP2, P_PRES_dot_AP3, P_PRES_dot_AP4, P_PRES_dot_AP5, P_PRES_dot_AP6)
-         for (th=0;th<num_threads;++th) {
-               local_n=n/num_threads;
-               rest=n-local_n*num_threads;
-               n_start=local_n*th+MIN(th,rest);
-               n_end=local_n*(th+1)+MIN(th+1,rest);
-               if (order==0) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                   }
-               } else if (order==1) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   P_PRES_dot_AP0=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                        loc_dots[1]+=P_PRES_dot_AP0;
-                   }
-               } else if (order==2) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   P_PRES_dot_AP0=PASO_ZERO;
-                   P_PRES_dot_AP1=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                        loc_dots[1]+=P_PRES_dot_AP0;
-                        loc_dots[2]+=P_PRES_dot_AP1;
-                   }
-               } else if (order==3) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   P_PRES_dot_AP0=PASO_ZERO;
-                   P_PRES_dot_AP1=PASO_ZERO;
-                   P_PRES_dot_AP2=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                        loc_dots[1]+=P_PRES_dot_AP0;
-                        loc_dots[2]+=P_PRES_dot_AP1;
-                        loc_dots[3]+=P_PRES_dot_AP2;
-                   }
-               } else if (order==4) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   P_PRES_dot_AP0=PASO_ZERO;
-                   P_PRES_dot_AP1=PASO_ZERO;
-                   P_PRES_dot_AP2=PASO_ZERO;
-                   P_PRES_dot_AP3=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                       P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                        loc_dots[1]+=P_PRES_dot_AP0;
-                        loc_dots[2]+=P_PRES_dot_AP1;
-                        loc_dots[3]+=P_PRES_dot_AP2;
-                        loc_dots[4]+=P_PRES_dot_AP3;
-                   }
-               } else if (order==5) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   P_PRES_dot_AP0=PASO_ZERO;
-                   P_PRES_dot_AP1=PASO_ZERO;
-                   P_PRES_dot_AP2=PASO_ZERO;
-                   P_PRES_dot_AP3=PASO_ZERO;
-                   P_PRES_dot_AP4=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                       P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                       P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                        loc_dots[1]+=P_PRES_dot_AP0;
-                        loc_dots[2]+=P_PRES_dot_AP1;
-                        loc_dots[3]+=P_PRES_dot_AP2;
-                        loc_dots[4]+=P_PRES_dot_AP3;
-                        loc_dots[5]+=P_PRES_dot_AP4;
-                   }
-               } else if (order==6) {
-                   R_PRES_dot_P=PASO_ZERO;
-                   P_PRES_dot_AP0=PASO_ZERO;
-                   P_PRES_dot_AP1=PASO_ZERO;
-                   P_PRES_dot_AP2=PASO_ZERO;
-                   P_PRES_dot_AP3=PASO_ZERO;
-                   P_PRES_dot_AP4=PASO_ZERO;
-                   P_PRES_dot_AP5=PASO_ZERO;
-                   #pragma ivdep
-                   for (z=n_start; z < n_end; ++z) {
-                       R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                       P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                       P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                       P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                       P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                       P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
-                       P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
-                   }
-                   #pragma omp critical
-                   {
-                        loc_dots[0]+=R_PRES_dot_P;
-                        loc_dots[1]+=P_PRES_dot_AP0;
-                        loc_dots[2]+=P_PRES_dot_AP1;
-                        loc_dots[3]+=P_PRES_dot_AP2;
-                        loc_dots[4]+=P_PRES_dot_AP3;
-                        loc_dots[5]+=P_PRES_dot_AP4;
-                        loc_dots[6]+=P_PRES_dot_AP5;
-                   }
-               } else {
-                  R_PRES_dot_P=PASO_ZERO;
-                  P_PRES_dot_AP0=PASO_ZERO;
-                  P_PRES_dot_AP1=PASO_ZERO;
-                  P_PRES_dot_AP2=PASO_ZERO;
-                  P_PRES_dot_AP3=PASO_ZERO;
-                  P_PRES_dot_AP4=PASO_ZERO;
-                  P_PRES_dot_AP5=PASO_ZERO;
-                  P_PRES_dot_AP6=PASO_ZERO;
-                  #pragma ivdep
-                  for (z=n_start; z < n_end; ++z) {
-                      R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
-                      P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
-                      P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
-                      P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
-                      P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
-                      P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
-                      P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
-                      P_PRES_dot_AP6+=P_PRES[6][z]*AP[z];
-                  }
-                  #pragma omp critical
-                  {
-                       loc_dots[0]+=R_PRES_dot_P;
-                       loc_dots[1]+=P_PRES_dot_AP0;
-                       loc_dots[2]+=P_PRES_dot_AP1;
-                       loc_dots[3]+=P_PRES_dot_AP2;
-                       loc_dots[4]+=P_PRES_dot_AP3;
-                       loc_dots[5]+=P_PRES_dot_AP4;
-                       loc_dots[6]+=P_PRES_dot_AP5;
-                       loc_dots[7]+=P_PRES_dot_AP6;
-                  }
-                  for (i=7;i<order;++i) {
-                       P_PRES_dot_AP0=PASO_ZERO;
-                       #pragma ivdep
-                       for (z=n_start; z < n_end; ++z) {
-                             P_PRES_dot_AP0+=P_PRES[i][z]*AP[z];
-                       }
-                       #pragma omp critical
-                       {
-                           loc_dots[i+1]+=P_PRES_dot_AP0;
-                       }
-                  }
-               }
+        memset(loc_dots,0,sizeof(double)*(order+1));
+#pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end, R_PRES_dot_P, P_PRES_dot_AP0, P_PRES_dot_AP1, P_PRES_dot_AP2, P_PRES_dot_AP3, P_PRES_dot_AP4, P_PRES_dot_AP5, P_PRES_dot_AP6)
+        for (th=0;th<num_threads;++th) {
+            local_n=n/num_threads;
+            rest=n-local_n*num_threads;
+            n_start=local_n*th+std::min(th,rest);
+            n_end=local_n*(th+1)+std::min(th+1,rest);
+            if (order==0) {
+                R_PRES_dot_P=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                }
+            } else if (order==1) {
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                }
+            } else if (order==2) {
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                P_PRES_dot_AP1=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                    P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                    loc_dots[2]+=P_PRES_dot_AP1;
+                }
+            } else if (order==3) {
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                P_PRES_dot_AP1=PASO_ZERO;
+                P_PRES_dot_AP2=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                    P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                    P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                    loc_dots[2]+=P_PRES_dot_AP1;
+                    loc_dots[3]+=P_PRES_dot_AP2;
+                }
+            } else if (order==4) {
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                P_PRES_dot_AP1=PASO_ZERO;
+                P_PRES_dot_AP2=PASO_ZERO;
+                P_PRES_dot_AP3=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                    P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                    P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                    P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                    loc_dots[2]+=P_PRES_dot_AP1;
+                    loc_dots[3]+=P_PRES_dot_AP2;
+                    loc_dots[4]+=P_PRES_dot_AP3;
+                }
+            } else if (order==5) {
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                P_PRES_dot_AP1=PASO_ZERO;
+                P_PRES_dot_AP2=PASO_ZERO;
+                P_PRES_dot_AP3=PASO_ZERO;
+                P_PRES_dot_AP4=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                    P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                    P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                    P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                    P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                    loc_dots[2]+=P_PRES_dot_AP1;
+                    loc_dots[3]+=P_PRES_dot_AP2;
+                    loc_dots[4]+=P_PRES_dot_AP3;
+                    loc_dots[5]+=P_PRES_dot_AP4;
+                }
+            } else if (order==6) {
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                P_PRES_dot_AP1=PASO_ZERO;
+                P_PRES_dot_AP2=PASO_ZERO;
+                P_PRES_dot_AP3=PASO_ZERO;
+                P_PRES_dot_AP4=PASO_ZERO;
+                P_PRES_dot_AP5=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                    P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                    P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                    P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                    P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                    P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                    loc_dots[2]+=P_PRES_dot_AP1;
+                    loc_dots[3]+=P_PRES_dot_AP2;
+                    loc_dots[4]+=P_PRES_dot_AP3;
+                    loc_dots[5]+=P_PRES_dot_AP4;
+                    loc_dots[6]+=P_PRES_dot_AP5;
+                }
+            } else { // order>6
+                R_PRES_dot_P=PASO_ZERO;
+                P_PRES_dot_AP0=PASO_ZERO;
+                P_PRES_dot_AP1=PASO_ZERO;
+                P_PRES_dot_AP2=PASO_ZERO;
+                P_PRES_dot_AP3=PASO_ZERO;
+                P_PRES_dot_AP4=PASO_ZERO;
+                P_PRES_dot_AP5=PASO_ZERO;
+                P_PRES_dot_AP6=PASO_ZERO;
+                #pragma ivdep
+                for (z=n_start; z < n_end; ++z) {
+                    R_PRES_dot_P+=R_PRES[0][z]*P_PRES[0][z];
+                    P_PRES_dot_AP0+=P_PRES[0][z]*AP[z];
+                    P_PRES_dot_AP1+=P_PRES[1][z]*AP[z];
+                    P_PRES_dot_AP2+=P_PRES[2][z]*AP[z];
+                    P_PRES_dot_AP3+=P_PRES[3][z]*AP[z];
+                    P_PRES_dot_AP4+=P_PRES[4][z]*AP[z];
+                    P_PRES_dot_AP5+=P_PRES[5][z]*AP[z];
+                    P_PRES_dot_AP6+=P_PRES[6][z]*AP[z];
+                }
+                #pragma omp critical
+                {
+                    loc_dots[0]+=R_PRES_dot_P;
+                    loc_dots[1]+=P_PRES_dot_AP0;
+                    loc_dots[2]+=P_PRES_dot_AP1;
+                    loc_dots[3]+=P_PRES_dot_AP2;
+                    loc_dots[4]+=P_PRES_dot_AP3;
+                    loc_dots[5]+=P_PRES_dot_AP4;
+                    loc_dots[6]+=P_PRES_dot_AP5;
+                    loc_dots[7]+=P_PRES_dot_AP6;
+                }
+                for (i=7;i<order;++i) {
+                    P_PRES_dot_AP0=PASO_ZERO;
+                    #pragma ivdep
+                    for (z=n_start; z < n_end; ++z) {
+                        P_PRES_dot_AP0+=P_PRES[i][z]*AP[z];
+                    }
+                    #pragma omp critical
+                    {
+                        loc_dots[i+1]+=P_PRES_dot_AP0;
+                    }
+                }
+            } //order
          }
          #ifdef ESYS_MPI
                 MPI_Allreduce(loc_dots, dots, order+1, MPI_DOUBLE, MPI_SUM, A->mpi_info->comm);
@@ -380,9 +358,9 @@ err_t Paso_Solver_GMRES(
          sum_BREAKF=0.;
          #pragma ivdep
          for (i=0;i<order;++i) sum_BREAKF +=BREAKF[i];
-         breakFlag=!((ABS(R_PRES_dot_AP0) > PASO_ZERO) &&  (sum_BREAKF >PASO_ZERO));
+         breakFlag=!((std::abs(R_PRES_dot_AP0) > PASO_ZERO) && (sum_BREAKF >PASO_ZERO));
          if (!breakFlag) {
-            breakFlag=FALSE;
+            breakFlag=false;
             /***
             ***** X_PRES and R_PRES are moved to memory:
             ***/
@@ -410,7 +388,7 @@ err_t Paso_Solver_GMRES(
              X_PRES[0]=save_XPRES;
              P_PRES[0]=save_P_PRES;
 
-             if (ABS(Factor)<=PASO_ZERO) {
+             if (std::abs(Factor)<=PASO_ZERO) {
                   Factor=1.;
                   BREAKF[0]=PASO_ZERO;
              } else {
@@ -418,21 +396,21 @@ err_t Paso_Solver_GMRES(
                   BREAKF[0]=PASO_ONE;
             }
             for (i=0;i<order;++i) ALPHA[i]*=Factor;
-            /*                                                                 
-            ***** Update of solution X_PRES and its residual R_PRES:            
-            ***                                                               
-            ***   P is used to accumulate X and AP to accumulate R. X and R     
-            ***   are still needed until they are put into the X and R memory   
-            ***   R_PRES and X_PRES                                     
-            ***                                                                 
+            /*
+            ***** Update of solution X_PRES and its residual R_PRES:
+            ***
+            ***   P is used to accumulate X and AP to accumulate R. X and R
+            ***   are still needed until they are put into the X and R memory
+            ***   R_PRES and X_PRES
+            ***
             **/
             breakf0=BREAKF[0];
             #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
             for (th=0;th<num_threads;++th) {
                local_n=n/num_threads;
                rest=n-local_n*num_threads;
-               n_start=local_n*th+MIN(th,rest);
-               n_end=local_n*(th+1)+MIN(th+1,rest);
+               n_start=local_n*th+std::min(th,rest);
+               n_end=local_n*(th+1)+std::min(th+1,rest);
                if (order==0) {
                    #pragma ivdep
                    for (z=n_start; z < n_end; ++z) {
@@ -541,8 +519,8 @@ err_t Paso_Solver_GMRES(
               for (th=0;th<num_threads;++th) {
                   local_n=n/num_threads;
                   rest=n-local_n*num_threads;
-                  n_start=local_n*th+MIN(th,rest);
-                  n_end=local_n*(th+1)+MIN(th+1,rest);
+                  n_start=local_n*th+std::min(th,rest);
+                  n_end=local_n*(th+1)+std::min(th+1,rest);
                   SC1=PASO_ZERO;
                   SC2=PASO_ZERO;
                   #pragma ivdep
@@ -570,8 +548,8 @@ err_t Paso_Solver_GMRES(
               for (th=0;th<num_threads;++th) {
                   local_n=n/num_threads;
                   rest=n-local_n*num_threads;
-                  n_start=local_n*th+MIN(th,rest);
-                  n_end=local_n*(th+1)+MIN(th+1,rest);
+                  n_start=local_n*th+std::min(th,rest);
+                  n_end=local_n*(th+1)+std::min(th+1,rest);
                   L2_R=PASO_ZERO;
                   #pragma ivdep
                   for (z=n_start; z < n_end; ++z) {
@@ -593,26 +571,25 @@ err_t Paso_Solver_GMRES(
               norm_of_residual=sqrt(L2_R);
               convergeFlag = (norm_of_residual <= tol);
               if (restart>0) restartFlag=(num_iter_restart >= restart);
-            } else { 
-              convergeFlag=FALSE;
-              restartFlag=FALSE;
+            } else {
+              convergeFlag=false;
+              restartFlag=false;
             }
             maxIterFlag = (num_iter >= maxit);
          }
         }
         /* end of iteration */
         Norm_of_residual_global=norm_of_residual;
-	Num_iter_global=num_iter;
-	if (maxIterFlag) { 
-	       Status = SOLVER_MAXITER_REACHED;
-	   } else if (breakFlag) {
-	       Status = SOLVER_BREAKDOWN;
-	}
-    }
+        Num_iter_global=num_iter;
+        if (maxIterFlag) {
+               Status = SOLVER_MAXITER_REACHED;
+           } else if (breakFlag) {
+               Status = SOLVER_BREAKDOWN;
+        }
     for (i=0; i<Length_of_mem; i++) {
-       delete[] X_PRES[i];
-       delete[] R_PRES[i];
-       delete[] P_PRES[i];
+        delete[] X_PRES[i];
+        delete[] R_PRES[i];
+        delete[] P_PRES[i];
     }
     delete[] AP;
     delete[] X_PRES;
@@ -626,6 +603,8 @@ err_t Paso_Solver_GMRES(
     delete[] loc_dots;
     *iter=Num_iter_global;
     *tolerance=Norm_of_residual_global;
-  return Status;
+    return Status;
 }
+
+} // namespace paso
 

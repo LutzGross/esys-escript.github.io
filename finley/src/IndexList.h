@@ -26,33 +26,23 @@
 
 #include "Finley.h"
 
-#include <list>
-
-struct Paso_Pattern;
+#include "esysUtils/IndexList.h"
 
 // helpers to build system matrix
 
 namespace finley {
 
+using esysUtils::IndexListArray;
+
 class ElementFile;
 
-typedef std::list<int> IndexList;
-
-void IndexList_insertIndex(IndexList&, int);
-void IndexList_toArray(const IndexList&, int*, int, int, int);
-int IndexList_count(const IndexList&,  int, int);
-
-Paso_Pattern* IndexList_createPattern(int n0, int n,
-        const IndexList* index_list, int range_min, int range_max,
-        int index_offset);
-
-void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
+void IndexList_insertElements(IndexListArray& index_list, ElementFile* elements,
                               bool reduce_row_order, const int* row_map,
                               bool reduce_col_order, const int* col_map);
 
-void IndexList_insertElementsWithRowRangeNoMainDiagonal(IndexList* index_list,
-        int firstRow, int lastRow, ElementFile* elements, int* row_map,
-        int* col_map);
+void IndexList_insertElementsWithRowRangeNoMainDiagonal(
+        IndexListArray& index_list, int firstRow, int lastRow,
+        ElementFile* elements, int* row_map, int* col_map);
 
 } // namespace finley
 

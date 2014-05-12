@@ -40,6 +40,7 @@ binary-arch: install
 	cp $(WORK)/lib/* $(BDEST)/usr/lib/python-escript
 	cp -r $(WORK)/esys $(BDEST)/usr/lib/python-escript
 	cp $(WORK)/bin/* $(BDEST)/usr/bin	
+	rm $(BDEST)/usr/bin/runmodel.py	
 	cp doc/manpage/man1/run-escript.1 $(BDEST)/usr/share/man/man1
 	install --mode=644 debian/changelog $(BDEST)/usr/share/doc/python-escript/changelog.Debian
 	gzip -f9 $(BDEST)/usr/share/doc/python-escript/changelog.Debian

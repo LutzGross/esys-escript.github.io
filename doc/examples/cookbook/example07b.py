@@ -1,4 +1,4 @@
-
+from __future__ import division
 from __future__ import print_function
 ##############################################################################
 #
@@ -42,7 +42,7 @@ from esys.escript.unitsSI import *
 import numpy as np
 import pylab as pl
 import matplotlib.cm as cm
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 
 ########################################################MPI WORLD CHECK
 if getMPISizeWorld() > 1:
@@ -91,7 +91,7 @@ x=mydomain.getX() #get the node locations of the domain
 ##########################################################ESTABLISH PDE
 mypde=LinearPDE(mydomain) # create pde
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
 mypde.setSymmetryOn() # turn symmetry on
 mypde.setValue(D=1.) # set the value of D in the general form to 1.
 

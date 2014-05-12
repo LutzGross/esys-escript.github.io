@@ -15,6 +15,7 @@
 *****************************************************************************/
 
 #include <algorithm>
+#include <limits>
 
 #include <ripley/Rectangle.h>
 #include <paso/SystemMatrix.h>
@@ -54,6 +55,15 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 		    ) :
     RipleyDomain(2, w)
 {
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
+            > std::numeric_limits<int>::max())
+        throw RipleyException("The number of elements has overflowed, this "
+                "limit may be raised in future releases.");
+    
+    if (n0 <= 0 || n1 <= 0)
+        throw RipleyException("Number of elements in each spatial dimension "
+                "must be positive");
+
     // ignore subdivision parameters for serial run
     if (m_mpiInfo->size == 1) {
         d0=1;
@@ -170,8 +180,6 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
 Rectangle::~Rectangle()
 {
-    Paso_SystemMatrixPattern_free(m_pattern);
-    Paso_Connector_free(m_connector);
     delete assembler;
 }
 
@@ -335,6 +343,28 @@ void Rectangle::readBinaryGrid(escript::Data& out, string filename,
     }
 }
 
+#ifdef USE_BOOSTIO
+void Rectangle::readBinaryGridFromZipped(escript::Data& out, string filename,
+                               const ReaderParameters& params) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (params.dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridZippedImpl<int>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridZippedImpl<float>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridZippedImpl<double>(out, filename, params);
+            break;
+        default:
+            throw RipleyException("readBinaryGridFromZipped(): invalid or unsupported datatype");
+    }
+}
+#endif
+
 template<typename ValueType>
 void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                                    const ReaderParameters& params) const
@@ -422,6 +452,100 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
 
     f.close();
 }
+
+#ifdef USE_BOOSTIO
+template<typename ValueType>
+void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
+                                   const ReaderParameters& params) const
+{
+    // check destination function space
+    int myN0, myN1;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NN[0];
+        myN1 = m_NN[1];
+    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
+                out.getFunctionSpace().getTypeCode() == ReducedElements) {
+        myN0 = m_NE[0];
+        myN1 = m_NE[1];
+    } else
+        throw RipleyException("readBinaryGrid(): invalid function space for output data object");
+
+    // check file existence and size
+    ifstream f(filename.c_str(), ifstream::binary);
+    if (f.fail()) {
+        throw RipleyException("readBinaryGridFromZipped(): cannot open file");
+    }
+    f.seekg(0, ios::end);
+    const int numComp = out.getDataPointSize();
+    int filesize = f.tellg();
+    f.seekg(0, ios::beg);
+    std::vector<char> compressed(filesize);
+    f.read((char*)&compressed[0], filesize);
+    f.close();
+    std::vector<char> decompressed = unzip(compressed);
+    filesize = decompressed.size();
+    const int reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
+    if (filesize < reqsize) {
+        throw RipleyException("readBinaryGridFromZipped(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1] <= m_offset[1]) {
+        f.close();
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const int first0 = max(0, params.first[0]-m_offset[0]);
+    const int first1 = max(0, params.first[1]-m_offset[1]);
+    // indices to first value in file
+    const int idx0 = max(0, m_offset[0]-params.first[0]);
+    const int idx1 = max(0, m_offset[1]-params.first[1]);
+    // number of values to read
+    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
+
+    out.requireWrite();
+    vector<ValueType> values(num0*numComp);
+    const int dpp = out.getNumDataPointsPerSample();
+
+    for (int y=0; y<num1; y++) {
+        const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
+            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
+        for (int x=0; x<num0; x++) {
+            const int baseIndex = first0+x*params.multiplier[0]
+                                    +(first1+y*params.multiplier[1])*myN0;
+            for (int m1=0; m1<params.multiplier[1]; m1++) {
+                for (int m0=0; m0<params.multiplier[0]; m0++) {
+                    const int dataIndex = baseIndex+m0+m1*myN0;
+                    double* dest = out.getSampleDataRW(dataIndex);
+                    for (int c=0; c<numComp; c++) {
+                        ValueType val = values[x*numComp+c];
+
+                        if (params.byteOrder != BYTEORDER_NATIVE) {
+                            char* cval = reinterpret_cast<char*>(&val);
+                            // this will alter val!!
+                            byte_swap32(cval);
+                        }
+                        if (!std::isnan(val)) {
+                            for (int q=0; q<dpp; q++) {
+                                *dest++ = static_cast<double>(val);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    f.close();
+}
+#endif
 
 void Rectangle::writeBinaryGrid(const escript::Data& in, string filename,
                                 int byteOrder, int dataType) const
@@ -1327,14 +1451,14 @@ void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    Paso_Coupler* coupler = Paso_Coupler_alloc(m_connector, numComp);
+    paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    Paso_Coupler_startCollect(coupler, in.getDataRO());
+    coupler->startCollect(in.getDataRO());
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
-    const double* buffer = Paso_Coupler_finishCollect(coupler);
+    const double* buffer = coupler->finishCollect();
 
 #pragma omp parallel for
     for (index_t i=0; i<getNumNodes(); i++) {
@@ -1343,7 +1467,6 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
-    Paso_Coupler_free(coupler);
 }
 
 //private
@@ -1364,9 +1487,13 @@ void Rectangle::populateSampleIds()
         m_nodeDistribution[k]=k*numDOF;
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-    m_nodeId.resize(getNumNodes());
-    m_dofId.resize(numDOF);
-    m_elementId.resize(getNumElements());
+    try {
+        m_nodeId.resize(getNumNodes());
+        m_dofId.resize(numDOF);
+        m_elementId.resize(getNumElements());
+    } catch (const std::length_error& le) {
+        throw RipleyException("The system does not have sufficient memory for a domain of this size.");
+    }
 
     // populate face element counts
     //left
@@ -1604,31 +1731,27 @@ void Rectangle::createPattern()
     }
     
     // create connector
-    Paso_SharedComponents *snd_shcomp = Paso_SharedComponents_alloc(
+    paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
             numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
-            &offsetInShared[0], 1, 0, m_mpiInfo);
-    Paso_SharedComponents *rcv_shcomp = Paso_SharedComponents_alloc(
+            &offsetInShared[0], 1, 0, m_mpiInfo));
+    paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
             numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
-            &offsetInShared[0], 1, 0, m_mpiInfo);
-    m_connector = Paso_Connector_alloc(snd_shcomp, rcv_shcomp);
-    Paso_SharedComponents_free(snd_shcomp);
-    Paso_SharedComponents_free(rcv_shcomp);
+            &offsetInShared[0], 1, 0, m_mpiInfo));
+    m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
     // create main and couple blocks
-    Paso_Pattern *mainPattern = createMainPattern();
-    Paso_Pattern *colPattern, *rowPattern;
-    createCouplePatterns(colIndices, rowIndices, numShared, &colPattern, &rowPattern);
+    paso::Pattern_ptr mainPattern = createMainPattern();
+    paso::Pattern_ptr colPattern, rowPattern;
+    createCouplePatterns(colIndices, rowIndices, numShared, colPattern, rowPattern);
 
     // allocate paso distribution
-    Paso_Distribution* distribution = Paso_Distribution_alloc(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0);
+    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
 
     // finally create the system matrix
-    m_pattern = Paso_SystemMatrixPattern_alloc(MATRIX_FORMAT_DEFAULT,
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector);
-
-    Paso_Distribution_free(distribution);
+            m_connector, m_connector));
 
     // useful debug output
     /*
@@ -1687,14 +1810,10 @@ void Rectangle::createPattern()
         cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
     }
     */
-
-    Paso_Pattern_free(mainPattern);
-    Paso_Pattern_free(colPattern);
-    Paso_Pattern_free(rowPattern);
 }
 
 //private
-void Rectangle::addToMatrixAndRHS(Paso_SystemMatrix* S, escript::Data& F,
+void Rectangle::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
@@ -1903,7 +2022,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 
 namespace
 {
-    // Calculates a guassian blur colvolution matrix for 2D
+    // Calculates a gaussian blur convolution matrix for 2D
     // See wiki article on the subject    
     double* get2DGauss(unsigned radius, double sigma)
     {
@@ -2010,11 +2129,6 @@ that ripley has.
 escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& shape,
        long seed, const boost::python::tuple& filter) const
 {
-    if (m_numDim!=2)
-    {
-        throw RipleyException("Only 2D supported at this time.");
-    }
-
     unsigned int radius=0;      // these are only used by gaussian
     double sigma=0.5;
     
@@ -2049,15 +2163,13 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     {
         throw RipleyException("Unsupported random filter for Rectangle.");
     }
-      
-  
-    
-    size_t internal[2];
-    internal[0]=m_NE[0]+1;      // number of points in the internal region
-    internal[1]=m_NE[1]+1;      // that is, the ones we need smoothed versions of
+
+    // number of points in the internal region
+    // that is, the ones we need smoothed versions of
+    const dim_t internal[2] = { m_NN[0], m_NN[1] };
     size_t ext[2];
-    ext[0]=internal[0]+2*radius;        // includes points we need as input
-    ext[1]=internal[1]+2*radius;        // for smoothing
+    ext[0]=(size_t)internal[0]+2*radius; // includes points we need as input
+    ext[1]=(size_t)internal[1]+2*radius; // for smoothing
     
     // now we check to see if the radius is acceptable 
     // That is, would not cross multiple ranks in MPI
@@ -2073,7 +2185,6 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
 
     double* src=new double[ext[0]*ext[1]*numvals];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);   
-    
 
 
 #ifdef ESYS_MPI
@@ -2081,7 +2192,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     {
         // since the dimensions are equal for all ranks, this exception
         // will be thrown on all ranks
-        throw RipleyException("Random Data in Ripley requries at least five elements per side per rank.");
+        throw RipleyException("Random Data in Ripley requires at least five elements per side per rank.");
     }
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
@@ -2175,7 +2286,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
             }
         }
         delete[] src;
-        return resdat;      
+        return resdat;
     }
     else                // filter enabled       
     {    
@@ -2214,9 +2325,14 @@ int Rectangle::findNode(const double *coords) const {
     // get distance from origin
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
+    
+    //check if the point is even inside the domain
+    if (x < 0 || y < 0 || x > m_length[0] || y > m_length[1])
+        return NOT_MINE;
+    
     // distance in elements
-    int ex = (int) floor(x / m_dx[0]);
-    int ey = (int) floor(y / m_dx[1]);
+    int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
+    int ey = (int) floor(y / m_dx[1] + 0.01*m_dx[1]);
     // set the min distance high enough to be outside the element plus a bit
     int closest = NOT_MINE;
     double minDist = 1;
@@ -2230,7 +2346,7 @@ int Rectangle::findNode(const double *coords) const {
             double ydist = (y - (ey + dy)*m_dx[1]);
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
-                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NE[0] + 1); 
+                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NN[0]); 
                 minDist = total;
             }
         }
@@ -2246,9 +2362,15 @@ int Rectangle::findNode(const double *coords) const {
 void Rectangle::setAssembler(std::string type, std::map<std::string,
         escript::Data> constants) {
     if (type.compare("WaveAssembler") == 0) {
+        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = WAVE_ASSEMBLER;
         delete assembler;
         assembler = new WaveAssembler2D(this, m_dx, m_NX, m_NE, m_NN, constants);
     } else if (type.compare("LameAssembler") == 0) {
+        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = LAME_ASSEMBLER;
         delete assembler;
         assembler = new LameAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
     } else { //else ifs would go before this for other types

@@ -1419,7 +1419,7 @@ result2=interpolateTable(table2, x2, (xmin, ymin), (xstep, ystep), toobig)
 We can check the values using \function{whereZero}.
 For example, for $x=0$:
 \begin{python}
-print result2*whereZero(x[0]) 
+print(result2*whereZero(x[0])) 
 \end{python}
 
 Now a 3D. Note that the parameter tuples should be $(x,y,z)$ but that in the interpolation table, $x$ is the innermost dimension.
@@ -1731,7 +1731,7 @@ The pressure \var{p} is set to 40 Mega Pascal. Units can also be converted
 back from the SI system into a desired unit, e.g.
 \begin{python}
   from esys.escript.unitsSI import *
-  print p/atm
+  print(p/atm)
 \end{python}
 can be used print the pressure in units of atmosphere\index{atmosphere}.
 

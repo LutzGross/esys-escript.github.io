@@ -27,23 +27,27 @@
 #undef BADPYTHONMACROS
 #endif
 
-
 #include <boost/python/tuple.hpp>
 #include <boost/python/list.hpp>
 
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
 #include <ripley/AbstractAssembler.h>
+
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
 
-struct Paso_Pattern;
-struct Paso_SystemMatrixPattern;
-struct Paso_SystemMatrix;
+#include <paso/SystemMatrix.h>
 
 namespace ripley {
+
+enum assembler_t {
+    DEFAULT_ASSEMBLER,
+    WAVE_ASSEMBLER,
+    LAME_ASSEMBLER
+};
 
 /* There is no particular significance to this type,
 It is here as a typedef because a bug in clang++ prevents
@@ -630,6 +634,10 @@ public:
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const = 0;
+#ifdef USE_BOOSTIO
+    virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
+                                const ReaderParameters& params) const = 0;
+#endif
 
     /**
     */
@@ -716,6 +724,7 @@ protected:
     AbstractAssembler *assembler;
     std::vector<struct DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
+    assembler_t assembler_type;
     
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, const escript::Data& in) const;
@@ -730,22 +739,23 @@ protected:
     void updateTagsInUse(int fsType) const;
 
     /// allocates and returns a Paso pattern structure
-    Paso_Pattern* createPasoPattern(const IndexVector& ptr,
+    paso::Pattern_ptr createPasoPattern(const IndexVector& ptr,
             const IndexVector& index, const dim_t M, const dim_t N) const;
 
     /// creates the pattern for the main block of the system matrix
-    Paso_Pattern* createMainPattern() const;
+    paso::Pattern_ptr createMainPattern() const;
 
     /// creates the pattern for the column and row couple blocks of the system
     /// matrix. colIndices[i] contains all IDs of DOFs that are connected with
     /// DOF i but remote and 'N' is the total number of remote components
     void createCouplePatterns(const std::vector<IndexVector>& colIndices,
                               const std::vector<IndexVector>& rowIndices,
-                              const dim_t N, Paso_Pattern** colPattern,
-                              Paso_Pattern** rowPattern) const;
+                              const dim_t N, paso::Pattern_ptr& colPattern,
+                              paso::Pattern_ptr& rowPattern) const;
 
-    void addToSystemMatrix(Paso_SystemMatrix* in, const IndexVector& nodes_Eq,
-            dim_t num_Eq, const IndexVector& nodes_Sol, dim_t num_Sol,
+    void addToSystemMatrix(paso::SystemMatrix_ptr in,
+            const IndexVector& nodes_Eq, dim_t num_Eq,
+            const IndexVector& nodes_Sol, dim_t num_Sol,
             const DoubleVector& array) const;
 
     void addPoints(int numPoints, const double* points_ptr,
@@ -779,7 +789,7 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
     /// returns the Paso system matrix pattern
-    virtual Paso_SystemMatrixPattern* getPattern(bool reducedRowOrder,
+    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder,
             bool reducedColOrder) const = 0;
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
@@ -802,15 +812,15 @@ protected:
 
 private:
     /// calls the right PDE assembly routines after performing input checks
-    void assemblePDE(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
-    void assemblePDEBoundary(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDEBoundary(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
-    void assemblePDEDirac(Paso_SystemMatrix* mat, escript::Data& rhs,
+    void assemblePDEDirac(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
     // finds the node that the given point belongs to

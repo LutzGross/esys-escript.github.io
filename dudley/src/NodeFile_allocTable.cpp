@@ -127,19 +127,12 @@ void Dudley_NodeFile_freeTable(Dudley_NodeFile * in)
 	in->degreesOfFreedomMapping = NULL;
 	Dudley_NodeMapping_free(in->reducedDegreesOfFreedomMapping);
 	in->reducedDegreesOfFreedomMapping = NULL;
-	Paso_Distribution_free(in->nodesDistribution);
-	in->nodesDistribution = NULL;
-	Paso_Distribution_free(in->reducedNodesDistribution);
-	in->nodesDistribution = NULL;
-	Paso_Distribution_free(in->degreesOfFreedomDistribution);
-	in->degreesOfFreedomDistribution = NULL;
-	Paso_Distribution_free(in->reducedDegreesOfFreedomDistribution);
-	in->reducedDegreesOfFreedomDistribution = NULL;
-	Paso_Connector_free(in->degreesOfFreedomConnector);
-	in->degreesOfFreedomConnector = NULL;
-	Paso_Connector_free(in->reducedDegreesOfFreedomConnector);
-	in->reducedDegreesOfFreedomConnector = NULL;
-
+    in->nodesDistribution.reset();
+    in->reducedNodesDistribution.reset();
+    in->degreesOfFreedomDistribution.reset();
+    in->reducedDegreesOfFreedomDistribution.reset();
+    in->degreesOfFreedomConnector.reset();
+    in->reducedDegreesOfFreedomConnector.reset();
 	in->numTagsInUse = 0;
 	in->numNodes = 0;
     }

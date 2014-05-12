@@ -15,13 +15,34 @@
 *****************************************************************************/
 #include <ripley/WaveAssembler3D.h>
 #include <fenv.h>
+#include <ripley/domainhelpers.h>
+
 using namespace std;
 
 namespace ripley {
 
-WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
-                dim_t *m_NN, std::map<std::string, escript::Data> c) 
-            : AbstractAssembler() {
+void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
+            std::map<std::string, escript::Data> coefs) const
+{
+    if (isNotEmpty("A", coefs))
+        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("B", coefs))
+        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("C", coefs))
+        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("D", coefs))
+        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("du", coefs))
+        fsTypes.push_back(coefs["du"].getFunctionSpace().getTypeCode());
+    if (isNotEmpty("Y", coefs))
+        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+}
+
+
+WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX,
+              dim_t *m_NE, dim_t *m_NN, std::map<std::string, escript::Data> c) 
+            : AbstractAssembler()
+{
         domain = dom;
         this->m_dx = m_dx;
         this->m_NX = m_NX;
@@ -51,12 +72,16 @@ WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m
         c44 = c.find("c44")->second, c66 = c.find("c66")->second;
 }
 
-void WaveAssembler3D::assemblePDESystem(Paso_SystemMatrix* mat,
+void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
                  Y = unpackData("Y", coefs), du = unpackData("du", coefs);
+    if (!unpackData("X", coefs).isEmpty())
+        throw RipleyException("Coefficient X was given to WaveAssembler "
+                "unexpectedly. Specialised domains can't be used for general "
+                "assemblage.");
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -2422,5 +2447,5 @@ EM_F[INDEX2(2,7,numEq)]+=Ctmp17 + Ctmp23 + Ctmp37 + Ctmp54 + Ctmp55 + Ctmp56 + C
     } // end of parallel region
 }
 
-}
+} // namespace ripley
 

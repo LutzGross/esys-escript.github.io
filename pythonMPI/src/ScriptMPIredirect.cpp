@@ -37,16 +37,20 @@ int main( int argc, char **argv )
             std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
             return status;
         }
-        esysUtils::JMPI mpi_info=esysUtils::makeInfo(MPI_COMM_WORLD);
+	int rank=0;
+	if (MPI_Comm_rank(MPI_COMM_WORLD, &rank)!=MPI_SUCCESS)
+	{
+	    MPI_Abort(MPI_COMM_WORLD, 1);
+	}
 
-        if( mpi_info->rank )
+        if( rank )
         {
             char fname[256];
-            sprintf( fname, "stdout_%04d.out", mpi_info->rank );
+            sprintf( fname, "stdout_%04d.out", rank );
             if (freopen( fname, "w+", stdout ) == NULL) {
                 std::cerr << "Warning: Unable to redirect stdout." << std::endl;
             }
-            sprintf( fname, "stdout_%04d.err", mpi_info->rank );
+            sprintf( fname, "stdout_%04d.err", rank );
             if (freopen(fname, "w+", stderr) == NULL) {
                 std::cerr << "Warning: Unable to redirect stderr." << std::endl;
             }

@@ -80,7 +80,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
 
 #ifdef USE_PARMETIS
     if (mpiSize>1 && allRanksHaveNodes(MPIInfo, distribution)) {
-        IndexList* index_list=new IndexList[myNumVertices];
+        IndexListArray index_list(myNumVertices);
         int dim=Nodes->numDim;
         // create the adjacency structure xadj and adjncy
 #pragma omp parallel
@@ -102,8 +102,8 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
        
         // create the local matrix pattern
         const int globalNumVertices=distribution[mpiSize];
-        Paso_Pattern *pattern=IndexList_createPattern(0, myNumVertices,
-                index_list, 0, globalNumVertices, 0);
+        paso::Pattern_ptr pattern(paso::Pattern::fromIndexListArray(0,
+                myNumVertices, index_list, 0, globalNumVertices, 0));
         // set the coordinates
         std::vector<float> xyz(myNumVertices*dim);
 #pragma omp parallel for
@@ -126,8 +126,6 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
                               NULL, NULL, &wgtflag, &numflag, &dim, &xyz[0],
                               &ncon, &mpiSize, &tpwgts[0], &ubvec[0], options,
                               &edgecut, &partition[0], &MPIInfo->comm);
-        Paso_Pattern_free(pattern);
-        delete[] index_list;
     } else {
         for (int i=0; i<myNumVertices; ++i)
             partition[i]=0; // CPU 0 owns all

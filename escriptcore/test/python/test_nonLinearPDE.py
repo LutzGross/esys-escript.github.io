@@ -23,7 +23,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for linearPDEs class
+Test suite for nonlinearPDEs class
 
 """
 
@@ -39,10 +39,13 @@ from esys.escript.pdetools import Locator
 
 sympyavail=True
 try:
-    import sympy
+    import sympy as sp
+    spVer=sp.__version__
+    spl=spVer.split('.')
+    if int(spl[0]) == 0 and int(spl[1]) < 7:
+        sympyavail=False
 except ImportError as e:
     sympyavail=False
-
 
 class Test_nonLinearPDEs(unittest.TestCase):
     DEBUG=False

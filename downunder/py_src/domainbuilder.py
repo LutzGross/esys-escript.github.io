@@ -33,6 +33,7 @@ from esys.ripley import Brick, Rectangle
 from .datasources import DataSource
 from .coordinates import ReferenceSystem, CartesianReferenceSystem
 
+
 class DomainBuilder(object):
     """
     This class is responsible for constructing an escript Domain object with
@@ -75,10 +76,12 @@ class DomainBuilder(object):
         self.__dim=dim
         self.__sources=[]
         self.__background_magnetic_field=None
+        self.__tags=[]   # list of all tags being used by all data sources beeing attached:
         self.setElementPadding()
         self.setVerticalExtents()
         self.fixDensityBelow()
         self.fixSusceptibilityBelow()
+        self.fixVelocityBelow()
         
     def getReferenceSystem(self):
         """
@@ -87,7 +90,13 @@ class DomainBuilder(object):
         :rtype: `ReferenceSystem`
         """
         return self.__reference_system
-        
+    def getTags(self):
+        """
+        returns a list of all tags beeing used by the attached data sources.
+        the list may be empty.
+        """
+        return self.__tags
+            
     def addSource(self, source):
         """
         Adds a survey data provider to the domain builder.
@@ -118,6 +127,7 @@ class DomainBuilder(object):
                 raise ValueError("It is not possible to combine data sources located in different UTM zones at the moment.")
 
         self.__sources.append(source)
+        if source.getTags(): self.__tags=list(set(self.__tags + source.getTags()))
 
     def setFractionalPadding(self, pad_x=None, pad_y=None, pad_lat=None, pad_lon=None):
         """
@@ -268,6 +278,7 @@ class DomainBuilder(object):
         """
         return self.getSurveys(DataSource.MAGNETIC)
 
+        
     def fixDensityBelow(self, depth=None):
         """
         Defines the depth below which the density anomaly is set to a given
@@ -290,10 +301,23 @@ class DomainBuilder(object):
         """
         self.__fix_susceptibility_below=depth
 
-    def getSurveys(self, datatype):
+    def fixVelocityBelow(self, depth=None):
+        """
+        Defines the depth below which the velocity and Q index is set to a
+        given value. If no value is given zero is assumed. 
+        
+        :param depth: depth below which the velocity is fixed. If not
+                      set, no constraint at depth is applied.
+        :type depth: ``float``
+        """
+        self.__fix_velocity_below=depth
+
+
+    def getSurveys(self, datatype, tags=None):
         """
         Returns a list of `Data` objects for all surveys of type `datatype`
-        available to this domain builder.
+        available to this domain builder. If a list of `tags` is given 
+        only data sources whose tag matching the tag list are returned 
 
         :return: List of surveys which are tuples (anomaly,error).
         :rtype: ``list``
@@ -301,7 +325,8 @@ class DomainBuilder(object):
         surveys=[]
         for src in self.__sources:
             if src.getDataType()==datatype:
-                surveys.append(src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing))
+                if tags is None or ( src.getTags() is not None and all( [ t in tags for t in src.getTags() ] )  ) :
+                    surveys.append(src.getSurveyData(self.getDomain(), self._dom_origin, self._dom_NE, self._spacing))
         return surveys
 
     def setBackgroundMagneticFluxDensity(self, B):

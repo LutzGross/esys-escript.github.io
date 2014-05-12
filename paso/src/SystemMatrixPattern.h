@@ -15,60 +15,63 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Paso: system matrix pattern                              */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Copyrights by ACcESS Australia 2004,2005 */
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_SYSTEMMATRIXPATTERN
-#define INC_PASO_SYSTEMMATRIXPATTERN
+#ifndef __PASO_SYSTEMMATRIXPATTERN_H__
+#define __PASO_SYSTEMMATRIXPATTERN_H__
 
 #include "Distribution.h"
 #include "Pattern.h"
 #include "Coupler.h"
 
-/************************************************************************************/
+namespace paso {
 
-typedef struct Paso_SystemMatrixPattern {
-  int type;
-
-  esysUtils::JMPI mpi_info;
-
-  
-  Paso_Pattern* mainPattern;
-  Paso_Pattern* col_couplePattern;
-  Paso_Pattern* row_couplePattern;
-  Paso_Connector* col_connector;
-  Paso_Connector* row_connector;
-  Paso_Distribution *output_distribution; 
-  Paso_Distribution *input_distribution; 
-
-  dim_t reference_counter;
-  
-
-} Paso_SystemMatrixPattern;
-
-
-/*  interfaces: */
-
+struct SystemMatrixPattern;
+typedef boost::shared_ptr<SystemMatrixPattern> SystemMatrixPattern_ptr;
+typedef boost::shared_ptr<const SystemMatrixPattern> const_SystemMatrixPattern_ptr;
 
 PASO_DLL_API
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_alloc(int type, Paso_Distribution* output_distribution, Paso_Distribution* input_distribution, Paso_Pattern* mainPattern, Paso_Pattern* col_couplePattern, Paso_Pattern* row_couplePattern, Paso_Connector* col_connector, Paso_Connector* row_connector);
+struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
+{
+    // constructor
+    SystemMatrixPattern(int type, Distribution_ptr output_distribution,
+        Distribution_ptr input_distribution, Pattern_ptr mainPattern,
+        Pattern_ptr col_couplePattern, Pattern_ptr row_couplePattern,
+        Connector_ptr col_connector, Connector_ptr row_connector);
 
-PASO_DLL_API
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_getReference(Paso_SystemMatrixPattern*);
+    ~SystemMatrixPattern()
+    {
+    }
 
-PASO_DLL_API
-void Paso_SystemMatrixPattern_free(Paso_SystemMatrixPattern*);
+    inline index_t getNumOutput() const {
+        return mainPattern->numOutput;
+    }
 
-Paso_SystemMatrixPattern* Paso_SystemMatrixPattern_unrollBlocks(Paso_SystemMatrixPattern* pattern,
-                                           int type, dim_t output_block_size,dim_t input_block_size);
-index_t Paso_SystemMatrixPattern_getNumOutput(Paso_SystemMatrixPattern*);
+    SystemMatrixPattern_ptr unrollBlocks(int type, dim_t output_block_size,
+                                         dim_t input_block_size);
 
-#endif /* #ifndef INC_PASO_SYSTEMPATTERN */
+    int type;
+    esysUtils::JMPI mpi_info;
+    Pattern_ptr mainPattern;
+    Pattern_ptr col_couplePattern;
+    Pattern_ptr row_couplePattern;
+    Connector_ptr col_connector;
+    Connector_ptr row_connector;
+    Distribution_ptr output_distribution;
+    Distribution_ptr input_distribution;
+};
+
+
+} // namespace paso
+
+#endif // __PASO_SYSTEMMATRIXPATTERN_H__
+

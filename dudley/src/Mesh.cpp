@@ -42,12 +42,8 @@ Dudley_Mesh *Dudley_Mesh_alloc(char *name, dim_t numDim, esysUtils::JMPI& mpi_in
     out->Points = NULL;
     out->TagMap = NULL;
     out->reference_counter = 0;
-
-    out->FullFullPattern = NULL;
-    out->FullReducedPattern = NULL;
-    out->ReducedFullPattern = NULL;
-    out->ReducedReducedPattern = NULL;
     out->MPIInfo = mpi_info;
+
     if (!Dudley_noError())
     {
 	Dudley_Mesh_free(out);
@@ -106,10 +102,6 @@ void Dudley_Mesh_free(Dudley_Mesh * in)
 	    Dudley_ElementFile_free(in->Elements);
 	    Dudley_ElementFile_free(in->Points);
 	    Dudley_TagMap_free(in->TagMap);
-	    Paso_SystemMatrixPattern_free(in->FullFullPattern);
-	    Paso_SystemMatrixPattern_free(in->FullReducedPattern);
-	    Paso_SystemMatrixPattern_free(in->ReducedFullPattern);
-	    Paso_SystemMatrixPattern_free(in->ReducedReducedPattern);
 	    delete in;
 	}
     }

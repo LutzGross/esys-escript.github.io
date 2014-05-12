@@ -14,217 +14,234 @@
 *
 *****************************************************************************/
 
+#ifndef __PASO_BLOCKOPS_H__
+#define __PASO_BLOCKOPS_H__
 
-#ifndef INC_PASO_BLOCKOPS
-#define INC_PASO_BLOCKOPS
-
-#include "Common.h"
 #include "Paso.h"
+#include <cstring> // memcpy
 
 #ifdef USE_LAPACK
    #ifdef MKL_LAPACK
       #include <mkl_lapack.h>
       #include <mkl_cblas.h>
    #else
-      extern "C"
-      {
+      extern "C" {
       #include <clapack.h>
       #include <cblas.h>
       }
    #endif
 #endif
 
-void Paso_BlockOps_solveAll(dim_t n_block,dim_t n,double* D,index_t* pivot,double* x);
+namespace paso {
 
-#define PASO_MISSING_CLAPACK Esys_setError(TYPE_ERROR, "You need to install a CLAPACK version to run a block size > 3.")  
-
-
-/* copy functions: */
-#define Paso_BlockOps_Cpy_2(R, V) \
-{\
-   *(R+0)=*(V+0);\
-   *(R+1)=*(V+1);\
+inline void BlockOps_Cpy_N(dim_t N, double* R, const double* V)
+{
+    memcpy((void*)R, (void*)V, N*sizeof(double));
 }
 
-#define Paso_BlockOps_Cpy_3(R, V) \
-{\
-   *(R+0)=*(V+0);\
-   *(R+1)=*(V+1);\
-   *(R+2)=*(V+2);\
+/// performs operation R=R-mat*V (V and R are not overlapping) - 2x2
+inline void BlockOps_SMV_2(double* R, const double* mat, const double* V)
+{
+    const double S1 = V[0];
+    const double S2 = V[1];
+    const double A11 = mat[0];
+    const double A12 = mat[2];
+    const double A21 = mat[1];
+    const double A22 = mat[3];
+    R[0] -= A11 * S1 + A12 * S2;
+    R[1] -= A21 * S1 + A22 * S2;
 }
 
-#define Paso_BlockOps_Cpy_N(N,R,V)  memcpy((void*)R, (void*)V, ( (size_t) N ) * sizeof(double) )
-
-
-/* operations R=R-MAT*V (V and R are not overlapping) */
-
-#define Paso_BlockOps_SMV_2(R,MAT, V) \
-{\
-register double S1=*(V+0); \
-register double S2=*(V+1);\
-register double A11=*(MAT+0);\
-register double A12=*(MAT+2);\
-register double A21=*(MAT+1);\
-register double A22=*(MAT+3);\
-*(R+0)-=A11 * S1 + A12 * S2;\
-*(R+1)-=A21 * S1 + A22 * S2;\
+/// performs operation R=R-mat*V (V and R are not overlapping) - 3x3
+inline void BlockOps_SMV_3(double* R, const double* mat, const double* V)
+{
+    const double S1 = V[0];
+    const double S2 = V[1];
+    const double S3 = V[2];
+    const double A11 = mat[0];
+    const double A21 = mat[1];
+    const double A31 = mat[2];
+    const double A12 = mat[3];
+    const double A22 = mat[4];
+    const double A32 = mat[5];
+    const double A13 = mat[6];
+    const double A23 = mat[7];
+    const double A33 = mat[8];
+    R[0] -= A11 * S1 + A12 * S2 + A13 * S3;
+    R[1] -= A21 * S1 + A22 * S2 + A23 * S3;
+    R[2] -= A31 * S1 + A32 * S2 + A33 * S3;
 }
 
-#define Paso_BlockOps_SMV_3(R, MAT, V)  \
-{\
-register double S1=*(V+0);\
-register double S2=*(V+1);\
-register double S3=*(V+2);\
-register double A11=*(MAT+0);\
-register double A21=*(MAT+1);\
-register double A31=*(MAT+2);\
-register double A12=*(MAT+3);\
-register double A22=*(MAT+4);\
-register double A32=*(MAT+5);\
-register double A13=*(MAT+6);\
-register double A23=*(MAT+7);\
-register double A33=*(MAT+8);\
-*(R+0)-=A11 * S1 + A12 * S2 + A13 * S3; \
-*(R+1)-=A21 * S1 + A22 * S2 + A23 * S3;\
-*(R+2)-=A31 * S1 + A32 * S2 + A33 * S3;\
-}
+#define PASO_MISSING_CLAPACK Esys_setError(TYPE_ERROR, "You need to install a LAPACK version to enable operations on block sizes > 3.")
 
-
-/* Paso_BlockOps_SMV_N */
-
+/// performs operation R=R-mat*V (V and R are not overlapping) - NxN
+inline void BlockOps_SMV_N(dim_t N, double* R, const double* mat, const double* V)
+{
 #ifdef USE_LAPACK
-   #define Paso_BlockOps_SMV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, -1., _MAT_, _N_, _V_, 1, (1.), _R_, 1)  
+    cblas_dgemv(CblasColMajor,CblasNoTrans, N, N, -1., mat, N, V, 1, 1., R, 1);
 #else
-   #define Paso_BlockOps_SMV_N(N, R, MAT, V)   PASO_MISSING_CLAPACK 
+    PASO_MISSING_CLAPACK;
 #endif
-
-#ifdef USE_LAPACK
-     #define Paso_BlockOps_MV_N(_N_, _R_, _MAT_, _V_) cblas_dgemv(CblasColMajor,CblasNoTrans,_N_,_N_, 1., _MAT_, _N_, _V_, 1, (0.), _R_, 1)  
-   #else
-      #define Paso_BlockOps_MV_N(N, R, MAT, V)   PASO_MISSING_CLAPACK 
-#endif
-
-#define Paso_BlockOps_invM_2(invA, A, failed) \
-{\
-   register double A11=*(A+0);\
-   register double A12=*(A+2);\
-   register double A21=*(A+1);\
-   register double A22=*(A+3);\
-   register double D = A11*A22-A12*A21; \
-   if (ABS(D) > 0 ){\
-      D=1./D;\
-      *(invA)= A22*D;\
-      *(invA+1)=-A21*D;\
-      *(invA+2)=-A12*D;\
-      *(invA+3)= A11*D;\
-   } else {\
-      *failed=1;\
-   }\
 }
 
-#define Paso_BlockOps_invM_3(invA, A, failed) \
-{\
-   register double A11=*(A+0);\
-   register double A21=*(A+1);\
-   register double A31=*(A+2);\
-   register double A12=*(A+3);\
-   register double A22=*(A+4);\
-   register double A32=*(A+5);\
-   register double A13=*(A+6);\
-   register double A23=*(A+7);\
-   register double A33=*(A+8);\
-   register double D =  A11*(A22*A33-A23*A32)+ A12*(A31*A23-A21*A33)+A13*(A21*A32-A31*A22);\
-   if (ABS(D) > 0 ){\
-      D=1./D;\
-      *(invA  )=(A22*A33-A23*A32)*D;\
-      *(invA+1)=(A31*A23-A21*A33)*D;\
-      *(invA+2)=(A21*A32-A31*A22)*D;\
-      *(invA+3)=(A13*A32-A12*A33)*D;\
-      *(invA+4)=(A11*A33-A31*A13)*D;\
-      *(invA+5)=(A12*A31-A11*A32)*D;\
-      *(invA+6)=(A12*A23-A13*A22)*D;\
-      *(invA+7)=(A13*A21-A11*A23)*D;\
-      *(invA+8)=(A11*A22-A12*A21)*D;\
-   } else {\
-      *failed=1;\
-   }\
-}
-
+inline void BlockOps_MV_N(dim_t N, double* R, const double* mat, const double* V)
+{
 #ifdef USE_LAPACK
-   #ifdef MKL_LAPACK
-	 #define Paso_BlockOps_invM_N(N, MAT, PIVOT,failed) \
-	 {\
-	    int NN=N; \
-	    int res =0; \
-	    dgetrf(&NN,&NN,MAT,&NN,PIVOT,&res); \
-	    if (res!=0) *failed=1;\
-	 }
-   #else
-	 #define Paso_BlockOps_invM_N(N, MAT, PIVOT,failed) \
-	 {\
-	     int res=clapack_dgetrf(CblasColMajor, N,N,MAT,N, PIVOT); \
-	     if (res!=0) *failed=1;\
-	 }
-   #endif
+    cblas_dgemv(CblasColMajor,CblasNoTrans, N, N, 1., mat, N, V, 1, 0., R, 1);
 #else
-   #define Paso_BlockOps_invM_N(N, MAT, PIVOT,failed) PASO_MISSING_CLAPACK
+    PASO_MISSING_CLAPACK;
 #endif
+}
 
+inline void BlockOps_invM_2(double* invA, const double* A, int* failed)
+{
+    const double A11 = A[0];
+    const double A12 = A[2];
+    const double A21 = A[1];
+    const double A22 = A[3];
+    double D = A11*A22-A12*A21;
+    if (std::abs(D) > 0) {
+        D = 1./D;
+        invA[0] =  A22*D;
+        invA[1] = -A21*D;
+        invA[2] = -A12*D;
+        invA[3] =  A11*D;
+    } else {
+        *failed = 1;
+    }
+}
+
+inline void BlockOps_invM_3(double* invA, const double* A, int* failed)
+{
+    const double A11 = A[0];
+    const double A21 = A[1];
+    const double A31 = A[2];
+    const double A12 = A[3];
+    const double A22 = A[4];
+    const double A32 = A[5];
+    const double A13 = A[6];
+    const double A23 = A[7];
+    const double A33 = A[8];
+    double D = A11*(A22*A33-A23*A32) +
+               A12*(A31*A23-A21*A33) +
+               A13*(A21*A32-A31*A22);
+    if (std::abs(D) > 0) {
+        D = 1./D;
+        invA[0] = (A22*A33-A23*A32)*D;
+        invA[1] = (A31*A23-A21*A33)*D;
+        invA[2] = (A21*A32-A31*A22)*D;
+        invA[3] = (A13*A32-A12*A33)*D;
+        invA[4] = (A11*A33-A31*A13)*D;
+        invA[5] = (A12*A31-A11*A32)*D;
+        invA[6] = (A12*A23-A13*A22)*D;
+        invA[7] = (A13*A21-A11*A23)*D;
+        invA[8] = (A11*A22-A12*A21)*D;
+    } else {
+        *failed = 1;
+    }
+}
+
+/// LU factorization of NxN matrix mat with partial pivoting
+inline void BlockOps_invM_N(dim_t N, double* mat, int* pivot, int* failed)
+{
 #ifdef USE_LAPACK
-   #ifdef MKL_LAPACK
-      #define Paso_BlockOps_solve_N(N, X, MAT, PIVOT,failed) \
-      {\
-	 int NN=N; \
-	 int res =0; \
-	 int ONE=1; \
-	 dgetrs("N", &NN, &ONE, MAT, &NN, PIVOT, X, &NN, &res); \
-	 if (res!=0) *failed=1;\
-      }
-   #else
-      #define Paso_BlockOps_solve_N(N, X, MAT, PIVOT,failed) \
-      {\
-      int res=clapack_dgetrs(CblasColMajor, CblasNoTrans, N,1,MAT,N, PIVOT, X, N); \
-	 if (res!=0) *failed=1;\
-      }
-   #endif
+#ifdef MKL_LAPACK
+    int res = 0;
+    dgetrf(&N, &N, mat, &N, pivot, &res);
+    if (res != 0)
+        *failed = 1;
 #else
-   #define Paso_BlockOps_solve_N(N, X, MAT, PIVOT,failed) PASO_MISSING_CLAPACK
+    int res = clapack_dgetrf(CblasColMajor, N, N, mat, N, pivot);
+    if (res != 0)
+        *failed = 1;
+#endif // MKL_LAPACK
+#else
+    PASO_MISSING_CLAPACK;
 #endif
-   
- 
-/* inplace matrix vector product */
-
-#define Paso_BlockOps_MViP_2(MAT, V) \
-{ \
-   register double S1=*(V+0);\
-   register double S2=*(V+1);\
-   register double A11=*(MAT+0);\
-   register double A12=*(MAT+2);\
-   register double A21=*(MAT+1);\
-   register double A22=*(MAT+3);\
-   *(V+0)  = A11 * S1 + A12 * S2;\
-   *(V+1)  = A21 * S1 + A22 * S2;\
 }
 
-
-#define Paso_BlockOps_MViP_3(MAT, V) \
-{ \
-   register double S1=*(V+0);\
-   register double S2=*(V+1);\
-   register double S3=*(V+2);\
-   register double A11=*(MAT+0);\
-   register double A21=*(MAT+1);\
-   register double A31=*(MAT+2);\
-   register double A12=*(MAT+3);\
-   register double A22=*(MAT+4);\
-   register double A32=*(MAT+5);\
-   register double A13=*(MAT+6);\
-   register double A23=*(MAT+7);\
-   register double A33=*(MAT+8);\
-   *(V+0)=A11 * S1 + A12 * S2 + A13 * S3; \
-   *(V+1)=A21 * S1 + A22 * S2 + A23 * S3;\
-   *(V+2)=A31 * S1 + A32 * S2 + A33 * S3;\
+/// solves system of linear equations A*X=B
+inline void BlockOps_solve_N(dim_t N, double* X, double* mat, int* pivot, int* failed)
+{
+#ifdef USE_LAPACK
+#ifdef MKL_LAPACK
+    int res = 0;
+    int ONE = 1;
+    dgetrs("N", &N, &ONE, mat, &N, pivot, X, &N, &res);
+    if (res != 0)
+        *failed = 1;
+#else
+    int res = clapack_dgetrs(CblasColMajor, CblasNoTrans, N, 1, mat, N, pivot, X, N);
+    if (res != 0)
+        *failed = 1;
+#endif // MKL_LAPACK
+#else
+    PASO_MISSING_CLAPACK;
+#endif
 }
 
-	
-#endif /* #INC_Paso_BlockOpsOPS */
+/// inplace matrix vector product - order 2
+inline void BlockOps_MViP_2(const double* mat, double* V)
+{
+    const double S1 = V[0];
+    const double S2 = V[1];
+    const double A11 = mat[0];
+    const double A12 = mat[2];
+    const double A21 = mat[1];
+    const double A22 = mat[3];
+    V[0] = A11 * S1 + A12 * S2;
+    V[1] = A21 * S1 + A22 * S2;
+}
+
+/// inplace matrix vector product - order 3
+inline void BlockOps_MViP_3(const double* mat, double* V)
+{
+    const double S1 = V[0];
+    const double S2 = V[1];
+    const double S3 = V[2];
+    const double A11 = mat[0];
+    const double A21 = mat[1];
+    const double A31 = mat[2];
+    const double A12 = mat[3];
+    const double A22 = mat[4];
+    const double A32 = mat[5];
+    const double A13 = mat[6];
+    const double A23 = mat[7];
+    const double A33 = mat[8];
+    V[0] = A11 * S1 + A12 * S2 + A13 * S3;
+    V[1] = A21 * S1 + A22 * S2 + A23 * S3;
+    V[2] = A31 * S1 + A32 * S2 + A33 * S3;
+}
+
+inline void BlockOps_solveAll(dim_t n_block, dim_t n, double* D,
+                              index_t* pivot, double* x)
+{
+    if (n_block == 1) {
+#pragma omp parallel for
+        for (dim_t i=0; i<n; ++i)
+            x[i] *= D[i];
+    } else if (n_block == 2) {
+#pragma omp parallel for
+        for (dim_t i=0; i<n; ++i)
+            BlockOps_MViP_2(&D[4*i], &x[2*i]);
+    } else if (n_block == 3) {
+#pragma omp parallel for
+        for (dim_t i=0; i<n; ++i)
+            BlockOps_MViP_3(&D[9*i], &x[3*i]);
+    } else {
+        int failed = 0;
+#pragma omp parallel for
+        for (dim_t i=0; i<n; ++i) {
+            const dim_t block_size = n_block*n_block;
+            BlockOps_solve_N(n_block, &x[n_block*i], &D[block_size*i], &pivot[n_block*i], &failed);
+        }
+        if (failed > 0) {
+            Esys_setError(ZERO_DIVISION_ERROR, "BlockOps_solveAll: solution failed.");
+        }
+    }
+}
+
+} // namespace paso
+
+#endif // __PASO_BLOCKOPS_H__
+

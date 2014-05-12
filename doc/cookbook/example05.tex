@@ -243,8 +243,8 @@ a \verb|nx| $\times$ \verb|ny| grid;
 dx = width/nx # x spacing
 dy = depth/ny # y spacing
 grid = [ ] # the grid points
-for j in xrange(0,ny-1):
-    for i in xrange(0,nx-1):
+for j in range(0,ny-1):
+    for i in range(0,nx-1):
            grid.append([dx/2+dx*i,dy/2+dy*j])
 \end{python}
 With the \verb|Locator| function \esc provides a mechanism to identify sample

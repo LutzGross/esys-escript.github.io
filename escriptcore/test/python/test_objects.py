@@ -205,7 +205,7 @@ class Test_saveCSV(unittest.TestCase):
         self.assertTrue(os.path.exists(fname), "test file not created")
         line=open(fname, 'r').readline()
         # Test both separator strings for vector, scalar
-        self.assertEquals(line, "C_0, C_1, D\n")
+        self.assertEqual(line, "C_0, C_1, D\n")
 
         # Test Tensor header
         T2=Tensor(7,X.getFunctionSpace())
@@ -213,12 +213,12 @@ class Test_saveCSV(unittest.TestCase):
         T4=Tensor4(9,X.getFunctionSpace())
         saveDataCSV(fname,A=T2,B=T3,C=T4)
         line=open(fname,'r').readline()
-        self.assertEquals(line, 'A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
+        self.assertEqual(line, 'A_0_0, A_1_0, A_0_1, A_1_1, B_0_0_0, B_0_0_1, B_1_0_0, B_1_0_1, B_0_1_0, B_0_1_1, B_1_1_0, B_1_1_1, C_0_0_0_0, C_0_0_0_1, C_0_0_1_0, C_0_0_1_1, C_1_0_0_0, C_1_0_0_1, C_1_0_1_0, C_1_0_1_1, C_0_1_0_0, C_0_1_0_1, C_0_1_1_0, C_0_1_1_1, C_1_1_0_0, C_1_1_0_1, C_1_1_1_0, C_1_1_1_1\n')
 
         # test different separator
         saveDataCSV(fname, sep="|",csep="/", U=X, V=X0)
         line=open(fname,'r').readline()
-        self.assertEquals(line, 'U/0|U/1|V\n')
+        self.assertEqual(line, 'U/0|U/1|V\n')
         if getMPIRankWorld()==0: os.unlink(fname)
 
    def test_saveCSV_functionspaces(self):
@@ -235,7 +235,7 @@ class Test_saveCSV(unittest.TestCase):
             while line != '':
                 linecount+=1
                 line=f.readline()
-            self.assertEquals(linecount, self.linecounts[i])
+            self.assertEqual(linecount, self.linecounts[i])
             f.close()
 
             # Now check data content
@@ -250,10 +250,10 @@ class Test_saveCSV(unittest.TestCase):
             linecount=1
             while line != '':
                 line_got=[float(elt) for elt in line.split(',')]
-                self.assertEquals(line_got, expected)
+                self.assertEqual(line_got, expected)
                 linecount+=1
                 line=f.readline()
-            self.assertEquals(linecount, self.linecounts[i])
+            self.assertEqual(linecount, self.linecounts[i])
             f.close()
 
             # As above but with mask and variable data
@@ -262,7 +262,7 @@ class Test_saveCSV(unittest.TestCase):
             f.readline() # skip header
             line=f.readline()
             line_got=[float(elt) for elt in line.split(',')]
-            self.assertEquals(len(self.firstline[i]),len(line_got))
+            self.assertEqual(len(self.firstline[i]),len(line_got))
             for j in range(len(self.firstline[i])):
                 if self.firstline[i][j] is not None:
                     self.assertAlmostEquals(self.firstline[i][j],line_got[j])
@@ -270,7 +270,7 @@ class Test_saveCSV(unittest.TestCase):
             while line!='':
                 linecount+=1
                 line=f.readline()
-            self.assertEquals(linecount, self.linecounts_masked[i])
+            self.assertEqual(linecount, self.linecounts_masked[i])
             f.close()
             if getMPIRankWorld()==0: os.unlink(fname)
 

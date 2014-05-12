@@ -30,6 +30,7 @@
    typedef int MPI_Comm;
    typedef int MPI_Request;
    typedef int MPI_Op;
+   typedef int MPI_Status;
    #define MPI_INT 6
    #define MPI_DOUBLE 11
    #define MPI_COMM_WORLD 91

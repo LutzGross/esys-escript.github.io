@@ -15,15 +15,16 @@
 *****************************************************************************/
 
 
-#ifndef INC_SOLVER
-#define INC_SOLVER
+#ifndef __PASO_SOLVER_H__
+#define __PASO_SOLVER_H__
 
 #include "SystemMatrix.h"
 #include "performance.h"
 #include "Functions.h"
 
-#define PASO_TRACE
-/* error codes used in the solver */
+namespace paso {
+
+// error codes used in the solver
 #define SOLVER_NO_ERROR 0
 #define SOLVER_MAXITER_REACHED 1
 #define SOLVER_INPUT_ERROR -1
@@ -34,24 +35,39 @@
 
 #define TOLERANCE_FOR_SCALARS (double)(0.)
 
-PASO_DLL_API
-void Paso_Solver(Paso_SystemMatrix*,double*,double*,Paso_Options*,Paso_Performance* pp);
+void solve(SystemMatrix_ptr A, double* out, double* in, Options* options);
+
+void solve_free(SystemMatrix* A);
 
 PASO_DLL_API
-void Paso_Solver_free(Paso_SystemMatrix*);
+void Solver(SystemMatrix_ptr, double*, double*, Options*, Performance*);
 
-err_t Paso_Solver_BiCGStab( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
-err_t Paso_Solver_PCG( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
-err_t Paso_Solver_TFQMR( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
-err_t Paso_Solver_MINRES( Paso_SystemMatrix * A, double* B, double * X, dim_t *iter, double * tolerance, Paso_Performance* pp);
-err_t Paso_Solver_GMRES(Paso_SystemMatrix * A, double * r, double * x, dim_t *num_iter, double * tolerance,dim_t length_of_recursion,dim_t restart, Paso_Performance* pp);
-err_t Paso_Solver_GMRES2(Paso_Function * F, const double* f0, const double* x0, double * x, dim_t *iter, double* tolerance, Paso_Performance* pp);
-err_t Paso_Solver_NewtonGMRES(Paso_Function *F, double *x, Paso_Options* options, Paso_Performance* pp);
+PASO_DLL_API
+void Solver_free(SystemMatrix*);
 
-Paso_Function * Paso_Function_LinearSystem_alloc(Paso_SystemMatrix* A, double* b, Paso_Options* options);
-err_t Paso_Function_LinearSystem_call(Paso_Function * F,double* value, const double* arg, Paso_Performance *pp);
-void Paso_Function_LinearSystem_free(Paso_Function * F);
-err_t Paso_Function_LinearSystem_setInitialGuess(Paso_SystemMatrix* A, double* x, Paso_Performance *pp);
+err_t Solver_BiCGStab(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
+                      double* tolerance, Performance* pp);
 
-#endif /* #ifndef INC_SOLVER */
+err_t Solver_PCG(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
+                 double* tolerance, Performance* pp);
+
+err_t Solver_TFQMR(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
+                   double* tolerance, Performance* pp);
+
+err_t Solver_MINRES(SystemMatrix_ptr A, double* B, double* X, dim_t* iter,
+                    double* tolerance, Performance* pp);
+
+err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* num_iter,
+                   double* tolerance, dim_t length_of_recursion, dim_t restart,
+                   Performance* pp);
+
+err_t Solver_GMRES2(Function* F, const double* f0, const double* x0, double* x,
+                    dim_t* iter, double* tolerance, Performance* pp);
+
+err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
+                         Performance* pp);
+
+} // namespace paso
+
+#endif // __PASO_SOLVER_H__
 

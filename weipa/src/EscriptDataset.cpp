@@ -41,6 +41,7 @@ using esysUtils::FileWriter;
 
 #if HAVE_MPI
 #include <pmpio.h>
+const int NUM_SILO_FILES = 1; // number of Silo files to produce per save
 #endif
 
 #endif // USE_SILO
@@ -50,7 +51,6 @@ using namespace std;
 namespace weipa {
 
 const char* MESH_VARS = "mesh_vars/";
-const int NUM_SILO_FILES = 1;
 
 //
 // Default constructor

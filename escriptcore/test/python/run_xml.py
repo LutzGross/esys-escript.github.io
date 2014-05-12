@@ -275,8 +275,8 @@ class ParamaterSetTestCase(unittest.TestCase):
         myURI = DataSource("somelocalfile.txt", "text")
         p5.declareParameter(uritest=myURI)
         doc = self._class(p5)
-        self.assertEquals(myURI.uri, doc.uritest.uri)
-        self.assertEquals(myURI.fileformat, doc.uritest.fileformat)
+        self.assertEqual(myURI.uri, doc.uritest.uri)
+        self.assertEqual(myURI.fileformat, doc.uritest.fileformat)
         assert type(doc.uritest) == DataSource
         
 

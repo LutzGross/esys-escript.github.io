@@ -15,61 +15,97 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
-/*   Paso: coupler                                            */ 
+/*   Paso: shared components                                                */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_SHAREDCOMPONENTS
-#define INC_PASO_SHAREDCOMPONENTS
+#ifndef __PASO_SHAREDCOMPONENTS_H__
+#define __PASO_SHAREDCOMPONENTS_H__
 
-#include "Common.h"
-#include "esysUtils/Esys_MPI.h"
+#include "Paso.h"
 
-/************************************************************************************/
+namespace paso {
 
-typedef struct Paso_SharedComponents {
-
-  dim_t local_length;        /* local array length shared */
-
-  dim_t numNeighbors;        /* number of processor sharing values with this processor */
-
-  index_t* offsetInShared; /* offsetInSharedInput[i] points to the first input value in array shared
-                              for processor i. Has length numNeighbors+1 */
-
-  Esys_MPI_rank* neighbor;  /* list of the processor sharing values with this processor */
-
-  index_t* shared;           /* list of the (local) components which are shared with other 
-                                processors. Has length numSharedComponents */
-                          
-  dim_t numSharedComponents; /* = offsetInShared[numNeighbors] */
-
-  esysUtils::JMPI mpi_info;
-  dim_t reference_counter;
-
-} Paso_SharedComponents;
-
-
+struct SharedComponents;
+typedef boost::shared_ptr<SharedComponents> SharedComponents_ptr;
+typedef boost::shared_ptr<const SharedComponents> const_SharedComponents_ptr;
 
 PASO_DLL_API
-Paso_SharedComponents* Paso_SharedComponents_alloc(dim_t local_length,
-                                                   dim_t numNeighbors,
-                                                   Esys_MPI_rank* neighbor,
-                                                   index_t* shared,
-                                                   index_t* offsetInShared,
-                                                   index_t m, index_t b,
-                                                   esysUtils::JMPI& mpi_info);
-                                 
+struct SharedComponents
+{
+    SharedComponents(dim_t localLength, dim_t nNeighbours,
+            const Esys_MPI_rank* neighbours, const index_t* sharedArray,
+            const index_t* offset, index_t m, index_t b, esysUtils::JMPI& mpiInfo)
+        : local_length(localLength*m),
+          numNeighbors(nNeighbours)
+    {
+        mpi_info = mpiInfo;
+        neighbor = new Esys_MPI_rank[numNeighbors];
+        if (!offset) {
+            numSharedComponents = 0;
+        } else {
+            numSharedComponents = offset[nNeighbours] * m;
+        }
+        shared = new index_t[numSharedComponents];
+        offsetInShared = new index_t[numNeighbors+1];
+        if (numNeighbors > 0 && offset != NULL) {
+#pragma omp parallel
+            {
+#pragma omp for
+                for (dim_t i=0; i < numNeighbors; i++) {
+                    neighbor[i] = neighbours[i];
+                    offsetInShared[i] = offset[i] * m;
+                }
+                offsetInShared[numNeighbors] = offset[nNeighbours] * m;
+#pragma omp for
+                for (dim_t i=0; i<offset[nNeighbours]; i++) {
+                    const index_t itmp=m*sharedArray[i]+b;
+                    for (dim_t j=0; j < m; ++j)
+                        shared[m*i+j]=itmp+j;
+                }
+            }
+        } else {
+            offsetInShared[numNeighbors]=0;
+        }
+    }
 
-PASO_DLL_API
-Paso_SharedComponents* Paso_SharedComponents_getReference(Paso_SharedComponents*);
+    ~SharedComponents()
+    {
+        delete[] neighbor;
+        delete[] shared;
+        delete[] offsetInShared;
+    }
 
-PASO_DLL_API
-void Paso_SharedComponents_free(Paso_SharedComponents*);
+    /// local array length shared
+    dim_t local_length;
 
-#endif 
+    /// number of processors sharing values with this processor
+    dim_t numNeighbors;
+
+    /// offsetInSharedInput[i] points to the first input value in array shared
+    /// for processor i. Has length numNeighbors+1
+    index_t* offsetInShared;
+
+    /// list of the processors sharing values with this processor
+    Esys_MPI_rank* neighbor;
+
+    /// list of the (local) components which are shared with other processors.
+    /// Has length numSharedComponents
+    index_t* shared;
+
+    /// = offsetInShared[numNeighbors]
+    dim_t numSharedComponents;
+
+    esysUtils::JMPI mpi_info;
+};
+
+} // namespace paso
+
+#endif // __PASO_SHAREDCOMPONENTS_H__
+

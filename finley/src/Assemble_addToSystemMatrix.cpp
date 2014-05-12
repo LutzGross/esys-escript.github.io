@@ -34,22 +34,22 @@
 
 namespace finley {
 
-void Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array);
 
-void Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array);
 
-void Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array);
 
-void Assemble_addToSystemMatrix(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix(paso::SystemMatrix_ptr in,
         const int NN_Equa, const int* Nodes_Equa, const int num_Equa,
         const int NN_Sol, const int* Nodes_Sol, const int num_Sol,
         const double* array)
@@ -67,10 +67,11 @@ void Assemble_addToSystemMatrix(Paso_SystemMatrix* in,
     }
 }
 
-void Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in, const int NN_Equa,
-                                    const int* Nodes_Equa, const int num_Equa,
-                                    const int NN_Sol, const int* Nodes_Sol,
-                                    const int num_Sol, const double* array)
+void Assemble_addToSystemMatrix_CSC(paso::SystemMatrix_ptr in,
+                                    const int NN_Equa, const int* Nodes_Equa,
+                                    const int num_Equa, const int NN_Sol,
+                                    const int* Nodes_Sol, const int num_Sol,
+                                    const double* array)
 {
     const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const int row_block_size=in->row_block_size;
@@ -161,7 +162,7 @@ void Assemble_addToSystemMatrix_CSC(Paso_SystemMatrix* in, const int NN_Equa,
     }
 }
 
-void Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
+void Assemble_addToSystemMatrix_Trilinos(paso::SystemMatrix_ptr in,
                                          const int NN_Equa,
                                          const int* Nodes_Equa,
                                          const int num_Equa,
@@ -196,10 +197,11 @@ void Assemble_addToSystemMatrix_Trilinos(Paso_SystemMatrix* in,
 #endif
 }
 
-void Assemble_addToSystemMatrix_CSR(Paso_SystemMatrix* in, const int NN_Equa,
-                                    const int* Nodes_Equa, const int num_Equa,
-                                    const int NN_Sol, const int* Nodes_Sol,
-                                    const int num_Sol, const double* array)
+void Assemble_addToSystemMatrix_CSR(paso::SystemMatrix_ptr in,
+                                    const int NN_Equa, const int* Nodes_Equa,
+                                    const int num_Equa, const int NN_Sol,
+                                    const int* Nodes_Sol, const int num_Sol,
+                                    const double* array)
 {
     const int index_offset=(in->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     const int row_block_size=in->row_block_size;

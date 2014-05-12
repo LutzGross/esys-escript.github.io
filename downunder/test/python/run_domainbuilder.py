@@ -45,6 +45,11 @@ try:
 except KeyError:
     WORKDIR='.'
 
+try:
+    import pyproj
+    haveProj=True
+except ImportError:
+    haveProj=False
 
 NC_DATA1 = os.path.join(TEST_DATA_ROOT, 'zone51.nc')
 NC_DATA2 = os.path.join(TEST_DATA_ROOT, 'zone52.nc')
@@ -59,6 +64,7 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         db=DomainBuilder()
         self.assertRaises(TypeError, db.addSource, 42)
 
+    @unittest.skipIf(not haveProj, 'pyproj not available')
     def test_mixing_utm_zones(self):
         source1 = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=1.)
         source2 = NetCdfData(DataSource.GRAVITY, NC_DATA2, scale_factor=1.)
@@ -66,6 +72,7 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         domainbuilder.addSource(source1)
         self.assertRaises(ValueError, domainbuilder.addSource, source2)
 
+    @unittest.skipIf(not haveProj, 'pyproj not available')
     def test_add_source_after_domain_built(self):
         db=DomainBuilder()
         source1a = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=1.)
@@ -74,6 +81,7 @@ class TestDomainBuilderWithNetCdf(unittest.TestCase):
         source1b = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=2.)
         self.assertRaises(Exception, db.addSource, source1b)
 
+    @unittest.skipIf(not haveProj, 'pyproj not available')
     def test_cartesian_domain(self):
         db=DomainBuilder()
         source1a = NetCdfData(DataSource.GRAVITY, NC_DATA1, scale_factor=1.)

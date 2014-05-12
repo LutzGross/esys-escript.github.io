@@ -14,33 +14,47 @@
 *
 *****************************************************************************/
 
-
-#ifndef INC_PASOFCTLIMITER
-#define INC_PASOFCTLIMITER
+#ifndef __PASO_FLUXLIMITER_H__
+#define __PASO_FLUXLIMITER_H__
 
 #include "Transport.h"
 
+namespace paso {
 
-typedef struct Paso_FCT_FluxLimiter {
-      Paso_SystemMatrix *antidiffusive_fluxes;
-      esysUtils::JMPI mpi_info;
-      double dt;
-      double* u_tilde;
-      double* MQ;   /* (M_C* Q_min, M_C* Q_max) */ 
-      double* R;   /* (R-, R+) */
-      /* Paso_Coupler *MQ_coupler; */
-      Paso_Coupler *R_coupler;
-      Paso_Coupler *u_tilde_coupler;
-      double*  borrowed_lumped_mass_matrix; /* borrowd reference */
-} Paso_FCT_FluxLimiter;
 
-#define Paso_FCT_FluxLimiter_getTotalNumRows(_f_) Paso_SystemMatrix_getTotalNumRows((_f_)->antidiffusive_fluxes)
-#define Paso_FCT_FluxLimiter_getFluxPattern(_f_) ((_f_)->antidiffusive_fluxes->pattern)
+PASO_DLL_API
+struct FCT_FluxLimiter
+{
+    FCT_FluxLimiter(const_TransportProblem_ptr tp);
+    ~FCT_FluxLimiter();
 
-PASO_DLL_API Paso_FCT_FluxLimiter* Paso_FCT_FluxLimiter_alloc(Paso_TransportProblem *fctp);
-PASO_DLL_API void Paso_FCT_FluxLimiter_free(Paso_FCT_FluxLimiter * in);
-PASO_DLL_API void Paso_FCT_FluxLimiter_setU_tilda(Paso_FCT_FluxLimiter* flux_limiter, const double *Mu_tilda);
-PASO_DLL_API void Paso_FCT_FluxLimiter_addLimitedFluxes_Start(Paso_FCT_FluxLimiter* flux_limiter);
-PASO_DLL_API void Paso_FCT_FluxLimiter_addLimitedFluxes_Complete(Paso_FCT_FluxLimiter* flux_limiter, double* b);
+    inline dim_t getTotalNumRows() const
+    {
+        return antidiffusive_fluxes->getTotalNumRows();
+    }
 
-#endif /* #ifndef INC_PASOFCTLIMITER */
+    inline SystemMatrixPattern_ptr getFluxPattern() const
+    {
+        return antidiffusive_fluxes->pattern;
+    }
+
+    void setU_tilde(const double* Mu_tilde);
+    void addLimitedFluxes_Start();
+    void addLimitedFluxes_Complete(double* b);
+
+    SystemMatrix_ptr antidiffusive_fluxes;
+    esysUtils::JMPI mpi_info;
+    double dt;
+    double* u_tilde;
+    double* MQ;  // (M_C* Q_min, M_C* Q_max)
+    double* R;   // (R-, R+)
+    //Coupler_ptr MQ_coupler;
+    Coupler_ptr R_coupler;
+    Coupler_ptr u_tilde_coupler;
+    double* borrowed_lumped_mass_matrix; // borrowed reference
+};
+
+} // namespace paso
+
+#endif // __PASO_FLUXLIMITER_H__
+

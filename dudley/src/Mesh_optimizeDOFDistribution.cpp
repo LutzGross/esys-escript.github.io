@@ -74,9 +74,8 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
     index_t myFirstVertex, myLastVertex, firstVertex, lastVertex, *newGlobalDOFID = NULL;
     size_t mpiSize_size;
     index_t *partition = NULL;
-    Paso_Pattern *pattern = NULL;
+    paso::Pattern_ptr pattern;
     Esys_MPI_rank myRank, current_rank, rank;
-    Dudley_IndexList *index_list = NULL;
     float *xyz = NULL;
     int c;
 
@@ -128,44 +127,30 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    }
 	}
 
-	index_list = new  Dudley_IndexList[myNumVertices];
+	IndexListArray index_list(myNumVertices);
 	/* ksteube CSR of DOF IDs */
 	/* create the adjacency structure xadj and adjncy */
-	if (!Dudley_checkPtr(index_list))
 	{
-#pragma omp parallel private(i)
+#pragma omp parallel
 	    {
-#pragma omp for schedule(static)
-		for (i = 0; i < myNumVertices; ++i)
-		{
-		    index_list[i].extension = NULL;
-		    index_list[i].n = 0;
-		}
 		/* ksteube build CSR format */
 		/*  insert contributions from element matrices into columns index index_list: */
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
-									  in->Elements,
-									  in->Nodes->globalDegreesOfFreedom,
-									  in->Nodes->globalDegreesOfFreedom);
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
-									  in->FaceElements,
-									  in->Nodes->globalDegreesOfFreedom,
-									  in->Nodes->globalDegreesOfFreedom);
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list, myFirstVertex, myLastVertex,
-									  in->Points, in->Nodes->globalDegreesOfFreedom,
-									  in->Nodes->globalDegreesOfFreedom);
+		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+                myFirstVertex, myLastVertex, in->Elements,
+                in->Nodes->globalDegreesOfFreedom,
+                in->Nodes->globalDegreesOfFreedom);
+		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+                myFirstVertex, myLastVertex, in->FaceElements,
+                in->Nodes->globalDegreesOfFreedom,
+                in->Nodes->globalDegreesOfFreedom);
+		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+                myFirstVertex, myLastVertex, in->Points,
+                in->Nodes->globalDegreesOfFreedom,
+                in->Nodes->globalDegreesOfFreedom);
 	    }
 
 	    /* create the local matrix pattern */
-	    pattern = Dudley_IndexList_createPattern(0, myNumVertices, index_list, 0, globalNumVertices, 0);
-
-	    /* clean up index list */
-	    if (index_list != NULL)
-	    {
-#pragma omp parallel for private(i)
-		for (i = 0; i < myNumVertices; ++i)
-		    Dudley_IndexList_free(index_list[i].extension);
-	    }
+	    pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list, 0, globalNumVertices, 0);
 
 	    if (Dudley_noError())
 	    {
@@ -205,8 +190,6 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 #endif
 
 	    }
-
-	    Paso_Pattern_free(pattern);
 
 	    /* create a new distribution and labelling of the DOF */
 	    memset(new_distribution, 0, mpiSize_size);
@@ -291,7 +274,6 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    for (i = 0; i < mpiSize + 1; ++i)
 		distribution[i] = new_distribution[i];
 	}
-	delete[] index_list;
     }
     delete[] newGlobalDOFID;
     delete[] setNewDOFId;

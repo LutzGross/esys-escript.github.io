@@ -1,4 +1,5 @@
-
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2009-2014 by University of Queensland
@@ -41,7 +42,7 @@ import numpy as np
 
 import pylab as pl
 import matplotlib.cm as cm
-from esys.escript.linearPDEs import LinearPDE
+from esys.escript.linearPDEs import LinearPDE, SolverOptions
 from esys.finley import ReadMesh
 
 ########################################################MPI WORLD CHECK
@@ -136,7 +137,7 @@ xc=[150,0]
 mypde=LinearPDE(domain) # create pde
 mypde.setSymmetryOn() # turn symmetry on
 # turn lumping on for more efficient solving
-mypde.getSolverOptions().setSolverMethod(mypde.getSolverOptions().HRZ_LUMPING)
+mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
 kmat = kronecker(domain) # create the kronecker delta function of the domain
 mypde.setValue(D=rho*kmat) #set the general form value D
 

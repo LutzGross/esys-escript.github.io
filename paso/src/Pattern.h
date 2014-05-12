@@ -15,86 +15,114 @@
 *****************************************************************************/
 
 
-/************************************************************************************/
+/****************************************************************************/
 
-/*   Paso: pattern                                            */
+/*   Paso: CSC/CSR sparse matrix pattern                                    */
 
-/************************************************************************************/
+/****************************************************************************/
 
 /*   Author: Lutz Gross, l.gross@uq.edu.au */
 
-/************************************************************************************/
+/****************************************************************************/
 
-#ifndef INC_PASO_PATTERN
-#define INC_PASO_PATTERN
+#ifndef __PASO_PATTERN_H__
+#define __PASO_PATTERN_H__
 
 #include "Paso.h"
-#include "IndexList.h"
+#include "esysUtils/IndexList.h"
 
-/************************************************************************************/
+namespace paso {
 
-typedef struct Paso_Pattern {
-  int type;
-  dim_t numOutput;	/* Number of rows the ptr array [CSR] for CSC it's the number of cols*/
-  dim_t numInput;	/* Number of cols [CSR] */
-  dim_t len;		/* number of non-zeros */
-  index_t* ptr;		/* ptr[n] to ptr[n+1] lists indices (in index) of non-zeros in row n*/
-  index_t* index;	/* Non-major indices of non-zeros (in CSR this will be col numbers) */ 
-  index_t *main_iptr;  /* pointer to main diagonal entry */
-  dim_t numColors;     /* number of colors */
-  index_t* coloring;   /* coloring index: input with the same color are not connected */
-  dim_t reference_counter;
-} Paso_Pattern;
+struct Pattern;
+typedef boost::shared_ptr<Pattern> Pattern_ptr;
+typedef boost::shared_ptr<const Pattern> const_Pattern_ptr;
 
 PASO_DLL_API
-Paso_Pattern* Paso_Pattern_alloc(int type, dim_t numOutput, dim_t numInput, index_t* ptr, index_t* index);
+struct Pattern : boost::enable_shared_from_this<Pattern>
+{
+    Pattern(int type, dim_t numOutput, dim_t numInput, index_t* ptr,
+            index_t* index);
 
-PASO_DLL_API
+    ~Pattern();
 
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_getReference(Paso_Pattern*);
+    Pattern_ptr unrollBlocks(int newType, dim_t outputBlockSize,
+                             dim_t inputBlockSize);
 
-PASO_DLL_API
-void Paso_Pattern_free(Paso_Pattern*);
+    Pattern_ptr getSubpattern(dim_t newNumRows, dim_t newNumCols,
+                              const index_t* rowList,
+                              const index_t* newColIndex) const;
 
-PASO_DLL_API
-int Paso_comparIndex(const void *,const void *);
+    /// Searches for a maximal independent set MIS in the matrix pattern
+    void mis(index_t* mis_marker) const;
 
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_unrollBlocks(Paso_Pattern*,int, dim_t,dim_t);
+    void reduceBandwidth(index_t* oldToNew);
 
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_getSubpattern(Paso_Pattern*,dim_t,dim_t,index_t*,index_t*);
+    Pattern_ptr multiply(int type, const_Pattern_ptr other) const;
 
-PASO_DLL_API
-bool Paso_Pattern_isEmpty(Paso_Pattern* in);
+    Pattern_ptr binop(int type, const_Pattern_ptr other) const;
 
-PASO_DLL_API
-void Paso_Pattern_mis(Paso_Pattern* pattern_p, index_t* mis_marker);
+    index_t* borrowMainDiagonalPointer();
 
-PASO_DLL_API
-void Paso_Pattern_reduceBandwidth(Paso_Pattern* self,index_t* oldToNew);
+    static Pattern_ptr fromIndexListArray(dim_t n0, dim_t n,
+            const esysUtils::IndexListArray& index_list_array,
+            index_t range_min, index_t range_max, index_t index_offset);
 
-PASO_DLL_API
-void Paso_Pattern_color(Paso_Pattern* patter, index_t* num_colors, index_t* colorOf);
-Paso_Pattern* Paso_Pattern_multiply(int type, Paso_Pattern* A, Paso_Pattern* B);
+    index_t* borrowColoringPointer();
 
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_binop(int type, Paso_Pattern* A, Paso_Pattern* B);
+    dim_t getBandwidth(index_t* label) const;
 
-PASO_DLL_API
-index_t* Paso_Pattern_borrowMainDiagonalPointer(Paso_Pattern* A);
+    inline bool isEmpty() const
+    {
+        return (!ptr && !index);
+    }
 
-PASO_DLL_API
-Paso_Pattern* Paso_Pattern_fromIndexListArray(dim_t n0, Paso_IndexListArray* index_list_array,index_t range_min,index_t range_max, index_t index_offset);
+    inline dim_t getNumColors()
+    {
+        // make sure numColors is defined
+        borrowColoringPointer();
+        return numColors;
+    }
 
-PASO_DLL_API
-dim_t Paso_Pattern_getNumColors(Paso_Pattern* A);
+    inline dim_t maxDeg() const
+    {
+        dim_t deg = 0;
+#pragma omp parallel
+        {
+            dim_t loc_deg=0;
+#pragma omp for
+            for (dim_t i = 0; i < numInput; ++i) {
+                loc_deg=std::max(loc_deg, ptr[i+1]-ptr[i]);
+            }
+#pragma omp critical
+            {
+                deg = std::max(deg, loc_deg);
+            }
+        }
+        return deg;
+    }
 
-PASO_DLL_API
-index_t* Paso_Pattern_borrowColoringPointer(Paso_Pattern* A);
 
-PASO_DLL_API
-dim_t Paso_Pattern_maxDeg(Paso_Pattern* A);
+    int type;
+    // Number of rows in the ptr array [CSR] / number of cols for CSC
+    dim_t numOutput;
+    // Number of cols [CSR]
+    dim_t numInput;
+    // number of non-zeros
+    dim_t len;
+    // ptr[n] to ptr[n+1] lists indices (in index) of non-zeros in row n
+    index_t* ptr;
+    // Non-major indices of non-zeros (in CSR this will be col numbers)
+    index_t* index;
+    // pointer to main diagonal entry
+    index_t* main_iptr;
+    // number of colors
+    dim_t numColors;
+    // coloring index: inputs with the same color are not connected
+    index_t* coloring;
+};
 
-#endif /* #ifndef INC_PASO_PATTERN */
+
+} // namespace paso
+
+#endif // __PASO_PATTERN_H__
+

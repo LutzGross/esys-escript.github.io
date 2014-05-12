@@ -22,99 +22,92 @@
 
 namespace escript {
 
-AbstractSystemMatrix::AbstractSystemMatrix() {
-    //std::cout << "Called default AbstractSystemMatrix constructor" << std::endl;
-    m_empty=1;
-}
-
-AbstractSystemMatrix::AbstractSystemMatrix(const int row_blocksize,
-                                           const FunctionSpace& row_functionspace,
-                                           const int column_blocksize,
-                                           const FunctionSpace& column_functionspace)
-:m_row_functionspace(row_functionspace),
-m_column_functionspace(column_functionspace)
+AbstractSystemMatrix::AbstractSystemMatrix(int row_blocksize,
+                                           const FunctionSpace& row_fs,
+                                           int column_blocksize,
+                                           const FunctionSpace& column_fs) :
+    m_empty(false),
+    m_column_blocksize(column_blocksize),
+    m_row_blocksize(row_blocksize),
+    m_row_functionspace(row_fs),
+    m_column_functionspace(column_fs)
 {
-  if (row_blocksize<=0) 
-     throw DataException("Error - negative row block size of system matrix.");
-  if (column_blocksize<=0) 
-     throw DataException("Error - negative column block size of system matrix.");
+    if (row_blocksize <= 0) 
+        throw DataException("Negative row block size of system matrix.");
+    if (column_blocksize <= 0) 
+        throw DataException("Negative column block size of system matrix.");
 
-   m_empty=0;
-   m_row_blocksize=row_blocksize;
-   m_column_blocksize=column_blocksize;
-//    m_row_functionspace=row_functionspace;
-//    m_column_functionspace=column_functionspace;
 }
 
-AbstractSystemMatrix::~AbstractSystemMatrix() {
-}
-
-int AbstractSystemMatrix::isEmpty() const {
-   return m_empty;
-}
-
-Data operator*(const AbstractSystemMatrix& left,const Data& right)
+Data operator*(const AbstractSystemMatrix& left, const Data& right)
 {
-      Data tmp=(Data) right;
-      return left.vectorMultiply(tmp);
+    return left.vectorMultiply(right);
 }
 
-Data AbstractSystemMatrix::vectorMultiply(Data& right) const
+Data AbstractSystemMatrix::vectorMultiply(const Data& right) const
 {
-     if (isEmpty())
-          throw SystemMatrixException("Error - Matrix is empty.");
-     if (right.getDataPointSize()!=getColumnBlockSize())
-          throw SystemMatrixException("Error - column block size and input data size do not match.");
-     DataTypes::ShapeType shape;
-     if (getRowBlockSize()>1) shape.push_back(getRowBlockSize());
+    if (isEmpty())
+        throw SystemMatrixException("Error - Matrix is empty.");
+    if (right.getDataPointSize()!=getColumnBlockSize())
+        throw SystemMatrixException("Error - column block size and input data size do not match.");
+    DataTypes::ShapeType shape;
+    if (getRowBlockSize() > 1)
+        shape.push_back(getRowBlockSize());
 
-     Data out=Data(0.,shape,getRowFunctionSpace(),true);
-     Data in=Data(right,getColumnFunctionSpace());
-     ypAx(out,in);
-     return out;
+    Data out(0., shape, getRowFunctionSpace(), true);
+    Data in(right, getColumnFunctionSpace());
+    ypAx(out, in);
+    return out;
 }
 
-void AbstractSystemMatrix::ypAx(Data& y,Data& x) const
+void AbstractSystemMatrix::ypAx(Data& y, Data& x) const
 {
-    throw SystemMatrixException("Error - ypAx not available");
+    throw SystemMatrixException("ypAx() is not implemented.");
 }
 
-Data AbstractSystemMatrix::solve(Data& in, boost::python::object& options) const
+Data AbstractSystemMatrix::solve(const Data& in,
+                                 boost::python::object& options) const
 {
-     if (isEmpty())
-          throw SystemMatrixException("Error - Matrix is empty.");
-     if (in.getFunctionSpace()!=getRowFunctionSpace())
-          throw SystemMatrixException("Error - row function space and function space of right hand side do not match.");
-     if (in.getDataPointSize()!=getRowBlockSize())
-          throw SystemMatrixException("Error - row block size and right hand side size do not match.");
-     DataTypes::ShapeType shape;
-     if (getRowBlockSize()>1) shape.push_back(getColumnBlockSize());
-     Data out=Data(0.,shape,getColumnFunctionSpace(),true);
-     setToSolution(out,in,options);
-     return out;
+    if (isEmpty())
+        throw SystemMatrixException("Matrix is empty.");
+    if (in.getFunctionSpace() != getRowFunctionSpace())
+        throw SystemMatrixException("row function space and function space of right hand side do not match.");
+    if (in.getDataPointSize() != getRowBlockSize())
+        throw SystemMatrixException("row block size and right hand side size do not match.");
+    DataTypes::ShapeType shape;
+    if (getRowBlockSize() > 1)
+        shape.push_back(getColumnBlockSize());
+    Data out(0., shape, getColumnFunctionSpace(), true);
+    setToSolution(out, *const_cast<Data*>(&in), options);
+    return out;
 }
-void AbstractSystemMatrix::setToSolution(Data& out,Data& in, boost::python::object& options) const
+void AbstractSystemMatrix::setToSolution(Data& out, Data& in,
+                                         boost::python::object& options) const
 {
-    throw SystemMatrixException("Error - setToSolution not available");
-}
-
-
-void AbstractSystemMatrix::nullifyRowsAndCols(escript::Data& row_q, escript::Data& col_q, const double mdv) const
-{
-    throw   SystemMatrixException("Error - nullifyRowsAndCols interface not available.");
+    throw SystemMatrixException("setToSolution() is not implemented");
 }
 
-void AbstractSystemMatrix::saveMM(const std::string& fileName) const
+void AbstractSystemMatrix::nullifyRowsAndCols(Data& row_q,
+                                              Data& col_q,
+                                              double mdv) const
 {
-    throw SystemMatrixException("Error - Matrix Market interface not available.");
+    throw SystemMatrixException("nullifyRowsAndCols() is not implemented.");
 }
+
+void AbstractSystemMatrix::saveMM(const std::string& filename) const
+{
+    throw SystemMatrixException("Matrix Market interface not available.");
+}
+
 void AbstractSystemMatrix::saveHB(const std::string& fileName) const
 {
-    throw SystemMatrixException("Error - Harwell-Boeing interface not available.");
+    throw SystemMatrixException("Harwell-Boeing interface not available.");
 }
+
 void AbstractSystemMatrix::resetValues() const
 {
-    throw SystemMatrixException("Error - setValue is not implemented.");
+    throw SystemMatrixException("resetValues() is not implemented.");
 }
 
 }  // end of namespace
+

@@ -30,7 +30,7 @@ import sys
 import time
 from esys.escript import *
 import esys.escript.unitsSI as U
-from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, WavePDE, SolverOptions
 
 class Wavelet(object):
         """
@@ -93,7 +93,9 @@ class SimpleSEGYWriter(object):
            from esys.escript import unitsSI as U
            sw=SimpleSEGYWriter([0.,100*U.m,200*U,m,300.], source=200*U.m, sampling_interval=4*U.msec)
            while n < 10:
-                sw.addRecord([i*2., i*0.67, i**2, -i*7])
+
+              sw.addRecord([i*2., i*0.67, i**2, -i*7])
+           
            sw.write('example.segy')
 
         :note: the writer uses `obspy`
@@ -178,6 +180,7 @@ class SimpleSEGYWriter(object):
             :param filename: file name
             :note: the function uses the `obspy` module.
             """
+
             try:
                 from obspy import Trace, Stream, UTCDateTime
                 from obspy.segy.segy import SEGYTraceHeader, SEGYBinaryFileHeader
@@ -186,6 +189,10 @@ class SimpleSEGYWriter(object):
                 raise RuntimeError("This feature (SimpleSEGYWriter.write())"+\
                         " depends on obspy, which is not installed, see "+\
                         "https://github.com/obspy/obspy for install guide")
+
+            if getMPISizeWorld() > 1:
+                raise RuntimeError("Writing segy files with multiple ranks is"+\
+                        " not yet supported.")
 
             stream=Stream()
 
@@ -356,7 +363,7 @@ class SonicWave(WaveBase):
 
            self.__wavelet=wavelet
            self.__mypde=LinearSinglePDE(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=1./v_p**2)
            self.__source_tag=source_tag
@@ -449,8 +456,7 @@ class VTIWave(WaveBase):
             self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
 
         if lumping: 
-            self.__mypde.getSolverOptions().setSolverMethod(
-                    self.__mypde.getSolverOptions().HRZ_LUMPING)
+            self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
         self.__mypde.setSymmetryOn()
         self.__mypde.setValue(D=rho*kronecker(DIM))
         self.__source_tag=source_tag
@@ -581,7 +587,7 @@ class HTIWave(WaveBase):
                 self.__mypde.setValue(X=self.__mypde.createCoefficient('X'))
            
            if lumping: 
-                self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+                self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=rho*kronecker(DIM))
            self.__source_tag=source_tag
@@ -706,7 +712,7 @@ class TTIWave(WaveBase):
            self.__wavelet=wavelet
 
            self.__mypde=LinearPDESystem(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=rho*kronecker(DIM), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag
@@ -808,7 +814,7 @@ class SonicHTIWave(WaveBase):
            self.__wavelet=wavelet
            
            self.__mypde=LinearPDESystem(domain)
-           if lumping: self.__mypde.getSolverOptions().setSolverMethod(self.__mypde.getSolverOptions().HRZ_LUMPING)
+           if lumping: self.__mypde.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
            self.__mypde.setSymmetryOn()
            self.__mypde.setValue(D=kronecker(2), X=self.__mypde.createCoefficient('X'))
            self.__source_tag=source_tag

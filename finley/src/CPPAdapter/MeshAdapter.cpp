@@ -752,7 +752,7 @@ void MeshAdapter::addPDEToSystem(
         throw FinleyAdapterException("finley only supports Paso system matrices.");
 
     Mesh* mesh=m_finleyMesh.get();
-    Paso_SystemMatrix* S = smat->getPaso_SystemMatrix();
+    paso::SystemMatrix_ptr S(smat->getPaso_SystemMatrix());
     Assemble_PDE(mesh->Nodes, mesh->Elements, S, rhs, A, B, C, D, X, Y);
     checkFinleyError();
 
@@ -795,22 +795,22 @@ void MeshAdapter::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
         const escript::Data& y_contact, const escript::Data& y_dirac) const
 {
     Mesh* mesh=m_finleyMesh.get();
-    Assemble_PDE(mesh->Nodes, mesh->Elements, 0, rhs,
+    Assemble_PDE(mesh->Nodes, mesh->Elements, paso::SystemMatrix_ptr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             X, Y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->FaceElements, 0, rhs,
-            escript::Data(), escript::Data(), escript::Data(), escript::Data(),
-            escript::Data(), y);
+    Assemble_PDE(mesh->Nodes, mesh->FaceElements, paso::SystemMatrix_ptr(),
+            rhs, escript::Data(), escript::Data(), escript::Data(),
+            escript::Data(), escript::Data(), y);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->ContactElements, 0, rhs,
-            escript::Data(), escript::Data(), escript::Data(),
+    Assemble_PDE(mesh->Nodes, mesh->ContactElements, paso::SystemMatrix_ptr(),
+            rhs, escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), escript::Data(), y_contact);
     checkFinleyError();
 
-    Assemble_PDE(mesh->Nodes, mesh->Points, 0, rhs,
+    Assemble_PDE(mesh->Nodes, mesh->Points, paso::SystemMatrix_ptr(), rhs,
             escript::Data(), escript::Data(), escript::Data(), escript::Data(),
             escript::Data(), y_dirac);
     checkFinleyError();
@@ -834,7 +834,7 @@ void MeshAdapter::addPDEToTransportProblem(
     source.expand();
 
     Mesh* mesh=m_finleyMesh.get();
-    Paso_TransportProblem* _tp = tpa->getPaso_TransportProblem();
+    paso::TransportProblem_ptr _tp(tpa->getPaso_TransportProblem());
 
     Assemble_PDE(mesh->Nodes, mesh->Elements, _tp->mass_matrix, source,
                         escript::Data(), escript::Data(), escript::Data(),
@@ -1455,21 +1455,20 @@ escript::ASM_ptr MeshAdapter::newSystemMatrix(const int row_blocksize,
     }
 
     // generate matrix:
-    Paso_SystemMatrixPattern* fsystemMatrixPattern=
-        getFinley_Mesh()->getPattern(reduceRowOrder, reduceColOrder);
+    paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
+            reduceRowOrder, reduceColOrder);
     checkFinleyError();
-    Paso_SystemMatrix* fsystemMatrix;
+    paso::SystemMatrix_ptr fsystemMatrix;
     const int trilinos = 0;
     if (trilinos) {
 #ifdef TRILINOS
         // FIXME: Allocation Epetra_VrbMatrix here...
 #endif
     } else {
-        fsystemMatrix=Paso_SystemMatrix_alloc(type, fsystemMatrixPattern,
-                row_blocksize, column_blocksize, FALSE);
+        fsystemMatrix.reset(new paso::SystemMatrix(type, pattern,
+                            row_blocksize, column_blocksize, false));
     }
     checkPasoError();
-    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
     SystemMatrixAdapter* sma=new SystemMatrixAdapter(fsystemMatrix, row_blocksize, row_functionspace, column_blocksize, column_functionspace);
     return escript::ASM_ptr(sma);
 }
@@ -1494,13 +1493,12 @@ escript::ATP_ptr MeshAdapter::newTransportProblem(const int blocksize,
     }
 
     // generate transport problem:
-    Paso_SystemMatrixPattern* fsystemMatrixPattern=
-        getFinley_Mesh()->getPattern(reduceOrder, reduceOrder);
+    paso::SystemMatrixPattern_ptr pattern = getFinley_Mesh()->getPattern(
+            reduceOrder, reduceOrder);
     checkFinleyError();
-    Paso_TransportProblem* transportProblem;
-    transportProblem=Paso_TransportProblem_alloc(fsystemMatrixPattern, blocksize);
+    paso::TransportProblem_ptr transportProblem(new paso::TransportProblem(
+                                                pattern, blocksize));
     checkPasoError();
-    Paso_SystemMatrixPattern_free(fsystemMatrixPattern);
     TransportProblemAdapter* tpa=new TransportProblemAdapter(
             transportProblem, blocksize, functionspace);
     return escript::ATP_ptr(tpa);

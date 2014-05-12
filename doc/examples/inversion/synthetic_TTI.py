@@ -1,3 +1,5 @@
+from __future__ import division
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -50,7 +52,7 @@ absorption_zone=300*U.m             # absorbtion zone to be added in horizantal 
 # defines the receiver line 
 rangeRcv=800*U.m                    # width of the receveiver line
 numRcvPerLine=101                   # total number of receiver
-src_id=numRcvPerLine/2              # location of source in crossing array lines with in 0..numRcvInLine 
+src_id=numRcvPerLine//2              # location of source in crossing array lines with in 0..numRcvInLine 
 lumping = True
 src_dir=[0,1]
 
@@ -63,7 +65,7 @@ ne_x=int(ceil(ne_z*width_x/depth))
 #
 # create receiver array 
 #
-receiver_line=[2*absorption_zone + i * (rangeRcv/(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
+receiver_line=[2*absorption_zone + i * (rangeRcv//(numRcvPerLine-1)) for i in range(numRcvPerLine) ]
 #
 #   set source location with tag "source""
 #
@@ -90,7 +92,7 @@ print("source location = %s m"%(src_locations[0][0],))
 print("source orientation = %s"%(src_dir,))
 print("matrix lumping = %s"%(lumping,))
 print("Layer\tV_p\tV_s\teps\tdelta\ttilt\trho")
-for i in xrange(len(layers)):
+for i in range(len(layers)):
     print("%s\t%s\t%s\t%s\t%s\t%s\t%s"%( layers[i], v_P[i], v_S[i], eps[i], delta[i], tilt[i], rho[i]))
 #
 # create domain:
@@ -116,7 +118,7 @@ Tilt=0
 Rho=0
 z_top=depth
 
-for l in xrange(len(layers)):
+for l in range(len(layers)):
        m=whereNonPositive(z-z_top)*wherePositive(z-(z_top-layers[l]))
        V_P = V_P     * (1-m)  + v_P[l]  * m
        V_S = V_S     * (1-m)  + v_S[l]  * m

@@ -27,7 +27,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 from esys.escript import *
-from esys.escript.linearPDEs import LinearSinglePDE
+from esys.escript.linearPDEs import LinearSinglePDE, SolverOptions
 from esys.escript.pdetools import Locator
 from esys import finley
 from math import pi
@@ -56,13 +56,13 @@ def runValetAcceleration(order):
    u_f=ref_u(x,0)
    
    mypde_HRZ=LinearSinglePDE(domain)
-   mypde_HRZ.getSolverOptions().setSolverMethod(mypde_HRZ.getSolverOptions().HRZ_LUMPING)
+   mypde_HRZ.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
    mypde_HRZ.setValue(D=1,q=q)
    u_HRZ_old=ref_u(x,-dt)
    u_HRZ=ref_u(x,0)
    
    mypde_RS=LinearSinglePDE(domain)
-   mypde_RS.getSolverOptions().setSolverMethod(mypde_RS.getSolverOptions().ROWSUM_LUMPING)
+   mypde_RS.getSolverOptions().setSolverMethod(SolverOptions.ROWSUM_LUMPING)
    mypde_RS.setValue(D=1,q=q)
    u_RS_old=ref_u(x,-dt)
    u_RS=ref_u(x,0)
@@ -130,13 +130,13 @@ def runValetDisplacement(order):
    u_f=ref_u(x,0)
    
    mypde_HRZ=LinearSinglePDE(domain)
-   mypde_HRZ.getSolverOptions().setSolverMethod(mypde_HRZ.getSolverOptions().HRZ_LUMPING)
+   mypde_HRZ.getSolverOptions().setSolverMethod(SolverOptions.HRZ_LUMPING)
    mypde_HRZ.setValue(D=1,q=q)
    u_HRZ_old=ref_u(x,-dt)
    u_HRZ=ref_u(x,0)
    
    mypde_RS=LinearSinglePDE(domain)
-   mypde_RS.getSolverOptions().setSolverMethod(mypde_RS.getSolverOptions().ROWSUM_LUMPING)
+   mypde_RS.getSolverOptions().setSolverMethod(SolverOptions.ROWSUM_LUMPING)
    mypde_RS.setValue(D=1,q=q)
    u_RS_old=ref_u(x,-dt)
    u_RS=ref_u(x,0)

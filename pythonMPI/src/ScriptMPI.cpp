@@ -37,9 +37,15 @@ int main( int argc, char **argv ) {
       std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
       return status;
     }
+    int rank=0;
+    if (MPI_Comm_rank(MPI_COMM_WORLD, &rank)!=MPI_SUCCESS)
+    {
+	MPI_Abort(MPI_COMM_WORLD, 1);
+    }
+
     esysUtils::JMPI mpi_info=esysUtils::makeInfo(MPI_COMM_WORLD);
 
-    if( mpi_info->rank )
+    if( rank )
     {
       #ifdef _WIN32
          if ( freopen( "NUL", "w+", stdout ) == NULL ) {
