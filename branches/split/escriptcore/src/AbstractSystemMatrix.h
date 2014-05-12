@@ -124,7 +124,7 @@ public:
         Values on the main diagonal which are marked to set to zero by both
         row_q and col_q are set to mdv (main diagonal value).
     */
-    virtual void nullifyRowsAndCols(Data& row_q, Data& col_q, double mdv) const;  
+    virtual void nullifyRowsAndCols(Data& row_q, Data& col_q, double mdv);  
   
 
     /**
@@ -140,7 +140,7 @@ public:
     /**
         \brief resets the matrix entries
     */
-    virtual void resetValues() const;
+    virtual void resetValues();
 
 private:
 
