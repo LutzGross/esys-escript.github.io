@@ -78,7 +78,7 @@ typedef std::map<std::string, int> TagMap;
 class Mesh
 {
 public:
-    Mesh(const std::string name, int numDim, Esys_MPIInfo *mpi_info);
+    Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info);
     ~Mesh();
 
     static Mesh* load(const std::string fname);
@@ -157,7 +157,7 @@ public:
     paso::SystemMatrixPattern_ptr FullReducedPattern;
     paso::SystemMatrixPattern_ptr ReducedFullPattern;
     paso::SystemMatrixPattern_ptr ReducedReducedPattern;
-    Esys_MPIInfo *MPIInfo;
+    esysUtils::JMPI MPIInfo;
 };
 
 // this structure is used for matching surface elements

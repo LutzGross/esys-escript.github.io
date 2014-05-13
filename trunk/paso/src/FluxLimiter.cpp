@@ -34,7 +34,7 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
     const dim_t n = tp->transport_matrix->getTotalNumRows();
     const dim_t blockSize = tp->getBlockSize();
 
-    mpi_info = Esys_MPIInfo_getReference(tp->mpi_info);
+    mpi_info = tp->mpi_info;
     u_tilde = new double[n];
     MQ = new double[2*n];
     R = new double[2*n];
@@ -50,7 +50,6 @@ FCT_FluxLimiter::FCT_FluxLimiter(const_TransportProblem_ptr tp)
 
 FCT_FluxLimiter::~FCT_FluxLimiter()
 {
-    Esys_MPIInfo_free(mpi_info);
     delete[] u_tilde;
     delete[] MQ;
     delete[] R;

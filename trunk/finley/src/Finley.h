@@ -57,7 +57,7 @@ bool noError();
 ErrorCodeType getErrorType();
 char* getErrorMessage();
 void checkFinleyError();
-bool MPI_noError(Esys_MPIInfo *mpi_info);
+bool MPI_noError(esysUtils::JMPI& mpi_info);
 
 } // namespace finley
 

@@ -239,7 +239,7 @@ const char* Options::name(index_t key)
 }
 
 index_t Options::getSolver(index_t solver, index_t pack, bool symmetry,
-                           Esys_MPIInfo* mpi_info)
+                           const esysUtils::JMPI& mpi_info)
 {
     index_t out = PASO_DEFAULT;
     // PASO //
@@ -330,7 +330,7 @@ index_t Options::getSolver(index_t solver, index_t pack, bool symmetry,
 }
 
 index_t Options::getPackage(index_t solver, index_t pack, bool symmetry,
-                            Esys_MPIInfo* mpi_info)
+                            const esysUtils::JMPI& mpi_info)
 {
     index_t out = PASO_PASO;
 

@@ -26,7 +26,6 @@ int main( int argc, char **argv )
 {
     int status = 0;
     int provided;
-    Esys_MPIInfo *mpi_info=NULL;
     try
     {
         /*
@@ -47,11 +46,11 @@ int main( int argc, char **argv )
         if( rank )
         {
             char fname[256];
-            sprintf( fname, "stdout_%04d.out", mpi_info->rank );
+            sprintf( fname, "stdout_%04d.out", rank );
             if (freopen( fname, "w+", stdout ) == NULL) {
                 std::cerr << "Warning: Unable to redirect stdout." << std::endl;
             }
-            sprintf( fname, "stdout_%04d.err", mpi_info->rank );
+            sprintf( fname, "stdout_%04d.err", rank );
             if (freopen(fname, "w+", stderr) == NULL) {
                 std::cerr << "Warning: Unable to redirect stderr." << std::endl;
             }

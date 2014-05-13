@@ -28,6 +28,7 @@
 
 #include <sstream>
 
+
 using namespace std;
 using namespace escript;
 
@@ -49,10 +50,9 @@ namespace finley {
   }
 #endif
 
-  inline void cleanupAndThrow(Mesh* mesh, Esys_MPIInfo* info, string msg)
+  inline void cleanupAndThrow(Mesh* mesh, string msg)
   {
       delete mesh;
-      Esys_MPIInfo_free(info);
       string msgPrefix("loadMesh: NetCDF operation failed - ");
       throw DataException(msgPrefix+msg);
   }
@@ -61,7 +61,7 @@ namespace finley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
+    esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
     Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
@@ -81,7 +81,6 @@ namespace finley {
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
       setError(IO_ERROR,error_msg);
-      Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
 
@@ -131,39 +130,39 @@ namespace finley {
         mesh_p->Nodes->allocTable(numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Id)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_Id)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Id)");
+            cleanupAndThrow(mesh_p, "get(Nodes_Id)");
         // Nodes_Tag
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_Tag)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, "get(Nodes_Tag)");
         // Nodes_gDOF
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_gDOF)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, "get(Nodes_gDOF)");
         // Nodes_gNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_gNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, "get(Nodes_gNI)");
         // Nodes_grDfI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_grDfI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, "get(Nodes_grDfI)");
         // Nodes_grNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_grNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, "get(Nodes_grNI)");
         // Nodes_Coordinates
         if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates")))
-            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, "get_var(Nodes_Coordinates)");
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
-            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
         mesh_p->Nodes->updateTagList();
 
         /* read elements */
@@ -181,24 +180,24 @@ namespace finley {
                 if (num_Elements>0) {
                    // Elements_Id
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Id)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Id)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Id)");
                    // Elements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Tag)");
                    // Elements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Owner)");
                    // Elements_Color
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Color)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Color)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->Elements->Color[0];
                    for (index_t i=1;i<num_Elements;++i) {
@@ -211,11 +210,11 @@ namespace finley {
                    int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
                        delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
                        delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
                    }
 
                    // Copy temp array into mesh_p->Elements->Nodes
@@ -247,24 +246,24 @@ namespace finley {
                 if (num_FaceElements>0) {
                    // FaceElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Id)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Id)");
                    // FaceElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Tag)");
                    // FaceElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Owner)");
                    // FaceElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Color)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->FaceElements->Color[0];
                    for (index_t i=1;i<num_FaceElements;++i) {
@@ -277,11 +276,11 @@ namespace finley {
                    int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
                        delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
                        delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->FaceElements->Nodes
                    for (int i=0; i<num_FaceElements; i++) {
@@ -311,24 +310,24 @@ namespace finley {
                 if (num_ContactElements>0) {
                    // ContactElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Id")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Id)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Id[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Id)");
+                       cleanupAndThrow(mesh_p, "get(ContactElements_Id)");
                    // ContactElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Tag")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Tag[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Tag)");
+                       cleanupAndThrow(mesh_p, "get(ContactElements_Tag)");
                    // ContactElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Owner")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Owner[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Owner)");
+                       cleanupAndThrow(mesh_p, "get(ContactElements_Owner)");
                    // ContactElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Color")) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Color)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Color[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Color)");
+                       cleanupAndThrow(mesh_p, "get(ContactElements_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->ContactElements->Color[0];
                    for (index_t i=1;i<num_ContactElements;++i) {
@@ -341,11 +340,11 @@ namespace finley {
                    int *ContactElements_Nodes = new int[num_ContactElements*num_ContactElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
                        delete[] ContactElements_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes) ) {
                        delete[] ContactElements_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(ContactElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->ContactElements->Nodes
                    for (int i=0; i<num_ContactElements; i++) {
@@ -374,24 +373,24 @@ namespace finley {
                 if (num_Points>0) {
                    // Points_Id
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Id)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Id)");
                    if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Id)");
+                       cleanupAndThrow(mesh_p, "get(Points_Id)");
                    // Points_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Points_Tag")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Tag)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Tag)");
+                       cleanupAndThrow(mesh_p, "get(Points_Tag)");
                    // Points_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Points_Owner")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Owner)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Owner)");
                    if (!nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Owner)");
+                       cleanupAndThrow(mesh_p, "get(Points_Owner)");
                    // Points_Color
                    if (! ( nc_var_temp = dataFile.get_var("Points_Color")))
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Color)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Color)");
                    if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Color)");
+                       cleanupAndThrow(mesh_p, "get(Points_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->Points->Color[0];
                    for (index_t i=1;i<num_Points;++i) {
@@ -404,11 +403,11 @@ namespace finley {
                    int *Points_Nodes = new int[num_Points];
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
                        delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
                        delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, "get(Points_Nodes)");
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
@@ -431,11 +430,11 @@ namespace finley {
             // Tags_keys
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
                 delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, mpi_info, "get_var(Tags_keys)");
+                cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
             }
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
                 delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, mpi_info, "get(Tags_keys)");
+                cleanupAndThrow(mesh_p, "get(Tags_keys)");
             }
             for (i=0; i<num_Tags; i++) {
               // Retrieve tag name
@@ -443,7 +442,7 @@ namespace finley {
               if (! (attr=dataFile.get_att(name_temp)) ) {
                   delete[] Tags_keys;
                   sprintf(error_msg,"get_att(%s)", name_temp);
-                  cleanupAndThrow(mesh_p, mpi_info, error_msg);
+                  cleanupAndThrow(mesh_p, error_msg);
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
@@ -457,19 +456,19 @@ namespace finley {
             // Nodes_DofDistribution
             std::vector<int> first_DofComponent(mpi_size+1);
             if (! (nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
-                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
             }
             if (!nc_var_temp->get(&first_DofComponent[0], mpi_size+1)) {
-                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
             std::vector<int> first_NodeComponent(mpi_size+1);
             if (! (nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
-                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
             }
             if (!nc_var_temp->get(&first_NodeComponent[0], mpi_size+1)) {
-                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
             }
             mesh_p->createMappings(first_DofComponent, first_NodeComponent);
         }
@@ -479,7 +478,6 @@ namespace finley {
     checkFinleyError();
     Domain_ptr dom(new MeshAdapter(mesh_p));
 
-    Esys_MPIInfo_free(mpi_info);
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom;
 #else
@@ -520,14 +518,15 @@ namespace finley {
   }
 
 /*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
-  Domain_ptr brick(int n0, int n1, int n2, int order,
+  Domain_ptr brick(esysUtils::JMPI& info, int n0, int n1, int n2, int order,
                    double l0, double l1, double l2,
                    bool periodic0, bool periodic1, bool periodic2,
                    int integrationOrder, int reducedIntegrationOrder,
                    bool useElementsOnFace, bool useFullElementOrder,
                    bool optimize, const std::vector<double>& points,
                    const std::vector<int>& tags,
-                   const std::map<std::string, int>& tagnamestonums)
+                   const std::map<std::string, int>& tagnamestonums
+		  )
   {
     const int numElements[] = {n0, n1, n2};
     const double length[] = {l0, l1, l2};
@@ -537,15 +536,18 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Hex8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize);
+                useElementsOnFace, useFullElementOrder, optimize,
+		info);
     } else if (order==2) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, false, optimize);
+                useElementsOnFace, useFullElementOrder, false, optimize,
+		info);
     } else if (order==-1) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize);
+                useElementsOnFace, useFullElementOrder, true, optimize,
+		info);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -610,8 +612,23 @@ namespace finley {
           }
         
       }
-      
-      return brick(static_cast<int>(extract<float>(args[0])),
+      boost::python::object pworld=args[17];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+	  extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
+	  }
+	  info=ex()->getMPI();
+      }
+      else
+      {
+	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+
+      }
+      return brick(info, static_cast<int>(extract<float>(args[0])),
                    static_cast<int>(extract<float>(args[1])),
                    static_cast<int>(extract<float>(args[2])),
                    extract<int>(args[3]), extract<double>(args[4]),
@@ -620,10 +637,11 @@ namespace finley {
                    extract<int>(args[9]), extract<int>(args[10]),
                    extract<int>(args[11]), extract<int>(args[12]),
                    extract<int>(args[13]), extract<int>(args[14]),
-                   points, tags, namestonums);
+                   points, tags, namestonums
+		  );
   }
 
-  Domain_ptr rectangle(int n0, int n1, int order,
+  Domain_ptr rectangle(esysUtils::JMPI& info, int n0, int n1, int order,
                        double l0, double l1,
                        bool periodic0, bool periodic1,
                        int integrationOrder,
@@ -633,7 +651,8 @@ namespace finley {
                        bool optimize,
                        const vector<double>& points,
                        const vector<int>& tags,
-                       const std::map<std::string, int>& tagnamestonums)
+                       const std::map<std::string, int>& tagnamestonums
+		      )
   {
     const int numElements[] = {n0, n1};
     const double length[] = {l0, l1};
@@ -643,15 +662,18 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Rec4(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize);
+                useElementsOnFace, useFullElementOrder, optimize,
+		info);
     } else if (order==2) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace,useFullElementOrder, false, optimize);
+                useElementsOnFace,useFullElementOrder, false, optimize,
+		info);
     } else if (order==-1) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize);
+                useElementsOnFace, useFullElementOrder, true, optimize,
+		info);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -747,15 +769,31 @@ namespace finley {
               throw FinleyAdapterException("Error - Unable to extract tag value.");
           }
       }
-      
-      return rectangle(static_cast<int>(extract<float>(args[0])),
+      boost::python::object pworld=args[14];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+          extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
+          }
+          info=ex()->getMPI();
+      }
+      else
+      {
+          info=esysUtils::makeInfo(MPI_COMM_WORLD);
+      }
+
+      return rectangle(info, static_cast<int>(extract<float>(args[0])),
                        static_cast<int>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),
                        extract<int>(args[8]), extract<int>(args[9]),
                        extract<int>(args[10]), extract<int>(args[11]), 
-                       points, tags, tagstonames);
+                       points, tags, tagstonames
+		       );
   }  
 
 

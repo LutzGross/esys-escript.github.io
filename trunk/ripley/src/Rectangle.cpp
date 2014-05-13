@@ -50,8 +50,10 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const simap_t& tagnamestonums) :
-    RipleyDomain(2)
+                     const simap_t& tagnamestonums,
+		    escript::SubWorld_ptr w
+		    ) :
+    RipleyDomain(2, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             > std::numeric_limits<int>::max())
@@ -1452,7 +1454,7 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    coupler->startCollect(in.getSampleDataRO(0));
+    coupler->startCollect(in.getDataRO());
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();

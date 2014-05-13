@@ -61,7 +61,7 @@ class ElementFile
 {
 public:
     ElementFile(const_ReferenceElementSet_ptr refElementSet,
-                Esys_MPIInfo *mpiInfo);
+                esysUtils::JMPI& mpiInfo);
     ~ElementFile();
 
     void allocTable(int numElements);
@@ -97,7 +97,7 @@ private:
     void swapTable(ElementFile* other);
 
 public:
-    Esys_MPIInfo *MPIInfo;
+    esysUtils::JMPI MPIInfo;
 
     /// the reference element to be used
     const_ReferenceElementSet_ptr referenceElementSet;

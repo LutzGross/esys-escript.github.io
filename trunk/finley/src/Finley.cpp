@@ -75,9 +75,9 @@ void checkFinleyError()
 
 /* checks that there is no error across all processes in a communicator */
 /* NOTE : does not guarantee consistency of error string on each process */
-bool MPI_noError(Esys_MPIInfo *mpi_info)
+bool MPI_noError(esysUtils::JMPI& mpi_info)
 {
-    return Esys_MPIInfo_noError(mpi_info);
+    return esysUtils::Esys_MPIInfo_noError(mpi_info);
 }
 
 } // namespace finley

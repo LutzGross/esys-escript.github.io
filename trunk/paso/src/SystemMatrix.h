@@ -286,7 +286,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
     static index_t getSystemMatrixTypeId(index_t solver,
                                          index_t preconditioner,
                                          index_t package, bool symmetry,
-                                         Esys_MPIInfo* mpi_info);
+                                         const esysUtils::JMPI& mpi_info);
 
     SystemMatrixType type;
     SystemMatrixPattern_ptr pattern;
@@ -300,7 +300,7 @@ struct SystemMatrix : boost::enable_shared_from_this<SystemMatrix>
 
     Distribution_ptr row_distribution;
     Distribution_ptr col_distribution;
-    Esys_MPIInfo *mpi_info;
+    esysUtils::JMPI mpi_info;
 
     Coupler_ptr col_coupler;
     Coupler_ptr row_coupler;

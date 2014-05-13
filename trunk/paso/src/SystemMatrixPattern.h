@@ -50,7 +50,6 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
 
     ~SystemMatrixPattern()
     {
-        Esys_MPIInfo_free(mpi_info);
     }
 
     inline index_t getNumOutput() const {
@@ -61,7 +60,7 @@ struct SystemMatrixPattern : boost::enable_shared_from_this<SystemMatrixPattern>
                                          dim_t input_block_size);
 
     int type;
-    Esys_MPIInfo* mpi_info;
+    esysUtils::JMPI mpi_info;
     Pattern_ptr mainPattern;
     Pattern_ptr col_couplePattern;
     Pattern_ptr row_couplePattern;

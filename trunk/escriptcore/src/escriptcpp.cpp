@@ -28,6 +28,9 @@
 #include "esysUtils/Esys_MPI.h"
 #include "EscriptParams.h"
 #include "TestDomain.h"
+#include "SubWorld.h"
+#include "SplitWorld.h"
+#include "Reducer.h"
 #include "SolverOptions.h"
 #include "SolverOptionsException.h"
 
@@ -71,20 +74,7 @@ using namespace boost::python;
  *
  */
 
-/*
-namespace escript
-{
-  
-  // Note: not virtual because it calls the virtual probeInterpolationOnDomain
-  ESCRIPT_DLL_API
-  bool canInterpolate(FunctionSpace src, FunctionSpace dest)
-  {
-      return src.getDomain()->probeInterpolationOnDomain(src.getTypeCode(), dest.getTypeCode());
-  }  
-  
-  
-}
-*/
+#include <boost/python/raw_function.hpp>
 
 namespace
 {
@@ -113,7 +103,6 @@ bool block_cmp_domains(const escript::AbstractDomain&, boost::python::object o)
 
 }
 
-
 BOOST_PYTHON_MODULE(escriptcpp)
 {
 
@@ -123,6 +112,31 @@ BOOST_PYTHON_MODULE(escriptcpp)
   #endif
 
   scope().attr("__doc__") = "To use this module, please import esys.escript";      
+
+/* begin SubWorld things */
+  
+  
+  class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
+  def("makeDataReducer", escript::makeDataReducer, (arg("op")), "Creates an object to combine values.\n\n"
+  ":param op: name of the operation to use.\n:type op: `str`");
+
+  // Why doesn't this have a doc-string?   Because it doesn't compile if you try to add one
+  // These functions take a SplitWorld instance as their first parameter
+  def("buildDomains", raw_function(escript::raw_buildDomains,2));
+  def("addJob", raw_function(escript::raw_addJob,2));
+  def("addVariable", raw_function(escript::raw_addVariable,3));
+  
+  
+  def("makeDataReducer", escript::makeDataReducer, arg("op"), "Create a reducer to work with Data and the specified operation.");
+
+      
+  class_<escript::SplitWorld, boost::noncopyable>("SplitWorld", "Manages a group of sub worlds", init<unsigned int>(args("num_worlds")))
+    .def("runJobs", &escript::SplitWorld::runJobs, "Execute pending jobs.")
+    .def("removeVariable", &escript::SplitWorld::removeVariable, arg("name"), "Remove the named variable from the SplitWorld");
+    
+  // This class has no methods. This is deliberate - at this stage, I would like this to be an opaque type  
+  class_ <escript::SubWorld, escript::SubWorld_ptr, boost::noncopyable>("SubWorld", "Information about a group of workers.", no_init);
+/* end SubWorld things */
   
   def("setNumberOfThreads",escript::setNumberOfThreads,"Use of this method is strongly discouraged.");
   def("getNumberOfThreads",escript::getNumberOfThreads,"Return the maximum number of threads"

@@ -38,7 +38,7 @@ Coupler::Coupler(Connector_ptr conn, dim_t blockSize) :
     mpi_stati(NULL)
 {
     Esys_resetError();
-    mpi_info = Esys_MPIInfo_getReference(conn->mpi_info);
+    mpi_info = conn->mpi_info;
 #ifdef ESYS_MPI
     mpi_requests = new MPI_Request[conn->send->numNeighbors +
                                    conn->recv->numNeighbors];
@@ -59,7 +59,6 @@ Coupler::~Coupler()
     delete[] mpi_requests;
     delete[] mpi_stati;
 #endif
-    Esys_MPIInfo_free(mpi_info);
 }
 
 void Coupler::startCollect(const double* in)
@@ -123,7 +122,6 @@ double* Coupler::finishCollect()
 #endif
         in_use = false;
     }
-
     return recv_buffer;
 }
 

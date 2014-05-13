@@ -48,11 +48,10 @@ Mesh* Mesh::readGmsh(const std::string fname, int numDim, int order,
     FILE * fileHandle_p = NULL;
     ElementTypeId* element_type=NULL;
 
-    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
     resetError();
     if (mpi_info->size>1) {
         setError(IO_ERROR, "reading gmsh files with MPI is not supported yet.");
-        Esys_MPIInfo_free(mpi_info);
         return NULL;
     }
 
@@ -64,7 +63,6 @@ Mesh* Mesh::readGmsh(const std::string fname, int numDim, int order,
     if (fileHandle_p==NULL) {
         sprintf(error_msg, "Opening Gmsh file %s for reading failed.", fname.c_str());
         setError(IO_ERROR, error_msg);
-        Esys_MPIInfo_free(mpi_info);
         return NULL;
     }
 
@@ -409,7 +407,6 @@ Mesh* Mesh::readGmsh(const std::string fname, int numDim, int order,
     if (noError()) mesh_p->resolveNodeIds();
     // rearrange elements
     if (noError()) mesh_p->prepare(optimize);
-    Esys_MPIInfo_free(mpi_info);
     if (!noError()) {
         delete mesh_p;
         return NULL;

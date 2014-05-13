@@ -46,17 +46,24 @@ void tupleListToMap(map<string, escript::Data>& mapping,
     }
 }
 
-RipleyDomain::RipleyDomain(dim_t dim) :
+RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
     m_numDim(dim),
     m_status(0)
 {
-    m_mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    if (p.get()==0)	
+    {
+	m_mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
+    }
+    else
+    {
+	m_mpiInfo = p->getMPI();
+    }
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
 RipleyDomain::~RipleyDomain()
 {
-    Esys_MPIInfo_free(m_mpiInfo);
+    // cleanup of MPI is dealt with by shared_ptr
 }
 
 bool RipleyDomain::operator==(const AbstractDomain& other) const

@@ -73,7 +73,7 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
     SystemMatrixType pattern_format_out = (ntype & MATRIX_FORMAT_OFFSET1)
                              ? MATRIX_FORMAT_OFFSET1 : MATRIX_FORMAT_DEFAULT;
 
-    mpi_info = Esys_MPIInfo_getReference(npattern->mpi_info);
+    mpi_info = npattern->mpi_info;
 
     if (ntype & MATRIX_FORMAT_CSC) {
         if (unroll) {
@@ -140,7 +140,6 @@ SystemMatrix::SystemMatrix(SystemMatrixType ntype,
 SystemMatrix::~SystemMatrix()
 {
     solve_free(this);
-    Esys_MPIInfo_free(mpi_info);
     delete[] balance_vector;
     delete[] global_id;
 }
@@ -462,7 +461,7 @@ index_t SystemMatrix::getSystemMatrixTypeId(index_t solver,
                                             index_t preconditioner,
                                             index_t package,
                                             bool symmetry,
-                                            Esys_MPIInfo* mpi_info)
+                                            const esysUtils::JMPI& mpi_info)
 {
     index_t out = -1;
     index_t true_package = Options::getPackage(solver, package, symmetry, mpi_info);

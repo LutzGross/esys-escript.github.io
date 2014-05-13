@@ -47,7 +47,7 @@ bool Dudley_Util_isAny(dim_t N, index_t * array, index_t value);
 index_t Dudley_Util_cumsum(dim_t, index_t *);
 bool Dudley_Util_anyNonZeroDouble(dim_t N, double *values);
 void Dudley_Util_setValuesInUse(const index_t * values, const dim_t numValues, dim_t * numValuesInUse,
-				index_t ** valuesInUse, Esys_MPIInfo * mpiinfo);
+				index_t ** valuesInUse, esysUtils::JMPI& mpiinfo);
 
 #ifdef ESYS_MPI
 void Dudley_printDoubleArray(FILE * fid, dim_t n, double *array, char *name);

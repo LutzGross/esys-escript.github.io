@@ -37,6 +37,7 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
+#include <escript/SubWorld.h>
 
 #include <paso/SystemMatrix.h>
 
@@ -100,7 +101,7 @@ public:
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
     */
-    RipleyDomain(dim_t dim);
+    RipleyDomain(dim_t dim, escript::SubWorld_ptr p=escript::SubWorld_ptr());
 
     /**
        \brief
@@ -715,7 +716,7 @@ public:
 protected:
     dim_t m_numDim;
     StatusType m_status;
-    Esys_MPIInfo *m_mpiInfo;
+    esysUtils::JMPI m_mpiInfo;
     TagMap m_tagMap;
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;

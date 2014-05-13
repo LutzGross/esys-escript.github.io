@@ -1224,7 +1224,7 @@ Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 #ifdef ESYS_MPI 
             error=1;
             int e2;
-            MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_SUM, MPI_COMM_WORLD );      
+            MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_SUM, getDomain()->getMPIComm() );      
 #endif      
             // participate in gather
             throw;
@@ -1233,7 +1233,7 @@ Data::setTupleForGlobalDataPoint(int id, int proc, bp::object v)
 #ifdef ESYS_MPI
     int e2;
     // If we get here, then either we succeeded or it was on another rank
-    MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD );       
+    MPI_Allreduce( &error, &e2, 1, MPI_INT, MPI_MAX, getDomain()->getMPIComm() );       
     // participate in gather
     if (e2)
     {
@@ -1396,7 +1396,7 @@ Data::integrateWorker() const
     double *tmp = new double[dataPointSize];
     double *tmp_local = new double[dataPointSize];
     for (int i=0; i<dataPointSize; i++) { tmp_local[i] = integrals_local[i]; }
-    MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, MPI_COMM_WORLD );
+    MPI_Allreduce( &tmp_local[0], &tmp[0], dataPointSize, MPI_DOUBLE, MPI_SUM, getDomain()->getMPIComm() );
     for (int i=0; i<dataPointSize; i++) { integrals[i] = tmp[i]; }
     bp::tuple result=pointToTuple(shape,tmp);
     delete[] tmp;
@@ -1719,7 +1719,7 @@ Data::lazyAlgWorker(double init)
         val=operation(val,localtot);
     }
 #ifdef ESYS_MPI
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
 #else
     globalValue=localValue;
 #endif
@@ -1728,7 +1728,7 @@ Data::lazyAlgWorker(double init)
         return makeNaN();
     }
 #ifdef ESYS_MPI
-    MPI_Allreduce( &val, &globalValue, 1, MPI_DOUBLE, mpiop_type, MPI_COMM_WORLD );
+    MPI_Allreduce( &val, &globalValue, 1, MPI_DOUBLE, mpiop_type, getDomain()->getMPIComm() );
     return globalValue;
 #else
     return val;
@@ -1748,7 +1748,7 @@ Data::LsupWorker() const
         localValue=1.0;
     }
     double globalValue;
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     if (globalValue!=0)
     {
         return makeNaN();
@@ -1767,7 +1767,7 @@ Data::LsupWorker() const
     localValue = algorithm(abs_max_func,0);
 
 #ifdef ESYS_MPI
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     return globalValue;
 #else
     return localValue;
@@ -1786,7 +1786,7 @@ Data::supWorker() const
         localValue=1.0;
     }
     double globalValue;
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     if (globalValue!=0)
     {
         return makeNaN();
@@ -1803,7 +1803,7 @@ Data::supWorker() const
     FMax fmax_func;
     localValue = algorithm(fmax_func,numeric_limits<double>::infinity()*-1);
     #ifdef ESYS_MPI
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     return globalValue;
 #else
     return localValue;
@@ -1822,7 +1822,7 @@ Data::infWorker() const
         localValue=1.0;
     }
     double globalValue;
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MAX, getDomain()->getMPIComm() );
     if (globalValue!=0)
     {
         return makeNaN();
@@ -1838,7 +1838,7 @@ Data::infWorker() const
     FMin fmin_func;
     localValue = algorithm(fmin_func,numeric_limits<double>::infinity());
 #ifdef ESYS_MPI
-    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, MPI_COMM_WORLD );
+    MPI_Allreduce( &localValue, &globalValue, 1, MPI_DOUBLE, MPI_MIN, getDomain()->getMPIComm() );
     return globalValue;
 #else
     return localValue;
@@ -3988,7 +3988,7 @@ MPI_Comm
 Data::get_MPIComm() const
 {
 #ifdef ESYS_MPI
-        return MPI_COMM_WORLD;
+        return getDomain()->getMPIComm();
 #else
         return -1;
 #endif
@@ -4155,7 +4155,7 @@ escript::applyBinaryCFunction(bp::object cfunc, bp::tuple shape, escript::Data& 
     }
 #ifdef ESYS_MPI
     int global;
-    MPI_Allreduce(&err, &global, 1, MPI_INT, MPI_MAX, MPI_COMM_WORLD);
+    MPI_Allreduce(&err, &global, 1, MPI_INT, MPI_MAX, getDomain()->getMPIComm());
     err=global;
 #endif
     if (err>0)

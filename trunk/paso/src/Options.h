@@ -86,8 +86,6 @@
 
 #define PASO_SMOOTHER 99999999
 
-struct Esys_MPIInfo;
-
 namespace paso {
 
 PASO_DLL_API
@@ -107,11 +105,11 @@ struct Options
     static const char* name(index_t key);
 
     static index_t getPackage(index_t solver, index_t package, bool symmetry,
-                              Esys_MPIInfo* mpi_info);
+                              const esysUtils::JMPI& mpi_info);
 
     /// returns the solver to be used with given combination
     static index_t getSolver(index_t solver, index_t package, bool symmetry,
-                             Esys_MPIInfo* mpi_info);
+                             const esysUtils::JMPI& mpi_info);
 
     index_t method;
     index_t package;

@@ -98,7 +98,7 @@ public:
      when a particular solver, preconditioner and package is used
   */
   static int getTransportTypeId(const int solver, const int preconditioner,
-          const int package, const bool symmetry, Esys_MPIInfo* mpiInfo);
+          const int package, const bool symmetry, const esysUtils::JMPI& mpiInfo);
 
  protected:
 
