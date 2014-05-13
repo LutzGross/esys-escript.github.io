@@ -38,6 +38,10 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 def runGmsh(args):
     from esys.escript import runMPIProgram
+    from time import sleep
     ret=runMPIProgram(args)
+    # runMPIProgram returns immediately so wait a bit to let gmsh do its
+    # thing (which is still not guaranteed -> bug #33)
+    sleep(1)
     return ret
 
