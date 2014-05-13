@@ -60,7 +60,7 @@ namespace esysUtils {
     is not particularly significant.
 */
 ESYSUTILS_DLL_API
-inline const int getSubWorldTag()	
+inline int getSubWorldTag()	
 {
     return ('S'<< 24) + ('u' << 16) + ('b' << 8) + 'W';  
 }
