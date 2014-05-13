@@ -77,9 +77,10 @@ SystemMatrixPattern::SystemMatrixPattern(int patType, Distribution_ptr outDist,
     if (rowPat->numOutput != rowConn->recv->numSharedComponents) {
         Esys_setError(VALUE_ERROR, "SystemMatrixPattern: number of inputs for row couple pattern and number of received components in connector don't match.");
     }
+    mpi_info = outDist->mpi_info;
 
-    mpi_info = Esys_MPIInfo_getReference(outDist->mpi_info);
 }
 
 } // namespace paso
+
 

@@ -33,7 +33,8 @@ namespace finley {
 Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool optimize)
+                           bool optimize,
+			   esysUtils::JMPI& mpiInfo)
 {
     const int N_PER_E = 1;
     const int DIM = 3;
@@ -46,7 +47,6 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
 #endif
 
     // get MPI information
-    Esys_MPIInfo *mpiInfo = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
     if (!noError()) {
         return NULL;
     }
@@ -89,21 +89,21 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
             e_offset0=0;
             local_NE1=NE1;
             e_offset1=0;
-            Esys_MPIInfo_Split(mpiInfo,NE2,&local_NE2,&e_offset2);
+            mpiInfo->split(NE2,&local_NE2,&e_offset2);
         } else if (N1==MAX3(N0,N1,N2)) {
             Nstride0=N2;
             Nstride1=N0*N2;
             Nstride2=1;
             local_NE0=NE0;
             e_offset0=0;
-            Esys_MPIInfo_Split(mpiInfo,NE1,&local_NE1,&e_offset1);
+            mpiInfo->split(NE1,&local_NE1,&e_offset1);
             local_NE2=NE2;
             e_offset2=0;
         } else {
             Nstride0=N1*N2;
             Nstride1=1;
             Nstride2=N1;
-            Esys_MPIInfo_Split(mpiInfo,NE0,&local_NE0,&e_offset0);
+            mpiInfo->split(NE0,&local_NE0,&e_offset0);
             local_NE1=NE1;
             e_offset1=0;
             local_NE2=NE2;
@@ -429,7 +429,6 @@ Mesh* RectangularMesh_Hex8(const int* numElements, const double* Length,
         delete out;
         out=NULL;
     }
-    Esys_MPIInfo_free(mpiInfo);
     return out;
 }
 

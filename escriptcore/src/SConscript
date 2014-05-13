@@ -51,6 +51,10 @@ sources = """
     FunctionSpaceFactory.cpp
     LapackInverseHelper.cpp
     NullDomain.cpp
+    Reducer.cpp
+    SplitWorld.cpp
+    SplitWorldException.cpp
+    SubWorld.cpp
     SystemMatrixException.cpp
     Taipan.cpp
     TestDomain.cpp
@@ -93,6 +97,10 @@ headers = """
     LocalOps.h
     NullDomain.h
     Pointers.h
+    Reducer.h
+    SplitWorld.h
+    SplitWorldException.h
+    SubWorld.h
     SystemMatrixException.h
     Taipan.h
     TestDomain.h

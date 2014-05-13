@@ -47,7 +47,7 @@ Mesh* Mesh::read(const std::string fname, int order, int reduced_order,
     int scan_ret;
 
     resetError();
-    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
+    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
 
     if (mpi_info->rank == 0) {
         // get file handle
@@ -55,7 +55,6 @@ Mesh* Mesh::read(const std::string fname, int order, int reduced_order,
         if (fileHandle_p==NULL) {
             sprintf(error_msg,"Mesh_read: Opening file %s for reading failed.",fname.c_str());
             setError(IO_ERROR,error_msg);
-            Esys_MPIInfo_free( mpi_info );
             return NULL;
         }
 
@@ -696,7 +695,6 @@ Mesh* Mesh::read(const std::string fname, int order, int reduced_order,
         delete mesh_p;
         mesh_p=NULL;
     }
-    Esys_MPIInfo_free(mpi_info);
     return mesh_p;
 }
 

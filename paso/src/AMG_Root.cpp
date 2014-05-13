@@ -83,6 +83,7 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
             }
         } // verbose?
 
+
         if (prec->localamg != NULL) {
             options->num_level=Preconditioner_LocalAMG_getMaxLevel(prec->localamg);
             options->coarse_level_sparsity=Preconditioner_LocalAMG_getCoarseLevelSparsity(prec->localamg);

@@ -39,7 +39,7 @@ struct MergedSolver
 
     void solve(double* local_x, const double* local_b);
 
-    Esys_MPIInfo* mpi_info;
+    esysUtils::JMPI mpi_info;
     SparseMatrix_ptr A;
     double* x;
     double* b;

@@ -123,7 +123,7 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     SystemMatrix_ptr out;
     int i, curr_row, scan_ret;
     MM_typecode matrixCode;
-    Esys_MPIInfo* mpi_info=Esys_MPIInfo_alloc( MPI_COMM_WORLD);
+    esysUtils::JMPI mpi_info=esysUtils::makeInfo( MPI_COMM_WORLD);
     Esys_resetError();
     if (mpi_info->size >1) {
         Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: supports single processor only");
@@ -133,20 +133,17 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     fileHandle_p = fopen( filename, "r" );
     if( fileHandle_p == NULL ) {
         Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: Cannot open file for reading.");
-        Esys_MPIInfo_free(mpi_info);
         return out;
     }
 
     /* process banner */
     if( mm_read_banner(fileHandle_p, &matrixCode) != 0 ) {
         Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: Error processing MM banner.");
-        Esys_MPIInfo_free(mpi_info);
         fclose( fileHandle_p );
         return out;
     }
     if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) ) {
         Esys_setError(TYPE_ERROR,"SystemMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
-        Esys_MPIInfo_free(mpi_info);
         fclose( fileHandle_p );
         return out;
     }
@@ -154,7 +151,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     /* get matrix size */
     if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 ) {
         Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: Could not read sparse matrix size.");
-        Esys_MPIInfo_free(mpi_info);
         fclose( fileHandle_p );
         return out;
     }
@@ -174,7 +170,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
             delete[] row_ind;
             delete[] col_ind;
             delete[] row_ptr;
-            Esys_MPIInfo_free(mpi_info);
             fclose(fileHandle_p);
             return out;
         }
@@ -218,7 +213,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     for(i=0; i<nz; i++)
         out->mainBlock->val[i] = val[i];
 
-    Esys_MPIInfo_free(mpi_info);
     delete[] val;
     delete[] row_ind;
     return out;
@@ -238,7 +232,7 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     double *val = NULL;
     int i, curr_col=0, scan_ret;
     MM_typecode matrixCode;
-    Esys_MPIInfo* mpi_info=Esys_MPIInfo_alloc( MPI_COMM_WORLD);
+    esysUtils::JMPI mpi_info=esysUtils::makeInfo( MPI_COMM_WORLD);
     if (mpi_info->size >1) {
         Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSC: supports single processor only");
         return out;
@@ -251,7 +245,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     if( fileHandle_p == NULL )
     {
         Esys_setError(IO_ERROR,"SystemMatrix_loadMM_toCSC: File could not be opened for reading.");
-        Esys_MPIInfo_free(mpi_info);
         return out;
     }
 
@@ -260,14 +253,12 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     {
         Esys_setError(IO_ERROR,"SystemMatrix_loadMM_toCSC: Error processing MM banner.");
         fclose( fileHandle_p );
-        Esys_MPIInfo_free(mpi_info);
         return out;
     }
     if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
     {
         Esys_setError(TYPE_ERROR,"SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
         fclose( fileHandle_p );
-        Esys_MPIInfo_free(mpi_info);
         return out;
     }
 
@@ -276,7 +267,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     {
         Esys_setError(TYPE_ERROR,"SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
         fclose( fileHandle_p );
-        Esys_MPIInfo_free(mpi_info);
         return out;
     }
 
@@ -296,7 +286,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
             delete[]  row_ind ;
             delete[]  col_ind ;
             delete[]  col_ptr ;
-            Esys_MPIInfo_free(mpi_info);
             fclose(fileHandle_p);
             return out;
         }
@@ -336,7 +325,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     for( i=0; i<nz; i++ )
         out->mainBlock->val[i] = val[i];
 
-    Esys_MPIInfo_free(mpi_info);
     delete[] val;
     delete[] row_ind;
     return out;

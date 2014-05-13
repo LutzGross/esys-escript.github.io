@@ -128,7 +128,7 @@ class SystemMatrixAdapter: public escript::AbstractSystemMatrix
      stiffness matrix when the given solver, preconditioner and package is
      used
   */
-  static int getSystemMatrixTypeId(int solver, int preconditioner, int package, bool symmetry, Esys_MPIInfo* mpiInfo);
+  static int getSystemMatrixTypeId(int solver, int preconditioner, int package, const bool symmetry, const esysUtils::JMPI& mpiInfo);
 
   /**
      \brief extract paso options from SolutionOptions class

@@ -28,7 +28,7 @@
 
 /* Be careful reading this function. The X? and NStride? are 1,2,3 but the loop vars are 0,1,2 */
 Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
-					double *Length, index_t order, index_t reduced_order, bool optimize)
+					double *Length, index_t order, index_t reduced_order, bool optimize, esysUtils::JMPI& mpi_info)
 {
 #define N_PER_E 1
 #define DIM 3
@@ -38,7 +38,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
     index_t node0, myRank, e_offset2, e_offset1, e_offset0 = 0, offset1 = 0, offset2 = 0, offset0 =
 	0, global_i0, global_i1, global_i2;
     Dudley_Mesh *out;
-    Esys_MPIInfo *mpi_info = NULL;
     char name[50];
 #ifdef Dudley_TRACE
     double time0 = Dudley_timer();
@@ -52,11 +51,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
     const int BACKTAG = 20;	/* boundary x2=1 */
 
     /* get MPI information */
-    mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
-    if (!Dudley_noError())
-    {
-	return NULL;
-    }
     myRank = mpi_info->rank;
 
     /* set up the global dimensions of the mesh */
@@ -73,7 +67,6 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
     out = Dudley_Mesh_alloc(name, DIM, mpi_info);
     if (!Dudley_noError())
     {
-	Esys_MPIInfo_free(mpi_info);
 	return NULL;
     }
     if (Dudley_noError())
@@ -93,7 +86,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	    e_offset0 = 0;
 	    local_NE1 = NE1;
 	    e_offset1 = 0;
-	    Esys_MPIInfo_Split(mpi_info, NE2, &local_NE2, &e_offset2);
+	    mpi_info->split(NE2, &local_NE2, &e_offset2);
 	}
 	else if (N1 == MAX3(N0, N1, N2))
 	{
@@ -102,7 +95,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	    Nstride2 = 1;
 	    local_NE0 = NE0;
 	    e_offset0 = 0;
-	    Esys_MPIInfo_Split(mpi_info, NE1, &local_NE1, &e_offset1);
+	    mpi_info->split(NE1, &local_NE1, &e_offset1);
 	    local_NE2 = NE2;
 	    e_offset2 = 0;
 	}
@@ -111,7 +104,7 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	    Nstride0 = N1 * N2;
 	    Nstride1 = 1;
 	    Nstride2 = N1;
-	    Esys_MPIInfo_Split(mpi_info, NE0, &local_NE0, &e_offset0);
+	    mpi_info->split(NE0, &local_NE0, &e_offset0);
 	    local_NE1 = NE1;
 	    e_offset1 = 0;
 	    local_NE2 = NE2;
@@ -650,7 +643,5 @@ Dudley_Mesh *Dudley_TriangularMesh_Tet4(dim_t * numElements,
 	Dudley_Mesh_free(out);
     }
     /* free up memory */
-    Esys_MPIInfo_free(mpi_info);
-
     return out;
 }

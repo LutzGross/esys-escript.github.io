@@ -43,7 +43,7 @@ MergedSolver::MergedSolver(const_SystemMatrix_ptr M, const Options* options)
 
     SparseMatrix_ptr M_temp(M->mergeSystemMatrix());
 
-    mpi_info = Esys_MPIInfo_getReference(M->mpi_info);
+    mpi_info = M->mpi_info;
     reordering = options->reordering;
     refinements = options->coarse_matrix_refinements;
     //verbose = options->verbose;

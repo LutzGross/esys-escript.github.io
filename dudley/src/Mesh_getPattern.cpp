@@ -159,7 +159,7 @@ paso::SystemMatrixPattern_ptr Dudley_makePattern(Dudley_Mesh* mesh, bool reduce_
                     row_connector));
         }
     }
-    Esys_MPIInfo_noError(mesh->MPIInfo);
+    esysUtils::Esys_MPIInfo_noError(mesh->MPIInfo);
     return out;
 }
 
