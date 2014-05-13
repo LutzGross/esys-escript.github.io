@@ -35,7 +35,7 @@ def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=Fa
     args=[n0, n1, order, l0, l1, periodic0, periodic1, integrationOrder, 
       reducedIntegrationOrder, faceon, useFullElementOrder, optimize];
     if 'escriptworld' in kwargs:
-      print kwargs
+      print (kwargs)
       args+=[kwargs['escriptworld']]
     else:
       args+=[None]

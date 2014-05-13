@@ -254,7 +254,13 @@ char SubWorld::runJobs(std::string& errormsg)
  
 	PyObject* errobj=PyObject_Str(pvalue);
 
+#ifdef ESPYTHON3	
+	PyObject* rr=PyUnicode_AsASCIIString(errobj);
+	errormsg=PyBytes_AsString(rr);
+	Py_XDECREF(rr);
+#else
 	errormsg=PyString_AsString(errobj);
+#endif
 	Py_XDECREF(errobj);
 
 	Py_XDECREF(ptype);
