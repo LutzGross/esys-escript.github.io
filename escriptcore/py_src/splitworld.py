@@ -56,9 +56,9 @@ class Job(object):
     """
     self.domain=kwargs["domain"]
     self.jobid=kwargs["jobid"]
-    self.wantedvalues=[]		# names of shared values this job wishes to import    
-    self.importedvalues={}	# name:values of which this jobs wants to use
-    self.exportedvalues={}	# name:values exported by this job
+    self.wantedvalues=[]                # names of shared values this job wishes to import    
+    self.importedvalues={}      # name:values of which this jobs wants to use
+    self.exportedvalues={}      # name:values exported by this job
     
   def setImportValue(self, name, v):
     """
@@ -76,10 +76,10 @@ class Job(object):
     get value exported by work()  [called from outside the job]
     """
     if name in self.exportedvalues:
-	return self.exportedvalues[name]
+        return self.exportedvalues[name]
     else:
-	return None
-	
+        return None
+        
   def export(self, name, v):
     """
     Make value v available to other Jobs under the label name.
@@ -95,9 +95,9 @@ class Job(object):
     :type name: ``str``
     """
     if name in self.importedvalues:
-	return self.importedvalues[name]
+        return self.importedvalues[name]
     else:
-	return None
+        return None
 
   def clearExports(self):
     """
