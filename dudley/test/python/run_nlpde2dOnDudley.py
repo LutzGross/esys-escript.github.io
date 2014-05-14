@@ -34,7 +34,7 @@ Test suite for the linearPDE  and pdetools test on finley
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os
-import unittest
+import esys.escriptcore.utestselect as unittest
 from test_nonLinearPDE import Test_nonLinearPDEs, Test_nlpde
 from esys.escript import *
 from esys.dudley import Rectangle,Brick

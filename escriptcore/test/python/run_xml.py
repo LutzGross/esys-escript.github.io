@@ -22,7 +22,7 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,ESySXMLParser,DataSource
 import math
 from io import StringIO

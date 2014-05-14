@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import logging
 import numpy as np
-import unittest
+import esys.escriptcore.utestselect as unittest
 import sys
 from esys.downunder.minimizers import *
 from esys.downunder.costfunctions import CostFunction

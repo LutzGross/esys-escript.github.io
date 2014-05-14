@@ -35,7 +35,7 @@ Test suite for input and output of meshes and data objects
 :var __date__: date of the version
 """
 
-import unittest, sys
+import esys.escriptcore.utestselect as unittest, sys
 
 from esys.escript import *
 from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh, ReadGmsh

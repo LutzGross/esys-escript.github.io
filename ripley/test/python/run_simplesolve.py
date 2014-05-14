@@ -35,7 +35,7 @@ Test suite for the linearPDE  and pdetools test on ripley
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest, sys
+import esys.escriptcore.utestselect as unittest, sys
 from esys.escript import *
 from esys.ripley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
