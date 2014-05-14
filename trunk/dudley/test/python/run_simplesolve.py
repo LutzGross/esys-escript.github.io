@@ -35,7 +35,7 @@ Test suite for the linearPDE  and pdetools test on dudley
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest, sys
+import esys.escriptcore.utestselect as unittest, sys
 
 from esys.escript import *
 from esys.dudley import Rectangle,Brick

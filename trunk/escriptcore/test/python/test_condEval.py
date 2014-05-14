@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __author__="Joel Fenwick, joelfenwick@uq.edu.au"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 import os
 import numpy
 import sys

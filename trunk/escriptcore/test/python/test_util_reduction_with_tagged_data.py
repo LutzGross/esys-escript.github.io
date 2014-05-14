@@ -35,7 +35,7 @@ test for util operations for reduction operations with tagged data
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 import numpy
 from esys.escript import *
 from test_util_base import Test_util_base
