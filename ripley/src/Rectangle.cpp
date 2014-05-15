@@ -18,7 +18,6 @@
 #include <limits>
 
 #include <ripley/Rectangle.h>
-#include <paso/SystemMatrix.h>
 #include <esysUtils/esysFileWriter.h>
 #include <ripley/DefaultAssembler2D.h>
 #include <ripley/WaveAssembler2D.h>
@@ -1400,31 +1399,17 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
 }
 
 //protected
-dim_t Rectangle::insertNeighbourNodes(IndexVector& index, index_t node) const
+IndexVector Rectangle::getDiagonalIndices() const
 {
+    IndexVector ret;
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-    const int x=node%nDOF0;
-    const int y=node/nDOF0;
-    dim_t num=0;
-    // loop through potential neighbours and add to index if positions are
-    // within bounds
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
-            // skip node itself
-            if (i0==0 && i1==0)
-                continue;
-            // location of neighbour node
-            const int nx=x+i0;
-            const int ny=y+i1;
-            if (nx>=0 && ny>=0 && nx<nDOF0 && ny<nDOF1) {
-                index.push_back(ny*nDOF0+nx);
-                num++;
-            }
+            ret.push_back(i1*nDOF0+i0);
         }
     }
 
-    return num;
+    return ret;
 }
 
 //protected
@@ -1739,20 +1724,6 @@ void Rectangle::createPattern()
             &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
-    // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createMainPattern();
-    paso::Pattern_ptr colPattern, rowPattern;
-    createCouplePatterns(colIndices, rowIndices, numShared, colPattern, rowPattern);
-
-    // allocate paso distribution
-    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
-
-    // finally create the system matrix
-    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-            distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector));
-
     // useful debug output
     /*
     cout << "--- rcv_shcomp ---" << endl;
@@ -1813,7 +1784,7 @@ void Rectangle::createPattern()
 }
 
 //private
-void Rectangle::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
+void Rectangle::addToMatrixAndRHS(SystemMatrix* S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
@@ -1833,7 +1804,7 @@ void Rectangle::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
         }
     }
     if (addS) {
-        addToSystemMatrix(S, rowIndex, nEq, rowIndex, nComp, EM_S);
+        S->add(rowIndex, EM_S);
     }
 }
 

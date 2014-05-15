@@ -38,42 +38,42 @@ void LameAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
 
-void LameAssembler2D::assemblePDESingle(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDESingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler2D");
 }
 
-void LameAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDEBoundarySingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const 
 {
     throw RipleyException("assemblePDEBoundarySingle not implemented in LameAssembler2D");
 }
 
-void LameAssembler2D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDESingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingleReduced not implemented in LameAssembler2D");
 }
-void LameAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDEBoundarySingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDEBoundarySingleReduced not implemented in LameAssembler2D");
 }
 
-void LameAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDESystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDEBoundarySystem not implemented in LameAssembler2D");
 }
 
-void LameAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDEBoundarySystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDEBoundarySystemReduced not implemented in LameAssembler2D");
 }
 
-void LameAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDEBoundarySystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d",coefs), y = unpackData("y", coefs);
@@ -81,8 +81,8 @@ void LameAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     if (!mat) {
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     } else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w5 = m_dx[0]/12;
@@ -350,7 +350,7 @@ void LameAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     } // end of parallel section
 }
 
-void LameAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
+void LameAssembler2D::assemblePDESystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data lambda = unpackData("lame_lambda", coefs),
@@ -365,8 +365,8 @@ void LameAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w1 = 1.0/24;

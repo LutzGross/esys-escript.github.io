@@ -27,38 +27,40 @@ local_unroll_env = env.Clone()
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
+    AbstractAssembler.cpp
     blocktools.cpp
     blocktools2.cpp
     Brick.cpp
+    DefaultAssembler2D.cpp
+    DefaultAssembler3D.cpp
+    domainhelpers.cpp
+    LameAssembler2D.cpp
+    LameAssembler3D.cpp
     Rectangle.cpp
     RipleyDomain.cpp
     RipleyException.cpp
-    DefaultAssembler2D.cpp
-    DefaultAssembler3D.cpp
-    AbstractAssembler.cpp
+    RipleySystemMatrix.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
-    LameAssembler2D.cpp
-    LameAssembler3D.cpp
-    domainhelpers.cpp
 """.split()
 
 headers = """
+    AbstractAssembler.h
     blocktools.h
     Brick.h
+    DefaultAssembler2D.h
+    DefaultAssembler3D.h
+    domainhelpers.h
+    LameAssembler2D.h
+    LameAssembler3D.h
     Rectangle.h
     Ripley.h
     RipleyDomain.h
     RipleyException.h
+    RipleySystemMatrix.h
     system_dep.h
-    DefaultAssembler2D.h
-    DefaultAssembler3D.h
-    AbstractAssembler.h
     WaveAssembler2D.h
     WaveAssembler3D.h
-    LameAssembler2D.h
-    LameAssembler3D.h
-    domainhelpers.h
 """.split()
 
 local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])
