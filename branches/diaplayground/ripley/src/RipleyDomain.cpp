@@ -794,6 +794,12 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
         reduceColOrder=true;
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix: illegal function space type for system matrix columns");
+    // are block sizes identical?
+    if (row_blocksize != column_blocksize)
+        throw RipleyException("newSystemMatrix: row/column block sizes must be equal");
+    // are function spaces equal
+    if (reduceRowOrder != reduceColOrder)
+        throw RipleyException("newSystemMatrix: row/column function spaces must be equal");
 
     // generate matrix
     if (reduceRowOrder || reduceColOrder)
@@ -801,8 +807,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
 
     const int numMatrixRows = getNumDOF();
     escript::ASM_ptr sm(new SystemMatrix(row_blocksize,
-                row_functionspace, column_blocksize, column_functionspace,
-                numMatrixRows, getDiagonalIndices()));
+                row_functionspace, numMatrixRows, getDiagonalIndices()));
     return sm;
 }
 

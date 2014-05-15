@@ -17,6 +17,7 @@
 #include "RipleySystemMatrix.h" 
 #include "RipleyException.h" 
 
+#include <esysUtils/index.h>
 #include <escript/Data.h>
 
 #define BLOCK_SIZE 128
@@ -28,31 +29,61 @@ SystemMatrix::SystemMatrix()
     throw RipleyException("Illegal to instantiate SystemMatrix without arguments.");
 }
 
-SystemMatrix::SystemMatrix(int rowBlocksize,
-                           const escript::FunctionSpace& rowFS,
-                           int columnBlocksize,
-                           const escript::FunctionSpace& columnFS,
-                           int nRows,
-                           const IndexVector& diagonalOffsets) :
-    AbstractSystemMatrix(rowBlocksize, rowFS, columnBlocksize, columnFS),
-    numRows(nRows),
+SystemMatrix::SystemMatrix(int blocksize, const escript::FunctionSpace& fs,
+                           int nRows, const IndexVector& diagonalOffsets) :
+    AbstractSystemMatrix(blocksize, fs, blocksize, fs),
+    numRows(nRows*blocksize),
     offsets(diagonalOffsets)
 {
-    //FIXME:
-    const int blockSize = 1;
-    values.resize(numRows*offsets.size()*blockSize, 0.);
+    values.resize(numRows*offsets.size()*blocksize, 0.);
+}
+
+void SystemMatrix::add(const IndexVector& rowIdx,
+                       const std::vector<double>& array)
+{
+    const int blockSize = getBlockSize();
+    const int emSize = rowIdx.size();
+#if 0
+    static bool here=false;
+    if (here) return;
+    here=true;
+    double* arr = const_cast<double*>(&array[0]);
+
+    for (int i=0; i<4*blockSize; i++) {
+        for (int j=0; j<4*blockSize; j++) {
+            arr[i*4*blockSize+j] = i*4*blockSize+j;
+        }
+    }
+#endif
+
+    //for (k in numEq) for (m in numComp)
+    //array[k + numEq*m + numEq*numComp*i + numEq*numComp*emSize*j]
+    //std::cerr << "SystemMatrix::add" << std::endl;
+    for (int i=0; i<emSize; i++) {
+        for (int j=0; j<emSize; j++) {
+            const int revi = emSize-1-i;
+            const int diag = j%2 + revi%2 + 3*(j/2+revi/2 + j/4+revi/4);
+            for (int k=0; k<blockSize; k++) {
+                for (int m=0; m<blockSize; m++) {
+                    const int destIdx = rowIdx[i]*blockSize + k + numRows*(diag*blockSize+m);
+                    const int srcIdx = INDEX4(k, m, i, j, blockSize, blockSize, emSize);
+                    values[destIdx] += array[srcIdx];
+                }
+            }
+        }
+    }
 }
 
 void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
 {
-    if (x.getDataPointSize() != getColumnBlockSize()) {
-        throw RipleyException("matrix vector product: column block size does not match the number of components in input.");
-    } else if (y.getDataPointSize() != getRowBlockSize()) {
-        throw RipleyException("matrix vector product: row block size does not match the number of components in output.");
+    if (x.getDataPointSize() != getBlockSize()) {
+        throw RipleyException("matrix vector product: block size does not match the number of components in input.");
+    } else if (y.getDataPointSize() != getBlockSize()) {
+        throw RipleyException("matrix vector product: block size does not match the number of components in output.");
     } else if (x.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw RipleyException("matrix vector product: column function space and function space of input don't match.");
+        throw RipleyException("matrix vector product: matrix function space and function space of input don't match.");
     } else if (y.getFunctionSpace() != getRowFunctionSpace()) {
-        throw RipleyException("matrix vector product: row function space and function space of output don't match.");
+        throw RipleyException("matrix vector product: matrix function space and function space of output don't match.");
     }
 
     std::cerr << "SystemMatrix::ypAx" << std::endl;
@@ -68,27 +99,61 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
 // y = beta y + Ax
 void SystemMatrix::matrixVector(const double* x, double beta, double* y) const
 {
+    const int blockSize = getBlockSize();
+    if (blockSize == 1) {
 #pragma omp parallel for
-    for (int ch=0; ch<numRows; ch+=BLOCK_SIZE) {
-        // initialize chunk
-        if (std::abs(beta) > 0.) {
-            if (beta != 1.) {
+        for (int ch=0; ch<numRows; ch+=BLOCK_SIZE) {
+            // initialize chunk
+            if (std::abs(beta) > 0.) {
+                if (beta != 1.) {
+                    for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
+                        y[row] *= beta;
+                    }
+                }
+            } else {
                 for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
-                    y[row] *= beta;
+                    y[row] = 0.;
                 }
             }
-        } else {
-            for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
-                y[row] = 0.;
+
+            // for each diagonal
+            for (size_t d=0; d<offsets.size(); d++) {
+                for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
+                    const int col = row + offsets[d];
+                    if (col >= 0 && col < numRows) {
+                        y[row] += values[row+d*numRows] * x[col];
+                    }
+                }
             }
         }
+    } else {
+#pragma omp parallel for
+        for (int ch=0; ch<numRows; ch+=BLOCK_SIZE) {
+            // initialize chunk
+            if (std::abs(beta) > 0.) {
+                if (beta != 1.) {
+                    for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
+                        y[row] *= beta;
+                    }
+                }
+            } else {
+                for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
+                    y[row] = 0.;
+                }
+            }
 
-        // for each diagonal
-        for (size_t d=0; d<offsets.size(); d++) {
-            for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
-                const int col = row + offsets[d];
-                if (col >= 0 && col < numRows) {
-                    y[row] += values[row+d*numRows] * x[col];
+            // for each diagonal block
+            for (size_t d=0; d<offsets.size(); d++) {
+                const int k = offsets[d]*blockSize;
+                for (int row=ch; row<std::min(ch+BLOCK_SIZE,numRows); row++) {
+                    const int col = blockSize*(row/blockSize) + k;
+                    if (col >= 0 && col <= numRows-blockSize) {
+                        // for each column in block
+                        for (int i=0; i<blockSize; i++) {
+                            const double Aij = values[row+(d*blockSize+i)*numRows];
+                            y[row] += Aij * x[col+i];
+                        }
+                    }
                 }
             }
         }
@@ -165,7 +230,7 @@ void SystemMatrix::cg(double* x, const double* b) const
 
     int iteration=0;
 
-    while (nrm2(N, &r[0]) > 1e-8*b_norm && iteration<10000)
+    while (nrm2(N, &r[0]) > 1e-9*b_norm && iteration<10000)
     {
         //std::cerr << nrm2(N, &r[0])<< " " << nrm2(N, x)<<std::endl;
         iteration++;
@@ -203,14 +268,14 @@ void SystemMatrix::cg(double* x, const double* b) const
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
                                  boost::python::object& options) const
 {
-    if (out.getDataPointSize() != getColumnBlockSize()) {
-        throw RipleyException("solve: column block size does not match the number of components of solution.");
-    } else if (in.getDataPointSize() != getRowBlockSize()) {
-        throw RipleyException("solve: row block size does not match the number of components of right hand side.");
+    if (out.getDataPointSize() != getBlockSize()) {
+        throw RipleyException("solve: block size does not match the number of components of solution.");
+    } else if (in.getDataPointSize() != getBlockSize()) {
+        throw RipleyException("solve: block size does not match the number of components of right hand side.");
     } else if (out.getFunctionSpace() != getColumnFunctionSpace()) {
-        throw RipleyException("solve: column function space and function space of solution don't match.");
+        throw RipleyException("solve: matrix function space and function space of solution don't match.");
     } else if (in.getFunctionSpace() != getRowFunctionSpace()) {
-        throw RipleyException("solve: row function space and function space of right hand side don't match.");
+        throw RipleyException("solve: matrix function space and function space of right hand side don't match.");
     }
 
     std::cerr << "SystemMatrix::setToSolution" << std::endl;
@@ -254,31 +319,14 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
     }
 }
 
-void SystemMatrix::add(const IndexVector& rowIdx,
-                       const std::vector<double>& array)
-{
-    //for (k in numEq) for (m in numComp)
-    //array[k + numEq*m + numEq*numComp*i + numEq*numComp*4*j]
-    //std::cerr << "SystemMatrix::add" << std::endl;
-    for (int i=0; i<rowIdx.size(); i++) {
-        for (int j=0; j<rowIdx.size(); j++) {
-            const int revi = rowIdx.size()-1-i;
-            const int diag = j%2 + revi%2 + 3*(j/2+revi/2 + j/4+revi/4);
-            const int destIdx = rowIdx[i] + numRows*diag;
-            const int srcIdx = rowIdx.size()*i+j;
-            //const int destIdx = rowIdx[rowIdx.size()-i-1] + numRows*diag;
-            //const int srcIdx = rowIdx.size()*(rowIdx.size()-i-1)+j;
-            values[destIdx] += array[srcIdx];
-        }
-    }
-}
-
 void SystemMatrix::saveMM(const std::string& filename) const
 {
+    const int blockSize = getBlockSize();
+
     // count nonzero entries
     int numNZ = 0;
     for (size_t i = 0; i < offsets.size(); i++) {
-        numNZ += numRows-std::abs(offsets[i]);
+        numNZ += blockSize*blockSize*(numRows-std::abs(offsets[i])*blockSize) / blockSize;
     }
     
     std::ofstream f(filename.c_str());
@@ -286,15 +334,15 @@ void SystemMatrix::saveMM(const std::string& filename) const
     f << numRows << " " << numRows << " " << numNZ << std::endl;
     for (int row=0; row<numRows; row++) {
         for (int diag=0; diag<offsets.size(); diag++) {
-            const int col = offsets[diag]+row;
-            if (col >= 0 && col < numRows) {
-                f << row+1 << " " << col+1 << " "
-                          << values[diag*numRows+row] << std::endl;
+            const int col = blockSize*(row/blockSize)+offsets[diag]*blockSize;
+            if (col >= 0 && col <= numRows-blockSize) {
+                for (int i=0; i<blockSize; i++) {
+                    f << row+1 << " " << col+i+1 << " "
+                          << values[(diag*blockSize+i)*numRows+row] << std::endl;
+                }
             }
         }
     }
-
-    //throw RipleyException("Matrix Market interface not available.");
 }
 
 void SystemMatrix::saveHB(const std::string& filename) const
