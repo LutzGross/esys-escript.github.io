@@ -25,6 +25,7 @@ py_wrapper_local_env = env.Clone()
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
+    AbstractAssembler.cpp
     AbstractContinuousDomain.cpp
     AbstractDomain.cpp
     AbstractSystemMatrix.cpp
@@ -66,6 +67,7 @@ sources = """
 """.split()
     # blocktimer.c
 headers = """
+    AbstractAssembler.h
     AbstractContinuousDomain.h
     AbstractDomain.h
     AbstractSystemMatrix.h

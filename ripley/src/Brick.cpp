@@ -204,7 +204,6 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     populateSampleIds();
     createPattern();
     
-    assembler = new DefaultAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
     for (map<string, int>::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
@@ -215,7 +214,6 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
 
 Brick::~Brick()
 {
-    delete assembler;
 }
 
 string Brick::getDescription() const
@@ -3381,20 +3379,14 @@ int Brick::findNode(const double *coords) const {
     return closest;
 }
 
-void Brick::setAssembler(std::string type, std::map<std::string,
-        escript::Data> constants) {
-    if (type.compare("WaveAssembler") == 0) {
-        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
-            throw RipleyException("Domain already using a different custom assembler");
-        assembler_type = WAVE_ASSEMBLER;
-        delete assembler;
-        assembler = new WaveAssembler3D(this, m_dx, m_NX, m_NE, m_NN, constants);
+escript::Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
+        escript::Data> constants) const {
+    if (type.compare("DefaultAssembler") == 0) {
+        return escript::Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+    } else if (type.compare("WaveAssembler") == 0) {
+        return escript::Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
     } else if (type.compare("LameAssembler") == 0) {
-        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
-            throw RipleyException("Domain already using a different custom assembler");
-        assembler_type = LAME_ASSEMBLER;
-        delete assembler;
-        assembler = new LameAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
+        return escript::Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     } else { //else ifs would go before this for other types
         throw RipleyException("Ripley::Brick does not support the"
                                 " requested assembler");

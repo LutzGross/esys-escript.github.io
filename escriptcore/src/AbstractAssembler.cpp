@@ -12,11 +12,11 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-#include <ripley/AbstractAssembler.h>
+#include <escript/AbstractAssembler.h>
 
-namespace ripley {
+namespace escript {
 
-escript::Data unpackData(std::string target,
+Data unpackData(std::string target,
         std::map<std::string, escript::Data> mapping){
     if (mapping.find(target) == mapping.end())
         return escript::Data();
