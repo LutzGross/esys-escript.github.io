@@ -27,6 +27,7 @@ local_unroll_env = env.Clone()
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
+    AbstractAssembler.cpp
     blocktools.cpp
     blocktools2.cpp
     Brick.cpp
@@ -43,6 +44,7 @@ sources = """
 """.split()
 
 headers = """
+    AbstractAssembler.h
     blocktools.h
     Brick.h
     Rectangle.h

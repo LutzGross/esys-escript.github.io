@@ -3379,14 +3379,14 @@ int Brick::findNode(const double *coords) const {
     return closest;
 }
 
-escript::Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
+Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
         escript::Data> constants) const {
     if (type.compare("DefaultAssembler") == 0) {
-        return escript::Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     } else if (type.compare("WaveAssembler") == 0) {
-        return escript::Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
+        return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
     } else if (type.compare("LameAssembler") == 0) {
-        return escript::Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     } else { //else ifs would go before this for other types
         throw RipleyException("Ripley::Brick does not support the"
                                 " requested assembler");

@@ -813,7 +813,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
 void RipleyDomain::addToSystem(
         escript::AbstractSystemMatrix& mat, escript::Data& rhs,
         std::map<std::string, escript::Data> coefs,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException(
@@ -834,7 +834,7 @@ void RipleyDomain::addToSystem(
 
 void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
         escript::Data& rhs, boost::python::list data,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
@@ -842,7 +842,7 @@ void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
 }
 
 
-escript::Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
+Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
                                          boost::python::list options) const {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, options);
@@ -851,7 +851,7 @@ escript::Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
 
 void RipleyDomain::addToRHSFromPython(escript::Data& rhs,
             boost::python::list data,
-            escript::Assembler_ptr assembler) const
+            Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
@@ -860,7 +860,7 @@ void RipleyDomain::addToRHSFromPython(escript::Data& rhs,
 
 void RipleyDomain::addToRHS(escript::Data& rhs,
         std::map<std::string, escript::Data> coefs,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     if (isNotEmpty("y_contact", coefs))
         throw RipleyException(
@@ -906,7 +906,7 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
 void RipleyDomain::addPDEToTransportProblemFromPython(
         escript::AbstractTransportProblem& tp,
         escript::Data& source, boost::python::list data,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
@@ -916,7 +916,7 @@ void RipleyDomain::addPDEToTransportProblemFromPython(
 void RipleyDomain::addPDEToTransportProblem(
         escript::AbstractTransportProblem& tp,
         escript::Data& source, std::map<std::string, escript::Data> coefs,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
@@ -1235,7 +1235,7 @@ void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat,
 //private
 void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
         std::map<std::string, escript::Data> coefs,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
         throw RipleyException("assemblePDE: right hand side coefficients are "
@@ -1295,7 +1295,7 @@ void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
 //private
 void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, std::map<std::string, escript::Data> coefs,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data>::iterator iy = coefs.find("y"),
                                                    id = coefs.find("d");
@@ -1352,7 +1352,7 @@ void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
 
 void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
         escript::Data& rhs, std::map<std::string, escript::Data> coefs,
-        escript::Assembler_ptr assembler) const
+        Assembler_ptr assembler) const
 {
     bool yNotEmpty = isNotEmpty("y_dirac", coefs),
          dNotEmpty = isNotEmpty("d_dirac", coefs);
