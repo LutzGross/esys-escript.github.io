@@ -30,7 +30,7 @@ namespace finley {
 
 #define MAX_numNodes_gmsh 20
 
-Mesh* Mesh::readGmsh(const std::string fname, int numDim, int order,
+Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
                      int reduced_order, bool optimize, bool useMacroElements)
 {
     double version = 1.0;
@@ -48,7 +48,6 @@ Mesh* Mesh::readGmsh(const std::string fname, int numDim, int order,
     FILE * fileHandle_p = NULL;
     ElementTypeId* element_type=NULL;
 
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
     resetError();
     if (mpi_info->size>1) {
         setError(IO_ERROR, "reading gmsh files with MPI is not supported yet.");

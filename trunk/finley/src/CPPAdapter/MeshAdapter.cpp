@@ -2188,8 +2188,10 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
         throw FinleyAdapterException("Error - number of coords does not appear to be a multiple of dimension.");
     }
 
-    if ((numTags > 0) && (numPoints != numTags))
-        throw FinleyAdapterException("Error - if tags are given number of tags and points must match.");
+    if (numPoints != numTags)
+    {
+	throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
+    }
 
     mesh->addPoints(numPoints, &points[0], &tags[0]);
     checkFinleyError();
