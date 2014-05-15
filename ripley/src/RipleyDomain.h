@@ -32,7 +32,7 @@
 
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
-#include <escript/AbstractAssembler.h>
+#include <ripley/AbstractAssembler.h>
 
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
@@ -500,7 +500,7 @@ public:
     */
     virtual void addToSystem(escript::AbstractSystemMatrix& mat,
             escript::Data& rhs,std::map<std::string, escript::Data> data,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     /**
        \brief
@@ -508,7 +508,7 @@ public:
     */
     virtual void addToSystemFromPython(escript::AbstractSystemMatrix& mat,
             escript::Data& rhs,boost::python::list data,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     /**
        \brief
@@ -517,7 +517,7 @@ public:
     */
     virtual void addToRHS(escript::Data& rhs,
             std::map<std::string, escript::Data> data,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     /**
        \brief
@@ -525,7 +525,7 @@ public:
     */
     virtual void addToRHSFromPython(escript::Data& rhs,
             boost::python::list data,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     /**
        \brief
@@ -533,7 +533,7 @@ public:
     */
     virtual void addPDEToTransportProblem(escript::AbstractTransportProblem& tp,
             escript::Data& source, std::map<std::string, escript::Data> data,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
     /**
        \brief
        adds a PDE onto a transport problem
@@ -541,7 +541,7 @@ public:
     void addPDEToTransportProblemFromPython(
         escript::AbstractTransportProblem& tp,
         escript::Data& source, boost::python::list data,
-        escript::Assembler_ptr assembler) const;
+        Assembler_ptr assembler) const;
     /**
        \brief
        creates a stiffness matrix and initializes it with zeros
@@ -692,12 +692,12 @@ public:
     */
     virtual bool supportsFilter(const boost::python::tuple& t) const;
 
-    virtual escript::Assembler_ptr createAssembler(std::string type,
+    virtual Assembler_ptr createAssembler(std::string type,
                 std::map<std::string, escript::Data> options) const {
         throw RipleyException("Domain does not support custom assemblers");
     }
 
-    escript::Assembler_ptr createAssemblerFromPython(std::string type,
+    Assembler_ptr createAssemblerFromPython(std::string type,
                                 boost::python::list options) const;
 
 
@@ -709,7 +709,6 @@ protected:
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
-    escript::AbstractAssembler *assembler;
     std::vector<struct DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;
@@ -802,17 +801,17 @@ private:
     /// calls the right PDE assembly routines after performing input checks
     void assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
     void assemblePDEBoundary(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     void assemblePDEDirac(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs,
-            escript::Assembler_ptr assembler) const;
+            Assembler_ptr assembler) const;
 
     // finds the node that the given point belongs to
     virtual int findNode(const double *coords) const = 0;

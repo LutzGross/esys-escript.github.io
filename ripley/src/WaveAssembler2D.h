@@ -20,13 +20,13 @@
 #include <escript/Data.h>
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
-#include <escript/AbstractAssembler.h>
+#include <ripley/AbstractAssembler.h>
 #include <ripley/Rectangle.h>
 
 namespace ripley {
 
 
-class WaveAssembler2D : public escript::AbstractAssembler {
+class WaveAssembler2D : public AbstractAssembler {
 public:
     WaveAssembler2D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
             const dim_t *m_NE, const dim_t *m_NN, std::map<std::string, escript::Data> c);

@@ -187,7 +187,7 @@ public:
        \brief
        Creates and returns an assembler of the requested type.
     */
-    virtual escript::Assembler_ptr createAssembler(std::string type,
+    virtual Assembler_ptr createAssembler(std::string type,
             std::map<std::string, escript::Data> options) const;
 
 

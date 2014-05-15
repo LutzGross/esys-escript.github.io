@@ -14,6 +14,7 @@
 *
 *****************************************************************************/
 
+#include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 #include <ripley/Rectangle.h>
 #include <esysUtils/esysExceptionTranslator.h>
@@ -472,5 +473,7 @@ args("solver", "preconditioner", "package", "symmetry"),
      * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
+    class_<ripley::AbstractAssembler, ripley::Assembler_ptr, boost::noncopyable >
+        ("AbstractAssembler", "", no_init);
 }
 

@@ -18,11 +18,10 @@
 
 #include <map>
 #include <escript/Data.h>
-#include "Pointers.h"
-#include <ripley/Ripley.h>
+#include <escript/Pointers.h>
 #include <paso/SystemMatrix.h>
 
-namespace escript {
+namespace ripley {
 /* returns the data associated with the string key or an empty data object
    if the map does not contain the given key */
 escript::Data unpackData(std::string target,

@@ -14,7 +14,6 @@
 *
 *****************************************************************************/
 
-#include "AbstractAssembler.h"
 #include "Data.h"
 #include "FunctionSpace.h"
 #include "FunctionSpaceFactory.h"
@@ -115,8 +114,7 @@ BOOST_PYTHON_MODULE(escriptcpp)
 
 /* begin SubWorld things */
   
-  class_<escript::AbstractAssembler, escript::Assembler_ptr, boost::noncopyable >
-        ("AbstractAssembler", "", no_init);
+
   class_<escript::AbstractReducer, escript::Reducer_ptr, boost::noncopyable>("Reducer", "", no_init);
   def("makeDataReducer", escript::makeDataReducer, (arg("op")), "Creates an object to combine values.\n\n"
   ":param op: name of the operation to use.\n:type op: `str`");
