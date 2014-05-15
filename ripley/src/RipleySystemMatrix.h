@@ -30,8 +30,7 @@ public:
 
     SystemMatrix();
 
-    SystemMatrix(int row_blocksize, const escript::FunctionSpace& row_fs,
-                 int col_blocksize, const escript::FunctionSpace& col_fs,
+    SystemMatrix(int blocksize, const escript::FunctionSpace& fs,
                  int nRows, const IndexVector& diagonalOffsets);
 
     virtual ~SystemMatrix() {}
@@ -49,6 +48,8 @@ public:
     void add(const IndexVector& rowIndex, const std::vector<double>& array);
 
     void matrixVector(const double* x, double beta, double* y) const;
+
+    inline int getBlockSize() const { return getRowBlockSize(); }
 
 private:
     void cg(double* x, const double* b) const;
