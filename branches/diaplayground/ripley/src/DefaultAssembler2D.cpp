@@ -36,7 +36,7 @@ void DefaultAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
 
-void DefaultAssembler2D::assemblePDESingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -46,14 +46,14 @@ void DefaultAssembler2D::assemblePDESingle(paso::SystemMatrix_ptr mat,
 
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const 
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySingle(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -62,14 +62,14 @@ void DefaultAssembler2D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
     assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySingleReduced(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -78,14 +78,14 @@ void DefaultAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySystem(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -94,14 +94,14 @@ void DefaultAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 
-void DefaultAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESystem(SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -110,8 +110,8 @@ void DefaultAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w1 = 1.0/24;
@@ -590,7 +590,7 @@ void DefaultAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     } // end of parallel region
 }
 
-void DefaultAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESystemReduced(SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -599,8 +599,8 @@ void DefaultAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
 
     const double w0 = 1./4;
@@ -778,7 +778,7 @@ void DefaultAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     } // end of parallel region
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySingle(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double SQRT3 = 1.73205080756887719318;
@@ -982,7 +982,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
     } // end of parallel section
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySingleReduced(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double w0 = m_dx[0]/4;
@@ -1117,15 +1117,15 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
     } // end of parallel section
 }
 
-void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySystem(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     dim_t numEq, numComp;
     if (!mat) {
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     } else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w5 = m_dx[0]/12;
@@ -1394,15 +1394,15 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
 }
 
 //protected
-void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDEBoundarySystemReduced(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double w0 = m_dx[0]/4;
     const double w1 = m_dx[1]/4;
@@ -1569,7 +1569,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
 }
 
 //protected
-void DefaultAssembler2D::assemblePDESingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESingle(SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -2011,7 +2011,7 @@ void DefaultAssembler2D::assemblePDESingle(paso::SystemMatrix_ptr mat,
 }
 
 //protected
-void DefaultAssembler2D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler2D::assemblePDESingleReduced(SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const

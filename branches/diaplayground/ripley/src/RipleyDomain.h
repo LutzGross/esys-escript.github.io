@@ -39,8 +39,6 @@
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
 
-#include <paso/SystemMatrix.h>
-
 namespace ripley {
 
 enum assembler_t {
@@ -87,6 +85,8 @@ struct DiracPoint
     int node;
     int tag;
 };
+
+class SystemMatrix;
 
 /**
    \brief
@@ -472,7 +472,8 @@ public:
        \param package
        \param symmetry
     */
-    virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+    virtual int getSystemMatrixTypeId(int solver, int preconditioner,
+                                      int package, bool symmetry) const;
 
     /**
        \brief
@@ -560,9 +561,9 @@ public:
        \brief
        creates a stiffness matrix and initializes it with zeros
     */
-    virtual escript::ASM_ptr newSystemMatrix(const int row_blocksize,
+    virtual escript::ASM_ptr newSystemMatrix(int row_blocksize,
             const escript::FunctionSpace& row_functionspace,
-            const int column_blocksize,
+            int column_blocksize,
             const escript::FunctionSpace& column_functionspace, const int type) const;
 
     /**
@@ -738,26 +739,6 @@ protected:
     // this is const because setTags is const
     void updateTagsInUse(int fsType) const;
 
-    /// allocates and returns a Paso pattern structure
-    paso::Pattern_ptr createPasoPattern(const IndexVector& ptr,
-            const IndexVector& index, const dim_t M, const dim_t N) const;
-
-    /// creates the pattern for the main block of the system matrix
-    paso::Pattern_ptr createMainPattern() const;
-
-    /// creates the pattern for the column and row couple blocks of the system
-    /// matrix. colIndices[i] contains all IDs of DOFs that are connected with
-    /// DOF i but remote and 'N' is the total number of remote components
-    void createCouplePatterns(const std::vector<IndexVector>& colIndices,
-                              const std::vector<IndexVector>& rowIndices,
-                              const dim_t N, paso::Pattern_ptr& colPattern,
-                              paso::Pattern_ptr& rowPattern) const;
-
-    void addToSystemMatrix(paso::SystemMatrix_ptr in,
-            const IndexVector& nodes_Eq, dim_t num_Eq,
-            const IndexVector& nodes_Sol, dim_t num_Sol,
-            const DoubleVector& array) const;
-
     void addPoints(int numPoints, const double* points_ptr,
                    const int* tags_ptr);
 
@@ -775,9 +756,8 @@ protected:
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
 
-    /// inserts the nodes that share an element with 'node' into 'index' and
-    /// returns the number of these neighbours
-    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const = 0;
+    /// returns the indices of the occupied matrix diagonals
+    virtual IndexVector getDiagonalIndices() const = 0;
 
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const = 0;
@@ -787,10 +767,6 @@ protected:
 
     /// copies the integrals of the function defined by 'arg' into 'integrals'
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
-
-    /// returns the Paso system matrix pattern
-    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder,
-            bool reducedColOrder) const = 0;
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
@@ -812,15 +788,15 @@ protected:
 
 private:
     /// calls the right PDE assembly routines after performing input checks
-    void assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDE(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
-    void assemblePDEBoundary(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDEBoundary(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
-    void assemblePDEDirac(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDEDirac(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
     // finds the node that the given point belongs to

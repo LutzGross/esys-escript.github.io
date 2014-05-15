@@ -189,11 +189,10 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
+    virtual IndexVector getDiagonalIndices() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
-    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -208,7 +207,7 @@ protected:
 private:
     void populateSampleIds();
     void createPattern();
-    void addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
+    void addToMatrixAndRHS(SystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 
@@ -277,9 +276,6 @@ private:
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes
     paso::Connector_ptr m_connector;
-
-    // the Paso System Matrix pattern
-    paso::SystemMatrixPattern_ptr m_pattern;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
@@ -306,14 +302,6 @@ inline boost::python::tuple Brick::getGridParameters() const
             boost::python::make_tuple(m_dx[0], m_dx[1], m_dx[2]),
             boost::python::make_tuple(m_gNE[0], m_gNE[1], m_gNE[2]));
 }
-
-inline paso::SystemMatrixPattern_ptr Brick::getPattern(bool reducedRowOrder,
-                                                       bool reducedColOrder) const
-{
-    // TODO: reduced
-    return m_pattern;
-}
-
 
 //protected
 inline dim_t Brick::getNumDOF() const
