@@ -170,7 +170,6 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
     populateSampleIds();
     createPattern();
-    assembler = new DefaultAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
     for (map<string, int>::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
@@ -180,7 +179,6 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
 Rectangle::~Rectangle()
 {
-    delete assembler;
 }
 
 string Rectangle::getDescription() const
@@ -2359,24 +2357,17 @@ int Rectangle::findNode(const double *coords) const {
     return closest;
 }
 
-void Rectangle::setAssembler(std::string type, std::map<std::string,
-        escript::Data> constants) {
-    if (type.compare("WaveAssembler") == 0) {
-        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
-            throw RipleyException("Domain already using a different custom assembler");
-        assembler_type = WAVE_ASSEMBLER;
-        delete assembler;
-        assembler = new WaveAssembler2D(this, m_dx, m_NX, m_NE, m_NN, constants);
+escript::Assembler_ptr Rectangle::createAssembler(std::string type,
+        std::map<std::string, escript::Data> constants) const {
+    if (type.compare("DefaultAssembler") == 0) {
+        return escript::Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+    } else if (type.compare("WaveAssembler") == 0) {
+        return escript::Assembler_ptr(new WaveAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
     } else if (type.compare("LameAssembler") == 0) {
-        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
-            throw RipleyException("Domain already using a different custom assembler");
-        assembler_type = LAME_ASSEMBLER;
-        delete assembler;
-        assembler = new LameAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
-    } else { //else ifs would go before this for other types
-        throw RipleyException("Ripley::Rectangle does not support the"
-                                " requested assembler");
+        return escript::Assembler_ptr(new LameAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     }
+    throw RipleyException("Ripley::Rectangle does not support the"
+            " requested assembler");
 }
 
 } // end of namespace ripley

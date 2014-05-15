@@ -812,7 +812,8 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
 
 void RipleyDomain::addToSystem(
         escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const
+        std::map<std::string, escript::Data> coefs,
+        escript::Assembler_ptr assembler) const
 {
     if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException(
@@ -826,95 +827,40 @@ void RipleyDomain::addToSystem(
 
     paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
 
-    assemblePDE(S, rhs, coefs);
-    assemblePDEBoundary(S, rhs, coefs);
-    assemblePDEDirac(S, rhs, coefs);
+    assemblePDE(S, rhs, coefs, assembler);
+    assemblePDEBoundary(S, rhs, coefs, assembler);
+    assemblePDEDirac(S, rhs, coefs, assembler);
 }
 
 void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
-        escript::Data& rhs, boost::python::list data) const
+        escript::Data& rhs, boost::python::list data,
+        escript::Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
-    addToSystem(mat, rhs, mapping);
+    addToSystem(mat, rhs, mapping, assembler);
 }
 
-void RipleyDomain::addPDEToSystem(
-        escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact, const escript::Data& y_contact,
-        const escript::Data& d_dirac,const escript::Data& y_dirac) const
-{
-    if (!d_contact.isEmpty() || !y_contact.isEmpty())
-        throw RipleyException("addPDEToSystem: Ripley does not support contact elements");
 
-    paso::SystemMatrixAdapter* sma=dynamic_cast<paso::SystemMatrixAdapter*>(&mat);
-    if (!sma)
-        throw RipleyException("addPDEToSystem: Ripley only accepts Paso system matrices");
-
-    paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
-
-    std::map<std::string, escript::Data> coefs;
-    coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
-    coefs["X"] = X; coefs["Y"] = Y;
-    assemblePDE(S, rhs, coefs);
-
-    std::map<std::string, escript::Data> boundary;
-    boundary["d"] = d;
-    boundary["y"] = y;
-    assemblePDEBoundary(S, rhs, boundary);
-
-    map<string, escript::Data> dirac;
-    dirac["d_dirac"] = d_dirac;
-    dirac["y_dirac"] = y_dirac;
-    assemblePDEDirac(S, rhs, dirac);
-}
-
-void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
-        const escript::Data& Y, const escript::Data& y,
-        const escript::Data& y_contact, const escript::Data& y_dirac) const
-{
-    if (!y_contact.isEmpty())
-        throw RipleyException("addPDEToRHS: Ripley does not support contact elements");
-
-    if (rhs.isEmpty()) {
-        if (!X.isEmpty() || !Y.isEmpty())
-            throw RipleyException("addPDEToRHS: right hand side coefficients are provided but no right hand side vector given");
-        else
-            return;
-    }
-    {
-        std::map<std::string, escript::Data> coefs;
-        coefs["X"] = X; coefs["Y"] = Y;
-        assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs);
-    }
-    std::map<std::string, escript::Data> coefs;
-    coefs["y"] = y;
-    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs);
-    map<string, escript::Data> dirac;
-    dirac["y_dirac"] = y_dirac;
-    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, dirac);
-}
-
-void RipleyDomain::setAssemblerFromPython(std::string type,
-                                         boost::python::list options) {
+escript::Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
+                                         boost::python::list options) const {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, options);
-    setAssembler(type, mapping);
+    return createAssembler(type, mapping);
 }
 
 void RipleyDomain::addToRHSFromPython(escript::Data& rhs,
-                                         boost::python::list data) const
+            boost::python::list data,
+            escript::Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
-    addToRHS(rhs, mapping);
+    addToRHS(rhs, mapping, assembler);
 }
 
 void RipleyDomain::addToRHS(escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const
+        std::map<std::string, escript::Data> coefs,
+        escript::Assembler_ptr assembler) const
 {
     if (isNotEmpty("y_contact", coefs))
         throw RipleyException(
@@ -929,9 +875,9 @@ void RipleyDomain::addToRHS(escript::Data& rhs,
             return;
     }
 
-    assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs);
-    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs);
-    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, coefs);
+    assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs, assembler);
+    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs, assembler);
+    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, coefs, assembler);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -957,16 +903,22 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
     return atp;
 }
 
+void RipleyDomain::addPDEToTransportProblemFromPython(
+        escript::AbstractTransportProblem& tp,
+        escript::Data& source, boost::python::list data,
+        escript::Assembler_ptr assembler) const
+{
+    std::map<std::string, escript::Data> mapping;
+    tupleListToMap(mapping, data);
+    addPDEToTransportProblem(tp, source, mapping, assembler);
+}
+
 void RipleyDomain::addPDEToTransportProblem(
         escript::AbstractTransportProblem& tp,
-        escript::Data& source, const escript::Data& M,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact, const escript::Data& y_contact,
-        const escript::Data& d_dirac, const escript::Data& y_dirac) const
+        escript::Data& source, std::map<std::string, escript::Data> coefs,
+        escript::Assembler_ptr assembler) const
 {
-    if (!d_contact.isEmpty() || !y_contact.isEmpty())
+    if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
 
     TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
@@ -974,15 +926,10 @@ void RipleyDomain::addPDEToTransportProblem(
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
     paso::TransportProblem_ptr ptp(tpa->getPaso_TransportProblem());
-    std::map<std::string, escript::Data> coefs;
-    coefs["D"] = M;
-    assemblePDE(ptp->mass_matrix, source, coefs);
-    coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
-    coefs["X"] = X; coefs["Y"] = Y; coefs["d"] = d; coefs["y"] = y;
-    coefs["d_dirac"] = d_dirac; coefs["y_dirac"] = y_dirac;
-    assemblePDE(ptp->transport_matrix, source, coefs);
-    assemblePDEBoundary(ptp->transport_matrix, source, coefs);
-    assemblePDEDirac(ptp->transport_matrix, source, coefs);
+    assemblePDE(ptp->mass_matrix, source, coefs, assembler);
+    assemblePDE(ptp->transport_matrix, source, coefs, assembler);
+    assemblePDEBoundary(ptp->transport_matrix, source, coefs, assembler);
+    assemblePDEDirac(ptp->transport_matrix, source, coefs, assembler);
 }
 
 void RipleyDomain::setNewX(const escript::Data& arg)
@@ -1287,7 +1234,8 @@ void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat,
 
 //private
 void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const
+        std::map<std::string, escript::Data> coefs,
+        escript::Assembler_ptr assembler) const
 {
     if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
         throw RipleyException("assemblePDE: right hand side coefficients are "
@@ -1346,7 +1294,8 @@ void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
 
 //private
 void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
-      escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
+        escript::Data& rhs, std::map<std::string, escript::Data> coefs,
+        escript::Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data>::iterator iy = coefs.find("y"),
                                                    id = coefs.find("d");
@@ -1402,7 +1351,8 @@ void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
 }
 
 void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
-        escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
+        escript::Data& rhs, std::map<std::string, escript::Data> coefs,
+        escript::Assembler_ptr assembler) const
 {
     bool yNotEmpty = isNotEmpty("y_dirac", coefs),
          dNotEmpty = isNotEmpty("d_dirac", coefs);

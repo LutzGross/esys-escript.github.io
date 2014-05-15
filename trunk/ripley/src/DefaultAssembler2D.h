@@ -20,17 +20,17 @@
 #include <escript/Data.h>
 #include <ripley/Ripley.h>
 #include <ripley/RipleyException.h>
-#include <ripley/AbstractAssembler.h>
+#include <escript/AbstractAssembler.h>
 #include <ripley/Rectangle.h>
 
 namespace ripley {
 
 
-class DefaultAssembler2D : public AbstractAssembler {
+class DefaultAssembler2D : public escript::AbstractAssembler {
 public:
-    DefaultAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
-            dim_t *m_NN) : AbstractAssembler() {
-        domain = dom;
+    DefaultAssembler2D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
+            const dim_t *m_NE, const dim_t *m_NN) : escript::AbstractAssembler() {
+        domain = boost::static_pointer_cast<const Rectangle>(dom);
         this->m_dx = m_dx;
         this->m_NX = m_NX;
         this->m_NE = m_NE;
@@ -118,11 +118,11 @@ public:
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
             std::map<std::string, escript::Data> coefs) const;
 protected:
-    Rectangle *domain;
-    double *m_dx;
-    dim_t *m_NX;
-    dim_t *m_NE;
-    dim_t *m_NN;
+    boost::shared_ptr<const Rectangle> domain;
+    const double *m_dx;
+    const dim_t *m_NX;
+    const dim_t *m_NE;
+    const dim_t *m_NN;
 };
 
 } // namespace ripley

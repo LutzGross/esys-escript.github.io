@@ -35,7 +35,6 @@ sources = """
     RipleyException.cpp
     DefaultAssembler2D.cpp
     DefaultAssembler3D.cpp
-    AbstractAssembler.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
     LameAssembler2D.cpp
@@ -53,7 +52,6 @@ headers = """
     system_dep.h
     DefaultAssembler2D.h
     DefaultAssembler3D.h
-    AbstractAssembler.h
     WaveAssembler2D.h
     WaveAssembler3D.h
     LameAssembler2D.h

@@ -36,10 +36,10 @@ void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
 
-WaveAssembler2D::WaveAssembler2D(Rectangle *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
-                dim_t *m_NN, std::map<std::string, escript::Data> c) 
-            : AbstractAssembler() {
-        domain = dom;
+WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
+            const dim_t *m_NE, const dim_t *m_NN, std::map<std::string, escript::Data> c) 
+            : escript::AbstractAssembler() {
+        domain = boost::static_pointer_cast<const Rectangle>(dom);
         this->m_dx = m_dx;
         this->m_NX = m_NX;
         this->m_NE = m_NE;

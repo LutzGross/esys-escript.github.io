@@ -425,6 +425,10 @@ class LinearProblem(object):
 
      self.__debug=debug
      self.__domain=domain
+     self.domainSupportsAssemblers = hasattr(domain, "createAssembler")
+     self.assembler = None
+     if self.domainSupportsAssemblers:
+            self.assembler = domain.createAssembler("DefaultAssembler", [])
      self.__numEquations=numEquations
      self.__numSolutions=numSolutions
      self.__altered_coefficients=False
@@ -1357,6 +1361,126 @@ class LinearProblem(object):
        """
        return (self.getCurrentOperator(), self.getCurrentRightHandSide())
 
+
+   def addPDEToSystem(self, operator,righthandside, A, B, C, D, X, Y,
+            d, y, d_contact, y_contact, d_dirac, y_dirac):
+        """
+        adds a PDE to the system, results depend on domain
+        
+        :param mat:
+        :type mat: `OperatorAdapter`
+        :param rhs:
+        :type rhs: `Data`
+        :param A:
+        :type A: `Data`
+        :param B:
+        :type B: `Data`
+        :param C:
+        :type C: `Data`
+        :param D:
+        :type D: `Data`
+        :param X:
+        :type X: `Data`
+        :param Y:
+        :type Y: `Data`
+        :param d:
+        :type d: `Data`
+        :param y:
+        :type y: `Data`
+        :param d_contact:
+        :type d_contact: `Data`
+        :param y_contact:
+        :type y_contact: `Data`
+        :param d_dirac:
+        :type d_dirac: `Data`
+        :param y_dirac:
+        :type y_dirac: `Data`
+        """
+        if self.domainSupportsAssemblers:
+            data = [("A", A), ("B", B), ("C", C), ("D", D), ("X", X), ("Y", Y),
+                    ("d", d), ("y", y), ("d_contact", d_contact),
+                    ("y_contact", y_contact), ("d_dirac", d_dirac),
+                    ("y_dirac", y_dirac)]
+            self.addToSystem(operator,righthandside, data)
+        else:
+            self.getDomain().addPDEToSystem(operator,righthandside, A, B, C, D,
+                    X, Y, d, y, d_contact, y_contact, d_dirac, y_dirac)
+            
+   def addToSystem(self, op, rhs, data):
+        """
+        adds a PDE to the system, results depend on domain
+        
+        :param mat:
+        :type mat: `OperatorAdapter`
+        :param rhs:
+        :type rhs: `Data`
+        :param data:
+        :type data: `list`
+        """
+        self.getDomain().addToSystem(op, rhs, data, self.assembler)
+
+   def addPDEToLumpedSystem(self, operator, a, b, c, hrz_lumping):
+        """
+        adds a PDE to the lumped system, results depend on domain
+        
+        :param mat:
+        :type mat: `OperatorAdapter`
+        :param rhs:
+        :type rhs: `Data`
+        :param a:
+        :type a: `Data`
+        :param b:
+        :type b: `Data`
+        :param c:
+        :type c: `Data`
+        :param hrz_lumping:
+        :type hrz_lumping: `bool`
+        """
+        if self.domainSupportsAssemblers:
+            self.getDomain().addPDEToLumpedSystem(operator, a, b, c, hrz_lumping, self.assembler)
+        else:
+            self.getDomain().addPDEToLumpedSystem(operator, a, b, c, hrz_lumping)
+   
+   def addPDEToRHS(self, righthandside, X, Y, y, y_contact, y_dirac):
+        """
+        adds a PDE to the right hand side, results depend on domain
+        
+        :param mat:
+        :type mat: `OperatorAdapter`
+        :param righthandside:
+        :type righthandside: `Data`
+        :param X:
+        :type X: `Data`
+        :param Y:
+        :type Y: `Data`
+        :param y:
+        :type y: `Data`
+        :param y_contact:
+        :type y_contact: `Data`
+        :param y_dirac:
+        :type y_dirac: `Data`
+        """
+        if self.domainSupportsAssemblers:
+            data = [("X", X), ("Y", Y), ("y", y), ("y_contact", y_contact),
+                    ("y_dirac", y_dirac)]
+            self.addToRHS(righthandside, data)
+        else:
+            self.getDomain().addPDEToRHS(righthandside, X, Y, y, y_contact, 
+                    y_dirac)
+   
+   def addToRHS(self, rhs, data):
+        """
+        adds a PDE to the right hand side, results depend on domain
+        
+        :param mat:
+        :type mat: `OperatorAdapter`
+        :param righthandside:
+        :type righthandside: `Data`
+        :param data:
+        :type data: `list`
+        """
+        self.getDomain().addToRHS(rhs, data, self.assembler)
+
 class LinearPDE(LinearProblem):
    """
    This class is used to define a general linear, steady, second order PDE
@@ -1689,16 +1813,16 @@ class LinearPDE(LinearProblem):
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
                     hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
-                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
-                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escore.Data(), hrz_lumping)
+                    self.addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+                    self.addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escore.Data(), hrz_lumping)
                  else:
-                    self.getDomain().addPDEToRHS(operator, \
+                    self.addPDEToRHS(operator, \
                                                  escore.Data(), \
                                                  D_times_e, \
                                                  d_times_e,\
                                                  escore.Data(),\
                                                  d_dirac_times_e)
-                    self.getDomain().addPDEToRHS(operator, \
+                    self.addPDEToRHS(operator, \
                                                  escore.Data(), \
                                                  D_reduced_times_e, \
                                                  d_reduced_times_e,\
@@ -1708,13 +1832,13 @@ class LinearPDE(LinearProblem):
               if not self.isRightHandSideValid():
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
-                 self.getDomain().addPDEToRHS(righthandside, \
+                 self.addPDEToRHS(righthandside, \
                                self.getCoefficient("X"), \
                                self.getCoefficient("Y"),\
                                self.getCoefficient("y"),\
                                self.getCoefficient("y_contact"), \
                                self.getCoefficient("y_dirac"))
-                 self.getDomain().addPDEToRHS(righthandside, \
+                 self.addPDEToRHS(righthandside, \
                                self.getCoefficient("X_reduced"), \
                                self.getCoefficient("Y_reduced"),\
                                self.getCoefficient("y_reduced"),\
@@ -1730,7 +1854,7 @@ class LinearPDE(LinearProblem):
                  righthandside=self.getCurrentRightHandSide()
                  self.resetOperator()
                  operator=self.getCurrentOperator()
-                 self.getDomain().addPDEToSystem(operator,righthandside, \
+                 self.addPDEToSystem(operator,righthandside, \
                                self.getCoefficient("A"), \
                                self.getCoefficient("B"), \
                                self.getCoefficient("C"), \
@@ -1743,7 +1867,7 @@ class LinearPDE(LinearProblem):
                                self.getCoefficient("y_contact"), \
                                self.getCoefficient("d_dirac"), \
                                self.getCoefficient("y_dirac"))
-                 self.getDomain().addPDEToSystem(operator,righthandside, \
+                 self.addPDEToSystem(operator,righthandside, \
                                self.getCoefficient("A_reduced"), \
                                self.getCoefficient("B_reduced"), \
                                self.getCoefficient("C_reduced"), \
@@ -1763,13 +1887,13 @@ class LinearPDE(LinearProblem):
              elif not self.isRightHandSideValid():
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
-                 self.getDomain().addPDEToRHS(righthandside,
+                 self.addPDEToRHS(righthandside,
                                self.getCoefficient("X"), \
                                self.getCoefficient("Y"),\
                                self.getCoefficient("y"),\
                                self.getCoefficient("y_contact"), \
                                self.getCoefficient("y_dirac") )
-                 self.getDomain().addPDEToRHS(righthandside,
+                 self.addPDEToRHS(righthandside,
                                self.getCoefficient("X_reduced"), \
                                self.getCoefficient("Y_reduced"),\
                                self.getCoefficient("y_reduced"),\
@@ -1781,7 +1905,7 @@ class LinearPDE(LinearProblem):
              elif not self.isOperatorValid():
                  self.resetOperator()
                  operator=self.getCurrentOperator()
-                 self.getDomain().addPDEToSystem(operator,escore.Data(), \
+                 self.addPDEToSystem(operator,escore.Data(), \
                             self.getCoefficient("A"), \
                             self.getCoefficient("B"), \
                             self.getCoefficient("C"), \
@@ -1794,7 +1918,7 @@ class LinearPDE(LinearProblem):
                             escore.Data(),                   \
                             self.getCoefficient("d_dirac"),   \
                             escore.Data())
-                 self.getDomain().addPDEToSystem(operator,escore.Data(), \
+                 self.addPDEToSystem(operator,escore.Data(), \
                             self.getCoefficient("A_reduced"), \
                             self.getCoefficient("B_reduced"), \
                             self.getCoefficient("C_reduced"), \
@@ -2214,7 +2338,7 @@ class WavePDE(LinearPDE):
            y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
            r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
            q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH))
-        domain.setAssembler("WaveAssembler", c)
+        self.assembler = self.getDomain().createAssembler("WaveAssembler", c)
 
     
     def getSystem(self):
@@ -2266,16 +2390,16 @@ class WavePDE(LinearPDE):
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
                     hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
-                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+                    self.addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
                  else:
-                    self.getDomain().addToRHS(operator, 
+                    self.addToRHS(operator, 
                         [("Y", D_times_e), ("y", d_times_e),
                          ("y_dirac", d_dirac_times_e)])
                  self.trace("New lumped operator has been built.")
               if not self.isRightHandSideValid():
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
-                 self.getDomain().addToRHS(righthandside,
+                 self.addToRHS(righthandside,
                                 [(i, self.getCoefficient(i)) for i in 
                                     ["du", "Y", "y", "y_dirac"]
                                 ])
@@ -2293,7 +2417,7 @@ class WavePDE(LinearPDE):
                                 "D", "Y", "d", "y", "d_contact",
                                 "y_contact", "d_dirac", "y_dirac", "du"]
                             ]
-                 self.getDomain().addToSystem(operator, righthandside, data)
+                 self.addToSystem(operator, righthandside, data)
                  self.insertConstraint(rhs_only=False)
                  self.trace("New system has been built.")
                  self.validOperator()
@@ -2301,7 +2425,7 @@ class WavePDE(LinearPDE):
              elif not self.isRightHandSideValid():
                  self.resetRightHandSide()
                  righthandside=self.getCurrentRightHandSide()
-                 self.getDomain().addToRHS(righthandside,
+                 self.addToRHS(righthandside,
                                 [(i, self.getCoefficient(i)) for i in 
                                     ["du", "Y", "y", "y_contact", "y_dirac"]
                                 ])
@@ -2313,7 +2437,7 @@ class WavePDE(LinearPDE):
                  operator=self.getCurrentOperator()
                  data = [(i, self.getCoefficient(i)) for i in ["A", "B", "C",
                         "D", "d", "d_contact", "d_dirac", "du"]]
-                 self.getDomain().addToSystem(operator, escore.Data(), data)
+                 self.addToSystem(operator, escore.Data(), data)
                  self.insertConstraint(rhs_only=False)
                  self.trace("New operator has been built.")
                  self.validOperator()
@@ -2350,7 +2474,7 @@ class LameEquation(LinearPDE):
         self.fastAssembler = False
         if useFast and hasattr(domain, "setAssembler"):
             self.fastAssembler = True
-            domain.setAssembler("LameAssembler", [])
+            self.assembler = domain.createAssembler("LameAssembler", [])
         super(LameEquation, self).__init__(domain,\
                                          domain.getDim(),domain.getDim(),debug)
         self.introduceCoefficients(lame_lambda=PDECoef(PDECoef.INTERIOR,(),PDECoef.OPERATOR),
@@ -2517,14 +2641,14 @@ class LameEquation(LinearPDE):
                  operator=self.getCurrentOperator()
                  if hasattr(self.getDomain(), "addPDEToLumpedSystem") :
                     hrz_lumping=( self.getSolverOptions().getSolverMethod() ==  SolverOptions.HRZ_LUMPING )
-                    self.getDomain().addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
-                    self.getDomain().addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escore.Data(), hrz_lumping)
+                    self.addPDEToLumpedSystem(operator, D_times_e, d_times_e, d_dirac_times_e,  hrz_lumping )
+                    self.addPDEToLumpedSystem(operator, D_reduced_times_e, d_reduced_times_e, escore.Data(), hrz_lumping)
                  else:
-                    self.getDomain().addToRHS(operator, [
+                    self.addToRHS(operator, [
                                                  ("Y", D_times_e),
                                                  ("y", d_times_e),
                                                  ("y_dirac", d_dirac_times_e)])
-                    self.getDomain().addToRHS(operator, [
+                    self.addToRHS(operator, [
                                                  ("Y",D_reduced_times_e),
                                                  ("y",d_reduced_times_e)])
                  self.trace("New lumped operator has been built.")
@@ -2533,10 +2657,10 @@ class LameEquation(LinearPDE):
                  righthandside=self.getCurrentRightHandSide()
                  data = [(i, self.getCoefficient(i)) for i in ["X", "Y", "y",
                         "y_contact", "y_dirac"]]
-                 self.getDomain().addToRHS(righthandside, data)
+                 self.addToRHS(righthandside, data)
                  data = [(i, self.getCoefficient(i+"_reduced")) for i in ["X",
                         "Y", "y", "y_contact"]]
-                 self.getDomain().addToRHS(righthandside, data)
+                 self.addToRHS(righthandside, data)
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
               self.insertConstraint(rhs_only=False)
@@ -2551,12 +2675,12 @@ class LameEquation(LinearPDE):
                         "lame_lambda", "B", "C", "D",
                         "X", "Y", "d", "y", "d_contact", "y_contact",
                         "d_dirac", "y_dirac"]]
-                 self.getDomain().addToSystem(operator,righthandside, data)
+                 self.addToSystem(operator,righthandside, data)
                  data = [(i, self.getCoefficient(i+"_reduced")) for i in [
                             "A", "B", "C", "D",
                             "X", "Y", "d", "y", "d_contact", "y_contact"]
                         ]
-                 self.getDomain().addToSystem(operator,righthandside, data)
+                 self.addToSystem(operator,righthandside, data)
                  self.insertConstraint(rhs_only=False)
                  self.trace("New system has been built.")
                  self.validOperator()
@@ -2566,10 +2690,10 @@ class LameEquation(LinearPDE):
                  righthandside=self.getCurrentRightHandSide()
                  data = [(i, self.getCoefficient(i)) for i in ["X", "Y", "y",
                         "y_contact", "y_dirac"]]
-                 self.getDomain().addToRHS(righthandside, data)
+                 self.addToRHS(righthandside, data)
                  data = [(i, self.getCoefficient(i+"_reduced")) for i in [
                         "X", "Y", "y","y_contact"]]
-                 self.getDomain().addToRHS(righthandside, data)
+                 self.addToRHS(righthandside, data)
                  self.insertConstraint(rhs_only=True)
                  self.trace("New right hand side has been built.")
                  self.validRightHandSide()
@@ -2578,13 +2702,13 @@ class LameEquation(LinearPDE):
                  operator=self.getCurrentOperator()
                  data = [(i, self.getCoefficient(i)) for i in ["lame_mu",
                         "lame_lambda", "B","C","D","d","d_contact","d_dirac"]]
-                 self.getDomain().addToSystem(operator, data)
+                 self.addToSystem(operator, data)
                  data = [(i, self.getCoefficient(i)) for i in [
                             "lame_mu","lame_lambda"]
                         ] + [(i, self.getCoefficient(i+"_reduced")) for i in [
                             "B","C","D","d","d_contact"]
                         ]
-                 self.getDomain().addToSystem(operator,data)
+                 self.addToSystem(operator,data)
                  self.insertConstraint(rhs_only=False)
                  self.trace("New operator has been built.")
                  self.validOperator()
@@ -3030,6 +3154,53 @@ class TransportPDE(LinearProblem):
               raise ValueError("Illegal shape %s of initial solution."%(u2.getShape(),))
        self.setSolution(u2,validate=False)
 
+   def addPDEToTransportProblem(self, operator,righthandside, M, A, B, C, D, X, Y,
+            d, y, d_contact, y_contact, d_dirac, y_dirac):
+        """
+        Adds the PDE in the given form to the system matrix
+        :param tp:
+        :type tp: `TransportProblemAdapter`
+        :param source:
+        :type source: `Data`
+        :param data:
+        :type data: `list`"
+        :param M:
+        :type M: `Data`
+        :param A:
+        :type A: `Data`
+        :param B:
+        :type B: `Data`
+        :param C:
+        :type C: `Data`
+        :param D:
+        :type D: `Data`
+        :param X:
+        :type X: `Data`
+        :param Y:
+        :type Y: `Data`
+        :param d:
+        :type d: `Data`
+        :param y:
+        :type y: `Data`
+        :param d_contact:
+        :type d_contact: `Data`
+        :param y_contact:
+        :type y_contact: `Data`
+        :param d_contact:
+        :type d_contact: `Data`
+        :param y_contact:
+        :type y_contact: `Data`
+        """
+        if self.domainSupportsAssemblers:
+            data = [("M", M), ("A", A), ("B", B), ("C", C), ("D", D), ("X", X), ("Y", Y),
+                    ("d", d), ("y", y), ("d_contact", d_contact),
+                    ("y_contact", y_contact), ("d_dirac", d_dirac),
+                    ("y_dirac", y_dirac)]
+            self.getDomain().addPDEToTransportProblem(operator,righthandside,
+                    data, self.assembler)
+        else:
+            self.getDomain().addPDEToTransportProblem(operator,righthandside, M, A, B, C, D,
+                    X, Y, d, y, d_contact, y_contact, d_dirac, y_dirac)
 
    def getSystem(self):
        """
@@ -3045,7 +3216,7 @@ class TransportPDE(LinearProblem):
           righthandside=self.getCurrentRightHandSide()
           self.resetOperator()
           operator=self.getCurrentOperator()
-          self.getDomain().addPDEToTransportProblem(
+          self.addPDEToTransportProblem(
                             operator,
                             righthandside,
                             self.getCoefficient("M"),
@@ -3061,7 +3232,7 @@ class TransportPDE(LinearProblem):
                             self.getCoefficient("y_contact"),
                             self.getCoefficient("d_dirac"),
                             self.getCoefficient("y_dirac") )
-          self.getDomain().addPDEToTransportProblem(
+          self.addPDEToTransportProblem(
                             operator,
                             righthandside,
                             self.getCoefficient("M_reduced"),

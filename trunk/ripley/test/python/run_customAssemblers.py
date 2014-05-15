@@ -36,7 +36,7 @@ except KeyError:
 
 EXPANDED, SCALAR, CONSTANT = range(3)
 
-def run_lame(domain, fast, test_type):
+def run_lame(domain, fast, test_type, mu=3, lamb=50):
     d=domain.getDim()
     mypde=LameEquation(domain, useFast=fast)
     cf=ContinuousFunction(domain)
@@ -45,11 +45,9 @@ def run_lame(domain, fast, test_type):
     msk=Vector(0.,cf)
     for i in range(d):
         msk[i]=whereZero(x[i])
-    mu = 3
-    lamb = 50
     if test_type != CONSTANT:
-        mu = Scalar(3, cf)
-        lamb = Scalar(50, cf)
+        mu = Scalar(mu, cf)
+        lamb = Scalar(lamb, cf)
         if test_type == EXPANDED:
             mu.expand()
             lamb.expand()
@@ -66,27 +64,21 @@ class Test_CustomAssemblers(unittest.TestCase):
     def test_lame(self):
         labels = ["expanded", "scalar", "constant"]
         for test_type in [EXPANDED, SCALAR, CONSTANT]:
-            #check the 3D assembler
-            dom = Brick(10,10,10)
-            default = run_lame(dom, False, test_type)
-            lame = run_lame(dom, True, test_type)
-            self.assertLess(Lsup(default - lame), 1e-8,
-                    "Default and Lame 3Dassembler solutions differ for " \
-                    + "%s data"%labels[test_type])
+            for dom, dim in [(Brick(10,10,10), "3D"), (Rectangle(20,20), "2D")]:
+                #check default and lame assemblers agree
+                dom = Brick(10,10,10)
+                default = run_lame(dom, False, test_type)
+                lame = run_lame(dom, True, test_type)
+                self.assertLess(Lsup(default - lame), 1e-8,
+                        "Default and Lame " + dim + "assembler solutions " \
+                        "differ for %s data"%labels[test_type])
+                #reverse order, ensure default assembler still operational
+                lame = run_lame(dom, True, test_type, mu=7, lamb=40)
+                default = run_lame(dom, False, test_type, mu=7, lamb=40)
+                self.assertLess(Lsup(default - lame), 1e-8,
+                        "Default and Lame " + dim + "assembler solutions " \
+                        "differ for %s data"%labels[test_type])
 
-            #check for catching that default assemblage will now fail
-            self.assertRaises(Exception, run_lame, dom, False, test_type)
-
-            #check the 2D assembler
-            dom = Rectangle(20,20)
-            default = run_lame(dom, False, test_type)
-            lame = run_lame(dom, True, test_type)
-            self.assertLess(Lsup(default - lame), 1e-8,
-                    "Default and Lame 2Dassembler solutions differ for " \
-                    + "%s data"%labels[test_type])
-                    
-            #check for catching that default assemblage will now fail
-            self.assertRaises(Exception, run_lame, dom, False, test_type)
 
 if __name__ == '__main__':
     suite = unittest.TestSuite()
