@@ -35,7 +35,7 @@ namespace finley {
 }
 
 
-Mesh* Mesh::read(const std::string fname, int order, int reduced_order,
+Mesh* Mesh::read(esysUtils::JMPI& mpi_info, const std::string fname, int order, int reduced_order,
                  bool optimize)
 {
     int numNodes, numDim, numEle, i0, i1;
@@ -47,7 +47,6 @@ Mesh* Mesh::read(const std::string fname, int order, int reduced_order,
     int scan_ret;
 
     resetError();
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
 
     if (mpi_info->rank == 0) {
         // get file handle

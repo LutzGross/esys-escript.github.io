@@ -81,10 +81,10 @@ public:
     Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info);
     ~Mesh();
 
-    static Mesh* load(const std::string fname);
-    static Mesh* read(const std::string fname, int order, int reducedOrder,
+    static Mesh* load(esysUtils::JMPI& mpi_info, const std::string fname);
+    static Mesh* read(esysUtils::JMPI& mpi_info, const std::string fname, int order, int reducedOrder,
                       bool optimize);
-    static Mesh* readGmsh(const std::string fname, int numDim, int order,
+    static Mesh* readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
                           int reducedOrder, bool optimize,
                           bool useMacroElements);
 
