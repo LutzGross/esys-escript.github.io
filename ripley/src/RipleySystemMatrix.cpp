@@ -307,12 +307,16 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
     col_q.expand();
     const double* rowMask = row_q.getSampleDataRO(0);
     const double* colMask = col_q.getSampleDataRO(0);
+    const int blockSize = getBlockSize();
     for (int row=0; row < numRows; row++) {
         for (int diag=0; diag < offsets.size(); diag++) {
-            const int col = offsets[diag]+row;
-            if (col >= 0 && col < numRows) {
-                if (rowMask[row] > 0. || colMask[col] > 0.) {
-                    values[row+diag*numRows] = (row==col ? mdv : 0);
+            const int col = blockSize*(row/blockSize)+offsets[diag]*blockSize;
+            if (col >= 0 && col <= numRows-blockSize) {
+                for (int i=0; i<blockSize; i++) {
+                    if (rowMask[row] > 0. || colMask[col+i] > 0.) {
+                        values[row+(diag*blockSize+i)*numRows] =
+                                                        (row==col ? mdv : 0);
+                    }
                 }
             }
         }
