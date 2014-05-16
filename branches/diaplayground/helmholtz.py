@@ -42,7 +42,7 @@ pde.getSystem()[0].saveMM('/tmp/helmholtzripley.mtx')
 t0=time()
 x = pde.getSolution()
 t1=time()
-print "Paso Solver Time: ", t1-t0
+print "Solver Time: ", t1-t0
 print "Solution: %s..%s"%(inf(x),sup(x))
 print x
 
