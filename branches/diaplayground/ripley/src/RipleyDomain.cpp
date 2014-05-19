@@ -802,8 +802,8 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
         throw RipleyException("newSystemMatrix: row/column function spaces must be equal");
 
     // generate matrix
-    if (reduceRowOrder || reduceColOrder)
-        throw RipleyException("newSystemMatrix: reduced order not supported");
+    //if (reduceRowOrder || reduceColOrder)
+    //    throw RipleyException("newSystemMatrix: reduced order not supported");
 
     const int numMatrixRows = getNumDOF();
     escript::ASM_ptr sm(new SystemMatrix(row_blocksize,
@@ -824,12 +824,9 @@ void RipleyDomain::addToSystem(
         throw RipleyException(
                     "addToSystem: Ripley only accepts its own system matrices");
 
-    throw RipleyException("addToSystem");
-    //paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
-
-    //assemblePDE(S, rhs, coefs);
-    //assemblePDEBoundary(S, rhs, coefs);
-    //assemblePDEDirac(S, rhs, coefs);
+    assemblePDE(S, rhs, coefs);
+    assemblePDEBoundary(S, rhs, coefs);
+    assemblePDEDirac(S, rhs, coefs);
 }
 
 void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
