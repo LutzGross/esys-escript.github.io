@@ -201,8 +201,8 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
-    void setAssembler(std::string type, std::map<std::string,
-        escript::Data> constants);
+    Assembler_ptr createAssembler(std::string type,
+            std::map<std::string, escript::Data> constants) const;
 
 private:
     void populateSampleIds();

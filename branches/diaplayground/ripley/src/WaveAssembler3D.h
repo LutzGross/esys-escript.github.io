@@ -28,8 +28,9 @@ namespace ripley {
 
 class WaveAssembler3D : public AbstractAssembler {
 public:
-    WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
-                dim_t *m_NN, std::map<std::string, escript::Data> c);
+    WaveAssembler3D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
+            const dim_t *m_NE, const dim_t *m_NN, 
+            std::map<std::string, escript::Data> c);
     ~WaveAssembler3D(){};
 
     /* The only assembly function we care about right now*/
@@ -67,11 +68,11 @@ public:
 
 private:
     std::map<std::string, escript::Data> c;
-    Brick *domain;
-    double *m_dx;
-    dim_t *m_NX;
-    dim_t *m_NE;
-    dim_t *m_NN;
+    boost::shared_ptr<const Brick> domain;
+    const double *m_dx;
+    const dim_t *m_NX;
+    const dim_t *m_NE;
+    const dim_t *m_NN;
     escript::Data c11, c12, c13, c23, c33, c44, c66;
     bool isVTI, isHTI;
 };

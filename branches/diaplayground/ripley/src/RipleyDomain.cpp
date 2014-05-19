@@ -29,18 +29,19 @@ using paso::TransportProblemAdapter;
 namespace ripley {
 
 void tupleListToMap(map<string, escript::Data>& mapping,
-        boost::python::list& list) {
+                    boost::python::list& list)
+{
     using boost::python::tuple;
     using boost::python::extract;
     for (int i = 0; i < len(list); i++) {
         if (!extract<tuple>(list[i]).check())
             throw RipleyException("Passed in list contains objects"
-                                    " other than tuples");
+                                  " other than tuples");
         tuple t = extract<tuple>(list[i]);
         if (len(t) != 2 || !extract<std::string>(t[0]).check() ||
                 !extract<escript::Data>(t[1]).check())
             throw RipleyException("The passed in list must contain tuples"
-                " of the form (string, escript::data)");
+                " of the form (string, escript::Data)");
         mapping[extract<std::string>(t[0])] = extract<escript::Data>(t[1]);
     }
 }
@@ -49,14 +50,10 @@ RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
     m_numDim(dim),
     m_status(0)
 {
-    if (p.get()==0)	
-    {
-	m_mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
-    }
+    if (p.get()==0)     
+        m_mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
     else
-    {
-	m_mpiInfo = p->getMPI();
-    }
+        m_mpiInfo = p->getMPI();
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
@@ -318,15 +315,15 @@ signed char RipleyDomain::preferredInterpolationOnDomain(int fsType_source,
             return (fsType_target != Nodes &&
                     fsType_target != DegreesOfFreedom)?-1:0;
         case Elements:
-	    return (fsType_target==ReducedElements)?1:0;
+            return (fsType_target==ReducedElements)?1:0;
         case ReducedElements:
-	    return (fsType_target==Elements)?-1:0;	  
+            return (fsType_target==Elements)?-1:0;        
         case FaceElements:
-	    return (fsType_target==ReducedFaceElements)?1:0;
+            return (fsType_target==ReducedFaceElements)?1:0;
         case ReducedFaceElements:
             return (fsType_target==FaceElements)?-1:0;
-	case Points: 
-	    return false;	// other case caught by the if above
+        case Points: 
+            return false;       // other case caught by the if above
 
         default: {
             stringstream msg;
@@ -813,7 +810,8 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
 
 void RipleyDomain::addToSystem(
         escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const
+        std::map<std::string, escript::Data> coefs,
+        Assembler_ptr assembler) const
 {
     if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException(
@@ -824,95 +822,40 @@ void RipleyDomain::addToSystem(
         throw RipleyException(
                     "addToSystem: Ripley only accepts its own system matrices");
 
-    assemblePDE(S, rhs, coefs);
-    assemblePDEBoundary(S, rhs, coefs);
-    assemblePDEDirac(S, rhs, coefs);
+    assemblePDE(S, rhs, coefs, assembler);
+    assemblePDEBoundary(S, rhs, coefs, assembler);
+    assemblePDEDirac(S, rhs, coefs, assembler);
 }
 
 void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
-        escript::Data& rhs, boost::python::list data) const
+        escript::Data& rhs, boost::python::list data,
+        Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
-    addToSystem(mat, rhs, mapping);
+    addToSystem(mat, rhs, mapping, assembler);
 }
 
-void RipleyDomain::addPDEToSystem(
-        escript::AbstractSystemMatrix& mat, escript::Data& rhs,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact, const escript::Data& y_contact,
-        const escript::Data& d_dirac,const escript::Data& y_dirac) const
+Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
+                                         boost::python::list options) const
 {
-    if (!d_contact.isEmpty() || !y_contact.isEmpty())
-        throw RipleyException("addPDEToSystem: Ripley does not support contact elements");
-
-    SystemMatrix* S = dynamic_cast<SystemMatrix*>(&mat);
-    if (!S)
-        throw RipleyException("addPDEToSystem: Ripley only accepts its own system matrices");
-
-    //paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
-
-    std::map<std::string, escript::Data> coefs;
-    coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
-    coefs["X"] = X; coefs["Y"] = Y;
-    assemblePDE(S, rhs, coefs);
-
-    std::map<std::string, escript::Data> boundary;
-    boundary["d"] = d;
-    boundary["y"] = y;
-    assemblePDEBoundary(S, rhs, boundary);
-
-    map<string, escript::Data> dirac;
-    dirac["d_dirac"] = d_dirac;
-    dirac["y_dirac"] = y_dirac;
-    assemblePDEDirac(S, rhs, dirac);
-}
-
-void RipleyDomain::addPDEToRHS(escript::Data& rhs, const escript::Data& X,
-        const escript::Data& Y, const escript::Data& y,
-        const escript::Data& y_contact, const escript::Data& y_dirac) const
-{
-    if (!y_contact.isEmpty())
-        throw RipleyException("addPDEToRHS: Ripley does not support contact elements");
-
-    if (rhs.isEmpty()) {
-        if (!X.isEmpty() || !Y.isEmpty())
-            throw RipleyException("addPDEToRHS: right hand side coefficients are provided but no right hand side vector given");
-        else
-            return;
-    }
-    {
-        std::map<std::string, escript::Data> coefs;
-        coefs["X"] = X; coefs["Y"] = Y;
-        assemblePDE(NULL, rhs, coefs);
-    }
-    std::map<std::string, escript::Data> coefs;
-    coefs["y"] = y;
-    assemblePDEBoundary(NULL, rhs, coefs);
-    map<string, escript::Data> dirac;
-    dirac["y_dirac"] = y_dirac;
-    assemblePDEDirac(NULL, rhs, dirac);
-}
-
-void RipleyDomain::setAssemblerFromPython(std::string type,
-                                         boost::python::list options) {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, options);
-    setAssembler(type, mapping);
+    return createAssembler(type, mapping);
 }
 
 void RipleyDomain::addToRHSFromPython(escript::Data& rhs,
-                                         boost::python::list data) const
+            boost::python::list data,
+            Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, data);
-    addToRHS(rhs, mapping);
+    addToRHS(rhs, mapping, assembler);
 }
 
 void RipleyDomain::addToRHS(escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const
+        std::map<std::string, escript::Data> coefs,
+        Assembler_ptr assembler) const
 {
     if (isNotEmpty("y_contact", coefs))
         throw RipleyException(
@@ -927,9 +870,9 @@ void RipleyDomain::addToRHS(escript::Data& rhs,
             return;
     }
 
-    assemblePDE(NULL, rhs, coefs);
-    assemblePDEBoundary(NULL, rhs, coefs);
-    assemblePDEDirac(NULL, rhs, coefs);
+    assemblePDE(NULL, rhs, coefs, assembler);
+    assemblePDEBoundary(NULL, rhs, coefs, assembler);
+    assemblePDEDirac(NULL, rhs, coefs, assembler);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -957,16 +900,22 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
     throw RipleyException("newTransportProblem");
 }
 
+void RipleyDomain::addPDEToTransportProblemFromPython(
+        escript::AbstractTransportProblem& tp,
+        escript::Data& source, boost::python::list data,
+        Assembler_ptr assembler) const
+{
+    std::map<std::string, escript::Data> mapping;
+    tupleListToMap(mapping, data);
+    addPDEToTransportProblem(tp, source, mapping, assembler);
+}
+
 void RipleyDomain::addPDEToTransportProblem(
         escript::AbstractTransportProblem& tp,
-        escript::Data& source, const escript::Data& M,
-        const escript::Data& A, const escript::Data& B, const escript::Data& C,
-        const escript::Data& D, const escript::Data& X, const escript::Data& Y,
-        const escript::Data& d, const escript::Data& y,
-        const escript::Data& d_contact, const escript::Data& y_contact,
-        const escript::Data& d_dirac, const escript::Data& y_dirac) const
+        escript::Data& source, std::map<std::string, escript::Data> coefs,
+        Assembler_ptr assembler) const
 {
-    if (!d_contact.isEmpty() || !y_contact.isEmpty())
+    if (isNotEmpty("d_contact", coefs) || isNotEmpty("y_contact", coefs))
         throw RipleyException("addPDEToTransportProblem: Ripley does not support contact elements");
 
     TransportProblemAdapter* tpa=dynamic_cast<TransportProblemAdapter*>(&tp);
@@ -974,15 +923,10 @@ void RipleyDomain::addPDEToTransportProblem(
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
     paso::TransportProblem_ptr ptp(tpa->getPaso_TransportProblem());
-    std::map<std::string, escript::Data> coefs;
-    coefs["D"] = M;
-    //assemblePDE(ptp->mass_matrix, source, coefs);
-    coefs["A"] = A; coefs["B"] = B; coefs["C"] = C; coefs["D"] = D;
-    coefs["X"] = X; coefs["Y"] = Y; coefs["d"] = d; coefs["y"] = y;
-    coefs["d_dirac"] = d_dirac; coefs["y_dirac"] = y_dirac;
-    //assemblePDE(ptp->transport_matrix, source, coefs);
-    //assemblePDEBoundary(ptp->transport_matrix, source, coefs);
-    //assemblePDEDirac(ptp->transport_matrix, source, coefs);
+    //assemblePDE(ptp->mass_matrix, source, coefs, assembler);
+    //assemblePDE(ptp->transport_matrix, source, coefs, assembler);
+    //assemblePDEBoundary(ptp->transport_matrix, source, coefs, assembler);
+    //assemblePDEDirac(ptp->transport_matrix, source, coefs, assembler);
     throw RipleyException("addPDEToTransportProblem");
 }
 
@@ -1076,7 +1020,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 #pragma omp parallel private(local_minFoundValue)
         {
             local_minFoundValue = minFoundValue;
-	    long i;	// should be size_t but omp mutter mutter
+            long i;     // should be size_t but omp mutter mutter
 #pragma omp for schedule(static) private(i) nowait
             for (i = 0; i < tags->size(); i++) {
                 const index_t v = (*tags)[i];
@@ -1105,7 +1049,8 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 
 //private
 void RipleyDomain::assemblePDE(SystemMatrix* mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const
+        std::map<std::string, escript::Data> coefs,
+        Assembler_ptr assembler) const
 {
     if (rhs.isEmpty() && isNotEmpty("X", coefs) && isNotEmpty("Y", coefs))
         throw RipleyException("assemblePDE: right hand side coefficients are "
@@ -1164,7 +1109,8 @@ void RipleyDomain::assemblePDE(SystemMatrix* mat, escript::Data& rhs,
 
 //private
 void RipleyDomain::assemblePDEBoundary(SystemMatrix* mat,
-      escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
+        escript::Data& rhs, std::map<std::string, escript::Data> coefs,
+        Assembler_ptr assembler) const
 {
     std::map<std::string, escript::Data>::iterator iy = coefs.find("y"),
                                                    id = coefs.find("d");
@@ -1220,7 +1166,8 @@ void RipleyDomain::assemblePDEBoundary(SystemMatrix* mat,
 }
 
 void RipleyDomain::assemblePDEDirac(SystemMatrix* mat,
-        escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
+        escript::Data& rhs, std::map<std::string, escript::Data> coefs,
+        Assembler_ptr assembler) const
 {
     bool yNotEmpty = isNotEmpty("y_dirac", coefs),
          dNotEmpty = isNotEmpty("d_dirac", coefs);
@@ -1279,7 +1226,7 @@ void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data&
 // Expecting ("gaussian", radius, sigma)
 bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
 {
-    if (len(t)==0) {	// so we can handle unfiltered randoms
+    if (len(t)==0) {    // so we can handle unfiltered randoms
         return true;
     }
     if (len(t)!=3) {

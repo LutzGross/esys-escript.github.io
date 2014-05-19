@@ -82,9 +82,11 @@ BOOST_PYTHON_MODULE(finleycpp)
 /*      ,return_value_policy<manage_new_object>());*/
       );
 
-  def("ReadMesh",finley::readMesh,
-      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true)
-/*      ,return_value_policy<manage_new_object>());*/
+  
+  def("__ReadMesh_driver", finley::readMesh_driver,
+      (arg("params"))
+//  def("ReadMesh",finley::readMesh,
+//      (arg("fileName")="file.fly",arg("integrationOrder")=-1,  arg("reducedIntegrationOrder")=-1,  arg("optimize")=true)
 	,"Read a mesh from a file. For MPI parallel runs fan out the mesh to multiple processes.\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"
@@ -92,14 +94,15 @@ BOOST_PYTHON_MODULE(finleycpp)
 ":param reducedIntegrationOrder: order of the quadrature scheme. If *reducedIntegrationOrder<0* the integration order is selected independently.\n"
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``");
 
-  def("ReadGmsh",finley::readGmsh,
-      (arg("fileName")="file.msh",
-       arg("numDim"), 
-       arg("integrationOrder")=-1, 
-       arg("reducedIntegrationOrder")=-1, 
-       arg("optimize")=true,  
-       arg("useMacroElements")=false)
-//       ,return_value_policy<manage_new_object>());
+  def("__ReadGmsh_driver", finley::readGmsh_driver,
+      (arg("params"))  
+//  def("ReadGmsh",finley::readGmsh,
+//      (arg("fileName")="file.msh",
+//       arg("numDim"), 
+//       arg("integrationOrder")=-1, 
+//       arg("reducedIntegrationOrder")=-1, 
+//       arg("optimize")=true,  
+//       arg("useMacroElements")=false)
 ,"Read a gmsh mesh file\n\n"
 ":rtype: `Domain`\n:param fileName:\n:type fileName: ``string``\n"
 ":param integrationOrder: order of the quadrature scheme. If *integrationOrder<0* the integration order is selected independently.\n"

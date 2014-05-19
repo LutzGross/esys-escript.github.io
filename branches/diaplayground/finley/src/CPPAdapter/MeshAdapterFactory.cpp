@@ -476,7 +476,9 @@ namespace finley {
     } /* noError() after new Mesh() */
 
     checkFinleyError();
-    Domain_ptr dom(new MeshAdapter(mesh_p));
+    
+    MeshAdapter* ma=new MeshAdapter(mesh_p);
+    Domain_ptr dom(ma);
 
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom;
@@ -485,39 +487,245 @@ namespace finley {
 #endif /* USE_NETCDF */
   }
 
-  Domain_ptr readMesh(const std::string& fileName,
+  Domain_ptr readMesh(esysUtils::JMPI& info,
+		     const std::string& fileName,
                       int integrationOrder,
                       int reducedIntegrationOrder,
-                      bool optimize)
+                      bool optimize,
+		     const std::vector<double>& points,
+		     const std::vector<int>& tags 
+		    )
   {
     if (fileName.size() == 0 )
         throw DataException("Null file name!");
 
     double blocktimer_start = blocktimer_time();
-    Mesh* fMesh=Mesh::read(fileName, integrationOrder, reducedIntegrationOrder, optimize);
+    Mesh* fMesh=Mesh::read(info, fileName, integrationOrder, reducedIntegrationOrder, optimize);
     checkFinleyError();
+    MeshAdapter* ma=new MeshAdapter(fMesh);
+    ma->addDiracPoints(points, tags);    
     blocktimer_increment("ReadMesh()", blocktimer_start);
-    return Domain_ptr(new MeshAdapter(fMesh));
+    return Domain_ptr(ma);
   }
 
-  Domain_ptr readGmsh(const std::string& fileName,
+  
+  Domain_ptr readMesh_driver(const boost::python::list& args)
+  {
+      using boost::python::extract;
+      int l=len(args);
+      if (l<7) 
+      {
+	  throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
+      }
+      std::string fileName=extract<string>(args[0])();
+      int integrationOrder=extract<int>(args[1])();
+      int reducedIntegrationOrder=extract<int>(args[2])();
+      bool optimize=extract<bool>(args[3])();
+      std::vector<double> points;
+      std::vector<int> tags;
+      
+      
+      // we need to convert lists to stl vectors
+      boost::python::list pypoints=extract<boost::python::list>(args[4]);
+      boost::python::list pytags=extract<boost::python::list>(args[5]);
+      int numpts=extract<int>(pypoints.attr("__len__")());
+      int numtags=extract<int>(pytags.attr("__len__")());
+
+      boost::python::object pworld=args[6];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+	  extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
+	  }
+	  info=ex()->getMPI();
+      }
+      else
+      {
+	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+
+      }
+      Domain_ptr result=readMesh(info, fileName,
+                      integrationOrder,
+                      reducedIntegrationOrder,
+                      optimize,
+		     points,
+		     tags 
+		    );
+
+      for (int i=0;i<numpts;++i) {
+          boost::python::object temp=pypoints[i];
+          int l=extract<int>(temp.attr("__len__")());
+          for (int k=0;k<l;++k) {
+              points.push_back(extract<double>(temp[k]));
+          }
+      }
+      int curmax=40; // bricks use up to 30
+      TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
+		// first we work out what tags are already in use
+      for (TagMap::iterator it=tagmap.begin();
+		it!=tagmap.end();++it)
+      {
+	  if (it->second>curmax)
+	  {
+		curmax=it->second+1;
+	  }
+      }
+
+      tags.resize(numtags, -1);
+      for (int i=0;i<numtags;++i) {
+          extract<int> ex_int(pytags[i]);
+          extract<string> ex_str(pytags[i]);
+          if (ex_int.check()) {
+              tags[i]=ex_int();
+              if (tags[i]>= curmax) {
+                  curmax=tags[i]+1;
+              }
+          } else if (ex_str.check()) {
+              string s=ex_str();
+              map<string, int>::iterator it=tagmap.find(s);
+              if (it!=tagmap.end()) {
+                  // we have the tag already so look it up
+                  tags[i]=it->second;
+              } else {
+		  result->setTagMap(s,curmax);
+                  tags[i]=curmax;
+                  curmax++;
+              }
+          } else {
+              throw FinleyAdapterException("Error - Unable to extract tag value.");
+          }
+      }
+	// now we need to add the dirac points
+      dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
+      return result;
+
+
+  }  
+  
+  Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
                                      int numDim,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
                                      bool optimize,
-                                     bool useMacroElements)
+                                     bool useMacroElements,
+				   const std::vector<double>& points,
+				   const std::vector<int>& tags)
   {
     if (fileName.size() == 0 )
         throw DataException("Null file name!");
 
     double blocktimer_start = blocktimer_time();
-    Mesh* fMesh=Mesh::readGmsh(fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
+    Mesh* fMesh=Mesh::readGmsh(info, fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
     checkFinleyError();
     blocktimer_increment("ReadGmsh()", blocktimer_start);
-    return Domain_ptr(new MeshAdapter(fMesh));
+    MeshAdapter* ma=new MeshAdapter(fMesh);
+    ma->addDiracPoints(points, tags);
+    return Domain_ptr(ma);
   }
+  
+  
+  
 
-/*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
+  Domain_ptr readGmsh_driver(const boost::python::list& args)
+  {
+      using boost::python::extract;
+      int l=len(args);
+      if (l<7) 
+      {
+	  throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
+      }
+      std::string fileName=extract<string>(args[0])();
+      int numDim=extract<int>(args[1])();
+      int integrationOrder=extract<int>(args[2])();
+      int reducedIntegrationOrder=extract<int>(args[3])();
+      bool optimize=extract<bool>(args[4])();
+      bool useMacroElements=extract<bool>(args[5])();
+      std::vector<double> points;
+      std::vector<int> tags;
+      
+      
+      // we need to convert lists to stl vectors
+      boost::python::list pypoints=extract<boost::python::list>(args[6]);
+      boost::python::list pytags=extract<boost::python::list>(args[7]);
+      int numpts=extract<int>(pypoints.attr("__len__")());
+      int numtags=extract<int>(pytags.attr("__len__")());
+      boost::python::object pworld=args[8];
+      esysUtils::JMPI info;
+      if (!pworld.is_none())
+      {
+	  extract<SubWorld_ptr> ex(pworld);
+	  if (!ex.check())
+	  {
+	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
+	  }
+	  info=ex()->getMPI();
+      }
+      else
+      {
+	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
+
+      }
+      Domain_ptr result = readGmsh(info, fileName,
+                                     numDim,
+                                     integrationOrder,
+                                     reducedIntegrationOrder,
+                                     optimize,
+                                     useMacroElements,
+				   points,
+				   tags);      
+
+      for (int i=0;i<numpts;++i) {
+          boost::python::object temp=pypoints[i];
+          int l=extract<int>(temp.attr("__len__")());
+          for (int k=0;k<l;++k) {
+              points.push_back(extract<double>(temp[k]));
+          }
+      }
+      int curmax=40; // bricks use up to 30
+      TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
+                // first we work out what tags are already in use
+      for (TagMap::iterator it=tagmap.begin();
+                it!=tagmap.end();++it)
+      {
+          if (it->second>curmax)
+          {
+                curmax=it->second+1;
+          }
+      }
+
+      tags.resize(numtags, -1);
+      for (int i=0;i<numtags;++i) {
+          extract<int> ex_int(pytags[i]);
+          extract<string> ex_str(pytags[i]);
+          if (ex_int.check()) {
+              tags[i]=ex_int();
+              if (tags[i]>= curmax) {
+                  curmax=tags[i]+1;
+              }
+          } else if (ex_str.check()) {
+              string s=ex_str();
+              map<string, int>::iterator it=tagmap.find(s);
+              if (it!=tagmap.end()) {
+                  // we have the tag already so look it up
+                  tags[i]=it->second;
+              } else {
+                  result->setTagMap(s,curmax);
+                  tags[i]=curmax;
+                  curmax++;
+              }
+          } else {
+              throw FinleyAdapterException("Error - Unable to extract tag value");
+          }
+      }
+        // now we need to add the dirac points
+      dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
+      return result;
+
+  }   
+  
   Domain_ptr brick(esysUtils::JMPI& info, int n0, int n1, int n2, int order,
                    double l0, double l1, double l2,
                    bool periodic0, bool periodic1, bool periodic2,
