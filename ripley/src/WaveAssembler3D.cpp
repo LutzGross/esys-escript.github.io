@@ -39,11 +39,11 @@ void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
 }
 
 
-WaveAssembler3D::WaveAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX,
-              dim_t *m_NE, dim_t *m_NN, std::map<std::string, escript::Data> c) 
+WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
+            const dim_t *m_NE, const dim_t *m_NN, std::map<std::string, escript::Data> c)
             : AbstractAssembler()
 {
-        domain = dom;
+        domain = boost::static_pointer_cast<const Brick>(dom);
         this->m_dx = m_dx;
         this->m_NX = m_NX;
         this->m_NE = m_NE;

@@ -14,6 +14,7 @@
 *
 *****************************************************************************/
 
+#include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 #include <ripley/Rectangle.h>
 #include <esysUtils/esysExceptionTranslator.h>
@@ -397,58 +398,23 @@ BOOST_PYTHON_MODULE(ripleycpp)
             ":param mat:\n:type mat: `OperatorAdapter`\n"
             ":param rhs:\n:type rhs: `Data`\n"
             ":param data:\ntype data: `list`")
-        .def("addPDEToSystem",&ripley::RipleyDomain::addPDEToSystem,
-args("mat", "rhs", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
-"adds a PDE onto the stiffness matrix mat and a rhs\n\n"
-":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
-":param A:\n:type A: `Data`\n"
-":param B:\n:type B: `Data`\n"
-":param C:\n:type C: `Data`\n"
-":param D:\n:type D: `Data`\n"
-":param X:\n:type X: `Data`\n"
-":param Y:\n:type Y: `Data`\n"
-":param d:\n:type d: `Data`\n"
-":param d_contact:\n:type d_contact: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`"
-)
-
-        .def("addPDEToRHS",&ripley::RipleyDomain::addPDEToRHS, 
-args("rhs", "X", "Y", "y", "y_contact"),
-"adds a PDE onto the stiffness matrix mat and a rhs\n\n"
-":param rhs:\n:type rhs: `Data`\n"
-":param X:\n:type X: `Data`\n"
-":param Y:\n:type Y: `Data`\n"
-":param y:\n:type y: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`"
-)
         .def("addToRHS",&ripley::RipleyDomain::addToRHSFromPython,
             args("rhs", "data"),
             "adds a PDE onto the stiffness matrix mat and a rhs, "
             "results depends on domain\n\n"
             ":param rhs:\n:type rhs: `Data`\n"
             ":param data:\ntype data: `list`")
-        .def("setAssembler", &ripley::RipleyDomain::setAssemblerFromPython,
+        .def("createAssembler", &ripley::RipleyDomain::createAssemblerFromPython,
             args("typename", "options"),
-            "sets the domain to use the named assembler, if supported, using"
-            "the options if provided"
+            "request from the domain an assembler of the specified type, if "
+            "supported, using the supplied options (if provided)"
             ":param typename:\n:type typename: `string`\n"
             ":param options:\n:type options: `list`\n")
-        .def("addPDEToTransportProblem",&ripley::RipleyDomain::addPDEToTransportProblem,
-args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
-":param tp:\n:type tp: `TransportProblemAdapter`\n"
-":param source:\n:type source: `Data`\n"
-":param M:\n:type M: `Data`\n"
-":param A:\n:type A: `Data`\n"
-":param B:\n:type B: `Data`\n"
-":param C:\n:type C: `Data`\n"
-":param D:\n:type D: `Data`\n"
-":param X:\n:type X: `Data`\n"
-":param Y:\n:type Y: `Data`\n"
-":param d:\n:type d: `Data`\n"
-":param y:\n:type y: `Data`\n"
-":param d_contact:\n:type d_contact: `Data`\n"
-":param y_contact:\n:type y_contact: `Data`"
-)
+        .def("addPDEToTransportProblem",&ripley::RipleyDomain::addPDEToTransportProblemFromPython,
+            args("tp", "source", "data"),
+            ":param tp:\n:type tp: `TransportProblemAdapter`\n"
+            ":param source:\n:type source: `Data`\n"
+            ":param data:\ntype data: `list`")
         .def("newOperator",&ripley::RipleyDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
@@ -507,5 +473,7 @@ args("solver", "preconditioner", "package", "symmetry"),
      * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
+    class_<ripley::AbstractAssembler, ripley::Assembler_ptr, boost::noncopyable >
+        ("AbstractAssembler", "", no_init);
 }
 

@@ -58,13 +58,25 @@ namespace finley {
      \param reducedIntegrationOrder Input - order of the reduced quadrature scheme.  
      If reducedIntegrationOrder<0 the integration order is selected independently.
      \param optimize Input - switches on the optimization of node labels 
+     
+     \warning These defaults are also encoded in readMesh_driver. Please ensure any changes are consistant
   */
   FINLEY_DLL_API
-//   escript::AbstractContinuousDomain* readMesh(const std::string& fileName,
    escript::Domain_ptr readMesh(const std::string& fileName,
                                      int integrationOrder=-1,
                                      int reducedIntegrationOrder=-1,
-                                     bool optimize=false);
+                                     bool optimize=false,
+				   const std::vector<double>& points=std::vector<double>(),
+				   const std::vector<int>& tags=std::vector<int>()
+ 			      );
+   
+   /**
+   \brief Python driver for readMesh()
+   \param args see readMesh() definition for order of params
+   */
+   FINLEY_DLL_API
+   escript::Domain_ptr readMesh_driver(const boost::python::list& args);
+   
   /**
      \brief
      Read a gmsh mesh file
@@ -78,14 +90,23 @@ namespace finley {
      \param useMacroElements
   */
   FINLEY_DLL_API
-//   escript::AbstractContinuousDomain* readGmsh(const std::string& fileName,
   escript::Domain_ptr readGmsh(const std::string& fileName,
                                int numDim, 
                                int integrationOrder=-1,
                                int reducedIntegrationOrder=-1, 
                                bool optimize=false,
-                               bool useMacroElements=false);
+                               bool useMacroElements=false,
+			      const std::vector<double>& points=std::vector<double>(),
+			      const std::vector<int>& tags=std::vector<int>()
+			      );
 
+   /**
+   \brief Python driver for readGMesh()
+   \param args see readGMesh() definition for order of params
+   */
+   FINLEY_DLL_API
+   escript::Domain_ptr readGmsh_driver(const boost::python::list& args); 
+  
   /**
      \brief
      Creates a rectangular mesh with n0 x n1 x n2 elements over the brick 

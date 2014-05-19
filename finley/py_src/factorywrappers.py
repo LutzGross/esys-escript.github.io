@@ -22,7 +22,40 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 
-from .finleycpp import __Brick_driver, __Rectangle_driver
+from .finleycpp import __Brick_driver, __Rectangle_driver, __ReadMesh_driver, __ReadGmsh_driver
+
+
+def ReadMesh(filename, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True, **kwargs):
+    points=[]
+    tags=[]
+    if 'diracPoints' in kwargs:
+        points=kwargs['diracPoints']
+    if 'diracTags' in kwargs:
+        tags=kwargs['diracTags']
+    args=[filename, integrationOrder, reducedIntegrationOrder, optimize, points, tags];
+    if 'escriptworld' in kwargs:
+      args+=[kwargs['escriptworld']]
+    else:
+      args+=[None]
+    return __ReadMesh_driver(args)
+  
+  
+  
+def ReadGmsh(fileName, numDim, integrationOrder=-1, reducedIntegrationOrder=-1, optimize=True,  
+      useMacroElements=False, **kwargs):
+    points=[]
+    tags=[]
+    if 'diracPoints' in kwargs:
+        points=kwargs['diracPoints']
+    if 'diracTags' in kwargs:
+        tags=kwargs['diracTags']
+    args=[fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize,  
+      useMacroElements, points, tags];
+    if 'escriptworld' in kwargs:
+      args+=[kwargs['escriptworld']]
+    else:
+      args+=[None]
+    return __ReadGmsh_driver(args)      
 
 
 def Rectangle(n0=1, n1=1, order=1, l0=1.0, l1=1.0, periodic0=False, periodic1=False, integrationOrder=-1, 

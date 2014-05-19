@@ -733,7 +733,30 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                         bool optimize,
                         const std::vector<double>& points,
                         const std::vector<int>& tags,
-                        const std::map<std::string, int>& tagnamestonums);                                              
+                        const std::map<std::string, int>& tagnamestonums); 
+
+   friend escript::Domain_ptr readMesh_driver(const boost::python::list& args);
+
+   friend escript::Domain_ptr readMesh(esysUtils::JMPI& p, const std::string& fileName,
+                                     int integrationOrder,
+                                     int reducedIntegrationOrder,
+                                     bool optimize,
+				   const std::vector<double>& points,
+				   const std::vector<int>& tags
+ 			      );
+  friend escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
+
+  friend escript::Domain_ptr readGmsh(esysUtils::JMPI& p, const std::string& fileName,
+                               int numDim, 
+                               int integrationOrder,
+                               int reducedIntegrationOrder, 
+                               bool optimize,
+                               bool useMacroElements,
+			      const std::vector<double>& points,
+			      const std::vector<int>& tags
+			      );
+  
+  
 };
 
 

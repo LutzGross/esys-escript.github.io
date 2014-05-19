@@ -185,9 +185,10 @@ public:
     
     /**
        \brief
-       Sets the assembler to a custom/specific assembler.
+       Creates and returns an assembler of the requested type.
     */
-    virtual void setAssembler(std::string type, std::map<std::string, escript::Data> options);
+    virtual Assembler_ptr createAssembler(std::string type,
+            std::map<std::string, escript::Data> options) const;
 
 
 protected:
