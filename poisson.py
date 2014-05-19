@@ -3,9 +3,10 @@ from esys.escript.linearPDEs import LinearPDE,SolverOptions
 from esys.ripley import Rectangle, Brick
 from time import time
 
-BLOCKSIZE=2
+BLOCKSIZE=3
 
-dom = Rectangle(l0=1.,l1=1.,n0=99, n1=99)
+#dom = Rectangle(l0=1.,l1=1.,n0=99, n1=99)
+dom = Brick(l0=1.,l1=1.,n0=11, n1=11, n2=7)
 x = dom.getX()
 gammaD = whereZero(x[0])+whereZero(x[1])
 
