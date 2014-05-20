@@ -42,7 +42,7 @@ template <typename Matrix1, typename Matrix2>
 void coo_to_csr(const Matrix1& src, Matrix2& dst)
 {
     typedef typename Matrix2::index_type IndexType;
-    typedef typename Matrix2::value_type ValueType;
+    //typedef typename Matrix2::value_type ValueType;
 
     dst.resize(src.num_rows, src.num_cols, src.num_entries);
     
@@ -88,7 +88,7 @@ void coo_to_csr(const Matrix1& src, Matrix2& dst)
 template <typename Matrix1, typename Matrix2>
 void coo_to_array2d(const Matrix1& src, Matrix2& dst)
 {
-    typedef typename Matrix2::index_type IndexType;
+    //typedef typename Matrix2::index_type IndexType;
     typedef typename Matrix2::value_type ValueType;
 
     dst.resize(src.num_rows, src.num_cols);
@@ -107,7 +107,7 @@ template <typename Matrix1, typename Matrix2>
 void csr_to_coo(const Matrix1& src, Matrix2& dst)
 {
     typedef typename Matrix2::index_type IndexType;
-    typedef typename Matrix2::value_type ValueType;
+    //typedef typename Matrix2::value_type ValueType;
 
     dst.resize(src.num_rows, src.num_cols, src.num_entries);
    
@@ -553,7 +553,7 @@ void array1d_to_array2d(const Matrix1& src, Matrix2& dst)
 template <typename Matrix1, typename Matrix2>
 void array2d_to_coo(const Matrix1& src, Matrix2& dst)
 {
-  typedef typename Matrix2::index_type IndexType;
+  //typedef typename Matrix2::index_type IndexType;
   typedef typename Matrix2::value_type ValueType;
 
   // count number of nonzero entries in array

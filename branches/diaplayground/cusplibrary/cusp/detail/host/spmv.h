@@ -145,8 +145,8 @@ void spmv_dia(const Matrix&  A,
     {
         const IndexType& k = A.diagonal_offsets[i];
 
-        const IndexType& i_start = std::max<IndexType>(0, -k);
-        const IndexType& j_start = std::max<IndexType>(0,  k);
+        const IndexType i_start = std::max<IndexType>(0, -k);
+        const IndexType j_start = std::max<IndexType>(0,  k);
 
         // number of elements to process in this diagonal
         const IndexType N = std::min(A.num_rows - i_start, A.num_cols - j_start);

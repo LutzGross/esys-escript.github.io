@@ -117,10 +117,10 @@ class default_monitor
     default_monitor(const Vector& b, size_t iteration_limit = 500, Real relative_tolerance = 1e-5, Real absolute_tolerance = 0)
         : b_norm(cusp::blas::nrm2(b)),
           r_norm(std::numeric_limits<Real>::max()),
-          iteration_limit_(iteration_limit),
-          iteration_count_(0),
           relative_tolerance_(relative_tolerance),
-          absolute_tolerance_(absolute_tolerance)
+          absolute_tolerance_(absolute_tolerance),
+          iteration_limit_(iteration_limit),
+          iteration_count_(0)
     {}
 
     /*! increment the iteration count
@@ -176,8 +176,8 @@ class default_monitor
 
     protected:
     
-    Real r_norm;
     Real b_norm;
+    Real r_norm;
     Real relative_tolerance_;
     Real absolute_tolerance_;
 

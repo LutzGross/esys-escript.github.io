@@ -261,10 +261,10 @@ public:
     typedef cusp::detail::row_or_column_view<typename values_array_type::const_iterator,thrust::detail::is_same<Orientation,cusp::column_major>::value> const_column_view_type;
     typedef typename const_column_view_type::ArrayType const_column_view;
 
-    values_array_type values;
-
     // minor_dimension + padding
     size_t pitch;
+
+    values_array_type values;
 
     // construct empty matrix
     array2d()
