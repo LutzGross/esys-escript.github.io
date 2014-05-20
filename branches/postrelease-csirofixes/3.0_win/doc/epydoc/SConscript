@@ -1,0 +1,32 @@
+
+########################################################
+#
+# Copyright (c) 2003-2009 by University of Queensland
+# Earth Systems Science Computational Center (ESSCC)
+# http://www.uq.edu.au/esscc
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+########################################################
+
+
+import os
+Import('*')
+
+#env.Command(env['prefix']+'/release/doc/epydoc', env['pyinstall'], [Mkdir(env['prefix']+'/release/doc/epydoc'), "epydoc --html -o $TARGET esys"])
+#env.Alias('api_epydoc', env['prefix']+'/release/doc/epydoc')
+#env.AlwaysBuild('api_epydoc')
+
+dirname=os.path.join(env['prefix'],'release','doc','epydoc')
+
+env.Command(dirname, [], [Mkdir(dirname)])
+
+env.Alias('api_epydoc', [env['pyinstall'], dirname], "epydoc -v --html -o "+dirname+" esys")
+
+#This will need to be here at least until the output of api_epydoc properly depends on 
+#the libraries it uses as input
+env.AlwaysBuild('api_epydoc')
+
+

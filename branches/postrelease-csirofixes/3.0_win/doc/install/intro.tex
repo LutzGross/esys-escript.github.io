@@ -1,0 +1,54 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+%
+% Copyright (c) 2003-2009 by University of Queensland
+% Earth Systems Science Computational Center (ESSCC)
+% http://www.uq.edu.au/esscc
+%
+% Primary Business: Queensland, Australia
+% Licensed under the Open Software License version 3.0
+% http://www.opensource.org/licenses/osl-3.0.php
+%
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\chapter{Introduction}
+This document describes how to install \esfinley on your computer.
+To learn how to use \esfinley please see the User's guide or, for more detailed
+information, the API documentation.
+
+\esfinley is primarily developed on Linux desktop, SGI ICE and \macosx systems.
+It is distributed in two forms:
+\begin{enumerate}
+    \item Binary bundles -- these are great for first time users or for those who want to start using \esfinley immediately
+    \item Source bundles -- these require compilation and should be used if the binary bundles don't work on the target machine or if extra functionality is required such as \mpi parallelisation.
+\end{enumerate}
+
+The binary bundles are currently available for the following platforms:
+\begin{itemize}
+    \item Debian and Ubuntu Linux distributions ($32$-bit i686) (.deb package)
+    \item Linux desktop systems with gcc (stand-alone bundle)
+    \item \macosx Leopard systems with gcc (stand-alone bundle)
+\end{itemize}
+
+Hopefully, a Windows version(stand-alone) of this release will be available soon.
+
+See \Chap{chap:bin} for instructions on how to set these up and run \esfinley.
+If you choose to compile from source your options are to
+\begin{itemize}
+    \item install dependencies (e.g. using your package manager) and only compile \esfinley, OR
+    \item compile everything from source.
+\end{itemize}
+
+Compiling \esfinley when its dependencies are already installed is discussed in \Chap{chap:essrc}.
+To compile \esfinley and all dependencies from source please see \Chap{chap:allsrc}.
+The latter option takes a significant amount of time and is only required if the versions of the dependent libraries available on your system do not work with \esfinley.
+
+Once everything is installed you can test your installation using the Python scripts in \filename{examples.zip} or \filename{examples.tar.gz}\footnote{These should either be in \filename{escript.d/release/doc} or in the case of Debian, in \filename{/usr/share/doc/escript}.}.
+Unpack the examples and try to run the following from a terminal:
+\begin{shellCode}
+ escript poission.py
+\end{shellCode}
+If this produces a VTK file called \filename{u.vtu} then you are likely to have a functional \esfinley installation.
+You can try and visualize the VTK data or delete the file.
+For visualization we suggest using \filename{VisIt}\footnote{\url{https://wci.llnl.gov/codes/visit/}} or \filename{MayaVi}\footnote{\url{http://mayavi.sourceforge.net}} which are both freely available.
+
+See the site \url{https://answers.launchpad.net/escript-finley} for online help.

@@ -1,0 +1,39 @@
+from __future__ import division
+##############################################################################
+#
+# Copyright (c) 2003-2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
+
+__copyright__="""Copyright (c) 2003-2014 by University of Queensland
+http://www.uq.edu.au
+Primary Business: Queensland, Australia"""
+__license__="""Licensed under the Open Software License version 3.0
+http://www.opensource.org/licenses/osl-3.0.php"""
+__url__="https://launchpad.net/escript-finley"
+
+from esys.escript import *
+from esys.escript.linearPDEs import Poisson
+from esys.finley import Rectangle
+from esys.weipa import saveVTK
+# generate domain:
+mydomain = Rectangle(l0=1.,l1=1.,n0=40, n1=20)
+# define characteristic function of Gamma^D
+x = mydomain.getX()
+gammaD = whereZero(x[0])+whereZero(x[1])
+# define PDE and get its solution u
+mypde = Poisson(domain=mydomain)
+mypde.setValue(f=1,q=gammaD)
+u = mypde.getSolution()
+# write u to an external file
+saveVTK("u.vtu",sol=u)
+

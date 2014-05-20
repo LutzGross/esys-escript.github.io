@@ -1,0 +1,174 @@
+\chapter{Regularization}\label{Chp:ref:regularization}
+
+The general cost function $J^{total}$ to be minimized has some of the cost
+function $J^f$ measuring the defect of the result from the
+forward model with the data, and the cost function $J^{reg}$ introducing the
+regularization into the problem and makes sure that a unique answer exists.
+The regularization term is a function of, possibly vector-valued, level set
+function $m$ which represents the physical properties to be represented and is,
+from a mathematical point of view, the unknown of the inversion problem.
+It is the intention that the values of $m$ are between zero and one and that
+actual physical values are created from a mapping before being fed into a
+forward model. In general the cost function $J^{reg}$ is defined as 
+\begin{equation}\label{EQU:REG:1}
+J^{reg}(m) = \frac{1}{2} \int_{\Omega} \left(
+ \sum_{k} \mu_k \cdot ( \omega^{(0)}_k \cdot m_k^2 + \omega^{(1)}_{ki}m_{k,i}^2 ) 
++  \sum_{l<k} \mu^{(c)}_{lk} \cdot \omega^{(c)}_{lk}  \cdot  \chi(m_l,m_k) \right) \; dx 
+\end{equation} 
+where summation over $i$ is performed. The additional trade--off factors 
+$\mu_k$ and $\mu^{(c)}_{lk}$ ($l<k$) are between zero and one and constant across the 
+domain. They are potentially modified during the inversion in order to improve the balance between the different terms 
+in the cost function.
+
+$\chi$ is a given symmetric, non-negative cross-gradient function\index{cross-gradient
+}. We use
+\begin{equation}\label{EQU:REG:4}
+ \chi(a,b) =  ( a_{,i} a_{,i}) \cdot ( b_{,j} b_{,j}) -   ( a_{,i} b_{,i})^2 
+\end{equation} 
+where summations over $i$ and $j$  are performed, see~\cite{GALLARDO2005a}. Notice that cross-gradient function
+is measuring the angle between the surface normals of contours of level set functions. So 
+minimizing the cost function will align the surface normals of the contours.
+
+The coefficients $\omega^{(0)}_k$, $\omega^{(1)}_{ki}$ and $\omega^{(c)}_{lk}$ define weighting factors which 
+may depend on their location within the domain. We assume that for given level set function $k$ the 
+weighting factors $\omega^{(0)}_k$, $\omega^{(1)}_{ki}$ are scaled such that 
+\begin{equation}\label{ref:EQU:REG:5}
+\int_{\Omega} ( \omega^{(0)}_k  + \frac{\omega^{(1)}_{ki}}{L_i^2} ) \; dx = \alpha_k 
+\end{equation} 
+where $\alpha_k$ defines the scale which is typically set to one. $L_i$ is the width of the domain in $x_i$ direction.
+Similarly we set for $l<k$ we set 
+\begin{equation}\label{ref:EQU:REG:6}
+\int_{\Omega} \frac{\omega^{(c)}_{lk}}{L^4} \; dx = \alpha^{(c)}_{lk}
+\end{equation} 
+where $\alpha^{(c)}_{lk}$ defines the scale which is typically set to one and
+\begin{equation}\label{ref:EQU:REG:6b}
+\frac{1}{L^2} = \sum_i \frac{1}{L_i^2} \;.
+\end{equation} 
+
+In some cases values for the level set functions are known to be zero at certain regions in the domain. Typically this is the region 
+above the surface of the Earths. This expressed using a
+a characteristic function $q$ which varies with its location within the domain. The function $q$ is set to zero except for those 
+locations $x$ within the domain where the values of the level set functions is known to be zero. For these locations $x$
+$q$ takes a positive value. for a single level set function one has
+\begin{equation}\label{ref:EQU:REG:7}
+q(x) = \left\{ 
+\begin{array}{rl}
+  1 & \mbox{ if } m \mbox{ is set to zero at location } x \\
+  0 & \mbox{ otherwise }
+\end{array}
+\right.
+\end{equation} 
+For multi-valued level set function the  characteristic function is set componentwise:
+\begin{equation}\label{ref:EQU:REG:7b}
+q_k(x) = \left\{ 
+\begin{array}{rl}
+  1 & \mbox{ if component } m_k \mbox{ is set to zero at location } x \\
+  0 & \mbox{ otherwise }
+\end{array}
+\right.
+\end{equation} 
+
+
+\section{Usage}
+
+\begin{classdesc}{Regularization}{domain
+        \optional{, w0=\None}
+        \optional{, w1=\None}
+        \optional{, wc=\None}
+        \optional{, location_of_set_m=Data()}
+        \optional{, numLevelSets=1}
+        \optional{, useDiagonalHessianApproximation=\False}
+        \optional{, tol=1e-8}
+        \optional{, scale=\None}
+        \optional{, scale_c=\None}
+        }
+
+  
+initializes a regularization component of the cost function for inversion. 
+\member{domain} defines the domain of the inversion. \member{numLevelSets}
+sets the number of level set functions to be found during the inversion. 
+\member{w0}, \member{w1} and  \member{wc} define the weighting factors
+$\omega^{(0)}$,
+$\omega^{(1)}$ and
+$\omega^{(c)}$, respectively. A value for \member{w0} or \member{w1} or both must be given. 
+If more than one level set function is involved  \member{wc} must be given. 
+\member{location_of_set_m} sets the characteristic function $q$ 
+to define locations where the level set function is set to zero, see equation~(\ref{ref:EQU:REG:7}).
+\member{scale} and 
+\member{scale_c} set the scales $\alpha_k$ in equation~(\ref{ref:EQU:REG:5}) and
+$\alpha^{(c)}_{lk}$ in equation~(\ref{ref:EQU:REG:6}), respectively. By default, their values are set to one.
+Notice that weighting factors are rescaled to meet the scaling conditions. \member{tol} sets the 
+tolerance for the calculation of the Hessian approximation. \member{useDiagonalHessianApproximation} 
+indicates to ignore coupling in the Hessian approximation produced by the 
+cross-gradient term. This can speed-up an individual iteration step in the inversion but typically leads to more
+inversion steps.
+\end{classdesc}
+
+\section{Gradient Calculation}
+
+
+The cost function kernel\index{cost function!kernel} is given as
+\begin{equation}\label{ref:EQU:REG:100}
+K^{reg}(m) = \frac{1}{2}
+\sum_{k} \mu_k \cdot ( \omega^{(0)}_k \cdot m_k^2 + \omega^{(1)}_{ki}m_{k,i}^2 ) 
++  \sum_{l<k} \mu^{(c)}_{lk} \cdot \omega^{(c)}_{lk}  \cdot  \chi(m_l,m_k)
+\end{equation} 
+We need to provide the gradient of the cost function $J^{reg}$  with respect to the level set functions $m$.
+The gradient is represented by two functions $Y$ and $X$ which define the 
+derivative of the cost function kernel with respect to $m$ and to the gradient $m_{,i}$, respectively:
+\begin{equation}\label{ref:EQU:REG:101}
+\begin{array}{rcl}
+  Y_k & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_k}} \\
+   X_{ki} & = & \displaystyle{\frac{\partial K^{reg}}{\partial m_{k,i}}} 
+\end{array}
+\end{equation} 
+For the case of a single valued level set function $m$ we get 
+\begin{equation}\label{ref:EQU:REG:202}
+Y = \mu \cdot \omega^{(0)} \cdot m
+\end{equation} 
+and 
+\begin{equation}\label{ref:EQU:REG:203}
+ X_{i} = \mu \cdot \omega^{(1)}_{i} \cdot m_{,i}
+\end{equation}
+For a two-valued level set function $(m_0,m_1)$ we have
+\begin{equation}\label{ref:EQU:REG:302}
+Y_k = \mu_k \cdot \omega^{(0)}_k \cdot m_k \mbox{ for } k=0,1
+\end{equation} 
+and for $X$ 
+\begin{equation}\label{ref:EQU:REG:303}
+\begin{array}{rcl}
+ X_{0i} &  = & \mu_0 \cdot \omega^{(1)}_{0i} \cdot m_{0,i} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot
+\left( (m_{1,j}m_{1,j} ) \cdot m_{0,i} - (m_{1,j}m_{0,j} ) \cdot m_{1,i} \right) \\
+ X_{1i} &  = & \mu_1 \cdot \omega^{(1)}_{1i} \cdot m_{1,i} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot
+\left( (m_{0,j}m_{0,j} ) \cdot m_{1,i} - (m_{1,j}m_{0,j} ) \cdot m_{0,i} \right)
+\\
+\end{array}
+\end{equation}  
+We also need to provide an approximation of the inverse of the Hessian operator as discussed in section~\ref{chapter:ref:inversion cost function:gradient}.
+For the case of a single valued level set function $m$ we get 
+\begin{equation}\label{ref:EQU:REG:601}
+\begin{array}{rcl}
+ A_{ij} & =&  \mu \cdot \omega^{(1)}_i \cdot \delta_{ij}  \\
+D & = &  \mu \cdot \omega^{(0)} 
+\end{array}
+\end{equation}
+For a two-valued level set function $(m_0,m_1)$ we have
+\begin{equation}\label{ref:EQU:REG:602}
+D_{kl}  =   \mu_k \cdot \omega^{(0)}_k \cdot \delta_{kl} 
+\end{equation} 
+and 
+\begin{equation}\label{ref:EQU:REG:603}
+\begin{array}{rcl}
+A_{0i0j} & = & \mu_0 \cdot \omega^{(1)}_{0i} \cdot \delta_{ij} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot 
+\left( (m_{1,j'}m_{1,j'} )\cdot \delta_{ij}  -  m_{1,i} \cdot m_{1,j} \right)    \\
+A_{0i1j} & = & \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot \left( 2 \cdot m_{0,i} \cdot  m_{1,j}
+- m_{1,i} \cdot  m_{0,j} - ( m_{1,j'} m_{0,j'} ) \cdot  \delta_{ij}
+\right)  \\
+A_{1i0j} & = & \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot \left( 2 \cdot m_{1,i} \cdot  m_{0,j}
+- m_{0,i} \cdot  m_{1,j} - ( m_{1,j'} m_{0,j'} ) \cdot  \delta_{ij} \right)  \\
+A_{1i1j} & = &  \mu_1 \cdot \omega^{(1)}_{1i} \cdot \delta_{ij} + \mu^{(c)}_{01} \cdot \omega^{(c)}_{01} \cdot
+\left( (m_{0,j'}m_{0,j'} ) \cdot \delta_{ij}  -  m_{0,i} \cdot m_{0,j}  ) \right) 
+\end{array}
+\end{equation} 
+
+

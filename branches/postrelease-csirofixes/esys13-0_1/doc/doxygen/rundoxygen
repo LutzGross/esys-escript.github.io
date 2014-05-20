@@ -1,0 +1,2 @@
+#!/bin/bash
+/usr/bin/doxygen doxygen/doxygen_esys > /home/gross/esys13/trunk/doc/doxygen_msgs.txt 2>&1
