@@ -36,7 +36,7 @@ Test suite for AMG
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest, sys
+import esys.escriptcore.utestselect as unittest, sys
 
 from esys.escript import *
 from esys.finley import Rectangle,Brick

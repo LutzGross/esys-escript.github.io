@@ -22,7 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import os, math
-import unittest
+import esys.escriptcore.utestselect as unittest
 from xml.dom import minidom
 from esys.escript import ContinuousFunction, Function, ReducedFunction,\
             FunctionOnBoundary, ReducedFunctionOnBoundary,\

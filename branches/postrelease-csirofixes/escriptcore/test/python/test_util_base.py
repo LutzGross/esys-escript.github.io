@@ -36,7 +36,7 @@ basic tests for util.py
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 import numpy
 import os
 from esys.escript import *

@@ -22,7 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import logging
-import unittest
+import esys.escriptcore.utestselect as unittest
 import numpy as np
 import os
 import sys

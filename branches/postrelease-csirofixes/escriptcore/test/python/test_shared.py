@@ -25,7 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 Test to ensure that modification of shared Data does not occur
 """
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 
 class Test_Shared(unittest.TestCase):

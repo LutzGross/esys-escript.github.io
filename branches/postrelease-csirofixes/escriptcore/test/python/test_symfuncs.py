@@ -34,7 +34,7 @@ Test suite for the escript.symbolic module
 """
 
 from esys.escript import *
-import unittest
+import esys.escriptcore.utestselect as unittest
 
 class Test_symfuncs(unittest.TestCase):
 

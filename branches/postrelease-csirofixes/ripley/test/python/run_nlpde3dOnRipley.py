@@ -35,7 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 from test_nonLinearPDE import Test_nonLinearPDEs, Test_nlpde
 from esys.escript import *
 from esys.ripley import Rectangle,Brick

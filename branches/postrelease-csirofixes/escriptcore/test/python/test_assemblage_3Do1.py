@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 from esys.escript.linearPDEs import LinearPDE
 

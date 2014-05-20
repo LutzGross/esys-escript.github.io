@@ -47,7 +47,7 @@ The tests must be linked with a Domain class object in the setUp method:
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 from esys.escript.pdetools import Locator,Projector,TimeIntegrationManager,NoPDE,PCG, ArithmeticTuple, GMRES, MINRES, TFQMR, HomogeneousSaddlePointProblem
 from esys.escript.pdetools import Defect, NewtonGMRES
