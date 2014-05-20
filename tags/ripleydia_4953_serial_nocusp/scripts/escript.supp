@@ -1,0 +1,1086 @@
+{
+   IntelMPI-ADIO_Open-Info_set1-cond
+   Memcheck:Cond
+   fun:PMPI_Info_set
+   fun:ADIO_Open
+   ...
+}
+{
+   IntelMPI-ADIO_Open-Info_set1-addr8
+   Memcheck:Addr8
+   fun:__I_MPI___intel_sse2_strncmp
+   fun:PMPI_Info_set
+   fun:ADIO_Open
+   ...
+}
+{
+   IntelMPI-ADIO_Open-Info_set2-addr8
+   Memcheck:Addr8
+   fun:__I_MPI___intel_sse2_strncmp
+   fun:PMPI_Info_set
+   fun:ADIOI_*
+   fun:ADIO_Open
+   ...
+}
+{
+   IntelMPI-ADIO_Open-Info_set2-cond
+   Memcheck:Cond
+   fun:PMPI_Info_set
+   fun:ADIOI_*
+   fun:ADIO_Open
+   ...
+}
+{
+   IntelMPI-ADIO_ResolveFileType1-addr8
+   Memcheck:Addr8
+   fun:__I_MPI___intel_sse2_str*
+   fun:ADIO_ResolveFileType
+   fun:PMPI_File_open
+   ...
+}
+{
+   IntelMPI-ADIO_ResolveFileType2-addr8
+   Memcheck:Addr8
+   fun:ADIO_ResolveFileType
+   fun:PMPI_File_open
+   ...
+}
+{
+   IntelMPI-ADIOI_Shfp_fname-addr8
+   Memcheck:Addr8
+   ...
+   fun:ADIOI_Shfp_fname
+   fun:PMPI_File_open
+   ...
+}
+{
+   IntelMPI-ADIOI_Shfp_fname-cond
+   Memcheck:Cond
+   ...
+   fun:ADIOI_Shfp_fname
+   fun:PMPI_File_open
+   ...
+}
+{
+   IntelMPI-ADIOI_Strdup1-addr8
+   Memcheck:Addr8
+   fun:__I_MPI___intel_sse2_strlen
+   fun:ADIOI_Strdup
+   fun:ADIO_*
+   ...
+}
+{
+   IntelMPI-ADIOI_Strdup2-addr8
+   Memcheck:Addr8
+   fun:ADIOI_Strdup
+   fun:ADIO_*
+   ...
+}
+{
+   IntelMPI-ADIOI_Strdup-cond
+   Memcheck:Cond
+   fun:__I_MPI___intel_sse2_strlen
+   fun:ADIOI_Strdup
+   fun:ADIO_Open
+   ...
+}
+{
+   IntelMPI-ADIOI_Strncpy-value8
+   Memcheck:Value8
+   fun:ADIOI_Strncpy
+   fun:ADIOI_Shfp_fname
+   fun:PMPI_File_open
+   ...
+}
+{
+   IntelMPI-Cache_size-addr4
+   Memcheck:Addr4
+   fun:I_MPI_Cache_size
+   fun:MPID_nem_impi_init_shm_configuration
+   fun:MPID_nem_init_ckpt
+   fun:MPID_nem_init
+   fun:MPIDI_CH3_Init
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-Get_r2h_table-addr8
+   Memcheck:Addr8
+   fun:iPMI_Get_r2h_table
+   fun:iPMI_Init_Ext
+   fun:PMI_Init_Ext
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-Init-strncmp-cond
+   Memcheck:Cond
+   fun:__I_MPI___intel_sse2_strncmp
+   obj:*/libmpi.so*
+   fun:iPMI_Init
+   fun:PMI_Init
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-sse2_strdup-cond
+   Memcheck:Cond
+   fun:__I_MPI___intel_sse2_strdup
+   ...
+}
+{
+   IntelMPI-sse2_strdup-memcpy-cond
+   Memcheck:Cond
+   fun:memcpy
+   fun:__I_MPI___intel_sse2_strdup
+   ...
+}
+{
+   IntelMPI-sse2_strdup-value8
+   Memcheck:Value8
+   fun:memcpy
+   fun:__I_MPI___intel_sse2_strdup
+   ...
+}
+{
+   IntelMPI-PMIU_writeline-strlen-cond
+   Memcheck:Cond
+   fun:__I_MPI___intel_sse2_strlen
+   fun:PMIU_writeline
+   ...
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-PMIU_writeline-cond
+   Memcheck:Cond
+   fun:PMIU_writeline
+   ...
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-PMIU_writeline-value8
+   Memcheck:Value8
+   fun:PMIU_writeline
+   ...
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-PMIU_writeline-param
+   Memcheck:Param
+   write(count)
+   fun:__write_nocancel
+   fun:PMIU_writeline
+   ...
+   fun:MPID_Init
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-PMPI_File_Open-addr8
+   Memcheck:Addr8
+   fun:__I_MPI___intel_sse2_str*
+   fun:PMPI_File_open
+   ...
+}
+{
+   IntelMPI-Processor_arch_code-cond
+   Memcheck:Cond
+   fun:I_MPI_Processor_arch_code
+   ...
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelMPI-Processor_model_number-cond
+   Memcheck:Cond
+   fun:I_MPI_Processor_model_number
+   fun:I_MPI_Processor_arch_code
+   ...
+   fun:MPIR_Init_thread
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   IntelOMP-dynamic_link_descriptor
+   Memcheck:Leak
+   fun:calloc
+   obj:*/libdl-*.so
+   fun:dlopen
+   fun:_ZN5__kmp12dynamic_linkEPKcPKNS_23dynamic_link_descriptorEmPPvi
+   fun:_Z26__kmp_do_serial_initializev
+   fun:__kmp_get_global_thread_id_reg
+   ...
+}
+{
+   IntelOMP-end_library-addr8
+   Memcheck:Addr8
+   fun:__intel_sse2_strlen
+   fun:__kmp_env_get
+   fun:__kmp_internal_end_library
+   fun:__kmp_internal_end_atexit
+   fun:__kmp_internal_end_fini
+   ...
+}
+{
+   IntelOMP-get_global_thread_id-addr8
+   Memcheck:Addr8
+   fun:__intel_sse2_strlen
+   fun:__kmp_env_*
+   fun:*
+   fun:_Z26__kmp_do_serial_initializev
+   fun:__kmp_get_global_thread_id_reg
+   ...
+}
+{
+   IntelOMP-get_global_thread_id-param
+   Memcheck:Param
+   sched_setaffinity(mask)
+   fun:syscall
+   fun:__kmp_affinity_determine_capable
+   fun:_Z20__kmp_env_initializePKc
+   fun:_Z26__kmp_do_serial_initializev
+   fun:__kmp_get_global_thread_id_reg
+   ...
+}
+{
+   IntelOMP-runtime_destroy
+   Memcheck:Leak
+   fun:malloc
+   ...
+   obj:*/libdl-*.so
+   fun:dlsym
+   fun:__kmp_itt_fini_ittlib
+   fun:_Z17__kmp_itt_destroyv
+   fun:__kmp_runtime_destroy
+}
+{
+   IntelMKL-dgemm_get_bufs
+   Memcheck:Leak
+   fun:malloc
+   fun:mkl_serv_allocate
+   fun:mkl_blas_mc3_dgemm_get_bufs
+   ...
+}
+{
+   IntelMKL-dgesdd
+   Memcheck:Leak
+   fun:malloc
+   fun:mkl_serv_allocate
+   fun:mkl_lapack_dbdsqr
+   fun:mkl_lapack_dlasdq
+   fun:mkl_lapack_dbdsdc
+   fun:mkl_lapack_dgesdd
+   fun:DGESDD
+   fun:lapack_lite_dgesdd
+   ...
+}
+{
+   IntelMKL-dgesv
+   Memcheck:Leak
+   fun:malloc
+   fun:mkl_serv_allocate
+   fun:DGESV
+   fun:lapack_lite_dgesv
+   ...
+}
+{
+   IntelMKL-domain_get_max_threads
+   Memcheck:Leak
+   fun:malloc
+   fun:mkl_serv_malloc
+   fun:MKL_get_N_Cores
+   fun:mkl_serv_domain_get_max_threads
+   ...
+}
+{
+   IntelMKL-dsyevd
+   Memcheck:Leak
+   fun:mkl_serv_allocate
+   fun:mkl_lapack_dsteqr
+   fun:mkl_lapack_dstedc
+   fun:mkl_lapack_dsyevd
+   fun:DSYEVD
+   fun:lapack_lite_dsyevd
+   ...
+}
+{
+   IntelMKL-dsyevd-cond
+   Memcheck:Cond
+   fun:mkl_lapack_ps_mc3_xdlansy
+   fun:mkl_lapack_ps_xdlansy
+   fun:mkl_lapack_dlansy
+   fun:mkl_lapack_dsyevd
+   fun:DSYEVD
+   fun:lapack_lite_dsyevd
+   ...
+}
+{
+   IntelMKL-get_max_threads-addr8
+   Memcheck:Addr8
+   fun:__intel_sse2_strlen
+   fun:__kmp_env_*
+   fun:*
+   fun:__kmp_middle_initialize
+   fun:omp_get_num_procs
+   fun:MKL_get_N_Cores
+   fun:mkl_serv_get_max_threads
+   ...
+}
+{
+   IntelMKL-get_max_threads-param
+   Memcheck:Param
+   sched_setaffinity(mask)
+   fun:syscall
+   fun:__kmp_affinity_determine_capable
+   fun:_Z20__kmp_env_initializePKc
+   fun:__kmp_middle_initialize
+   fun:omp_get_num_procs
+   fun:MKL_get_N_Cores
+   fun:mkl_serv_get_max_threads
+   ...
+}
+{
+   IntelMKL-load_dll
+   Memcheck:Leak
+   fun:?alloc
+   obj:*/ld-*.so
+   ...
+   fun:dlopen
+   fun:mkl_serv_load_dll
+   ...
+}
+{
+   OpenMPI-ADIO_Open
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:ADIO_Open
+   ...
+}
+{
+   OpenMPI-mca
+   Memcheck:Leak
+   ...
+   obj:*/libopen-pal.so*
+   fun:mca_*
+}
+{
+   OpenMPI-OPAL-ifcount
+   Memcheck:Leak
+   fun:malloc
+   obj:*/libopen-pal.so*
+   fun:opal_ifcount
+   ...
+   fun:PMPI_Init*
+}
+{
+   OpenMPI-OPAL-init
+   Memcheck:Leak
+   fun:malloc
+   fun:opal_class_initialize
+   ...
+   obj:*/libmpi.so*
+}
+{
+   OpenMPI-OPAL-dirpath_create
+   Memcheck:Addr4
+   fun:opal_os_dirpath_create
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   OpenMPI-orte
+   Memcheck:Leak
+   ...
+   obj:*/libopen-pal.so*
+   fun:orte_*
+}
+{
+   OpenMPI-orte_init-hash_table
+   Memcheck:Leak
+   fun:*alloc
+   fun:opal_hash_table*
+   ...
+   fun:orte_init
+   obj:*/libmpi.so*
+}
+{
+   OpenMPI-PMPI_Init
+   Memcheck:Leak
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   OpenMPI-PMPI_File_open
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_File_open
+   ...
+}
+{
+   OpenMPI-PMPI_Attr_put
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Attr_put
+   ...
+}
+{
+   OpenMPI-proc_all
+   Memcheck:Leak
+   fun:malloc
+   fun:ompi_proc_all
+   ...
+   obj:*/libmpi.so*
+   fun:main
+}
+{
+   OpenMPI-setAffinity
+   Memcheck:Param
+   sched_setaffinity(mask)
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   OpenMPI-writev
+   Memcheck:Param
+   writev(vector[...])
+   ...
+   obj:*/libmpi.so*
+   fun:PMPI_Init*
+   fun:main
+}
+{
+   gomp-gomp_team_start
+   Memcheck:Leak
+   fun:malloc
+   fun:gomp_malloc
+   fun:gomp_team_start
+   ...
+}
+{
+   libdl-error1
+   Memcheck:Leak
+   fun:?alloc
+   fun:local_strdup
+   ...
+   fun:_dl_catch_error
+   ...
+}
+{
+   libdl-error2
+   Memcheck:Leak
+   fun:?alloc
+   ...
+   fun:openaux
+   fun:_dl_catch_error
+   ...
+}
+{
+   libdl-error3
+   Memcheck:Leak
+   fun:?alloc
+   ...
+   fun:dl_open_worker
+   fun:_dl_catch_error
+   ...
+}
+{
+   boost-python-demangle
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   obj:*/libstdc++.so*
+   obj:*/libstdc++.so*
+   fun:__cxa_demangle
+   fun:_ZN5boost6python6detail12gcc_demangleEPKc
+   ...
+}
+{
+   boost-init_module-string_concat
+   Memcheck:Leak
+   fun:malloc
+   fun:string_concat
+   fun:_ZN5boost6python3apipLERNS1_6objectERKS2_
+   ...
+   fun:*init_module_*
+   fun:*boost6python*
+   ...
+}
+{
+   boost-init_module-new
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:*init_module_*
+   fun:*boost6python*
+   ...
+}
+{
+   boost-init_module-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:*init_module_*
+   fun:*boost6python*
+   ...
+}
+{
+   boost-init_module-addr4
+   Memcheck:Addr4
+   fun:PyObject_Free
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
+   boost-init_module-cond
+   Memcheck:Cond
+   fun:PyObject_Free
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
+   boost-init_module-value8
+   Memcheck:Value8
+   fun:PyObject_Free
+   ...
+   fun:*init_module_*
+   fun:_ZNK5boost6python6detail17exception_handlerclERKNS_9function0IvEE
+   ...
+}
+{
+   Python-internal_malloc
+   Memcheck:Leak
+   fun:malloc
+   obj:*/libpython2.?.so*
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   Python-internal_realloc
+   Memcheck:Leak
+   fun:malloc
+   fun:realloc
+   obj:*/libpython2.?.so*
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   Python-listappend
+   Memcheck:Leak
+   ...
+   fun:realloc
+   fun:listappend*
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   Python-listinsert
+   Memcheck:Leak
+   fun:realloc
+   fun:listinsert
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   Python-PyArray_Concatenate-addr8
+   Memcheck:Addr8
+   fun:__intel_ssse3_memcpy
+   fun:PyArray_Concatenate
+   fun:_swap_and_concat
+   fun:array_concatenate
+   ...
+}
+{
+   Python-PyArray-malloc
+   Memcheck:Leak
+   fun:malloc
+   fun:PyArray_*
+   ...
+}
+{
+   Python-PyArray_NewFromDescr
+   Memcheck:Leak
+   fun:malloc
+   fun:array_alloc
+   fun:PyArray_NewFromDescr
+   ...
+}
+{
+   Python-PyArray_Scalar
+   Memcheck:Leak
+   fun:malloc
+   fun:gentype_alloc
+   fun:PyArray_Scalar
+   ...
+}
+{
+   Python-PyDict-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:*PyDict_*
+   ...
+}
+{
+   Python-PyFloat_FromDouble
+   Memcheck:Leak
+   fun:malloc
+   fun:PyFloat_FromDouble
+   ...
+}
+{
+   Python-PyFloat_FromString-addr4
+   Memcheck:Addr4
+   fun:PyFloat_FromString
+   obj:*/libpython2.?.so*
+   ...
+}
+{
+   Python-PyImport_GetDynLoadFunc-alloc
+   Memcheck:Leak
+   fun:?alloc
+   ...
+   fun:_PyImport_GetDynLoadFunc
+   ...
+}
+{
+   Python-PyImport_GetDynLoadFunc-new
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:_PyImport_GetDynLoadFunc
+   ...
+}
+{
+   Python-PyImport_LoadDynamicModule
+   Memcheck:Leak
+   fun:calloc
+   ...
+   fun:_PyImport_LoadDynamicModule
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyImport_ImportModuleLevel-new
+   Memcheck:Leak
+   fun:_Znwm
+   ...
+   fun:PyImport_ImportModuleLevel
+}
+{
+   Python-PyImport_ImportModuleLevel-realloc
+   Memcheck:Leak
+   fun:realloc
+   obj:*/libpython2.?.so*
+   ...
+   fun:PyImport_ImportModuleLevel
+}
+{
+   Python-PyInitializeEx
+   Memcheck:Leak
+   fun:malloc
+   fun:strdup
+   fun:Py_InitializeEx
+   fun:Py_Main
+   fun:main
+}
+{
+   Python-PyInt_FromLong
+   Memcheck:Leak
+   fun:malloc
+   fun:PyInt_FromLong
+   ...
+}
+{
+   Python-PyInt_Init
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyInt_Init
+   fun:Py_InitializeEx
+   fun:Py_Main
+   fun:main
+}
+{
+   Python-PyList_Append
+   Memcheck:Leak
+   ...
+   fun:realloc
+   fun:PyList_Append
+   ...
+}
+{
+   Python-PyList_New
+   Memcheck:Leak
+   fun:malloc
+   fun:PyList_New
+   ...
+}
+{
+   Python-PyNumber-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyNumber_*
+   ...
+}
+{
+   Python-PyObject-addr4
+   Memcheck:Addr4
+   fun:PyObject_*
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject-cond
+   Memcheck:Cond
+   fun:PyObject_*
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject-value8
+   Memcheck:Value8
+   fun:PyObject_*
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_Call
+   Memcheck:Leak
+   ...
+   obj:*/libpython2.?.so*
+   fun:PyObject_Call
+   ...
+}
+{
+   Python-PyObject_GC_Malloc
+   Memcheck:Leak
+   fun:malloc
+   fun:_PyObject_GC_Malloc
+   ...
+}
+{
+   Python-PyObject_GC_Resize
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyObject_GC_Resize
+   ...
+   obj:*/libpython2.?.so*
+}
+{
+   Python-PyObject_GenericSetAttrWithDict
+   Memcheck:Leak
+   fun:malloc
+   fun:*
+   fun:_PyObject_GenericSetAttrWithDict
+   ...
+}
+{
+   Python-PyObject_Malloc
+   Memcheck:Leak
+   fun:*alloc
+   fun:PyObject_Malloc
+   ...
+}
+{
+   Python-PyObject_RichCompare
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyObject_RichCompare
+   ...
+}
+{
+   Python-string_new-cond
+   Memcheck:Cond
+   ...
+   fun:_PyObject_Str
+   fun:PyObject_Str
+   fun:string_new
+   ...
+}
+{
+   Python-string_new-value8
+   Memcheck:Value8
+   ...
+   fun:_PyObject_Str
+   fun:PyObject_Str
+   fun:string_new
+   ...
+}
+{
+   Python-PyString_Format-cond
+   Memcheck:Cond
+   fun:__intel_sse2_strlen
+   fun:doubletype_str
+   fun:_PyObject_Str
+   fun:PyString_Format
+   ...
+}
+{
+   Python-PyString_Format-value8
+   Memcheck:Value8
+   fun:doubletype_str
+   fun:_PyObject_Str
+   fun:PyString_Format
+   ...
+}
+{
+   Python-PyString-malloc
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyString_*
+   ...
+}
+{
+   Python-PyString_Resize
+   Memcheck:Leak
+   fun:realloc
+   fun:_PyString_Resize
+   ...
+}
+{
+   Python-PyStructSequence_InitType
+   Memcheck:Leak
+   fun:malloc
+   fun:PyStructSequence_InitType
+   ...
+}
+{
+   Python-PySwigClientData_New
+   Memcheck:Leak
+   fun:malloc
+   fun:PySwigClientData_New
+   ...
+}
+{
+   Python-SwigPyClientData_New
+   Memcheck:Leak
+   fun:malloc
+   fun:SwigPyClientData_New
+   ...
+}
+{
+   Python-PyThread_allocate_lock
+   Memcheck:Leak
+   fun:malloc
+   fun:PyThread_allocate_lock
+   ...
+}
+{
+   Python-PyTuple_New
+   Memcheck:Leak
+   fun:realloc
+   ...
+   fun:PyTuple_New
+   obj:*/libpython2.?.so*
+   ...
+   fun:PyMarshal_ReadLastObjectFromFile
+}
+{
+   Python-PyType_Ready
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:PyType_Ready
+   ...
+}
+{
+   Python-PyUnicodeUCS4_Format
+   Memcheck:Leak
+   fun:realloc
+   obj:*/libpython2.?.so*
+   fun:PyUnicodeUCS4_Format
+   ...
+}
+{
+   Python-Py_GetProgramFullPath
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:Py_GetProgramFullPath
+   fun:_PySys_Init
+   fun:Py_InitializeEx
+   fun:Py_Main
+   fun:main
+}
+{
+   Python-dictresize
+   Memcheck:Leak
+   fun:malloc
+   fun:dictresize*
+   ...
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   Python-initft2font
+   Memcheck:Leak
+   fun:_Zn?m
+   ...
+   fun:initft2font
+   fun:_PyImport_LoadDynamicModule
+   ...
+}
+{
+   Python-init_tri
+   Memcheck:Leak
+   ...
+   fun:_ZN9TriModuleC1Ev
+   fun:init_tri
+   fun:_PyImport_LoadDynamicModule
+   fun:import_submodule
+   ...
+}
+{
+   Python-numpy
+   Memcheck:Leak
+   fun:malloc
+   obj:*/numpy/core/multiarray.so
+   ...
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   Python-numpy-cond
+   Memcheck:Cond
+   obj:*/numpy/core/multiarray.so
+   ...
+   fun:PyEval_EvalFrameEx
+}
+{
+   Python-set_conversion_mode
+   Memcheck:Leak
+   fun:malloc
+   fun:set_conversion_mode
+   fun:PyEval_EvalFrameEx
+   ...
+}
+{
+   CRYPTO-init_hashlib
+   Memcheck:Leak
+   fun:*alloc
+   fun:CRYPTO_*alloc
+   ...
+   fun:init_hashlib
+   ...
+}
+{
+   CRYPTO-init_ssl
+   Memcheck:Leak
+   fun:*alloc
+   fun:CRYPTO_*alloc
+   ...
+   fun:init_ssl
+   ...
+}
+{
+   Freetype-FT_Load_Glyph
+   Memcheck:Leak
+   fun:*alloc
+   ...
+   fun:ft_mem_qrealloc
+   fun:ft_mem_realloc
+   ...
+   obj:*/libfreetype.so*
+   fun:FT_Load_Glyph
+   ...
+}
+{
+   Freetype-initft2font
+   Memcheck:Leak
+   fun:malloc
+   fun:ft_mem_qalloc
+   fun:ft_mem_alloc
+   ...
+   fun:initft2font
+   fun:_PyImport_LoadDynamicModule
+   ...
+}
+{
+   GDAL-CPLMutexHolder
+   Memcheck:Leak
+   fun:malloc
+   fun:CPLCreateMutex
+   fun:CPLCreateOrAcquireMutex
+   fun:_ZN14CPLMutexHolderC1EPPvdPKci
+   ...
+}
+{
+   osgeo-importFromWkt-cond
+   Memcheck:Cond
+   fun:_ZN19OGRSpatialReference13importFromWktEPPc
+   ...
+}
+{
+   osgeo-importFromWkt-value8
+   Memcheck:Value8
+   fun:_ZN11OGR_SRSNode13importFromWktEPPc
+   fun:_ZN19OGRSpatialReference13importFromWktEPPc
+   ...
+}
+{
+   Proj-set_searchpath
+   Memcheck:Leak
+   fun:malloc
+   fun:pj_malloc
+   fun:pj_set_searchpath
+   ...
+}
+{
+   Tcl-FindExecutable
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:Tcl_FindExecutable
+   ...
+}
+{
+   Tcl-GetThreadData
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:Tcl_GetThreadData
+   ...
+}
+{
+   wx-InitAllImageHandlers
+   Memcheck:Leak
+   fun:malloc
+   ...
+   fun:_Z22wxInitAllImageHandlersv
+   fun:init_core_
+   fun:_PyImport_LoadDynamicModule
+   ...
+}
