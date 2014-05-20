@@ -64,8 +64,8 @@ void multiply(LinearOperator&  A,
 
   // TODO check that dimensions are compatible
 
-  typedef typename LinearOperator::value_type   ValueType;
-  typedef typename LinearOperator::memory_space MemorySpace;
+  //typedef typename LinearOperator::value_type   ValueType;
+  //typedef typename LinearOperator::memory_space MemorySpace;
 
   cusp::detail::multiply(A, B, C,
                          typename LinearOperator::format());
@@ -82,8 +82,8 @@ void multiply(const LinearOperator&  A,
 
   // TODO check that dimensions are compatible
 
-  typedef typename LinearOperator::value_type   ValueType;
-  typedef typename LinearOperator::memory_space MemorySpace;
+  //typedef typename LinearOperator::value_type   ValueType;
+  //typedef typename LinearOperator::memory_space MemorySpace;
 
   cusp::detail::multiply(A, B, C,
                          typename LinearOperator::format());
