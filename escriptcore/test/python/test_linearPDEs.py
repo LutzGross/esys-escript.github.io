@@ -33,7 +33,7 @@ from esys.escript.util import Lsup,kronecker,interpolate,whereZero, outer, swap_
 from esys.escript import Function,FunctionOnBoundary,FunctionOnContactZero,Solution,ReducedSolution,Vector,ContinuousFunction,Scalar, ReducedFunction,ReducedFunctionOnBoundary,ReducedFunctionOnContactZero,Data, Tensor4, Tensor, getEscriptParamInt, canInterpolate
 from esys.escript.linearPDEs import SolverBuddy, LinearPDE,IllegalCoefficientValue,Poisson, IllegalCoefficientFunctionSpace, TransportPDE, IllegalCoefficient, Helmholtz, LameEquation, SolverOptions
 import numpy
-import unittest
+import esys.escriptcore.utestselect as unittest
 
 class Test_linearPDEs(unittest.TestCase):
     TOL=1.e-6

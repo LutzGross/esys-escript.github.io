@@ -25,7 +25,7 @@ import logging
 import numpy as np
 import os
 import sys
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder

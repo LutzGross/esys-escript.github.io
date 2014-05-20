@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 
 
 import logging
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.downunder.coordinates import *
 from esys.ripley import Brick, Rectangle
 import esys.escript

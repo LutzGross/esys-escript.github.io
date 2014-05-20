@@ -37,7 +37,7 @@ not all these test will run for all domains. check the doc string for the assump
 """
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import unittest
+import esys.escriptcore.utestselect as unittest
 from esys.escript import *
 from numpy import array
 
