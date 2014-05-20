@@ -6,7 +6,7 @@ from time import time
 BLOCKSIZE=3
 
 #dom = Rectangle(l0=1.,l1=1.,n0=99, n1=99)
-dom = Brick(l0=1.,l1=1.,n0=11, n1=11, n2=7)
+dom = Brick(l0=1.,l1=1.,n0=51, n1=51, n2=17)
 x = dom.getX()
 gammaD = whereZero(x[0])+whereZero(x[1])
 
@@ -32,7 +32,7 @@ pde.getSolverOptions().setVerbosityOn()
 #pde.setDebugOn()
 #rhs=pde.getRightHandSide()
 #saveDataCSV('/tmp/rhs.csv',rhs=rhs)
-pde.getSystem()[0].saveMM('/tmp/poissonripley.mtx')
+#pde.getSystem()[0].saveMM('/tmp/poissonripley.mtx')
 t0=time()
 x = pde.getSolution()
 t1=time()
