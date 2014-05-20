@@ -21,7 +21,6 @@
 
 namespace paso {
 
-
 PASO_DLL_API
 struct FCT_FluxLimiter
 {
@@ -43,7 +42,7 @@ struct FCT_FluxLimiter
     void addLimitedFluxes_Complete(double* b);
 
     SystemMatrix_ptr antidiffusive_fluxes;
-    esysUtils::JMPI mpi_info;
+    Esys_MPIInfo* mpi_info;
     double dt;
     double* u_tilde;
     double* MQ;  // (M_C* Q_min, M_C* Q_max)

@@ -50,10 +50,8 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const simap_t& tagnamestonums,
-		    escript::SubWorld_ptr w
-		    ) :
-    RipleyDomain(2, w)
+                     const simap_t& tagnamestonums) :
+    RipleyDomain(2)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             > std::numeric_limits<int>::max())
@@ -170,6 +168,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
     populateSampleIds();
     createPattern();
+    assembler = new DefaultAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
     for (map<string, int>::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
@@ -179,6 +178,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
 Rectangle::~Rectangle()
 {
+    delete assembler;
 }
 
 string Rectangle::getDescription() const
@@ -1452,7 +1452,7 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    coupler->startCollect(in.getDataRO());
+    coupler->startCollect(in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
@@ -2357,17 +2357,24 @@ int Rectangle::findNode(const double *coords) const {
     return closest;
 }
 
-Assembler_ptr Rectangle::createAssembler(std::string type,
-        std::map<std::string, escript::Data> constants) const {
-    if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
-    } else if (type.compare("WaveAssembler") == 0) {
-        return Assembler_ptr(new WaveAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
+void Rectangle::setAssembler(std::string type, std::map<std::string,
+        escript::Data> constants) {
+    if (type.compare("WaveAssembler") == 0) {
+        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = WAVE_ASSEMBLER;
+        delete assembler;
+        assembler = new WaveAssembler2D(this, m_dx, m_NX, m_NE, m_NN, constants);
     } else if (type.compare("LameAssembler") == 0) {
-        return Assembler_ptr(new LameAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = LAME_ASSEMBLER;
+        delete assembler;
+        assembler = new LameAssembler2D(this, m_dx, m_NX, m_NE, m_NN);
+    } else { //else ifs would go before this for other types
+        throw RipleyException("Ripley::Rectangle does not support the"
+                                " requested assembler");
     }
-    throw RipleyException("Ripley::Rectangle does not support the"
-            " requested assembler");
 }
 
 } // end of namespace ripley

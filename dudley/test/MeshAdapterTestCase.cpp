@@ -33,8 +33,7 @@ void MeshAdapterTestCase::testAll()
 {
     // test construction of a mesh using the brick factory method
     //   boost::scoped_ptr<AbstractContinuousDomain> myMesh(brick());
-    esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
-	brick(info); // brick now returns a Domain_ptr which will auto delete
+	brick(); // brick now returns a Domain_ptr which will auto delete
 }
 
 TestSuite* MeshAdapterTestCase::suite()

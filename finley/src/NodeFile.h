@@ -24,13 +24,14 @@
 #include <paso/Coupler.h>
 #include <paso/Distribution.h>
 
+struct Esys_MPIInfo;
 
 namespace finley {
 
 class NodeFile
 {
 public:
-    NodeFile(int nDim, esysUtils::JMPI& mpiInfo);
+    NodeFile(int nDim, Esys_MPIInfo *mpiInfo);
     ~NodeFile();
 
     void allocTable(int numNodes);
@@ -104,7 +105,7 @@ public:
     NodeMapping reducedDegreesOfFreedomMapping;
 
     /// MPI information
-    esysUtils::JMPI MPIInfo;
+    Esys_MPIInfo *MPIInfo;
     /// number of nodes
     int numNodes;
     /// number of spatial dimensions

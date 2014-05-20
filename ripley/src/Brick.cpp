@@ -62,9 +62,8 @@ int indexOfMax(int a, int b, int c) {
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const std::vector<double>& points, const std::vector<int>& tags,
-             const simap_t& tagnamestonums,
-             escript::SubWorld_ptr w) :
-    RipleyDomain(3, w)
+             const simap_t& tagnamestonums) :
+    RipleyDomain(3)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
             * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())
@@ -204,6 +203,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     populateSampleIds();
     createPattern();
     
+    assembler = new DefaultAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
     for (map<string, int>::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
@@ -214,6 +214,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
 
 Brick::~Brick()
 {
+    delete assembler;
 }
 
 string Brick::getDescription() const
@@ -2061,7 +2062,7 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    coupler->startCollect(in.getDataRO());
+    coupler->startCollect(in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
@@ -3379,14 +3380,20 @@ int Brick::findNode(const double *coords) const {
     return closest;
 }
 
-Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
-        escript::Data> constants) const {
-    if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
-    } else if (type.compare("WaveAssembler") == 0) {
-        return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
+void Brick::setAssembler(std::string type, std::map<std::string,
+        escript::Data> constants) {
+    if (type.compare("WaveAssembler") == 0) {
+        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = WAVE_ASSEMBLER;
+        delete assembler;
+        assembler = new WaveAssembler3D(this, m_dx, m_NX, m_NE, m_NN, constants);
     } else if (type.compare("LameAssembler") == 0) {
-        return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = LAME_ASSEMBLER;
+        delete assembler;
+        assembler = new LameAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
     } else { //else ifs would go before this for other types
         throw RipleyException("Ripley::Brick does not support the"
                                 " requested assembler");

@@ -23,7 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import os
 import sys
-import esys.escriptcore.utestselect as unittest
+import unittest
 
 from esys.escript import *
 from esys.finley import Rectangle, Brick

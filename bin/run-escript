@@ -1,4 +1,4 @@
-#!/usr/bin/env sh
+#!/usr/bin/env bash
 
 # Escript/Finley wrapper for python
 # Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
@@ -32,14 +32,14 @@ then
 else
   # We don't know the escript root so we need to work it out from the invocation
   # Need to match if the name contains /
-  if $(echo $0|grep -q /)
+  if [[ $0 =~ / ]]
   then
       # We are not using the PATH to find the script
       cd "`dirname $0`"
       scriptdir=`pwd`
       cd "$CURDIR"
   else
-      # name does not contain / therefore we are using
+      # name does not contain / therefore we are using 
       tscriptdir=`which $0`
       if [ $? -ne 0 ]
       then
@@ -100,7 +100,7 @@ if [ ! -r "$BUILDINFO_FILE" ]; then
         if [ "`uname`" = "Darwin" ]
         then
             echo "export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:\$DYLD_LIBRARY_PATH"
-        fi
+        fi  
         exit 0
     fi
     echo "Error! Unable to read escript build information. Exiting."
@@ -134,7 +134,7 @@ Usage: run-escript [options] script.py [arguments...]
 	-f file		name of MPI hostfile
 	-c		print compile information for escript and exit
 	-V		print escript version and exit
-	-i		interactive mode
+	-i		interactive mode 
 	-b		do not invoke python (run non-python programs)
 	-e		print export statements for environment and exit
 	-o		redirect output from MPI to files
@@ -223,8 +223,8 @@ then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
     EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
 fi
-if [ ! -z $ESCRIPT_VERBOSE ]
-then
+if [ ! -z $ESCRIPT_VERBOSE ] 
+then 
     echo "PATH = $PATH "
     echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH "
     echo "PYTHONPATH = $PYTHONPATH "
@@ -234,7 +234,7 @@ fi
 #
 #  Ensure the variables have sensible values
 #
-if [ "$MPI_FLAVOUR" = "none" ]
+if [ "$MPI_FLAVOUR" = "none" ] 
 then
     if [ ! -z "$ESCRIPT_NUM_NODES" ]; then
         if [ $ESCRIPT_NUM_NODES -gt 1 ]; then
@@ -259,13 +259,13 @@ else
         ESCRIPT_HOSTFILE=$PBS_NODEFILE
     fi
 
-    if [ ! -z "$ESCRIPT_HOSTFILE" ]
+    if [ ! -z "$ESCRIPT_HOSTFILE" ] 
     then
         if [ -f "$ESCRIPT_HOSTFILE" ]
         then
             cat "$ESCRIPT_HOSTFILE" | sort -u > $HOSTFILE
             NUM_HOSTS=`cat "$HOSTFILE" | wc -l`
-            if [ ! -z $ESCRIPT_NUM_NODES ]
+            if [ ! -z $ESCRIPT_NUM_NODES ] 
             then
                 if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
                 then
@@ -294,7 +294,7 @@ else
     fi
 
     if [ ! -z $ESCRIPT_VERBOSE ]
-    then
+    then 
         echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
         echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
     fi
@@ -325,7 +325,7 @@ fi
 # Now we compute total number of Processes
 #
 TOTPROC=$((ESCRIPT_NUM_NODES * ESCRIPT_NUM_PROCS))
-if [ $? -ne 0 ]     #Some compute error
+if [ $? -ne 0 ]     #Some compute error 
 then            #This could happen if the args were not a number
     echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
     exit 1
@@ -340,7 +340,7 @@ then
     exit 1
 fi
 
-if [ $TOTPROC -gt 1 ]
+if [ $TOTPROC -gt 1 ] 
 then
     if [ "$ESCRIPT_CREATESTDFILES" = "y" ]
     then
@@ -451,21 +451,20 @@ then
 fi
 EXIT_CODE=1
 #=============== no MPI ===================================
-if [ "$MPI_FLAVOUR" = "none" ]
+if [ "$MPI_FLAVOUR" = "none" ] 
 then
-   $EXEC_CMD
+   $EXEC_CMD 
    EXIT_CODE=$?
 #=============== OpenMPI ===================================
-elif [ "$MPI_FLAVOUR" = "OPENMPI" ]
-then
-   EXPORT_ENV=$(echo $EXPORT_ENV|sed -e 's/,/ -x /g')
-   if [ ! -z "$HOSTFILE" ]
+elif [ "$MPI_FLAVOUR" = "OPENMPI" ] 
+then 
+   if [ ! -z "$HOSTFILE" ] 
    then
       HOST_LIST=`sort -u "$HOSTFILE" | awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}'`
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --bynode --bind-to-none --host $HOST_LIST -np $TOTPROC $EXEC_CMD"
+      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --bynode --bind-to-none --host $HOST_LIST -np $TOTPROC $EXEC_CMD"
    else
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --cpus-per-rank $ESCRIPT_NUM_THREADS -np $TOTPROC $EXEC_CMD"
-   fi
+      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV//,/ -x } --cpus-per-rank $ESCRIPT_NUM_THREADS -np $TOTPROC $EXEC_CMD"
+   fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
@@ -477,26 +476,26 @@ then
    if [ "$WITH_OPENMP" = "1" ]
    then
        export I_MPI_PIN_DOMAIN=omp
-       EXPORT_ENV="$EXPORT_ENV,I_MPI_PIN_DOMAIN"
+       EXPORT_ENV="$EXPORT_ENV, I_MPI_PIN_DOMAIN"
    fi
 
-   if [ ! -z "$HOSTFILE" ]
+   if [ ! -z "$HOSTFILE" ] 
    then
       mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
-      if [ $? -ne 0 ]
+      if [ $? -ne 0 ] 
       then
          echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
          exit 1
-      else
+      else 
           if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
       fi
    else
-      mpdboot -n 1 -r ssh
-      if [ $? -ne 0 ]
+      mpdboot -n 1 -r ssh 
+      if [ $? -ne 0 ] 
       then
          echo "mpdboot failed."
          exit 1
-      else
+      else 
           if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started."; fi
       fi
    fi
@@ -511,50 +510,50 @@ elif [ "$MPI_FLAVOUR" = "MPT" ]
 then
    export MPI_NUM_MEMORY_REGIONS=0
    EXPORT_ENV="$EXPORT_ENV,MPI_NUM_MEMORY_REGIONS"
-   if [ ! -z "$HOSTFILE" ]
+   if [ ! -z "$HOSTFILE" ] 
    then
       HOST_LIST=`awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE"`
       CMD="mpirun $HOST_LIST -np $ESCRIPT_NUM_PROCS $EXEC_CMD"
    else
       CMD="mpirun -np $TOTPROC $EXEC_CMD"
-   fi
+   fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
 #=============== MPICH ===================================
 elif [ "$MPI_FLAVOUR" = "MPICH" ]
 then
-   if [ ! -z "$HOSTFILE" ]
+   if [ ! -z "$HOSTFILE" ] 
    then
       touch "$HOSTFILE2"
-      for i in `seq $ESCRIPT_NUM_PROCS`; do cat "$HOSTFILE" >> "$HOSTFILE2"; done
-      CMD="mpirun -machinefile \"$HOSTFILE2\" -np $TOTPROC $EXEC_CMD"
+      for (( i=1;i<=$ESCRIPT_NUM_PROCS;i+=1 )) ; do cat "$HOSTFILE" >> "$HOSTFILE2"  ; done
+      CMD="mpirun -machinefile \"$HOSTFILE2\"  -np $TOTPROC $EXEC_CMD"
    else
       CMD="mpirun -np $TOTPROC $EXEC_CMD"
-   fi
+   fi 
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
 #=============== MPICH2 ===================================
 elif [ "$MPI_FLAVOUR" = "MPICH2" ]
 then
-   if [ ! -z "$HOSTFILE" ]
+   if [ ! -z "$HOSTFILE" ] 
    then
          mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
-         if [ $? -ne 0 ]
+         if [ $? -ne 0 ] 
          then
             echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
             exit 1
-         else
+         else 
              if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
          fi
    else
-      mpdboot -n 1 -r ssh
-      if [ $? -ne 0 ]
+      mpdboot -n 1 -r ssh 
+      if [ $? -ne 0 ] 
       then
          echo "mpdboot failed."
          exit 1
-      else
+      else 
           if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started."; fi
       fi
    fi

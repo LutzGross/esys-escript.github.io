@@ -5,7 +5,7 @@
 program tests for differentials of symbols
 """
 test_header=""
-test_header+="import esys.escriptcore.utestselect as unittest\n"
+test_header+="import unittest\n"
 test_header+="import numarray\n"
 test_header+="from esys.escript import *\n"
 test_header+="class Test_util2(unittest.TestCase):\n"

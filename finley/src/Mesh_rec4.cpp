@@ -32,8 +32,7 @@ namespace finley {
 Mesh* RectangularMesh_Rec4(const int* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool optimize,
-			   esysUtils::JMPI& mpi_info)
+                           bool optimize)
 {
 #define N_PER_E 1
 #define DIM 2
@@ -42,12 +41,14 @@ Mesh* RectangularMesh_Rec4(const int* numElements, const double* Length,
   int totalNECount,faceNECount,NDOF0=0,NDOF1=0,NFaceElements,NN;
   const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
   int node0, myRank;
+  Esys_MPIInfo *mpi_info = NULL;
   char name[50];
 #ifdef Finley_TRACE
   double time0=timer();
 #endif
 
   /* get MPI information */
+  mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
   if (! noError()) {
         return NULL;
   }
@@ -85,11 +86,11 @@ Mesh* RectangularMesh_Rec4(const int* numElements, const double* Length,
         Nstride1=N0;
         local_NE0=NE0;
          e_offset0=0;
-         mpi_info->split(NE1,&local_NE1,&e_offset1);
+         Esys_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
     } else {
       Nstride0=N1;
         Nstride1=1;
-        mpi_info->split(NE0,&local_NE0,&e_offset0);
+        Esys_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
         local_NE1=NE1;
          e_offset1=0;
     }
@@ -278,6 +279,7 @@ Mesh* RectangularMesh_Rec4(const int* numElements, const double* Length,
         out->prepare(optimize);
     }
 
+    Esys_MPIInfo_free(mpi_info);
     return out;
 }
 

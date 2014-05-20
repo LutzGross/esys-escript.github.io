@@ -35,7 +35,7 @@ Test suite for the linearPDE  and pdetools test on finley
 
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
-import esys.escriptcore.utestselect as unittest, sys
+import unittest, sys
 
 from esys.escript import *
 from esys.finley import Rectangle,Brick

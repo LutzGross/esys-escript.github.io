@@ -27,7 +27,6 @@ __url__="https://launchpad.net/escript-finley"
 import esys.escript		# This is just to ensure required libraries are loaded
 import esys.pasowrap	#if you don't import this, you won't be able to see methods not in AbstractSystemmatrix
 from .dudleycpp import *
-from .factorywrappers import *
 from .readers import *
 
-__nodocorecursion=['dudleycpp', 'readers', 'factorywrappers']
+__nodocorecursion=['dudleycpp', 'readers']

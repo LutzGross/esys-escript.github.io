@@ -27,7 +27,7 @@ checks the mesh generators against the reference meshes in test_meshes and test 
 
 import sys
 import os
-import esys.escriptcore.utestselect as unittest
+import unittest
 from esys.escript import *
 from esys.dudley import Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
 

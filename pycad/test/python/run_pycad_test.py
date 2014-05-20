@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import os
 import sys
-import esys.escriptcore.utestselect as unittest
+import unittest
 import math
 import numpy
 from esys.pycad import *

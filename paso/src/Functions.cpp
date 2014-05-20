@@ -21,13 +21,14 @@
 
 namespace paso {
 
-Function::Function(esysUtils::JMPI& mpiInfo)
+Function::Function(Esys_MPIInfo* mpiInfo)
 {
-    mpi_info = mpiInfo;
+    mpi_info = Esys_MPIInfo_getReference(mpiInfo);
 }
 
 Function::~Function()
 {
+    Esys_MPIInfo_free(mpi_info);
 }
 
 err_t Function::derivative(double* J0w, const double* w, const double* f0,

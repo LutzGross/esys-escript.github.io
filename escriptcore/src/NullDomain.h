@@ -56,27 +56,6 @@ class NullDomain : public AbstractDomain {
   NullDomain();
 
   /**
-  \brief get the communicator for this domain.
-  Returns 0 on non-MPI builds
-  Routine must be implemented by the DomainAdapter
-  */
-  ESCRIPT_DLL_API
-  virtual
-#ifdef ESYS_MPI
-  MPI_Comm
-#else
-  unsigned int
-#endif
-  getMPIComm() const
-  {
-#ifdef ESYS_MPI
-    return MPI_COMM_WORLD;
-#else
-    return -1;
-#endif    
-  }
-  
-  /**
      \brief
      Returns true if the given integer is a valid function space type
      for this domain.

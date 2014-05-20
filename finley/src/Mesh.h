@@ -78,13 +78,13 @@ typedef std::map<std::string, int> TagMap;
 class Mesh
 {
 public:
-    Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info);
+    Mesh(const std::string name, int numDim, Esys_MPIInfo *mpi_info);
     ~Mesh();
 
-    static Mesh* load(esysUtils::JMPI& mpi_info, const std::string fname);
-    static Mesh* read(esysUtils::JMPI& mpi_info, const std::string fname, int order, int reducedOrder,
+    static Mesh* load(const std::string fname);
+    static Mesh* read(const std::string fname, int order, int reducedOrder,
                       bool optimize);
-    static Mesh* readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
+    static Mesh* readGmsh(const std::string fname, int numDim, int order,
                           int reducedOrder, bool optimize,
                           bool useMacroElements);
 
@@ -157,7 +157,7 @@ public:
     paso::SystemMatrixPattern_ptr FullReducedPattern;
     paso::SystemMatrixPattern_ptr ReducedFullPattern;
     paso::SystemMatrixPattern_ptr ReducedReducedPattern;
-    esysUtils::JMPI MPIInfo;
+    Esys_MPIInfo *MPIInfo;
 };
 
 // this structure is used for matching surface elements

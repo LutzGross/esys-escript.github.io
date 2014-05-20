@@ -31,7 +31,7 @@ namespace finley {
 /// constructor
 /// use ElementFile::allocTable to allocate the element table
 ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
-                         esysUtils::JMPI& mpiInfo) :
+                         Esys_MPIInfo *mpiInfo) :
     referenceElementSet(refSet),
     numElements(0),
     Id(NULL),
@@ -42,7 +42,7 @@ ElementFile::ElementFile(const_ReferenceElementSet_ptr refSet,
     minColor(0),
     maxColor(-1)
 {
-    MPIInfo=mpiInfo;
+    MPIInfo=Esys_MPIInfo_getReference(mpiInfo);
  
     jacobians=new ElementFile_Jacobians(
             referenceElementSet->referenceElement->BasisFunctions);
@@ -64,6 +64,7 @@ ElementFile::~ElementFile()
     delete jacobians_reducedS;
     delete jacobians_reducedQ;
     delete jacobians_reducedS_reducedQ;
+    Esys_MPIInfo_free(MPIInfo);
 }
 
 /// allocates the element table within this element file to hold NE elements.

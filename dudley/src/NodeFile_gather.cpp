@@ -84,7 +84,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     if (!Dudley_checkPtr(distribution))
     {
 	/* distribute the range of node ids */
-	buffer_len = in->MPIInfo->setDistribution(min_id, max_id, distribution);
+	buffer_len = Esys_MPIInfo_setDistribution(in->MPIInfo, min_id, max_id, distribution);
 	/* allocate buffers */
 	Id_buffer = new  index_t[buffer_len];
 	Tag_buffer = new  index_t[buffer_len];
@@ -100,8 +100,8 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 
 	    /* fill the buffer by sending portions around in a circle */
 #ifdef ESYS_MPI
-	    dest = esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 #endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
@@ -124,7 +124,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 #endif
 		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
 		}
-		buffer_rank = esysUtils::mod_rank(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 		Dudley_NodeFile_scatterEntries(in->numNodes, in->Id,
 					       distribution[buffer_rank], distribution[buffer_rank + 1],
 					       Id_buffer, in->Id,
@@ -134,8 +134,8 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 	    }
 	    /* now entries are collected from the buffer again by sending the entries around in a circle */
 #ifdef ESYS_MPI
-	    dest = esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank + 1);
-	    source = esysUtils::mod_rank(in->MPIInfo->size, in->MPIInfo->rank - 1);
+	    dest = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank + 1);
+	    source = Esys_MPIInfo_mod(in->MPIInfo->size, in->MPIInfo->rank - 1);
 #endif
 	    buffer_rank = in->MPIInfo->rank;
 	    for (p = 0; p < in->MPIInfo->size; ++p)
@@ -164,7 +164,7 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
 #endif
 		    ESYS_MPI_INC_COUNTER(*(in->MPIInfo), 4)
 		}
-		buffer_rank = esysUtils::mod_rank(in->MPIInfo->size, buffer_rank - 1);
+		buffer_rank = Esys_MPIInfo_mod(in->MPIInfo->size, buffer_rank - 1);
 	    }
 	    /* check if all nodes are set: */
 #pragma omp parallel for private(n) schedule(static)
@@ -187,5 +187,5 @@ void Dudley_NodeFile_gather_global(index_t * index, Dudley_NodeFile * in, Dudley
     }
     delete[] distribution;
     /* make sure that the error is global */
-    esysUtils::Esys_MPIInfo_noError(in->MPIInfo);
+    Esys_MPIInfo_noError(in->MPIInfo);
 }

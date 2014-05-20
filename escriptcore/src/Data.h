@@ -622,17 +622,6 @@ If false, the result is a list of scalars [1, 2, ...]
   getSampleDataRW(DataAbstract::ValueType::size_type sampleNo);
 
 
- /**
-    \brief
-    Return a pointer to the beginning of the underlying data
-    \warning please avoid using this method since it by-passes possible lazy improvements. May be removed without notice.
-    \return pointer to the data.
-*/
-  ESCRIPT_DLL_API
-  inline
-  const DataAbstract::ValueType::value_type*
-  getDataRO() const;  
-  
   /**
      \brief
      Return the sample data for the given tag. If an attempt is made to
@@ -1986,25 +1975,6 @@ Data::getSampleDataRO(DataAbstract::ValueType::size_type sampleNo) const
    }
    return getReady()->getSampleDataRO(sampleNo);
 }
-
-inline
-const DataAbstract::ValueType::value_type*
-Data::getDataRO() const
-{
-    if (isLazy())
-    {
-        throw DataException("Programmer error - getDataRO must not be called on Lazy Data.");
-    }
-    if (getNumSamples()==0)
-    {
-	return 0;
-    }
-    else
-    {
-	return &(getReady()->getVectorRO()[0]);
-    }
-}
-
 
 /**
    Binary Data object operators.

@@ -343,12 +343,8 @@ class Regularization(CostFunction):
                 mu = 1.
             else:
                 mu = np.ones((numLS,))
-        if type(mu) == list:
-            #this is a fix for older versions of numpy where passing in an a list of ints causes
-            #this code to break.
-            mu=np.asarray([float(i) for i in mu])
-        else:
-            mu=np.asarray(mu)
+
+        mu=np.asarray(mu)
         if numLS == 1:
             if mu.shape == (1,): mu=mu[0]
             if mu.shape == ():

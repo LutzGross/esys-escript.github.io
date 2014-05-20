@@ -32,8 +32,7 @@ namespace finley {
 Mesh* RectangularMesh_Rec8(const int* numElements, const double* Length,
                            const bool* periodic, int order, int reduced_order,
                            bool useElementsOnFace, bool useFullElementOrder,
-                           bool useMacroElements, bool optimize,
-			   esysUtils::JMPI& mpi_info)
+                           bool useMacroElements, bool optimize)
 {
 #define N_PER_E 2
 #define DIM 2
@@ -42,6 +41,7 @@ Mesh* RectangularMesh_Rec8(const int* numElements, const double* Length,
   int e_offset1, e_offset0, offset0=0, offset1=0, global_i0, global_i1;
   int node0, myRank;
   const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
+  Esys_MPIInfo *mpi_info = NULL;
   char name[50];
   bool generateAllNodes = useFullElementOrder || useMacroElements;
 #ifdef Finley_TRACE
@@ -49,6 +49,7 @@ Mesh* RectangularMesh_Rec8(const int* numElements, const double* Length,
 #endif
 
   /* get MPI information */
+  mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
   if (!noError()) {
         return NULL;
   }
@@ -110,11 +111,11 @@ Mesh* RectangularMesh_Rec8(const int* numElements, const double* Length,
           Nstride1=N0;
           local_NE0=NE0;
           e_offset0=0;
-          mpi_info->split(NE1,&local_NE1,&e_offset1);
+          Esys_MPIInfo_Split(mpi_info,NE1,&local_NE1,&e_offset1);
       } else {
           Nstride0=N1;
           Nstride1=1;
-          mpi_info->split(NE0,&local_NE0,&e_offset0);
+          Esys_MPIInfo_Split(mpi_info,NE0,&local_NE0,&e_offset0);
           local_NE1=NE1;
           e_offset1=0;
       }
@@ -330,6 +331,7 @@ Mesh* RectangularMesh_Rec8(const int* numElements, const double* Length,
         delete out;
         out=NULL;
     }
+    Esys_MPIInfo_free(mpi_info);
 
     return out;
 }

@@ -27,8 +27,6 @@ from subprocess import PIPE, Popen
 from SCons.Script.SConscript import Configure
 from site_init import findLibWithHeader, detectModule
 
-REQUIRED_BOOST = (1, 46)
-
 def checkCompiler(env):
     conf = Configure(env.Clone())
     if 'CheckCXX' in dir(conf): # exists since scons 1.1.0
@@ -171,16 +169,13 @@ def checkBoost(env):
     # Try to extract the boost version from version.hpp
     boosthpp=open(os.path.join(boost_inc_path, 'boost', 'version.hpp'))
     boostversion='unknown'
-    for line in boosthpp:
-        ver=re.match(r'#define BOOST_VERSION (\d+)',line)
-        if ver:
-            boostversion=ver.group(1)
-            boostversion = int(boostversion)
-            maj = boostversion/100000
-            minor = (boostversion/100)%1000
-            sub = boostversion % 100
-            if maj <= REQUIRED_BOOST[0] and minor < REQUIRED_BOOST[1]:
-                raise RuntimeError("The boost version referenced must be at least version %d.%d "%REQUIRED_BOOST + "(have %d.%d.%d)"%(maj,minor,sub))
+    try:
+        for line in boosthpp:
+            ver=re.match(r'#define BOOST_VERSION (\d+)',line)
+            if ver:
+                boostversion=ver.group(1)
+    except StopIteration:
+        pass
     boosthpp.close()
     env['buildvars']['boost_inc_path']=boost_inc_path
     env['buildvars']['boost_lib_path']=boost_lib_path

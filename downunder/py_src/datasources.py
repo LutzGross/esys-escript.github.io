@@ -701,6 +701,7 @@ class NetCdfData(DataSource):
              
         self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
+        f.close()
 
         # see if lat or lon is stored in reverse order to domain conventions
         self.__reverse=[False,False]
@@ -720,7 +721,6 @@ class NetCdfData(DataSource):
             # this should give us about meter-accuracy with lat/lon coords
             r=5
         self.__delta=[np.round(lengths[i]/self.__nPts[i],r) for i in range(2)]
-        f.close()
 
     def getDataExtents(self):
         """

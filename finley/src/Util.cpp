@@ -344,7 +344,7 @@ std::vector<int> packMask(const std::vector<short>& mask)
 }
 
 void setValuesInUse(const int *values, const int numValues,
-                    std::vector<int>& valuesInUse, esysUtils::JMPI& mpiinfo)
+                    std::vector<int>& valuesInUse, Esys_MPIInfo* mpiinfo)
 {
     int lastFoundValue=INDEX_T_MIN;
     bool allFound=false;

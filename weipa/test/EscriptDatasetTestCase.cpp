@@ -19,7 +19,7 @@
 #include "EscriptDatasetTestCase.h"
 #include "finley/CppAdapter/MeshAdapterFactory.h"
 #include "weipa/EscriptDataset.h"
-#include "esysUtils/Esys_MPI.h"
+
 #include <cppunit/TestCaller.h>
 
 using namespace CppUnit;
@@ -48,10 +48,8 @@ void EscriptDatasetTestCase::testAll()
     cout << "\tTest getMeshVariables without data." << endl;
     CPPUNIT_ASSERT(dataset->getMeshVariables().size() == 0);
 
-
-    esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
     // instantiate a domain and data
-    Domain_ptr dom(finley::brick(info));
+    Domain_ptr dom(finley::brick());
     escript::Data data = Scalar(0.0, continuousFunction(*dom), true);
 
     cout << "\tTest addData with NULL domain." << endl;

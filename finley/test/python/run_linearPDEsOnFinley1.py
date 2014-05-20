@@ -35,7 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os
 
-import esys.escriptcore.utestselect as unittest
+import unittest
 from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact

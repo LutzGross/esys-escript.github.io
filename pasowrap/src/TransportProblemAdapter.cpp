@@ -154,7 +154,7 @@ double TransportProblemAdapter::getUnlimitedTimeStepSize() const
 
 int TransportProblemAdapter::getTransportTypeId(int solver, int preconditioner,
                                                 int package, bool symmetry,
-                                                const esysUtils::JMPI& mpiInfo)
+                                                Esys_MPIInfo* mpiInfo)
 {
     return TransportProblem::getTypeId(
             SystemMatrixAdapter::mapOptionToPaso(solver),

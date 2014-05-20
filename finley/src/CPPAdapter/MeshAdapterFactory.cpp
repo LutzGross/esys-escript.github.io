@@ -28,7 +28,6 @@
 
 #include <sstream>
 
-
 using namespace std;
 using namespace escript;
 
@@ -50,9 +49,10 @@ namespace finley {
   }
 #endif
 
-  inline void cleanupAndThrow(Mesh* mesh, string msg)
+  inline void cleanupAndThrow(Mesh* mesh, Esys_MPIInfo* info, string msg)
   {
       delete mesh;
+      Esys_MPIInfo_free(info);
       string msgPrefix("loadMesh: NetCDF operation failed - ");
       throw DataException(msgPrefix+msg);
   }
@@ -61,7 +61,7 @@ namespace finley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
     Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
@@ -81,6 +81,7 @@ namespace finley {
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
       setError(IO_ERROR,error_msg);
+      Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
 
@@ -130,39 +131,39 @@ namespace finley {
         mesh_p->Nodes->allocTable(numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Id)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Id)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Id)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Id)");
         // Nodes_Tag
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Tag)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Tag)");
         // Nodes_gDOF
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gDOF)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gDOF)");
         // Nodes_gNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gNI)");
         // Nodes_grDfI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grDfI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grDfI)");
         // Nodes_grNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grNI)");
         // Nodes_Coordinates
         if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates")))
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Coordinates)");
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
         mesh_p->Nodes->updateTagList();
 
         /* read elements */
@@ -180,24 +181,24 @@ namespace finley {
                 if (num_Elements>0) {
                    // Elements_Id
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Id)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Id)");
                    // Elements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Tag)");
                    // Elements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Owner)");
                    // Elements_Color
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Color)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->Elements->Color[0];
                    for (index_t i=1;i<num_Elements;++i) {
@@ -210,11 +211,11 @@ namespace finley {
                    int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
                        delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
                        delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Nodes)");
                    }
 
                    // Copy temp array into mesh_p->Elements->Nodes
@@ -246,24 +247,24 @@ namespace finley {
                 if (num_FaceElements>0) {
                    // FaceElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Id)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Id)");
                    // FaceElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Tag)");
                    // FaceElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Owner)");
                    // FaceElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Color)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->FaceElements->Color[0];
                    for (index_t i=1;i<num_FaceElements;++i) {
@@ -276,11 +277,11 @@ namespace finley {
                    int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
                        delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
                        delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->FaceElements->Nodes
                    for (int i=0; i<num_FaceElements; i++) {
@@ -310,24 +311,24 @@ namespace finley {
                 if (num_ContactElements>0) {
                    // ContactElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Id)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Id[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, "get(ContactElements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Id)");
                    // ContactElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Tag[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, "get(ContactElements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Tag)");
                    // ContactElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Owner[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, "get(ContactElements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Owner)");
                    // ContactElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("ContactElements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Color)");
                    if (! nc_var_temp->get(&mesh_p->ContactElements->Color[0], num_ContactElements) )
-                       cleanupAndThrow(mesh_p, "get(ContactElements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->ContactElements->Color[0];
                    for (index_t i=1;i<num_ContactElements;++i) {
@@ -340,11 +341,11 @@ namespace finley {
                    int *ContactElements_Nodes = new int[num_ContactElements*num_ContactElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("ContactElements_Nodes"))) {
                        delete[] ContactElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(ContactElements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(ContactElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(ContactElements_Nodes[0]), num_ContactElements, num_ContactElements_numNodes) ) {
                        delete[] ContactElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(ContactElements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(ContactElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->ContactElements->Nodes
                    for (int i=0; i<num_ContactElements; i++) {
@@ -373,24 +374,24 @@ namespace finley {
                 if (num_Points>0) {
                    // Points_Id
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Id)");
                    if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Id)");
                    // Points_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Points_Tag")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Tag)");
                    // Points_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Points_Owner")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Owner)");
                    if (!nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Owner)");
                    // Points_Color
                    if (! ( nc_var_temp = dataFile.get_var("Points_Color")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Color)");
                    if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Color)");
                    // Now we need to adjust maxColor
                    index_t mc=mesh_p->Points->Color[0];
                    for (index_t i=1;i<num_Points;++i) {
@@ -403,11 +404,11 @@ namespace finley {
                    int *Points_Nodes = new int[num_Points];
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
                        delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
                        delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, "get(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Nodes)");
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
@@ -430,11 +431,11 @@ namespace finley {
             // Tags_keys
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
                 delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
+                cleanupAndThrow(mesh_p, mpi_info, "get_var(Tags_keys)");
             }
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
                 delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, "get(Tags_keys)");
+                cleanupAndThrow(mesh_p, mpi_info, "get(Tags_keys)");
             }
             for (i=0; i<num_Tags; i++) {
               // Retrieve tag name
@@ -442,7 +443,7 @@ namespace finley {
               if (! (attr=dataFile.get_att(name_temp)) ) {
                   delete[] Tags_keys;
                   sprintf(error_msg,"get_att(%s)", name_temp);
-                  cleanupAndThrow(mesh_p, error_msg);
+                  cleanupAndThrow(mesh_p, mpi_info, error_msg);
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
@@ -456,19 +457,19 @@ namespace finley {
             // Nodes_DofDistribution
             std::vector<int> first_DofComponent(mpi_size+1);
             if (! (nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
-                cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_DofDistribution)");
             }
             if (!nc_var_temp->get(&first_DofComponent[0], mpi_size+1)) {
-                cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
             std::vector<int> first_NodeComponent(mpi_size+1);
             if (! (nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
-                cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_NodeDistribution)");
             }
             if (!nc_var_temp->get(&first_NodeComponent[0], mpi_size+1)) {
-                cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_NodeDistribution)");
             }
             mesh_p->createMappings(first_DofComponent, first_NodeComponent);
         }
@@ -476,10 +477,9 @@ namespace finley {
     } /* noError() after new Mesh() */
 
     checkFinleyError();
-    
-    MeshAdapter* ma=new MeshAdapter(mesh_p);
-    Domain_ptr dom(ma);
+    Domain_ptr dom(new MeshAdapter(mesh_p));
 
+    Esys_MPIInfo_free(mpi_info);
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom;
 #else
@@ -487,254 +487,47 @@ namespace finley {
 #endif /* USE_NETCDF */
   }
 
-  Domain_ptr readMesh(esysUtils::JMPI& info,
-		     const std::string& fileName,
+  Domain_ptr readMesh(const std::string& fileName,
                       int integrationOrder,
                       int reducedIntegrationOrder,
-                      bool optimize,
-		     const std::vector<double>& points,
-		     const std::vector<int>& tags 
-		    )
+                      bool optimize)
   {
     if (fileName.size() == 0 )
         throw DataException("Null file name!");
 
     double blocktimer_start = blocktimer_time();
-    Mesh* fMesh=Mesh::read(info, fileName, integrationOrder, reducedIntegrationOrder, optimize);
+    Mesh* fMesh=Mesh::read(fileName, integrationOrder, reducedIntegrationOrder, optimize);
     checkFinleyError();
-    MeshAdapter* ma=new MeshAdapter(fMesh);
-    ma->addDiracPoints(points, tags);    
     blocktimer_increment("ReadMesh()", blocktimer_start);
-    return Domain_ptr(ma);
+    return Domain_ptr(new MeshAdapter(fMesh));
   }
 
-  
-  Domain_ptr readMesh_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
-      int l=len(args);
-      if (l<7) 
-      {
-	  throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
-      }
-      std::string fileName=extract<string>(args[0])();
-      int integrationOrder=extract<int>(args[1])();
-      int reducedIntegrationOrder=extract<int>(args[2])();
-      bool optimize=extract<bool>(args[3])();
-      std::vector<double> points;
-      std::vector<int> tags;
-      
-      
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[4]);
-      boost::python::list pytags=extract<boost::python::list>(args[5]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-
-      boost::python::object pworld=args[6];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
-      }
-      Domain_ptr result=readMesh(info, fileName,
-                      integrationOrder,
-                      reducedIntegrationOrder,
-                      optimize,
-		     points,
-		     tags 
-		    );
-
-      for (int i=0;i<numpts;++i) {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k) {
-              points.push_back(extract<double>(temp[k]));
-          }
-      }
-      int curmax=40; // bricks use up to 30
-      TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
-		// first we work out what tags are already in use
-      for (TagMap::iterator it=tagmap.begin();
-		it!=tagmap.end();++it)
-      {
-	  if (it->second>curmax)
-	  {
-		curmax=it->second+1;
-	  }
-      }
-
-      tags.resize(numtags, -1);
-      for (int i=0;i<numtags;++i) {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check()) {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax) {
-                  curmax=tags[i]+1;
-              }
-          } else if (ex_str.check()) {
-              string s=ex_str();
-              map<string, int>::iterator it=tagmap.find(s);
-              if (it!=tagmap.end()) {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              } else {
-		  result->setTagMap(s,curmax);
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          } else {
-              throw FinleyAdapterException("Error - Unable to extract tag value.");
-          }
-      }
-	// now we need to add the dirac points
-      dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
-      return result;
-
-
-  }  
-  
-  Domain_ptr readGmsh(esysUtils::JMPI& info, const std::string& fileName,
+  Domain_ptr readGmsh(const std::string& fileName,
                                      int numDim,
                                      int integrationOrder,
                                      int reducedIntegrationOrder,
                                      bool optimize,
-                                     bool useMacroElements,
-				   const std::vector<double>& points,
-				   const std::vector<int>& tags)
+                                     bool useMacroElements)
   {
     if (fileName.size() == 0 )
         throw DataException("Null file name!");
 
     double blocktimer_start = blocktimer_time();
-    Mesh* fMesh=Mesh::readGmsh(info, fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
+    Mesh* fMesh=Mesh::readGmsh(fileName, numDim, integrationOrder, reducedIntegrationOrder, optimize, useMacroElements);
     checkFinleyError();
     blocktimer_increment("ReadGmsh()", blocktimer_start);
-    MeshAdapter* ma=new MeshAdapter(fMesh);
-    ma->addDiracPoints(points, tags);
-    return Domain_ptr(ma);
+    return Domain_ptr(new MeshAdapter(fMesh));
   }
-  
-  
-  
 
-  Domain_ptr readGmsh_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
-      int l=len(args);
-      if (l<7) 
-      {
-	  throw FinleyAdapterException("Insufficient arguments to readMesh_driver");
-      }
-      std::string fileName=extract<string>(args[0])();
-      int numDim=extract<int>(args[1])();
-      int integrationOrder=extract<int>(args[2])();
-      int reducedIntegrationOrder=extract<int>(args[3])();
-      bool optimize=extract<bool>(args[4])();
-      bool useMacroElements=extract<bool>(args[5])();
-      std::vector<double> points;
-      std::vector<int> tags;
-      
-      
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[6]);
-      boost::python::list pytags=extract<boost::python::list>(args[7]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-      boost::python::object pworld=args[8];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
-      }
-      Domain_ptr result = readGmsh(info, fileName,
-                                     numDim,
-                                     integrationOrder,
-                                     reducedIntegrationOrder,
-                                     optimize,
-                                     useMacroElements,
-				   points,
-				   tags);      
-
-      for (int i=0;i<numpts;++i) {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k) {
-              points.push_back(extract<double>(temp[k]));
-          }
-      }
-      int curmax=40; // bricks use up to 30
-      TagMap& tagmap=dynamic_cast<MeshAdapter*>(result.get())->getMesh()->tagMap;
-                // first we work out what tags are already in use
-      for (TagMap::iterator it=tagmap.begin();
-                it!=tagmap.end();++it)
-      {
-          if (it->second>curmax)
-          {
-                curmax=it->second+1;
-          }
-      }
-
-      tags.resize(numtags, -1);
-      for (int i=0;i<numtags;++i) {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check()) {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax) {
-                  curmax=tags[i]+1;
-              }
-          } else if (ex_str.check()) {
-              string s=ex_str();
-              map<string, int>::iterator it=tagmap.find(s);
-              if (it!=tagmap.end()) {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              } else {
-                  result->setTagMap(s,curmax);
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          } else {
-              throw FinleyAdapterException("Error - Unable to extract tag value");
-          }
-      }
-        // now we need to add the dirac points
-      dynamic_cast<MeshAdapter*>(result.get())->addDiracPoints(points, tags);
-      return result;
-
-  }   
-  
-  Domain_ptr brick(esysUtils::JMPI& info, int n0, int n1, int n2, int order,
+/*  AbstractContinuousDomain* brick(int n0,int n1,int n2,int order,*/
+  Domain_ptr brick(int n0, int n1, int n2, int order,
                    double l0, double l1, double l2,
                    bool periodic0, bool periodic1, bool periodic2,
                    int integrationOrder, int reducedIntegrationOrder,
                    bool useElementsOnFace, bool useFullElementOrder,
                    bool optimize, const std::vector<double>& points,
                    const std::vector<int>& tags,
-                   const std::map<std::string, int>& tagnamestonums
-		  )
+                   const std::map<std::string, int>& tagnamestonums)
   {
     const int numElements[] = {n0, n1, n2};
     const double length[] = {l0, l1, l2};
@@ -744,18 +537,15 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Hex8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, optimize);
     } else if (order==2) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, false, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, false, optimize);
     } else if (order==-1) {
         fMesh=RectangularMesh_Hex20(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, true, optimize);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -820,23 +610,8 @@ namespace finley {
           }
         
       }
-      boost::python::object pworld=args[17];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
-      }
-      return brick(info, static_cast<int>(extract<float>(args[0])),
+      
+      return brick(static_cast<int>(extract<float>(args[0])),
                    static_cast<int>(extract<float>(args[1])),
                    static_cast<int>(extract<float>(args[2])),
                    extract<int>(args[3]), extract<double>(args[4]),
@@ -845,11 +620,10 @@ namespace finley {
                    extract<int>(args[9]), extract<int>(args[10]),
                    extract<int>(args[11]), extract<int>(args[12]),
                    extract<int>(args[13]), extract<int>(args[14]),
-                   points, tags, namestonums
-		  );
+                   points, tags, namestonums);
   }
 
-  Domain_ptr rectangle(esysUtils::JMPI& info, int n0, int n1, int order,
+  Domain_ptr rectangle(int n0, int n1, int order,
                        double l0, double l1,
                        bool periodic0, bool periodic1,
                        int integrationOrder,
@@ -859,8 +633,7 @@ namespace finley {
                        bool optimize,
                        const vector<double>& points,
                        const vector<int>& tags,
-                       const std::map<std::string, int>& tagnamestonums
-		      )
+                       const std::map<std::string, int>& tagnamestonums)
   {
     const int numElements[] = {n0, n1};
     const double length[] = {l0, l1};
@@ -870,18 +643,15 @@ namespace finley {
     if (order==1) {
         fMesh=RectangularMesh_Rec4(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, optimize);
     } else if (order==2) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace,useFullElementOrder, false, optimize,
-		info);
+                useElementsOnFace,useFullElementOrder, false, optimize);
     } else if (order==-1) {
         fMesh=RectangularMesh_Rec8(numElements, length, periodic,
                 integrationOrder, reducedIntegrationOrder,
-                useElementsOnFace, useFullElementOrder, true, optimize,
-		info);
+                useElementsOnFace, useFullElementOrder, true, optimize);
     } else {
         stringstream message;
         message << "Illegal interpolation order " << order;
@@ -977,31 +747,15 @@ namespace finley {
               throw FinleyAdapterException("Error - Unable to extract tag value.");
           }
       }
-      boost::python::object pworld=args[14];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-          extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw FinleyAdapterException("Invalid escriptWorld parameter.");
-          }
-          info=ex()->getMPI();
-      }
-      else
-      {
-          info=esysUtils::makeInfo(MPI_COMM_WORLD);
-      }
-
-      return rectangle(info, static_cast<int>(extract<float>(args[0])),
+      
+      return rectangle(static_cast<int>(extract<float>(args[0])),
                        static_cast<int>(extract<float>(args[1])),
                        extract<int>(args[2]), extract<double>(args[3]),
                        extract<double>(args[4]), extract<int>(args[5]),
                        extract<int>(args[6]), extract<int>(args[7]),
                        extract<int>(args[8]), extract<int>(args[9]),
                        extract<int>(args[10]), extract<int>(args[11]), 
-                       points, tags, tagstonames
-		       );
+                       points, tags, tagstonames);
   }  
 
 

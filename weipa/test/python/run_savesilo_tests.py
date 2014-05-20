@@ -22,7 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import os, math
-import esys.escriptcore.utestselect as unittest
+import unittest
 try:
     import Silo
     HAVE_SILO=True

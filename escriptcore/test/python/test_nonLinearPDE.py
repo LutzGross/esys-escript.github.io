@@ -31,7 +31,7 @@ __author__="Jaco du Plessis"
 
 from esys.escript import NonlinearPDE, Symbol, whereZero, grad, sin, cos, symmetric, matrixmult, FunctionOnBoundary
 import numpy
-import esys.escriptcore.utestselect as unittest
+import unittest
 from esys.escript.linearPDEs import IllegalCoefficient,IllegalCoefficientValue
 import numpy as np
 from esys.escript.pdetools import Locator

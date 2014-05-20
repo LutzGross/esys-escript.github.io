@@ -45,7 +45,7 @@ struct Connector
 {
     SharedComponents_ptr send;
     SharedComponents_ptr recv;
-    mutable esysUtils::JMPI mpi_info;
+    Esys_MPIInfo* mpi_info;
 
     Connector(SharedComponents_ptr s, SharedComponents_ptr r)
     {
@@ -59,11 +59,11 @@ struct Connector
         }
         send = s;
         recv = r;
-        mpi_info = s->mpi_info;
+        mpi_info = Esys_MPIInfo_getReference(s->mpi_info);
     }
 
     /// destructor
-    ~Connector() { }
+    ~Connector() { Esys_MPIInfo_free(mpi_info); }
 
     /// creates a copy
     inline Connector_ptr copy() const { return unroll(1); }
@@ -156,7 +156,7 @@ struct Coupler
     double* recv_buffer;
     MPI_Request* mpi_requests;
     MPI_Status* mpi_stati;
-    mutable esysUtils::JMPI mpi_info;
+    Esys_MPIInfo* mpi_info;
 };
 
 
