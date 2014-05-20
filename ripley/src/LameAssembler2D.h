@@ -40,27 +40,27 @@ public:
     ~LameAssembler2D(){};
     
     /* The new interface for assemblers */
-    virtual void assemblePDESingle(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESingle(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySingle(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESingleReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySingleReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    virtual void assemblePDESystem(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySystem(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESystemReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySystemReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
             

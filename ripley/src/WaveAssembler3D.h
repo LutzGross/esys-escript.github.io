@@ -34,32 +34,32 @@ public:
     ~WaveAssembler3D(){};
 
     /* The only assembly function we care about right now*/
-    void assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDESystem(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const;
 
 
-    void assemblePDESingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDESingle(SystemMatrix* mat, escript::Data& rhs,
                            std::map<std::string, escript::Data> coefs) const {
         throw RipleyException("This assembly not supported by this assembler");
     }
-    void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+    void assemblePDEBoundarySingle(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {
         throw RipleyException("This assembly not supported by this assembler");
     }
-    void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+    void assemblePDESingleReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {
         throw RipleyException("This assembly not supported by this assembler");
     }
-    void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+    void assemblePDEBoundarySingleReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDEBoundarySystem(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDESystemReduced(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+    void assemblePDESystemReduced(SystemMatrix* mat, escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+    void assemblePDEBoundarySystemReduced(SystemMatrix* mat,
             escript::Data& rhs,
             std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
 

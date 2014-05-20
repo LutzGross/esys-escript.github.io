@@ -17,31 +17,31 @@
 #include <ripley/RipleyDomain.h>
 #include <escript/DataFactory.h>
 #include <escript/FunctionSpaceFactory.h>
-#include <pasowrap/SystemMatrixAdapter.h>
 #include <pasowrap/TransportProblemAdapter.h>
 #include <ripley/domainhelpers.h>
+#include <ripley/RipleySystemMatrix.h>
 
 #include <iomanip>
 
 using namespace std;
-using paso::SystemMatrixAdapter;
 using paso::TransportProblemAdapter;
 
 namespace ripley {
 
 void tupleListToMap(map<string, escript::Data>& mapping,
-        boost::python::list& list) {
+                    boost::python::list& list)
+{
     using boost::python::tuple;
     using boost::python::extract;
     for (int i = 0; i < len(list); i++) {
         if (!extract<tuple>(list[i]).check())
             throw RipleyException("Passed in list contains objects"
-                                    " other than tuples");
+                                  " other than tuples");
         tuple t = extract<tuple>(list[i]);
         if (len(t) != 2 || !extract<std::string>(t[0]).check() ||
                 !extract<escript::Data>(t[1]).check())
             throw RipleyException("The passed in list must contain tuples"
-                " of the form (string, escript::data)");
+                " of the form (string, escript::Data)");
         mapping[extract<std::string>(t[0])] = extract<escript::Data>(t[1]);
     }
 }
@@ -50,14 +50,10 @@ RipleyDomain::RipleyDomain(dim_t dim, escript::SubWorld_ptr p) :
     m_numDim(dim),
     m_status(0)
 {
-    if (p.get()==0)	
-    {
-	m_mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
-    }
+    if (p.get()==0)     
+        m_mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
     else
-    {
-	m_mpiInfo = p->getMPI();
-    }
+        m_mpiInfo = p->getMPI();
     assembler_type = DEFAULT_ASSEMBLER;
 }
 
@@ -319,15 +315,15 @@ signed char RipleyDomain::preferredInterpolationOnDomain(int fsType_source,
             return (fsType_target != Nodes &&
                     fsType_target != DegreesOfFreedom)?-1:0;
         case Elements:
-	    return (fsType_target==ReducedElements)?1:0;
+            return (fsType_target==ReducedElements)?1:0;
         case ReducedElements:
-	    return (fsType_target==Elements)?-1:0;	  
+            return (fsType_target==Elements)?-1:0;        
         case FaceElements:
-	    return (fsType_target==ReducedFaceElements)?1:0;
+            return (fsType_target==ReducedFaceElements)?1:0;
         case ReducedFaceElements:
             return (fsType_target==FaceElements)?-1:0;
-	case Points: 
-	    return false;	// other case caught by the if above
+        case Points: 
+            return false;       // other case caught by the if above
 
         default: {
             stringstream msg;
@@ -758,11 +754,10 @@ void RipleyDomain::Print_Mesh_Info(const bool full) const
     }
 }
 
-int RipleyDomain::getSystemMatrixTypeId(const int solver,
-        const int preconditioner, const int package, const bool symmetry) const
+int RipleyDomain::getSystemMatrixTypeId(int solver, int preconditioner,
+                                        int package, bool symmetry) const
 {
-    return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
-            package, symmetry, m_mpiInfo);
+    return 4711;
 }
 
 int RipleyDomain::getTransportTypeId(const int solver, const int preconditioner,
@@ -796,18 +791,21 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
         reduceColOrder=true;
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix: illegal function space type for system matrix columns");
-
-    if (type & MATRIX_FORMAT_TRILINOS_CRS)
-        throw RipleyException("newSystemMatrix: Ripley does not support matrix format TRILINOS_CRS");
+    // are block sizes identical?
+    if (row_blocksize != column_blocksize)
+        throw RipleyException("newSystemMatrix: row/column block sizes must be equal");
+    // are function spaces equal
+    if (reduceRowOrder != reduceColOrder)
+        throw RipleyException("newSystemMatrix: row/column function spaces must be equal");
 
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPattern(reduceRowOrder, reduceColOrder));
-    paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
-            row_blocksize, column_blocksize, false));
-    paso::checkPasoError();
-    escript::ASM_ptr sma(new SystemMatrixAdapter(matrix, row_blocksize,
-                row_functionspace, column_blocksize, column_functionspace));
-    return sma;
+    //if (reduceRowOrder || reduceColOrder)
+    //    throw RipleyException("newSystemMatrix: reduced order not supported");
+
+    const int numMatrixRows = getNumDOF();
+    escript::ASM_ptr sm(new SystemMatrix(row_blocksize,
+                row_functionspace, numMatrixRows, getDiagonalIndices()));
+    return sm;
 }
 
 void RipleyDomain::addToSystem(
@@ -819,13 +817,10 @@ void RipleyDomain::addToSystem(
         throw RipleyException(
                     "addToSystem: Ripley does not support contact elements");
 
-    paso::SystemMatrixAdapter* sma = 
-                    dynamic_cast<paso::SystemMatrixAdapter*>(&mat);
-    if (!sma)
+    SystemMatrix* S = dynamic_cast<SystemMatrix*>(&mat);
+    if (!S)
         throw RipleyException(
-                    "addToSystem: Ripley only accepts Paso system matrices");
-
-    paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
+                    "addToSystem: Ripley only accepts its own system matrices");
 
     assemblePDE(S, rhs, coefs, assembler);
     assemblePDEBoundary(S, rhs, coefs, assembler);
@@ -841,9 +836,9 @@ void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
     addToSystem(mat, rhs, mapping, assembler);
 }
 
-
 Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
-                                         boost::python::list options) const {
+                                         boost::python::list options) const
+{
     std::map<std::string, escript::Data> mapping;
     tupleListToMap(mapping, options);
     return createAssembler(type, mapping);
@@ -875,9 +870,9 @@ void RipleyDomain::addToRHS(escript::Data& rhs,
             return;
     }
 
-    assemblePDE(paso::SystemMatrix_ptr(), rhs, coefs, assembler);
-    assemblePDEBoundary(paso::SystemMatrix_ptr(), rhs, coefs, assembler);
-    assemblePDEDirac(paso::SystemMatrix_ptr(), rhs, coefs, assembler);
+    assemblePDE(NULL, rhs, coefs, assembler);
+    assemblePDEBoundary(NULL, rhs, coefs, assembler);
+    assemblePDEDirac(NULL, rhs, coefs, assembler);
 }
 
 escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
@@ -895,12 +890,14 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
         throw RipleyException("newTransportProblem: illegal function space type for transport problem");
 
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPattern(reduceOrder, reduceOrder));
-    paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
-                                                             blocksize));
-    paso::checkPasoError();
-    escript::ATP_ptr atp(new TransportProblemAdapter(tp, blocksize, functionspace));
-    return atp;
+    //paso::SystemMatrixPattern_ptr pattern(getPattern(reduceOrder, reduceOrder));
+    //paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
+                                                             //blocksize));
+    //paso::checkPasoError();
+    //escript::ATP_ptr atp(new TransportProblemAdapter(tp, blocksize, functionspace));
+    //return atp;
+    (void)reduceOrder;
+    throw RipleyException("newTransportProblem");
 }
 
 void RipleyDomain::addPDEToTransportProblemFromPython(
@@ -926,10 +923,11 @@ void RipleyDomain::addPDEToTransportProblem(
         throw RipleyException("addPDEToTransportProblem: Ripley only accepts Paso transport problems");
 
     paso::TransportProblem_ptr ptp(tpa->getPaso_TransportProblem());
-    assemblePDE(ptp->mass_matrix, source, coefs, assembler);
-    assemblePDE(ptp->transport_matrix, source, coefs, assembler);
-    assemblePDEBoundary(ptp->transport_matrix, source, coefs, assembler);
-    assemblePDEDirac(ptp->transport_matrix, source, coefs, assembler);
+    //assemblePDE(ptp->mass_matrix, source, coefs, assembler);
+    //assemblePDE(ptp->transport_matrix, source, coefs, assembler);
+    //assemblePDEBoundary(ptp->transport_matrix, source, coefs, assembler);
+    //assemblePDEDirac(ptp->transport_matrix, source, coefs, assembler);
+    throw RipleyException("addPDEToTransportProblem");
 }
 
 void RipleyDomain::setNewX(const escript::Data& arg)
@@ -1022,7 +1020,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 #pragma omp parallel private(local_minFoundValue)
         {
             local_minFoundValue = minFoundValue;
-	    long i;	// should be size_t but omp mutter mutter
+            long i;     // should be size_t but omp mutter mutter
 #pragma omp for schedule(static) private(i) nowait
             for (i = 0; i < tags->size(); i++) {
                 const index_t v = (*tags)[i];
@@ -1049,191 +1047,8 @@ void RipleyDomain::updateTagsInUse(int fsType) const
     }
 }
 
-//protected
-paso::Pattern_ptr RipleyDomain::createPasoPattern(const IndexVector& ptr,
-        const IndexVector& index, const dim_t M, const dim_t N) const
-{
-    // paso will manage the memory
-    index_t* indexC = new index_t[index.size()];
-    index_t* ptrC = new index_t[ptr.size()];
-    copy(index.begin(), index.end(), indexC);
-    copy(ptr.begin(), ptr.end(), ptrC);
-    return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC));
-}
-
-//protected
-paso::Pattern_ptr RipleyDomain::createMainPattern() const
-{
-    IndexVector ptr(1,0);
-    IndexVector index;
-
-    for (index_t i=0; i<getNumDOF(); i++) {
-        // add the DOF itself
-        index.push_back(i);
-        const dim_t num=insertNeighbourNodes(index, i);
-        ptr.push_back(ptr.back()+num+1);
-    }
-
-    return createPasoPattern(ptr, index, ptr.size()-1, ptr.size()-1);
-}
-
-//protected
-void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
-        const vector<IndexVector>& rowIndices, const dim_t N,
-        paso::Pattern_ptr& colPattern, paso::Pattern_ptr& rowPattern) const
-{
-    IndexVector ptr(1,0);
-    IndexVector index;
-    for (index_t i=0; i<getNumDOF(); i++) {
-        index.insert(index.end(), colIndices[i].begin(), colIndices[i].end());
-        ptr.push_back(ptr.back()+colIndices[i].size());
-    }
-
-    const dim_t M=ptr.size()-1;
-    colPattern=createPasoPattern(ptr, index, M, N);
-
-    IndexVector rowPtr(1,0);
-    IndexVector rowIndex;
-    for (index_t i=0; i<rowIndices.size(); i++) {
-        rowIndex.insert(rowIndex.end(), rowIndices[i].begin(), rowIndices[i].end());
-        rowPtr.push_back(rowPtr.back()+rowIndices[i].size());
-    }
-
-    // M and N are now reversed
-    rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
-}
-
-//protected
-void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat, 
-       const IndexVector& nodes_Eq, dim_t num_Eq, const IndexVector& nodes_Sol,
-       dim_t num_Sol, const vector<double>& array) const
-{
-    const dim_t numMyCols = mat->pattern->mainPattern->numInput;
-    const dim_t numMyRows = mat->pattern->mainPattern->numOutput;
-    const dim_t numSubblocks_Eq = num_Eq / mat->row_block_size;
-    const dim_t numSubblocks_Sol = num_Sol / mat->col_block_size;
-
-    const index_t* mainBlock_ptr = mat->mainBlock->pattern->ptr;
-    const index_t* mainBlock_index = mat->mainBlock->pattern->index;
-    double* mainBlock_val = mat->mainBlock->val;
-    const index_t* col_coupleBlock_ptr = mat->col_coupleBlock->pattern->ptr;
-    const index_t* col_coupleBlock_index = mat->col_coupleBlock->pattern->index;
-    double* col_coupleBlock_val = mat->col_coupleBlock->val;
-    const index_t* row_coupleBlock_ptr = mat->row_coupleBlock->pattern->ptr;
-    const index_t* row_coupleBlock_index = mat->row_coupleBlock->pattern->index;
-    double* row_coupleBlock_val = mat->row_coupleBlock->val;
-    index_t offset=(mat->type & MATRIX_FORMAT_OFFSET1 ? 1:0);
-
-#define UPDATE_BLOCK(VAL) do {\
-    for (dim_t ic=0; ic<mat->col_block_size; ++ic) {\
-        const dim_t i_Sol=ic+mat->col_block_size*l_col;\
-        for (dim_t ir=0; ir<mat->row_block_size; ++ir) {\
-            const dim_t i_Eq=ir+mat->row_block_size*l_row;\
-            VAL[k*mat->block_size+ir+mat->row_block_size*ic]\
-                += array[INDEX4(i_Eq, i_Sol, k_Eq, k_Sol, num_Eq, num_Sol, nodes_Eq.size())];\
-        }\
-    }\
-} while(0)
-
-    if (mat->type & MATRIX_FORMAT_CSC) {
-        for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-            // down columns of array
-            for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
-                const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col;
-                if (i_col < numMyCols) {
-                    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
-                        for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
-                            const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row+offset;
-                            if (i_row < numMyRows+offset) {
-                                for (dim_t k = mainBlock_ptr[i_col]-offset; k < mainBlock_ptr[i_col+1]-offset; ++k) {
-                                    if (mainBlock_index[k] == i_row) {
-                                        UPDATE_BLOCK(mainBlock_val);
-                                        break;
-                                    }
-                                }
-                            } else {
-                                for (dim_t k = col_coupleBlock_ptr[i_col]-offset; k < col_coupleBlock_ptr[i_col+1]-offset; ++k) {
-                                    if (row_coupleBlock_index[k] == i_row - numMyRows) {
-                                        UPDATE_BLOCK(row_coupleBlock_val);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
-                        // across rows of array
-                        for (dim_t l_row=0; l_row<numSubblocks_Eq; ++l_row) {
-                            const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row+offset;
-                            if (i_row < numMyRows+offset) {
-                                for (dim_t k = col_coupleBlock_ptr[i_col-numMyCols]-offset;
-                                     k < col_coupleBlock_ptr[i_col-numMyCols+1]-offset; ++k)
-                                {
-                                    if (col_coupleBlock_index[k] == i_row) {
-                                        UPDATE_BLOCK(col_coupleBlock_val);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        for (dim_t k_Eq = 0; k_Eq < nodes_Eq.size(); ++k_Eq) {
-            // down columns of array
-            for (dim_t l_row = 0; l_row < numSubblocks_Eq; ++l_row) {
-                const dim_t i_row = nodes_Eq[k_Eq]*numSubblocks_Eq+l_row;
-                // only look at the matrix rows stored on this processor
-                if (i_row < numMyRows) {
-                    for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                        for (dim_t l_col = 0; l_col < numSubblocks_Sol; ++l_col) {
-                            const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
-                            if (i_col < numMyCols+offset) {
-                                for (dim_t k = mainBlock_ptr[i_row]-offset; k < mainBlock_ptr[i_row+1]-offset; ++k) {
-                                    if (mainBlock_index[k] == i_col) {
-                                        UPDATE_BLOCK(mainBlock_val);
-                                        break;
-                                    }
-                                }
-                            } else {
-                                for (dim_t k = col_coupleBlock_ptr[i_row]-offset; k < col_coupleBlock_ptr[i_row+1]-offset; ++k) {
-                                    if (col_coupleBlock_index[k] == i_col-numMyCols) {
-                                        UPDATE_BLOCK(col_coupleBlock_val);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                } else {
-                    for (dim_t k_Sol = 0; k_Sol < nodes_Sol.size(); ++k_Sol) {
-                        // across rows of array
-                        for (dim_t l_col=0; l_col<numSubblocks_Sol; ++l_col) {
-                            const dim_t i_col = nodes_Sol[k_Sol]*numSubblocks_Sol+l_col+offset;
-                            if (i_col < numMyCols+offset) {
-                                for (dim_t k = row_coupleBlock_ptr[i_row-numMyRows]-offset;
-                                     k < row_coupleBlock_ptr[i_row-numMyRows+1]-offset; ++k)
-                                {
-                                    if (row_coupleBlock_index[k] == i_col) {
-                                        UPDATE_BLOCK(row_coupleBlock_val);
-                                        break;
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-#undef UPDATE_BLOCK
-}
-
 //private
-void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+void RipleyDomain::assemblePDE(SystemMatrix* mat, escript::Data& rhs,
         std::map<std::string, escript::Data> coefs,
         Assembler_ptr assembler) const
 {
@@ -1266,10 +1081,10 @@ void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
             numEq=numComp=rhs.getDataPointSize();
         }
     } else {
-        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->logical_row_block_size)
+        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->getRowBlockSize())
             throw RipleyException("assemblePDE: matrix row block size and number of components of right hand side don't match");
-        numEq = mat->logical_row_block_size;
-        numComp = mat->logical_col_block_size;
+        numEq = mat->getRowBlockSize();
+        numComp = mat->getColumnBlockSize();
     }
 
     if (numEq != numComp)
@@ -1293,7 +1108,7 @@ void RipleyDomain::assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
 }
 
 //private
-void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
+void RipleyDomain::assemblePDEBoundary(SystemMatrix* mat,
         escript::Data& rhs, std::map<std::string, escript::Data> coefs,
         Assembler_ptr assembler) const
 {
@@ -1326,10 +1141,10 @@ void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
             numEq=numComp=rhs.getDataPointSize();
         }
     } else {
-        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->logical_row_block_size)
+        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->getRowBlockSize())
             throw RipleyException("assemblePDEBoundary: matrix row block size and number of components of right hand side don't match");
-        numEq = mat->logical_row_block_size;
-        numComp = mat->logical_col_block_size;
+        numEq = mat->getRowBlockSize();
+        numComp = mat->getColumnBlockSize();
     }
 
     if (numEq != numComp)
@@ -1350,7 +1165,7 @@ void RipleyDomain::assemblePDEBoundary(paso::SystemMatrix_ptr mat,
     }
 }
 
-void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
+void RipleyDomain::assemblePDEDirac(SystemMatrix* mat,
         escript::Data& rhs, std::map<std::string, escript::Data> coefs,
         Assembler_ptr assembler) const
 {
@@ -1369,11 +1184,11 @@ void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
             nEq=nComp=rhs.getDataPointSize();
         }
     } else {
-        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->logical_row_block_size)
+        if (!rhs.isEmpty() && rhs.getDataPointSize()!=mat->getRowBlockSize())
             throw RipleyException("assemblePDEDirac: matrix row block size "
                     "and number of components of right hand side don't match");
-        nEq = mat->logical_row_block_size;
-        nComp = mat->logical_col_block_size;
+        nEq = mat->getRowBlockSize();
+        nComp = mat->getColumnBlockSize();
     }
     for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
         IndexVector rowIndex;
@@ -1390,8 +1205,8 @@ void RipleyDomain::assemblePDEDirac(paso::SystemMatrix_ptr mat,
         if (dNotEmpty) {
             const double *EM_S = d.getSampleDataRO(i);
             std::vector<double> contents(EM_S,
-                        EM_S+mat->row_block_size*nEq*nComp*rowIndex.size());
-            addToSystemMatrix(mat, rowIndex, nEq, rowIndex, nComp, contents);
+                        EM_S+mat->getRowBlockSize()*nEq*nComp*rowIndex.size());
+            mat->add(rowIndex, contents);
         }
     }
 }
@@ -1411,7 +1226,7 @@ void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data&
 // Expecting ("gaussian", radius, sigma)
 bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
 {
-    if (len(t)==0) {	// so we can handle unfiltered randoms
+    if (len(t)==0) {    // so we can handle unfiltered randoms
         return true;
     }
     if (len(t)!=3) {

@@ -13,13 +13,13 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-#ifndef __ESCRIPT_ABSTRACTASSEMBLER_H__
-#define __ESCRIPT_ABSTRACTASSEMBLER_H__
+#ifndef __RIPLEY_ABSTRACTASSEMBLER_H__
+#define __RIPLEY_ABSTRACTASSEMBLER_H__
 
 #include <map>
 #include <escript/Data.h>
 #include <escript/Pointers.h>
-#include <paso/SystemMatrix.h>
+#include <ripley/RipleySystemMatrix.h>
 
 namespace ripley {
 /* returns the data associated with the string key or an empty data object
@@ -32,33 +32,34 @@ class AbstractAssembler;
 typedef POINTER_WRAPPER_CLASS(AbstractAssembler) Assembler_ptr;
 typedef POINTER_WRAPPER_CLASS(const AbstractAssembler) const_Assembler_ptr;
 
-class AbstractAssembler : public REFCOUNT_BASE_CLASS(AbstractAssembler) {
+class AbstractAssembler : public REFCOUNT_BASE_CLASS(AbstractAssembler)
+{
 public:
     virtual ~AbstractAssembler() {};
    
     /* The new interface for assemblers */
-    virtual void assemblePDESingle(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESingle(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySingle(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESingleReduced(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySingleReduced(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESystem(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESystem(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySystem(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDESystemReduced(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+    virtual void assemblePDEBoundarySystemReduced(SystemMatrix* mat,
                     escript::Data& rhs,
                     std::map<std::string, escript::Data> coefs) const = 0;
 
@@ -66,8 +67,8 @@ public:
             std::map<std::string, escript::Data> coefs) const = 0;
 };
 
-} // namespace escript
+} // namespace ripley
 
 
-#endif // __ESCRIPT_ABSTRACTASSEMBLER_H__
+#endif // __RIPLEY_ABSTRACTASSEMBLER_H__
 
