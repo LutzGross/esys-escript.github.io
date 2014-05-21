@@ -392,12 +392,14 @@ class InversionCostFunction(MeteredCostFunction):
         args_reg=args[2]
 
         J = self.regularization.getValue(m, *args_reg)
+        print( "J = %e"%(J))
 
         for i in range(self.numModels):
             f, idx=self.forward_models[i]
             args=tuple( [ props[k] for k in idx]  + list( args_f[i] ) )
             J_f = f.getDefect(*args)
             self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
+            print( "J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
 
         return J
