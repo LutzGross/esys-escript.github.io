@@ -413,8 +413,8 @@ class Rheology(object):
           """
           Returns the restoring force factor
 
-          @return:  restoring force factor
-          @rtype: `float` or `Data`
+          :return:  restoring force factor
+          :rtype: `float` or `Data`
           """
           return self.__restoration_factor
           
