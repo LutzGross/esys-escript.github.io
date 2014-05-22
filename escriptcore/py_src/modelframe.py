@@ -70,7 +70,7 @@ def importName(modulename, name):
     which means you should use fully qualified module paths.
     Returns None on failure.
 
-    This function is from U{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52241}
+    This function is from http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/52241
     """
     module = __import__(modulename, globals(), locals(), [name])
 

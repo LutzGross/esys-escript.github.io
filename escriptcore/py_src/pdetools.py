@@ -533,9 +533,9 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
    For details on the preconditioned conjugate gradient method see the book:
 
-   I{Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
+   "Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
-   C. Romine, and H. van der Vorst}.
+   C. Romine, and H. van der Vorst".
 
    :param r: initial residual *r=b-Ax*. ``r`` is altered.
    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
@@ -1073,9 +1073,9 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
     For details on the preconditioned conjugate gradient method see the book:
 
-    I{Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
+    "Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
     T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
-    C. Romine, and H. van der Vorst}.
+    C. Romine, and H. van der Vorst".
 
     :param r: initial residual *r=b-Ax*. ``r`` is altered.
     :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
