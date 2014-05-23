@@ -44,6 +44,9 @@ void MPI_minimizeDistance(void *invec_p, void *inoutvec_p, int *len,
 void Mesh::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
+    if (numPoints==0) {
+	return;
+    }
     ElementFile *oldPoints=Points;
     const_ReferenceElementSet_ptr refPoints;
     int numOldPoints;
@@ -60,11 +63,10 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
     // first we find the node which is the closest on this processor:
     double *dist_p = new double[numPoints];
     int *node_id_p = new int[numPoints];
-    int *point_index_p = new int[numPoints];
+    int *point_index_p = new int[numPoints];	// the code below does actually initialise this before using it
 
     for (int i=0; i<numPoints; ++i) {
         dist_p[i]=LARGE_POSITIVE_FLOAT;
-        node_id_p[i]=-1;
         node_id_p[i]=-1;
     }
 
