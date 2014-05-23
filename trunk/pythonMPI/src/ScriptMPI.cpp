@@ -43,8 +43,6 @@ int main( int argc, char **argv ) {
 	MPI_Abort(MPI_COMM_WORLD, 1);
     }
 
-    esysUtils::JMPI mpi_info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
     if( rank )
     {
       #ifdef _WIN32
