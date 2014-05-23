@@ -260,16 +260,18 @@ class Test_DiracOnFinley(unittest.TestCase):
     if mpisize==1:
       self.assertEquals(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
       self.assertEquals(v.getNumberOfDataPoints(), 4)
-    self.assertEquals(inf(v[0]), 0)
-    self.assertEquals(inf(v[1]), 0.25)
-    self.assertEquals(Lsup(v[0]), 1)
-    self.assertEquals(Lsup(v[1]), 1)
+      self.assertEquals(inf(v[0]), 0)
+      self.assertEquals(inf(v[1]), 0.25)
+      self.assertEquals(Lsup(v[0]), 1)
+      self.assertEquals(Lsup(v[1]), 1)
     v.setTaggedValue("A",(-10,0.5))
-    self.assertEquals(inf(v[0]), -10)
-    self.assertEquals(inf(v[1]), 0.5)
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
     v.setTaggedValue(500,(-100,-100))	# non-existant tag
-    self.assertEquals(inf(v[0]), -10)
-    self.assertEquals(inf(v[1]), 0.5)
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
     self.assertEquals(z.showTagNames(), 'A, B, C, bottom, left, right, top')
     self.assertEquals(z.getTag("C"), 42)
    
