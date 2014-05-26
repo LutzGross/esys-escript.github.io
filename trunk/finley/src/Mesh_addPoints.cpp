@@ -81,7 +81,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 const double X2=points_ptr[INDEX2(2,i,numDim)];
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
-#pragma omp for
+#pragma omp for schedule(static)
                 for (int n=0; n<Nodes->numNodes; n++) {
                     const double D0=coords[INDEX2(0,n,numDim)] - X0;
                     const double D1=coords[INDEX2(1,n,numDim)] - X1;
@@ -94,7 +94,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-                    if (dist_local < dist_p[i]) {
+                    if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
                         dist_p[i] = dist_local;
                         node_id_p[i] = node_id_local;
                     }
@@ -109,7 +109,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 const double X1=points_ptr[INDEX2(1,i,numDim)];
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
-#pragma omp for
+#pragma omp for schedule(static)
                 for (int n=0; n<Nodes->numNodes; n++) {
                     const double D0=coords[INDEX2(0,n,numDim)] - X0;
                     const double D1=coords[INDEX2(1,n,numDim)] - X1;
@@ -121,10 +121,10 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-                    if (dist_local < dist_p[i]) {
-                        dist_p[i] = dist_local;
-                        node_id_p[i] = node_id_local;
-                    }
+		  if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
+		      dist_p[i] = dist_local;
+		      node_id_p[i] = node_id_local;
+		  }
                 }
             }
         } // end parallel section
@@ -135,7 +135,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 const double X0=points_ptr[INDEX2(0,i,numDim)];
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
-#pragma omp for
+#pragma omp for schedule(static)
                 for (int n=0; n<Nodes->numNodes; n++) {
                     const double D0=coords[INDEX2(0,n,numDim)] - X0;
                     const double d = D0*D0;
@@ -146,7 +146,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-                    if (dist_local < dist_p[i]) {
+                    if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
                         dist_p[i] = dist_local;
                         node_id_p[i] = node_id_local;
                     }
