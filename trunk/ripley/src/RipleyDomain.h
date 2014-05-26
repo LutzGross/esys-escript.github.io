@@ -527,6 +527,7 @@ public:
             boost::python::list data,
             Assembler_ptr assembler) const;
 
+    using escript::AbstractContinuousDomain::addPDEToTransportProblem;
     /**
        \brief
        adds a PDE onto a transport problem
