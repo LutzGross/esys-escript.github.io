@@ -74,7 +74,7 @@ class TestMinimizerLBFGS(unittest.TestCase):
         xx=self.minimizer.getResult()
         self.assertEqual(np.amax(abs(x-xx)), 0.)
         # We should be able to get a solution in under 100 iterations
-        self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0.)
+        self.assertLess(np.amax(abs(x-self.xstar)), 1e-7)
 
     def test_callback(self):
         n=[0]
