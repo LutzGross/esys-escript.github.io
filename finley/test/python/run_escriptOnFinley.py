@@ -285,7 +285,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     z=Brick(4,4, diracPoints=[(0.125,0.625,0), (0.5,1,0), (0.75, 0.25, 0.51), (0.89, 0.875,1)], diracTags=["A", "B", "A", "C"]) 
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
-      self.assertEquals(v.toListOfTuples(),[(0.0, 0.75, 0.0), (0.5, 1.0, 0.0), (0.75, 0.25, 1), (1.0, 0.75, 1.0)])
+      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 0.0), (0.75, 0.25, 1), (1.0, 0.75, 1.0)])
       self.assertEquals(v.getNumberOfDataPoints(), 4)
       self.assertEquals(inf(v[0]), 0)
       self.assertEquals(inf(v[1]), 0.25)
