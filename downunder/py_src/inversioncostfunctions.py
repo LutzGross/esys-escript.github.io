@@ -14,8 +14,6 @@
 #
 ##############################################################################
 
-from __future__ import print_function
-
 """Cost functions for inversions with one or more forward models"""
 
 __copyright__="""Copyright (c) 2003-2014 by University of Queensland
@@ -392,14 +390,12 @@ class InversionCostFunction(MeteredCostFunction):
         args_reg=args[2]
 
         J = self.regularization.getValue(m, *args_reg)
-        print( "J = %e"%(J))
 
         for i in range(self.numModels):
             f, idx=self.forward_models[i]
             args=tuple( [ props[k] for k in idx]  + list( args_f[i] ) )
             J_f = f.getDefect(*args)
             self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
-            print( "J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
             J += self.mu_model[i] * J_f
 
         return J
@@ -499,7 +495,7 @@ class InversionCostFunction(MeteredCostFunction):
                     idx_m=self.mappings[j][1] # run through all level sets k prop j is depending on:
                     if p_diffs[idx_f[j]].getRank() == 0 :
                         if idx_m: # this case is not needed (really?)
-                            print("something wrong A")
+                            self.logger.error("something wrong A")
                             tmp=Ys[s]*p_diffs[idx_f[j]] * mu # tmp[k] = dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
                             for k in range(len(idx_m)): 
                                 Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
