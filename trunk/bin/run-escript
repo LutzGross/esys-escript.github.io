@@ -486,10 +486,10 @@ then
       mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
       if [ $? -ne 0 ]
       then
-         echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
+         echo "mpdboot with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
          exit 1
       else
-          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
+          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
       fi
    else
       mpdboot -n 1 -r ssh
@@ -544,10 +544,10 @@ then
          mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
          if [ $? -ne 0 ]
          then
-            echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
+            echo "mpdboot with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
             exit 1
          else
-             if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
+             if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
          fi
    else
       mpdboot -n 1 -r ssh
