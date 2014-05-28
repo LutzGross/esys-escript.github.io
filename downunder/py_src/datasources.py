@@ -1279,6 +1279,27 @@ class NumpyData(DataSource):
         """
         return 0
 
+class MT2DTe(object):
+    """
+    class used to store frequency information accosicated with mt data
+    """
+
+    def __init__(self, omega=0):
+        """
+        initiale the MT2DTe tag object
+
+        :param omega: frequency of readings
+        :type omega: ``float``
+        """
+        self.__omega=omega
+
+    def getFrequency(self):
+        """
+        return frequency of source
+        :rtype: ``float``
+        """
+        return self.__omega
+
 class SeismicSource(object):
     """
     describes a seimic source by location (x,y), frequency omega, power (if known) and orientation (if known).
