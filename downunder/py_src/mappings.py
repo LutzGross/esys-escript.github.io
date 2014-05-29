@@ -75,9 +75,7 @@ class LinearMapping(Mapping):
     Maps a parameter by a linear transformation p = a * m + p0
     """
 
-    def __init__(self, a=1, p0=0):
-        a = float(a)
-        p0 = float(p0)
+    def __init__(self, a=1., p0=0.):
         self.__a=a
         self.__p0=p0
         self.__a_inv = 1./a
