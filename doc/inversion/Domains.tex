@@ -198,6 +198,7 @@ creates the appropriate coordinate transformation \class{CartesianCoordinateTran
 from the reference coordinate system.
 \end{methoddesc}
 
+
 \subsection{Geodetic Reference Systems}
 
 \begin{classdesc}{GeodeticReferenceSystem}{
@@ -233,6 +234,7 @@ returns the flattening
 \begin{methoddesc}[GeodeticReferenceSystem]{isTheSame}{other}
 test if \member{other} defines the same reference coordinate system.
 \end{methoddesc}
+
 
 \begin{methoddesc}[GeodeticReferenceSystem]{createTransformation}{domain}
 creates the appropriate coordinate transformation \class{GeodeticReferenceSystem}  on a given \member{domain}
@@ -310,6 +312,11 @@ returns the volume factor for the coordinate transformation $v$.
 returns the scaling factors $d_{\alpha, \alpha}$.
 \end{methoddesc}
 
+\begin{methoddesc}[GeodeticCoordinateTransformation]{getGradient}{u}
+return the gradient of scalar \member{u} along the axis of
+reference coordinate system.
+\end{methoddesc}
+
 \subsection{Cartesian Transformation}
 In order to be able to use Cartesian coordinates  within \downunder in the same way like geodetic coordinates 
 one can use the class \class{CartesianCoordinateTransformation}.  It defines the same interface 
@@ -356,4 +363,9 @@ returns the volume factor for the coordinate transformation $v$ ($=1$).
 
 \begin{methoddesc}[CartesianCoordinateTransformation]{getScalingFactors}{}
 returns the scaling factors $d_{\alpha \alpha}$ ($=1$).
+\end{methoddesc}
+
+\begin{methoddesc}[CartesianCoordinateTransformation]{getGradient}{u}
+return the gradient of scalar \member{u} along the axis of
+reference coordinate system.
 \end{methoddesc}
