@@ -1096,11 +1096,11 @@ class MT2DModelTEMode(ForwardModel):
         D[1,0]= -f
 
         for s in xrange(len(self.__Z_xy)):
-            ws=self.getWeightingFactor(x, self.__w0[s], self.__x[s], self__eta[s])
-            Y[0]+=ws * (u0 - u01* self.__Z_xy.real + u11* self.___Z_xy.imag)
-            Y[1]+=ws * (u1 - u01* self.___Z_xy.imag - u11* self.__Z_xy.real)
-            X[0,1]+=ws * (u01* (self.__Z_xy.real**2 + self.___Z_xy.imag**2) - u0* self.__Z_xy.real - u1* self.___Z_xy.imag )
-            X[0,1]+=ws * (u11* (self.__Z_xy.real**2 + self.___Z_xy.imag**2) - u0* self.___Z_xy.imag + u1* self.__Z_xy.real )
+            ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
+            Y[0]+=ws * (u0 - u01* self.__Z_xy[s].real + u11* self.__Z_xy[s].imag)
+            Y[1]+=ws * (u1 - u01* self.__Z_xy[s].imag - u11* self.__Z_xy[s].real)
+            X[0,1]+=ws * (u01* abs(self.__Z_xy[s])**2 - u0* self.__Z_xy[s].real - u1* self.__Z_xy[s].imag )
+            X[1,1]+=ws * (u11* abs(self.__Z_xy[s])**2 + u0* self.__Z_xy[s].imag - u1* self.__Z_xy[s].real )
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
         return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
