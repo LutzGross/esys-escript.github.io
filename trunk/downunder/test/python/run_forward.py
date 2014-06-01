@@ -266,9 +266,9 @@ class TestMT2DModelTEMode(unittest.TestCase):
 
         
         IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
-        Z_XY=[ complex(IMP,0.), complex(IMP,0.) ]
+        Z_XY=[ IMP, IMP ]
         x=[ [0.3,0.5], [0.6,0.5] ]
-        eta=0.0005
+        eta=0.005
         z=domain.getX()[1]
         Ex0_ex=exp(-k.real*z)*cos(-k.imag*z)
         Ex0_ex_z=(-k.real*cos(-k.imag*z)+k.imag*sin(-k.imag*z)) * exp(-k.real*z)
@@ -285,22 +285,78 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertTrue(Lsup(Exz[0]-Ex0_ex_z) <= 1e-2 * Lsup(Ex0_ex_z))
         self.assertTrue(Lsup(Exz[1]-Ex1_ex_z) <= 1e-2 * Lsup(Ex1_ex_z))
 
-        args=acw.getArguments(0.)
-        ref=acw.getDefect(0., *args)
-
-
-    def ttest_Differential(self):
-    
-    
-        #######
+        argsr=acw.getArguments(0.)
+        ref=acw.getDefect(0., *argsr)
+        
+        # this should be almost zero:
         args=acw.getArguments(SIGMA)
         d=acw.getDefect(SIGMA, *args)
         
         self.assertTrue( d > 0.)
         self.assertTrue( ref > 0.)
         self.assertTrue( d <= 1e-4 * ref ) # d should be zero (some sort of)  
+
+        # and this should be zero        
+        d0=acw.getDefect(SIGMA, Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], Ex0_ex_z*[1.,0]+ Ex1_ex_z*[0,1.])
+        self.assertTrue( d0 <= 1e-8 * ref ) # d should be zero (some sort of)  
+        
+
+        # and this too
+        dg=acw.getGradient(SIGMA, Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], Ex0_ex_z*[1.,0]+ Ex1_ex_z*[0,1.])
+        self.assertTrue(isinstance(dg, Data))
+        self.assertTrue(dg.getShape()==())              
+        self.assertTrue(Lsup(dg) < 1e-10)
+        
+    def ttest_Differential(self):
+    
+        INC=0.001 
+        
+        omega=2.
+        mu0=0.123
+        SIGMA=15.
+        k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
+
+        from esys.ripley import Rectangle
+        domain=Rectangle(200,200)
+
+        
+        IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
+        Z_XY=[ IMP, IMP ]
+        x=[ [0.3,0.5], [0.6,0.5] ]
+        eta=0.005
+        z=domain.getX()[1]
+        Ex0_ex=exp(-k.real*z)*cos(-k.imag*z)
+        Ex0_ex_z=(-k.real*cos(-k.imag*z)+k.imag*sin(-k.imag*z)) * exp(-k.real*z)
+        Ex1_ex=exp(-k.real*z)*sin(-k.imag*z)
+        Ex1_ex_z=(-k.real*sin(-k.imag*z)-k.imag*cos(-k.imag*z)) * exp(-k.real*z)
+
+        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.] )
+            
+        # this should be small
+        args0=acw.getArguments(SIGMA0)
+        d0=acw.getDefect(SIGMA0, *args0)
+        print "d0 =",d0
+        
+        dg=acw.getGradient(SIGMA0, *args0)
+        self.assertTrue(isinstance(dg, Data))
+        self.assertTrue(dg.getShape()==())
+        self.assertTrue(dg.getFunctionSpace()==Solution(domain))
+        print dg                 
+        self.assertTrue(Lsup(dg) < 1e-10)
+        
+        X=Function(domain).getX()
+        inc=exp(-length(X-(0.2,0.2))**2/0.03)*INC
+        
+        SIGMA1=SIGMA0+inc
+        args1=acw.getArguments(SIGMA1)
+        d1=acw.getDefect(SIGMA1, *args1)
         
         
+        print "d0, d1 = ",d0, d1
+
+
+
+
         1/0
         # test solution is u = a * z where a is complex
         a=complex(3.45, 0.56)
