@@ -240,7 +240,8 @@ class GravityModel(ForwardModelWithPotential):
         super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
         if not self.getCoordinateTransformation().isCartesian():
-            self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
+            self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()*self.getCoordinateTransformation().getHeightFactor()**(-3)
+
 
             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
             A=self.getPDE().createCoefficient("A")
@@ -920,6 +921,7 @@ class MT2DModelTEMode(ForwardModel):
         """
         super(MT2DModelTEMode, self).__init__()
         self.__domain = domain
+        DIM=domain.getDim()
         self.__trafo=makeTranformation(domain, coordinates)
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
@@ -931,7 +933,7 @@ class MT2DModelTEMode(ForwardModel):
                 raise ValueError("Number of data points ond number of impedance values don't match.")
         self.__x=x
         f=1/(complex(0,1)*omega*mu)
-        self.__data=[ z*f for z in Z_XY ]
+        self.__Z_xy=[ z*f for z in Z_XY ]
         #====================================
         if isinstance(eta, float) or isinstance(eta, int) :
                self.__eta =[ float(eta) for z in Z_XY]
@@ -941,11 +943,18 @@ class MT2DModelTEMode(ForwardModel):
                 raise ValueError("Number of confidence raddii and number of impedance values don't match.")
         #====================================
         if isinstance(w0, float) or isinstance(w0, int):
-               self.__w0 =[ float(w0) for z in Z_XY]
-        else:
-               self.__w0 =w0
-        if not len(self.__w0) == len(Z_XY): 
+               w0 =[ float(w0) for z in Z_XY]
+        if not len(w0) == len(Z_XY): 
                 raise ValueError("Number of confidence factors and number of impedance values don't match.")
+        
+        self.__wx0=[0.] * len(Z_XY)
+        x=Function(domain).getX()
+        for s in xrange(len(self.__Z_xy)):
+            f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
+            if f < 2*PI*self.__eta[s]**2 * 0.1 :
+                raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
+            self.__wx0[s]=w0[s]/f
+
         #====================================
         if isinstance(E_x0, float) or isinstance(E_x0, int) :
                self.__E_x0 =Data((E_x0,0), Solution(domain))
@@ -954,7 +963,7 @@ class MT2DModelTEMode(ForwardModel):
         elif isinstance(E_x0, complex):
                self.__E_x0 =Data((E_x0.real,E_x0.imag), Solution(domain))
         else:
-               if E_x0.getShape() is not (2,):
+               if not E_x0.getShape() == (2,):
                   raise ValueError("Expected shape of E_x0 is (2,)")
                self.__E_x0= E_x0
         #=======================
@@ -1020,18 +1029,18 @@ class MT2DModelTEMode(ForwardModel):
         pde=self.setUpPDE()
         D=pde.getCoefficient('D')
         f=self.__omega * self.__mu * sigma
-        D[0,1]= -f
-        D[1,0]=  f
+        D[0,1]= - f
+        D[1,0]= f
         pde.setValue(D=D, r=self.__E_x0)
         u=pde.getSolution()
 
         return u, grad(u)[:,1]
 
-    def getWeightingFactor(self, x, w0, x0, eta):
+    def getWeightingFactor(self, x, wx0, x0, eta):
         """
         returns the weighting factor
         """
-        return w0/(2*pi*eta**2) * exp(length(x-x0)**2* (-0.5/eta**2))
+        return wx0 * exp(length(x-x0)**2*(-0.5/eta**2))
 
     def getDefect(self, sigma, E_x, dE_xdz):
         """
@@ -1052,9 +1061,11 @@ class MT2DModelTEMode(ForwardModel):
         u1=E_x[1]
         u01=dE_xdz[0]
         u11=dE_xdz[1]
+        
+        # this cane be done faster!
         for s in xrange(len(self.__Z_xy)):
-            ws=self.getWeightingFactor(x, self.__w0[s], self.__x[s], self__eta[s])
-            A+=integrate( ws * ( (u0-u01*self.__Z_xy.real+u11*self.___Z_xy.imag)**2 + (u1-u01*self.___Z_xy.imag-u11*self.__Z_xy.real)**2 ) )
+            ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
+            A+=integrate( ws * ( (u0-u01*self.__Z_xy[s].real+u11*self.__Z_xy[s].imag)**2 + (u1-u01*self.__Z_xy[s].imag-u11*self.__Z_xy[s].real)**2 ) )
         return  A/2
 
     def getGradient(self,sigma, E_x, dE_xdz):
