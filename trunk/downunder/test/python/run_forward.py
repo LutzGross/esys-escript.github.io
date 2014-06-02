@@ -307,9 +307,9 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertTrue(dg.getShape()==())              
         self.assertTrue(Lsup(dg) < 1e-10)
         
-    def ttest_Differential(self):
+    def test_Differential(self):
     
-        INC=0.001 
+        INC=0.01 
         
         omega=2.
         mu0=0.123
@@ -331,116 +331,44 @@ class TestMT2DModelTEMode(unittest.TestCase):
         Ex1_ex_z=(-k.real*sin(-k.imag*z)-k.imag*cos(-k.imag*z)) * exp(-k.real*z)
 
         acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.] )
-            
-        # this should be small
+    
+        # this is the base line:
+        SIGMA0=10.        
         args0=acw.getArguments(SIGMA0)
         d0=acw.getDefect(SIGMA0, *args0)
-        print "d0 =",d0
         
-        dg=acw.getGradient(SIGMA0, *args0)
-        self.assertTrue(isinstance(dg, Data))
-        self.assertTrue(dg.getShape()==())
-        self.assertTrue(dg.getFunctionSpace()==Solution(domain))
-        print dg                 
-        self.assertTrue(Lsup(dg) < 1e-10)
+        dg0=acw.getGradient(SIGMA0, *args0)
+        self.assertTrue(isinstance(dg0, Data))
+        self.assertTrue(dg0.getShape()==())
+        
         
         X=Function(domain).getX()
-        inc=exp(-length(X-(0.2,0.2))**2/0.03)*INC
-        
-        SIGMA1=SIGMA0+inc
+
+        # test 1
+        p=INC
+        SIGMA1=SIGMA0+p
         args1=acw.getArguments(SIGMA1)
         d1=acw.getDefect(SIGMA1, *args1)
-        
-        
-        print "d0, d1 = ",d0, d1
+        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
+                
+        # test 2
+        p=exp(-length(X-(0.2,0.2))**2/10)*INC
+        SIGMA1=SIGMA0+p
+        args1=acw.getArguments(SIGMA1)
+        d1=acw.getDefect(SIGMA1, *args1)
+        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
 
-
-
-
-        1/0
-        # test solution is u = a * z where a is complex
-        a=complex(3.45, 0.56)
-        sigma=complex(1e-3, 0.056)
-        
-        
-        data=Data([a.real, a.imag], FunctionOnBoundary(domain))
-        mydata=data.copy()
-        
-        z=FunctionOnBoundary(domain).getX()[1]
-        w=whereZero(z-1.)
-        # source:
-        F=Data( [1,0],Function(domain))
-        # 
-        acw=AcousticWaveForm(domain, omega, w, data, F, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True, scaleF=True)
-        # check rescaled data
-        surv=acw.getSurvey()
-        self.assertAlmostEqual( integrate(length(surv[0])**2 * surv[1]), 1.)
-
-        mydata_scale=sqrt( integrate(w*length(mydata)**2) )
-        self.assertAlmostEqual( acw.getSourceScaling(z*[1, 0.]) , a/mydata_scale )
-        self.assertAlmostEqual( acw.getSourceScaling(mydata) , 1./mydata_scale )
-        
-        # this should be zero:
-        sigma_comps=[sigma.real, sigma.imag]
-        args=acw.getArguments(sigma_comps)
-        d=acw.getDefect(sigma_comps, *args)
-        self.assertTrue(isinstance(d, float))
-        self.assertTrue(abs(d) < 1e-10)
-
-        dg=acw.getGradient(sigma_comps, *args)
-        self.assertTrue(isinstance(dg, Data))
-        self.assertTrue(dg.getShape()==(2,))
-        self.assertTrue(dg.getFunctionSpace()==Solution(domain))                 
-        self.assertTrue(Lsup(dg) < 1e-10)
-
-        # this shuld be zero' too
-        sigma_comps=[2*sigma.real, sigma.imag/2.]
-        args=acw.getArguments(sigma_comps)
-        d=acw.getDefect(sigma_comps, *args)
-        self.assertTrue(isinstance(d, float))
-        self.assertTrue(abs(d)< 1e-10)
-        
-        dg=acw.getGradient(sigma_comps, *args)
-        self.assertTrue(isinstance(dg, Data))
-        self.assertTrue(dg.getShape()==(2,))
-        self.assertTrue(dg.getFunctionSpace()==Solution(domain))                 
-        self.assertTrue(Lsup(dg) < 1e-10)
-        
-        # this shouldn't be zero:
-        sigma0=[2*sigma.real, 10*a.imag]*(27*Function(domain).getX()[0]-Function(domain).getX()[1])
-        args=acw.getArguments(sigma0)
-        d0=acw.getDefect(sigma0, *args)
-        self.assertTrue(isinstance(d0, float))
-        self.assertTrue(d0 >= 0)
-        self.assertTrue(d0 > 1e-10)
-        
-        dg0=acw.getGradient(sigma0, *args)
-        self.assertTrue(isinstance(dg0, Data))
-        self.assertTrue(dg0.getShape()==(2,))
-        self.assertTrue(dg0.getFunctionSpace()==Solution(domain))
-        self.assertTrue(Lsup(dg0) > 1e-10)
-        
-        # test the gradient numerrically:
-        h=0.002
-        X=Function(domain).getX()
-        # .. increment:
-        p=h*exp(-(length(X-[0.6,0.6])/10)**2)*Lsup(length(sigma0))
-
-        
-        sigma1=sigma0+p*[1,0]
-        args=acw.getArguments(sigma1)
-        d1=acw.getDefect(sigma1, *args)
-        self.assertTrue( abs( d1-d0-integrate(dg0[0]*p) ) < 1e-2  * abs(d1-d0) )
-
-        sigma2=sigma0+p*[0,1]
-        args=acw.getArguments(sigma2)
-        d2=acw.getDefect(sigma2, *args)
-        self.assertTrue( abs(d2-d0-integrate(dg0[1]*p))  < 1e-2  * abs(d2-d0) )
+        # test 3
+        p=sin(length(X)*3*3.14)*INC
+        SIGMA1=SIGMA0+p
+        args1=acw.getArguments(SIGMA1)
+        d1=acw.getDefect(SIGMA1, *args1)
+        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
         
                                   
 if __name__ == "__main__":
     suite = unittest.TestSuite()
-    #suite.addTest(unittest.makeSuite(TestAcousticInversion))
+    suite.addTest(unittest.makeSuite(TestAcousticInversion))
     suite.addTest(unittest.makeSuite(TestMT2DModelTEMode))
     s=unittest.TextTestRunner(verbosity=2).run(suite)
     if not s.wasSuccessful(): sys.exit(1)
