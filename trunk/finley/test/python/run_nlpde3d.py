@@ -36,6 +36,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import os
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from test_nonLinearPDE import Test_nonLinearPDEs, Test_nlpde
 from esys.escript import *
 from esys.finley import Rectangle,Brick
@@ -56,13 +57,4 @@ class Test_nonLinearPDE(Test_nlpde):
         del self.domain
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   if True :
-      suite.addTest(unittest.makeSuite(Test_nonLinearPDE))
-   else:
-      suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("testProjector_rank1_fast_reduced"))
-      pass
-
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
-
+    run_tests(__name__, exit_on_failure=True)

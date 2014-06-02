@@ -23,6 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import logging
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import numpy as np
 import os
 import sys
@@ -127,9 +128,6 @@ class TestSeismicTools(unittest.TestCase):
             domain=domType(5,5,5, diracPoints=[(0.5,0.5,1.)], diracTags=['sss'])
             self.sonicRunner(domain, "%s.Brick"%impl)
                                   
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestSeismicTools))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
     

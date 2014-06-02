@@ -35,6 +35,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import os
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from test_linearPDEs import Test_Poisson, Test_LinearPDE, Test_TransportPDE, Test_LameEquation, Test_Helmholtz, Test_LinearPDE_noLumping
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_3Do1
 from test_pdetools import Test_pdetools, Test_pdetools_noLumping
@@ -96,11 +97,5 @@ class Test_PoissonOnRipley(Test_Poisson):
 
 
 if __name__ == '__main__':
-    import sys
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Test_LinearPDEOnRipleyRect))
-    suite.addTest(unittest.makeSuite(Test_LinearPDEOnRipleyBrick))
-    suite.addTest(unittest.makeSuite(Test_PoissonOnRipley))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

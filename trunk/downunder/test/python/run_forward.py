@@ -23,6 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import logging
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import numpy as np
 import os
 import sys
@@ -366,10 +367,6 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
         
                                   
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestAcousticInversion))
-    suite.addTest(unittest.makeSuite(TestMT2DModelTEMode))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
     

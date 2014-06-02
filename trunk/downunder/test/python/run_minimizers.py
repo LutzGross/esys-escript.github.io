@@ -24,6 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 import logging
 import numpy as np
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import sys
 from esys.downunder.minimizers import *
 from esys.downunder.costfunctions import CostFunction
@@ -162,11 +163,6 @@ class TestMinimizerNLCG(unittest.TestCase):
         self.assertEqual(n[0], 11)
 
 
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestMinimizerLBFGS))
-    suite.addTest(unittest.makeSuite(TestMinimizerBFGS))
-    suite.addTest(unittest.makeSuite(TestMinimizerNLCG))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
 

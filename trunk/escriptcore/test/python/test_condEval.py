@@ -24,6 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 __author__="Joel Fenwick, joelfenwick@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import os
 import numpy
 import sys
@@ -167,8 +168,5 @@ class Test_CondEval(unittest.TestCase):
                 self.assertTrue(Lsup(condEval(mt1,d1,d2)-(1,3))<self.RES_TOL)
         
 
-if __name__ == "__main__":
-       suite = unittest.TestSuite()
-       suite.addTest(unittest.makeSuite(Test_CondEval))
-       s=unittest.TextTestRunner(verbosity=2).run(suite)
-       if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
