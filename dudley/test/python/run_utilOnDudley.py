@@ -22,6 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from test_util import Test_util as Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 
@@ -92,16 +93,5 @@ class Test_Util_SpatialFunctionsOnDudleyBrickOrder1(Test_Util_SpatialFunctions_n
 
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   if True:
-      suite.addTest(unittest.makeSuite(Test_UtilOnDudley))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyRectOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnDudleyBrickOrder1))
-#      suite.addTest(Test_Util_SpatialFunctionsOnDudleyRectOrder1("test_normal_FunctionOnBoundary"))
-   else:
-      pass
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

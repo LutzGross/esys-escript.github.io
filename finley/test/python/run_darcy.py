@@ -23,6 +23,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import tempfile
       
 
@@ -30,7 +31,7 @@ import tempfile
 VERBOSE=False  and True
 
 from esys.escript import *
-from esys.escript.models import  DarcyFlow
+from esys.escript.models import DarcyFlow
 from esys.finley import Rectangle, Brick
 
 from math import pi
@@ -43,7 +44,7 @@ try:
 except KeyError:
      FINLEY_WORKDIR='.'
 
-class Test_Darcy(unittest.TestCase):
+class Darcy(unittest.TestCase):
     # this is a simple test for the darcy flux problem
     #
     # 
@@ -303,7 +304,7 @@ class Test_Darcy(unittest.TestCase):
         self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
-class Test_Darcy2D(Test_Darcy):
+class Darcy2D(Darcy):
     TOL=1e-4
     WIDTH=1.
     SOLVER=DarcyFlow.POST
@@ -313,20 +314,20 @@ class Test_Darcy2D(Test_Darcy):
         self.rescaleDomain()
     def tearDown(self):
         del self.dom
-        
-class Test_Darcy2D_EVAL(Test_Darcy2D):
+
+class Test_Darcy2D_EVAL(Darcy2D):
     TEST_TOL=0.01
     SOLVER=DarcyFlow.EVAL
 
-class Test_Darcy2D_POST(Test_Darcy2D):
+class Test_Darcy2D_POST(Darcy2D):
     TEST_TOL=1.e-3
     SOLVER=DarcyFlow.POST
 
-class Test_Darcy2D_SMOOTH(Test_Darcy2D):
+class Test_Darcy2D_SMOOTH(Darcy2D):
     TEST_TOL=0.01
     SOLVER=DarcyFlow.SMOOTH
 
-class Test_Darcy3D(Test_Darcy):
+class Darcy3D(Darcy):
     WIDTH=1.
     SOLVER=DarcyFlow.POST
     def setUp(self):
@@ -336,30 +337,23 @@ class Test_Darcy3D(Test_Darcy):
     def tearDown(self):
         del self.dom
 
-class Test_Darcy3D_EVAL(Test_Darcy3D):
+class Test_Darcy3D_EVAL(Darcy3D):
     TEST_TOL=0.01
     SOLVER=DarcyFlow.EVAL
 
-class Test_Darcy3D_POST(Test_Darcy3D):
+class Test_Darcy3D_POST(Darcy3D):
     TEST_TOL=1.e-3
     SOLVER=DarcyFlow.POST
 
-class Test_Darcy3D_SMOOTH(Test_Darcy3D):
+class Test_Darcy3D_SMOOTH(Darcy3D):
     TEST_TOL=0.01
     SOLVER=DarcyFlow.SMOOTH
     
     
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_Darcy2D_SMOOTH))
-   suite.addTest(unittest.makeSuite(Test_Darcy2D_POST))
-   suite.addTest(unittest.makeSuite(Test_Darcy2D_EVAL))
-   
-   suite.addTest(unittest.makeSuite(Test_Darcy3D_SMOOTH))
-   suite.addTest(unittest.makeSuite(Test_Darcy3D_POST))
-   suite.addTest(unittest.makeSuite(Test_Darcy3D_EVAL))
-   #suite.addTest(Test_Darcy2D_POST("testConstF_FixedBottom_largeK"))
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, classes=[
+            Test_Darcy3D_EVAL, Test_Darcy3D_POST, Test_Darcy3D_SMOOTH,
+            Test_Darcy2D_EVAL, Test_Darcy2D_POST, Test_Darcy2D_SMOOTH
+        ],exit_on_failure=True)
 
 

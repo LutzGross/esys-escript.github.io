@@ -26,6 +26,7 @@ import numpy as np
 import os
 import sys
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.escript import inf,sup,saveDataCSV,getMPISizeWorld
 from esys.downunder.datasources import *
 from esys.downunder.domainbuilder import DomainBuilder
@@ -387,12 +388,6 @@ class TestSeimicSource(unittest.TestCase):
         self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.],elevation=7.) )
         self.assertTrue( ss != SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,-6.],elevation=-7.) )
         
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestNumpyData))
-    suite.addTest(unittest.makeSuite(TestErMapperData))
-    suite.addTest(unittest.makeSuite(TestNetCdfData))
-    suite.addTest(unittest.makeSuite(TestSeimicSource))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
 

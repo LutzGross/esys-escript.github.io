@@ -36,7 +36,7 @@ Test suite for the linearPDE  and pdetools test on dudley
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest, sys
-
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.dudley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
@@ -98,6 +98,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
@@ -127,6 +128,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
@@ -167,6 +169,8 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
@@ -194,6 +198,8 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
@@ -234,6 +240,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
@@ -261,6 +268,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
@@ -309,6 +317,8 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -337,6 +347,8 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -416,6 +428,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+@unittest.skip("Test should be checked")
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
@@ -443,7 +456,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
 class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
@@ -485,6 +498,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+@unittest.skip("Test should be checked")
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
@@ -602,7 +616,8 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -631,7 +646,8 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -713,6 +729,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
+@unittest.skip("Test should be checked")
 class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
@@ -781,7 +798,8 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
@@ -850,7 +868,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
 class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
@@ -899,7 +917,8 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -928,7 +947,8 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
+
+@unittest.skip("Test should be checked")
 class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
@@ -979,20 +999,4 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi))
- 
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)

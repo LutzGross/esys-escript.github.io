@@ -36,6 +36,7 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 import os
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from test_linearPDEs import Test_Poisson,Test_LinearPDE, Test_LinearPDE_noLumping, Test_TransportPDE
 from test_assemblage import Test_assemblage_2Do1, Test_assemblage_2Do2, Test_assemblage_3Do1, Test_assemblage_3Do2, \
                             Test_assemblage_2Do1_Contact,Test_assemblage_2Do2_Contact, Test_assemblage_3Do1_Contact, Test_assemblage_3Do2_Contact
@@ -91,16 +92,5 @@ class Test_LinearPDEOnFinleyHex3DOrder2(Test_LinearPDE,Test_pdetools,Test_assemb
         del self.domain
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   if True :
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_LinearPDEOnFinleyHex3DOrder2))
-   else:
-      suite.addTest(Test_LinearPDEOnFinleyHex2DOrder1("testProjector_rank1_fast_reduced"))
-      pass
-
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

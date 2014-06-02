@@ -22,6 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import sys
 import esys.ripley
 from esys.downunder import *
@@ -293,9 +294,6 @@ class TestInversionCostfunction(unittest.TestCase):
         self.assertTrue( Lsup(gf2-gf[1]*STEP) < 1e-3 * Lsup(gf2) )
 
         
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestInversionCostfunction))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
 

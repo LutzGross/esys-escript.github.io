@@ -25,6 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 import os
 import sys
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import math
 import numpy
 from esys.pycad import *
@@ -5018,10 +5019,5 @@ Physical Volume(68) = {67};
                          "LayerCake return is not a domain gmsh.Design.")
         
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_PyCAD_Transformations))
-   suite.addTest(unittest.makeSuite(Test_PyCAD_Primitives))
-   suite.addTest(unittest.makeSuite(Test_PyCAD_Design))
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

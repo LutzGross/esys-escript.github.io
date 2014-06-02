@@ -36,6 +36,7 @@ Test suite for the linearPDE  and pdetools test on ripley
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest, sys
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.ripley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
@@ -101,6 +102,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -130,6 +132,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -170,6 +173,7 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -197,6 +201,7 @@ class SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
+
 class SimpleSolve_Brick_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
@@ -396,16 +401,4 @@ class SimpleSolve_Brick_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_BICGSTAB_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SystemPDE_Paso_PCG_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SinglePDE_Paso_MINRES_Jacobi))
-   suite.addTest(unittest.makeSuite(SimpleSolve_Brick_SystemPDE_Paso_MINRES_Jacobi))
- 
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+   run_tests(__name__, exit_on_failure=True)

@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 import os
 import sys
 import esys.escriptcore.utestselect as unittest
-
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
@@ -409,14 +409,5 @@ class Test_DiracOnFinley(unittest.TestCase):
 
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_DiracOnFinley))
-   suite.addTest(unittest.makeSuite(Test_SharedOnFinley))
-   suite.addTest(unittest.makeSuite(Test_DataOpsOnFinley))
-   suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
-   suite.addTest(unittest.makeSuite(Test_TableInterpolationOnFinley))
-   suite.addTest(unittest.makeSuite(Test_CSVOnFinley))
-   suite.addTest(unittest.makeSuite(Test_OtherInterpolationOnFinley))
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

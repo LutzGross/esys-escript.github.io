@@ -25,6 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import os, sys
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.escript.linearPDEs import LameEquation
 from esys.ripley import Rectangle, Brick
@@ -201,7 +202,6 @@ class Test_DiracPoints(unittest.TestCase):
                     #remaining ranks must also exit, otherwise we'll lock up
                     self.assertEqual(global_result, 0, "One or more ranks failed")
 
-
     def test_RectangleInterpolation(self):
         for a in range(-1, (self.longEdge+self.numRanks)*2, self.numRanks*2):
             a = a//2.
@@ -230,9 +230,6 @@ class Test_DiracPoints(unittest.TestCase):
                 self.assertEqual(global_result, 0, "One or more ranks failed")
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Test_DiracPoints))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful():
-        sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
+
 
