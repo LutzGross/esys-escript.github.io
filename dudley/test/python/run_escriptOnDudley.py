@@ -164,7 +164,7 @@ class Test_CSVOnDudley(Test_saveCSV):
     def tearDown(self):
         del self.domain
 
-    #@unittest.skipIf(getMPISizeWorld() > 1, "Skipping since MPI size > 1")
+    @unittest.skipIf(getMPISizeWorld() > 1, "Skipping since MPI size > 1")
     def test_csv_multiFS(self):
         fname=os.path.join(DUDLEY_WORKDIR, "test_multifs.csv")
         sol=Data(8,Solution(self.domain))
