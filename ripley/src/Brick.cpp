@@ -452,6 +452,8 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
             throw RipleyException("readBinaryGrid(): all multipliers must be positive");
+    if (params.reverse[0] != 0 || params.reverse[1] != 0)
+        throw RipleyException("readBinaryGrid(): reversing only supported in Z-direction currently");
 
     // check file existence and size
     ifstream f(filename.c_str(), ifstream::binary);
@@ -484,14 +486,21 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     const int first0 = max(0, params.first[0]-m_offset[0]);
     const int first1 = max(0, params.first[1]-m_offset[1]);
     const int first2 = max(0, params.first[2]-m_offset[2]);
-    // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-params.first[0]);
-    const int idx1 = max(0, m_offset[1]-params.first[1]);
-    const int idx2 = max(0, m_offset[2]-params.first[2]);
+    // indices to first value in file (not accounting for reverse yet)
+    int idx0 = max(0, m_offset[0]-params.first[0]);
+    int idx1 = max(0, m_offset[1]-params.first[1]);
+    int idx2 = max(0, m_offset[2]-params.first[2]);
     // number of values to read
     const int num0 = min(params.numValues[0]-idx0, myN0-first0);
     const int num1 = min(params.numValues[1]-idx1, myN1-first1);
     const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+
+    // make sure we read the right block if going backwards through file
+    if (params.reverse[2])
+        idx2 = params.numValues[2]-idx2-1;
+
+    // helpers for reversing
+    const int z_mult = (params.reverse[2] ? -1 : 1);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
@@ -499,8 +508,9 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
 
     for (int z=0; z<num2; z++) {
         for (int y=0; y<num1; y++) {
-            const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
-                             +(idx2+z)*params.numValues[0]*params.numValues[1]);
+            const int fileofs = numComp*(idx0 +
+                                (idx1+y)*params.numValues[0] +
+                                (idx2+z_mult*z)*params.numValues[0]*params.numValues[1]);
             f.seekg(fileofs*sizeof(ValueType));
             f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
 

@@ -324,11 +324,11 @@ class MinimizerLBFGS(AbstractMinimizer):
           while not converged and not break_down and k < self._restart and n_iter < self._imax:
                 #self.logger.info("\033[1;31miteration %d\033[1;30m"%n_iter)
                 self.logger.info("********** iteration %3d **********"%n_iter)
-                # determine search direction
                 self.logger.info("\tJ(x) = %s"%Jx)
-                self.logger.debug("\tgrad f(x) = %s"%g_Jx)
+                #self.logger.debug("\tgrad f(x) = %s"%g_Jx)
                 if invH_scale: self.logger.debug("\tH = %s"%invH_scale)
 
+                # determine search direction
                 p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
 
                 # determine new step length using the last one as initial value
@@ -352,7 +352,6 @@ class MinimizerLBFGS(AbstractMinimizer):
                 # execute the step
                 delta_x = alpha*p
                 x_new = x + delta_x
-                self.logger.debug("\tJ(x) = %s"%Jx_new)
 
                 converged = True
                 if self._J_tol:
@@ -375,6 +374,7 @@ class MinimizerLBFGS(AbstractMinimizer):
 
                 x=x_new
                 if converged:
+                    self.logger.info("\tJ(x) = %s"%Jx_new)
                     break
 
                 # unfortunately there is more work to do!

@@ -23,8 +23,9 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-import os, sys, unittest
-
+import os, sys
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
 from esys.escript.linearPDEs import LameEquation
@@ -81,9 +82,5 @@ class Test_CustomAssemblers(unittest.TestCase):
 
 
 if __name__ == '__main__':
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(Test_CustomAssemblers))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful():
-        sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

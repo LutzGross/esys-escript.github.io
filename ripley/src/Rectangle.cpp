@@ -378,6 +378,20 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     } else
         throw RipleyException("readBinaryGrid(): invalid function space for output data object");
 
+    if (params.first.size() != 2)
+        throw RipleyException("readBinaryGrid(): argument 'first' must have 2 entries");
+
+    if (params.numValues.size() != 2)
+        throw RipleyException("readBinaryGrid(): argument 'numValues' must have 2 entries");
+
+    if (params.multiplier.size() != 2)
+        throw RipleyException("readBinaryGrid(): argument 'multiplier' must have 2 entries");
+    for (size_t i=0; i<params.multiplier.size(); i++)
+        if (params.multiplier[i]<1)
+            throw RipleyException("readBinaryGrid(): all multipliers must be positive");
+    if (params.reverse[0] != 0 || params.reverse[1] != 0)
+        throw RipleyException("readBinaryGrid(): reversing not supported yet");
+
     // check file existence and size
     ifstream f(filename.c_str(), ifstream::binary);
     if (f.fail()) {

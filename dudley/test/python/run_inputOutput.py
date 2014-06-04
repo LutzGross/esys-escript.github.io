@@ -36,7 +36,7 @@ Test suite for input and output of meshes and data objects
 """
 
 import esys.escriptcore.utestselect as unittest, sys
-
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.dudley import Rectangle, Brick, LoadMesh, ReadMesh, ReadGmsh, ReadGmsh
 
@@ -190,8 +190,5 @@ class InputOutput(unittest.TestCase):
           self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(InputOutput))
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

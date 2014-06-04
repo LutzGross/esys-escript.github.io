@@ -25,6 +25,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import logging
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.downunder.coordinates import *
 from esys.ripley import Brick, Rectangle
 import esys.escript
@@ -272,9 +273,6 @@ class TestCoordinates(unittest.TestCase):
          self.assertTrue(error<=RTOL/1000., "1-th scaling factor")  
          
          
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestCoordinates))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
 

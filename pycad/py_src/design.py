@@ -208,15 +208,15 @@ class AbstractDesign(object):
     """
     Template for a design which defines the input for a mesh generator.
 
-    :cvar GMSH: U{gmsh<http://www.geuz.org/gmsh/>} file formatt
-    :cvar IDEAS: U{I_DEAS<http://www.plm.automation.siemens.com/en_us/products/nx/>} universal file format
-    :cvar VRML: U{VRML<http://www.w3.org/MarkUp/VRML/>} file format
-    :cvar STL: U{STL<http://en.wikipedia.org/wiki/STL_(file_format)>} file format
-    :cvar NASTRAN: U{Nastran<http://simcompanion.mscsoftware.com/infocenter/index?page=content&channel=DOCUMENTATION>} bulk data format
-    :cvar MEDIT: U{Medit<http://www-rocq.inria.fr/OpenFEM/Doc/>} file format
-    :cvar CGNS: U{CGNS<http://cgns.sourceforge.net/>} file format
-    :cvar PLOT3D:  U{Plot3D<http://www.plot3d.net/>} file format
-    :cvar DIFFPACK: U{Diffpack<http://www.diffpack.com/>} file format
+    :cvar GMSH: `gmsh <http://www.geuz.org/gmsh/>`_ file format
+    :cvar IDEAS: `I_DEAS <http://www.plm.automation.siemens.com/en_us/products/nx/>`_ universal file format
+    :cvar VRML: `VRML <http://www.w3.org/MarkUp/VRML/>`_ file format
+    :cvar STL: `STL <http://en.wikipedia.org/wiki/STL_(file_format)>`_ file format
+    :cvar NASTRAN: `Nastran <http://simcompanion.mscsoftware.com/infocenter/index?page=content&channel=DOCUMENTATION>`_ bulk data format
+    :cvar MEDIT: `Medit <http://www-rocq.inria.fr/OpenFEM/Doc/>`_ file format
+    :cvar CGNS: `CGNS <http://cgns.sourceforge.net/>`_ file format
+    :cvar PLOT3D:  `Plot3D <http://www.plot3d.net/>`_ file format
+    :cvar DIFFPACK: `Diffpack <http://www.diffpack.com/>`_ file format
     """
     GMSH="msh"
     IDEAS="unv"

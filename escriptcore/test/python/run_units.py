@@ -22,6 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 import sys
 from esys.escript.unitsSI import *
 from esys.escript.util import EPSILON
@@ -390,8 +391,5 @@ class UnitsSITestCase(unittest.TestCase):
     def testVlight(self):
        self.assertTrue(abs(v_light - 299792458.) <= self.TOL*299792458. , " speed of light is wrong.")
 
-if __name__ == "__main__":
-    suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(UnitsSITestCase))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
-    if not s.wasSuccessful(): sys.exit(1)
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)
