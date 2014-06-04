@@ -29,6 +29,7 @@ __all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping', 'BoundedRangeMa
 from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp
 import esys.escript.unitsSI as U
 from numpy import pi
+import logging
 
 class Mapping(object):
     """
@@ -190,7 +191,7 @@ class AcousticVelocityMapping(Mapping):
         # sigma_prior=1/(V_prior*(1-I*over2Q))**2 = 1/( V_prior * (1+over2Q**2)) **2 * ( (1-over2Q**2) + I * 2* over2Q )
         self.Mr=log( sqrt((1-over2Q**2)**2+(2*over2Q)**2)/(V_prior*(1+over2Q**2))**2 )
         self.Mi=atan2(2*over2Q, 1-over2Q**2) 
-
+        self.logger = logging.getLogger('map.%s'%self.__class__.__name__)
 
     def getValue(self, m):
         """
@@ -208,8 +209,42 @@ class AcousticVelocityMapping(Mapping):
         """
         returns the value of the inverse of the mapping for s
         """
+        # self.logger.info("m0:"+str(log(s[0]**2+s[1]**2)/2))
         return (log(s[0]**2+s[1]**2)/2-self.Mr)*[1., 0 ] + (atan2(s[1],s[0])-self.Mi)*[0, 1. ]
-        
+
+class MTMapping(Mapping):
+    """
+    mt mapping
+
+    sigma=sigma0*exp(a*m)
+
+    """
+
+    def __init__(self,sigma_prior, a=1.):
+        """
+        initializes the mapping
+
+        :param sigma_prior: a a-priori conductivity
+        """
+        self.logger = logging.getLogger('fwd.%s'%self.__class__.__name__)
+        self.__sigma0=sigma_prior
+        self.__a=a
+    def getValue(self, m):
+        """
+        returns the value of the mapping for m
+        """
+        return self.__sigma0*exp(self.__a*m)
+    def getDerivative(self, m):
+        """
+        returns the derivative of the mapping with respect to mapping
+        """
+        return self.__sigma0*self.__a*exp(self.__a*m)
+    def getInverse(self, s):
+        """
+        returns the value of the inverse of the mapping for s
+        """
+        self.logger.info("s=%s"%str(self.__sigma0))
+        return (1/self.__a)*log(s/self.__sigma0)    
 # needs REVISION
 class BoundedRangeMapping(Mapping):
     """
