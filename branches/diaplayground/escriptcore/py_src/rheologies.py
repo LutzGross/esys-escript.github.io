@@ -413,8 +413,8 @@ class Rheology(object):
           """
           Returns the restoring force factor
 
-          @return:  restoring force factor
-          @rtype: C{float} or L{Data}
+          :return:  restoring force factor
+          :rtype: `float` or `Data`
           """
           return self.__restoration_factor
           
@@ -507,14 +507,14 @@ class Rheology(object):
           """
           Resets the current status given by pressure p and velocity v.
     
-          @param t: new time mark
-          @type t: C{float}
-          @param v: new current velocity
-          @type v: vector L{Data} 
-          @param p: new deviatoric stress
-          @type p: scalar L{Data}
-          @param stress: new deviatoric stress
-          @type stress: L{Data} of rank 2
+          :param t: new time mark
+          :type t: `float`
+          :param v: new current velocity
+          :type v: vector `Data`
+          :param p: new deviatoric stress
+          :type p: scalar `Data`
+          :param stress: new deviatoric stress
+          :type stress: `Data` of rank 2
           """
           self.setDeviatoricStress(stress)
           self.setVelocity(v)
@@ -600,10 +600,10 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           v,p = sp.solve()
 
      :note: This model has been used in the self-consistent plate-mantle model
-             proposed in U{Hans-Bernd Muhlhaus<emailto:h.muhlhaus@uq.edu.au>}
-             and U{Klaus Regenauer-Lieb<mailto:klaus.regenauer-lieb@csiro.au>}:
-             I{Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection},
-             see U{doi: 10.1111/j.1365-246X.2005.02742.x<http://www3.interscience.wiley.com/journal/118661486/abstract>}
+             proposed in `Hans-Bernd Muhlhaus <mailto:h.muhlhaus@uq.edu.au>`_
+             and `Klaus Regenauer-Lieb <mailto:klaus.regenauer-lieb@csiro.au>`_:
+             "Towards a self-consistent plate mantle model that includes elasticity: simple benchmarks and application to basic modes of convection",
+             see `doi: 10.1111/j.1365-246X.2005.02742.x <http://www3.interscience.wiley.com/journal/118661486/abstract>`_
      """
      def __init__(self, domain, stress=0, v=0, p=0, t=0, numMaterials=1, verbose=True):
          """

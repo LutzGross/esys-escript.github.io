@@ -22,6 +22,7 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from test_util import Test_util as Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 
@@ -103,6 +104,7 @@ class Test_Util_SpatialFunctionsOnFinleyTet3DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
@@ -111,6 +113,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
@@ -119,6 +122,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
@@ -127,6 +131,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
@@ -135,6 +140,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=2
@@ -143,6 +149,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2(Test_Util_SpatialFunctions_n
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
@@ -151,6 +158,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DMacro(Test_Util_SpatialFunctions_no
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
@@ -162,6 +170,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
@@ -173,6 +182,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=1
@@ -184,6 +194,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_SpatialFunctions_noGradOnBoundary):
     def setUp(self):
         self.order=2
@@ -195,6 +206,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2withContact(Test_Util_Spatial
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=1
@@ -206,6 +218,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact(
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=2
@@ -217,6 +230,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex2DOrder2useElementsOnFacewithContact(
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=1
@@ -228,6 +242,7 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder1useElementsOnFacewithContact(
         del self.order
         del self.domain
 
+@unittest.skip("Test never added to test list")
 class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(Test_Util_SpatialFunctions):
     def setUp(self):
         self.order=2
@@ -240,18 +255,5 @@ class Test_Util_SpatialFunctionsOnFinleyHex3DOrder2useElementsOnFacewithContact(
         del self.domain
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   if True:
-      suite.addTest(unittest.makeSuite(Test_UtilOnFinley))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet2DMacro))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder1))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DOrder2))
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyTet3DMacro))
-   else:
-      suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnFinleyHex2DOrder1useElementsOnFacewithContact))
-      pass
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

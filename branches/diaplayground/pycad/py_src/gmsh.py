@@ -73,7 +73,7 @@ class Design(design.AbstractDesign):
     def setScriptFileName(self,name=None):
        """
        Sets the filename for the gmsh input script. If no name is given a name
-       with extension I{geo} is generated.
+       with extension `geo` is generated.
        """
        if self.__scriptname:
            os.unlink(self.__scriptname)

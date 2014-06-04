@@ -28,6 +28,7 @@ checks the mesh generators against the reference meshes in test_meshes and test 
 import sys
 import os
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle,Brick,JoinFaces, ReadGmsh, ReadMesh
 
@@ -815,10 +816,4 @@ class Test_Integration(unittest.TestCase):
       self.__test_3DT(my_dom,10,1./sqrt(EPSILON))
 
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_Generators))
-   suite.addTest(unittest.makeSuite(Test_GMSHReader))
-   suite.addTest(unittest.makeSuite(Test_Reader))
-   suite.addTest(unittest.makeSuite(Test_Integration))
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)

@@ -24,9 +24,9 @@ __url__="https://launchpad.net/escript-finley"
 import os
 import sys
 import esys.escriptcore.utestselect as unittest
-
+from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.finley import Rectangle, Brick
+from esys.finley import Rectangle, Brick, ReadMesh, ReadGmsh
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
         Test_TableInterpolation, Test_Domain, Test_GlobalMinMax, Test_Lazy
 from test_shared import Test_Shared
@@ -35,6 +35,14 @@ try:
      FINLEY_WORKDIR=os.environ['FINLEY_WORKDIR']
 except KeyError:
      FINLEY_WORKDIR='.'
+     
+     
+try:
+     FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
+except KeyError:
+     FINLEY_TEST_DATA='.'
+
+FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 mpisize=getMPISizeWorld()
 NE=4 # number elements, must be even
@@ -238,14 +246,168 @@ class Test_CSVOnFinley(Test_saveCSV):
         self.assertRaises(RuntimeError, saveDataCSV, fname, A=dirac, B=rfun)
         self.assertRaises(RuntimeError, saveDataCSV, fname, A=bound, B=conzz)
 
+        
+class Test_DiracOnFinley(unittest.TestCase):
+  def test_rectconstr(self):
+    self.assertRaises(RuntimeError, Rectangle, 4,4, diracPoints=[(0,0)])
+    self.assertRaises(RuntimeError, Rectangle, 4,4, diracPoints=[(0,0), (1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, Rectangle, 4,4, diracPoints=[(0,0), (1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, Rectangle, 4,4, diracPoints=[(0,0), (1,1)], diracTags=["cows"])
+    self.assertRaises(RuntimeError, Rectangle, 4,4, diracPoints=[(0,)], diracTags=["test"])
+    z=Rectangle(4,4, diracPoints=[(0,0), (0.25,0.25)], diracTags=[40,51])
+    z=Rectangle(4,4, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"]) 
+    v=interpolate(z.getX(), DiracDeltaFunctions(z))
+    if mpisize==1:
+      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
+      self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEquals(inf(v[0]), 0)
+      self.assertEquals(inf(v[1]), 0.25)
+      self.assertEquals(Lsup(v[0]), 1)
+      self.assertEquals(Lsup(v[1]), 1)
+    v.setTaggedValue("A",(-10,0.5))
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+    v.setTaggedValue(500,(-100,-100))	# non-existant tag
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+    self.assertEquals(z.showTagNames(), 'A, B, C, bottom, left, right, top')
+    self.assertEquals(z.getTag("C"), 42)
+   
+  def test_brickconstr(self):
+    self.assertRaises(RuntimeError, Brick, 4,4, diracPoints=[(0,0,0)])
+    self.assertRaises(RuntimeError, Brick, 4,4, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, Brick, 4,4, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, Brick, 4,4, diracPoints=[(0,0,0), (1,1,1)], diracTags=["cows"])
+    self.assertRaises(RuntimeError, Brick, 4,4, diracPoints=[(0,0)], diracTags=["test"])
+    z=Brick(4,4, diracPoints=[(0,0,0), (0.25,0.25, 0.25)], diracTags=[40,51])
+    z=Brick(4,4, diracPoints=[(0.125,0.625,0), (0.5,1,0), (0.75, 0.25, 0.51), (0.89, 0.875,1)], diracTags=["A", "B", "A", "C"]) 
+    v=interpolate(z.getX(), DiracDeltaFunctions(z))
+    if mpisize==1:
+      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 0.0), (0.75, 0.25, 1), (1.0, 0.75, 1.0)])
+      self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEquals(inf(v[0]), 0)
+      self.assertEquals(inf(v[1]), 0.25)
+      self.assertEquals(Lsup(v[0]), 1)
+      self.assertEquals(Lsup(v[1]), 1)
+    v.setTaggedValue("A",(-10,0.5,-500))
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+      self.assertEquals(inf(v[2]),-500)
+    v.setTaggedValue(500,(-100,-100, -100))	# non-existant tag
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+      self.assertEquals(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
+    self.assertEquals(z.getTag("C"), 42)
+
+
+  def test_rectReadMesh(self):
+    fname=os.path.join(FINLEY_TEST_MESH_PATH,'rect_4x4.fly')
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,)])
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0)])
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0), (1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0), (1,1)], diracTags=["cows"])
+    z=ReadMesh(fname, diracPoints=[(0,0), (0.25,0.25)], diracTags=[40,51])   
+    z=ReadMesh(fname, diracPoints=[(0.125,0.625), (0.5,1), (0.75, 0.25), (0.89, 0.875)], diracTags=["A", "B", "A", "C"])
+    v=interpolate(z.getX(), DiracDeltaFunctions(z))
+    if mpisize==1:
+      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5), (0.5, 1.0), (0.75, 0.25), (1.0, 0.75)])
+      self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEquals(inf(v[0]), 0)
+      self.assertEquals(inf(v[1]), 0.25)
+      self.assertEquals(Lsup(v[0]), 1)
+      self.assertEquals(Lsup(v[1]), 1)
+    v.setTaggedValue("A",(-10,0.5))
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+    v.setTaggedValue(500,(-100,-100))	# non-existant tag
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+    self.assertEquals(z.showTagNames(), 'A, B, C, bottom, left, right, top')
+    self.assertEquals(z.getTag("C"), 42)    
+
+
+  def test_brickReadMesh(self):
+    fname=os.path.join(FINLEY_TEST_MESH_PATH,'brick_4x4x4.fly')
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0)])
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0,0)])
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, ReadMesh, fname, diracPoints=[(0,0,0), (1,1,1)], diracTags=["cows"])
+    z=ReadMesh(fname, diracPoints=[(0,0,1), (0.25,0.25, 0.25)], diracTags=[40,51])   
+    z=ReadMesh(fname, diracPoints=[(0.125,0.625,0), (0.5,1,1), (0.75, 0.25,0), (0.89, 0.875, 0.5)], diracTags=["A", "B", "A", "C"])
+    v=interpolate(z.getX(), DiracDeltaFunctions(z))
+    if mpisize==1:
+      self.assertEquals(v.toListOfTuples(),[(0.0, 0.5, 0.0), (0.5, 1.0, 1.0), (0.75, 0.25, 0.0), (1.0, 0.75, 0.5)])
+      self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEquals(inf(v[0]), 0)
+      self.assertEquals(inf(v[1]), 0.25)
+      self.assertEquals(Lsup(v[0]), 1)
+      self.assertEquals(Lsup(v[1]), 1)
+    v.setTaggedValue("A",(-10,0.5,-0.5))
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+      self.assertEquals(inf(v[2]), -0.5)
+    v.setTaggedValue(500,(-100,-100, -100))	# non-existant tag
+    if mpisize==1:
+      self.assertEquals(inf(v[0]), -10)
+      self.assertEquals(inf(v[1]), 0.5)
+      self.assertEquals(inf(v[2]), -0.5)
+    self.assertEquals(z.showTagNames(), 'A, B, C, back, bottom, front, left, right, top')
+    self.assertEquals(z.getTag("C"), 203)    
+
+
+
+  @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+  def test_rectReadGmsh(self):
+    fname=os.path.join(FINLEY_TEST_MESH_PATH, 'rect_test.msh')
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 2, diracPoints=[(0,0)])
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 2, diracPoints=[(0,0), (1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 2, diracPoints=[(0,0), (1,1)], diracTags=["cows"])
+    z=ReadGmsh(fname, 2, diracPoints=[(0,0), (1,1)], diracTags=[40,51])
+    z=ReadGmsh(fname, 2, diracPoints=[(0,0),(0,1),(1,0),(1,1)], diracTags=["A", "B", "A", "C"])
+    v=interpolate(z.getX(), DiracDeltaFunctions(z))
+    if mpisize==1:
+      self.assertEquals(v.toListOfTuples(),[(0,0), (0,1), (1,0), (1,1)])
+    self.assertEquals(v.getNumberOfDataPoints(), 4)
+    v.setTaggedValue("A",(-10,99))
+    self.assertEquals(inf(v[0]), -10)
+    self.assertEquals(Lsup(v[1]), 99)
+    v.setTaggedValue(500,(-100,-100))   # non-existant tag
+    self.assertEquals(inf(v[0]), -10)
+    self.assertEquals(Lsup(v[1]), 99)
+    self.assertEquals(z.showTagNames(), 'A, B, C')
+    self.assertEquals(z.getTag("C"), 42)
+
+  @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
+  def test_brickReadGmsh(self):
+    fname=os.path.join(FINLEY_TEST_MESH_PATH, 'brick_test.msh')
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 3, diracPoints=[(0,0)])
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 3, diracPoints=[(0,0,0)])
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 3, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40])
+    self.assertRaises(RuntimeError, ReadGmsh, fname, 3, diracPoints=[(0,0,0), (1,1,1)], diracTags=["cows"])
+    z=ReadGmsh(fname, 3, diracPoints=[(0,0,0), (1,1,1)], diracTags=[40,51])
+    z=ReadGmsh(fname, 3, diracPoints=[(0,0,0),(0,1,0),(1,0,1),(1,1,1)], diracTags=["A", "B", "A", "C"])
+    v=interpolate(z.getX(), DiracDeltaFunctions(z))
+    if mpisize==1:
+      self.assertEquals(v.toListOfTuples(),[(0,0,0), (0,1,0), (1,0,1), (1,1,1)])
+    self.assertEquals(v.getNumberOfDataPoints(), 4)
+    v.setTaggedValue("A",(-10,99,-98))
+    self.assertEquals(inf(v[0]), -10)
+    self.assertEquals(Lsup(v[1]), 99)
+    self.assertEquals(inf(v[2]), -98)
+    v.setTaggedValue(500,(-100,-100,-100))   # non-existant tag
+    self.assertEquals(inf(v[0]), -10)
+    self.assertEquals(Lsup(v[1]), 99)
+    self.assertEquals(z.showTagNames(), 'A, B, C')
+    self.assertEquals(z.getTag("C"), 42)
+
+
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_SharedOnFinley))
-   suite.addTest(unittest.makeSuite(Test_DataOpsOnFinley))
-   suite.addTest(unittest.makeSuite(Test_DomainOnFinley))
-   suite.addTest(unittest.makeSuite(Test_TableInterpolationOnFinley))
-   suite.addTest(unittest.makeSuite(Test_CSVOnFinley))
-   suite.addTest(unittest.makeSuite(Test_OtherInterpolationOnFinley))
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 
