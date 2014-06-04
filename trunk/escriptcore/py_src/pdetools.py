@@ -602,7 +602,9 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
 class Defect(object):
     """
-    Defines a non-linear defect F(x) of a variable x.
+    Defines a non-linear defect F(x) of a variable x. This class includes
+    two functions (bilinearform and eval) that must be overridden by subclassing
+    before use.
     """
     def __init__(self):
         """
@@ -613,13 +615,15 @@ class Defect(object):
     def bilinearform(self, x0, x1):
         """
         Returns the inner product of x0 and x1
+        
+        NOTE: MUST BE OVERRIDDEN
 
         :param x0: value for x0
         :param x1: value for x1
         :return: the inner product of x0 and x1
         :rtype: ``float``
         """
-        return 0
+        raise NotImplementedError("Defect bilinearform method not overridden")
 
     def norm(self,x):
         """
@@ -638,10 +642,12 @@ class Defect(object):
         """
         Returns the value F of a given ``x``.
 
+        NOTE: MUST BE OVERRIDDEN
+
         :param x: value for which the defect ``F`` is evaluated
         :return: value of the defect at ``x``
         """
-        return 0
+        raise NotImplementedError("Defect eval() method not overridden")
 
     def __call__(self,x):
         return self.eval(x)
