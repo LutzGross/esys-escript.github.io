@@ -288,7 +288,8 @@ class ErMapperData(DataSource):
     input and will raise an exception if other data is found.
     """
     def __init__(self, data_type, headerfile, datafile=None, altitude=0.,
-                 error=None, scale_factor=None, null_value=None, reference_system=None):
+                 error=None, scale_factor=None, null_value=None,
+                 reference_system=None):
         """
         :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
         :type data_type: ``int``
@@ -363,7 +364,7 @@ class ErMapperData(DataSource):
                     fullkey='.'.join(section+[key])
                     md_dict[fullkey]=value
 
-        # check that that the data format/type is supported
+        # check that the data format/type is supported
         try:
             if md_dict['ByteOrder'] != 'LSBFirst':
                 raise RuntimeError('Unsupported byte order '+md_dict['ByteOrder'])
@@ -448,21 +449,20 @@ class ErMapperData(DataSource):
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
                 self.logger.warning('GDAL not available or file read error, assuming GDA94 data')
             if self.getReferenceSystem().isCartesian():
-                originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
-                op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+                originX_UTM,originY_UTM,zone = LatLonToUTM(originX, originY, wkt)
+                op1X,op1Y,_ = LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
                 # we are rounding to avoid interpolation issues
-                spacingX=np.round(op1X-originX_UTM)
-                spacingY=np.round(op1Y-originY_UTM)
-                originX=np.round(originX_UTM)
-                originY=np.round(originY_UTM)
+                spacingX = np.round(op1X-originX_UTM)
+                spacingY = np.round(op1Y-originY_UTM)
+                originX = np.round(originX_UTM)
+                originY = np.round(originY_UTM)
+                self.__utm_zone = zone
             else:
-                zone=getUTMZone(originX, originY, wkt)
-                op1X, op1Y= originX+spacingX, originY+spacingY
-                spacingX=np.round(op1X-originX,5)
-                spacingY=np.round(op1Y-originY,5)
-                originX=np.round(originX,5)
-                originY=np.round(originY,5)
-            self.__utm_zone = zone
+                op1X, op1Y = originX+spacingX, originY+spacingY
+                spacingX = np.round(op1X-originX,5)
+                spacingY = np.round(op1Y-originY,5)
+                originX = np.round(originX,5)
+                originY = np.round(originY,5)
 
         self.__dataorigin=[originX, originY]
         self.__delta = [spacingX, spacingY]
@@ -508,7 +508,7 @@ class ErMapperData(DataSource):
 
         reverse = [0]*domain.getDim()
         byteorder=ripleycpp.BYTEORDER_NATIVE
-        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
+        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s, reverse=%s"%(str(first),str(nValues),str(multiplier),str(reverse)))
         data = ripleycpp._readBinaryGrid(self.__datafile, FS, shape=(),
                 fill=self.__null_value, byteOrder=byteorder,
                 dataType=self.__celltype, first=first, numValues=nValues,
@@ -574,6 +574,7 @@ class NetCdfData(DataSource):
         self.__data_name = data_variable
         self.__scale_factor = scale_factor
         self.__null_value = null_value
+        self.__utm_zone = None
         self.__readMetadata(error)
 
     def __readMetadata(self, error):
@@ -695,11 +696,9 @@ class NetCdfData(DataSource):
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
         if self.getReferenceSystem().isCartesian():
-             lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
-        else:
-             zone=getUTMZone(lon_range, lat_range, wkt_string)
+            lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+            self.__utm_zone = zone
              
-        self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
 
         # see if lat or lon is stored in reverse order to domain conventions
@@ -754,8 +753,8 @@ class NetCdfData(DataSource):
                 numValues=nValues, multiplier=multiplier, reverse=reverse)
 
         if self.__error_name is not None:
-            self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s"%(
-                self.__data_name, str(first),str(nValues),str(multiplier)))
+            self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s, reverse=%s"%(
+                self.__data_name, str(first),str(nValues),str(multiplier),str(reverse)))
             sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
                     FS, shape=(), fill=0., first=first, numValues=nValues,
                     multiplier=multiplier, reverse=reverse)
