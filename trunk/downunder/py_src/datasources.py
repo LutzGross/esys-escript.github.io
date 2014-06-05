@@ -152,7 +152,7 @@ class DataSource(object):
     For other setups override the methods as required.
     """
 
-    GRAVITY, MAGNETIC, ACOUSTIC = list(range(3))
+    GRAVITY, MAGNETIC, ACOUSTIC, MT = list(range(4))
 
     def __init__(self, reference_system=None, tags=[]):
         """
@@ -1171,7 +1171,7 @@ class NumpyData(DataSource):
         :type origin: ``list`` of ``float``s
         """
         super(NumpyData, self).__init__(tags=tags)
-        if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC ]:
+        if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC, self.MT ]:
             raise ValueError("Invalid value for data_type parameter")
         self.__data_type = data_type
         if not isinstance(data, np.ndarray) or data.dtype not in [ np.float64, np.complex128]:
@@ -1233,6 +1233,17 @@ class NumpyData(DataSource):
                 raise ValueError("3D domains are not supported yet.")
             data*=mask
             sigma*=mask
+        elif self.getDataType()  == self.MT:
+            if DIM == 2:
+                step= [ self.__length[i]/self.__data.shape[i] for i in range(DIM-1) ]
+                if len(self.__error.shape) > 0:
+                    sigma = interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
+                else:
+                    sigma = Scalar(self.__error.item(), FunctionOnBoundary(domain))
+                return self.__data, sigma
+            else:
+                raise ValueError("3D domains are not supported yet.")
+
         else:
             FS = ReducedFunction(domain)
             nValues = self.__nPts
@@ -1284,21 +1295,31 @@ class MT2DTe(object):
     class used to store frequency information accosicated with mt data
     """
 
-    def __init__(self, omega=0):
+    def __init__(self,x, omega=0):
         """
         initiale the MT2DTe tag object
 
         :param omega: frequency of readings
         :type omega: ``float``
+        :param x: coordinates of measurements 
+        :type x: ``list`` of ``tuple`` with ``float``
         """
         self.__omega=omega
+        self.__x=x
 
     def getFrequency(self):
         """
-        return frequency of source
+        return frequency of measurement
         :rtype: ``float``
         """
         return self.__omega
+    
+    def getX(self):
+        """
+        return coordinates of measurement
+        :rtype: ``float``
+        """
+        return self.__x
 
 class SeismicSource(object):
     """
