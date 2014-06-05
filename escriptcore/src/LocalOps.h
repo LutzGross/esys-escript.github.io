@@ -44,6 +44,7 @@ namespace escript {
 inline
 bool nancheck(double d)
 {
+    using namespace std;
 		// Q: so why not just test d!=d?
 		// A: Coz it doesn't always work [I've checked].
 		// One theory is that the optimizer skips the test.
