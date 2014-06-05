@@ -381,6 +381,14 @@ class Data {
   void
   resolve();
 
+  /**
+    \brief returns return true if data contains NaN.
+  \warning This is dependent on the ability to reliably detect NaNs on your compiler.
+   See the nancheck function in LocalOps for details.
+  */
+  ESCRIPT_DLL_API
+  bool
+  hasNaN();
 
   /**
    \brief Ensures data is ready for write access.
