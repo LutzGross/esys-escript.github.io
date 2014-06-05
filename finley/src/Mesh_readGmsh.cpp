@@ -372,7 +372,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
          for (i0 = 0; i0 < numTags; i0++) {
             scan_ret = fscanf(fileHandle_p, "%d %d %s\n", &itmp, &tag_key, name);
             FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
-            if (! (itmp == 2)) setError(IO_ERROR,"Mesh_readGmsh: expecting two entries per physical name.");
+            //if (! (itmp == 2)) setError(IO_ERROR,"Mesh_readGmsh: expecting two entries per physical name.");
             if ( strlen(name) < 3 ) setError(IO_ERROR,"Mesh_readGmsh: illegal tagname (\" missing?)");
             if (! noError()) break;
             name[strlen(name)-1]='\0';
