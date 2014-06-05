@@ -23,7 +23,9 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['MinimizerException', 'MinimizerIterationIncurableBreakDown', 'MinimizerMaxIterReached' , 'AbstractMinimizer', 'MinimizerLBFGS', 'MinimizerBFGS', 'MinimizerNLCG']
+__all__ = ['MinimizerException', 'MinimizerIterationIncurableBreakDown',\
+           'MinimizerMaxIterReached' , 'AbstractMinimizer', 'MinimizerLBFGS',
+           'MinimizerBFGS', 'MinimizerNLCG']
 
 import logging
 import numpy as np
@@ -58,7 +60,8 @@ class MinimizerIterationIncurableBreakDown(MinimizerException):
     pass
 
 
-def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2, phi0, gphi0, IMAX=25):
+def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2,
+          phi0, gphi0, IMAX=25):
     """
     Helper function for `line_search` below which tries to tighten the range
     alpha_lo...alpha_hi. See Chapter 3 of 'Numerical Optimization' by
@@ -87,7 +90,8 @@ def _zoom(phi, gradphi, phiargs, alpha_lo, alpha_hi, phi_lo, phi_hi, c1, c2, phi
             break
     return alpha, phi_a, gphi_a
 
-def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0, c1=1e-4, c2=0.9, IMAX=15):
+def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
+                c1=1e-4, c2=0.9, IMAX=15):
     """
     Line search method that satisfies the strong Wolfe conditions.
     See Chapter 3 of 'Numerical Optimization' by J. Nocedal for an explanation.
@@ -326,7 +330,8 @@ class MinimizerLBFGS(AbstractMinimizer):
                 self.logger.info("********** iteration %3d **********"%n_iter)
                 self.logger.info("\tJ(x) = %s"%Jx)
                 #self.logger.debug("\tgrad f(x) = %s"%g_Jx)
-                if invH_scale: self.logger.debug("\tH = %s"%invH_scale)
+                if invH_scale:
+                    self.logger.debug("\tH = %s"%invH_scale)
 
                 # determine search direction
                 p = -self._twoLoop(invH_scale, g_Jx, s_and_y, x, *args)
@@ -356,20 +361,22 @@ class MinimizerLBFGS(AbstractMinimizer):
                 converged = True
                 if self._J_tol:
                     flag=abs(Jx_new-Jx) <= self._J_tol * abs(Jx_new-Jx_0)
-                    if flag:
-                        self.logger.debug("Cost function has converged: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new-Jx_0)*self._J_tol))
-                    else:
-                        self.logger.debug("Cost function checked: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new)*self._J_tol))
+                    if self.logger.isEnabledFor(logging.DEBUG):
+                        if flag:
+                            self.logger.debug("Cost function has converged: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new-Jx_0)*self._J_tol))
+                        else:
+                            self.logger.debug("Cost function checked: dJ, J*J_tol = %e, %e"%(Jx-Jx_new,abs(Jx_new)*self._J_tol))
 
                     converged = converged and flag
                 if self._m_tol:
-                    norm_x=self.getCostFunction().getNorm(x_new)
-                    norm_dx=self.getCostFunction().getNorm(delta_x)
-                    flag= norm_dx <= self._m_tol * norm_x
-                    if flag:
-                        self.logger.debug("Solution has converged: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
-                    else:
-                        self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
+                    norm_x = self.getCostFunction().getNorm(x_new)
+                    norm_dx = self.getCostFunction().getNorm(delta_x)
+                    flag = norm_dx <= self._m_tol * norm_x
+                    if self.logger.isEnabledFor(logging.DEBUG):
+                        if flag:
+                            self.logger.debug("Solution has converged: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
+                        else:
+                            self.logger.debug("Solution checked: dx, x*m_tol = %e, %e"%(norm_dx,norm_x*self._m_tol))
                     converged = converged and flag
 
                 x=x_new

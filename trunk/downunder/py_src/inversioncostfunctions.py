@@ -107,7 +107,7 @@ class InversionCostFunction(MeteredCostFunction):
 
         if isinstance(mappings, Mapping):
             mappings = [ mappings ]
-        
+
         self.mappings=[]
         for i in range(len(mappings)):
             mm=mappings[i]
@@ -166,20 +166,18 @@ class InversionCostFunction(MeteredCostFunction):
             self.forward_models.append((fm,idx))
         self.numModels=len(self.forward_models)
 
-    
         trafo = self.regularization.getCoordinateTransformation()
         for m in self.forward_models:
             if not m[0].getCoordinateTransformation() == trafo:
-                raise ValueError("Coordinate transformation for regularization and model don't match.") 
+                raise ValueError("Coordinate transformation for regularization and model don't match.")
 
- 
         self.__num_tradeoff_factors = self.regularization.getNumTradeOffFactors() + self.numModels
         self.setTradeOffFactorsModels()
 
     def getDomain(self):
         """
         returns the domain of the cost function
-        
+
         :rtype: `Domain`
         """
         self.regularization.getDomain()
@@ -203,7 +201,7 @@ class InversionCostFunction(MeteredCostFunction):
         """
         if idx==None: idx=0
         return self.forward_models[idx][0]
-        
+
     def getRegularization(self):
         """
         returns the regularization
@@ -315,7 +313,7 @@ class InversionCostFunction(MeteredCostFunction):
         :type return_list: ``bool``
         :rtype: ``list`` of `Data`
         """
-             
+
         props=[]
         for i in range(self.numMappings):
             mp, idx=self.mappings[i]
@@ -405,7 +403,7 @@ class InversionCostFunction(MeteredCostFunction):
 
     def _getComponentValues(self, m, *args):
         """
-        returns the values of the individual cost functions that make up *f(x)* 
+        returns the values of the individual cost functions that make up *f(x)*
         using the precalculated values for *x*.
 
         :param x: a solution approximation
@@ -421,18 +419,17 @@ class InversionCostFunction(MeteredCostFunction):
 
         J_reg = self.regularization.getValue(m, *args_reg)
         result = [J_reg]
- 
+
         for i in range(self.numModels):
             f, idx=self.forward_models[i]
             args=tuple( [ props[k] for k in idx]  + list( args_f[i] ) )
             J_f = f.getValue(*args)
             self.logger.debug("J_f[%d] = %e, mu_model[%d] = %e"%(i, J_f, i, self.mu_model[i]))
 
-            result += [J_f] # self.mu_model[i] * ?? 
+            result += [J_f] # self.mu_model[i] * ??
 
         return result
 
-         
     def _getGradient(self, m, *args):
         """
         returns the gradient of the cost function at *m*.
@@ -445,9 +442,10 @@ class InversionCostFunction(MeteredCostFunction):
                      regularization
 
         :rtype: `ArithmeticTuple`
-        
-        :note: returns (Y^,X) where Y^ is gradient from regularisation plus gradients of fwd models.
-               X is the gradient of the regularisation wrt gradient of m.
+
+        :note: returns (Y^,X) where Y^ is the gradient from regularization plus
+               gradients of fwd models. X is the gradient of the regularization
+               w.r.t. gradient of m.
         """
         if len(args)==0:
             args = self.getArguments(m)
@@ -471,42 +469,50 @@ class InversionCostFunction(MeteredCostFunction):
                 dpdm = mm.getDerivative(m)
             p_diffs.append(dpdm)
 
-        Y=g_J[0]      # Beacause g_J==(Y,X)  Y_k=dKer/dm_k
+        Y=g_J[0] # Because g_J==(Y,X)  Y_k=dKer/dm_k
         for i in range(self.numModels):
             mu=self.mu_model[i]
-            f, idx_f=self.forward_models[i]                
+            f, idx_f=self.forward_models[i]
             args=tuple( [ props[k] for k in idx_f]  + list( args_f[i] ) )
             Ys = f.getGradient(*args) # this d Jf/d props
-            if Ys.getRank() == 0: # in this case f depend on one parameter props only but this can still depend on several level set components
-                idx_m=self.mappings[idx_f[0]][1] # run through all level sets k prop j is depending on:
-                tmp=Ys * p_diffs[idx_f[0]] * mu # tmp[k] = dJ_f/d_prop * d prop/d m[idx_m[k]]
+            # in this case f depends on one parameter props only but this can
+            # still depend on several level set components
+            if Ys.getRank() == 0:
+                # run through all level sets k prop j is depending on:
+                idx_m=self.mappings[idx_f[0]][1]
+                # tmp[k] = dJ_f/d_prop * d prop/d m[idx_m[k]]
+                tmp=Ys * p_diffs[idx_f[0]] * mu
                 if idx_m:
                     if tmp.getRank()== 0:
-                        for k in range(len(idx_m)): 
-                            Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
+                        for k in range(len(idx_m)):
+                            Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp
                     else:
-                        for k in range(len(idx_m)): 
+                        for k in range(len(idx_m)):
                             Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
                 else:
-                    Y+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
+                    Y+=tmp # dJ_f /d m[idx_m[k]] = tmp
             else:
                 s=0
-                for j in range(len(idx_f)): # run through all props j formward model f is depending on:
-                    idx_m=self.mappings[j][1] # run through all level sets k prop j is depending on:
+                # run through all props j forward model f is depending on:
+                for j in range(len(idx_f)):
+                    # run through all level sets k prop j is depending on:
+                    idx_m=self.mappings[j][1]
                     if p_diffs[idx_f[j]].getRank() == 0 :
                         if idx_m: # this case is not needed (really?)
                             self.logger.error("something wrong A")
-                            tmp=Ys[s]*p_diffs[idx_f[j]] * mu # tmp[k] = dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
-                            for k in range(len(idx_m)): 
+                            # tmp[k] = dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                            tmp=Ys[s]*p_diffs[idx_f[j]] * mu
+                            for k in range(len(idx_m)):
                                 Y[idx_m[k]]+=tmp[k] # dJ_f /d m[idx_m[k]] = tmp[k]
                         else:
                             Y+=Ys[s]*p_diffs[idx_f[j]] * mu
                         s+=1
                     elif p_diffs[idx_f[j]].getRank() == 1 :
                         l=p_diffs[idx_f[j]].getShape()[0]
-                        tmp=inner(Ys[s:s+l], p_diffs[idx_f[j]]) * mu # tmp[k] = sum_j dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                        # tmp[k]=sum_j dJ_f/d_prop[j] * d prop[j]/d m[idx_m[k]]
+                        tmp=inner(Ys[s:s+l], p_diffs[idx_f[j]]) * mu
                         if idx_m:
-                            for k in range(len(idx_m)): 
+                            for k in range(len(idx_m)):
                                 Y[idx_m[k]]+=tmp # dJ_f /d m[idx_m[k]] = tmp[k]
                         else:
                             Y+=tmp
@@ -515,8 +521,9 @@ class InversionCostFunction(MeteredCostFunction):
                         l=p_diffs[idx_f[j]].getShape()[0]
                         Yss=Ys[s:s+l]
                         if idx_m:
-                            for k in range(len(idx_m)): 
-                                Y[idx_m[k]]+=inner(Yss, p_diffs[idx_f[j]][:,k]) # dJ_f /d m[idx_m[k]] = tmp[k]
+                            for k in range(len(idx_m)):
+                                # dJ_f /d m[idx_m[k]] = tmp[k]
+                                Y[idx_m[k]]+=inner(Yss, p_diffs[idx_f[j]][:,k])
                         else:
                             Y+=inner(Yss, p_diffs[idx_f[j]]) * mu
                         s+=l

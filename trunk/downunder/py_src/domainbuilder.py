@@ -76,7 +76,8 @@ class DomainBuilder(object):
         self.__dim=dim
         self.__sources=[]
         self.__background_magnetic_field=None
-        self.__tags=[]   # list of all tags being used by all data sources beeing attached:
+        # list of all tags used by all data sources being attached
+        self.__tags=[]
         self.setElementPadding()
         self.setVerticalExtents()
         self.fixDensityBelow()
@@ -90,10 +91,11 @@ class DomainBuilder(object):
         :rtype: `ReferenceSystem`
         """
         return self.__reference_system
+
     def getTags(self):
         """
-        returns a list of all tags beeing used by the attached data sources.
-        the list may be empty.
+        returns a list of all tags in use by the attached data sources.
+        The list may be empty.
         """
         return self.__tags
             
@@ -319,7 +321,7 @@ class DomainBuilder(object):
         """
         Returns a list of `Data` objects for all surveys of type `datatype`
         available to this domain builder. If a list of `tags` is given 
-        only data sources whose tag matching the tag list are returned 
+        only data sources whose tag matches the tag list are returned.
 
         :return: List of surveys which are tuples (anomaly,error).
         :rtype: ``list``
