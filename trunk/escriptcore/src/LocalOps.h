@@ -47,12 +47,10 @@ bool nancheck(double d)
 		// Q: so why not just test d!=d?
 		// A: Coz it doesn't always work [I've checked].
 		// One theory is that the optimizer skips the test.
-#ifdef isnan
-    return isnan(d);
-#elif defined _isnan
+#if defined _isnan
     return _isnan(d);
 #else
-    return false;
+    return isnan(d);	// isNan should be a function in C++ land
 #endif
 }
 
