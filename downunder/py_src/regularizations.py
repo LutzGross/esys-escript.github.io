@@ -25,7 +25,7 @@ __all__ = ['Regularization']
 
 
 import numpy as np
-from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
+from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 from .coordinates import makeTranformation
@@ -430,8 +430,8 @@ class Regularization(CostFunction):
                 len_gk=length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
-                    #print("CC = %s"%integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ))
-                    A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
+                    #print("CC(%s,%s) = %s"%(k,l,integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )))
+                    A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
         #print("A = %s"%A)
         return A/2
 
@@ -457,10 +457,11 @@ class Regularization(CostFunction):
                 Y = Data(0, (numLS,) , grad_m.getFunctionSpace())
 
         if self.__w1 is not None:
-            X=grad_m*self.__w1
+
             if numLS == 1:
                 X=grad_m* self.__w1*mu
             else:
+                X=grad_m*self.__w1
                 for k in range(numLS):
                     X[k,:]*=mu[k]
         else:
@@ -476,8 +477,8 @@ class Regularization(CostFunction):
                     l2_grad_m_l = length(grad_m_l)**2
                     grad_m_lk = inner(grad_m_l, grad_m_k)
                     f = mu_c[l,k]* self.__wc[l,k]
-                    X[l,:] += f * (l2_grad_m_l*grad_m_l - grad_m_lk*grad_m_k)
-                    X[k,:] += f * (l2_grad_m_k*grad_m_k - grad_m_lk*grad_m_l)
+                    X[l,:] += f * (l2_grad_m_k*grad_m_l - grad_m_lk*grad_m_k)
+                    X[k,:] += f * (l2_grad_m_l*grad_m_k - grad_m_lk*grad_m_l)
 
         return ArithmeticTuple(Y, X)
 

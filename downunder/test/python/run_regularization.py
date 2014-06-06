@@ -40,69 +40,172 @@ class Test_Regularizaton2D(unittest.TestCase):
         
     # standart inversion case   
     def test_ConstantLevelSet1(self): # doesn't test the regularization
-
-        reg=Regularization(dom, numLevelSets=1,
+        a=[1,2]
+        
+        reg=Regularization(self.domain, numLevelSets=1,
                                w1=[1,1.], # consider gradient terms
                                #wc=[[0,1],[0,0]],    # and cross-gradient term
                                coordinates=self.COORDINATES)
                                #location_of_set_m=reg_mask)
-        cf=InversionCostFunction(reg, pm1, sm1)
         
         
-        m=Scalar(1., Solution(dom))
-        args=cf.getArguments(m)
-        df=cf.getValue(m, *args)
-        gf=cf.getGradient(m, *args)[0]
-        
+        m=Scalar(1., Solution(self.domain))
+        args=reg.getArguments(m)
+        df=reg.getValue(m, *args)
         self.assertIsInstance(df, float)
-        self.assertAlmostEqual(df, sm1.getRealValue(s0))
+        self.assertAlmostEqual(df,0.)
         
-        self.assertIsInstance(gf, Data)
-        self.assertEqual(gf.getFunctionSpace(), Function(dom))
-        self.assertEqual(gf.getShape(), ())
+        gf=reg.getGradient(m, *args)
+        self.assertIsInstance(gf[0], Data)
+        self.assertIsInstance(gf[1], Data)
+        self.assertEqual(gf[0].getFunctionSpace(), Function(self.domain))
+        self.assertEqual(gf[1].getFunctionSpace(), Function(self.domain))
+        self.assertEqual(gf[0].getShape(), ())
+        self.assertEqual(gf[1].getShape(), (2,))
+        self.assertAlmostEqual(Lsup(gf[0]),0.)
+        self.assertAlmostEqual(Lsup(gf[1]),0.)
         
-        
+        # lets try another m
+        x=Solution(self.domain).getX()
+        m=a[0]*x[0]+a[1]*x[1]
+
+        args=reg.getArguments(m)
+        df=reg.getValue(m, *args)
+        self.assertAlmostEqual(df,(a[0]**2+a[1]**2)/2./2.)
+        gf=reg.getGradient(m, *args)
+        # and now the derivatives:                
         STEP=0.001
-        m2=m+STEP
-        df2=cf.getValue(m2, *(cf.getArguments(m2)))
+        dm=STEP*x[0]**2
+        m2=m+dm
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
         gf2=df2-df
-        self.assertTrue( Lsup(gf2-gf*STEP) < 1e-3 * Lsup(gf2) )
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm, gf)) < 1e-3 * abs(gf2) )
     
-    def test_ConstantLevelSet2(self): # doesn't test the regularization
-        reg=Regularization(dom, numLevelSets=2,
+    def test_ConstantLevelSet2_noCrossGradient(self): # doesn't test the regularization
+        a=[1,2]
+                
+        reg=Regularization(self.domain, numLevelSets=2,
                                w1=[[1,1.],[1.,1.]], # consider gradient terms
                                wc=[[0,0],[0,0]],    # and cross-gradient term
                                coordinates=self.COORDINATES)
                                #location_of_set_m=reg_mask)
         
         
-        m=Data([1.,2], Solution(dom))
-        args=cf.getArguments(m)
+        m=Data([1.,2], Solution(self.domain))
+        args=reg.getArguments(m)
         
-        df=cf.getValue(m, *args)
-        df_real=sm1.getRealValue(s[0]*1.)+sm2.getRealValue(s[1]*2.)
-        gf=cf.getGradient(m, *args)[0]
-    
+        df=reg.getValue(m, *args)
+        
         self.assertIsInstance(df, float)
-        self.assertAlmostEqual(df, df_real)
+        self.assertAlmostEqual(df,0.)
         
-        self.assertIsInstance(gf, Data)
-        self.assertEqual(gf.getFunctionSpace(), Function(dom))
-        self.assertEqual(gf.getShape(), (2,))
+        gf=reg.getGradient(m, *args)
+        self.assertIsInstance(gf[0], Data)
+        self.assertIsInstance(gf[1], Data)
+        self.assertEqual(gf[0].getFunctionSpace(), Function(self.domain))
+        self.assertEqual(gf[1].getFunctionSpace(), Function(self.domain))
+        self.assertEqual(gf[0].getShape(), (2,))
+        self.assertEqual(gf[1].getShape(), (2,2))
+        self.assertAlmostEqual(Lsup(gf[0]),0.)
+        self.assertAlmostEqual(Lsup(gf[1]),0.)
 
+        # lets try another m
+        x=Solution(self.domain).getX()
+        m=x*a
 
-        STEP=0.001
-
-        m2=m+[STEP,0]
-        df2=cf.getValue(m2, *(cf.getArguments(m2)))
+        args=reg.getArguments(m)
+        df=reg.getValue(m, *args)
+        self.assertAlmostEqual(df,(a[0]**2+a[1]**2)/2./2.)
+        gf=reg.getGradient(m, *args)
+        
+        # and now the derivatives:                
+        STEP=0.0002
+        dm=STEP*x[0]*x[1]
+        
+        m2=m+dm*[1,0]
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
         gf2=df2-df
-        self.assertTrue( Lsup(gf2-gf[0]*STEP) < 1e-3 * Lsup(gf2) )
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm*[1,0], gf)) < 1e-3 * abs(gf2) )
 
-        m2=m+[0, STEP]
-        df2=cf.getValue(m2, *(cf.getArguments(m2)))
+        m2=m+dm*[0,1]
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
         gf2=df2-df
-        self.assertTrue( Lsup(gf2-gf[1]*STEP) < 1e-3 * Lsup(gf2) )
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm*[0,1], gf)) < 1e-3 * abs(gf2) )
 
+    def test_ConstantLevelSet2_WithCrossGradient(self): # doesn't test the regularization
+        reg=Regularization(self.domain, numLevelSets=2,
+                               w1=[[1,1.],[1.,1.]], # consider gradient terms
+                               wc=[[0,1],[0,0]],    # and cross-gradient term
+                               coordinates=self.COORDINATES)
+                               #location_of_set_m=reg_mask)
+        
+        
+        m=Data([1.,2], Solution(self.domain))
+        args=reg.getArguments(m)
+        
+        df=reg.getValue(m, *args)
+        
+        self.assertIsInstance(df, float)
+        self.assertAlmostEqual(df,0.)
+        
+        gf=reg.getGradient(m, *args)
+        self.assertIsInstance(gf[0], Data)
+        self.assertIsInstance(gf[1], Data)
+        self.assertEqual(gf[0].getFunctionSpace(), Function(self.domain))
+        self.assertEqual(gf[1].getFunctionSpace(), Function(self.domain))
+        self.assertEqual(gf[0].getShape(), (2,))
+        self.assertEqual(gf[1].getShape(), (2,2))
+        self.assertAlmostEqual(Lsup(gf[0]),0.)
+        self.assertAlmostEqual(Lsup(gf[1]),0.)
+        
+        # lets try another m: 
+        x=Solution(self.domain).getX()
+        a1=1.
+        a2=2.
+        # for this one cross gradient should not impact on cost function
+        f=0.1
+        m=(a1*x[0]+a2*x[1]) * [1,0] + (f*a1*x[0]+f*a2*x[1]) * [0,1] # cross gradient term is zero!
+        args=reg.getArguments(m)
+        df=reg.getValue(m, *args)
+        self.assertAlmostEqual(df,(a1**2+a2**2)*(1+f**2)/2./2.)
+        gf=reg.getGradient(m, *args)
+
+        # and now the derivatives:                
+        STEP=0.0002
+        dm=STEP*x[0]*x[1]
+        
+        m2=m+dm*[1,0]
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
+        gf2=df2-df                
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm*[1,0], gf)) < 1e-3 * abs(gf2) )
+
+        m2=m+dm*[0,1]
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
+        gf2=df2-df
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm*[0,1], gf)) < 1e-3 * abs(gf2) )
+                
+        # for this gives maximum impact on  on cost function 
+        m=(a1*x[0]+a2*x[1]) * [1,0] + (a2*x[0]-a1*x[1]) * [0,1] # cross gradient term is zero!
+        args=reg.getArguments(m)
+        df=reg.getValue(m, *args)
+        self.assertAlmostEqual(df,(2*(a1**2+a2**2)/2.+(a1**2+a2**2)**2/4.)/2.)
+        gf=reg.getGradient(m, *args)
+        
+        # and now the derivatives:                
+        STEP=0.002
+        dm=STEP*x[0]*x[1]
+        
+        m2=m+dm*[1,0]
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
+        gf2=df2-df      
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm*[1,0], gf)) < 1e-3 * abs(gf2) )
+
+        m2=m+dm*[0,1]
+        df2=reg.getValue(m2, *(reg.getArguments(m2)))
+        gf2=df2-df
+        self.assertTrue( abs(gf2-reg.getDualProduct(dm*[0,1], gf)) < 1e-3 * abs(gf2) )
+        
+        
         
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
