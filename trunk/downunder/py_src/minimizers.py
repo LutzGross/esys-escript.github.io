@@ -132,6 +132,7 @@ def line_search(f, x, p, g_Jx, Jx, alpha=1.0, alpha_truncationax=50.0,
     gphi0=f.getDualProduct(p, g_Jx) #gradphi(0., *args0)
     lslogger.debug("grad phi(0)=%e"%(gphi0))
     old_phi_a=phi0
+    phi_a=phi0
     i=1
 
     while i<IMAX and alpha>0. and alpha<alpha_truncationax:
