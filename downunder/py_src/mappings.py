@@ -27,7 +27,7 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping',\
            'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping']
 
-from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp
+from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp, whereZero
 import esys.escript.unitsSI as U
 from numpy import pi
 import logging
@@ -245,8 +245,10 @@ class MTMapping(Mapping):
         """
         returns the value of the inverse of the mapping for s
         """
-        self.logger.info("s=%s"%str(self.__sigma0))
-        return (1/self.__a)*log(s/self.__sigma0)
+        ms=whereZero(s)
+        ms0=whereZero(self.__sigma0)
+        m=1/self.__a* log(((1-ms)*s+ms*1)/((1-ms0)*self.__sigma0+ms0*1)) * (1-ms)*(1-ms0) 
+        return m
 
 # needs REVISION
 class BoundedRangeMapping(Mapping):
