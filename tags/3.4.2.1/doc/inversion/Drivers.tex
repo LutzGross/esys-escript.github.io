@@ -1,0 +1,239 @@
+\section{Driver Classes}\label{chapter:ref:Drivers:Drivers}
+The inversion minimizes an appropriate cost function $J$ to find the physical parameter distribution 
+(or more precisely the level set function) which gives the best fit to measured data. A 
+particular inversion case (gravity, magnetic or joint) is managed through 
+an instance of a specialization of the \class{InversionDriver} class. The task of the class instance
+is to set up the appropriate cost function, to manage solution parameters and to run the optimization process.
+
+\subsection{Template}
+\begin{classdesc*}{InversionDriver}
+template for inversion drivers. 
+\end{classdesc*}
+ 
+\begin{methoddesc}[InversionDriver]{getCostFunction}{}
+returns the cost function of the inversion. This will be an instance of the \class{InversionCostFunction} class, see Section~\ref{chapter:ref:inversion cost function}.
+Use this method to access or alter attributes or call methods of the underlying cost function.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionDriver]{getSolver}{}
+returns the instance of the solver class used to minimize the cost function, see Chapter~\ref{chapter:ref:Minimization}. 
+Use this method to modify solver options.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionDriver]{getDomain}{}
+returns the domain of the inversion as an \escript \class{Domain} object.
+\end{methoddesc}
+
+        
+\begin{methoddesc}[InversionDriver]{setSolverMaxIterations}{\optional{maxiter=\None}}
+sets the maximum number of iteration steps for the solver used to minimize the cost function. The default value is 200.
+If the maximum number is reached, the iteration will be terminated and \exception{MinimizerMaxIterReached} is thrown.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionDriver]{setSolverTolerance}{\optional{m_tol=\None} \optional{, J_tol=\None}}
+set the tolerance for the solver used to minimize the cost function. If \member{m_tol} is set the iteration is terminated 
+if the relative change of the level set function is less than or equal \member{m_tol}, see condition~\ref{EQU:MIN:3a}. 
+If \member{J_tol} is set the iteration is terminated if the change of the cost
+function relative to the initial value is less than or equal \member{J_tol}, , see condition~\ref{EQU:MIN:3b}.
+If both tolerances are set both stopping criteria need to be met.
+By default \member{tol}=1e-4 and \member{J_tol}=\None.
+\end{methoddesc}
+
+\begin{methoddesc}[InversionDriver]{getLevelSetFunction}{}
+returns the level set function as solution of the optimization problem.
+This method can only be called if the optimization process as been completed.
+If the iteration failed the last available approximation of the solution is returned.
+\end{methoddesc}
+        
+\begin{methoddesc}[InversionDriver]{run}{}
+this method runs the optimization solver and returns the physical parameter(s)
+from the output of the inversion. Notice that the \method{setup} method must be
+called before the first call of \method{run}.
+The call can fail as the maximum number of iterations is reached in which case
+a \exception{MinimizerMaxIterReached} exception is thrown or as there is an
+incurable break down in the iteration in which case a \exception{MinimizerIterationIncurableBreakDown} exception is thrown. 
+\end{methoddesc}
+
+\subsection{Gravity Inversion Driver}
+For examples of usage please see Chapter~\ref{Chp:cook:gravity inversion}.
+
+\begin{classdesc}{GravityInversion}{\optional{solverclass=None}
+\optional{, fixGravityPotentialAtBottom=False}
+}
+Driver class to perform an inversion of Gravity (Bouguer) anomaly data.
+This class is a sub-class of \class{InversionDriver}. The class uses the
+standard \class{Regularization} for a single level set function,
+see Chapter~\ref{Chp:ref:regularization}, \class{DensityMapping} mapping,
+see Section~\ref{Chp:ref:mapping density}, and the gravity forward model
+\class{GravityModel}, see Section~\ref{sec:forward gravity}.
+\member{solverclass} set the solver class to be used for inversion,
+see Chapter~\ref{chapter:ref:Minimization}.
+ By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+If \member{fixGravityPotentialAtBottom} is set \optional{, fixGravityPotentialAtBottom=False}to \True the gravity potential at the bottom is set to zero.
+\end{classdesc}
+
+\begin{methoddesc}[GravityInversion]{fixGravityPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the gravity potential at the bottom is set to zero. Otherwise  the gravity
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
+\begin{methoddesc}[GravityInversion]{setup}{
+domainbuilder
+\optional{, rho0=\None}
+\optional{, drho=\None}
+\optional{, z0=\None}
+\optional{, beta=\None}
+\optional{, w0=\None}
+\optional{, w1=\None}
+\optional{, rho_at_depth=\None}
+}
+
+sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
+Only gravitational data attached to the \member{domainbuilder} are considered in the inversion.
+\member{rho0} defines a reference density anomaly (default is 0), 
+\member{drho} defines a density anomaly (default is $2750 \frac{kg}{m^3}$),
+\member{z0} defines the depth weighting reference depth (default is \None), and
+\member{beta} defines the depth weighting exponent (default is \None),
+see \class{DensityMapping} in Section~\ref{Chp:ref:mapping density}.
+\member{w0} and \member{w1} define the weighting factors
+$\omega^{(0)}$ and
+$\omega^{(1)}$, respectively (see Equation~\ref{EQU:REG:1}).
+By default \member{w0}=\None and \member{w1}=1 are used.
+\member{rho_at_depth} sets the value for density at depth. This is only used if density is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
+\end{methoddesc}
+
+\begin{methoddesc}[GravityInversion]{setInitialGuess}{\optional{rho=\None}}
+sets an initial guess for the density anomaly. By default zero is used.
+\end{methoddesc}
+
+\subsection{Magnetic Inversion Driver}
+For examples of usage please see Chapter~\ref{Chp:cook:magnetic inversion}.
+
+\begin{classdesc}{MagneticInversion}{\optional{solverclass=None}, \optional{self_demagnetization=\False}
+}
+Driver class to perform an inversion of magnetic anomaly data. This class
+is a sub-class of \class{InversionDriver}. The class uses the standard
+\class{Regularization} class for a single level set function, see Chapter~\ref{Chp:ref:regularization},
+\class{SusceptibilityMapping} mapping, see Section~\ref{Chp:ref:mapping susceptibility},
+and the magnetic forward model \class{SelfDemagnetizationModel} (if \member{self_demagnetization}=\True,
+see Section~\ref{sec:forward self demagnetic}) or \class{MagneticModel}  
+(if \member{self_demagnetization}=\False, see Section~\ref{sec:forward magnetic}).
+\member{solverclass} set the solver class to be used for inversion,
+see Chapter~\ref{chapter:ref:Minimization}.
+ By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+
+\end{classdesc}
+
+\begin{methoddesc}[MagneticInversion]{fixMagneticPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the magnetic potential at the bottom is set to zero. Otherwise  the magnetic
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
+
+
+\begin{methoddesc}[MagneticInversion]{setup}{
+domainbuilder
+\optional{, k0=\None} 
+\optional{, dk=\None} 
+\optional{, z0=\None} 
+\optional{, beta=\None}
+\optional{, w0=\None}
+\optional{, w1=\None}
+\optional{, k_at_depth=\None}
+}
+
+sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
+Only magnetic data attached to the \member{domainbuilder} are considered in the inversion.
+\member{k0} defines a reference susceptibility anomaly (default is $0$), 
+\member{dk} defines a susceptibility anomaly scale (default is $1$),
+\member{z0} defines the depth weighting reference depth (default is \None), and
+\member{beta} defines the depth weighting exponent (default is \None),
+see \class{SusceptibilityMapping} in Section~\ref{Chp:ref:mapping susceptibility}.
+\member{w0} and \member{w1} define the weighting factors
+$\omega^{(0)}$ and
+$\omega^{(1)}$, respectively (see equation~\ref{EQU:REG:1}).
+By default \member{w0}=\None and \member{w1}=1 are used.
+\member{k_at_depth} sets the value for susceptibility at depth. This is only used if susceptibility is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
+\end{methoddesc}
+
+\begin{methoddesc}[MagneticInversion]{setInitialGuess}{\optional{k=\None}}
+sets an initial guess for the susceptibility anomaly. By default zero is used.
+\end{methoddesc}
+
+\subsection{Gravity and Magnetic Joint Inversion Driver}
+For examples of usage please see Chapter~\ref{Chp:cook:joint inversion}.
+
+\begin{classdesc}{JointGravityMagneticInversion}{\optional{solverclass=None}
+, \optional{self_demagnetization=\False}
+}
+Driver class to perform a joint inversion of Gravity (Bouguer) and magnetic anomaly data.
+This class is a sub-class of \class{InversionDriver}. 
+The class uses the standard \class{Regularization} for two level set functions
+with cross-gradient correlation, see Chapter~\ref{Chp:ref:regularization},
+\class{DensityMapping} and \class{SusceptibilityMapping} mappings, see Section~\ref{Chp:ref:mapping}, the 
+gravity forward model \class{GravityModel}, see Section~\ref{sec:forward gravity}
+and the magnetic forward model \class{SelfDemagnetizationModel} (if \member{self_demagnetization}=\True,
+see Section~\ref{sec:forward self demagnetic}) or \class{MagneticModel}  
+(if \member{self_demagnetization}=\False, see Section~\ref{sec:forward magnetic}).
+\member{solverclass} set the solver class to be used for inversion,
+see Chapter~\ref{chapter:ref:Minimization}.
+ By default the limited-memory Broyden-Fletcher-Goldfarb-Shanno (\emph{L-BFGS})~\cite{Nocedal1980}\index{L-BFGS} solver is used.
+\end{classdesc}
+
+\begin{methoddesc}[JointGravityMagneticInversion]{fixGravityPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the gravity potential at the bottom is set to zero. Otherwise  the gravity
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
+
+\begin{methoddesc}[JointGravityMagneticInversion]{fixMagneticPotentialAtBottom}{\optional{status=\True}}
+If \member{status} is \True the magnetic potential at the bottom is set to zero. Otherwise  the magnetic
+ potential at the top is set to zero only. 
+\end{methoddesc}
+
+\begin{methoddesc}[JointGravityMagneticInversion]{setup}{
+domainbuilder
+\optional{, rho0=\None}
+\optional{, drho=\None}
+\optional{, rho_z0=\None}
+\optional{, rho_beta=\None}
+\optional{, k0=\None}
+\optional{, dk=\None}
+\optional{, k_z0=\None}
+\optional{, k_beta=\None}
+\optional{, w0=\None}
+\optional{, w1=\None}
+\optional{, w_gc=\None}
+\optional{, rho_at_depth=\None}
+\optional{, k_at_depth=\None}
+}
+
+sets up the inversion from an instance \member{domainbuilder} of a \class{DomainBuilder}, see Section~\ref{Chp:ref:domain builder}.
+Gravity and magnetic data attached to the \member{domainbuilder} are considered in the inversion.
+\member{rho0} defines a reference density anomaly (default is $0$),
+\member{drho} defines a density anomaly (default is $2750 \frac{kg}{m^3}$),
+\member{rho_z0} defines the depth weighting reference depth for density (default is \None), and
+\member{rho_beta} defines the depth weighting exponent for density (default is \None),
+see \class{DensityMapping} in Section~\ref{Chp:ref:mapping density}.
+\member{k0} defines a reference susceptibility anomaly (default is $0$),
+\member{dk} defines a susceptibility anomaly scale (default is $1$),
+\member{k_z0} defines the depth weighting reference depth for susceptibility (default is \None), and
+\member{k_beta} defines the depth weighting exponent for susceptibility (default is \None),
+see \class{SusceptibilityMapping} in Section~\ref{Chp:ref:mapping susceptibility}.
+\member{w0} and \member{w1} define the weighting factors
+$\omega^{(0)}$ and
+$\omega^{(1)}$, respectively (see Equation~\ref{EQU:REG:1}). 
+\member{w_gc} sets the weighting factor $\omega^{(c)}$ for the cross gradient term. 
+By default \member{w0}=\None, \member{w1}=1 and \member{w_gc}=1 are used.
+\member{k_at_depth} sets the value for susceptibility at depth. This is only used if susceptibility is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
+\member{rho_at_depth} sets the value for density at depth. This is only used if density is fixed below a certain depth,
+see \class{Domain Builder} in Section~\ref{Chp:ref:domain builder}.
+\end{methoddesc}
+
+\begin{methoddesc}[JointGravityMagneticInversion]{setInitialGuess}{\optional{rho=\None, } \optional{k=\None}}
+sets initial guesses for density and susceptibility anomaly.
+By default zero is used for both.
+\end{methoddesc}
