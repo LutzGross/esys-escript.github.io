@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 import os
 import sys
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
+
 from esys.escript import *
 from esys.ripley import Rectangle, Brick, ripleycpp
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, Test_TableInterpolation
@@ -274,5 +274,14 @@ class Test_binaryGridOnRipley(unittest.TestCase):
             self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
 
 if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(Test_SharedOnRipley))
+    suite.addTest(unittest.makeSuite(Test_DataOpsOnRipley))
+    suite.addTest(unittest.makeSuite(Test_DomainOnRipley))
+    suite.addTest(unittest.makeSuite(Test_TableInterpolationOnRipley))
+    suite.addTest(unittest.makeSuite(Test_CSVOnRipley))
+    suite.addTest(unittest.makeSuite(Test_randomOnRipley))
+    suite.addTest(unittest.makeSuite(Test_binaryGridOnRipley))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

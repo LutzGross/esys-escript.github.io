@@ -45,26 +45,24 @@ namespace finley {
 // They are only fwd declared here so that vis.studio will accept the friend
 // decls
 FINLEY_DLL_API
-escript::Domain_ptr brick(esysUtils::JMPI& p,int n0, int n1, int n2, int order,
+escript::Domain_ptr brick(int n0, int n1, int n2, int order,
                     double l0, double l1, double l2,
                     bool periodic0, bool periodic1, bool periodic2,
                     int integrationOrder, int reducedIntegrationOrder,
                     bool useElementsOnFace, bool useFullElementOrder,
                     bool optimize, const std::vector<double>& points,
                     const std::vector<int>& tags,
-                    const std::map<std::string, int>& tagnamestonums
-		    );
+                    const std::map<std::string, int>& tagnamestonums);
                     
 FINLEY_DLL_API              
-escript::Domain_ptr rectangle(esysUtils::JMPI& p, int n0, int n1, int order,
+escript::Domain_ptr rectangle(int n0, int n1, int order,
                         double l0, double l1,
                         bool periodic0, bool periodic1,
                         int integrationOrder, int reducedIntegrationOrder,
                         bool useElementsOnFace, bool useFullElementOrder,
                         bool optimize, const std::vector<double>& points,
                         const std::vector<int>& tags,
-                        const std::map<std::string, int>& tagnamestonums
- 			    );        
+                        const std::map<std::string, int>& tagnamestonums);        
   
 struct null_deleter
 {
@@ -710,7 +708,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
  
   static FunctionSpaceNamesMapType m_functionSpaceTypeNames;
 
-  friend escript::Domain_ptr brick(esysUtils::JMPI& p, int n0, int n1, int n2, int order,
+  friend escript::Domain_ptr brick(int n0, int n1, int n2, int order,
                     double l0, double l1, double l2,
                     bool periodic0, bool periodic1, bool periodic2,
                     int integrationOrder,
@@ -723,7 +721,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                     const std::map<std::string, int>& tagnamestonums);
                     
                     
-  friend escript::Domain_ptr rectangle(esysUtils::JMPI& p,int n0, int n1, int order,
+  friend escript::Domain_ptr rectangle(int n0, int n1, int order,
                         double l0, double l1,
                         bool periodic0, bool periodic1,
                         int integrationOrder,
@@ -733,30 +731,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                         bool optimize,
                         const std::vector<double>& points,
                         const std::vector<int>& tags,
-                        const std::map<std::string, int>& tagnamestonums); 
-
-   friend escript::Domain_ptr readMesh_driver(const boost::python::list& args);
-
-   friend escript::Domain_ptr readMesh(esysUtils::JMPI& p, const std::string& fileName,
-                                     int integrationOrder,
-                                     int reducedIntegrationOrder,
-                                     bool optimize,
-				   const std::vector<double>& points,
-				   const std::vector<int>& tags
- 			      );
-  friend escript::Domain_ptr readGmsh_driver(const boost::python::list& args);
-
-  friend escript::Domain_ptr readGmsh(esysUtils::JMPI& p, const std::string& fileName,
-                               int numDim, 
-                               int integrationOrder,
-                               int reducedIntegrationOrder, 
-                               bool optimize,
-                               bool useMacroElements,
-			      const std::vector<double>& points,
-			      const std::vector<int>& tags
-			      );
-  
-  
+                        const std::map<std::string, int>& tagnamestonums);                                              
 };
 
 

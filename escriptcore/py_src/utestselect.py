@@ -24,4 +24,8 @@ __url__="https://launchpad.net/escript-finley"
 
 #This file will be imported by all escript unit tests as "unittest"
 #Replace the line below to switch between unittest and unitest2 (assuming you have it installed)
-from unittest import *
+try:
+    from unittest2 import *
+except ImportError:
+    from unittest import *
+

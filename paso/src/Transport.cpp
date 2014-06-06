@@ -51,7 +51,7 @@ TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
     mass_matrix.reset(new SystemMatrix(matrix_type, pattern, block_size,
                                        block_size, false));
 
-    mpi_info = pattern->mpi_info;
+    mpi_info = Esys_MPIInfo_getReference(pattern->mpi_info);
 
     if (Esys_noError()) {
         const dim_t n = transport_matrix->getTotalNumRows();
@@ -72,6 +72,7 @@ TransportProblem::TransportProblem(SystemMatrixPattern_ptr pattern,
 
 TransportProblem::~TransportProblem()
 {
+    Esys_MPIInfo_free(mpi_info);
     delete[] constraint_mask;
     delete[] reactive_matrix;
     delete[] main_diagonal_mass_matrix;
@@ -88,6 +89,7 @@ void TransportProblem::reset()
     util::zeroes(n, constraint_mask);
     valid_matrices = false;
 }
+
 
 void TransportProblem::setUpConstraint(const double* q)
 {

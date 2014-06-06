@@ -27,7 +27,6 @@ local_unroll_env = env.Clone()
 del py_wrapper_local_env['SHLIBPREFIX']
 
 sources = """
-    AbstractAssembler.cpp
     blocktools.cpp
     blocktools2.cpp
     Brick.cpp
@@ -36,6 +35,7 @@ sources = """
     RipleyException.cpp
     DefaultAssembler2D.cpp
     DefaultAssembler3D.cpp
+    AbstractAssembler.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
     LameAssembler2D.cpp
@@ -44,7 +44,6 @@ sources = """
 """.split()
 
 headers = """
-    AbstractAssembler.h
     blocktools.h
     Brick.h
     Rectangle.h
@@ -54,6 +53,7 @@ headers = """
     system_dep.h
     DefaultAssembler2D.h
     DefaultAssembler3D.h
+    AbstractAssembler.h
     WaveAssembler2D.h
     WaveAssembler3D.h
     LameAssembler2D.h

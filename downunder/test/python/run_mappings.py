@@ -22,14 +22,13 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import sys
 from esys.escript import *
 from esys.downunder.mappings import *
 from esys.ripley import Rectangle
 import numpy
 
-class Test_LinearMapping(unittest.TestCase):
+class TestLinearMapping(unittest.TestCase):
     def setUp(self):
         self.alpha = 4.2
         self.p0 = 1.75
@@ -53,7 +52,7 @@ class Test_LinearMapping(unittest.TestCase):
         ref=(1.23-self.p0)/self.alpha
         self.assertAlmostEqual(v, ref)
         
-class Test_AcousticVelocityMapping(unittest.TestCase):
+class TestAcousticVelocityMapping(unittest.TestCase):
     def setUp(self):
         self.fs=Function(Rectangle(40,40))
     def tearDown(self):
@@ -105,7 +104,7 @@ class Test_AcousticVelocityMapping(unittest.TestCase):
         self.assertLess( Lsup(m0[0]), 1e-14)
         self.assertLess( Lsup(m0[1]), 1e-14)
         
-class Test_BoundedRangeMapping(unittest.TestCase):
+class TestBoundedRangeMapping(unittest.TestCase):
     def setUp(self):
         self.alpha=4.2
         self.mapping=BoundedRangeMapping(1.5, 3.5)
@@ -154,6 +153,11 @@ class Test_BoundedRangeMapping(unittest.TestCase):
         ref=0.
         self.assertAlmostEqual(v, ref)
 
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(TestLinearMapping))
+    suite.addTest(unittest.makeSuite(TestBoundedRangeMapping))
+    suite.addTest(unittest.makeSuite(TestAcousticVelocityMapping))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

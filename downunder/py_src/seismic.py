@@ -388,7 +388,7 @@ class VTIWave(WaveBase):
     def __init__(self, domain, v_p, v_s, wavelet, source_tag,
             source_vector = [0.,0.,1.], eps=0., gamma=0., delta=0., rho=1.,
             dt=None, u0=None, v0=None, absorption_zone=300*U.m,
-            absorption_cut=1e-2, lumping=True):
+            absorption_cut=1e-2, lumping=True, useFast = False):
         """
         initialize the VTI wave solver
 
@@ -439,7 +439,7 @@ class VTIWave(WaveBase):
 
         self.__wavelet=wavelet
 
-        self.fastAssembler = hasattr(domain, "setAssembler")
+        self.fastAssembler = useFast and hasattr(domain, "setAssembler")
         self.c33=v_p**2 * rho
         self.c44=v_s**2 * rho
         self.c11=(1+2*eps) * self.c33
@@ -521,7 +521,7 @@ class HTIWave(WaveBase):
         def __init__(self, domain, v_p, v_s,   wavelet, source_tag,
                 source_vector = [1.,0.,0.], eps=0., gamma=0., delta=0., rho=1.,
                 dt=None, u0=None, v0=None, absorption_zone=300*U.m,
-                absorption_cut=1e-2, lumping=True):
+                absorption_cut=1e-2, lumping=True, useFast = False):
            """
            initialize the VTI wave solver
 
@@ -570,7 +570,7 @@ class HTIWave(WaveBase):
 
            self.__wavelet=wavelet
            
-           self.fastAssembler = hasattr(domain, "setAssembler")
+           self.fastAssembler = useFast and hasattr(domain, "setAssembler")
            self.c33=v_p**2 * rho
            self.c44=v_s**2 * rho
            self.c11=(1+2*eps) * self.c33

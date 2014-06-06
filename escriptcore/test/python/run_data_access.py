@@ -22,14 +22,12 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import sys
 from esys.escript import *
 from esys.escript.util import EPSILON
 
 # This test assumes that samples are in order in the object, ie the last point of sample x is 
 # immediately before the first point of sample x+1
-@unittest.skipIf(getMPISizeWorld() != 1, "num ranks > 1")
 class DataAccessTestCase(unittest.TestCase):
     #This is a very basic test - it only contains one value.
     def testtoListOfTuplesScalarOnNullDomain(self):
@@ -167,4 +165,10 @@ class DataAccessTestCase(unittest.TestCase):
         
         
 if __name__ == "__main__":
-    run_tests(__name__, exit_on_failure=True)
+    if getMPISizeWorld() == 1: 
+       suite = unittest.TestSuite()
+       suite.addTest(unittest.makeSuite(DataAccessTestCase))
+       s=unittest.TextTestRunner(verbosity=2).run(suite)
+       if not s.wasSuccessful(): sys.exit(1)
+    else:
+        print("run_data_access is not executed as more than one processor is used.")

@@ -23,7 +23,6 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 from esys.escript.modelframe import Model,Link,Simulation,ParameterSet,ESySXMLParser,DataSource
 import math
 from io import StringIO
@@ -467,5 +466,15 @@ class ODETEST(Model):
 
 
     
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(XMLDocumentTestCase))
+    suite.addTest(unittest.makeSuite(SimulationTestCase))
+    suite.addTest(unittest.makeSuite(LinkTestCase))
+    suite.addTest(unittest.makeSuite(ParamaterSetTestCase))
+    suite.addTest(unittest.makeSuite(ModeltoDomTestCase))
+    suite.addTest(unittest.makeSuite(ModeltoDomTestCase))
+    suite.addTest(unittest.makeSuite(Messenger))
+    suite.addTest(unittest.makeSuite(ODETEST))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)

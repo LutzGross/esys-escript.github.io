@@ -152,7 +152,7 @@ class DataSource(object):
     For other setups override the methods as required.
     """
 
-    GRAVITY, MAGNETIC, ACOUSTIC, MT = list(range(4))
+    GRAVITY, MAGNETIC, ACOUSTIC = list(range(3))
 
     def __init__(self, reference_system=None, tags=[]):
         """
@@ -288,8 +288,7 @@ class ErMapperData(DataSource):
     input and will raise an exception if other data is found.
     """
     def __init__(self, data_type, headerfile, datafile=None, altitude=0.,
-                 error=None, scale_factor=None, null_value=None,
-                 reference_system=None):
+                 error=None, scale_factor=None, null_value=None, reference_system=None):
         """
         :param data_type: type of data, must be `GRAVITY` or `MAGNETIC`
         :type data_type: ``int``
@@ -364,7 +363,7 @@ class ErMapperData(DataSource):
                     fullkey='.'.join(section+[key])
                     md_dict[fullkey]=value
 
-        # check that the data format/type is supported
+        # check that that the data format/type is supported
         try:
             if md_dict['ByteOrder'] != 'LSBFirst':
                 raise RuntimeError('Unsupported byte order '+md_dict['ByteOrder'])
@@ -449,20 +448,21 @@ class ErMapperData(DataSource):
                 wkt='GEOGCS["GEOCENTRIC DATUM of AUSTRALIA",DATUM["GDA94",SPHEROID["GRS80",6378137,298.257222101]],PRIMEM["Greenwich",0],UNIT["degree",0.0174532925199433]]'
                 self.logger.warning('GDAL not available or file read error, assuming GDA94 data')
             if self.getReferenceSystem().isCartesian():
-                originX_UTM,originY_UTM,zone = LatLonToUTM(originX, originY, wkt)
-                op1X,op1Y,_ = LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
+                originX_UTM,originY_UTM,zone=LatLonToUTM(originX, originY, wkt)
+                op1X,op1Y,_=LatLonToUTM(originX+spacingX, originY+spacingY, wkt)
                 # we are rounding to avoid interpolation issues
-                spacingX = np.round(op1X-originX_UTM)
-                spacingY = np.round(op1Y-originY_UTM)
-                originX = np.round(originX_UTM)
-                originY = np.round(originY_UTM)
-                self.__utm_zone = zone
+                spacingX=np.round(op1X-originX_UTM)
+                spacingY=np.round(op1Y-originY_UTM)
+                originX=np.round(originX_UTM)
+                originY=np.round(originY_UTM)
             else:
-                op1X, op1Y = originX+spacingX, originY+spacingY
-                spacingX = np.round(op1X-originX,5)
-                spacingY = np.round(op1Y-originY,5)
-                originX = np.round(originX,5)
-                originY = np.round(originY,5)
+                zone=getUTMZone(originX, originY, wkt)
+                op1X, op1Y= originX+spacingX, originY+spacingY
+                spacingX=np.round(op1X-originX,5)
+                spacingY=np.round(op1Y-originY,5)
+                originX=np.round(originX,5)
+                originY=np.round(originY,5)
+            self.__utm_zone = zone
 
         self.__dataorigin=[originX, originY]
         self.__delta = [spacingX, spacingY]
@@ -508,7 +508,7 @@ class ErMapperData(DataSource):
 
         reverse = [0]*domain.getDim()
         byteorder=ripleycpp.BYTEORDER_NATIVE
-        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s, reverse=%s"%(str(first),str(nValues),str(multiplier),str(reverse)))
+        self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
         data = ripleycpp._readBinaryGrid(self.__datafile, FS, shape=(),
                 fill=self.__null_value, byteOrder=byteorder,
                 dataType=self.__celltype, first=first, numValues=nValues,
@@ -574,7 +574,6 @@ class NetCdfData(DataSource):
         self.__data_name = data_variable
         self.__scale_factor = scale_factor
         self.__null_value = null_value
-        self.__utm_zone = None
         self.__readMetadata(error)
 
     def __readMetadata(self, error):
@@ -696,9 +695,11 @@ class NetCdfData(DataSource):
         lon_range=longitude.data.min(),longitude.data.max()
         lat_range=latitude.data.min(),latitude.data.max()
         if self.getReferenceSystem().isCartesian():
-            lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
-            self.__utm_zone = zone
+             lon_range,lat_range,zone=LatLonToUTM(lon_range, lat_range, wkt_string)
+        else:
+             zone=getUTMZone(lon_range, lat_range, wkt_string)
              
+        self.__utm_zone = zone
         lengths=[lon_range[1]-lon_range[0], lat_range[1]-lat_range[0]]
 
         # see if lat or lon is stored in reverse order to domain conventions
@@ -753,8 +754,8 @@ class NetCdfData(DataSource):
                 numValues=nValues, multiplier=multiplier, reverse=reverse)
 
         if self.__error_name is not None:
-            self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s, reverse=%s"%(
-                self.__data_name, str(first),str(nValues),str(multiplier),str(reverse)))
+            self.logger.debug("calling readNcGrid with dataname=%s, first=%s, nValues=%s, multiplier=%s"%(
+                self.__data_name, str(first),str(nValues),str(multiplier)))
             sigma = ripleycpp._readNcGrid(self.__filename, self.__error_name,
                     FS, shape=(), fill=0., first=first, numValues=nValues,
                     multiplier=multiplier, reverse=reverse)
@@ -1170,7 +1171,7 @@ class NumpyData(DataSource):
         :type origin: ``list`` of ``float``s
         """
         super(NumpyData, self).__init__(tags=tags)
-        if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC, self.MT ]:
+        if not data_type in [self.GRAVITY, self.MAGNETIC, self.ACOUSTIC ]:
             raise ValueError("Invalid value for data_type parameter")
         self.__data_type = data_type
         if not isinstance(data, np.ndarray) or data.dtype not in [ np.float64, np.complex128]:
@@ -1232,17 +1233,6 @@ class NumpyData(DataSource):
                 raise ValueError("3D domains are not supported yet.")
             data*=mask
             sigma*=mask
-        elif self.getDataType()  == self.MT:
-            if DIM == 2:
-                step= [ self.__length[i]/self.__data.shape[i] for i in range(DIM-1) ]
-                if len(self.__error.shape) > 0:
-                    sigma = interpolateTable(self.__error, x[0],  self.__origin[0], step[0])
-                else:
-                    sigma = Scalar(self.__error.item(), FunctionOnBoundary(domain))
-                return self.__data, sigma
-            else:
-                raise ValueError("3D domains are not supported yet.")
-
         else:
             FS = ReducedFunction(domain)
             nValues = self.__nPts
@@ -1288,37 +1278,6 @@ class NumpyData(DataSource):
         values.
         """
         return 0
-
-class MT2DTe(object):
-    """
-    class used to store frequency information accosicated with mt data
-    """
-
-    def __init__(self,x, omega=0):
-        """
-        initiale the MT2DTe tag object
-
-        :param omega: frequency of readings
-        :type omega: ``float``
-        :param x: coordinates of measurements 
-        :type x: ``list`` of ``tuple`` with ``float``
-        """
-        self.__omega=omega
-        self.__x=x
-
-    def getFrequency(self):
-        """
-        return frequency of measurement
-        :rtype: ``float``
-        """
-        return self.__omega
-    
-    def getX(self):
-        """
-        return coordinates of measurement
-        :rtype: ``float``
-        """
-        return self.__x
 
 class SeismicSource(object):
     """

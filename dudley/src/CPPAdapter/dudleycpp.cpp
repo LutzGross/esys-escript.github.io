@@ -89,9 +89,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":param useMacroElements: Enable the usage of macro elements instead of second order elements.\n:type useMacroElements: ``bool``"
 );
 
-  def ("__Brick_driver",dudley::brick_driver,
-      arg("args"),
-/*      
+  def ("Brick",dudley::brick,
       (arg("n0")=1,arg("n1")=1,arg("n2")=1,
       arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
@@ -100,8 +98,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
-*/      
-"Creates a tetrahedral mesh by subdividing n0 x n1 x n2 rectangular elements over the brick [0,l0] x [0,l1] x [0,l2]."
+,"Creates a tetrahedral mesh by subdividing n0 x n1 x n2 rectangular elements over the brick [0,l0] x [0,l1] x [0,l2]."
 "We accept floating point values for n0, n1 only to ease transition of scripts to python3 when the time comes."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n:param n2:\n:type n2:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"
@@ -116,9 +113,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
 ":param optimize: Enable optimisation of node labels\n:type optimize: ``bool``"
 );
 
-  def ("__Rectangle_driver",dudley::rectangle_driver,
-      arg("args"),
-/*      
+  def ("Rectangle",dudley::rectangle,
       (arg("n0")=1,arg("n1")=1,arg("order")=1,
       arg("l0")=1.0,arg("l1")=1.0,
       arg("periodic0")=false,arg("periodic1")=false,
@@ -126,8 +121,7 @@ BOOST_PYTHON_MODULE(dudleycpp)
       arg("useElementsOnFace")=false,
       arg("useFullElementOrder")=false,
       arg("optimize")=false)
-*/      
-"Creates a triangular mesh by subdividing n0 x n1 rectangular elements over the brick [0,l0] x [0,l1]."
+,"Creates a triangular mesh by subdividing n0 x n1 rectangular elements over the brick [0,l0] x [0,l1]."
 "We accept floating point values for n0, n1 only to ease transition of scripts to python3 when the time comes."
 "\n\n:param n0:\n:type n0:\n:param n1:\n:type n1:\n"
 ":param order: =1, =-1 or =2 gives the order of shape function. If -1 macro elements of order 1 are used.\n"

@@ -62,9 +62,8 @@ int indexOfMax(int a, int b, int c) {
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const std::vector<double>& points, const std::vector<int>& tags,
-             const simap_t& tagnamestonums,
-             escript::SubWorld_ptr w) :
-    RipleyDomain(3, w)
+             const simap_t& tagnamestonums) :
+    RipleyDomain(3)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
             * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())
@@ -204,6 +203,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     populateSampleIds();
     createPattern();
     
+    assembler = new DefaultAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
     for (map<string, int>::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
@@ -214,6 +214,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
 
 Brick::~Brick()
 {
+    delete assembler;
 }
 
 string Brick::getDescription() const
@@ -453,8 +454,6 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     for (size_t i=0; i<params.multiplier.size(); i++)
         if (params.multiplier[i]<1)
             throw RipleyException("readBinaryGrid(): all multipliers must be positive");
-    if (params.reverse[0] != 0 || params.reverse[1] != 0)
-        throw RipleyException("readBinaryGrid(): reversing only supported in Z-direction currently");
 
     // check file existence and size
     ifstream f(filename.c_str(), ifstream::binary);
@@ -487,21 +486,14 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     const int first0 = max(0, params.first[0]-m_offset[0]);
     const int first1 = max(0, params.first[1]-m_offset[1]);
     const int first2 = max(0, params.first[2]-m_offset[2]);
-    // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
-    int idx2 = max(0, m_offset[2]-params.first[2]);
+    // indices to first value in file
+    const int idx0 = max(0, m_offset[0]-params.first[0]);
+    const int idx1 = max(0, m_offset[1]-params.first[1]);
+    const int idx2 = max(0, m_offset[2]-params.first[2]);
     // number of values to read
     const int num0 = min(params.numValues[0]-idx0, myN0-first0);
     const int num1 = min(params.numValues[1]-idx1, myN1-first1);
     const int num2 = min(params.numValues[2]-idx2, myN2-first2);
-
-    // make sure we read the right block if going backwards through file
-    if (params.reverse[2])
-        idx2 = params.numValues[2]-idx2-1;
-
-    // helpers for reversing
-    const int z_mult = (params.reverse[2] ? -1 : 1);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
@@ -509,9 +501,8 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
 
     for (int z=0; z<num2; z++) {
         for (int y=0; y<num1; y++) {
-            const int fileofs = numComp*(idx0 +
-                                (idx1+y)*params.numValues[0] +
-                                (idx2+z_mult*z)*params.numValues[0]*params.numValues[1]);
+            const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
+                             +(idx2+z)*params.numValues[0]*params.numValues[1]);
             f.seekg(fileofs*sizeof(ValueType));
             f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
 
@@ -2071,7 +2062,7 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     paso::Coupler_ptr coupler(new paso::Coupler(m_connector, numComp));
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&in)->expand();
-    coupler->startCollect(in.getDataRO());
+    coupler->startCollect(in.getSampleDataRO(0));
 
     const dim_t numDOF = getNumDOF();
     out.requireWrite();
@@ -3389,14 +3380,20 @@ int Brick::findNode(const double *coords) const {
     return closest;
 }
 
-Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
-        escript::Data> constants) const {
-    if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
-    } else if (type.compare("WaveAssembler") == 0) {
-        return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
+void Brick::setAssembler(std::string type, std::map<std::string,
+        escript::Data> constants) {
+    if (type.compare("WaveAssembler") == 0) {
+        if (assembler_type != WAVE_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = WAVE_ASSEMBLER;
+        delete assembler;
+        assembler = new WaveAssembler3D(this, m_dx, m_NX, m_NE, m_NN, constants);
     } else if (type.compare("LameAssembler") == 0) {
-        return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        if (assembler_type != LAME_ASSEMBLER && assembler_type != DEFAULT_ASSEMBLER)
+            throw RipleyException("Domain already using a different custom assembler");
+        assembler_type = LAME_ASSEMBLER;
+        delete assembler;
+        assembler = new LameAssembler3D(this, m_dx, m_NX, m_NE, m_NN);
     } else { //else ifs would go before this for other types
         throw RipleyException("Ripley::Brick does not support the"
                                 " requested assembler");

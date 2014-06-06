@@ -24,7 +24,6 @@ __url__="https://launchpad.net/escript-finley"
 import logging
 import numpy as np
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import sys
 from esys.downunder.minimizers import *
 from esys.downunder.costfunctions import CostFunction
@@ -75,7 +74,7 @@ class TestMinimizerLBFGS(unittest.TestCase):
         xx=self.minimizer.getResult()
         self.assertEqual(np.amax(abs(x-xx)), 0.)
         # We should be able to get a solution in under 100 iterations
-        self.assertLess(np.amax(abs(x-self.xstar)), 1e-7)
+        self.assertAlmostEqual(np.amax(abs(x-self.xstar)), 0.)
 
     def test_callback(self):
         n=[0]
@@ -163,6 +162,11 @@ class TestMinimizerNLCG(unittest.TestCase):
         self.assertEqual(n[0], 11)
 
 
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(TestMinimizerLBFGS))
+    suite.addTest(unittest.makeSuite(TestMinimizerBFGS))
+    suite.addTest(unittest.makeSuite(TestMinimizerNLCG))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

@@ -28,7 +28,7 @@
 
 /************************************************************************************/
 
-Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUtils::JMPI& MPIInfo)
+Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, Esys_MPIInfo * MPIInfo)
 {
     Dudley_ElementFile *out;
 
@@ -54,7 +54,7 @@ Dudley_ElementFile *Dudley_ElementFile_alloc(Dudley_ElementTypeId etype, esysUti
     out->numTagsInUse = 0;
     out->tagsInUse = NULL;
 
-    out->MPIInfo = MPIInfo;
+    out->MPIInfo = Esys_MPIInfo_getReference(MPIInfo);
 
     out->jacobeans = Dudley_ElementFile_Jacobeans_alloc();
     out->jacobeans_reducedQ = Dudley_ElementFile_Jacobeans_alloc();
@@ -82,6 +82,7 @@ void Dudley_ElementFile_free(Dudley_ElementFile * in)
 	Dudley_ElementFile_freeTable(in);
 	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans);
 	Dudley_ElementFile_Jacobeans_dealloc(in->jacobeans_reducedQ);
+	Esys_MPIInfo_free(in->MPIInfo);
 	delete in;
     }
 }

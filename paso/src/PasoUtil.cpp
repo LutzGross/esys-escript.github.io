@@ -416,7 +416,7 @@ void linearCombination(dim_t n, double* z, double a, const double* x,
 }
 
 double innerProduct(const dim_t n,const double* x, const double* y,
-                    esysUtils::JMPI& mpiinfo)
+                    Esys_MPIInfo* mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0, local_out=0., out=0.;
@@ -449,7 +449,7 @@ double innerProduct(const dim_t n,const double* x, const double* y,
     return out;
 }
 
-double lsup(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
+double lsup(dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
 {
     dim_t i,local_n,rest,n_start,n_end,q;
     double my_out=0., local_out=0., out=0.;
@@ -481,7 +481,7 @@ double lsup(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
     return out;
 }
 
-double l2(dim_t n, const double* x, const esysUtils::JMPI&  mpiinfo)
+double l2(dim_t n, const double* x, Esys_MPIInfo* mpiinfo)
 {
     double my_out=0, out=0.;
     const int num_threads=omp_get_max_threads();

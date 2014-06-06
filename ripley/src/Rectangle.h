@@ -41,9 +41,7 @@ public:
               int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
-              const simap_t& tagnamestonums = simap_t(),
-              escript::SubWorld_ptr w=escript::SubWorld_ptr()
- 	    );
+              const simap_t& tagnamestonums = simap_t());
 
     /**
        \brief
@@ -185,10 +183,9 @@ public:
     
     /**
        \brief
-       Creates and returns an assembler of the requested type.
+       Sets the assembler to a custom/specific assembler.
     */
-    virtual Assembler_ptr createAssembler(std::string type,
-            std::map<std::string, escript::Data> options) const;
+    virtual void setAssembler(std::string type, std::map<std::string, escript::Data> options);
 
 
 protected:

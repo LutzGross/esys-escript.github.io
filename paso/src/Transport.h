@@ -82,7 +82,7 @@ struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
 
     inline static index_t getTypeId(index_t solver, index_t preconditioner,
                                     index_t package, bool symmetry,
-                                    const esysUtils::JMPI& mpi_info)
+                                    Esys_MPIInfo* mpi_info)
     {
         return MATRIX_FORMAT_DEFAULT + MATRIX_FORMAT_BLK1;
     }
@@ -106,7 +106,7 @@ struct TransportProblem : boost::enable_shared_from_this<TransportProblem>
     double* reactive_matrix;
     double* main_diagonal_mass_matrix;
 
-    esysUtils::JMPI mpi_info;
+    Esys_MPIInfo* mpi_info;
 };
 
 } // namespace paso

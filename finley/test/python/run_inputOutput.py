@@ -36,7 +36,7 @@ Test suite for input and output of meshes and data objects
 """
 
 import esys.escriptcore.utestselect as unittest, sys
-from esys.escriptcore.testing import *
+
 from esys.escript import *
 from esys.finley import Rectangle, Brick, LoadMesh, ReadMesh, GetMeshFromFile, ReadGmsh
 
@@ -196,5 +196,8 @@ class InputOutput(unittest.TestCase):
            m=GetMeshFromFile(os.path.join(FINLEY_TEST_MESH_PATH,'tet10_gmsh.msh'), numDim=3, integrationOrder=2)
 
 if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+   suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(InputOutput))
+   s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
 

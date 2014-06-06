@@ -64,7 +64,7 @@ class Design(design.AbstractDesign):
     def setScriptFileName(self,name=None):
        """
        Sets the filename for the Triangle input script. If no name is given
-       a name with extension `poly` is generated.
+       a name with extension I{poly} is generated.
        """
        if self.__scriptname:
            os.unlink(self.__scriptname)
@@ -112,7 +112,7 @@ class Design(design.AbstractDesign):
 
             triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
 
-            see http://www.cs.cmu.edu/~quake/triangle.switch.html
+            see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
 
         :param cmdLineArgs: the switches you would ordinarily use at the
                             command line (e.g. cmdLineArgs="pq25a7.5")
@@ -135,7 +135,7 @@ class Design(design.AbstractDesign):
 
             triangle [-prq__a__uAcDjevngBPNEIOXzo_YS__iFlsCQVh] input_file
 
-            see http://www.cs.cmu.edu/~quake/triangle.switch.html
+            see U{http://www.cs.cmu.edu/~quake/triangle.switch.html}
         """
         if self.__cmdLineArgs == "":
             print("warning: using default command line arguments for Triangle")

@@ -56,7 +56,7 @@ struct FCT_Solver
     }
 
     const_TransportProblem_ptr transportproblem;
-    esysUtils::JMPI mpi_info;
+    Esys_MPIInfo* mpi_info;
     FCT_FluxLimiter* flux_limiter;
     index_t method;
     double omega;

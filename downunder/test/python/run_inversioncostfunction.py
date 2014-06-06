@@ -22,7 +22,6 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import sys
 import esys.ripley
 from esys.downunder import *
@@ -67,7 +66,20 @@ class SimpleModel(ForwardModel):
             return sum(((n+1)*s[n]-(n+2))**2 for n in range(self.numComps) )*.5    
     
         
-
+class LinearMappingX(Mapping):
+    def __init__(self, mat):
+        self.matrix=mat
+        self.det=mat[0,0]*mat[1,1]-mat[0,1]*mat[0,1]
+        self.inv=np.array([ [mat[1,1]/self.det, -mat[1,0]/self.det ], [-mat[0,1]/self.det, mat[0,0]/self.det]   ])
+    
+    def getDerivative(self, m):
+        return Data(self.matrix, m.getFunctionSpace())
+    def getValue(self, p):
+        return matrix_mult(self.matrix, p)
+    def getInverse(self, p):
+        return matrix_mult(self.inv, p)
+    def getTypicalDerivative(self):
+        return self.matrix[1,1]
         
 class TestInversionCostfunction(unittest.TestCase):
     def setUp(self):
@@ -281,6 +293,9 @@ class TestInversionCostfunction(unittest.TestCase):
         self.assertTrue( Lsup(gf2-gf[1]*STEP) < 1e-3 * Lsup(gf2) )
 
         
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(TestInversionCostfunction))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

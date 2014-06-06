@@ -44,14 +44,15 @@ namespace escript {
 inline
 bool nancheck(double d)
 {
-    using namespace std;
 		// Q: so why not just test d!=d?
 		// A: Coz it doesn't always work [I've checked].
 		// One theory is that the optimizer skips the test.
-#if defined _isnan
+#ifdef isnan
+    return isnan(d);
+#elif defined _isnan
     return _isnan(d);
 #else
-    return isnan(d);	// isNan should be a function in C++ land
+    return false;
 #endif
 }
 

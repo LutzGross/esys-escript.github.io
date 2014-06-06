@@ -23,10 +23,10 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm', 'MT2DModelTEMode']
+__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm']
 
 from esys.escript import unitsSI as U
-from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary, Solution, length, exp
+from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
 from esys.escript.util import *
@@ -240,8 +240,7 @@ class GravityModel(ForwardModelWithPotential):
         super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
         if not self.getCoordinateTransformation().isCartesian():
-            self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()*self.getCoordinateTransformation().getHeightFactor()**(-3)
-
+            self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()
 
             fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
             A=self.getPDE().createCoefficient("A")
@@ -345,13 +344,12 @@ class MagneticModel(ForwardModelWithPotential):
         :type B: ``Vector`` or list of ``Vector``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param background_magnetic_flux_density: background magnetic flux
-               density (in Tesla) with components (B_east, B_north, B_vertical)
+        :param background_magnetic_flux_density: background magnetic flux density (in Teslar) with components (B_east, B_north, B_vertical)
         :type background_magnetic_flux_density: ``Vector`` or list of `float`
         :param coordinates: defines coordinate system to be used
-        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
-        :param fixPotentialAtBottom: if true potential is fixed to zero at the
-                                     bottom of the domain in addition to the top
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
+        :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
+                                     in addition to the top.
         :type fixPotentialAtBottom: ``bool``
         """
         super(MagneticModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
@@ -445,11 +443,11 @@ class MagneticModel(ForwardModelWithPotential):
         pde.setValue(X=Y)
         YT=pde.getSolution()
         return inner(grad(YT),self.__B_r) -inner(Y,self.__B_b)
-
-class SelfDemagnetizationModel(ForwardModelWithPotential):
+        
+class  SelfDemagnetizationModel(ForwardModelWithPotential):
     """
-    Forward Model for magnetic inversion with self-demagnetization as
-    described in the inversion cookbook.
+    Forward Model for magnetic inversion with self-demagnetization as described in the inversion
+    cookbook.
     """
     def __init__(self, domain, w, B, background_magnetic_flux_density, coordinates=None, fixPotentialAtBottom=False, tol=1e-8):
         """
@@ -462,16 +460,15 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         :type w: ``Vector`` or list of ``Vector``
         :param B: magnetic field data
         :type B: ``Vector`` or list of ``Vector``
-        :param background_magnetic_flux_density: background magnetic flux
-               density (in Tesla) with components (B_east, B_north, B_vertical)
-        :type background_magnetic_flux_density: ``Vector`` or list of `float`
-        :param coordinates: defines coordinate system to be used
-        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
-        :param fixPotentialAtBottom: if true potential is fixed to zero at the
-                                     bottom of the domain in addition to the top
-        :type fixPotentialAtBottom: ``bool``
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
+        :param background_magnetic_flux_density: background magnetic flux density (in Teslar) with components (B_east, B_north, B_vertical)
+        :type background_magnetic_flux_density: ``Vector`` or list of `float`
+        :param coordinates: defines coordinate system to be used
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
+        :param fixPotentialAtBottom: if true potential is fixed to zero at the bottom of the domain
+                                     in addition to the top.
+        :type fixPotentialAtBottom: ``bool``
         """
         super(SelfDemagnetizationModel, self).__init__(domain, w, B, coordinates, fixPotentialAtBottom, tol)
         #=========================================================
@@ -487,12 +484,13 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
             self.__B_r=background_magnetic_flux_density
             self.__B_b=background_magnetic_flux_density
 
-        # keep track of k used to build PDE:
+        # keep track on k used to build PDE:
         self.__last_k=None
         # this is just the initial set_up
         A=self.getPDE().createCoefficient("A")
-        for i in range(self.getDomain().getDim()): A[i,i]=1.
+        for i in range(self.getDomain().getDim()): A[i,i]=1
         self.getPDE().setValue(A=A)
+
 
     def rescaleWeights(self, scale=1., k_scale=1.):
         """
@@ -577,13 +575,13 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         :type magnetic_flux_density: ``Vector``
         :rtype: ``Scalar``
         """
-        self.__updateA(k)
+        self.__updateA(k)        
         Y=self.getDefectGradient(magnetic_flux_density)
         pde=self.getPDE()
         pde.resetRightHandSideCoefficients()
         pde.setValue(X=(1+k)*Y)
         grad_YT=grad(pde.getSolution())
-
+        
         if self.getCoordinateTransformation().isCartesian(): # then b_r=B_b
             return inner(grad_YT-Y, self.__B_r-grad_phi)
         else:
@@ -591,22 +589,19 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
 
 class AcousticWaveForm(ForwardModel):
     """
-    Forward Model for acoustic waveform inversion in the frequency domain.
+    Forward Model for acoustic waveform inversion in the frequence domain 
     It defines a cost function:
 
         defect = 1/2 integrate( ( w * ( a * u - data ) ) ** 2 )
 
-    where w are weighting factors, data are the measured data (as a 2-comp
-    vector of real and imaginary part) for real frequency omega, and u is
-    the corresponding result produced by the forward model.
-    u (as a 2-comp vector) is the solution of the complex Helmholtz equation
-    for frequency omega, source F and complex, inverse, squared p-velocity
-    sigma:
-
+    where w are weighting factors, data are the measured data (as a 2-comp vector of real and imaginary part)  for real frequency omega, 
+    and u is the coresponding result produced by the forward model. u (as a 2-comp vector) is the solution of the 
+    complex Helmholtz equation for frequency omega, source F and complex, inverse, squared p-velocity sigma:
+        
         * -u_{ii} - omega**2 * sigma * u = F
-
-    It is assumed that the exact scale of source F is unknown and the scaling
-    factor a of F is calculated by minimizing the defect.
+        
+    It is assumed that the exact scale of source F is unknown and the scaling factor a of F is calculated by minimizing the
+    defect 
     """
     def __init__(self, domain, omega, w, data, F, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True, scaleF=True):
         """
@@ -618,22 +613,19 @@ class AcousticWaveForm(ForwardModel):
         :type w: ``Scalar``
         :param data: real and imaginary part of data
         :type data: ``Data`` of shape (2,)
-        :param F: real and imaginary part of source given at Dirac points,
-                  on surface or at volume.
+        :param F: real and imaginary part of source given at Dirac points, on surface or at volume.
         :type F: ``Data`` of shape (2,)
         :param coordinates: defines coordinate system to be used (not supported yet)
-        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
         :param tol: tolerance of underlying PDE
         :type tol: positive ``float``
-        :param saveMemory: if true stiffness matrix is deleted after solution
-                           of PDE to minimize memory requests. This will
-                           require more compute time as the matrix needs to be
-                           reallocated.
+        :param saveMemory: if true stiffness matrix is deleted after solution of PDE to 
+                           minimize memory requests. This will require more compute time as
+                           the matrix needs to be reallocated. 
         :type saveMemory: ``bool``
-        :param scaleF: if true source F is scaled to minimize defect.
+        :param scaleF: if true source F is scaled to minimize defect. 
         :type scaleF: ``bool``
-        :param fixAtBottom: if true pressure is fixed to zero at the bottom of
-                            the domain
+        :param fixAtBottom: if true pressure is fixed to zero at the bottom of the domain 
         :type fixAtBottom: ``bool``
         """
         super(AcousticWaveForm, self).__init__()
@@ -644,12 +636,12 @@ class AcousticWaveForm(ForwardModel):
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not isinstance(data, Data):
-                raise ValueError("data must be an escript.Data object.")
+                raise ValueError("data must be escript.Data object.")
         if not data.getFunctionSpace() == FunctionOnBoundary(domain):
-                raise ValueError("data must be defined on boundary")
+                raise ValueError("data must be defined on boundary")                    
         if not data.getShape() == (2,):
                 raise ValueError("data must have shape 2 (real and imaginary part).")
-        if w is None:
+        if w == None: 
             w = 1.
         if not isinstance(w, Data):
             w=Data(w, FunctionOnBoundary(domain))
@@ -662,21 +654,21 @@ class AcousticWaveForm(ForwardModel):
         self.__data = data
         if scaleF:
             A = integrate(self.__weight*length(self.__data)**2)
-            if A>0:
+            if A>0: 
                 self.__data*=1./sqrt(A)
-
+        
         self.__BX = boundingBox(domain)
         self.edge_lengths=np.asarray(boundingBoxEdgeLengths(domain))
 
         self.__F=Data()
         self.__f=Data()
         self.__f_dirac=Data()
-
+                        
         if not isinstance(F, Data):
             F=interpolate(F,  DiracDeltaFunctions(domain))
         if not F.getShape() == (2,):
-            raise ValueError("Source must have shape (2,) (real and imaginary part).")
-
+                raise ValueError("Sourcemust have shape 2 (real and imaginary part).")
+                
         if F.getFunctionSpace() == DiracDeltaFunctions(domain):
             self.__f_dirac=F
         elif F.getFunctionSpace() == FunctionOnBoundary(domain):
@@ -688,14 +680,14 @@ class AcousticWaveForm(ForwardModel):
         self.__pde=None
         if not saveMemory:
             self.__pde=self.setUpPDE()
-
     def getSurvey(self, index=None):
         """
         Returns the pair (data, weight)
-
+        
         If argument index is ignored.
         """
         return self.__data, self.__weight
+        
 
     def rescaleWeights(self, scale=1., sigma_scale=1.):
         """
@@ -717,273 +709,13 @@ class AcousticWaveForm(ForwardModel):
         #self.__weight=[1.*ow for ow in self.__origweight]
         L2=1/length(1/self.edge_length)**2
         d=Lsup(length(data))
-        A=integrate(self.__weight*(sigma_scale*omega**2*d+1)/(sigma_scale*omega**2*d) )
+        A=integrate(self.__weight*(sigma_scale*omega**2*d+1)/(sigma_scale*omega**2*d) ) 
         if A > 0:
             self.__weight*=1./A
             if self.scaleF: self.__data*=sqrt(A)
         else:
             raise ValueError("Rescaling of weights failed.")
-
-    def getDomain(self):
-        """
-        Returns the domain of the forward model.
-
-        :rtype: `Domain`
-        """
-        return self.__domain
-
-    def getCoordinateTransformation(self):
-        """
-        returns the coordinate transformation being used
-
-        :rtype: ``CoordinateTransformation``
-        """
-        return self.__trafo
-
-    def setUpPDE(self):
-        """
-        Creates and returns the underlying PDE.
-
-        :rtype: `LinearPDE`
-        """
-        from esys.escript import getEscriptParamInt
-        if self.__pde is None:
-            pde=LinearPDE(self.__domain, numEquations=2)
-            D=pde.createCoefficient('D')
-            A=pde.createCoefficient('A')
-            A[0,:,0,:]=kronecker(self.__domain.getDim())
-            A[1,:,1,:]=kronecker(self.__domain.getDim())
-            pde.setValue(A=A, D=D)
-            if self.__fixAtBottom:
-                DIM=self.__domain.getDim()
-                z = self.__domain.getX()[DIM-1]
-                pde.setValue(q=whereZero(z-self.__BX[DIM-1][0])*[1,1])
-
-            if getEscriptParamInt("PASO_DIRECT")==0:
-                raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
-            pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-            pde.getSolverOptions().setTolerance(self.__tol)
-            pde.setSymmetryOff()
-        else:
-            pde=self.__pde
-            pde.resetRightHandSideCoefficients()
-        return pde
-
-    def getSourceScaling(self, u):
-        """
-        returns the scaling factor s required to rescale source F to minimize defect |s * u- data|^2
-        :param u: value of pressure solution (real and imaginary part)
-        :type u: ``Data`` of shape (2,)
-        :rtype: `complex`
-        """
-        uTu=integrate(self.__weight * length(u)**2)
-        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
-        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
-        if uTu > 0:
-            return complex(uTar/uTu, uTai/uTu)
-        else:
-            return complex(1.,0)
-
-    def getArguments(self, sigma):
-        """
-        Returns precomputed values shared by `getDefect()` and `getGradient()`.
-
-        :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
-        :return: solution,  uTar, uTai, uTu
-        :rtype: ``Data`` of shape (2,), 3 x `float`
-        """
-        pde=self.setUpPDE()
-        D=pde.getCoefficient('D')
-        D[0,0]=-self.__omega**2 * sigma[0]
-        D[0,1]= self.__omega**2 * sigma[1]
-        D[1,0]=-self.__omega**2 * sigma[1]
-        D[1,1]=-self.__omega**2 * sigma[0]
-        pde.setValue(D=D, Y=self.__F, y=self.__f, y_dirac=self.__f_dirac)
-        u=pde.getSolution()
-
-        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
-        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
-        uTu = integrate( self.__weight * length(u)**2 )
-        return u, uTar, uTai, uTu
-
-    def getDefect(self, sigma, u, uTar, uTai, uTu):
-        """
-        Returns the defect value.
-
-        :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
-        :param u: a u vector
-        :type u: ``Data`` of shape (2,)
-        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
-        :type uTar: float
-        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
-        :type uTa: float
-        :param uTu : = integrate( w  * (u,u))
-        :type uTu: float
-
-        :rtype: ``float``
-        """
-        # assuming integrate(w * length(data)**2) =1
-        if self.scaleF and abs(uTu) >0:
-           A = 1.-(uTar**2 + uTai**2)/uTu
-        else:
-           A = integrate(self.__weight*length(self.__data)**2)- 2 * uTar + uTu
-        return  A/2
-
-    def getGradient(self, sigma, u, uTar, uTai, uTu):
-        """
-        Returns the gradient of the defect with respect to density.
-
-        :param sigma: a suggestion for complex 1/V**2
-        :type sigma: ``Data`` of shape (2,)
-        :param u: a u vector
-        :type u: ``Data`` of shape (2,)
-        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
-        :type uTar: float
-        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
-        :type uTa: float
-        :param uTu : = integrate( w  * (u,u))
-        :type uTu: float
-        """
-        pde=self.setUpPDE()
-
-        if self.scaleF and abs(uTu) >0:
-            Z=((uTar**2+uTai**2)/uTu**2) *interpolate(u, self.__data.getFunctionSpace())
-            Z[0]+= (-uTar/uTu) * self.__data[0]+ (-uTai/uTu) * self.__data[1]
-            Z[1]+= (-uTar/uTu) * self.__data[1]+   uTai/uTu  * self.__data[0]
-
-        else:
-            Z= u - self.__data
-        if Z.getFunctionSpace() == DiracDeltaFunctions(self.getDomain()):
-            pde.setValue(y_dirac=self.__weight * Z)
-        else:
-            pde.setValue(y=self.__weight * Z)
-        D=pde.getCoefficient('D')
-        D[0,0]=-self.__omega**2 * sigma[0]
-        D[0,1]=-self.__omega**2 * sigma[1]
-        D[1,0]= self.__omega**2 * sigma[1]
-        D[1,1]=-self.__omega**2 * sigma[0]
-        pde.setValue(D=D)
-        ZTo2=pde.getSolution()*self.__omega**2
-        return inner(ZTo2,u)*[1,0]+(ZTo2[1]*u[0]-ZTo2[0]*u[1])*[0,1]
-
-class MT2DModelTEMode(ForwardModel):
-    """
-    Forward Model for two dimensional MT model in the TE mode for a given
-    frequency omega.
-    It defines a cost function:
-
-      *  defect = 1/2 integrate( sum_s w^s * ( E_x - Z_XY^s * H_y ) ) ** 2 ) *
-
-    where E_x is the horizontal electric field perpendicular to the YZ-domain,
-    horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
-    i and permeability mu. The weighting factor w^s is set to
-
-        * w^s(X) = w_0^s/(2pi*eta**2) * exp(-length(X-X^s)**2/(2*eta**2))  *
-
-    where X^s is the location of impedance measurement Z_XY^s, w_0 is the level
-    of confidence (eg. 1/measurement error) and eta is level of spatial
-    confidence.
-
-    E_x is given as solution of the PDE
-
-        * -E_{x,ii} - i omega * mu * sigma * E_x = 0
-
-    where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
-    conditions are assumed elsewhere.
-    """
-    def __init__(self, domain, omega, x, Z_XY, eta, w0=1., mu=U.Mu_0, E_x0=1, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True):
-        """
-        initializes a new forward model.
-
-        :param data: real and imaginary part of data
-        :type data: ``Data`` of shape (2,)
-        :param F: real and imaginary part of source given at Dirac points, on surface or at volume.
-        :type F: ``Data`` of shape (2,)
-
-        :param domain: domain of the model
-        :type domain: `Domain`
-        :param omega: frequency
-        :type omega: positive ``float``
-        :param x: coordinates of measurements
-        :type x: ``list`` of ``tuple`` with ``float``
-        :param Z_XY: measured impedance
-        :type Z_XY: ``list`` of ``complex``
-        :param eta: spatial confidence radius
-        :type eta:  positive ``float`` or ``list`` of  positive ``float``
-        :param w0: confidence factors for meassurements. If not set one is assumed.
-        :type w0: ``None`` or a list of positive ``float``
-        :param E_x0: value of E_x at top the domain and if `fixAtBottom` is set at the bottom of the domain.
-        :type E_x0: ``float``, ``complex`` or ``Data`` of shape (2,)
-        :param mu: permeability
-        :type mu: ``float``
-        :param coordinates: defines coordinate system to be used (not supported yet)
-        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
-        :param tol: tolerance of underlying PDE
-        :type tol: positive ``float``
-        :param fixAtBottom: if true E_x is set E_x0 at the bottom of the domain
-        :type fixAtBottom: ``bool``
-        :param saveMemory: if true stiffness matrix is deleted after solution
-                           of the PDE to minimize memory requests. This will
-                           require more compute time as the matrix needs to be
-                           reallocated.
-        :type saveMemory: ``bool``
-        """
-        super(MT2DModelTEMode, self).__init__()
-        self.__domain = domain
-        DIM=domain.getDim()
-        self.__trafo=makeTranformation(domain, coordinates)
-        if not self.getCoordinateTransformation().isCartesian():
-            raise ValueError("Non-Cartesian coordinates are not supported yet.")
-        self.__omega=omega
-        self.__mu=mu
-
-        #====================================
-        if not len(x) == len(Z_XY):
-            raise ValueError("Number of data points and number of impedance values don't match.")
-        self.__x=x
-        f=1/(complex(0,1)*omega*mu)
-        self.__Z_xy=[ z*f for z in Z_XY ]
-        #====================================
-        if isinstance(eta, float) or isinstance(eta, int) :
-            self.__eta =[ float(eta) for z in Z_XY]
-        else:
-            self.__eta =eta
-        if not len(self.__eta) == len(Z_XY):
-                raise ValueError("Number of confidence radii and number of impedance values don't match.")
-        #====================================
-        if isinstance(w0, float) or isinstance(w0, int):
-               w0 =[ float(w0) for z in Z_XY]
-        if not len(w0) == len(Z_XY):
-                raise ValueError("Number of confidence factors and number of impedance values don't match.")
-
-        self.__wx0=[0.] * len(Z_XY)
-        x=Function(domain).getX()
-        for s in xrange(len(self.__Z_xy)):
-            f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
-            if f < 2*PI*self.__eta[s]**2 * 0.1 :
-                raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
-            self.__wx0[s]=w0[s]/f
-
-        #====================================
-        if isinstance(E_x0, float) or isinstance(E_x0, int) :
-            self.__E_x0 =Data((E_x0,0), Solution(domain))
-        elif isinstance(E_x0, tuple):
-            self.__E_x0 =Data((E_x0[0],E_x0[1]), Solution(domain))
-        elif isinstance(E_x0, complex):
-            self.__E_x0 =Data((E_x0.real,E_x0.imag), Solution(domain))
-        else:
-            if not E_x0.getShape() == (2,):
-                raise ValueError("Expected shape of E_x0 is (2,)")
-            self.__E_x0= E_x0
-        #=======================
-        self.__tol=tol
-        self.__fixAtBottom=fixAtBottom
-        self.__pde=None
-        if not saveMemory:
-            self.__pde=self.setUpPDE()
-
+        
     def getDomain(self):
         """
         Returns the domain of the forward model.
@@ -1006,113 +738,131 @@ class MT2DModelTEMode(ForwardModel):
 
         :rtype: `LinearPDE`
         """
+        from esys.escript import getEscriptParamInt
         if self.__pde is None:
             pde=LinearPDE(self.__domain, numEquations=2)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
-            Y=pde.createCoefficient('Y')
-            X=pde.createCoefficient('X')
             A[0,:,0,:]=kronecker(self.__domain.getDim())
             A[1,:,1,:]=kronecker(self.__domain.getDim())
-            pde.setValue(A=A, D=D, X=X, Y=Y)
-            DIM=self.__domain.getDim()
-            z = self.__domain.getX()[DIM-1]
-            q=whereZero(z-sup(z))
-            if self.__fixAtBottom:
-                    q+=whereZero(z-inf(z))
-            pde.setValue(q=q*[1,1])
+            pde.setValue(A=A, D=D)
+            if self.__fixAtBottom: 
+                DIM=self.__domain.getDim()
+                z = self.__domain.getX()[DIM-1]
+                pde.setValue(q=whereZero(z-self.__BX[DIM-1][0])*[1,1])
+
+            if getEscriptParamInt("PASO_DIRECT")==0:
+                raise ValueError("Either this build of escript or the current MPI configuration does not support direct solvers.")
+            pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
         else:
             pde=self.__pde
             pde.resetRightHandSideCoefficients()
         return pde
-
+    
+    def getSourceScaling(self, u):
+        """
+        returns the scaling factor s required to rescale source F to minimize defect |s * u- data|^2
+        :param u: value of pressure solution (real and imaginary part)
+        :type u: ``Data`` of shape (2,)
+        :rtype: `complex`
+        """
+        uTu=integrate(self.__weight * length(u)**2)
+        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) ) 
+        if uTu > 0:
+            return complex(uTar/uTu, uTai/uTu)
+        else:
+            return complex(1.,0)
+            
     def getArguments(self, sigma):
         """
         Returns precomputed values shared by `getDefect()` and `getGradient()`.
 
-        :param sigma: conductivity
+        :param sigma: a suggestion for complex 1/V**2 
         :type sigma: ``Data`` of shape (2,)
-        :return: E_x, E_x,z
-        :rtype: ``Data`` of shape (2,)
+        :return: solution,  uTar, uTai, uTu
+        :rtype: ``Data`` of shape (2,), 3 x `float`
         """
         pde=self.setUpPDE()
         D=pde.getCoefficient('D')
-        f=self.__omega * self.__mu * sigma
-        D[0,1]= - f
-        D[1,0]= f
-        pde.setValue(D=D, r=self.__E_x0)
+        D[0,0]=-self.__omega**2 * sigma[0]
+        D[0,1]= self.__omega**2 * sigma[1]
+        D[1,0]=-self.__omega**2 * sigma[1]
+        D[1,1]=-self.__omega**2 * sigma[0]
+        pde.setValue(D=D, Y=self.__F, y=self.__f, y_dirac=self.__f_dirac)
         u=pde.getSolution()
 
-        return u, grad(u)[:,1]
-
-    def getWeightingFactor(self, x, wx0, x0, eta):
-        """
-        returns the weighting factor
-        """
-        return wx0 * exp(length(x-x0)**2*(-0.5/eta**2))
-
-    def getDefect(self, sigma, E_x, dE_xdz):
+        uTar=integrate(self.__weight * ( u[0]*self.__data[0]+u[1]*self.__data[1]) )
+        uTai=integrate(self.__weight * ( u[0]*self.__data[1]-u[1]*self.__data[0]) )
+        uTu = integrate( self.__weight * length(u)**2 )
+        return u, uTar, uTai, uTu
+    
+    def getDefect(self, sigma, u, uTar, uTai, uTu):
         """
         Returns the defect value.
-
-        :param sigma: a suggestion for complex 1/V**2
+        
+        :param sigma: a suggestion for complex 1/V**2 
         :type sigma: ``Data`` of shape (2,)
-        :param E_x: electric field
-        :type E_x: ``Data`` of shape (2,)
-        :param dE_xdz: vertical derivative of electric field
-        :type dE_xdz: ``Data`` of shape (2,)
-
+        :param u: a u vector
+        :type u: ``Data`` of shape (2,)
+        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
+        :type uTar: float
+        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
+        :type uTa: float
+        :param uTu : = integrate( w  * (u,u))
+        :type uTu: float
+        
         :rtype: ``float``
         """
-        x=Function(self.getDomain()).getX()
-        A=0
-        u0=E_x[0]
-        u1=E_x[1]
-        u01=dE_xdz[0]
-        u11=dE_xdz[1]
-
-        # this cane be done faster!
-        for s in xrange(len(self.__Z_xy)):
-            ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            A+=integrate( ws * ( (u0-u01*self.__Z_xy[s].real+u11*self.__Z_xy[s].imag)**2 + (u1-u01*self.__Z_xy[s].imag-u11*self.__Z_xy[s].real)**2 ) )
+        # assummuing  integrate(w * length(data)**2) =1 
+        if self.scaleF and abs(uTu) >0:
+           A=1.-(uTar**2 + uTai**2)/uTu  
+        else:
+           A =  integrate(self.__weight*length(self.__data)**2)- 2 * uTar + uTu
         return  A/2
 
-    def getGradient(self, sigma, E_x, dE_xdz):
+    def getGradient(self,sigma, u,uTar, uTai, uTu ):
         """
         Returns the gradient of the defect with respect to density.
 
-        :param sigma: a suggestion for complex 1/V**2
+        :param sigma: a suggestion for complex 1/V**2 
         :type sigma: ``Data`` of shape (2,)
-        :param E_x: electric field
-        :type E_x: ``Data`` of shape (2,)
-        :param dE_xdz: vertical derivative of electric field
-        :type dE_xdz: ``Data`` of shape (2,)
+        :param u: a u vector
+        :type u: ``Data`` of shape (2,)
+        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
+        :type uTar: float
+        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
+        :type uTa: float
+        :param uTu : = integrate( w  * (u,u))
+        :type uTu: float
         """
-        x=Function(self.getDomain()).getX()
         pde=self.setUpPDE()
+        
+        if self.scaleF and abs(uTu) >0:
+            Z=((uTar**2+uTai**2)/uTu**2) *interpolate(u, self.__data.getFunctionSpace())
+            Z[0]+= (-uTar/uTu) * self.__data[0]+ (-uTai/uTu) * self.__data[1]
+            Z[1]+= (-uTar/uTu) * self.__data[1]+   uTai/uTu  * self.__data[0]
 
-        u0=E_x[0]
-        u1=E_x[1]
-        u01=dE_xdz[0]
-        u11=dE_xdz[1]
-
+        else:
+            Z= u - self.__data
+        if Z.getFunctionSpace() == DiracDeltaFunctions(self.getDomain()):
+            pde.setValue(y_dirac=self.__weight * Z)
+        else:
+            pde.setValue(y=self.__weight * Z)
         D=pde.getCoefficient('D')
-        Y=pde.getCoefficient('Y')
-        X=pde.getCoefficient('X')
+        D[0,0]=-self.__omega**2 * sigma[0]
+        D[0,1]=-self.__omega**2 * sigma[1]
+        D[1,0]= self.__omega**2 * sigma[1]
+        D[1,1]=-self.__omega**2 * sigma[0]
+        pde.setValue(D=D)
+        ZTo2=pde.getSolution()*self.__omega**2
+        return inner(ZTo2,u)*[1,0]+(ZTo2[1]*u[0]-ZTo2[0]*u[1])*[0,1]
 
-        f=self.__omega * self.__mu * sigma
-        D[0,1]=  f
-        D[1,0]= -f
 
-        for s in xrange(len(self.__Z_xy)):
-            ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            Y[0]+=ws * (u0 - u01* self.__Z_xy[s].real + u11* self.__Z_xy[s].imag)
-            Y[1]+=ws * (u1 - u01* self.__Z_xy[s].imag - u11* self.__Z_xy[s].real)
-            X[0,1]+=ws * (u01* abs(self.__Z_xy[s])**2 - u0* self.__Z_xy[s].real - u1* self.__Z_xy[s].imag )
-            X[1,1]+=ws * (u11* abs(self.__Z_xy[s])**2 + u0* self.__Z_xy[s].imag - u1* self.__Z_xy[s].real )
-        pde.setValue(D=D, X=X, Y=Y)
-        Zstar=pde.getSolution()
-        return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
 
+
+
+                
+               

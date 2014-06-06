@@ -533,9 +533,9 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
    For details on the preconditioned conjugate gradient method see the book:
 
-   "Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
+   I{Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
    T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
-   C. Romine, and H. van der Vorst".
+   C. Romine, and H. van der Vorst}.
 
    :param r: initial residual *r=b-Ax*. ``r`` is altered.
    :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)
@@ -602,9 +602,7 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
 class Defect(object):
     """
-    Defines a non-linear defect F(x) of a variable x. This class includes
-    two functions (bilinearform and eval) that must be overridden by subclassing
-    before use.
+    Defines a non-linear defect F(x) of a variable x.
     """
     def __init__(self):
         """
@@ -615,15 +613,13 @@ class Defect(object):
     def bilinearform(self, x0, x1):
         """
         Returns the inner product of x0 and x1
-        
-        NOTE: MUST BE OVERRIDDEN
 
         :param x0: value for x0
         :param x1: value for x1
         :return: the inner product of x0 and x1
         :rtype: ``float``
         """
-        raise NotImplementedError("Defect bilinearform method not overridden")
+        return 0
 
     def norm(self,x):
         """
@@ -642,12 +638,10 @@ class Defect(object):
         """
         Returns the value F of a given ``x``.
 
-        NOTE: MUST BE OVERRIDDEN
-
         :param x: value for which the defect ``F`` is evaluated
         :return: value of the defect at ``x``
         """
-        raise NotImplementedError("Defect eval() method not overridden")
+        return 0
 
     def __call__(self,x):
         return self.eval(x)
@@ -1079,9 +1073,9 @@ def MINRES(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100):
 
     For details on the preconditioned conjugate gradient method see the book:
 
-    "Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
+    I{Templates for the Solution of Linear Systems by R. Barrett, M. Berry,
     T.F. Chan, J. Demmel, J. Donato, J. Dongarra, V. Eijkhout, R. Pozo,
-    C. Romine, and H. van der Vorst".
+    C. Romine, and H. van der Vorst}.
 
     :param r: initial residual *r=b-Ax*. ``r`` is altered.
     :type r: any object supporting inplace add (x+=y) and scaling (x=scalar*y)

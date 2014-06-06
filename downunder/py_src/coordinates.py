@@ -352,21 +352,6 @@ class SpatialCoordinateTransformation(object):
         """
         return self._scaling_factors
 
-    def getGradient(self, u):
-        """
-        returns the gradient of a scalar function in direction of the
-        coordinate axis.
-        
-        :rtype: `esys.escript.Vector
-        """
-        g=esc.grad(u)
-        if not self.isCartesian():
-                d=self.getScalingFactors()
-                g*=d
-        return g
-
-
-
 def CartesianCoordinateTransformation(domain, reference=CartesianReferenceSystem() ):
 
     return SpatialCoordinateTransformation(domain, reference)

@@ -26,7 +26,7 @@
 #include "paso/Coupler.h"
 
 struct Dudley_NodeFile {
-    esysUtils::JMPI MPIInfo;	/* MPI information */
+    Esys_MPIInfo *MPIInfo;	/* MPI information */
 
     dim_t numNodes;		/* number of nodes */
     dim_t numDim;		/* spatial dimension */
@@ -72,7 +72,7 @@ struct Dudley_NodeFile {
 typedef struct Dudley_NodeFile Dudley_NodeFile;
 
 
-Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, esysUtils::JMPI& MPIInfo);
+Dudley_NodeFile *Dudley_NodeFile_alloc(dim_t, Esys_MPIInfo * MPIInfo);
 index_t Dudley_NodeFile_getFirstReducedNode(Dudley_NodeFile * in);
 index_t Dudley_NodeFile_getLastReducedNode(Dudley_NodeFile * in);
 dim_t Dudley_NodeFile_getGlobalNumReducedNodes(Dudley_NodeFile * in);

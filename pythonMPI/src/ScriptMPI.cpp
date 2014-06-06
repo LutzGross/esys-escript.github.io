@@ -40,7 +40,7 @@ int main( int argc, char **argv ) {
     int rank=0;
     if (MPI_Comm_rank(MPI_COMM_WORLD, &rank)!=MPI_SUCCESS)
     {
-	MPI_Abort(MPI_COMM_WORLD, 1);
+	MPI_Abort(MPI_COMM_WORLD,1);
     }
 
     if( rank )

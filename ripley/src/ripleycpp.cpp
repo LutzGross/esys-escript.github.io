@@ -14,7 +14,6 @@
 *
 *****************************************************************************/
 
-#include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 #include <ripley/Rectangle.h>
 #include <esysUtils/esysExceptionTranslator.h>
@@ -24,8 +23,6 @@
 #include <boost/python/def.hpp>
 #include <boost/python/detail/defaults_gen.hpp>
 #include <boost/version.hpp>
-
-#include "escript/SubWorld.h"
 
 using namespace boost::python;
 
@@ -139,7 +136,7 @@ escript::Data readNcGrid(std::string filename, std::string varname,
 // truediv
 escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2,
-                 const object& objpoints, const object& objtags, escript::SubWorld_ptr world)
+                 const object& objpoints, const object& objtags)
 {
     int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1), n2=static_cast<int>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
@@ -223,16 +220,14 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Brick(n0,n1,n2, x0,y0,z0, x1,y1,z1, d0,d1,d2,
-                                            points, tags, tagstonames, world));
+                                            points, tags, tagstonames));
 }
 
 //const int _q[]={0x61686969,0x746c4144,0x79616e43};
 const int _q[]={0x62207363, 0x6574735F, 0x2020214e};
 escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
                                const object& l1, int d0, int d1, 
-                               const object& objpoints, const object& objtags,
-			      escript::SubWorld_ptr world
-			      )
+                               const object& objpoints, const object& objtags)
 {
     int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
@@ -304,7 +299,7 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
     if (numtags != numpts)
         throw RipleyException("Number of tags does not match number of points.");
     return escript::Domain_ptr(new Rectangle(n0,n1, x0,y0, x1,y1, d0,d1,
-                                             points, tags, tagstonames, world));
+                                             points, tags, tagstonames));
 }
 std::string _who(){int a[]={_q[0]^42,_q[1]^42,_q[2]^42,0};return (char*)&a[0];}
 
@@ -329,8 +324,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
     scope().attr("DATATYPE_FLOAT32") = (int)ripley::DATATYPE_FLOAT32;
     scope().attr("DATATYPE_FLOAT64") = (int)ripley::DATATYPE_FLOAT64;
 
-    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,
-        arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
+    def("Brick", ripley::_brick, (arg("n0"),arg("n1"),arg("n2"),arg("l0")=1.0,arg("l1")=1.0,arg("l2")=1.0,arg("d0")=-1,arg("d1")=-1,arg("d2")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
 "Creates a hexagonal mesh with n0 x n1 x n2 elements over the brick [0,l0] x [0,l1] x [0,l2].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
@@ -342,7 +336,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``\n"
 ":param d2: number of subdivisions in direction 2\n:type d2: ``int``");
 
-    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list(), arg("escriptworld")=escript::SubWorld_ptr()),
+    def("Rectangle", ripley::_rectangle, (arg("n0"),arg("n1"),arg("l0")=1.0,arg("l1")=1.0,arg("d0")=-1,arg("d1")=-1,arg("diracPoints")=list(),arg("diracTags")=list()),
 "Creates a rectangular mesh with n0 x n1 elements over the rectangle [0,l0] x [0,l1].\n\n"
 ":param n0: number of elements in direction 0\n:type n0: ``int``\n"
 ":param n1: number of elements in direction 1\n:type n1: ``int``\n"
@@ -398,23 +392,58 @@ BOOST_PYTHON_MODULE(ripleycpp)
             ":param mat:\n:type mat: `OperatorAdapter`\n"
             ":param rhs:\n:type rhs: `Data`\n"
             ":param data:\ntype data: `list`")
+        .def("addPDEToSystem",&ripley::RipleyDomain::addPDEToSystem,
+args("mat", "rhs", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+"adds a PDE onto the stiffness matrix mat and a rhs\n\n"
+":param mat:\n:type mat: `OperatorAdapter`\n:param rhs:\n:type rhs: `Data`\n"
+":param A:\n:type A: `Data`\n"
+":param B:\n:type B: `Data`\n"
+":param C:\n:type C: `Data`\n"
+":param D:\n:type D: `Data`\n"
+":param X:\n:type X: `Data`\n"
+":param Y:\n:type Y: `Data`\n"
+":param d:\n:type d: `Data`\n"
+":param d_contact:\n:type d_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
+)
+
+        .def("addPDEToRHS",&ripley::RipleyDomain::addPDEToRHS, 
+args("rhs", "X", "Y", "y", "y_contact"),
+"adds a PDE onto the stiffness matrix mat and a rhs\n\n"
+":param rhs:\n:type rhs: `Data`\n"
+":param X:\n:type X: `Data`\n"
+":param Y:\n:type Y: `Data`\n"
+":param y:\n:type y: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
+)
         .def("addToRHS",&ripley::RipleyDomain::addToRHSFromPython,
             args("rhs", "data"),
             "adds a PDE onto the stiffness matrix mat and a rhs, "
             "results depends on domain\n\n"
             ":param rhs:\n:type rhs: `Data`\n"
             ":param data:\ntype data: `list`")
-        .def("createAssembler", &ripley::RipleyDomain::createAssemblerFromPython,
+        .def("setAssembler", &ripley::RipleyDomain::setAssemblerFromPython,
             args("typename", "options"),
-            "request from the domain an assembler of the specified type, if "
-            "supported, using the supplied options (if provided)"
+            "sets the domain to use the named assembler, if supported, using"
+            "the options if provided"
             ":param typename:\n:type typename: `string`\n"
             ":param options:\n:type options: `list`\n")
-        .def("addPDEToTransportProblem",&ripley::RipleyDomain::addPDEToTransportProblemFromPython,
-            args("tp", "source", "data"),
-            ":param tp:\n:type tp: `TransportProblemAdapter`\n"
-            ":param source:\n:type source: `Data`\n"
-            ":param data:\ntype data: `list`")
+        .def("addPDEToTransportProblem",&ripley::RipleyDomain::addPDEToTransportProblem,
+args( "tp", "source", "M", "A", "B", "C", "D", "X", "Y", "d", "y", "d_contact", "y_contact"),
+":param tp:\n:type tp: `TransportProblemAdapter`\n"
+":param source:\n:type source: `Data`\n"
+":param M:\n:type M: `Data`\n"
+":param A:\n:type A: `Data`\n"
+":param B:\n:type B: `Data`\n"
+":param C:\n:type C: `Data`\n"
+":param D:\n:type D: `Data`\n"
+":param X:\n:type X: `Data`\n"
+":param Y:\n:type Y: `Data`\n"
+":param d:\n:type d: `Data`\n"
+":param y:\n:type y: `Data`\n"
+":param d_contact:\n:type d_contact: `Data`\n"
+":param y_contact:\n:type y_contact: `Data`"
+)
         .def("newOperator",&ripley::RipleyDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
@@ -473,7 +502,5 @@ args("solver", "preconditioner", "package", "symmetry"),
      * This change became necessary when the Brick and Rectangle constructors turned into factories instead of classes */
     class_<ripley::Brick, bases<ripley::RipleyDomain> >("RipleyBrick", "", no_init);
     class_<ripley::Rectangle, bases<ripley::RipleyDomain> >("RipleyRectangle", "", no_init);
-    class_<ripley::AbstractAssembler, ripley::Assembler_ptr, boost::noncopyable >
-        ("AbstractAssembler", "", no_init);
 }
 

@@ -41,11 +41,11 @@ struct SharedComponents
 {
     SharedComponents(dim_t localLength, dim_t nNeighbours,
             const Esys_MPI_rank* neighbours, const index_t* sharedArray,
-            const index_t* offset, index_t m, index_t b, esysUtils::JMPI& mpiInfo)
+            const index_t* offset, index_t m, index_t b, Esys_MPIInfo *mpiInfo)
         : local_length(localLength*m),
           numNeighbors(nNeighbours)
     {
-        mpi_info = mpiInfo;
+        mpi_info = Esys_MPIInfo_getReference(mpiInfo);
         neighbor = new Esys_MPI_rank[numNeighbors];
         if (!offset) {
             numSharedComponents = 0;
@@ -80,6 +80,7 @@ struct SharedComponents
         delete[] neighbor;
         delete[] shared;
         delete[] offsetInShared;
+        Esys_MPIInfo_free(mpi_info);
     }
 
     /// local array length shared
@@ -102,7 +103,7 @@ struct SharedComponents
     /// = offsetInShared[numNeighbors]
     dim_t numSharedComponents;
 
-    esysUtils::JMPI mpi_info;
+    Esys_MPIInfo *mpi_info;
 };
 
 } // namespace paso

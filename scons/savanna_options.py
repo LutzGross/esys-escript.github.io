@@ -204,7 +204,7 @@ visit_prefix = '/sw/apps/visit/2.7.0/linux-x86_64/libsim/V2'
 
 # Build dynamic libraries only
 #DEFAULT: False
-build_shared = True
+#build_shared = True
 
 
 ### ADVANCED OPTIONS ###

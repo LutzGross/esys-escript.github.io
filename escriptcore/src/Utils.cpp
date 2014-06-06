@@ -203,13 +203,13 @@ ESCRIPT_DLL_API double getMaxFloat() {
 }
 ESCRIPT_DLL_API void MPIBarrierWorld() {
   #ifdef ESYS_MPI
-  if (!esysUtils::NoCOMM_WORLD::active())
+  if (!esysUtils::getSplitWorld())
   {
       MPI_Barrier(MPI_COMM_WORLD );
   }
   else
   {
-      throw esysUtils::EsysException("Attempt to use MPI_COMM_WORLD while it is blocked.");
+      throw esysUtils::EsysException("Use of split world detected. Generic MPIBarrierWorld not useable.");
   }
   #endif
 }

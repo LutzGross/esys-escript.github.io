@@ -24,8 +24,6 @@
 #include "esysUtils/Esys_MPI.h"
 #endif
 
-#include "escript/SubWorld.h"
-
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
 #endif
@@ -56,9 +54,10 @@ namespace dudley {
   }
 #endif
 
-  inline void cleanupAndThrow(Dudley_Mesh* mesh, string msg)
+  inline void cleanupAndThrow(Dudley_Mesh* mesh, Esys_MPIInfo* info, string msg)
   {
       Dudley_Mesh_free(mesh);
+      Esys_MPIInfo_free(info);
       string msgPrefix("loadMesh: NetCDF operation failed - ");
       throw DataException(msgPrefix+msg);
   }
@@ -67,7 +66,7 @@ namespace dudley {
   Domain_ptr loadMesh(const std::string& fileName)
   {
 #ifdef USE_NETCDF
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo( MPI_COMM_WORLD );
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc( MPI_COMM_WORLD );
     Dudley_Mesh *mesh_p=NULL;
     char error_msg[LenErrorMsg_MAX];
 
@@ -88,6 +87,7 @@ namespace dudley {
     if (!dataFile.is_valid()) {
       sprintf(error_msg,"loadMesh: Opening NetCDF file '%s' for reading failed.", fName.c_str());
       Dudley_setError(IO_ERROR,error_msg);
+      Esys_MPIInfo_free( mpi_info );
       throw DataException(error_msg);
     }
 
@@ -132,39 +132,39 @@ namespace dudley {
         Dudley_NodeFile_allocTable(mesh_p->Nodes, numNodes);
         // Nodes_Id
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Id")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Id)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Id)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Id[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Id)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Id)");
         // Nodes_Tag
         if (! ( nc_var_temp = dataFile.get_var("Nodes_Tag")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Tag)");
         if (! nc_var_temp->get(&mesh_p->Nodes->Tag[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Tag)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Tag)");
         // Nodes_gDOF
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gDOF")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gDOF)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalDegreesOfFreedom[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_gDOF)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gDOF)");
         // Nodes_gNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_gNI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_gNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_gNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_gNI)");
         // Nodes_grDfI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grDfI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grDfI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedDOFIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_grDfI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grDfI)");
         // Nodes_grNI
         if (! ( nc_var_temp = dataFile.get_var("Nodes_grNI")) )
-            cleanupAndThrow(mesh_p, "get_var(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_grNI)");
         if (! nc_var_temp->get(&mesh_p->Nodes->globalReducedNodesIndex[0], numNodes) )
-            cleanupAndThrow(mesh_p, "get(Nodes_grNI)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_grNI)");
         // Nodes_Coordinates
         if (!(nc_var_temp = dataFile.get_var("Nodes_Coordinates")))
-            cleanupAndThrow(mesh_p, "get_var(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_Coordinates)");
         if (! nc_var_temp->get(&(mesh_p->Nodes->Coordinates[0]), numNodes, numDim) )
-            cleanupAndThrow(mesh_p, "get(Nodes_Coordinates)");
+            cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_Coordinates)");
 
         Dudley_NodeFile_setTagsInUse(mesh_p->Nodes);
 
@@ -179,33 +179,33 @@ namespace dudley {
                 if (num_Elements>0) {
                    // Elements_Id
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Id)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Id[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Id)");
                    // Elements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Tag[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Tag)");
                    // Elements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Owner[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Owner)");
                    // Elements_Color
                    if (! ( nc_var_temp = dataFile.get_var("Elements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Color)");
                    if (! nc_var_temp->get(&mesh_p->Elements->Color[0], num_Elements) )
-                       cleanupAndThrow(mesh_p, "get(Elements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Color)");
                    // Elements_Nodes
                    int *Elements_Nodes = new int[num_Elements*num_Elements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("Elements_Nodes"))) {
                        delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Elements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Elements_Nodes[0]), num_Elements, num_Elements_numNodes) ) {
                        delete[] Elements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(Elements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Elements_Nodes)");
                    }
 
                    // Copy temp array into mesh_p->Elements->Nodes
@@ -232,33 +232,33 @@ namespace dudley {
                 if (num_FaceElements>0) {
                    // FaceElements_Id
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Id")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Id)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Id[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Id)");
                    // FaceElements_Tag
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Tag")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Tag)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Tag[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Tag)");
                    // FaceElements_Owner
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Owner")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Owner)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Owner[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Owner)");
                    // FaceElements_Color
                    if (! ( nc_var_temp = dataFile.get_var("FaceElements_Color")) )
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Color)");
                    if (! nc_var_temp->get(&mesh_p->FaceElements->Color[0], num_FaceElements) )
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Color)");
                    // FaceElements_Nodes
                    int *FaceElements_Nodes = new int[num_FaceElements*num_FaceElements_numNodes];
                    if (!(nc_var_temp = dataFile.get_var("FaceElements_Nodes"))) {
                        delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(FaceElements_Nodes)");
                    }
                    if (! nc_var_temp->get(&(FaceElements_Nodes[0]), num_FaceElements, num_FaceElements_numNodes) ) {
                        delete[] FaceElements_Nodes;
-                       cleanupAndThrow(mesh_p, "get(FaceElements_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(FaceElements_Nodes)");
                    }
                    // Copy temp array into mesh_p->FaceElements->Nodes
                    for (int i=0; i<num_FaceElements; i++) {
@@ -283,33 +283,33 @@ namespace dudley {
                 if (num_Points>0) {
                    // Points_Id
                    if (! ( nc_var_temp = dataFile.get_var("Points_Id")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Id)");
                    if (! nc_var_temp->get(&mesh_p->Points->Id[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Id)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Id)");
                    // Points_Tag
                    if (! ( nc_var_temp = dataFile.get_var("Points_Tag")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Tag)");
                    if (! nc_var_temp->get(&mesh_p->Points->Tag[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Tag)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Tag)");
                    // Points_Owner
                    if (! ( nc_var_temp = dataFile.get_var("Points_Owner")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Owner)");
                    if (!nc_var_temp->get(&mesh_p->Points->Owner[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Owner)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Owner)");
                    // Points_Color
                    if (! ( nc_var_temp = dataFile.get_var("Points_Color")))
-                       cleanupAndThrow(mesh_p, "get_var(Points_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Color)");
                    if (!nc_var_temp->get(&mesh_p->Points->Color[0], num_Points))
-                       cleanupAndThrow(mesh_p, "get(Points_Color)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Color)");
                    // Points_Nodes
                    int *Points_Nodes = new int[num_Points];
                    if (!(nc_var_temp = dataFile.get_var("Points_Nodes"))) {
                        delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, "get_var(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get_var(Points_Nodes)");
                    }
                    if (! nc_var_temp->get(&(Points_Nodes[0]), num_Points) ) {
                        delete[] Points_Nodes;
-                       cleanupAndThrow(mesh_p, "get(Points_Nodes)");
+                       cleanupAndThrow(mesh_p, mpi_info, "get(Points_Nodes)");
                    }
                    // Copy temp array into mesh_p->Points->Nodes
                    for (int i=0; i<num_Points; i++) {
@@ -332,11 +332,11 @@ namespace dudley {
             // Tags_keys
             if (! ( nc_var_temp = dataFile.get_var("Tags_keys")) ) {
                 delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, "get_var(Tags_keys)");
+                cleanupAndThrow(mesh_p, mpi_info, "get_var(Tags_keys)");
             }
             if (! nc_var_temp->get(&Tags_keys[0], num_Tags) ) {
                 delete[] Tags_keys;
-                cleanupAndThrow(mesh_p, "get(Tags_keys)");
+                cleanupAndThrow(mesh_p, mpi_info, "get(Tags_keys)");
             }
             for (i=0; i<num_Tags; i++) {
               // Retrieve tag name
@@ -344,7 +344,7 @@ namespace dudley {
               if (! (attr=dataFile.get_att(name_temp)) ) {
                   delete[] Tags_keys;
                   sprintf(error_msg,"get_att(%s)", name_temp);
-                  cleanupAndThrow(mesh_p, error_msg);
+                  cleanupAndThrow(mesh_p, mpi_info, error_msg);
               }
               boost::scoped_array<char> name(attr->as_string(0));
               delete attr;
@@ -359,11 +359,11 @@ namespace dudley {
             first_DofComponent = new index_t[mpi_size+1];
             if (! ( nc_var_temp = dataFile.get_var("Nodes_DofDistribution")) ) {
                 delete[] first_DofComponent;
-                cleanupAndThrow(mesh_p, "get_var(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_DofDistribution)");
             }
             if (! nc_var_temp->get(&first_DofComponent[0], mpi_size+1) ) {
                 delete[] first_DofComponent;
-                cleanupAndThrow(mesh_p, "get(Nodes_DofDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_DofDistribution)");
             }
 
             // Nodes_NodeDistribution
@@ -371,12 +371,12 @@ namespace dudley {
             if (! ( nc_var_temp = dataFile.get_var("Nodes_NodeDistribution")) ) {
                 delete[] first_DofComponent;
                 delete[] first_NodeComponent;
-                cleanupAndThrow(mesh_p, "get_var(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get_var(Nodes_NodeDistribution)");
             }
             if (! nc_var_temp->get(&first_NodeComponent[0], mpi_size+1) ) {
                 delete[] first_DofComponent;
                 delete[] first_NodeComponent;
-                cleanupAndThrow(mesh_p, "get(Nodes_NodeDistribution)");
+                cleanupAndThrow(mesh_p, mpi_info, "get(Nodes_NodeDistribution)");
             }
             Dudley_Mesh_createMappings(mesh_p, first_DofComponent, first_NodeComponent);
             delete[] first_DofComponent;
@@ -392,6 +392,7 @@ namespace dudley {
         Dudley_Mesh_free(mesh_p);
     }
 
+    Esys_MPIInfo_free(mpi_info);
     blocktimer_increment("LoadMesh()", blocktimer_start);
     return dom->getPtr();
 #else
@@ -461,7 +462,7 @@ namespace dudley {
     return temp->getPtr();
   }
 
-  Domain_ptr brick(esysUtils::JMPI& mpi_info, double n0, double n1,double n2,int order,
+  Domain_ptr brick(double n0, double n1,double n2,int order,
                    double l0,double l1,double l2,
                    int periodic0,int periodic1,
                    int periodic2,
@@ -496,8 +497,7 @@ namespace dudley {
     Dudley_Mesh* fMesh=NULL;
 
     fMesh=Dudley_TriangularMesh_Tet4(numElements, length, integrationOrder,
-                        reducedIntegrationOrder, (optimize ? TRUE : FALSE),
-                        mpi_info);
+                        reducedIntegrationOrder, (optimize ? TRUE : FALSE));
 
     //
     // Convert any dudley errors into a C++ exception
@@ -506,166 +506,7 @@ namespace dudley {
     return temp->getPtr();
   }
 
-  Domain_ptr brick_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
-
-//       // we need to convert lists to stl vectors
-//       boost::python::list pypoints=extract<boost::python::list>(args[15]);
-//       boost::python::list pytags=extract<boost::python::list>(args[16]);
-//       int numpts=extract<int>(pypoints.attr("__len__")());
-//       int numtags=extract<int>(pytags.attr("__len__")());
-//       vector<double> points;
-//       vector<int> tags;
-//       tags.resize(numtags, -1);
-//       for (int i=0;i<numpts;++i) {
-//           boost::python::object temp=pypoints[i];
-//           int l=extract<int>(temp.attr("__len__")());
-//           for (int k=0;k<l;++k) {
-//               points.push_back(extract<double>(temp[k]));           
-//           }
-//       }
-//       map<string, int> namestonums;
-//       int curmax=40; // bricks use up to 30
-//       for (int i=0;i<numtags;++i) {
-//           extract<int> ex_int(pytags[i]);
-//           extract<string> ex_str(pytags[i]);
-//           if (ex_int.check()) {
-//               tags[i]=ex_int();
-//               if (tags[i]>= curmax) {
-//                   curmax=tags[i]+1;
-//               }
-//           } else if (ex_str.check()) {
-//               string s=ex_str();
-//               map<string, int>::iterator it=namestonums.find(s);
-//               if (it!=namestonums.end()) {
-//                   // we have the tag already so look it up
-//                   tags[i]=it->second;
-//               } else {
-//                   namestonums[s]=curmax;
-//                   tags[i]=curmax;
-//                   curmax++;
-//               }
-//           } else {
-//               throw DudleyAdapterException("Error - Unable to extract tag value.");
-//           }
-//         
-//       }
-      boost::python::object pworld=args[15];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-	  extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {	  
-	      throw DudleyAdapterException("Invalid escriptworld parameter.");
-	  }
-	  info=ex()->getMPI();
-      }
-      else
-      {
-	  info=esysUtils::makeInfo(MPI_COMM_WORLD);
-
-      }
-      return brick(info, static_cast<int>(extract<float>(args[0])),
-                   static_cast<int>(extract<float>(args[1])),
-                   static_cast<int>(extract<float>(args[2])),
-                   extract<int>(args[3]), extract<double>(args[4]),
-                   extract<double>(args[5]), extract<double>(args[6]),
-                   extract<int>(args[7]), extract<int>(args[8]),
-                   extract<int>(args[9]), extract<int>(args[10]),
-                   extract<int>(args[11]), extract<int>(args[12]),
-                   extract<int>(args[13]), extract<int>(args[14])
-                   );
-  }  
-  
-  
-  Domain_ptr rectangle_driver(const boost::python::list& args)
-  {
-      using boost::python::extract;
-/*
-      // we need to convert lists to stl vectors
-      boost::python::list pypoints=extract<boost::python::list>(args[12]);
-      boost::python::list pytags=extract<boost::python::list>(args[13]);
-      int numpts=extract<int>(pypoints.attr("__len__")());
-      int numtags=extract<int>(pytags.attr("__len__")());
-      vector<double> points;
-      vector<int> tags;
-      tags.resize(numtags, -1);
-      for (int i=0;i<numpts;++i)
-      {
-          boost::python::object temp=pypoints[i];
-          int l=extract<int>(temp.attr("__len__")());
-          for (int k=0;k<l;++k)
-          {
-              points.push_back(extract<double>(temp[k]));           
-          }
-      }
-      map<string, int> tagstonames;
-      int curmax=40;
-      // but which order to assign tags to names?????
-      for (int i=0;i<numtags;++i)
-      {
-          extract<int> ex_int(pytags[i]);
-          extract<string> ex_str(pytags[i]);
-          if (ex_int.check())
-          {
-              tags[i]=ex_int();
-              if (tags[i]>= curmax)
-              {
-                  curmax=tags[i]+1;
-              }
-          } 
-          else if (ex_str.check())
-          {
-              string s=ex_str();
-              map<string, int>::iterator it=tagstonames.find(s);
-              if (it!=tagstonames.end())
-              {
-                  // we have the tag already so look it up
-                  tags[i]=it->second;
-              }
-              else
-              {
-                  tagstonames[s]=curmax;
-                  tags[i]=curmax;
-                  curmax++;
-              }
-          }
-          else
-          {
-              throw DudleyAdapterException("Error - Unable to extract tag value.");
-          }
-      }*/
-      boost::python::object pworld=args[12];
-      esysUtils::JMPI info;
-      if (!pworld.is_none())
-      {
-          extract<SubWorld_ptr> ex(pworld);
-	  if (!ex.check())
-	  {
-	      throw DudleyAdapterException("Invalid escriptworld parameter.");
-          }
-          info=ex()->getMPI();
-      }
-      else
-      {
-          info=esysUtils::makeInfo(MPI_COMM_WORLD);
-      }
-
-      return rectangle(info, static_cast<int>(extract<float>(args[0])),
-                       static_cast<int>(extract<float>(args[1])),
-                       extract<int>(args[2]), extract<double>(args[3]),
-                       extract<double>(args[4]), extract<int>(args[5]),
-                       extract<int>(args[6]), extract<int>(args[7]),
-                       extract<int>(args[8]), extract<int>(args[9]),
-                       extract<int>(args[10]), extract<int>(args[11]) 
-		       );
-  }  
-  
-  
-  
-  Domain_ptr rectangle(esysUtils::JMPI& mpi_info, double n0, double n1, int order,
+  Domain_ptr rectangle(double n0, double n1, int order,
                        double l0, double l1,
                        int periodic0,int periodic1,
                        int integrationOrder,
@@ -695,8 +536,7 @@ namespace dudley {
         throw DudleyAdapterException("Dudley does not support element order greater than 1.");
     }
     Dudley_Mesh* fMesh=Dudley_TriangularMesh_Tri3(numElements, length,
-          integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE),
-          mpi_info);
+          integrationOrder, reducedIntegrationOrder, (optimize ? TRUE : FALSE));
     //
     // Convert any dudley errors into a C++ exception
     checkDudleyError();

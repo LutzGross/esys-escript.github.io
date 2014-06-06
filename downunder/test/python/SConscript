@@ -25,7 +25,6 @@ testruns = [ \
             'run_datasources.py',\
             'run_domainbuilder.py',\
             'run_forward.py',\
-            'run_regularization.py',\
             'run_mappings.py',\
             'run_minimizers.py',\
             'run_inversioncostfunction.py',\

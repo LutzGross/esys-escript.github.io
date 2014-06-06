@@ -44,7 +44,7 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
 {
     const dim_t blockSize = tp->getBlockSize();
     const dim_t n = tp->getTotalNumRows();
-    mpi_info = tp->mpi_info;
+    mpi_info = Esys_MPIInfo_getReference(tp->mpi_info);
     flux_limiter = new FCT_FluxLimiter(tp);
     b = new double[n];
     if (options->ode_solver == PASO_CRANK_NICOLSON || options->ode_solver == PASO_BACKWARD_EULER) {
@@ -69,6 +69,7 @@ FCT_Solver::FCT_Solver(const_TransportProblem_ptr tp, Options* options) :
 FCT_Solver::~FCT_Solver()
 {
     delete flux_limiter;
+    Esys_MPIInfo_free(mpi_info);
     delete[] b;
     delete[] z;
     delete[] du;

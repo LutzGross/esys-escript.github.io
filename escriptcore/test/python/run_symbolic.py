@@ -36,7 +36,6 @@ __author__="Cihan Altinay"
 
 from esys.escript import *
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import numpy
 
 sympyavail=True
@@ -8625,6 +8624,10 @@ class SymbolicTestCase(unittest.TestCase):
         self.assertEqual(u._subs, u[0]._subs, "indexing did not preserve data substitution")
         self.assertTrue(list(u[0]._subs.keys())[0] in a[0]._subs, "indexing did not preserve data substitution")
 
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    import sys
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(SymbolicTestCase))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

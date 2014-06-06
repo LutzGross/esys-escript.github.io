@@ -37,7 +37,6 @@
 #include <escript/AbstractContinuousDomain.h>
 #include <escript/Data.h>
 #include <escript/FunctionSpace.h>
-#include <escript/SubWorld.h>
 
 #include <paso/SystemMatrix.h>
 
@@ -101,7 +100,7 @@ public:
        \brief
        Constructor with number of dimensions. Allocates MPI info structure.
     */
-    RipleyDomain(dim_t dim, escript::SubWorld_ptr p=escript::SubWorld_ptr());
+    RipleyDomain(dim_t dim);
 
     /**
        \brief
@@ -492,6 +491,17 @@ public:
     */
     virtual void setToIntegrals(DoubleVector& integrals, const escript::Data& arg) const;
 
+    /**
+       \brief
+       adds a PDE onto the stiffness matrix mat and rhs
+    */
+    virtual void addPDEToSystem(escript::AbstractSystemMatrix& mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y,
+            const escript::Data& d_contact, const escript::Data& y_contact,
+            const escript::Data& d_dirac, const escript::Data& y_dirac) const;
 
     /**
        \brief
@@ -499,16 +509,22 @@ public:
        solvers with varying arguments counts and so on
     */
     virtual void addToSystem(escript::AbstractSystemMatrix& mat,
-            escript::Data& rhs,std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+            escript::Data& rhs,std::map<std::string, escript::Data> data) const;
 
     /**
        \brief
        a wrapper for addToSystem that allows calling from Python
     */
     virtual void addToSystemFromPython(escript::AbstractSystemMatrix& mat,
-            escript::Data& rhs,boost::python::list data,
-            Assembler_ptr assembler) const;
+            escript::Data& rhs,boost::python::list data) const;
+
+    /**
+       \brief
+       adds a PDE onto rhs
+    */
+    virtual void addPDEToRHS(escript::Data& rhs, const escript::Data& X,
+            const escript::Data& Y, const escript::Data& y,
+            const escript::Data& y_contact, const escript::Data& y_dirac) const;
 
     /**
        \brief
@@ -516,33 +532,29 @@ public:
        solvers with varying arguments counts and so on
     */
     virtual void addToRHS(escript::Data& rhs,
-            std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+                          std::map<std::string, escript::Data> data) const;
 
     /**
        \brief
        a wrapper for addToRHS that allows calling from Python
     */
     virtual void addToRHSFromPython(escript::Data& rhs,
-            boost::python::list data,
-            Assembler_ptr assembler) const;
+                                    boost::python::list data) const;
 
-    using escript::AbstractContinuousDomain::addPDEToTransportProblem;
     /**
        \brief
        adds a PDE onto a transport problem
     */
     virtual void addPDEToTransportProblem(escript::AbstractTransportProblem& tp,
-            escript::Data& source, std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
-    /**
-       \brief
-       adds a PDE onto a transport problem
-    */
-    void addPDEToTransportProblemFromPython(
-        escript::AbstractTransportProblem& tp,
-        escript::Data& source, boost::python::list data,
-        Assembler_ptr assembler) const;
+            escript::Data& source, const escript::Data& M,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y,
+            const escript::Data& d, const escript::Data& y,
+            const escript::Data& d_contact, const escript::Data& y_contact,
+            const escript::Data& d_dirac, const escript::Data& y_dirac) const;
+
+
     /**
        \brief
        creates a stiffness matrix and initializes it with zeros
@@ -693,23 +705,22 @@ public:
     */
     virtual bool supportsFilter(const boost::python::tuple& t) const;
 
-    virtual Assembler_ptr createAssembler(std::string type,
-                std::map<std::string, escript::Data> options) const {
+    virtual void setAssembler(std::string type,
+                std::map<std::string, escript::Data> options) {
         throw RipleyException("Domain does not support custom assemblers");
     }
 
-    Assembler_ptr createAssemblerFromPython(std::string type,
-                                boost::python::list options) const;
-
-
+    void setAssemblerFromPython(std::string type,
+                                boost::python::list options);
 protected:
     dim_t m_numDim;
     StatusType m_status;
-    esysUtils::JMPI m_mpiInfo;
+    Esys_MPIInfo *m_mpiInfo;
     TagMap m_tagMap;
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
+    AbstractAssembler *assembler;
     std::vector<struct DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;
@@ -801,18 +812,15 @@ protected:
 private:
     /// calls the right PDE assembly routines after performing input checks
     void assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+            std::map<std::string, escript::Data> coefs) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
     void assemblePDEBoundary(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+            std::map<std::string, escript::Data> coefs) const;
 
     void assemblePDEDirac(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+            std::map<std::string, escript::Data> coefs) const;
 
     // finds the node that the given point belongs to
     virtual int findNode(const double *coords) const = 0;

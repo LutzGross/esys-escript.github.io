@@ -30,7 +30,7 @@ namespace finley {
 
 #define MAX_numNodes_gmsh 20
 
-Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int numDim, int order,
+Mesh* Mesh::readGmsh(const std::string fname, int numDim, int order,
                      int reduced_order, bool optimize, bool useMacroElements)
 {
     double version = 1.0;
@@ -48,9 +48,11 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
     FILE * fileHandle_p = NULL;
     ElementTypeId* element_type=NULL;
 
+    Esys_MPIInfo *mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
     resetError();
     if (mpi_info->size>1) {
         setError(IO_ERROR, "reading gmsh files with MPI is not supported yet.");
+        Esys_MPIInfo_free(mpi_info);
         return NULL;
     }
 
@@ -62,6 +64,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
     if (fileHandle_p==NULL) {
         sprintf(error_msg, "Opening Gmsh file %s for reading failed.", fname.c_str());
         setError(IO_ERROR, error_msg);
+        Esys_MPIInfo_free(mpi_info);
         return NULL;
     }
 
@@ -372,7 +375,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
          for (i0 = 0; i0 < numTags; i0++) {
             scan_ret = fscanf(fileHandle_p, "%d %d %s\n", &itmp, &tag_key, name);
             FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
-            //if (! (itmp == 2)) setError(IO_ERROR,"Mesh_readGmsh: expecting two entries per physical name.");
+            if (! (itmp == 2)) setError(IO_ERROR,"Mesh_readGmsh: expecting two entries per physical name.");
             if ( strlen(name) < 3 ) setError(IO_ERROR,"Mesh_readGmsh: illegal tagname (\" missing?)");
             if (! noError()) break;
             name[strlen(name)-1]='\0';
@@ -406,6 +409,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
     if (noError()) mesh_p->resolveNodeIds();
     // rearrange elements
     if (noError()) mesh_p->prepare(optimize);
+    Esys_MPIInfo_free(mpi_info);
     if (!noError()) {
         delete mesh_p;
         return NULL;

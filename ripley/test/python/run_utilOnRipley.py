@@ -22,7 +22,6 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symfuncs import Test_symfuncs
@@ -85,5 +84,10 @@ class Test_Util_SpatialFunctionsOnRipleyBrick(Test_Util_SpatialFunctions_noGradO
         del self.domain
 
 if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(Test_UtilOnRipley))
+    suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnRipleyRect))
+    suite.addTest(unittest.makeSuite(Test_Util_SpatialFunctionsOnRipleyBrick))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
 

@@ -69,37 +69,35 @@ class InversionDriver(object):
 
     def fixGravityPotentialAtBottom(self, status=False):
         """
-        indicates to fix the gravity potential at the bottom to zero
-        (in addition to the top)
-
+        indicates to fix the gravity potential at the bottom to zero (in addition to the top)
+        
         :param status: if True gravity potential at the bottom is set to zero
         :type status: ``bool``
         """
         self._fixGravityPotentialAtBottom=status
-
+    
     def fixMagneticPotentialAtBottom(self, status=True):
         """
-        indicates to fix the magnetic potential at the bottom to zero
-        (in addition to the top)
-
+        indicates to fix the magnetic potential at the bottom to zero (in addition to the top)
+        
         :param status: if True magnetic potential at the bottom is set to zero
         :type status: ``bool``
         """
         self._fixMagneticPotentialAtBottom=status
-
+        
     def setCostFunction(self, costfunction):
         """
-        sets the cost function of the inversion. This function needs to be
-        called before the inversion iteration can be started.
+        sets the cost function of the inversion. This function needs to be called
+        before the inversion iteration can be started.
 
         :param costfunction: domain of the inversion
         :type costfunction: 'InversionCostFunction'
         """
-        self.getSolver().setCostFunction(costfunction)
+        self.__solver.setCostFunction(costfunction)
 
     def getCostFunction(self):
         """
-        returns the cost function of the inversion.
+        returns the domain of the inversion
 
         :rtype: 'InversionCostFunction'
         """
@@ -123,7 +121,7 @@ class InversionDriver(object):
 
         :rtype: `bool`
         """
-        if self.getSolver().getCostFunction():
+        if  self.getSolver().getCostFunction():
             return True
         else:
             return False
@@ -153,28 +151,27 @@ class InversionDriver(object):
         :type maxiter: positive ``int``
         """
         if maxiter == None: maxiter = 200
-        if maxiter > 0:
+        if maxiter>0:
             self.getSolver().setMaxIterations(maxiter)
         else:
             raise ValueError("maxiter must be positive.")
+
 
     def setSolverTolerance(self, m_tol=None, J_tol=None):
         """
         Sets the error tolerance for the solver. An acceptable solution is
         considered to be found once the tolerance is reached.
 
-        :param m_tol: tolerance for changes to level set function. If `None`
-                      changes to the level set function are not checked for
-                      convergence during iteration.
-        :param J_tol: tolerance for changes to cost function. If `None` changes
-                      to the cost function are not checked for convergence
-                      during iteration.
+        :param m_tol: tolerance for changes to level set function. If `None` changes to the
+                    level set function are not checked for convergence during iteration.
+        :param J_tol: tolerance for changes to cost function. If `None` changes to the
+                    cost function are not checked for convergence during iteration.
         :type m_tol: `float` or `None`
         :type J_tol: `float` or `None`
-        :note: if both arguments are `None` the default setting m_tol=1e-4,
-               J_tol=None is used.
+        :note: if both arguments are equal to `None` the default setting m_tol=1e-4, J_tol=None is used.
+
         """
-        if m_tol is None and J_tol is None:
+        if m_tol == None and J_tol==None:
             m_tol=1e-4
         self.getSolver().setTolerance(m_tol=m_tol, J_tol=J_tol)
 
@@ -187,7 +184,7 @@ class InversionDriver(object):
 
     def run(self):
         """
-        Executes the inversion.
+        This function runs the inversion.
 
         :return: physical parameters as result of the inversion
         :rtype: ``list`` of physical parameters or a physical parameter
@@ -195,8 +192,8 @@ class InversionDriver(object):
         if not self.isSetUp():
             raise RuntimeError("Inversion is not setup.")
 
-        if self.initial_value is None: self.setInitialGuess()
-        self.logger.info("Starting solver...")
+        if self.initial_value == None: self.setInitialGuess()
+        self.logger.info("Starting solver, please stand by...")
         try:
             self.getSolver().run(self.initial_value)
             self.m=self.getSolver().getResult()
@@ -220,8 +217,7 @@ class InversionDriver(object):
 
     def setup(self, *args, **k_args):
         """
-        sets up the inversion. The default implementation does nothing but
-        it is advised to call this method before calling `run()`.
+        returns True if the inversion is set up and ready to run.
         """
         pass
 
@@ -265,10 +261,10 @@ class GravityInversion(InversionDriver):
         if rho_at_depth:
             rho2 = rho_mask * rho_at_depth + (1-rho_mask) * rho0
         elif rho0:
-            rho2 = (1-rho_mask) * rho0
+            rho2 = (1-rho_mask) * rho0 
         else:
             rho2 = 0.
-
+             
         rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=z0, beta=beta)
         scale_mapping=rho_mapping.getTypicalDerivative()
         #========================
@@ -376,17 +372,17 @@ class MagneticInversion(InversionDriver):
         if k_at_depth:
              k2= k_mask *  k_at_depth + (1-k_mask) * k0
         elif k0:
-             k2= (1-k_mask) * k0
+             k2= (1-k_mask) * k0 
         else:
              k2=0
-
+             
         k_mapping=SusceptibilityMapping(dom, k0=k2, dk=dk, z0=z0, beta=beta)
         scale_mapping=k_mapping.getTypicalDerivative()
         #========================
         self.logger.info("Setting up regularization...")
         if w1 is None:
             w1=[1.]*DIM
-
+        
         regularization=Regularization(dom, numLevelSets=1,w0=w0, w1=w1, location_of_set_m=k_mask, coordinates=trafo)
 
         #====================================================================
@@ -508,18 +504,18 @@ class JointGravityMagneticInversion(InversionDriver):
         if rho_at_depth:
              rho2= rho_mask *  rho_at_depth + (1-rho_mask) * rho0
         elif rho0:
-             rho2= (1-rho_mask) * rho0
+             rho2= (1-rho_mask) * rho0 
         else:
              rho2=0
-
+        
         k_mask = domainbuilder.getSetSusceptibilityMask()
         if k_at_depth:
              k2= k_mask *  k_at_depth + (1-k_mask) * k0
         elif k0:
-             k2= (1-k_mask) * k0
+             k2= (1-k_mask) * k0 
         else:
              k2=0
-
+             
         rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=rho_z0, beta=rho_beta)
         rho_scale_mapping=rho_mapping.getTypicalDerivative()
         self.logger.debug("rho_scale_mapping = %s"%rho_scale_mapping)
@@ -584,7 +580,7 @@ class JointGravityMagneticInversion(InversionDriver):
             self.logger.debug("w = %s"%w_i)
 
         self.logger.info("Setting up magnetic model...")
-        if self.self_demagnetization:
+        if self.self_demagnetization:       
             magnetic_model=SelfDemagnetizationModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
         else:
             magnetic_model=MagneticModel(dom, w, B, domainbuilder.getBackgroundMagneticFluxDensity(), fixPotentialAtBottom=self._fixMagneticPotentialAtBottom, coordinates=trafo)
@@ -624,14 +620,13 @@ class JointGravityMagneticInversion(InversionDriver):
 
 class StrongJointGravityMagneticInversion(InversionDriver):
     """
-    Driver class to perform a joint inversion of Gravity (Bouguer) and magnetic
-    anomaly data with the assumption that there is a functional relationship
-    between density and susceptibility.
-
-    The class uses the standard `Regularization` class for a single level set
-    function, `DensityMapping` and `SusceptibilityMapping` mappings, the
-    gravity forward model `GravityModel` and the linear magnetic forward model
-    `MagneticModel`.
+    Driver class to perform a joint inversion of Gravity (Bouguer) and
+    magnetic anomaly date with the assumption that there is a functional relationship between
+    density and susceptibility. 
+    
+    The class uses the standard `Regularization` class
+    for a single level set function,`DensityMapping` and `SusceptibilityMapping` mappings, the gravity forward
+    model `GravityModel` and the linear magnetic forward model `MagneticModel`.
     """
     DENSITY=0
     SUSCEPTIBILITY=1
@@ -649,39 +644,28 @@ class StrongJointGravityMagneticInversion(InversionDriver):
 
         :param domainbuilder: Domain builder object with gravity source(s)
         :type domainbuilder: `DomainBuilder`
-        :param rho0: reference density, see `DensityMapping`. If not specified,
-                     zero is used.
+        :param rho0: reference density, see `DensityMapping`. If not specified, zero is used.
         :type rho0: ``float`` or `Scalar`
-        :param drho: density scale, see `DensityMapping`. If not specified,
-                     2750 kg/m^3 is used.
+        :param drho: density scale, see `DensityMapping`. If not specified, 2750kg/m^3 is used.
         :type drho: ``float`` or `Scalar`
-        :param rho_z0: reference depth for depth weighting for density, see
-                       `DensityMapping`. If not specified, zero is used.
+        :param rho_z0: reference depth for depth weighting for density, see `DensityMapping`. If not specified, zero is used.
         :type rho_z0: ``float`` or `Scalar`
-        :param rho_beta: exponent for density depth weighting, see
-                         `DensityMapping`. If not specified, zero is used.
+        :param rho_beta: exponent for  depth weighting  for density, see `DensityMapping`. If not specified, zero is used.
         :type rho_beta: ``float`` or `Scalar`
-        :param k0: reference susceptibility, see `SusceptibilityMapping`.
-                   If not specified, zero is used.
+        :param k0: reference susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
         :type k0: ``float`` or `Scalar`
-        :param dk: susceptibility scale, see `SusceptibilityMapping`. If not
-                   specified, 1. is used.
+        :param dk: susceptibility scale, see `SusceptibilityMapping`. If not specified, 2750kg/m^3 is used.
         :type dk: ``float`` or `Scalar`
-        :param k_z0: reference depth for susceptibility depth weighting, see
-                     `SusceptibilityMapping`. If not specified, zero is used.
+        :param k_z0: reference depth for depth weighting for susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
         :type k_z0: ``float`` or `Scalar`
-        :param k_beta: exponent for susceptibility depth weighting, see
-                       `SusceptibilityMapping`. If not specified, zero is used.
+        :param k_beta: exponent for  depth weighting for susceptibility, see `SusceptibilityMapping`. If not specified, zero is used.
         :type k_beta: ``float`` or `Scalar`
-        :param w0: weighting factor for level set term in the regularization.
-                   If not set zero is assumed.
+        :param w0: weighting factor for level set term regularization. If not set zero is assumed.
         :type w0: ``Scalar`` or ``float``
-        :param w1: weighting factor for the gradient term in the regularization
-                   see `Regularization`.  If not set zero is assumed.
+        :param w1: weighting factor for the gradient term in the regularization see `Regularization`. 
+                   If not set zero is assumed
         :type w1: `Data` or ``ndarray`` of shape (DIM,)
-        :param w_gc: weighting factor for the cross gradient term in the
-                     regularization, see `Regularization`. If not set one is
-                     assumed.
+        :param w_gc: weighting factor for the cross gradient term in the regularization, see `Regularization`. If not set one is assumed
         :type w_gc: `Scalar` or `float`
         :param k_at_depth: value for susceptibility at depth, see `DomainBuilder`.
         :type k_at_depth: ``float`` or ``None``
@@ -699,17 +683,17 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         if rho_at_depth:
              rho2= rock_mask *  rho_at_depth + (1-rock_mask) * rho0
         elif rho0:
-             rho2= (1-rock_mask) * rho0
+             rho2= (1-rock_mask) * rho0 
         else:
              rho2=0
-
+        
         if k_at_depth:
              k2= rock_mask *  k_at_depth + (1-rock_mask) * k0
         elif k0:
-             k2= (1-rock_mask) * k0
+             k2= (1-rock_mask) * k0 
         else:
              k2=0
-
+             
         rho_mapping=DensityMapping(dom, rho0=rho2, drho=drho, z0=rho_z0, beta=rho_beta)
         rho_scale_mapping=rho_mapping.getTypicalDerivative()
         self.logger.debug("rho_scale_mapping = %s"%rho_scale_mapping)
@@ -720,7 +704,7 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         self.logger.info("Setting up regularization...")
         if w1 is None:
             w1=[1.]*DIM
-
+        
         regularization=Regularization(dom, numLevelSets=1,w0=w0, w1=w1, location_of_set_m=rock_mask, coordinates=trafo)
         #====================================================================
         self.logger.info("Retrieving gravity surveys...")
@@ -767,15 +751,14 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         magnetic_model.rescaleWeights(k_scale=k_scale_mapping)
         #====================================================================
         self.logger.info("Setting cost function...")
-
+        
         self.setCostFunction(InversionCostFunction(regularization,
                (rho_mapping, k_mapping),
                ((gravity_model,0), (magnetic_model,1)) ))
 
     def setInitialGuess(self, rho=None, k=None):
         """
-        set the initial guess *rho* for density and *k* for susceptibility for
-        the inversion iteration.
+        set the initial guess *rho* for density and *k* for susceptibility for the inversion iteration.
 
         :param rho: initial value for the density anomaly.
         :type rho: `Scalar`
@@ -800,3 +783,5 @@ class StrongJointGravityMagneticInversion(InversionDriver):
         ds.saveSilo(fn)
         self.logger.debug("J(m) = %e"%Jm)
 
+
+        

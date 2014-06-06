@@ -27,7 +27,7 @@ namespace finley {
 
 /// Constructor.
 /// Allocates a Mesh with given name and dimensionality
-Mesh::Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info) :
+Mesh::Mesh(const std::string name, int numDim, Esys_MPIInfo *mpi_info) :
     m_name(name),
     approximationOrder(-1),
     reducedApproximationOrder(-1),
@@ -38,7 +38,7 @@ Mesh::Mesh(const std::string name, int numDim, esysUtils::JMPI& mpi_info) :
     ContactElements(NULL),
     Points(NULL)
 {
-    MPIInfo = mpi_info;
+    MPIInfo = Esys_MPIInfo_getReference(mpi_info);
 
     // allocate node table
     Nodes = new NodeFile(numDim, mpi_info);
@@ -53,6 +53,7 @@ Mesh::~Mesh()
     delete ContactElements;
     delete Points;
     tagMap.clear();
+    Esys_MPIInfo_free(MPIInfo);
 }
 
 void Mesh::setElements(ElementFile *elements)
@@ -348,7 +349,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
     if (noError())
         pattern->reduceBandwidth(&newGlobalDOFID[0]); 
 
-    esysUtils::Esys_MPIInfo_noError(MPIInfo);
+    Esys_MPIInfo_noError(MPIInfo);
 
     if (noError()) {
         // shift new labeling to create a global id
@@ -358,8 +359,8 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
 
         // distribute new labeling to other processors
 #ifdef ESYS_MPI
-        const int dest=esysUtils::mod_rank(mpiSize, myRank + 1);
-        const int source=esysUtils::mod_rank(mpiSize, myRank - 1);
+        const int dest=Esys_MPIInfo_mod(mpiSize, myRank + 1);
+        const int source=Esys_MPIInfo_mod(mpiSize, myRank - 1);
 #endif
         int current_rank=myRank;
         for (int p=0; p<mpiSize; ++p) {
@@ -382,7 +383,7 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
                                      MPIInfo->comm, &status);
 #endif
                 MPIInfo->msg_tag_counter++;
-                current_rank=esysUtils::mod_rank(mpiSize, current_rank-1);
+                current_rank=Esys_MPIInfo_mod(mpiSize, current_rank-1);
             }
         }
     }
@@ -402,7 +403,7 @@ void Mesh::prepare(bool optimize)
 
     // create a distribution of the global DOFs and determine the MPI rank
     // controlling the DOFs on this processor
-    MPIInfo->setDistribution(0, newGlobalNumDOFs-1, &distribution[0]);
+    Esys_MPIInfo_setDistribution(MPIInfo, 0, newGlobalNumDOFs-1, &distribution[0]);
 
     // now the mesh is re-distributed according to the distribution vector
     // this will redistribute the Nodes and Elements including overlap and

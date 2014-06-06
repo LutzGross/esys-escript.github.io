@@ -27,7 +27,7 @@ namespace finley {
 
 #ifdef ESYS_MPI
 void MPI_minimizeDistance(void *invec_p, void *inoutvec_p, int *len,
-                           MPI_Datatype *dtype)
+                          MPI_Datatype *dtype)
 {
     const int numPoints = (*len)/2;
     double *invec = reinterpret_cast<double*>(invec_p);
@@ -44,9 +44,6 @@ void MPI_minimizeDistance(void *invec_p, void *inoutvec_p, int *len,
 void Mesh::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
-    if (numPoints==0) {
-	return;
-    }
     ElementFile *oldPoints=Points;
     const_ReferenceElementSet_ptr refPoints;
     int numOldPoints;
@@ -63,10 +60,11 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
     // first we find the node which is the closest on this processor:
     double *dist_p = new double[numPoints];
     int *node_id_p = new int[numPoints];
-    int *point_index_p = new int[numPoints];	// the code below does actually initialise this before using it
+    int *point_index_p = new int[numPoints];
 
     for (int i=0; i<numPoints; ++i) {
         dist_p[i]=LARGE_POSITIVE_FLOAT;
+        node_id_p[i]=-1;
         node_id_p[i]=-1;
     }
 
@@ -81,7 +79,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 const double X2=points_ptr[INDEX2(2,i,numDim)];
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
-#pragma omp for schedule(static)
+#pragma omp for
                 for (int n=0; n<Nodes->numNodes; n++) {
                     const double D0=coords[INDEX2(0,n,numDim)] - X0;
                     const double D1=coords[INDEX2(1,n,numDim)] - X1;
@@ -94,7 +92,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-                    if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
+                    if (dist_local < dist_p[i]) {
                         dist_p[i] = dist_local;
                         node_id_p[i] = node_id_local;
                     }
@@ -109,7 +107,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 const double X1=points_ptr[INDEX2(1,i,numDim)];
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
-#pragma omp for schedule(static)
+#pragma omp for
                 for (int n=0; n<Nodes->numNodes; n++) {
                     const double D0=coords[INDEX2(0,n,numDim)] - X0;
                     const double D1=coords[INDEX2(1,n,numDim)] - X1;
@@ -121,10 +119,10 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-		  if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
-		      dist_p[i] = dist_local;
-		      node_id_p[i] = node_id_local;
-		  }
+                    if (dist_local < dist_p[i]) {
+                        dist_p[i] = dist_local;
+                        node_id_p[i] = node_id_local;
+                    }
                 }
             }
         } // end parallel section
@@ -135,7 +133,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 const double X0=points_ptr[INDEX2(0,i,numDim)];
                 double dist_local=LARGE_POSITIVE_FLOAT;
                 int node_id_local=-1;
-#pragma omp for schedule(static)
+#pragma omp for
                 for (int n=0; n<Nodes->numNodes; n++) {
                     const double D0=coords[INDEX2(0,n,numDim)] - X0;
                     const double d = D0*D0;
@@ -146,7 +144,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-                    if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
+                    if (dist_local < dist_p[i]) {
                         dist_p[i] = dist_local;
                         node_id_p[i] = node_id_local;
                     }

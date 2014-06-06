@@ -25,7 +25,7 @@ namespace paso {
 
 struct Function
 {
-    Function(esysUtils::JMPI& mpi_info);
+    Function(Esys_MPIInfo* mpi_info);
     virtual ~Function();
 
     /// sets value=F(arg)
@@ -39,7 +39,7 @@ struct Function
     /// returns the length of the vectors used by this function
     virtual dim_t getLen() = 0;
 
-    esysUtils::JMPI mpi_info;
+    Esys_MPIInfo* mpi_info;
 };
 
 struct LinearSystem : public Function

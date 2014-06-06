@@ -73,7 +73,7 @@ class Design(design.AbstractDesign):
     def setScriptFileName(self,name=None):
        """
        Sets the filename for the gmsh input script. If no name is given a name
-       with extension `geo` is generated.
+       with extension I{geo} is generated.
        """
        if self.__scriptname:
            os.unlink(self.__scriptname)
@@ -192,13 +192,6 @@ class Design(design.AbstractDesign):
         import shlex
         args=shlex.split(self.getCommandString())
         args[-1]=args[-1]%self.getScriptHandler()
-        # TODO: use gmshpy if available, e.g.:
-        #from gmshpy import *
-        #GmshOpenProject(self.getScriptHandler())
-        #model=GModel_current()
-        #Msg_SetVerbosity(3)
-        #model.mesh(self.getDim())
-        #model.writeMSH(self.getMeshFileName())
         ret=runGmsh(args)
         if ret > 0:
             self.setKeepFilesOn() #no files to delete, so don't try to

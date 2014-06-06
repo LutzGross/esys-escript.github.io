@@ -196,7 +196,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
 
 def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamicMesh=0, timeStepFormat="%04d", **data):
     """
-    Saves `Data` objects to files and creates an `escript dataset` (ESD) file
+    Saves `Data` objects to files and creates an I{escript dataset} (ESD) file
     for convenient processing/visualisation.
 
     Single timestep example::
@@ -1945,7 +1945,7 @@ def inner(arg0,arg1):
     """
     Inner product of the two arguments. The inner product is defined as:
 
-    `out=Sigma_s arg0[s]*arg1[s]`
+    C{out=Sigma_s arg0[s]*arg1[s]}
 
     where s runs through ``arg0.Shape``.
 
@@ -1995,11 +1995,11 @@ def matrix_mult(arg0,arg1):
     """
     matrix-matrix or matrix-vector product of the two arguments.
 
-    `out[s0]=Sigma_{r0} arg0[s0,r0]*arg1[r0]`
+    C{out[s0]=Sigma_{r0} arg0[s0,r0]*arg1[r0]}
 
     or
 
-    `out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[r0,s1]`
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[r0,s1]}
 
     The second dimension of ``arg0`` and the first dimension of ``arg1`` must
     match.
@@ -2033,23 +2033,23 @@ def tensor_mult(arg0,arg1):
 
     For ``arg0`` of rank 2 this is
 
-    `out[s0]=Sigma_{r0} arg0[s0,r0]*arg1[r0]`
+    C{out[s0]=Sigma_{r0} arg0[s0,r0]*arg1[r0]}
 
     or
 
-    `out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[r0,s1]`
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[r0,s1]}
 
     and for ``arg0`` of rank 4 this is
 
-    `out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2,s3]`
+    C{out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2,s3]}
 
     or
 
-    `out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2]`
+    C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1,s2]}
 
     or
 
-    `out[s0,s1]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1]`
+    C{out[s0,s1]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[r0,r1]}
 
     In the first case the second dimension of ``arg0`` and the last dimension of
     ``arg1`` must match and in the second case the two last dimensions of ``arg0``
@@ -2076,7 +2076,7 @@ def generalTensorProduct(arg0,arg1,axis_offset=0):
     """
     Generalized tensor product.
 
-    `out[s,t]=Sigma_r arg0[s,r]*arg1[r,t]`
+    C{out[s,t]=Sigma_r arg0[s,r]*arg1[r,t]}
 
     where
         - s runs through ``arg0.Shape[:arg0.ndim-axis_offset]``
@@ -2139,11 +2139,11 @@ def transposed_matrix_mult(arg0,arg1):
     transposed(matrix)-matrix or transposed(matrix)-vector product of the two
     arguments.
 
-    `out[s0]=Sigma_{r0} arg0[r0,s0]*arg1[r0]`
+    C{out[s0]=Sigma_{r0} arg0[r0,s0]*arg1[r0]}
 
     or
 
-    `out[s0,s1]=Sigma_{r0} arg0[r0,s0]*arg1[r0,s1]`
+    C{out[s0,s1]=Sigma_{r0} arg0[r0,s0]*arg1[r0,s1]}
 
     The function call ``transposed_matrix_mult(arg0,arg1)`` is equivalent to
     ``matrix_mult(transpose(arg0),arg1)``.
@@ -2173,23 +2173,23 @@ def transposed_tensor_mult(arg0,arg1):
 
     For ``arg0`` of rank 2 this is
 
-    `out[s0]=Sigma_{r0} arg0[r0,s0]*arg1[r0]`
+    C{out[s0]=Sigma_{r0} arg0[r0,s0]*arg1[r0]}
 
     or
 
-    `out[s0,s1]=Sigma_{r0} arg0[r0,s0]*arg1[r0,s1]`
+    C{out[s0,s1]=Sigma_{r0} arg0[r0,s0]*arg1[r0,s1]}
 
     and for ``arg0`` of rank 4 this is
 
-    `out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2,s3]`
+    C{out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2,s3]}
 
     or
 
-    `out[s0,s1,s2]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2]`
+    C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1,s2]}
 
     or
 
-    `out[s0,s1]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1]`
+    C{out[s0,s1]=Sigma_{r0,r1} arg0[r0,r1,s0,s1]*arg1[r0,r1]}
 
     In the first case the first dimension of ``arg0`` and the first dimension of
     ``arg1`` must match and in the second case the two first dimensions of
@@ -2219,7 +2219,7 @@ def generalTransposedTensorProduct(arg0,arg1,axis_offset=0):
     """
     Generalized tensor product of transposed of ``arg0`` and ``arg1``.
 
-    `out[s,t]=Sigma_r arg0[r,s]*arg1[r,t]`
+    C{out[s,t]=Sigma_r arg0[r,s]*arg1[r,t]}
 
     where
         - s runs through ``arg0.Shape[axis_offset:]``
@@ -2286,7 +2286,7 @@ def matrix_transposed_mult(arg0,arg1):
     """
     matrix-transposed(matrix) product of the two arguments.
 
-    `out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[s1,r0]`
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[s1,r0]}
 
     The function call ``matrix_transposed_mult(arg0,arg1)`` is equivalent to
     ``matrix_mult(arg0,transpose(arg1))``.
@@ -2316,15 +2316,15 @@ def tensor_transposed_mult(arg0,arg1):
 
     For ``arg0`` of rank 2 this is
 
-    `out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[s1,r0]`
+    C{out[s0,s1]=Sigma_{r0} arg0[s0,r0]*arg1[s1,r0]}
 
     and for ``arg0`` of rank 4 this is
 
-    `out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,s3,r0,r1]`
+    C{out[s0,s1,s2,s3]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,s3,r0,r1]}
 
     or
 
-    `out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,r0,r1]`
+    C{out[s0,s1,s2]=Sigma_{r0,r1} arg0[s0,s1,r0,r1]*arg1[s2,r0,r1]}
 
     In the first case the second dimension of ``arg0`` and ``arg1`` must
     match and in the second case the two last dimensions of ``arg0`` must match
@@ -2355,7 +2355,7 @@ def generalTensorTransposedProduct(arg0,arg1,axis_offset=0):
     """
     Generalized tensor product of ``arg0`` and transpose of ``arg1``.
 
-    `out[s,t]=Sigma_r arg0[s,r]*arg1[t,r]`
+    C{out[s,t]=Sigma_r arg0[s,r]*arg1[t,r]}
 
     where
         - s runs through ``arg0.Shape[:arg0.ndim-axis_offset]``

@@ -58,7 +58,7 @@ SystemMatrix_ptr Preconditioner_AMG_getProlongation(
         const index_t* S, const dim_t n_C, index_t* counter_C,
         const index_t interpolation_method)
 {
-   esysUtils::JMPI& mpi_info=A_p->mpi_info;
+   Esys_MPIInfo *mpi_info=Esys_MPIInfo_getReference(A_p->mpi_info);
    Distribution_ptr input_dist, output_dist;
    SharedComponents_ptr send, recv;
    Connector_ptr col_connector;

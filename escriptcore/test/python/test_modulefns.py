@@ -22,7 +22,6 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import esys.escript
 import sys
 
@@ -66,5 +65,8 @@ class ModuleFnsTestCase(unittest.TestCase):
     def testgetSvnVersion(self):
         esys.escript.getVersion()
         
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(ModuleFnsTestCase))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)

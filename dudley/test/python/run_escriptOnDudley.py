@@ -24,7 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 import os
 import sys
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
+
 from esys.escript import *
 from esys.dudley import Rectangle, Brick
 from test_objects import Test_Dump, Test_SetDataPointValue, Test_saveCSV, \
@@ -46,7 +46,7 @@ class Test_SharedOnDudley(Test_Shared):
         del self.domain
         del self.tol
 
-@unittest.skip("Test not previously tested")
+
 class Test_DomainOnDudley(Test_Domain):
    def setUp(self):
        self.boundary_tag_list = [1, 2, 10, 20]
@@ -78,20 +78,17 @@ class Test_DomainOnDudley(Test_Domain):
        tags=Function(self.domain).getListOfTags()
        self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
-
    def test_tagsReducedFunction(self):
        ref_tags=[0]
        tags=ReducedFunction(self.domain).getListOfTags()
        self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in ref_tags: self.assertTrue(i in tags,"tag %s is missing."%i)
-
    def test_tagsFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=FunctionOnBoundary(self.domain).getListOfTags()
        # For an MPI-distributed domain some tags may be missing
        if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
-
    def test_tagsReducedFunctionOnBoundary(self):
        ref_tags=[1, 2, 10, 20]
        tags=ReducedFunctionOnBoundary(self.domain).getListOfTags()
@@ -99,7 +96,6 @@ class Test_DomainOnDudley(Test_Domain):
        if getMPISizeWorld() == 1: self.assertTrue(len(tags)==len(ref_tags), "tags list has wrong length.")
        for i in tags: self.assertTrue(i in ref_tags,"tag %s is missing."%i)
 
-@unittest.skip("Test not previously tested")
 class Test_DataOpsOnDudley(Test_Dump, Test_SetDataPointValue, Test_GlobalMinMax, Test_Lazy):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
@@ -164,24 +160,34 @@ class Test_CSVOnDudley(Test_saveCSV):
     def tearDown(self):
         del self.domain
 
-    @unittest.skipIf(getMPISizeWorld() > 1, "Skipping since MPI size > 1")
     def test_csv_multiFS(self):
-        fname=os.path.join(DUDLEY_WORKDIR, "test_multifs.csv")
-        sol=Data(8,Solution(self.domain))
-        ctsfn=Data(9,ContinuousFunction(self.domain))
-        #test line 0
-        dirac=Data(-1,DiracDeltaFunctions(self.domain))
-        saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
-        #test line 1
-        fun=Data(5,Function(self.domain))
-        rfun=Data(3,ReducedFunction(self.domain))
-        saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
-        #test line 2
-        bound=Data(1,FunctionOnBoundary(self.domain))
-        rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
-        saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+        if getMPISizeWorld() == 1:
+            fname=os.path.join(DUDLEY_WORKDIR, "test_multifs.csv")
+            sol=Data(8,Solution(self.domain))
+            ctsfn=Data(9,ContinuousFunction(self.domain))
+            #test line 0
+            dirac=Data(-1,DiracDeltaFunctions(self.domain))
+            saveDataCSV(fname, A=sol, B=ctsfn, C=dirac)
+            #test line 1
+            fun=Data(5,Function(self.domain))
+            rfun=Data(3,ReducedFunction(self.domain))
+            saveDataCSV(fname, A=sol,B=ctsfn,C=fun, D=rfun)
+            #test line 2
+            bound=Data(1,FunctionOnBoundary(self.domain))
+            rbound=Data(3,ReducedFunctionOnBoundary(self.domain))
+            saveDataCSV(fname,A=sol,B=ctsfn,C=bound, D=rbound)
+        else:
+            print("Skipping CSV multiFS tests on dudley since MPI size > 1")
 
 
 if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+   suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(Test_SharedOnDudley))
+   # These two assume macro elements are supported
+   #suite.addTest(unittest.makeSuite(Test_DataOpsOnDudley))
+   #suite.addTest(unittest.makeSuite(Test_DomainOnDudley))
+   suite.addTest(unittest.makeSuite(Test_TableInterpolationOnDudley))
+   suite.addTest(unittest.makeSuite(Test_CSVOnDudley))
+   s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
 

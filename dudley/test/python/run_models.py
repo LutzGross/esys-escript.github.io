@@ -24,9 +24,11 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
+import tempfile
       
-VERBOSE = False
+
+
+VERBOSE=False  and True
 
 from esys.escript import *
 from esys.escript.models import StokesProblemCartesian, PowerLaw, IncompressibleIsotropicFlowCartesian, FaultSystem, DarcyFlow
@@ -34,15 +36,16 @@ from esys.escript.models import Mountains
 from esys.dudley import Rectangle, Brick
 
 from math import pi
-import numpy, os, sys, tempfile
-#==============================================================================
+import numpy
+import sys
+import os
+#====================================================================================================================
 try:
      DUDLEY_WORKDIR=os.environ['DUDLEY_WORKDIR']
 except KeyError:
      DUDLEY_WORKDIR='.'
 
-#==============================================================================
-@unittest.skip("Test not previously tested")
+#====================================================================================================================
 class Test_StokesProblemCartesian2D(unittest.TestCase):
    def setUp(self):
        NE=6
@@ -206,8 +209,7 @@ class Test_StokesProblemCartesian2D(unittest.TestCase):
        self.assertTrue(error_p<10*self.TOL, "pressure error too large.")
        self.assertTrue(error_v0<10*self.TOL, "0-velocity error too large.")
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
-#==============================================================================
-@unittest.skip("Test not previously tested")
+#====================================================================================================================
 class Test_StokesProblemCartesian3D(unittest.TestCase):
    def setUp(self):
        NE=6
@@ -399,8 +401,8 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        self.assertTrue(error_v0<10*self.TOL, "0-velocity error too large.")
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
        self.assertTrue(error_v2<10*self.TOL, "2-velocity error too large.")
-#==============================================================================
-class Darcy(unittest.TestCase):
+#====================================================================================================================
+class Test_Darcy(unittest.TestCase):
     # this is a simple test for the darcy flux problem
     #
     # 
@@ -661,7 +663,7 @@ class Darcy(unittest.TestCase):
         self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
-class Darcy2D(Darcy):
+class Test_Darcy2D(Test_Darcy):
     TOL=1e-6
     TEST_TOL=2.e-3
     WIDTH=1.
@@ -671,8 +673,7 @@ class Darcy2D(Darcy):
         self.rescaleDomain()
     def tearDown(self):
         del self.dom
-
-class Darcy3D(Darcy):
+class Test_Darcy3D(Test_Darcy):
     TOL=1e-6
     WIDTH=1.
     TEST_TOL=4.e-3
@@ -1502,5 +1503,14 @@ class Test_FaultSystem(unittest.TestCase):
       self.assertTrue( abs(d-2.*0.70710678118654757)<self.EPS, "wrong distance.")
 
 if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+   suite = unittest.TestSuite()
+   suite.addTest(unittest.makeSuite(Test_FaultSystem))
+#   suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian2D))
+   suite.addTest(unittest.makeSuite(Test_Darcy3D))
+   suite.addTest(unittest.makeSuite(Test_Darcy2D))
+#   suite.addTest(Test_StokesProblemCartesian2D("test_PCG_P_small"))
+#   suite.addTest(unittest.makeSuite(Test_StokesProblemCartesian3D))
+   suite.addTest(unittest.makeSuite(Test_Rheologies))
+   s=unittest.TextTestRunner(verbosity=2).run(suite)
+   if not s.wasSuccessful(): sys.exit(1)
 

@@ -27,6 +27,7 @@
 
 Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order, bool optimize)
 {
+    Esys_MPIInfo *mpi_info = NULL;
     dim_t numNodes, numDim, numEle, i0, i1;
     Dudley_Mesh *mesh_p = NULL;
     char name[LenString_MAX], element_type[LenString_MAX], frm[20];
@@ -36,8 +37,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
     int scan_ret;
 
     Dudley_resetError();
-    /* No! Bad! take a parameter for this */
-    esysUtils::JMPI mpi_info = esysUtils::makeInfo(MPI_COMM_WORLD);
+    mpi_info = Esys_MPIInfo_alloc(MPI_COMM_WORLD);
 
     if (mpi_info->rank == 0)
     {
@@ -47,6 +47,7 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	{
 	    sprintf(error_msg, "Dudley_Mesh_read: Opening file %s for reading failed.", fname);
 	    Dudley_setError(IO_ERROR, error_msg);
+	    Esys_MPIInfo_free(mpi_info);
 	    return NULL;
 	}
 
@@ -637,5 +638,6 @@ Dudley_Mesh *Dudley_Mesh_read(char *fname, index_t order, index_t reduced_order,
 	Dudley_Mesh_free(mesh_p);
     }
     /* free up memory */
+    Esys_MPIInfo_free(mpi_info);
     return mesh_p;
 }

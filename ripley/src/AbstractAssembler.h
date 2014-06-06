@@ -13,29 +13,106 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
-#ifndef __ESCRIPT_ABSTRACTASSEMBLER_H__
-#define __ESCRIPT_ABSTRACTASSEMBLER_H__
+#ifndef __RIPLEY_ABSTRACTASSEMBLER_H__
+#define __RIPLEY_ABSTRACTASSEMBLER_H__
 
 #include <map>
 #include <escript/Data.h>
-#include <escript/Pointers.h>
+#include <ripley/Ripley.h>
+#include <ripley/RipleyException.h>
 #include <paso/SystemMatrix.h>
 
 namespace ripley {
-/* returns the data associated with the string key or an empty data object
-   if the map does not contain the given key */
+
 escript::Data unpackData(std::string target,
         std::map<std::string, escript::Data> mapping);
 
-class AbstractAssembler;
+class RipleyDomain;
+/* returns the data associated with the string key or an empty data object
+   if the map does not contain the given key */
+escript::Data unpackData(std::string, std::map<std::string, escript::Data>);
 
-typedef POINTER_WRAPPER_CLASS(AbstractAssembler) Assembler_ptr;
-typedef POINTER_WRAPPER_CLASS(const AbstractAssembler) const_Assembler_ptr;
-
-class AbstractAssembler : public REFCOUNT_BASE_CLASS(AbstractAssembler) {
+class AbstractAssembler {
 public:
     virtual ~AbstractAssembler() {};
-   
+    /* The default RipleyDomain assemblers, with original signatures */
+    
+    /// assembles a single PDE into the system matrix 'mat' and the right hand
+    /// side 'rhs'
+    void assemblePDESingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+
+    /// assembles boundary conditions of a single PDE into the system matrix
+    /// 'mat' and the right hand side 'rhs'
+    void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+
+    /// assembles a single PDE with reduced order into the system matrix 'mat'
+    /// and the right hand side 'rhs'
+    void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) const {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+    
+    /// assembles boundary conditions of a single PDE with reduced order into
+    /// the system matrix 'mat' and the right hand side 'rhs'
+    void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+    
+    /// assembles a system of PDEs into the system matrix 'mat' and the right
+    /// hand side 'rhs'
+    void assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+            const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+    
+    /// assembles boundary conditions of a system of PDEs into the system
+    /// matrix 'mat' and the right hand side 'rhs'
+    void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+
+    /// assembles a system of PDEs with reduced order into the system matrix
+    /// 'mat' and the right hand side 'rhs'
+    void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs, const escript::Data& A, const escript::Data& B,
+            const escript::Data& C, const escript::Data& D,
+            const escript::Data& X, const escript::Data& Y) {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+
+    /// assembles boundary conditions of a system of PDEs with reduced order
+    /// into the system matrix 'mat' and the right hand side 'rhs'
+    void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+            escript::Data& rhs, const escript::Data& d,
+            const escript::Data& y) const {
+        throw RipleyException("This assembler does not support "
+                "old style signatures");
+    }
+    
     /* The new interface for assemblers */
     virtual void assemblePDESingle(paso::SystemMatrix_ptr mat,
                     escript::Data& rhs,
@@ -66,8 +143,8 @@ public:
             std::map<std::string, escript::Data> coefs) const = 0;
 };
 
-} // namespace escript
+} // namespace ripley
 
 
-#endif // __ESCRIPT_ABSTRACTASSEMBLER_H__
+#endif // __RIPLEY_ABSTRACTASSEMBLER_H__
 

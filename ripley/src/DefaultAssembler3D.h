@@ -28,9 +28,9 @@ namespace ripley {
 
 class DefaultAssembler3D : public AbstractAssembler {
 public:
-    DefaultAssembler3D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
-            const dim_t *m_NE, const dim_t *m_NN) : AbstractAssembler() {
-        domain = boost::static_pointer_cast<const Brick>(dom);
+    DefaultAssembler3D(Brick *dom, double *m_dx, dim_t *m_NX, dim_t *m_NE,
+            dim_t *m_NN) : AbstractAssembler() {
+        domain = dom;
         this->m_dx = m_dx;
         this->m_NX = m_NX;
         this->m_NE = m_NE;
@@ -119,7 +119,7 @@ public:
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
             std::map<std::string, escript::Data> coefs) const;
 protected:
-    boost::shared_ptr<const Brick> domain;
+    const Brick *domain;
     const double *m_dx;
     const dim_t *m_NX;
     const dim_t *m_NE;

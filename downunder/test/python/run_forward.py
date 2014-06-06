@@ -23,11 +23,9 @@ __url__="https://launchpad.net/escript-finley"
 
 import logging
 import esys.escriptcore.utestselect as unittest
-from esys.escriptcore.testing import *
 import numpy as np
 import os
 import sys
-import cmath
 from esys.downunder import *
 from esys.escript import unitsSI as U
 from esys.escript import *
@@ -228,145 +226,10 @@ class TestAcousticInversion(unittest.TestCase):
         d2=acw.getDefect(sigma2, *args)
         self.assertTrue( abs(d2-d0-integrate(dg0[1]*p))  < 1e-2  * abs(d2-d0) )
 
-class TestMT2DModelTEMode(unittest.TestCase):
-    def test_API(self):
-        from esys.ripley import Rectangle
-        domain=Rectangle(20,20)
-        omega=2.
-        x=[ [0.2,0.5], [0.3,0.5] ]
-        Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
-        eta=1.
-        w0=1.
-        E_x0=1.
-        # now we do a real one
-        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, w0=w0, E_x0=E_x0)
-        self.assertEqual(acw.getDomain(),  domain)
-        pde=acw.setUpPDE()
-        self.assertIsInstance(pde, LinearPDE)
-        self.assertEqual(pde.getNumEquations(), 2)
-        self.assertEqual(pde.getNumSolutions(), 2)
-        self.assertEqual(pde.getDomain(),  domain)
-
-        # other things that should work 
-        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta=[1.,1.], w0=[2.,3.], E_x0=complex(4.5,6) )
-
-        # these shouldn't work
-        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, x, [3.], eta=[1.,1.], w0=[2.,3.], E_x0=complex(4.5,6) )
-        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, x, Z_XY, eta=[1.], w0=[2.,3.], E_x0=complex(4.5,6) )
-        self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], E_x0=complex(4.5,6) )
-
-    def test_PDE(self):
-         
-        omega=2.
-        mu0=0.123
-        SIGMA=15.
-        k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
-
-        from esys.ripley import Rectangle
-        domain=Rectangle(200,200)
-
-        
-        IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
-        Z_XY=[ IMP, IMP ]
-        x=[ [0.3,0.5], [0.6,0.5] ]
-        eta=0.005
-        z=domain.getX()[1]
-        Ex0_ex=exp(-k.real*z)*cos(-k.imag*z)
-        Ex0_ex_z=(-k.real*cos(-k.imag*z)+k.imag*sin(-k.imag*z)) * exp(-k.real*z)
-        Ex1_ex=exp(-k.real*z)*sin(-k.imag*z)
-        Ex1_ex_z=(-k.real*sin(-k.imag*z)-k.imag*cos(-k.imag*z)) * exp(-k.real*z)
-
-        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.] )
-
-        args=acw.getArguments(SIGMA)
-        Ex=args[0]
-        Exz=args[1]        
-        self.assertTrue(Lsup(Ex[0]-Ex0_ex) <= 1e-4 * Lsup(Ex0_ex))
-        self.assertTrue(Lsup(Ex[1]-Ex1_ex) <= 1e-4 * Lsup(Ex1_ex))
-        self.assertTrue(Lsup(Exz[0]-Ex0_ex_z) <= 1e-2 * Lsup(Ex0_ex_z))
-        self.assertTrue(Lsup(Exz[1]-Ex1_ex_z) <= 1e-2 * Lsup(Ex1_ex_z))
-
-        argsr=acw.getArguments(0.)
-        ref=acw.getDefect(0., *argsr)
-        
-        # this should be almost zero:
-        args=acw.getArguments(SIGMA)
-        d=acw.getDefect(SIGMA, *args)
-        
-        self.assertTrue( d > 0.)
-        self.assertTrue( ref > 0.)
-        self.assertTrue( d <= 1e-4 * ref ) # d should be zero (some sort of)  
-
-        # and this should be zero        
-        d0=acw.getDefect(SIGMA, Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], Ex0_ex_z*[1.,0]+ Ex1_ex_z*[0,1.])
-        self.assertTrue( d0 <= 1e-8 * ref ) # d should be zero (some sort of)  
-        
-
-        # and this too
-        dg=acw.getGradient(SIGMA, Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], Ex0_ex_z*[1.,0]+ Ex1_ex_z*[0,1.])
-        self.assertTrue(isinstance(dg, Data))
-        self.assertTrue(dg.getShape()==())              
-        self.assertTrue(Lsup(dg) < 1e-10)
-        
-    def test_Differential(self):
-    
-        INC=0.01 
-        
-        omega=2.
-        mu0=0.123
-        SIGMA=15.
-        k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
-
-        from esys.ripley import Rectangle
-        domain=Rectangle(200,200)
-
-        
-        IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
-        Z_XY=[ IMP, IMP ]
-        x=[ [0.3,0.5], [0.6,0.5] ]
-        eta=0.005
-        z=domain.getX()[1]
-        Ex0_ex=exp(-k.real*z)*cos(-k.imag*z)
-        Ex0_ex_z=(-k.real*cos(-k.imag*z)+k.imag*sin(-k.imag*z)) * exp(-k.real*z)
-        Ex1_ex=exp(-k.real*z)*sin(-k.imag*z)
-        Ex1_ex_z=(-k.real*sin(-k.imag*z)-k.imag*cos(-k.imag*z)) * exp(-k.real*z)
-
-        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.] )
-    
-        # this is the base line:
-        SIGMA0=10.        
-        args0=acw.getArguments(SIGMA0)
-        d0=acw.getDefect(SIGMA0, *args0)
-        
-        dg0=acw.getGradient(SIGMA0, *args0)
-        self.assertTrue(isinstance(dg0, Data))
-        self.assertTrue(dg0.getShape()==())
-        
-        
-        X=Function(domain).getX()
-
-        # test 1
-        p=INC
-        SIGMA1=SIGMA0+p
-        args1=acw.getArguments(SIGMA1)
-        d1=acw.getDefect(SIGMA1, *args1)
-        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
-                
-        # test 2
-        p=exp(-length(X-(0.2,0.2))**2/10)*INC
-        SIGMA1=SIGMA0+p
-        args1=acw.getArguments(SIGMA1)
-        d1=acw.getDefect(SIGMA1, *args1)
-        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
-
-        # test 3
-        p=sin(length(X)*3*3.14)*INC
-        SIGMA1=SIGMA0+p
-        args1=acw.getArguments(SIGMA1)
-        d1=acw.getDefect(SIGMA1, *args1)
-        self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
-        
                                   
-if __name__ == '__main__':
-    run_tests(__name__, exit_on_failure=True)
+if __name__ == "__main__":
+    suite = unittest.TestSuite()
+    suite.addTest(unittest.makeSuite(TestAcousticInversion))
+    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    if not s.wasSuccessful(): sys.exit(1)
     
