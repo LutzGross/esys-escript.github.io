@@ -35,7 +35,15 @@ try:
 except KeyError:
      RIPLEY_WORKDIR='.'
 
-class Test_DiracPoints(unittest.TestCase):
+class Test_RipleyDiracPoints(unittest.TestCase):
+
+    # constants
+    numRanks = getMPISizeWorld()
+    rank = getMPIRankWorld()
+    shortEdge = 5
+    longEdge = 3*numRanks-1
+    empty = "(data contains no samples)\n"
+
     def getRectRefs(self, xLong):
         Ex = self.longEdge+1
         Ey = self.shortEdge+1
@@ -129,18 +137,10 @@ class Test_DiracPoints(unittest.TestCase):
         return self.empty
 
     def setUp(self):
-        self.numRanks = getMPISizeWorld()
-        self.rank = getMPIRankWorld()
-        self.shortEdge = 5
-        self.longEdge = 3*self.numRanks-1
-        self.empty = "(data contains no samples)\n"
+        pass
 
     def tearDown(self):
-        del self.numRanks
-        del self.rank
-        del self.shortEdge
-        del self.longEdge
-        del self.empty
+        pass
 
     def test_Creation(self):
         r = self.numRanks
