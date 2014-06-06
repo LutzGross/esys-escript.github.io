@@ -26,11 +26,8 @@ from esys.escriptcore.testing import *
 from test_util import Test_util
 from test_util import Test_Util_SpatialFunctions, Test_Util_SpatialFunctions_noGradOnBoundary_noContact
 from test_symfuncs import Test_symfuncs
-
 from esys.escript import *
 from esys.ripley import Rectangle, Brick
-import sys
-import os
 
 if HAVE_SYMBOLS:
     from test_symfuncs import Test_symfuncs
@@ -38,11 +35,6 @@ else:
     print("Skipping symbolic tests since sympy is not available")
     class Test_symfuncs:
         pass
-
-try:
-     RIPLEY_TEST_DATA=os.environ['RIPLEY_TEST_DATA']
-except KeyError:
-     RIPLEY_TEST_DATA='.'
 
 NE=4 # number elements
 
@@ -68,7 +60,7 @@ class Test_UtilOnRipley(Test_util,Test_symfuncs):
         del self.functionspace
         del self.domain
 
-class Test_Util_SpatialFunctionsOnRipleyRect(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnRipley2D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
@@ -76,7 +68,7 @@ class Test_Util_SpatialFunctionsOnRipleyRect(Test_Util_SpatialFunctions_noGradOn
         del self.order
         del self.domain
 
-class Test_Util_SpatialFunctionsOnRipleyBrick(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
+class Test_Util_SpatialFunctionsOnRipley3D(Test_Util_SpatialFunctions_noGradOnBoundary_noContact):
     def setUp(self):
         self.order=1
         self.domain = Brick(n0=NE*NXb-1, n1=NE*NYb-1, n2=NE*NZb-1, l0=1., l1=1., l2=1., d0=NXb, d1=NYb, d2=NZb)
