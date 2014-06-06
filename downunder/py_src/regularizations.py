@@ -25,7 +25,7 @@ __all__ = ['Regularization']
 
 
 import numpy as np
-from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup
+from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
 from esys.escript.pdetools import ArithmeticTuple
 from .coordinates import makeTranformation
@@ -111,6 +111,7 @@ class Regularization(CostFunction):
         self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
+        self.__pde.setValue(A=self.__pde.createCoefficient('A'), D=self.__pde.createCoefficient('D'), )
         try:
             self.__pde.setValue(q=location_of_set_m)
         except IllegalCoefficientValue:
@@ -497,11 +498,13 @@ class Regularization(CostFunction):
                 if numLS == 1:
                     D=self.__w0 * mu
                 else:
-                    D=self.getPDE().createCoefficient("D")
+                    D=self.getPDE().getCoefficient("D")
+                    D.setToZero()
                     for k in range(numLS): D[k,k]=self.__w0[k] * mu[k]
                 self.getPDE().setValue(D=D)
 
-            A=self.getPDE().createCoefficient("A")
+            A=self.getPDE().getCoefficient("A")
+            A.setToZero()
             if self.__w1 is not None:
                 if numLS == 1:
                     for i in range(DIM): A[i,i]=self.__w1[i] * mu
@@ -510,6 +513,7 @@ class Regularization(CostFunction):
                         for i in range(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
 
             if numLS > 1:
+                # this could be make faster by creating caches for grad_m_k, l2_grad_m_k  and o_kk
                 for k in range(numLS):
                     grad_m_k=grad_m[k,:]
                     l2_grad_m_k = length(grad_m_k)**2
@@ -522,9 +526,10 @@ class Regularization(CostFunction):
                         o_kl = outer(grad_m_k, grad_m_l)
                         o_ll=outer(grad_m_l, grad_m_l)
                         f=  mu_c[l,k]* self.__wc[l,k]
+                        Z=f * (2*o_lk - o_kl - i_lk*kronecker(DIM))
                         A[l,:,l,:] += f * (l2_grad_m_k*kronecker(DIM) - o_kk)
-                        A[l,:,k,:] += f * (2*o_lk - o_kl - i_lk*kronecker(DIM))
-                        A[k,:,l,:] += f * (2*o_kl - o_lk - i_lk*kronecker(DIM))
+                        A[l,:,k,:] += Z
+                        A[k,:,l,:] += transpose(Z)
                         A[k,:,k,:] += f * (l2_grad_m_l*kronecker(DIM) - o_ll)
             self.getPDE().setValue(A=A)
         #self.getPDE().resetRightHandSideCoefficients()

@@ -37,9 +37,8 @@ class Test_Regularizaton2D(unittest.TestCase):
         
     def tearDown(self):
         del self.domain
-        
-    # standart inversion case   
-    def test_ConstantLevelSet1(self): # doesn't test the regularization
+         
+    def test_ConstantLevelSet1(self): 
         a=[1,2]
         
         reg=Regularization(self.domain, numLevelSets=1,
@@ -80,8 +79,33 @@ class Test_Regularizaton2D(unittest.TestCase):
         df2=reg.getValue(m2, *(reg.getArguments(m2)))
         gf2=df2-df
         self.assertTrue( abs(gf2-reg.getDualProduct(dm, gf)) < 1e-3 * abs(gf2) )
+
+    def test_ConstantLevelSet1Hessian(self): 
+        x=Solution(self.domain).getX()
+        
+        
+        
+        reg=Regularization(self.domain, numLevelSets=1,
+                               w1=[1,1.], # consider gradient terms
+                               #wc=[[0,1],[0,0]],    # and cross-gradient term
+                               coordinates=self.COORDINATES,
+                               location_of_set_m=whereZero(x[0]-inf(x[0])) )
+        
+        x=Solution(self.domain).getX()
+        m=x[0]
+        
+        gf=reg.getGradient(m, *(reg.getArguments(m)))
+        
+        STEP=0.001
+        dm=STEP*x[0]*(x[0]-1)
+        m2=m+dm
+        gf2=reg.getGradient(m2, *(reg.getArguments(m2)))
+
+        p=reg.getInverseHessianApproximation(m, gf2-gf, *(reg.getArguments(m)))
+        self.assertAlmostEqual(Lsup(p-dm)/Lsup(dm),0.)
+
     
-    def test_ConstantLevelSet2_noCrossGradient(self): # doesn't test the regularization
+    def test_ConstantLevelSet2_noCrossGradient(self): 
         a=[1,2]
                 
         reg=Regularization(self.domain, numLevelSets=2,
@@ -132,6 +156,29 @@ class Test_Regularizaton2D(unittest.TestCase):
         gf2=df2-df
         self.assertTrue( abs(gf2-reg.getDualProduct(dm*[0,1], gf)) < 1e-3 * abs(gf2) )
 
+    def test_ConstantLevelSet2_noCrossGradientHessian(self):
+        x=Solution(self.domain).getX()
+        
+        reg=Regularization(self.domain, numLevelSets=2,
+                               w1=[[1,1.],[1.,1.]], # consider gradient terms
+                               wc=[[0,0],[0,0]],    # and cross-gradient term
+                               coordinates=self.COORDINATES,
+                               location_of_set_m=whereZero(x[0]-inf(x[0]))*[1,1] )
+        
+        x=Solution(self.domain).getX()
+        m=x[0]*[1,0]+x[1]*x[1]*[0,1]
+        
+        gf=reg.getGradient(m, *(reg.getArguments(m)))
+        STEP=0.001
+        dm=STEP*x[0]*(x[0]-1)
+        m2=m+dm*[1,0]
+        gf2=reg.getGradient(m2, *(reg.getArguments(m2)))
+
+        p=reg.getInverseHessianApproximation(m, gf2-gf, *(reg.getArguments(m)))
+        self.assertAlmostEqual(Lsup(p[0]-dm)/Lsup(dm),0.)
+        self.assertAlmostEqual(Lsup(p[1])/Lsup(dm),0.)
+
+        
     def test_ConstantLevelSet2_WithCrossGradient(self): # doesn't test the regularization
         reg=Regularization(self.domain, numLevelSets=2,
                                w1=[[1,1.],[1.,1.]], # consider gradient terms
