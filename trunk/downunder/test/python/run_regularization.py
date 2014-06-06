@@ -30,7 +30,7 @@ from esys.escript import *
 import numpy as np
 
                 
-class TestRegularizaton2D(unittest.TestCase):
+class Test_Regularizaton2D(unittest.TestCase):
     def setUp(self):
         self.domain = esys.ripley.Rectangle(20*getMPISizeWorld()-1,20,d0=getMPISizeWorld()) # expected dimension 1mx1m
         self.COORDINATES=CartesianReferenceSystem()
