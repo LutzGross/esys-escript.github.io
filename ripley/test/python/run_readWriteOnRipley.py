@@ -84,26 +84,28 @@ class WriteBinaryGridTestBase(unittest.TestCase):
     def test_writeGrid2D(self):
         self.NE = [self.NX, self.NZ]
         self.domain = Rectangle(self.NE[0], self.NE[1], d1=0)
-        for ftype in [ReducedFunction, ContinuousFunction]:
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
             data, original_grid = self.generateUniqueData(ftype)
-            filename = os.path.join(RIPLEY_WORKDIR, "tempfile")
+            filename = os.path.join(RIPLEY_WORKDIR, "_grid2d"+fcode)
+            filename = filename + self.dtype.replace('<','L').replace('>','B')
             self.write(self.domain, data, filename)
             MPIBarrierWorld()
             result = np.fromfile(filename, dtype=self.dtype).reshape(
                     tuple(reversed(adjust(self.NE,ftype))))
-            self.assertEquals(Lsup(original_grid-result), 0, "Data doesn't match for "+str(ftype(self.domain)))
+            self.assertAlmostEquals(Lsup(original_grid-result), 0, delta=1e-9, msg="Data doesn't match for "+str(ftype(self.domain)))
 
     def test_writeGrid3D(self):
         self.NE = [self.NX, self.NX, self.NZ]
         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d2=0)
-        for ftype in [ReducedFunction, ContinuousFunction]:
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
             data, original_grid = self.generateUniqueData(ftype)
-            filename = os.path.join(RIPLEY_WORKDIR, "tempfile")
+            filename = os.path.join(RIPLEY_WORKDIR, "_grid3d"+fcode)
+            filename = filename + self.dtype.replace('<','L').replace('>','B')
             self.write(self.domain, data, filename)
             MPIBarrierWorld()
             result = np.fromfile(filename, dtype=self.dtype).reshape(
                     tuple(reversed(adjust(self.NE,ftype))))
-            self.assertEquals(Lsup(original_grid-result), 0, "Data doesn't match for "+str(ftype(self.domain)))
+            self.assertAlmostEquals(Lsup(original_grid-result), 0, delta=1e-9, msg="Data doesn't match for "+str(ftype(self.domain)))
 
 class Test_writeBinaryGridRipley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
     def setUp(self):
