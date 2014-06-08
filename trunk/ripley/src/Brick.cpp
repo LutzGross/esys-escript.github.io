@@ -739,7 +739,12 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
                     oss.write((char*)&fvalue, sizeof(fvalue));
                 } else {
                     char* value = reinterpret_cast<char*>(&fvalue);
-                    oss.write(byte_swap32(value), sizeof(fvalue));
+                    if (sizeof(fvalue)>4) {
+                        byte_swap64(value);
+                    } else {
+                        byte_swap32(value);
+                    }
+                    oss.write(value, sizeof(fvalue));
                 }
             }
             fw.writeAt(oss, fileofs);

@@ -75,22 +75,35 @@ inline char* byte_swap32(char* val)
     *v = _byteswap_ulong(*v);
     return val;
 }
+inline char* byte_swap64(char* val)
+{
+    unsigned __int64* v = reinterpret_cast<unsigned __int64*>(val);
+    *v = _byteswap_uint64(*v);
+    return val;
+}
 } // namespace
 
 #else
+
+#include <stdint.h> // uint64_t
 
 #if HAVE_BYTESWAP_H
 #   include <byteswap.h>
 #elif HAVE_SYS_ENDIAN_H
 #   include <sys/endian.h>
 #   ifdef bswap32
-#     define bswap_32(D) bswap32((D))    
+#     define bswap_32(D) bswap32((D))
+#   endif
+#   ifdef bswap64
+#     define bswap_64(D) bswap64((D))
 #   endif
 #elif HAVE_OSBYTEORDER_H
 #   include <libkern/OSByteOrder.h>
 #   define bswap_32 OSSwapInt32
+#   define bswap_64 OSSwapInt64
 #else // uh oh, we can't swap bytes...
-#   define bswap_32(D) D
+#   define bswap_32(D) (D)
+#   define bswap_64(D) (D)
 #endif // header selection
 
 namespace ripley {
@@ -98,6 +111,13 @@ inline char* byte_swap32(char* val)
 {
     unsigned int* v = reinterpret_cast<unsigned int*>(val);
     *v = bswap_32(*v);
+    return val;
+}
+
+inline char* byte_swap64(char* val)
+{
+    uint64_t* v = reinterpret_cast<uint64_t*>(val);
+    *v = bswap_64(*v);
     return val;
 }
 } // namespace ripley
