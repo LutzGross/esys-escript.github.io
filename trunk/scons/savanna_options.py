@@ -95,7 +95,7 @@ mpi_prefix = '/sw/sdev/intel/impi/4.1.3.049/intel64'
 #mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/sw/libs/boost/x86_64/gcc-4.3.2/python-2.7.3/boost_1_51_0'
+boost_prefix = '/sw/libs/boost/1.55.0-py2.7'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']
