@@ -172,7 +172,6 @@ class Test_readBinaryGridZippedRipley(unittest.TestCase):
                 ("RectConF%s.grid.gz", ContinuousFunction)]:
             FS = ftype(domain)
             filename = os.path.join("ref_data", filename%ranks)
-            print(filename)
             unzipped = self.read(filename[:-3], FS, adjust(NE, ftype))
             zipped = self.read(filename, FS, adjust(NE, ftype), True)
             self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
