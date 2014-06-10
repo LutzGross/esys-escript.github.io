@@ -85,6 +85,16 @@ bool block_cmp_data(const escript::Data&, boost::python::object o)
     return false;
 }
 
+
+bool block_eq_data(const escript::Data&, boost::python::object o)
+{
+    PyErr_SetString(PyExc_TypeError,"The Python == and != operators are not defined for Data objects. "
+      "To check for object identity use 'is'.  To check for numerical similarity of x and y, use Lsup(x-y)<TOL "
+      "for a suitable tolerance.");
+    boost::python::throw_error_already_set();   
+    return false;
+}
+
 bool block_cmp_functionspace(const escript::FunctionSpace&, boost::python::object o)
 {
     PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for FunctionSpaces.");
@@ -712,7 +722,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__rmul__", &escript::Data::__mul__)   // commutative
     .def("__div__", &escript::Data::__div__)   
     .def("__rdiv__", &escript::Data::__rdiv__)   // commutative
-    
+    .def("__eq__", block_eq_data)		// stop people from using == 
+    .def("__ne__", block_eq_data)		// stop people from using != 
     ;
 
   //
