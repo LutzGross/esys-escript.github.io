@@ -99,9 +99,9 @@ class Regularization(CostFunction):
         :type scale_c: `Data` object of shape (``numLevelSets``,``numLevelSets``)
 
         """
-        if w0 == None and w1==None:
+        if w0 is None and w1 is None:
             raise ValueError("Values for w0 or for w1 must be given.")
-        if wc == None and numLevelSets>1:
+        if wc is None and numLevelSets>1:
             raise ValueError("Values for wc must be given.")
 
         self.__domain=domain

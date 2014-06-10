@@ -62,8 +62,8 @@ class SteadyIncompressibleFlow(Model):
            self.__dt_old=None
            self.__pde=LameEquation(self.domain)
            self.__pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
-           if self.location_prescribed_velocity == None: self.location_prescribed_velocit=Data()
-           if self.prescribed_velocity == None: self.prescribed_velocity=Data()
+           if self.location_prescribed_velocity is None: self.location_prescribed_velocit=Data()
+           if self.prescribed_velocity is None: self.prescribed_velocity=Data()
 
        def stress(self):
            """
@@ -86,8 +86,8 @@ class SteadyIncompressibleFlow(Model):
             """
             self.__iter=0
             self.__diff=1.e40
-            if not self.__p_old==None:
-               if self.__p_very_old==None:
+            if not self.__p_old is None:
+               if self.__p_very_old is None:
                   self.pressure=self.__p_old
                else:
                   self.pressure=(1.+dt/self.__dt_old)*self.__p_old-dt/self.__dt_old*self.__p_very_old
