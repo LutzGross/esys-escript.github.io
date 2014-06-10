@@ -375,11 +375,11 @@ class Rheology(object):
           :type restoration_factor: scalar values/field
           :note: Only changing parameters need to be specified.
           """
-          if F != None: self.__F=F
-          if f != None: self.__f=f
-          if fixed_v_mask != None: self.__fixed_v_mask=fixed_v_mask
-          if v_boundary != None: self.__v_boundary=v_boundary 
-          if restoration_factor!=None: self.__restoration_factor=restoration_factor
+          if F is not None: self.__F=F
+          if f is not None: self.__f=f
+          if fixed_v_mask is not None: self.__fixed_v_mask=fixed_v_mask
+          if v_boundary is not None: self.__v_boundary=v_boundary 
+          if restoration_factor is not None: self.__restoration_factor=restoration_factor
           
       def getForce(self):
           """
@@ -694,7 +694,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           :param verbose: prints some infos in the incompressible solver
           """
           mu=self.getElasticShearModulus()
-          if mu != None:
+          if mu is not None:
              if not dt > 0.:
                  raise ValueError("dt must be positive.")
           else:

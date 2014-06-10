@@ -297,16 +297,16 @@ class ScalarDistributionFromTags(ParameterSet):
         Link against this method to get the output of this model.
         """
         d=Scalar(self.default,Function(self.domain))
-        if not self.tag0 == None: d.setTaggedValue(self.tag0,self.value0)
-        if not self.tag1 == None: d.setTaggedValue(self.tag1,self.value1)
-        if not self.tag2 == None: d.setTaggedValue(self.tag2,self.value2)
-        if not self.tag3 == None: d.setTaggedValue(self.tag3,self.value3)
-        if not self.tag4 == None: d.setTaggedValue(self.tag4,self.value4)
-        if not self.tag5 == None: d.setTaggedValue(self.tag5,self.value5)
-        if not self.tag6 == None: d.setTaggedValue(self.tag6,self.value6)
-        if not self.tag7 == None: d.setTaggedValue(self.tag7,self.value7)
-        if not self.tag8 == None: d.setTaggedValue(self.tag8,self.value8)
-        if not self.tag9 == None: d.setTaggedValue(self.tag9,self.value9)
+        if not self.tag0 is None: d.setTaggedValue(self.tag0,self.value0)
+        if not self.tag1 is None: d.setTaggedValue(self.tag1,self.value1)
+        if not self.tag2 is None: d.setTaggedValue(self.tag2,self.value2)
+        if not self.tag3 is None: d.setTaggedValue(self.tag3,self.value3)
+        if not self.tag4 is None: d.setTaggedValue(self.tag4,self.value4)
+        if not self.tag5 is None: d.setTaggedValue(self.tag5,self.value5)
+        if not self.tag6 is None: d.setTaggedValue(self.tag6,self.value6)
+        if not self.tag7 is None: d.setTaggedValue(self.tag7,self.value7)
+        if not self.tag8 is None: d.setTaggedValue(self.tag8,self.value8)
+        if not self.tag9 is None: d.setTaggedValue(self.tag9,self.value9)
         return d
 
 class SmoothScalarDistributionFromTags(ParameterSet):
@@ -401,16 +401,16 @@ class SmoothScalarDistributionFromTags(ParameterSet):
         """
         d=Scalar(self.default,Solution(self.domain)) 
         self.__pde=None
-        if not self.tag0 == None: d=self.__update(self.tag0,self.value0,d)
-        if not self.tag1 == None: d=self.__update(self.tag1,self.value1,d)
-        if not self.tag2 == None: d=self.__update(self.tag2,self.value2,d)
-        if not self.tag3 == None: d=self.__update(self.tag3,self.value3,d)
-        if not self.tag4 == None: d=self.__update(self.tag4,self.value4,d)
-        if not self.tag5 == None: d=self.__update(self.tag5,self.value5,d)
-        if not self.tag6 == None: d=self.__update(self.tag6,self.value6,d)
-        if not self.tag7 == None: d=self.__update(self.tag7,self.value7,d)
-        if not self.tag8 == None: d=self.__update(self.tag8,self.value8,d)
-        if not self.tag9 == None: d=self.__update(self.tag9,self.value9,d)
+        if not self.tag0 is None: d=self.__update(self.tag0,self.value0,d)
+        if not self.tag1 is None: d=self.__update(self.tag1,self.value1,d)
+        if not self.tag2 is None: d=self.__update(self.tag2,self.value2,d)
+        if not self.tag3 is None: d=self.__update(self.tag3,self.value3,d)
+        if not self.tag4 is None: d=self.__update(self.tag4,self.value4,d)
+        if not self.tag5 is None: d=self.__update(self.tag5,self.value5,d)
+        if not self.tag6 is None: d=self.__update(self.tag6,self.value6,d)
+        if not self.tag7 is None: d=self.__update(self.tag7,self.value7,d)
+        if not self.tag8 is None: d=self.__update(self.tag8,self.value8,d)
+        if not self.tag9 is None: d=self.__update(self.tag9,self.value9,d)
         return d
 
 class LinearCombination(ParameterSet):
@@ -446,40 +446,40 @@ class LinearCombination(ParameterSet):
         returns f0*v0+f1*v1+f2*v2+f3*v3+f4*v4.
         Link against this method to get the output of this model.
         """
-        if not self.f0 == None and not self.v0 == None:
+        if not self.f0 is None and not self.v0 is None:
             fv0 = self.f0*self.v0
         else:
             fv0 = None
 
-        if not self.f1 == None and not self.v1 == None:
+        if not self.f1 is None and not self.v1 is None:
             fv1 = self.f1*self.v1
         else:
             fv1 = None
 
-        if not self.f2 == None and not self.v2 == None:
+        if not self.f2 is None and not self.v2 is None:
             fv2 = f2*v2
         else:
             fv2 = None
 
-        if not self.f3 == None and not self.v3 == None:
+        if not self.f3 is None and not self.v3 is None:
             fv3 = self.f3*self.v3
         else:
             fv3 = None
 
-        if not self.f4 == None and not self.v4 == None:
+        if not self.f4 is None and not self.v4 is None:
             fv4 = self.f4*self.v4
         else:
             fv4 = None
 
-        if fv0 == None: 
+        if fv0 is None: 
              out = 0.
         else:
              out = fv0
-        if not fv1 == None: 
+        if not fv1 is None: 
             out += fv1
-        if not fv2 == None: 
+        if not fv2 is None: 
             out += fv2
-        if not fv3 == None: 
+        if not fv3 is None: 
             out += fv3
         return out
 
@@ -507,13 +507,13 @@ class MergeConstraints(ParameterSet):
           :rtype: `escript.Scalar`
           """
           out_loc=0
-          if not self.location_of_constraint0 == None:
+          if not self.location_of_constraint0 is None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint0))
-          if not self.location_of_constraint1 == None:
+          if not self.location_of_constraint1 is None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint1))
-          if not self.location_of_constraint2 == None:
+          if not self.location_of_constraint2 is None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint2))
-          if not self.location_of_constraint3 == None:
+          if not self.location_of_constraint3 is None:
                out_loc=wherePositive(out_loc+wherePositive(self.location_of_constraint3))
           return out_loc
 
@@ -527,19 +527,19 @@ class MergeConstraints(ParameterSet):
           """
           out_loc=0
           out=0
-          if not self.location_of_constraint0 == None:
+          if not self.location_of_constraint0 is None:
                tmp=wherePositive(self.location_of_constraint0)
                out=out*(1.-tmp)+self.value_of_constraint0*tmp
                out_loc=wherePositive(out_loc+tmp)
-          if not self.location_of_constraint1 == None:
+          if not self.location_of_constraint1 is None:
                tmp=wherePositive(self.location_of_constraint1)
                out=out*(1.-tmp)+self.value_of_constraint1*tmp
                out_loc=wherePositive(out_loc+tmp)
-          if not self.location_of_constraint2 == None:
+          if not self.location_of_constraint2 is None:
                tmp=wherePositive(self.location_of_constraint2)
                out=out*(1.-tmp)+self.value_of_constraint2*tmp
                out_loc=wherePositive(out_loc+tmp)
-          if not self.location_of_constraint3 == None:
+          if not self.location_of_constraint3 is None:
                tmp=wherePositive(self.location_of_constraint3)
                out=out*(1.-tmp)+self.value_of_constraint3*tmp
                out_loc=wherePositive(out_loc+tmp)
