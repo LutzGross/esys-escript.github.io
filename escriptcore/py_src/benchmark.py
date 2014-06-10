@@ -59,7 +59,7 @@ class BenchmarkSuite(object):
        super(BenchmarkSuite,self).__init__()
        self.__benchmarks=[]
        self.__scale=1
-       if name==None:
+       if name is None:
            self.__name=self.__class__.__name__
        else:
           self.__name=name
@@ -172,7 +172,7 @@ class Benchmark(object):
        self.__problems=[]
        self.__results=[]
        self.__scale=1
-       if name==None:
+       if name is None:
            self.__name=self.__class__.__name__
        else:
           self.__name=name
@@ -201,7 +201,7 @@ class Benchmark(object):
        Adds options to the benchmark.
 
        :param options: the options to be added to the benchmark. If
-                       options==None the options are left unchanged.
+                       options is None the options are left unchanged.
        :type options: `Options`
        """
        if options!=None: self.__options.append(options)
@@ -297,7 +297,7 @@ class Benchmark(object):
              if isinstance(self.__scale,list):
                  out+="<TD ALIGN=\"right\">%s</TD>"%self.__scale[c]
              for col in self.__results[r]:
-                   if col==None:
+                   if col is None:
                       out+="<TD ALIGN=\"center\" COLSPAN=%s>failed.</TD>"%colspan
                    else:
                       for e in filter(col): out+="<TD ALIGN=\"right\">%s</TD>"%e
@@ -323,7 +323,7 @@ class BenchmarkProblem(object):
        :type name: ``str``
        """
        super(BenchmarkProblem,self).__init__()
-       if name==None:
+       if name is None:
            self.__name=self.__class__.__name__
        else:
           self.__name=name
@@ -404,7 +404,7 @@ class Options(object):
        :type name: ``str``
        """
        super(Options,self).__init__()
-       if name==None:
+       if name is None:
           self.__name=self.__class__.__name__
        else:
           self.__name=name

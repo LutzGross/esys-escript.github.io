@@ -152,7 +152,7 @@ class DarcyFlow(object):
            self.__pde_p.setValue(q=self.location_of_fixed_pressure)
       if location_of_fixed_flux!=None: 
           self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
-          if not self.__pde_v == None: 
+          if not self.__pde_v is None: 
               self.__pde_v.setValue(q=self.location_of_fixed_flux)
       
       if permeability!=None:
@@ -208,7 +208,7 @@ class DarcyFlow(object):
       Returns the solver options used to solve the flux problems
       :return: `SolverOptions`
       """
-      if self.__pde_v == None:
+      if self.__pde_v is None:
           return None
       else:
           return self.__pde_v.getSolverOptions()
@@ -219,7 +219,7 @@ class DarcyFlow(object):
       If ``options`` is not present, the options are reset to default
       :param options: `SolverOptions`
       """
-      if not self.__pde_v == None:
+      if not self.__pde_v is None:
           self.__pde_v.setSolverOptions(options)
  
    def getSolverOptionsPressure(self):
@@ -252,7 +252,7 @@ class DarcyFlow(object):
 
       """
       p0=util.interpolate(p0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
-      if self.ref_point_id == None:
+      if self.ref_point_id is None:
           p_ref=0
       else:
           p_ref=p0.getTupleForGlobalDataPoint(*self.ref_point_id)[0]
@@ -280,7 +280,7 @@ class DarcyFlow(object):
         :rtype: `escript.Data`
         """
         p=util.interpolate(p, self.__pde_p.getFunctionSpaceForCoefficient("q"))
-        if self.ref_point_id == None:
+        if self.ref_point_id is None:
             p_ref=0
         else:
             p_ref=p.getTupleForGlobalDataPoint(*self.ref_point_id)[0]
@@ -305,7 +305,7 @@ class DarcyFlow(object):
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
             self.__pde_v.setValue(Y= self.__permeability_invXg - (util.grad(pp) + self.__permeability_invXg_ref))
 
-            if u0 == None:
+            if u0 is None:
                self.__pde_v.setValue(r=escore.Data())
             else:
                if not isinstance(u0, escore.Data) : u0 = escore.Vector(u0, escore.Solution(self.domain))

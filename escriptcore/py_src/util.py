@@ -180,7 +180,7 @@ def saveDataCSV(filename, append=False, sep=", ", csep="_", **data):
     fs = None
     for n,d in list(data.items()):
         if isinstance(d, Data): fs=d.getFunctionSpace()
-    if fs == None:
+    if fs is None:
         raise ValueError("saveDataCSV: there must be at least one Data object in the argument list.")
     
     new_data={}
@@ -259,8 +259,8 @@ def saveESD(datasetName, dataDir=".", domain=None, timeStep=0, deltaT=1, dynamic
                new_data[n]=interpolate(d,escore.ReducedContinuousFunction(domain2))
             else:
                new_data[n]=d
-            if domain==None: domain=domain2
-    if domain==None:
+            if domain is None: domain=domain2
+    if domain is None:
         raise ValueError("saveESD: no domain detected.")
 
     if domain.onMasterProcessor() and not os.path.isdir(dataDir):
@@ -590,8 +590,8 @@ def commonDim(*args):
     out=None
     for a in args:
        d=pokeDim(a)
-       if not out==None:
-          if not (d==None or out==d):
+       if not out is None:
+          if not (d is None or out==d):
              raise ValueError("dimension of arguments don't match")
        else:
           out=d
@@ -928,7 +928,7 @@ def whereNonZero(arg,tol=0.):
    :raise ValueError: if ``rtol`` is non-negative.
    :raise TypeError: if the type of the argument is not expected
    """
-   if tol == None:
+   if tol is None:
       if rtol<=0: raise ValueError("rtol must be non-negative.")
       tol = Lsup(arg)*rtol
    if isinstance(arg,numpy.ndarray):
@@ -1508,25 +1508,25 @@ def transpose(arg,axis_offset=None):
            depending on the type of ``arg``
    """
    if isinstance(arg,numpy.ndarray):
-      if axis_offset==None: axis_offset=int(arg.ndim/2)
+      if axis_offset is None: axis_offset=int(arg.ndim/2)
       return numpy.transpose(arg,axes=list(range(axis_offset,arg.ndim))+list(range(0,axis_offset)))
    elif isinstance(arg,escore.Data):
       r=arg.getRank()
-      if axis_offset==None: axis_offset=int(r/2)
+      if axis_offset is None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
         raise ValueError("axis_offset must be between 0 and %s"%r)
       return arg._transpose(axis_offset)
    elif isinstance(arg,float):
-      if not ( axis_offset==0 or axis_offset==None):
+      if not ( axis_offset==0 or axis_offset is None):
         raise ValueError("axis_offset must be 0 for float argument")
       return arg
    elif isinstance(arg,int):
-      if not ( axis_offset==0 or axis_offset==None):
+      if not ( axis_offset==0 or axis_offset is None):
         raise ValueError("axis_offset must be 0 for int argument")
       return float(arg)
    elif isinstance(arg,sym.Symbol):
       r=arg.getRank()
-      if axis_offset==None: axis_offset=int(r/2)
+      if axis_offset is None: axis_offset=int(r/2)
       if axis_offset<0 or axis_offset>r:
         raise ValueError("axis_offset must be between 0 and %s"%r)
       return arg.transpose(axis_offset)
@@ -1837,7 +1837,7 @@ def maximum(*args):
         return sym.symfn.maximum(*args)
     out=None
     for a in args:
-       if out==None:
+       if out is None:
           out=a*1.
        else:
           if isinstance(out,escore.Data) and isinstance(a,escore.Data):
@@ -1879,7 +1879,7 @@ def minimum(*args):
         return sym.symfn.minimum(*args)
     out=None
     for a in args:
-       if out==None:
+       if out is None:
           if isinstance(a, numpy.ndarray):
               out=a.copy()
           else:
@@ -1929,14 +1929,14 @@ def clip(arg,minval=None,maxval=None):
     if isinstance(arg, sym.Symbol):
         clip_item=lambda item: sym.symfn.clip(item, minval, maxval)
         return arg.applyfunc(clip_item)
-    if not minval==None and not maxval==None:
+    if not minval is None and not maxval is None:
        if minval>maxval:
           raise ValueError("minval = %s must be less than maxval %s"%(minval,maxval))
-    if minval == None:
+    if minval is None:
         tmp=arg
     else:
         tmp=maximum(minval,arg)
-    if maxval == None:
+    if maxval is None:
         return tmp
     else:
         return minimum(tmp,maxval)
@@ -2452,7 +2452,7 @@ def grad(arg,where=None):
        else:
            return arg.grad(where)
     elif isinstance(arg,escore.Data):
-       if where==None:
+       if where is None:
           return arg._grad()
        else:
           return arg._grad(where)
@@ -2476,7 +2476,7 @@ def integrate(arg,where=None):
     :rtype: ``float``, ``numpy.ndarray`` or `Symbol`
     """
     if isinstance(arg,escore.Data):
-       if not where==None: arg=escore.Data(arg,where)
+       if not where is None: arg=escore.Data(arg,where)
        if arg.getRank()==0:
           return arg._integrateToTuple()[0]
        else:
@@ -2548,7 +2548,7 @@ def jump(arg,domain=None):
     :return: jump of ``arg``
     :rtype: `escript.Data` or `Symbol`
     """
-    if domain==None: domain=arg.getDomain()
+    if domain is None: domain=arg.getDomain()
     return interpolate(arg,escore.FunctionOnContactOne(domain))-interpolate(arg,escore.FunctionOnContactZero(domain))
 
 def L2(arg):
@@ -2705,12 +2705,12 @@ def mkDir(*pathname):
     errno=getMPIWorldMax(errno)
     if errno>0:
          if errno==2:
-            if p_fail == None:
+            if p_fail is None:
                raise IOError("Unable to create directory.")
             else:
                raise IOError("Unable to create directory %s. It already exists and is not a directory."%p_fail)
-         elif e==None:
-            if p_fail == None:
+         elif e is None:
+            if p_fail is None:
                raise IOError("Unable to create directory.")
             else:
                raise IOError("Unable to create directory %s."%p_fail)
@@ -2718,7 +2718,7 @@ def mkDir(*pathname):
             if hasattr(e,"message"):
                raise IOError(e.message)
             else:
-               if p_fail == None:
+               if p_fail is None:
                   raise IOError("Unable to create directory.")
                else:
                   raise IOError("Unable to create directory %s."%p_fail)
@@ -2781,7 +2781,7 @@ class FileWriter(object):
     def __handelerror(self,errno,e,operation):
          errno=getMPIWorldMax(errno)
          if errno>0:
-            if e==None:
+            if e is None:
                raise IOError("Unable to access file %s in mode %s for %s."%(self.name,self.mode,operation))
             else:
                raise IOError(str(e))
@@ -2793,7 +2793,7 @@ class FileWriter(object):
         errno=0
         e=None
         try:
-           if not self.__file == None:
+           if not self.__file is None:
                self.__file.close()
         except Exception as e:
            errno=1
@@ -2807,7 +2807,7 @@ class FileWriter(object):
         errno=0
         e=None
         try:
-           if not self.__file == None:
+           if not self.__file is None:
                self.__file.flush()
         except Exception as e:
            errno=1
@@ -2823,7 +2823,7 @@ class FileWriter(object):
         errno=0
         e=None
         try:
-           if not self.__file == None:
+           if not self.__file is None:
                self.__file.write(txt)
         except Exception as e:
            errno=1
@@ -2840,7 +2840,7 @@ class FileWriter(object):
         errno=0
         e=None
         try:
-           if not self.__file == None:
+           if not self.__file is None:
                self.__file.writelines(txts)
         except Exception as e:
            errno=1
@@ -2898,7 +2898,7 @@ def safeDiv(arg0, arg1, rtol=None):
     """
     returns arg0/arg1 but return 0 where arg1 is (almost) zero
     """
-    if rtol==None:
+    if rtol is None:
       m1=whereZero(arg1,tol=0)
     else:
       m1=whereZero(arg1,tol=None, rtol=rtol)

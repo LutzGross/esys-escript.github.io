@@ -1172,7 +1172,7 @@ class Simulation(Model):
                   self.trace("Time step is repeated with new time step size %s."%dt_new)
                   if step_fail_counter>self.FAILED_TIME_STEPS_MAX:
                         raise SimulationBreakDownError("Time integration is given up after %d attempts."%step_fail_counter)
-            if not check_pointing==None:
+            if not check_pointing is None:
                if check_pointing.doDump():
                     self.trace("check point is created.")
                     self.writeXML()
@@ -1323,7 +1323,7 @@ class RestartManager(object):
          self.__dump_time=dump_step
          self.__counter=0
          self.__saveMarker()
-         if dumper == None:
+         if dumper is None:
             self.__dumper="restart"+str(os.getpid())
          else:
             self.__dumper=dumper
@@ -1346,13 +1346,13 @@ class RestartManager(object):
         Returns true if the restart should be dumped. Use ``getNewDumper`` to
         retrieve the directory name to be used for dumping.
         """
-        if self.__dump_step == None:
-           if self.__dump_step == None:
+        if self.__dump_step is None:
+           if self.__dump_step is None:
               out = False
            else:
               out = (self.__dump_step + self.__last_restart_counter) <= self.__counter
         else:
-           if dump_step == None:
+           if dump_step is None:
               out = (self.__last_restart_time + self.__dump_time) <= time.time()
            else:
               out = ( (self.__dump_step + self.__last_restart_counter) <= self.__counter)  \
