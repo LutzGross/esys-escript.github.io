@@ -34,6 +34,7 @@ alltestruns = testruns + localtestruns
 #env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
+local_env.PrependENVPath('PYTHONPATH', Dir('#/pycad/test/python'))
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
 local_env['ENV']['ESCRIPT_TEST_DATA_ROOT']=Dir('.').srcnode().abspath
 local_env['ENV']['ESCRIPT_WORKDIR']=Dir('.').abspath
@@ -42,6 +43,7 @@ env.Alias('py_tests', [splitext(x)[0]+'.passed' for x in testruns])
 
 # run all tests
 program = local_env.RunPyUnitTest(alltestruns)
+Depends(program, 'build_py_tests')
 
 # add a group of tests
 from grouptest import *

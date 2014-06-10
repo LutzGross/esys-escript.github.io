@@ -27,7 +27,7 @@ import sys
 from esys.escript.unitsSI import *
 from esys.escript.util import EPSILON
 
-class UnitsSITestCase(unittest.TestCase):
+class Test_UnitsSI(unittest.TestCase):
     TOL=EPSILON*100.
     def testUnit(self):
        s=Unit("s","something",1.,4.)

@@ -38,8 +38,13 @@ testruns = [ \
 # all tests
 alltestruns = testruns
 
+# test files are just compiled
+test_pyc = env.PyCompile(testruns)
+env.Alias('build_py_tests', test_pyc)
+
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/downunder/test/python').abspath)
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
 local_env['ENV']['DOWNUNDER_TEST_DATA_ROOT']=Dir('ref_data').srcnode().abspath
 local_env['ENV']['DOWNUNDER_WORKDIR']=Dir('.').abspath

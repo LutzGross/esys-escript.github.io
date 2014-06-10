@@ -26,7 +26,9 @@ __url__="https://launchpad.net/escript-finley"
 #    a very simple convection model in model frame:
 #
 
-import os
+import os, StringIO
+import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
 from esys.modellib.geometry import RectangularDomain,ScalarConstrainerOverBox,VectorConstrainerOverBox
 from esys.modellib.input import Sequencer,InterpolateOverBox,GaussianProfile,LinearCombination
@@ -39,13 +41,11 @@ import esys.dudley
 
 try: 
    WORKDIR=os.environ['MODELLIB_WORKDIR']
-except KeyError:
+except KeyError as e:
    WORKDIR='.'
- 
 
-dom=RectangularDomain()
-dom.order=2
-def Test(dom):
+#if this func is inside the test case, the Link() calls blow up
+def run(dom, stream):
     temp_val=InterpolateOverBox()
     temp_val.domain=Link(dom,"domain")
     temp_val.value_left_bottom_front=1.
@@ -85,8 +85,6 @@ def Test(dom):
     temp.fixed_temperature=Link(temp_val,"out")
     temp.safety_factor=0.01
     mat.temperature=Link(temp,"temperature")
-    
-    
     grav=GravityForce()
     grav.domain=Link(dom,"domain")
     grav.direction=[0.,-1.,0.]
@@ -127,10 +125,28 @@ def Test(dom):
     temp.temperature=Link(lc,"out")
     
     s=Simulation([sq,vel_constraints, temp_constraints,Simulation([vel],debug=True),temp,vis],debug=True)
-    s.writeXML()
+    s.writeXML(stream)
     s.run()
 
-Test(dom)
-dom=RectangularDomain(esys.dudley)
-dom.order=1
-Test(dom)
+class Test_Convection(unittest.TestCase):
+    def setUp(self):
+        import sys
+        self.old = sys.stdout
+        sys.stdout = StringIO.StringIO()
+    
+    def tearDown(self):
+        import sys
+        sys.stdout = self.old
+    
+    def test_order2(self):
+        dom=RectangularDomain()
+        dom.order=2
+        run(dom, sys.stdout)
+        
+    def test_order1(self):
+        dom=RectangularDomain(esys.dudley)
+        dom.order=1
+        run(dom, sys.stdout)
+
+if __name__ == '__main__':
+    run_tests(__name__, exit_on_failure=True)

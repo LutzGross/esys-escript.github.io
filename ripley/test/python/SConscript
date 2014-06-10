@@ -25,6 +25,7 @@ local_env = env.Clone()
 testruns = Glob('run_*.py', strings=True)
 
 #Add Unit Test to target alias
+local_env.PrependENVPath('PYTHONPATH', Dir('#/ripley/test/python/').abspath)
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escriptcore/test/python').abspath)
 local_env['ENV']['RIPLEY_TEST_DATA']=Dir('.').srcnode().abspath

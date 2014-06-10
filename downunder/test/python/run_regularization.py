@@ -32,7 +32,7 @@ import numpy as np
                 
 class Test_Regularizaton2D(unittest.TestCase):
     def setUp(self):
-        self.domain = esys.ripley.Rectangle(20*getMPISizeWorld()-1,20,d0=getMPISizeWorld()) # expected dimension 1mx1m
+        self.domain = esys.ripley.Rectangle(20*getMPISizeWorld()-1,20*getMPISizeWorld()-1, d0=getMPISizeWorld()) # expected dimension 1mx1m
         self.COORDINATES=CartesianReferenceSystem()
         
     def tearDown(self):
@@ -244,6 +244,7 @@ class Test_Regularizaton2D(unittest.TestCase):
         df2=reg.getValue(m2, *(reg.getArguments(m2)))
         gf2=df2-df
         self.assertTrue( abs(gf2-reg.getDualProduct(dm*[0,1], gf)) < 1e-3 * abs(gf2) )
+        
     def test_ConstantLevelSet2_WithCrossGradientHessian(self):
         x=Solution(self.domain).getX()
         
@@ -252,25 +253,23 @@ class Test_Regularizaton2D(unittest.TestCase):
                                wc=[[0,1],[0,0]],    # and cross-gradient term
                                coordinates=self.COORDINATES,
                                location_of_set_m=whereZero(x[0]-inf(x[0]))*[1,1] )
-        reg.setTradeOffFactorsForVariation([1.e-10,1.e-10])
+        reg.setTradeOffFactorsForVariation([1e-10,1e-10])
         m=x[0]*[1,0]+x[1]*x[1]*[0,1]
         
         gf=reg.getGradient(m, *(reg.getArguments(m)))
         STEP=0.001
         dm=STEP*x[0]*x[1]
-        m2=m+dm*[1,0]
-        gf2=reg.getGradient(m2, *(reg.getArguments(m2)))
 
-        p=reg.getInverseHessianApproximation(m, gf2-gf, *(reg.getArguments(m)))
-        self.assertTrue(Lsup(p[0]-dm)<= 5e-3 * Lsup(dm))
-        self.assertTrue(Lsup(p[1]) <= 5e-3 * Lsup(dm))
-        
-        m2=m+dm*[0,1]
-        gf2=reg.getGradient(m2, *(reg.getArguments(m2)))
+        for vector in [[1,0], [0,1]]:
+            m2=m+dm*vector
+            gf2=reg.getGradient(m2, *(reg.getArguments(m2)))
 
-        p=reg.getInverseHessianApproximation(m, gf2-gf, *(reg.getArguments(m)))
-        self.assertTrue(Lsup(p[1]-dm)<= 5e-3 * Lsup(dm))
-        self.assertTrue(Lsup(p[0]) <= 5e-3 * Lsup(dm))
+            p=reg.getInverseHessianApproximation(m, gf2-gf, *(reg.getArguments(m)),
+                    solve=False)
+            X = (gf2-gf)[1]
+            A = p.getCoefficient("A")
+            res = generalTensorProduct(A, grad(dm*vector), axis_offset=2)
+            self.assertLessEqual(Lsup(res-X), 5e-3 * Lsup(X))
         
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
