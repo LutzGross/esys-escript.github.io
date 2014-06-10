@@ -151,6 +151,11 @@ def runUnitTest(target, source, env):
   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
   return None
 
+def binpath(env, name=None):
+    if not name:
+        return env['bininstall']
+    return os.path.join(env['bininstall'], name)
+
 def runPyUnitTest(target, source, env): 
    time_start = time.time()
    app = str(source[0].abspath)
@@ -163,7 +168,32 @@ def runPyUnitTest(target, source, env):
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
-     app = "cd "+pn+"; "+os.path.join(env['bininstall'], "run-escript")+" -ov "+sn
+    
+     app = "cd "+pn+"; "+binpath(env, "run-escript")+" -ov "+binpath(env,
+            "../tools/testrunner.py")+" -outputfile="+os.path.join(env['build_dir'],
+            sn[:-3])+".skipped "+sn
+   print "Executing test: ",app
+   if env.Execute(app) == 0:
+      open(str(target[0]),'w').write("PASSED\n")
+   else:
+     return 1
+   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+   return None
+
+def runPyExample(target, source, env): 
+   time_start = time.time()
+   app = str(source[0].abspath)
+   pn, sn= os.path.split(app)
+   if os.name=="nt":
+       if env['usempi']:
+           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+              "FINLEY_TEST_DATA,PATH %s\pythonMPIredirect.exe %s"\
+              %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
+       else:
+           app = "cd "+ pn +" & "+sys.executable + " " + sn
+   else:
+    
+     app = "cd "+pn+"; pwd; "+binpath(env, "run-escript")+" -ov "+sn
    print "Executing test: ",app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")

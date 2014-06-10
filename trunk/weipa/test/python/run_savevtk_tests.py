@@ -23,6 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import os, math
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 from xml.dom import minidom
 from esys.escript import ContinuousFunction, Function, ReducedFunction,\
             FunctionOnBoundary, ReducedFunctionOnBoundary,\
@@ -1488,7 +1489,7 @@ class Test_Dudley_SaveVTK(Test_VTKSaver):
      self.check_vtk("tet_3D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                           data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
-
+@unittest.skipIf(getMPISizeWorld()>4, "Skipping ripley saveVTK tests since MPI size > 4")
 class Test_Ripley_SaveVTK(Test_VTKSaver):
 
   # === Ripley 2D =============================================================
@@ -1582,14 +1583,5 @@ class Test_Ripley_SaveVTK(Test_VTKSaver):
 
 
 if __name__ == '__main__':
-   import sys
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_Finley_SaveVTK))
-   suite.addTest(unittest.makeSuite(Test_Dudley_SaveVTK))
-   if getMPISizeWorld()<5:
-       suite.addTest(unittest.makeSuite(Test_Ripley_SaveVTK))
-   else:
-       print("Skipping ripley saveVTK tests since MPI size > 4")
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(1)
-
+    run_tests(__name__, exit_on_failure=True)
+    

@@ -34,10 +34,10 @@ localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_
 # all tests
 alltestruns = testruns + localtestruns
 
-# test files are just compiled - none of those in modellib yet
-#sources = Glob('test_*.py')
-#test_pyc = env.PyCompile(sources)
-#env.Alias('build_py_tests', test_pyc)
+# test files are just compiled
+sources = Glob('*.py')
+test_pyc = env.PyCompile(sources)
+env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)

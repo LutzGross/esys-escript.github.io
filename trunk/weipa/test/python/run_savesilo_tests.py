@@ -23,6 +23,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import os, math
 import esys.escriptcore.utestselect as unittest
+from esys.escriptcore.testing import *
 try:
     import Silo
     HAVE_SILO=True
@@ -127,8 +128,7 @@ class SiloReader():
                 data[v[:-5]] = self.f.GetVar(v)
         return data
 
-
-class Test_SiloSaver(unittest.TestCase):
+class SiloSaver(unittest.TestCase):
     def numericCompareL2(self, vector1, vector2):
         """
         Compares two lists of numbers using the L2 norm, returns true if they
@@ -234,8 +234,8 @@ class Test_SiloSaver(unittest.TestCase):
         out=os.path.join(WEIPA_WORKDIR, outFileBase+".silo")
         self.compareSiloFiles(out, ref)
 
-
-class Test_Finley_SaveSilo(Test_SiloSaver):
+@unittest.skipIf(not HAVE_SILO or getMPISizeWorld()>1, ("MPI size > 1" if getMPISizeWorld()>1 else "Silo module not available"))
+class Test_Finley_SaveSilo(SiloSaver):
 
   # === Finley hex 2D order 1 with contacts ===================================
 
@@ -1299,8 +1299,8 @@ class Test_Finley_SaveSilo(Test_SiloSaver):
      self.check_silo("tet_3D_macro_rboundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                                data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
-
-class Test_Dudley_SaveSilo(Test_SiloSaver):
+@unittest.skipIf(not HAVE_SILO or getMPISizeWorld()>1, ("MPI size > 1" if getMPISizeWorld()>1 else "Silo module not available"))
+class Test_Dudley_SaveSilo(SiloSaver):
 
   # === Dudley 2D =============================================================
 
@@ -1390,8 +1390,8 @@ class Test_Dudley_SaveSilo(Test_SiloSaver):
      self.check_silo("tet_3D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                            data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
-
-class Test_Ripley_SaveSilo(Test_SiloSaver):
+@unittest.skipIf(not HAVE_SILO or getMPISizeWorld()>1, ("MPI size > 1" if getMPISizeWorld()>1 else "Silo module not available"))
+class Test_Ripley_SaveSilo(SiloSaver):
 
   # === Ripley 2D =============================================================
 
@@ -1482,18 +1482,6 @@ class Test_Ripley_SaveSilo(Test_SiloSaver):
                                            data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 
-
 if __name__ == '__main__':
-    if not HAVE_SILO:
-        print("Skipping saveSilo tests since Silo module not available")
-    elif getMPISizeWorld()>1:
-        print("Skipping saveSilo tests since MPI size > 1")
-    else:
-        import sys
-        suite = unittest.TestSuite()
-        suite.addTest(unittest.makeSuite(Test_Finley_SaveSilo))
-        suite.addTest(unittest.makeSuite(Test_Dudley_SaveSilo))
-        suite.addTest(unittest.makeSuite(Test_Ripley_SaveSilo))
-        s=unittest.TextTestRunner(verbosity=2).run(suite)
-        if not s.wasSuccessful(): sys.exit(1)
+    run_tests(__name__, exit_on_failure=True)
 

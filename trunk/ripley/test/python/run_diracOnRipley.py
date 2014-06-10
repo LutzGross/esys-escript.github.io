@@ -229,6 +229,12 @@ class Test_RipleyDiracPoints(unittest.TestCase):
                 #remaining ranks must also exit, otherwise we'll lock up
                 self.assertEqual(global_result, 0, "One or more ranks failed")
 
+@unittest.skip("dummy class for testing")
+class Test_Skip(unittest.TestCase):
+    @unittest.skip("nopenopenopenop")
+    def test_RectangleInterpolation(self):
+        a = 1
+
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
 

@@ -483,7 +483,7 @@ class Regularization(CostFunction):
 
         return ArithmeticTuple(Y, X)
 
-    def getInverseHessianApproximation(self, m, r, grad_m):
+    def getInverseHessianApproximation(self, m, r, grad_m, solve=True):
         """
         """
         if self._new_mu or self._update_Hessian:
@@ -541,6 +541,8 @@ class Regularization(CostFunction):
 
         self.getPDE().resetRightHandSideCoefficients()
         self.getPDE().setValue(X=r[1], Y=r[0])
+        if not solve:
+            return self.getPDE()
         return self.getPDE().getSolution()
 
     def updateHessian(self):

@@ -419,6 +419,9 @@ env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 runPyUnitTest_builder = Builder(action = runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
 env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
 
+runPyExample_builder = Builder(action = runPyExample, suffix = '.passed', src_suffic='.py', single_source=True)
+env.Append(BUILDERS = {'RunPyExample' : runPyExample_builder});
+
 epstopdfbuilder = Builder(action = eps2pdf, suffix='.pdf', src_suffix='.eps', single_source=True)
 env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});
 

@@ -45,7 +45,7 @@ except KeyError:
 NE=20 
 RTOL=1e-8
 
-class TestCoordinates(unittest.TestCase):
+class Test_Coordinates(unittest.TestCase):
     def test_CartesianReferenceSystem(self):
          cs=CartesianReferenceSystem()
          
