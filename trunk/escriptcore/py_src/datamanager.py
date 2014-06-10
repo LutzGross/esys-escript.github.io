@@ -128,7 +128,7 @@ class DataManager(object):
 
         for name,var in list(data.items()):
             if hasattr(var, "getDomain"):
-                if self._domain==None:
+                if self._domain is None:
                     self._domain=var.getDomain()
                 elif self._domain != var.getDomain():
                     raise ValueError("addData: Data must be on the same domain!")
@@ -140,7 +140,7 @@ class DataManager(object):
         """
         Sets the domain without adding data.
         """
-        if self._domain==None:
+        if self._domain is None:
             self._domain = domain
         elif self._domain != domain:
             raise ValueError("setDomain: Domain already set!")
@@ -233,7 +233,7 @@ class DataManager(object):
         interface (VISIT).
         """
 
-        if self._domain == None:
+        if self._domain is None:
             print("Warning: DataManager.export() called but no domain set!")
             return
 
@@ -243,16 +243,16 @@ class DataManager(object):
 
         for f in self._exportformats:
             if f == self.SILO:
-                if ds == None:
+                if ds is None:
                     ds=self.__createDataset()
                 ds.saveSilo(nameprefix)
             elif f == self.VTK:
-                if ds == None:
+                if ds is None:
                     ds=self.__createDataset()
                 ds.saveVTK(nameprefix)
             elif f == self.VISIT:
                 from esys.weipa.weipacpp import visitPublishData
-                if ds == None:
+                if ds is None:
                     ds=self.__createDataset()
                 visitPublishData(ds)
             elif f == self.RESTART:

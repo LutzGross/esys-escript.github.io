@@ -235,7 +235,7 @@ class PDECoef(object):
        :raise IllegalCoefficientFunctionSpace: if unable to interpolate value
                                                to appropriate function space
        """
-       if newValue==None:
+       if newValue is None:
            newValue=escore.Data()
        elif isinstance(newValue,escore.Data):
            if not newValue.isEmpty():
@@ -544,7 +544,7 @@ class LinearProblem(object):
      Sets the system status to ``status`` if ``status`` is not present the 
      current status of the domain is used.
      """
-     if status == None:
+     if status is None:
          self.__system_status=self.getDomainStatus()
      else: 
          self.__system_status=status
@@ -566,8 +566,8 @@ class LinearProblem(object):
      :rtype: ``int``
      :raise UndefinedPDEError: if the number of equations is not specified yet
      """
-     if self.__numEquations==None:
-         if self.__numSolutions==None:
+     if self.__numEquations is None:
+         if self.__numSolutions is None:
             raise UndefinedPDEError("Number of equations is undefined. Please specify argument numEquations.")
          else:
             self.__numEquations=self.__numSolutions
@@ -581,8 +581,8 @@ class LinearProblem(object):
      :rtype: ``int``
      :raise UndefinedPDEError: if the number of unknowns is not specified yet
      """
-     if self.__numSolutions==None:
-        if self.__numEquations==None:
+     if self.__numSolutions is None:
+        if self.__numEquations is None:
             raise UndefinedPDEError("Number of solution is undefined. Please specify argument numSolutions.")
         else:
             self.__numSolutions=self.__numEquations
@@ -645,7 +645,7 @@ class LinearProblem(object):
        :type options: `SolverOptions` or ``None``
        :note: The symmetry flag of options is overwritten by the symmetry flag of the `LinearProblem`.
        """
-       if options==None:
+       if options is None:
           self.__solver_options=SolverBuddy()
        elif isinstance(options, SolverBuddy):
           self.__solver_options=options
@@ -1222,7 +1222,7 @@ class LinearProblem(object):
        Makes sure that the operator is instantiated and returns it initialized
        with zeros.
        """
-       if self.getOperatorType() == None:
+       if self.getOperatorType() is None:
            if self.isUsingLumping():
                self.__operator=self.createSolution()
            else:
@@ -1256,7 +1256,7 @@ class LinearProblem(object):
          if not self.hasCoefficient(i):
             raise IllegalCoefficient("Attempt to set unknown coefficient %s"%i)
       # if the number of unknowns or equations is still unknown we try to estimate them:
-      if self.__numEquations==None or self.__numSolutions==None:
+      if self.__numEquations is None or self.__numSolutions is None:
          for i,d in list(coefficients.items()):
             if hasattr(d,"shape"):
                 s=d.shape
@@ -1267,13 +1267,13 @@ class LinearProblem(object):
             if s!=None:
                 # get number of equations and number of unknowns:
                 res=self.__COEFFICIENTS[i].estimateNumEquationsAndNumSolutions(self.getDomain(),s)
-                if res==None:
+                if res is None:
                     raise IllegalCoefficientValue("Illegal shape %s of coefficient %s"%(s,i))
                 else:
-                    if self.__numEquations==None: self.__numEquations=res[0]
-                    if self.__numSolutions==None: self.__numSolutions=res[1]
-      if self.__numEquations==None: raise UndefinedPDEError("unidentified number of equations")
-      if self.__numSolutions==None: raise UndefinedPDEError("unidentified number of solutions")
+                    if self.__numEquations is None: self.__numEquations=res[0]
+                    if self.__numSolutions is None: self.__numSolutions=res[1]
+      if self.__numEquations is None: raise UndefinedPDEError("unidentified number of equations")
+      if self.__numSolutions is None: raise UndefinedPDEError("unidentified number of solutions")
       # now we check the shape of the coefficient if numEquations and numSolutions are set:
       for i,d in list(coefficients.items()):
         try:
@@ -2072,7 +2072,7 @@ class LinearPDE(LinearProblem):
      :return: residual of u
      :rtype: `Data`
      """
-     if u==None:
+     if u is None:
         return self.getOperator()*self.getSolution()-self.getRightHandSide()
      else:
         return self.getOperator()*escore.Data(u,self.getFunctionSpaceForSolution())-self.getRightHandSide()
@@ -2093,7 +2093,7 @@ class LinearPDE(LinearProblem):
      :return: flux
      :rtype: `Data`
      """
-     if u==None: u=self.getSolution()
+     if u is None: u=self.getSolution()
      if self.getNumEquations()>1:
        out = escore.Data(0.,(self.getNumEquations(),self.getDim()),self.getFunctionSpaceForCoefficient("X"))
      else:
@@ -2925,7 +2925,7 @@ class TransportPDE(LinearProblem):
        y_dirac=PDECoef(PDECoef.DIRACDELTA,(PDECoef.BY_EQUATION,),PDECoef.RIGHTHANDSIDE),
        r=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.RIGHTHANDSIDE),
        q=PDECoef(PDECoef.SOLUTION,(PDECoef.BY_SOLUTION,),PDECoef.BOTH) )
-     if not useBackwardEuler == None:
+     if not useBackwardEuler is None:
         import warnings
         warnings.warn("Argument useBackwardEuler has expired and will be removed in a later release. Please use SolverOptions.setODESolver() instead.", PendingDeprecationWarning, stacklevel=2)
         if useBackwardEuler: self.getSolverOptions().setODESolver(SolverOptions.BACKWARD_EULER)
@@ -3119,11 +3119,11 @@ class TransportPDE(LinearProblem):
        :return: the solution
        :rtype: `Data`
        """
-       if not dt == None:
+       if not dt is None:
           option_class=self.getSolverOptions()
           if dt<=0:
               raise ValueError("step size needs to be positive.")
-          if u0 == None:
+          if u0 is None:
               u0=self.getCurrentSolution()
           else:
               u0=util.interpolate(u0,self.getFunctionSpaceForSolution())

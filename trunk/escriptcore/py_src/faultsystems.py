@@ -108,28 +108,28 @@ class FaultSystem(object):
      :type tag: ``float`` or ``str``
      :return: the list of vertices defining the top of the fault.  The coordinates are ``numpy.array``.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__top[tag]
   def getStrikes(self, tag=None):
      """
      :return: the strike of the segements in fault ``tag``
      :rtype: ``list`` of ``float``
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__strikes[tag]
   def getStrikeVectors(self, tag=None):
      """
      :return: the strike vectors of fault ``tag``
      :rtype: ``list`` of ``numpy.array``.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__strike_vectors[tag]
   def getLengths(self, tag=None):
      """
      :return: the lengths of segments in fault ``tag``
      :rtype: ``list`` of ``float``
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__ls[tag]
 
   def getTotalLength(self, tag=None):
@@ -137,7 +137,7 @@ class FaultSystem(object):
      :return: the total unrolled length of fault ``tag``
      :rtype: ``float``
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__total_length[tag]
 
   def getMediumDepth(self,tag=None):
@@ -145,7 +145,7 @@ class FaultSystem(object):
      returns the medium depth of fault ``tag``
      :rtype: ``float``
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__medDepth[tag]
 
   def getDips(self, tag=None):
@@ -155,7 +155,7 @@ class FaultSystem(object):
      :type tag: ``float`` or ``str``
      :return: the list of segment dips. In the 2D case None is returned.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      if self.getDim()==3:
          return self.__dips[tag]
      else:
@@ -168,7 +168,7 @@ class FaultSystem(object):
      :type tag: ``float`` or ``str``
      :return: the list of vertices. In the 2D case None is returned.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      if self.getDim()==3:
          return self.__bottom[tag]
      else:
@@ -181,7 +181,7 @@ class FaultSystem(object):
      :type tag: ``float`` or ``str``
      :return: the list of vectors normal to the segments. In the 2D case None is returned.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      if self.getDim()==3:
          return self.__normals[tag]
      else:
@@ -194,7 +194,7 @@ class FaultSystem(object):
      :type tag: ``float`` or ``str``
      :return: the list of segment depths. In the 2D case None is returned.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      if self.getDim()==3:
          return self.__depth_vectors[tag]
      else:
@@ -206,7 +206,7 @@ class FaultSystem(object):
      :type tag: ``float`` or ``str``
      :return: the list of segment depths. In the 2D case None is returned.
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      if self.getDim()==3:
          return self.__depths[tag]
      else:
@@ -224,7 +224,7 @@ class FaultSystem(object):
      returns the range of the parameterization in ``w1``
      :rtype: two ``float``
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return -self.__w1_max[tag],0
 
   def getW0Offsets(self, tag=None):
@@ -234,7 +234,7 @@ class FaultSystem(object):
      :return: the offsets in the parametrization
      :rtype: ``list`` of ``float``
      """
-     if tag==None: tag=self.NOTAG
+     if tag is None: tag=self.NOTAG
      return self.__offsets[tag]
 
 
@@ -243,7 +243,7 @@ class FaultSystem(object):
       returns the center point of the fault system at the surface 
       :rtype: ``numpy.array``
       """
-      if self.__center == None:
+      if self.__center is None:
         self.__center=numpy.zeros((3,),numpy.float)
         counter=0
         for t in self.getTags():
@@ -258,7 +258,7 @@ class FaultSystem(object):
       returns the orientation of the fault system in RAD on the surface around the fault system center
       :rtype: ``float``
       """
-      if self.__orientation == None:
+      if self.__orientation is None:
           center=self.getCenterOnSurface()
           covariant=numpy.zeros((2,2))
           for t in self.getTags():
@@ -356,7 +356,7 @@ class FaultSystem(object):
      :type w1_max: ``float``
      :note: In the three dimensional case the lists ``dip`` and ``top`` must have the same length.
      """
-     if tag==None: 
+     if tag is None: 
          tag=self.NOTAG
      else:
          if self.NOTAG in self.getTags():
@@ -368,13 +368,13 @@ class FaultSystem(object):
          raise ValueError("number of strike direction and length must match.")
      if len(V0)>2:
           if abs(V0[2])>0: raise Value("start point needs to be surface (3rd component ==0)")
-     if self.getDim()==2 and not  (dips==None and depths == None) :
+     if self.getDim()==2 and not  (dips is None and depths is None) :
            raise ValueError('Spatial dimension two does not support dip and depth for faults.')
-     if not dips == None:
+     if not dips is None:
         if not isinstance(dips, list): dips=[dips for i in range(n_segs) ]
         if n_segs != len(dips):
            raise ValueError('length of dips must be one less than the length of top.')
-     if not depths == None:
+     if not depths is None:
         if not isinstance(depths, list): depths=[depths for i in range(n_segs+1) ]
         if n_segs+1 != len(depths):
            raise ValueError('length of depths must be one less than the length of top.')
@@ -450,7 +450,7 @@ class FaultSystem(object):
      #
      #   calculate offsets if required:
      #
-     if w0_offsets==None:
+     if w0_offsets is None:
         w0_offsets=[0.] 
         for  i in range(n_segs):
             if self.getDim()==3:
@@ -475,7 +475,7 @@ class FaultSystem(object):
         self.__medDepth[tag]=0.
      else:
         self.__medDepth[tag]=sum([ numpy.linalg.norm(v) for v in depth_vectors])/len(depth_vectors)
-     if w1_max==None or self.getDim()==2: w1_max=self.__medDepth[tag]
+     if w1_max is None or self.getDim()==2: w1_max=self.__medDepth[tag]
      self.__w0_max[tag]=w0_max
      self.__w1_max[tag]=w1_max
 
@@ -503,7 +503,7 @@ class FaultSystem(object):
            t_max=t
            loc_max=loc
 
-     if loc_max == None:
+     if loc_max is None:
          return None, None
      else:
          return t_max, pdt.Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_max))
@@ -532,7 +532,7 @@ class FaultSystem(object):
            t_min=t
            loc_min=loc
 
-     if loc_min == None:
+     if loc_min is None:
          return None, None
      else:
          return t_min, pdt.Locator(x.getFunctionSpace(),x.getTupleForGlobalDataPoint(*loc_min))
@@ -565,7 +565,7 @@ class FaultSystem(object):
     offsets=self.getW0Offsets(tag)
     w1_range=self.getW1Range(tag)
     w0_range=self.getW0Range(tag)[1]-self.getW0Range(tag)[0]
-    if outsider == None:
+    if outsider is None:
        outsider=min(self.getW0Range(tag)[0],self.getW0Range(tag)[1])-abs(w0_range)/es.sqrt(es.EPSILON)
         
     if isinstance(x,list): x=numpy.array(x, numpy.double)
@@ -638,7 +638,7 @@ class FaultSystem(object):
            p=h-t*q
            dist=es.length(p)
            lside=es.sign(es.inner(p,qt))
-           if d == None:
+           if d is None:
                d=dist
                side=lside
            else:
@@ -664,7 +664,7 @@ class FaultSystem(object):
             p=h-(m_ul*R+(1-m_ul)*r)*s[0]-(m_ul*D1+(1-m_ul)*D0)*s[1]
             dist=es.length(p)
             lside=es.sign(es.inner(p,ns[i]))
-            if d == None:
+            if d is None:
                d=dist
                side=lside
             else:
