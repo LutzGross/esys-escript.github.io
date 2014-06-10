@@ -13,6 +13,8 @@ def run_tests(modules):
             module = module[:-3]
         m = __import__(module)
         res = m.run_tests(module)
+        if not res.wasSuccessful():
+            sys.exit(1)
         skiplist.extend(["%s : %s"%(rearrange(str(i[0])),i[1]) for i in res.skipped])
     return skiplist
 
