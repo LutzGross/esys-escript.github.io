@@ -13,8 +13,8 @@
 *
 *****************************************************************************/
 
-#ifndef ESREDUCER_H
-#define ESREDUCER_H
+#ifndef __ESCRIPT_REDUCER_H__
+#define __ESCRIPT_REDUCER_H__
 
 #include "esysUtils/Esys_MPI.h"
 #include "escript/Data.h"
@@ -90,4 +90,6 @@ private:
 Reducer_ptr makeDataReducer(std::string type);
 
 }
-#endif
+
+#endif // __ESCRIPT_REDUCER_H__
+
