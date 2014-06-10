@@ -168,10 +168,13 @@ def runPyUnitTest(target, source, env):
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
-    
+     skipfile = os.path.join(env['build_dir'], sn[:-3]) + ".skipped"
+     try:
+         os.unlink(skipfile)
+     except Exception as e:
+        pass
      app = "cd "+pn+"; "+binpath(env, "run-escript")+" -ov "+binpath(env,
-            "../tools/testrunner.py")+" -outputfile="+os.path.join(env['build_dir'],
-            sn[:-3])+".skipped "+sn
+            "../tools/testrunner.py")+" -outputfile="+skipfile+" "+sn
    print "Executing test: ",app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")
