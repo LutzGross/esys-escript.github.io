@@ -35,7 +35,7 @@ test_pyc = env.PyCompile(alltestruns)
 env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
-local_env['ENV']['WEIPA_TEST_MESHES']=env.Dir('#/weipa/test/python')
+local_env['ENV']['WEIPA_TEST_MESHES']=env.Dir('#/weipa/test/python').abspath
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/weipa/test/python').abspath)
 local_env['ENV']['WEIPA_TEST_MESHES']=env.Dir('#/weipa/test/python/meshes').abspath
