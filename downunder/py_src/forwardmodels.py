@@ -239,11 +239,13 @@ class GravityModel(ForwardModelWithPotential):
         """
         super(GravityModel, self).__init__(domain, w, g, coordinates, fixPotentialAtBottom, tol)
 
-        if not self.getCoordinateTransformation().isCartesian():
-            self.__G = 4*PI*gravity_constant * self.getCoordinateTransformation().getVolumeFactor()*self.getCoordinateTransformation().getHeightFactor()**(-3)
+        trafo = self.getCoordinateTransformation()
+        if not trafo.isCartesian():
+            self.__G = 4*PI*gravity_constant * \
+                    trafo.getVolumeFactor() * \
+                    trafo.getReferenceSystem().getHeightUnit()**(-3)
 
-
-            fw=self.getCoordinateTransformation().getScalingFactors()**2*self.getCoordinateTransformation().getVolumeFactor()
+            fw = trafo.getScalingFactors()**2 * trafo.getVolumeFactor()
             A=self.getPDE().createCoefficient("A")
             for i in range(self.getDomain().getDim()): A[i,i]=fw[i]
             self.getPDE().setValue(A=A)
@@ -526,7 +528,7 @@ class SelfDemagnetizationModel(ForwardModelWithPotential):
         updates PDE coefficient if PDE is used with new k
         """
         pde=self.getPDE()
-        if not self.__last_k == k:
+        if self.__last_k is not k:
            A=pde.getCoefficient('A')
            if self.getCoordinateTransformation().isCartesian():
                for i in range(self.getDomain().getDim()): A[i,i]=(1+k)
