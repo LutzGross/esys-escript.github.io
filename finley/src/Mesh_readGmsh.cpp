@@ -35,16 +35,16 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
 {
     double version = 1.0;
     int format = 0, size = sizeof(double), scan_ret;
-    int numNodes, totalNumElements=0, numTags=0, numNodesPerElement=0, numNodesPerElement2, element_dim=0;
+    int numNodes, totalNumElements=0, numTags=0, numNames=0, numNodesPerElement=0, numNodesPerElement2, element_dim=0;
     int e, i0, j, gmsh_type, partition_id, itmp, elementary_id, tag_key;
     int numElements=0, numFaceElements=0, *id=NULL, *tag=NULL, *vertices=NULL;
     char line[LenString_MAX+1], name[LenString_MAX+1];
     char error_msg[LenErrorMsg_MAX];
     double rtmp0, rtmp1;
     const_ReferenceElementSet_ptr refPoints, refContactElements, refFaceElements, refElements;
-#ifdef Finley_TRACE
-    double time0=timer();
-#endif
+    #ifdef Finley_TRACE
+      double time0=timer();
+    #endif
     FILE * fileHandle_p = NULL;
     ElementTypeId* element_type=NULL;
 
@@ -73,7 +73,6 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
          if( ! fgets(line, sizeof(line), fileHandle_p) ) break;
          if(feof(fileHandle_p)) break;
        } while(line[0] != '$');
-
        if (feof(fileHandle_p)) break;
 
        /* format */
@@ -118,7 +117,6 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
        /* elements */
        else if(!strncmp(&line[1], "ELM", 3) ||
         !strncmp(&line[1], "Elements", 8)) {
-
          ElementTypeId final_element_type = NoRef;
          ElementTypeId final_face_element_type = NoRef;
          ElementTypeId contact_element_type = NoRef;
@@ -135,7 +133,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
             /* read all in */
             for(e = 0; e < totalNumElements; e++) {
               scan_ret = fscanf(fileHandle_p, "%d %d", &id[e], &gmsh_type);
-          FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
+              FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
               switch (gmsh_type) {
                   case 1:  /* line order 1 */
                       element_type[e]=Line2;
@@ -260,15 +258,15 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
              elementary_id = itmp;
            } else if (j == 2) {
              partition_id = itmp;
-                  }
+           }
            /* ignore any other tags */
-         }
-       }
+          }
+        }
               if (!noError()) break;
               for(j = 0; j < numNodesPerElement; j++) {
-        scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
-            FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
-          }
+                scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
+                FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
+              }
               /* for tet10 the last two nodes need to be swapped */
               if ((element_type[e]==Tet10) || (element_type[e]==Tet10Macro)) {
                    itmp=vertices[INDEX2(9,e,MAX_numNodes_gmsh)];
@@ -366,10 +364,11 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
       }
      /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
      else if (!strncmp(&line[1], "PhysicalNames", 13)) {
-         scan_ret = fscanf(fileHandle_p, "%d", &numTags);
-         FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
          if (! noError()) break;
-         for (i0 = 0; i0 < numTags; i0++) {
+         scan_ret = fscanf(fileHandle_p, "%d", &numNames);
+         FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
+
+         for (i0 = 0; i0 < numNames; i0++) {
             scan_ret = fscanf(fileHandle_p, "%d %d %s\n", &itmp, &tag_key, name);
             FSCANF_CHECK(scan_ret, "fscanf: Mesh_readGmsh");
             //if (! (itmp == 2)) setError(IO_ERROR,"Mesh_readGmsh: expecting two entries per physical name.");
@@ -379,6 +378,14 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
             mesh_p->addTagMap(&name[1], tag_key);
          }
       }
+
+      // else if (!strncmp(&line[1], "PhysicalNames", 13)) {
+      //   if (! noError()) break;
+      //   if( ! fgets(line, sizeof(line), fileHandle_p) ) break;
+      //   setError(IO_ERROR,"test");
+      // }
+
+
 
       /* search for end of data block */
       do {
@@ -411,7 +418,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
         return NULL;
     }
     return mesh_p;
-}
+  }
 
 } // namespace finley
 
