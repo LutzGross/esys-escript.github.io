@@ -45,16 +45,17 @@ void SparseMatrix_MatrixVector_CSC_OFFSET0(double alpha,
                                            const double* in,
                                            double beta, double* out)
 {
+    const int totalRowSize = A->numRows * A->row_block_size;
     if (std::abs(beta) > 0) {
         if (beta != 1.) {
 #pragma omp parallel for schedule(static)
-            for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++) {
+            for (index_t irow=0; irow < totalRowSize; irow++) {
                 out[irow] *= beta;
             }
         }
     } else {
 #pragma omp parallel for schedule(static)
-        for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++) {
+        for (index_t irow=0; irow < totalRowSize; irow++) {
             out[irow] = 0;
         }
     }
@@ -120,16 +121,17 @@ void SparseMatrix_MatrixVector_CSC_OFFSET1(double alpha,
                                            const double* in,
                                            double beta, double* out)
 {
+    const int totalRowSize = A->numRows * A->row_block_size;
     if (std::abs(beta) > 0) {
         if (beta != 1.) {
 #pragma omp parallel for schedule(static)
-            for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++) {
+            for (index_t irow=0; irow < totalRowSize; irow++) {
                 out[irow] *= beta;
             }
         }
     } else {
 #pragma omp parallel for schedule(static)
-        for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++) {
+        for (index_t irow=0; irow < totalRowSize; irow++) {
             out[irow] = 0;
         }
     }
@@ -191,24 +193,26 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
                                            const double* in,
                                            double beta, double* out)
 {
+    const int totalRowSize = A->numRows * A->row_block_size;
     if (std::abs(beta) > 0) {
         if (beta != 1.) {
 #pragma omp parallel for schedule(static)
-            for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++) {
+            for (index_t irow=0; irow < totalRowSize; irow++) {
                 out[irow] *= beta;
             }
         }
     } else {
 #pragma omp parallel for schedule(static)
-        for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++) {
+        for (index_t irow=0; irow < totalRowSize; irow++) {
             out[irow] = 0;
         }
     }
 
     if (std::abs(alpha) > 0) {
+        const int nRows = A->pattern->numOutput;
         if (A->col_block_size==1 && A->row_block_size==1) {
 #pragma omp parallel for schedule(static)
-            for (index_t irow=0; irow < A->pattern->numOutput; irow++) {
+            for (index_t irow=0; irow < nRows; irow++) {
                 double reg=0.;
                 #pragma ivdep
                 for (index_t iptr=A->pattern->ptr[irow]-1;
@@ -219,7 +223,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
             }
         } else if (A->col_block_size==2 && A->row_block_size==2) {
 #pragma omp parallel for schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 double reg1=0.;
                 double reg2=0.;
                 #pragma ivdep
@@ -234,7 +238,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
             }
         } else if (A->col_block_size==3 && A->row_block_size==3) {
 #pragma omp parallel for  schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 double reg1=0.;
                 double reg2=0.;
                 double reg3=0.;
@@ -252,7 +256,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET1(double alpha,
             }
         } else {
 #pragma omp parallel for schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 for (index_t iptr=A->pattern->ptr[ir]-1;
                         iptr < A->pattern->ptr[ir+1]-1; iptr++) {
                     for (index_t irb=0; irb < A->row_block_size; irb++) {
@@ -282,9 +286,9 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0(double alpha,
 #define USE_DYNAMIC_SCHEDULING
 #endif
 
-    const dim_t nrow=A->numRows;
-    const dim_t np=omp_get_max_threads();
-    const dim_t len=nrow/np;
+    const dim_t nrow = A->numRows;
+    const dim_t np = omp_get_max_threads();
+    const dim_t len = nrow/np;
 
 #ifdef USE_DYNAMIC_SCHEDULING
     dim_t chunk_size=1;
@@ -420,22 +424,24 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(double alpha,
                                                 const double* in,
                                                 double beta, double* out)
 {
+    const int totalRowSize = A->numRows * A->row_block_size;
     if (std::abs(beta) > 0) {
         if (beta != 1.) {
 #pragma omp parallel for schedule(static)
-            for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++)
+            for (index_t irow=0; irow < totalRowSize; irow++)
                 out[irow] *= beta;
         }
     } else {
 #pragma omp parallel for schedule(static)
-        for (index_t irow=0; irow < A->numRows*A->row_block_size; irow++)
+        for (index_t irow=0; irow < totalRowSize; irow++)
             out[irow] = 0;
     }
 
     if (std::abs(alpha) > 0) {
+        const int nRows = A->pattern->numOutput;
         if (A->block_size == 1) {
 #pragma omp parallel for schedule(static)
-            for (index_t irow=0; irow < A->pattern->numOutput; irow++) {
+            for (index_t irow=0; irow < nRows; irow++) {
                 double reg=0.;
                 #pragma ivdep
                 for (index_t iptr=A->pattern->ptr[irow];
@@ -446,7 +452,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(double alpha,
             }
         } else if (A->block_size == 2) {
 #pragma omp parallel for schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 double reg1=0.;
                 double reg2=0.;
                 #pragma ivdep
@@ -461,7 +467,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(double alpha,
             }
         } else if (A->block_size == 3) {
 #pragma omp parallel for schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 double reg1=0.;
                 double reg2=0.;
                 double reg3=0.;
@@ -479,7 +485,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(double alpha,
             }
         } else if (A->block_size == 4) {
 #pragma omp parallel for schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 double reg1=0.;
                 double reg2=0.;
                 double reg3=0.;
@@ -500,7 +506,7 @@ void SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(double alpha,
             }
         } else { // blocksize > 4
 #pragma omp parallel for schedule(static)
-            for (index_t ir=0; ir < A->pattern->numOutput; ir++) {
+            for (index_t ir=0; ir < nRows; ir++) {
                 for (index_t iptr=A->pattern->ptr[ir];
                         iptr < A->pattern->ptr[ir+1]; iptr++) {
                     for (index_t ib=0; ib < A->block_size; ib++) {

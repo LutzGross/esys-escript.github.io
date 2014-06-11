@@ -16,10 +16,10 @@
 
 // Adapted from FunctionSpaceException.h
 
-#if !defined  escript_SplitWorldException_H
-#define escript_SplitWorldException_H
-#include "system_dep.h"
+#ifndef  __ESCRIPT_SPLITWORLDEXCEPTION_H__
+#define  __ESCRIPT_SPLITWORLDEXCEPTION_H__
 
+#include "system_dep.h"
 #include "esysUtils/EsysException.h"
 
 namespace escript
@@ -88,7 +88,7 @@ namespace escript
     Returns the name of the exception.
     */
     ESCRIPT_DLL_API
-    virtual const std::string & exceptionName() const;
+    virtual const std::string& exceptionName() const;
 
   private:
 
@@ -100,4 +100,6 @@ namespace escript
   };
 
 } // end of namespace
-#endif
+
+#endif //  __ESCRIPT_SPLITWORLDEXCEPTION_H__
+
