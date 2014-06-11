@@ -48,12 +48,13 @@ struct NodeMapping {
         // now we assume min(target)=0!
         const int numTargets = range.first<=range.second ? range.second+1 : 0;
         target.assign(theTarget.begin(), theTarget.end());
+        const int targetSize = target.size();
         map.assign(numTargets, -1);
 
 #pragma omp parallel
         {
 #pragma omp for
-            for (int i=0; i<target.size(); ++i) {
+            for (int i=0; i<targetSize; ++i) {
                 if (target[i] != unused)
                     map[target[i]]=i;
             }
