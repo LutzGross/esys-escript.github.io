@@ -1546,12 +1546,15 @@ void Rectangle::populateSampleIds()
     else
         m_faceCount[3]=0;
 
-    m_faceId.resize(getNumFaceElements());
+    const dim_t NFE = getNumFaceElements();
+    m_faceId.resize(NFE);
 
     const index_t left = (m_offset[0]==0 ? 0 : 1);
     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
 
 #define globalNodeId(x,y) \
     ((m_offset[0]+x)/nDOF0)*nDOF0*nDOF1+(m_offset[0]+x)%nDOF0 \
@@ -1617,15 +1620,15 @@ void Rectangle::populateSampleIds()
 
         // populate element id's
 #pragma omp for nowait
-        for (dim_t i1=0; i1<m_NE[1]; i1++) {
-            for (dim_t i0=0; i0<m_NE[0]; i0++) {
-                m_elementId[i0+i1*m_NE[0]]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
+        for (dim_t i1=0; i1<NE1; i1++) {
+            for (dim_t i0=0; i0<NE0; i0++) {
+                m_elementId[i0+i1*NE0]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
             }
         }
 
         // face elements
 #pragma omp for
-        for (dim_t k=0; k<getNumFaceElements(); k++)
+        for (dim_t k=0; k<NFE; k++)
             m_faceId[k]=k;
     } // end parallel section
 
