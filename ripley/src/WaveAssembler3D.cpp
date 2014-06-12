@@ -39,15 +39,17 @@ void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
 }
 
 
-WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
-            const dim_t *m_NE, const dim_t *m_NN, std::map<std::string, escript::Data> c)
-            : AbstractAssembler()
+WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
+                                 const double *dx, const dim_t *NX,
+                                 const dim_t *NE, const dim_t *NN,
+                                 std::map<std::string, escript::Data> c)
+    : AbstractAssembler(),
+    m_dx(dx),
+    m_NX(NX),
+    m_NE(NE),
+    m_NN(NN)
 {
         domain = boost::static_pointer_cast<const Brick>(dom);
-        this->m_dx = m_dx;
-        this->m_NX = m_NX;
-        this->m_NE = m_NE;
-        this->m_NN = m_NN;
         isHTI = isVTI = false;
         std::map<std::string, escript::Data>::iterator a = c.find("c12"),
                                                        b = c.find("c23");
@@ -162,20 +164,23 @@ void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     const double w14 = w27*(-SQRT3 - 2);
     const double w28 = w27*(-4*SQRT3 + 7);
     const double w29 = w27*(4*SQRT3 + 7);
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-            for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                for (index_t k1=0; k1<m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                for (index_t k1=0; k1<NE1; ++k1) {
+                    for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = k0 + m_NE[0]*k1 + m_NE[0]*m_NE[1]*k2;
+                        const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
                         ///////////////
