@@ -817,18 +817,22 @@ void Brick::dump(const string& fileName) const
     boost::scoped_ptr<double> y(new double[m_NN[1]]);
     boost::scoped_ptr<double> z(new double[m_NN[2]]);
     double* coords[3] = { x.get(), y.get(), z.get() };
+    const int NN0 = m_NN[0];
+    const int NN1 = m_NN[1];
+    const int NN2 = m_NN[2];
+
 #pragma omp parallel
     {
 #pragma omp for
-        for (dim_t i0 = 0; i0 < m_NN[0]; i0++) {
+        for (dim_t i0 = 0; i0 < NN0; i0++) {
             coords[0][i0]=getLocalCoordinate(i0, 0);
         }
 #pragma omp for
-        for (dim_t i1 = 0; i1 < m_NN[1]; i1++) {
+        for (dim_t i1 = 0; i1 < NN1; i1++) {
             coords[1][i1]=getLocalCoordinate(i1, 1);
         }
 #pragma omp for
-        for (dim_t i2 = 0; i2 < m_NN[2]; i2++) {
+        for (dim_t i2 = 0; i2 < NN2; i2++) {
             coords[2][i2]=getLocalCoordinate(i2, 2);
         }
     }
@@ -979,14 +983,18 @@ bool Brick::ownSample(int fsType, index_t id) const
 
 void Brick::setToNormal(escript::Data& out) const
 {
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
+
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < NE1; ++k1) {
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
                         // set vector at four quadrature points
                         *o++ = -1.; *o++ = 0.; *o++ = 0.;
@@ -999,8 +1007,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < NE1; ++k1) {
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
                         // set vector at four quadrature points
                         *o++ = 1.; *o++ = 0.; *o++ = 0.;
@@ -1013,8 +1021,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
                         // set vector at four quadrature points
                         *o++ = 0.; *o++ = -1.; *o++ = 0.;
@@ -1027,8 +1035,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
                         // set vector at four quadrature points
                         *o++ = 0.; *o++ = 1.; *o++ = 0.;
@@ -1041,8 +1049,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
                         // set vector at four quadrature points
                         *o++ = 0.; *o++ = 0.; *o++ = -1.;
@@ -1055,8 +1063,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
                         // set vector at four quadrature points
                         *o++ = 0.; *o++ = 0.; *o++ = 1.;
@@ -1073,8 +1081,8 @@ void Brick::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < NE1; ++k1) {
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
                         *o++ = -1.;
                         *o++ = 0.;
@@ -1085,8 +1093,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < NE1; ++k1) {
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
                         *o++ = 1.;
                         *o++ = 0.;
@@ -1097,8 +1105,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
                         *o++ = 0.;
                         *o++ = -1.;
@@ -1109,8 +1117,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
                         *o++ = 0.;
                         *o++ = 1.;
@@ -1121,8 +1129,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
                         *o++ = 0.;
                         *o++ = 0.;
@@ -1133,8 +1141,8 @@ void Brick::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
                         *o++ = 0.;
                         *o++ = 0.;
@@ -1159,8 +1167,9 @@ void Brick::setToSize(escript::Data& out) const
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
         const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]+m_dx[2]*m_dx[2]);
+        const int NE = getNumElements();
 #pragma omp parallel for
-        for (index_t k = 0; k < getNumElements(); ++k) {
+        for (index_t k = 0; k < NE; ++k) {
             double* o = out.getSampleDataRW(k);
             fill(o, o+numQuad, size);
         }
@@ -1168,13 +1177,16 @@ void Brick::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
+        const int NE0 = m_NE[0];
+        const int NE1 = m_NE[1];
+        const int NE2 = m_NE[2];
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
                 const double size=min(m_dx[1],m_dx[2]);
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < NE1; ++k1) {
                         double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
                         fill(o, o+numQuad, size);
                     }
@@ -1184,8 +1196,8 @@ void Brick::setToSize(escript::Data& out) const
             if (m_faceOffset[1] > -1) {
                 const double size=min(m_dx[1],m_dx[2]);
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k1 = 0; k1 < NE1; ++k1) {
                         double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
                         fill(o, o+numQuad, size);
                     }
@@ -1195,8 +1207,8 @@ void Brick::setToSize(escript::Data& out) const
             if (m_faceOffset[2] > -1) {
                 const double size=min(m_dx[0],m_dx[2]);
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
                         fill(o, o+numQuad, size);
                     }
@@ -1206,8 +1218,8 @@ void Brick::setToSize(escript::Data& out) const
             if (m_faceOffset[3] > -1) {
                 const double size=min(m_dx[0],m_dx[2]);
 #pragma omp for nowait
-                for (index_t k2 = 0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2 = 0; k2 < NE2; ++k2) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
                         fill(o, o+numQuad, size);
                     }
@@ -1217,8 +1229,8 @@ void Brick::setToSize(escript::Data& out) const
             if (m_faceOffset[4] > -1) {
                 const double size=min(m_dx[0],m_dx[1]);
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
                         fill(o, o+numQuad, size);
                     }
@@ -1228,8 +1240,8 @@ void Brick::setToSize(escript::Data& out) const
             if (m_faceOffset[5] > -1) {
                 const double size=min(m_dx[0],m_dx[1]);
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
+                    for (index_t k0 = 0; k0 < NE0; ++k0) {
                         double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
                         fill(o, o+numQuad, size);
                     }
@@ -1272,12 +1284,15 @@ void Brick::assembleCoordinates(escript::Data& arg) const
     if (!numSamplesEqual(&x, 1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
+    const int NN0 = m_NN[0];
+    const int NN1 = m_NN[1];
+    const int NN2 = m_NN[2];
     arg.requireWrite();
 #pragma omp parallel for
-    for (dim_t i2 = 0; i2 < m_NN[2]; i2++) {
-        for (dim_t i1 = 0; i1 < m_NN[1]; i1++) {
-            for (dim_t i0 = 0; i0 < m_NN[0]; i0++) {
-                double* point = arg.getSampleDataRW(i0+m_NN[0]*i1+m_NN[0]*m_NN[1]*i2);
+    for (dim_t i2 = 0; i2 < NN2; i2++) {
+        for (dim_t i1 = 0; i1 < NN1; i1++) {
+            for (dim_t i0 = 0; i0 < NN0; i0++) {
+                double* point = arg.getSampleDataRW(i0+NN0*i1+NN0*NN1*i2);
                 point[0] = getLocalCoordinate(i0, 0);
                 point[1] = getLocalCoordinate(i1, 1);
                 point[2] = getLocalCoordinate(i2, 2);
@@ -1297,6 +1312,9 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
     const double C4 = .5;
     const double C5 = .62200846792814621559;
     const double C6 = .78867513459481288225;
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
@@ -1311,9 +1329,9 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             vector<double> f_110(numComp);
             vector<double> f_111(numComp);
 #pragma omp for
-            for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+            for (index_t k2=0; k2 < NE2; ++k2) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1322,7 +1340,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
+                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_100[i]-f_000[i])*C5 + (f_111[i]-f_011[i])*C0 + (f_101[i]+f_110[i]-f_001[i]-f_010[i])*C1) / m_dx[0];
                             const double V1=((f_110[i]-f_010[i])*C5 + (f_101[i]-f_001[i])*C0 + (f_100[i]+f_111[i]-f_000[i]-f_011[i])*C1) / m_dx[0];
@@ -1378,9 +1396,9 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             vector<double> f_110(numComp);
             vector<double> f_111(numComp);
 #pragma omp for
-            for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+            for (index_t k2=0; k2 < NE2; ++k2) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1389,7 +1407,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,m_NE[0],m_NE[1]));
+                        double* o = out.getSampleDataRW(INDEX3(k0,k1,k2,NE0,NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
@@ -1413,8 +1431,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             vector<double> f_111(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k1=0; k1 < NE1; ++k1) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1423,7 +1441,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
+                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_010[i]-f_000[i])*C6 + (f_011[i]-f_001[i])*C2) / m_dx[1];
                             const double V1=((f_010[i]-f_000[i])*C2 + (f_011[i]-f_001[i])*C6) / m_dx[1];
@@ -1447,8 +1465,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k1=0; k1 < NE1; ++k1) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1457,7 +1475,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
+                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_110[i]-f_100[i])*C6 + (f_111[i]-f_101[i])*C2) / m_dx[1];
                             const double V1=((f_110[i]-f_100[i])*C2 + (f_111[i]-f_101[i])*C6) / m_dx[1];
@@ -1481,8 +1499,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1491,7 +1509,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_100[i]-f_000[i])*C6 + (f_101[i]-f_001[i])*C2) / m_dx[0];
                             const double V1=((f_001[i]-f_000[i])*C6 + (f_101[i]-f_100[i])*C2) / m_dx[2];
@@ -1514,8 +1532,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1524,7 +1542,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_110[i]-f_010[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
                             const double V1=((f_110[i]-f_010[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
@@ -1548,8 +1566,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 3
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1558,7 +1576,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_100[i]-f_000[i])*C6 + (f_110[i]-f_010[i])*C2) / m_dx[0];
                             const double V1=((f_100[i]-f_000[i])*C2 + (f_110[i]-f_010[i])*C6) / m_dx[0];
@@ -1582,8 +1600,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 4
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1592,7 +1610,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             const double V0=((f_101[i]-f_001[i])*C6 + (f_111[i]-f_011[i])*C2) / m_dx[0];
                             const double V1=((f_101[i]-f_001[i])*C2 + (f_111[i]-f_011[i])*C6) / m_dx[0];
@@ -1629,8 +1647,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             vector<double> f_111(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k1=0; k1 < NE1; ++k1) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(0,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(0,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(0,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1639,7 +1657,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
+                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]-f_000[i]-f_001[i])*C4 / m_dx[1];
@@ -1650,8 +1668,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k1=0; k1 < NE1; ++k1) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(m_NN[0]-2,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1660,7 +1678,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(m_NN[0]-1,k1+1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
+                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,NE1));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_010[i]-f_011[i])*C3 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_110[i]+f_111[i]-f_100[i]-f_101[i])*C4 / m_dx[1];
@@ -1671,8 +1689,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,0,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1681,7 +1699,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,0,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_101[i]-f_000[i]-f_001[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
@@ -1692,8 +1710,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k2=0; k2 < m_NE[2]; ++k2) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k2=0; k2 < NE2; ++k2) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1702,7 +1720,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-2,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,m_NN[1]-1,k2+1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_110[i]+f_111[i]-f_010[i]-f_011[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_011[i]+f_110[i]+f_111[i]-f_000[i]-f_001[i]-f_100[i]-f_101[i])*C3 / m_dx[1];
@@ -1713,8 +1731,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 3
             if (m_faceOffset[4] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1723,7 +1741,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,0, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_100[i]+f_110[i]-f_000[i]-f_010[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_010[i]+f_110[i]-f_000[i]-f_100[i])*C4 / m_dx[1];
@@ -1734,8 +1752,8 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
             } // end of face 4
             if (m_faceOffset[5] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
+                    for (index_t k0=0; k0 < NE0; ++k0) {
                         memcpy(&f_000[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_001[0], in.getSampleDataRO(INDEX3(k0,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_010[0], in.getSampleDataRO(INDEX3(k0,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
@@ -1744,7 +1762,7 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
                         memcpy(&f_101[0], in.getSampleDataRO(INDEX3(k0+1,k1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_110[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-2, m_NN[0],m_NN[1])), numComp*sizeof(double));
                         memcpy(&f_111[0], in.getSampleDataRO(INDEX3(k0+1,k1+1,m_NN[2]-1, m_NN[0],m_NN[1])), numComp*sizeof(double));
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
+                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,NE0));
                         for (index_t i=0; i < numComp; ++i) {
                             o[INDEX3(i,0,0,numComp,3)] = (f_101[i]+f_111[i]-f_001[i]-f_011[i])*C4 / m_dx[0];
                             o[INDEX3(i,1,0,numComp,3)] = (f_011[i]+f_111[i]-f_001[i]-f_101[i])*C4 / m_dx[1];
@@ -2079,11 +2097,12 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     coupler->startCollect(in.getDataRO());
 
     const dim_t numDOF = getNumDOF();
+    const dim_t numNodes = getNumNodes();
     out.requireWrite();
     const double* buffer = coupler->finishCollect();
 
 #pragma omp parallel for
-    for (index_t i=0; i<getNumNodes(); i++) {
+    for (index_t i=0; i<numNodes; i++) {
         const double* src=(m_dofMap[i]<numDOF ?
                 in.getSampleDataRO(m_dofMap[i])
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
@@ -2158,6 +2177,9 @@ void Brick::populateSampleIds()
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    const dim_t NN2 = m_NN[2];
 
     // the following is a compromise between efficiency and code length to
     // set the node id's according to the order mentioned above.
@@ -2176,27 +2198,27 @@ void Brick::populateSampleIds()
         // set edge id's
         // edges in x-direction, including corners
 #pragma omp for nowait
-        for (dim_t i=0; i<m_NN[0]; i++) {
+        for (dim_t i=0; i<NN0; i++) {
             m_nodeId[i] = globalNodeId(i, 0, 0); // LF
-            m_nodeId[m_NN[0]*(m_NN[1]-1)+i] = globalNodeId(i, m_NN[1]-1, 0); // UF
-            m_nodeId[m_NN[0]*m_NN[1]*(m_NN[2]-1)+i] = globalNodeId(i, 0, m_NN[2]-1); // LB
-            m_nodeId[m_NN[0]*m_NN[1]*m_NN[2]-m_NN[0]+i] = globalNodeId(i, m_NN[1]-1, m_NN[2]-1); // UB
+            m_nodeId[NN0*(NN1-1)+i] = globalNodeId(i, NN1-1, 0); // UF
+            m_nodeId[NN0*NN1*(NN2-1)+i] = globalNodeId(i, 0, NN2-1); // LB
+            m_nodeId[NN0*NN1*NN2-NN0+i] = globalNodeId(i, NN1-1, NN2-1); // UB
         }
         // edges in y-direction, without corners
 #pragma omp for nowait
-        for (dim_t i=1; i<m_NN[1]-1; i++) {
-            m_nodeId[m_NN[0]*i] = globalNodeId(0, i, 0); // FL
-            m_nodeId[m_NN[0]*(i+1)-1] = globalNodeId(m_NN[0]-1, i, 0); // FR
-            m_nodeId[m_NN[0]*m_NN[1]*(m_NN[2]-1)+m_NN[0]*i] = globalNodeId(0, i, m_NN[2]-1); // BL
-            m_nodeId[m_NN[0]*m_NN[1]*(m_NN[2]-1)+m_NN[0]*(i+1)-1] = globalNodeId(m_NN[0]-1, i, m_NN[2]-1); // BR
+        for (dim_t i=1; i<NN1-1; i++) {
+            m_nodeId[NN0*i] = globalNodeId(0, i, 0); // FL
+            m_nodeId[NN0*(i+1)-1] = globalNodeId(NN0-1, i, 0); // FR
+            m_nodeId[NN0*NN1*(NN2-1)+NN0*i] = globalNodeId(0, i, NN2-1); // BL
+            m_nodeId[NN0*NN1*(NN2-1)+NN0*(i+1)-1] = globalNodeId(NN0-1, i, NN2-1); // BR
         }
         // edges in z-direction, without corners
 #pragma omp for
-        for (dim_t i=1; i<m_NN[2]-1; i++) {
-            m_nodeId[m_NN[0]*m_NN[1]*i] = globalNodeId(0, 0, i); // LL
-            m_nodeId[m_NN[0]*m_NN[1]*i+m_NN[0]-1] = globalNodeId(m_NN[0]-1, 0, i); // LR
-            m_nodeId[m_NN[0]*m_NN[1]*(i+1)-m_NN[0]] = globalNodeId(0, m_NN[1]-1, i); // UL
-            m_nodeId[m_NN[0]*m_NN[1]*(i+1)-1] = globalNodeId(m_NN[0]-1, m_NN[1]-1, i); // UR
+        for (dim_t i=1; i<NN2-1; i++) {
+            m_nodeId[NN0*NN1*i] = globalNodeId(0, 0, i); // LL
+            m_nodeId[NN0*NN1*i+NN0-1] = globalNodeId(NN0-1, 0, i); // LR
+            m_nodeId[NN0*NN1*(i+1)-NN0] = globalNodeId(0, NN1-1, i); // UL
+            m_nodeId[NN0*NN1*(i+1)-1] = globalNodeId(NN0-1, NN1-1, i); // UR
         }
         // implicit barrier here because some node IDs will be overwritten
         // below
@@ -2206,7 +2228,7 @@ void Brick::populateSampleIds()
         for (dim_t i=0; i<nDOF2; i++) {
             for (dim_t j=0; j<nDOF1; j++) {
                 for (dim_t k=0; k<nDOF0; k++) {
-                    const index_t nodeIdx=k+left+(j+bottom)*m_NN[0]+(i+front)*m_NN[0]*m_NN[1];
+                    const index_t nodeIdx=k+left+(j+bottom)*NN0+(i+front)*NN0*NN1;
                     const index_t dofIdx=k+j*nDOF0+i*nDOF0*nDOF1;
                     m_dofId[dofIdx] = m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank]+dofIdx;
@@ -2219,7 +2241,7 @@ void Brick::populateSampleIds()
 #pragma omp for nowait
             for (dim_t i=0; i<nDOF2; i++) {
                 for (dim_t j=0; j<nDOF1; j++) {
-                    const index_t nodeIdx=(j+bottom)*m_NN[0]+(i+front)*m_NN[0]*m_NN[1];
+                    const index_t nodeIdx=(j+bottom)*NN0+(i+front)*NN0*NN1;
                     const index_t dofId=(j+1)*nDOF0-1+i*nDOF0*nDOF1;
                     m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank-1]+dofId;
@@ -2230,7 +2252,7 @@ void Brick::populateSampleIds()
 #pragma omp for nowait
             for (dim_t i=0; i<nDOF2; i++) {
                 for (dim_t j=0; j<nDOF1; j++) {
-                    const index_t nodeIdx=(j+bottom+1)*m_NN[0]-1+(i+front)*m_NN[0]*m_NN[1];
+                    const index_t nodeIdx=(j+bottom+1)*NN0-1+(i+front)*NN0*NN1;
                     const index_t dofId=j*nDOF0+i*nDOF0*nDOF1;
                     m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank+1]+dofId;
@@ -2241,7 +2263,7 @@ void Brick::populateSampleIds()
 #pragma omp for nowait
             for (dim_t i=0; i<nDOF2; i++) {
                 for (dim_t k=0; k<nDOF0; k++) {
-                    const index_t nodeIdx=k+left+(i+front)*m_NN[0]*m_NN[1];
+                    const index_t nodeIdx=k+left+(i+front)*NN0*NN1;
                     const index_t dofId=nDOF0*(nDOF1-1)+k+i*nDOF0*nDOF1;
                     m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank-m_NX[0]]+dofId;
@@ -2252,7 +2274,7 @@ void Brick::populateSampleIds()
 #pragma omp for nowait
             for (dim_t i=0; i<nDOF2; i++) {
                 for (dim_t k=0; k<nDOF0; k++) {
-                    const index_t nodeIdx=k+left+(i+front)*m_NN[0]*m_NN[1]+m_NN[0]*(m_NN[1]-1);
+                    const index_t nodeIdx=k+left+(i+front)*NN0*NN1+NN0*(NN1-1);
                     const index_t dofId=k+i*nDOF0*nDOF1;
                     m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank+m_NX[0]]+dofId;
@@ -2263,7 +2285,7 @@ void Brick::populateSampleIds()
 #pragma omp for nowait
             for (dim_t j=0; j<nDOF1; j++) {
                 for (dim_t k=0; k<nDOF0; k++) {
-                    const index_t nodeIdx=k+left+(j+bottom)*m_NN[0];
+                    const index_t nodeIdx=k+left+(j+bottom)*NN0;
                     const index_t dofId=k+j*nDOF0+nDOF0*nDOF1*(nDOF2-1);
                     m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank-m_NX[0]*m_NX[1]]+dofId;
@@ -2274,7 +2296,7 @@ void Brick::populateSampleIds()
 #pragma omp for nowait
             for (dim_t j=0; j<nDOF1; j++) {
                 for (dim_t k=0; k<nDOF0; k++) {
-                    const index_t nodeIdx=k+left+(j+bottom)*m_NN[0]+m_NN[0]*m_NN[1]*(m_NN[2]-1);
+                    const index_t nodeIdx=k+left+(j+bottom)*NN0+NN0*NN1*(NN2-1);
                     const index_t dofId=k+j*nDOF0;
                     m_nodeId[nodeIdx]
                         = m_nodeDistribution[m_mpiInfo->rank+m_NX[0]*m_NX[1]]+dofId;
