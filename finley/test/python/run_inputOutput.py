@@ -155,7 +155,14 @@ class Test_InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('tag2'),2,'error with tag2')
         self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
         self.assertRaises(RuntimeError, dom.getTag, 'tag4')
-        
+     
+     def test_gmshNamedTags(self):
+        dom=ReadGmsh(os.path.join(FINLEY_TEST_MESH_PATH, "test_Add.msh"),3)
+        sigma = Scalar(0,Function(dom))
+        sigma.expand()
+        sigma.setTaggedValue("v5",10)
+        self.assertEqual(Lsup(sigma),10.0,"Named value not set properly")
+
      def test_flyTags(self):
         dom=ReadMesh(os.path.join(FINLEY_TEST_MESH_PATH, "rectangle_8x10.fly"))
         tags=sorted(dom.showTagNames().split(', '))
