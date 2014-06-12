@@ -2169,7 +2169,8 @@ void Brick::populateSampleIds()
     else
         m_faceCount[5]=0;
 
-    m_faceId.resize(getNumFaceElements());
+    const dim_t NFE = getNumFaceElements();
+    m_faceId.resize(NFE);
 
     const index_t left = (m_offset[0]==0 ? 0 : 1);
     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
@@ -2180,6 +2181,9 @@ void Brick::populateSampleIds()
     const dim_t NN0 = m_NN[0];
     const dim_t NN1 = m_NN[1];
     const dim_t NN2 = m_NN[2];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
+    const dim_t NE2 = m_NE[2];
 
     // the following is a compromise between efficiency and code length to
     // set the node id's according to the order mentioned above.
@@ -2306,10 +2310,10 @@ void Brick::populateSampleIds()
 
         // populate element id's
 #pragma omp for nowait
-        for (dim_t i2=0; i2<m_NE[2]; i2++) {
-            for (dim_t i1=0; i1<m_NE[1]; i1++) {
-                for (dim_t i0=0; i0<m_NE[0]; i0++) {
-                    m_elementId[i0+i1*m_NE[0]+i2*m_NE[0]*m_NE[1]] =
+        for (dim_t i2=0; i2<NE2; i2++) {
+            for (dim_t i1=0; i1<NE1; i1++) {
+                for (dim_t i0=0; i0<NE0; i0++) {
+                    m_elementId[i0+i1*NE0+i2*NE0*NE1] =
                         (m_offset[2]+i2)*m_gNE[0]*m_gNE[1]
                         +(m_offset[1]+i1)*m_gNE[0]
                         +m_offset[0]+i0;
@@ -2319,7 +2323,7 @@ void Brick::populateSampleIds()
 
         // face elements
 #pragma omp for
-        for (dim_t k=0; k<getNumFaceElements(); k++)
+        for (dim_t k=0; k<NFE; k++)
             m_faceId[k]=k;
     } // end parallel section
 
