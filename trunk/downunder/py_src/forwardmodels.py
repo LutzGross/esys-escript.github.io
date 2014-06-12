@@ -241,9 +241,8 @@ class GravityModel(ForwardModelWithPotential):
 
         trafo = self.getCoordinateTransformation()
         if not trafo.isCartesian():
-            self.__G = 4*PI*gravity_constant * \
-                    trafo.getVolumeFactor() * \
-                    trafo.getReferenceSystem().getHeightUnit()**(-3)
+            self.__G = 4*PI*gravity_constant * trafo.getVolumeFactor()
+                    #* trafo.getReferenceSystem().getHeightUnit()**(-3)
 
             fw = trafo.getScalingFactors()**2 * trafo.getVolumeFactor()
             A=self.getPDE().createCoefficient("A")
