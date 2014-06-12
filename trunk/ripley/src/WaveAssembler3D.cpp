@@ -17,8 +17,6 @@
 #include <fenv.h>
 #include <ripley/domainhelpers.h>
 
-using namespace std;
-
 namespace ripley {
 
 void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
@@ -75,7 +73,7 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
 }
 
 void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+            escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
@@ -178,8 +176,8 @@ void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                     for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
+                        std::vector<double> EM_S(8*8*numEq*numComp, 0);
+                        std::vector<double> EM_F(8*numEq, 0);
                         const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
@@ -2122,9 +2120,6 @@ X_22_4 = -(c13_p[4]*du_p[INDEX3(0,0,4,numEq,3)] + c23_p[4]*du_p[INDEX3(1,1,4,num
 X_22_5 = -(c13_p[5]*du_p[INDEX3(0,0,5,numEq,3)] + c23_p[5]*du_p[INDEX3(1,1,5,numEq,3)] + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
 X_22_6 = -(c13_p[6]*du_p[INDEX3(0,0,6,numEq,3)] + c23_p[6]*du_p[INDEX3(1,1,6,numEq,3)] + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
 X_22_7 = -(c13_p[7]*du_p[INDEX3(0,0,7,numEq,3)] + c23_p[7]*du_p[INDEX3(1,1,7,numEq,3)] + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
-                                } else {
-                                    throw RipleyException("General form solutions"
-                                           " not yet implemented in WaveAssembler");
                                 }
 
 const double Atmp0 = w72*(X_00_6 + X_00_7);
@@ -2351,12 +2346,7 @@ EM_F[INDEX2(2,7,numEq)]+=Ctmp17 + Ctmp23 + Ctmp37 + Ctmp54 + Ctmp55 + Ctmp56 + C
                                     wX22 = 18*w54*-(c13_p[0]* du_p[INDEX2(0,0,numEq)] + c23_p[0] * du_p[INDEX2(1,1,numEq)] + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
                                     wX02 = 18*w54*-(c66_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
                                     wX20 = 18*w55*-(c66_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
-                                } else {
-                                    throw RipleyException("General form "
-                                        "solution for WaveAssembler and "
-                                        "constant data not yet implemented");
                                 }
-
 
                                 EM_F[INDEX2(0,0,numEq)]+= wX00 + wX01 + wX02;
                                 EM_F[INDEX2(0,1,numEq)]+=-wX00 + wX01 + wX02;

@@ -16,12 +16,11 @@
 #include <ripley/WaveAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
-using namespace std;
-
 namespace ripley {
 
 void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const {
+            std::map<std::string, escript::Data> coefs) const
+{
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
     if (isNotEmpty("B", coefs))
@@ -72,7 +71,7 @@ WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom,
 }
 
 void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+            escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
@@ -129,8 +128,8 @@ void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                 for (index_t k0=0; k0 < NE0; ++k0)  {
                     bool addEM_S=false;
                     bool addEM_F=false;
-                    vector<double> EM_S(4*4*numEq*numComp, 0);
-                    vector<double> EM_F(4*numEq, 0);
+                    std::vector<double> EM_S(4*4*numEq*numComp, 0);
+                    std::vector<double> EM_F(4*numEq, 0);
                     const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
@@ -486,16 +485,17 @@ void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                     if (!du.isEmpty()) {
                         addEM_F=true;
                         const double *du_p = du.getSampleDataRO(e);
-                        const double *c11_p = c11.getSampleDataRO(e),
-                                     *c13_p = c13.getSampleDataRO(e),
-                                     *c33_p = c33.getSampleDataRO(e);
+                        const double *c11_p = c11.getSampleDataRO(e);
+                        const double *c13_p = c13.getSampleDataRO(e);
+                        const double *c33_p = c33.getSampleDataRO(e);
                         if (du.actsExpanded()) {
-                            double X_00_0, X_00_1, X_00_2, X_00_3,
-                                   X_11_0, X_11_1, X_11_2, X_11_3,
-                                   X_01_0 = -(du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]),
-                                   X_01_1 = -(du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]),
-                                   X_01_2 = -(du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]),
-                                   X_01_3 = -(du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]);
+                            double X_00_0, X_00_1, X_00_2, X_00_3;
+                            double X_11_0, X_11_1, X_11_2, X_11_3;
+                            double X_01_0 = -(du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]);
+                            double X_01_1 = -(du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]);
+                            double X_01_2 = -(du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]);
+                            double X_01_3 = -(du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]);
+
                             if (isVTI) {
                                 const double *c44_p = c44.getSampleDataRO(e);
                                 X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
@@ -540,12 +540,11 @@ void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                                 X_01_1 *= c66_p[1];
                                 X_01_2 *= c66_p[2];
                                 X_01_3 *= c66_p[3];
-                            } else {
-                                throw RipleyException("General form solutions"
-                                       " not yet implemented in WaveAssembler");
                             }
-                            
-                            const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
+                            const double X_10_0 = X_01_0;
+                            const double X_10_1 = X_01_1;
+                            const double X_10_2 = X_01_2;
+                            const double X_10_3 = X_01_3;
 
                             const double Atmp0 = 6*w15*(X_00_2 + X_00_3);
                             const double Atmp1 = 6*w10*(X_00_0 + X_00_1);
@@ -610,9 +609,6 @@ void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
                                 wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
                                         + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
-                            } else {
-                                throw RipleyException("General form solutions"
-                                       " not yet implemented in WaveAssembler");
                             }
                             EM_F[INDEX2(0,0,numEq)]+= wX_00 + wX_01;
                             EM_F[INDEX2(0,1,numEq)]+=-wX_00 + wX_01;
