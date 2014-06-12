@@ -179,20 +179,23 @@ void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat, escript::
     const double w14 = w27*(-SQRT3 - 2);
     const double w28 = w27*(-4*SQRT3 + 7);
     const double w29 = w27*(4*SQRT3 + 7);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-            for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                for (index_t k1=0; k1<m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                for (index_t k1=0; k1<NE1; ++k1) {
+                    for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = k0 + m_NE[0]*k1 + m_NE[0]*m_NE[1]*k2;
+                        const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
                         ///////////////
@@ -2189,20 +2192,23 @@ void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
     const double w11 = m_dx[0]*m_dx[1]/(16*m_dx[2]);
     const double w3 = m_dx[0]*m_dx[2]/(16*m_dx[1]);
     const double w0 = m_dx[1]*m_dx[2]/(16*m_dx[0]);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-            for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                for (index_t k1=0; k1<m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                for (index_t k1=0; k1<NE1; ++k1) {
+                    for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = k0 + m_NE[0]*k1 + m_NE[0]*m_NE[1]*k2;
+                        const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
                         ///////////////
@@ -2633,20 +2639,23 @@ void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat, escript::
     const double w14 = w27*(-SQRT3 - 2);
     const double w28 = w27*(-4*SQRT3 + 7);
     const double w29 = w27*(4*SQRT3 + 7);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-            for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                for (index_t k1=0; k1<m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                for (index_t k1=0; k1<NE1; ++k1) {
+                    for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = k0 + m_NE[0]*k1 + m_NE[0]*m_NE[1]*k2;
+                        const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
                         ///////////////
@@ -4685,20 +4694,23 @@ void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     const double w7 = m_dx[0]*m_dx[2]/(16*m_dx[1]);
     const double w8 = m_dx[1]*m_dx[2]/(16*m_dx[0]);
     const double w9 = m_dx[0]*m_dx[1]*m_dx[2]/64;
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-            for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                for (index_t k1=0; k1<m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                for (index_t k1=0; k1<NE1; ++k1) {
+                    for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = k0 + m_NE[0]*k1 + m_NE[0]*m_NE[1]*k2;
+                        const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
                         ///////////////
@@ -5086,17 +5098,21 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
     const double w4 = w2*(4*SQRT3 + 7);
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5188,11 +5204,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5284,11 +5300,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5380,11 +5396,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5476,11 +5492,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5572,11 +5588,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5676,17 +5692,21 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
     const double w2 = m_dx[1]*m_dx[2]/16;
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5730,11 +5750,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5778,11 +5798,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5826,11 +5846,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5874,11 +5894,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5922,11 +5942,11 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8, 0);
                         vector<double> EM_F(8, 0);
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -5998,17 +6018,21 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     const double w4 = w2*(4*SQRT3 + 7);
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6112,11 +6136,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6220,11 +6244,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6328,11 +6352,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6436,11 +6460,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6544,11 +6568,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6667,17 +6691,21 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
     const double w2 = m_dx[1]*m_dx[2]/16.;
     const bool add_EM_S=!d.isEmpty();
     const bool add_EM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6728,11 +6756,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k1=0; k1<m_NE[1]; ++k1) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k1=0; k1<NE1; ++k1) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]);
+                        const index_t e = domain->m_faceOffset[1]+INDEX2(k1,k2,NE1);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6783,11 +6811,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[2]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6838,11 +6866,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-                for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[3]+INDEX2(k0,k2,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6893,11 +6921,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[4] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[4]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
@@ -6948,11 +6976,11 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[5] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                    for (index_t k0=0; k0<NE0; ++k0) {
                         vector<double> EM_S(8*8*numEq*numComp, 0);
                         vector<double> EM_F(8*numEq, 0);
-                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]);
+                        const index_t e = domain->m_faceOffset[5]+INDEX2(k0,k1,NE0);
                         ///////////////
                         // process d //
                         ///////////////
