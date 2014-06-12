@@ -1090,16 +1090,19 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
 
     // get the Ids for DOFs and reduced nodes
     if (noError()) {
+        const int rnTargets = reducedNodesMapping.getNumTargets();
+        const int dofTargets = degreesOfFreedomMapping.getNumTargets();
+        const int rdofTargets = reducedDegreesOfFreedomMapping.getNumTargets();
 #pragma omp parallel
         {
 #pragma omp for
-         for (int i=0; i<reducedNodesMapping.getNumTargets(); ++i)
+         for (int i=0; i<rnTargets; ++i)
              reducedNodesId[i]=Id[reducedNodesMapping.map[i]];
 #pragma omp for
-         for (int i=0; i<degreesOfFreedomMapping.getNumTargets(); ++i)
+         for (int i=0; i<dofTargets; ++i)
              degreesOfFreedomId[i]=Id[degreesOfFreedomMapping.map[i]];
 #pragma omp for
-         for (int i=0; i<reducedDegreesOfFreedomMapping.getNumTargets(); ++i)
+         for (int i=0; i<rdofTargets; ++i)
              reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
         }
     } else {
