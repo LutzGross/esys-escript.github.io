@@ -142,19 +142,21 @@ void DefaultAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     const double w6 = -m_dx[1]/(24*m_dx[0]);
     const double w0 = w6*(SQRT3 + 2);
     const double w4 = w6*(-SQRT3 + 2);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1 < m_NE[1]; k1+=2) {
-                for (index_t k0=0; k0 < m_NE[0]; ++k0)  {
+            for (index_t k1=k1_0; k1 < NE1; k1+=2) {
+                for (index_t k0=0; k0 < NE0; ++k0)  {
                     bool addEM_S=false;
                     bool addEM_F=false;
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
-                    const index_t e = k0 + m_NE[0]*k1;
+                    const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -609,19 +611,21 @@ void DefaultAssembler2D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     const double w3 = m_dx[0]*m_dx[1]/16;
     const double w4 = m_dx[0]/(4*m_dx[1]);
     const double w5 = m_dx[1]/(4*m_dx[0]);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                for (index_t k0=0; k0<NE0; ++k0)  {
                     bool addEM_S=false;
                     bool addEM_F=false;
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
-                    const index_t e = k0 + m_NE[0]*k1;
+                    const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -794,13 +798,16 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
     const double w4 = w2*(-SQRT3 + 3);
     const bool addEM_S=!d.isEmpty();
     const bool addEM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     ///////////////
@@ -845,7 +852,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = domain->m_faceOffset[1]+k1;
@@ -891,7 +898,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = domain->m_faceOffset[2]+k0;
@@ -937,7 +944,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     const index_t e = domain->m_faceOffset[3]+k0;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
@@ -989,13 +996,16 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
     const double w1 = m_dx[1]/4;
     const bool addEM_S=!d.isEmpty();
     const bool addEM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     ///////////////
@@ -1025,7 +1035,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = domain->m_faceOffset[1]+k1;
@@ -1056,7 +1066,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = domain->m_faceOffset[2]+k0;
@@ -1087,7 +1097,7 @@ void DefaultAssembler2D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
                     const index_t e = domain->m_faceOffset[3]+k0;
@@ -1140,13 +1150,16 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     const double w4 = w2*(-SQRT3 + 3);
     const bool addEM_S=!d.isEmpty();
     const bool addEM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = k1;
@@ -1208,7 +1221,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[1]+k1;
@@ -1270,7 +1283,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[2]+k0;
@@ -1332,7 +1345,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[3]+k0;
@@ -1408,13 +1421,16 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
     const double w1 = m_dx[1]/4;
     const bool addEM_S=!d.isEmpty();
     const bool addEM_F=!y.isEmpty();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         if (domain->m_faceOffset[0] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     ///////////////
@@ -1452,7 +1468,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[1] > -1) {
             for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring            
 #pragma omp for
-                for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
+                for (index_t k1=k1_0; k1<NE1; k1+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[1]+k1;
@@ -1491,7 +1507,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[2] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[2]+k0;
@@ -1530,7 +1546,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
         if (domain->m_faceOffset[3] > -1) {
             for (index_t k0_0=0; k0_0<2; k0_0++) { // colouring
 #pragma omp for
-                for (index_t k0 = k0_0; k0 < m_NE[0]; k0+=2) {
+                for (index_t k0 = k0_0; k0 < NE0; k0+=2) {
                     vector<double> EM_S(4*4*numEq*numComp, 0);
                     vector<double> EM_F(4*numEq, 0);
                     const index_t e = domain->m_faceOffset[3]+k0;
@@ -1603,19 +1619,21 @@ void DefaultAssembler2D::assemblePDESingle(paso::SystemMatrix_ptr mat,
     const double w6 = -m_dx[1]/(24*m_dx[0]);
     const double w0 = w6*(SQRT3 + 2);
     const double w4 = w6*(-SQRT3 + 2);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                for (index_t k0=0; k0<NE0; ++k0)  {
                     bool addEM_S=false;
                     bool addEM_F=false;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
-                    const index_t e = k0 + m_NE[0]*k1;
+                    const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -2022,19 +2040,21 @@ void DefaultAssembler2D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
     const double w3 = m_dx[0]*m_dx[1]/16;
     const double w4 = m_dx[0]/(4*m_dx[1]);
     const double w5 = m_dx[1]/(4*m_dx[0]);
-
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     rhs.requireWrite();
+
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1<m_NE[1]; k1+=2) {
-                for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k1=k1_0; k1<NE1; k1+=2) {
+                for (index_t k0=0; k0<NE0; ++k0)  {
                     bool addEM_S=false;
                     bool addEM_F=false;
                     vector<double> EM_S(4*4, 0);
                     vector<double> EM_F(4, 0);
-                    const index_t e = k0 + m_NE[0]*k1;
+                    const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
                     ///////////////
