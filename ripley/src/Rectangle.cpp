@@ -451,7 +451,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                             // this will alter val!!
                             byte_swap32(cval);
                         }
-                        if (!std::isnan(val)) {
+                        if (!isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -544,7 +544,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
                             // this will alter val!!
                             byte_swap32(cval);
                         }
-                        if (!std::isnan(val)) {
+                        if (!isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
