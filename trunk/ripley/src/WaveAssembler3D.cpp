@@ -2083,7 +2083,7 @@ X_22_4 = -(c13_p[4]*(du_p[INDEX3(0,0,4,numEq,3)] + du_p[INDEX3(1,1,4,numEq,3)]) 
 X_22_5 = -(c13_p[5]*(du_p[INDEX3(0,0,5,numEq,3)] + du_p[INDEX3(1,1,5,numEq,3)]) + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
 X_22_6 = -(c13_p[6]*(du_p[INDEX3(0,0,6,numEq,3)] + du_p[INDEX3(1,1,6,numEq,3)]) + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
 X_22_7 = -(c13_p[7]*(du_p[INDEX3(0,0,7,numEq,3)] + du_p[INDEX3(1,1,7,numEq,3)]) + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
-                                } else if (isHTI) {
+                                } else { // isHTI
                                     const double *c23_p = c23.getSampleDataRO(e);
 X_00_0 = -(c11_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c13_p[0]*(du_p[INDEX3(1,1,0,numEq,3)]+du_p[INDEX3(2,2,0,numEq,3)]));
 X_00_1 = -(c11_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c13_p[1]*(du_p[INDEX3(1,1,1,numEq,3)]+du_p[INDEX3(2,2,1,numEq,3)]));
@@ -2339,7 +2339,7 @@ EM_F[INDEX2(2,7,numEq)]+=Ctmp17 + Ctmp23 + Ctmp37 + Ctmp54 + Ctmp55 + Ctmp56 + C
                                     wX22 = 18*w54*-(c13_p[0]*(du_p[INDEX2(0,0,numEq)] + du_p[INDEX2(1,1,numEq)]) + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
                                     wX02 = 18*w54*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
                                     wX20 = 18*w55*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));                                
-                                } else if (isHTI) {
+                                } else { // isHTI
                                     const double *c23_p = c23.getSampleDataRO(e);
                                     wX00 = 18*w55*-(c11_p[0]* du_p[INDEX2(0,0,numEq)] + c13_p[0] * (du_p[INDEX2(1,1,numEq)] + du_p[INDEX2(2,2,numEq)]));
                                     wX11 = 18*w56*-(c13_p[0]* du_p[INDEX2(0,0,numEq)] + c33_p[0] * du_p[INDEX2(1,1,numEq)] + c23_p[0]*du_p[INDEX2(2,2,numEq)]);

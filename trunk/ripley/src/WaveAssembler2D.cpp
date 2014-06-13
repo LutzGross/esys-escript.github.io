@@ -518,7 +518,7 @@ void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                                 X_01_1 *= c44_p[1];
                                 X_01_2 *= c44_p[2];
                                 X_01_3 *= c44_p[3];
-                            } else if (isHTI) {
+                            } else { // isHTI
                                 const double *c66_p = c66.getSampleDataRO(e);
                                 X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
                                         + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
@@ -599,7 +599,7 @@ void WaveAssembler2D::assemblePDESystem(paso::SystemMatrix_ptr mat,
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
                                 wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
                                                     + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
-                            } else if (isHTI) {
+                            } else { // isHTI 
                                 const double *c66_p = c66.getSampleDataRO(e);
                                 wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
                                         + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
