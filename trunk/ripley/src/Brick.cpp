@@ -14,15 +14,16 @@
 *
 *****************************************************************************/
 
-#include <limits>
-
 #include <ripley/Brick.h>
-#include <paso/SystemMatrix.h>
-#include <esysUtils/esysFileWriter.h>
 #include <ripley/DefaultAssembler3D.h>
 #include <ripley/WaveAssembler3D.h>
 #include <ripley/LameAssembler3D.h>
+#include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
+#include <esysUtils/esysFileWriter.h>
+#include <esysUtils/EsysRandom.h>
+#include <paso/SystemMatrix.h>
+
 #include <boost/scoped_array.hpp>
 
 #ifdef USE_NETCDF
@@ -37,9 +38,7 @@
 #endif
 
 #include <iomanip>
-
-#include "esysUtils/EsysRandom.h"
-#include "blocktools.h"
+#include <limits>
 
 
 using namespace std;
@@ -534,7 +533,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
                                     // this will alter val!!
                                     byte_swap32(cval);
                                 }
-                                if (!std::isnan(val)) {
+                                if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(val);
                                     }
@@ -654,7 +653,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                     // this will alter val!!
                                     byte_swap32(cval);
                                 }
-                                if (!std::isnan(val)) {
+                                if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
                                         *dest++ = static_cast<double>(val);
                                     }
