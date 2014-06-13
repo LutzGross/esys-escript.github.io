@@ -153,7 +153,7 @@ env = Environment(tools = ['default'], options = vars,
 def mkclang(env):
     env['CXX']='clang++'
 
-if env['tools_names'] != 'default':
+if env['tools_names'] != ['default']:
     zz=env['tools_names']
     if 'clang' in zz:
         zz.remove('clang')
@@ -370,7 +370,7 @@ for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
     try:
         env['ENV'][key] = os.environ[key]
     except KeyError:
-        env['ENV'][key] = 1
+        env['ENV'][key] = '1'
 
 env_export=env['env_export']
 env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH','HOME','KMP_MONITOR_STACKSIZE','TMPDIR','TEMP','TMP','LD_PRELOAD'])
