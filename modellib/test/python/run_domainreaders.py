@@ -60,7 +60,7 @@ except OSError:
     pass
     
 @unittest.skipIf(GMSH is None, "gmsh not available")
-@unittest.skipIf(False and esys.escript.getEscriptParamInt("MPIBUILD",0)>0,
+@unittest.skipIf(esys.escript.getEscriptParamInt("MPIBUILD",0)>0,
         "not tested with MPI builds")
 class Test_domainReaders(unittest.TestCase):
     def domain_family(self, dommodule, f):
