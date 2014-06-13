@@ -285,8 +285,9 @@ class MinimizerLBFGS(AbstractMinimizer):
         return {'truncation':self._truncation,'initialHessian':self._initial_H, 'restart':self._restart}
 
     def setOptions(self, **opts):
+        self.logger.debug("Setting options: %s"%(str(opts)))
         for o in opts:
-            if o=='historySize' or 'truncation':
+            if o=='historySize' or o=='truncation':
                 self._truncation=opts[o]
             elif o=='initialHessian':
                 self._initial_H=opts[o]
