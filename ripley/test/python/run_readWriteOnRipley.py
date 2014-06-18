@@ -31,23 +31,24 @@ from esys.ripley import Rectangle, Brick, ripleycpp
 try:
      RIPLEY_WORKDIR=os.environ['RIPLEY_WORKDIR']
 except KeyError:
-     RIPLEY_WORKDIR='.'
+     RIPLEY_WORKDIR='/tmp'
 
 #NE=4 # number elements, must be even
-#for x in [int(sqrt(ranks)),2,3,5,7,1]:
+#for x in [int(sqrt(mpiSize)),2,3,5,7,1]:
 #    NX=x
-#    NY=ranks//x
-#    if NX*NY == ranks:
+#    NY=mpiSize//x
+#    if NX*NY == mpiSize:
 #        break
 #
-#for x in [(int(ranks**(1/3.)),int(ranks**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
+#for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
 #    NXb=x[0]
 #    NYb=x[1]
-#    NZb=ranks//(x[0]*x[1])
-#    if NXb*NYb*NZb == ranks:
+#    NZb=mpiSize//(x[0]*x[1])
+#    if NXb*NYb*NZb == mpiSize:
 #        break
 
-ranks = getMPISizeWorld()
+mpiSize = getMPISizeWorld()
+mpiRank = getMPIRankWorld()
 
 def adjust(NE, ftype):
     if ftype == ContinuousFunction:
@@ -56,11 +57,8 @@ def adjust(NE, ftype):
 
 
 class WriteBinaryGridTestBase(unittest.TestCase):
-    NX = 10*ranks-1
+    NX = 10*mpiSize-1
     NZ = 10
-
-    def write(self, domain, data, filename):
-        domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
 
     def generateUniqueData(self, ftype):
         dim = self.domain.getDim()
@@ -81,31 +79,32 @@ class WriteBinaryGridTestBase(unittest.TestCase):
         grid = np.array(range(nvals), dtype=self.dtype).reshape(tuple(reversed(NE)))
         return data, grid
 
+    def writeThenRead(self, data, ftype, fcode):
+        filename = os.path.join(RIPLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),fcode))
+        filename = filename + self.dtype.replace('<','L').replace('>','B')
+        self.domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
+        MPIBarrierWorld()
+        result = np.fromfile(filename, dtype=self.dtype).reshape(
+                tuple(reversed(adjust(self.NE,ftype))))
+        return result
+
     def test_writeGrid2D(self):
         self.NE = [self.NX, self.NZ]
         self.domain = Rectangle(self.NE[0], self.NE[1], d1=0)
         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
-            data, original_grid = self.generateUniqueData(ftype)
-            filename = os.path.join(RIPLEY_WORKDIR, "_grid2d"+fcode)
-            filename = filename + self.dtype.replace('<','L').replace('>','B')
-            self.write(self.domain, data, filename)
-            MPIBarrierWorld()
-            result = np.fromfile(filename, dtype=self.dtype).reshape(
-                    tuple(reversed(adjust(self.NE,ftype))))
-            self.assertAlmostEquals(Lsup(original_grid-result), 0, delta=1e-9, msg="Data doesn't match for "+str(ftype(self.domain)))
+            data, ref = self.generateUniqueData(ftype)
+            result = self.writeThenRead(data, ftype, fcode)
+            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ftype(self.domain)))
 
     def test_writeGrid3D(self):
         self.NE = [self.NX, self.NX, self.NZ]
         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d2=0)
         for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
-            data, original_grid = self.generateUniqueData(ftype)
-            filename = os.path.join(RIPLEY_WORKDIR, "_grid3d"+fcode)
-            filename = filename + self.dtype.replace('<','L').replace('>','B')
-            self.write(self.domain, data, filename)
-            MPIBarrierWorld()
-            result = np.fromfile(filename, dtype=self.dtype).reshape(
-                    tuple(reversed(adjust(self.NE,ftype))))
-            self.assertAlmostEquals(Lsup(original_grid-result), 0, delta=1e-9, msg="Data doesn't match for "+str(ftype(self.domain)))
+            data, ref = self.generateUniqueData(ftype)
+            result = self.writeThenRead(data, ftype, fcode)
+            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ftype(self.domain)))
 
 class Test_writeBinaryGridRipley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
     def setUp(self):
@@ -144,6 +143,119 @@ class Test_writeBinaryGridRipley_BIG_INT32(WriteBinaryGridTestBase):
         self.dtype = ">i4"
 
 
+class ReadBinaryGridTestBase(unittest.TestCase):
+    """
+    The reader tests work in several stages:
+    1) create numpy array and write to temporary file (ref)
+    2) call readBinaryGrid with that filename
+    3) write the resulting Data object using writeBinaryGrid (test)
+    4) read the result using numpy and compare (ref) and (test)
+    As such, it is important to note that a working writeBinaryGrid() method
+    is assumed!
+    """
+    NX = 10*mpiSize-1
+    NZ = 10
+    shape = ()
+    fill = -42.57
+
+    def generateUniqueData(self, ftype):
+        dim = self.domain.getDim()
+        NE = adjust(self.NE, ftype)
+        nvals=NE[0]*NE[1]
+        if dim > 2:
+            nvals*=NE[2]
+        grid = np.array(range(nvals), dtype=self.dtype).reshape(tuple(reversed(NE)))
+        return grid
+
+    def write(self, data, filename):
+        self.domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
+
+    def read(self, filename, ftype):
+        #TODO:
+        self.first = [0] * self.domain.getDim()
+        self.multiplier = [1] * self.domain.getDim()
+        self.reverse = [0] * self.domain.getDim()
+        numValues=adjust(self.NE, ftype)
+        return ripleycpp._readBinaryGrid(filename, ftype(self.domain),
+                shape=self.shape, fill=self.fill, byteOrder=self.byteorder,
+                dataType=self.datatype, first=self.first, numValues=numValues,
+                multiplier=self.multiplier, reverse=self.reverse)
+
+    def numpy2Data2Numpy(self, ref, ftype, fcode):
+        filename = os.path.join(RIPLEY_WORKDIR, "_rgrid%dd%s"%(self.domain.getDim(),fcode))
+        filename = filename + self.dtype.replace('<','L').replace('>','B')
+        if mpiRank == 0:
+            ref.tofile(filename)
+        MPIBarrierWorld()
+        # step 2 - read
+        data = self.read(filename, ftype)
+        MPIBarrierWorld()
+        # step 3 - write
+        self.write(data, filename) # overwrite is ok
+        MPIBarrierWorld()
+        # step 4 - compare
+        result = np.fromfile(filename, dtype=self.dtype).reshape(
+                tuple(reversed(adjust(self.NE,ftype))))
+        return result
+
+    def test_readGrid2D(self):
+        self.NE = [self.NX, self.NZ]
+        self.domain = Rectangle(self.NE[0], self.NE[1], d1=0)
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
+            # step 1 - generate
+            ref = self.generateUniqueData(ftype)
+            result = self.numpy2Data2Numpy(ref, ftype, fcode)
+            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ftype(self.domain)))
+
+    def test_readGrid3D(self):
+        self.NE = [self.NX, self.NX, self.NZ]
+        self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d2=0)
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
+            # step 1 - generate
+            ref = self.generateUniqueData(ftype)
+            result = self.numpy2Data2Numpy(ref, ftype, fcode)
+            self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ftype(self.domain)))
+
+
+class Test_readBinaryGridRipley_LITTLE_FLOAT32(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
+        self.datatype = ripleycpp.DATATYPE_FLOAT32
+        self.dtype = "<f4"
+
+class Test_readBinaryGridRipley_LITTLE_FLOAT64(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
+        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.dtype = "<f8"
+
+class Test_readBinaryGridRipley_LITTLE_INT32(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
+        self.datatype = ripleycpp.DATATYPE_INT32
+        self.dtype = "<i4"
+
+class Test_readBinaryGridRipley_BIG_FLOAT32(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
+        self.datatype = ripleycpp.DATATYPE_FLOAT32
+        self.dtype = ">f4"
+
+class Test_readBinaryGridRipley_BIG_FLOAT64(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
+        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.dtype = ">f8"
+
+class Test_readBinaryGridRipley_BIG_INT32(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
+        self.datatype = ripleycpp.DATATYPE_INT32
+        self.dtype = ">i4"
+
+
 @unittest.skipIf(getMPISizeWorld() > 1,
     "Skipping compressed binary grid tests due to element stretching")
 class Test_readBinaryGridZippedRipley(unittest.TestCase):
@@ -171,7 +283,7 @@ class Test_readBinaryGridZippedRipley(unittest.TestCase):
         for filename, ftype in [("RectRedF%s.grid.gz", ReducedFunction),
                 ("RectConF%s.grid.gz", ContinuousFunction)]:
             FS = ftype(domain)
-            filename = os.path.join("ref_data", filename%ranks)
+            filename = os.path.join("ref_data", filename%mpiSize)
             unzipped = self.read(filename[:-3], FS, adjust(NE, ftype))
             zipped = self.read(filename, FS, adjust(NE, ftype), True)
             self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))
@@ -182,7 +294,7 @@ class Test_readBinaryGridZippedRipley(unittest.TestCase):
         for filename, ftype in [("BrickRedF%s.grid.gz", ReducedFunction),
                 ("BrickConF%s.grid.gz", ContinuousFunction)]:
             FS = ftype(domain)
-            filename = os.path.join("ref_data", filename%ranks)
+            filename = os.path.join("ref_data", filename%mpiSize)
             unzipped = self.read(filename[:-3], FS, adjust(NE, ftype))
             zipped = self.read(filename, FS, adjust(NE, ftype), True)
             self.assertEqual(Lsup(zipped - unzipped), 0, "Data objects don't match for "+str(FS))

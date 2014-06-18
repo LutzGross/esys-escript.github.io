@@ -531,7 +531,11 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
                                 if (params.byteOrder != BYTEORDER_NATIVE) {
                                     char* cval = reinterpret_cast<char*>(&val);
                                     // this will alter val!!
-                                    byte_swap32(cval);
+                                    if (sizeof(ValueType)>4) {
+                                        byte_swap64(cval);
+                                    } else {
+                                        byte_swap32(cval);
+                                    }
                                 }
                                 if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
