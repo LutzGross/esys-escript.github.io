@@ -229,8 +229,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":return: Boundary normals")
      .def("getSize",&escript::AbstractDomain::getSize,":return: the local size of samples. The function space is chosen appropriately\n"
         ":rtype: `Data`")
-     .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file"
-        ":param filename:\n"
+     .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file\n\n"
+        ":param filename: \n"
         ":type filename: string")
      .def("getMPISize",&escript::AbstractDomain::getMPISize,":return: the number of processes used for this `Domain`\n"
         ":rtype: ``int``")
