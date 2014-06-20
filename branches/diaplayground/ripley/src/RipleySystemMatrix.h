@@ -22,12 +22,34 @@
 
 #include <ripley/Ripley.h>
 
+namespace cusp {
+template <typename IndexType, typename ValueType, class MemorySpace> class dia_matrix;
+}
+
+namespace escript {
+class SolverBuddy;
+}
+
+#ifdef USE_CUDA
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
+#elif defined _OPENMP
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
+#else
+#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
+#endif
+
+#include <cusp/dia_matrix.h>
+
 namespace ripley {
+
+typedef cusp::dia_matrix<int, double, cusp::host_memory> HostMatrixType;
+typedef cusp::dia_matrix<int, double, cusp::device_memory> DeviceMatrixType;
+typedef cusp::array1d<double, cusp::host_memory> HostVectorType;
+typedef cusp::array1d<double, cusp::device_memory> DeviceVectorType;
 
 class SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
-
     SystemMatrix();
 
     SystemMatrix(int blocksize, const escript::FunctionSpace& fs,
@@ -52,17 +74,19 @@ public:
     inline int getBlockSize() const { return getRowBlockSize(); }
 
 private:
-    void cg(double* x, const double* b) const;
+    template<class LinearOperator, class Vector>
+    void runSolver(LinearOperator& A, Vector& x, Vector& b,
+                   escript::SolverBuddy& sb) const;
 
     virtual void setToSolution(escript::Data& out, escript::Data& in,
                                boost::python::object& options) const;
 
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
-    int numRows;
-    std::vector<int> offsets;
-    std::vector<double> values;
-
+    HostMatrixType mat;
+    //int numRows;
+    //std::vector<int> offsets;
+    //std::vector<double> values;
 };
 
 } // namespace ripley

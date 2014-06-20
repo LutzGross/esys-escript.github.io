@@ -39,7 +39,6 @@ sources = """
     Rectangle.cpp
     RipleyDomain.cpp
     RipleyException.cpp
-    RipleySystemMatrix.cpp
     WaveAssembler2D.cpp
     WaveAssembler3D.cpp
 """.split()
@@ -67,6 +66,14 @@ local_env.Prepend(LIBS = ['pasowrap', 'escript', 'paso', 'esysUtils'])
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
     local_env.AppendUnique(LIBS = env['silo_libs'])
+
+if local_env['cuda']:
+    sources.append('RipleySystemMatrix.cu')
+    local_env.Append(CCFLAGS = ['-Wno-error', '-w'])
+    local_env.Append(CPPDEFINES = ['USE_CUDA'])
+    local_env.Append(LIBS = ['cudart'])
+else:
+    sources.append('RipleySystemMatrix.cpp')
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])
