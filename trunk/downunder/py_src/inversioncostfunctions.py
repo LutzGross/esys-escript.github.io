@@ -388,6 +388,7 @@ class InversionCostFunction(MeteredCostFunction):
         args_reg=args[2]
 
         J = self.regularization.getValue(m, *args_reg)
+        self.logger.debug("J_R  (incl. trade-offs) = %e"%J)
 
         for i in range(self.numModels):
             f, idx=self.forward_models[i]

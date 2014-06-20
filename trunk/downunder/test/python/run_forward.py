@@ -44,6 +44,7 @@ try:
 except KeyError:
     TEST_DATA_ROOT='ref_data'
 
+print TEST_DATA_ROOT
 try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
 except KeyError:
@@ -266,7 +267,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         domain=Rectangle(200,200)
 
         
-        IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
+        IMP=cmath.sqrt(1j*omega*mu0/SIGMA)
         Z_XY=[ IMP, IMP ]
         x=[ [0.3,0.5], [0.6,0.5] ]
         eta=0.005

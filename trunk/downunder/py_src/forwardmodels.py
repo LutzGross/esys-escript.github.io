@@ -31,6 +31,7 @@ from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
 from esys.escript.util import *
 from math import pi as PI
+from esys.weipa import saveSilo
 import numpy as np
 
 
@@ -894,7 +895,7 @@ class MT2DModelTEMode(ForwardModel):
     where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
     conditions are assumed elsewhere.
     """
-    def __init__(self, domain, omega, x, Z_XY, eta, w0=1., mu=U.Mu_0, E_x0=1, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True):
+    def __init__(self, domain, omega, x, Z_XY, eta, w0=1., mu=4*PI*1e-7, E_x0=1, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True):
         """
         initializes a new forward model.
 
@@ -944,8 +945,8 @@ class MT2DModelTEMode(ForwardModel):
         if not len(x) == len(Z_XY):
             raise ValueError("Number of data points and number of impedance values don't match.")
         self.__x=x
-        f=1/(complex(0,1)*omega*mu)
-        self.__Z_xy=[ z*f for z in Z_XY ]
+        f=-1./(complex(0,1)*omega*mu)
+        self.__scaledZxy=[ z*f for z in Z_XY ]
         #====================================
         if isinstance(eta, float) or isinstance(eta, int) :
             self.__eta =[ float(eta) for z in Z_XY]
@@ -961,12 +962,17 @@ class MT2DModelTEMode(ForwardModel):
 
         self.__wx0=[0.] * len(Z_XY)
         x=Function(domain).getX()
-        for s in xrange(len(self.__Z_xy)):
+        totalS=0
+        for s in xrange(len(self.__scaledZxy)):
+            totalS+=w0[s]
             f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
             if f < 2*PI*self.__eta[s]**2 * 0.1 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
             self.__wx0[s]=w0[s]/f
-
+        if not totalS >0 : 
+             raise ValueError("Scaling of weight factors failed as sum is zero.")
+            
+        self.__wx0=[ w/totalS for w in self.__wx0 ]
         #====================================
         if isinstance(E_x0, float) or isinstance(E_x0, int) :
             self.__E_x0 =Data((E_x0,0), Solution(domain))
@@ -1042,10 +1048,9 @@ class MT2DModelTEMode(ForwardModel):
         D=pde.getCoefficient('D')
         f=self.__omega * self.__mu * sigma
         D[0,1]= - f
-        D[1,0]= f
+        D[1,0]=   f
         pde.setValue(D=D, r=self.__E_x0)
-        u=pde.getSolution()
-
+        u=pde.getSolution()        
         return u, grad(u)[:,1]
 
     def getWeightingFactor(self, x, wx0, x0, eta):
@@ -1075,9 +1080,9 @@ class MT2DModelTEMode(ForwardModel):
         u11=dE_xdz[1]
 
         # this cane be done faster!
-        for s in xrange(len(self.__Z_xy)):
+        for s in xrange(len(self.__scaledZxy)):
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            A+=integrate( ws * ( (u0-u01*self.__Z_xy[s].real+u11*self.__Z_xy[s].imag)**2 + (u1-u01*self.__Z_xy[s].imag-u11*self.__Z_xy[s].real)**2 ) )
+            A+=integrate( ws * ( (u0-u01*self.__scaledZxy[s].real+u11*self.__scaledZxy[s].imag)**2 + (u1-u01*self.__scaledZxy[s].imag-u11*self.__scaledZxy[s].real)**2 ) )
         return  A/2
 
     def getGradient(self, sigma, E_x, dE_xdz):
@@ -1107,12 +1112,12 @@ class MT2DModelTEMode(ForwardModel):
         D[0,1]=  f
         D[1,0]= -f
 
-        for s in xrange(len(self.__Z_xy)):
+        for s in xrange(len(self.__scaledZxy)):
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
-            Y[0]+=ws * (u0 - u01* self.__Z_xy[s].real + u11* self.__Z_xy[s].imag)
-            Y[1]+=ws * (u1 - u01* self.__Z_xy[s].imag - u11* self.__Z_xy[s].real)
-            X[0,1]+=ws * (u01* abs(self.__Z_xy[s])**2 - u0* self.__Z_xy[s].real - u1* self.__Z_xy[s].imag )
-            X[1,1]+=ws * (u11* abs(self.__Z_xy[s])**2 + u0* self.__Z_xy[s].imag - u1* self.__Z_xy[s].real )
+            Y[0]+=ws * (u0 - u01* self.__scaledZxy[s].real + u11* self.__scaledZxy[s].imag)
+            Y[1]+=ws * (u1 - u01* self.__scaledZxy[s].imag - u11* self.__scaledZxy[s].real)
+            X[0,1]+=ws * (u01* abs(self.__scaledZxy[s])**2 - u0* self.__scaledZxy[s].real - u1* self.__scaledZxy[s].imag )
+            X[1,1]+=ws * (u11* abs(self.__scaledZxy[s])**2 + u0* self.__scaledZxy[s].imag - u1* self.__scaledZxy[s].real )
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
         return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
