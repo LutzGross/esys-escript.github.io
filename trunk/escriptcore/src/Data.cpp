@@ -1746,6 +1746,19 @@ Data::hasNaN()
     return haveNaN;
 }
 
+void
+Data::replaceNaN(double value)
+{
+    if (isLazy())
+    {
+        resolve();
+    }
+    getReady()->replaceNaN(value); 
+}
+
+
+
+
 // Do not call this on Lazy Data use the proper entry point
 double
 Data::LsupWorker() const

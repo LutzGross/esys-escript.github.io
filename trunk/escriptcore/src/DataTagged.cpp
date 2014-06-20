@@ -481,6 +481,18 @@ DataTagged::hasNaN() const
 	return false;
 }
 
+void
+DataTagged::replaceNaN(double value) {
+  for (ValueType::size_type i=0;i<m_data.size();++i)
+  {
+    if (nancheck(m_data[i]))  
+    {
+      m_data[i] = value;
+    }
+  }
+}
+
+
 string
 DataTagged::toString() const
 {

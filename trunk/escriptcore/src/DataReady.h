@@ -76,6 +76,13 @@ public:
   hasNaN() const=0;
 
   /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  virtual void
+  replaceNaN(double value) = 0;
+  
+  /**
      \brief
      Copy the specified region from the given object.
 

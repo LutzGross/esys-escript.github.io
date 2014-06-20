@@ -293,7 +293,6 @@ DataExpanded::initialise(int noSamples,
   // resize data array to the required size
   m_data.resize(noSamples,noDataPointsPerSample,getNoValues());
 }
-
 bool
 DataExpanded::hasNaN() const
 {
@@ -306,6 +305,18 @@ DataExpanded::hasNaN() const
 		}
 	}
 	return false;
+}
+
+void
+DataExpanded::replaceNaN(double value)
+{
+  for (ValueType::size_type i=0;i<m_data.size();++i)
+  {
+    if (nancheck(m_data[i]))  
+    {
+      m_data[i] = value;
+    } 
+  }
 }
 
 
