@@ -4362,6 +4362,19 @@ DataTypes::ValueType& Data::getExpandedVectorReference()
     return getReady()->getVectorRW();
 }
 
+size_t Data::getNumberOfTaggedValues() const
+{
+    if (isTagged())
+    {
+	DataTagged* t=dynamic_cast<DataTagged*>(m_data.get());
+	return t->getTagCount();
+    }
+    else
+    {
+	return 0;
+    }
+}
+
 
 Data escript::randomData(const bp::tuple& shape,
        const FunctionSpace& what,

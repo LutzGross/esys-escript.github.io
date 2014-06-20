@@ -23,9 +23,10 @@
 using namespace escript;
 namespace bp=boost::python;
 using namespace esysUtils;
+namespace rs=escript::reducerstatus;
 
-SubWorld::SubWorld(JMPI& comm)
-    :mpiinfo(comm), domain((AbstractDomain*)0)
+SubWorld::SubWorld(JMPI& comm, JMPI& corr)
+    :swmpi(comm), corrmpi(corr), domain((AbstractDomain*)0)
 {
 
 
@@ -37,7 +38,12 @@ SubWorld::~SubWorld()
 
 JMPI& SubWorld::getMPI()
 {
-    return mpiinfo;
+    return swmpi;
+}
+
+JMPI& SubWorld::getCorrMPI()
+{
+    return corrmpi;
 }
 
 void SubWorld::setDomain(Domain_ptr d)
@@ -60,13 +66,113 @@ void SubWorld::clearJobs()
     jobvec.clear();
 }
 
-// takes an vector of bools of size 2*number of variables
+  // query the jobs to find the names of requested imports
+bool SubWorld::findImports(bool manualimports, std::string& errmsg)
+{
+      // set all imports to false (if manual import is true) else set all to true
+      // query each job:
+      //		1) get its wantedvalues field
+      //		2) check to ensure each value is actually a known variable
+      //		3) set its value in import map to true
+    if (!manualimports)
+    {
+	  // import everything
+	for (str2bool::iterator it=importmap.begin();it!=importmap.end();++it)
+	{
+	    it->second=true;
+	}
+    }
+    else		// manual imports
+    {
+	  // import nothing
+ 	for (str2bool::iterator it=importmap.begin();it!=importmap.end();++it)
+	{
+	    it->second=false;
+	}     
+	
+	for (size_t i=0;i<jobvec.size();++i)
+	{
+	    bp::list wanted=bp::extract<bp::list>(jobvec[i].attr("wantedvalues"))();		  
+	    for (size_t j=0;j<len(wanted);++j)
+	    {
+		bp::extract<std::string> exs(wanted[j]);
+		if (!exs.check()) 
+		{
+		    errmsg="names in wantedvalues must be strings";
+		    return false;
+		}
+		std::string n=exs();
+		  // now we need to check to see if this value is known
+		str2reduce::iterator it=reducemap.find(n);
+		if (it==reducemap.end())
+		{
+		    errmsg="Attempt to import variable \""+name+"\". SplitWorld was not told about this variable.";
+		    return false;
+		}
+		importmap[n]=true;
+	    }
+	}
+    }
+    return true;
+}
+
+// this will give the imported values to interested jobs
+bool SubWorld::deliverImports(std::string& errmsg)
+{
+    if (!manualimports)	// import all available vars into all jobs
+    {
+	for (size_t s=0;s<jobvec.size();++s)
+	{
+	    bp::object f=jobvec[s].attr("setImportValue");
+	    
+	    for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
+	    {
+		f(it->first, it->second->getValue());
+	    }
+	}
+    }
+    else		// manual imports
+    {
+      	for (size_t i=0;i<jobvec.size();++i)
+	{
+	    bp::object f=jobvec[s].attr("setImportValue");	    
+	    bp::list wanted=bp::extract<bp::list>(jobvec[i].attr("wantedvalues"))();		  
+	    for (size_t j=0;j<len(wanted);++j)
+	    {
+		bp::extract<std::string> exs(wanted[j]);
+		if (!exs.check()) 
+		{
+		    errmsg="names in wantedvalues must be strings";
+		    return false;
+		}
+		std::string n=exs();
+		  // now we need to check to see if this value is known
+		str2reduce::iterator it=reducemap.find(n);
+		if (it==reducemap.end())
+		{
+		    errmsg="Attempt to import variable \""+name+"\". SplitWorld was not told about this variable.";
+		    return false;
+		}
+		f(wanted[j], it->second->getValue());
+	    }
+	}
+    }
+    
+    
+    // TODO: This function needs error checking
+    
+    
+    return true;
+}
+
+
+// takes a vector of bools of size 2*number of variables
 // Each entry in the first group is true if this subworld has at least one job which exports that variable.
 // Each entry in the second group is true if there is at least one Job in this world which wishes
 // to import that variable.
 // The order of the variables is determined by the order of keys in the reducemap
 // Q: Why does it take chars then?
-// A: Because I want raw storage that I can pass via MPI and bool is special cased.
+// A: Because I want raw storage that I can pass via MPI and vector<bool> is special cased.
 bool SubWorld::localTransport(std::vector<char>& vb, std::string& errmsg)
 {
     for (size_t i=0;i<jobvec.size();++i)
@@ -215,6 +321,144 @@ void SubWorld::clearImportExports()
     }
 }
 
+bool SubWorld::checkRemoteCompatibility(std::string& errmsg)
+{
+    for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
+    {
+	if (! it->second->checkRemoteCompatibility(errmsg))
+	{
+	    return false;
+	}
+    }
+    return true;
+}
+
+
+bool SubWorld::reduceRemoteValues()
+{
+    for (str2reduce::iterator it=reducemap.begin();it!=reducemap.end();++it)
+    {
+	if (! it->second->reduceRemoteValues(errmsg))
+	{
+	    return false;
+	}
+    }
+    return true;    
+}
+
+
+  // Work out which variables we need to make available to python
+bool SubWorld::deliverImports(std::vector<char>& vb, std::string& errmsg)
+{
+    errmsg="Haven't implemented this yet";
+    return false;
+}
+
+bool SubWorld::amLeader()
+{
+    return swmpi->rank==0;
+}
+
+
+// Look at the vector of interest and send around variables to where they need to be
+// To try to make error reporting consistant, every variable transfer will be attempted,
+// even if an early one fails.
+bool SubWorld::deliverGlobalImports(std::vector<char>& vb, string& errmsg)
+{
+#ifdef ESYS_MPI  
+    size_t maxv=std::numeric_limits<size_t>::max();   // largest possible value in size_t
+    size_t nv=getNumVars();
+    str2reduce::iterator rmi=reducemap.begin();
+    char error=0;
+    for (size_t i=0;i<nv;++i, ++rmi)
+    {
+	size_t earliest=maxv;	
+	for (int s=0;s<swcount;++s)
+	{
+	    if (vb[s*nv+i]==rs::HAVE)	// This world has a copy of the value
+	    {
+		earliest=s;	      
+	    }
+	}
+	if (earliest==maxv)
+	{
+	      // noone has a value for the requested variable
+	      // We could make that an error condition but for now, I'll let
+	      // any job scripts deal with that
+	    continue;
+	}
+	  // do I need that variable (but don't have a value)?
+	if (vb[localid*nv+i]==rs::INTERESTED)
+	{
+	    if (!rmi->second->recvFrom(localid, earliest, corrmpi->comm)) 
+	    {
+		error=1;
+		errmsg="Error receving value for variable.";
+	    }
+	} 
+	else if (localid==earliest)	// we will be the one to ship the value to others
+	{
+	    for (uint target=0;target<swcount;++target)	// look through all worlds and see who we need to send to
+	    {
+		if (vb[target*nv+i]==rs::INTERESTED)	// nobody who has the value will be marked as INTERESTED
+		{
+		    if (!rmi->second->sendTo(localid, target, corrmpi))
+		    {
+			error=1;
+			errmsg="Error sending value for variable.";
+		    }
+		}
+	    }
+	}
+    }
+      // It is possible that one or more subworlds were not participating in a failed transfer to we need to check
+    char nerr;  
+    if (MPI_Allreduce(&error, &nerr, 1, MPI_CHAR, MPI_MAX, globalcom->comm)!=MPI_SUCCESS)
+    {
+	if (errmsg.empty())
+	{
+	    errmsg="Error checking for other errors.";
+	}
+	return false;
+    }
+    if (nerr)
+    {
+	errmsg="Another process experienced an error delivering variables.";
+	return false;
+    }
+    return !error;
+#else
+    return true;
+#endif    
+}
+
+
+
+// Resize the vector so it holds the current number of variables
+// walk along all variables in the maps and determine, what our interest is in each one
+void SubWorld::getVariableStatus(std::vector<char>& vb)
+{
+    vb.resize(reducemap.size());
+    str2reduce::const_iterator rm=reducemap.begin();
+    str2bool::const_iterator im=importmap.begin();
+    for (uint i=0;rm!=reducemap.end();++rm,++it,++i)
+    {
+	if (rm->second->hasValue())
+	{
+	    vb[i]=rs::HAVE;	// we have a value to contribute
+	}
+	else if (im->second)
+	{
+	    vb[i]=rs::INTERESTED;	// we are interested in this variable
+	}
+	else
+	{
+	    vb[i]=rs::NONE;	// we have no interest in this variable
+	}
+    }
+}
+
+
 // if 4, a Job performed an invalid export
 // if 3, a Job threw an exception 
 // if 2, a Job did not return a bool
@@ -270,6 +514,11 @@ char SubWorld::runJobs(std::string& errormsg)
 	return 3;
     }  
     return ret;
+}
+
+size_t SubWorld::getNumVars()
+{
+    return reducemap.size();
 }
 
 // if manual import is false, add this new variable to all the Jobs in this world
