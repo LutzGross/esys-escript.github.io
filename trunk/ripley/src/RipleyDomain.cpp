@@ -99,15 +99,15 @@ bool RipleyDomain::isValidFunctionSpaceType(int fsType) const
 string RipleyDomain::functionSpaceTypeAsString(int fsType) const
 {
     switch (fsType) {
-        case DegreesOfFreedom: return "Ripley_DegreesOfFreedom";
-        case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom";
-        case Nodes: return "Ripley_Nodes";
-        case ReducedNodes: return "Ripley_ReducedNodes";
-        case Elements: return "Ripley_Elements";
-        case ReducedElements: return "Ripley_ReducedElements";
-        case FaceElements: return "Ripley_FaceElements";
-        case ReducedFaceElements: return "Ripley_ReducedFaceElements";
-        case Points: return "Ripley_Points";
+        case DegreesOfFreedom: return "Ripley_DegreesOfFreedom [Solution(domain)]";
+        case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom [ReducedSolution(domain)]";
+        case Nodes: return "Ripley_Nodes [ContinuousFunction(domain)]";
+        case ReducedNodes: return "Ripley_ReducedNodes [ReducedContinuousFunction(domain)]";
+        case Elements: return "Ripley_Elements [Function(domain)]";
+        case ReducedElements: return "Ripley_ReducedElements [ReducedFunction(domain)]";
+        case FaceElements: return "Ripley_FaceElements [FunctionOnBoundary(domain)]";
+        case ReducedFaceElements: return "Ripley_ReducedFaceElements [ReducedFunctionOnBoundary(domain)]";
+        case Points: return "Ripley_Points [DiracDeltaFunctions(domain)]";
         default:
             break;
     }

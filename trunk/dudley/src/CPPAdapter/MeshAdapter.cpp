@@ -511,23 +511,23 @@ bool MeshAdapter::isValidFunctionSpaceType(int functionSpaceType) const
 void MeshAdapter::setFunctionSpaceTypeNames()
 {
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(DegreesOfFreedom,"Dudley_DegreesOfFreedom"));
+   (FunctionSpaceNamesMapType::value_type(DegreesOfFreedom,"Dudley_DegreesOfFreedom [Solution(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedDegreesOfFreedom,"Dudley_ReducedDegreesOfFreedom"));
+   (FunctionSpaceNamesMapType::value_type(ReducedDegreesOfFreedom,"Dudley_ReducedDegreesOfFreedom [ReducedSolution(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(Nodes,"Dudley_Nodes"));
+   (FunctionSpaceNamesMapType::value_type(Nodes,"Dudley_Nodes [ContinuousFunction(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedNodes,"Dudley_Reduced_Nodes"));
+   (FunctionSpaceNamesMapType::value_type(ReducedNodes,"Dudley_Reduced_Nodes [ReducedContinuousFunction(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(Elements,"Dudley_Elements"));
+   (FunctionSpaceNamesMapType::value_type(Elements,"Dudley_Elements [Function(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedElements,"Dudley_Reduced_Elements"));
+   (FunctionSpaceNamesMapType::value_type(ReducedElements,"Dudley_Reduced_Elements [ReducedFunction(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(FaceElements,"Dudley_Face_Elements"));
+   (FunctionSpaceNamesMapType::value_type(FaceElements,"Dudley_Face_Elements [FunctionOnBoundary(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(ReducedFaceElements,"Dudley_Reduced_Face_Elements"));
+   (FunctionSpaceNamesMapType::value_type(ReducedFaceElements,"Dudley_Reduced_Face_Elements [ReducedFunctionOnBoundary(domain)]"));
    m_functionSpaceTypeNames.insert
-   (FunctionSpaceNamesMapType::value_type(Points,"Dudley_Points"));
+   (FunctionSpaceNamesMapType::value_type(Points,"Dudley_Points [DiracDeltaFunctions(domain)]"));
 }
 
 int MeshAdapter::getContinuousFunctionCode() const

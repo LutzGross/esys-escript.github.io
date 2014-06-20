@@ -533,31 +533,31 @@ bool MeshAdapter::isValidFunctionSpaceType(int functionSpaceType) const
 void MeshAdapter::setFunctionSpaceTypeNames()
 {
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                DegreesOfFreedom,"Finley_DegreesOfFreedom"));
+                DegreesOfFreedom,"Finley_DegreesOfFreedom [Solution(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ReducedDegreesOfFreedom,"Finley_ReducedDegreesOfFreedom"));
+                ReducedDegreesOfFreedom,"Finley_ReducedDegreesOfFreedom [ReducedSolution(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                Nodes,"Finley_Nodes"));
+                Nodes,"Finley_Nodes [ContinuousFunction(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ReducedNodes,"Finley_Reduced_Nodes"));
+                ReducedNodes,"Finley_Reduced_Nodes [ReducedContinuousFunction(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                Elements,"Finley_Elements"));
+                Elements,"Finley_Elements [Function(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ReducedElements,"Finley_Reduced_Elements"));
+                ReducedElements,"Finley_Reduced_Elements [ReducedFunction(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                FaceElements,"Finley_Face_Elements"));
+                FaceElements,"Finley_Face_Elements [FunctionOnBoundary(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ReducedFaceElements,"Finley_Reduced_Face_Elements"));
+                ReducedFaceElements,"Finley_Reduced_Face_Elements [ReducedFunctionOnBoundary(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                Points,"Finley_Points"));
+                Points,"Finley_Points [DiracDeltaFunctions(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ContactElementsZero,"Finley_Contact_Elements_0"));
+                ContactElementsZero,"Finley_Contact_Elements_0 [FunctionOnContactZero(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ReducedContactElementsZero,"Finley_Reduced_Contact_Elements_0"));
+                ReducedContactElementsZero,"Finley_Reduced_Contact_Elements_0 [ReducedFunctionOnContactZero(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ContactElementsOne,"Finley_Contact_Elements_1"));
+                ContactElementsOne,"Finley_Contact_Elements_1 [FunctionOnContactOne(domain)]"));
     m_functionSpaceTypeNames.insert(FunctionSpaceNamesMapType::value_type(
-                ReducedContactElementsOne,"Finley_Reduced_Contact_Elements_1"));
+                ReducedContactElementsOne,"Finley_Reduced_Contact_Elements_1 [ReducedFunctionOnContactOne(domain)]"));
 }
 
 int MeshAdapter::getContinuousFunctionCode() const
