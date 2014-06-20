@@ -391,6 +391,13 @@ class Data {
   hasNaN();
 
   /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(double value);
+
+  /**
    \brief Ensures data is ready for write access.
   This means that the data will be resolved if lazy and will be copied if shared with another Data object.
   \warning This method should only be called in single threaded sections of code. (It modifies m_data).

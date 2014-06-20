@@ -147,6 +147,14 @@ typedef DataReady parent;
   {
 	return false;
   }
+
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(double value)
+  {
+  
+  }
+
  protected:
 
  /**
