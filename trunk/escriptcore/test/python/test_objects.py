@@ -516,7 +516,7 @@ class Test_SetDataPointValue(unittest.TestCase):
 0.9531, 2.260], [-1.785, 0.42156, -1.8379, 4.212]]]])
         ]
     def test_SetDataPointValue_Function(self):
-        for uselist in [False, True]:
+        for use_list in [False, True]:
             for rank in range(5):
                 d=Data(self.args[rank], Function(self.domain))
                 d.setValueOfDataPoint(0, self.args[rank]*2)
@@ -542,7 +542,7 @@ class Test_SetDataPointValue(unittest.TestCase):
 
 
     def test_SetDataPointValue_ReducedFunction(self):
-        for uselist in [False, True]:
+        for use_list in [False, True]:
             for rank in range(5):
                 d=Data(self.args[rank], ReducedFunction(self.domain))
                 d.setValueOfDataPoint(0,self.args[rank]*2)
