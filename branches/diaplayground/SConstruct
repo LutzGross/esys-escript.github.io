@@ -23,7 +23,7 @@ from site_init import *
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
-REQUIRED_OPTS_VERSION=201
+REQUIRED_OPTS_VERSION=202
 
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
@@ -187,7 +187,8 @@ if len(vars.UnknownVariables())>0:
         print("Unknown option '%s'" % k)
     Exit(1)
 
-env.Tool('nvcc')
+if env['cuda']:
+    env.Tool('nvcc')
 
 # create dictionary which will be populated with info for buildvars file
 env['buildvars']={}
@@ -287,7 +288,7 @@ if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
 
 if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']
-    env['SHNVCCFLAGS'] = env['nvccflags']
+    env['SHNVCCFLAGS'] = env['nvccflags'] + ' -shared'
 
 if env['BADPYTHONMACROS']: env.Append(CXXFLAGS = ' -DBADPYTHONMACROS')
 
