@@ -44,7 +44,6 @@ try:
 except KeyError:
     TEST_DATA_ROOT='ref_data'
 
-print TEST_DATA_ROOT
 try:
     WORKDIR=os.environ['DOWNUNDER_WORKDIR']
 except KeyError:
