@@ -128,7 +128,7 @@ class SiloReader():
                 data[v[:-5]] = self.f.GetVar(v)
         return data
 
-class SiloSaver(unittest.TestCase):
+class SiloSaver(unittest.TestCase): #requires subclassing
     def numericCompareL2(self, vector1, vector2):
         """
         Compares two lists of numbers using the L2 norm, returns true if they

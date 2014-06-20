@@ -31,7 +31,7 @@ from esys.escript.linearPDEs import LameEquation
 
 EXPANDED, SCALAR, CONSTANT = range(3)
 
-class RipleyCustomAssemblerTestBase(unittest.TestCase):
+class RipleyCustomAssemblerTestBase(unittest.TestCase): #requires subclassing
     def run_lame(self, fast, test_type, mu=3, lamb=50):
         d=self.domain.getDim()
         mypde=LameEquation(self.domain, useFast=fast)
