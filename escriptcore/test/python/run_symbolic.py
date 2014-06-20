@@ -51,7 +51,7 @@ except ImportError as e:
 
     
 @unittest.skipIf(not sympyavail, 'sympy not available')
-class SymbolicTestCase(unittest.TestCase):
+class Test_SymbolicTestCase(unittest.TestCase):
 
     # number of digits that have to match for results to be considered equal
     TOL_DIGITS=8

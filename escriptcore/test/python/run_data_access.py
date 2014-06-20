@@ -30,7 +30,7 @@ from esys.escript.util import EPSILON
 # This test assumes that samples are in order in the object, ie the last point of sample x is 
 # immediately before the first point of sample x+1
 @unittest.skipIf(getMPISizeWorld() != 1, "num ranks > 1")
-class DataAccessTestCase(unittest.TestCase):
+class Test_DataAccessTestCase(unittest.TestCase):
     #This is a very basic test - it only contains one value.
     def testtoListOfTuplesScalarOnNullDomain(self):
         inp=42.0

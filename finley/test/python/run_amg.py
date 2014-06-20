@@ -62,7 +62,7 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 NE_TOTAL=4096
 #NE_TOTAL=4
 
-class AMG(unittest.TestCase):
+class AMG(unittest.TestCase): #subclassing required
 
    def test_Poisson(self):
         global USE_AMG
