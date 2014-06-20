@@ -607,7 +607,14 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   ESCRIPT_DLL_API
   DataTypes::ValueType::size_type
   getDefaultOffset() const;
-
+  
+  /**
+   \brief Return the number of tags which have been given values (+the default) 
+  */ 
+  ESCRIPT_DLL_API
+  size_t
+  getTagCount() const;
+  
  protected:
 
  private:

@@ -878,4 +878,10 @@ DataTagged::getVectorRO() const
 	return m_data;
 }
 
+size_t
+DataTagged::getTagCount() const
+{
+    return m_offsetLookup.size();
+}
+
 }  // end of namespace

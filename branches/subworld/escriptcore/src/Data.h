@@ -1635,7 +1635,16 @@ instead of manually manipulating process and point IDs.
   ESCRIPT_DLL_API
   DataTypes::ValueType&
   getExpandedVectorReference();
- 
+  
+  
+  /**
+   * \brief For tagged Data returns the number of tags with values.
+   * For non-tagged data will return 0 (even Data which has been expanded from tagged).
+  */ 
+  ESCRIPT_DLL_API
+  size_t
+  getNumberOfTaggedValues() const;
+
  protected:
 
  private:
