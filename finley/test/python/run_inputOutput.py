@@ -118,33 +118,33 @@ class Test_InputOutput(unittest.TestCase):
         mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=True,useElementsOnFace=0)
         self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(not loadIsConfigured(), "load not configured")
      def test_data_dump_to_NetCDF_rectangle(self):
-        if loadIsConfigured():
-          mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False,useElementsOnFace=0)
-          d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
-          d1.expand()
-          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
-          d1.dump(dumpfile)
-          d2=load(dumpfile, mydomain1)
-          self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False,useElementsOnFace=0)
+        d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
+        d1.expand()
+        dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
+        d1.dump(dumpfile)
+        d2=load(dumpfile, mydomain1)
+        self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
+     @unittest.skipIf(not loadIsConfigured(), "load not configured")
      def test_data_dump_to_NetCDF_brick(self):
-        if loadIsConfigured():
-          mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
-          d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
-          d1.expand()
-          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
-          d1.dump(dumpfile)
-          d2=load(dumpfile, mydomain1)
-          self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
+        d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
+        d1.expand()
+        dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.dump.nc")
+        d1.dump(dumpfile)
+        d2=load(dumpfile, mydomain1)
+        self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
+     @unittest.skipIf(not loadIsConfigured(), "load not configured")
      def test_mesh_dump_to_NetCDF_rectangle(self):
-        if loadIsConfigured():
-          mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
-          mydomain1.dump(dumpfile)
-          mydomain2=LoadMesh(dumpfile)
-          self.domainsEqual(mydomain1, mydomain2)
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
+        dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
+        mydomain1.dump(dumpfile)
+        mydomain2=LoadMesh(dumpfile)
+        self.domainsEqual(mydomain1, mydomain2)
 
      @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
      def test_gmshTags(self):
@@ -174,14 +174,13 @@ class Test_InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('right'),2,'error with reight')
         self.assertRaises(RuntimeError, dom.getTag, 'tag4')
 
-
+     @unittest.skipIf(not loadIsConfigured(), "load not configured")
      def test_mesh_dump_to_NetCDF_brick(self):
-        if loadIsConfigured():
-          mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
-          dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
-          mydomain1.dump(dumpfile)
-          mydomain2=LoadMesh(dumpfile)
-          self.domainsEqual(mydomain1, mydomain2)
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
+        dumpfile=os.path.join(FINLEY_WORKDIR, "tempfile.mesh.nc")
+        mydomain1.dump(dumpfile)
+        mydomain2=LoadMesh(dumpfile)
+        self.domainsEqual(mydomain1, mydomain2)
 
      @unittest.skipIf(mpisize>15, "more than 15 MPI ranks")
      def test_mesh_read_rectangle_from_finley_file(self):
