@@ -129,7 +129,9 @@ enum SolverOptions {
     ESCRIPT_HMIS_COARSENING = 65,
     ESCRIPT_LINEAR_CRANK_NICOLSON = 66,
     ESCRIPT_CRANK_NICOLSON = 67,
-    ESCRIPT_BACKWARD_EULER = 68
+    ESCRIPT_BACKWARD_EULER = 68,
+    ESCRIPT_TARGET_CPU = 69,
+    ESCRIPT_TARGET_GPU = 70
 };
 
 class SolverBuddy {
@@ -297,6 +299,24 @@ public:
 
     */
     ESCRIPT_DLL_API SolverOptions getSolverMethod() const;
+
+    /**
+    Sets the solver target to be used. By default the solver is run on
+    the host CPU(s). If escript was compiled with CUDA support then
+    `ESCRIPT_TARGET_GPU` is a valid option and the solver will be run
+    on GPU(s).
+
+    \param target key of the solver target. Valid settings:
+            `ESCRIPT_TARGET_CPU`, `ESCRIPT_TARGET_GPU`
+    
+    */
+    ESCRIPT_DLL_API void setSolverTarget(int target);
+
+    /**
+    Returns key of the solver target.
+
+    */
+    ESCRIPT_DLL_API SolverOptions getSolverTarget() const;
 
     /**
     Sets the solver package to be used as a solver.
@@ -839,6 +859,7 @@ protected:
     SolverOptions method;
     SolverOptions preconditioner;
     SolverOptions coarsening;
+    SolverOptions target;
     int MinCoarseMatrixSize;
     double relaxation;
     bool use_local_preconditioner;
