@@ -382,6 +382,7 @@ class Test_Domain(unittest.TestCase):
         # insert tag shortcut:
         s2=insertTaggedValues(Scalar(0,Function(self.domain)),**{ tag1 : 1., tag2 : 2.})
         self.assertTrue(Lsup(s2-r)<=0.)
+
    def test_functionspace_ContinuousFunction(self):
         fs=ContinuousFunction(self.domain)
         self.assertTrue(fs.getDomain()==self.domain)
@@ -500,1164 +501,161 @@ class Test_GlobalMinMax(unittest.TestCase):
 
 
 class Test_SetDataPointValue(unittest.TestCase):
-   arg0=9.81
-   arg1=numpy.array([3.098, -3.111])
-   arg2=numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883, 
--2.135, 1.187], [0.6431, 4.638, -4.616, -0.196, -4.370]])
-   arg3=numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059], 
+    args=[9.81,
+        numpy.array([3.098, -3.111]),
+        numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883, 
+-2.135, 1.187], [0.6431, 4.638, -4.616, -0.196, -4.370]]),
+        numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059], 
 [-2.4964, 3.17453]], [[-4.907, -4.9431], [-0.3604, 0.4269]], [[1.4179, 3.326], [1.356, -0.4610]], [[3.378, 2.0902], [-2.6857, 
-1.3585]]])
-   arg4=numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], 
+1.3585]]]),
+        numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], 
 [[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922, 
 -3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190, 
 -2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713], 
 [-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483, 
 0.9531, 2.260], [-1.785, 0.42156, -1.8379, 4.212]]]])
-   def test_SetDataPointValue_Function_Rank0(self):
-          d=Data(self.arg0,Function(self.domain))
-          d.setValueOfDataPoint(0,self.arg0*2)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
-   def test_SetDataPointValue_Function_Rank1(self):
-          d=Data(self.arg1,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
-          d.setValueOfDataPoint(0,self.arg1*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
-   def test_SetDataPointValue_Function_Rank1_list(self):
-          d=Data(self.arg1,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
-          d.setValueOfDataPoint(0,(self.arg1*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
-   def test_SetDataPointValue_Function_Rank2(self):
-          d=Data(self.arg2,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
-          d.setValueOfDataPoint(0,self.arg2*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
-   def test_SetDataPointValue_Function_Rank2_list(self):
-          d=Data(self.arg2,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
-          d.setValueOfDataPoint(0,(self.arg2*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
-   def test_SetDataPointValue_Function_Rank3(self):
-          d=Data(self.arg3,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
-          d.setValueOfDataPoint(0,self.arg3*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
-   def test_SetDataPointValue_Function_Rank3_list(self):
-          d=Data(self.arg3,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
-          d.setValueOfDataPoint(0,(self.arg3*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
-   def test_SetDataPointValue_Function_Rank4(self):
-          d=Data(self.arg4,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
-          d.setValueOfDataPoint(0,self.arg4*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
-   def test_SetDataPointValue_Function_Rank4_list(self):
-          d=Data(self.arg4,Function(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
-          d.setValueOfDataPoint(0,(self.arg4*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
-   #===========================================================================
-   def test_SetDataPointValue_ReducedFunction_Rank0(self):
-          d=Data(self.arg0,ReducedFunction(self.domain))
-          d.setValueOfDataPoint(0,self.arg0*2)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg0)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg0*2)<=Lsup(self.arg0*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg0)<=Lsup(self.arg0), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank1(self):
-          d=Data(self.arg1,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
-          d.setValueOfDataPoint(0,self.arg1*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank1_list(self):
-          d=Data(self.arg1,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg2)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg1)
-          d.setValueOfDataPoint(0,(self.arg1*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg1*2)<=Lsup(self.arg1*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg1)<=Lsup(self.arg1), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank2(self):
-          d=Data(self.arg2,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
-          d.setValueOfDataPoint(0,self.arg2*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank2_list(self):
-          d=Data(self.arg2,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg2)
-          d.setValueOfDataPoint(0,(self.arg2*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg2*2)<=Lsup(self.arg2*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg2)<=Lsup(self.arg2), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank3(self):
-          d=Data(self.arg3,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
-          d.setValueOfDataPoint(0,self.arg3*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank3_list(self):
-          d=Data(self.arg3,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg3)
-          d.setValueOfDataPoint(0,(self.arg3*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg3*2)<=Lsup(self.arg3*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg3)<=Lsup(self.arg3), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank4(self):
-          d=Data(self.arg4,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
-          d.setValueOfDataPoint(0,self.arg4*2)
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
-   def test_SetDataPointValue_ReducedFunction_Rank4_list(self):
-          d=Data(self.arg4,ReducedFunction(self.domain))
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, 0, self.arg1)
-          self.assertRaises(RuntimeError, d.setValueOfDataPoint, -1, self.arg4)
-          d.setValueOfDataPoint(0,(self.arg4*2).tolist())
-          d_0=numpy.array(d.getTupleForDataPoint(0))
-          d_1=numpy.array(d.getTupleForDataPoint(1))
-          self.assertTrue(Lsup(d_0-self.arg4*2)<=Lsup(self.arg4*2), "wrong setting")
-          self.assertTrue(Lsup(d_1-self.arg4)<=Lsup(self.arg4), "wrong setting")
+        ]
+    def test_SetDataPointValue_Function(self):
+        for uselist in [False, True]:
+            for rank in range(5):
+                d=Data(self.args[rank], Function(self.domain))
+                d.setValueOfDataPoint(0, self.args[rank]*2)
+                param = self.args[1]
+                if rank == 1:
+                    param = self.args[2]
+                for value in [-1, 0]:
+                    try:
+                        d.setValueOfDataPoint(0, param)
+                        self.fail("setting value to %d should have thrown an exception for rank %d"%(value, rank))
+                    except RuntimeError:
+                        pass
+                if rank > 0 and use_list:
+                    d.setValueOfDataPoint(0,(self.args[rank]*2).tolist())
+                d_0=numpy.array(d.getTupleForDataPoint(0))
+                d_1=numpy.array(d.getTupleForDataPoint(1))
+                errorstring = "wrong setting for data of rank {0}{1}".format(rank,
+                        ", using a list" if rank > 0 and use_list else "")
+                self.assertLessEqual(Lsup(d_0-self.args[rank]*2),
+                        Lsup(self.args[rank]*2), errorstring)
+                self.assertLessEqual(Lsup(d_1-self.args[rank]),
+                        Lsup(self.args[rank]), errorstring)
 
+
+    def test_SetDataPointValue_ReducedFunction(self):
+        for uselist in [False, True]:
+            for rank in range(5):
+                d=Data(self.args[rank], ReducedFunction(self.domain))
+                d.setValueOfDataPoint(0,self.args[rank]*2)
+                param = self.args[1]
+                if rank == 1:
+                    param = self.args[2]
+                for value in [-1, 0]:
+                    try:
+                        d.setValueOfDataPoint(0, param)
+                        self.fail("setting value to %d should have thrown an exception for rank %d"%(value, rank))
+                    except RuntimeError:
+                        pass
+                if rank > 0 and use_list:
+                    d.setValueOfDataPoint(0,(self.args[rank]*2).tolist())
+                d_0=numpy.array(d.getTupleForDataPoint(0))
+                d_1=numpy.array(d.getTupleForDataPoint(1))
+                errorstring = "wrong setting for data of rank {0}{1}".format(rank,
+                        ", using a list" if rank > 0 and use_list else "")
+                self.assertLessEqual(Lsup(d_0-self.args[rank]*2),
+                        Lsup(self.args[rank]*2), errorstring)
+                self.assertLessEqual(Lsup(d_1-self.args[rank]),
+                        Lsup(self.args[rank]), errorstring)
+
+@unittest.skipIf(not loadIsConfigured(), "load not configured")
 class Test_Dump(unittest.TestCase):
-   arg0=9.81
-   arg1=numpy.array([3.098, -3.111])
-   arg2=numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883, 
--2.135, 1.187], [0.6431, 4.638, -4.616, -0.196, -4.370]])
-   arg3=numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059], 
+   args=[9.81,
+        numpy.array([3.098, -3.111]),
+        numpy.array([[3.82, -3.81, -0.957, 0.892, -1.367], [-4.589, -1.835, -2.679, -1.517, -4.2515], [-4.909, 1.634, -2.883, 
+-2.135, 1.187], [0.6431, 4.638, -4.616, -0.196, -4.370]]),
+        numpy.array([[[-2.3667, -0.040], [-4.7398, -3.2412]], [[-2.125, -2.240], [2.237, -4.279]], [[0.68720, 2.4059], 
 [-2.4964, 3.17453]], [[-4.907, -4.9431], [-0.3604, 0.4269]], [[1.4179, 3.326], [1.356, -0.4610]], [[3.378, 2.0902], [-2.6857, 
-1.3585]]])
-   arg4=numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], 
+1.3585]]]),
+        numpy.array([[[[-3.810, -1.3597, -1.5307, 1.099], [-1.828, 0.2526, -1.4429, 2.326], [4.9732, -2.063, 1.3153, -3.809]], 
 [[-4.8902, -4.714, 1.520, -1.931], [-3.8847, 4.3867, 1.894030, 2.432], [-1.2082, -0.8304, 2.2612, 4.6399]]], [[[-4.5922, 
 -3.309, -0.8171, -0.7210], [2.8051, -4.93047, 0.08450, 4.3824], [0.43204, 2.1908, 4.512633, -1.8218]], [[2.2493, -4.190, 
 -2.3893, -4.147], [-2.104, -4.635, -4.2767, -3.53151], [-2.351, -1.6614, 2.9385, 4.099]]], [[[1.710, 0.2235, -3.4917, 0.8713], 
 [-0.2881, 4.6278, 3.603, -2.1211], [-0.565, 4.294, -2.210827, -0.37651]], [[0.6578, -2.869, -2.490, -4.789], [3.232, 2.483, 
 0.9531, 2.260], [-1.785, 0.42156, -1.8379, 4.212]]]])
+        ]
 
-   def _diffDataObjects(self,d_ref,filemame, use_old_file=False):
-       if not use_old_file: d_ref.dump(filemame)
-       d=load(filemame, d_ref.getDomain())
-       self.assertTrue(not d.isEmpty(),"data in %s are empty."%filemame)
-       self.assertTrue(d_ref.getRank() == d.getRank(), "different rank in %s. "%filemame)
-       self.assertTrue(d_ref.getShape() == d.getShape(), "different shape %s. "%filemame)
-       self.assertTrue(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filemame)
-       self.assertTrue(Lsup(d_ref-d)<=0., "different entries %s."%filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Constant_Solution_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_solution_rank0.nc")
-          d=Data(self.arg0,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Solution_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_solution_rank1.nc")
-          d=Data(self.arg1,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Solution_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_solution_rank2.nc")
-          d=Data(self.arg2,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Solution_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_solution_rank3.nc")
-          d=Data(self.arg3,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Solution_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_solution_rank4.nc")
-          d=Data(self.arg4,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-   #===========================================================================
-   def test_DumpAndLoad_Constant_ReducedSolution_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_solution_rank0.nc")
-          d=Data(self.arg0,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedSolution_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_solution_rank1.nc")
-          d=Data(self.arg1,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedSolution_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_solution_rank2.nc")
-          d=Data(self.arg2,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedSolution_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_solution_rank3.nc")
-          d=Data(self.arg3,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedSolution_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_solution_rank4.nc")
-          d=Data(self.arg4,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-   #===========================================================================
-   def test_DumpAndLoad_Constant_ContinuousFunction_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_continuous_function_rank0.nc")
-          d=Data(self.arg0,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ContinuousFunction_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_continuous_function_rank1.nc")
-          d=Data(self.arg1,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ContinuousFunction_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_continuous_function_rank2.nc")
-          d=Data(self.arg2,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ContinuousFunction_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_continuous_function_rank3.nc")
-          d=Data(self.arg3,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ContinuousFunction_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_continuous_function_rank4.nc")
-          d=Data(self.arg4,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
+   def _diffDataObjects(self,d_ref,filename, use_old_file=False):
+       if not use_old_file:
+            d_ref.dump(filename)
+       d=load(filename, d_ref.getDomain())
+       self.assertTrue(not d.isEmpty(),"data in %s are empty."%filename)
+       self.assertTrue(d_ref.getRank() == d.getRank(), "different rank in %s. "%filename)
+       self.assertTrue(d_ref.getShape() == d.getShape(), "different shape %s. "%filename)
+       self.assertTrue(d_ref.getFunctionSpace() == d.getFunctionSpace(), "wrong function space in %s."%filename)
+       self.assertTrue(Lsup(d_ref-d)<=0., "different entries %s."%filename)
 
    #===========================================================================
-   def test_DumpAndLoad_Constant_Function_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_rank0.nc")
-          d=Data(self.arg0,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Function_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_rank1.nc")
-          d=Data(self.arg1,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Function_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_rank2.nc")
-          d=Data(self.arg2,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_Function_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_rank3.nc")
-          d=Data(self.arg3,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Constant_ReducedFunction_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_rank0.nc")
-          d=Data(self.arg0,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunction_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_rank1.nc")
-          d=Data(self.arg1,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunction_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_rank2.nc")
-          d=Data(self.arg2,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunction_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_rank3.nc")
-          d=Data(self.arg3,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-   def test_DumpAndLoad_Constant_ReducedFunction_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_rank4.nc")
-          d=Data(self.arg4,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_on_boundary_rank0.nc")
-          d=Data(self.arg0,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_on_boundary_rank1.nc")
-          d=Data(self.arg1,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_on_boundary_rank2.nc")
-          d=Data(self.arg2,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_on_boundary_rank3.nc")
-          d=Data(self.arg3,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_FunctionOnBoundary_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_function_on_boundary_rank4.nc")
-          d=Data(self.arg4,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_on_boundary_rank0.nc")
-          d=Data(self.arg0,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_on_boundary_rank1.nc")
-          d=Data(self.arg1,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_on_boundary_rank2.nc")
-          d=Data(self.arg2,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_on_boundary_rank3.nc")
-          d=Data(self.arg3,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Constant_ReducedFunctionOnBoundary_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"constant_reduced_function_on_boundary_rank4.nc")
-          d=Data(self.arg4,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_Solution_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_solution_rank0.nc")
-          d=Data(length(Solution(self.domain).getX()) * self.arg0,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Solution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,Solution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Solution_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_solution_rank1.nc")
-          d=Data(length(Solution(self.domain).getX()) * self.arg1,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Solution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,Solution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Solution_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_solution_rank2.nc")
-          d=Data(length(Solution(self.domain).getX()) * self.arg2,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Solution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,Solution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Solution_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_solution_rank3.nc")
-          d=Data(length(Solution(self.domain).getX()) * self.arg3,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Solution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,Solution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Solution_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_solution_rank4.nc")
-          d=Data(length(Solution(self.domain).getX()) * self.arg4,Solution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Solution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,Solution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_ReducedSolution_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank0.nc")
-          d=Data(length(ReducedSolution(self.domain).getX()) * self.arg0,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,ReducedSolution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedSolution_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank1.nc")
-          d=Data(length(ReducedSolution(self.domain).getX()) * self.arg1,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,ReducedSolution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedSolution_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank2.nc")
-          d=Data(length(ReducedSolution(self.domain).getX()) * self.arg2,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,ReducedSolution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedSolution_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank3.nc")
-          d=Data(length(ReducedSolution(self.domain).getX()) * self.arg3,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,ReducedSolution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedSolution_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_solution_rank4.nc")
-          d=Data(length(ReducedSolution(self.domain).getX()) * self.arg4,ReducedSolution(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedSolution(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,ReducedSolution(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank0.nc")
-          d=Data(length(ContinuousFunction(self.domain).getX()) * self.arg0,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,ContinuousFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank1.nc")
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          d=Data(length(ContinuousFunction(self.domain).getX()) * self.arg1,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,ContinuousFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank2.nc")
-          d=Data(length(ContinuousFunction(self.domain).getX()) * self.arg2,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,ContinuousFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank3.nc")
-          d=Data(length(ContinuousFunction(self.domain).getX()) * self.arg3,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,ContinuousFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ContinuousFunction_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_continuous_function_rank4.nc")
-          d=Data(length(ContinuousFunction(self.domain).getX()) * self.arg4,ContinuousFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ContinuousFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,ContinuousFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_Function_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_rank0.nc")
-          d=Data(length(Function(self.domain).getX()) * self.arg0,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Function(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,Function(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Function_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_rank1.nc")
-          d=Data(length(Function(self.domain).getX()) * self.arg1,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Function(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,Function(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Function_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_rank2.nc")
-          d=Data(length(Function(self.domain).getX()) * self.arg2,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Function(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,Function(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Function_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_rank3.nc")
-          d=Data(length(Function(self.domain).getX()) * self.arg3,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Function(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,Function(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_Function_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_rank4.nc")
-          d=Data(length(Function(self.domain).getX()) * self.arg4,Function(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(Function(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,Function(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_ReducedFunction_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank0.nc")
-          d=Data(length(ReducedFunction(self.domain).getX()) * self.arg0,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,ReducedFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunction_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank1.nc")
-          d=Data(length(ReducedFunction(self.domain).getX()) * self.arg1,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,ReducedFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunction_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank2.nc")
-          d=Data(length(ReducedFunction(self.domain).getX()) * self.arg2,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,ReducedFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunction_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank3.nc")
-          d=Data(length(ReducedFunction(self.domain).getX()) * self.arg3,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,ReducedFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunction_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_rank4.nc")
-          d=Data(length(ReducedFunction(self.domain).getX()) * self.arg4,ReducedFunction(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunction(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,ReducedFunction(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank0.nc")
-          d=Data(length(FunctionOnBoundary(self.domain).getX()) * self.arg0,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,FunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank1.nc")
-          d=Data(length(FunctionOnBoundary(self.domain).getX()) * self.arg1,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,FunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank2.nc")
-          d=Data(length(FunctionOnBoundary(self.domain).getX()) * self.arg2,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,FunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank3.nc")
-          d=Data(length(FunctionOnBoundary(self.domain).getX()) * self.arg3,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,FunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_FunctionOnBoundary_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_function_on_boundary_rank4.nc")
-          d=Data(length(FunctionOnBoundary(self.domain).getX()) * self.arg4,FunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(FunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,FunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   #===========================================================================
-   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank0.nc")
-          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX()) * self.arg0,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg0,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank1.nc")
-          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX()) * self.arg1,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg1,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank2.nc")
-          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX()) * self.arg2,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg2,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank3.nc")
-          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX()) * self.arg3,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg3,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   def test_DumpAndLoad_Expanded_ReducedFunctionOnBoundary_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"expanded_reduced_function_on_boundary_rank4.nc")
-          d=Data(length(ReducedFunctionOnBoundary(self.domain).getX()) * self.arg4,ReducedFunctionOnBoundary(self.domain))
-          self._diffDataObjects(d,filemame)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_samples)
-          self.assertRaises(RuntimeError, load, filemame, self.domain_with_different_number_of_data_points_per_sample)
-          if getMPISizeWorld() ==1:
-             d=Data(length(ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering).getX()) * 
-self.arg4,ReducedFunctionOnBoundary(self.domain_with_different_sample_ordering))
-             self._diffDataObjects(d,filemame, use_old_file=True)
-
-   #===========================================================================
-   ## This functionspace does not currently support tags.
-   ## Instead, we test that the canTag() function throws in test_canTag_Failures.
-
-   #def test_DumpAndLoad_Tagged_Solution_Rank0(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_solution_rank0.nc")
-          #d=Data(self.arg0,Solution(self.domain))
-          #d.setTaggedValue(1,self.arg0*2)
-          #d.setTaggedValue(10,self.arg0*3)
-          #d.setTaggedValue(100,self.arg0*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_Solution_Rank1(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_solution_rank1.nc")
-          #d=Data(self.arg1,Solution(self.domain))
-          #d.setTaggedValue(1,self.arg1*2)
-          #d.setTaggedValue(10,self.arg1*3)
-          #d.setTaggedValue(100,self.arg1*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_Solution_Rank2(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_solution_rank2.nc")
-          #d=Data(self.arg2,Solution(self.domain))
-          #d.setTaggedValue(1,self.arg2*2)
-          #d.setTaggedValue(10,self.arg2*3)
-          #d.setTaggedValue(100,self.arg2*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_Solution_Rank3(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_solution_rank3.nc")
-          #d=Data(self.arg3,Solution(self.domain))
-          #d.setTaggedValue(1,self.arg3*2)
-          #d.setTaggedValue(10,self.arg3*3)
-          #d.setTaggedValue(100,self.arg3*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_Solution_Rank4(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_solution_rank4.nc")
-          #d=Data(self.arg4,Solution(self.domain))
-          #d.setTaggedValue(1,self.arg4*2)
-          #d.setTaggedValue(10,self.arg4*3)
-          #d.setTaggedValue(100,self.arg4*4)
-          #self._diffDataObjects(d,filemame)
-   ##===========================================================================
-   ## This functionspace does not currently support tags.
-   ## Instead, we test that the canTag() function throws in test_canTag_Failures.
-
-   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank0(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank0.nc")
-          #d=Data(self.arg0,ReducedSolution(self.domain))
-          #d.setTaggedValue(1,self.arg0*2)
-          #d.setTaggedValue(10,self.arg0*3)
-          #d.setTaggedValue(100,self.arg0*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank1(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank1.nc")
-          #d=Data(self.arg1,ReducedSolution(self.domain))
-          #d.setTaggedValue(1,self.arg1*2)
-          #d.setTaggedValue(10,self.arg1*3)
-          #d.setTaggedValue(100,self.arg1*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank2(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank2.nc")
-          #d=Data(self.arg2,ReducedSolution(self.domain))
-          #d.setTaggedValue(1,self.arg2*2)
-          #d.setTaggedValue(10,self.arg2*3)
-          #d.setTaggedValue(100,self.arg2*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank3(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank3.nc")
-          #d=Data(self.arg3,ReducedSolution(self.domain))
-          #d.setTaggedValue(1,self.arg3*2)
-          #d.setTaggedValue(10,self.arg3*3)
-          #d.setTaggedValue(100,self.arg3*4)
-          #self._diffDataObjects(d,filemame)
-
-   #def test_DumpAndLoad_Tagged_ReducedSolution_Rank4(self):
-       #if loadIsConfigured():
-          #filemame=os.path.join(self.filename_base,"tagged_reduced_solution_rank4.nc")
-          #d=Data(self.arg4,ReducedSolution(self.domain))
-          #d.setTaggedValue(1,self.arg4*2)
-          #d.setTaggedValue(10,self.arg4*3)
-          #d.setTaggedValue(100,self.arg4*4)
-          #self._diffDataObjects(d,filemame)
-   ##===========================================================================
-   def test_DumpAndLoad_Tagged_ContinuousFunction_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_continuous_function_rank0.nc")
-          d=Data(self.arg0,ContinuousFunction(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ContinuousFunction_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_continuous_function_rank1.nc")
-          d=Data(self.arg1,ContinuousFunction(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ContinuousFunction_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_continuous_function_rank2.nc")
-          d=Data(self.arg2,ContinuousFunction(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ContinuousFunction_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_continuous_function_rank3.nc")
-          d=Data(self.arg3,ContinuousFunction(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ContinuousFunction_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_continuous_function_rank4.nc")
-          d=Data(self.arg4,ContinuousFunction(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Tagged_Function_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_rank0.nc")
-          d=Data(self.arg0,Function(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_Function_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_rank1.nc")
-          d=Data(self.arg1,Function(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_Function_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_rank2.nc")
-          d=Data(self.arg2,Function(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_Function_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_rank3.nc")
-          d=Data(self.arg3,Function(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_Function_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_rank4.nc")
-          d=Data(self.arg4,Function(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_on_boundary_rank0.nc")
-          d=Data(self.arg0,FunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_on_boundary_rank1.nc")
-          d=Data(self.arg1,FunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_on_boundary_rank2.nc")
-          d=Data(self.arg2,FunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_on_boundary_rank3.nc")
-          d=Data(self.arg3,FunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_FunctionOnBoundary_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_function_on_boundary_rank4.nc")
-          d=Data(self.arg4,FunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
-   #===========================================================================
-   def test_DumpAndLoad_Tagged_ReducedFunction_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_rank0.nc")
-          d=Data(self.arg0,ReducedFunction(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunction_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_rank1.nc")
-          d=Data(self.arg1,ReducedFunction(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunction_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_rank2.nc")
-          d=Data(self.arg2,ReducedFunction(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunction_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_rank3.nc")
-          d=Data(self.arg3,ReducedFunction(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunction_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_rank4.nc")
-          d=Data(self.arg4,ReducedFunction(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
-
-   #===========================================================================
-   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank0(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_on_boundary_rank0.nc")
-          d=Data(self.arg0,ReducedFunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg0*2)
-          d.setTaggedValue(10,self.arg0*3)
-          d.setTaggedValue(100,self.arg0*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank1(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_on_boundary_rank1.nc")
-          d=Data(self.arg1,ReducedFunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg1*2)
-          d.setTaggedValue(10,self.arg1*3)
-          d.setTaggedValue(100,self.arg1*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank2(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_on_boundary_rank2.nc")
-          d=Data(self.arg2,ReducedFunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg2*2)
-          d.setTaggedValue(10,self.arg2*3)
-          d.setTaggedValue(100,self.arg2*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank3(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_on_boundary_rank3.nc")
-          d=Data(self.arg3,ReducedFunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg3*2)
-          d.setTaggedValue(10,self.arg3*3)
-          d.setTaggedValue(100,self.arg3*4)
-          self._diffDataObjects(d,filemame)
-
-   def test_DumpAndLoad_Tagged_ReducedFunctionOnBoundary_Rank4(self):
-       if loadIsConfigured():
-          filemame=os.path.join(self.filename_base,"tagged_reduced_function_on_boundary_rank4.nc")
-          d=Data(self.arg4,ReducedFunctionOnBoundary(self.domain))
-          d.setTaggedValue(1,self.arg4*2)
-          d.setTaggedValue(10,self.arg4*3)
-          d.setTaggedValue(100,self.arg4*4)
-          self._diffDataObjects(d,filemame)
+   def test_DumpAndLoad_Constant(self):
+        for functionspace, spacename in [
+                (Solution, "solution"),
+                (ReducedSolution, "reduced_solution"),
+                (ContinuousFunction, "continuous_function"),
+                (Function, "function"),
+                (ReducedFunction, "reduced_function"),
+                (FunctionOnBoundary, "function_on_boundary"),
+                (ReducedFunctionOnBoundary, "reduced_function_on_boundary")
+            ]:
+                
+            for rank in range(5):
+                filename=os.path.join(self.filename_base,
+                        "constant_{0}_rank{1}.nc".format(spacename, rank))
+                d=Data(self.args[rank], functionspace(self.domain))
+                self._diffDataObjects(d,filename)
+
+   def test_DumpAndLoad_Expanded(self):
+        for functionspace, spacename in [
+                (Solution, "solution"),
+                (ReducedSolution, "reduced_solution"),
+                (ContinuousFunction, "continuous_function"),
+                (Function, "function"),
+                (ReducedFunction, "reduced_function"),
+                (FunctionOnBoundary, "function_on_boundary"),
+                (ReducedFunctionOnBoundary, "reduced_function_on_boundary")
+            ]:
+                
+            for rank in range(5):
+                filename=os.path.join(self.filename_base,
+                        "expanded_{0}_rank{1}.nc".format(spacename, rank))
+                d=Data(length(functionspace(self.domain).getX()) * self.args[0],
+                        functionspace(self.domain))
+                self._diffDataObjects(d,filename)
+                self.assertRaises(RuntimeError, load, filename,
+                        self.domain_with_different_number_of_samples)
+                self.assertRaises(RuntimeError, load, filename,
+                        self.domain_with_different_number_of_data_points_per_sample)
+                if getMPISizeWorld() ==1:
+                    d=Data(length(functionspace(self.domain_with_different_sample_ordering).getX()) * 
+                        self.args[0], functionspace(self.domain_with_different_sample_ordering))
+                    self._diffDataObjects(d, filename, use_old_file=True)
+
+   def test_DumpAndLoad_Tagged(self):
+        for functionspace, spacename in [
+                #(Solution, "solution"),                #commented in original
+                #(ReducedSolution, "reduced_solution"), #commented in original
+                (ContinuousFunction, "continuous_function"),
+                (Function, "function"),
+                (ReducedFunction, "reduced_function"),
+                (FunctionOnBoundary, "function_on_boundary"),
+                (ReducedFunctionOnBoundary, "reduced_function_on_boundary")
+            ]:
+                
+            for rank in range(5):
+                filename=os.path.join(self.filename_base,
+                        "tagged_{0}_rank{1}.nc".format(spacename, rank))
+                d=Data(self.args[rank],ContinuousFunction(self.domain))
+                d.setTaggedValue(1,self.args[rank]*2)
+                d.setTaggedValue(10,self.args[rank]*3)
+                d.setTaggedValue(100,self.args[rank]*4)
+                self._diffDataObjects(d,filename)
 
 class Test_Lazy(unittest.TestCase):
   def makeLazyObj(self):
