@@ -56,7 +56,7 @@ def adjust(NE, ftype):
     return NE
 
 
-class WriteBinaryGridTestBase(unittest.TestCase):
+class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
     NX = 10*mpiSize-1
     NZ = 10
 
@@ -143,7 +143,7 @@ class Test_writeBinaryGridRipley_BIG_INT32(WriteBinaryGridTestBase):
         self.dtype = ">i4"
 
 
-class ReadBinaryGridTestBase(unittest.TestCase):
+class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
     """
     The reader tests work in several stages:
     1) create numpy array and write to temporary file (ref)
