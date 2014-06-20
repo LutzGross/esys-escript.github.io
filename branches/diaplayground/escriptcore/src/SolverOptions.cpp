@@ -243,8 +243,8 @@ const char *SolverBuddy::getName(int key) const {
         case ESCRIPT_LINEAR_CRANK_NICOLSON: return "LINEAR_CRANK_NICOLSON";
         case ESCRIPT_CRANK_NICOLSON: return "CRANK_NICOLSON";
         case ESCRIPT_BACKWARD_EULER: return "BACKWARD_EULER";
-        case ESCRIPT_TARGET_CPU: return "BACKWARD_TARGET_CPU";
-        case ESCRIPT_TARGET_GPU: return "BACKWARD_TARGET_GPU";
+        case ESCRIPT_TARGET_CPU: return "TARGET_CPU";
+        case ESCRIPT_TARGET_GPU: return "TARGET_GPU";
         default:
             throw SolverOptionsException("getName() invalid option given");
     }
