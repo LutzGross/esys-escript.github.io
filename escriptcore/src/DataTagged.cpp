@@ -471,18 +471,22 @@ DataTagged::getSampleDataByTag(int tag)
 bool
 DataTagged::hasNaN() const
 {
+  bool haveNaN=false;
+  #pragma omp parallel for
 	for (ValueType::size_type i=0;i<m_data.size();++i)
 	{
 		if (nancheck(m_data[i]))	// can't assume we have new standard NaN checking
 		{
-			return true;
+      #pragma omp atomic write
+			haveNaN=true;
 		}
 	}
-	return false;
+	return haveNaN;
 }
 
 void
 DataTagged::replaceNaN(double value) {
+  #pragma omp parallel for
   for (ValueType::size_type i=0;i<m_data.size();++i)
   {
     if (nancheck(m_data[i]))  
