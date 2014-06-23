@@ -74,8 +74,8 @@ public:
     inline int getBlockSize() const { return getRowBlockSize(); }
 
 private:
-    template<class LinearOperator, class Vector>
-    void runSolver(LinearOperator& A, Vector& x, Vector& b,
+    template<class LinearOperator, class Vector, class Preconditioner>
+    void runSolver(LinearOperator& A, Vector& x, Vector& b, Preconditioner& M,
                    escript::SolverBuddy& sb) const;
 
     virtual void setToSolution(escript::Data& out, escript::Data& in,
@@ -83,7 +83,14 @@ private:
 
     virtual void ypAx(escript::Data& y, escript::Data& x) const;
 
+    void checkCUDA();
+
+    /// GPU device IDs supporting CUDA
+    static std::vector<int> cudaDevices;
+
     HostMatrixType mat;
+    mutable DeviceMatrixType dmat;
+    mutable bool matrixAltered;
     //int numRows;
     //std::vector<int> offsets;
     //std::vector<double> values;
