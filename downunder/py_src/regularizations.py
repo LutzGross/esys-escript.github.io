@@ -324,7 +324,7 @@ class Regularization(CostFunction):
             mu_c2=np.zeros((numLS,numLS))
             for k in range(numLS):
                 for l in range(k):
-                    mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2]
+                    mu_c2[l,k] = mu[numLS+l+((k-1)*k)//2]
             self.setTradeOffFactorsForCrossGradient(mu_c2)
         elif mu.shape == () and numLS ==1:
             self.setTradeOffFactorsForVariation(mu)
