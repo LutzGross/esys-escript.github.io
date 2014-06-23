@@ -963,12 +963,14 @@ class MT2DModelTEMode(ForwardModel):
         self.__wx0=[0.] * len(Z_XY)
         x=Function(domain).getX()
         totalS=0
-        for s in xrange(len(self.__scaledZxy)):
+        s = 0
+        while s < len(self.__scaledZxy):
             totalS+=w0[s]
             f=integrate(self.getWeightingFactor(x, 1., self.__x[s], self.__eta[s]))
             if f < 2*PI*self.__eta[s]**2 * 0.1 :
                 raise ValueError("Zero weight (almost) for data point %s. Change eta or refine mesh."%(s,))
             self.__wx0[s]=w0[s]/f
+            s += 1
         if not totalS >0 : 
              raise ValueError("Scaling of weight factors failed as sum is zero.")
             
@@ -1080,9 +1082,11 @@ class MT2DModelTEMode(ForwardModel):
         u11=dE_xdz[1]
 
         # this cane be done faster!
-        for s in xrange(len(self.__scaledZxy)):
+        s = 0
+        while s < len(self.__scaledZxy):
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
             A+=integrate( ws * ( (u0-u01*self.__scaledZxy[s].real+u11*self.__scaledZxy[s].imag)**2 + (u1-u01*self.__scaledZxy[s].imag-u11*self.__scaledZxy[s].real)**2 ) )
+            s += 1
         return  A/2
 
     def getGradient(self, sigma, E_x, dE_xdz):
@@ -1112,12 +1116,14 @@ class MT2DModelTEMode(ForwardModel):
         D[0,1]=  f
         D[1,0]= -f
 
-        for s in xrange(len(self.__scaledZxy)):
+        s = 0
+        while s < len(self.__scaledZxy):
             ws=self.getWeightingFactor(x, self.__wx0[s], self.__x[s], self.__eta[s])
             Y[0]+=ws * (u0 - u01* self.__scaledZxy[s].real + u11* self.__scaledZxy[s].imag)
             Y[1]+=ws * (u1 - u01* self.__scaledZxy[s].imag - u11* self.__scaledZxy[s].real)
             X[0,1]+=ws * (u01* abs(self.__scaledZxy[s])**2 - u0* self.__scaledZxy[s].real - u1* self.__scaledZxy[s].imag )
             X[1,1]+=ws * (u11* abs(self.__scaledZxy[s])**2 + u0* self.__scaledZxy[s].imag - u1* self.__scaledZxy[s].real )
+            s += 1
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
         return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
