@@ -26,7 +26,14 @@ __url__="https://launchpad.net/escript-finley"
 #    a very simple convection model in model frame:
 #
 
-import os, StringIO
+import os
+import sys
+if sys.version_info >= (3,0):
+    from io import StringIO
+else:
+    #specifically to avoid non-unicode default strings
+    #being passed to a python3 style StringIO that expects unicode
+    from StringIO import StringIO
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
@@ -132,7 +139,7 @@ class Test_Convection(unittest.TestCase):
     def setUp(self):
         import sys
         self.old = sys.stdout
-        sys.stdout = StringIO.StringIO()
+        sys.stdout = StringIO()
     
     def tearDown(self):
         import sys
