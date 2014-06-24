@@ -27,7 +27,14 @@ __url__="https://launchpad.net/escript-finley"
 #   p=(x0+x1)*t
 #
 
-import os, StringIO
+import os
+import sys
+if sys.version_info >= (3,0):
+    from io import StringIO
+else:
+    #specifically to avoid non-unicode default strings
+    #being passed to a python3 style StringIO that expects unicode
+    from StringIO import StringIO
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript.modelframe import Link,Simulation
