@@ -352,7 +352,7 @@ BOOST_PYTHON_MODULE(ripleycpp)
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
     def("_theculprit_", ripley::_who);
 
-    def("_readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"),
+    def("readBinaryGrid", &ripley::readBinaryGrid, (arg("filename"),
                 arg("functionspace"), arg("shape"), arg("fill")=0.,
                 arg("byteOrder"), arg("dataType"), arg("first"),
                 arg("numValues"), arg("multiplier"), arg("reverse")),

@@ -26,7 +26,7 @@ import numpy as np
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
-from esys.ripley import Rectangle, Brick, ripleycpp
+from esys.ripley import *
 
 try:
      RIPLEY_WORKDIR=os.environ['RIPLEY_WORKDIR']
@@ -70,7 +70,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
         xMax = [int(sup(x[i]))+1 for i in range(dim)]
         nvals=NE[0]*NE[1]
         data = x[0] + xMax[0]*x[1]
-        if self.datatype == ripleycpp.DATATYPE_INT32:
+        if self.datatype == DATATYPE_INT32:
             data += 0.05
         if dim > 2:
             data = data + xMax[0]*xMax[1]*x[2]
@@ -108,38 +108,38 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
 
 class Test_writeBinaryGridRipley_LITTLE_FLOAT32(WriteBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT32
+        self.byteorder = BYTEORDER_LITTLE_ENDIAN
+        self.datatype = DATATYPE_FLOAT32
         self.dtype = "<f4"
 
 class Test_writeBinaryGridRipley_LITTLE_FLOAT64(WriteBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.byteorder = BYTEORDER_LITTLE_ENDIAN
+        self.datatype = DATATYPE_FLOAT64
         self.dtype = "<f8"
 
 class Test_writeBinaryGridRipley_LITTLE_INT32(WriteBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_INT32
+        self.byteorder = BYTEORDER_LITTLE_ENDIAN
+        self.datatype = DATATYPE_INT32
         self.dtype = "<i4"
 
 class Test_writeBinaryGridRipley_BIG_FLOAT32(WriteBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT32
+        self.byteorder = BYTEORDER_BIG_ENDIAN
+        self.datatype = DATATYPE_FLOAT32
         self.dtype = ">f4"
 
 class Test_writeBinaryGridRipley_BIG_FLOAT64(WriteBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.byteorder = BYTEORDER_BIG_ENDIAN
+        self.datatype = DATATYPE_FLOAT64
         self.dtype = ">f8"
 
 class Test_writeBinaryGridRipley_BIG_INT32(WriteBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_INT32
+        self.byteorder = BYTEORDER_BIG_ENDIAN
+        self.datatype = DATATYPE_INT32
         self.dtype = ">i4"
 
 
@@ -176,7 +176,7 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
         self.multiplier = [1] * self.domain.getDim()
         self.reverse = [0] * self.domain.getDim()
         numValues=adjust(self.NE, ftype)
-        return ripleycpp._readBinaryGrid(filename, ftype(self.domain),
+        return readBinaryGrid(filename, ftype(self.domain),
                 shape=self.shape, fill=self.fill, byteOrder=self.byteorder,
                 dataType=self.datatype, first=self.first, numValues=numValues,
                 multiplier=self.multiplier, reverse=self.reverse)
@@ -221,38 +221,38 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
 
 class Test_readBinaryGridRipley_LITTLE_FLOAT32(ReadBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT32
+        self.byteorder = BYTEORDER_LITTLE_ENDIAN
+        self.datatype = DATATYPE_FLOAT32
         self.dtype = "<f4"
 
 class Test_readBinaryGridRipley_LITTLE_FLOAT64(ReadBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.byteorder = BYTEORDER_LITTLE_ENDIAN
+        self.datatype = DATATYPE_FLOAT64
         self.dtype = "<f8"
 
 class Test_readBinaryGridRipley_LITTLE_INT32(ReadBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_LITTLE_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_INT32
+        self.byteorder = BYTEORDER_LITTLE_ENDIAN
+        self.datatype = DATATYPE_INT32
         self.dtype = "<i4"
 
 class Test_readBinaryGridRipley_BIG_FLOAT32(ReadBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT32
+        self.byteorder = BYTEORDER_BIG_ENDIAN
+        self.datatype = DATATYPE_FLOAT32
         self.dtype = ">f4"
 
 class Test_readBinaryGridRipley_BIG_FLOAT64(ReadBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_FLOAT64
+        self.byteorder = BYTEORDER_BIG_ENDIAN
+        self.datatype = DATATYPE_FLOAT64
         self.dtype = ">f8"
 
 class Test_readBinaryGridRipley_BIG_INT32(ReadBinaryGridTestBase):
     def setUp(self):
-        self.byteorder = ripleycpp.BYTEORDER_BIG_ENDIAN
-        self.datatype = ripleycpp.DATATYPE_INT32
+        self.byteorder = BYTEORDER_BIG_ENDIAN
+        self.datatype = DATATYPE_INT32
         self.dtype = ">i4"
 
 
@@ -260,8 +260,8 @@ class Test_readBinaryGridRipley_BIG_INT32(ReadBinaryGridTestBase):
     "Skipping compressed binary grid tests due to element stretching")
 class Test_readBinaryGridZippedRipley(unittest.TestCase):
     # constants
-    byteorder = ripleycpp.BYTEORDER_NATIVE
-    datatype = ripleycpp.DATATYPE_FLOAT64
+    byteorder = BYTEORDER_NATIVE
+    datatype = DATATYPE_FLOAT64
 
     def read(self, filename, FS, expected, zipped = False):
         first = [0 for i in expected]
@@ -269,7 +269,7 @@ class Test_readBinaryGridZippedRipley(unittest.TestCase):
         scale = [1 for i in expected]
 
         if not zipped:
-            return ripleycpp._readBinaryGrid(filename, FS, (), 50000,
+            return readBinaryGrid(filename, FS, (), 50000,
                 self.byteorder, self.datatype, first, expected, scale, reverse)
 
         if not hasattr(ripleycpp, "_readBinaryGridFromZipped"):
