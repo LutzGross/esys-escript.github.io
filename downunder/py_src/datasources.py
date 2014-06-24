@@ -34,7 +34,7 @@ from esys.escript import ReducedFunction, FunctionOnBoundary, Scalar
 from esys.escript import unitsSI as U
 from esys.escript.linearPDEs import LinearSinglePDE
 from esys.escript.util import *
-from esys.ripley import ripleycpp
+from esys.ripley import *
 from .coordinates import ReferenceSystem,  CartesianReferenceSystem
 
 try:
@@ -379,16 +379,16 @@ class ErMapperData(DataSource):
 
         try:
             if md_dict['RasterInfo.CellType'] == 'IEEE4ByteReal':
-                self.__celltype = ripleycpp.DATATYPE_FLOAT32
+                self.__celltype = DATATYPE_FLOAT32
             elif md_dict['RasterInfo.CellType'] == 'IEEE8ByteReal':
-                self.__celltype = ripleycpp.DATATYPE_FLOAT64
+                self.__celltype = DATATYPE_FLOAT64
             elif md_dict['RasterInfo.CellType'] == 'Signed32BitInteger':
-                self.__celltype = ripleycpp.DATATYPE_INT32
+                self.__celltype = DATATYPE_INT32
             else:
                 raise RuntimeError('Unsupported data type '+md_dict['RasterInfo.CellType'])
         except KeyError:
             self.logger.warning("Cell type not specified. Assuming IEEE4ByteReal.")
-            self.__celltype = ripleycpp.DATATYPE_FLOAT32
+            self.__celltype = DATATYPE_FLOAT32
 
         try:
             fileOffset = int(md_dict['HeaderOffset'])
@@ -507,9 +507,9 @@ class ErMapperData(DataSource):
             nValues=nValues+[1]
 
         reverse = [0]*domain.getDim()
-        byteorder=ripleycpp.BYTEORDER_NATIVE
+        byteorder=BYTEORDER_NATIVE
         self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s, reverse=%s"%(str(first),str(nValues),str(multiplier),str(reverse)))
-        data = ripleycpp._readBinaryGrid(self.__datafile, FS, shape=(),
+        data = readBinaryGrid(self.__datafile, FS, shape=(),
                 fill=self.__null_value, byteOrder=byteorder,
                 dataType=self.__celltype, first=first, numValues=nValues,
                 multiplier=multiplier, reverse=reverse)
@@ -1262,17 +1262,17 @@ class NumpyData(DataSource):
             self.__data.tofile(numpyfile)
 
             reverse=[0]*DIM
-            byteorder=ripleycpp.BYTEORDER_NATIVE
-            datatype=ripleycpp.DATATYPE_FLOAT64
+            byteorder=BYTEORDER_NATIVE
+            datatype=DATATYPE_FLOAT64
             self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-            data = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
+            data = readBinaryGrid(numpyfile, FS, shape=(),
                 fill=self.__null_value, byteOrder=byteorder, dataType=datatype,
                 first=first, numValues=nValues, multiplier=multiplier,
                 reverse=reverse)
             if len(self.__error.shape) > 0:
                 self.__error.tofile(numpyfile)
                 self.logger.debug("calling readBinaryGrid with first=%s, nValues=%s, multiplier=%s"%(str(first),str(nValues),str(multiplier)))
-                sigma = ripleycpp._readBinaryGrid(numpyfile, FS, shape=(),
+                sigma = readBinaryGrid(numpyfile, FS, shape=(),
                     fill=0., byteOrder=byteorder, dataType=datatype,
                     first=first, numValues=nValues, multiplier=multiplier,
                     reverse=reverse)
