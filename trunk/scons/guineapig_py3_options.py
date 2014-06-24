@@ -20,9 +20,9 @@ from guineapig_options import *
 #boost_prefix = '/usr/local'
 
 # boost-python library/libraries to link against
-boost_libs = ['boost_python-py33']
+boost_libs = ['boost_python-py34']
 usepython3=True
 pythoncmd='python3'
-pythonlibname='python3.3m'
-pythonincpath='/usr/include/python3.3'
+pythonlibname='python3.4m'
+pythonincpath='/usr/include/python3.4'
 
