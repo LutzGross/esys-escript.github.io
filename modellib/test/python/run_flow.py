@@ -82,7 +82,7 @@ class Test_RunFlow(unittest.TestCase):
     def setUp(self):
         import sys
         self.old = sys.stdout
-        sys.stdout = StringIO.StringIO()
+        sys.stdout = StringIO()
     
     def tearDown(self):
         import sys
