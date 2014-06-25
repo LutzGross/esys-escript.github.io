@@ -35,7 +35,14 @@ from esys.modellib.input import Sequencer
 from esys.modellib.probe import Probe,EvaluateExpression
 from esys.modellib.temperature import TemperatureAdvection
 import numpy
-import os, StringIO
+import os
+import sys
+if sys.version_info >= (3,0):
+    from io import StringIO
+else:
+    #specifically to avoid non-unicode default strings
+    #being passed to a python3 style StringIO that expects unicode
+    from StringIO import StringIO
 
 #Link() behaves badly inside a TestCase class
 def run(dom, stream):
@@ -82,7 +89,7 @@ class Test_RunTemp(unittest.TestCase):
     def setUp(self):
         import sys
         self.old = sys.stdout
-        sys.stdout = StringIO.StringIO()
+        sys.stdout = StringIO()
     
     def tearDown(self):
         import sys
