@@ -19,3 +19,5 @@ from savanna_options import *
 openmp = False
 mkl_libs = ['mkl_intel_lp64', 'mkl_sequential', 'mkl_core', 'pthread']
 
+cxx_extra += ' -wd3180 '  #prevent icpc from complaining about OMP
+
