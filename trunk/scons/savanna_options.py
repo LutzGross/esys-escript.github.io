@@ -58,6 +58,7 @@ cxx_extra = '-DCORE_ID1 -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/pyt
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
 ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib -ipo-jobs4'
+ld_extra += ' -wd11021 '  #silence icpc warnings about symbols ipo can't see
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
