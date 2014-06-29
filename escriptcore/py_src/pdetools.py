@@ -278,16 +278,16 @@ class NoPDE(object):
          :param r: value of solution at locations of constraints
          :type r: ``float``, ``int``, ``numpy.ndarray``, `Data`
          """
-         if not D==None:
+         if not D is None:
             self.__D=D
             self.__u=None
-         if not Y==None:
+         if not Y is None:
             self.__Y=Y
             self.__u=None
-         if not q==None:
+         if not q is None:
             self.__q=q
             self.__u=None
-         if not r==None:
+         if not r is None:
             self.__r=r
             self.__u=None
 
@@ -299,20 +299,20 @@ class NoPDE(object):
          :rtype: `Data` object in the `FunctionSpace` `Solution` or
                  `ReducedSolution`
          """
-         if self.__u==None:
-            if self.__D==None:
+         if self.__u is None:
+            if self.__D is None:
                raise ValueError("coefficient D is undefined")
             D=escore.Data(self.__D,self.__function_space)
             if D.getRank()>1:
                raise ValueError("coefficient D must have rank 0 or 1")
-            if self.__Y==None:
+            if self.__Y is None:
                self.__u=escore.Data(0.,D.getShape(),self.__function_space)
             else:
                self.__u=1./D*self.__Y
-            if not self.__q==None:
+            if not self.__q is None:
                 q=util.wherePositive(escore.Data(self.__q,self.__function_space))
                 self.__u*=(1.-q)
-                if not self.__r==None: self.__u+=q*self.__r
+                if not self.__r is None: self.__u+=q*self.__r
          return self.__u
 
 class Locator(object):
@@ -391,7 +391,7 @@ class Locator(object):
         """
         Returns the identifier of the location.
         """
-        if item == None:
+        if item is None:
            return self.__id
         else:
            if isinstance(self.__id,list):
@@ -602,7 +602,9 @@ def PCG(r, Aprod, x, Msolve, bilinearform, atol=0, rtol=1.e-8, iter_max=100, ini
 
 class Defect(object):
     """
-    Defines a non-linear defect F(x) of a variable x.
+    Defines a non-linear defect F(x) of a variable x. This class includes
+    two functions (bilinearform and eval) that must be overridden by subclassing
+    before use.
     """
     def __init__(self):
         """
@@ -613,13 +615,15 @@ class Defect(object):
     def bilinearform(self, x0, x1):
         """
         Returns the inner product of x0 and x1
+        
+        NOTE: MUST BE OVERRIDDEN
 
         :param x0: value for x0
         :param x1: value for x1
         :return: the inner product of x0 and x1
         :rtype: ``float``
         """
-        return 0
+        raise NotImplementedError("Defect bilinearform method not overridden")
 
     def norm(self,x):
         """
@@ -638,10 +642,12 @@ class Defect(object):
         """
         Returns the value F of a given ``x``.
 
+        NOTE: MUST BE OVERRIDDEN
+
         :param x: value for which the defect ``F`` is evaluated
         :return: value of the defect at ``x``
         """
-        return 0
+        raise NotImplementedError("Defect eval() method not overridden")
 
     def __call__(self,x):
         return self.eval(x)
@@ -1646,43 +1652,43 @@ class HomogeneousSaddlePointProblem(object):
          :type chi_max: ``float``
          :type reduction_factor: ``float``
          """
-         if not K_p == None:
+         if not K_p is None:
             if K_p<1:
                raise ValueError("K_p need to be greater or equal to 1.")
          else:
             K_p=self.__K_p
 
-         if not K_v == None:
+         if not K_v is None:
             if K_v<1:
                raise ValueError("K_v need to be greater or equal to 1.")
          else:
             K_v=self.__K_v
 
-         if not rtol_max == None:
+         if not rtol_max is None:
             if rtol_max<=0 or rtol_max>=1: 
                raise ValueError("rtol_max needs to be positive and less than 1.")
          else:
             rtol_max=self.__rtol_max
 
-         if not rtol_min == None:
+         if not rtol_min is None:
             if rtol_min<=0 or rtol_min>=1: 
                raise ValueError("rtol_min needs to be positive and less than 1.")
          else:
             rtol_min=self.__rtol_min
 
-         if not chi_max == None:
+         if not chi_max is None:
             if chi_max<=0 or chi_max>=1: 
                raise ValueError("chi_max needs to be positive and less than 1.")
          else:
             chi_max = self.__chi_max 
 
-         if not reduction_factor == None:
+         if not reduction_factor is None:
             if reduction_factor<=0 or reduction_factor>1:
                raise ValueError("reduction_factor need to be between zero and one.")
          else:
             reduction_factor=self.__reduction_factor
 
-         if not theta == None:
+         if not theta is None:
             if theta<=0 or theta>1:
                raise ValueError("theta need to be between zero and one.")
          else:
@@ -1851,7 +1857,7 @@ class HomogeneousSaddlePointProblem(object):
          while not converged:
 
              # get tolerance for velecity increment:
-             if chi == None:
+             if chi is None:
                 rtol_v=self.__rtol_max 
              else:
                 rtol_v=min(chi/K_v,self.__rtol_max)
@@ -1867,7 +1873,7 @@ class HomogeneousSaddlePointProblem(object):
              if norm_dv1*self.__theta < norm_Bv1:
                 # get tolerance for pressure increment:
                 large_Bv1=True
-                if chi == None or eps == None:
+                if chi is None or eps is None:
                    rtol_p=self.__rtol_max 
                 else:
                    rtol_p=min(chi**2*eps/K_p/norm_Bv1, self.__rtol_max)
@@ -1894,7 +1900,7 @@ class HomogeneousSaddlePointProblem(object):
              norm_v2=self.norm_v(v2)
              if self.verbose: print(("HomogeneousSaddlePointProblem: step %s: v2 = %e, norm_dv2 = %e"%(correction_step, norm_v2, self.norm_v(v2-v))))
              eps, eps_old = max(norm_Bv1, norm_dv2), eps
-             if eps_old == None:
+             if eps_old is None:
                   chi, chi_old = None, chi
              else:
                   chi, chi_old = min(eps/ eps_old, self.__chi_max), chi

@@ -16,12 +16,11 @@
 #include <ripley/WaveAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
-using namespace std;
-
 namespace ripley {
 
 void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const {
+            std::map<std::string, escript::Data> coefs) const
+{
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
     if (isNotEmpty("B", coefs))
@@ -36,14 +35,17 @@ void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
 
-WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
-            const dim_t *m_NE, const dim_t *m_NN, std::map<std::string, escript::Data> c) 
-            : AbstractAssembler() {
+WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom,
+                                 const double *dx, const dim_t *NX, 
+                                 const dim_t *NE, const dim_t *NN,
+                                 std::map<std::string, escript::Data> c)
+    : AbstractAssembler(),
+    m_dx(dx),
+    m_NX(NX),
+    m_NE(NE),
+    m_NN(NN)
+{
         domain = boost::static_pointer_cast<const Rectangle>(dom);
-        this->m_dx = m_dx;
-        this->m_NX = m_NX;
-        this->m_NE = m_NE;
-        this->m_NN = m_NN;
         isHTI = isVTI = false;
         std::map<std::string, escript::Data>::iterator a = c.find("c12"),
                                                        b = c.find("c23");
@@ -69,7 +71,7 @@ WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom, const double *m_
 }
 
 void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+            escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
@@ -114,19 +116,21 @@ void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
     const double w6 = -m_dx[1]/(24*m_dx[0]);
     const double w0 = w6*(SQRT3 + 2);
     const double w4 = w6*(-SQRT3 + 2);
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k1_0=0; k1_0<2; k1_0++) { // colouring
 #pragma omp for
-            for (index_t k1=k1_0; k1 < m_NE[1]; k1+=2) {
-                for (index_t k0=0; k0 < m_NE[0]; ++k0)  {
+            for (index_t k1=k1_0; k1 < NE1; k1+=2) {
+                for (index_t k0=0; k0 < NE0; ++k0)  {
                     bool addEM_S=false;
                     bool addEM_F=false;
-                    vector<double> EM_S(4*4*numEq*numComp, 0);
-                    vector<double> EM_F(4*numEq, 0);
-                    const index_t e = k0 + m_NE[0]*k1;
+                    std::vector<double> EM_S(4*4*numEq*numComp, 0);
+                    std::vector<double> EM_F(4*numEq, 0);
+                    const index_t e = k0 + NE0*k1;
                     ///////////////
                     // process A //
                     ///////////////
@@ -481,16 +485,17 @@ void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
                     if (!du.isEmpty()) {
                         addEM_F=true;
                         const double *du_p = du.getSampleDataRO(e);
-                        const double *c11_p = c11.getSampleDataRO(e),
-                                     *c13_p = c13.getSampleDataRO(e),
-                                     *c33_p = c33.getSampleDataRO(e);
+                        const double *c11_p = c11.getSampleDataRO(e);
+                        const double *c13_p = c13.getSampleDataRO(e);
+                        const double *c33_p = c33.getSampleDataRO(e);
                         if (du.actsExpanded()) {
-                            double X_00_0, X_00_1, X_00_2, X_00_3,
-                                   X_11_0, X_11_1, X_11_2, X_11_3,
-                                   X_01_0 = -(du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]),
-                                   X_01_1 = -(du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]),
-                                   X_01_2 = -(du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]),
-                                   X_01_3 = -(du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]);
+                            double X_00_0, X_00_1, X_00_2, X_00_3;
+                            double X_11_0, X_11_1, X_11_2, X_11_3;
+                            double X_01_0 = -(du_p[INDEX3(1,0,0,numEq,2)] + du_p[INDEX3(0,1,0,numEq,2)]);
+                            double X_01_1 = -(du_p[INDEX3(1,0,1,numEq,2)] + du_p[INDEX3(0,1,1,numEq,2)]);
+                            double X_01_2 = -(du_p[INDEX3(1,0,2,numEq,2)] + du_p[INDEX3(0,1,2,numEq,2)]);
+                            double X_01_3 = -(du_p[INDEX3(1,0,3,numEq,2)] + du_p[INDEX3(0,1,3,numEq,2)]);
+
                             if (isVTI) {
                                 const double *c44_p = c44.getSampleDataRO(e);
                                 X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
@@ -513,7 +518,7 @@ void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
                                 X_01_1 *= c44_p[1];
                                 X_01_2 *= c44_p[2];
                                 X_01_3 *= c44_p[3];
-                            } else if (isHTI) {
+                            } else { // isHTI
                                 const double *c66_p = c66.getSampleDataRO(e);
                                 X_00_0 = -(du_p[INDEX3(0,0,0,numEq,2)] * c11_p[0] 
                                         + du_p[INDEX3(1,1,0,numEq,2)] * c13_p[0]);
@@ -535,12 +540,11 @@ void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
                                 X_01_1 *= c66_p[1];
                                 X_01_2 *= c66_p[2];
                                 X_01_3 *= c66_p[3];
-                            } else {
-                                throw RipleyException("General form solutions"
-                                       " not yet implemented in WaveAssembler");
                             }
-                            
-                            const double X_10_0 = X_01_0, X_10_1 = X_01_1, X_10_2 = X_01_2, X_10_3 = X_01_3;
+                            const double X_10_0 = X_01_0;
+                            const double X_10_1 = X_01_1;
+                            const double X_10_2 = X_01_2;
+                            const double X_10_3 = X_01_3;
 
                             const double Atmp0 = 6*w15*(X_00_2 + X_00_3);
                             const double Atmp1 = 6*w10*(X_00_0 + X_00_1);
@@ -595,7 +599,7 @@ void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
                                 wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
                                                     + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
-                            } else if (isHTI) {
+                            } else { // isHTI 
                                 const double *c66_p = c66.getSampleDataRO(e);
                                 wX_00 = -(du_p[INDEX2(0,0,numEq)] * c11_p[0] 
                                         + du_p[INDEX2(1,1,numEq)] * c13_p[0])*w18;
@@ -605,9 +609,6 @@ void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
                                                     (du_p[INDEX2(1,0,numEq)] + du_p[INDEX2(0,1,numEq)]))*w18;
                                 wX_11 = -(du_p[INDEX2(0,0,numEq)] * c13_p[0] 
                                         + du_p[INDEX2(1,1,numEq)] * c33_p[0])*w19;
-                            } else {
-                                throw RipleyException("General form solutions"
-                                       " not yet implemented in WaveAssembler");
                             }
                             EM_F[INDEX2(0,0,numEq)]+= wX_00 + wX_01;
                             EM_F[INDEX2(0,1,numEq)]+=-wX_00 + wX_01;

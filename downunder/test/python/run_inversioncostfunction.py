@@ -30,6 +30,21 @@ from esys.escript import *
 import numpy as np
 
 
+class LinearMappingX(Mapping):
+    def __init__(self, mat):
+        self.matrix=mat
+        self.det=mat[0,0]*mat[1,1]-mat[0,1]*mat[0,1]
+        self.inv=np.array([ [mat[1,1]/self.det, -mat[1,0]/self.det ], [-mat[0,1]/self.det, mat[0,0]/self.det]   ])
+    
+    def getDerivative(self, m):
+        return Data(self.matrix, m.getFunctionSpace())
+    def getValue(self, p):
+        return matrix_mult(self.matrix, p)
+    def getInverse(self, p):
+        return matrix_mult(self.inv, p)
+    def getTypicalDerivative(self):
+        return self.matrix[1,1]
+
 class SimpleModel(ForwardModel):
     def __init__(self, domain, coordinates, numComps=1):
         self.domain = domain
@@ -67,20 +82,7 @@ class SimpleModel(ForwardModel):
             return sum(((n+1)*s[n]-(n+2))**2 for n in range(self.numComps) )*.5    
     
         
-class LinearMappingX(Mapping):
-    def __init__(self, mat):
-        self.matrix=mat
-        self.det=mat[0,0]*mat[1,1]-mat[0,1]*mat[0,1]
-        self.inv=np.array([ [mat[1,1]/self.det, -mat[1,0]/self.det ], [-mat[0,1]/self.det, mat[0,0]/self.det]   ])
-    
-    def getDerivative(self, m):
-        return Data(self.matrix, m.getFunctionSpace())
-    def getValue(self, p):
-        return matrix_mult(self.matrix, p)
-    def getInverse(self, p):
-        return matrix_mult(self.inv, p)
-    def getTypicalDerivative(self):
-        return self.matrix[1,1]
+
         
 class TestInversionCostfunction(unittest.TestCase):
     def setUp(self):

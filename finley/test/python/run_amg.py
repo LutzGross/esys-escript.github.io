@@ -37,7 +37,7 @@ Test suite for AMG
 __author__="Lutz Gross, l.gross@uq.edu.au"
 
 import esys.escriptcore.utestselect as unittest, sys
-
+from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.finley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
@@ -62,7 +62,7 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 NE_TOTAL=4096
 #NE_TOTAL=4
 
-class Test_AMG(unittest.TestCase):
+class AMG(unittest.TestCase): #subclassing required
 
    def test_Poisson(self):
         global USE_AMG
@@ -854,7 +854,7 @@ class Test_AMG(unittest.TestCase):
         self.assertTrue(error<self.RES_TOL, "solution error %s is too big."%error)
         
 
-class Test_AMGOnFinleyHex2DOrder1(Test_AMG):
+class Test_AMGOnFinleyHex2DOrder1(AMG):
    RES_TOL=5.e-7
    SOLVER_TOL=1.e-8
    def setUp(self):
@@ -863,20 +863,6 @@ class Test_AMGOnFinleyHex2DOrder1(Test_AMG):
    def tearDown(self):
         del self.domain
 
-class Test_AMGOnFinleyHex3DOrder1(Test_AMG):
-   RES_TOL=5.e-7
-   SOLVER_TOL=1.e-8
-   def setUp(self):
-        NE=int(float(NE_TOTAL)**(1./3.)+0.5)
-        self.domain = Brick(NE,NE,NE,1, optimize=OPTIMIZE)
-   def tearDown(self):
-        del self.domain
 if __name__ == '__main__':
-   suite = unittest.TestSuite()
-   suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex2DOrder1))
-   suite.addTest(unittest.makeSuite(Test_AMGOnFinleyHex3DOrder1))
-   # suite.addTest(Test_AMGOnFinleyHex3DOrder1("test_Poisson4"))
-   # suite.addTest(Test_AMGOnFinleyHex2DOrder1("test_WeakCoupled4"))
-
-   s=unittest.TextTestRunner(verbosity=2).run(suite)
-   if not s.wasSuccessful(): sys.exit(12)
+    run_tests(__name__, exit_on_failure=True)
+    

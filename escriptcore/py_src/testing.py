@@ -69,7 +69,7 @@ def __add_tests(suite, modulename):
     import inspect
     clsmembers = inspect.getmembers(sys.modules[modulename], inspect.isclass)
     for name, cls in clsmembers:
-        if modulename == cls.__module__ and name.startswith("Test_") \
+        if modulename == cls.__module__ and name.startswith("Test") \
                 and issubclass(cls, unittest.TestCase):
             suite.addTest(unittest.makeSuite(cls))
 

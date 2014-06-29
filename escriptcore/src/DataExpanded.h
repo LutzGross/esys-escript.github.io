@@ -154,6 +154,13 @@ TODO Note that this constructor will also copy data to all points if it only con
   hasNaN() const;
 
   /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(double value);
+    
+  /**
      \brief
      Return a textual representation of the data.
   */

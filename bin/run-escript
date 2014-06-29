@@ -483,30 +483,14 @@ then
 
    if [ ! -z "$HOSTFILE" ]
    then
-      mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
-      if [ $? -ne 0 ]
-      then
-         echo "mpdboot with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
-         exit 1
-      else
-          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
-      fi
+        CMD="mpirun -hostfile $HOSTFILE -n $TOTPROC -ppn $ESCRIPT_NUM_PROCS $EXEC_CMD"
    else
-      mpdboot -n 1 -r ssh
-      if [ $? -ne 0 ]
-      then
-         echo "mpdboot failed."
-         exit 1
-      else
-          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started."; fi
-      fi
+        if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Empty hostfile, running on single node"; fi
+        CMD="mpirun -n 1 -ppn $ESCRIPT_NUM_PROCS $EXEC_CMD"
    fi
-   CMD="mpiexec -perhost $ESCRIPT_NUM_PROCS -envall -n $TOTPROC $EXEC_CMD"
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
    EXIT_CODE=$?
-   mpdallexit
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
 #=============== SGI's MPIMPT ===================================
 elif [ "$MPI_FLAVOUR" = "MPT" ]
 then
@@ -544,7 +528,7 @@ then
          mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
          if [ $? -ne 0 ]
          then
-            echo "mpdboot with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
+            echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
             exit 1
          else
              if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi

@@ -17,8 +17,6 @@
 #include <fenv.h>
 #include <ripley/domainhelpers.h>
 
-using namespace std;
-
 namespace ripley {
 
 void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
@@ -39,15 +37,17 @@ void WaveAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
 }
 
 
-WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom, const double *m_dx, const dim_t *m_NX, 
-            const dim_t *m_NE, const dim_t *m_NN, std::map<std::string, escript::Data> c)
-            : AbstractAssembler()
+WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
+                                 const double *dx, const dim_t *NX,
+                                 const dim_t *NE, const dim_t *NN,
+                                 std::map<std::string, escript::Data> c)
+    : AbstractAssembler(),
+    m_dx(dx),
+    m_NX(NX),
+    m_NE(NE),
+    m_NN(NN)
 {
         domain = boost::static_pointer_cast<const Brick>(dom);
-        this->m_dx = m_dx;
-        this->m_NX = m_NX;
-        this->m_NE = m_NE;
-        this->m_NN = m_NN;
         isHTI = isVTI = false;
         std::map<std::string, escript::Data>::iterator a = c.find("c12"),
                                                        b = c.find("c23");
@@ -73,7 +73,7 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom, const double *m_
 }
 
 void WaveAssembler3D::assemblePDESystem(SystemMatrix* mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+            escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
                  C = unpackData("C", coefs), D = unpackData("D", coefs),
@@ -162,20 +162,23 @@ void WaveAssembler3D::assemblePDESystem(SystemMatrix* mat,
     const double w14 = w27*(-SQRT3 - 2);
     const double w28 = w27*(-4*SQRT3 + 7);
     const double w29 = w27*(4*SQRT3 + 7);
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
+    const int NE2 = m_NE[2];
 
     rhs.requireWrite();
 #pragma omp parallel
     {
         for (index_t k2_0=0; k2_0<2; k2_0++) { // colouring
 #pragma omp for
-            for (index_t k2=k2_0; k2<m_NE[2]; k2+=2) {
-                for (index_t k1=0; k1<m_NE[1]; ++k1) {
-                    for (index_t k0=0; k0<m_NE[0]; ++k0)  {
+            for (index_t k2=k2_0; k2<NE2; k2+=2) {
+                for (index_t k1=0; k1<NE1; ++k1) {
+                    for (index_t k0=0; k0<NE0; ++k0)  {
                         bool add_EM_S=false;
                         bool add_EM_F=false;
-                        vector<double> EM_S(8*8*numEq*numComp, 0);
-                        vector<double> EM_F(8*numEq, 0);
-                        const index_t e = k0 + m_NE[0]*k1 + m_NE[0]*m_NE[1]*k2;
+                        std::vector<double> EM_S(8*8*numEq*numComp, 0);
+                        std::vector<double> EM_F(8*numEq, 0);
+                        const index_t e = k0 + NE0*k1 + NE0*NE1*k2;
                         ///////////////
                         // process A //
                         ///////////////
@@ -2080,7 +2083,7 @@ X_22_4 = -(c13_p[4]*(du_p[INDEX3(0,0,4,numEq,3)] + du_p[INDEX3(1,1,4,numEq,3)]) 
 X_22_5 = -(c13_p[5]*(du_p[INDEX3(0,0,5,numEq,3)] + du_p[INDEX3(1,1,5,numEq,3)]) + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
 X_22_6 = -(c13_p[6]*(du_p[INDEX3(0,0,6,numEq,3)] + du_p[INDEX3(1,1,6,numEq,3)]) + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
 X_22_7 = -(c13_p[7]*(du_p[INDEX3(0,0,7,numEq,3)] + du_p[INDEX3(1,1,7,numEq,3)]) + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
-                                } else if (isHTI) {
+                                } else { // isHTI
                                     const double *c23_p = c23.getSampleDataRO(e);
 X_00_0 = -(c11_p[0]*du_p[INDEX3(0,0,0,numEq,3)]+c13_p[0]*(du_p[INDEX3(1,1,0,numEq,3)]+du_p[INDEX3(2,2,0,numEq,3)]));
 X_00_1 = -(c11_p[1]*du_p[INDEX3(0,0,1,numEq,3)]+c13_p[1]*(du_p[INDEX3(1,1,1,numEq,3)]+du_p[INDEX3(2,2,1,numEq,3)]));
@@ -2117,9 +2120,6 @@ X_22_4 = -(c13_p[4]*du_p[INDEX3(0,0,4,numEq,3)] + c23_p[4]*du_p[INDEX3(1,1,4,num
 X_22_5 = -(c13_p[5]*du_p[INDEX3(0,0,5,numEq,3)] + c23_p[5]*du_p[INDEX3(1,1,5,numEq,3)] + c33_p[5]*du_p[INDEX3(2,2,5,numEq,3)]);
 X_22_6 = -(c13_p[6]*du_p[INDEX3(0,0,6,numEq,3)] + c23_p[6]*du_p[INDEX3(1,1,6,numEq,3)] + c33_p[6]*du_p[INDEX3(2,2,6,numEq,3)]);
 X_22_7 = -(c13_p[7]*du_p[INDEX3(0,0,7,numEq,3)] + c23_p[7]*du_p[INDEX3(1,1,7,numEq,3)] + c33_p[7]*du_p[INDEX3(2,2,7,numEq,3)]);
-                                } else {
-                                    throw RipleyException("General form solutions"
-                                           " not yet implemented in WaveAssembler");
                                 }
 
 const double Atmp0 = w72*(X_00_6 + X_00_7);
@@ -2339,19 +2339,14 @@ EM_F[INDEX2(2,7,numEq)]+=Ctmp17 + Ctmp23 + Ctmp37 + Ctmp54 + Ctmp55 + Ctmp56 + C
                                     wX22 = 18*w54*-(c13_p[0]*(du_p[INDEX2(0,0,numEq)] + du_p[INDEX2(1,1,numEq)]) + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
                                     wX02 = 18*w54*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
                                     wX20 = 18*w55*-(c44_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));                                
-                                } else if (isHTI) {
+                                } else { // isHTI
                                     const double *c23_p = c23.getSampleDataRO(e);
                                     wX00 = 18*w55*-(c11_p[0]* du_p[INDEX2(0,0,numEq)] + c13_p[0] * (du_p[INDEX2(1,1,numEq)] + du_p[INDEX2(2,2,numEq)]));
                                     wX11 = 18*w56*-(c13_p[0]* du_p[INDEX2(0,0,numEq)] + c33_p[0] * du_p[INDEX2(1,1,numEq)] + c23_p[0]*du_p[INDEX2(2,2,numEq)]);
                                     wX22 = 18*w54*-(c13_p[0]* du_p[INDEX2(0,0,numEq)] + c23_p[0] * du_p[INDEX2(1,1,numEq)] + c33_p[0]* du_p[INDEX2(2,2,numEq)]);
                                     wX02 = 18*w54*-(c66_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
                                     wX20 = 18*w55*-(c66_p[0]*(du_p[INDEX2(2,0,numEq)] + du_p[INDEX2(0,2,numEq)]));
-                                } else {
-                                    throw RipleyException("General form "
-                                        "solution for WaveAssembler and "
-                                        "constant data not yet implemented");
                                 }
-
 
                                 EM_F[INDEX2(0,0,numEq)]+= wX00 + wX01 + wX02;
                                 EM_F[INDEX2(0,1,numEq)]+=-wX00 + wX01 + wX02;

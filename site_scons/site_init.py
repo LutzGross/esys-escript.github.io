@@ -63,6 +63,7 @@ def findLibWithHeader(env, libs, header, paths, lang='c++'):
     conf.env.AppendUnique(CPPPATH = [inc_path])
     conf.env.AppendUnique(LIBPATH = [lib_path])
     if type(libs)==str: libs=[libs]
+    if len(libs)==0: libs=['']
     # we can't check for each library by itself since they may depend on each
     # other, so we add all libraries to the link line and check only for one
     conf.env.AppendUnique(LIBS = libs)
@@ -151,6 +152,11 @@ def runUnitTest(target, source, env):
   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
   return None
 
+def binpath(env, name=None):
+    if not name:
+        return env['bininstall']
+    return os.path.join(env['bininstall'], name)
+
 def runPyUnitTest(target, source, env): 
    time_start = time.time()
    app = str(source[0].abspath)
@@ -163,7 +169,35 @@ def runPyUnitTest(target, source, env):
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
-     app = "cd "+pn+"; "+os.path.join(env['bininstall'], "run-escript")+" -ov "+sn
+     skipfile = os.path.join(env['build_dir'], sn[:-3]) + ".skipped"
+     try:
+         os.unlink(skipfile)
+     except Exception as e:
+        pass
+     app = "cd "+pn+"; "+binpath(env, "run-escript")+" -ov "+binpath(env,
+            "../tools/testrunner.py")+" -outputfile="+skipfile+" "+sn
+   print "Executing test: ",app
+   if env.Execute(app) == 0:
+      open(str(target[0]),'w').write("PASSED\n")
+   else:
+     return 1
+   print "Test execution time: ", round(time.time() - time_start, 1), " seconds wall time for " + str(source[0].abspath)
+   return None
+
+def runPyExample(target, source, env): 
+   time_start = time.time()
+   app = str(source[0].abspath)
+   pn, sn= os.path.split(app)
+   if os.name=="nt":
+       if env['usempi']:
+           app = "cd %s & mpiexec -np %s -genvlist PYTHONPATH,OMP_NUM_THREADS,"\
+              "FINLEY_TEST_DATA,PATH %s\pythonMPIredirect.exe %s"\
+              %(pn,env['ENV']['ESCRIPT_NUM_NODES'],env['libinstall'],sn)
+       else:
+           app = "cd "+ pn +" & "+sys.executable + " " + sn
+   else:
+    
+     app = "cd "+pn+"; pwd; "+binpath(env, "run-escript")+" -ov "+sn
    print "Executing test: ",app
    if env.Execute(app) == 0:
       open(str(target[0]),'w').write("PASSED\n")

@@ -79,17 +79,18 @@ void Coupler::startCollect(const double* in)
 #endif
         }
         // collect values into buffer
+        const int numSharedSend = connector->send->numSharedComponents;
         if (block_size > 1) {
             const size_t block_size_size=block_size*sizeof(double);
 #pragma omp parallel for
-            for (dim_t i=0; i < connector->send->numSharedComponents; ++i) {
+            for (dim_t i=0; i < numSharedSend; ++i) {
                 memcpy(&(send_buffer[(block_size)*i]),
                        &(in[block_size*connector->send->shared[i]]),
                        block_size_size);
             }
         } else {
 #pragma omp parallel for
-            for (dim_t i=0; i < connector->send->numSharedComponents; ++i) {
+            for (dim_t i=0; i < numSharedSend; ++i) {
                 send_buffer[i]=in[connector->send->shared[i]];
             }
         }
@@ -127,14 +128,16 @@ double* Coupler::finishCollect()
 
 void Coupler::copyAll(Coupler_ptr target) const
 {
+    const dim_t overlap = getNumOverlapValues();
+    const dim_t localSize = getLocalLength()*block_size;
 #pragma omp parallel
     {
 #pragma omp for
-        for (dim_t i=0; i < getNumOverlapValues(); ++i) {
+        for (dim_t i=0; i < overlap; ++i) {
             target->recv_buffer[i] = recv_buffer[i];
         }
 #pragma omp for
-        for (dim_t i=0; i < getLocalLength()*block_size; ++i) {
+        for (dim_t i=0; i < localSize; ++i) {
             target->data[i] = data[i];
         }
     }

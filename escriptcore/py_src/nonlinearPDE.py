@@ -372,7 +372,7 @@ class NonlinearPDE(object):
             else:
                 if not use_simplified_Newton:
                     self._updateMatrix(expressions, subs)
-                if q_u == None:
+                if q_u is None:
                     LINTOL = 0.1 * min(qtol/defect_norm)
                 else:
                     LINTOL = 0.1 * max( q_u**2, min(qtol/defect_norm) )
@@ -421,7 +421,7 @@ class NonlinearPDE(object):
             if not max(qtol)<util.DBLE_MAX:
                 raise InadmissiblePDEOrdering("Review ordering of PDE equations.")
             # check stopping criteria
-            if not delta_norm_old == None:
+            if not delta_norm_old is None:
                 q_u=max(self._getSafeRatio(delta_norm, delta_norm_old))
                 # if delta_norm_old==0 and delta_norm!=0
                 # this will be util.DBLE_MAX
@@ -731,7 +731,7 @@ class NonlinearPDE(object):
         else:
             raise ValueError("rank of input factor must be zero or one.")
 
-        if not g == None:
+        if not g is None:
            if len(s_f) == 0:
                if not isinstance(g, list): g=[g]
            else:
@@ -827,7 +827,7 @@ class NonlinearPDE(object):
               args={}
               for n in self.__COEFFICIENTS: args[n]=Data()
               args['r']=Data()
-              if g == None: # g_l=delta_{il} and len_f=len_g
+              if g is None: # g_l=delta_{il} and len_f=len_g
                   for n,v in coeffs_f:
                       name=None
                       if len_f > 1:

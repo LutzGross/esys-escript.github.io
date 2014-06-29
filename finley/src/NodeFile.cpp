@@ -926,7 +926,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
     }
 #endif
 #pragma omp parallel for
-    for (int i=0; i<offsetInShared[numNeighbors]; ++i)
+    for (int i=0; i<lastn; ++i)
         shared[i]=myLastDOF-myFirstDOF+i;
 
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
@@ -978,7 +978,7 @@ void NodeFile::createDOFMappingAndCoupling(bool use_reduced_elements)
 #endif
     // map global ids to local id's
 #pragma omp parallel for
-    for (int i=0; i<offsetInShared[numNeighbors]; ++i) {
+    for (int i=0; i<n; ++i) {
         shared[i]=locDOFMask[shared[i]-min_DOF];
     }
 
@@ -1012,10 +1012,11 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
 
     std::vector<short> maskMyReducedDOF(myNumDOF, -1);
     std::vector<short> maskMyReducedNodes(myNumNodes, -1);
+    const int iRNsize = indexReducedNodes.size();
 
     // mark the nodes used by the reduced mesh
 #pragma omp parallel for
-    for (int i=0; i<indexReducedNodes.size(); ++i) {
+    for (int i=0; i<iRNsize; ++i) {
         int k=globalNodesIndex[indexReducedNodes[i]];
         if (k>=myFirstNode && myLastNode>k)
             maskMyReducedNodes[k-myFirstNode]=1;
@@ -1077,7 +1078,7 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
         for (int i=0; i<numNodes; ++i)
             nodeMask[i]=UNUSED;
 #pragma omp parallel for
-        for (int i=0; i<indexReducedNodes.size(); ++i)
+        for (int i=0; i<iRNsize; ++i)
             nodeMask[indexReducedNodes[i]]=i;
         reducedNodesMapping.assign(nodeMask, UNUSED);
     }
@@ -1090,16 +1091,19 @@ void NodeFile::createNodeMappings(const std::vector<int>& indexReducedNodes,
 
     // get the Ids for DOFs and reduced nodes
     if (noError()) {
+        const int rnTargets = reducedNodesMapping.getNumTargets();
+        const int dofTargets = degreesOfFreedomMapping.getNumTargets();
+        const int rdofTargets = reducedDegreesOfFreedomMapping.getNumTargets();
 #pragma omp parallel
         {
 #pragma omp for
-         for (int i=0; i<reducedNodesMapping.getNumTargets(); ++i)
+         for (int i=0; i<rnTargets; ++i)
              reducedNodesId[i]=Id[reducedNodesMapping.map[i]];
 #pragma omp for
-         for (int i=0; i<degreesOfFreedomMapping.getNumTargets(); ++i)
+         for (int i=0; i<dofTargets; ++i)
              degreesOfFreedomId[i]=Id[degreesOfFreedomMapping.map[i]];
 #pragma omp for
-         for (int i=0; i<reducedDegreesOfFreedomMapping.getNumTargets(); ++i)
+         for (int i=0; i<rdofTargets; ++i)
              reducedDegreesOfFreedomId[i]=Id[reducedDegreesOfFreedomMapping.map[i]];
         }
     } else {

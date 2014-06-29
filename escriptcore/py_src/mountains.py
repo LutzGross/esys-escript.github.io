@@ -111,7 +111,7 @@ class Mountains(object):
       """
       self.__dt=None
       self.__v=escript.Vector(0.,escript.Solution(self.getDomain()))
-      if not v == None:
+      if not v is None:
         xi=self.getDomain().getX()[self.getDomain().getDim()-1]
         v=(xi-util.inf(xi))/(util.sup(xi)-util.inf(xi))*v
         for d in range(self.__DIM):
@@ -136,7 +136,7 @@ class Mountains(object):
     else:
          fs=escript.Solution(self.getDomain())
 
-    if H==None: 
+    if H is None: 
        self.__H=escript.Scalar(0.0, fs)
     else:
        self.__H=util.interpolate(H, fs)
@@ -154,7 +154,7 @@ class Mountains(object):
 
       :rtype: ``float``
       """
-      if self.__dt == None:
+      if self.__dt is None:
            h=self.getDomain().getSize()
            self.__dt=0.5*util.inf(h/util.length(util.interpolate(self.getVelocity(),h.getFunctionSpace())))
       return self.__dt
@@ -166,7 +166,7 @@ class Mountains(object):
       :type dt: positve ``float`` which is less or equal than the safe time step size.
       
       """
-      if dt == None: 
+      if dt is None: 
             dt = self.getSafeTimeStepSize()
       if dt<=0:
            raise ValueError("Time step size must be positive.")

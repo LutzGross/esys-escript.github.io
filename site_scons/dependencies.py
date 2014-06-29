@@ -46,7 +46,10 @@ def checkCompiler(env):
         conf.env.Append(CPPDEFINES = ['HAVE_GETHOSTNAME'])
 
     if conf.CheckCXXHeader('byteswap.h'):
-        conf.env.Append(CPPDEFINES = ['HAVE_BYTESWAP_H'])
+        checkhdr="""#include <byteswap.h>
+#define SCbswap32() {int x=0;bswap_32(x);}"""
+        if conf.CheckFunc('SCbswap32', header=checkhdr, language='c++'):
+            conf.env.Append(CPPDEFINES = ['HAVE_BYTESWAP_H'])
     if conf.CheckCXXHeader('sys/endian.h'):
         conf.env.Append(CPPDEFINES = ['HAVE_SYS_ENDIAN_H'])
     if conf.CheckCXXHeader('libkern/OSByteOrder.h'):

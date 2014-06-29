@@ -20,31 +20,25 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on finley
-
-:remark:
-
-:var __author__: name of author
-:var __licence__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
+Test suite for nonlinearPDEs on ripley
 """
 
-__author__="Lutz Gross, l.gross@uq.edu.au"
-
-import os
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-from test_nonLinearPDE import Test_nonLinearPDEs, Test_nlpde
-from esys.escript import *
+from test_nonLinearPDE import Test_nlpde
+from esys.escript import getMPISizeWorld
 from esys.ripley import Rectangle,Brick
-import sys
 
 
-class Test_nonLinearPDE(Test_nlpde):
+class Test_RipleyNonLinearPDE2D(Test_nlpde):
    def setUp(self):
-        self.domain = Rectangle(l0=1.,l1=1.,n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+        self.domain = Rectangle(l0=1.,l1=1., n0=10, n1=10*getMPISizeWorld()-1, d1=getMPISizeWorld()) 
+   def tearDown(self):
+        del self.domain
+
+class Test_RipleyNonLinearPDE3D(Test_nlpde):
+   def setUp(self):
+        self.domain = Brick(l0=1.,l1=1.,l2=1., n0=10, n1=10*getMPISizeWorld()-1, n2=10, d1=getMPISizeWorld()) 
    def tearDown(self):
         del self.domain
 

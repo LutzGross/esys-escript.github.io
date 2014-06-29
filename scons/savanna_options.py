@@ -58,6 +58,7 @@ cxx_extra = '-DCORE_ID1 -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/pyt
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
 ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib -ipo-jobs4'
+ld_extra += ' -wd11021 '  #silence icpc warnings about symbols ipo can't see
 
 # Whether to treat compiler warnings as errors
 # DEFAULT: True
@@ -95,7 +96,7 @@ mpi_prefix = '/sw/sdev/intel/impi/4.1.3.049/intel64'
 #mpi_libs = ['mpi']
 
 # Prefix or paths to boost-python headers and libraries. See note above.
-boost_prefix = '/sw/libs/boost/x86_64/gcc-4.3.2/python-2.7.3/boost_1_51_0'
+boost_prefix = '/sw/libs/boost/1.55.0-py2.7'
 
 # boost-python library/libraries to link against
 boost_libs = ['boost_python']

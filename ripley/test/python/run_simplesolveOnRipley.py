@@ -22,32 +22,17 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 """
-Test suite for the linearPDE  and pdetools test on ripley
-
-:remark:
-
-:var __author__: name of author
-:var __licence__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
+Test suite for PDE solvers on ripley
 """
 
-__author__="Lutz Gross, l.gross@uq.edu.au"
-
-import esys.escriptcore.utestselect as unittest, sys
+import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.ripley import Rectangle,Brick
 from esys.escript.linearPDEs import LinearPDE, SolverOptions
 import numpy
+
 SOLVER_VERBOSE=False 
-
-try:
-     RIPLEY_TEST_DATA=os.environ['RIPLEY_TEST_DATA']
-except KeyError:
-     RIPLEY_TEST_DATA='.'
-
 SOLVER_TOL=1.e-8
 REL_TOL=1.e-6
 
@@ -72,7 +57,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-class SimpleSolve_Rectangle_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley2D_Single_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         # Tell about how many MPI CPUs and OpenMP threads
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
@@ -103,7 +88,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley2D_Single_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
@@ -133,7 +118,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley2D_System_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
@@ -174,7 +159,7 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley3D_Single_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
@@ -202,7 +187,7 @@ class SimpleSolve_Brick_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley3D_System_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
@@ -251,7 +236,7 @@ class SimpleSolve_Brick_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley2D_Single_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
@@ -282,7 +267,7 @@ class SimpleSolve_Rectangle_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolveRipley2D_System_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(n0=NE0*NX-1, n1=NE1*NY-1, d0=NX, d1=NY)
         x=Solution(domain).getX()
@@ -322,7 +307,8 @@ class SimpleSolve_Rectangle_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolveRipley3D_Single_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()
@@ -349,8 +335,8 @@ class SimpleSolve_Brick_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-        
-class SimpleSolve_Brick_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolveRipley3D_System_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(n0=NE0*NXb-1, n1=NE1*NYb-1, n2=NE2*NZb-1, d0=NXb, d1=NYb, d2=NZb)
         x=Solution(domain).getX()

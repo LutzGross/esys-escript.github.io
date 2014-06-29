@@ -59,7 +59,7 @@ NE0 = 7 * getMPISizeWorld()
 NE1 = 11
 NE2 = 5
 
-class InputOutput(unittest.TestCase):
+class Test_InputOutput(unittest.TestCase):
 
      # Check that two domains are equal using Fourier integrals
      # We cannot compare the X coordinates since they are on different domains
@@ -88,12 +88,6 @@ class InputOutput(unittest.TestCase):
         mydomain2 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
 
-     # Does optimize=True change Rectangle for order=2?
-     #def test_Rectangle_optimize_order2(self):
-        #mydomain1 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=False)
-        #mydomain2 = Rectangle(n0=NE0, n1=NE1, order=2, l0=1., l1=1., optimize=True)
-        #self.domainsEqual(mydomain1, mydomain2)
-
      # Does optimize=True change Rectangle for order=-1?
      def test_Rectangle_optimize_macro(self):
         mydomain1 = Rectangle(n0=NE0, n1=NE1, order=-1, l0=1., l1=1., optimize=False)
@@ -106,48 +100,42 @@ class InputOutput(unittest.TestCase):
         mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
 
-     # Does optimize=True change Brick for order=2?
-     #def test_Brick_optimize_order2(self):
-        #mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=False)
-        #mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=2, l0=1., l1=1., l2=1., optimize=True)
-        #self.domainsEqual(mydomain1, mydomain2)
      # Does optimize=True change Brick for order=-1?
      def test_Brick_optimize_macro(self):
         mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=False)
         mydomain2 = Brick(n0=NE0, n1=NE1, n2=NE2, order=-1, l0=1., l1=1., l2=1., optimize=True)
         self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(not loadIsConfigured(), "loading not configured")
      def test_data_dump_to_NetCDF_rectangle(self):
-        if loadIsConfigured():
-          mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-          d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
-          d1.expand()
-          dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.dump.nc")
-          d1.dump(dumpfile)
-          d2=load(dumpfile, mydomain1)
-          self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
+        d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
+        d1.expand()
+        dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.dump.nc")
+        d1.dump(dumpfile)
+        d2=load(dumpfile, mydomain1)
+        self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
+     @unittest.skipIf(not loadIsConfigured(), "loading not configured")
      def test_data_dump_to_NetCDF_brick(self):
-        if loadIsConfigured():
-          mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
-          d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
-          d1.expand()
-          dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.dump.nc")
-          d1.dump(dumpfile)
-          d2=load(dumpfile, mydomain1)
-          self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
+        d1=Data(mydomain1.getMPIRank(), Function(mydomain1))
+        d1.expand()
+        dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.dump.nc")
+        d1.dump(dumpfile)
+        d2=load(dumpfile, mydomain1)
+        self.assertTrue(Lsup(abs(d1-d2)) <= REL_TOL, "data objects differ")
 
+     @unittest.skipIf(not loadIsConfigured(), "loading not configured")
      def test_mesh_dump_to_NetCDF_rectangle(self):
-        if loadIsConfigured():
-          mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
-          dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
-          mydomain1.dump(dumpfile)
-          mydomain2=LoadMesh(dumpfile)
-          self.domainsEqual(mydomain1, mydomain2)
+        mydomain1 = Rectangle(n0=NE0, n1=NE1, order=1, l0=1., l1=1., optimize=False)
+        dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
+        mydomain1.dump(dumpfile)
+        mydomain2=LoadMesh(dumpfile)
+        self.domainsEqual(mydomain1, mydomain2)
 
-
+     @unittest.skipIf(getEscriptParamInt('MPIBUILD', 0), "MPI build")
      def test_gmshTags(self):
-       if getEscriptParamInt('MPIBUILD',0)==0:
         dom=ReadGmsh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest.msh"),2)
         tags=dom.showTagNames().split(', ')
         self.assertEqual(tags,['tag1','tag2', 'tag3'],'error with tags')
@@ -156,8 +144,6 @@ class InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('tag3'),3,'error with tag3')
         self.assertRaises(RuntimeError, dom.getTag, 'tag4')
 
-       else:
-        print("Test supressed due to MPI build")
      def test_flyTags(self):
         dom=ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH, "tagtest2.fly"))
         tags=dom.showTagNames().split(', ')
@@ -169,25 +155,25 @@ class InputOutput(unittest.TestCase):
         self.assertEqual(dom.getTag('All'),10,'error with All')
         self.assertRaises(RuntimeError, dom.getTag, 'tag6')
 
+     @unittest.skipIf(not loadIsConfigured(), "loading not configured")
      def test_mesh_dump_to_NetCDF_brick(self):
-        if loadIsConfigured():
-          mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
-          dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
-          mydomain1.dump(dumpfile)
-          mydomain2=LoadMesh(dumpfile)
-          self.domainsEqual(mydomain1, mydomain2)
+        mydomain1 = Brick(n0=NE0, n1=NE1, n2=NE2, order=1, l0=1., l1=1., l2=1., optimize=False)
+        dumpfile=os.path.join(DUDLEY_WORKDIR, "tempfile.mesh.nc")
+        mydomain1.dump(dumpfile)
+        mydomain2=LoadMesh(dumpfile)
+        self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(getMPISizeWorld() >= 16, "Too many MPI processes")
      def fixme_test_mesh_read_rectangle_from_dudley_file(self):
-        if getMPISizeWorld() < 16:
-          mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
-          mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
-          self.domainsEqual(mydomain1, mydomain2)
+        mydomain1 = Rectangle(n0=8, n1=10, order=1, l0=1., l1=1., optimize=False)
+        mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"rectangle_8x10.fly"))
+        self.domainsEqual(mydomain1, mydomain2)
 
+     @unittest.skipIf(getMPISizeWorld() >= 16, "Too many MPI processes")
      def fixme_test_mesh_read_brick_from_dudley_file(self):
-        if getMPISizeWorld() < 16:
-          mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
-          mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
-          self.domainsEqual(mydomain1, mydomain2)
+        mydomain1 = Brick(n0=8, n1=10, n2=12, order=1, l0=1., l1=1., l2=1., optimize=False)
+        mydomain2 = ReadMesh(os.path.join(DUDLEY_TEST_MESH_PATH,"brick_8x10x12.fly"))
+        self.domainsEqual(mydomain1, mydomain2)
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

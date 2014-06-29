@@ -32,18 +32,18 @@ from math import ceil
 import time
 
 # these are the layers from the top down
-layers = [     400*U.m         ,    200*U.m  ,        1.*U.km,         ]
-v_P=     [    1.5* U.km/U.sec ,    2.5 * U.km/U.sec, 3.0 * U.km/U.sec     ]
-v_S=     [     1. * U.km/U.sec ,    1. * U.km/U.sec, 2.5*U.km/U.sec     ]
-eps =    [    0.               ,    0.24,               0.1             ]
-delta=   [    0.               ,    0.1            ,    0.              ]
+layers = [     400*U.m         ,    100*U.m  ,        1.*U.km,         ]
+v_P=     [    2.86* U.km/U.sec ,    1.5 * U.km/U.sec, 2.86 * U.km/U.sec     ]
+v_S=     [     1.79 * U.km/U.sec ,    0.7* U.km/U.sec, 1.8*U.km/U.sec     ]
+eps =    [    0.               ,    0.5,               0.1             ]
+delta=   [    0.               ,    0.5            ,    0.              ]
 tilt=    [    0.               ,    0.             ,    0.              ]
 rho=     [ 2000 * U.kg/U.m**3  , 2000 * U.kg/U.m**3, 2000 * U.kg/U.m**3 ]
 #
 #   other input:
 #
-t_end=1.0*U.sec                     #  length of the record
-frq=15.*U.Hz                         #  dominant frequnce in the Ricker (maximum frequence ~ 2 * frq)
+t_end=3.0*U.sec                     #  length of the record
+frq=10.*U.Hz                         #  dominant frequnce in the Ricker (maximum frequence ~ 2 * frq)
 sampling_interval=4*U.msec          # sampling interval
 ne_z=None                           # number of elements in vertical direction, if none it is guessed 
 n_out = 5                         # a silo file is created every n_out's sample
@@ -52,7 +52,7 @@ absorption_zone=300*U.m             # absorbtion zone to be added in horizantal 
 # defines the receiver line 
 rangeRcv=800*U.m                    # width of the receveiver line
 numRcvPerLine=101                   # total number of receiver
-src_id=numRcvPerLine//2              # location of source in crossing array lines with in 0..numRcvInLine 
+src_id=numRcvPerLine/2              # location of source in crossing array lines with in 0..numRcvInLine 
 lumping = True
 src_dir=[0,1]
 
