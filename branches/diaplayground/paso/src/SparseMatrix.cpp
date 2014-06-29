@@ -347,8 +347,9 @@ void SparseMatrix::saveMM(const char* filename) const
 
 void SparseMatrix::addAbsRow_CSR_OFFSET0(double* array) const
 {
+    const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (dim_t ir=0; ir < pattern->numOutput; ir++) {
+    for (dim_t ir=0; ir < nOut; ir++) {
         for (dim_t irb=0; irb < row_block_size; irb++) {
             const dim_t irow = irb+row_block_size*ir;
             double fac=0.;
@@ -365,8 +366,9 @@ void SparseMatrix::addAbsRow_CSR_OFFSET0(double* array) const
 
 void SparseMatrix::maxAbsRow_CSR_OFFSET0(double* array) const
 {
+    const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (dim_t ir=0; ir < pattern->numOutput; ir++) {
+    for (dim_t ir=0; ir < nOut; ir++) {
         for (dim_t irb=0; irb < row_block_size; irb++) {
             const dim_t irow = irb+row_block_size*ir;
             double fac=0.;
@@ -383,8 +385,9 @@ void SparseMatrix::maxAbsRow_CSR_OFFSET0(double* array) const
 
 void SparseMatrix::addRow_CSR_OFFSET0(double* array) const
 {
+    const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (dim_t ir=0; ir < pattern->numOutput; ir++) {
+    for (dim_t ir=0; ir < nOut; ir++) {
         for (dim_t irb=0; irb < row_block_size; irb++) {
             dim_t irow=irb+row_block_size*ir;
             double fac=0.;
@@ -456,9 +459,10 @@ void SparseMatrix::applyDiagonal_CSR_OFFSET0(const double* left,
     const dim_t row_block = row_block_size;
     const dim_t col_block = col_block_size;
     const dim_t n_block = row_block*col_block;
+    const dim_t nOut = pattern->numOutput;
 
 #pragma omp parallel for
-    for (index_t ir=0; ir < pattern->numOutput; ir++) {
+    for (index_t ir=0; ir < nOut; ir++) {
         for (index_t irb=0; irb < row_block; irb++) {
             const index_t irow = irb+row_block*ir;
             const double rtmp = left[irow];
@@ -478,8 +482,9 @@ void SparseMatrix::setValues(double value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
     if (!pattern->isEmpty()) {
+        const dim_t nOut = pattern->numOutput;
 #pragma omp parallel for
-        for (dim_t i=0; i < pattern->numOutput; ++i) {
+        for (dim_t i=0; i < nOut; ++i) {
             for (index_t iptr=pattern->ptr[i]-index_offset; iptr < pattern->ptr[i+1]-index_offset; ++iptr) {
                 for (dim_t j=0; j<block_size; ++j)
                     val[iptr*block_size+j] = value;

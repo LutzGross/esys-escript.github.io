@@ -61,13 +61,14 @@ localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_
 # all tests
 alltestruns = testruns + localtestruns
 
-# test files are just compiled - none of those in finley yet
-#sources = Glob('test_*.py')
-#test_pyc = env.PyCompile(sources)
-#env.Alias('build_py_tests', test_pyc)
+# test files are just compiled
+sources = Glob('*.py')
+test_pyc = env.PyCompile(sources)
+env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', Dir('.').abspath)
+local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/finley/test/python').abspath)
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escriptcore/test/python').abspath)
 local_env['ENV']['FINLEY_TEST_DATA']=Dir('.').srcnode().abspath
 local_env['ENV']['FINLEY_WORKDIR']=Dir('.').abspath

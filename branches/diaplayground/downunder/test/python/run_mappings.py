@@ -29,7 +29,7 @@ from esys.downunder.mappings import *
 from esys.ripley import Rectangle
 import numpy
 
-class TestLinearMapping(unittest.TestCase):
+class Test_LinearMapping(unittest.TestCase):
     def setUp(self):
         self.alpha = 4.2
         self.p0 = 1.75
@@ -53,7 +53,7 @@ class TestLinearMapping(unittest.TestCase):
         ref=(1.23-self.p0)/self.alpha
         self.assertAlmostEqual(v, ref)
         
-class TestAcousticVelocityMapping(unittest.TestCase):
+class Test_AcousticVelocityMapping(unittest.TestCase):
     def setUp(self):
         self.fs=Function(Rectangle(40,40))
     def tearDown(self):
@@ -105,7 +105,7 @@ class TestAcousticVelocityMapping(unittest.TestCase):
         self.assertLess( Lsup(m0[0]), 1e-14)
         self.assertLess( Lsup(m0[1]), 1e-14)
         
-class TestBoundedRangeMapping(unittest.TestCase):
+class Test_BoundedRangeMapping(unittest.TestCase):
     def setUp(self):
         self.alpha=4.2
         self.mapping=BoundedRangeMapping(1.5, 3.5)

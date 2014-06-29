@@ -361,7 +361,8 @@ class TestNetCdfData(unittest.TestCase):
         g_out[z_data, PAD_Y:PAD_Y+NP[1], PAD_X:PAD_X+NP[0]]=NC_NULL
         self.assertAlmostEqual(np.abs(g_out-NC_NULL).max(), 0.,
                 msg="Wrong values in padding area")
-class TestSeimicSource(unittest.TestCase):
+
+class TestSeismicSource(unittest.TestCase):
     def test_seismic_source(self):
         ss= SeismicSource(x=1., y=2., omega=3., power = complex(4.,-4.), orientation=[5.,6.], elevation=7.)
         self.assertEqual(ss.getLocation(), (1.,2) )

@@ -76,7 +76,8 @@ class DomainBuilder(object):
         self.__dim=dim
         self.__sources=[]
         self.__background_magnetic_field=None
-        self.__tags=[]   # list of all tags being used by all data sources beeing attached:
+        # list of all tags used by all data sources being attached
+        self.__tags=[]
         self.setElementPadding()
         self.setVerticalExtents()
         self.fixDensityBelow()
@@ -90,23 +91,26 @@ class DomainBuilder(object):
         :rtype: `ReferenceSystem`
         """
         return self.__reference_system
+
     def getTags(self):
         """
-        returns a list of all tags beeing used by the attached data sources.
-        the list may be empty.
+        returns a list of all tags in use by the attached data sources.
+        The list may be empty.
         """
         return self.__tags
             
     def addSource(self, source):
         """
         Adds a survey data provider to the domain builder.
-        An exception is raised if the domain has already been built or if the
-        UTM zone of `source` does not match the UTM zone of sources already
-        added to the domain builder (see Inversion Cookbook for more
-        information). An exception is also raised if the dimensionality of the
-        data source is incompatible with this domain builder. That is, the
-        dimensionality of the data must be one less than the dimensionality
-        of the domain (specified in the constructor).
+        An exception is raised if the domain has already been built.
+        An exception is also reported if the reference system used is
+        cartesian and the UTM zone of `source` does not match the UTM zone of
+        sources already added to the domain builder (see Inversion Cookbook
+        for more information).
+        The dimensionality of the data source must be compatible with this
+        domain builder. That is, the dimensionality of the data must be one
+        less than the dimensionality of the domain (specified in the
+        constructor).
 
         :param source: The data source to be added. Its reference system needs
                        to match the reference system of the DomainBuilder.
@@ -122,7 +126,7 @@ class DomainBuilder(object):
         DATA_DIM = len(source.getDataExtents()[0])
         if DATA_DIM != self.__dim-1:
             raise ValueError("Data must be %d-dimensional."%(self.__dim-1))
-        if len(self.__sources)>0:
+        if len(self.__sources)>0 and self.getReferenceSystem().isCartesian():
             if self.__sources[0].getUtmZone() != source.getUtmZone():
                 raise ValueError("It is not possible to combine data sources located in different UTM zones at the moment.")
 
@@ -317,7 +321,7 @@ class DomainBuilder(object):
         """
         Returns a list of `Data` objects for all surveys of type `datatype`
         available to this domain builder. If a list of `tags` is given 
-        only data sources whose tag matching the tag list are returned 
+        only data sources whose tag matches the tag list are returned.
 
         :return: List of surveys which are tuples (anomaly,error).
         :rtype: ``list``

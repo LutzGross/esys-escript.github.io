@@ -182,8 +182,8 @@ class LevelSet(object):
                               If not present the initial value of ``smooth`` is
                               used.
       """
-      if smoothing_width==None: smoothing_width = self.__smooth
-      if phi==None: phi=self.__phi
+      if smoothing_width is None: smoothing_width = self.__smooth
+      if phi is None: phi=self.__phi
       s=self.getSmoothedJump(phi,smoothing_width)
       return ((param_pos-param_neg)*s+param_pos+param_neg)/2
 
@@ -193,8 +193,8 @@ class LevelSet(object):
       *2*h*smoothing_width* where -1 is used where the level set is negative
       and 1 where the level set is 1.
       """
-      if smoothing_width==None: smoothing_width = self.__smooth
-      if phi==None: phi = self.__phi
+      if smoothing_width is None: smoothing_width = self.__smooth
+      if phi is None: phi = self.__phi
       s=smoothing_width*self.__h
       phi_on_h=es.interpolate(phi,es.Function(self.__domain))
       mask_neg = es.whereNonNegative(-s-phi_on_h)
@@ -208,8 +208,8 @@ class LevelSet(object):
       creates a characteristic function which is 1 over the over the length
       *2*h*smoothing_width*  around the interface and zero elsewhere
       """
-      if smoothing_width==None: smoothing_width = self.__smooth
-      if phi==None: phi = self.__phi
+      if smoothing_width is None: smoothing_width = self.__smooth
+      if phi is None: phi = self.__phi
       s=smoothing_width*self.__h 
       phi_on_h=es.interpolate(phi,es.Function(self.__domain))
       return es.whereNegative(abs(phi_on_h)-s)
@@ -225,8 +225,8 @@ class LevelSet(object):
                               If not present the initial value of ``smooth`` is
                               used.
       """
-      if phi==None: phi=self.__phi
-      if smoothing_width == None: smoothing_width=self.__smooth
+      if phi is None: phi=self.__phi
+      if smoothing_width is None: smoothing_width=self.__smooth
       s=self.getSmoothedJump(phi=phi-contour,smoothing_width=smoothing_width)
       if positiveSide:
           return (1+s)/2

@@ -24,11 +24,13 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping', 'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping']
+__all__ = ['Mapping', 'DensityMapping', 'SusceptibilityMapping',\
+           'BoundedRangeMapping', 'LinearMapping', 'AcousticVelocityMapping']
 
-from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp
+from esys.escript import inf, sup, log, tanh, boundingBoxEdgeLengths, clip, atan2, sin, cos, sqrt, exp, whereZero
 import esys.escript.unitsSI as U
 from numpy import pi
+import logging
 
 class Mapping(object):
     """
@@ -37,7 +39,7 @@ class Mapping(object):
     """
 
     def __init__(self, *args):
-        pass
+        self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
 
     def __call__(self, m):
         """
@@ -176,40 +178,78 @@ class SusceptibilityMapping(LinearMapping):
 
 class AcousticVelocityMapping(Mapping):
     """
-    Maps a p-velocity and Q-index to slowness square sigma=(V*(1-i*1/(2*Q))^{-2} in the form
-    sigma=e^{Mr+m[0])}*( cos(Mi+m[1])) + i * sin(Mi+m[1]) where 
+    Maps a p-velocity and Q-index to slowness square sigma=(V*(1-i*1/(2*Q))^{-2}
+    in the form sigma=e^{Mr+m[0])}*( cos(Mi+m[1])) + i * sin(Mi+m[1])
     """
     def __init__(self, V_prior, Q_prior):
         """
         initializes the mapping
-        
+
         :param V_prior: a-priori p-wave velocity
         :param Q_prior: a-priori Q-index (must be positive)
         """
         over2Q=1./(2*Q_prior)
         # sigma_prior=1/(V_prior*(1-I*over2Q))**2 = 1/( V_prior * (1+over2Q**2)) **2 * ( (1-over2Q**2) + I * 2* over2Q )
         self.Mr=log( sqrt((1-over2Q**2)**2+(2*over2Q)**2)/(V_prior*(1+over2Q**2))**2 )
-        self.Mi=atan2(2*over2Q, 1-over2Q**2) 
-
+        self.Mi=atan2(2*over2Q, 1-over2Q**2)
 
     def getValue(self, m):
         """
         returns the value of the mapping for m
         """
         return exp(m[0]+self.Mr)*(cos(m[1]+self.Mi)*[1,0]+ sin(m[1]+self.Mi)*[0,1])
+
     def getDerivative(self, m):
         """
         returns the value for the derivative of the mapping for m
         """
         e=exp(m[0]+self.Mr)
-        return (e*cos(m[1]+self.Mi))*[[1,0],[0,1]]+ (e*sin(m[1]+self.Mi))*[[0,-1],[1,0]]
+        return (e*cos(m[1]+self.Mi))*[[1,0],[0,1]]+(e*sin(m[1]+self.Mi))*[[0,-1],[1,0]]
 
     def getInverse(self, s):
         """
         returns the value of the inverse of the mapping for s
         """
+        # self.logger.info("m0:"+str(log(s[0]**2+s[1]**2)/2))
         return (log(s[0]**2+s[1]**2)/2-self.Mr)*[1., 0 ] + (atan2(s[1],s[0])-self.Mi)*[0, 1. ]
-        
+
+class MTMapping(Mapping):
+    """
+    mt mapping
+
+    sigma=sigma0*exp(a*m)
+    """
+
+    def __init__(self,sigma_prior, a=1.):
+        """
+        initializes the mapping
+
+        :param sigma_prior: a a-priori conductivity
+        """
+        self.__sigma0 = sigma_prior
+        self.__a = a
+
+    def getValue(self, m):
+        """
+        returns the value of the mapping for m
+        """
+        return self.__sigma0 * exp(self.__a*m)
+
+    def getDerivative(self, m):
+        """
+        returns the derivative of the mapping for m
+        """
+        return self.__sigma0*self.__a*exp(self.__a*m)
+
+    def getInverse(self, s):
+        """
+        returns the value of the inverse of the mapping for s
+        """
+        ms=whereZero(s)
+        ms0=whereZero(self.__sigma0)
+        m=1/self.__a* log(((1-ms)*s+ms*1)/((1-ms0)*self.__sigma0+ms0*1)) * (1-ms)*(1-ms0) 
+        return m
+
 # needs REVISION
 class BoundedRangeMapping(Mapping):
     """

@@ -89,14 +89,30 @@ DataConstant::DataConstant(const FunctionSpace& what,
 bool
 DataConstant::hasNaN() const
 {
+  bool haveNaN=false;
+  #pragma omp parallel for
 	for (ValueType::size_type i=0;i<m_data.size();++i)
 	{
 		if (nancheck(m_data[i]))	
 		{
-			return true;
+			#pragma omp atomic write
+      haveNaN=true;
 		}
 	}
-	return false;
+	return haveNaN;
+}
+
+void
+DataConstant::replaceNaN(double value)
+{
+  #pragma omp parallel for
+  for (ValueType::size_type i=0;i<m_data.size();++i)
+  {
+    if (nancheck(m_data[i]))  
+    {
+      m_data[i] = value;
+    } 
+  }
 }
 
 string

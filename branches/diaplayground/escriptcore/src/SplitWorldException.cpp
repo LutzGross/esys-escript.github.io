@@ -31,3 +31,4 @@ SplitWorldException::exceptionName() const
 {
   return exceptionNameValue;
 }
+

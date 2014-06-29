@@ -52,7 +52,7 @@ class DomainReader(ParameterSet):
           :return: the domain
           :rtype: `Domain`
           """
-          if self.__domain == None:
+          if self.__domain is None:
              if  self.source.fileformat == "fly":
                 self.__domain=self.__domainModule.ReadMesh(self.source.getLocalFileName(),self.integrationOrder)
              elif self.source.fileformat == "gmsh":
@@ -219,7 +219,7 @@ class ConstrainerOverBox(Model):
           :return: the mask marking the locations of the constraints
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -230,11 +230,11 @@ class ConstrainerOverBox(Model):
                   ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
-          if self.__location_of_constraint == None:
+          if self.__location_of_constraint is None:
              x=self.domain.getX()
              val=self.value
              if isinstance(val, int) or isinstance(val, float):
@@ -243,7 +243,7 @@ class ConstrainerOverBox(Model):
                 shape=(len(val),)
              elif isinstance(val, numpy.ndarray):
                  shape=val.shape
-             elif val == None:
+             elif val is None:
                   shape=()
              else: 
                  shape=val.getShape()
@@ -262,7 +262,7 @@ class ConstrainerOverBox(Model):
                    if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol)
                    if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol)
                    if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol)
-             if not self.value == None:
+             if not self.value is None:
                    self.__value_of_constraint=self.__location_of_constraint*self.value
 class ScalarConstrainerOverBox(Model):
       """
@@ -301,7 +301,7 @@ class ScalarConstrainerOverBox(Model):
           :return: the mask marking the locations of the constraints
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -312,7 +312,7 @@ class ScalarConstrainerOverBox(Model):
                   ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
@@ -334,7 +334,7 @@ class ScalarConstrainerOverBox(Model):
                 if self.right: self.__location_of_constraint+=whereZero(x0-sup(x0),self.tol*d)
                 if self.bottom: self.__location_of_constraint+=whereZero(x1-inf(x1),self.tol*d)
                 if self.top: self.__location_of_constraint+=whereZero(x1-sup(x1),self.tol*d)
-          if not self.value == None:
+          if not self.value is None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
 class VectorConstrainerOverBox(Model):
@@ -379,7 +379,7 @@ class VectorConstrainerOverBox(Model):
           :return: the mask marking the locations of the constraints
           :rtype: `escript.Vector`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -390,7 +390,7 @@ class VectorConstrainerOverBox(Model):
                   ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Vector`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
@@ -423,7 +423,7 @@ class VectorConstrainerOverBox(Model):
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.,0.]
              if self.top[2]: self.__location_of_constraint+=top_mask*[0.,0.,1.]
-             if not self.value == None:
+             if not self.value is None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value
           else:
              x0,x1=x[0],x[1]
@@ -440,7 +440,7 @@ class VectorConstrainerOverBox(Model):
              top_mask=whereZero(x1-sup(x1),self.tol*d)
              if self.top[0]: self.__location_of_constraint+=top_mask*[1.,0.]
              if self.top[1]: self.__location_of_constraint+=top_mask*[0.,1.]
-             if not self.value == None:
+             if not self.value is None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value[:2]
 
 class ConstrainerAtBoxVertex(Model):
@@ -468,7 +468,7 @@ class ConstrainerAtBoxVertex(Model):
           :return: the mask marking the locations of the constraints
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -479,11 +479,11 @@ class ConstrainerAtBoxVertex(Model):
                   ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
-          if self.__location_of_constraint == None:
+          if self.__location_of_constraint is None:
              x=self.domain.getX()
              val=self.value
              if isinstance(val, int) or isinstance(val, float):
@@ -492,7 +492,7 @@ class ConstrainerAtBoxVertex(Model):
                 shape=(len(val),)
              elif isinstance(val, numpy.ndarray):
                  shape=val.shape
-             elif val == None:
+             elif val is None:
                   shape=()
              else: 
                  shape=val.getShape()
@@ -501,7 +501,7 @@ class ConstrainerAtBoxVertex(Model):
              else:
                    vertex=[inf(x[0]),inf(x[1])]
              self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numpy.ones(shape)
-             if not self.value == None:
+             if not self.value is None:
                    self.__value_of_constraint=self.__location_of_constraint*self.value
 class ScalarConstrainerAtBoxVertex(Model):
       """
@@ -528,7 +528,7 @@ class ScalarConstrainerAtBoxVertex(Model):
           :return: the mask marking the locations of the constraints
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -539,7 +539,7 @@ class ScalarConstrainerAtBoxVertex(Model):
                   ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Scalar`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
@@ -550,7 +550,7 @@ class ScalarConstrainerAtBoxVertex(Model):
           else:
                  vertex=[inf(x[0]),inf(x[1])]
           self.__location_of_constraint=whereZero(length(x-vertex),self.tol)
-          if not self.value == None:
+          if not self.value is None:
               self.__value_of_constraint=self.__location_of_constraint*self.value
 
 class VectorConstrainerAtBoxVertex(Model):
@@ -579,7 +579,7 @@ class VectorConstrainerAtBoxVertex(Model):
           :return: the mask marking the locations of the constraints
           :rtype: `escript.Vector`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__location_of_constraint
          
       def value_of_constraint(self):
@@ -590,7 +590,7 @@ class VectorConstrainerAtBoxVertex(Model):
                   ``value`` is not given ``None`` is rerturned.
           :rtype: `escript.Vector`
           """
-          if self.__location_of_constraint == None: self.__setOutput()
+          if self.__location_of_constraint is None: self.__setOutput()
           return self.__value_of_constraint
          
       def __setOutput(self):
@@ -608,6 +608,6 @@ class VectorConstrainerAtBoxVertex(Model):
              if self.comp_mask[0]: msk[0]=1
              if self.comp_mask[1]: msk[1]=1
           self.__location_of_constraint=whereZero(length(x-vertex),self.tol)*numpy.ones(shape)
-          if not self.value == None:
+          if not self.value is None:
                 self.__value_of_constraint=self.__location_of_constraint*self.value
 

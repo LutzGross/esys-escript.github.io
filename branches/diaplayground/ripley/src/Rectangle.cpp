@@ -448,9 +448,13 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                         if (params.byteOrder != BYTEORDER_NATIVE) {
                             char* cval = reinterpret_cast<char*>(&val);
                             // this will alter val!!
-                            byte_swap32(cval);
+                            if (sizeof(ValueType) > 4) {
+                                byte_swap64(cval);
+                            } else {
+                                byte_swap32(cval);
+                            }
                         }
-                        if (!std::isnan(val)) {
+                        if (!isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -543,7 +547,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
                             // this will alter val!!
                             byte_swap32(cval);
                         }
-                        if (!std::isnan(val)) {
+                        if (!isnan(val)) {
                             for (int q=0; q<dpp; q++) {
                                 *dest++ = static_cast<double>(val);
                             }
@@ -623,7 +627,12 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
                 oss.write((char*)&fvalue, sizeof(fvalue));
             } else {
                 char* value = reinterpret_cast<char*>(&fvalue);
-                oss.write(byte_swap32(value), sizeof(fvalue));
+                if (sizeof(fvalue)>4) {
+                    byte_swap64(value);
+                } else {
+                    byte_swap32(value);
+                }
+                oss.write(value, sizeof(fvalue));
             }
         }
         fw.writeAt(oss, fileofs);
@@ -693,17 +702,19 @@ void Rectangle::dump(const string& fileName) const
     }
     */
 
-    boost::scoped_ptr<double> x(new double[m_NN[0]]);
-    boost::scoped_ptr<double> y(new double[m_NN[1]]);
+    const int NN0 = m_NN[0];
+    const int NN1 = m_NN[1];
+    boost::scoped_ptr<double> x(new double[NN0]);
+    boost::scoped_ptr<double> y(new double[NN1]);
     double* coords[2] = { x.get(), y.get() };
 #pragma omp parallel
     {
 #pragma omp for nowait
-        for (dim_t i0 = 0; i0 < m_NN[0]; i0++) {
+        for (dim_t i0 = 0; i0 < NN0; i0++) {
             coords[0][i0]=getLocalCoordinate(i0, 0);
         }
 #pragma omp for nowait
-        for (dim_t i1 = 0; i1 < m_NN[1]; i1++) {
+        for (dim_t i1 = 0; i1 < NN1; i1++) {
             coords[1][i1]=getLocalCoordinate(i1, 1);
         }
     }
@@ -849,13 +860,15 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
+    const int NE0=m_NE[0];
+    const int NE1=m_NE[1];
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     // set vector at two quadrature points
                     *o++ = -1.;
@@ -867,7 +880,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     // set vector at two quadrature points
                     *o++ = 1.;
@@ -879,7 +892,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -891,7 +904,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     // set vector at two quadrature points
                     *o++ = 0.;
@@ -907,7 +920,7 @@ void Rectangle::setToNormal(escript::Data& out) const
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     *o++ = -1.;
                     *o = 0.;
@@ -916,7 +929,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     *o++ = 1.;
                     *o = 0.;
@@ -925,7 +938,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     *o++ = 0.;
                     *o = -1.;
@@ -934,7 +947,7 @@ void Rectangle::setToNormal(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     *o++ = 0.;
                     *o = 1.;
@@ -955,10 +968,11 @@ void Rectangle::setToSize(escript::Data& out) const
     if (out.getFunctionSpace().getTypeCode() == Elements
             || out.getFunctionSpace().getTypeCode() == ReducedElements) {
         out.requireWrite();
-        const dim_t numQuad=out.getNumDataPointsPerSample();
+        const dim_t numQuad = out.getNumDataPointsPerSample();
+        const int numElements = getNumElements();
         const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]);
 #pragma omp parallel for
-        for (index_t k = 0; k < getNumElements(); ++k) {
+        for (index_t k = 0; k < numElements; ++k) {
             double* o = out.getSampleDataRW(k);
             fill(o, o+numQuad, size);
         }
@@ -966,11 +980,13 @@ void Rectangle::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
+        const int NE0 = m_NE[0];
+        const int NE1 = m_NE[1];
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
                     fill(o, o+numQuad, m_dx[1]);
                 }
@@ -978,7 +994,7 @@ void Rectangle::setToSize(escript::Data& out) const
 
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1 = 0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1 = 0; k1 < NE1; ++k1) {
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
                     fill(o, o+numQuad, m_dx[1]);
                 }
@@ -986,7 +1002,7 @@ void Rectangle::setToSize(escript::Data& out) const
 
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
                     fill(o, o+numQuad, m_dx[0]);
                 }
@@ -994,7 +1010,7 @@ void Rectangle::setToSize(escript::Data& out) const
 
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0 = 0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0 = 0; k0 < NE0; ++k0) {
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
                     fill(o, o+numQuad, m_dx[0]);
                 }
@@ -1035,11 +1051,13 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     if (!numSamplesEqual(&x, 1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
+    const int NN0 = m_NN[0];
+    const int NN1 = m_NN[1];
     arg.requireWrite();
 #pragma omp parallel for
-    for (dim_t i1 = 0; i1 < m_NN[1]; i1++) {
-        for (dim_t i0 = 0; i0 < m_NN[0]; i0++) {
-            double* point = arg.getSampleDataRW(i0+m_NN[0]*i1);
+    for (dim_t i1 = 0; i1 < NN1; i1++) {
+        for (dim_t i0 = 0; i0 < NN0; i0++) {
+            double* point = arg.getSampleDataRW(i0+NN0*i1);
             point[0] = getLocalCoordinate(i0, 0);
             point[1] = getLocalCoordinate(i1, 1);
         }
@@ -1050,6 +1068,8 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     const double cx0 = .21132486540518711775/m_dx[0];
     const double cx1 = .78867513459481288225/m_dx[0];
     const double cx2 = 1./m_dx[0];
@@ -1066,8 +1086,8 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+            for (index_t k1=0; k1 < NE1; ++k1) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1095,8 +1115,8 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+            for (index_t k1=0; k1 < NE1; ++k1) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1119,7 +1139,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1135,7 +1155,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1151,7 +1171,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
@@ -1167,7 +1187,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
@@ -1193,7 +1213,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1207,7 +1227,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 0
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(m_NN[0]-2,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1221,7 +1241,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 1
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
@@ -1235,7 +1255,7 @@ void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) co
             } // end of face 2
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-2, m_NN[0])), numComp*sizeof(double));
@@ -1454,11 +1474,12 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     coupler->startCollect(in.getDataRO());
 
     const dim_t numDOF = getNumDOF();
+    const dim_t numNodes = getNumNodes();
     out.requireWrite();
     const double* buffer = coupler->finishCollect();
 
 #pragma omp parallel for
-    for (index_t i=0; i<getNumNodes(); i++) {
+    for (index_t i=0; i < numNodes; i++) {
         const double* src=(m_dofMap[i]<numDOF ?
                 in.getSampleDataRO(m_dofMap[i])
                 : &buffer[(m_dofMap[i]-numDOF)*numComp]);
@@ -1514,12 +1535,15 @@ void Rectangle::populateSampleIds()
     else
         m_faceCount[3]=0;
 
-    m_faceId.resize(getNumFaceElements());
+    const dim_t NFE = getNumFaceElements();
+    m_faceId.resize(NFE);
 
     const index_t left = (m_offset[0]==0 ? 0 : 1);
     const index_t bottom = (m_offset[1]==0 ? 0 : 1);
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
 
 #define globalNodeId(x,y) \
     ((m_offset[0]+x)/nDOF0)*nDOF0*nDOF1+(m_offset[0]+x)%nDOF0 \
@@ -1585,15 +1609,15 @@ void Rectangle::populateSampleIds()
 
         // populate element id's
 #pragma omp for nowait
-        for (dim_t i1=0; i1<m_NE[1]; i1++) {
-            for (dim_t i0=0; i0<m_NE[0]; i0++) {
-                m_elementId[i0+i1*m_NE[0]]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
+        for (dim_t i1=0; i1<NE1; i1++) {
+            for (dim_t i0=0; i0<NE0; i0++) {
+                m_elementId[i0+i1*NE0]=(m_offset[1]+i1)*m_gNE[0]+m_offset[0]+i0;
             }
         }
 
         // face elements
 #pragma omp for
-        for (dim_t k=0; k<getNumFaceElements(); k++)
+        for (dim_t k=0; k<NFE; k++)
             m_faceId[k]=k;
     } // end parallel section
 
@@ -1826,6 +1850,8 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
                                            bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     if (reduced) {
         out.requireWrite();
         const double c0 = 0.25;
@@ -1836,8 +1862,8 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+            for (index_t k1=0; k1 < NE1; ++k1) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1861,8 +1887,8 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
             vector<double> f_10(numComp);
             vector<double> f_11(numComp);
 #pragma omp for
-            for (index_t k1=0; k1 < m_NE[1]; ++k1) {
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+            for (index_t k1=0; k1 < NE1; ++k1) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,k1+1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,k1, m_NN[0])), numComp*sizeof(double));
@@ -1886,6 +1912,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
                                         bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
+    const int NE0 = m_NE[0];
+    const int NE1 = m_NE[1];
     if (reduced) {
         out.requireWrite();
 #pragma omp parallel
@@ -1896,7 +1924,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
@@ -1907,7 +1935,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             } /* end of face 0 */
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
@@ -1918,7 +1946,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             } /* end of face 1 */
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
@@ -1929,7 +1957,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             } /* end of face 2 */
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
@@ -1951,7 +1979,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             vector<double> f_11(numComp);
             if (m_faceOffset[0] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(0,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(0,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
@@ -1963,7 +1991,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             } /* end of face 0 */
             if (m_faceOffset[1] > -1) {
 #pragma omp for nowait
-                for (index_t k1=0; k1 < m_NE[1]; ++k1) {
+                for (index_t k1=0; k1 < NE1; ++k1) {
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(m_NN[0]-1,k1+1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
@@ -1975,7 +2003,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             } /* end of face 1 */
             if (m_faceOffset[2] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_00[0], in.getSampleDataRO(INDEX2(k0,0, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_10[0], in.getSampleDataRO(INDEX2(k0+1,0, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
@@ -1987,7 +2015,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
             } /* end of face 2 */
             if (m_faceOffset[3] > -1) {
 #pragma omp for nowait
-                for (index_t k0=0; k0 < m_NE[0]; ++k0) {
+                for (index_t k0=0; k0 < NE0; ++k0) {
                     memcpy(&f_01[0], in.getSampleDataRO(INDEX2(k0,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     memcpy(&f_11[0], in.getSampleDataRO(INDEX2(k0+1,m_NN[1]-1, m_NN[0])), numComp*sizeof(double));
                     double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
@@ -2010,19 +2038,19 @@ namespace
     double* get2DGauss(unsigned radius, double sigma)
     {
         double* arr=new double[(radius*2+1)*(radius*2+1)];
-        double common=M_1_PI*0.5*1/(sigma*sigma);
+        const double common=M_1_PI*0.5*1/(sigma*sigma);
+        const int r=static_cast<int>(radius);
         double total=0;
-        int r=static_cast<int>(radius);
-        for (int y=-r;y<=r;++y)
+        for (int y=-r; y<=r; ++y)
         {
-            for (int x=-r;x<=r;++x)
+            for (int x=-r; x<=r; ++x)
             {         
                 arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
                 total+=arr[(x+r)+(y+r)*(r*2+1)];
             }
         }
-        double invtotal=1/total;
-        for (size_t p=0;p<(radius*2+1)*(radius*2+1);++p)
+        const double invtotal = 1/total;
+        for (size_t p=0; p<(radius*2+1)*(radius*2+1); ++p)
         {
             arr[p]*=invtotal; 
         }
@@ -2031,14 +2059,15 @@ namespace
     
     // applies conv to source to get a point.
     // (xp, yp) are the coords in the source matrix not the destination matrix
-    double Convolve2D(double* conv, double* source, size_t xp, size_t yp, unsigned radius, size_t width)
+    double Convolve2D(double* conv, double* source, size_t xp, size_t yp,
+                      unsigned radius, size_t width)
     {
-        size_t bx=xp-radius, by=yp-radius;
-        size_t sbase=bx+by*width;
+        const size_t bx=xp-radius, by=yp-radius;
+        const size_t sbase=bx+by*width;
         double result=0;
-        for (int y=0;y<2*radius+1;++y)
+        for (int y=0; y<2*radius+1; ++y)
         {         
-            for (int x=0;x<2*radius+1;++x)
+            for (int x=0; x<2*radius+1; ++x)
             {
                 result+=conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
             }
@@ -2292,7 +2321,8 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     }
 }
 
-int Rectangle::findNode(const double *coords) const {
+int Rectangle::findNode(const double *coords) const
+{
     const int NOT_MINE = -1;
     //is the found element even owned by this rank
     // (inside owned or shared elements but will map to an owned element)

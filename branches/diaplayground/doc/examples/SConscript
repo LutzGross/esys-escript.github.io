@@ -54,7 +54,7 @@ for i in example_files:
         f_out=File(i, test_dir)
         c=Command(f_out, f_in, Copy("$TARGET", "$SOURCE"))
         copies+=c
-        programs+=local_env.RunPyUnitTest(c)
+        programs+=local_env.RunPyExample(c)
 
 #env.Alias('build_py_tests', programs)
 env.Alias('build_py_tests', data_files)

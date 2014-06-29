@@ -95,15 +95,15 @@ bool RipleyDomain::isValidFunctionSpaceType(int fsType) const
 string RipleyDomain::functionSpaceTypeAsString(int fsType) const
 {
     switch (fsType) {
-        case DegreesOfFreedom: return "Ripley_DegreesOfFreedom";
-        case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom";
-        case Nodes: return "Ripley_Nodes";
-        case ReducedNodes: return "Ripley_ReducedNodes";
-        case Elements: return "Ripley_Elements";
-        case ReducedElements: return "Ripley_ReducedElements";
-        case FaceElements: return "Ripley_FaceElements";
-        case ReducedFaceElements: return "Ripley_ReducedFaceElements";
-        case Points: return "Ripley_Points";
+        case DegreesOfFreedom: return "Ripley_DegreesOfFreedom [Solution(domain)]";
+        case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom [ReducedSolution(domain)]";
+        case Nodes: return "Ripley_Nodes [ContinuousFunction(domain)]";
+        case ReducedNodes: return "Ripley_ReducedNodes [ReducedContinuousFunction(domain)]";
+        case Elements: return "Ripley_Elements [Function(domain)]";
+        case ReducedElements: return "Ripley_ReducedElements [ReducedFunction(domain)]";
+        case FaceElements: return "Ripley_FaceElements [FunctionOnBoundary(domain)]";
+        case ReducedFaceElements: return "Ripley_ReducedFaceElements [ReducedFunctionOnBoundary(domain)]";
+        case Points: return "Ripley_Points [DiracDeltaFunctions(domain)]";
         default:
             break;
     }
@@ -404,9 +404,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                     case Points:
                         {
                             const dim_t numComp = in.getDataPointSize();
+                            const int nDirac = m_diracPoints.size();
                             target.requireWrite();
                         #pragma omp parallel for
-                            for (int i = 0; i < m_diracPoints.size(); i++) {
+                            for (int i = 0; i < nDirac; i++) {
                                 const double* src = in.getSampleDataRO(m_diracPoints[i].node);
                                 copy(src, src+numComp, target.getSampleDataRW(i));
                             }
@@ -939,9 +940,10 @@ void RipleyDomain::setNewX(const escript::Data& arg)
 void RipleyDomain::copyData(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
+    const dim_t numSamples = in.getNumSamples();
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<in.getNumSamples(); i++) {
+    for (index_t i=0; i<numSamples; i++) {
         const double* src = in.getSampleDataRO(i);
         copy(src, src+numComp, out.getSampleDataRW(i));
     }
@@ -952,9 +954,10 @@ void RipleyDomain::averageData(escript::Data& out, const escript::Data& in) cons
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = in.getNumDataPointsPerSample();
+    const dim_t numSamples = in.getNumSamples();
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<in.getNumSamples(); i++) {
+    for (index_t i=0; i<numSamples; i++) {
         const double* src = in.getSampleDataRO(i);
         double* dest = out.getSampleDataRW(i);
         for (index_t c=0; c<numComp; c++) {
@@ -971,9 +974,10 @@ void RipleyDomain::multiplyData(escript::Data& out, const escript::Data& in) con
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t dpp = out.getNumDataPointsPerSample();
+    const dim_t numSamples = in.getNumSamples();
     out.requireWrite();
 #pragma omp parallel for
-    for (index_t i=0; i<in.getNumSamples(); i++) {
+    for (index_t i=0; i<numSamples; i++) {
         const double* src = in.getSampleDataRO(i);
         double* dest = out.getSampleDataRW(i);
         for (index_t c=0; c<numComp; c++) {
@@ -1013,6 +1017,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
     // gather global unique tag values from tags into tagsInUse
     tagsInUse->clear();
     index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue;
+    const long numTags = tags->size();
 
     while (true) {
         // find smallest value bigger than lastFoundValue 
@@ -1022,7 +1027,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
             local_minFoundValue = minFoundValue;
             long i;     // should be size_t but omp mutter mutter
 #pragma omp for schedule(static) private(i) nowait
-            for (i = 0; i < tags->size(); i++) {
+            for (i = 0; i < numTags; i++) {
                 const index_t v = (*tags)[i];
                 if ((v > lastFoundValue) && (v < local_minFoundValue))
                     local_minFoundValue = v;

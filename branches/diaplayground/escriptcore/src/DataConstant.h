@@ -110,6 +110,13 @@ typedef DataReady parent;
   hasNaN() const;
 
   /**
+  \brief replaces all NaN values with value 
+  */
+  ESCRIPT_DLL_API
+  void
+  replaceNaN(double value);
+
+  /**
      \brief
      Write the data as a string.
   */

@@ -143,19 +143,19 @@ class DarcyFlow(object):
              is along the *x_i* axis.
 
       """
-      if location_of_fixed_pressure!=None: 
+      if location_of_fixed_pressure is not None: 
            self.location_of_fixed_pressure=util.wherePositive(util.interpolate(location_of_fixed_pressure, self.__pde_p.getFunctionSpaceForCoefficient("q")))
            self.ref_point_id=self.location_of_fixed_pressure.maxGlobalDataPoint()
            if not self.location_of_fixed_pressure.getTupleForGlobalDataPoint(*self.ref_point_id)[0] > 0: raise ValueError("pressure needs to be fixed at least one point.")
            self.ref_point=self.__pde_p.getFunctionSpaceForCoefficient("q").getX().getTupleForGlobalDataPoint(*self.ref_point_id)
            if self.verbose: print(("DarcyFlow: reference point at %s."%(self.ref_point,)))
            self.__pde_p.setValue(q=self.location_of_fixed_pressure)
-      if location_of_fixed_flux!=None: 
+      if location_of_fixed_flux is not None: 
           self.location_of_fixed_flux=util.wherePositive(location_of_fixed_flux)
-          if not self.__pde_v == None: 
+          if not self.__pde_v is None: 
               self.__pde_v.setValue(q=self.location_of_fixed_flux)
       
-      if permeability!=None:
+      if permeability is not None:
          perm=util.interpolate(permeability,self.__pde_p.getFunctionSpaceForCoefficient("A"))
          self.perm_scale=util.Lsup(util.length(perm))
          if self.verbose: print(("DarcyFlow: permeability scaling factor = %e."%self.perm_scale))
@@ -186,7 +186,7 @@ class DarcyFlow(object):
          elif self.solver  == self.SMOOTH:
             self.__pde_v.setValue(D=self.__permeability_inv)
 
-      if g != None:
+      if g is not None:
         g=util.interpolate(g, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
         if g.isEmpty():
              g=Vector(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
@@ -195,7 +195,7 @@ class DarcyFlow(object):
         self.__g=g 
         self.__permeability_invXg=util.tensor_mult(self.__permeability_inv,self.__g * (1./self.perm_scale )) 
         self.__permeability_invXg_ref=util.integrate(self.__permeability_invXg)/util.vol(self.domain) 
-      if f !=None:
+      if f  is not None:
          f=util.interpolate(f, self.__pde_p.getFunctionSpaceForCoefficient("Y"))
          if f.isEmpty():   
              f=Scalar(0,self.__pde_p.getFunctionSpaceForCoefficient("Y"))
@@ -208,7 +208,7 @@ class DarcyFlow(object):
       Returns the solver options used to solve the flux problems
       :return: `SolverOptions`
       """
-      if self.__pde_v == None:
+      if self.__pde_v is None:
           return None
       else:
           return self.__pde_v.getSolverOptions()
@@ -219,7 +219,7 @@ class DarcyFlow(object):
       If ``options`` is not present, the options are reset to default
       :param options: `SolverOptions`
       """
-      if not self.__pde_v == None:
+      if not self.__pde_v is None:
           self.__pde_v.setSolverOptions(options)
  
    def getSolverOptionsPressure(self):
@@ -252,7 +252,7 @@ class DarcyFlow(object):
 
       """
       p0=util.interpolate(p0, self.__pde_p.getFunctionSpaceForCoefficient("q"))
-      if self.ref_point_id == None:
+      if self.ref_point_id is None:
           p_ref=0
       else:
           p_ref=p0.getTupleForGlobalDataPoint(*self.ref_point_id)[0]
@@ -280,7 +280,7 @@ class DarcyFlow(object):
         :rtype: `escript.Data`
         """
         p=util.interpolate(p, self.__pde_p.getFunctionSpaceForCoefficient("q"))
-        if self.ref_point_id == None:
+        if self.ref_point_id is None:
             p_ref=0
         else:
             p_ref=p.getTupleForGlobalDataPoint(*self.ref_point_id)[0]
@@ -305,7 +305,7 @@ class DarcyFlow(object):
         elif self.solver  == self.POST or self.solver  == self.SMOOTH:
             self.__pde_v.setValue(Y= self.__permeability_invXg - (util.grad(pp) + self.__permeability_invXg_ref))
 
-            if u0 == None:
+            if u0 is None:
                self.__pde_v.setValue(r=escore.Data())
             else:
                if not isinstance(u0, escore.Data) : u0 = escore.Vector(u0, escore.Solution(self.domain))
@@ -427,20 +427,20 @@ class StokesProblemCartesian(pdt.HomogeneousSaddlePointProblem):
         :param stress: initial stress
         :type stress: `Tensor` object on `FunctionSpace` `Function` or similar
         """
-        if eta !=None:
+        if eta  is not None:
             k=util.kronecker(self.domain.getDim())
             kk=util.outer(k,k)
             self.eta=util.interpolate(eta, escore.Function(self.domain))
             self.__pde_prec.setValue(D=1/self.eta)
             self.__pde_v.setValue(A=self.eta*(util.swap_axes(kk,0,3)+util.swap_axes(kk,1,3)))
-        if restoration_factor!=None:
+        if restoration_factor is not None:
             n=self.domain.getNormal()
             self.__pde_v.setValue(d=restoration_factor*util.outer(n,n))
-        if fixed_u_mask!=None:
+        if fixed_u_mask is not None:
             self.__pde_v.setValue(q=fixed_u_mask)
-        if f!=None: self.__f=f
-        if surface_stress!=None: self.__surface_stress=surface_stress
-        if stress!=None: self.__stress=stress
+        if f is not None: self.__f=f
+        if surface_stress is not None: self.__surface_stress=surface_stress
+        if stress is not None: self.__stress=stress
 
      def initialize(self,f=escore.Data(),fixed_u_mask=escore.Data(),eta=1,surface_stress=escore.Data(),stress=escore.Data(), restoration_factor=0):
         """

@@ -157,7 +157,7 @@ class PowerLaw(object):
          :type id: ``int``
          :return: the list of the powers for all matrials is returned. If ``id`` is present only the power for material ``id`` is returned.
          """
-         if id == None:
+         if id is None:
             return self.__power
          else:
             if self.validMaterialId(id):
@@ -172,7 +172,7 @@ class PowerLaw(object):
          :type id: ``int``
          :return: the list of the viscosities for all matrials is returned. If ``id`` is present only the viscosity for material ``id`` is returned.
          """
-         if id == None:
+         if id is None:
             return self.__eta_N
          else:
             if self.validMaterialId(id):
@@ -187,7 +187,7 @@ class PowerLaw(object):
          :type id: ``int``
          :return: the list of the transition stresses for all matrials is returned. If ``id`` is present only the transition stress for material ``id`` is returned.
          """
-         if id == None:
+         if id is None:
             return self.__tau_t
          else:
             if self.validMaterialId(id):
@@ -243,7 +243,7 @@ class PowerLaw(object):
          :type iter_max: ``int``
          :return: effective viscosity. 
          """
-         if pressure == None:
+         if pressure is None:
             p2 = None
          else:
             p2=(abs(pressure)+pressure)/2.
@@ -255,7 +255,7 @@ class PowerLaw(object):
          mu=self.getElasticShearModulus()
          fric=self.getFriction()
          tau_Y=self.getTauY()
-         if eta0==None:
+         if eta0 is None:
              theta=0.
              for i in range(numMaterial): 
                   inv_eta_i=0**s[i]/eta_N[i]
@@ -269,15 +269,15 @@ class PowerLaw(object):
              eta_eff=eta0
 
          if mu !=None:
-             if dt == None: raise ValueError("Time stepsize dt must be given.")
+             if dt is None: raise ValueError("Time stepsize dt must be given.")
              if dt<=0: raise ValueError("Time step size must be positive.")
-         if tau_Y==None and fric==None:
+         if tau_Y is None and fric is None:
              eta_max=None
          else:
-            if fric == None or p2==None:
+            if fric is None or p2 is None:
                 eta_max=tau_Y/(gamma_dot+SMALL*util.whereZero(gamma_dot))
             else:
-                if tau_Y==None: tau_Y==0
+                if tau_Y is None: tau_Y==0
                 if util.inf(fric)<=0: 
                     raise ValueError("if friction present it needs to be positive.")
                 eta_max=fric*util.clip(tau_Y/fric+p2,minval=0)/(gamma_dot+SMALL*util.whereZero(gamma_dot))
@@ -335,9 +335,9 @@ class Rheology(object):
          #
          # state variables:
          #
-         if stress == None: stress=Tensor(0.,escore.Function(self.__domain))
-         if v == None: v=Vector(0.,escore.Solution(self.__domain))
-         if p == None: p=Vector(0.,escore.ReducedSolution(self.__domain))
+         if stress is None: stress=Tensor(0.,escore.Function(self.__domain))
+         if v is None: v=Vector(0.,escore.Solution(self.__domain))
+         if p is None: p=Vector(0.,escore.ReducedSolution(self.__domain))
          self.setStatus(t, v, p, stress)
          self.setExternals(F=escore.Data(), f=escore.Data(), fixed_v_mask=escore.Data(), v_boundary=escore.Data(), restoration_factor=0)
          
@@ -375,11 +375,11 @@ class Rheology(object):
           :type restoration_factor: scalar values/field
           :note: Only changing parameters need to be specified.
           """
-          if F != None: self.__F=F
-          if f != None: self.__f=f
-          if fixed_v_mask != None: self.__fixed_v_mask=fixed_v_mask
-          if v_boundary != None: self.__v_boundary=v_boundary 
-          if restoration_factor!=None: self.__restoration_factor=restoration_factor
+          if F is not None: self.__F=F
+          if f is not None: self.__f=f
+          if fixed_v_mask is not None: self.__fixed_v_mask=fixed_v_mask
+          if v_boundary is not None: self.__v_boundary=v_boundary 
+          if restoration_factor is not None: self.__restoration_factor=restoration_factor
           
       def getForce(self):
           """
@@ -530,7 +530,7 @@ class Rheology(object):
           :param D: new deviatoric strain. If ``D`` is not present the current velocity is used.
           :type D: `Data` of rank 2
           """
-          if D==None: 
+          if D is None: 
               self.__D=self.getDeviatoricStrain(self.getVelocity())
           else:
               self.__D=util.deviatoric(util.interpolate(D,escore.Function(self.getDomain())))
@@ -545,7 +545,7 @@ class Rheology(object):
           :return: deviatoric strain of the current velocity field or if ``v`` is present the deviatoric strain of velocity ``v``
           :rtype: `Data`  of rank 2
           """
-          if v==None:
+          if v is None:
              return self.__D
           else:
              return util.deviatoric(util.symmetric(util.grad(v)))
@@ -567,7 +567,7 @@ class Rheology(object):
           :param gammadot: second invariant of deviatoric strain rate. 
           :type gammadot: `Data` of rank 1
           """
-          if gammadot == None:
+          if gammadot is None:
                self.__gammadot = escore.Scalar(0.,escore.Function(self.getDomain()))
           else:
                self.__gammadot=gammadot
@@ -581,7 +581,7 @@ class Rheology(object):
           :return: second invariant of deviatoric strain
           :rtype: scalar `Data`
           """
-          if D==None: 
+          if D is None: 
               return self.__gammadot
           else:
               return util.sqrt(2.)*util.length(D)
@@ -649,7 +649,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
          #
          #  calculate eta_eff if we don't have one or elasticity is present.
          #
-         if mu==None:
+         if mu is None:
              gamma=self.getGammaDot(self.getDeviatoricStrain(v))
          else:
              gamma=self.getGammaDot(self.getDeviatoricStrain(v)+s_last/(2*dt*mu))
@@ -658,7 +658,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
 
          if self.checkVerbose(): print("IncompressibleIsotropicFlowCartesian: eta_eff has been updated.")
 
-         if mu==None:          
+         if mu is None:          
              stress0=escore.Data()
          else:
              stress0=-(self.__eta_eff_save/(dt*mu))*s_last
@@ -694,7 +694,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           :param verbose: prints some infos in the incompressible solver
           """
           mu=self.getElasticShearModulus()
-          if mu != None:
+          if mu is not None:
              if not dt > 0.:
                  raise ValueError("dt must be positive.")
           else:
@@ -728,7 +728,7 @@ class IncompressibleIsotropicFlowCartesian(PowerLaw,Rheology, StokesProblemCarte
           self.setPressure(p)
           self.setVelocity(v)
           self.setDeviatoricStrain(self.getDeviatoricStrain(v))
-          if mu==None:
+          if mu is None:
              D=self.getDeviatoricStrain(v)
           else:
              D=self.getDeviatoricStrain(v)+s_last/(2*dt*mu)

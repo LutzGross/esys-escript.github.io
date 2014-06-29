@@ -400,7 +400,7 @@ class Test_StokesProblemCartesian3D(unittest.TestCase):
        self.assertTrue(error_v1<10*self.TOL, "1-velocity error too large.")
        self.assertTrue(error_v2<10*self.TOL, "2-velocity error too large.")
 #==============================================================================
-class Darcy(unittest.TestCase):
+class Darcy(unittest.TestCase): #subclassing required
     # this is a simple test for the darcy flux problem
     #
     # 
@@ -661,7 +661,7 @@ class Darcy(unittest.TestCase):
         self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
-class Darcy2D(Darcy):
+class Test_Darcy2D(Darcy):
     TOL=1e-6
     TEST_TOL=2.e-3
     WIDTH=1.
@@ -672,7 +672,7 @@ class Darcy2D(Darcy):
     def tearDown(self):
         del self.dom
 
-class Darcy3D(Darcy):
+class Test_Darcy3D(Darcy):
     TOL=1e-6
     WIDTH=1.
     TEST_TOL=4.e-3

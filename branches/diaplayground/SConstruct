@@ -157,7 +157,7 @@ env = Environment(tools = ['default'], options = vars,
 def mkclang(env):
     env['CXX']='clang++'
 
-if env['tools_names'] != 'default':
+if env['tools_names'] != ['default']:
     zz=env['tools_names']
     if 'clang' in zz:
         zz.remove('clang')
@@ -386,7 +386,7 @@ for key in 'OMP_NUM_THREADS', 'ESCRIPT_NUM_PROCS', 'ESCRIPT_NUM_NODES':
     try:
         env['ENV'][key] = os.environ[key]
     except KeyError:
-        env['ENV'][key] = 1
+        env['ENV'][key] = '1'
 
 env_export=env['env_export']
 env_export.extend(['ESCRIPT_NUM_THREADS','ESCRIPT_HOSTFILE','DISPLAY','XAUTHORITY','PATH','HOME','KMP_MONITOR_STACKSIZE','TMPDIR','TEMP','TMP','LD_PRELOAD'])
@@ -434,6 +434,9 @@ env.Append(BUILDERS = {'RunUnitTest' : runUnitTest_builder});
 
 runPyUnitTest_builder = Builder(action = runPyUnitTest, suffix = '.passed', src_suffic='.py', single_source=True)
 env.Append(BUILDERS = {'RunPyUnitTest' : runPyUnitTest_builder});
+
+runPyExample_builder = Builder(action = runPyExample, suffix = '.passed', src_suffic='.py', single_source=True)
+env.Append(BUILDERS = {'RunPyExample' : runPyExample_builder});
 
 epstopdfbuilder = Builder(action = eps2pdf, suffix='.pdf', src_suffix='.eps', single_source=True)
 env.Append(BUILDERS = {'EpsToPDF' : epstopdfbuilder});

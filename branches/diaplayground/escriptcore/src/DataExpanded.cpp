@@ -293,19 +293,34 @@ DataExpanded::initialise(int noSamples,
   // resize data array to the required size
   m_data.resize(noSamples,noDataPointsPerSample,getNoValues());
 }
-
 bool
 DataExpanded::hasNaN() const
 {
-	const ValueType& v=m_data.getData();
+	bool haveNaN=false;
+  const ValueType& v=m_data.getData();
+  #pragma omp parallel for
 	for (ValueType::size_type i=0;i<v.size();++i)
 	{
 		if (nancheck(v[i]))	
 		{
-			return true;
+			#pragma omp atomic write
+      haveNaN=true;
 		}
 	}
-	return false;
+	return haveNaN;
+}
+
+void
+DataExpanded::replaceNaN(double value)
+{
+  #pragma omp parallel for
+  for (ValueType::size_type i=0;i<m_data.size();++i)
+  {
+    if (nancheck(m_data[i]))  
+    {
+      m_data[i] = value;
+    } 
+  }
 }
 
 

@@ -85,6 +85,16 @@ bool block_cmp_data(const escript::Data&, boost::python::object o)
     return false;
 }
 
+
+bool block_eq_data(const escript::Data&, boost::python::object o)
+{
+    PyErr_SetString(PyExc_TypeError,"The Python == and != operators are not defined for Data objects. "
+      "To check for object identity use 'is'.  To check for numerical similarity of x and y, use Lsup(x-y)<TOL "
+      "for a suitable tolerance.");
+    boost::python::throw_error_already_set();   
+    return false;
+}
+
 bool block_cmp_functionspace(const escript::FunctionSpace&, boost::python::object o)
 {
     PyErr_SetString(PyExc_TypeError,"Python relational operators are not defined for FunctionSpaces.");
@@ -219,8 +229,8 @@ BOOST_PYTHON_MODULE(escriptcpp)
         ":return: Boundary normals")
      .def("getSize",&escript::AbstractDomain::getSize,":return: the local size of samples. The function space is chosen appropriately\n"
         ":rtype: `Data`")
-     .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file"
-        ":param filename:\n"
+     .def("dump",&escript::AbstractDomain::dump,args("filename"),"Dumps the domain to a file\n\n"
+        ":param filename: \n"
         ":type filename: string")
      .def("getMPISize",&escript::AbstractDomain::getMPISize,":return: the number of processes used for this `Domain`\n"
         ":rtype: ``int``")
@@ -493,6 +503,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("isReady",&escript::Data::isReady,":rtype: ``bool``\n"
         ":return: True if this ``Data`` is not lazy.")
     .def("expand",&escript::Data::expand,"Convert the data to expanded representation if it is not expanded already.")
+    .def("hasNaN",&escript::Data::hasNaN,"Returns return true if data contains NaN.")
+    .def("replaceNaN",&escript::Data::replaceNaN,args("value"),"Replaces NaN values with value")
     .def("tag",&escript::Data::tag,"Convert data to tagged representation if it is not already tagged or expanded")
     .def("resolve",&escript::Data::resolve,"Convert the data to non-lazy representation.")
     .def("copy",&escript::Data::copy,args("other"),"Make this object a copy of ``other``\n"
@@ -711,7 +723,8 @@ args("arg"), "assigns new location to the domain\n\n"
     .def("__rmul__", &escript::Data::__mul__)   // commutative
     .def("__div__", &escript::Data::__div__)   
     .def("__rdiv__", &escript::Data::__rdiv__)   // commutative
-    
+    .def("__eq__", block_eq_data)		// stop people from using == 
+    .def("__ne__", block_eq_data)		// stop people from using != 
     ;
 
   //

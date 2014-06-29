@@ -25,8 +25,8 @@ __all__ = ['Regularization']
 
 
 import numpy as np
-from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length
-from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
+from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
+from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue,SolverOptions
 from esys.escript.pdetools import ArithmeticTuple
 from .coordinates import makeTranformation
 from .costfunctions import CostFunction
@@ -99,9 +99,9 @@ class Regularization(CostFunction):
         :type scale_c: `Data` object of shape (``numLevelSets``,``numLevelSets``)
 
         """
-        if w0 == None and w1==None:
+        if w0 is None and w1 is None:
             raise ValueError("Values for w0 or for w1 must be given.")
-        if wc == None and numLevelSets>1:
+        if wc is None and numLevelSets>1:
             raise ValueError("Values for wc must be given.")
 
         self.__domain=domain
@@ -110,7 +110,9 @@ class Regularization(CostFunction):
         self.__trafo=makeTranformation(domain, coordinates)
         self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
+        self.__pde.getSolverOptions().setSolverTarget(SolverOptions.TARGET_GPU)
         self.__pde.setSymmetryOn()
+        self.__pde.setValue(A=self.__pde.createCoefficient('A'), D=self.__pde.createCoefficient('D'), )
         try:
             self.__pde.setValue(q=location_of_set_m)
         except IllegalCoefficientValue:
@@ -323,7 +325,7 @@ class Regularization(CostFunction):
             mu_c2=np.zeros((numLS,numLS))
             for k in range(numLS):
                 for l in range(k):
-                    mu_c2[l,k] = mu[numLS+l+((k-1)*k)/2]
+                    mu_c2[l,k] = mu[numLS+l+((k-1)*k)//2]
             self.setTradeOffFactorsForCrossGradient(mu_c2)
         elif mu.shape == () and numLS ==1:
             self.setTradeOffFactorsForVariation(mu)
@@ -430,8 +432,8 @@ class Regularization(CostFunction):
                 len_gk=length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
-                    #print("CC = %s"%integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ))
-                    A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( len_gk * length(gl) )**2 - inner(gk, gl)**2 )
+                    #print("CC(%s,%s) = %s"%(k,l,integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )))
+                    A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
         #print("A = %s"%A)
         return A/2
 
@@ -457,10 +459,11 @@ class Regularization(CostFunction):
                 Y = Data(0, (numLS,) , grad_m.getFunctionSpace())
 
         if self.__w1 is not None:
-            X=grad_m*self.__w1
+
             if numLS == 1:
                 X=grad_m* self.__w1*mu
             else:
+                X=grad_m*self.__w1
                 for k in range(numLS):
                     X[k,:]*=mu[k]
         else:
@@ -476,12 +479,12 @@ class Regularization(CostFunction):
                     l2_grad_m_l = length(grad_m_l)**2
                     grad_m_lk = inner(grad_m_l, grad_m_k)
                     f = mu_c[l,k]* self.__wc[l,k]
-                    X[l,:] += f * (l2_grad_m_l*grad_m_l - grad_m_lk*grad_m_k)
-                    X[k,:] += f * (l2_grad_m_k*grad_m_k - grad_m_lk*grad_m_l)
+                    X[l,:] += f * (l2_grad_m_k*grad_m_l - grad_m_lk*grad_m_k)
+                    X[k,:] += f * (l2_grad_m_l*grad_m_k - grad_m_lk*grad_m_l)
 
         return ArithmeticTuple(Y, X)
 
-    def getInverseHessianApproximation(self, m, r, grad_m):
+    def getInverseHessianApproximation(self, m, r, grad_m, solve=True):
         """
         """
         if self._new_mu or self._update_Hessian:
@@ -496,11 +499,13 @@ class Regularization(CostFunction):
                 if numLS == 1:
                     D=self.__w0 * mu
                 else:
-                    D=self.getPDE().createCoefficient("D")
+                    D=self.getPDE().getCoefficient("D")
+                    D.setToZero()
                     for k in range(numLS): D[k,k]=self.__w0[k] * mu[k]
                 self.getPDE().setValue(D=D)
 
-            A=self.getPDE().createCoefficient("A")
+            A=self.getPDE().getCoefficient("A")
+            A.setToZero()
             if self.__w1 is not None:
                 if numLS == 1:
                     for i in range(DIM): A[i,i]=self.__w1[i] * mu
@@ -509,6 +514,7 @@ class Regularization(CostFunction):
                         for i in range(DIM): A[k,i,k,i]=self.__w1[k,i] * mu[k]
 
             if numLS > 1:
+                # this could be make faster by creating caches for grad_m_k, l2_grad_m_k  and o_kk
                 for k in range(numLS):
                     grad_m_k=grad_m[k,:]
                     l2_grad_m_k = length(grad_m_k)**2
@@ -521,9 +527,10 @@ class Regularization(CostFunction):
                         o_kl = outer(grad_m_k, grad_m_l)
                         o_ll=outer(grad_m_l, grad_m_l)
                         f=  mu_c[l,k]* self.__wc[l,k]
+                        Z=f * (2*o_lk - o_kl - i_lk*kronecker(DIM))
                         A[l,:,l,:] += f * (l2_grad_m_k*kronecker(DIM) - o_kk)
-                        A[l,:,k,:] += f * (2*o_lk - o_kl - i_lk*kronecker(DIM))
-                        A[k,:,l,:] += f * (2*o_kl - o_lk - i_lk*kronecker(DIM))
+                        A[l,:,k,:] += Z
+                        A[k,:,l,:] += transpose(Z)
                         A[k,:,k,:] += f * (l2_grad_m_l*kronecker(DIM) - o_ll)
             self.getPDE().setValue(A=A)
         #self.getPDE().resetRightHandSideCoefficients()
@@ -535,6 +542,8 @@ class Regularization(CostFunction):
 
         self.getPDE().resetRightHandSideCoefficients()
         self.getPDE().setValue(X=r[1], Y=r[0])
+        if not solve:
+            return self.getPDE()
         return self.getPDE().getSolution()
 
     def updateHessian(self):

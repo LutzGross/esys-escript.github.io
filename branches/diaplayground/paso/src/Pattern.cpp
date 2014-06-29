@@ -342,9 +342,10 @@ Pattern_ptr Pattern::multiply(int type, const_Pattern_ptr B) const
 Pattern_ptr Pattern::binop(int type, const_Pattern_ptr B) const
 {
     IndexListArray index_list(numOutput);
+    const dim_t nRowsB = B->numOutput;
 
 #pragma omp parallel for schedule(static)
-    for (dim_t i = 0; i < B->numOutput; i++) {
+    for (dim_t i = 0; i < nRowsB; i++) {
         index_t iptrA = ptr[i];
         index_t iptrB = B->ptr[i];
 

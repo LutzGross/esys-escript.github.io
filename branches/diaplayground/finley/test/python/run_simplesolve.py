@@ -69,7 +69,7 @@ FAC_DIAG=1.
 FAC_OFFDIAG=-0.4
 
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         # Tell about how many MPI CPUs and OpenMP threads
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
@@ -99,7 +99,8 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -128,7 +129,8 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -168,7 +170,8 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -195,7 +198,8 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -235,7 +239,8 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -262,7 +267,8 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -310,7 +316,8 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -338,7 +345,8 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_Jacobi(unittest.TestCase):
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -387,7 +395,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -417,7 +425,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -445,7 +453,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -486,7 +494,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -527,7 +535,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -555,7 +563,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -604,7 +612,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -633,7 +641,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -682,8 +690,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -714,7 +721,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -742,7 +749,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -783,7 +790,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -824,7 +831,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -852,7 +859,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -901,7 +908,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -930,7 +937,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -979,7 +986,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_Jacobi(unittest.TestCase):
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1009,7 +1016,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1037,7 +1044,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1078,7 +1085,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1119,7 +1126,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestC
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1147,7 +1154,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase)
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1196,7 +1203,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase)
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1225,7 +1232,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_BICGSTAB_Jacobi(unittest.TestCase)
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1275,7 +1282,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_BICGSTAB_Jacobi(unittest.TestCase)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         # Tell about how many MPI CPUs and OpenMP threads
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
@@ -1305,7 +1312,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1334,7 +1341,8 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestC
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1374,7 +1382,8 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestC
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1401,7 +1410,8 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestC
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1441,7 +1451,8 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestC
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1468,7 +1479,8 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase)
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1516,7 +1528,8 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase)
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1544,7 +1557,8 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_PCG_GaussSeidel(unittest.TestCase)
         # -------- test the solution ---------------------------
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
+
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1593,7 +1607,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_PCG_GaussSeidel(unittest.TestCase)
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1623,7 +1637,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.Tes
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1651,7 +1665,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.Tes
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1692,7 +1706,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.Tes
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1733,7 +1747,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.Tes
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1761,7 +1775,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1810,7 +1824,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1839,7 +1853,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_TFQMR_GaussSeidel(unittest.TestCas
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1889,7 +1903,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_TFQMR_GaussSeidel(unittest.TestCas
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1920,7 +1934,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_MINRES_GaussSeidel(unittest.Te
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1948,7 +1962,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_MINRES_GaussSeidel(unittest.Te
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -1989,7 +2003,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_MINRES_GaussSeidel(unittest.Te
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2030,7 +2044,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_MINRES_GaussSeidel(unittest.Te
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2058,7 +2072,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCa
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2107,7 +2121,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCa
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2136,7 +2150,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_MINRES_GaussSeidel(unittest.TestCa
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2185,7 +2199,7 @@ class SimpleSolve_Brick_Order2_SystemPDE_Paso_MINRES_GaussSeidel(unittest.TestCa
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1, optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2215,7 +2229,7 @@ class SimpleSolve_Rectangle_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,l0=1.,l1=1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2243,7 +2257,7 @@ class SimpleSolve_Rectangle_Order2_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order1_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2284,7 +2298,7 @@ class SimpleSolve_Rectangle_Order1_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Rectangle_Order2_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Rectangle(NE0,NE1,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2325,7 +2339,7 @@ class SimpleSolve_Rectangle_Order2_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
 
-class SimpleSolve_Brick_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2353,7 +2367,7 @@ class SimpleSolve_Brick_Order1_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.Test
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order1_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order1_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,1,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2402,7 +2416,7 @@ class SimpleSolve_Brick_Order1_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.Test
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()
@@ -2431,7 +2445,7 @@ class SimpleSolve_Brick_Order2_SinglePDE_Paso_BICGSTAB_GaussSeidel(unittest.Test
         error=Lsup(u-u_ex)
         self.assertTrue(error<REL_TOL*Lsup(u_ex), "solution error %s is too big."%error)
         
-class SimpleSolve_Brick_Order2_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
+class Test_SimpleSolve_Brick_Order2_SystemPDE_Paso_BICGSTAB_GaussSeidel(unittest.TestCase):
      def test_solve(self):
         domain=Brick(NE0,NE1,NE2,2,optimize=OPTIMIZE)
         x=Solution(domain).getX()

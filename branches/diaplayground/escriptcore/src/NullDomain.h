@@ -72,7 +72,7 @@ class NullDomain : public AbstractDomain {
 #ifdef ESYS_MPI
     return MPI_COMM_WORLD;
 #else
-    return -1;
+    return 0;
 #endif    
   }
   

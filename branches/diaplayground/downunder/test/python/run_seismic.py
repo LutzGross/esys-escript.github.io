@@ -85,7 +85,7 @@ class TestSeismicTools(unittest.TestCase):
         rw=Ricker(f_dom=40, t_dom=None)
 
         self.assertLess(abs(rw.getValue(0)), 1e-6)
-        self.assertAlmostEquals(rw.getValue(rw.getCenter()), 1. )
+        self.assertAlmostEqual(rw.getValue(rw.getCenter()), 1. )
         self.assertLess(abs(rw.getAcceleration(0.)), 1.)
 
     def test_wavebase(self):
@@ -98,7 +98,7 @@ class TestSeismicTools(unittest.TestCase):
             self.assertLess(abs(u-sin(t_ref)), 1e-6)
             
         tw=TestWave(dt=0.001, u0=0., v0=1., t0=0.)
-        self.assertAlmostEquals(0.001, tw.getTimeStepSize())
+        self.assertAlmostEqual(0.001, tw.getTimeStepSize())
         for t in [0.005, 0.007, 0.0071, 0.01, 0.02, 0.5]:
             check_values(self, tw, t)
         self.assertRaises(ValueError, tw.update, t-1)

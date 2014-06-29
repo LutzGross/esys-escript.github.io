@@ -20,13 +20,7 @@ Import('*')
 local_env = env.Clone()
 
 # files defining test runs (passing in a release)
-testruns = ['run_convection.py']
-testruns += ['run_flow.py']
-testruns += ['run_temp.py']
-if env['gmsh']:
-    testruns += ['run_domainreaders.py']
-else:
-    env['warnings'].append("gmsh not available! Skipping domainreaders test.")
+testruns = Glob('run_*.py', strings=True)
 
 # files defining tests run locally (not as part of a release)
 localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_')]
@@ -34,10 +28,10 @@ localtestruns = [x for x in Glob('*.py', strings=True) if not x.startswith('run_
 # all tests
 alltestruns = testruns + localtestruns
 
-# test files are just compiled - none of those in modellib yet
-#sources = Glob('test_*.py')
-#test_pyc = env.PyCompile(sources)
-#env.Alias('build_py_tests', test_pyc)
+# test files are just compiled
+sources = Glob('*.py')
+test_pyc = env.PyCompile(sources)
+env.Alias('build_py_tests', test_pyc)
 
 # add unit test to target alias
 local_env.PrependENVPath('PYTHONPATH', env.Dir('$BUILD_DIR/$PLATFORM/escript/test/python').abspath)

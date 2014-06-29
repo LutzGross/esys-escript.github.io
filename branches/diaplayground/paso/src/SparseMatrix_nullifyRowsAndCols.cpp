@@ -43,8 +43,9 @@ void SparseMatrix::nullifyRowsAndCols_CSC_BLK1(const double* mask_row,
                                                double main_diagonal_value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const int nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (index_t icol=0; icol < pattern->numOutput; icol++) {
+    for (index_t icol=0; icol < nOut; icol++) {
         #pragma ivdep
         for (index_t iptr=pattern->ptr[icol]-index_offset; iptr < pattern->ptr[icol+1]-index_offset; iptr++) {
             const index_t irow = pattern->index[iptr]-index_offset;
@@ -60,8 +61,9 @@ void SparseMatrix::nullifyRowsAndCols_CSR_BLK1(const double* mask_row,
                                                double main_diagonal_value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const int nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (index_t irow=0; irow < pattern->numOutput; irow++) {
+    for (index_t irow=0; irow < nOut; irow++) {
         #pragma ivdep
         for (index_t iptr=pattern->ptr[irow]-index_offset; iptr < pattern->ptr[irow+1]-index_offset; iptr++) {
             const index_t icol = pattern->index[iptr]-index_offset;
@@ -77,8 +79,9 @@ void SparseMatrix::nullifyRowsAndCols_CSC(const double* mask_row,
                                           double main_diagonal_value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const int nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (index_t ic=0; ic < pattern->numOutput; ic++) {
+    for (index_t ic=0; ic < nOut; ic++) {
         for (index_t iptr=pattern->ptr[ic]-index_offset; iptr < pattern->ptr[ic+1]-index_offset; iptr++) {
             for (index_t irb=0; irb < row_block_size; irb++) {
                 const index_t irow=irb+row_block_size*(pattern->index[iptr]-index_offset);
@@ -100,8 +103,9 @@ void SparseMatrix::nullifyRowsAndCols_CSR(const double* mask_row,
                                           double main_diagonal_value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const int nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (index_t ir=0; ir < pattern->numOutput; ir++) {
+    for (index_t ir=0; ir < nOut; ir++) {
         for (index_t iptr=pattern->ptr[ir]-index_offset; iptr < pattern->ptr[ir+1]-index_offset; iptr++) {
             for (index_t irb=0; irb < row_block_size; irb++) {
                 const index_t irow=irb+row_block_size*ir;
@@ -122,8 +126,9 @@ void SparseMatrix::nullifyRows_CSR_BLK1(const double* mask_row,
                                         double main_diagonal_value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const int nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (index_t irow=0; irow < pattern->numOutput; irow++) {
+    for (index_t irow=0; irow < nOut; irow++) {
         if (mask_row[irow]>0.) {
             #pragma ivdep
             for (index_t iptr=pattern->ptr[irow]-index_offset; iptr < pattern->ptr[irow+1]-index_offset; iptr++) {
@@ -138,8 +143,9 @@ void SparseMatrix::nullifyRows_CSR(const double* mask_row,
                                    double main_diagonal_value)
 {
     const index_t index_offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+    const int nOut = pattern->numOutput;
 #pragma omp parallel for
-    for (index_t ir=0; ir < pattern->numOutput; ir++) {
+    for (index_t ir=0; ir < nOut; ir++) {
         for (index_t iptr=pattern->ptr[ir]-index_offset; iptr < pattern->ptr[ir+1]-index_offset; iptr++) {
             for (index_t irb=0; irb < row_block_size; irb++) {
                 const index_t irow = irb+row_block_size*ir;

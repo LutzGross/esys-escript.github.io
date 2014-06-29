@@ -44,8 +44,9 @@ class Ricker(Wavelet):
         """
         def __init__(self, f_dom=40, t_dom=None):
                 """
-                set up Ricker wavelet wih dominant frequence f_dom and center at time t_dom. If t_dom
-                is not given an estimate for suitable t_dom is calculated so f(0)~0.
+                Sets up a Ricker wavelet wih dominant frequence `f_dom` and 
+                center at time `t_dom`. If `t_dom` is not given an estimate 
+                for suitable `t_dom` is calculated so f(0)~0.
 
                 :note: maximum frequence is about 2 x the dominant frequence.
                 """
@@ -59,44 +60,44 @@ class Ricker(Wavelet):
 
         def getCenter(self):
                """
-               return value of wavelet center
+               Return value of wavelet center
                """
                return self.__t0
 
         def getTimeScale(self):
                 """
-                returns the time scale which is the inverse of the largest freqence with a significant
-                spectral component.
+                Returns the time scale which is the inverse of the largest 
+                frequence with a significant spectral component.
                 """
                 return 1/self.__f_max
 
         def getValue(self, t):
                 """
-                get value of wavelet at time t
+                get value of wavelet at time `t`
                 """
                 e2=(self.__s*(t-self.__t0))**2
                 return (1-2*e2)*exp(-e2)
 
         def getAcceleration(self, t):
                 """
-                get the acceleration f''(t) at time t
+                get the acceleration f''(t) at time `t`
                 """
                 e2=(self.__s*(t-self.__t0))**2
                 return 2*self.__s**2*(-4*e2**2 + 12*e2 - 3)*exp(-e2)
 
 class SimpleSEGYWriter(object):
         """
-        as simple writer for 2D and 3D seimic lines in particular for synthetic data
+        A simple writer for 2D and 3D seismic lines, in particular for synthetic data
 
         Typical usage:
 
-           from esys.escript import unitsSI as U
-           sw=SimpleSEGYWriter([0.,100*U.m,200*U,m,300.], source=200*U.m, sampling_interval=4*U.msec)
-           while n < 10:
+           `from esys.escript import unitsSI as U`
+           `sw=SimpleSEGYWriter([0.,100*U.m,200*U,m,300.], source=200*U.m, sampling_interval=4*U.msec)`
+           `while n < 10:`
 
-              sw.addRecord([i*2., i*0.67, i**2, -i*7])
+           `   sw.addRecord([i*2., i*0.67, i**2, -i*7])`
            
-           sw.write('example.segy')
+           `sw.write('example.segy')`
 
         :note: the writer uses `obspy`
         """
@@ -151,7 +152,7 @@ class SimpleSEGYWriter(object):
 
         def addRecord(self, record):
                """
-               adds a record to the traces. a time difference of sample_interval between two records is assumed.
+               Adds a record to the traces. A time difference of sample_interval between two records is assumed.
                The record mast be a list of as many values as given receivers or a float if a single receiver is used.
 
                :param record: list of tracks to be added to the record.
@@ -230,9 +231,9 @@ class WaveBase(object):
       """
       Base for wave propagation using the Verlet scheme.
 
-            u_tt = A(t,u), u(t=t0)=u0, u_t(t=t0)=v0
+            ``u_tt = A(t,u), u(t=t0)=u0, u_t(t=t0)=v0``
 
-      with a given  acceleration force as function of time.
+      with a given acceleration force as function of time.
 
       a_n=A(t_{n-1})
       v_n=v_{n-1} +  dt *  a_n
@@ -261,7 +262,7 @@ class WaveBase(object):
 
       def _getAcceleration(self, t, u):
            """
-           returns the acceleraton for time t and solution u at time t
+           returns the acceleraton for time `t` and solution `u` at time `t`
            : note: this function needs to be overwritten by a particular wave problem
            """
            pass
@@ -289,8 +290,8 @@ class WaveBase(object):
 
 def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e-2, top_absorbation=False):
     """
-    creating a distribution which is one in the interior of the domain of x
-    and is falling down to the value 'absorption_cut' over a margain of thickness 'absorption_zone'
+    Creates a distribution which is one in the interior of the domain of `x`
+    and is falling down to the value 'absorption_cut' over a margin of thickness 'absorption_zone'
     toward each boundary except the top of the domain.
 
     :param x: location of points in the domain
@@ -320,7 +321,7 @@ class SonicWave(WaveBase):
         """
         Solving the sonic wave equation
 
-        p_tt = (v_p**2 * p_i)_i  + f(t) * delta_s   where (p-) velocity v_p.
+        `p_tt = (v_p**2 * p_i)_i  + f(t) * delta_s`   where (p-) velocity v_p.
 
         f(t) is wavelet acting at a point source term at positon s
         """
@@ -469,7 +470,7 @@ class VTIWave(WaveBase):
 
     def _getAcceleration(self, t, u):
         """
-        returns the acceleraton for time t and solution u at time t
+        returns the acceleraton for time `t` and solution `u` at time `t`
         """
         du = grad(u)
         if not self.fastAssembler:
@@ -602,7 +603,7 @@ class HTIWave(WaveBase):
 
         def  _getAcceleration(self, t, u):
              """
-             returns the acceleraton for time t and solution u at time t
+             returns the acceleraton for time `t` and solution `u` at time `t`
              """
              du = grad(u)
              if self.fastAssembler:
@@ -648,11 +649,11 @@ class TTIWave(WaveBase):
         """
         Solving the 2D TTI wave equation with 
 
-        sigma_xx= c11*e_xx + c13*e_zz + c15*e_xz
-        sigma_zz= c13*e_xx + c33*e_zz + c35*e_xz
-        sigma_xz= c15*e_xx + c35*e_zz + c55*e_xz
+        `sigma_xx= c11*e_xx + c13*e_zz + c15*e_xz`
+        `sigma_zz= c13*e_xx + c33*e_zz + c35*e_xz`
+        `sigma_xz= c15*e_xx + c35*e_zz + c55*e_xz`
 
-        the coefficicients c11, c13, etc are calculated from the tompsen parameters eps and delta and the tilt theta
+        the coefficients `c11`, `c13`, etc are calculated from the tompsen parameters `eps`, `delta` and the tilt `theta`
 
         :note: currently only the 2D case is supported.
         """
@@ -734,7 +735,7 @@ class TTIWave(WaveBase):
            
         def  _getAcceleration(self, t, u):
              """
-             returns the acceleraton for time t and solution u at time t
+             returns the acceleraton for time `t` and solution `u` at time `t`
              """
              du = grad(u)
              sigma=self.__mypde.getCoefficient('X')
@@ -825,7 +826,7 @@ class SonicHTIWave(WaveBase):
  
         def  _getAcceleration(self, t, u):
             """
-            returns the acceleraton for time t and solution u at time t
+            returns the acceleraton for time `t` and solution `u` at time `t`
             """
             dQ = grad(u[0])[0]
             dP = grad(u[1])[1:]

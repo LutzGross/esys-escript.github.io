@@ -44,7 +44,7 @@ try:
 except KeyError:
      FINLEY_WORKDIR='.'
 
-class Darcy(unittest.TestCase):
+class Darcy(unittest.TestCase): #subclassing required
     # this is a simple test for the darcy flux problem
     #
     # 
@@ -115,6 +115,7 @@ class Darcy(unittest.TestCase):
         
         self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
+
     def testConstF_FixedBottom_mediumK(self):
         k=1.
         mp=self.getScalarMask(include_bottom=True)
@@ -304,7 +305,7 @@ class Darcy(unittest.TestCase):
         self.assertTrue(Lsup(v-u_ref)<self.TEST_TOL*Lsup(u_ref), "flux error too big.")
         self.assertTrue(Lsup(p-p_ref)<self.TEST_TOL*Lsup(p_ref), "pressure error too big.")
 
-class Darcy2D(Darcy):
+class Darcy2D(Darcy): #subclassing required
     TOL=1e-4
     WIDTH=1.
     SOLVER=DarcyFlow.POST
@@ -327,7 +328,7 @@ class Test_Darcy2D_SMOOTH(Darcy2D):
     TEST_TOL=0.01
     SOLVER=DarcyFlow.SMOOTH
 
-class Darcy3D(Darcy):
+class Darcy3D(Darcy): #subclassing required
     WIDTH=1.
     SOLVER=DarcyFlow.POST
     def setUp(self):

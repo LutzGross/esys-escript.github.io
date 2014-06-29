@@ -105,7 +105,7 @@ class SimulationTestCase(unittest.TestCase):
 
 
 
-class LinkTestCase(unittest.TestCase):
+class Test_LinkTestCase(unittest.TestCase):
    
 
     def setUp(self):
@@ -142,7 +142,7 @@ class LinkTestCase(unittest.TestCase):
     def testLinkTargetXML(self):
        pass
         
-class ParamaterSetTestCase(unittest.TestCase):
+class Test_ParameterSetTestCase(unittest.TestCase):
 
 
     def setUp(self):
@@ -282,7 +282,7 @@ class ParamaterSetTestCase(unittest.TestCase):
         
 
        
-class ModeltoDomTestCase(unittest.TestCase):
+class Test_ModeltoDomTestCase(unittest.TestCase):
     
     def _class(self):
         # returns a modelframe class, generated from the xml
@@ -290,7 +290,7 @@ class ModeltoDomTestCase(unittest.TestCase):
         self.o1.writeXML(s)
         s.seek(0)
         self.xmlout = s.read()
-        esysxml=ESySXMLParser(xmlout)
+        esysxml=ESySXMLParser(self.xmlout)
         doc =esysxml.parse()[0]
         return doc
 

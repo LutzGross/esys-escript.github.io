@@ -114,8 +114,9 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             }
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             const std::vector<int>& map = nodes->borrowReducedNodesTarget();
+            const int mapSize = map.size();
 #pragma omp parallel for
-            for (int n=0; n<map.size(); n++) {
+            for (int n=0; n<mapSize; n++) {
                 memcpy(out.getSampleDataRW(n), in.getSampleDataRO(map[n]),
                        numComps_size);
             }
@@ -141,8 +142,9 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             setError(TYPE_ERROR,"Assemble_CopyNodalData: cannot copy from reduced nodes to nodes.");
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             out.requireWrite();
+            const int nNodes = nodes->getNumNodes();
 #pragma omp parallel for
-            for (int n=0; n<nodes->getNumNodes(); n++) {
+            for (int n=0; n < nNodes; n++) {
                 memcpy(out.getSampleDataRW(n), in.getSampleDataRO(n), numComps_size);
             }
        } else if (out_data_type == FINLEY_DEGREES_OF_FREEDOM) {
@@ -170,8 +172,9 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 const double *recv_buffer=coupler->finishCollect();
                 const int upperBound=nodes->getNumDegreesOfFreedom();
                 const int* target = nodes->borrowTargetDegreesOfFreedom();
+                const int nNodes = nodes->numNodes;
 #pragma omp parallel for
-                for (int n=0; n<nodes->numNodes; n++) {
+                for (int n=0; n < nNodes; n++) {
                     const int k=target[n];
                     if (k < upperBound) {
                         memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
@@ -191,9 +194,10 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 const int upperBound=nodes->getNumDegreesOfFreedom();
                 const std::vector<int>& map = nodes->borrowReducedNodesTarget();
                 const int* target = nodes->borrowTargetDegreesOfFreedom();
+                const int mapSize = map.size();
 
 #pragma omp parallel for
-                for (int n=0; n<map.size(); n++) {
+                for (int n=0; n < mapSize; n++) {
                     const int k=target[map[n]];
                     if (k < upperBound) {
                         memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
@@ -232,10 +236,11 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
                 out.requireWrite();
                 const int upperBound=nodes->getNumReducedDegreesOfFreedom();
                 const std::vector<int>& map=nodes->borrowReducedNodesTarget();
+                const int mapSize = map.size();
                 const int* target=nodes->borrowTargetReducedDegreesOfFreedom();
                 const double *recv_buffer=coupler->finishCollect();
 #pragma omp parallel for
-                for (int n=0; n<map.size(); n++) {
+                for (int n=0; n < mapSize; n++) {
                     const int k=target[map[n]];
                     if (k < upperBound) {
                         memcpy(out.getSampleDataRW(n), in.getSampleDataRO(k),
