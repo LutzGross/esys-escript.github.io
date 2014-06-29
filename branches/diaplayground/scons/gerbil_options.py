@@ -23,7 +23,7 @@ cxx = 'g++-4.8'
 cc_optim = '-O3 -march=native'
 #cc_debug = '-g'
 cxx_extra = '-Wextra -Wno-unused-parameter -g'
-nvccflags = "-ccbin=%s -DBOOST_NOINLINE='__attribute__((noinline))'"%cxx
+nvccflags = "-ccbin=%s -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"%cxx
 #ld_extra = ''
 #werror = False
 #debug = True
