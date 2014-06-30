@@ -12,12 +12,37 @@ This file copied with modifications from: http://www.scons.org/wiki/CudaTool
 import SCons.Tool
 import SCons.Scanner.C
 import SCons.Defaults
+import subprocess
+from tempfile import TemporaryFile
 
 CUDASuffixes = ['.cu']
 
 # make a CUDAScanner for finding #includes
 # cuda uses the c preprocessor, so we can use the CScanner
 CUDAScanner = SCons.Scanner.C.CScanner()
+
+class ToolCudaWarning(SCons.Warnings.Warning):
+    pass
+
+class CudaCompilerNotFound(ToolCudaWarning):
+    pass
+
+SCons.Warnings.enableWarningClass(ToolCudaWarning)
+
+def _detect(env):
+    """ Try to detect the CUDA compiler """
+    try:
+        nvcc = env['NVCC']
+    except KeyError:
+        nvcc = env.WhereIs('nvcc')
+
+    try:
+        p=subprocess.call([nvcc,'-V'], stdout=TemporaryFile())
+    except:
+        raise SCons.Errors.StopError(CudaCompilerNotFound(
+                "The NVIDIA CUDA compiler could not be found. Try setting "
+                "'nvcc' in your options file or on the command line."))
+    return nvcc
 
 def add_common_nvcc_variables(env):
   """
@@ -61,8 +86,8 @@ def generate(env):
   add_common_nvcc_variables(env)
 
   # set the "CUDA Compiler Command" environment variable
-  env['NVCC'] = 'nvcc'
-  env['SHNVCC'] = 'nvcc'
+  env['NVCC'] = _detect(env)
+  env['SHNVCC'] = env['NVCC']
   
   # set the include path, and pass both c compiler flags and c++ compiler flags
   env['NVCCFLAGS'] = SCons.Util.CLVar('')
@@ -77,5 +102,5 @@ def generate(env):
 
 
 def exists(env):
-  return env.Detect('nvcc')
+  return _detect(env)
 

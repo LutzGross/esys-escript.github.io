@@ -188,6 +188,8 @@ if len(vars.UnknownVariables())>0:
     Exit(1)
 
 if env['cuda']:
+    if env['nvcc'] != 'default':
+        env['NVCC'] = env['nvcc']
     env.Tool('nvcc')
 
 # create dictionary which will be populated with info for buildvars file
@@ -217,11 +219,6 @@ env.Append(LIBPATH = [env['libinstall']])
 ################# Fill in compiler options if not set above ##################
 
 if env['cxx'] != 'default': env['CXX']=env['cxx']
-
-if env['nvcc'] != 'default':
-    env['NVCC'] = env['nvcc']
-else:
-    env['NVCC'] = 'nvcc'
 
 # version >=9 of intel C++ compiler requires use of icpc to link in C++
 # runtimes (icc does not)
@@ -452,6 +449,10 @@ env=checkPython(env)
 ######## boost & boost-python (required)
 env=checkBoost(env)
 
+######## NVCC version (optional)
+if env['cuda']:
+    env=checkCudaVersion(env)
+
 ######## numpy (required) and numpy headers (optional)
 env=checkNumpy(env)
 
@@ -657,6 +658,10 @@ def print_summary():
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
         print("          LAPACK:  DISABLED")
+    if env['cuda']:
+        print("            CUDA:  YES (nvcc: %s)"%env['nvcc_version'])
+    else:
+        print("            CUDA:  DISABLED")
     d_list=[]
     e_list=[]
     for i in 'debug','openmp','boomeramg','gdal','mkl','netcdf','papi','parmetis','pyproj','scipy','silo','sympy','umfpack','visit','vsl_random':
