@@ -30,14 +30,6 @@ namespace escript {
 class SolverBuddy;
 }
 
-#ifdef USE_CUDA
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CUDA
-#elif defined _OPENMP
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_OMP
-#else
-#define THRUST_DEVICE_SYSTEM THRUST_DEVICE_SYSTEM_CPP
-#endif
-
 #include <cusp/dia_matrix.h>
 
 namespace ripley {
