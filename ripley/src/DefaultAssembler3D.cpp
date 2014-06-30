@@ -36,7 +36,7 @@ void DefaultAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
         fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
 }
 
-void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDESingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -46,14 +46,14 @@ void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat,
 
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const 
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySingle(mat, rhs, d, y);
 }
 
-void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDESingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -62,14 +62,14 @@ void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
     assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySingleReduced(mat, rhs, d, y);
 }
 
-void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDESystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -78,14 +78,14 @@ void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
     assemblePDEBoundarySystem(mat, rhs, d, y);
 }
 
-void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDESystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -94,7 +94,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
-void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
@@ -102,7 +102,7 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr
 }
 
 
-void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+void DefaultAssembler3D::assemblePDESingle(SystemMatrix* mat, escript::Data& rhs,
         const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -2177,7 +2177,7 @@ void DefaultAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat, escript::
 }
 
 //protected
-void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDESingleReduced(SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -2554,7 +2554,8 @@ void DefaultAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
+void DefaultAssembler3D::assemblePDESystem(SystemMatrix* mat,
+        escript::Data& rhs,
         const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -2563,8 +2564,8 @@ void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat, escript::
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
 
     const double SQRT3 = 1.73205080756887719318;
@@ -4671,7 +4672,7 @@ void DefaultAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat, escript::
 }
 
 //protected
-void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDESystemReduced(SystemMatrix* mat,
         escript::Data& rhs, const escript::Data& A, const escript::Data& B,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
@@ -4680,8 +4681,8 @@ void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
 
     const double w0 = m_dx[0]/16;
@@ -5077,7 +5078,7 @@ void DefaultAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySingle(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double SQRT3 = 1.73205080756887719318;
@@ -5684,7 +5685,7 @@ void DefaultAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySingleReduced(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     const double w0 = m_dx[0]*m_dx[1]/16;
@@ -5990,15 +5991,15 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySystem(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w12 = m_dx[0]*m_dx[1]/144;
@@ -6676,15 +6677,15 @@ void DefaultAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
 }
 
 //protected
-void DefaultAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+void DefaultAssembler3D::assemblePDEBoundarySystemReduced(SystemMatrix* mat,
       escript::Data& rhs, const escript::Data& d, const escript::Data& y) const
 {
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double w0 = m_dx[0]*m_dx[1]/16.;
     const double w1 = m_dx[0]*m_dx[2]/16.;

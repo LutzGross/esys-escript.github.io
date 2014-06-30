@@ -14,14 +14,16 @@
 #
 ##############################################################################
 
-escript_opts_version = 201
+escript_opts_version = 202
+cuda = True
 #prefix = '/usr/local'
 #build_dir = 'build'
-cxx = 'g++-4.9'
+cxx = 'g++-4.8'
 #cc_flags = ''
 cc_optim = '-O3 -march=native'
 #cc_debug = '-g'
 cxx_extra = '-Wextra -Wno-unused-parameter -g'
+nvccflags = "-ccbin=%s -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"%cxx
 #ld_extra = ''
 #werror = False
 #debug = True

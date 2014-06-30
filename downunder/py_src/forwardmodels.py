@@ -109,6 +109,7 @@ class ForwardModelWithPotential(ForwardModel):
         x = domain.getX()
         self.__pde=LinearSinglePDE(domain)
         self.__pde.getSolverOptions().setTolerance(tol)
+        self.__pde.getSolverOptions().setSolverTarget(SolverOptions.TARGET_GPU)
         self.__pde.setSymmetryOn()
         z=x[DIM-1]
         q0=whereZero(z-BX[DIM-1][1])

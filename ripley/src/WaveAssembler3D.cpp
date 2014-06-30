@@ -72,7 +72,7 @@ WaveAssembler3D::WaveAssembler3D(escript::const_Domain_ptr dom,
         c44 = c.find("c44")->second, c66 = c.find("c66")->second;
 }
 
-void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
+void WaveAssembler3D::assemblePDESystem(SystemMatrix* mat,
             escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
 {
     const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
@@ -86,8 +86,8 @@ void WaveAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
 
     const double SQRT3 = 1.73205080756887719318;

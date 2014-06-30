@@ -31,7 +31,8 @@ bool convert(boost::python::object bpo, R& result) {
 
 namespace escript {
 
-SolverBuddy::SolverBuddy() {
+SolverBuddy::SolverBuddy()
+{
     level_max = 100;
     coarsening_threshold = 0.25;
     smoother = ESCRIPT_GAUSS_SEIDEL;
@@ -56,6 +57,7 @@ SolverBuddy::SolverBuddy() {
     method = ESCRIPT_DEFAULT;
     preconditioner = ESCRIPT_JACOBI;
     coarsening = ESCRIPT_DEFAULT;
+    target = ESCRIPT_TARGET_CPU;
     MinCoarseMatrixSize = 500;
     relaxation = 0.3;
     use_local_preconditioner = false;
@@ -181,6 +183,7 @@ std::string SolverBuddy::getSummary() const {
             out << "Relaxation factor = " << getRelaxationFactor() << std::endl;
         }
         out << "ODE solver = " << getName(getODESolver()) << std::endl;
+        out << "Solver target = " << getName(getSolverTarget()) << std::endl;
     }
     return out.str();
 }
@@ -240,6 +243,8 @@ const char *SolverBuddy::getName(int key) const {
         case ESCRIPT_LINEAR_CRANK_NICOLSON: return "LINEAR_CRANK_NICOLSON";
         case ESCRIPT_CRANK_NICOLSON: return "CRANK_NICOLSON";
         case ESCRIPT_BACKWARD_EULER: return "BACKWARD_EULER";
+        case ESCRIPT_TARGET_CPU: return "TARGET_CPU";
+        case ESCRIPT_TARGET_GPU: return "TARGET_GPU";
         default:
             throw SolverOptionsException("getName() invalid option given");
     }
@@ -463,6 +468,23 @@ void SolverBuddy::setSolverMethod(int method) {
 
 SolverOptions SolverBuddy::getSolverMethod() const {
     return method;
+}
+
+void SolverBuddy::setSolverTarget(int target) {
+    SolverOptions targ = static_cast<SolverOptions>(target);
+    switch(targ) {
+        case ESCRIPT_TARGET_CPU:
+        case ESCRIPT_TARGET_GPU:
+            this->target = targ;
+            break;
+        default:
+            throw SolverOptionsException("unknown solver target");
+    }
+}
+
+SolverOptions SolverBuddy::getSolverTarget() const
+{
+    return target;
 }
 
 void SolverBuddy::setPackage(int package) {

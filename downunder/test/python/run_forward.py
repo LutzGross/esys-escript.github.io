@@ -50,7 +50,7 @@ except KeyError:
     WORKDIR='.'
 
     
-have_direct=getEscriptParamInt("PASO_DIRECT")   
+have_direct=0 #getEscriptParamInt("PASO_DIRECT")   
 
 
 @unittest.skipIf(mpisize>1 or have_direct!=1, "more than 1 MPI rank or missing direct solver")
@@ -114,7 +114,7 @@ class TestAcousticInversion(unittest.TestCase):
         args=acw.getArguments(sigma_comps)
         d=acw.getDefect(sigma_comps, *args)
         self.assertTrue(isinstance(d, float))
-        self.assertTrue(abs(d) < 1e-10)
+        self.assertLess(abs(d), 1e-10)
 
         dg=acw.getGradient(sigma_comps, *args)
         self.assertTrue(isinstance(dg, Data))

@@ -39,32 +39,32 @@ void LameAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
 }
 
 
-void LameAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDESingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDEBoundarySingle(SystemMatrix* mat,
         escript::Data& rhs, map<string, escript::Data> coefs) const 
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDESingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDEBoundarySingleReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
 
-void LameAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDEBoundarySystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
@@ -72,8 +72,8 @@ void LameAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w12 = m_dx[0]*m_dx[1]/144;
@@ -746,19 +746,19 @@ void LameAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     } // end of parallel region
 }
 
-void LameAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDESystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDESystemReduced not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDEBoundarySystemReduced(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     throw RipleyException("assemblePDEBoundarySystemReduced not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
+void LameAssembler3D::assemblePDESystem(SystemMatrix* mat,
             escript::Data& rhs, map<string, escript::Data> coefs) const
 {
     escript::Data lambda = unpackData("lame_lambda", coefs),
@@ -774,8 +774,8 @@ void LameAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
 
     const double SQRT3 = 1.73205080756887719318;

@@ -26,7 +26,7 @@ __all__ = ['Regularization']
 
 import numpy as np
 from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
-from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
+from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue,SolverOptions
 from esys.escript.pdetools import ArithmeticTuple
 from .coordinates import makeTranformation
 from .costfunctions import CostFunction
@@ -110,6 +110,7 @@ class Regularization(CostFunction):
         self.__trafo=makeTranformation(domain, coordinates)
         self.__pde=LinearPDE(self.__domain, numEquations=self.__numLevelSets, numSolutions=self.__numLevelSets)
         self.__pde.getSolverOptions().setTolerance(tol)
+        self.__pde.getSolverOptions().setSolverTarget(SolverOptions.TARGET_GPU)
         self.__pde.setSymmetryOn()
         self.__pde.setValue(A=self.__pde.createCoefficient('A'), D=self.__pde.createCoefficient('D'), )
         try:

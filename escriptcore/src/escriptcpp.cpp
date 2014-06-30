@@ -974,7 +974,9 @@ args("source", "q", "r","factor"),
     .value("HMIS_COARSENING", escript::ESCRIPT_HMIS_COARSENING)
     .value("LINEAR_CRANK_NICOLSON", escript::ESCRIPT_LINEAR_CRANK_NICOLSON)
     .value("CRANK_NICOLSON", escript::ESCRIPT_CRANK_NICOLSON)
-    .value("BACKWARD_EULER", escript::ESCRIPT_BACKWARD_EULER);
+    .value("BACKWARD_EULER", escript::ESCRIPT_BACKWARD_EULER)
+    .value("TARGET_CPU", escript::ESCRIPT_TARGET_CPU)
+    .value("TARGET_GPU", escript::ESCRIPT_TARGET_GPU);
 
 
   class_<escript::SolverBuddy, escript::SB_ptr >("SolverBuddy","",init<>())
@@ -1051,6 +1053,11 @@ args("source", "q", "r","factor"),
         ":note: Not all packages are support on all implementation. An exception may be thrown on some platforms if a particular package is requested.")
     .def("getPackage", &escript::SolverBuddy::getPackage,"Returns the solver package key\n\n"
         ":rtype: in the list `DEFAULT`, `PASO`, `SUPER_LU`, `PASTIX`, `MKL`, `UMFPACK`, `TRILINOS`")
+    .def("setSolverTarget", &escript::SolverBuddy::setSolverTarget, args("target"),"Sets the solver target to be used.\n\n"
+        ":param target: key of the solver target to be used.\n"
+        ":type target: in `TARGET_CPU`, `TARGET_GPU`\n")
+    .def("getSolverTarget", &escript::SolverBuddy::getSolverTarget, "Returns the solver target key\n\n"
+        ":rtype: in the list `TARGET_CPU`, `TARGET_GPU`")
     .def("setReordering", &escript::SolverBuddy::setReordering, args("ordering"),"Sets the key of the reordering method to be applied if supported by the solver. Some direct solvers support reordering to optimize compute time and storage use during elimination.\n\n"
         ":param ordering: selects the reordering strategy.\n"
         ":type ordering: in 'NO_REORDERING', 'MINIMUM_FILL_IN', 'NESTED_DISSECTION', 'DEFAULT_REORDERING'")
