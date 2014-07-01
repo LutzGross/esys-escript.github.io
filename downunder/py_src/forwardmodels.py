@@ -876,7 +876,7 @@ class MT2DModelTEMode(ForwardModel):
     frequency omega.
     It defines a cost function:
 
-      *  defect = 1/2 integrate( sum_s w^s * ( E_x - Z_XY^s * H_y ) ) ** 2 ) *
+      *  defect = 1/2 integrate( sum_s w^s * ( E_x - Z_XY^s * H_y ) ) ** 2  *
 
     where E_x is the horizontal electric field perpendicular to the YZ-domain,
     horizontal magnetic field H_y=1/(i*omega*mu) * E_{x,z} with complex unit
@@ -895,7 +895,8 @@ class MT2DModelTEMode(ForwardModel):
     where E_x is set to E_0 on the top of the domain. Homogeneous Neuman
     conditions are assumed elsewhere.
     """
-    def __init__(self, domain, omega, x, Z_XY, eta, w0=1., mu=4*PI*1e-7, E_x0=1, coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True):
+    def __init__(self, domain, omega, x, Z_XY, eta, w0=1., mu=4*PI*1e-7, E_x0=1,
+        coordinates=None, fixAtBottom=False, tol=1e-8, saveMemory=True, directSolver=False):
         """
         initializes a new forward model.
 
@@ -989,6 +990,7 @@ class MT2DModelTEMode(ForwardModel):
         #=======================
         self.__tol=tol
         self.__fixAtBottom=fixAtBottom
+        self.__directSolver=directSolver
         self.__pde=None
         if not saveMemory:
             self.__pde=self.setUpPDE()
@@ -1017,6 +1019,8 @@ class MT2DModelTEMode(ForwardModel):
         """
         if self.__pde is None:
             pde=LinearPDE(self.__domain, numEquations=2)
+            if(directSolver == True):
+                pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
             Y=pde.createCoefficient('Y')
@@ -1028,7 +1032,7 @@ class MT2DModelTEMode(ForwardModel):
             z = self.__domain.getX()[DIM-1]
             q=whereZero(z-sup(z))
             if self.__fixAtBottom:
-                    q+=whereZero(z-inf(z))
+                q+=whereZero(z-inf(z))
             pde.setValue(q=q*[1,1])
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOff()
