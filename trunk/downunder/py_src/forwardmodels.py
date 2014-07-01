@@ -1019,7 +1019,7 @@ class MT2DModelTEMode(ForwardModel):
         """
         if self.__pde is None:
             pde=LinearPDE(self.__domain, numEquations=2)
-            if(directSolver == True):
+            if(self.__directSolver == True):
                 pde.getSolverOptions().setSolverMethod(SolverOptions.DIRECT)
             D=pde.createCoefficient('D')
             A=pde.createCoefficient('A')
