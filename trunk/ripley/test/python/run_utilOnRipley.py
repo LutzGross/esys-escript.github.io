@@ -36,6 +36,8 @@ else:
     class Test_symfuncs:
         pass
 
+from test_util_NaN_funcs import Test_util_NaN_funcs
+
 NE=4 # number elements
 
 mpiSize=getMPISizeWorld()
@@ -52,7 +54,7 @@ for x in [(int(mpiSize**(1/3.)),int(mpiSize**(1/3.))),(2,3),(2,2),(1,2),(1,1)]:
     if NXb*NYb*NZb == mpiSize:
         break
 
-class Test_UtilOnRipley(Test_util,Test_symfuncs):
+class Test_UtilOnRipley(Test_util, Test_symfuncs, Test_util_NaN_funcs):
     def setUp(self):
         self.domain=Rectangle(n0=NE*NX-1, n1=NE*NY-1, l0=1., l1=1., d0=NX, d1=NY)
         self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
