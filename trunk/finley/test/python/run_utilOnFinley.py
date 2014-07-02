@@ -37,6 +37,8 @@ else:
     print("Skipping symbolic tests since sympy is not available")
     class Test_symfuncs:
         pass
+from test_util_NaN_funcs import Test_util_NaN_funcs
+
 
 try:
      FINLEY_TEST_DATA=os.environ['FINLEY_TEST_DATA']
@@ -48,7 +50,7 @@ FINLEY_TEST_MESH_PATH=os.path.join(FINLEY_TEST_DATA,"data_meshes")
 
 NE=4 # number elements, must be even
 
-class Test_UtilOnFinley(Test_util,Test_symfuncs):
+class Test_UtilOnFinley(Test_util,Test_symfuncs,Test_util_NaN_funcs):
    def setUp(self):
        self.domain =Rectangle(NE,NE+1,2)
        self.functionspace = FunctionOnBoundary(self.domain) # due to a bug in escript python needs to hold a reference to the domain
