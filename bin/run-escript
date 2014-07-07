@@ -22,6 +22,16 @@ CURDIR=$(pwd)
 #Environment vars which control operations:
 # ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
 
+#set up thread binding if unset
+if [ "$OMP_PROC_BIND" == "" ]; then
+    #Force OpenMP binding for Intel (and GCC, though GCC is on by default)
+    export OMP_PROC_BIND=true
+fi
+if [ "$KMP_AFFINITY" == "" ]; then
+    #Set the style of binding (overrides OMP_PROC_BIND in many cases)
+    export KMP_AFFINITY=verbose,compact
+fi
+
 HOSTFILE=/tmp/escript.$USER.$$
 HOSTFILE2=/tmp/escript2.$USER.$$
 
