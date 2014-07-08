@@ -858,7 +858,7 @@ args("arg"), "assigns new location to the domain\n\n"
 
 
  def("RandomData", escript::randomData, (arg("shape"), arg("fs"), arg("seed")=0, arg("filter")=boost::python::tuple()),
-        "Creates a new expanded Data object containing pseudo-random values.\n\n"
+        "Creates a new expanded Data object containing pseudo-random values. With no filter, values are drawn uniformly at random from [0,1].\n\n"
         ":param shape: datapoint shape\n"
         ":type shape: tuple\n"
         ":param fs: function space for data object.\n"
