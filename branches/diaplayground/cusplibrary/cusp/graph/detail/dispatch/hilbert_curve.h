@@ -14,6 +14,7 @@
  *  limitations under the License.
  */
     
+#include <cusp/memory.h>
 #include <cusp/graph/detail/host/hilbert_curve.h>
 #include <cusp/graph/detail/device/hilbert_curve.h>
 

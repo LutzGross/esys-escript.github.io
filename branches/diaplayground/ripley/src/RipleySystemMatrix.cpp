@@ -82,14 +82,11 @@ void SystemMatrix::checkCUDA()
 #endif
 }
 
-SystemMatrix::SystemMatrix()
-{
-    throw RipleyException("Illegal to instantiate SystemMatrix without arguments.");
-}
-
-SystemMatrix::SystemMatrix(int blocksize, const escript::FunctionSpace& fs,
-                           int nRows, const IndexVector& diagonalOffsets) :
-    AbstractSystemMatrix(blocksize, fs, blocksize, fs)
+SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
+                           const escript::FunctionSpace& fs, int nRows,
+                           const IndexVector& diagonalOffsets) :
+    AbstractSystemMatrix(blocksize, fs, blocksize, fs),
+    m_mpiInfo(mpiInfo)
 {
     // count nonzero entries
     int numEntries = 0;
@@ -101,7 +98,7 @@ SystemMatrix::SystemMatrix(int blocksize, const escript::FunctionSpace& fs,
     if (cudaDevices.size() == 0)
         checkCUDA();
 
-    mat.resize(nRows*blocksize, nRows*blocksize, numEntries, diagonalOffsets.size()*blocksize);
+    mat.resize(nRows*blocksize, numEntries, diagonalOffsets.size(), blocksize);
     mat.diagonal_offsets.assign(diagonalOffsets.begin(), diagonalOffsets.end());
     matrixAltered = true;
 }
@@ -140,7 +137,6 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
         throw RipleyException("matrix vector product: matrix function space and function space of output don't match.");
     }
 
-    std::cerr << "SystemMatrix::ypAx" << std::endl;
     // expand data object if necessary to be able to grab the whole data
     const_cast<escript::Data*>(&x)->expand();
     y.expand();
@@ -153,70 +149,6 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     cusp::multiply(mat, xx, yy);
     thrust::copy(yy.begin(), yy.end(), y_dp);
     std::cerr << "ypAx: " << gettime()-T0 << " seconds." << std::endl;
-}
-
-// y = beta y + Ax
-void SystemMatrix::matrixVector(const double* x, double beta, double* y) const
-{
-    const int blockSize = getBlockSize();
-    if (blockSize == 1) {
-#pragma omp parallel for
-        for (size_t ch=0; ch<mat.num_rows; ch+=BLOCK_SIZE) {
-            // initialize chunk
-            if (std::abs(beta) > 0.) {
-                if (beta != 1.) {
-                    for (int row=ch; row<std::min(ch+BLOCK_SIZE, mat.num_rows); row++) {
-                        y[row] *= beta;
-                    }
-                }
-            } else {
-                for (size_t row=ch; row<std::min(ch+BLOCK_SIZE, mat.num_rows); row++) {
-                    y[row] = 0.;
-                }
-            }
-
-            // for each diagonal
-            for (size_t d=0; d<mat.diagonal_offsets.size(); d++) {
-                for (int row=ch; row<std::min(ch+BLOCK_SIZE, mat.num_rows); row++) {
-                    const int col = row + mat.diagonal_offsets[d];
-                    if (col >= 0 && col < mat.num_rows) {
-                        y[row] += mat.values(row, d) * x[col];
-                    }
-                }
-            }
-        }
-    } else {
-#pragma omp parallel for
-        for (size_t ch=0; ch < mat.num_rows; ch+=BLOCK_SIZE) {
-            // initialize chunk
-            if (std::abs(beta) > 0.) {
-                if (beta != 1.) {
-                    for (int row=ch; row<std::min(ch+BLOCK_SIZE, mat.num_rows); row++) {
-                        y[row] *= beta;
-                    }
-                }
-            } else {
-                for (int row=ch; row<std::min(ch+BLOCK_SIZE, mat.num_rows); row++) {
-                    y[row] = 0.;
-                }
-            }
-
-            // for each diagonal block
-            for (size_t d=0; d < mat.diagonal_offsets.size(); d++) {
-                const int k = mat.diagonal_offsets[d]*blockSize;
-                for (int row=ch; row<std::min(ch+BLOCK_SIZE, mat.num_rows); row++) {
-                    const int col = blockSize*(row/blockSize) + k;
-                    if (col >= 0 && col <= mat.num_rows-blockSize) {
-                        // for each column in block
-                        for (int i=0; i<blockSize; i++) {
-                            const double Aij = mat.values(row, d*blockSize+i);
-                            y[row] += Aij * x[col+i];
-                        }
-                    }
-                }
-            }
-        }
-    }
 }
 
 template<class LinearOperator,
@@ -273,6 +205,10 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
                                  boost::python::object& options) const
 {
+    if (m_mpiInfo->size > 1) {
+        throw RipleyException("solve: ripley's block diagonal matrix "
+                              "is incompatible with MPI.");
+    }
     if (out.getDataPointSize() != getBlockSize()) {
         throw RipleyException("solve: block size does not match the number of components of solution.");
     } else if (in.getDataPointSize() != getBlockSize()) {
@@ -391,7 +327,6 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
         throw RipleyException("nullifyRowsAndCols: row function space and function space of row mask don't match.");
     }
 
-    std::cerr << "SystemMatrix::nullifyRowsAndCols mdv=" << mdv << std::endl;
     row_q.expand();
     col_q.expand();
     const double* rowMask = row_q.getSampleDataRO(0);

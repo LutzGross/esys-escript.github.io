@@ -16,7 +16,9 @@
 
 
 #include <cusp/exception.h>
+#include <cusp/array1d.h>
 
+#include <thrust/iterator/constant_iterator.h>
 #include <thrust/gather.h>
 #include <thrust/sort.h>
 #include <thrust/transform.h>

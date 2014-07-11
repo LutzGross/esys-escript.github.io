@@ -111,6 +111,46 @@ struct tuple_equal_to : public thrust::unary_function<thrust::tuple<IndexType,In
 };
 
 template <typename Matrix, typename Array>
+void extract_diagonal(const Matrix& A, Array& output, cusp::cds_format)
+{
+    typedef typename Matrix::index_type  IndexType;
+    typedef typename Array::value_type   ValueType;
+    typedef typename Matrix::values_array_type::values_array_type::const_iterator InIterator;
+    typedef typename Array::iterator OutIterator;
+    typedef typename cusp::detail::strided_range<InIterator> InputStride;
+    typedef typename cusp::detail::strided_range<OutIterator> OutputStride;
+    
+    // copy diagonal_offsets to host (sometimes unnecessary)
+    cusp::array1d<IndexType,cusp::host_memory> diagonal_offsets(A.diagonal_offsets);
+
+    for (size_t i = 0; i < diagonal_offsets.size(); i++)
+    {
+        if (diagonal_offsets[i] == 0)
+        {
+            if (A.block_size == 1) {
+                // diagonal found, copy to output and return
+                thrust::copy(A.values.values.begin() + A.values.pitch * i,
+                             A.values.values.begin() + A.values.pitch * i + output.size(),
+                             output.begin());
+            } else {
+                // diagonal block found, extract main diagonal and return
+                // TODO: There must be a nicer way of doing this...
+                for (IndexType j=0; j < A.block_size; j++) {
+                    InIterator first = A.values.values.begin() + A.values.pitch * (i * A.block_size + j) + j;
+                    InputStride range(first, first+output.size(), A.block_size);
+                    OutputStride out(output.begin()+j, output.end(), A.block_size);
+                    thrust::copy(range.begin(), range.end(), out.begin());
+                }
+            }
+            return;
+        }
+    }
+
+    // no diagonal found
+    thrust::fill(output.begin(), output.end(), ValueType(0));
+}
+
+template <typename Matrix, typename Array>
 void extract_diagonal(const Matrix& A, Array& output, cusp::coo_format)
 {
     CUSP_PROFILE_SCOPED();

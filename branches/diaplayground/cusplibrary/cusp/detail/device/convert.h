@@ -32,6 +32,28 @@ namespace device
 {
 
 /////////
+// CDS //
+/////////
+template <typename Matrix1, typename Matrix2>
+void convert(const Matrix1& src, Matrix2& dst,
+             cusp::coo_format,
+             cusp::cds_format,
+             const float  max_fill  = 3.0,
+             const size_t alignment = 32)
+{
+    const size_t occupied_diagonals = cusp::detail::device::count_diagonals(src);
+
+    const float threshold  = 1e6; // 1M entries
+    const float size       = float(occupied_diagonals) * float(src.num_rows);
+    const float fill_ratio = size / std::max(1.0f, float(src.num_entries));
+
+    if (max_fill < fill_ratio && size > threshold)
+        throw cusp::format_conversion_exception("dia_matrix fill-in would exceed maximum tolerance");
+
+    cusp::detail::device::coo_to_cds(src, dst, alignment);
+}
+
+/////////
 // COO //
 /////////
 template <typename Matrix1, typename Matrix2>

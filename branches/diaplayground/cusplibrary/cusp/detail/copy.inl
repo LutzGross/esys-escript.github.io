@@ -39,6 +39,17 @@ void copy_matrix_dimensions(const T1& src, T2& dst)
 
 template <typename T1, typename T2>
 void copy(const T1& src, T2& dst,
+          cusp::cds_format,
+          cusp::cds_format)
+{    
+  copy_matrix_dimensions(src, dst);
+  dst.block_size = src.block_size;
+  cusp::copy(src.diagonal_offsets, dst.diagonal_offsets);
+  cusp::copy(src.values,           dst.values);
+}
+
+template <typename T1, typename T2>
+void copy(const T1& src, T2& dst,
           cusp::coo_format,
           cusp::coo_format)
 {

@@ -20,6 +20,7 @@
 #include <cusp/coo_matrix.h>
 
 // SpMV
+#include <cusp/detail/device/spmv/cds.h>
 #include <cusp/detail/device/spmv/coo_flat.h>
 #include <cusp/detail/device/spmv/csr_vector.h>
 #include <cusp/detail/device/spmv/dia.h>
@@ -55,6 +56,23 @@ namespace device
 ///////////////////////////////////
 // Sparse Matrix-Vector Multiply //
 ///////////////////////////////////
+template <typename Matrix,
+         typename Vector1,
+         typename Vector2>
+void multiply(const Matrix&  A,
+              const Vector1& B,
+              Vector2& C,
+              cusp::cds_format,
+              cusp::array1d_format,
+              cusp::array1d_format)
+{
+#ifdef CUSP_USE_TEXTURE_MEMORY
+    cusp::detail::device::spmv_cds_tex(A, thrust::raw_pointer_cast(&B[0]), thrust::raw_pointer_cast(&C[0]));
+#else
+    cusp::detail::device::spmv_cds(A, thrust::raw_pointer_cast(&B[0]), thrust::raw_pointer_cast(&C[0]));
+#endif
+}
+
 template <typename Matrix,
          typename Vector1,
          typename Vector2>
