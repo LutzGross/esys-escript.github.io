@@ -34,6 +34,7 @@ struct array1d_format : public dense_format {};
 struct array2d_format : public dense_format {};
 
 struct sparse_format : public known_format {};
+struct cds_format : public sparse_format {};
 struct coo_format : public sparse_format {};
 struct csr_format : public sparse_format {};
 struct dia_format : public sparse_format {};

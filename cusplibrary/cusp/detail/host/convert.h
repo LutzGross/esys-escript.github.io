@@ -36,16 +36,20 @@ namespace host
 {
 
 // Host Conversion Functions
+// CDS <- CSR (for blocksize 1 only)
+//     <- DIA
 // COO <- CSR
 //     <- ELL
 //     <- HYB
 //     <- Array2d
-// CSR <- COO
+// CSR <- CDS
+//     <- COO
 //     <- DIA
 //     <- ELL
 //     <- HYB
 //     <- Array
 // DIA <- CSR
+//     <- CDS
 // ELL <- CSR
 // HYB <- CSR
 // Array1d <- Array2d (under restrictions)
@@ -53,6 +57,36 @@ namespace host
 //         <- CSR
 //         <- Array1d
 //         <- Array2d (different Orientation)
+
+/////////
+// CDS //
+/////////
+template <typename Matrix1, typename Matrix2>
+void convert(const Matrix1& src, Matrix2& dst,
+             cusp::csr_format,
+             cusp::cds_format,
+             const float  max_fill  = 3.0,
+             const size_t alignment = 32)
+{
+    const size_t occupied_diagonals = cusp::detail::host::count_diagonals(src);
+
+    const float threshold  = 1e6; // 1M entries
+    const float size       = float(occupied_diagonals) * float(src.num_rows);
+    const float fill_ratio = size / std::max(1.0f, float(src.num_entries));
+
+    if (max_fill < fill_ratio && size > threshold)
+        throw cusp::format_conversion_exception("cds_matrix fill-in would exceed maximum tolerance");
+
+    cusp::detail::host::csr_to_cds(src, dst, alignment);
+}
+
+template <typename Matrix1, typename Matrix2>
+void convert(const Matrix1& src, Matrix2& dst,
+             cusp::dia_format,
+             cusp::cds_format)
+{
+    cusp::detail::host::dia_to_cds(src, dst);
+}
 
 /////////
 // COO //
@@ -90,6 +124,12 @@ void convert(const Matrix1& src, Matrix2& dst,
 /////////
 // CSR //
 /////////
+template <typename Matrix1, typename Matrix2>
+void convert(const Matrix1& src, Matrix2& dst,
+             cusp::cds_format,
+             cusp::csr_format)
+{    cusp::detail::host::cds_to_csr(src, dst);    }
+
 template <typename Matrix1, typename Matrix2>
 void convert(const Matrix1& src, Matrix2& dst,
              cusp::coo_format,
@@ -134,6 +174,14 @@ void convert(const Matrix1& src, Matrix2& dst,
         throw cusp::format_conversion_exception("dia_matrix fill-in would exceed maximum tolerance");
 
     cusp::detail::host::csr_to_dia(src, dst, alignment);
+}
+
+template <typename Matrix1, typename Matrix2>
+void convert(const Matrix1& src, Matrix2& dst,
+             cusp::cds_format,
+             cusp::dia_format)
+{
+    cusp::detail::host::cds_to_dia(src, dst);
 }
 
 template <typename Matrix1, typename Matrix2>

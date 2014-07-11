@@ -804,7 +804,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
     //    throw RipleyException("newSystemMatrix: reduced order not supported");
 
     const int numMatrixRows = getNumDOF();
-    escript::ASM_ptr sm(new SystemMatrix(row_blocksize,
+    escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
                 row_functionspace, numMatrixRows, getDiagonalIndices()));
     return sm;
 }

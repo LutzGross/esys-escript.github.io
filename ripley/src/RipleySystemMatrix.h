@@ -22,30 +22,25 @@
 
 #include <ripley/Ripley.h>
 
-namespace cusp {
-template <typename IndexType, typename ValueType, class MemorySpace> class dia_matrix;
-}
-
 namespace escript {
 class SolverBuddy;
 }
 
-#include <cusp/dia_matrix.h>
+#include <cusp/cds_matrix.h>
 
 namespace ripley {
 
-typedef cusp::dia_matrix<int, double, cusp::host_memory> HostMatrixType;
-typedef cusp::dia_matrix<int, double, cusp::device_memory> DeviceMatrixType;
+typedef cusp::cds_matrix<int, double, cusp::host_memory> HostMatrixType;
+typedef cusp::cds_matrix<int, double, cusp::device_memory> DeviceMatrixType;
 typedef cusp::array1d<double, cusp::host_memory> HostVectorType;
 typedef cusp::array1d<double, cusp::device_memory> DeviceVectorType;
 
 class SystemMatrix : public escript::AbstractSystemMatrix
 {
 public:
-    SystemMatrix();
-
-    SystemMatrix(int blocksize, const escript::FunctionSpace& fs,
-                 int nRows, const IndexVector& diagonalOffsets);
+    SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
+                 const escript::FunctionSpace& fs, int nRows,
+                 const IndexVector& diagonalOffsets);
 
     virtual ~SystemMatrix() {}
 
@@ -60,8 +55,6 @@ public:
     virtual void resetValues();
 
     void add(const IndexVector& rowIndex, const std::vector<double>& array);
-
-    void matrixVector(const double* x, double beta, double* y) const;
 
     inline int getBlockSize() const { return getRowBlockSize(); }
 
@@ -80,12 +73,10 @@ private:
     /// GPU device IDs supporting CUDA
     static std::vector<int> cudaDevices;
 
+    esysUtils::JMPI m_mpiInfo;
     HostMatrixType mat;
     mutable DeviceMatrixType dmat;
     mutable bool matrixAltered;
-    //int numRows;
-    //std::vector<int> offsets;
-    //std::vector<double> values;
 };
 
 } // namespace ripley

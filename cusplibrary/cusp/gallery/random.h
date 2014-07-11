@@ -22,6 +22,7 @@
 
 #include <cusp/detail/config.h>
 
+#include <cusp/cds_matrix.h>
 #include <cusp/coo_matrix.h>
 #include <thrust/unique.h>
 #include <thrust/sort.h>
@@ -66,6 +67,59 @@ void random(size_t num_rows, size_t num_cols, size_t num_samples, MatrixType& ou
     coo.resize(num_rows, num_cols, num_entries);
     
     output = coo;
+}
+
+template <class MatrixType>
+void randomblock(size_t num_rows, size_t num_diagonals, size_t block_size, MatrixType& output)
+{
+    typedef typename MatrixType::index_type IndexType;
+    typedef typename MatrixType::value_type ValueType;
+
+    if (num_rows % block_size != 0)
+        throw cusp::invalid_input_exception("number of rows must be a multiple of block size!");
+
+    cusp::cds_matrix<IndexType,ValueType,cusp::host_memory> cds(num_rows, 0, num_diagonals, block_size);
+
+    srand(num_rows ^ num_diagonals);
+
+    // instead of entirely random, let's try and even out the number of
+    // subdiagonals and superdiagonals
+    const size_t max_offset = num_rows/32 - 1;
+    for(size_t n = 0; n < num_diagonals/2; n++)
+    {
+        const int offset = 1 + rand() % (max_offset-1);
+        cds.diagonal_offsets[2*n] = -offset;
+        cds.diagonal_offsets[2*n+1] = offset;
+    }
+    // for odd number of diagonals add main diagonal
+    if (num_diagonals%2 == 1)
+        cds.diagonal_offsets[num_diagonals-1]=0;
+
+    std::sort(cds.diagonal_offsets.begin(),cds.diagonal_offsets.end());
+
+    size_t num_entries = 0;
+
+    for(size_t n = 0; n < num_diagonals; n++)
+    {
+        const int offset = cds.diagonal_offsets[n];
+        const size_t num_blocks = num_rows/block_size-std::abs(offset);
+        num_entries += num_blocks*block_size*block_size;
+        const size_t first = std::max(0, -offset*(int)block_size);
+        for(size_t block = 0; block < num_blocks; block++)
+        {
+            for(size_t i = 0; i < block_size; i++)
+            {
+                for(size_t j = 0; j < block_size; j++)
+                {
+                    cds.values(first+block*block_size+i, n*block_size+j) = ValueType(1);
+                }
+            }
+        }
+    }
+
+    cds.resize(num_rows, num_entries, block_size, num_diagonals);
+    
+    output = cds;
 }
 /*! \}
  */

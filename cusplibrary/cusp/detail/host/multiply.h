@@ -72,6 +72,19 @@ template <typename Matrix,
 void multiply(const Matrix&  A,
               const Vector1& B,
               Vector2& C,
+              cusp::cds_format,
+              cusp::array1d_format,
+              cusp::array1d_format)
+{
+    cusp::detail::host::spmv_cds(A, B, C);
+}
+
+template <typename Matrix,
+         typename Vector1,
+         typename Vector2>
+void multiply(const Matrix&  A,
+              const Vector1& B,
+              Vector2& C,
               cusp::coo_format,
               cusp::array1d_format,
               cusp::array1d_format)

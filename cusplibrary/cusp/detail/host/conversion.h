@@ -18,6 +18,7 @@
 
 #pragma once
 
+#include <cusp/cmath.h>
 #include <cusp/ell_matrix.h>
 #include <cusp/exception.h>
 
@@ -33,6 +34,104 @@ namespace detail
 {
 namespace host
 {
+
+/////////////////////
+// CDS Conversions //
+/////////////////////
+    
+template <typename Matrix1, typename Matrix2>
+void cds_to_csr(const Matrix1& src, Matrix2& dst)
+{
+    //typedef typename Matrix2::index_type IndexType;
+    typedef typename Matrix2::value_type ValueType;
+    
+    size_t num_entries = 0;
+    size_t num_diagonals = src.diagonal_offsets.size();
+
+    // count nonzero entries
+    for (size_t i = 0; i < num_diagonals; i++)
+    {
+        num_entries += src.block_size*src.block_size*(src.num_rows-cusp::abs(src.diagonal_offsets[i])*src.block_size)/src.block_size;
+    }
+    
+    dst.resize(src.num_rows, src.num_rows, num_entries);
+
+    num_entries = 0;
+    dst.row_offsets[0] = 0;
+
+    // copy nonzero entries to CSR structure
+    for(size_t i = 0; i < src.num_rows; i++)
+    {
+        for(size_t n = 0; n < num_diagonals; n++)
+        {
+            if (src.diagonal_offsets[n] < 0 && i < cusp::abs(src.diagonal_offsets[n])*src.block_size)
+                continue;
+            if (src.diagonal_offsets[n] > 0 && i >= src.num_rows-src.diagonal_offsets[n]*src.block_size)
+                continue;
+
+            for (size_t j = 0; j < src.block_size; j++)
+            {
+                const ValueType value = src.values(i, n*src.block_size+j);
+
+                dst.column_indices[num_entries] =
+                    (src.diagonal_offsets[n]+i/src.block_size)*src.block_size+j;
+                dst.values[num_entries] = value;
+                num_entries++;
+            }
+        }
+
+        dst.row_offsets[i + 1] = num_entries;
+    }
+}
+
+template <typename Matrix1, typename Matrix2>
+void cds_to_dia(const Matrix1& src, Matrix2& dst)
+{
+    typedef typename Matrix2::index_type IndexType;
+    typedef typename Matrix2::value_type ValueType;
+    
+    const size_t num_diagonalblocks = src.diagonal_offsets.size();
+
+    // number of diagonals for DIA format
+    const size_t num_diagonals = num_diagonalblocks*(2*src.block_size-1);
+    cusp::array1d<IndexType,cusp::host_memory> diagonal_offsets(num_diagonals, 0);
+
+    size_t num_entries = 0;
+
+    // count entries (with zero fill-in) for DIA format
+    // and determine diagonal offsets
+    for (size_t i = 0, n = 0; i < num_diagonalblocks; i++)
+    {
+        for (IndexType j = 1-(IndexType)src.block_size; j < (IndexType)src.block_size; j++)
+        {
+            const IndexType offset = src.diagonal_offsets[i] * src.block_size + j;
+            diagonal_offsets[n++] = offset;
+            num_entries += src.num_rows - cusp::abs(offset);
+        }
+    }
+
+    // prepare destination matrix
+    dst.resize(src.num_rows, src.num_rows, num_entries, num_diagonals);
+    cusp::copy(diagonal_offsets, dst.diagonal_offsets);
+    thrust::fill(dst.values.values.begin(), dst.values.values.end(), ValueType(0));
+
+    for (size_t i = 0; i < num_diagonalblocks; i++)
+    {
+        const IndexType k = src.diagonal_offsets[i]*src.block_size;
+        const IndexType first_row = std::max(0, -k);
+        const IndexType num_rows = src.num_rows - cusp::abs(k);
+        // row index is identical for CDS and DIA
+        for (IndexType row = first_row; row < first_row+num_rows; row++)
+        {
+            for (IndexType j = 0; j < src.block_size; j++)
+            {
+                // index of "column" in DIA structure
+                const IndexType col = i*(2*src.block_size-1)+(src.block_size-1-row%src.block_size)+j;
+                dst.values(row,col) = src.values(row, i*src.block_size+j);
+            }
+        }
+    }
+}
 
 /////////////////////
 // COO Conversions //
@@ -102,6 +201,67 @@ void coo_to_array2d(const Matrix1& src, Matrix2& dst)
 /////////////////////
 // CSR Conversions //
 /////////////////////
+
+template <typename Matrix1, typename Matrix2>
+void csr_to_cds(const Matrix1& src, Matrix2& dst,
+                const size_t alignment = 32)
+{
+    typedef typename Matrix2::index_type IndexType;
+    typedef typename Matrix2::value_type ValueType;
+
+    // compute number of occupied diagonals and enumerate them
+    size_t num_diagonals = 0;
+
+    // block size is always 1 for this conversion
+    size_t block_size = 1;
+
+    cusp::array1d<IndexType,cusp::host_memory> diag_map(src.num_rows + src.num_cols, 0);
+
+    for(size_t i = 0; i < src.num_rows; i++)
+    {
+        for(IndexType jj = src.row_offsets[i]; jj < src.row_offsets[i+1]; jj++)
+        {
+            size_t j         = src.column_indices[jj];
+            size_t map_index = (src.num_rows - i) + j; //offset shifted by + num_rows
+
+            if(diag_map[map_index] == 0)
+            {
+                diag_map[map_index] = 1;
+                num_diagonals++;
+            }
+        }
+    }
+   
+
+    // allocate CDS structure
+    dst.resize(src.num_rows, src.num_entries, block_size, num_diagonals, alignment);
+
+    // fill in diagonal_offsets array
+    for(size_t n = 0, diag = 0; n < src.num_rows + src.num_cols; n++)
+    {
+        if(diag_map[n] == 1)
+        {
+            diag_map[n] = diag;
+            dst.diagonal_offsets[diag] = (IndexType) n - (IndexType) src.num_rows;
+            diag++;
+        }
+    }
+
+    // fill in values array
+    thrust::fill(dst.values.values.begin(), dst.values.values.end(), ValueType(0));
+
+    for(size_t i = 0; i < src.num_rows; i++)
+    {
+        for(IndexType jj = src.row_offsets[i]; jj < src.row_offsets[i+1]; jj++)
+        {
+            size_t j = src.column_indices[jj];
+            size_t map_index = (src.num_rows - i) + j; //offset shifted by + num_rows
+            size_t diag = diag_map[map_index];
+        
+            dst.values(i, diag) = src.values[jj];
+        }
+    }
+}
 
 template <typename Matrix1, typename Matrix2>
 void csr_to_coo(const Matrix1& src, Matrix2& dst)
@@ -177,7 +337,6 @@ void csr_to_dia(const Matrix1& src, Matrix2& dst,
         }
     }
 }
-    
 
 template <typename Matrix1, typename Matrix2>
 void csr_to_hyb(const Matrix1& src, Matrix2& dst,
@@ -290,6 +449,19 @@ void csr_to_array2d(const Matrix1& src, Matrix2& dst)
 /////////////////////
 // DIA Conversions //
 /////////////////////
+
+template <typename Matrix1, typename Matrix2>
+void dia_to_cds(const Matrix1& src, Matrix2& dst)
+{
+    //typedef typename Matrix2::index_type IndexType;
+    //typedef typename Matrix2::value_type ValueType;
+
+    // allocate CDS structure
+    dst.resize(src.num_rows, src.num_entries, 1, src.diagonal_offsets.size(), src.values.pitch);
+
+    cusp::copy(src.diagonal_offsets, dst.diagonal_offsets);
+    cusp::copy(src.values,           dst.values);
+}
 
 template <typename Matrix1, typename Matrix2>
 void dia_to_csr(const Matrix1& src, Matrix2& dst)

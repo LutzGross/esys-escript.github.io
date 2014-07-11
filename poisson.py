@@ -3,9 +3,9 @@ from esys.escript.linearPDEs import LinearPDE,SolverOptions
 from esys.ripley import Rectangle, Brick
 from time import time
 
-BLOCKSIZE=1
+BLOCKSIZE=3
 
-dom = Rectangle(l0=1.,l1=1.,n0=599, n1=599)
+dom = Rectangle(l0=1.,l1=1.,n0=299, n1=299)
 #dom = Brick(l0=1.,l1=1.,n0=51, n1=51, n2=17)
 x = dom.getX()
 gammaD = whereZero(x[0])+whereZero(x[1])
@@ -22,7 +22,7 @@ def solve(target):
         Y_reduced = 1.
     else:
         for i in range(BLOCKSIZE):
-            A[i,:,i,:] = kronecker(dom)
+            A[i,:,i,:] = kronecker(dom)*(i+1)
             q[i] = gammaD
             Y_reduced[i] = 1.
 
@@ -32,6 +32,7 @@ def solve(target):
     pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
     pde.getSolverOptions().setSolverTarget(target)
     pde.getSolverOptions().setPreconditioner(SolverOptions.NO_PRECONDITIONER)
+    pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
     pde.getSolverOptions().setVerbosityOn()
     #pde.setDebugOn()
     #rhs=pde.getRightHandSide()

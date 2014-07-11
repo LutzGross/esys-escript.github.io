@@ -255,6 +255,66 @@ struct is_positive
 };
 
 /////////
+// CDS //
+/////////
+template <typename Matrix1, typename Matrix2>
+void coo_to_cds(const Matrix1& src, Matrix2& dst,
+                const size_t alignment = 32)
+{
+    typedef typename Matrix2::index_type IndexType;
+    typedef typename Matrix2::value_type ValueType;
+
+    // compute number of occupied diagonals and enumerate them
+    cusp::array1d<IndexType,cusp::device_memory> diag_map(src.num_entries);
+    thrust::transform(thrust::make_zip_iterator( thrust::make_tuple( src.row_indices.begin(), src.column_indices.begin() ) ), 
+		      thrust::make_zip_iterator( thrust::make_tuple( src.row_indices.end()  , src.column_indices.end() ) )  ,
+		      diag_map.begin(),
+		      occupied_diagonal_functor<IndexType>(src.num_rows)); 
+
+    // place ones in diagonals array locations with occupied diagonals
+    cusp::array1d<IndexType,cusp::device_memory> diagonals(src.num_rows+src.num_cols,IndexType(0));
+    thrust::scatter(thrust::constant_iterator<IndexType>(1), 
+		    thrust::constant_iterator<IndexType>(1)+src.num_entries, 
+		    diag_map.begin(),
+		    diagonals.begin());
+
+    const IndexType num_diagonals = thrust::reduce(diagonals.begin(), diagonals.end());
+
+    // allocate CDS structure
+    dst.resize(src.num_rows, src.num_entries, 1, num_diagonals, alignment);
+
+    // fill in values array
+    thrust::fill(dst.values.values.begin(), dst.values.values.end(), ValueType(0));
+
+    // fill in diagonal_offsets array
+    thrust::copy_if(thrust::counting_iterator<IndexType>(0), 
+		    thrust::counting_iterator<IndexType>(src.num_rows+src.num_cols),
+		    diagonals.begin(),
+		    dst.diagonal_offsets.begin(), 
+		    is_positive<IndexType>()); 
+
+    // replace shifted diagonals with index of diagonal in offsets array
+    cusp::array1d<IndexType,cusp::host_memory> diagonal_offsets( dst.diagonal_offsets );
+    for( IndexType num_diag = 0; num_diag < num_diagonals; num_diag++ )
+	thrust::replace(diag_map.begin(), diag_map.end(), diagonal_offsets[num_diag], num_diag);
+
+    // copy values to dst
+    thrust::scatter(src.values.begin(), src.values.end(),
+		    thrust::make_transform_iterator(
+				thrust::make_zip_iterator( thrust::make_tuple( src.row_indices.begin(), diag_map.begin() ) ), 
+				diagonal_index_functor<IndexType>(dst.values.pitch)), 
+                    dst.values.values.begin());
+
+
+    typedef typename cusp::array1d_view< thrust::constant_iterator<IndexType> > ConstantView;
+    ConstantView constant_view(thrust::constant_iterator<IndexType>(dst.num_rows),
+			       thrust::constant_iterator<IndexType>(dst.num_rows)+num_diagonals);
+    cusp::blas::axpy(constant_view,
+		     dst.diagonal_offsets,
+		     IndexType(-1));
+}
+
+/////////
 // COO //
 /////////
 template <typename Matrix1, typename Matrix2>
