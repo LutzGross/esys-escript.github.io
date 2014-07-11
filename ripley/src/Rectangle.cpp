@@ -437,11 +437,15 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
         f.seekg(fileofs*sizeof(ValueType));
         f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
         for (int x=0; x<num0; x++) {
-            const int baseIndex = first0+x*params.multiplier[0]
-                                    +(first1+y*params.multiplier[1])*myN0;
             for (int m1=0; m1<params.multiplier[1]; m1++) {
+                const int dataY = first1+y*params.multiplier[1]+m1;
+                if (dataY >= myN1)
+                    break;
                 for (int m0=0; m0<params.multiplier[0]; m0++) {
-                    const int dataIndex = baseIndex+m0+m1*myN0;
+                    const int dataX = first0+x*params.multiplier[0]+m0;
+                    if (dataX >= myN0)
+                        break;
+                    const int dataIndex = dataX+dataY*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
                     for (int c=0; c<numComp; c++) {
                         ValueType val = values[x*numComp+c];

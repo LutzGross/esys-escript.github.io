@@ -153,14 +153,22 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
     As such, it is important to note that a working writeBinaryGrid() method
     is assumed!
     """
-    NX = 10*mpiSize-1
-    NZ = 10
+    # set defaults which may be overridden in subclasses
+    NX = 10
+    NZ = 8
+    fspaces = [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]
+    byteorder = BYTEORDER_NATIVE
+    datatype = DATATYPE_FLOAT64
+    dtype = "f8"
     shape = ()
     fill = -42.57
+    first = [0,0,0]
+    multiplier = [1,1,1]
+    reverse = [0,0,0]
 
     def generateUniqueData(self, ftype):
         dim = self.domain.getDim()
-        NE = adjust(self.NE, ftype)
+        NE = adjust(self.Ndata, ftype)
         nvals=NE[0]*NE[1]
         if dim > 2:
             nvals*=NE[2]
@@ -171,15 +179,14 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
         self.domain.writeBinaryGrid(data, filename, self.byteorder, self.datatype)
 
     def read(self, filename, ftype):
-        #TODO:
-        self.first = [0] * self.domain.getDim()
-        self.multiplier = [1] * self.domain.getDim()
-        self.reverse = [0] * self.domain.getDim()
-        numValues=adjust(self.NE, ftype)
+        first = self.first[:self.domain.getDim()]
+        multiplier = self.multiplier[:self.domain.getDim()]
+        reverse = self.reverse[:self.domain.getDim()]
+        numValues=adjust(self.Ndata, ftype)
         return readBinaryGrid(filename, ftype(self.domain),
                 shape=self.shape, fill=self.fill, byteOrder=self.byteorder,
-                dataType=self.datatype, first=self.first, numValues=numValues,
-                multiplier=self.multiplier, reverse=self.reverse)
+                dataType=self.datatype, first=first, numValues=numValues,
+                multiplier=multiplier, reverse=reverse)
 
     def numpy2Data2Numpy(self, ref, ftype, fcode):
         filename = os.path.join(RIPLEY_WORKDIR, "_rgrid%dd%s"%(self.domain.getDim(),fcode))
@@ -193,31 +200,56 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
         # step 3 - write
         self.write(data, filename) # overwrite is ok
         MPIBarrierWorld()
-        # step 4 - compare
         result = np.fromfile(filename, dtype=self.dtype).reshape(
                 tuple(reversed(adjust(self.NE,ftype))))
         return result
 
     def test_readGrid2D(self):
-        self.NE = [self.NX, self.NZ]
-        self.domain = Rectangle(self.NE[0], self.NE[1], d1=0)
-        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
+        self.Ndata = [self.NX*(mpiSize+1)-1, self.NZ]
+        self.NE = [(self.NX*(mpiSize+1)-1)*self.multiplier[0], self.NZ*self.multiplier[1]]
+        self.domain = Rectangle(self.NE[0], self.NE[1], d0=mpiSize, d1=1)
+        for ftype,fcode in self.fspaces:
             # step 1 - generate
             ref = self.generateUniqueData(ftype)
+            # step 2 & 3
             result = self.numpy2Data2Numpy(ref, ftype, fcode)
+            # apply transformations to be able to compare
+            if self.reverse[0]:
+                result = result[...,::-1]
+            if self.reverse[1]:
+                result = result[::-1,:]
+            for i in range(2):
+                ref = np.repeat(ref, self.multiplier[i], axis=1-i)
+            # step 4 - compare
             self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
     def test_readGrid3D(self):
-        self.NE = [self.NX, self.NX, self.NZ]
-        self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d2=0)
-        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
+        self.Ndata = [self.NX*(mpiSize+1)-1, self.NX, self.NZ]
+        self.NE = [(self.NX*(mpiSize+1)-1)*self.multiplier[0],
+                   self.NX*self.multiplier[1], self.NZ*self.multiplier[2]]
+        self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d0=mpiSize, d1=1, d2=1)
+        for ftype,fcode in self.fspaces:
             # step 1 - generate
             ref = self.generateUniqueData(ftype)
+            # step 2 & 3
             result = self.numpy2Data2Numpy(ref, ftype, fcode)
+            # apply transformations to be able to compare
+            if self.reverse[0]:
+                result = result[...,::-1]
+            if self.reverse[1]:
+                result = result[...,::-1,:]
+            if self.reverse[2]:
+                result = result[::-1,:,:]
+            for i in range(3):
+                ref = np.repeat(ref, self.multiplier[i], axis=2-i)
+            # step 4 - compare
             self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
                     msg="Data doesn't match for "+str(ftype(self.domain)))
 
+
+# The following block tests the reader for different byte orders and data
+# types with domain-filling data (i.e. multiplier=1, reverse=0 and N=NE)
 
 class Test_readBinaryGridRipley_LITTLE_FLOAT32(ReadBinaryGridTestBase):
     def setUp(self):
@@ -254,6 +286,50 @@ class Test_readBinaryGridRipley_BIG_INT32(ReadBinaryGridTestBase):
         self.byteorder = BYTEORDER_BIG_ENDIAN
         self.datatype = DATATYPE_INT32
         self.dtype = ">i4"
+
+# not supported (yet)
+@unittest.expectedFailure
+class Test_readBinaryGridRipley_reverseX(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.reverse = [1,0,0]
+
+# not supported (yet)
+@unittest.expectedFailure
+class Test_readBinaryGridRipley_reverseY(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.reverse = [0,1,0]
+
+class Test_readBinaryGridRipley_reverseZ(ReadBinaryGridTestBase):
+    def setUp(self):
+        self.reverse = [0,0,1]
+
+# FIXME: adjust num elements for this to work with >1 rank
+@unittest.expectedFailure
+class Test_readBinaryGridRipley_multiplierX(ReadBinaryGridTestBase):
+    def setUp(self):
+        # tests for ContinuousFunction need adjustment
+        self.multiplier = [2,1,1]
+        self.fspaces = [(ReducedFunction,'RF')]
+
+class Test_readBinaryGridRipley_multiplierY(ReadBinaryGridTestBase):
+    def setUp(self):
+        # tests for ContinuousFunction need adjustment
+        self.multiplier = [1,2,1]
+        self.fspaces = [(ReducedFunction,'RF')]
+
+class Test_readBinaryGridRipley_multiplierZ(ReadBinaryGridTestBase):
+    def setUp(self):
+        # tests for ContinuousFunction need adjustment
+        self.multiplier = [1,1,2]
+        self.fspaces = [(ReducedFunction,'RF')]
+
+# FIXME: adjust num elements for this to work with >1 rank
+@unittest.expectedFailure
+class Test_readBinaryGridRipley_multiplierXYZ(ReadBinaryGridTestBase):
+    def setUp(self):
+        # tests for ContinuousFunction need adjustment
+        self.multiplier = [2,3,4]
+        self.fspaces = [(ReducedFunction,'RF')]
 
 
 @unittest.skipIf(getMPISizeWorld() > 1,
