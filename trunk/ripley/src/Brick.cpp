@@ -515,15 +515,13 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
             f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
 
             for (int x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
-                                     +(first1+y*params.multiplier[1])*myN0
-                                     +(first2+z*params.multiplier[2])*myN0*myN1;
-                for (int m2=0; m2<params.multiplier[2]; m2++) {
-                    for (int m1=0; m1<params.multiplier[1]; m1++) {
-                        for (int m0=0; m0<params.multiplier[0]; m0++) {
-                            const int dataIndex = baseIndex+m0
-                                           +m1*myN0
-                                           +m2*myN0*myN1;
+                const int baseX = first0+x*params.multiplier[0];
+                const int baseY = first1+y*params.multiplier[1];
+                const int baseZ = first2+z*params.multiplier[2];
+                for (int m2=baseZ; m2<std::min(baseZ+params.multiplier[2],myN2); m2++) {
+                    for (int m1=baseY; m1<std::min(baseY+params.multiplier[1],myN1); m1++) {
+                        for (int m0=baseX; m0<std::min(baseX+params.multiplier[0],myN0); m0++) {
+                            const int dataIndex = m0 + m1*myN0 + m2*myN0*myN1;
                             double* dest = out.getSampleDataRW(dataIndex);
                             for (int c=0; c<numComp; c++) {
                                 ValueType val = values[x*numComp+c];
