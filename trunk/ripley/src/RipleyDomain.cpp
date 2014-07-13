@@ -1434,16 +1434,16 @@ bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
     return boost::python::extract<double>(t[2]).check();
 }
 
-void RipleyDomain::addPoints(int numPoints, const double* points_ptr,
-                     const int* tags_ptr)
+void RipleyDomain::addPoints(const std::vector<double>& coords,
+                             const std::vector<int>& tags)
 {
-    for (int i = 0; i < numPoints; i++) {
-        int node = findNode(&points_ptr[i * m_numDim]);
+    for (int i = 0; i < tags.size(); i++) {
+        int node = findNode(&coords[i * m_numDim]);
         if (node >= 0) {
             m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[node]);
             DiracPoint dp;
             dp.node = node; //local
-            dp.tag = tags_ptr[i];
+            dp.tag = tags[i];
             m_diracPoints.push_back(dp);
         }
     }

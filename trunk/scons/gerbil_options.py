@@ -20,11 +20,12 @@ escript_opts_version = 201
 cxx = 'g++-4.9'
 #cc_flags = ''
 cc_optim = '-O3 -march=native'
-#cc_debug = '-g'
+cc_debug = "-g3 -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -D_GLIBCXX_DEBUG -fno-omit-frame-pointer -fsanitize=address --param=max-vartrack-size=90000000"
 cxx_extra = '-Wextra -Wno-unused-parameter -g'
-#ld_extra = ''
 #werror = False
 #debug = True
+if debug:
+    ld_extra = '-fsanitize=address'
 verbose = True
 openmp = True
 #omp_flags = '-fopenmp'

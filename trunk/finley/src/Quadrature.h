@@ -41,7 +41,7 @@ typedef enum {
     NoQuad   // marks end of list
 } QuadTypeId;
 
-typedef void (Quad_getNodes) (int, double*, double*);
+typedef void (Quad_getNodes) (int, std::vector<double>&, std::vector<double>&);
 typedef int (Quad_getNumNodes) (int);
 typedef int (Quad_getMacro) (int numSubElements, int numQuadNodes,
                              const double* quadNodes,
