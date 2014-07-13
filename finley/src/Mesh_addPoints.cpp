@@ -45,7 +45,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                      const int* tags_ptr)
 {
     if (numPoints==0) {
-	return;
+        return;
     }
     ElementFile *oldPoints=Points;
     const_ReferenceElementSet_ptr refPoints;
@@ -63,7 +63,7 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
     // first we find the node which is the closest on this processor:
     double *dist_p = new double[numPoints];
     int *node_id_p = new int[numPoints];
-    int *point_index_p = new int[numPoints];	// the code below does actually initialise this before using it
+    int *point_index_p = new int[numPoints];    // the code below does actually initialise this before using it
 
     for (int i=0; i<numPoints; ++i) {
         dist_p[i]=LARGE_POSITIVE_FLOAT;
@@ -121,10 +121,10 @@ void Mesh::addPoints(int numPoints, const double* points_ptr,
                 }
 #pragma omp critical
                 {
-		  if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
-		      dist_p[i] = dist_local;
-		      node_id_p[i] = node_id_local;
-		  }
+                  if ((dist_local < dist_p[i]) || ((dist_local == dist_p[i]) && (node_id_p[i]>node_id_local))) {
+                      dist_p[i] = dist_local;
+                      node_id_p[i] = node_id_local;
+                  }
                 }
             }
         } // end parallel section

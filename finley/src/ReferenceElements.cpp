@@ -611,7 +611,7 @@ ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
     std::vector<double> quadNodes(numQuadNodes*quadscheme->numDim*nsub);
     std::vector<double> quadWeights(numQuadNodes*nsub);
 
-    quadscheme->getQuadNodes(numQuadNodes, &quadNodes[0], &quadWeights[0]);
+    quadscheme->getQuadNodes(numQuadNodes, quadNodes, quadWeights);
 
     // Set the basis functions on the quadrature points.
     // Note: ShapeFunction constructor will introduce 0 if the dimensions of
@@ -640,7 +640,8 @@ ReferenceElement::ReferenceElement(ElementTypeId id, int order) :
         Parametrization.reset(new ShapeFunction(parametrization->TypeId, quadscheme->numDim, numQuadNodes*nsub, quadNodes, quadWeights));
         BasisFunctions.reset(new ShapeFunction(basisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));
         LinearBasisFunctions.reset(new ShapeFunction(linearbasisfunction->TypeId, quadscheme->numDim, numQuadNodes, quadNodes, quadWeights));
-        DBasisFunctionDv=const_cast<double*>(&BasisFunctions->dSdv[0]);
+        if (BasisFunctions->dSdv.size() > 0)
+            DBasisFunctionDv=const_cast<double*>(&BasisFunctions->dSdv[0]);
         DBasisFunctionDvShared=true;
     }
 }

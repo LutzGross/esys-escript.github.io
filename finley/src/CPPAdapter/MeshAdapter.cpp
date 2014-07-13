@@ -2193,8 +2193,10 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 	throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
     }
 
-    mesh->addPoints(numPoints, &points[0], &tags[0]);
-    checkFinleyError();
+    if (numPoints > 0) {
+        mesh->addPoints(numPoints, &points[0], &tags[0]);
+        checkFinleyError();
+    }
 }
 
 // void MeshAdapter::addDiracPoints(const boost::python::list& points, const boost::python::list& tags) const

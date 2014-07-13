@@ -746,8 +746,8 @@ protected:
             const IndexVector& nodes_Sol, dim_t num_Sol,
             const DoubleVector& array) const;
 
-    void addPoints(int numPoints, const double* points_ptr,
-                   const int* tags_ptr);
+    void addPoints(const std::vector<double>& coords,
+                   const std::vector<int>& tags);
 
     /***********************************************************************/
 

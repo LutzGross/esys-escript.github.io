@@ -174,7 +174,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
-    addPoints(tags.size(), &points[0], &tags[0]);
+    addPoints(points, tags);
 }
 
 Rectangle::~Rectangle()
@@ -1769,13 +1769,23 @@ void Rectangle::createPattern()
     for (int i = 0; i < numShared; i++) {
         std::sort(rowIndices[i].begin(), rowIndices[i].end());
     }
-    
+
+    // TODO: paso::SharedComponents should take vectors to avoid this
+    Esys_MPI_rank* neighPtr = NULL;
+    index_t* sendPtr = NULL;
+    index_t* recvPtr = NULL;
+    if (neighbour.size() > 0) {
+        neighPtr = &neighbour[0];
+        sendPtr = &sendShared[0];
+        recvPtr = &recvShared[0];
+    }
+
     // create connector
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
+            numDOF, neighbour.size(), neighPtr, sendPtr,
             &offsetInShared[0], 1, 0, m_mpiInfo));
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
+            numDOF, neighbour.size(), neighPtr, recvPtr,
             &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 

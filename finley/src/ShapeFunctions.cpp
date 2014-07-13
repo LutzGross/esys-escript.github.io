@@ -86,7 +86,7 @@ ShapeFunction::ShapeFunction(ShapeFunctionTypeId id, int numQDim,
     }
 
     // evaluate shape functions on quadrature nodes
-    Type->getValues(numQuadNodes, &QuadNodes[0], &S[0], &dSdv[0]);
+    Type->getValues(numQuadNodes, QuadNodes, S, dSdv);
 }
 
 ShapeFunctionTypeId ShapeFunction::getTypeId(const char* element_type)
@@ -122,7 +122,8 @@ const ShapeFunctionInfo* ShapeFunction::getInfo(ShapeFunctionTypeId id)
 #define DSDV(_J_,_K_,_I_) dsdv[DSDV_INDEX((_J_)-1,(_K_)-1,(_I_),NUMSHAPES,DIM)]
 
 /****************************************************************************/
-void Shape_Point1(int NumV, double* v, double* s, double* dsdv)
+void Shape_Point1(int NumV, std::vector<double>& v, std::vector<double>& s,
+                  std::vector<double>& dsdv)
 {
 #define NUMSHAPES 1
 #define DIM 0
@@ -133,7 +134,7 @@ void Shape_Point1(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Line2(int NumV, double* v, double* s, double* dsdv)
+void Shape_Line2(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 2
 #define DIM 1
@@ -150,7 +151,7 @@ void Shape_Line2(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Line3(int NumV, double* v, double* s, double* dsdv)
+void Shape_Line3(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 3
 #define DIM 1
@@ -169,7 +170,7 @@ void Shape_Line3(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Line4(int NumV, double* v, double* s, double* dsdv)
+void Shape_Line4(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 4
 #define DIM 1
@@ -190,7 +191,7 @@ void Shape_Line4(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tri3(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tri3(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 3
 #define DIM 2
@@ -213,7 +214,7 @@ void Shape_Tri3(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tri6(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tri6(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 6
 #define DIM 2
@@ -245,7 +246,7 @@ void Shape_Tri6(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tri9(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tri9(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 9
 #define DIM 2
@@ -286,7 +287,7 @@ void Shape_Tri9(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tri10(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tri10(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 10
 #define DIM 2
@@ -330,7 +331,7 @@ void Shape_Tri10(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Rec4(int NumV, double* v, double* s, double* dsdv)
+void Shape_Rec4(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 4
 #define DIM 2
@@ -356,7 +357,7 @@ void Shape_Rec4(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Rec8(int NumV, double* v, double* s, double* dsdv)
+void Shape_Rec8(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 8
 #define DIM 2
@@ -394,7 +395,7 @@ void Shape_Rec8(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Rec9(int NumV, double* v, double* s, double* dsdv)
+void Shape_Rec9(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 9
 #define DIM 2
@@ -436,7 +437,7 @@ void Shape_Rec9(int NumV, double* v, double* s, double* dsdv)
 
 /****************************************************************************/
 
-void Shape_Rec12(int NumV, double* v, double* s, double* dsdv)
+void Shape_Rec12(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 12
 #define DIM 2
@@ -486,7 +487,7 @@ void Shape_Rec12(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Rec16(int NumV, double* v, double* s, double* dsdv)
+void Shape_Rec16(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 16
 #define DIM 2
@@ -548,7 +549,7 @@ void Shape_Rec16(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tet4(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tet4(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 4
 #define DIM 3
@@ -579,7 +580,7 @@ void Shape_Tet4(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tet10(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tet10(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 10
 #define DIM 3
@@ -642,7 +643,7 @@ void Shape_Tet10(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Tet16(int NumV, double* v, double* s, double* dsdv)
+void Shape_Tet16(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 16
 #define DIM 3
@@ -721,7 +722,7 @@ void Shape_Tet16(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Hex8(int NumV, double* v, double* s, double* dsdv)
+void Shape_Hex8(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 8
 #define DIM 3
@@ -768,7 +769,7 @@ void Shape_Hex8(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Hex20(int NumV, double* v, double* s, double* dsdv)
+void Shape_Hex20(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 20
 #define DIM 3
@@ -863,7 +864,7 @@ void Shape_Hex20(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Hex27(int NumV, double* v, double* s, double* dsdv)
+void Shape_Hex27(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 27
 #define DIM 3
@@ -986,7 +987,7 @@ void Shape_Hex27(int NumV, double* v, double* s, double* dsdv)
 }
 
 /****************************************************************************/
-void Shape_Hex32(int NumV, double* v, double* s, double* dsdv)
+void Shape_Hex32(int NumV, std::vector<double>& v, std::vector<double>& s, std::vector<double>& dsdv)
 {
 #define NUMSHAPES 32
 #define DIM 3
