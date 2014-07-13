@@ -409,9 +409,9 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
 
     // check if this rank contributes anything
     if (params.first[0] >= m_offset[0]+myN0 ||
-            params.first[0]+params.numValues[0] <= m_offset[0] ||
+            params.first[0]+(params.numValues[0]*params.multiplier[0]) <= m_offset[0] ||
             params.first[1] >= m_offset[1]+myN1 ||
-            params.first[1]+params.numValues[1] <= m_offset[1]) {
+            params.first[1]+(params.numValues[1]*params.multiplier[1]) <= m_offset[1]) {
         f.close();
         return;
     }
@@ -422,8 +422,13 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     const int first0 = max(0, params.first[0]-m_offset[0]);
     const int first1 = max(0, params.first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-params.first[0]);
-    const int idx1 = max(0, m_offset[1]-params.first[1]);
+    const int idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    const int idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const int rest0 = m_offset[0]%params.multiplier[0];
+    const int rest1 = m_offset[1]%params.multiplier[1];
     // number of values to read
     const int num0 = min(params.numValues[0]-idx0, myN0-first0);
     const int num1 = min(params.numValues[1]-idx1, myN1-first1);
@@ -436,13 +441,22 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
         const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
         f.seekg(fileofs*sizeof(ValueType));
         f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+        const int m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+        int dataYbase = first1+y*params.multiplier[1];
+        if (y>0)
+            dataYbase -= rest1;
         for (int x=0; x<num0; x++) {
-            for (int m1=0; m1<params.multiplier[1]; m1++) {
-                const int dataY = first1+y*params.multiplier[1]+m1;
+            const int m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+            int dataXbase = first0+x*params.multiplier[0];
+            if (x>0)
+                dataXbase -= rest0;
+            // write a block of mult0 x mult1 identical values into Data object
+            for (int m1=0; m1<m1limit; m1++) {
+                const int dataY = dataYbase+m1;
                 if (dataY >= myN1)
                     break;
-                for (int m0=0; m0<params.multiplier[0]; m0++) {
-                    const int dataX = first0+x*params.multiplier[0]+m0;
+                for (int m0=0; m0<m0limit; m0++) {
+                    const int dataX = dataXbase+m0;
                     if (dataX >= myN0)
                         break;
                     const int dataIndex = dataX+dataY*myN0;

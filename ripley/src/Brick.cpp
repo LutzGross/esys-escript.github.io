@@ -487,9 +487,16 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     const int first1 = max(0, params.first[1]-m_offset[1]);
     const int first2 = max(0, params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
-    int idx2 = max(0, m_offset[2]-params.first[2]);
+    int idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    int idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    int idx2 = max(0, (m_offset[2]/params.multiplier[2])-params.first[2]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const int rest0 = m_offset[0]%params.multiplier[0];
+    const int rest1 = m_offset[1]%params.multiplier[1];
+    const int rest2 = m_offset[2]%params.multiplier[2];
+
     // number of values to read
     const int num0 = min(params.numValues[0]-idx0, myN0-first0);
     const int num1 = min(params.numValues[1]-idx1, myN1-first1);
@@ -507,21 +514,42 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     const int dpp = out.getNumDataPointsPerSample();
 
     for (int z=0; z<num2; z++) {
+        const int m2limit = (z==0 ? params.multiplier[2]-rest2 : params.multiplier[2]);
+        int dataZbase = first2 + z*params.multiplier[2];
+        if (z>0)
+            dataZbase -= rest2;
+
         for (int y=0; y<num1; y++) {
             const int fileofs = numComp*(idx0 +
                                 (idx1+y)*params.numValues[0] +
                                 (idx2+z_mult*z)*params.numValues[0]*params.numValues[1]);
             f.seekg(fileofs*sizeof(ValueType));
             f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+            const int m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+            int dataYbase = first1 + y*params.multiplier[1];
+            if (y>0)
+                dataYbase -= rest1;
 
             for (int x=0; x<num0; x++) {
-                const int baseX = first0+x*params.multiplier[0];
-                const int baseY = first1+y*params.multiplier[1];
-                const int baseZ = first2+z*params.multiplier[2];
-                for (int m2=baseZ; m2<std::min(baseZ+params.multiplier[2],myN2); m2++) {
-                    for (int m1=baseY; m1<std::min(baseY+params.multiplier[1],myN1); m1++) {
-                        for (int m0=baseX; m0<std::min(baseX+params.multiplier[0],myN0); m0++) {
-                            const int dataIndex = m0 + m1*myN0 + m2*myN0*myN1;
+                const int m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+                int dataXbase = first0 + x*params.multiplier[0];
+                if (x>0)
+                    dataXbase -= rest0;
+                // write a block of mult0 x mult1 x mult2 identical values into
+                // Data object
+                for (int m2=0; m2 < m2limit; m2++) {
+                    const int dataZ = dataZbase + m2;
+                    if (dataZ >= myN2)
+                        break;
+                    for (int m1=0; m1 < m1limit; m1++) {
+                        const int dataY = dataYbase + m1;
+                        if (dataY >= myN1)
+                            break;
+                        for (int m0=0; m0 < m0limit; m0++) {
+                            const int dataX = dataXbase + m0;
+                            if (dataX >= myN0)
+                                break;
+                            const int dataIndex = dataX + dataY*myN0 + dataZ*myN0*myN1;
                             double* dest = out.getSampleDataRW(dataIndex);
                             for (int c=0; c<numComp; c++) {
                                 ValueType val = values[x*numComp+c];
