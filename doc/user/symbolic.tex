@@ -2,19 +2,19 @@
 \chapter{The escript symbolic toolbox}
 \label{CHAP:Symbolic}
 \section{Introduction}
-Escript builds on the existing Sympy~\cite{Sympy} symbolic maths library to
-provide a \SYMBOL class with support for escript Data objects. \SYMBOL objects
+\escript builds on the existing Sympy~\cite{Sympy} symbolic maths library to
+provide a \SYMBOL class with support for \escript Data objects. \SYMBOL objects
 act as placeholders for a single mathematical symbol, such as \texttt{x}, or
 for arbitrarily complex mathematical expressions such as
 \texttt{c*x**4 + alpha*exp(x) - 2*sin(beta * x)}, where \texttt{alpha},
 \texttt{beta}, \texttt{c}, and \texttt{x} are also symbols (the symbolic
 ``atoms" of the expression).
 With the help of the \EVALUATOR class, these symbols and expressions can
-be evaluated by substituting numeric values and/or escript \Data objects
+be evaluated by substituting numeric values and/or \escript \Data objects
 for the atoms. Escript's \SYMBOL class has a shape (and thus a rank) as well
 as a dimensionality.
 Symbols are useful to perform mathematical simplifications, compute
-derivatives, take gradients and in the case of escript describe PDEs.
+derivatives, take gradients and in the case of \escript describe PDEs.
 As an example of how the symbolic toolbox can be used, consider the following
 code extract.
 \begin{python}
@@ -29,12 +29,13 @@ evalu.addExpression(p2)
 evalu.addExpression(p3)
 evalu.subs(u=2*es.symconstants.pi)
 evaluated=evalu.evaluate()
+print "p3=", p3                  #The symbols can be printed, this line will print p3.
 print(evaluated)
 \end{python}
-Running this code outputs \texttt{(1 + 6*pi + 8*pi**2, 0, 3 + 8*pi)}.
+Running this code outputs:\\\texttt{p3= 4*u + 3\\(1 + 6*pi + 8*pi**2, 0, 3 + 8*pi)}.\\
 To get the numeric value of the expression we replace \texttt{evalu.evaluate()}
 with \texttt{evalu.evaluate(evalf=True)}. This results in
-\texttt{(98.8063911302536, 0, 28.1327412287183)}.
+\texttt{(98.806, 0, 28.132)}.
 The use of these Symbols becomes more interesting in the context of escript
 when they are integrated with escript \Data objects.
 
@@ -42,10 +43,10 @@ when they are integrated with escript \Data objects.
 The \NLPDE class in escript makes use of the escript \SYMBOL class and allows
 for the solution of PDEs of the form:
 \begin{equation}
--\nabla\cdotp X + Y = 0
+-X_{ij,j} + Y_i = 0
 \label{symbolic eq1}
 \end{equation}
-where $X$ and $Y$ are both functions of $\nabla u$ and $u$, and $u$ is the
+where $X$ and $Y$ are both functions of $u_{k,j}$ and $u_k$, and $u$ is the
 unknown function implemented as a \SYMBOL. $\nabla\cdotp x$ denotes divergence
 of $x$.
 The \NLPDE class uses the \SYMBOL class to solve the nonlinear PDE given in
@@ -60,13 +61,13 @@ the linear PDE for the update step. The linear PDE class given in
 \Sec{SEC LinearPDE} is used to solve the linear PDEs from the update step.
 The coefficients of the linear PDE to be solved are calculated as follows: 
 \begin{equation*}
- A = \frac{\partial \text{X}}{\partial \nabla u}, B = \frac{\partial \text{X}}{\partial u}, C = \frac{\partial \text{Y}}{\partial \nabla u}, D = \frac{\partial \text{Y}}{\partial u}
+ A_{ijkl} = \frac{\partial \text{X_{ij}}}{\partial u_{k,l}}, B_{ijkl} = \frac{\partial \text{X_{ij}}}{\partial u_{k}}, C_{ijkl} = \frac{\partial \text{Y_{ij}}partial u_{k,l}}, D_{ijkl} = \frac{\partial \text{Y}}{\partial u_{k}}
 \end{equation*}
 \section{2D Plane Strain Problem}
 The \NLPDE class can be used to solve a 2D plane strain problem. In continuous
 media, stress is given by Lam\'e's \eqn{symbolic eq2}.
 \begin{equation} 
--\nabla\cdotp\sigma=f
+-\sigma_{ij,j}=f
 \label{symbolic eq2}
 \end{equation} 
 Hook's Law provides a relation between $\sigma$ and $\epsilon$ in the following form
@@ -92,7 +93,7 @@ Where $\epsilon = symmetric(grad(u)) \text{ or } %
 \epsilon_{ij}=\frac{1}{2}\left(\frac{\partial u_i}{\partial x_j} + %
 {\frac{\partial u_j}{\partial x_i}}\right)$, $u$ is the unknown function and
 $c_{ij}$ is the stiffness matrix. To fit this to the nonlinear PDE class'
-standard form, X is set to $c \times symmetric(grad(u))$.
+standard form, X is set to $C \times symmetric(grad(u))$.
 The following \PYTHON extract shows how an example 2D plane strain problem can
 be set up. 
 
@@ -362,8 +363,7 @@ unknown \texttt{u}.
 \end{methoddesc}
 \begin{methoddesc}[NonlinearPDE]{setValue}{
 \optional{X}\optional{, Y}
-\optional{, y}\optional{, y_contact}
-\optional{, y_dirac}
+\optional{, y}
 \optional{, q}\optional{, r}}
 Assigns new values to coefficients. By default all values are assumed to be
 zero\footnote{In fact, it is assumed they are not present by assigning the
