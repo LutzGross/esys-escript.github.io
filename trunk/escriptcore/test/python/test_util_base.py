@@ -76,6 +76,7 @@ class Test_util_base(unittest.TestCase):
         f.close()
         self.assertTrue(f.closed,"file shuold be closed.")
         self.__checkContent(fn,["line1", "line2", "line3"])
+        MPIBarrierWorld()
         if getMPIRankWorld()==0: os.unlink(fn)
 
    def test_FileWriter_A(self):
@@ -94,6 +95,7 @@ class Test_util_base(unittest.TestCase):
         f.close()
         self.assertTrue(f.closed,"file shuold be closed.")
         self.__checkContent(fn,["line1", "line2", "line3", "line4"])
+        MPIBarrierWorld()
         if getMPIRankWorld()==0: os.unlink(fn)
 
    def test_FileWriter_A_loc(self):
