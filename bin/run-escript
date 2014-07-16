@@ -475,7 +475,7 @@ then
       HOST_LIST=$(sort -u "$HOSTFILE" | awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}')
       CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --bynode --bind-to-none --host $HOST_LIST -np $TOTPROC $EXEC_CMD"
    else
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --cpus-per-rank $ESCRIPT_NUM_THREADS -np $TOTPROC $EXEC_CMD"
+      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --cpus-per-rank $ESCRIPT_NUM_THREADS --bind-to-core -np $TOTPROC $EXEC_CMD"
    fi
    if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
    $CMD
