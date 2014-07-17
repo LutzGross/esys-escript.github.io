@@ -40,7 +40,7 @@ struct IndexList;
 typedef std::vector<IndexList> IndexListArray;
 
 struct IndexList {
-    std::list<index_t> m_list;
+    std::vector<index_t> m_list;
 
     /// inserts row index into the IndexList in if it does not exist
     inline void insertIndex(index_t index)
@@ -53,7 +53,7 @@ struct IndexList {
     inline dim_t count(index_t range_min, index_t range_max) const
     {
         dim_t out=0;
-        std::list<index_t>::const_iterator it;
+        std::vector<index_t>::const_iterator it;
         for (it=m_list.begin(); it != m_list.end(); it++) {
             if (*it >= range_min && range_max > *it)
                 ++out;
@@ -66,7 +66,7 @@ struct IndexList {
                         index_t index_offset) const
     {
         index_t idx = 0;
-        std::list<index_t>::const_iterator it;
+        std::vector<index_t>::const_iterator it;
         for (it=m_list.begin(); it != m_list.end(); it++) {
             if (*it >= range_min && range_max > *it) {
                 array[idx] = (*it)+index_offset;
