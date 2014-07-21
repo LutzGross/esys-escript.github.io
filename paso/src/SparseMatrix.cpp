@@ -32,11 +32,13 @@
 #include "UMFPACK.h"
 #include "mmio.h"
 
+#include <boost/scoped_array.hpp>
+
 /****************************************************************************/
 
 namespace paso {
 
-using esysUtils::IndexListArray;
+using esysUtils::IndexList;
 
 /* debug: print the entries */
 /*
@@ -558,7 +560,7 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
 {
     const dim_t m = numCols;
     const dim_t n = numRows;
-    IndexListArray index_list(m);
+    boost::scoped_array<IndexList> index_list(new IndexList[m]);
 
     for (dim_t i=0; i<n; ++i) {
         for (index_t iptr2=pattern->ptr[i]; iptr2<pattern->ptr[i+1]; ++iptr2) {
@@ -567,7 +569,7 @@ SparseMatrix_ptr SparseMatrix::getTranspose() const
         }
     }
 
-    Pattern_ptr ATpattern(Pattern::fromIndexListArray(0,m,index_list,0,n,0));
+    Pattern_ptr ATpattern(Pattern::fromIndexListArray(0,m,index_list.get(),0,n,0));
     SparseMatrix_ptr AT(new SparseMatrix(type, ATpattern, col_block_size, row_block_size, false));
 
     if ( ((type & MATRIX_FORMAT_DIAGONAL_BLOCK) && (block_size == 1)) ||

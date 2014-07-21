@@ -22,6 +22,7 @@
 
 #include "Mesh.h"
 #include "IndexList.h"
+#include <boost/scoped_array.hpp>
 
 /************************************************************************************/
 
@@ -123,32 +124,32 @@ paso::SystemMatrixPattern_ptr Dudley_makePattern(Dudley_Mesh* mesh, bool reduce_
         row_connector = mesh->Nodes->degreesOfFreedomConnector;
     }
 
-    IndexListArray index_list(rowMap->numTargets);
+    boost::scoped_array<IndexList> index_list(new IndexList[rowMap->numTargets]);
     {
 
 #pragma omp parallel
         {
             /*  insert contributions from element matrices into columns index index_list: */
-            Dudley_IndexList_insertElements(index_list, mesh->Elements,
+            Dudley_IndexList_insertElements(index_list.get(), mesh->Elements,
                                             reduce_row_order, rowMap->target, reduce_col_order, colMap->target);
-            Dudley_IndexList_insertElements(index_list, mesh->FaceElements,
+            Dudley_IndexList_insertElements(index_list.get(), mesh->FaceElements,
                                             reduce_row_order, rowMap->target, reduce_col_order, colMap->target);
-            Dudley_IndexList_insertElements(index_list, mesh->Points,
+            Dudley_IndexList_insertElements(index_list.get(), mesh->Points,
                                             reduce_row_order, rowMap->target, reduce_col_order, colMap->target);
 
         }
 
         /* create pattern */
         main_pattern = paso::Pattern::fromIndexListArray(0,
-            rowDistribution->getMyNumComponents(), index_list,
+            rowDistribution->getMyNumComponents(), index_list.get(),
             0, colDistribution->getMyNumComponents(), 0);
         col_couple_pattern = paso::Pattern::fromIndexListArray(0,
-            rowDistribution->getMyNumComponents(), index_list,
+            rowDistribution->getMyNumComponents(), index_list.get(),
             colDistribution->getMyNumComponents(), colMap->numTargets,
             -colDistribution->getMyNumComponents());
         row_couple_pattern = paso::Pattern::fromIndexListArray(
             rowDistribution->getMyNumComponents(), rowMap->numTargets,
-            index_list, 0, colDistribution->getMyNumComponents(), 0);
+            index_list.get(), 0, colDistribution->getMyNumComponents(), 0);
 
         /* if everything is in order we can create the return value */
         if (Dudley_noError())

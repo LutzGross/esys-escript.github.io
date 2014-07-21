@@ -22,6 +22,7 @@
 
 #include "Mesh.h"
 #include "IndexList.h"
+#include <boost/scoped_array.hpp>
 
 namespace finley {
 
@@ -317,32 +318,32 @@ void Mesh::optimizeDOFLabeling(const std::vector<int>& distribution)
     for (int p=0; p<mpiSize; ++p)
         len=std::max(len, distribution[p+1]-distribution[p]);
 
-    IndexListArray index_list(myNumVertices);
+    boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
     std::vector<int> newGlobalDOFID(len);
     // create the adjacency structure xadj and adjncy
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns index
-        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, Elements,
                 Nodes->globalDegreesOfFreedom,
                 Nodes->globalDegreesOfFreedom);
-        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, FaceElements,
                 Nodes->globalDegreesOfFreedom,
                 Nodes->globalDegreesOfFreedom);
-        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, ContactElements,
                 Nodes->globalDegreesOfFreedom,
                 Nodes->globalDegreesOfFreedom);
-        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+        IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, Points,
                 Nodes->globalDegreesOfFreedom,
                 Nodes->globalDegreesOfFreedom);
     }
     // create the local matrix pattern
     paso::Pattern_ptr pattern=paso::Pattern::fromIndexListArray(0,
-            myNumVertices, index_list, myFirstVertex, myLastVertex,
+            myNumVertices, index_list.get(), myFirstVertex, myLastVertex,
             -myFirstVertex);
 
     if (noError())

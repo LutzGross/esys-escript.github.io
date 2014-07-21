@@ -36,10 +36,11 @@
 
 namespace esysUtils {
 
-struct IndexList;
-typedef std::vector<IndexList> IndexListArray;
-
 struct IndexList {
+    // pre-reserving saves time under OpenMP. The 85 is a value taken over
+    // from revision ~101 by jgs.
+    IndexList() { m_list.reserve(85); }
+
     std::vector<index_t> m_list;
 
     /// inserts row index into the IndexList in if it does not exist

@@ -29,7 +29,7 @@
    into the row index col. If symmetric is set, only the upper
    triangle of the matrix is stored. */
 
-void Dudley_IndexList_insertElements(IndexListArray& index_list,
+void Dudley_IndexList_insertElements(IndexList* index_list,
                                      Dudley_ElementFile * elements,
                                      bool reduce_row_order, index_t* row_map,
                                      bool reduce_col_order, index_t* col_map)
@@ -65,7 +65,7 @@ void Dudley_IndexList_insertElements(IndexListArray& index_list,
     }
 }
 
-void Dudley_IndexList_insertElementsWithRowRange(IndexListArray& index_list,
+void Dudley_IndexList_insertElementsWithRowRange(IndexList* index_list,
         index_t firstRow, index_t lastRow, Dudley_ElementFile* elements,
         index_t* row_map, index_t* col_map)
 {
@@ -102,7 +102,7 @@ void Dudley_IndexList_insertElementsWithRowRange(IndexListArray& index_list,
 }
 
 void Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(
-        IndexListArray& index_list, index_t firstRow, index_t lastRow,
+        IndexList* index_list, index_t firstRow, index_t lastRow,
         Dudley_ElementFile* elements, index_t* row_map, index_t* col_map)
 {
     /* this does not resolve macro elements */

@@ -31,6 +31,8 @@
 #include "parmetis.h"
 #endif
 
+#include <boost/scoped_array.hpp>
+
 /************************************************************************************
    Check whether there is any node which has no vertex. In case 
    such node exists, we don't use parmetis since parmetis requires
@@ -127,7 +129,7 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    }
 	}
 
-	IndexListArray index_list(myNumVertices);
+	boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
 	/* ksteube CSR of DOF IDs */
 	/* create the adjacency structure xadj and adjncy */
 	{
@@ -135,22 +137,22 @@ void Dudley_Mesh_optimizeDOFDistribution(Dudley_Mesh * in, dim_t * distribution)
 	    {
 		/* ksteube build CSR format */
 		/*  insert contributions from element matrices into columns index index_list: */
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->Elements,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->FaceElements,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
-		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+		Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->Points,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
 	    }
 
 	    /* create the local matrix pattern */
-	    pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list, 0, globalNumVertices, 0);
+	    pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list.get(), 0, globalNumVertices, 0);
 
 	    if (Dudley_noError())
 	    {
