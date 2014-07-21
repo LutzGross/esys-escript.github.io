@@ -1881,11 +1881,11 @@ void Rectangle::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
-    IndexVector rowIndex;
-    rowIndex.push_back(m_dofMap[firstNode]);
-    rowIndex.push_back(m_dofMap[firstNode+1]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]+1]);
+    IndexVector rowIndex(4);
+    rowIndex[0] = m_dofMap[firstNode];
+    rowIndex[1] = m_dofMap[firstNode+1];
+    rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
+    rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
     if (addF) {
         double *F_p=F.getSampleDataRW(0);
         for (index_t i=0; i<rowIndex.size(); i++) {
