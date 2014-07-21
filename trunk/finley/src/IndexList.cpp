@@ -34,7 +34,7 @@
 
 namespace finley {
 
-void IndexList_insertElements(IndexListArray& index_list, ElementFile* elements,
+void IndexList_insertElements(IndexList* index_list, ElementFile* elements,
                               bool reduce_row_order, const int* row_map,
                               bool reduce_col_order, const int* col_map)
 {
@@ -88,7 +88,7 @@ void IndexList_insertElements(IndexListArray& index_list, ElementFile* elements,
 }
 
 void IndexList_insertElementsWithRowRangeNoMainDiagonal(
-                            IndexListArray& index_list, int firstRow,
+                            IndexList* index_list, int firstRow,
                             int lastRow, ElementFile* elements,
                             int* row_map, int* col_map)
 {

@@ -64,7 +64,7 @@ struct Pattern : boost::enable_shared_from_this<Pattern>
     index_t* borrowMainDiagonalPointer();
 
     static Pattern_ptr fromIndexListArray(dim_t n0, dim_t n,
-            const esysUtils::IndexListArray& index_list_array,
+            const esysUtils::IndexList* index_list_array,
             index_t range_min, index_t range_max, index_t index_offset);
 
     index_t* borrowColoringPointer();
