@@ -30,6 +30,7 @@
 #include "Solver.h" // only for destructor
 
 #include <cstring> // memcpy
+#include <vector>
 
 namespace paso {
 
