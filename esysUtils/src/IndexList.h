@@ -30,35 +30,46 @@
 
 #include "types.h"
 
-#include <algorithm>
-#include <list>
-#include <vector>
+// pre-reserving saves time under OpenMP. The 85 is a value taken over
+// from revision ~101 by jgs.
+#define ESYS_INDEXLIST_LENGTH 85
 
 namespace esysUtils {
 
 struct IndexList {
-    // pre-reserving saves time under OpenMP. The 85 is a value taken over
-    // from revision ~101 by jgs.
-    IndexList() { m_list.reserve(85); }
+    IndexList() : n(0), extension(NULL) {}
+    ~IndexList() { delete extension; }
 
-    std::vector<index_t> m_list;
+    index_t m_list[ESYS_INDEXLIST_LENGTH];
+    dim_t n;
+    IndexList* extension;
 
     /// inserts row index into the IndexList in if it does not exist
     inline void insertIndex(index_t index)
     {
-        if (std::find(m_list.begin(), m_list.end(), index) == m_list.end())
-            m_list.push_back(index);
+        for (dim_t i=0; i<n; i++) {
+            if (m_list[i] == index)
+                return;
+        }
+        if (n < ESYS_INDEXLIST_LENGTH) {
+            m_list[n++] = index;
+        } else {
+            if (extension == NULL)
+                extension = new IndexList();
+            extension->insertIndex(index);
+        }
     }
 
     /// counts the number of row indices in the IndexList in
     inline dim_t count(index_t range_min, index_t range_max) const
     {
         dim_t out=0;
-        std::vector<index_t>::const_iterator it;
-        for (it=m_list.begin(); it != m_list.end(); it++) {
-            if (*it >= range_min && range_max > *it)
+        for (dim_t i=0; i < n; i++) {
+            if (m_list[i] >= range_min && range_max > m_list[i])
                 ++out;
         }
+        if (extension)
+            out += extension->count(range_min, range_max);
         return out;
     }
 
@@ -67,13 +78,14 @@ struct IndexList {
                         index_t index_offset) const
     {
         index_t idx = 0;
-        std::vector<index_t>::const_iterator it;
-        for (it=m_list.begin(); it != m_list.end(); it++) {
-            if (*it >= range_min && range_max > *it) {
-                array[idx] = (*it)+index_offset;
+        for (dim_t i=0; i < n; i++) {
+            if (m_list[i] >= range_min && range_max > m_list[i]) {
+                array[idx] = m_list[i]+index_offset;
                 ++idx;
             }
         }
+        if (extension)
+            extension->toArray(&array[idx], range_min, range_max, index_offset);
     }
 };
 
