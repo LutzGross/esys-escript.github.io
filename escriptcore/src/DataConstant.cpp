@@ -95,8 +95,10 @@ DataConstant::hasNaN() const
 	{
 		if (nancheck(m_data[i]))	
 		{
-			#pragma omp atomic write
+		    #pragma omp critical 
+        {
             haveNaN=true;
+        }
 		}
 	}
 	return haveNaN;
