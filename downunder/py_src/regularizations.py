@@ -24,6 +24,7 @@ __url__="https://launchpad.net/escript-finley"
 __all__ = ['Regularization']
 
 
+import logging
 import numpy as np
 from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
 from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
@@ -104,6 +105,7 @@ class Regularization(CostFunction):
         if wc is None and numLevelSets>1:
             raise ValueError("Values for wc must be given.")
 
+        self.logger = logging.getLogger('inv.%s'%self.__class__.__name__)
         self.__domain=domain
         DIM=self.__domain.getDim()
         self.__numLevelSets=numLevelSets
@@ -415,15 +417,20 @@ class Regularization(CostFunction):
 
         A=0
         if self.__w0 is not None:
-            A+=inner(integrate(m**2 * self.__w0), mu)
+            r = inner(integrate(m**2 * self.__w0), mu)
+            self.logger.debug("J_R[m^2] = %e"%r)
+            A += r
 
         if self.__w1 is not None:
             if numLS == 1:
-                A+=integrate(inner(grad_m**2, self.__w1))*mu
+                r = integrate(inner(grad_m**2, self.__w1))*mu
+                self.logger.debug("J_R[grad(m)] = %e"%r)
+                A += r
             else:
                 for k in range(numLS):
-                    #print("C = %s"%integrate(inner(grad_m[k,:]**2,self.__w1[k,:])))
-                    A+=mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
+                    r = mu[k]*integrate(inner(grad_m[k,:]**2,self.__w1[k,:]))
+                    self.logger.debug("J_R[grad(m)][%d] = %e"%(k,r))
+                    A += r
 
         if numLS > 1:
             for k in range(numLS):
@@ -431,9 +438,9 @@ class Regularization(CostFunction):
                 len_gk=length(gk)
                 for l in range(k):
                     gl=grad_m[l,:]
-                    #print("CC(%s,%s) = %s"%(k,l,integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )))
-                    A+= mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
-        #print("A = %s"%A)
+                    r = mu_c[l,k] * integrate( self.__wc[l,k] * ( ( len_gk * length(gl) )**2 - inner(gk, gl)**2 ) )
+                    self.logger.debug("J_R[cross][%d,%d] = %e"%(l,k,r))
+                    A += r
         return A/2
 
     def getGradient(self, m,  grad_m):
