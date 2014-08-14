@@ -16,8 +16,8 @@
 
 #include <ripley/Brick.h>
 #include <ripley/DefaultAssembler3D.h>
-#include <ripley/WaveAssembler3D.h>
 #include <ripley/LameAssembler3D.h>
+#include <ripley/WaveAssembler3D.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
 #include <esysUtils/esysFileWriter.h>
@@ -61,13 +61,13 @@ int indexOfMax(int a, int b, int c) {
 
 Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
-             const std::vector<double>& points, const std::vector<int>& tags,
+             const vector<double>& points, const vector<int>& tags,
              const simap_t& tagnamestonums,
              escript::SubWorld_ptr w) :
     RipleyDomain(3, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
-            * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())
+            * static_cast<long>(n2 + 1) > numeric_limits<int>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
 
@@ -83,7 +83,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     }
     bool warn=false;
 
-    std::vector<int> factors;
+    vector<int> factors;
     int ranks = m_mpiInfo->size;
     int epr[3] = {n0,n1,n2};
     int d[3] = {d0,d1,d2};
@@ -620,10 +620,10 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     const int numComp = out.getDataPointSize();
     int filesize = f.tellg();
     f.seekg(0, ios::beg);
-    std::vector<char> compressed(filesize);
+    vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
-    std::vector<char> decompressed = unzip(compressed);
+    vector<char> decompressed = unzip(compressed);
     filesize = decompressed.size();
     const int reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
@@ -2163,7 +2163,7 @@ void Brick::populateSampleIds()
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const std::length_error& le) {
+    } catch (const length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
     
@@ -2642,7 +2642,7 @@ void Brick::createPattern()
 
 #pragma omp parallel for
     for (int i = 0; i < numShared; i++) {
-        std::sort(rowIndices[i].begin(), rowIndices[i].end());
+        sort(rowIndices[i].begin(), rowIndices[i].end());
     }
 
 

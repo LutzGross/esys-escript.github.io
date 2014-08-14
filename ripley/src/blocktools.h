@@ -1,3 +1,4 @@
+
 /*****************************************************************************
 *
 * Copyright (c) 2014 by University of Queensland
@@ -12,6 +13,9 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
+
+#ifndef __RIPLEY_BLOCKTOOLS_H__
+#define __RIPLEY_BLOCKTOOLS_H__
 
 
 #include <vector>
@@ -296,4 +300,6 @@ int getTag2(unsigned char destx, unsigned char desty, bool deltax, bool deltay);
 
 // the booleans indicate whether a negative shift in that direction is required
 unsigned char getSrcBuffID2(unsigned char destx, unsigned char desty, bool deltax, bool deltay);
+
+#endif // __RIPLEY_BLOCKTOOLS_H__
 

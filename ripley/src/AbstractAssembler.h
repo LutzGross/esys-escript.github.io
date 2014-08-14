@@ -13,6 +13,7 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
+
 #ifndef __ESCRIPT_ABSTRACTASSEMBLER_H__
 #define __ESCRIPT_ABSTRACTASSEMBLER_H__
 

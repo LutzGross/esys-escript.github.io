@@ -175,14 +175,16 @@ public:
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const;
-    
+
     /**
-     * \brief 
+     * \brief
        Returns a Data object filled with random data passed through filter.
-    */     
+    */
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;   
-    
+                                     const escript::FunctionSpace& what,
+                                     long seed,
+                                     const boost::python::tuple& filter) const;
+
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -222,9 +224,10 @@ private:
                              const std::string& filename, int byteOrder) const;
 
     int findNode(const double *coords) const;
-    
-    
-    virtual escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape, long seed, const boost::python::tuple& filter) const;     
+
+    virtual escript::Data randomFillWorker(
+            const escript::DataTypes::ShapeType& shape, long seed,
+            const boost::python::tuple& filter) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE[3];

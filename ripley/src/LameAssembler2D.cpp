@@ -82,8 +82,8 @@ void LameAssembler2D::assemblePDEBoundarySystemReduced(
 void LameAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data d = unpackData("d", coefs);
-    Data y = unpackData("y", coefs);
+    const Data& d = unpackData("d", coefs);
+    const Data& y = unpackData("y", coefs);
     dim_t numEq, numComp;
     if (!mat) {
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
@@ -364,13 +364,13 @@ void LameAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
         throw RipleyException("Coefficient A was given to LameAssembler "
                 "unexpectedly. Specialised domains can't be used for general "
                 "assemblage.");
-    const Data lambda = unpackData("lame_lambda", coefs);
-    const Data mu = unpackData("lame_mu", coefs);
-    const Data B = unpackData("B", coefs);
-    const Data C = unpackData("C", coefs);
-    const Data D = unpackData("D", coefs);
-    const Data X = unpackData("X", coefs);
-    const Data Y = unpackData("Y", coefs);
+    const Data& lambda = unpackData("lame_lambda", coefs);
+    const Data& mu = unpackData("lame_mu", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& X = unpackData("X", coefs);
+    const Data& Y = unpackData("Y", coefs);
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());

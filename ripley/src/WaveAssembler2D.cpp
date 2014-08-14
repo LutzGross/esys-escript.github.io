@@ -80,12 +80,12 @@ void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
         throw RipleyException("Coefficient X was given to WaveAssembler "
                 "unexpectedly. Specialised domains can't be used for general "
                 "assemblage.");
-    const Data A = unpackData("A", coefs);
-    const Data B = unpackData("B", coefs);
-    const Data C = unpackData("C", coefs);
-    const Data D = unpackData("D", coefs);
-    const Data Y = unpackData("Y", coefs);
-    const Data du = unpackData("du", coefs);
+    const Data& A = unpackData("A", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& Y = unpackData("Y", coefs);
+    const Data& du = unpackData("du", coefs);
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
