@@ -202,13 +202,12 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
-    Assembler_ptr createAssembler(std::string type,
-            std::map<std::string, escript::Data> constants) const;
+    Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 
 private:
     void populateSampleIds();
     void createPattern();
-    void addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
+    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 

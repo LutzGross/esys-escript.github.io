@@ -16,11 +16,6 @@
 #ifndef __RIPLEY_WAVEASSEMBLER2D_H__
 #define __RIPLEY_WAVEASSEMBLER2D_H__
 
-#include <map>
-#include <escript/Data.h>
-#include <ripley/Ripley.h>
-#include <ripley/RipleyException.h>
-#include <ripley/AbstractAssembler.h>
 #include <ripley/Rectangle.h>
 
 namespace ripley {
@@ -31,37 +26,48 @@ class WaveAssembler2D : public AbstractAssembler
 public:
     WaveAssembler2D(escript::const_Domain_ptr dom, const double *dx,
                     const dim_t *NX, const dim_t *NE, const dim_t *NN,
-                    std::map<std::string, escript::Data> c);
+                    const DataMap& c);
 
     ~WaveAssembler2D() {}
 
     /* The only assembly function we care about right now*/
-    void assemblePDESystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
+    void assemblePDESystem(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const;
 
+    void assemblePDESingle(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
+    void assemblePDEBoundarySingle(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
+    void assemblePDESingleReduced(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
+    void assemblePDEBoundarySingleReduced(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
+    void assemblePDEBoundarySystem(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
+    void assemblePDESystemReduced(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
+    void assemblePDEBoundarySystemReduced(escript::AbstractSystemMatrix* mat,
+                           escript::Data& rhs, const DataMap& coefs) const {
+        throw RipleyException("This assembly not supported by this assembler");
+    }
 
-    void assemblePDESingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDESingleReduced(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDESystemReduced(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-    void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const {throw RipleyException("This assembly not supported by this assembler");}
-
-    void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const;
+    void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
+                                   const DataMap& coefs) const;
 
 private:
-    std::map<std::string, escript::Data> c;
+    DataMap c;
     boost::shared_ptr<const Rectangle> domain;
     const double *m_dx;
     const dim_t *m_NX;

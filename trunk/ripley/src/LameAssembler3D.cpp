@@ -13,67 +13,73 @@
 * Development from 2014 by Centre for Geoscience Computing (GeoComp)
 *
 *****************************************************************************/
+
 #include <ripley/LameAssembler3D.h>
 #include <ripley/domainhelpers.h>
 
 using namespace std;
 
+using escript::AbstractSystemMatrix;
+using escript::Data;
+
 namespace ripley {
 
-void LameAssembler3D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const {
+void LameAssembler3D::collateFunctionSpaceTypes(vector<int>& fsTypes,
+                                                const DataMap& coefs) const
+{
     if (isNotEmpty("lame_mu", coefs))
-        fsTypes.push_back(coefs["lame_mu"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("lame_mu")->second.getFunctionSpace().getTypeCode());
     if (isNotEmpty("lame_lambda", coefs))
-        fsTypes.push_back(coefs["lame_lambda"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("lame_lambda")->second.getFunctionSpace().getTypeCode());
     if (isNotEmpty("B", coefs))
-        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("B")->second.getFunctionSpace().getTypeCode());
     if (isNotEmpty("C", coefs))
-        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("C")->second.getFunctionSpace().getTypeCode());
     if (isNotEmpty("D", coefs))
-        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("D")->second.getFunctionSpace().getTypeCode());
     if (isNotEmpty("X", coefs))
-        fsTypes.push_back(coefs["X"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("X")->second.getFunctionSpace().getTypeCode());
     if (isNotEmpty("Y", coefs))
-        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
+        fsTypes.push_back(coefs.find("Y")->second.getFunctionSpace().getTypeCode());
 }
 
 
-void LameAssembler3D::assemblePDESingle(paso::SystemMatrix_ptr mat,
-        escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat, Data& rhs,
+                                        const DataMap& coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
-        escript::Data& rhs, map<string, escript::Data> coefs) const 
+void LameAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const 
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDEBoundarySingleReduced(
+                                        AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const
 {
     throw RipleyException("assemblePDESingle not implemented in LameAssembler3D");
 }
 
-
-void LameAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const
 {
-    escript::Data d = unpackData("d", coefs), y = unpackData("y", coefs);
+    Data d = unpackData("d", coefs);
+    Data y = unpackData("y", coefs);
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
     const double SQRT3 = 1.73205080756887719318;
     const double w12 = m_dx[0]*m_dx[1]/144;
@@ -746,36 +752,40 @@ void LameAssembler3D::assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
     } // end of parallel region
 }
 
-void LameAssembler3D::assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const
 {
     throw RipleyException("assemblePDESystemReduced not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDEBoundarySystemReduced(
+                                        AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const
 {
     throw RipleyException("assemblePDEBoundarySystemReduced not implemented in LameAssembler3D");
 }
 
-void LameAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
-            escript::Data& rhs, map<string, escript::Data> coefs) const
+void LameAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat, Data& rhs,
+                                        const DataMap& coefs) const
 {
-    escript::Data lambda = unpackData("lame_lambda", coefs),
-		         mu = unpackData("lame_mu", coefs), B = unpackData("B", coefs),
-                 C = unpackData("C", coefs), D = unpackData("D", coefs),
-                 X = unpackData("X", coefs), Y = unpackData("Y", coefs);
-    if (!unpackData("A", coefs).isEmpty())
+    if (isNotEmpty("A", coefs))
         throw RipleyException("Coefficient A was given to LameAssembler "
                 "unexpectedly. Specialised domains can't be used for general "
                 "assemblage.");
+    Data lambda = unpackData("lame_lambda", coefs);
+    Data mu = unpackData("lame_mu", coefs);
+    Data B = unpackData("B", coefs);
+    Data C = unpackData("C", coefs);
+    Data D = unpackData("D", coefs);
+    Data X = unpackData("X", coefs);
+    Data Y = unpackData("Y", coefs);
 
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());
     else {
-        numEq=mat->logical_row_block_size;
-        numComp=mat->logical_col_block_size;
+        numEq=mat->getRowBlockSize();
+        numComp=mat->getColumnBlockSize();
     }
 
     const double SQRT3 = 1.73205080756887719318;
@@ -4406,8 +4416,8 @@ void LameAssembler3D::assemblePDESystem(paso::SystemMatrix_ptr mat,
 
                         // add to matrix (if add_EM_S) and RHS (if add_EM_F)
                         const index_t firstNode=m_NN[0]*m_NN[1]*k2+m_NN[0]*k1+k0;
-                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F, add_EM_S,
-                                add_EM_F, firstNode, numEq, numComp);
+                        domain->addToMatrixAndRHS(mat, rhs, EM_S, EM_F,
+                                add_EM_S, add_EM_F, firstNode, numEq, numComp);
                     } // end k0 loop
                 } // end k1 loop
             } // end k2 loop

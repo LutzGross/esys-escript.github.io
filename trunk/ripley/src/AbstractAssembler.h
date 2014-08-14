@@ -16,54 +16,46 @@
 #ifndef __ESCRIPT_ABSTRACTASSEMBLER_H__
 #define __ESCRIPT_ABSTRACTASSEMBLER_H__
 
-#include <map>
+#include <escript/AbstractSystemMatrix.h>
 #include <escript/Data.h>
 #include <escript/Pointers.h>
-#include <paso/SystemMatrix.h>
+#include <ripley/domainhelpers.h>
 
 namespace ripley {
-/* returns the data associated with the string key or an empty data object
-   if the map does not contain the given key */
-escript::Data unpackData(std::string target,
-        std::map<std::string, escript::Data> mapping);
 
 class AbstractAssembler;
 
 typedef POINTER_WRAPPER_CLASS(AbstractAssembler) Assembler_ptr;
 typedef POINTER_WRAPPER_CLASS(const AbstractAssembler) const_Assembler_ptr;
 
-class AbstractAssembler : public REFCOUNT_BASE_CLASS(AbstractAssembler) {
+class AbstractAssembler : public REFCOUNT_BASE_CLASS(AbstractAssembler)
+{
 public:
-    virtual ~AbstractAssembler() {};
-   
-    /* The new interface for assemblers */
-    virtual void assemblePDESingle(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySingle(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESingleReduced(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySingleReduced(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESystem(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySystem(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDESystemReduced(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
-    virtual void assemblePDEBoundarySystemReduced(paso::SystemMatrix_ptr mat,
-                    escript::Data& rhs,
-                    std::map<std::string, escript::Data> coefs) const = 0;
+    virtual ~AbstractAssembler() {}
 
-    virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const = 0;
+    /* The new interface for assemblers */
+    virtual void assemblePDESingle(escript::AbstractSystemMatrix* mat,
+                    escript::Data& rhs, const DataMap& coefs) const = 0;
+    virtual void assemblePDEBoundarySingle(escript::AbstractSystemMatrix* mat,
+                    escript::Data& rhs, const DataMap& coefs) const = 0;
+    virtual void assemblePDESingleReduced(escript::AbstractSystemMatrix* mat,
+                    escript::Data& rhs, const DataMap& coefs) const = 0;
+    virtual void assemblePDEBoundarySingleReduced(
+                    escript::AbstractSystemMatrix* mat, escript::Data& rhs,
+                    const DataMap& coefs) const = 0;
+    virtual void assemblePDESystem(escript::AbstractSystemMatrix* mat,
+                    escript::Data& rhs, const DataMap& coefs) const = 0;
+    virtual void assemblePDEBoundarySystem(escript::AbstractSystemMatrix* mat,
+                    escript::Data& rhs, const DataMap& coefs) const = 0;
+    virtual void assemblePDESystemReduced(escript::AbstractSystemMatrix* mat,
+                    escript::Data& rhs, const DataMap& coefs) const = 0;
+    virtual void assemblePDEBoundarySystemReduced(
+                    escript::AbstractSystemMatrix* mat, escript::Data& rhs,
+                    const DataMap& coefs) const = 0;
+
+    virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
+                                           const DataMap& coefs) const = 0;
+
 };
 
 } // namespace escript
