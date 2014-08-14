@@ -43,6 +43,7 @@
 
 using namespace std;
 using esysUtils::FileWriter;
+using escript::AbstractSystemMatrix;
 
 namespace ripley {
 
@@ -1877,7 +1878,7 @@ void Rectangle::createPattern()
 }
 
 //private
-void Rectangle::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
+void Rectangle::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
@@ -1897,7 +1898,7 @@ void Rectangle::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
         }
     }
     if (addS) {
-        addToSystemMatrix(S, rowIndex, nEq, rowIndex, nComp, EM_S);
+        addToSystemMatrix(S, rowIndex, nEq, EM_S);
     }
 }
 
@@ -2430,7 +2431,8 @@ int Rectangle::findNode(const double *coords) const
 }
 
 Assembler_ptr Rectangle::createAssembler(std::string type,
-        std::map<std::string, escript::Data> constants) const {
+                                         const DataMap& constants) const
+{
     if (type.compare("DefaultAssembler") == 0) {
         return Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     } else if (type.compare("WaveAssembler") == 0) {

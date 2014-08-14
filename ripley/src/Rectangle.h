@@ -188,7 +188,7 @@ public:
        Creates and returns an assembler of the requested type.
     */
     virtual Assembler_ptr createAssembler(std::string type,
-            std::map<std::string, escript::Data> options) const;
+                                          const DataMap& options) const;
 
 
 protected:
@@ -215,7 +215,7 @@ protected:
 private:
     void populateSampleIds();
     void createPattern();
-    void addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
+    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 

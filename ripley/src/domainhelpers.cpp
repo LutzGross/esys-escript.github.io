@@ -1,3 +1,19 @@
+
+/*****************************************************************************
+*
+* Copyright (c) 2003-2014 by University of Queensland
+* http://www.uq.edu.au
+*
+* Primary Business: Queensland, Australia
+* Licensed under the Open Software License version 3.0
+* http://www.opensource.org/licenses/osl-3.0.php
+*
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development 2012-2013 by School of Earth Sciences
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
+*****************************************************************************/
+
 #include <ripley/domainhelpers.h>
 #include <ripley/RipleyException.h>
 #include <cmath>
@@ -7,12 +23,10 @@
 #include <boost/iostreams/filtering_stream.hpp>
 #endif
 
-bool isNotEmpty(std::string target, std::map<std::string, escript::Data> mapping) {
-    std::map<std::string, escript::Data>::iterator i = mapping.find(target);
-    return i != mapping.end() && !i->second.isEmpty();
-}
+namespace ripley {
 
-void factorise(std::vector<int>& factors, int product) {
+void factorise(std::vector<int>& factors, int product)
+{
     int current = product;
     for (int p = 2; p <= sqrt(product); p++) {
         while (current % p == 0) {
@@ -21,17 +35,12 @@ void factorise(std::vector<int>& factors, int product) {
         }
     }
     if (current != 1) {
-	factors.push_back(current);
+        factors.push_back(current);
     }
 }
 
-void doublyLink(std::vector<ripley::IndexVector>& va,
-        std::vector<ripley::IndexVector>& vb, int a, int b) {
-    va[a].push_back(b);
-    vb[b].push_back(a);
-}
 #ifdef USE_BOOSTIO
-std::vector<char> unzip(const std::vector<char> compressed)
+std::vector<char> unzip(const std::vector<char>& compressed)
 {
     std::vector<char> decompressed = std::vector<char>();
 
@@ -44,17 +53,20 @@ std::vector<char> unzip(const std::vector<char> compressed)
     } catch (boost::iostreams::gzip_error e) {
         switch(e.error()) {
             case boost::iostreams::gzip::zlib_error:
-                throw ripley::RipleyException("Decompressing failed with: zlib error");
+                throw RipleyException("Decompressing failed with: zlib error");
             case boost::iostreams::gzip::bad_crc:
-                throw ripley::RipleyException("Decompressing failed with: CRC error");
+                throw RipleyException("Decompressing failed with: CRC error");
             case boost::iostreams::gzip::bad_length:
-                throw ripley::RipleyException("Decompressing failed with: bad length");
+                throw RipleyException("Decompressing failed with: bad length");
             case boost::iostreams::gzip::bad_header:
-                throw ripley::RipleyException("Decompressing failed with: bad header");
+                throw RipleyException("Decompressing failed with: bad header");
             case boost::iostreams::gzip::bad_footer:
-                throw ripley::RipleyException("Decompressing failed with: bad footer");
+                throw RipleyException("Decompressing failed with: bad footer");
         }
     }
     return decompressed;
 }
 #endif
+
+} // namespace ripley
+

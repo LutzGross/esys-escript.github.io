@@ -43,6 +43,7 @@
 
 using namespace std;
 using esysUtils::FileWriter;
+using escript::AbstractSystemMatrix;
 
 namespace ripley {
 
@@ -203,7 +204,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     populateSampleIds();
     createPattern();
     
-    for (map<string, int>::const_iterator i = tagnamestonums.begin();
+    for (simap_t::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
@@ -2737,7 +2738,7 @@ void Brick::createPattern()
 }
 
 //private
-void Brick::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
+void Brick::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
@@ -2761,7 +2762,7 @@ void Brick::addToMatrixAndRHS(paso::SystemMatrix_ptr S, escript::Data& F,
         }
     }
     if (addS) {
-        addToSystemMatrix(S, rowIndex, nEq, rowIndex, nComp, EM_S);
+        addToSystemMatrix(S, rowIndex, nEq, EM_S);
     }
 }
 
@@ -3459,8 +3460,8 @@ int Brick::findNode(const double *coords) const {
     return closest;
 }
 
-Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
-        escript::Data> constants) const {
+Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) const
+{
     if (type.compare("DefaultAssembler") == 0) {
         return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     } else if (type.compare("WaveAssembler") == 0) {

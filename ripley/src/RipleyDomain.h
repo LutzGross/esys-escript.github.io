@@ -499,8 +499,8 @@ public:
        solvers with varying arguments counts and so on
     */
     virtual void addToSystem(escript::AbstractSystemMatrix& mat,
-            escript::Data& rhs,std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+                             escript::Data& rhs, const DataMap& data,
+                             Assembler_ptr assembler) const;
 
     /**
        \brief
@@ -515,9 +515,8 @@ public:
        adds a PDE onto rhs, used for custom 
        solvers with varying arguments counts and so on
     */
-    virtual void addToRHS(escript::Data& rhs,
-            std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+    virtual void addToRHS(escript::Data& rhs, const DataMap& data,
+                          Assembler_ptr assembler) const;
 
     /**
        \brief
@@ -533,8 +532,8 @@ public:
        adds a PDE onto a transport problem
     */
     virtual void addPDEToTransportProblem(escript::AbstractTransportProblem& tp,
-            escript::Data& source, std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+                                    escript::Data& source, const DataMap& data,
+                                    Assembler_ptr assembler) const;
     /**
        \brief
        adds a PDE onto a transport problem
@@ -694,7 +693,7 @@ public:
     virtual bool supportsFilter(const boost::python::tuple& t) const;
 
     virtual Assembler_ptr createAssembler(std::string type,
-                std::map<std::string, escript::Data> options) const {
+                                          const DataMap& options) const {
         throw RipleyException("Domain does not support custom assemblers");
     }
 
@@ -741,10 +740,9 @@ protected:
                               const dim_t N, paso::Pattern_ptr& colPattern,
                               paso::Pattern_ptr& rowPattern) const;
 
-    void addToSystemMatrix(paso::SystemMatrix_ptr in,
-            const IndexVector& nodes_Eq, dim_t num_Eq,
-            const IndexVector& nodes_Sol, dim_t num_Sol,
-            const DoubleVector& array) const;
+    void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
+                           const IndexVector& nodes, dim_t numEq,
+                           const DoubleVector& array) const;
 
     void addPoints(const std::vector<double>& coords,
                    const std::vector<int>& tags);
@@ -799,20 +797,23 @@ protected:
     virtual int getDofOfNode(int node) const = 0;
 
 private:
+    /// paso version of adding element matrices to System Matrix
+    void addToSystemMatrix(paso::SystemMatrix_ptr in, const IndexVector& nodes,
+                           dim_t numEq, const DoubleVector& array) const;
+
     /// calls the right PDE assembly routines after performing input checks
-    void assemblePDE(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+    void assemblePDE(escript::AbstractSystemMatrix* mat, escript::Data& rhs,
+            const DataMap& coefs, Assembler_ptr assembler) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
-    void assemblePDEBoundary(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+    void assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
+                             escript::Data& rhs, const DataMap& coefs,
+                             Assembler_ptr assembler) const;
 
-    void assemblePDEDirac(paso::SystemMatrix_ptr mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
+                          escript::Data& rhs, const DataMap& coefs,
+                          Assembler_ptr assembler) const;
 
     // finds the node that the given point belongs to
     virtual int findNode(const double *coords) const = 0;
