@@ -44,12 +44,12 @@ void DefaultAssembler3D::collateFunctionSpaceTypes(vector<int>& fsTypes,
 void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data A = unpackData("A", coefs);
-    Data B = unpackData("B", coefs);
-    Data C = unpackData("C", coefs);
-    Data D = unpackData("D", coefs);
-    Data X = unpackData("X", coefs);
-    Data Y = unpackData("Y", coefs);
+    const Data& A = unpackData("A", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& X = unpackData("X", coefs);
+    const Data& Y = unpackData("Y", coefs);
     assemblePDESingle(mat, rhs, A, B, C, D, X, Y);
 
 }
@@ -57,20 +57,20 @@ void DefaultAssembler3D::assemblePDESingle(AbstractSystemMatrix* mat,
 void DefaultAssembler3D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const 
 {
-    Data d = unpackData("d", coefs);
-    Data y = unpackData("y", coefs);
+    const Data& d = unpackData("d", coefs);
+    const Data& y = unpackData("y", coefs);
     assemblePDEBoundarySingle(mat, rhs, d, y);
 }
 
 void DefaultAssembler3D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data A = unpackData("A", coefs);
-    Data B = unpackData("B", coefs);
-    Data C = unpackData("C", coefs);
-    Data D = unpackData("D", coefs);
-    Data X = unpackData("X", coefs);
-    Data Y = unpackData("Y", coefs);
+    const Data& A = unpackData("A", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& X = unpackData("X", coefs);
+    const Data& Y = unpackData("Y", coefs);
     assemblePDESingleReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
@@ -78,37 +78,40 @@ void DefaultAssembler3D::assemblePDEBoundarySingleReduced(
                                         AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data d = unpackData("d", coefs);
-    Data y = unpackData("y", coefs);
+    const Data& d = unpackData("d", coefs);
+    const Data& y = unpackData("y", coefs);
     assemblePDEBoundarySingleReduced(mat, rhs, d, y);
 }
 
 void DefaultAssembler3D::assemblePDESystem(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data A = unpackData("A", coefs);
-    Data B = unpackData("B", coefs);
-    Data C = unpackData("C", coefs);
-    Data D = unpackData("D", coefs);
-    Data X = unpackData("X", coefs);
-    Data Y = unpackData("Y", coefs);
+    const Data& A = unpackData("A", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& X = unpackData("X", coefs);
+    const Data& Y = unpackData("Y", coefs);
     assemblePDESystem(mat, rhs, A, B, C, D, X, Y);
 }
 
 void DefaultAssembler3D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data d = unpackData("d", coefs);
-    Data y = unpackData("y", coefs);
+    const Data& d = unpackData("d", coefs);
+    const Data& y = unpackData("y", coefs);
     assemblePDEBoundarySystem(mat, rhs, d, y);
 }
 
 void DefaultAssembler3D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data A = unpackData("A", coefs), B = unpackData("B", coefs),
-                 C = unpackData("C", coefs), D = unpackData("D", coefs),
-                 X = unpackData("X", coefs), Y = unpackData("Y", coefs);
+    const Data& A = unpackData("A", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& X = unpackData("X", coefs);
+    const Data& Y = unpackData("Y", coefs);
     assemblePDESystemReduced(mat, rhs, A, B, C, D, X, Y);
 }
 
@@ -116,8 +119,8 @@ void DefaultAssembler3D::assemblePDEBoundarySystemReduced(
                                         AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    Data d = unpackData("d", coefs);
-    Data y = unpackData("y", coefs);
+    const Data& d = unpackData("d", coefs);
+    const Data& y = unpackData("y", coefs);
     assemblePDEBoundarySystemReduced(mat, rhs, d, y);
 }
 

@@ -14,19 +14,15 @@
 *
 *****************************************************************************/
 
-#include <algorithm>
-#include <limits>
-
 #include <ripley/Rectangle.h>
+#include <ripley/DefaultAssembler2D.h>
+#include <ripley/LameAssembler2D.h>
+#include <ripley/WaveAssembler2D.h>
+#include <ripley/blocktools.h>
+#include <ripley/domainhelpers.h>
 #include <paso/SystemMatrix.h>
 #include <esysUtils/esysFileWriter.h>
-#include <ripley/DefaultAssembler2D.h>
-#include <ripley/WaveAssembler2D.h>
-#include <ripley/LameAssembler2D.h>
-#include <ripley/domainhelpers.h>
-#include <boost/scoped_array.hpp>
-#include "esysUtils/EsysRandom.h"
-#include "blocktools.h"
+#include <esysUtils/EsysRandom.h>
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -39,7 +35,11 @@
 #endif
 #endif
 
+#include <boost/scoped_array.hpp>
+
+#include <algorithm>
 #include <iomanip>
+#include <limits>
 
 using namespace std;
 using esysUtils::FileWriter;
@@ -49,15 +49,14 @@ namespace ripley {
 
 Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
-                     const std::vector<double>& points,
-                     const std::vector<int>& tags,
+                     const vector<double>& points,
+                     const vector<int>& tags,
                      const simap_t& tagnamestonums,
-		    escript::SubWorld_ptr w
-		    ) :
+                     escript::SubWorld_ptr w) :
     RipleyDomain(2, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
-            > std::numeric_limits<int>::max())
+            > numeric_limits<int>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
     
@@ -72,7 +71,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
     }
 
     bool warn=false;
-    std::vector<int> factors;
+    vector<int> factors;
     int ranks = m_mpiInfo->size;
     int epr[2] = {n0,n1};
     int d[2] = {d0,d1};
@@ -514,10 +513,10 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
     const int numComp = out.getDataPointSize();
     int filesize = f.tellg();
     f.seekg(0, ios::beg);
-    std::vector<char> compressed(filesize);
+    vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
-    std::vector<char> decompressed = unzip(compressed);
+    vector<char> decompressed = unzip(compressed);
     filesize = decompressed.size();
     const int reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
@@ -1543,7 +1542,7 @@ void Rectangle::populateSampleIds()
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const std::length_error& le) {
+    } catch (const length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
 
@@ -1782,7 +1781,7 @@ void Rectangle::createPattern()
         
 #pragma omp parallel for
     for (int i = 0; i < numShared; i++) {
-        std::sort(rowIndices[i].begin(), rowIndices[i].end());
+        sort(rowIndices[i].begin(), rowIndices[i].end());
     }
 
     // TODO: paso::SharedComponents should take vectors to avoid this
@@ -2430,7 +2429,7 @@ int Rectangle::findNode(const double *coords) const
     return closest;
 }
 
-Assembler_ptr Rectangle::createAssembler(std::string type,
+Assembler_ptr Rectangle::createAssembler(string type,
                                          const DataMap& constants) const
 {
     if (type.compare("DefaultAssembler") == 0) {
