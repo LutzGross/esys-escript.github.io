@@ -47,7 +47,8 @@ using escript::AbstractSystemMatrix;
 
 namespace ripley {
 
-int indexOfMax(int a, int b, int c) {
+inline int indexOfMax(int a, int b, int c)
+{
     if (a > b) {
         if (c > a) {
             return 2;
@@ -2060,40 +2061,6 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 }
 
 //protected
-dim_t Brick::insertNeighbourNodes(IndexVector& index, index_t node) const
-{
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-    const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
-    const int x=node%nDOF0;
-    const int y=node%(nDOF0*nDOF1)/nDOF0;
-    const int z=node/(nDOF0*nDOF1);
-    int num=0;
-    // loop through potential neighbours and add to index if positions are
-    // within bounds
-    for (int i2=-1; i2<2; i2++) {
-        for (int i1=-1; i1<2; i1++) {
-            for (int i0=-1; i0<2; i0++) {
-                // skip node itself
-                if (i0==0 && i1==0 && i2==0)
-                    continue;
-                // location of neighbour node
-                const int nx=x+i0;
-                const int ny=y+i1;
-                const int nz=z+i2;
-                if (nx>=0 && ny>=0 && nz>=0
-                        && nx<nDOF0 && ny<nDOF1 && nz<nDOF2) {
-                    index.push_back(nz*nDOF0*nDOF1+ny*nDOF0+nx);
-                    num++;
-                }
-            }
-        }
-    }
-
-    return num;
-}
-
-//protected
 void Brick::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
@@ -2388,6 +2355,36 @@ void Brick::populateSampleIds()
 }
 
 //private
+vector<IndexVector> Brick::getConnections() const
+{
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
+    const dim_t M = nDOF0*nDOF1*nDOF2;
+    vector<IndexVector> indices(M);
+    
+#pragma omp parallel for
+    for (index_t i=0; i < M; i++) {
+        const index_t x = i % nDOF0;
+        const index_t y = i % (nDOF0*nDOF1)/nDOF0;
+        const index_t z = i / (nDOF0*nDOF1);
+        // loop through potential neighbours and add to index if positions are
+        // within bounds
+        for (int i2=z-1; i2<z+2; i2++) {
+            for (int i1=y-1; i1<y+2; i1++) {
+                for (int i0=x-1; i0<x+2; i0++) {
+                    if (i0>=0 && i1>=0 && i2>=0
+                            && i0<nDOF0 && i1<nDOF1 && i2<nDOF2) {
+                        indices[i].push_back(i2*nDOF0*nDOF1 + i1*nDOF0 + i0);
+                    }
+                }
+            }
+        }
+    }
+    return indices;
+}
+
+//private
 void Brick::createPattern()
 {
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
@@ -2413,7 +2410,6 @@ void Brick::createPattern()
     // all potential neighbouring ranks and checking if positions are
     // within bounds
     const dim_t numDOF=nDOF0*nDOF1*nDOF2;
-    vector<IndexVector> colIndices(numDOF); // for the couple blocks
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
@@ -2452,6 +2448,7 @@ void Brick::createPattern()
         }
     }
     
+    vector<IndexVector> colIndices(numDOF); // for the couple blocks
     vector<IndexVector> rowIndices(expectedShared);
     
     for (int i2=-1; i2<2; i2++) {
@@ -2665,15 +2662,15 @@ void Brick::createPattern()
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
     // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createMainPattern();
-    paso::Pattern_ptr colPattern, rowPattern;
-    createCouplePatterns(colIndices, rowIndices, numShared, colPattern, rowPattern);
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
 
     // allocate paso distribution
     paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
             const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
 
-    // finally create the system matrix
+    // finally create the system matrix pattern
     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
             m_connector, m_connector));

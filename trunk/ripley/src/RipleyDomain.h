@@ -546,10 +546,10 @@ public:
        \brief
        creates a stiffness matrix and initializes it with zeros
     */
-    virtual escript::ASM_ptr newSystemMatrix(const int row_blocksize,
+    virtual escript::ASM_ptr newSystemMatrix(int row_blocksize,
             const escript::FunctionSpace& row_functionspace,
-            const int column_blocksize,
-            const escript::FunctionSpace& column_functionspace, const int type) const;
+            int column_blocksize,
+            const escript::FunctionSpace& column_functionspace, int type) const;
 
     /**
      \brief
@@ -726,19 +726,8 @@ protected:
     void updateTagsInUse(int fsType) const;
 
     /// allocates and returns a Paso pattern structure
-    paso::Pattern_ptr createPasoPattern(const IndexVector& ptr,
-            const IndexVector& index, const dim_t M, const dim_t N) const;
-
-    /// creates the pattern for the main block of the system matrix
-    paso::Pattern_ptr createMainPattern() const;
-
-    /// creates the pattern for the column and row couple blocks of the system
-    /// matrix. colIndices[i] contains all IDs of DOFs that are connected with
-    /// DOF i but remote and 'N' is the total number of remote components
-    void createCouplePatterns(const std::vector<IndexVector>& colIndices,
-                              const std::vector<IndexVector>& rowIndices,
-                              const dim_t N, paso::Pattern_ptr& colPattern,
-                              paso::Pattern_ptr& rowPattern) const;
+    paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
+                                        dim_t N) const;
 
     void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                            const IndexVector& nodes, dim_t numEq,
@@ -760,10 +749,6 @@ protected:
 
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
-
-    /// inserts the nodes that share an element with 'node' into 'index' and
-    /// returns the number of these neighbours
-    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const = 0;
 
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const = 0;

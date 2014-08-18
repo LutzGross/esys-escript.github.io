@@ -191,7 +191,6 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
@@ -208,6 +207,7 @@ protected:
 
 private:
     void populateSampleIds();
+    std::vector<IndexVector> getConnections() const;
     void createPattern();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
