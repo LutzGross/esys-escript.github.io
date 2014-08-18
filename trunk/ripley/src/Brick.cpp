@@ -2450,7 +2450,7 @@ void Brick::createPattern()
     
     vector<IndexVector> colIndices(numDOF); // for the couple blocks
     vector<IndexVector> rowIndices(expectedShared);
-    
+
     for (int i2=-1; i2<2; i2++) {
         for (int i1=-1; i1<2; i1++) {
             for (int i0=-1; i0<2; i0++) {

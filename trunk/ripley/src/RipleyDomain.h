@@ -760,8 +760,9 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
     /// returns the Paso system matrix pattern
-    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder,
-            bool reducedColOrder) const = 0;
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                                              bool reducedRowOrder,
+                                              bool reducedColOrder) const = 0;
 
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
