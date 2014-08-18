@@ -170,7 +170,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
 
     populateSampleIds();
     createPattern();
-    for (map<string, int>::const_iterator i = tagnamestonums.begin();
+    for (simap_t::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
@@ -1450,34 +1450,6 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
 }
 
 //protected
-dim_t Rectangle::insertNeighbourNodes(IndexVector& index, index_t node) const
-{
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-    const int x=node%nDOF0;
-    const int y=node/nDOF0;
-    dim_t num=0;
-    // loop through potential neighbours and add to index if positions are
-    // within bounds
-    for (int i1=-1; i1<2; i1++) {
-        for (int i0=-1; i0<2; i0++) {
-            // skip node itself
-            if (i0==0 && i1==0)
-                continue;
-            // location of neighbour node
-            const int nx=x+i0;
-            const int ny=y+i1;
-            if (nx>=0 && ny>=0 && nx<nDOF0 && ny<nDOF1) {
-                index.push_back(ny*nDOF0+nx);
-                num++;
-            }
-        }
-    }
-
-    return num;
-}
-
-//protected
 void Rectangle::nodesToDOF(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
@@ -1681,6 +1653,31 @@ void Rectangle::populateSampleIds()
 }
 
 //private
+vector<IndexVector> Rectangle::getConnections() const
+{
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t M = nDOF0*nDOF1;
+    vector<IndexVector> indices(M);
+
+#pragma omp parallel for
+    for (index_t i=0; i < M; i++) {
+        const index_t x = i % nDOF0;
+        const index_t y = i / nDOF0;
+        // loop through potential neighbours and add to index if positions are
+        // within bounds
+        for (int i1=y-1; i1<y+2; i1++) {
+            for (int i0=x-1; i0<x+2; i0++) {
+                if (i0>=0 && i1>=0 && i0<nDOF0 && i1<nDOF1) {
+                    indices[i].push_back(i1*nDOF0 + i0);
+                }
+            }
+        }
+    }
+    return indices;
+}
+
+//private
 void Rectangle::createPattern()
 {
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
@@ -1702,7 +1699,6 @@ void Rectangle::createPattern()
     // all potential neighbouring ranks and checking if positions are
     // within bounds
     const dim_t numDOF=nDOF0*nDOF1;
-    vector<IndexVector> colIndices(numDOF); // for the couple blocks
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
@@ -1721,9 +1717,10 @@ void Rectangle::createPattern()
     if (x > 0 && y < m_NX[1] - 1) expectedShared++;
     if (x < m_NX[0] - 1 && y > 0) expectedShared++;
     if (x < m_NX[0] - 1 && y < m_NX[1] - 1) expectedShared++;
-    
+
+    vector<IndexVector> colIndices(numDOF); // for the couple blocks
     vector<IndexVector> rowIndices(expectedShared);
-    
+
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
             // skip this rank
@@ -1804,15 +1801,15 @@ void Rectangle::createPattern()
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
     // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createMainPattern();
-    paso::Pattern_ptr colPattern, rowPattern;
-    createCouplePatterns(colIndices, rowIndices, numShared, colPattern, rowPattern);
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
 
     // allocate paso distribution
     paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
             const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
 
-    // finally create the system matrix
+    // finally create the system matrix pattern
     m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
             distribution, distribution, mainPattern, colPattern, rowPattern,
             m_connector, m_connector));

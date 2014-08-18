@@ -770,11 +770,9 @@ int RipleyDomain::getTransportTypeId(const int solver, const int preconditioner,
             package, symmetry, m_mpiInfo);
 }
 
-escript::ASM_ptr RipleyDomain::newSystemMatrix(const int row_blocksize,
-        const escript::FunctionSpace& row_functionspace,
-        const int column_blocksize,
-        const escript::FunctionSpace& column_functionspace,
-        const int type) const
+escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
+        const escript::FunctionSpace& row_functionspace, int column_blocksize,
+        const escript::FunctionSpace& column_functionspace, int type) const
 {
     bool reduceRowOrder=false;
     bool reduceColOrder=false;
@@ -1049,63 +1047,25 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 }
 
 //protected
-paso::Pattern_ptr RipleyDomain::createPasoPattern(const IndexVector& ptr,
-        const IndexVector& index, const dim_t M, const dim_t N) const
+paso::Pattern_ptr RipleyDomain::createPasoPattern(
+        const vector<IndexVector>& indices, dim_t N) const
 {
     // paso will manage the memory
-    index_t* indexC = new index_t[index.size()];
-    index_t* ptrC = new index_t[ptr.size()];
+    const dim_t M = indices.size();
+    index_t* ptr = new index_t[M+1];
+    ptr[0] = 0;
+    for (index_t i=0; i < M; i++) {
+        ptr[i+1] = ptr[i]+indices[i].size();
+    }
+
+    index_t* index = new index_t[ptr[M]];
+
 #pragma omp parallel for
-    for (dim_t i=0; i<ptr.size()-1; i++) {
-        ptrC[i] = ptr[i];
-        for (dim_t j=ptr[i]; j<ptr[i+1]; j++)
-            indexC[j] = index[j];
-    }
-    ptrC[ptr.size()-1] = ptr[ptr.size()-1];
-
-    return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptrC, indexC));
-}
-
-//protected
-paso::Pattern_ptr RipleyDomain::createMainPattern() const
-{
-    IndexVector ptr(1,0);
-    IndexVector index;
-
-    for (index_t i=0; i<getNumDOF(); i++) {
-        // add the DOF itself
-        index.push_back(i);
-        const dim_t num=insertNeighbourNodes(index, i);
-        ptr.push_back(ptr.back()+num+1);
+    for (index_t i=0; i < M; i++) {
+        copy(indices[i].begin(), indices[i].end(), &index[ptr[i]]);
     }
 
-    return createPasoPattern(ptr, index, ptr.size()-1, ptr.size()-1);
-}
-
-//protected
-void RipleyDomain::createCouplePatterns(const vector<IndexVector>& colIndices,
-        const vector<IndexVector>& rowIndices, const dim_t N,
-        paso::Pattern_ptr& colPattern, paso::Pattern_ptr& rowPattern) const
-{
-    IndexVector ptr(1,0);
-    IndexVector index;
-    for (index_t i=0; i<getNumDOF(); i++) {
-        index.insert(index.end(), colIndices[i].begin(), colIndices[i].end());
-        ptr.push_back(ptr.back()+colIndices[i].size());
-    }
-
-    const dim_t M=ptr.size()-1;
-    colPattern=createPasoPattern(ptr, index, M, N);
-
-    IndexVector rowPtr(1,0);
-    IndexVector rowIndex;
-    for (index_t i=0; i<rowIndices.size(); i++) {
-        rowIndex.insert(rowIndex.end(), rowIndices[i].begin(), rowIndices[i].end());
-        rowPtr.push_back(rowPtr.back()+rowIndices[i].size());
-    }
-
-    // M and N are now reversed
-    rowPattern=createPasoPattern(rowPtr, rowIndex, N, M);
+    return paso::Pattern_ptr(new paso::Pattern(MATRIX_FORMAT_DEFAULT, M, N, ptr, index));
 }
 
 //protected
