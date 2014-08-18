@@ -797,7 +797,8 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
         throw RipleyException("newSystemMatrix: Ripley does not support matrix format TRILINOS_CRS");
 
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPattern(reduceRowOrder, reduceColOrder));
+    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceRowOrder,
+                                                              reduceColOrder));
     paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
             row_blocksize, column_blocksize, false));
     paso::checkPasoError();
@@ -881,7 +882,7 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
         throw RipleyException("newTransportProblem: illegal function space type for transport problem");
 
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPattern(reduceOrder, reduceOrder));
+    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceOrder, reduceOrder));
     paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
                                                              blocksize));
     paso::checkPasoError();

@@ -35,6 +35,7 @@
 #endif
 #endif
 
+#include <boost/iterator/counting_iterator.hpp>
 #include <boost/scoped_array.hpp>
 
 #include <algorithm>
@@ -169,7 +170,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
         m_offset[1]--;
 
     populateSampleIds();
-    createPattern();
+
     for (simap_t::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
@@ -1492,6 +1493,57 @@ void Rectangle::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
+//protected
+paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
+                                                    bool reducedRowOrder,
+                                                    bool reducedColOrder) const
+{
+    if (m_pattern.get())
+        return m_pattern;
+
+    // first call - create pattern, then return
+    const dim_t numDOF = getNumDOF();
+    const dim_t numShared = m_connector->send->numSharedComponents;
+    const dim_t numNeighbours = m_connector->send->numNeighbors;
+    const index_t* offsetInShared = m_connector->send->offsetInShared;
+    const index_t* sendShared = m_connector->send->shared;
+
+    // these are for the couple blocks
+    vector<IndexVector> colIndices(numDOF);
+    vector<IndexVector> rowIndices(numShared);
+
+    for (dim_t i=0; i<numNeighbours; i++) {
+        const dim_t start = offsetInShared[i];
+        const dim_t end = offsetInShared[i+1];
+        for (dim_t j = start; j < end; j++) {
+            if (j > start)
+                doublyLink(colIndices, rowIndices, sendShared[j-1], j);
+            doublyLink(colIndices, rowIndices, sendShared[j], j);
+            if (j < end-1)
+                doublyLink(colIndices, rowIndices, sendShared[j+1], j);
+        }
+    }
+#pragma omp parallel for
+    for (int i = 0; i < numShared; i++) {
+        sort(rowIndices[i].begin(), rowIndices[i].end());
+    }
+
+    // create main and couple blocks
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
+
+    // allocate paso distribution
+    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
+
+    // finally create the system matrix pattern
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            distribution, distribution, mainPattern, colPattern, rowPattern,
+            m_connector, m_connector));
+    return m_pattern;
+}
+
 //private
 void Rectangle::populateSampleIds()
 {
@@ -1650,11 +1702,15 @@ void Rectangle::populateSampleIds()
     setTagMap("bottom", BOTTOM);
     setTagMap("top", TOP);
     updateTagsInUse(FaceElements);
+
+    populateDofMap();
 }
 
 //private
 vector<IndexVector> Rectangle::getConnections() const
 {
+    // returns a vector v of size numDOF where v[i] is a vector with indices
+    // of DOFs connected to i (up to 9 in 2D)
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const dim_t M = nDOF0*nDOF1;
@@ -1678,7 +1734,7 @@ vector<IndexVector> Rectangle::getConnections() const
 }
 
 //private
-void Rectangle::createPattern()
+void Rectangle::populateDofMap()
 {
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
@@ -1701,85 +1757,88 @@ void Rectangle::createPattern()
     const dim_t numDOF=nDOF0*nDOF1;
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
-    IndexVector sendShared, recvShared;
-    int numShared=0, expectedShared=0;
+    IndexVector sendShared;
     const int x=m_mpiInfo->rank%m_NX[0];
     const int y=m_mpiInfo->rank/m_NX[0];
-    if (x > 0)
-        expectedShared += nDOF1;
-    if (x < m_NX[0] - 1)
-        expectedShared += nDOF1;
-    if (y > 0)
-        expectedShared += nDOF0;
-    if (y < m_NX[1] - 1)
-        expectedShared += nDOF0;
-    if (x > 0 && y > 0) expectedShared++;
-    if (x > 0 && y < m_NX[1] - 1) expectedShared++;
-    if (x < m_NX[0] - 1 && y > 0) expectedShared++;
-    if (x < m_NX[0] - 1 && y < m_NX[1] - 1) expectedShared++;
-
-    vector<IndexVector> colIndices(numDOF); // for the couple blocks
-    vector<IndexVector> rowIndices(expectedShared);
-
-    for (int i1=-1; i1<2; i1++) {
-        for (int i0=-1; i0<2; i0++) {
-            // skip this rank
-            if (i0==0 && i1==0)
-                continue;
-            // location of neighbour rank
-            const int nx=x+i0;
-            const int ny=y+i1;
-            if (nx>=0 && ny>=0 && nx<m_NX[0] && ny<m_NX[1]) {
-                neighbour.push_back(ny*m_NX[0]+nx);
-                if (i0==0) {
-                    // sharing top or bottom edge
-                    const int firstDOF=(i1==-1 ? 0 : numDOF-nDOF0);
-                    const int firstNode=(i1==-1 ? left : m_NN[0]*(m_NN[1]-1)+left);
-                    offsetInShared.push_back(offsetInShared.back()+nDOF0);
-                    for (dim_t i=0; i<nDOF0; i++, numShared++) {
-                        sendShared.push_back(firstDOF+i);
-                        recvShared.push_back(numDOF+numShared);
-                        if (i>0)
-                            doublyLink(colIndices, rowIndices, firstDOF+i-1, numShared);
-                        doublyLink(colIndices, rowIndices, firstDOF+i, numShared);
-                        if (i<nDOF0-1)
-                            doublyLink(colIndices, rowIndices, firstDOF+i+1, numShared);
-                        m_dofMap[firstNode+i]=numDOF+numShared;
-                    }
-                } else if (i1==0) {
-                    // sharing left or right edge
-                    const int firstDOF=(i0==-1 ? 0 : nDOF0-1);
-                    const int firstNode=(i0==-1 ? bottom*m_NN[0] : (bottom+1)*m_NN[0]-1);
-                    offsetInShared.push_back(offsetInShared.back()+nDOF1);
-                    for (dim_t i=0; i<nDOF1; i++, numShared++) {
-                        sendShared.push_back(firstDOF+i*nDOF0);
-                        recvShared.push_back(numDOF+numShared);
-                        if (i>0)
-                            doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0, numShared);
-                        doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0, numShared);
-                        if (i<nDOF1-1)
-                            doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0, numShared);
-                        m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
-                    }
-                } else {
-                    // sharing a node
-                    const int dof=(i0+1)/2*(nDOF0-1)+(i1+1)/2*(numDOF-nDOF0);
-                    const int node=(i0+1)/2*(m_NN[0]-1)+(i1+1)/2*m_NN[0]*(m_NN[1]-1);
-                    offsetInShared.push_back(offsetInShared.back()+1);
-                    sendShared.push_back(dof);
-                    recvShared.push_back(numDOF+numShared);
-                    doublyLink(colIndices, rowIndices, dof, numShared);
-                    m_dofMap[node]=numDOF+numShared;
-                    ++numShared;
-                }
-            }
+    // numShared will contain the number of shared DOFs after the following
+    // blocks
+    dim_t numShared=0;
+    // sharing bottom edge
+    if (y > 0) {
+        neighbour.push_back((y-1)*m_NX[0] + x);
+        const dim_t num = nDOF0;
+        offsetInShared.push_back(offsetInShared.back()+num);
+        for (dim_t i=0; i<num; i++, numShared++) {
+            sendShared.push_back(i);
+            m_dofMap[left+i]=numDOF+numShared;
         }
     }
-        
-#pragma omp parallel for
-    for (int i = 0; i < numShared; i++) {
-        sort(rowIndices[i].begin(), rowIndices[i].end());
+    // sharing top edge
+    if (y < m_NX[1] - 1) {
+        neighbour.push_back((y+1)*m_NX[0] + x);
+        const dim_t num = nDOF0;
+        offsetInShared.push_back(offsetInShared.back()+num);
+        for (dim_t i=0; i<num; i++, numShared++) {
+            sendShared.push_back(numDOF-num+i);
+            m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
+        }
     }
+    // sharing left edge
+    if (x > 0) {
+        neighbour.push_back(y*m_NX[0] + x-1);
+        const dim_t num = nDOF1;
+        offsetInShared.push_back(offsetInShared.back()+num);
+        for (dim_t i=0; i<num; i++, numShared++) {
+            sendShared.push_back(i*nDOF0);
+            m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
+        }
+    }
+    // sharing right edge
+    if (x < m_NX[0] - 1) {
+        neighbour.push_back(y*m_NX[0] + x+1);
+        const dim_t num = nDOF1;
+        offsetInShared.push_back(offsetInShared.back()+num);
+        for (dim_t i=0; i<num; i++, numShared++) {
+            sendShared.push_back((i+1)*nDOF0-1);
+            m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
+        }
+    }
+    // sharing bottom-left node
+    if (x > 0 && y > 0) {
+        neighbour.push_back((y-1)*m_NX[0] + x-1);
+        // sharing a node
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(0);
+        m_dofMap[0]=numDOF+numShared;
+        ++numShared;
+    }
+    // sharing top-left node
+    if (x > 0 && y < m_NX[1]-1) {
+        neighbour.push_back((y+1)*m_NX[0] + x-1);
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(numDOF-nDOF0);
+        m_dofMap[m_NN[0]*(m_NN[1]-1)]=numDOF+numShared;
+        ++numShared;
+    }
+    // sharing bottom-right node
+    if (x < m_NX[0]-1 && y > 0) {
+        neighbour.push_back((y-1)*m_NX[0] + x+1);
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(nDOF0-1);
+        m_dofMap[m_NN[0]-1]=numDOF+numShared;
+        ++numShared;
+    }
+    // sharing top-right node
+    if (x < m_NX[0]-1 && y < m_NX[1]-1) {
+        neighbour.push_back((y+1)*m_NX[0] + x+1);
+        offsetInShared.push_back(offsetInShared.back()+1);
+        sendShared.push_back(numDOF-1);
+        m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
+        ++numShared;
+    }
+
+    IndexVector recvShared(boost::counting_iterator<index_t>(numDOF),
+                   boost::counting_iterator<index_t>(numDOF+numShared));
 
     // TODO: paso::SharedComponents should take vectors to avoid this
     Esys_MPI_rank* neighPtr = NULL;
@@ -1799,20 +1858,6 @@ void Rectangle::createPattern()
             numDOF, neighbour.size(), neighPtr, recvPtr,
             &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
-
-    // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
-    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
-    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
-
-    // allocate paso distribution
-    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
-
-    // finally create the system matrix pattern
-    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-            distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector));
 
     // useful debug output
     /*

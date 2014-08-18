@@ -194,7 +194,8 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
-    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder, bool reducedColOrder) const;
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                             bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -309,8 +310,9 @@ inline boost::python::tuple Brick::getGridParameters() const
             boost::python::make_tuple(m_gNE[0], m_gNE[1], m_gNE[2]));
 }
 
-inline paso::SystemMatrixPattern_ptr Brick::getPattern(bool reducedRowOrder,
-                                                       bool reducedColOrder) const
+inline paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
+                                                    bool reducedRowOrder,
+                                                    bool reducedColOrder) const
 {
     // TODO: reduced
     return m_pattern;

@@ -201,7 +201,8 @@ protected:
                                   const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
-    virtual paso::SystemMatrixPattern_ptr getPattern(bool reducedRowOrder, bool reducedColOrder) const;
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                             bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -213,8 +214,8 @@ protected:
 
 private:
     void populateSampleIds();
+    void populateDofMap();
     std::vector<IndexVector> getConnections() const;
-    void createPattern();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
@@ -288,7 +289,7 @@ private:
     paso::Connector_ptr m_connector;
 
     // the Paso System Matrix pattern
-    paso::SystemMatrixPattern_ptr m_pattern;
+    mutable paso::SystemMatrixPattern_ptr m_pattern;
 
     friend class DefaultAssembler2D;
     friend class WaveAssembler2D;
@@ -319,14 +320,6 @@ inline boost::python::tuple Rectangle::getGridParameters() const
             boost::python::make_tuple(m_dx[0], m_dx[1]),
             boost::python::make_tuple(m_gNE[0], m_gNE[1]));
 }
-
-inline paso::SystemMatrixPattern_ptr Rectangle::getPattern(bool reducedRowOrder,
-                                                           bool reducedColOrder) const
-{
-    // TODO: reduced
-    return m_pattern;
-}
-
 
 //protected
 inline dim_t Rectangle::getNumDOF() const
