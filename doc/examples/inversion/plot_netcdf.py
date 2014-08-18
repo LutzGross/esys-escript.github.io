@@ -34,15 +34,25 @@ try:
         FILENAME='data/QLDWestMagnetic.nc'
 
     f=netcdf_file(FILENAME, 'r')
-    NY=f.dimensions["latitude"]
-    NX=f.dimensions["longitude"]
+    for latvar in "latitude", "lat", "y":
+        try:
+            NY=f.dimensions[latvar]
+            break
+        except KeyError:
+            pass
+    for lonvar in "longitude", "lon", "x":
+        try:
+            NX=f.dimensions[lonvar]
+            break
+        except KeyError:
+            pass
 
-    latitude=f.variables["latitude"]
+    latitude=f.variables[latvar]
     y_label=latitude.long_name
     y_units=latitude.units
     latitude=latitude[:]
 
-    longitude=f.variables["longitude"]
+    longitude=f.variables[lonvar]
     x_label=longitude.long_name
     x_units=longitude.units
     longitude=longitude[:]
