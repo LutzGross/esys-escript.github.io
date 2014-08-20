@@ -23,26 +23,26 @@
 
 #include <iomanip>
 
+namespace bp = boost::python;
+
 using namespace std;
 using paso::SystemMatrixAdapter;
 using paso::TransportProblemAdapter;
 
 namespace ripley {
 
-void tupleListToMap(DataMap& mapping, boost::python::list& list)
+void tupleListToMap(DataMap& mapping, const bp::list& list)
 {
-    using boost::python::tuple;
-    using boost::python::extract;
     for (int i = 0; i < len(list); i++) {
-        if (!extract<tuple>(list[i]).check())
+        if (!bp::extract<bp::tuple>(list[i]).check())
             throw RipleyException("Passed in list contains objects"
                                     " other than tuples");
-        tuple t = extract<tuple>(list[i]);
-        if (len(t) != 2 || !extract<std::string>(t[0]).check() ||
-                !extract<escript::Data>(t[1]).check())
+        bp::tuple t = bp::extract<bp::tuple>(list[i]);
+        if (len(t) != 2 || !bp::extract<string>(t[0]).check() ||
+                !bp::extract<escript::Data>(t[1]).check())
             throw RipleyException("The passed in list must contain tuples"
                 " of the form (string, escript::data)");
-        mapping[extract<std::string>(t[0])] = extract<escript::Data>(t[1]);
+        mapping[bp::extract<string>(t[0])] = bp::extract<escript::Data>(t[1]);
     }
 }
 
@@ -96,41 +96,50 @@ bool RipleyDomain::isValidFunctionSpaceType(int fsType) const
 string RipleyDomain::functionSpaceTypeAsString(int fsType) const
 {
     switch (fsType) {
-        case DegreesOfFreedom: return "Ripley_DegreesOfFreedom [Solution(domain)]";
-        case ReducedDegreesOfFreedom: return "Ripley_ReducedDegreesOfFreedom [ReducedSolution(domain)]";
-        case Nodes: return "Ripley_Nodes [ContinuousFunction(domain)]";
-        case ReducedNodes: return "Ripley_ReducedNodes [ReducedContinuousFunction(domain)]";
-        case Elements: return "Ripley_Elements [Function(domain)]";
-        case ReducedElements: return "Ripley_ReducedElements [ReducedFunction(domain)]";
-        case FaceElements: return "Ripley_FaceElements [FunctionOnBoundary(domain)]";
-        case ReducedFaceElements: return "Ripley_ReducedFaceElements [ReducedFunctionOnBoundary(domain)]";
-        case Points: return "Ripley_Points [DiracDeltaFunctions(domain)]";
+        case DegreesOfFreedom:
+            return "Ripley_DegreesOfFreedom [Solution(domain)]";
+        case ReducedDegreesOfFreedom:
+            return "Ripley_ReducedDegreesOfFreedom [ReducedSolution(domain)]";
+        case Nodes:
+            return "Ripley_Nodes [ContinuousFunction(domain)]";
+        case ReducedNodes:
+            return "Ripley_ReducedNodes [ReducedContinuousFunction(domain)]";
+        case Elements:
+            return "Ripley_Elements [Function(domain)]";
+        case ReducedElements:
+            return "Ripley_ReducedElements [ReducedFunction(domain)]";
+        case FaceElements:
+            return "Ripley_FaceElements [FunctionOnBoundary(domain)]";
+        case ReducedFaceElements:
+            return "Ripley_ReducedFaceElements [ReducedFunctionOnBoundary(domain)]";
+        case Points:
+            return "Ripley_Points [DiracDeltaFunctions(domain)]";
         default:
             break;
     }
     return "Invalid function space type code";
 }
 
-pair<int,int> RipleyDomain::getDataShape(int fsType) const
+pair<int,dim_t> RipleyDomain::getDataShape(int fsType) const
 {
     const int ptsPerSample = (m_numDim==2 ? 4 : 8);
     switch (fsType) {
         case Nodes:
-        case ReducedNodes: //FIXME: reduced
-            return pair<int,int>(1, getNumNodes());
+        case ReducedNodes:
+            return pair<int,dim_t>(1, getNumNodes());
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom: //FIXME: reduced
-            return pair<int,int>(1, getNumDOF());
+        case ReducedDegreesOfFreedom:
+            return pair<int,dim_t>(1, getNumDOF());
         case Elements:
-            return pair<int,int>(ptsPerSample, getNumElements());
+            return pair<int,dim_t>(ptsPerSample, getNumElements());
         case FaceElements:
-            return pair<int,int>(ptsPerSample/2, getNumFaceElements());
+            return pair<int,dim_t>(ptsPerSample/2, getNumFaceElements());
         case ReducedElements:
-            return pair<int,int>(1, getNumElements());
+            return pair<int,dim_t>(1, getNumElements());
         case ReducedFaceElements:
-            return pair<int,int>(1, getNumFaceElements());
+            return pair<int,dim_t>(1, getNumFaceElements());
         case Points:
-            return pair<int,int>(1, m_diracPoints.size());
+            return pair<int,dim_t>(1, m_diracPoints.size());
         default:
             break;
     }
@@ -286,7 +295,7 @@ bool RipleyDomain::probeInterpolationOnDomain(int fsType_source,
 }
 
 signed char RipleyDomain::preferredInterpolationOnDomain(int fsType_source,
-                                              int fsType_target) const
+                                                      int fsType_target) const
 {
     if (!isValidFunctionSpaceType(fsType_target)) {
         stringstream msg;
@@ -302,9 +311,8 @@ signed char RipleyDomain::preferredInterpolationOnDomain(int fsType_source,
     // can be interpolated to anything, so we need to handle the
     // reverse case for them specially
 
-    if ((fsType_target==Nodes) || (fsType_target==DegreesOfFreedom))
-    {
-        return -1;    // reverse interpolation
+    if ((fsType_target==Nodes) || (fsType_target==DegreesOfFreedom)) {
+        return -1;  // reverse interpolation
     }
 
     switch (fsType_source) {
@@ -314,18 +322,17 @@ signed char RipleyDomain::preferredInterpolationOnDomain(int fsType_source,
         case ReducedNodes:
         case ReducedDegreesOfFreedom:
             return (fsType_target != Nodes &&
-                    fsType_target != DegreesOfFreedom)?-1:0;
+                    fsType_target != DegreesOfFreedom) ? -1 : 0;
         case Elements:
-            return (fsType_target==ReducedElements)?1:0;
+            return (fsType_target==ReducedElements) ? 1 : 0;
         case ReducedElements:
-            return (fsType_target==Elements)?-1:0;        
+            return (fsType_target==Elements) ? -1 : 0;
         case FaceElements:
-            return (fsType_target==ReducedFaceElements)?1:0;
+            return (fsType_target==ReducedFaceElements) ? 1 : 0;
         case ReducedFaceElements:
-            return (fsType_target==FaceElements)?-1:0;
-        case Points: 
-            return false;       // other case caught by the if above
-
+            return (fsType_target==FaceElements) ? -1 : 0;
+        case Points:
+            return false;  // other case caught by the if above
         default: {
             stringstream msg;
             msg << "probeInterpolationOnDomain: Invalid function space type "
@@ -357,10 +364,11 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
     // simplest case: 1:1 copy
     if (inFS==outFS) {
         copyData(target, in);
-    // not allowed: reduced nodes/dof->non-reduced nodes/dof
+    // not allowed: reduced nodes/DOF->non-reduced nodes/DOF
     } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
             && (outFS==Nodes || outFS==DegreesOfFreedom)) {
-        throw RipleyException("interpolateOnDomain: Cannot interpolate reduced data to non-reduced data.");
+        throw RipleyException("interpolateOnDomain: Cannot interpolate "
+                              "reduced data to non-reduced data.");
     } else if ((inFS==Elements && outFS==ReducedElements)
             || (inFS==FaceElements && outFS==ReducedFaceElements)) {
         if (in.actsExpanded())
@@ -373,10 +381,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
     } else {
         switch (inFS) {
             case Nodes:
-            case ReducedNodes: //FIXME: reduced
+            case ReducedNodes:
                 switch (outFS) {
                     case DegreesOfFreedom:
-                    case ReducedDegreesOfFreedom: //FIXME: reduced
+                    case ReducedDegreesOfFreedom:
                         if (getMPISize()==1)
                             copyData(target, in);
                         else
@@ -384,7 +392,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         break;
 
                     case Nodes:
-                    case ReducedNodes: //FIXME: reduced
+                    case ReducedNodes:
                         copyData(target, in);
                         break;
                     case Elements:
@@ -407,7 +415,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                             const dim_t numComp = in.getDataPointSize();
                             const int nDirac = m_diracPoints.size();
                             target.requireWrite();
-                        #pragma omp parallel for
+#pragma omp parallel for
                             for (int i = 0; i < nDirac; i++) {
                                 const double* src = in.getSampleDataRO(m_diracPoints[i].node);
                                 copy(src, src+numComp, target.getSampleDataRW(i));
@@ -420,10 +428,10 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                 break;
 
             case DegreesOfFreedom:
-            case ReducedDegreesOfFreedom: //FIXME: reduced
+            case ReducedDegreesOfFreedom:
                 switch (outFS) {
                     case Nodes:
-                    case ReducedNodes: //FIXME: reduced
+                    case ReducedNodes:
                         if (getMPISize()==1)
                             copyData(target, in);
                         else
@@ -431,7 +439,7 @@ void RipleyDomain::interpolateOnDomain(escript::Data& target,
                         break;
 
                     case DegreesOfFreedom:
-                    case ReducedDegreesOfFreedom: //FIXME: reduced
+                    case ReducedDegreesOfFreedom:
                         copyData(target, in);
                         break;
 
@@ -536,7 +544,7 @@ void RipleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg) 
         }
     }
 
-    if (getMPISize()>1) {
+    if (getMPISize() > 1) {
         if (arg.getFunctionSpace().getTypeCode()==DegreesOfFreedom) {
             escript::Data contArg(arg, escript::continuousFunction(*this));
             assembleGradient(grad, contArg);
@@ -669,7 +677,7 @@ void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Da
     updateTagsInUse(fsType);
 }
 
-int RipleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
+int RipleyDomain::getTagFromSampleNo(int fsType, dim_t sampleNo) const
 {
     switch(fsType) {
         case Nodes:
@@ -739,7 +747,7 @@ const int* RipleyDomain::borrowListOfTagsInUse(int fsType) const
     }
 }
 
-void RipleyDomain::Print_Mesh_Info(const bool full) const
+void RipleyDomain::Print_Mesh_Info(bool full) const
 {
     cout << "Print_Mesh_Info for " << getDescription() << " running on CPU "
         << m_mpiInfo->rank << ". MPI size: " << m_mpiInfo->size << endl;
@@ -750,21 +758,20 @@ void RipleyDomain::Print_Mesh_Info(const bool full) const
         cout << "Tags:" << endl;
         TagMap::const_iterator it;
         for (it=m_tagMap.begin(); it!=m_tagMap.end(); it++) {
-            cout << "  " << setw(5) << it->second << " "
-                << it->first << endl;
+            cout << "  " << setw(5) << it->second << " " << it->first << endl;
         }
     }
 }
 
-int RipleyDomain::getSystemMatrixTypeId(const int solver,
-        const int preconditioner, const int package, const bool symmetry) const
+int RipleyDomain::getSystemMatrixTypeId(int solver, int preconditioner,
+                                        int package, bool symmetry) const
 {
     return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
             package, symmetry, m_mpiInfo);
 }
 
-int RipleyDomain::getTransportTypeId(const int solver, const int preconditioner,
-        const int package, const bool symmetry) const
+int RipleyDomain::getTransportTypeId(int solver, int preconditioner,
+                                     int package, bool symmetry) const
 {
     return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
             package, symmetry, m_mpiInfo);
@@ -821,25 +828,25 @@ void RipleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
 }
 
 void RipleyDomain::addToSystemFromPython(escript::AbstractSystemMatrix& mat,
-        escript::Data& rhs, boost::python::list data,
-        Assembler_ptr assembler) const
+                                         escript::Data& rhs,
+                                         const bp::list& data,
+                                         Assembler_ptr assembler) const
 {
     DataMap mapping;
     tupleListToMap(mapping, data);
     addToSystem(mat, rhs, mapping, assembler);
 }
 
-
-Assembler_ptr RipleyDomain::createAssemblerFromPython(std::string type,
-                                         boost::python::list options) const {
+Assembler_ptr RipleyDomain::createAssemblerFromPython(const string type,
+                                                const bp::list& options) const
+{
     DataMap mapping;
     tupleListToMap(mapping, options);
     return createAssembler(type, mapping);
 }
 
-void RipleyDomain::addToRHSFromPython(escript::Data& rhs,
-            boost::python::list data,
-            Assembler_ptr assembler) const
+void RipleyDomain::addToRHSFromPython(escript::Data& rhs, const bp::list& data,
+                                      Assembler_ptr assembler) const
 {
     DataMap mapping;
     tupleListToMap(mapping, data);
@@ -867,8 +874,8 @@ void RipleyDomain::addToRHS(escript::Data& rhs, const DataMap& coefs,
     assemblePDEDirac(NULL, rhs, coefs, assembler);
 }
 
-escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
-        const escript::FunctionSpace& functionspace, const int type) const
+escript::ATP_ptr RipleyDomain::newTransportProblem(int blocksize,
+                  const escript::FunctionSpace& functionspace, int type) const
 {
     bool reduceOrder=false;
     // is the domain right?
@@ -882,7 +889,8 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
         throw RipleyException("newTransportProblem: illegal function space type for transport problem");
 
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceOrder, reduceOrder));
+    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceOrder,
+                                                               reduceOrder));
     paso::TransportProblem_ptr tp(new paso::TransportProblem(pattern,
                                                              blocksize));
     paso::checkPasoError();
@@ -891,9 +899,8 @@ escript::ATP_ptr RipleyDomain::newTransportProblem(const int blocksize,
 }
 
 void RipleyDomain::addPDEToTransportProblemFromPython(
-        escript::AbstractTransportProblem& tp,
-        escript::Data& source, boost::python::list data,
-        Assembler_ptr assembler) const
+                escript::AbstractTransportProblem& tp, escript::Data& source,
+                const bp::list& data, Assembler_ptr assembler) const
 {
     DataMap mapping;
     tupleListToMap(mapping, data);
@@ -915,10 +922,10 @@ void RipleyDomain::addPDEToTransportProblem(
 
     paso::SystemMatrixAdapter mm(ptp->borrowMassMatrix(), ptp->getBlockSize(),
                                  tpa->getFunctionSpace(), ptp->getBlockSize(),
-                                 tpa->getFunctionSpace()); 
+                                 tpa->getFunctionSpace());
     paso::SystemMatrixAdapter tm(ptp->borrowTransportMatrix(),
                                  ptp->getBlockSize(), tpa->getFunctionSpace(),
-                                 ptp->getBlockSize(), tpa->getFunctionSpace()); 
+                                 ptp->getBlockSize(), tpa->getFunctionSpace());
 
     assemblePDE(&mm, source, coefs, assembler);
     assemblePDE(&tm, source, coefs, assembler);
@@ -1015,7 +1022,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
     const long numTags = tags->size();
 
     while (true) {
-        // find smallest value bigger than lastFoundValue 
+        // find smallest value bigger than lastFoundValue
         minFoundValue = INDEX_T_MAX;
 #pragma omp parallel private(local_minFoundValue)
         {
@@ -1049,7 +1056,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 
 //protected
 paso::Pattern_ptr RipleyDomain::createPasoPattern(
-        const vector<IndexVector>& indices, dim_t N) const
+                            const vector<IndexVector>& indices, dim_t N) const
 {
     // paso will manage the memory
     const dim_t M = indices.size();
@@ -1074,7 +1081,7 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
                                      const IndexVector& nodes, dim_t numEq,
                                      const DoubleVector& array) const
 {
-    paso::SystemMatrixAdapter* sma = 
+    paso::SystemMatrixAdapter* sma =
                     dynamic_cast<paso::SystemMatrixAdapter*>(mat);
     if (sma) {
         paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
@@ -1085,7 +1092,7 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
 }
 
 //private
-void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat, 
+void RipleyDomain::addToSystemMatrix(paso::SystemMatrix_ptr mat,
                                      const IndexVector& nodes, dim_t numEq,
                                      const vector<double>& array) const
 {
@@ -1224,7 +1231,7 @@ void RipleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
 
     vector<int> fsTypes;
     assembler->collateFunctionSpaceTypes(fsTypes, coefs);
-    
+
     if (fsTypes.empty()) {
         return;
     }
@@ -1293,7 +1300,7 @@ void RipleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
     if (fs==-1) {
         return;
     }
-    
+
     if (fs != FaceElements && fs != ReducedFaceElements)
         throw RipleyException("assemblePDEBoundary: illegal function space type for coefficients");
 
@@ -1368,49 +1375,48 @@ void RipleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
         }
         if (dNotEmpty) {
             const double *EM_S = d.getSampleDataRO(i);
-            std::vector<double> contents(EM_S, EM_S+nEq*nEq*nComp);
+            vector<double> contents(EM_S, EM_S+nEq*nEq*nComp);
             addToSystemMatrix(mat, rowIndex, nEq, contents);
         }
     }
 }
 
 bool RipleyDomain::probeInterpolationACross(int fsType_source,
-        const escript::AbstractDomain&, int fsType_target) const
+                      const escript::AbstractDomain&, int fsType_target) const
 {
     return false;
 }
 
-void RipleyDomain::interpolateACross(escript::Data& target, const escript::Data& source) const
+void RipleyDomain::interpolateACross(escript::Data& target,
+                                     const escript::Data& source) const
 {
     throw RipleyException("interpolateACross() not supported");
 }
 
 // Expecting ("gaussian", radius, sigma)
-bool RipleyDomain::supportsFilter(const boost::python::tuple& t) const
+bool RipleyDomain::supportsFilter(const bp::tuple& t) const
 {
-    if (len(t)==0) {    // so we can handle unfiltered randoms
+    if (len(t) == 0) { // so we can handle unfiltered randoms
         return true;
     }
-    if (len(t)!=3) {
+    if (len(t) != 3) {
         return false;
     }
-    boost::python::extract<string> ex(t[0]);
-    if (!ex.check() || (ex()!="gaussian"))
-    {
+    bp::extract<string> ex(t[0]);
+    if (!ex.check() || (ex() != "gaussian")) {
         return false;
     }
-    if (! boost::python::extract<unsigned int>(t[1]).check())
-    {
+    if (! bp::extract<unsigned int>(t[1]).check()) {
         return false;
     }
-    return boost::python::extract<double>(t[2]).check();
+    return bp::extract<double>(t[2]).check();
 }
 
-void RipleyDomain::addPoints(const std::vector<double>& coords,
-                             const std::vector<int>& tags)
+void RipleyDomain::addPoints(const vector<double>& coords,
+                             const vector<int>& tags)
 {
     for (int i = 0; i < tags.size(); i++) {
-        int node = findNode(&coords[i * m_numDim]);
+        dim_t node = findNode(&coords[i * m_numDim]);
         if (node >= 0) {
             m_diracPointNodeIDs.push_back(borrowSampleReferenceIDs(Nodes)[node]);
             DiracPoint dp;
