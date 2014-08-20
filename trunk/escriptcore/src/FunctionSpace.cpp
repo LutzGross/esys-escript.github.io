@@ -19,6 +19,7 @@
 #include "FunctionSpaceException.h"
 #include "Data.h" 
 #include "DataFactory.h" 
+#include "NullDomain.h"
 
 #include <iostream>
 #include <sstream>

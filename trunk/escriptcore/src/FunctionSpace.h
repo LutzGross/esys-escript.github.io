@@ -20,9 +20,8 @@
 #include "system_dep.h"
 
 #include "AbstractDomain.h"
-#include "NullDomain.h"
 
-#include <string>
+#include <boost/python/list.hpp>
 #include <list>
 
 namespace escript {

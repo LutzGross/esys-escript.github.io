@@ -14,9 +14,11 @@
 *
 *****************************************************************************/
 
-#include "boost/python/import.hpp"
 #include "SubWorld.h"
 #include "SplitWorldException.h"
+
+#include <boost/python/import.hpp>
+#include <boost/python/dict.hpp>
 
 #include <iostream>
 

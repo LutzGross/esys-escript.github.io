@@ -567,7 +567,7 @@ public:
        writes the current mesh to a file with the given name
        \param filename The name of the file to write to
     */
-    //void write(const std::string& filename) const = 0;
+    virtual void write(const std::string& filename) const = 0;
 
     /**
        \brief

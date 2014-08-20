@@ -94,18 +94,9 @@ bool MeshAdapter::onMasterProcessor() const
     return m_finleyMesh.get()->MPIInfo->rank == 0;
 }
 
-#ifdef ESYS_MPI
-MPI_Comm
-#else
-unsigned int
-#endif
-MeshAdapter::getMPIComm() const
+MPI_Comm MeshAdapter::getMPIComm() const
 {
-#ifdef ESYS_MPI
     return m_finleyMesh->MPIInfo->comm;
-#else
-    return 0;
-#endif
 }
 
 Mesh* MeshAdapter::getFinley_Mesh() const

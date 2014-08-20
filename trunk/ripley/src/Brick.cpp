@@ -782,6 +782,11 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
     fw.close();
 }
 
+void Brick::write(const std::string& filename) const
+{
+    throw RipleyException("write: not supported");
+}
+
 void Brick::dump(const string& fileName) const
 {
 #if USE_SILO
