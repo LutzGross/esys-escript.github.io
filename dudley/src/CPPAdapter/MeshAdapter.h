@@ -62,8 +62,8 @@ struct null_deleter
    interface for the Dudley library.
 */
 
-class MeshAdapter : public escript::AbstractContinuousDomain {
-
+class MeshAdapter : public escript::AbstractContinuousDomain
+{
  public:
 
   //
@@ -150,13 +150,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   virtual bool onMasterProcessor() const;
 
   DUDLEY_DLL_API
-#ifdef ESYS_MPI
-  MPI_Comm
-#else
-  unsigned int
-#endif
-  getMPIComm() const;
-
+  MPI_Comm getMPIComm() const;
 
   /**
      \brief

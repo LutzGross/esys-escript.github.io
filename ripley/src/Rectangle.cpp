@@ -660,6 +660,11 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
     fw.close();
 }
 
+void Rectangle::write(const std::string& filename) const
+{
+    throw RipleyException("write: not supported");
+}
+
 void Rectangle::dump(const string& fileName) const
 {
 #if USE_SILO
