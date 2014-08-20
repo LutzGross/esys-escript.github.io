@@ -67,7 +67,7 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
              escript::SubWorld_ptr w) :
     RipleyDomain(3, w)
 {
-    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             * static_cast<long>(n2 + 1) > numeric_limits<int>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
@@ -98,14 +98,14 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
             if (ranks % d[i] != 0) {
                 throw RipleyException("Invalid number of spatial subdivisions");
             }
-            //remove 
+            //remove
             ranks /= d[i];
         }
         factorise(factors, ranks);
         if (factors.size() != 0) {
             warn = true;
         }
-    } 
+    }
     while (factors.size() > 0) {
         int i = indexOfMax(epr[0],epr[1],epr[2]);
         int f = factors.back();
@@ -203,15 +203,13 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
         m_offset[2]--;
 
     populateSampleIds();
-    createPattern();
-    
+
     for (simap_t::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
     addPoints(points, tags);
 }
-
 
 Brick::~Brick()
 {
@@ -665,7 +663,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
             const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
                              +(idx2+z)*params.numValues[0]*params.numValues[1]);
             memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
-            
+
             for (int x=0; x<num0; x++) {
                 const int baseIndex = first0+x*params.multiplier[0]
                                      +(first1+y*params.multiplier[1])*myN0
@@ -792,7 +790,7 @@ void Brick::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    int driver=DB_HDF5;    
+    int driver=DB_HDF5;
     string siloPath;
     DBfile* dbfile = NULL;
 
@@ -2107,6 +2105,209 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
+//protected
+paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
+                                                    bool reducedRowOrder,
+                                                    bool reducedColOrder) const
+{
+    if (m_pattern.get())
+        return m_pattern;
+
+    // first call to this method -> create the pattern, then return it
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
+    const dim_t numDOF = nDOF0*nDOF1*nDOF2;
+    const dim_t numShared = m_connector->send->numSharedComponents;
+    const index_t* sendShared = m_connector->send->shared;
+    const int x = m_mpiInfo->rank%m_NX[0];
+    const int y = m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
+    const int z = m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
+
+    // these are for the couple blocks
+    vector<IndexVector> colIndices(numDOF);
+    vector<IndexVector> rowIndices(numShared);
+
+    for (dim_t i=0; i < m_connector->send->numNeighbors; i++) {
+        const dim_t start = m_connector->send->offsetInShared[i];
+        const dim_t end = m_connector->send->offsetInShared[i+1];
+        // location of neighbour rank relative to this rank
+        const int xDiff = m_connector->send->neighbor[i]%m_NX[0] - x;
+        const int yDiff = m_connector->send->neighbor[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
+        const int zDiff = m_connector->send->neighbor[i]/(m_NX[0]*m_NX[1]) - z;
+        
+        if (xDiff==0 && yDiff==0) {
+            // sharing front or back plane
+            for (dim_t j = start; j < end; j++) {
+                const dim_t i0 = (j-start)%nDOF0;
+                const dim_t i1 = (j-start)/nDOF0;
+                if (i0 > 0) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j-1-nDOF0], j);
+                    doublyLink(colIndices, rowIndices, sendShared[j-1], j);
+                    if (i1 < nDOF1-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j-1+nDOF0], j);
+                }
+                if (i1 > 0)
+                    doublyLink(colIndices, rowIndices, sendShared[j-nDOF0], j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (i1 < nDOF1-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j+nDOF0], j);
+                if (i0 < nDOF0-1) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j+1-nDOF0], j);
+                    doublyLink(colIndices, rowIndices, sendShared[j+1], j);
+                    if (i1 < nDOF1-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j+1+nDOF0], j);
+                }
+            }
+        } else if (xDiff==0 && zDiff==0) {
+            // sharing top or bottom plane
+            for (dim_t j = start; j < end; j++) {
+                const dim_t i0 = (j-start)%nDOF0;
+                const dim_t i1 = (j-start)/nDOF0;
+                if (i0 > 0) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-1-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]-1, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-1+nDOF0*nDOF1, j);
+                }
+                if (i1 > 0)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (i1 < nDOF2-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
+                if (i0 < nDOF0-1) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+1-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]+1, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+1+nDOF0*nDOF1, j);
+                }
+            }
+        } else if (yDiff==0 && zDiff==0) {
+            // sharing left or right plane
+            for (dim_t j = start; j < end; j++) {
+                const dim_t i0 = (j-start)%nDOF1;
+                const dim_t i1 = (j-start)/nDOF1;
+                if (i0 > 0) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0+nDOF0*nDOF1, j);
+                }
+                if (i1 > 0)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (i1 < nDOF2-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
+                if (i0 < nDOF1-1) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0+nDOF0*nDOF1, j);
+                }
+            }
+        } else if (xDiff == 0) {
+            // sharing an edge in x direction
+            for (dim_t j = start; j < end; j++) {
+                if (j > start)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (j < end-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+1, j);
+            }
+        } else if (yDiff == 0) {
+            // sharing an edge in y direction
+            for (dim_t j = start; j < end; j++) {
+                if (j > start)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (j < end-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0, j);
+            }
+        } else if (zDiff == 0) {
+            // sharing an edge in z direction
+            for (dim_t j = start; j < end; j++) {
+                if (j > start)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (j < end-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
+            }
+        } else {
+            // sharing a node
+            doublyLink(colIndices, rowIndices, sendShared[start], start);
+        }
+    }
+
+#pragma omp parallel for
+    for (int i = 0; i < numShared; i++) {
+        sort(rowIndices[i].begin(), rowIndices[i].end());
+    }
+
+    // create main and couple blocks
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
+
+    // allocate paso distribution
+    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
+
+    // finally create the system matrix pattern
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            distribution, distribution, mainPattern, colPattern, rowPattern,
+            m_connector, m_connector));
+
+    // useful debug output
+    /*
+    cout << "--- colIndices ---" << endl;
+    for (size_t i=0; i<colIndices.size(); i++) {
+        cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << endl;
+    }
+    cout << "--- rowIndices ---" << endl;
+    for (size_t i=0; i<rowIndices.size(); i++) {
+        cout << "rowIndices[" << i << "].size()=" << rowIndices[i].size() << endl;
+    }
+    */
+    /*
+    cout << "--- main_pattern ---" << endl;
+    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
+    for (size_t i=0; i<mainPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
+    }
+    for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
+    }
+    */
+    /*
+    cout << "--- colCouple_pattern ---" << endl;
+    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
+    for (size_t i=0; i<colPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
+    }
+    for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
+    }
+    */
+    /*
+    cout << "--- rowCouple_pattern ---" << endl;
+    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
+    for (size_t i=0; i<rowPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
+    }
+    for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
+    }
+    */
+
+    return m_pattern;
+}
+
 //private
 void Brick::populateSampleIds()
 {
@@ -2125,7 +2326,7 @@ void Brick::populateSampleIds()
         m_nodeDistribution[k]=k*numDOF;
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-    
+
     try {
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
@@ -2133,7 +2334,7 @@ void Brick::populateSampleIds()
     } catch (const length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
-    
+
     // populate face element counts
     //left
     if (m_offset[0]==0)
@@ -2352,17 +2553,21 @@ void Brick::populateSampleIds()
     setTagMap("front", FRONT);
     setTagMap("back", BACK);
     updateTagsInUse(FaceElements);
+
+    populateDofMap();
 }
 
 //private
 vector<IndexVector> Brick::getConnections() const
 {
+    // returns a vector v of size numDOF where v[i] is a vector with indices
+    // of DOFs connected to i (up to 27 in 3D)
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
     const dim_t M = nDOF0*nDOF1*nDOF2;
     vector<IndexVector> indices(M);
-    
+
 #pragma omp parallel for
     for (index_t i=0; i < M; i++) {
         const index_t x = i % nDOF0;
@@ -2385,7 +2590,7 @@ vector<IndexVector> Brick::getConnections() const
 }
 
 //private
-void Brick::createPattern()
+void Brick::populateDofMap()
 {
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
@@ -2406,51 +2611,18 @@ void Brick::createPattern()
         }
     }
 
-    // build list of shared components and neighbours by looping through
-    // all potential neighbouring ranks and checking if positions are
-    // within bounds
     const dim_t numDOF=nDOF0*nDOF1*nDOF2;
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
-    int numShared=0, expectedShared=0;;
+    dim_t numShared=0;
     const int x=m_mpiInfo->rank%m_NX[0];
     const int y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     const int z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
-    for (int i2=-1; i2<2; i2++) {
-        for (int i1=-1; i1<2; i1++) {
-            for (int i0=-1; i0<2; i0++) {
-                // skip this rank
-                if (i0==0 && i1==0 && i2==0)
-                    continue;
-                // location of neighbour rank
-                const int nx=x+i0;
-                const int ny=y+i1;
-                const int nz=z+i2;
-                if (!(nx>=0 && ny>=0 && nz>=0 && nx<m_NX[0] && ny<m_NX[1] && nz<m_NX[2])) {
-                    continue;
-                }
-                if (i0==0 && i1==0)
-                    expectedShared += nDOF0*nDOF1;
-                else if (i0==0 && i2==0)
-                    expectedShared += nDOF0*nDOF2;
-                else if (i1==0 && i2==0)
-                    expectedShared += nDOF1*nDOF2;
-                else if (i0==0)
-                    expectedShared += nDOF0;
-                else if (i1==0)
-                    expectedShared += nDOF1;
-                else if (i2==0)
-                    expectedShared += nDOF2;
-                else
-                    expectedShared++;
-            }
-        }
-    }
-    
-    vector<IndexVector> colIndices(numDOF); // for the couple blocks
-    vector<IndexVector> rowIndices(expectedShared);
 
+    // build list of shared components and neighbours by looping through
+    // all potential neighbouring ranks and checking if positions are
+    // within bounds
     for (int i2=-1; i2<2; i2++) {
         for (int i1=-1; i1<2; i1++) {
             for (int i0=-1; i0<2; i0++) {
@@ -2474,25 +2646,6 @@ void Brick::createPattern()
                             for (dim_t j=0; j<nDOF0; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j);
                                 recvShared.push_back(numDOF+numShared);
-                                if (j>0) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1-nDOF0, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-1, numShared);
-                                    if (i<nDOF1-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1+nDOF0, numShared);
-                                }
-                                if (i>0)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-nDOF0, numShared);
-                                doublyLink(colIndices, rowIndices, firstDOF+j, numShared);
-                                if (i<nDOF1-1)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+nDOF0, numShared);
-                                if (j<nDOF0-1) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1-nDOF0, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+1, numShared);
-                                    if (i<nDOF1-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1+nDOF0, numShared);
-                                }
                                 m_dofMap[firstNode+j]=numDOF+numShared;
                             }
                         }
@@ -2508,25 +2661,6 @@ void Brick::createPattern()
                             for (dim_t j=0; j<nDOF0; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j);
                                 recvShared.push_back(numDOF+numShared);
-                                if (j>0) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-1, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1+nDOF0*nDOF1, numShared);
-                                }
-                                if (i>0)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-nDOF0*nDOF1, numShared);
-                                doublyLink(colIndices, rowIndices, firstDOF+j, numShared);
-                                if (i<nDOF2-1)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+nDOF0*nDOF1, numShared);
-                                if (j<nDOF0-1) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+1, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1+nDOF0*nDOF1, numShared);
-                                }
                                 m_dofMap[firstNode+j]=numDOF+numShared;
                             }
                         }
@@ -2542,25 +2676,6 @@ void Brick::createPattern()
                             for (dim_t j=0; j<nDOF1; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j*nDOF0);
                                 recvShared.push_back(numDOF+numShared);
-                                if (j>0) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0+nDOF0*nDOF1, numShared);
-                                }
-                                if (i>0)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0-nDOF0*nDOF1, numShared);
-                                doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0, numShared);
-                                if (i<nDOF2-1)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0+nDOF0*nDOF1, numShared);
-                                if (j<nDOF1-1) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0+nDOF0*nDOF1, numShared);
-                                }
                                 m_dofMap[firstNode+j*m_NN[0]]=numDOF+numShared;
                             }
                         }
@@ -2574,11 +2689,6 @@ void Brick::createPattern()
                         for (dim_t i=0; i<nDOF0; i++, numShared++) {
                             sendShared.push_back(firstDOF+i);
                             recvShared.push_back(numDOF+numShared);
-                            if (i>0)
-                                doublyLink(colIndices, rowIndices, firstDOF+i-1, numShared);
-                            doublyLink(colIndices, rowIndices, firstDOF+i, numShared);
-                            if (i<nDOF0-1)
-                                doublyLink(colIndices, rowIndices, firstDOF+i+1, numShared);
                             m_dofMap[firstNode+i]=numDOF+numShared;
                         }
                     } else if (i1==0) {
@@ -2592,11 +2702,6 @@ void Brick::createPattern()
                         for (dim_t i=0; i<nDOF1; i++, numShared++) {
                             sendShared.push_back(firstDOF+i*nDOF0);
                             recvShared.push_back(numDOF+numShared);
-                            if (i>0)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0, numShared);
-                            doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0, numShared);
-                            if (i<nDOF1-1)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0, numShared);
                             m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
                         }
                     } else if (i2==0) {
@@ -2610,38 +2715,26 @@ void Brick::createPattern()
                         for (dim_t i=0; i<nDOF2; i++, numShared++) {
                             sendShared.push_back(firstDOF+i*nDOF0*nDOF1);
                             recvShared.push_back(numDOF+numShared);
-                            if (i>0)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0*nDOF1, numShared);
-                            doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0*nDOF1, numShared);
-                            if (i<nDOF2-1)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0*nDOF1, numShared);
                             m_dofMap[firstNode+i*m_NN[0]*m_NN[1]]=numDOF+numShared;
                         }
                     } else {
                         // sharing a node
-                        const int dof=(i0+1)/2*(nDOF0-1)
-                                      +(i1+1)/2*nDOF0*(nDOF1-1)
-                                      +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const int node=(i0+1)/2*(m_NN[0]-1)
-                                       +(i1+1)/2*m_NN[0]*(m_NN[1]-1)
-                                       +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
+                        const int dof = (i0+1)/2*(nDOF0-1)
+                                       +(i1+1)/2*nDOF0*(nDOF1-1)
+                                       +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
+                        const int node = (i0+1)/2*(m_NN[0]-1)
+                                        +(i1+1)/2*m_NN[0]*(m_NN[1]-1)
+                                        +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
                         offsetInShared.push_back(offsetInShared.back()+1);
                         sendShared.push_back(dof);
                         recvShared.push_back(numDOF+numShared);
-                        doublyLink(colIndices, rowIndices, dof, numShared);
-                        m_dofMap[node]=numDOF+numShared;
+                        m_dofMap[node] = numDOF+numShared;
                         ++numShared;
                     }
                 }
             }
         }
     }
-
-#pragma omp parallel for
-    for (int i = 0; i < numShared; i++) {
-        sort(rowIndices[i].begin(), rowIndices[i].end());
-    }
-
 
     // TODO: paso::SharedComponents should take vectors to avoid this
     Esys_MPI_rank* neighPtr = NULL;
@@ -2661,20 +2754,6 @@ void Brick::createPattern()
             &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
-    // create main and couple blocks
-    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
-    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
-    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
-
-    // allocate paso distribution
-    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
-            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
-
-    // finally create the system matrix pattern
-    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
-            distribution, distribution, mainPattern, colPattern, rowPattern,
-            m_connector, m_connector));
-
     // useful debug output
     /*
     cout << "--- rcv_shcomp ---" << endl;
@@ -2693,43 +2772,6 @@ void Brick::createPattern()
     cout << "--- dofMap ---" << endl;
     for (size_t i=0; i<m_dofMap.size(); i++) {
         cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << endl;
-    }
-    cout << "--- colIndices ---" << endl;
-    for (size_t i=0; i<colIndices.size(); i++) {
-        cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << endl;
-    }
-    */
-
-    /*
-    cout << "--- main_pattern ---" << endl;
-    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
-    for (size_t i=0; i<mainPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
-    }
-    */
-
-    /*
-    cout << "--- colCouple_pattern ---" << endl;
-    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
-    for (size_t i=0; i<colPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
-    }
-    */
-
-    /*
-    cout << "--- rowCouple_pattern ---" << endl;
-    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
-    for (size_t i=0; i<rowPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
     }
     */
 }
@@ -3097,20 +3139,20 @@ namespace
             for (int y=-r;y<=r;++y)
             {
                 for (int x=-r;x<=r;++x)
-                {         
+                {
                     arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
-                    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];    
+                    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];
                 }
             }
         }
         double invtotal=1/total;
         for (size_t p=0;p<(radius*2+1)*(radius*2+1)*(radius*2+1);++p)
         {
-            arr[p]*=invtotal; 
+            arr[p]*=invtotal;
         }
         return arr;
     }
-    
+
     // applies conv to source to get a point.
     // (xp, yp) are the coords in the source matrix not the destination matrix
     double Convolve3D(double* conv, double* source, size_t xp, size_t yp, size_t zp, unsigned radius, size_t width, size_t height)
@@ -3121,7 +3163,7 @@ namespace
         for (int z=0;z<2*radius+1;++z)
         {
             for (int y=0;y<2*radius+1;++y)
-            {     
+            {
                 for (int x=0;x<2*radius+1;++x)
                 {
                     result+=conv[x+y*(2*radius+1)+z*(2*radius+1)*(2*radius+1)] * source[sbase + x+y*width+z*width*height];
@@ -3130,13 +3172,13 @@ namespace
         }
         // use this line for "pass-though" (return the centre point value)
 //      return source[sbase+(radius)+(radius)*width+(radius)*width*height];
-        return result;      
+        return result;
     }
 }
 
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
-*/ 
+*/
 escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what,
        long seed, const boost::python::tuple& filter) const
@@ -3161,11 +3203,11 @@ A parameter radius  gives the size of the stencil used for the smoothing.
 A point on the left hand edge for example, will still require `radius` extra points to the left
 in order to complete the stencil.
 
-All local calculation is done on an array called `src`, with 
+All local calculation is done on an array called `src`, with
 dimensions = ext[0] * ext[1] *ext[2].
 Where ext[i]= internal[i]+2*radius.
 
-Now for MPI there is overlap to deal with. We need to share both the overlapping 
+Now for MPI there is overlap to deal with. We need to share both the overlapping
 values themselves but also the external region.
 
 In a hypothetical 1-D case:
@@ -3184,11 +3226,11 @@ need to be known.
 
 pp123(4)56   23(4)567pp
 
-Now in our case, we wout set all the values 23456 on the left rank and send them to the 
+Now in our case, we wout set all the values 23456 on the left rank and send them to the
 right hand rank.
 
 So the edges _may_ need to be shared at a distance `inset` from all boundaries.
-inset=2*radius+1    
+inset=2*radius+1
 This is to ensure that values at distance `radius` from the shared/overlapped element
 that ripley has.
 */
@@ -3196,17 +3238,17 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
 {
     unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;
-    
+
     unsigned int numvals=escript::DataTypes::noValues(shape);
-    
-    if (len(filter)==0) 
+
+    if (len(filter)==0)
     {
     // nothing special required here yet
     }
-    else if (len(filter)==3) 
+    else if (len(filter)==3)
     {
         boost::python::extract<string> ex(filter[0]);
-        if (!ex.check() || (ex()!="gaussian")) 
+        if (!ex.check() || (ex()!="gaussian"))
         {
             throw RipleyException("Unsupported random filter for Brick.");
         }
@@ -3221,7 +3263,7 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
         if (!ex2.check() || (sigma=ex2())<=0)
         {
             throw RipleyException("Sigma must be a positive floating point number.");
-        }            
+        }
     }
     else
     {
@@ -3235,8 +3277,8 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
     ext[0]=(size_t)internal[0]+2*radius;  // includes points we need as input
     ext[1]=(size_t)internal[1]+2*radius;  // for smoothing
     ext[2]=(size_t)internal[2]+2*radius;  // for smoothing
-    
-    // now we check to see if the radius is acceptable 
+
+    // now we check to see if the radius is acceptable
     // That is, would not cross multiple ranks in MPI
 
     if (2*radius>=internal[0]-4)
@@ -3250,13 +3292,12 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
     if (2*radius>=internal[2]-4)
     {
         throw RipleyException("Radius of gaussian filter is too large for Z dimension of a rank");
-    }    
-   
+    }
+
     double* src=new double[ext[0]*ext[1]*ext[2]*numvals];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);       
-    
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);
+
 #ifdef ESYS_MPI
-   
     if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5))
     {
     // since the dimensions are equal for all ranks, this exception
@@ -3267,21 +3308,19 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     dim_t Z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
-#endif    
+#endif
 
-/*    
+/*
     // if we wanted to test a repeating pattern
     size_t basex=0;
     size_t basey=0;
     size_t basez=0;
-#ifdef ESYS_MPI    
+#ifdef ESYS_MPI
     basex=X*m_gNE[0]/m_NX[0];
     basey=Y*m_gNE[1]/m_NX[1];
     basez=Z*m_gNE[2]/m_NX[2];
-    
-cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;    
-    
-#endif    
+cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
+#endif
     esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
 */
 
@@ -3290,29 +3329,28 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
 
 
     BlockGrid grid(m_NX[0]-1, m_NX[1]-1, m_NX[2]-1);
-    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence 
+    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence
         // there is an overlap of two points both of which need to have "radius" points on either side.
-    
+
     size_t xmidlen=ext[0]-2*inset;  // how wide is the x-dimension between the two insets
-    size_t ymidlen=ext[1]-2*inset;  
+    size_t ymidlen=ext[1]-2*inset;
     size_t zmidlen=ext[2]-2*inset;
-    
-    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen, numvals);    
-    
+
+    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen, numvals);
+
     MPI_Request reqs[50];       // a non-tight upper bound on how many we need
     MPI_Status stats[50];
     short rused=0;
-    
+
     messvec incoms;
     messvec outcoms;
-    
+
     grid.generateInNeighbours(X, Y, Z ,incoms);
     grid.generateOutNeighbours(X, Y, Z, outcoms);
-    
-    
+
     block.copyAllToBuffer(src);
-    
-    int comserr=0;    
+
+    int comserr=0;
     for (size_t i=0;i<incoms.size();++i)
     {
         message& m=incoms[i];
@@ -3324,10 +3362,10 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
     {
         message& m=outcoms[i];
         comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-    }    
-    
+    }
+
     if (!comserr)
-    {     
+    {
         comserr=MPI_Waitall(rused, reqs, stats);
     }
 
@@ -3336,26 +3374,24 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
     // Yes this is throwing an exception as a result of an MPI error.
     // and no we don't inform the other ranks that we are doing this.
     // however, we have no reason to believe coms work at this point anyway
-        throw RipleyException("Error in coms for randomFill");      
+        throw RipleyException("Error in coms for randomFill");
     }
-    
+
     block.copyUsedFromBuffer(src);
-     
-#endif    
-    
+
+#endif
+
     if (radius==0 || numvals>1) // the truth of either should imply the truth of the other but let's be safe
     {
-      
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, shape, fs , true);
         // don't need to check for exwrite because we just made it
         escript::DataVector& dv=resdat.getExpandedVectorReference();
-    
-    
+
         // now we need to copy values over
         for (size_t z=0;z<(internal[2]);++z)
         {
-            for (size_t y=0;y<(internal[1]);++y)    
+            for (size_t y=0;y<(internal[1]);++y)
             {
                 for (size_t x=0;x<(internal[0]);++x)
                 {
@@ -3365,13 +3401,12 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
                     }
                 }
             }
-        }  
+        }
         delete[] src;
-        return resdat;      
+        return resdat;
     }
-    else        // filter enabled   
+    else // filter enabled
     {
-    
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
         // don't need to check for exwrite because we just made it
@@ -3380,29 +3415,24 @@ cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
 
         for (size_t z=0;z<(internal[2]);++z)
         {
-            for (size_t y=0;y<(internal[1]);++y)    
+            for (size_t y=0;y<(internal[1]);++y)
             {
                 for (size_t x=0;x<(internal[0]);++x)
-                {     
+                {
                     dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
-            
+
                 }
             }
         }
-    
+
         delete[] convolution;
         delete[] src;
         return resdat;
-    
     }
 }
 
-
-
-
-
-
-int Brick::findNode(const double *coords) const {
+int Brick::findNode(const double *coords) const
+{
     const int NOT_MINE = -1;
     //is the found element even owned by this rank
     // (inside owned or shared elements but will map to an owned element)
@@ -3419,12 +3449,12 @@ int Brick::findNode(const double *coords) const {
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
     double z = coords[2] - m_origin[2];
-    
+
     //check if the point is even inside the domain
-    if (x < 0 || y < 0 || z < 0 
+    if (x < 0 || y < 0 || z < 0
             || x > m_length[0] || y > m_length[1] || z > m_length[2])
         return NOT_MINE;
-        
+
     // distance in elements
     int ex = (int) floor(x / m_dx[0]);
     int ey = (int) floor(y / m_dx[1]);

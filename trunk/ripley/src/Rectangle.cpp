@@ -35,7 +35,6 @@
 #endif
 #endif
 
-#include <boost/iterator/counting_iterator.hpp>
 #include <boost/scoped_array.hpp>
 
 #include <algorithm>
@@ -60,7 +59,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
             > numeric_limits<int>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
-    
+
     if (n0 <= 0 || n1 <= 0)
         throw RipleyException("Number of elements in each spatial dimension "
                 "must be positive");
@@ -83,7 +82,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
                 continue;
             }
             epr[i] = -1; // can no longer be max
-            //remove 
+            //remove
             if (ranks % d[i] != 0) {
                 throw RipleyException("Invalid number of spatial subdivisions");
             }
@@ -94,7 +93,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
             warn = true;
         }
     }
-    
+
     while (factors.size() > 0) {
         int i = epr[0] > epr[1] ? 0 : 1;
         int f = factors.back();
@@ -103,7 +102,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
         epr[i] /= f;
     }
     d0 = d[0]; d1 = d[1];
-    
+
     // ensure number of subdivisions is valid and nodes can be distributed
     // among number of ranks
     if (d0*d1 != m_mpiInfo->size)
@@ -668,7 +667,7 @@ void Rectangle::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    int driver=DB_HDF5;    
+    int driver=DB_HDF5;
     DBfile* dbfile = NULL;
     const char* blockDirFmt = "/block%04d";
 
@@ -1757,7 +1756,7 @@ void Rectangle::populateDofMap()
     const dim_t numDOF=nDOF0*nDOF1;
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
-    IndexVector sendShared;
+    IndexVector sendShared, recvShared;
     const int x=m_mpiInfo->rank%m_NX[0];
     const int y=m_mpiInfo->rank/m_NX[0];
     // numShared will contain the number of shared DOFs after the following
@@ -1770,6 +1769,7 @@ void Rectangle::populateDofMap()
         offsetInShared.push_back(offsetInShared.back()+num);
         for (dim_t i=0; i<num; i++, numShared++) {
             sendShared.push_back(i);
+            recvShared.push_back(numDOF+numShared);
             m_dofMap[left+i]=numDOF+numShared;
         }
     }
@@ -1780,6 +1780,7 @@ void Rectangle::populateDofMap()
         offsetInShared.push_back(offsetInShared.back()+num);
         for (dim_t i=0; i<num; i++, numShared++) {
             sendShared.push_back(numDOF-num+i);
+            recvShared.push_back(numDOF+numShared);
             m_dofMap[m_NN[0]*(m_NN[1]-1)+left+i]=numDOF+numShared;
         }
     }
@@ -1790,6 +1791,7 @@ void Rectangle::populateDofMap()
         offsetInShared.push_back(offsetInShared.back()+num);
         for (dim_t i=0; i<num; i++, numShared++) {
             sendShared.push_back(i*nDOF0);
+            recvShared.push_back(numDOF+numShared);
             m_dofMap[(bottom+i)*m_NN[0]]=numDOF+numShared;
         }
     }
@@ -1800,6 +1802,7 @@ void Rectangle::populateDofMap()
         offsetInShared.push_back(offsetInShared.back()+num);
         for (dim_t i=0; i<num; i++, numShared++) {
             sendShared.push_back((i+1)*nDOF0-1);
+            recvShared.push_back(numDOF+numShared);
             m_dofMap[(bottom+1+i)*m_NN[0]-1]=numDOF+numShared;
         }
     }
@@ -1809,6 +1812,7 @@ void Rectangle::populateDofMap()
         // sharing a node
         offsetInShared.push_back(offsetInShared.back()+1);
         sendShared.push_back(0);
+        recvShared.push_back(numDOF+numShared);
         m_dofMap[0]=numDOF+numShared;
         ++numShared;
     }
@@ -1817,6 +1821,7 @@ void Rectangle::populateDofMap()
         neighbour.push_back((y+1)*m_NX[0] + x-1);
         offsetInShared.push_back(offsetInShared.back()+1);
         sendShared.push_back(numDOF-nDOF0);
+        recvShared.push_back(numDOF+numShared);
         m_dofMap[m_NN[0]*(m_NN[1]-1)]=numDOF+numShared;
         ++numShared;
     }
@@ -1825,6 +1830,7 @@ void Rectangle::populateDofMap()
         neighbour.push_back((y-1)*m_NX[0] + x+1);
         offsetInShared.push_back(offsetInShared.back()+1);
         sendShared.push_back(nDOF0-1);
+        recvShared.push_back(numDOF+numShared);
         m_dofMap[m_NN[0]-1]=numDOF+numShared;
         ++numShared;
     }
@@ -1833,12 +1839,10 @@ void Rectangle::populateDofMap()
         neighbour.push_back((y+1)*m_NX[0] + x+1);
         offsetInShared.push_back(offsetInShared.back()+1);
         sendShared.push_back(numDOF-1);
+        recvShared.push_back(numDOF+numShared);
         m_dofMap[m_NN[0]*m_NN[1]-1]=numDOF+numShared;
         ++numShared;
     }
-
-    IndexVector recvShared(boost::counting_iterator<index_t>(numDOF),
-                   boost::counting_iterator<index_t>(numDOF+numShared));
 
     // TODO: paso::SharedComponents should take vectors to avoid this
     Esys_MPI_rank* neighPtr = NULL;
@@ -2133,7 +2137,7 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 namespace
 {
     // Calculates a gaussian blur convolution matrix for 2D
-    // See wiki article on the subject    
+    // See wiki article on the subject
     double* get2DGauss(unsigned radius, double sigma)
     {
         double* arr=new double[(radius*2+1)*(radius*2+1)];
@@ -2143,7 +2147,7 @@ namespace
         for (int y=-r; y<=r; ++y)
         {
             for (int x=-r; x<=r; ++x)
-            {         
+            {
                 arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
                 total+=arr[(x+r)+(y+r)*(r*2+1)];
             }
@@ -2151,11 +2155,11 @@ namespace
         const double invtotal = 1/total;
         for (size_t p=0; p<(radius*2+1)*(radius*2+1); ++p)
         {
-            arr[p]*=invtotal; 
+            arr[p]*=invtotal;
         }
         return arr;
     }
-    
+
     // applies conv to source to get a point.
     // (xp, yp) are the coords in the source matrix not the destination matrix
     double Convolve2D(double* conv, double* source, size_t xp, size_t yp,
@@ -2165,20 +2169,20 @@ namespace
         const size_t sbase=bx+by*width;
         double result=0;
         for (int y=0; y<2*radius+1; ++y)
-        {         
+        {
             for (int x=0; x<2*radius+1; ++x)
             {
                 result+=conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
             }
         }
-        return result;      
+        return result;
     }
 }
 
 
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
-*/ 
+*/
 escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what,
        long seed, const boost::python::tuple& filter) const
@@ -2204,11 +2208,11 @@ A parameter radius  gives the size of the stencil used for the smoothing.
 A point on the left hand edge for example, will still require `radius` extra points to the left
 in order to complete the stencil.
 
-All local calculation is done on an array called `src`, with 
+All local calculation is done on an array called `src`, with
 dimensions = ext[0] * ext[1].
 Where ext[i]= internal[i]+2*radius.
 
-Now for MPI there is overlap to deal with. We need to share both the overlapping 
+Now for MPI there is overlap to deal with. We need to share both the overlapping
 values themselves but also the external region.
 
 In a hypothetical 1-D case:
@@ -2227,11 +2231,11 @@ need to be known.
 
 pp123(4)56   23(4)567pp
 
-Now in our case, we wout set all the values 23456 on the left rank and send them to the 
+Now in our case, we wout set all the values 23456 on the left rank and send them to the
 right hand rank.
 
 So the edges _may_ need to be shared at a distance `inset` from all boundaries.
-inset=2*radius+1    
+inset=2*radius+1
 This is to ensure that values at distance `radius` from the shared/overlapped element
 that ripley has.
 
@@ -2242,18 +2246,17 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
 {
     unsigned int radius=0;      // these are only used by gaussian
     double sigma=0.5;
-    
+
     unsigned int numvals=escript::DataTypes::noValues(shape);
-        
-    
-    if (len(filter)==0) 
+
+    if (len(filter)==0)
     {
         // nothing special required here yet
-    }    
+    }
     else if (len(filter)==3)
     {
         boost::python::extract<string> ex(filter[0]);
-        if (!ex.check() || (ex()!="gaussian")) 
+        if (!ex.check() || (ex()!="gaussian"))
         {
             throw RipleyException("Unsupported random filter");
         }
@@ -2268,7 +2271,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
         if (!ex2.check() || (sigma=ex2())<=0)
         {
             throw RipleyException("Sigma must be a postive floating point number.");
-        }        
+        }
     }
     else
     {
@@ -2281,8 +2284,8 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     size_t ext[2];
     ext[0]=(size_t)internal[0]+2*radius; // includes points we need as input
     ext[1]=(size_t)internal[1]+2*radius; // for smoothing
-    
-    // now we check to see if the radius is acceptable 
+
+    // now we check to see if the radius is acceptable
     // That is, would not cross multiple ranks in MPI
 
     if (2*radius>=internal[0]-4)
@@ -2295,7 +2298,7 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     }
 
     double* src=new double[ext[0]*ext[1]*numvals];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);   
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);
 
 
 #ifdef ESYS_MPI
@@ -2307,45 +2310,43 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     }
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
-#endif      
+#endif
 
-/*    
+/*
     // if we wanted to test a repeating pattern
     size_t basex=0;
     size_t basey=0;
-#ifdef ESYS_MPI    
+#ifdef ESYS_MPI
     basex=X*m_gNE[0]/m_NX[0];
     basey=Y*m_gNE[1]/m_NX[1];
-#endif 
-        
+#endif
+
     esysUtils::patternFillArray2D(ext[0], ext[1], src, 4, basex, basey, numvals);
 */
 
-    
-#ifdef ESYS_MPI   
-    
+#ifdef ESYS_MPI
     BlockGrid2 grid(m_NX[0]-1, m_NX[1]-1);
-    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence 
+    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence
                 // there is an overlap of two points both of which need to have "radius" points on either side.
-    
-    size_t xmidlen=ext[0]-2*inset;      // how wide is the x-dimension between the two insets
-    size_t ymidlen=ext[1]-2*inset;      
-    
+
+    size_t xmidlen=ext[0]-2*inset; // how wide is the x-dimension between the two insets
+    size_t ymidlen=ext[1]-2*inset;
+
     Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
 
-    MPI_Request reqs[40];               // a non-tight upper bound on how many we need
+    MPI_Request reqs[40];  // a non-tight upper bound on how many we need
     MPI_Status stats[40];
     short rused=0;
-    
+
     messvec incoms;
-    messvec outcoms;  
-    
+    messvec outcoms;
+
     grid.generateInNeighbours(X, Y, incoms);
     grid.generateOutNeighbours(X, Y, outcoms);
-    
-    block.copyAllToBuffer(src);  
-    
-    int comserr=0;    
+
+    block.copyAllToBuffer(src);
+
+    int comserr=0;
     for (size_t i=0;i<incoms.size();++i)
     {
         message& m=incoms[i];
@@ -2357,10 +2358,10 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     {
         message& m=outcoms[i];
         comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-    }    
-    
+    }
+
     if (!comserr)
-    {     
+    {
         comserr=MPI_Waitall(rused, reqs, stats);
     }
 
@@ -2369,24 +2370,21 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
         // Yes this is throwing an exception as a result of an MPI error.
         // and no we don't inform the other ranks that we are doing this.
         // however, we have no reason to believe coms work at this point anyway
-        throw RipleyException("Error in coms for randomFill");      
+        throw RipleyException("Error in coms for randomFill");
     }
-    
-    block.copyUsedFromBuffer(src);    
-    
-#endif    
-    
+
+    block.copyUsedFromBuffer(src);
+#endif
+
     if (radius==0 || numvals>1) // the truth of either should imply the truth of the other but let's be safe
     {
-      
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, shape, fs , true);
         // don't need to check for exwrite because we just made it
         escript::DataVector& dv=resdat.getExpandedVectorReference();
-        
-        
+
         // now we need to copy values over
-        for (size_t y=0;y<(internal[1]);++y)    
+        for (size_t y=0;y<(internal[1]);++y)
         {
             for (size_t x=0;x<(internal[0]);++x)
             {
@@ -2399,19 +2397,18 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
         delete[] src;
         return resdat;
     }
-    else                // filter enabled       
-    {    
+    else // filter enabled
+    {
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
         // don't need to check for exwrite because we just made it
         escript::DataVector& dv=resdat.getExpandedVectorReference();
         double* convolution=get2DGauss(radius, sigma);
-        for (size_t y=0;y<(internal[1]);++y)    
+        for (size_t y=0;y<(internal[1]);++y)
         {
             for (size_t x=0;x<(internal[0]);++x)
-            {     
+            {
                 dv[x+y*(internal[0])]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
-                
             }
         }
         delete[] convolution;
@@ -2437,11 +2434,11 @@ int Rectangle::findNode(const double *coords) const
     // get distance from origin
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
-    
+
     //check if the point is even inside the domain
     if (x < 0 || y < 0 || x > m_length[0] || y > m_length[1])
         return NOT_MINE;
-    
+
     // distance in elements
     int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
     int ey = (int) floor(y / m_dx[1] + 0.01*m_dx[1]);
@@ -2458,7 +2455,7 @@ int Rectangle::findNode(const double *coords) const
             double ydist = (y - (ey + dy)*m_dx[1]);
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
-                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NN[0]); 
+                closest = INDEX2(ex+dx-m_offset[0], ey+dy-m_offset[1], m_NN[0]);
                 minDist = total;
             }
         }
