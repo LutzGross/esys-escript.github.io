@@ -41,13 +41,14 @@
 #include <iomanip>
 #include <limits>
 
+namespace bp = boost::python;
 using namespace std;
 using esysUtils::FileWriter;
 using escript::AbstractSystemMatrix;
 
 namespace ripley {
 
-Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
+Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const vector<double>& points,
                      const vector<int>& tags,
@@ -56,7 +57,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
     RipleyDomain(2, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
-            > numeric_limits<int>::max())
+            > numeric_limits<dim_t>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
 
@@ -73,7 +74,7 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
     bool warn=false;
     vector<int> factors;
     int ranks = m_mpiInfo->size;
-    int epr[2] = {n0,n1};
+    dim_t epr[2] = {n0,n1};
     int d[2] = {d0,d1};
     if (d0<=0 || d1<=0) {
         for (int i = 0; i < 2; i++) {
@@ -119,13 +120,13 @@ Rectangle::Rectangle(int n0, int n1, double x0, double y0, double x1,
     m_dx[1] = l1/n1;
 
     if ((n0+1)%d0 > 0) {
-        n0=(int)round((float)(n0+1)/d0+0.5)*d0-1;
+        n0=(dim_t)round((float)(n0+1)/d0+0.5)*d0-1;
         l0=m_dx[0]*n0;
         cout << "Warning: Adjusted number of elements and length. N0="
             << n0 << ", l0=" << l0 << endl;
     }
     if ((n1+1)%d1 > 0) {
-        n1=(int)round((float)(n1+1)/d1+0.5)*d1-1;
+        n1=(dim_t)round((float)(n1+1)/d1+0.5)*d1-1;
         l1=m_dx[1]*n1;
         cout << "Warning: Adjusted number of elements and length. N1="
             << n1 << ", l1=" << l1 << endl;
@@ -205,7 +206,7 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
 {
 #ifdef USE_NETCDF
     // check destination function space
-    int myN0, myN1;
+    dim_t myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -264,14 +265,14 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
     // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
+    dim_t idx0 = max(0, m_offset[0]-params.first[0]);
+    dim_t idx1 = max(0, m_offset[1]-params.first[1]);
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
 
     // make sure we read the right block if going backwards through file
     if (params.reverse[0])
@@ -292,21 +293,21 @@ void Rectangle::readNcGrid(escript::Data& out, string filename, string varname,
     out.requireWrite();
 
     // helpers for reversing
-    const int x0 = (params.reverse[0] ? num0-1 : 0);
+    const dim_t x0 = (params.reverse[0] ? num0-1 : 0);
     const int x_mult = (params.reverse[0] ? -1 : 1);
-    const int y0 = (params.reverse[1] ? num1-1 : 0);
+    const dim_t y0 = (params.reverse[1] ? num1-1 : 0);
     const int y_mult = (params.reverse[1] ? -1 : 1);
 
     for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
         for (index_t x=0; x<num0; x++) {
-            const int baseIndex = first0+x*params.multiplier[0]
+            const dim_t baseIndex = first0+x*params.multiplier[0]
                                   +(first1+y*params.multiplier[1])*myN0;
-            const int srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
+            const dim_t srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
             if (!isnan(values[srcIndex])) {
                 for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                     for (index_t m0=0; m0<params.multiplier[0]; m0++) {
-                        const int dataIndex = baseIndex+m0+m1*myN0;
+                        const dim_t dataIndex = baseIndex+m0+m1*myN0;
                         double* dest = out.getSampleDataRW(dataIndex);
                         for (index_t q=0; q<dpp; q++) {
                             *dest++ = values[srcIndex];
@@ -368,7 +369,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
                                    const ReaderParameters& params) const
 {
     // check destination function space
-    int myN0, myN1;
+    dim_t myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -400,8 +401,8 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
-    const int filesize = f.tellg();
-    const int reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
+    const dim_t filesize = f.tellg();
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
         throw RipleyException("readBinaryGrid(): not enough data in file");
@@ -419,47 +420,47 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
-    const int idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    const dim_t idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    const dim_t idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
     // if restX > 0 the first value in the respective dimension has been
     // written restX times already in a previous rank so this rank only
     // contributes (multiplier-rank) copies of that value
-    const int rest0 = m_offset[0]%params.multiplier[0];
-    const int rest1 = m_offset[1]%params.multiplier[1];
+    const dim_t rest0 = m_offset[0]%params.multiplier[0];
+    const dim_t rest1 = m_offset[1]%params.multiplier[1];
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (int y=0; y<num1; y++) {
-        const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
+    for (dim_t y=0; y<num1; y++) {
+        const dim_t fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
         f.seekg(fileofs*sizeof(ValueType));
         f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
-        const int m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
-        int dataYbase = first1+y*params.multiplier[1];
+        const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+        dim_t dataYbase = first1+y*params.multiplier[1];
         if (y>0)
             dataYbase -= rest1;
-        for (int x=0; x<num0; x++) {
-            const int m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
-            int dataXbase = first0+x*params.multiplier[0];
+        for (dim_t x=0; x<num0; x++) {
+            const dim_t m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+            dim_t dataXbase = first0+x*params.multiplier[0];
             if (x>0)
                 dataXbase -= rest0;
             // write a block of mult0 x mult1 identical values into Data object
-            for (int m1=0; m1<m1limit; m1++) {
-                const int dataY = dataYbase+m1;
+            for (dim_t m1=0; m1<m1limit; m1++) {
+                const dim_t dataY = dataYbase+m1;
                 if (dataY >= myN1)
                     break;
-                for (int m0=0; m0<m0limit; m0++) {
-                    const int dataX = dataXbase+m0;
+                for (dim_t m0=0; m0<m0limit; m0++) {
+                    const dim_t dataX = dataXbase+m0;
                     if (dataX >= myN0)
                         break;
-                    const int dataIndex = dataX+dataY*myN0;
+                    const dim_t dataIndex = dataX+dataY*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
                     for (int c=0; c<numComp; c++) {
                         ValueType val = values[x*numComp+c];
@@ -493,7 +494,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
                                    const ReaderParameters& params) const
 {
     // check destination function space
-    int myN0, myN1;
+    dim_t myN0, myN1;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -511,14 +512,14 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
-    int filesize = f.tellg();
+    dim_t filesize = f.tellg();
     f.seekg(0, ios::beg);
     vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
     vector<char> decompressed = unzip(compressed);
     filesize = decompressed.size();
-    const int reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         throw RipleyException("readBinaryGridFromZipped(): not enough data in file");
     }
@@ -535,28 +536,28 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const string& filen
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-params.first[0]);
-    const int idx1 = max(0, m_offset[1]-params.first[1]);
+    const dim_t idx0 = max(0, m_offset[0]-params.first[0]);
+    const dim_t idx1 = max(0, m_offset[1]-params.first[1]);
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (int y=0; y<num1; y++) {
-        const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
+    for (dim_t y=0; y<num1; y++) {
+        const dim_t fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
             memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
-        for (int x=0; x<num0; x++) {
-            const int baseIndex = first0+x*params.multiplier[0]
+        for (dim_t x=0; x<num0; x++) {
+            const dim_t baseIndex = first0+x*params.multiplier[0]
                                     +(first1+y*params.multiplier[1])*myN0;
             for (int m1=0; m1<params.multiplier[1]; m1++) {
                 for (int m0=0; m0<params.multiplier[0]; m0++) {
-                    const int dataIndex = baseIndex+m0+m1*myN0;
+                    const dim_t dataIndex = baseIndex+m0+m1*myN0;
                     double* dest = out.getSampleDataRW(dataIndex);
                     for (int c=0; c<numComp; c++) {
                         ValueType val = values[x*numComp+c];
@@ -606,8 +607,8 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
                                     const string& filename, int byteOrder) const
 {
     // check function space and determine number of points
-    int myN0, myN1;
-    int totalN0, totalN1;
+    dim_t myN0, myN1;
+    dim_t totalN0, totalN1;
     if (in.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -628,7 +629,7 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
     if (numComp > 1 || dpp > 1)
         throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
 
-    const int fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1;
+    const dim_t fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1;
 
     // from here on we know that each sample consists of one value
     FileWriter fw;
@@ -636,7 +637,7 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
     MPIBarrier();
 
     for (index_t y=0; y<myN1; y++) {
-        const int fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0)*sizeof(ValueType);
+        const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0)*sizeof(ValueType);
         ostringstream oss;
 
         for (index_t x=0; x<myN0; x++) {
@@ -721,8 +722,8 @@ void Rectangle::dump(const string& fileName) const
     }
     */
 
-    const int NN0 = m_NN[0];
-    const int NN1 = m_NN[1];
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
     boost::scoped_ptr<double> x(new double[NN0]);
     boost::scoped_ptr<double> y(new double[NN1]);
     double* coords[2] = { x.get(), y.get() };
@@ -737,7 +738,7 @@ void Rectangle::dump(const string& fileName) const
             coords[1][i1]=getLocalCoordinate(i1, 1);
         }
     }
-    int* dims = const_cast<int*>(getNumNodesPerDim());
+    dim_t* dims = const_cast<dim_t*>(getNumNodesPerDim());
 
     // write mesh
     DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 2, DB_DOUBLE,
@@ -748,7 +749,7 @@ void Rectangle::dump(const string& fileName) const
             NULL, 0, DB_INT, DB_NODECENT, NULL);
 
     // write element ids
-    dims = const_cast<int*>(getNumElementsPerDim());
+    dims = const_cast<dim_t*>(getNumElementsPerDim());
     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
             dims, 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
 
@@ -803,7 +804,7 @@ void Rectangle::dump(const string& fileName) const
 #endif
 }
 
-const int* Rectangle::borrowSampleReferenceIDs(int fsType) const
+const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case Nodes:
@@ -879,8 +880,8 @@ bool Rectangle::ownSample(int fsType, index_t id) const
 
 void Rectangle::setToNormal(escript::Data& out) const
 {
-    const int NE0=m_NE[0];
-    const int NE1=m_NE[1];
+    const dim_t NE0=m_NE[0];
+    const dim_t NE1=m_NE[1];
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
 #pragma omp parallel
@@ -988,7 +989,7 @@ void Rectangle::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedElements) {
         out.requireWrite();
         const dim_t numQuad = out.getNumDataPointsPerSample();
-        const int numElements = getNumElements();
+        const dim_t numElements = getNumElements();
         const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]);
 #pragma omp parallel for
         for (index_t k = 0; k < numElements; ++k) {
@@ -999,8 +1000,8 @@ void Rectangle::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        const int NE0 = m_NE[0];
-        const int NE1 = m_NE[1];
+        const dim_t NE0 = m_NE[0];
+        const dim_t NE1 = m_NE[1];
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -1070,8 +1071,8 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
     if (!numSamplesEqual(&x, 1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
-    const int NN0 = m_NN[0];
-    const int NN1 = m_NN[1];
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
     arg.requireWrite();
 #pragma omp parallel for
     for (dim_t i1 = 0; i1 < NN1; i1++) {
@@ -1087,8 +1088,8 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 void Rectangle::assembleGradient(escript::Data& out, const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
     const double cx0 = .21132486540518711775/m_dx[0];
     const double cx1 = .78867513459481288225/m_dx[0];
     const double cx2 = 1./m_dx[0];
@@ -1523,7 +1524,7 @@ paso::SystemMatrixPattern_ptr Rectangle::getPasoMatrixPattern(
         }
     }
 #pragma omp parallel for
-    for (int i = 0; i < numShared; i++) {
+    for (dim_t i = 0; i < numShared; i++) {
         sort(rowIndices[i].begin(), rowIndices[i].end());
     }
 
@@ -1721,8 +1722,8 @@ vector<IndexVector> Rectangle::getConnections() const
         const index_t y = i / nDOF0;
         // loop through potential neighbours and add to index if positions are
         // within bounds
-        for (int i1=y-1; i1<y+2; i1++) {
-            for (int i0=x-1; i0<x+2; i0++) {
+        for (dim_t i1=y-1; i1<y+2; i1++) {
+            for (dim_t i0=x-1; i0<x+2; i0++) {
                 if (i0>=0 && i1>=0 && i0<nDOF0 && i1<nDOF1) {
                     indices[i].push_back(i1*nDOF0 + i0);
                 }
@@ -1882,43 +1883,6 @@ void Rectangle::populateDofMap()
     for (size_t i=0; i<m_dofMap.size(); i++) {
         cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << endl;
     }
-    cout << "--- colIndices ---" << endl;
-    for (size_t i=0; i<colIndices.size(); i++) {
-        cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << endl;
-    }
-    */
-
-    /*
-    cout << "--- main_pattern ---" << endl;
-    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
-    for (size_t i=0; i<mainPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
-    }
-    */
-
-    /*
-    cout << "--- colCouple_pattern ---" << endl;
-    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
-    for (size_t i=0; i<colPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
-    }
-    */
-
-    /*
-    cout << "--- rowCouple_pattern ---" << endl;
-    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
-    for (size_t i=0; i<rowPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
-    }
     */
 }
 
@@ -1953,8 +1917,8 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
                                            bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
     if (reduced) {
         out.requireWrite();
         const double c0 = 0.25;
@@ -2015,8 +1979,8 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
                                         bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
     if (reduced) {
         out.requireWrite();
 #pragma omp parallel
@@ -2136,26 +2100,23 @@ void Rectangle::interpolateNodesOnFaces(escript::Data& out,
 
 namespace
 {
-    // Calculates a gaussian blur convolution matrix for 2D
+    // Calculates a Gaussian blur convolution matrix for 2D
     // See wiki article on the subject
     double* get2DGauss(unsigned radius, double sigma)
     {
-        double* arr=new double[(radius*2+1)*(radius*2+1)];
-        const double common=M_1_PI*0.5*1/(sigma*sigma);
-        const int r=static_cast<int>(radius);
-        double total=0;
-        for (int y=-r; y<=r; ++y)
-        {
-            for (int x=-r; x<=r; ++x)
-            {
+        double* arr = new double[(radius*2+1)*(radius*2+1)];
+        const double common = M_1_PI * 0.5 / (sigma*sigma);
+        const int r = static_cast<int>(radius);
+        double total = 0;
+        for (int y = -r; y <= r; ++y) {
+            for (int x = -r; x <= r; ++x) {
                 arr[(x+r)+(y+r)*(r*2+1)]=common*exp(-(x*x+y*y)/(2*sigma*sigma));
                 total+=arr[(x+r)+(y+r)*(r*2+1)];
             }
         }
         const double invtotal = 1/total;
-        for (size_t p=0; p<(radius*2+1)*(radius*2+1); ++p)
-        {
-            arr[p]*=invtotal;
+        for (size_t p=0; p<(radius*2+1)*(radius*2+1); ++p) {
+            arr[p] *= invtotal;
         }
         return arr;
     }
@@ -2165,37 +2126,32 @@ namespace
     double Convolve2D(double* conv, double* source, size_t xp, size_t yp,
                       unsigned radius, size_t width)
     {
-        const size_t bx=xp-radius, by=yp-radius;
-        const size_t sbase=bx+by*width;
-        double result=0;
-        for (int y=0; y<2*radius+1; ++y)
-        {
-            for (int x=0; x<2*radius+1; ++x)
-            {
-                result+=conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
+        const size_t bx = xp-radius, by=yp-radius;
+        const size_t sbase = bx+by*width;
+        double result = 0;
+        for (int y=0; y<2*radius+1; ++y) {
+            for (int x=0; x<2*radius+1; ++x) {
+                result += conv[x+y*(2*radius+1)] * source[sbase + x+y*width];
             }
         }
         return result;
     }
 }
 
-
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
-*/
+ */
 escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what,
-       long seed, const boost::python::tuple& filter) const
+                                const escript::FunctionSpace& what, long seed,
+                                const bp::tuple& filter) const
 {
     int numvals=escript::DataTypes::noValues(shape);
-    if (len(filter)>0 && (numvals!=1))
-    {
+    if (len(filter) > 0 && numvals != 1)
         throw RipleyException("Ripley only supports filters for scalar data.");
-    }
-    escript::Data res=randomFillWorker(shape, seed, filter);
-    if (res.getFunctionSpace()!=what)
-    {
-        escript::Data r=escript::Data(res, what);
+
+    escript::Data res = randomFillWorker(shape, seed, filter);
+    if (res.getFunctionSpace() != what) {
+        escript::Data r(res, what);
         return r;
     }
     return res;
@@ -2203,78 +2159,67 @@ escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
 
 
 /* This routine produces a Data object filled with smoothed random data.
-The dimensions of the rectangle being filled are internal[0] x internal[1] points.
-A parameter radius  gives the size of the stencil used for the smoothing.
-A point on the left hand edge for example, will still require `radius` extra points to the left
-in order to complete the stencil.
-
-All local calculation is done on an array called `src`, with
-dimensions = ext[0] * ext[1].
-Where ext[i]= internal[i]+2*radius.
-
-Now for MPI there is overlap to deal with. We need to share both the overlapping
-values themselves but also the external region.
-
-In a hypothetical 1-D case:
-
-
-1234567
-would be split into two ranks thus:
-123(4)  (4)567     [4 being a shared element]
-
-If the radius is 2.   There will be padding elements on the outside:
-
-pp123(4)  (4)567pp
-
-To ensure that 4 can be correctly computed on both ranks, values from the other rank
-need to be known.
-
-pp123(4)56   23(4)567pp
-
-Now in our case, we wout set all the values 23456 on the left rank and send them to the
-right hand rank.
-
-So the edges _may_ need to be shared at a distance `inset` from all boundaries.
-inset=2*radius+1
-This is to ensure that values at distance `radius` from the shared/overlapped element
-that ripley has.
-
-
-*/
-escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& shape,
-       long seed, const boost::python::tuple& filter) const
+ * The dimensions of the rectangle being filled are internal[0] x internal[1]
+ * points. A parameter radius gives the size of the stencil used for the
+ * smoothing.  A point on the left hand edge for example, will still require
+ * `radius` extra points to the left in order to complete the stencil.
+ *
+ * All local calculation is done on an array called `src`, with
+ * dimensions = ext[0] * ext[1], where ext[i]= internal[i]+2*radius.
+ *
+ * Now for MPI there is overlap to deal with. We need to share both the
+ * overlapping values themselves but also the external region.
+ *
+ * In a hypothetical 1-D case:
+ *
+ * 1234567 would be split into two ranks thus:
+ * 123(4)  (4)567     [4 being a shared element]
+ *
+ * If the radius is 2. There will be padding elements on the outside:
+ * pp123(4)  (4)567pp
+ *
+ * To ensure that 4 can be correctly computed on both ranks, values from the
+ * other rank need to be known.
+ *
+ * pp123(4)56   23(4)567pp
+ *
+ * Now in our case, we set all the values 23456 on the left rank and send them
+ * to the right hand rank.
+ *
+ * So the edges _may_ need to be shared at a distance `inset` from all
+ * boundaries.
+ *
+ * inset=2*radius+1
+ * This is to ensure that values at distance `radius` from the
+ * shared/overlapped element that ripley has.
+ */
+escript::Data Rectangle::randomFillWorker(
+                        const escript::DataTypes::ShapeType& shape, long seed,
+                        const bp::tuple& filter) const
 {
-    unsigned int radius=0;      // these are only used by gaussian
+    unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;
 
     unsigned int numvals=escript::DataTypes::noValues(shape);
 
-    if (len(filter)==0)
-    {
+    if (len(filter) == 0) {
         // nothing special required here yet
-    }
-    else if (len(filter)==3)
-    {
-        boost::python::extract<string> ex(filter[0]);
-        if (!ex.check() || (ex()!="gaussian"))
-        {
+    } else if (len(filter) == 3) {
+        bp::extract<string> ex(filter[0]);
+        if (!ex.check() || (ex()!="gaussian")) {
             throw RipleyException("Unsupported random filter");
         }
-        boost::python::extract<unsigned int> ex1(filter[1]);
-        if (!ex1.check())
-        {
-            throw RipleyException("Radius of gaussian filter must be a positive integer.");
+        bp::extract<unsigned int> ex1(filter[1]);
+        if (!ex1.check()) {
+            throw RipleyException("Radius of Gaussian filter must be a positive integer.");
         }
-        radius=ex1();
-        sigma=0.5;
-        boost::python::extract<double> ex2(filter[2]);
-        if (!ex2.check() || (sigma=ex2())<=0)
-        {
-            throw RipleyException("Sigma must be a postive floating point number.");
+        radius = ex1();
+        sigma = 0.5;
+        bp::extract<double> ex2(filter[2]);
+        if (!ex2.check() || (sigma=ex2()) <= 0) {
+            throw RipleyException("Sigma must be a positive floating point number.");
         }
-    }
-    else
-    {
+    } else {
         throw RipleyException("Unsupported random filter for Rectangle.");
     }
 
@@ -2288,28 +2233,24 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     // now we check to see if the radius is acceptable
     // That is, would not cross multiple ranks in MPI
 
-    if (2*radius>=internal[0]-4)
-    {
+    if (2*radius >= internal[0]-4) {
         throw RipleyException("Radius of gaussian filter is too large for X dimension of a rank");
     }
-    if (2*radius>=internal[1]-4)
-    {
+    if (2*radius >= internal[1]-4) {
         throw RipleyException("Radius of gaussian filter is too large for Y dimension of a rank");
     }
 
-    double* src=new double[ext[0]*ext[1]*numvals];
+    double* src = new double[ext[0]*ext[1]*numvals];
     esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*numvals);
 
-
 #ifdef ESYS_MPI
-    if ((internal[0]<5) || (internal[1]<5))
-    {
+    if ((internal[0] < 5) || (internal[1] < 5)) {
         // since the dimensions are equal for all ranks, this exception
         // will be thrown on all ranks
         throw RipleyException("Random Data in Ripley requires at least five elements per side per rank.");
     }
-    dim_t X=m_mpiInfo->rank%m_NX[0];
-    dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
+    dim_t X = m_mpiInfo->rank%m_NX[0];
+    dim_t Y = m_mpiInfo->rank/m_NX[0];
 #endif
 
 /*
@@ -2326,15 +2267,19 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
 
 #ifdef ESYS_MPI
     BlockGrid2 grid(m_NX[0]-1, m_NX[1]-1);
-    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence
-                // there is an overlap of two points both of which need to have "radius" points on either side.
+    // it's +2 not +1 because a whole element is shared (and hence there is
+    // an overlap of two points both of which need to have "radius" points on
+    // either side.
+    size_t inset=2*radius+2;
 
-    size_t xmidlen=ext[0]-2*inset; // how wide is the x-dimension between the two insets
+    // how wide is the x-dimension between the two insets
+    size_t xmidlen=ext[0]-2*inset;
     size_t ymidlen=ext[1]-2*inset;
 
     Block2 block(ext[0], ext[1], inset, xmidlen, ymidlen, numvals);
 
-    MPI_Request reqs[40];  // a non-tight upper bound on how many we need
+    // a non-tight upper bound on how many we need
+    MPI_Request reqs[40];
     MPI_Status stats[40];
     short rused=0;
 
@@ -2346,69 +2291,63 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
 
     block.copyAllToBuffer(src);
 
-    int comserr=0;
-    for (size_t i=0;i<incoms.size();++i)
-    {
-        message& m=incoms[i];
-        comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+    int comserr = 0;
+    for (size_t i=0; i < incoms.size(); ++i) {
+        message& m = incoms[i];
+        comserr |= MPI_Irecv(block.getInBuffer(m.destbuffid),
+                             block.getBuffSize(m.destbuffid), MPI_DOUBLE,
+                             m.sourceID, m.tag, m_mpiInfo->comm,
+                             reqs+(rused++));
         block.setUsed(m.destbuffid);
     }
 
-    for (size_t i=0;i<outcoms.size();++i)
-    {
-        message& m=outcoms[i];
-        comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+    for (size_t i=0; i < outcoms.size(); ++i) {
+        message& m = outcoms[i];
+        comserr |= MPI_Isend(block.getOutBuffer(m.srcbuffid),
+                             block.getBuffSize(m.srcbuffid), MPI_DOUBLE,
+                             m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
     }
 
-    if (!comserr)
-    {
-        comserr=MPI_Waitall(rused, reqs, stats);
+    if (!comserr) {
+        comserr = MPI_Waitall(rused, reqs, stats);
     }
 
-    if (comserr)
-    {
-        // Yes this is throwing an exception as a result of an MPI error.
+    if (comserr) {
+        // Yes this is throwing an exception as a result of an MPI error
         // and no we don't inform the other ranks that we are doing this.
-        // however, we have no reason to believe coms work at this point anyway
+        // However, we have no reason to believe coms work at this point anyway
         throw RipleyException("Error in coms for randomFill");
     }
 
     block.copyUsedFromBuffer(src);
 #endif
 
-    if (radius==0 || numvals>1) // the truth of either should imply the truth of the other but let's be safe
-    {
+    // the truth of either should imply the truth of the other but let's be safe
+    if (radius==0 || numvals > 1) {
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
-        escript::Data resdat(0, shape, fs , true);
+        escript::Data resdat(0, shape, fs, true);
         // don't need to check for exwrite because we just made it
-        escript::DataVector& dv=resdat.getExpandedVectorReference();
+        escript::DataVector& dv = resdat.getExpandedVectorReference();
 
         // now we need to copy values over
-        for (size_t y=0;y<(internal[1]);++y)
-        {
-            for (size_t x=0;x<(internal[0]);++x)
-            {
-                for (unsigned int i=0;i<numvals;++i)
-                {
+        for (size_t y=0; y < internal[1]; ++y) {
+            for (size_t x=0; x < internal[0]; ++x) {
+                for (unsigned int i=0; i < numvals; ++i) {
                     dv[i+(x+y*(internal[0]))*numvals]=src[i+(x+y*ext[0])*numvals];
                 }
             }
         }
         delete[] src;
         return resdat;
-    }
-    else // filter enabled
-    {
+    } else { // filter enabled
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
-        escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
+        escript::Data resdat(0, escript::DataTypes::scalarShape, fs, true);
         // don't need to check for exwrite because we just made it
         escript::DataVector& dv=resdat.getExpandedVectorReference();
         double* convolution=get2DGauss(radius, sigma);
-        for (size_t y=0;y<(internal[1]);++y)
-        {
-            for (size_t x=0;x<(internal[0]);++x)
-            {
-                dv[x+y*(internal[0])]=Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
+        for (size_t y=0; y < internal[1]; ++y) {
+            for (size_t x=0; x < internal[0]; ++x) {
+                dv[x+y*(internal[0])] = Convolve2D(convolution, src, x+radius, y+radius, radius, ext[0]);
             }
         }
         delete[] convolution;
@@ -2417,9 +2356,9 @@ escript::Data Rectangle::randomFillWorker(const escript::DataTypes::ShapeType& s
     }
 }
 
-int Rectangle::findNode(const double *coords) const
+dim_t Rectangle::findNode(const double *coords) const
 {
-    const int NOT_MINE = -1;
+    const dim_t NOT_MINE = -1;
     //is the found element even owned by this rank
     // (inside owned or shared elements but will map to an owned element)
     for (int dim = 0; dim < m_numDim; dim++) {
@@ -2440,10 +2379,10 @@ int Rectangle::findNode(const double *coords) const
         return NOT_MINE;
 
     // distance in elements
-    int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
-    int ey = (int) floor(y / m_dx[1] + 0.01*m_dx[1]);
+    dim_t ex = (dim_t) floor(x / m_dx[0] + 0.01*m_dx[0]);
+    dim_t ey = (dim_t) floor(y / m_dx[1] + 0.01*m_dx[1]);
     // set the min distance high enough to be outside the element plus a bit
-    int closest = NOT_MINE;
+    dim_t closest = NOT_MINE;
     double minDist = 1;
     for (int dim = 0; dim < m_numDim; dim++) {
         minDist += m_dx[dim]*m_dx[dim];
