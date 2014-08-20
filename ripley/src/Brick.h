@@ -208,8 +208,8 @@ protected:
 
 private:
     void populateSampleIds();
+    void populateDofMap();
     std::vector<IndexVector> getConnections() const;
-    void createPattern();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
@@ -282,7 +282,7 @@ private:
     paso::Connector_ptr m_connector;
 
     // the Paso System Matrix pattern
-    paso::SystemMatrixPattern_ptr m_pattern;
+    mutable paso::SystemMatrixPattern_ptr m_pattern;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
@@ -309,15 +309,6 @@ inline boost::python::tuple Brick::getGridParameters() const
             boost::python::make_tuple(m_dx[0], m_dx[1], m_dx[2]),
             boost::python::make_tuple(m_gNE[0], m_gNE[1], m_gNE[2]));
 }
-
-inline paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
-                                                    bool reducedRowOrder,
-                                                    bool reducedColOrder) const
-{
-    // TODO: reduced
-    return m_pattern;
-}
-
 
 //protected
 inline dim_t Brick::getNumDOF() const

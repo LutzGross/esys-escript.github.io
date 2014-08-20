@@ -28,6 +28,9 @@ namespace ripley {
 */
 class RIPLEY_DLL_API Rectangle: public RipleyDomain
 {
+    friend class DefaultAssembler2D;
+    friend class WaveAssembler2D;
+    friend class LameAssembler2D;
 public:
 
     /**
@@ -290,10 +293,6 @@ private:
 
     // the Paso System Matrix pattern
     mutable paso::SystemMatrixPattern_ptr m_pattern;
-
-    friend class DefaultAssembler2D;
-    friend class WaveAssembler2D;
-    friend class LameAssembler2D;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
