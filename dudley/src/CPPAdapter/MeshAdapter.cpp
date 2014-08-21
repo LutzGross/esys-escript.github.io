@@ -93,23 +93,14 @@ bool MeshAdapter::onMasterProcessor() const
    return m_dudleyMesh.get()->MPIInfo->rank == 0;
 }
 
-
-#ifdef ESYS_MPI
-  MPI_Comm
-#else
-  unsigned int
-#endif
-MeshAdapter::getMPIComm() const
+MPI_Comm MeshAdapter::getMPIComm() const
 {
-#ifdef ESYS_MPI
-	return m_dudleyMesh->MPIInfo->comm;
-#else
-	return 0;
-#endif
+    return m_dudleyMesh->MPIInfo->comm;
 }
 
 
-Dudley_Mesh* MeshAdapter::getDudley_Mesh() const {
+Dudley_Mesh* MeshAdapter::getDudley_Mesh() const
+{
    return m_dudleyMesh.get();
 }
 

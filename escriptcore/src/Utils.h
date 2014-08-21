@@ -14,10 +14,11 @@
 *
 *****************************************************************************/
 
-
 #if !defined  escript_Utils_H
 #define escript_Utils_H
+
 #include "system_dep.h"
+#include <boost/python/dict.hpp>
 
 namespace escript {
 

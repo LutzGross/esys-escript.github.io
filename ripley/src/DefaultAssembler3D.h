@@ -16,11 +16,6 @@
 #ifndef __RIPLEY_DEFAULTASSEMBLER3D_H__
 #define __RIPLEY_DEFAULTASSEMBLER3D_H__
 
-#include <map>
-#include <escript/Data.h>
-#include <ripley/Ripley.h>
-#include <ripley/RipleyException.h>
-#include <ripley/AbstractAssembler.h>
 #include <ripley/Brick.h>
 
 namespace ripley {
@@ -46,83 +41,84 @@ public:
     
     /// assembles a single PDE into the system matrix 'mat' and the right hand
     /// side 'rhs'
-    virtual void assemblePDESingle(SystemMatrix* mat,
-            escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assemblePDESingle(escript::AbstractSystemMatrix* mat,
+                               escript::Data& rhs, const escript::Data& A,
+                               const escript::Data& B, const escript::Data& C,
+                               const escript::Data& D, const escript::Data& X,
+                               const escript::Data& Y) const;
 
     /// assembles boundary conditions of a single PDE into the system matrix
     /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingle(SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+    virtual void assemblePDEBoundarySingle(escript::AbstractSystemMatrix* mat,
+                                   escript::Data& rhs, const escript::Data& d,
+                                   const escript::Data& y) const;
 
     /// assembles a single PDE with reduced order into the system matrix 'mat'
     /// and the right hand side 'rhs'
-    virtual void assemblePDESingleReduced(SystemMatrix* mat,
+    virtual void assemblePDESingleReduced(escript::AbstractSystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const;
 
     /// assembles boundary conditions of a single PDE with reduced order into
     /// the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySingleReduced(SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+    virtual void assemblePDEBoundarySingleReduced(
+                                   escript::AbstractSystemMatrix* mat,
+                                   escript::Data& rhs, const escript::Data& d,
+                                   const escript::Data& y) const;
 
     /// assembles a system of PDEs into the system matrix 'mat' and the right
     /// hand side 'rhs'
-    virtual void assemblePDESystem(SystemMatrix* mat, escript::Data& rhs,
-            const escript::Data& A, const escript::Data& B,
-            const escript::Data& C, const escript::Data& D,
-            const escript::Data& X, const escript::Data& Y) const;
+    virtual void assemblePDESystem(escript::AbstractSystemMatrix* mat,
+                                escript::Data& rhs, const escript::Data& A,
+                                const escript::Data& B, const escript::Data& C,
+                                const escript::Data& D, const escript::Data& X,
+                                const escript::Data& Y) const;
 
     /// assembles boundary conditions of a system of PDEs into the system
     /// matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystem(SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
+    virtual void assemblePDEBoundarySystem(escript::AbstractSystemMatrix* mat,
+                                   escript::Data& rhs, const escript::Data& d,
+                                   const escript::Data& y) const;
 
     /// assembles a system of PDEs with reduced order into the system matrix
     /// 'mat' and the right hand side 'rhs'
-    virtual void assemblePDESystemReduced(SystemMatrix* mat,
+    virtual void assemblePDESystemReduced(escript::AbstractSystemMatrix* mat,
             escript::Data& rhs, const escript::Data& A, const escript::Data& B,
             const escript::Data& C, const escript::Data& D,
             const escript::Data& X, const escript::Data& Y) const;
 
     /// assembles boundary conditions of a system of PDEs with reduced order
     /// into the system matrix 'mat' and the right hand side 'rhs'
-    virtual void assemblePDEBoundarySystemReduced(SystemMatrix* mat,
-            escript::Data& rhs, const escript::Data& d,
-            const escript::Data& y) const;
-    
+    virtual void assemblePDEBoundarySystemReduced(
+                                   escript::AbstractSystemMatrix* mat,
+                                   escript::Data& rhs, const escript::Data& d,
+                                   const escript::Data& y) const;
+
     /* The new interface for assemblers */
-    virtual void assemblePDESingle(SystemMatrix* mat, escript::Data& rhs,
-        std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySingle(SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESingleReduced(SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySingleReduced(SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESystem(SystemMatrix* mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySystem(SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDESystemReduced(SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-    virtual void assemblePDEBoundarySystemReduced(SystemMatrix* mat,
-            escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs) const;
-            
-    void collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const;
+
+    virtual void assemblePDESingle(escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDEBoundarySingle(escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDESingleReduced(escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDEBoundarySingleReduced(
+                              escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDESystem(escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDEBoundarySystem(escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDESystemReduced(escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+    virtual void assemblePDEBoundarySystemReduced(
+                              escript::AbstractSystemMatrix* mat,
+                              escript::Data& rhs, const DataMap& coefs) const;
+
+    void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
+                                   const DataMap& coefs) const;
+
 protected:
     boost::shared_ptr<const Brick> domain;
     const double *m_dx;

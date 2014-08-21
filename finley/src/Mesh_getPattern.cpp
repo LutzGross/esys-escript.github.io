@@ -23,6 +23,7 @@
 
 #include "Mesh.h"
 #include "IndexList.h"
+#include <boost/scoped_array.hpp>
 
 namespace finley {
 
@@ -106,32 +107,32 @@ paso::SystemMatrixPattern_ptr Mesh::makePattern(bool reduce_row_order, bool redu
         rowDistribution=Nodes->degreesOfFreedomDistribution;
         row_connector=Nodes->degreesOfFreedomConnector;
     }
-    IndexListArray index_list(numRowTargets);
+    boost::scoped_array<IndexList> index_list(new IndexList[numRowTargets]);
   
 #pragma omp parallel
     {
         // insert contributions from element matrices into columns in indexlist:
-        IndexList_insertElements(index_list, Elements, reduce_row_order,
+        IndexList_insertElements(index_list.get(), Elements, reduce_row_order,
                                  rowTarget, reduce_col_order, colTarget);
-        IndexList_insertElements(index_list, FaceElements,
+        IndexList_insertElements(index_list.get(), FaceElements,
                                  reduce_row_order, rowTarget, reduce_col_order,
                                  colTarget);
-        IndexList_insertElements(index_list, ContactElements,
+        IndexList_insertElements(index_list.get(), ContactElements,
                                  reduce_row_order, rowTarget, reduce_col_order,
                                  colTarget);
-        IndexList_insertElements(index_list, Points, reduce_row_order,
+        IndexList_insertElements(index_list.get(), Points, reduce_row_order,
                                  rowTarget, reduce_col_order, colTarget);
     }
  
     /* create pattern */
     paso::Pattern_ptr main_pattern, col_couple_pattern, row_couple_pattern;
     main_pattern=paso::Pattern::fromIndexListArray(
-            0, myNumRowTargets, index_list, 0, myNumColTargets, 0);
+            0, myNumRowTargets, index_list.get(), 0, myNumColTargets, 0);
     col_couple_pattern=paso::Pattern::fromIndexListArray(
-            0, myNumRowTargets, index_list, myNumColTargets,
+            0, myNumRowTargets, index_list.get(), myNumColTargets,
             numColTargets, -myNumColTargets);
     row_couple_pattern=paso::Pattern::fromIndexListArray(
-            myNumRowTargets, numRowTargets, index_list, 0, myNumColTargets, 0);
+            myNumRowTargets, numRowTargets, index_list.get(), 0, myNumColTargets, 0);
 
     // if everything is in order we can create the return value
     if (noError()) {

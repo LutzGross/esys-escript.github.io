@@ -17,7 +17,7 @@
 #define ESYS_RANDOM_H
 namespace esysUtils
 {
-/* \brief put n random doubles in array (uses OpenMP).
+/* \brief put n random doubles (from [0.0, 1.0]) in array (uses OpenMP).
    If using this on Data, then be sure to CHECK_EX_WRITE first
 */
 void randomFillArray(long seed, double* array, size_t n);

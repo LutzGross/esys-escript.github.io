@@ -94,18 +94,9 @@ bool MeshAdapter::onMasterProcessor() const
     return m_finleyMesh.get()->MPIInfo->rank == 0;
 }
 
-#ifdef ESYS_MPI
-MPI_Comm
-#else
-unsigned int
-#endif
-MeshAdapter::getMPIComm() const
+MPI_Comm MeshAdapter::getMPIComm() const
 {
-#ifdef ESYS_MPI
     return m_finleyMesh->MPIInfo->comm;
-#else
-    return 0;
-#endif
 }
 
 Mesh* MeshAdapter::getFinley_Mesh() const
@@ -2193,8 +2184,10 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 	throw FinleyAdapterException("Error - number of diractags must match number of diracpoints.");
     }
 
-    mesh->addPoints(numPoints, &points[0], &tags[0]);
-    checkFinleyError();
+    if (numPoints > 0) {
+        mesh->addPoints(numPoints, &points[0], &tags[0]);
+        checkFinleyError();
+    }
 }
 
 // void MeshAdapter::addDiracPoints(const boost::python::list& points, const boost::python::list& tags) const

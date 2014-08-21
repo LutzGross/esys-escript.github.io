@@ -746,6 +746,7 @@ which was created by \function{dump}.
 \subsection{Generating random \Data objects}
 A \Data object filled with random values can be produced using the \function{RandomData}
 function.
+By default values are drawn uniformly at random from the interval $[0,1]$ (ie includes end points).
 You will need to supply a shape for the data points and a \FunctionSpace for the new \Data.
 For example:
 \begin{python}

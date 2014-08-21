@@ -16,8 +16,8 @@
 
 #include <ripley/Brick.h>
 #include <ripley/DefaultAssembler3D.h>
-#include <ripley/WaveAssembler3D.h>
 #include <ripley/LameAssembler3D.h>
+#include <ripley/WaveAssembler3D.h>
 #include <ripley/blocktools.h>
 #include <ripley/domainhelpers.h>
 #include <esysUtils/esysFileWriter.h>
@@ -40,13 +40,15 @@
 #include <iomanip>
 #include <limits>
 
-
+namespace bp = boost::python;
 using namespace std;
 using esysUtils::FileWriter;
+using escript::AbstractSystemMatrix;
 
 namespace ripley {
 
-int indexOfMax(int a, int b, int c) {
+inline int indexOfMax(dim_t a, dim_t b, dim_t c)
+{
     if (a > b) {
         if (c > a) {
             return 2;
@@ -58,15 +60,15 @@ int indexOfMax(int a, int b, int c) {
     return 2;
 }
 
-Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
+Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
-             const std::vector<double>& points, const std::vector<int>& tags,
+             const vector<double>& points, const vector<int>& tags,
              const simap_t& tagnamestonums,
              escript::SubWorld_ptr w) :
     RipleyDomain(3, w)
 {
-    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
-            * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
+            * static_cast<long>(n2 + 1) > numeric_limits<int>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
 
@@ -82,9 +84,9 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     }
     bool warn=false;
 
-    std::vector<int> factors;
+    vector<int> factors;
     int ranks = m_mpiInfo->size;
-    int epr[3] = {n0,n1,n2};
+    dim_t epr[3] = {n0,n1,n2};
     int d[3] = {d0,d1,d2};
     if (d0<=0 || d1<=0 || d2<=0) {
         for (int i = 0; i < 3; i++) {
@@ -96,14 +98,14 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
             if (ranks % d[i] != 0) {
                 throw RipleyException("Invalid number of spatial subdivisions");
             }
-            //remove 
+            //remove
             ranks /= d[i];
         }
         factorise(factors, ranks);
         if (factors.size() != 0) {
             warn = true;
         }
-    } 
+    }
     while (factors.size() > 0) {
         int i = indexOfMax(epr[0],epr[1],epr[2]);
         int f = factors.back();
@@ -131,19 +133,19 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
     m_dx[2] = l2/n2;
 
     if ((n0+1)%d0 > 0) {
-        n0=(int)round((float)(n0+1)/d0+0.5)*d0-1;
+        n0=(dim_t)round((float)(n0+1)/d0+0.5)*d0-1;
         l0=m_dx[0]*n0;
         cout << "Warning: Adjusted number of elements and length. N0="
             << n0 << ", l0=" << l0 << endl;
     }
     if ((n1+1)%d1 > 0) {
-        n1=(int)round((float)(n1+1)/d1+0.5)*d1-1;
+        n1=(dim_t)round((float)(n1+1)/d1+0.5)*d1-1;
         l1=m_dx[1]*n1;
         cout << "Warning: Adjusted number of elements and length. N1="
             << n1 << ", l1=" << l1 << endl;
     }
     if ((n2+1)%d2 > 0) {
-        n2=(int)round((float)(n2+1)/d2+0.5)*d2-1;
+        n2=(dim_t)round((float)(n2+1)/d2+0.5)*d2-1;
         l2=m_dx[2]*n2;
         cout << "Warning: Adjusted number of elements and length. N2="
             << n2 << ", l2=" << l2 << endl;
@@ -201,15 +203,13 @@ Brick::Brick(int n0, int n1, int n2, double x0, double y0, double z0,
         m_offset[2]--;
 
     populateSampleIds();
-    createPattern();
-    
-    for (map<string, int>::const_iterator i = tagnamestonums.begin();
+
+    for (simap_t::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
-    addPoints(tags.size(), &points[0], &tags[0]);
+    addPoints(points, tags);
 }
-
 
 Brick::~Brick()
 {
@@ -239,7 +239,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 {
 #ifdef USE_NETCDF
     // check destination function space
-    int myN0, myN1, myN2;
+    dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -304,17 +304,17 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
-    const int first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
-    int idx2 = max(0, m_offset[2]-params.first[2]);
+    dim_t idx0 = max(0, m_offset[0]-params.first[0]);
+    dim_t idx1 = max(0, m_offset[1]-params.first[1]);
+    dim_t idx2 = max(0, m_offset[2]-params.first[2]);
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
-    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num2 = min(params.numValues[2]-idx2, myN2-first2);
 
     // make sure we read the right block if going backwards through file
     if (params.reverse[0])
@@ -341,28 +341,28 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     out.requireWrite();
 
     // helpers for reversing
-    const int x0 = (params.reverse[0] ? num0-1 : 0);
+    const dim_t x0 = (params.reverse[0] ? num0-1 : 0);
     const int x_mult = (params.reverse[0] ? -1 : 1);
-    const int y0 = (params.reverse[1] ? num1-1 : 0);
+    const dim_t y0 = (params.reverse[1] ? num1-1 : 0);
     const int y_mult = (params.reverse[1] ? -1 : 1);
-    const int z0 = (params.reverse[2] ? num2-1 : 0);
+    const dim_t z0 = (params.reverse[2] ? num2-1 : 0);
     const int z_mult = (params.reverse[2] ? -1 : 1);
 
     for (index_t z=0; z<num2; z++) {
         for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
             for (index_t x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
+                const dim_t baseIndex = first0+x*params.multiplier[0]
                                      +(first1+y*params.multiplier[1])*myN0
                                      +(first2+z*params.multiplier[2])*myN0*myN1;
-                const int srcIndex=(z0+z_mult*z)*num1*num0
+                const dim_t srcIndex=(z0+z_mult*z)*num1*num0
                                   +(y0+y_mult*y)*num0
                                   +(x0+x_mult*x);
                 if (!isnan(values[srcIndex])) {
                     for (index_t m2=0; m2<params.multiplier[2]; m2++) {
                         for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                             for (index_t m0=0; m0<params.multiplier[0]; m0++) {
-                                const int dataIndex = baseIndex+m0
+                                const dim_t dataIndex = baseIndex+m0
                                                +m1*myN0
                                                +m2*myN0*myN1;
                                 double* dest = out.getSampleDataRW(dataIndex);
@@ -428,7 +428,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
                                const ReaderParameters& params) const
 {
     // check destination function space
-    int myN0, myN1, myN2;
+    dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -462,8 +462,8 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
-    const int filesize = f.tellg();
-    const int reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
+    const dim_t filesize = f.tellg();
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
         throw RipleyException("readBinaryGrid(): not enough data in file");
@@ -483,17 +483,24 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
-    const int first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
-    int idx2 = max(0, m_offset[2]-params.first[2]);
+    dim_t idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    dim_t idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    dim_t idx2 = max(0, (m_offset[2]/params.multiplier[2])-params.first[2]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const dim_t rest0 = m_offset[0]%params.multiplier[0];
+    const dim_t rest1 = m_offset[1]%params.multiplier[1];
+    const dim_t rest2 = m_offset[2]%params.multiplier[2];
+
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
-    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num2 = min(params.numValues[2]-idx2, myN2-first2);
 
     // make sure we read the right block if going backwards through file
     if (params.reverse[2])
@@ -506,24 +513,43 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (int z=0; z<num2; z++) {
-        for (int y=0; y<num1; y++) {
-            const int fileofs = numComp*(idx0 +
+    for (dim_t z=0; z<num2; z++) {
+        const dim_t m2limit = (z==0 ? params.multiplier[2]-rest2 : params.multiplier[2]);
+        dim_t dataZbase = first2 + z*params.multiplier[2];
+        if (z>0)
+            dataZbase -= rest2;
+
+        for (dim_t y=0; y<num1; y++) {
+            const dim_t fileofs = numComp*(idx0 +
                                 (idx1+y)*params.numValues[0] +
                                 (idx2+z_mult*z)*params.numValues[0]*params.numValues[1]);
             f.seekg(fileofs*sizeof(ValueType));
             f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+            const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+            dim_t dataYbase = first1 + y*params.multiplier[1];
+            if (y>0)
+                dataYbase -= rest1;
 
-            for (int x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
-                                     +(first1+y*params.multiplier[1])*myN0
-                                     +(first2+z*params.multiplier[2])*myN0*myN1;
-                for (int m2=0; m2<params.multiplier[2]; m2++) {
-                    for (int m1=0; m1<params.multiplier[1]; m1++) {
-                        for (int m0=0; m0<params.multiplier[0]; m0++) {
-                            const int dataIndex = baseIndex+m0
-                                           +m1*myN0
-                                           +m2*myN0*myN1;
+            for (dim_t x=0; x<num0; x++) {
+                const dim_t m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+                dim_t dataXbase = first0 + x*params.multiplier[0];
+                if (x>0)
+                    dataXbase -= rest0;
+                // write a block of mult0 x mult1 x mult2 identical values into
+                // Data object
+                for (dim_t m2=0; m2 < m2limit; m2++) {
+                    const dim_t dataZ = dataZbase + m2;
+                    if (dataZ >= myN2)
+                        break;
+                    for (dim_t m1=0; m1 < m1limit; m1++) {
+                        const dim_t dataY = dataYbase + m1;
+                        if (dataY >= myN1)
+                            break;
+                        for (dim_t m0=0; m0 < m0limit; m0++) {
+                            const dim_t dataX = dataXbase + m0;
+                            if (dataX >= myN0)
+                                break;
+                            const dim_t dataIndex = dataX + dataY*myN0 + dataZ*myN0*myN1;
                             double* dest = out.getSampleDataRW(dataIndex);
                             for (int c=0; c<numComp; c++) {
                                 ValueType val = values[x*numComp+c];
@@ -559,7 +585,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                const ReaderParameters& params) const
 {
     // check destination function space
-    int myN0, myN1, myN2;
+    dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -591,14 +617,14 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
-    int filesize = f.tellg();
+    dim_t filesize = f.tellg();
     f.seekg(0, ios::beg);
-    std::vector<char> compressed(filesize);
+    vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
-    std::vector<char> decompressed = unzip(compressed);
+    vector<char> decompressed = unzip(compressed);
     filesize = decompressed.size();
-    const int reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         throw RipleyException("readBinaryGridFromZipped(): not enough data in file");
     }
@@ -616,36 +642,36 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
-    const int first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
     // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-params.first[0]);
-    const int idx1 = max(0, m_offset[1]-params.first[1]);
-    const int idx2 = max(0, m_offset[2]-params.first[2]);
+    const dim_t idx0 = max(0, m_offset[0]-params.first[0]);
+    const dim_t idx1 = max(0, m_offset[1]-params.first[1]);
+    const dim_t idx2 = max(0, m_offset[2]-params.first[2]);
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
-    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num2 = min(params.numValues[2]-idx2, myN2-first2);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (int z=0; z<num2; z++) {
-        for (int y=0; y<num1; y++) {
-            const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
+    for (dim_t z=0; z<num2; z++) {
+        for (dim_t y=0; y<num1; y++) {
+            const dim_t fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
                              +(idx2+z)*params.numValues[0]*params.numValues[1]);
             memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
-            
-            for (int x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
+
+            for (dim_t x=0; x<num0; x++) {
+                const dim_t baseIndex = first0+x*params.multiplier[0]
                                      +(first1+y*params.multiplier[1])*myN0
                                      +(first2+z*params.multiplier[2])*myN0*myN1;
-                for (int m2=0; m2<params.multiplier[2]; m2++) {
-                    for (int m1=0; m1<params.multiplier[1]; m1++) {
-                        for (int m0=0; m0<params.multiplier[0]; m0++) {
-                            const int dataIndex = baseIndex+m0
+                for (dim_t m2=0; m2<params.multiplier[2]; m2++) {
+                    for (dim_t m1=0; m1<params.multiplier[1]; m1++) {
+                        for (dim_t m0=0; m0<params.multiplier[0]; m0++) {
+                            const dim_t dataIndex = baseIndex+m0
                                            +m1*myN0
                                            +m2*myN0*myN1;
                             double* dest = out.getSampleDataRW(dataIndex);
@@ -697,8 +723,8 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
                                 const string& filename, int byteOrder) const
 {
     // check function space and determine number of points
-    int myN0, myN1, myN2;
-    int totalN0, totalN1, totalN2;
+    dim_t myN0, myN1, myN2;
+    dim_t totalN0, totalN1, totalN2;
     if (in.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -719,7 +745,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
 
     const int numComp = in.getDataPointSize();
     const int dpp = in.getNumDataPointsPerSample();
-    const int fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1*totalN2;
+    const dim_t fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1*totalN2;
 
     if (numComp > 1 || dpp > 1)
         throw RipleyException("writeBinaryGrid(): only scalar, single-value data supported");
@@ -731,7 +757,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
 
     for (index_t z=0; z<myN2; z++) {
         for (index_t y=0; y<myN1; y++) {
-            const int fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
+            const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
                                 +(m_offset[2]+z)*totalN0*totalN1)*sizeof(ValueType);
             ostringstream oss;
 
@@ -756,6 +782,11 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
     fw.close();
 }
 
+void Brick::write(const std::string& filename) const
+{
+    throw RipleyException("write: not supported");
+}
+
 void Brick::dump(const string& fileName) const
 {
 #if USE_SILO
@@ -764,7 +795,7 @@ void Brick::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    int driver=DB_HDF5;    
+    int driver=DB_HDF5;
     string siloPath;
     DBfile* dbfile = NULL;
 
@@ -820,9 +851,9 @@ void Brick::dump(const string& fileName) const
     boost::scoped_ptr<double> y(new double[m_NN[1]]);
     boost::scoped_ptr<double> z(new double[m_NN[2]]);
     double* coords[3] = { x.get(), y.get(), z.get() };
-    const int NN0 = m_NN[0];
-    const int NN1 = m_NN[1];
-    const int NN2 = m_NN[2];
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    const dim_t NN2 = m_NN[2];
 
 #pragma omp parallel
     {
@@ -839,7 +870,7 @@ void Brick::dump(const string& fileName) const
             coords[2][i2]=getLocalCoordinate(i2, 2);
         }
     }
-    int* dims = const_cast<int*>(getNumNodesPerDim());
+    dim_t* dims = const_cast<dim_t*>(getNumNodesPerDim());
 
     // write mesh
     DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 3, DB_DOUBLE,
@@ -850,7 +881,7 @@ void Brick::dump(const string& fileName) const
             NULL, 0, DB_INT, DB_NODECENT, NULL);
 
     // write element ids
-    dims = const_cast<int*>(getNumElementsPerDim());
+    dims = const_cast<dim_t*>(getNumElementsPerDim());
     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
             dims, 3, NULL, 0, DB_INT, DB_ZONECENT, NULL);
 
@@ -905,7 +936,7 @@ void Brick::dump(const string& fileName) const
 #endif
 }
 
-const int* Brick::borrowSampleReferenceIDs(int fsType) const
+const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case Nodes:
@@ -986,9 +1017,9 @@ bool Brick::ownSample(int fsType, index_t id) const
 
 void Brick::setToNormal(escript::Data& out) const
 {
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
+    const dim_t NE2 = m_NE[2];
 
     if (out.getFunctionSpace().getTypeCode() == FaceElements) {
         out.requireWrite();
@@ -1170,7 +1201,7 @@ void Brick::setToSize(escript::Data& out) const
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
         const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]+m_dx[2]*m_dx[2]);
-        const int NE = getNumElements();
+        const dim_t NE = getNumElements();
 #pragma omp parallel for
         for (index_t k = 0; k < NE; ++k) {
             double* o = out.getSampleDataRW(k);
@@ -1180,9 +1211,9 @@ void Brick::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        const int NE0 = m_NE[0];
-        const int NE1 = m_NE[1];
-        const int NE2 = m_NE[2];
+        const dim_t NE0 = m_NE[0];
+        const dim_t NE1 = m_NE[1];
+        const dim_t NE2 = m_NE[2];
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -1287,9 +1318,9 @@ void Brick::assembleCoordinates(escript::Data& arg) const
     if (!numSamplesEqual(&x, 1, getNumNodes()))
         throw RipleyException("setToX: Illegal number of samples in Data object");
 
-    const int NN0 = m_NN[0];
-    const int NN1 = m_NN[1];
-    const int NN2 = m_NN[2];
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    const dim_t NN2 = m_NN[2];
     arg.requireWrite();
 #pragma omp parallel for
     for (dim_t i2 = 0; i2 < NN2; i2++) {
@@ -1315,9 +1346,9 @@ void Brick::assembleGradient(escript::Data& out, const escript::Data& in) const
     const double C4 = .5;
     const double C5 = .62200846792814621559;
     const double C6 = .78867513459481288225;
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
+    const dim_t NE2 = m_NE[2];
 
     if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
@@ -2096,6 +2127,209 @@ void Brick::dofToNodes(escript::Data& out, const escript::Data& in) const
     }
 }
 
+//protected
+paso::SystemMatrixPattern_ptr Brick::getPasoMatrixPattern(
+                                                    bool reducedRowOrder,
+                                                    bool reducedColOrder) const
+{
+    if (m_pattern.get())
+        return m_pattern;
+
+    // first call to this method -> create the pattern, then return it
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
+    const dim_t numDOF = nDOF0*nDOF1*nDOF2;
+    const dim_t numShared = m_connector->send->numSharedComponents;
+    const index_t* sendShared = m_connector->send->shared;
+    const int x = m_mpiInfo->rank%m_NX[0];
+    const int y = m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
+    const int z = m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
+
+    // these are for the couple blocks
+    vector<IndexVector> colIndices(numDOF);
+    vector<IndexVector> rowIndices(numShared);
+
+    for (dim_t i=0; i < m_connector->send->numNeighbors; i++) {
+        const dim_t start = m_connector->send->offsetInShared[i];
+        const dim_t end = m_connector->send->offsetInShared[i+1];
+        // location of neighbour rank relative to this rank
+        const int xDiff = m_connector->send->neighbor[i]%m_NX[0] - x;
+        const int yDiff = m_connector->send->neighbor[i]%(m_NX[0]*m_NX[1])/m_NX[0] - y;
+        const int zDiff = m_connector->send->neighbor[i]/(m_NX[0]*m_NX[1]) - z;
+        
+        if (xDiff==0 && yDiff==0) {
+            // sharing front or back plane
+            for (dim_t j = start; j < end; j++) {
+                const dim_t i0 = (j-start)%nDOF0;
+                const dim_t i1 = (j-start)/nDOF0;
+                if (i0 > 0) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j-1-nDOF0], j);
+                    doublyLink(colIndices, rowIndices, sendShared[j-1], j);
+                    if (i1 < nDOF1-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j-1+nDOF0], j);
+                }
+                if (i1 > 0)
+                    doublyLink(colIndices, rowIndices, sendShared[j-nDOF0], j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (i1 < nDOF1-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j+nDOF0], j);
+                if (i0 < nDOF0-1) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j+1-nDOF0], j);
+                    doublyLink(colIndices, rowIndices, sendShared[j+1], j);
+                    if (i1 < nDOF1-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j+1+nDOF0], j);
+                }
+            }
+        } else if (xDiff==0 && zDiff==0) {
+            // sharing top or bottom plane
+            for (dim_t j = start; j < end; j++) {
+                const dim_t i0 = (j-start)%nDOF0;
+                const dim_t i1 = (j-start)/nDOF0;
+                if (i0 > 0) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-1-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]-1, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-1+nDOF0*nDOF1, j);
+                }
+                if (i1 > 0)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (i1 < nDOF2-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
+                if (i0 < nDOF0-1) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+1-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]+1, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+1+nDOF0*nDOF1, j);
+                }
+            }
+        } else if (yDiff==0 && zDiff==0) {
+            // sharing left or right plane
+            for (dim_t j = start; j < end; j++) {
+                const dim_t i0 = (j-start)%nDOF1;
+                const dim_t i1 = (j-start)/nDOF1;
+                if (i0 > 0) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0+nDOF0*nDOF1, j);
+                }
+                if (i1 > 0)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (i1 < nDOF2-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
+                if (i0 < nDOF1-1) {
+                    if (i1 > 0)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0-nDOF0*nDOF1, j);
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0, j);
+                    if (i1 < nDOF2-1)
+                        doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0+nDOF0*nDOF1, j);
+                }
+            }
+        } else if (xDiff == 0) {
+            // sharing an edge in x direction
+            for (dim_t j = start; j < end; j++) {
+                if (j > start)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (j < end-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+1, j);
+            }
+        } else if (yDiff == 0) {
+            // sharing an edge in y direction
+            for (dim_t j = start; j < end; j++) {
+                if (j > start)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (j < end-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0, j);
+            }
+        } else if (zDiff == 0) {
+            // sharing an edge in z direction
+            for (dim_t j = start; j < end; j++) {
+                if (j > start)
+                    doublyLink(colIndices, rowIndices, sendShared[j]-nDOF0*nDOF1, j);
+                doublyLink(colIndices, rowIndices, sendShared[j], j);
+                if (j < end-1)
+                    doublyLink(colIndices, rowIndices, sendShared[j]+nDOF0*nDOF1, j);
+            }
+        } else {
+            // sharing a node
+            doublyLink(colIndices, rowIndices, sendShared[start], start);
+        }
+    }
+
+#pragma omp parallel for
+    for (dim_t i = 0; i < numShared; i++) {
+        sort(rowIndices[i].begin(), rowIndices[i].end());
+    }
+
+    // create main and couple blocks
+    paso::Pattern_ptr mainPattern = createPasoPattern(getConnections(), numDOF);
+    paso::Pattern_ptr colPattern = createPasoPattern(colIndices, numShared);
+    paso::Pattern_ptr rowPattern = createPasoPattern(rowIndices, numDOF);
+
+    // allocate paso distribution
+    paso::Distribution_ptr distribution(new paso::Distribution(m_mpiInfo,
+            const_cast<index_t*>(&m_nodeDistribution[0]), 1, 0));
+
+    // finally create the system matrix pattern
+    m_pattern.reset(new paso::SystemMatrixPattern(MATRIX_FORMAT_DEFAULT,
+            distribution, distribution, mainPattern, colPattern, rowPattern,
+            m_connector, m_connector));
+
+    // useful debug output
+    /*
+    cout << "--- colIndices ---" << endl;
+    for (size_t i=0; i<colIndices.size(); i++) {
+        cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << endl;
+    }
+    cout << "--- rowIndices ---" << endl;
+    for (size_t i=0; i<rowIndices.size(); i++) {
+        cout << "rowIndices[" << i << "].size()=" << rowIndices[i].size() << endl;
+    }
+    */
+    /*
+    cout << "--- main_pattern ---" << endl;
+    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
+    for (size_t i=0; i<mainPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
+    }
+    for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
+    }
+    */
+    /*
+    cout << "--- colCouple_pattern ---" << endl;
+    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
+    for (size_t i=0; i<colPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
+    }
+    for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
+    }
+    */
+    /*
+    cout << "--- rowCouple_pattern ---" << endl;
+    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
+    for (size_t i=0; i<rowPattern->numOutput+1; i++) {
+        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
+    }
+    for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
+        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
+    }
+    */
+
+    return m_pattern;
+}
+
 //private
 void Brick::populateSampleIds()
 {
@@ -2114,15 +2348,15 @@ void Brick::populateSampleIds()
         m_nodeDistribution[k]=k*numDOF;
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-    
+
     try {
         m_nodeId.resize(getNumNodes());
         m_dofId.resize(numDOF);
         m_elementId.resize(getNumElements());
-    } catch (const std::length_error& le) {
+    } catch (const length_error& le) {
         throw RipleyException("The system does not have sufficient memory for a domain of this size.");
     }
-    
+
     // populate face element counts
     //left
     if (m_offset[0]==0)
@@ -2341,10 +2575,44 @@ void Brick::populateSampleIds()
     setTagMap("front", FRONT);
     setTagMap("back", BACK);
     updateTagsInUse(FaceElements);
+
+    populateDofMap();
 }
 
 //private
-void Brick::createPattern()
+vector<IndexVector> Brick::getConnections() const
+{
+    // returns a vector v of size numDOF where v[i] is a vector with indices
+    // of DOFs connected to i (up to 27 in 3D)
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    const dim_t nDOF2 = (m_gNE[2]+1)/m_NX[2];
+    const dim_t M = nDOF0*nDOF1*nDOF2;
+    vector<IndexVector> indices(M);
+
+#pragma omp parallel for
+    for (index_t i=0; i < M; i++) {
+        const index_t x = i % nDOF0;
+        const index_t y = i % (nDOF0*nDOF1)/nDOF0;
+        const index_t z = i / (nDOF0*nDOF1);
+        // loop through potential neighbours and add to index if positions are
+        // within bounds
+        for (int i2=z-1; i2<z+2; i2++) {
+            for (int i1=y-1; i1<y+2; i1++) {
+                for (int i0=x-1; i0<x+2; i0++) {
+                    if (i0>=0 && i1>=0 && i2>=0
+                            && i0<nDOF0 && i1<nDOF1 && i2<nDOF2) {
+                        indices[i].push_back(i2*nDOF0*nDOF1 + i1*nDOF0 + i0);
+                    }
+                }
+            }
+        }
+    }
+    return indices;
+}
+
+//private
+void Brick::populateDofMap()
 {
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
@@ -2365,51 +2633,18 @@ void Brick::createPattern()
         }
     }
 
-    // build list of shared components and neighbours by looping through
-    // all potential neighbouring ranks and checking if positions are
-    // within bounds
     const dim_t numDOF=nDOF0*nDOF1*nDOF2;
-    vector<IndexVector> colIndices(numDOF); // for the couple blocks
     RankVector neighbour;
     IndexVector offsetInShared(1,0);
     IndexVector sendShared, recvShared;
-    int numShared=0, expectedShared=0;;
+    dim_t numShared=0;
     const int x=m_mpiInfo->rank%m_NX[0];
     const int y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     const int z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
-    for (int i2=-1; i2<2; i2++) {
-        for (int i1=-1; i1<2; i1++) {
-            for (int i0=-1; i0<2; i0++) {
-                // skip this rank
-                if (i0==0 && i1==0 && i2==0)
-                    continue;
-                // location of neighbour rank
-                const int nx=x+i0;
-                const int ny=y+i1;
-                const int nz=z+i2;
-                if (!(nx>=0 && ny>=0 && nz>=0 && nx<m_NX[0] && ny<m_NX[1] && nz<m_NX[2])) {
-                    continue;
-                }
-                if (i0==0 && i1==0)
-                    expectedShared += nDOF0*nDOF1;
-                else if (i0==0 && i2==0)
-                    expectedShared += nDOF0*nDOF2;
-                else if (i1==0 && i2==0)
-                    expectedShared += nDOF1*nDOF2;
-                else if (i0==0)
-                    expectedShared += nDOF0;
-                else if (i1==0)
-                    expectedShared += nDOF1;
-                else if (i2==0)
-                    expectedShared += nDOF2;
-                else
-                    expectedShared++;
-            }
-        }
-    }
-    
-    vector<IndexVector> rowIndices(expectedShared);
-    
+
+    // build list of shared components and neighbours by looping through
+    // all potential neighbouring ranks and checking if positions are
+    // within bounds
     for (int i2=-1; i2<2; i2++) {
         for (int i1=-1; i1<2; i1++) {
             for (int i0=-1; i0<2; i0++) {
@@ -2426,32 +2661,13 @@ void Brick::createPattern()
                         // sharing front or back plane
                         offsetInShared.push_back(offsetInShared.back()+nDOF0*nDOF1);
                         for (dim_t i=0; i<nDOF1; i++) {
-                            const int firstDOF=(i2==-1 ? i*nDOF0
+                            const dim_t firstDOF=(i2==-1 ? i*nDOF0
                                     : i*nDOF0 + nDOF0*nDOF1*(nDOF2-1));
-                            const int firstNode=(i2==-1 ? left+(i+bottom)*m_NN[0]
+                            const dim_t firstNode=(i2==-1 ? left+(i+bottom)*m_NN[0]
                                     : left+(i+bottom)*m_NN[0]+m_NN[0]*m_NN[1]*(m_NN[2]-1));
                             for (dim_t j=0; j<nDOF0; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j);
                                 recvShared.push_back(numDOF+numShared);
-                                if (j>0) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1-nDOF0, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-1, numShared);
-                                    if (i<nDOF1-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1+nDOF0, numShared);
-                                }
-                                if (i>0)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-nDOF0, numShared);
-                                doublyLink(colIndices, rowIndices, firstDOF+j, numShared);
-                                if (i<nDOF1-1)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+nDOF0, numShared);
-                                if (j<nDOF0-1) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1-nDOF0, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+1, numShared);
-                                    if (i<nDOF1-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1+nDOF0, numShared);
-                                }
                                 m_dofMap[firstNode+j]=numDOF+numShared;
                             }
                         }
@@ -2459,33 +2675,14 @@ void Brick::createPattern()
                         // sharing top or bottom plane
                         offsetInShared.push_back(offsetInShared.back()+nDOF0*nDOF2);
                         for (dim_t i=0; i<nDOF2; i++) {
-                            const int firstDOF=(i1==-1 ? i*nDOF0*nDOF1
+                            const dim_t firstDOF=(i1==-1 ? i*nDOF0*nDOF1
                                     : nDOF0*((i+1)*nDOF1-1));
-                            const int firstNode=(i1==-1 ?
+                            const dim_t firstNode=(i1==-1 ?
                                     left+(i+front)*m_NN[0]*m_NN[1]
                                     : left+m_NN[0]*((i+1+front)*m_NN[1]-1));
                             for (dim_t j=0; j<nDOF0; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j);
                                 recvShared.push_back(numDOF+numShared);
-                                if (j>0) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-1, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j-1+nDOF0*nDOF1, numShared);
-                                }
-                                if (i>0)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j-nDOF0*nDOF1, numShared);
-                                doublyLink(colIndices, rowIndices, firstDOF+j, numShared);
-                                if (i<nDOF2-1)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+nDOF0*nDOF1, numShared);
-                                if (j<nDOF0-1) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+j+1, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+j+1+nDOF0*nDOF1, numShared);
-                                }
                                 m_dofMap[firstNode+j]=numDOF+numShared;
                             }
                         }
@@ -2493,102 +2690,67 @@ void Brick::createPattern()
                         // sharing left or right plane
                         offsetInShared.push_back(offsetInShared.back()+nDOF1*nDOF2);
                         for (dim_t i=0; i<nDOF2; i++) {
-                            const int firstDOF=(i0==-1 ? i*nDOF0*nDOF1
+                            const dim_t firstDOF=(i0==-1 ? i*nDOF0*nDOF1
                                     : nDOF0*(1+i*nDOF1)-1);
-                            const int firstNode=(i0==-1 ?
+                            const dim_t firstNode=(i0==-1 ?
                                     (bottom+(i+front)*m_NN[1])*m_NN[0]
                                     : (bottom+1+(i+front)*m_NN[1])*m_NN[0]-1);
                             for (dim_t j=0; j<nDOF1; j++, numShared++) {
                                 sendShared.push_back(firstDOF+j*nDOF0);
                                 recvShared.push_back(numDOF+numShared);
-                                if (j>0) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j-1)*nDOF0+nDOF0*nDOF1, numShared);
-                                }
-                                if (i>0)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0-nDOF0*nDOF1, numShared);
-                                doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0, numShared);
-                                if (i<nDOF2-1)
-                                    doublyLink(colIndices, rowIndices, firstDOF+j*nDOF0+nDOF0*nDOF1, numShared);
-                                if (j<nDOF1-1) {
-                                    if (i>0)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0-nDOF0*nDOF1, numShared);
-                                    doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0, numShared);
-                                    if (i<nDOF2-1)
-                                        doublyLink(colIndices, rowIndices, firstDOF+(j+1)*nDOF0+nDOF0*nDOF1, numShared);
-                                }
                                 m_dofMap[firstNode+j*m_NN[0]]=numDOF+numShared;
                             }
                         }
                     } else if (i0==0) {
                         // sharing an edge in x direction
                         offsetInShared.push_back(offsetInShared.back()+nDOF0);
-                        const int firstDOF=(i1+1)/2*nDOF0*(nDOF1-1)
+                        const dim_t firstDOF=(i1+1)/2*nDOF0*(nDOF1-1)
                                            +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const int firstNode=left+(i1+1)/2*m_NN[0]*(m_NN[1]-1)
+                        const dim_t firstNode=left+(i1+1)/2*m_NN[0]*(m_NN[1]-1)
                                             +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
                         for (dim_t i=0; i<nDOF0; i++, numShared++) {
                             sendShared.push_back(firstDOF+i);
                             recvShared.push_back(numDOF+numShared);
-                            if (i>0)
-                                doublyLink(colIndices, rowIndices, firstDOF+i-1, numShared);
-                            doublyLink(colIndices, rowIndices, firstDOF+i, numShared);
-                            if (i<nDOF0-1)
-                                doublyLink(colIndices, rowIndices, firstDOF+i+1, numShared);
                             m_dofMap[firstNode+i]=numDOF+numShared;
                         }
                     } else if (i1==0) {
                         // sharing an edge in y direction
                         offsetInShared.push_back(offsetInShared.back()+nDOF1);
-                        const int firstDOF=(i0+1)/2*(nDOF0-1)
+                        const dim_t firstDOF=(i0+1)/2*(nDOF0-1)
                                            +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const int firstNode=bottom*m_NN[0]
+                        const dim_t firstNode=bottom*m_NN[0]
                                             +(i0+1)/2*(m_NN[0]-1)
                                             +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
                         for (dim_t i=0; i<nDOF1; i++, numShared++) {
                             sendShared.push_back(firstDOF+i*nDOF0);
                             recvShared.push_back(numDOF+numShared);
-                            if (i>0)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0, numShared);
-                            doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0, numShared);
-                            if (i<nDOF1-1)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0, numShared);
                             m_dofMap[firstNode+i*m_NN[0]]=numDOF+numShared;
                         }
                     } else if (i2==0) {
                         // sharing an edge in z direction
                         offsetInShared.push_back(offsetInShared.back()+nDOF2);
-                        const int firstDOF=(i0+1)/2*(nDOF0-1)
+                        const dim_t firstDOF=(i0+1)/2*(nDOF0-1)
                                            +(i1+1)/2*nDOF0*(nDOF1-1);
-                        const int firstNode=front*m_NN[0]*m_NN[1]
+                        const dim_t firstNode=front*m_NN[0]*m_NN[1]
                                             +(i0+1)/2*(m_NN[0]-1)
                                             +(i1+1)/2*m_NN[0]*(m_NN[1]-1);
                         for (dim_t i=0; i<nDOF2; i++, numShared++) {
                             sendShared.push_back(firstDOF+i*nDOF0*nDOF1);
                             recvShared.push_back(numDOF+numShared);
-                            if (i>0)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i-1)*nDOF0*nDOF1, numShared);
-                            doublyLink(colIndices, rowIndices, firstDOF+i*nDOF0*nDOF1, numShared);
-                            if (i<nDOF2-1)
-                                doublyLink(colIndices, rowIndices, firstDOF+(i+1)*nDOF0*nDOF1, numShared);
                             m_dofMap[firstNode+i*m_NN[0]*m_NN[1]]=numDOF+numShared;
                         }
                     } else {
                         // sharing a node
-                        const int dof=(i0+1)/2*(nDOF0-1)
-                                      +(i1+1)/2*nDOF0*(nDOF1-1)
-                                      +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
-                        const int node=(i0+1)/2*(m_NN[0]-1)
-                                       +(i1+1)/2*m_NN[0]*(m_NN[1]-1)
-                                       +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
+                        const dim_t dof = (i0+1)/2*(nDOF0-1)
+                                       +(i1+1)/2*nDOF0*(nDOF1-1)
+                                       +(i2+1)/2*nDOF0*nDOF1*(nDOF2-1);
+                        const dim_t node = (i0+1)/2*(m_NN[0]-1)
+                                        +(i1+1)/2*m_NN[0]*(m_NN[1]-1)
+                                        +(i2+1)/2*m_NN[0]*m_NN[1]*(m_NN[2]-1);
                         offsetInShared.push_back(offsetInShared.back()+1);
                         sendShared.push_back(dof);
                         recvShared.push_back(numDOF+numShared);
-                        doublyLink(colIndices, rowIndices, dof, numShared);
-                        m_dofMap[node]=numDOF+numShared;
+                        m_dofMap[node] = numDOF+numShared;
                         ++numShared;
                     }
                 }
@@ -2596,17 +2758,21 @@ void Brick::createPattern()
         }
     }
 
-#pragma omp parallel for
-    for (int i = 0; i < numShared; i++) {
-        std::sort(rowIndices[i].begin(), rowIndices[i].end());
+    // TODO: paso::SharedComponents should take vectors to avoid this
+    Esys_MPI_rank* neighPtr = NULL;
+    index_t* sendPtr = NULL;
+    index_t* recvPtr = NULL;
+    if (neighbour.size() > 0) {
+        neighPtr = &neighbour[0];
+        sendPtr = &sendShared[0];
+        recvPtr = &recvShared[0];
     }
-
     // create connector
     paso::SharedComponents_ptr snd_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), &neighbour[0], &sendShared[0],
+            numDOF, neighbour.size(), neighPtr, sendPtr,
             &offsetInShared[0], 1, 0, m_mpiInfo));
     paso::SharedComponents_ptr rcv_shcomp(new paso::SharedComponents(
-            numDOF, neighbour.size(), &neighbour[0], &recvShared[0],
+            numDOF, neighbour.size(), neighPtr, recvPtr,
             &offsetInShared[0], 1, 0, m_mpiInfo));
     m_connector.reset(new paso::Connector(snd_shcomp, rcv_shcomp));
 
@@ -2629,60 +2795,23 @@ void Brick::createPattern()
     for (size_t i=0; i<m_dofMap.size(); i++) {
         cout << "m_dofMap[" << i << "]=" << m_dofMap[i] << endl;
     }
-    cout << "--- colIndices ---" << endl;
-    for (size_t i=0; i<colIndices.size(); i++) {
-        cout << "colIndices[" << i << "].size()=" << colIndices[i].size() << endl;
-    }
-    */
-
-    /*
-    cout << "--- main_pattern ---" << endl;
-    cout << "M=" << mainPattern->numOutput << ", N=" << mainPattern->numInput << endl;
-    for (size_t i=0; i<mainPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << mainPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<mainPattern->ptr[mainPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << mainPattern->index[i] << endl;
-    }
-    */
-
-    /*
-    cout << "--- colCouple_pattern ---" << endl;
-    cout << "M=" << colPattern->numOutput << ", N=" << colPattern->numInput << endl;
-    for (size_t i=0; i<colPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << colPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<colPattern->ptr[colPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << colPattern->index[i] << endl;
-    }
-    */
-
-    /*
-    cout << "--- rowCouple_pattern ---" << endl;
-    cout << "M=" << rowPattern->numOutput << ", N=" << rowPattern->numInput << endl;
-    for (size_t i=0; i<rowPattern->numOutput+1; i++) {
-        cout << "ptr[" << i << "]=" << rowPattern->ptr[i] << endl;
-    }
-    for (size_t i=0; i<rowPattern->ptr[rowPattern->numOutput]; i++) {
-        cout << "index[" << i << "]=" << rowPattern->index[i] << endl;
-    }
     */
 }
 
 //private
-void Brick::addToMatrixAndRHS(SystemMatrix* S, escript::Data& F,
+void Brick::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
-    IndexVector rowIndex;
-    rowIndex.push_back(m_dofMap[firstNode]);
-    rowIndex.push_back(m_dofMap[firstNode+1]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]+1]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]*m_NN[1]]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]*m_NN[1]+1]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]*(m_NN[1]+1)]);
-    rowIndex.push_back(m_dofMap[firstNode+m_NN[0]*(m_NN[1]+1)+1]);
+    IndexVector rowIndex(8);
+    rowIndex[0] = m_dofMap[firstNode];
+    rowIndex[1] = m_dofMap[firstNode+1];
+    rowIndex[2] = m_dofMap[firstNode+m_NN[0]];
+    rowIndex[3] = m_dofMap[firstNode+m_NN[0]+1];
+    rowIndex[4] = m_dofMap[firstNode+m_NN[0]*m_NN[1]];
+    rowIndex[5] = m_dofMap[firstNode+m_NN[0]*m_NN[1]+1];
+    rowIndex[6] = m_dofMap[firstNode+m_NN[0]*(m_NN[1]+1)];
+    rowIndex[7] = m_dofMap[firstNode+m_NN[0]*(m_NN[1]+1)+1];
     if (addF) {
         double *F_p=F.getSampleDataRW(0);
         for (index_t i=0; i<rowIndex.size(); i++) {
@@ -2694,7 +2823,7 @@ void Brick::addToMatrixAndRHS(SystemMatrix* S, escript::Data& F,
         }
     }
     if (addS) {
-        S->add(rowIndex, EM_S);
+        addToSystemMatrix(S, rowIndex, nEq, EM_S);
     }
 }
 
@@ -3024,67 +3153,59 @@ namespace
     double* get3DGauss(unsigned radius, double sigma)
     {
         double* arr=new double[(radius*2+1)*(radius*2+1)*(radius*2+1)];
-        double common=pow(M_1_PI*0.5*1/(sigma*sigma), 3./2);
+        double common = pow(M_1_PI * 0.5 / (sigma*sigma), 3./2);
         double total=0;
         int r=static_cast<int>(radius);
-        for (int z=-r;z<=r;++z)
-        {
-            for (int y=-r;y<=r;++y)
-            {
-                for (int x=-r;x<=r;++x)
-                {         
+        for (int z=-r;z<=r;++z) {
+            for (int y=-r;y<=r;++y) {
+                for (int x=-r;x<=r;++x) {
                     arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)]=common*exp(-(x*x+y*y+z*z)/(2*sigma*sigma));
-                    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];    
+                    total+=arr[(x+r)+(y+r)*(r*2+1)+(z+r)*(r*2+1)*(r*2+1)];
                 }
             }
         }
         double invtotal=1/total;
-        for (size_t p=0;p<(radius*2+1)*(radius*2+1)*(radius*2+1);++p)
-        {
-            arr[p]*=invtotal; 
+        for (size_t p=0;p<(radius*2+1)*(radius*2+1)*(radius*2+1);++p) {
+            arr[p]*=invtotal;
         }
         return arr;
     }
-    
+
     // applies conv to source to get a point.
     // (xp, yp) are the coords in the source matrix not the destination matrix
-    double Convolve3D(double* conv, double* source, size_t xp, size_t yp, size_t zp, unsigned radius, size_t width, size_t height)
+    double Convolve3D(double* conv, double* source, size_t xp, size_t yp,
+                      size_t zp, unsigned radius, size_t width, size_t height)
     {
         size_t bx=xp-radius, by=yp-radius, bz=zp-radius;
         size_t sbase=bx+by*width+bz*width*height;
         double result=0;
-        for (int z=0;z<2*radius+1;++z)
-        {
-            for (int y=0;y<2*radius+1;++y)
-            {     
-                for (int x=0;x<2*radius+1;++x)
-                {
-                    result+=conv[x+y*(2*radius+1)+z*(2*radius+1)*(2*radius+1)] * source[sbase + x+y*width+z*width*height];
+        for (int z=0; z<2*radius+1; ++z) {
+            for (int y=0; y<2*radius+1; ++y) {
+                for (int x=0; x<2*radius+1; ++x) {
+                    result += conv[x+y*(2*radius+1)+z*(2*radius+1)*(2*radius+1)] * source[sbase + x+y*width+z*width*height];
                 }
             }
         }
         // use this line for "pass-though" (return the centre point value)
 //      return source[sbase+(radius)+(radius)*width+(radius)*width*height];
-        return result;      
+        return result;
     }
 }
 
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
-*/ 
+ */
 escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what,
-       long seed, const boost::python::tuple& filter) const
+                                const escript::FunctionSpace& what,
+                                long seed, const bp::tuple& filter) const
 {
     int numvals=escript::DataTypes::noValues(shape);
-    if (len(filter)>0 && (numvals!=1))
-    {
+    if (len(filter) > 0 && numvals != 1) {
         throw RipleyException("Ripley only supports filters for scalar data.");
     }
-    escript::Data res=randomFillWorker(shape, seed, filter);
-    if (res.getFunctionSpace()!=what)
-    {
-        escript::Data r=escript::Data(res, what);
+    escript::Data res = randomFillWorker(shape, seed, filter);
+    if (res.getFunctionSpace()!=what) {
+        escript::Data r(res, what);
         return r;
     }
     return res;
@@ -3096,11 +3217,11 @@ A parameter radius  gives the size of the stencil used for the smoothing.
 A point on the left hand edge for example, will still require `radius` extra points to the left
 in order to complete the stencil.
 
-All local calculation is done on an array called `src`, with 
+All local calculation is done on an array called `src`, with
 dimensions = ext[0] * ext[1] *ext[2].
 Where ext[i]= internal[i]+2*radius.
 
-Now for MPI there is overlap to deal with. We need to share both the overlapping 
+Now for MPI there is overlap to deal with. We need to share both the overlapping
 values themselves but also the external region.
 
 In a hypothetical 1-D case:
@@ -3119,47 +3240,41 @@ need to be known.
 
 pp123(4)56   23(4)567pp
 
-Now in our case, we wout set all the values 23456 on the left rank and send them to the 
+Now in our case, we wout set all the values 23456 on the left rank and send them to the
 right hand rank.
 
 So the edges _may_ need to be shared at a distance `inset` from all boundaries.
-inset=2*radius+1    
+inset=2*radius+1
 This is to ensure that values at distance `radius` from the shared/overlapped element
 that ripley has.
 */
-escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape, long seed, const boost::python::tuple& filter) const
+escript::Data Brick::randomFillWorker(
+                        const escript::DataTypes::ShapeType& shape, long seed,
+                        const bp::tuple& filter) const
 {
     unsigned int radius=0;  // these are only used by gaussian
     double sigma=0.5;
-    
+
     unsigned int numvals=escript::DataTypes::noValues(shape);
-    
-    if (len(filter)==0) 
-    {
+
+    if (len(filter)==0) {
     // nothing special required here yet
-    }
-    else if (len(filter)==3) 
-    {
-        boost::python::extract<string> ex(filter[0]);
-        if (!ex.check() || (ex()!="gaussian")) 
-        {
+    } else if (len(filter) == 3) {
+        bp::extract<string> ex(filter[0]);
+        if (!ex.check() || (ex() != "gaussian")) {
             throw RipleyException("Unsupported random filter for Brick.");
         }
-        boost::python::extract<unsigned int> ex1(filter[1]);
-        if (!ex1.check())
-        {
+        bp::extract<unsigned int> ex1(filter[1]);
+        if (!ex1.check()) {
             throw RipleyException("Radius of gaussian filter must be a positive integer.");
         }
         radius=ex1();
         sigma=0.5;
-        boost::python::extract<double> ex2(filter[2]);
-        if (!ex2.check() || (sigma=ex2())<=0)
-        {
+        bp::extract<double> ex2(filter[2]);
+        if (!ex2.check() || (sigma=ex2()) <= 0) {
             throw RipleyException("Sigma must be a positive floating point number.");
-        }            
-    }
-    else
-    {
+        }
+    } else {
         throw RipleyException("Unsupported random filter");
     }
 
@@ -3170,171 +3285,148 @@ escript::Data Brick::randomFillWorker(const escript::DataTypes::ShapeType& shape
     ext[0]=(size_t)internal[0]+2*radius;  // includes points we need as input
     ext[1]=(size_t)internal[1]+2*radius;  // for smoothing
     ext[2]=(size_t)internal[2]+2*radius;  // for smoothing
-    
-    // now we check to see if the radius is acceptable 
+
+    // now we check to see if the radius is acceptable
     // That is, would not cross multiple ranks in MPI
 
-    if (2*radius>=internal[0]-4)
-    {
+    if (2*radius>=internal[0]-4) {
         throw RipleyException("Radius of gaussian filter is too large for X dimension of a rank");
     }
-    if (2*radius>=internal[1]-4)
-    {
+    if (2*radius>=internal[1]-4) {
         throw RipleyException("Radius of gaussian filter is too large for Y dimension of a rank");
     }
-    if (2*radius>=internal[2]-4)
-    {
+    if (2*radius>=internal[2]-4) {
         throw RipleyException("Radius of gaussian filter is too large for Z dimension of a rank");
-    }    
-   
-    double* src=new double[ext[0]*ext[1]*ext[2]*numvals];
-    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);       
-    
-#ifdef ESYS_MPI
-   
-    if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5))
-    {
-    // since the dimensions are equal for all ranks, this exception
-    // will be thrown on all ranks
-    throw RipleyException("Random Data in Ripley requires at least five elements per side per rank.");
+    }
 
+    double* src=new double[ext[0]*ext[1]*ext[2]*numvals];
+    esysUtils::randomFillArray(seed, src, ext[0]*ext[1]*ext[2]*numvals);
+
+#ifdef ESYS_MPI
+    if ((internal[0]<5) || (internal[1]<5) || (internal[2]<5)) {
+        // since the dimensions are equal for all ranks, this exception
+        // will be thrown on all ranks
+        throw RipleyException("Random Data in Ripley requires at least five elements per side per rank.");
     }
     dim_t X=m_mpiInfo->rank%m_NX[0];
     dim_t Y=m_mpiInfo->rank%(m_NX[0]*m_NX[1])/m_NX[0];
     dim_t Z=m_mpiInfo->rank/(m_NX[0]*m_NX[1]);
-#endif    
+#endif
 
-/*    
+/*
     // if we wanted to test a repeating pattern
     size_t basex=0;
     size_t basey=0;
     size_t basez=0;
-#ifdef ESYS_MPI    
+#ifdef ESYS_MPI
     basex=X*m_gNE[0]/m_NX[0];
     basey=Y*m_gNE[1]/m_NX[1];
     basez=Z*m_gNE[2]/m_NX[2];
-    
-cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;    
-    
-#endif    
+cout << "basex=" << basex << " basey=" << basey << " basez=" << basez << endl;
+#endif
     esysUtils::patternFillArray(1, ext[0],ext[1],ext[2], src, 4, basex, basey, basez, numvals);
 */
 
 #ifdef ESYS_MPI
-
-
-
     BlockGrid grid(m_NX[0]-1, m_NX[1]-1, m_NX[2]-1);
-    size_t inset=2*radius+2;    // Its +2 not +1 because a whole element is shared (and hence 
-        // there is an overlap of two points both of which need to have "radius" points on either side.
-    
-    size_t xmidlen=ext[0]-2*inset;  // how wide is the x-dimension between the two insets
-    size_t ymidlen=ext[1]-2*inset;  
+    // it's +2 not +1 because a whole element is shared (and hence there is
+    // an overlap of two points both of which need to have "radius" points on
+    // either side.
+    size_t inset=2*radius+2;
+
+    // how wide is the x-dimension between the two insets
+    size_t xmidlen=ext[0]-2*inset;
+    size_t ymidlen=ext[1]-2*inset;
     size_t zmidlen=ext[2]-2*inset;
-    
-    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen, numvals);    
-    
-    MPI_Request reqs[50];       // a non-tight upper bound on how many we need
+
+    Block block(ext[0], ext[1], ext[2], inset, xmidlen, ymidlen, zmidlen, numvals);
+
+    MPI_Request reqs[50]; // a non-tight upper bound on how many we need
     MPI_Status stats[50];
     short rused=0;
-    
+
     messvec incoms;
     messvec outcoms;
-    
+
     grid.generateInNeighbours(X, Y, Z ,incoms);
     grid.generateOutNeighbours(X, Y, Z, outcoms);
-    
-    
+
     block.copyAllToBuffer(src);
-    
-    int comserr=0;    
-    for (size_t i=0;i<incoms.size();++i)
-    {
-        message& m=incoms[i];
-        comserr|=MPI_Irecv(block.getInBuffer(m.destbuffid), block.getBuffSize(m.destbuffid) , MPI_DOUBLE, m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+
+    int comserr=0;
+    for (size_t i=0; i < incoms.size(); ++i) {
+        message& m = incoms[i];
+        comserr |= MPI_Irecv(block.getInBuffer(m.destbuffid),
+                           block.getBuffSize(m.destbuffid), MPI_DOUBLE,
+                           m.sourceID, m.tag, m_mpiInfo->comm, reqs+(rused++));
         block.setUsed(m.destbuffid);
     }
 
-    for (size_t i=0;i<outcoms.size();++i)
-    {
+    for (size_t i=0; i<outcoms.size(); ++i) {
         message& m=outcoms[i];
-        comserr|=MPI_Isend(block.getOutBuffer(m.srcbuffid), block.getBuffSize(m.srcbuffid) , MPI_DOUBLE, m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
-    }    
-    
-    if (!comserr)
-    {     
+        comserr |= MPI_Isend(block.getOutBuffer(m.srcbuffid),
+                             block.getBuffSize(m.srcbuffid), MPI_DOUBLE,
+                             m.destID, m.tag, m_mpiInfo->comm, reqs+(rused++));
+    }
+
+    if (!comserr) {
         comserr=MPI_Waitall(rused, reqs, stats);
     }
 
-    if (comserr)
-    {
-    // Yes this is throwing an exception as a result of an MPI error.
-    // and no we don't inform the other ranks that we are doing this.
-    // however, we have no reason to believe coms work at this point anyway
-        throw RipleyException("Error in coms for randomFill");      
+    if (comserr) {
+        // Yes this is throwing an exception as a result of an MPI error.
+        // and no we don't inform the other ranks that we are doing this.
+        // however, we have no reason to believe coms work at this point anyway
+        throw RipleyException("Error in coms for randomFill");
     }
-    
+
     block.copyUsedFromBuffer(src);
-     
-#endif    
-    
-    if (radius==0 || numvals>1) // the truth of either should imply the truth of the other but let's be safe
-    {
-      
+#endif // ESYS_MPI
+
+    // the truth of either should imply the truth of the other but let's be safe
+    if (radius==0 || numvals>1) {
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, shape, fs , true);
         // don't need to check for exwrite because we just made it
         escript::DataVector& dv=resdat.getExpandedVectorReference();
-    
-    
+
         // now we need to copy values over
-        for (size_t z=0;z<(internal[2]);++z)
-        {
-            for (size_t y=0;y<(internal[1]);++y)    
-            {
-                for (size_t x=0;x<(internal[0]);++x)
-                {
-                    for (unsigned int i=0;i<numvals;++i)
-                    {
+        for (size_t z=0; z < internal[2]; ++z) {
+            for (size_t y=0; y < internal[1]; ++y) {
+                for (size_t x=0; x < internal[0]; ++x) {
+                    for (unsigned int i=0; i < numvals; ++i) {
                         dv[i+(x+y*(internal[0])+z*internal[0]*internal[1])*numvals]=src[i+(x+y*ext[0]+z*ext[0]*ext[1])*numvals];
                     }
                 }
             }
-        }  
+        }
         delete[] src;
-        return resdat;      
-    }
-    else        // filter enabled   
-    {
-    
+        return resdat;
+    } else { // filter enabled
         escript::FunctionSpace fs(getPtr(), getContinuousFunctionCode());
         escript::Data resdat(0, escript::DataTypes::scalarShape, fs , true);
         // don't need to check for exwrite because we just made it
         escript::DataVector& dv=resdat.getExpandedVectorReference();
         double* convolution=get3DGauss(radius, sigma);
 
-        for (size_t z=0;z<(internal[2]);++z)
-        {
-            for (size_t y=0;y<(internal[1]);++y)    
-            {
-                for (size_t x=0;x<(internal[0]);++x)
-                {     
+        for (size_t z=0;z<(internal[2]);++z) {
+            for (size_t y=0;y<(internal[1]);++y) {
+                for (size_t x=0;x<(internal[0]);++x) {
                     dv[x+y*(internal[0])+z*internal[0]*internal[1]]=Convolve3D(convolution, src, x+radius, y+radius, z+radius, radius, ext[0], ext[1]);
-            
+
                 }
             }
         }
-    
+
         delete[] convolution;
         delete[] src;
         return resdat;
-    
     }
 }
 
-int Brick::findNode(const double *coords) const
+dim_t Brick::findNode(const double *coords) const
 {
-    const int NOT_MINE = -1;
+    const dim_t NOT_MINE = -1;
     //is the found element even owned by this rank
     // (inside owned or shared elements but will map to an owned element)
     for (int dim = 0; dim < m_numDim; dim++) {
@@ -3350,18 +3442,18 @@ int Brick::findNode(const double *coords) const
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
     double z = coords[2] - m_origin[2];
-    
+
     //check if the point is even inside the domain
-    if (x < 0 || y < 0 || z < 0 
+    if (x < 0 || y < 0 || z < 0
             || x > m_length[0] || y > m_length[1] || z > m_length[2])
         return NOT_MINE;
-        
+
     // distance in elements
-    int ex = (int) floor(x / m_dx[0]);
-    int ey = (int) floor(y / m_dx[1]);
-    int ez = (int) floor(z / m_dx[2]);
+    dim_t ex = (dim_t) floor(x / m_dx[0]);
+    dim_t ey = (dim_t) floor(y / m_dx[1]);
+    dim_t ez = (dim_t) floor(z / m_dx[2]);
     // set the min distance high enough to be outside the element plus a bit
-    int closest = NOT_MINE;
+    dim_t closest = NOT_MINE;
     double minDist = 1;
     for (int dim = 0; dim < m_numDim; dim++) {
         minDist += m_dx[dim]*m_dx[dim];
@@ -3383,13 +3475,13 @@ int Brick::findNode(const double *coords) const
         }
     }
     if (closest == NOT_MINE) {
-        throw RipleyException("Unable to map appropriate dirac point to a node, implementation problem in Brick::findNode()");
+        throw RipleyException("Unable to map appropriate dirac point to a "
+                         "node, implementation problem in Brick::findNode()");
     }
     return closest;
 }
 
-Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
-        escript::Data> constants) const
+Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) const
 {
     if (type.compare("DefaultAssembler") == 0) {
         return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
@@ -3398,8 +3490,8 @@ Assembler_ptr Brick::createAssembler(std::string type, std::map<std::string,
     } else if (type.compare("LameAssembler") == 0) {
         return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
     } else { //else ifs would go before this for other types
-        throw RipleyException("Ripley::Brick does not support the"
-                                " requested assembler");
+        throw RipleyException("Ripley::Brick does not support the requested "
+                              "assembler");
     }
 }
 

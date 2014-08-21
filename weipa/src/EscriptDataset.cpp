@@ -1024,10 +1024,10 @@ void EscriptDataset::putSiloMultiMesh(DBfile* dbfile, const string& meshName)
             if (meshName == viIt->dataChunks[0]->getMeshName())
                 break;
         }
-    }
-    // this probably means that the mesh is empty
-    if (viIt == variables.end()) {
-        return;
+        // this probably means that the mesh is empty
+        if (viIt == variables.end()) {
+            return;
+        }
     }
 
     for (size_t idx = 0; idx < viIt->sampleDistribution.size(); idx++) {

@@ -3,7 +3,7 @@ from esys.escript.linearPDEs import LinearPDE,SolverOptions
 from esys.ripley import Rectangle, Brick
 from time import time
 
-BLOCKSIZE=3
+BLOCKSIZE=1
 
 dom = Rectangle(l0=1.,l1=1.,n0=299, n1=299)
 #dom = Brick(l0=1.,l1=1.,n0=51, n1=51, n2=17)
@@ -27,10 +27,11 @@ def solve(target):
             Y_reduced[i] = 1.
 
     pde.setValue(A=A, Y_reduced=Y_reduced, q=q)
+    pde.getSolverOptions().setPackage(SolverOptions.PASO)
+    pde.getSolverOptions().setSolverTarget(target)
     pde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
     pde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
     pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-    pde.getSolverOptions().setSolverTarget(target)
     pde.getSolverOptions().setPreconditioner(SolverOptions.NO_PRECONDITIONER)
     pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
     pde.getSolverOptions().setVerbosityOn()

@@ -39,6 +39,8 @@
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
 
+#include <paso/SystemMatrix.h>
+
 namespace ripley {
 
 enum assembler_t {
@@ -62,9 +64,9 @@ typedef std::map<std::string, int> simap_t;
 struct ReaderParameters
 {
     /// the (global) offset into the data object to start writing into
-    std::vector<int> first;
+    std::vector<dim_t> first;
     /// the number of values to read from file
-    std::vector<int> numValues;
+    std::vector<dim_t> numValues;
     /// how often to write each value from the file into the data object
     /// (e.g. to supersample)
     std::vector<int> multiplier;
@@ -82,7 +84,7 @@ struct ReaderParameters
 */
 struct DiracPoint
 {
-    int node;
+    dim_t node;
     int tag;
 };
 
@@ -141,18 +143,7 @@ public:
        \brief
        returns the MPI communicator
     */
-#ifdef ESYS_MPI
-    MPI_Comm
-#else
-    unsigned int
-#endif
-    getMPIComm() const {
-#ifdef ESYS_MPI
-        return m_mpiInfo->comm;
-#else
-        return 0;
-#endif
-    }
+    MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
 
     /**
        \brief
@@ -191,7 +182,7 @@ public:
        as a pair.
        \param fsType The function space type
     */
-    virtual std::pair<int,int> getDataShape(int fsType) const;
+    virtual std::pair<int,dim_t> getDataShape(int fsType) const;
 
     /**
        \brief
@@ -199,7 +190,7 @@ public:
        \param fsType The function space type
        \param sampleNo The sample number
     */
-    int getTagFromSampleNo(int fsType, int sampleNo) const;
+    int getTagFromSampleNo(int fsType, dim_t sampleNo) const;
 
     /**
        \brief
@@ -260,14 +251,15 @@ public:
     */
     virtual bool probeInterpolationOnDomain(int fsType_source, int fsType_target) const;
 
- /**
-   \brief Preferred direction of interpolation.
-
-   If you really need to test for a particular direction, then use probeInterpolation.
-
-   \return 0 for not possible,  1 for possible and preferred, -1 other direction preferred (does not mean this direction is possible)
-  */
-    virtual signed char preferredInterpolationOnDomain(int fsType_source, int fsType_target) const;
+    /**
+       \brief Preferred direction of interpolation.
+       If you really need to test for a particular direction, then use
+       probeInterpolation.
+       \return 0 for not possible, 1 for possible and preferred, -1 other
+               direction preferred (does not mean this direction is possible)
+    */
+    virtual signed char preferredInterpolationOnDomain(int fsType_source,
+                                                       int fsType_target) const;
 
     /**
        \brief
@@ -283,7 +275,8 @@ public:
        interpolates data given on source onto target where source and target
        are given on different domains
     */
-    virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
+    virtual void interpolateACross(escript::Data& target,
+                                   const escript::Data& source) const;
 
     /**
        \brief
@@ -328,7 +321,7 @@ public:
        assigns new tag newTag to all samples of given function space with a
        positive value of mask for any of its sample points
     */
-    virtual void setTags(const int fsType, const int newTag, const escript::Data& mask) const;
+    virtual void setTags(int fsType, int newTag, const escript::Data& mask) const;
 
     /**
        \brief
@@ -367,7 +360,7 @@ public:
        \brief
        returns the approximation order used for a function space
     */
-    virtual int getApproximationOrder(const int fsType) const { return 1; }
+    virtual int getApproximationOrder(int fsType) const { return 1; }
 
     /**
        \brief
@@ -484,7 +477,8 @@ public:
        \param package
        \param symmetry
     */
-    virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+    virtual int getTransportTypeId(int solver, int preconditioner, int package,
+                                   bool symmetry) const;
 
     /**
        \brief
@@ -496,54 +490,53 @@ public:
 
     /**
        \brief
-       adds a PDE onto the stiffness matrix mat and rhs, used for custom 
+       adds a PDE onto the stiffness matrix mat and rhs, used for custom
        solvers with varying arguments counts and so on
     */
     virtual void addToSystem(escript::AbstractSystemMatrix& mat,
-            escript::Data& rhs,std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+                             escript::Data& rhs, const DataMap& data,
+                             Assembler_ptr assembler) const;
 
     /**
        \brief
        a wrapper for addToSystem that allows calling from Python
     */
     virtual void addToSystemFromPython(escript::AbstractSystemMatrix& mat,
-            escript::Data& rhs,boost::python::list data,
+            escript::Data& rhs, const boost::python::list& data,
             Assembler_ptr assembler) const;
 
     /**
        \brief
-       adds a PDE onto rhs, used for custom 
+       adds a PDE onto rhs, used for custom
        solvers with varying arguments counts and so on
     */
-    virtual void addToRHS(escript::Data& rhs,
-            std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+    virtual void addToRHS(escript::Data& rhs, const DataMap& data,
+                          Assembler_ptr assembler) const;
 
     /**
        \brief
        a wrapper for addToRHS that allows calling from Python
     */
     virtual void addToRHSFromPython(escript::Data& rhs,
-            boost::python::list data,
-            Assembler_ptr assembler) const;
+                                    const boost::python::list& data,
+                                    Assembler_ptr assembler) const;
 
-    using escript::AbstractContinuousDomain::addPDEToTransportProblem;
     /**
        \brief
        adds a PDE onto a transport problem
     */
     virtual void addPDEToTransportProblem(escript::AbstractTransportProblem& tp,
-            escript::Data& source, std::map<std::string, escript::Data> data,
-            Assembler_ptr assembler) const;
+                                    escript::Data& source, const DataMap& data,
+                                    Assembler_ptr assembler) const;
     /**
        \brief
        adds a PDE onto a transport problem
     */
     void addPDEToTransportProblemFromPython(
-        escript::AbstractTransportProblem& tp,
-        escript::Data& source, boost::python::list data,
-        Assembler_ptr assembler) const;
+                        escript::AbstractTransportProblem& tp,
+                        escript::Data& source, const boost::python::list& data,
+                        Assembler_ptr assembler) const;
+
     /**
        \brief
        creates a stiffness matrix and initializes it with zeros
@@ -551,22 +544,22 @@ public:
     virtual escript::ASM_ptr newSystemMatrix(int row_blocksize,
             const escript::FunctionSpace& row_functionspace,
             int column_blocksize,
-            const escript::FunctionSpace& column_functionspace, const int type) const;
+            const escript::FunctionSpace& column_functionspace, int type) const;
 
     /**
      \brief
       creates a transport problem
     */
-    virtual escript::ATP_ptr newTransportProblem(
-            const int blocksize, const escript::FunctionSpace& functionspace,
-            const int type) const;
+    virtual escript::ATP_ptr newTransportProblem(int blocksize,
+                                  const escript::FunctionSpace& functionspace,
+                                  int type) const;
 
     /**
        \brief
        writes information about the mesh to standard output
        \param full whether to print additional data
     */
-    virtual void Print_Mesh_Info(const bool full=false) const;
+    virtual void Print_Mesh_Info(bool full=false) const;
 
 
     /************************************************************************/
@@ -576,7 +569,7 @@ public:
        writes the current mesh to a file with the given name
        \param filename The name of the file to write to
     */
-    //void write(const std::string& filename) const = 0;
+    virtual void write(const std::string& filename) const = 0;
 
     /**
        \brief
@@ -614,20 +607,31 @@ public:
     virtual void setToSize(escript::Data& out) const = 0;
 
     /**
+       \brief
+       reads grid data from a netCDF file into a Data object
     */
     virtual void readNcGrid(escript::Data& out, std::string filename,
             std::string varname, const ReaderParameters& params) const = 0;
 
     /**
+       \brief
+       reads grid data from a raw binary file into a Data object
     */
     virtual void readBinaryGrid(escript::Data& out, std::string filename,
                                 const ReaderParameters& params) const = 0;
+
 #ifdef USE_BOOSTIO
-    virtual void readBinaryGridFromZipped(escript::Data& out, std::string filename,
-                                const ReaderParameters& params) const = 0;
+    /**
+       \brief
+       reads grid data from a compressed raw binary file into a Data object
+    */
+    virtual void readBinaryGridFromZipped(escript::Data& out,
+               std::string filename, const ReaderParameters& params) const = 0;
 #endif
 
     /**
+       \brief
+       writes a Data object to a file in raw binary format
     */
     virtual void writeBinaryGrid(const escript::Data& in, std::string filename,
                                  int byteOrder, int dataType) const = 0;
@@ -642,26 +646,26 @@ public:
        \brief
        returns the number of data points summed across all MPI processes
     */
-    virtual int getNumDataPointsGlobal() const = 0;
+    virtual dim_t getNumDataPointsGlobal() const = 0;
 
     /**
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    virtual const int* getNumNodesPerDim() const = 0;
+    virtual const dim_t* getNumNodesPerDim() const = 0;
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    virtual const int* getNumElementsPerDim() const = 0;
+    virtual const dim_t* getNumElementsPerDim() const = 0;
 
     /**
        \brief
        returns the number of face elements in the order
        (left,right,bottom,top,[front,back]) on current MPI rank
     */
-    virtual const int* getNumFacesPerBoundary() const = 0;
+    virtual const dim_t* getNumFacesPerBoundary() const = 0;
 
     /**
        \brief
@@ -679,42 +683,48 @@ public:
        \brief
        returns the index'th coordinate value in given dimension for this rank
     */
-    virtual double getLocalCoordinate(int index, int dim) const = 0;
+    virtual double getLocalCoordinate(dim_t index, int dim) const = 0;
 
     /**
        \brief
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const = 0;
-    
-    
+
     /**
        \brief
-       true if this domain can handle the specified tuple of filter options.
+       returns true if this domain can handle the specified tuple of filter
+       options.
     */
     virtual bool supportsFilter(const boost::python::tuple& t) const;
 
+    /**
+       \brief
+    */
     virtual Assembler_ptr createAssembler(std::string type,
-                std::map<std::string, escript::Data> options) const {
+                                          const DataMap& options) const {
         throw RipleyException("Domain does not support custom assemblers");
     }
 
+    /**
+       \brief
+    */
     Assembler_ptr createAssemblerFromPython(std::string type,
-                                boost::python::list options) const;
+                                     const boost::python::list& options) const;
 
 
 protected:
-    dim_t m_numDim;
+    int m_numDim;
     StatusType m_status;
     esysUtils::JMPI m_mpiInfo;
     TagMap m_tagMap;
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
     mutable IndexVector m_faceTags, m_faceTagsInUse;
-    std::vector<struct DiracPoint> m_diracPoints;
+    std::vector<DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;
-    
+
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, const escript::Data& in) const;
 
@@ -727,8 +737,16 @@ protected:
     // this is const because setTags is const
     void updateTagsInUse(int fsType) const;
 
-    void addPoints(int numPoints, const double* points_ptr,
-                   const int* tags_ptr);
+    /// allocates and returns a Paso pattern structure
+    paso::Pattern_ptr createPasoPattern(const std::vector<IndexVector>& indices,
+                                        dim_t N) const;
+
+    void addToSystemMatrix(escript::AbstractSystemMatrix* mat,
+                           const IndexVector& nodes, dim_t numEq,
+                           const DoubleVector& array) const;
+
+    void addPoints(const std::vector<double>& coords,
+                   const std::vector<int>& tags);
 
     /***********************************************************************/
 
@@ -756,6 +774,11 @@ protected:
     /// copies the integrals of the function defined by 'arg' into 'integrals'
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const = 0;
 
+    /// returns the Paso system matrix pattern
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                                              bool reducedRowOrder,
+                                              bool reducedColOrder) const = 0;
+
     /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
                                             const escript::Data& in,
@@ -772,26 +795,29 @@ protected:
     /// converts data on degrees of freedom in 'in' to nodes in 'out'
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const = 0;
 
-    virtual int getDofOfNode(int node) const = 0;
+    virtual dim_t getDofOfNode(dim_t node) const = 0;
 
 private:
+    /// paso version of adding element matrices to System Matrix
+    void addToSystemMatrix(paso::SystemMatrix_ptr in, const IndexVector& nodes,
+                           dim_t numEq, const DoubleVector& array) const;
+
     /// calls the right PDE assembly routines after performing input checks
-    void assemblePDE(SystemMatrix* mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+    void assemblePDE(escript::AbstractSystemMatrix* mat, escript::Data& rhs,
+            const DataMap& coefs, Assembler_ptr assembler) const;
 
     /// calls the right PDE boundary assembly routines after performing input
     /// checks
-    void assemblePDEBoundary(SystemMatrix* mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+    void assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
+                             escript::Data& rhs, const DataMap& coefs,
+                             Assembler_ptr assembler) const;
 
-    void assemblePDEDirac(SystemMatrix* mat, escript::Data& rhs,
-            std::map<std::string, escript::Data> coefs,
-            Assembler_ptr assembler) const;
+    void assemblePDEDirac(escript::AbstractSystemMatrix* mat,
+                          escript::Data& rhs, const DataMap& coefs,
+                          Assembler_ptr assembler) const;
 
-    // finds the node that the given point belongs to
-    virtual int findNode(const double *coords) const = 0;
+    /// finds the node that the given point coordinates belong to
+    virtual dim_t findNode(const double *coords) const = 0;
 };
 
 } // end of namespace ripley

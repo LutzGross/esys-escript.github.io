@@ -23,6 +23,8 @@
 #include "Mesh.h"
 #include "IndexList.h"
 
+#include <boost/scoped_array.hpp>
+
 /************************************************************************************/
 
 void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
@@ -52,27 +54,27 @@ void Dudley_Mesh_optimizeDOFLabeling(Dudley_Mesh * in, dim_t * distribution)
     for (p = 0; p < mpiSize; ++p)
 	len = MAX(len, distribution[p + 1] - distribution[p]);
 
-    IndexListArray index_list(myNumVertices);
+    boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
     newGlobalDOFID = new  index_t[len];
     /* create the adjacency structure xadj and adjncy */
     {
 #pragma omp parallel private(i)
 	{
 	    /*  insert contributions from element matrices into columns index index_list: */
-	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->Elements,
                 in->Nodes->globalDegreesOfFreedom, in->Nodes->globalDegreesOfFreedom);
-	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->FaceElements,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
-	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+	    Dudley_IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                 myFirstVertex, myLastVertex, in->Points,
                 in->Nodes->globalDegreesOfFreedom,
                 in->Nodes->globalDegreesOfFreedom);
 	}
 	/* create the local matrix pattern */
-	pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list,
+	pattern = paso::Pattern::fromIndexListArray(0, myNumVertices, index_list.get(),
             myFirstVertex, myLastVertex, -myFirstVertex);
 
 	if (Dudley_noError())

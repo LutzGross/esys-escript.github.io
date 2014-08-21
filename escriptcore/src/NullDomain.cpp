@@ -22,21 +22,13 @@
 namespace escript {
 
 namespace {
-int defaultList[2]={0,1};		// an array to return in borrowListOfTagsInUse();
-int NullDomainFS=1;		// Null domains only support 1 functionspace type.
-			// The choice of =1 as the value is arbitrary
-
-int referenceID=10;	// arbitrary
+int defaultList[2]={0,1}; // an array to return in borrowListOfTagsInUse();
 }
 
-
-NullDomain::NullDomain() {
-}
- 
-bool NullDomain::isValidFunctionSpaceType(int functionSpaceType) const 
-{
-   return (functionSpaceType==NullDomainFS);
-}
+// Null domains only support 1 functionspace type.
+// The choice of =1 as the value is arbitrary
+int NullDomain::NullDomainFS = 1;
+int NullDomain::referenceID = 10; // arbitrary
 
 std::string NullDomain::getDescription() const 
 {
@@ -45,7 +37,7 @@ std::string NullDomain::getDescription() const
 
 std::string NullDomain::functionSpaceTypeAsString(int functionSpaceType) const
 {
-	return "Default_FunctionSpace";
+    return "Default_FunctionSpace";
 }
 
 void NullDomain::interpolateOnDomain(Data& target,const Data& source) const
@@ -61,7 +53,7 @@ bool NullDomain::probeInterpolationOnDomain(int functionSpaceType_source,int fun
 {
    if ((functionSpaceType_source!=functionSpaceType_target) || (functionSpaceType_target!=NullDomainFS))
    {
-	throw DomainException("Error - Illegal function type for NullDomain.");
+    throw DomainException("Error - Illegal function type for NullDomain.");
    }
    return true;
 }
@@ -71,81 +63,13 @@ void NullDomain::interpolateACross(Data& target, const Data& source) const
    throw DomainException("Error - interpolation to the NullDomain not supported.");
 }
 
-bool NullDomain::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
-{
-   return false;
-}
-
-int NullDomain::getContinuousFunctionCode() const 
-{
-  return NullDomainFS;
-}
- 
-int NullDomain::getFunctionCode() const 
-{
-  return NullDomainFS;
-}
-
-int NullDomain::getFunctionOnBoundaryCode() const 
-{
-  return NullDomainFS;
-}
- 
-int NullDomain::getFunctionOnContactZeroCode() const
-{
-  return NullDomainFS;
-}
-
-int NullDomain::getFunctionOnContactOneCode() const 
-{
-  return NullDomainFS;
-}
- 
-int NullDomain::getSolutionCode() const 
-{
-  return NullDomainFS;
-}
- 
-int NullDomain::getReducedSolutionCode() const
-{
-  return NullDomainFS;
-}
-
-int NullDomain::getDiracDeltaFunctionsCode() const
-{
-  return NullDomainFS;
-}
-
-std::pair<int,int> NullDomain::getDataShape(int functionSpaceCode) const
+std::pair<int,dim_t> NullDomain::getDataShape(int functionSpaceCode) const
 {
   //
   // return an arbitrary value
   // - I know it says arbitrary but its not a good idea to change it now.
   // - some tests assume that the null domain holds a single value
-  return std::pair<int,int>(1,1);
-}
-
-int NullDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
-{
-  //
-  // return an arbitrary value
-  return 1; 
-}
-
-
-
-const int* NullDomain::borrowSampleReferenceIDs(int functionSpaceType) const
-{
-  //
-  // return an arbitrary value
-  return &(referenceID);
-}
-
-int NullDomain::getDim() const
-{
-  //
-  // return an arbitrary value
-  return 1; 
+  return std::pair<int,dim_t>(1,1);
 }
 
 bool NullDomain::operator==(const AbstractDomain& other) const
@@ -158,37 +82,101 @@ bool NullDomain::operator==(const AbstractDomain& other) const
   }
 }
 
-bool NullDomain::operator!=(const AbstractDomain& other) const
-{
-  return(!(*this==other));
-}
-
-
-
-bool NullDomain::canTag(int functionSpaceCode) const
-{
-  return true;
-}
-
-int NullDomain::getNumberOfTagsInUse(int functionSpaceCode) const
-{
-  return 1;	// this is not arbitrary. It allows us to report that the default tag is in use
-}
-
 const int* NullDomain::borrowListOfTagsInUse(int functionSpaceCode) const
 {
   return defaultList;
-}
-
-bool NullDomain::supportsContactElements() const
-{
-  return false;
 }
 
 escript::Data NullDomain::randomFill(const DataTypes::ShapeType& shape,
        const FunctionSpace& what, long seed, const boost::python::tuple& filter) const
 {
     throw DataException("Attempted randomFill on NullDomain. NullDomains do not store values.");
+}
+void NullDomain::dump(std::string const&) const
+{
+    throwStandardException("NullDomain::dump");
+}
+void NullDomain::write(std::string const&) const
+{
+    throwStandardException("NullDomain::write");
+}
+bool NullDomain::commonFunctionSpace(std::vector<int> const&, int&) const
+{
+    throwStandardException("NullDomain::commonFunctionSpace");
+    return false;
+}
+bool NullDomain::isCellOriented(int) const
+{
+    throwStandardException("NullDomain::isCellOriented");
+    return false;
+}
+bool NullDomain::ownSample(int, int) const
+{
+    throwStandardException("NullDomain::ownSample");
+    return false;
+}
+int NullDomain::getApproximationOrder(int) const
+{
+    throwStandardException("NullDomain::getApproximationOrder");
+    return 0;
+}
+signed char NullDomain::preferredInterpolationOnDomain(int, int) const
+{
+    throwStandardException("NullDomain::preferredInterpolationOnDomain");
+    return 0;
+}
+std::string NullDomain::showTagNames() const
+{
+    throwStandardException("NullDomain::showTagNames");
+    return std::string();
+}
+int NullDomain::getTag(std::string const&) const
+{
+    throwStandardException("NullDomain::getTag");
+    return 0;
+}
+void NullDomain::setTagMap(std::string const&, int)
+{
+    throwStandardException("NullDomain::setTagMap");
+}
+void NullDomain::setTags(int, int, escript::Data const&) const
+{
+    throwStandardException("NullDomain::setTags");
+}
+void NullDomain::setNewX(escript::Data const&)
+{
+    throwStandardException("NullDomain::setNewX");
+}
+escript::Data NullDomain::getNormal() const
+{
+    throwStandardException("NullDomain::getNormal");
+    return escript::Data();
+}
+void NullDomain::setToNormal(escript::Data&) const
+{
+    throwStandardException("NullDomain::setToNormal");
+}
+void NullDomain::setToGradient(escript::Data&, escript::Data const&) const
+{
+    throwStandardException("NullDomain::setToGradient");
+}
+escript::Data NullDomain::getSize() const
+{
+    throwStandardException("NullDomain::getSize");
+    return escript::Data();
+}
+void NullDomain::setToSize(escript::Data&) const
+{
+    throwStandardException("NullDomain::setToSize");
+}
+escript::Data NullDomain::getX() const
+{
+    throwStandardException("NullDomain::getX");
+    return escript::Data();
+}
+void NullDomain::setToX(escript::Data&) const
+{
+    throwStandardException("NullDomain::setToX");
 }
 
 

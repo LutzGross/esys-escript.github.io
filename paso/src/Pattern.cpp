@@ -27,8 +27,9 @@
 
 #include "Pattern.h"
 #include "PasoUtil.h"
+#include <boost/scoped_array.hpp>
 
-using esysUtils::IndexListArray;
+using esysUtils::IndexList;
 
 namespace paso {
 
@@ -97,7 +98,7 @@ Pattern::~Pattern()
 
 /* creates a pattern from a range of indices */
 Pattern_ptr Pattern::fromIndexListArray(dim_t n0, dim_t n,
-                                        const IndexListArray& index_list_array,
+                                        const IndexList* index_list_array,
                                         index_t range_min, index_t range_max,
                                         index_t index_offset)
 {
@@ -319,7 +320,7 @@ Pattern_ptr Pattern::unrollBlocks(int newType, dim_t output_block_size,
 // computes the pattern coming from a matrix-matrix multiplication
 Pattern_ptr Pattern::multiply(int type, const_Pattern_ptr B) const
 {
-    IndexListArray index_list(numOutput);
+    boost::scoped_array<IndexList> index_list(new IndexList[numOutput]);
 
 #pragma omp parallel for schedule(static)
     for (dim_t i = 0; i < numOutput; i++) {
@@ -331,7 +332,7 @@ Pattern_ptr Pattern::multiply(int type, const_Pattern_ptr B) const
             }
         }
     }
-    return Pattern::fromIndexListArray(0, numOutput, index_list, 0,
+    return Pattern::fromIndexListArray(0, numOutput, index_list.get(), 0,
                                        B->numInput, 0);
 }
 
@@ -341,7 +342,7 @@ Pattern_ptr Pattern::multiply(int type, const_Pattern_ptr B) const
  */
 Pattern_ptr Pattern::binop(int type, const_Pattern_ptr B) const
 {
-    IndexListArray index_list(numOutput);
+    boost::scoped_array<IndexList> index_list(new IndexList[numOutput]);
     const dim_t nRowsB = B->numOutput;
 
 #pragma omp parallel for schedule(static)
@@ -376,7 +377,7 @@ Pattern_ptr Pattern::binop(int type, const_Pattern_ptr B) const
         }
     }
 
-    return Pattern::fromIndexListArray(0, numOutput, index_list, 0,
+    return Pattern::fromIndexListArray(0, numOutput, index_list.get(), 0,
                                        numInput, 0);
 }
 
