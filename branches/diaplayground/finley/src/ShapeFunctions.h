@@ -51,7 +51,7 @@ typedef enum {
 } ShapeFunctionTypeId;
 
 
-typedef void (ShapeFunction_Evaluation) (int, double*, double*, double*);
+typedef void (ShapeFunction_Evaluation) (int, std::vector<double>&, std::vector<double>&, std::vector<double>&);
 
 /// this struct holds the definition of the shape functions on an element
 struct ShapeFunctionInfo {

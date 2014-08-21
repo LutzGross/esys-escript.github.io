@@ -63,7 +63,7 @@ void seedGens(long seed)
 namespace esysUtils
 {
 
-// Put n random values into array
+// Put n random values from the interval [0,1] into array
 // Idea here is to create an array of seeds by feeding the original seed into the random generator
 // The code at the beginning of the function to compute the seed if one is given is
 // just supposed to introduce some variety (and ensure that multiple ranks don't get the same seed).

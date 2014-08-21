@@ -308,7 +308,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      \param functionSpaceCode Input -
   */
   ESCRIPT_DLL_API
-  virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
+  virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
   /**
      \brief

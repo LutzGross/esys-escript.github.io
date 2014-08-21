@@ -16,70 +16,76 @@
 #include <ripley/WaveAssembler2D.h>
 #include <ripley/domainhelpers.h>
 
-namespace ripley {
+using escript::Data;
 
-void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-            std::map<std::string, escript::Data> coefs) const
-{
-    if (isNotEmpty("A", coefs))
-        fsTypes.push_back(coefs["A"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("B", coefs))
-        fsTypes.push_back(coefs["B"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("C", coefs))
-        fsTypes.push_back(coefs["C"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("D", coefs))
-        fsTypes.push_back(coefs["D"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("du", coefs))
-        fsTypes.push_back(coefs["du"].getFunctionSpace().getTypeCode());
-    if (isNotEmpty("Y", coefs))
-        fsTypes.push_back(coefs["Y"].getFunctionSpace().getTypeCode());
-}
+namespace ripley {
 
 WaveAssembler2D::WaveAssembler2D(escript::const_Domain_ptr dom,
                                  const double *dx, const dim_t *NX, 
                                  const dim_t *NE, const dim_t *NN,
-                                 std::map<std::string, escript::Data> c)
+                                 const DataMap& c)
     : AbstractAssembler(),
     m_dx(dx),
     m_NX(NX),
     m_NE(NE),
     m_NN(NN)
 {
-        domain = boost::static_pointer_cast<const Rectangle>(dom);
-        isHTI = isVTI = false;
-        std::map<std::string, escript::Data>::iterator a = c.find("c12"),
-                                                       b = c.find("c23");
-        if (c.find("c11") == c.end()
+    domain = boost::static_pointer_cast<const Rectangle>(dom);
+    isHTI = isVTI = false;
+    DataMap::const_iterator a = c.find("c12"), b = c.find("c23");
+    if (c.find("c11") == c.end()
                 || c.find("c13") == c.end() || c.find("c33") == c.end()
                 || c.find("c44") == c.end() || c.find("c66") == c.end()
                 || (a == c.end() && b == c.end()))
-            throw RipleyException("required constants missing for WaveAssembler");
-        
-        if (a != c.end() && b != c.end()) {
-            throw RipleyException("WaveAssembler2D() doesn't support general"
-                    " form waves (yet)");
-        } else if (a == c.end()) {
-            c23 = b->second;
-            isHTI = true;
-        } else if (b == c.end()) {
-            c12 = a->second;
-            isVTI = true;
-        } //final else case taken care of with the missing constants above
-        c11 = c.find("c11")->second,
-        c13 = c.find("c13")->second, c33 = c.find("c33")->second,
-        c44 = c.find("c44")->second, c66 = c.find("c66")->second;
+        throw RipleyException("required constants missing for WaveAssembler");
+
+    if (a != c.end() && b != c.end()) {
+        throw RipleyException("WaveAssembler2D() doesn't support general "
+                              "form waves (yet)");
+    } else if (a == c.end()) {
+        c23 = b->second;
+        isHTI = true;
+    } else if (b == c.end()) {
+        c12 = a->second;
+        isVTI = true;
+    } // final else case taken care of with the missing constants above
+    c11 = c.find("c11")->second;
+    c13 = c.find("c13")->second;
+    c33 = c.find("c33")->second;
+    c44 = c.find("c44")->second;
+    c66 = c.find("c66")->second;
 }
 
-void WaveAssembler2D::assemblePDESystem(SystemMatrix* mat,
-            escript::Data& rhs, std::map<std::string, escript::Data> coefs) const
+void WaveAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
+                                                const DataMap& coefs) const
 {
-    const escript::Data A = unpackData("A", coefs), B = unpackData("B", coefs),
-                 C = unpackData("C", coefs), D = unpackData("D", coefs),
-                 Y = unpackData("Y", coefs), du = unpackData("du", coefs);
-    if (!unpackData("X", coefs).isEmpty())
+    if (isNotEmpty("A", coefs))
+        fsTypes.push_back(coefs.find("A")->second.getFunctionSpace().getTypeCode());
+    if (isNotEmpty("B", coefs))
+        fsTypes.push_back(coefs.find("B")->second.getFunctionSpace().getTypeCode());
+    if (isNotEmpty("C", coefs))
+        fsTypes.push_back(coefs.find("C")->second.getFunctionSpace().getTypeCode());
+    if (isNotEmpty("D", coefs))
+        fsTypes.push_back(coefs.find("D")->second.getFunctionSpace().getTypeCode());
+    if (isNotEmpty("du", coefs))
+        fsTypes.push_back(coefs.find("du")->second.getFunctionSpace().getTypeCode());
+    if (isNotEmpty("Y", coefs))
+        fsTypes.push_back(coefs.find("Y")->second.getFunctionSpace().getTypeCode());
+}
+
+void WaveAssembler2D::assemblePDESystem(escript::AbstractSystemMatrix* mat,
+                                        Data& rhs, const DataMap& coefs) const
+{
+    if (isNotEmpty("X", coefs))
         throw RipleyException("Coefficient X was given to WaveAssembler "
                 "unexpectedly. Specialised domains can't be used for general "
                 "assemblage.");
+    const Data& A = unpackData("A", coefs);
+    const Data& B = unpackData("B", coefs);
+    const Data& C = unpackData("C", coefs);
+    const Data& D = unpackData("D", coefs);
+    const Data& Y = unpackData("Y", coefs);
+    const Data& du = unpackData("du", coefs);
     dim_t numEq, numComp;
     if (!mat)
         numEq=numComp=(rhs.isEmpty() ? 1 : rhs.getDataPointSize());

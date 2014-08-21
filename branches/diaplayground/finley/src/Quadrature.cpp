@@ -60,7 +60,7 @@ const QuadInfo* QuadInfo_getInfo(QuadTypeId id)
 
 /// get a quadrature scheme with numQuadNodes quadrature nodes for the tri
 /// as a squeezed scheme on a quad [0,1]^2
-void Quad_getNodesTri(int numQuadNodes, double* quadNodes, double* quadWeights)
+void Quad_getNodesTri(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
 #define DIM 2
     // the easy cases:
@@ -367,7 +367,7 @@ void Quad_getNodesTri(int numQuadNodes, double* quadNodes, double* quadWeights)
 
 /// get a quadrature scheme with numQuadNodes quadrature nodes for the tet
 /// as a squeezed scheme on a hex [0,1]^3
-void Quad_getNodesTet(int numQuadNodes, double* quadNodes, double* quadWeights)
+void Quad_getNodesTet(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
     const double alpha=0.58541019662496852;
     const double beta =0.1381966011250105;
@@ -990,7 +990,7 @@ void Quad_getNodesTet(int numQuadNodes, double* quadNodes, double* quadWeights)
 
 /// get a quadrature scheme with numQuadNodes quadrature nodes for the
 /// quad [0.1]^2 as a X-product of a 1D scheme
-void Quad_getNodesRec(int numQuadNodes, double* quadNodes, double* quadWeights)
+void Quad_getNodesRec(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
 #define DIM 2
     bool set=false;
@@ -1001,7 +1001,7 @@ void Quad_getNodesRec(int numQuadNodes, double* quadNodes, double* quadWeights)
     for (int numQuadNodes1d=1; numQuadNodes1d<=MAX_numQuadNodesLine; numQuadNodes1d++) {
         if (numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
             // get 1D scheme:
-            Quad_getNodesLine(numQuadNodes1d,&quadNodes1d[0],&quadWeights1d[0]);
+            Quad_getNodesLine(numQuadNodes1d, quadNodes1d, quadWeights1d);
 
             // make 2D scheme:
             if (noError()) {
@@ -1031,7 +1031,7 @@ void Quad_getNodesRec(int numQuadNodes, double* quadNodes, double* quadWeights)
 
 /// get a quadrature scheme with numQuadNodes quadrature nodes for the
 /// hex [0.1]^3 as a X-product of a 1D scheme
-void Quad_getNodesHex(int numQuadNodes, double* quadNodes, double* quadWeights)
+void Quad_getNodesHex(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
 #define DIM 3
     bool set=false;
@@ -1042,7 +1042,7 @@ void Quad_getNodesHex(int numQuadNodes, double* quadNodes, double* quadWeights)
     for (int numQuadNodes1d=1; numQuadNodes1d<=MAX_numQuadNodesLine; numQuadNodes1d++) {
         if (numQuadNodes1d*numQuadNodes1d*numQuadNodes1d==numQuadNodes) {
             // get 1D scheme:
-            Quad_getNodesLine(numQuadNodes1d,&quadNodes1d[0],&quadWeights1d[0]);
+            Quad_getNodesLine(numQuadNodes1d, quadNodes1d, quadWeights1d);
 
             // make 3D scheme:
             if (noError()) {
@@ -1076,7 +1076,7 @@ void Quad_getNodesHex(int numQuadNodes, double* quadNodes, double* quadWeights)
 /// get a quadrature scheme with numQuadNodes quadrature nodes for a point.
 /// As there is no quadrature scheme for a point this function returns without
 /// changing the arrays but throws an error if numQuadNodes is negative
-void Quad_getNodesPoint(int numQuadNodes, double* quadNodes, double* quadWeights)
+void Quad_getNodesPoint(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
     if (numQuadNodes<0)
         setError(VALUE_ERROR,
@@ -1085,7 +1085,7 @@ void Quad_getNodesPoint(int numQuadNodes, double* quadNodes, double* quadWeights
 
 /// get a quadrature scheme with numQuadNodes quadrature nodes on the
 /// line [0,1]. The nodes and weights are set from a table
-void Quad_getNodesLine(int numQuadNodes, double* quadNodes, double* quadWeights)
+void Quad_getNodesLine(int numQuadNodes, std::vector<double>& quadNodes, std::vector<double>& quadWeights)
 {
     switch (numQuadNodes) {
         case 1:

@@ -303,8 +303,10 @@ DataExpanded::hasNaN() const
 	{
 		if (nancheck(v[i]))	
 		{
-			#pragma omp atomic write
-      haveNaN=true;
+			#pragma omp critical 
+      {
+          haveNaN=true;
+      }
 		}
 	}
 	return haveNaN;

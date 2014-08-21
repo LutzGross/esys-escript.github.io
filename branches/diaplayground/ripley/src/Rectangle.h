@@ -28,6 +28,9 @@ namespace ripley {
 */
 class RIPLEY_DLL_API Rectangle: public RipleyDomain
 {
+    friend class DefaultAssembler2D;
+    friend class WaveAssembler2D;
+    friend class LameAssembler2D;
 public:
 
     /**
@@ -61,6 +64,13 @@ public:
        \brief equality operator
     */
     virtual bool operator==(const escript::AbstractDomain& other) const;
+
+    /**
+       \brief
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
+    */
+    virtual void write(const std::string& filename) const;
 
     /**
        \brief
@@ -188,7 +198,7 @@ public:
        Creates and returns an assembler of the requested type.
     */
     virtual Assembler_ptr createAssembler(std::string type,
-            std::map<std::string, escript::Data> options) const;
+                                          const DataMap& options) const;
 
 
 protected:
@@ -202,6 +212,8 @@ protected:
                                   const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                             bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -213,8 +225,9 @@ protected:
 
 private:
     void populateSampleIds();
-    void createPattern();
-    void addToMatrixAndRHS(SystemMatrix* S, escript::Data& F,
+    void populateDofMap();
+    std::vector<IndexVector> getConnections() const;
+    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 
@@ -286,9 +299,8 @@ private:
     // nodes
     paso::Connector_ptr m_connector;
 
-    friend class DefaultAssembler2D;
-    friend class WaveAssembler2D;
-    friend class LameAssembler2D;
+    // the Paso System Matrix pattern
+    mutable paso::SystemMatrixPattern_ptr m_pattern;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
@@ -315,7 +327,6 @@ inline boost::python::tuple Rectangle::getGridParameters() const
             boost::python::make_tuple(m_dx[0], m_dx[1]),
             boost::python::make_tuple(m_gNE[0], m_gNE[1]));
 }
-
 
 //protected
 inline dim_t Rectangle::getNumDOF() const

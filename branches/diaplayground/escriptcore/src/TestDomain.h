@@ -14,15 +14,12 @@
 *
 *****************************************************************************/
 
+#ifndef __ESCRIPT_TESTDOMAIN_H__
+#define __ESCRIPT_TESTDOMAIN_H__
 
-#if !defined escript_TestDomain_20090618_H
-#define escript_TestDomain_20090618_H
 #include "system_dep.h"
 
-#include "AbstractDomain.h"
-#include "FunctionSpace.h"
-
-#include <string>
+#include "NullDomain.h"
 
 namespace escript {
 
@@ -30,9 +27,9 @@ namespace escript {
    \brief
    (Testing use only) Provides a domain to wrap a collection of values.
 
-   This domain provides more functionality than NullDomain in that it can 
+   This domain provides more functionality than NullDomain in that it can
    store varying numbers of samples and points per sample.
-   
+
    It currently supports a single function space which does not support tagging.
    No effort has been made to make this work with MPI
 
@@ -41,245 +38,80 @@ namespace escript {
    Also, other doco says that this class can be removed without notice.
 
 */
+class ESCRIPT_DLL_API TestDomain : public NullDomain
+{
+public:
+    TestDomain(int pointspersample, int numsamples, int dpsize=1);
 
-class TestDomain : public AbstractDomain {
+    virtual ~TestDomain();
 
- public:
+    virtual int getMPISize() const;
+    virtual int getMPIRank() const;
+    virtual void MPIBarrier() const;
+    virtual bool onMasterProcessor() const;
+    virtual MPI_Comm getMPIComm() const;
 
-  /**
-     \brief
-     Default constructor for TestDomain.
+    virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
-     Description:
-     Default constructor for TestDomain.
+    virtual std::string getDescription() const;
 
-  */
-  ESCRIPT_DLL_API
-  TestDomain(int pointspersample, int numsamples, int dpsize=1);
+    virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
 
-  ESCRIPT_DLL_API
-  ~TestDomain();
+    virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
 
-  /**
-  \brief get the communicator for this domain.
-  Returns 0 on non-MPI builds
-  Routine must be implemented by the DomainAdapter
-  */
-  ESCRIPT_DLL_API
-  virtual
-#ifdef ESYS_MPI
-  MPI_Comm
-#else
-  unsigned int
-#endif
-  getMPIComm() const
-  {
-#ifdef ESYS_MPI
-    return MPI_COMM_WORLD;
-#else
-    return 0;
-#endif    
-  }  
-  
-  /**
-     \brief
-     Returns true if the given integer is a valid function space type
-     for this domain.
-  */
-  ESCRIPT_DLL_API
-  virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
+    virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
-  /**
-     \brief
-     Return a description for this domain.
-  */
-  ESCRIPT_DLL_API
-  virtual std::string getDescription() const;
+    bool commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
 
-  /**
-     \brief
-     Return a description for the given function space type code.
-  */
-  ESCRIPT_DLL_API
-  virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
+    virtual escript::Data getX() const;
 
-  /**
-     \brief
-     Interpolates data given on source onto target where source and target have to be given on the same domain.
-     TestDomain only has one FunctionSpace so this makes target a shallow copy of source.
-  */
-  ESCRIPT_DLL_API
-  virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
-  ESCRIPT_DLL_API
-  virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
+    virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
 
-  ESCRIPT_DLL_API
-  bool
-  commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
+    virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
-  /**
-     \brief
-     Returns locations in the domain.
-  */
-  ESCRIPT_DLL_API
-  virtual escript::Data getX() const;
+    virtual int getDefaultCode() const;
+    virtual int getContinuousFunctionCode() const;
+    virtual int getFunctionCode() const;
+    virtual int getFunctionOnBoundaryCode() const;
+    virtual int getFunctionOnContactZeroCode() const;
+    virtual int getFunctionOnContactOneCode() const;
+    virtual int getSolutionCode() const;
+    virtual int getReducedSolutionCode() const;
+    virtual int getDiracDeltaFunctionsCode() const;
 
+    virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
-  /**
-     \brief
-     Interpolates data given on source onto target where source and target are given on different domains.
-     We do not permit interpolation into the TestDomain so this method always throws.
-  */
-  ESCRIPT_DLL_API
-  virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
-  ESCRIPT_DLL_API
-  virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
+    virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
 
+    virtual const dim_t* borrowSampleReferenceIDs(int functionSpaceType) const;
 
-  /**
-     \brief
-     Return a continuous FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getDefaultCode() const;
+    virtual int getDim() const;
 
+    virtual bool operator==(const AbstractDomain& other) const;
 
-  /**
-     \brief
-     Return a continuous FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getContinuousFunctionCode() const;
+    virtual bool operator!=(const AbstractDomain& other) const;
 
-  /**
-     \brief
-     Return a function FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getFunctionCode() const;
+    virtual bool canTag(int functionSpaceCode) const;
 
-  /**
-     \brief
-     Return a function on boundary FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getFunctionOnBoundaryCode() const;
+    virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
 
-  /**
-     \brief
-     Return a FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getFunctionOnContactZeroCode() const;
+    virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
-  /**
-     \brief
-     Return a FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getFunctionOnContactOneCode() const;
+    virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
+                                     const FunctionSpace& what, long seed,
+                                     const boost::python::tuple& filter) const;
 
-  /**
-     \brief
-     Return a FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getSolutionCode() const;
-
-  /**
-     \brief
-     Return a FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getReducedSolutionCode() const;
-
-  /**
-     \brief
-     Return a FunctionSpace.
-  */
-  ESCRIPT_DLL_API
-  virtual int getDiracDeltaFunctionsCode() const;
-
-  /**
-     \brief
-     Return the number of data points per sample, and the number of samples as a pair.
-     \param functionSpaceCode Input - Code for the function space type.
-     \return pair, first - number of data points per sample, second - number of samples
-  */
-  ESCRIPT_DLL_API
-  virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
-
-  /**
-     \brief
-     Return the tag key for the given sample number.
-     \param functionSpaceType Input - The function space type.
-     \param sampleNo Input - The sample number.
-  */
-  ESCRIPT_DLL_API
-  virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
-
-  /**
-     \brief
-     Return a borrowed pointer to the sample reference number id list
-     \param functionSpaceType Input - The function space type.
-  */
-  ESCRIPT_DLL_API
-  virtual const int* borrowSampleReferenceIDs(int functionSpaceType) const;
-
-  /**
-     \brief
-  */
-  ESCRIPT_DLL_API
-  virtual int getDim() const;
-
-  /**
-     \brief
-     Return true if given domains are equal.
-  */
-  ESCRIPT_DLL_API
-  virtual bool operator==(const AbstractDomain& other) const;
-  ESCRIPT_DLL_API
-  virtual bool operator!=(const AbstractDomain& other) const;
-
-  /**
-     \brief Checks if this domain allows tags for the specified functionSpaceCode.
-  */
-  ESCRIPT_DLL_API
-  virtual
-  bool canTag(int functionSpaceCode) const;
-
-  /**
-      \brief
-          return the number of tags in use.
-      For this class the answer is always 1(the default tag).
-  */
-  ESCRIPT_DLL_API
-  virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
-
-  /**
-     \brief  returns a pointer to an array with the tags used.
-     For this class the answer will always be {0} 
-  */
-  ESCRIPT_DLL_API 
-  virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
-  
-  ESCRIPT_DLL_API
-  virtual escript::Data randomFill(const DataTypes::ShapeType& shape,
-       const FunctionSpace& what, long seed, const boost::python::tuple& filter) const;     
-
- protected:
-
- private:
-  int m_samples;	// number of samples
-  int m_dpps;		// data points per sample
-  int m_dpsize;		// how big are the datapoints?
-  int* m_samplerefids;	// sample reference ids
+private:
+    int m_samples;       // number of samples
+    int m_dpps;          // data points per sample
+    int m_dpsize;        // how big are the datapoints?
+    int* m_samplerefids; // sample reference ids
 };
 
 ESCRIPT_DLL_API
-FunctionSpace
-getTestDomainFunctionSpace(int dpps, int samples, int dpsize);
+FunctionSpace getTestDomainFunctionSpace(int dpps, int samples, int dpsize);
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_TESTDOMAIN_H__
+

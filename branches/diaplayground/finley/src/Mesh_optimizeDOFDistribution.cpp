@@ -28,6 +28,7 @@
 #ifdef USE_PARMETIS
 #include <parmetis.h>
 #endif
+#include <boost/scoped_array.hpp>
 
 namespace finley {
 
@@ -80,22 +81,22 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
 
 #ifdef USE_PARMETIS
     if (mpiSize>1 && allRanksHaveNodes(MPIInfo, distribution)) {
-        IndexListArray index_list(myNumVertices);
+        boost::scoped_array<IndexList> index_list(new IndexList[myNumVertices]);
         int dim=Nodes->numDim;
         // create the adjacency structure xadj and adjncy
 #pragma omp parallel
         {
             // insert contributions from element matrices into columns index
-            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                     myFirstVertex, myLastVertex, Elements,
                     Nodes->globalDegreesOfFreedom, Nodes->globalDegreesOfFreedom);
-            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                     myFirstVertex, myLastVertex, FaceElements,
                     Nodes->globalDegreesOfFreedom, Nodes->globalDegreesOfFreedom);
-            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                     myFirstVertex, myLastVertex, ContactElements,
                     Nodes->globalDegreesOfFreedom, Nodes->globalDegreesOfFreedom);
-            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list,
+            IndexList_insertElementsWithRowRangeNoMainDiagonal(index_list.get(),
                     myFirstVertex, myLastVertex, Points,
                     Nodes->globalDegreesOfFreedom, Nodes->globalDegreesOfFreedom);
         }
@@ -103,7 +104,7 @@ void Mesh::optimizeDOFDistribution(std::vector<int>& distribution)
         // create the local matrix pattern
         const int globalNumVertices=distribution[mpiSize];
         paso::Pattern_ptr pattern(paso::Pattern::fromIndexListArray(0,
-                myNumVertices, index_list, 0, globalNumVertices, 0));
+                myNumVertices, index_list.get(), 0, globalNumVertices, 0));
         // set the coordinates
         std::vector<float> xyz(myNumVertices*dim);
 #pragma omp parallel for

@@ -66,6 +66,13 @@ public:
 
     /**
        \brief
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
+    */
+    virtual void write(const std::string& filename) const;
+
+    /**
+       \brief
        dumps the mesh to a file with the given name
        \param filename The name of the output file
     */
@@ -175,14 +182,16 @@ public:
        returns the tuple (origin, spacing, number_of_elements)
     */
     virtual boost::python::tuple getGridParameters() const;
-    
+
     /**
-     * \brief 
+     * \brief
        Returns a Data object filled with random data passed through filter.
-    */     
+    */
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;   
-    
+                                     const escript::FunctionSpace& what,
+                                     long seed,
+                                     const boost::python::tuple& filter) const;
+
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -193,6 +202,8 @@ protected:
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
+    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
+                             bool reducedRowOrder, bool reducedColOrder) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
@@ -201,13 +212,13 @@ protected:
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
-    Assembler_ptr createAssembler(std::string type,
-            std::map<std::string, escript::Data> constants) const;
+    Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 
 private:
     void populateSampleIds();
-    void createPattern();
-    void addToMatrixAndRHS(SystemMatrix* S, escript::Data& F,
+    void populateDofMap();
+    std::vector<IndexVector> getConnections() const;
+    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 
@@ -222,9 +233,10 @@ private:
                              const std::string& filename, int byteOrder) const;
 
     int findNode(const double *coords) const;
-    
-    
-    virtual escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape, long seed, const boost::python::tuple& filter) const;     
+
+    virtual escript::Data randomFillWorker(
+            const escript::DataTypes::ShapeType& shape, long seed,
+            const boost::python::tuple& filter) const;
 
     /// total number of elements in each dimension
     dim_t m_gNE[3];
@@ -276,6 +288,9 @@ private:
     // Paso connector used by the system matrix and to interpolate DOF to
     // nodes
     paso::Connector_ptr m_connector;
+
+    // the Paso System Matrix pattern
+    mutable paso::SystemMatrixPattern_ptr m_pattern;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////

@@ -477,8 +477,10 @@ DataTagged::hasNaN() const
 	{
 		if (nancheck(m_data[i]))	// can't assume we have new standard NaN checking
 		{
-      #pragma omp atomic write
-			haveNaN=true;
+        #pragma omp critical 
+        {
+            haveNaN=true;
+        }
 		}
 	}
 	return haveNaN;
