@@ -225,7 +225,7 @@ private:
     void integral_order10(std::vector<double>&, const escript::Data&) const; 
 
     void populateSampleIds();
-    void addToMatrixAndRHS(SM_ptr S, escript::Data& F,
+    void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
 
