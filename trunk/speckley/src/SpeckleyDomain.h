@@ -40,8 +40,6 @@
 #include <escript/FunctionSpace.h>
 #include <escript/SubWorld.h>
 
-#include <speckley/SystemMatrix.h>
-
 namespace speckley {
 
 enum assembler_t {
