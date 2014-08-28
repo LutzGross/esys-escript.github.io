@@ -32,6 +32,9 @@ sources = """
     RipleyDomain.cpp
     RipleyElements.cpp
     RipleyNodes.cpp
+    SpeckleyDomain.cpp
+    SpeckleyElements.cpp
+    SpeckleyNodes.cpp
     VisItControl.cpp
 """.split()
 
@@ -47,6 +50,9 @@ headers = """
     RipleyDomain.h
     RipleyElements.h
     RipleyNodes.h
+    SpeckleyDomain.h
+    SpeckleyElements.h
+    SpeckleyNodes.h
     VisItControl.h
     vtkCellType.h
     weipa.h
@@ -59,9 +65,9 @@ if local_env['visit']:
     local_env.AppendUnique(LIBS = ['simV2'])
 
 if not env['build_shared']:
-    local_env.Prepend(LIBS = ['ripley', 'finley', 'dudley', 'escript'])
+    local_env.Prepend(LIBS = ['ripley', 'finley', 'dudley', 'escript', 'speckley'])
 else:
-    local_env.Prepend(LIBS = ['ripley', 'finley', 'dudley', 'escript', 'esysUtils'])
+    local_env.Prepend(LIBS = ['ripley', 'finley', 'dudley', 'escript', 'speckley', 'esysUtils'])
 
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
@@ -85,9 +91,9 @@ env.Alias('install_weipa_lib', lib_inst)
 
 ### Python wrapper ###
 if not env['build_shared']:
-    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'ripley', 'finley', 'dudley', 'escript'])
+    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'ripley', 'finley', 'dudley', 'speckley', 'escript'])
 else:
-    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'ripley', 'finley', 'dudley', 'escript', 'esysUtils'])
+    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'ripley', 'finley', 'dudley', 'speckley', 'escript', 'esysUtils'])
 
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')

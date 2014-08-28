@@ -42,12 +42,18 @@ def interpolateEscriptData(domain, data):
                 domain=fs.getDomain()
             elif domain != fs.getDomain():
                 raise ValueError("weipa: All Data must be on the same domain!")
-            if fs == Solution(domain):
-                new_data[n]=interpolate(d, ContinuousFunction(domain))
-            elif fs == ReducedSolution(domain):
-                new_data[n]=interpolate(d, ReducedContinuousFunction(domain))
-            else:
-                new_data[n]=d
+            new_data[n]=d
+            try:
+                if fs == Solution(domain):
+                    new_data[n]=interpolate(d, ContinuousFunction(domain))
+                elif fs == ReducedSolution(domain):
+                    new_data[n]=interpolate(d, ReducedContinuousFunction(domain))
+            except RuntimeError as e:
+                if str(e).startswith("FunctionSpaceException"):
+                    pass
+                else:
+                    raise e
+
     return domain,new_data
 
 def createDataset(domain=None, **data):
