@@ -101,7 +101,7 @@ public:
 
     /**
        \brief
-       returns the reference number of the given sample number
+       returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
     const int* borrowSampleReferenceIDs(int fsType) const;
