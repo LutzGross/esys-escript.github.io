@@ -20,6 +20,7 @@
 #include <weipa/FinleyDomain.h>
 #include <weipa/NodeData.h>
 #include <weipa/RipleyDomain.h>
+#include <weipa/SpeckleyDomain.h>
 
 #ifndef VISIT_PLUGIN
 #include <esysUtils/esysFileWriter.h>
@@ -27,6 +28,7 @@
 #include <dudley/CppAdapter/MeshAdapter.h>
 #include <finley/CppAdapter/MeshAdapter.h>
 #include <ripley/RipleyDomain.h>
+#include <speckley/SpeckleyDomain.h>
 
 using esysUtils::FileWriter;
 #endif
@@ -123,6 +125,16 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
             }
         } else if (dynamic_cast<const ripley::RipleyDomain*>(domain)) {
             DomainChunk_ptr dom(new RipleyDomain());
+            if (dom->initFromEscript(domain)) {
+                if (mpiSize > 1)
+                    dom->reorderGhostZones(mpiRank);
+                domainChunks.push_back(dom);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 2;
+            }
+        } else if (dynamic_cast<const speckley::SpeckleyDomain*>(domain)) {
+            DomainChunk_ptr dom(new SpeckleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)
                     dom->reorderGhostZones(mpiRank);
