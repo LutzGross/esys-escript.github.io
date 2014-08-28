@@ -1293,7 +1293,7 @@ void Brick::populateSampleIds()
 }
 
 //private
-void Brick::addToMatrixAndRHS(SM_ptr S, escript::Data& F,
+void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<double>& EM_S, const std::vector<double>& EM_F, bool addS,
          bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
 {
