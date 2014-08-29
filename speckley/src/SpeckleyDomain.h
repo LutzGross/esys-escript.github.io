@@ -138,18 +138,7 @@ public:
        \brief
        returns the MPI communicator
     */
-#ifdef ESYS_MPI
-    MPI_Comm
-#else
-    unsigned int
-#endif
-    getMPIComm() const {
-#ifdef ESYS_MPI
-        return m_mpiInfo->comm;
-#else
-        return 0;
-#endif
-    }
+    MPI_Comm getMPIComm() const { return m_mpiInfo->comm; }
 
     /**
        \brief
