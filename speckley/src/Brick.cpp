@@ -16,7 +16,6 @@
 
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
-#include <speckley/blocktools.h>
 #include <esysUtils/esysFileWriter.h>
 #include <esysUtils/EsysRandom.h>
 #include <esysUtils/index.h>

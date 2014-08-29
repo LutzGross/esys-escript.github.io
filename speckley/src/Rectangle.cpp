@@ -24,7 +24,6 @@
 #include <boost/scoped_array.hpp>
 #include <escript/FunctionSpaceFactory.h>
 #include "esysUtils/EsysRandom.h"
-#include "blocktools.h"
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
