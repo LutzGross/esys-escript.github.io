@@ -314,7 +314,7 @@ void Rectangle::assembleCoordinates(escript::Data& arg) const
 #pragma omp parallel for
     for (dim_t y = 0; y < NN1; y++) {
         for (dim_t x = 0; x < NN0; x++) {
-            double *point = arg.getSampleDataRW(y*NN1 + x);
+            double *point = arg.getSampleDataRW(y*NN0 + x);
             point[0] = getLocalCoordinate(x, 0);
             point[1] = getLocalCoordinate(y, 1);
         }
