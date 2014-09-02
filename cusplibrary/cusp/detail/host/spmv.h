@@ -155,7 +155,7 @@ void spmv_dia(const Matrix&  A,
             for (IndexType row=ch; row<std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
             {
                 const IndexType col = row + A.diagonal_offsets[d];
-                if (col >= 0 && col < A.num_rows)
+                if (col >= 0 && col < A.num_cols)
                 {
                     y[row] = reduce(y[row], combine(A.values(row, d), x[col]));
                 }

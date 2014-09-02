@@ -89,6 +89,20 @@ template <typename LinearOperator,
 void multiply(const LinearOperator&  A,
               const MatrixOrVector1& B,
               const MatrixOrVector2& C);
+
+template <typename LinearOperator,
+          typename MatrixOrVector1,
+          typename MatrixOrVector2>
+void transposed_multiply(LinearOperator&  A,
+                         MatrixOrVector1& B,
+                         MatrixOrVector2& C);
+
+template <typename LinearOperator,
+          typename MatrixOrVector1,
+          typename MatrixOrVector2>
+void transposed_multiply(const LinearOperator&  A,
+                         const MatrixOrVector1& B,
+                         const MatrixOrVector2& C);
 /*! \}
  */
 

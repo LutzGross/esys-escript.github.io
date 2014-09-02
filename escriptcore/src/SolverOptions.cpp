@@ -202,6 +202,7 @@ const char *SolverBuddy::getName(int key) const {
         case ESCRIPT_ILUT: return "ILUT";
         case ESCRIPT_JACOBI: return "JACOBI";
         case ESCRIPT_GMRES: return "GMRES";
+        case ESCRIPT_LSQR: return "LSQR";
         case ESCRIPT_PRES20: return "PRES20";
         case ESCRIPT_ROWSUM_LUMPING: return "ROWSUM_LUMPING";
         case ESCRIPT_HRZ_LUMPING: return "HRZ_LUMPING";
@@ -459,6 +460,7 @@ void SolverBuddy::setSolverMethod(int method) {
         case ESCRIPT_NONLINEAR_GMRES:
         case ESCRIPT_TFQMR:
         case ESCRIPT_MINRES:
+        case ESCRIPT_LSQR:
             this->method = meth;
             break;
         default:
