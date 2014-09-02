@@ -25,6 +25,7 @@
 #include <cusp/krylov/bicgstab.h>
 #include <cusp/krylov/cg.h>
 #include <cusp/krylov/gmres.h>
+#include <cusp/krylov/lsqr.h>
 #include <cusp/precond/diagonal.h>
 
 #define BLOCK_SIZE 128
@@ -91,9 +92,9 @@ SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
     // count nonzero entries
     int numEntries = 0;
     for (size_t i = 0; i < diagonalOffsets.size(); i++) {
-        numEntries += blocksize*blocksize *
-            (nRows-std::abs(diagonalOffsets[i])*blocksize) / blocksize;
+        numEntries += blocksize*blocksize*(nRows-std::abs(diagonalOffsets[i]));
     }
+    std::cerr << "Matrix has " <<numEntries<<" entries."<<std::endl;
 
     if (cudaDevices.size() == 0)
         checkCUDA();
@@ -158,6 +159,7 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
                              Preconditioner& M, escript::SolverBuddy& sb) const
 {
     typedef typename LinearOperator::memory_space MemorySpace;
+    //cusp::verbose_monitor<double> monitor(b, sb.getIterMax(), sb.getTolerance(), sb.getAbsoluteTolerance());
     cusp::default_monitor<double> monitor(b, sb.getIterMax(), sb.getTolerance(), sb.getAbsoluteTolerance());
 
     double T0 = gettime();
@@ -165,6 +167,9 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
         case escript::ESCRIPT_DEFAULT:
         case escript::ESCRIPT_PCG:
             cusp::krylov::cg(A, x, b, monitor, M);
+            break;
+        case escript::ESCRIPT_LSQR:
+            cusp::krylov::lsqr(A, x, b, cusp::krylov::lsqr_parameters<double>(), monitor);
             break;
         case escript::ESCRIPT_BICGSTAB:
             cusp::krylov::bicgstab(A, x, b, monitor, M);
@@ -355,8 +360,10 @@ void SystemMatrix::saveMM(const std::string& filename) const
     const int blockSize = getBlockSize();
 
     std::ofstream f(filename.c_str());
-    f << "%%%%MatrixMarket matrix coordinate real general" << std::endl;
+    f << "%%MatrixMarket matrix coordinate real general" << std::endl;
     f << mat.num_rows << " " << mat.num_rows << " " << mat.num_entries << std::endl;
+    f.setf(std::ios_base::scientific, std::ios_base::floatfield);
+    f.precision(15);
     for (int row=0; row < mat.num_rows; row++) {
         for (int diag=0; diag < mat.diagonal_offsets.size(); diag++) {
             const int col = blockSize*(row/blockSize)+mat.diagonal_offsets[diag]*blockSize;

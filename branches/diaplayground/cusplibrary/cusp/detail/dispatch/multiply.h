@@ -17,8 +17,10 @@
 #include <cusp/array1d.h>
 //MW: if device is not cuda then do not include cuda stuff and redirect device multiply to host
 #include <cusp/detail/host/multiply.h>
+#include <cusp/detail/host/transposed_multiply.h>
 #if THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA
 #include <cusp/detail/device/multiply.h>
+#include <cusp/detail/device/transposed_multiply.h>
 #endif 
 
 namespace cusp
@@ -44,6 +46,19 @@ void multiply(const LinearOperator&  A,
     cusp::detail::host::multiply(A, B, C);
 }
 
+template <typename LinearOperator,
+          typename MatrixOrVector1,
+          typename MatrixOrVector2>
+void transposed_multiply(const LinearOperator&  A,
+                         const MatrixOrVector1& B,
+                               MatrixOrVector2& C,
+                         cusp::host_memory,
+                         cusp::host_memory,
+                         cusp::host_memory)
+{
+    cusp::detail::host::transposed_multiply(A, B, C);
+}
+
 //////////////////
 // Device Paths //
 //////////////////
@@ -61,6 +76,23 @@ void multiply(const LinearOperator&  A,
     cusp::detail::device::multiply(A, B, C);
 #else
     cusp::detail::host::multiply(A, B, C);
+#endif
+}
+
+template <typename LinearOperator,
+          typename MatrixOrVector1,
+          typename MatrixOrVector2>
+void transposed_multiply(const LinearOperator&  A,
+                         const MatrixOrVector1& B,
+                               MatrixOrVector2& C,
+                         cusp::device_memory,
+                         cusp::device_memory,
+                         cusp::device_memory)
+{
+#if THRUST_DEVICE_SYSTEM == THRUST_DEVICE_SYSTEM_CUDA
+    cusp::detail::device::transposed_multiply(A, B, C);
+#else
+    cusp::detail::host::transposed_multiply(A, B, C);
 #endif
 }
 

@@ -934,6 +934,7 @@ args("source", "q", "r","factor"),
     .value("ILUT", escript::ESCRIPT_ILUT)
     .value("JACOBI", escript::ESCRIPT_JACOBI)
     .value("GMRES", escript::ESCRIPT_GMRES)
+    .value("LSQR", escript::ESCRIPT_LSQR)
     .value("PRES20", escript::ESCRIPT_PRES20)
     .value("LUMPING", escript::ESCRIPT_LUMPING)
     .value("ROWSUM_LUMPING", escript::ESCRIPT_ROWSUM_LUMPING)

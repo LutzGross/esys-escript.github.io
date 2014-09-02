@@ -17,9 +17,9 @@ def get_cuda_paths():
     lib_path = 'C:/CUDA/lib'
     inc_path = 'C:/CUDA/include'
   elif os.name == 'posix':
-    bin_path = '/usr/local/cuda/bin'
-    lib_path = '/usr/local/cuda/lib'
-    inc_path = '/usr/local/cuda/include'
+    bin_path = '/usr/bin'
+    lib_path = '/usr/lib'
+    inc_path = '/usr/include'
   else:
     raise ValueError, 'Error: unknown OS.  Where is nvcc installed?'
    
@@ -224,7 +224,7 @@ def Environment():
                         allowed_values = ('release', 'debug')))
 
   # add a variable to handle compute capability
-  vars.Add(EnumVariable('arch', 'Compute capability code generation', 'sm_10',
+  vars.Add(EnumVariable('arch', 'Compute capability code generation', 'sm_30',
                         allowed_values = ('sm_10', 'sm_11', 'sm_12', 'sm_13', 'sm_20', 'sm_21', 'sm_30', 'sm_35')))
 
   # add a variable to handle warnings
@@ -276,8 +276,8 @@ def Environment():
   env.Append(LINKFLAGS = getLINKFLAGS(env['mode'], env['backend'], env['hostspblas'], env.subst('$LINK')))
    
   # silence unknown pragma warnings
-  env.Append(CFLAGS = ['-Wno-unknown-pragmas'])
-  env.Append(CXXFLAGS = ['-Wno-unknown-pragmas'])
+  env.Append(CFLAGS = ['-Wno-unknown-pragmas','-Wno-unused-local-typedefs'])
+  env.Append(CXXFLAGS = ['-Wno-unknown-pragmas','-Wno-unused-local-typedefs'])
 
   # get CUDA paths
   (cuda_exe_path,cuda_lib_path,cuda_inc_path) = get_cuda_paths()

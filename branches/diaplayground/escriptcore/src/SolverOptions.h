@@ -31,6 +31,7 @@ ESCRIPT_PCG: The preconditioned conjugate gradient method (can only be applied f
 ESCRIPT_CR: The conjugate residual method
 ESCRIPT_CGS: The conjugate gradient square method
 ESCRIPT_BICGSTAB: The stabilized Bi-Conjugate Gradient method
+ESCRIPT_LSQR: Least Squares with QR factorization
 ESCRIPT_TFQMR: Transpose Free Quasi Minimal Residual method
 ESCRIPT_MINRES: Minimum residual method
 ESCRIPT_ILU0: The incomplete LU factorization preconditioner with no fill-in
@@ -85,6 +86,7 @@ enum SolverOptions {
     ESCRIPT_CR = 4,
     ESCRIPT_CGS = 5,
     ESCRIPT_BICGSTAB = 6,
+    ESCRIPT_LSQR = 7,
     ESCRIPT_ILU0 = 8,
     ESCRIPT_ILUT = 9,
     ESCRIPT_JACOBI = 10,
@@ -285,7 +287,7 @@ public:
             `ESCRIPT_DEFAULT`, `ESCRIPT_DIRECT`, `ESCRIPT_CHOLEVSKY`,
             `ESCRIPT_PCG`, `ESCRIPT_CR`, `ESCRIPT_CGS`, `ESCRIPT_BICGSTAB`,
             `ESCRIPT_GMRES`, `ESCRIPT_PRES20`, `ROWSUM_ESCRIPT_LUMPING`,
-            `HRZ_ESCRIPT_LUMPING`, `ESCRIPT_ITERATIVE`,
+            `HRZ_ESCRIPT_LUMPING`, `ESCRIPT_ITERATIVE`, `ESCRIPT_LSQR`,
             `ESCRIPT_NONLINEAR_GMRES`, `ESCRIPT_TFQMR`, `ESCRIPT_MINRES`
     
     \note Not all packages support all solvers. It can be assumed that a
