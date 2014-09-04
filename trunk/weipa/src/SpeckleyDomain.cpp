@@ -218,30 +218,11 @@ NodeData_ptr SpeckleyDomain::getMeshByName(const string& name) const
 void SpeckleyDomain::reorderGhostZones(int ownIndex)
 {
     return;
-    if (initialized) {
-        cells->reorderGhostZones(ownIndex);
-        faces->reorderGhostZones(ownIndex);
-#ifdef _DEBUG
-        cout << "block " << ownIndex << " has " << cells->getGhostCount()
-             << " ghost zones," << endl;
-        cout << "\t" << faces->getGhostCount() << " ghost faces." << endl;
-#endif
-    }
 }
 
 void SpeckleyDomain::removeGhostZones(int ownIndex)
 {
     return;
-    if (initialized) {
-        cells->removeGhostZones(ownIndex);
-        faces->removeGhostZones(ownIndex);
-#ifdef _DEBUG
-        cout << "After removing ghost zones there are" << endl;
-        cout << "    " << nodes->getNumNodes() << " Nodes, ";
-        cout << cells->getCount() << " Elements, ";
-        cout << faces->getCount() << " Face elements left." << endl;
-#endif
-    }
 }
 
 bool SpeckleyDomain::writeToSilo(DBfile* dbfile, const string& pathInSilo,
