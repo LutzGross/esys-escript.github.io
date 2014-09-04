@@ -50,6 +50,8 @@ lsqr_results<RealType> lsqr(LinearOperator& A,
                             const lsqr_parameters<RealType> & p,
                             Monitor& monitor)
 {
+    CUSP_PROFILE_SCOPED();
+
     typedef typename LinearOperator::value_type   ValueType;
     typedef typename LinearOperator::memory_space MemorySpace;
 
