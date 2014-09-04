@@ -234,7 +234,7 @@ void csr_to_cds(const Matrix1& src, Matrix2& dst,
    
 
     // allocate CDS structure
-    dst.resize(src.num_rows, src.num_entries, block_size, num_diagonals, alignment);
+    dst.resize(src.num_rows, src.num_entries, num_diagonals, block_size, alignment);
 
     // fill in diagonal_offsets array
     for(size_t n = 0, diag = 0; n < src.num_rows + src.num_cols; n++)
@@ -457,7 +457,7 @@ void dia_to_cds(const Matrix1& src, Matrix2& dst)
     //typedef typename Matrix2::value_type ValueType;
 
     // allocate CDS structure
-    dst.resize(src.num_rows, src.num_entries, 1, src.diagonal_offsets.size(), src.values.pitch);
+    dst.resize(src.num_rows, src.num_entries, src.diagonal_offsets.size(), 1, src.values.pitch);
 
     cusp::copy(src.diagonal_offsets, dst.diagonal_offsets);
     cusp::copy(src.values,           dst.values);

@@ -4,8 +4,8 @@
 #include <cusp/gallery/poisson.h>
 
 // where to perform the computation
-//typedef cusp::device_memory MemorySpace;
-typedef cusp::host_memory MemorySpace;
+typedef cusp::device_memory MemorySpace;
+//typedef cusp::host_memory MemorySpace;
 
 // which floating point type to use
 typedef double ValueType;
@@ -23,9 +23,9 @@ int main(void)
     cusp::array1d<ValueType, MemorySpace> b(A.num_rows, 1);
 
     // set stopping criteria:
-    //  iteration_limit    = 100
+    //  iteration_limit    = 1000
     //  relative_tolerance = 1e-3
-    cusp::verbose_monitor<ValueType> monitor(b, 100, 1.e-3);
+    cusp::verbose_monitor<ValueType> monitor(b, 1000, 1.e-3);
 
     // solve the linear system A x = b
     cusp::krylov::lsqr(A, x, b, cusp::krylov::lsqr_parameters<ValueType>(), monitor);
