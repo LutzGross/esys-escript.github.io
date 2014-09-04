@@ -167,6 +167,7 @@ protected:
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
+    virtual void balanceNeighbours(escript::Data& data, bool average) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out,
                                   const escript::Data& in) const;
@@ -201,6 +202,10 @@ private:
     void integral_order8(std::vector<double>&, const escript::Data&) const;
     void integral_order9(std::vector<double>&, const escript::Data&) const;
     void integral_order10(std::vector<double>&, const escript::Data&) const; 
+
+    void shareCorners(escript::Data& out, int rx, int ry) const;
+    void shareSides(escript::Data& out, int rx, int ry) const;
+    void shareVertical(escript::Data& out, int rx, int ry) const;
 
     void populateSampleIds();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
@@ -294,7 +299,7 @@ inline boost::python::tuple Rectangle::getGridParameters() const
 //protected
 inline dim_t Rectangle::getNumDOF() const
 {
-    return  (m_NN[0] - (m_offset[0] ? 1 : 0))*(m_NN[1] - (m_offset[1] ? 1 : 0));
+    return  getNumNodes();
 }
 
 //protected

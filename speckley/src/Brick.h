@@ -202,6 +202,10 @@ protected:
                                          bool reduced) const;
     virtual int getDofOfNode(int node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
+    virtual void balanceNeighbours(escript::Data& data, bool average) const {
+        if (m_NX[0] * m_NX[1] * m_NX[2] != 1)
+            throw SpeckleyException("MPI not done yet for brick");
+    }
 
 private:
     void gradient_order2(escript::Data&, const escript::Data&) const;

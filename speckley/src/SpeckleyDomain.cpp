@@ -378,12 +378,6 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                 switch (outFS) {
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom:
-                        if (getMPISize()==1)
-                            copyData(target, in);
-                        else
-                            throw SpeckleyException("interpolateOnDomain(): MPI not supported");
-                        break;
-
                     case Nodes:
                     case ReducedNodes:
                         copyData(target, in);
@@ -425,12 +419,6 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                 switch (outFS) {
                     case Nodes:
                     case ReducedNodes:
-                        if (getMPISize()==1)
-                            copyData(target, in);
-                        else
-                            throw SpeckleyException("interpolateOnDomain(): MPI not supported");
-                        break;
-
                     case DegreesOfFreedom:
                     case ReducedDegreesOfFreedom:
                         copyData(target, in);
@@ -1015,6 +1003,8 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     }
 
     int numEq, numComp;
+    escript::Data temp(0., rhs.getDataPointShape(), rhs.getFunctionSpace(),
+            rhs.actsExpanded());
     if (!mat) {
         if (rhs.isEmpty()) {
             numEq = numComp = 1;
@@ -1035,17 +1025,19 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
 
     if (numEq==1) {
         if (fs==ReducedElements) {
-            assembler->assemblePDESingleReduced(mat, rhs, coefs);
+            assembler->assemblePDESingleReduced(mat, temp, coefs);
         } else {
-            assembler->assemblePDESingle(mat, rhs, coefs);
+            assembler->assemblePDESingle(mat, temp, coefs);
         }
     } else {
         if (fs==ReducedElements) {
-            assembler->assemblePDESystemReduced(mat, rhs, coefs);
+            assembler->assemblePDESystemReduced(mat, temp, coefs);
         } else {
-            assembler->assemblePDESystem(mat, rhs, coefs);
+            assembler->assemblePDESystem(mat, temp, coefs);
         }
     }
+    balanceNeighbours(temp, false); //summation without averaging
+    rhs += temp; //only now add to rhs because otherwise rhs distorts
 }
 
 //private

@@ -161,9 +161,7 @@ bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int
                     nodes.push_back(id+1);
                     id++;
                 }
-} else {
-    std::cerr << "rectangle fallthrough, not elements or faceelements\n";
-}
+            }
         } else {
             type = ZONETYPE_HEX;
             if (fsType==speckley::Elements) {
@@ -409,48 +407,20 @@ IntVec SpeckleyElements::prepareGhostIndices(int ownIndex)
 {
     IntVec indexArray;
     numGhostElements = 0;
-    
-    // move indices of "ghost zones" to the end to be able to reorder
-    // data accordingly
     for (int i=0; i<numElements; i++) {
-        if (owner[i] == ownIndex)
-            indexArray.push_back(i);
-    }
-
-    for (int i=0; i<numElements; i++) {
-        if (owner[i] != ownIndex) {
-            numGhostElements++;
-            indexArray.push_back(i);
-        }
+        indexArray.push_back(i);
     }
     return indexArray;
 }
 
 void SpeckleyElements::reorderGhostZones(int ownIndex)
 {
-    IntVec indexArray = prepareGhostIndices(ownIndex);
-
-    // move "ghost data" to the end of the arrays
-    if (numGhostElements > 0) {
-        reorderArray(nodes, indexArray, nodesPerElement);
-        reorderArray(owner, indexArray, 1);
-        reorderArray(ID, indexArray, 1);
-        //reorderArray(tag, indexArray, 1);
-    }
+    return;
 }
 
 void SpeckleyElements::removeGhostZones(int ownIndex)
 {
-    reorderGhostZones(ownIndex);
-
-    if (numGhostElements > 0) {
-        numElements -= numGhostElements;
-        nodes.resize(numElements*nodesPerElement);
-        owner.resize(numElements);
-        ID.resize(numElements);
-        //tag.resize(numElements);
-        numGhostElements = 0;
-    }
+    return;
 }
 
 void SpeckleyElements::buildMeshes()

@@ -730,6 +730,7 @@ protected:
     void addPoints(const std::vector<double>& coords,
                    const std::vector<int>& tags);
 
+
     /***********************************************************************/
 
     /// returns the number of nodes per MPI rank
@@ -770,6 +771,9 @@ protected:
                         const escript::Data& in, bool reduced) const = 0;
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
+
+    /// sum up overlapping edges of MPI ranks and average if average is true
+    virtual void balanceNeighbours(escript::Data& data, bool average) const = 0;
 
 private:
     /// calls the right PDE assembly routines after performing input checks
