@@ -1036,7 +1036,9 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
             assembler->assemblePDESystem(mat, temp, coefs);
         }
     }
+#ifdef ESYS_MPI
     balanceNeighbours(temp, false); //summation without averaging
+#endif
     rhs += temp; //only now add to rhs because otherwise rhs distorts
 }
 

@@ -167,7 +167,9 @@ protected:
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
+#ifdef ESYS_MPI
     virtual void balanceNeighbours(escript::Data& data, bool average) const;
+#endif
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out,
                                   const escript::Data& in) const;
@@ -202,11 +204,20 @@ private:
     void integral_order8(std::vector<double>&, const escript::Data&) const;
     void integral_order9(std::vector<double>&, const escript::Data&) const;
     void integral_order10(std::vector<double>&, const escript::Data&) const; 
-
+#ifdef ESYS_MPI
+    /* \brief
+       Sums the values across MPI overlaps
+    */
     void shareCorners(escript::Data& out, int rx, int ry) const;
+    /* \brief
+       Sums the values across MPI overlaps
+    */
     void shareSides(escript::Data& out, int rx, int ry) const;
+    /* \brief
+       Sums the values across MPI overlaps
+    */
     void shareVertical(escript::Data& out, int rx, int ry) const;
-
+#endif
     void populateSampleIds();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
