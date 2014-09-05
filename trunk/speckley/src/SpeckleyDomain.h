@@ -772,8 +772,10 @@ protected:
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
 
+#ifdef ESYS_MPI
     /// sum up overlapping edges of MPI ranks and average if average is true
     virtual void balanceNeighbours(escript::Data& data, bool average) const = 0;
+#endif
 
 private:
     /// calls the right PDE assembly routines after performing input checks

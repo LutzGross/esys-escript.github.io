@@ -593,6 +593,7 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
     }
 }
 
+#ifdef ESYS_MPI
 //protected
 void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
     if (m_NX[0] * m_NX[1] == 1) {
@@ -685,6 +686,7 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
         }
     }
 }
+#endif //#ifdef ESYS_MPI
 
 //protected
 void Rectangle::interpolateElementsOnNodes(escript::Data& out,
@@ -717,10 +719,10 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
             }
         }
     }
-
+#ifdef ESYS_MPI
     //share and average shared edges/corners
     balanceNeighbours(out, true);
-
+#endif
     // for every internal edge in x
 #pragma omp parallel for
     for (dim_t qy = 0; qy < max_y; qy++) {
@@ -744,6 +746,7 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
     }
 }
 
+#ifdef ESYS_MPI
 //private
 void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
 {
@@ -940,6 +943,7 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
         }
     }
 }
+#endif //#ifdef ESYS_MPI
 
 //protected
 void Rectangle::interpolateNodesOnFaces(escript::Data& out,
