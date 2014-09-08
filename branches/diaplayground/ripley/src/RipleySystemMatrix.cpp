@@ -164,17 +164,17 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
 
     double T0 = gettime();
     switch (sb.getSolverMethod()) {
-        case escript::ESCRIPT_DEFAULT:
-        case escript::ESCRIPT_PCG:
+        case escript::SO_DEFAULT:
+        case escript::SO_METHOD_PCG:
             cusp::krylov::cg(A, x, b, monitor, M);
             break;
-        case escript::ESCRIPT_LSQR:
+        case escript::SO_METHOD_LSQR:
             cusp::krylov::lsqr(A, x, b, cusp::krylov::lsqr_parameters<double>(), monitor);
             break;
-        case escript::ESCRIPT_BICGSTAB:
+        case escript::SO_METHOD_BICGSTAB:
             cusp::krylov::bicgstab(A, x, b, monitor, M);
             break;
-        case escript::ESCRIPT_GMRES:
+        case escript::SO_METHOD_GMRES:
             {
                 const int restart = sb._getRestartForC();
                 if (restart < 1)
@@ -182,7 +182,7 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
                 cusp::krylov::gmres(A, x, b, restart, monitor, M);
             }
             break;
-        case escript::ESCRIPT_PRES20:
+        case escript::SO_METHOD_PRES20:
             {
                 const int restart = 20;
                 cusp::krylov::gmres(A, x, b, restart, monitor, M);
@@ -233,7 +233,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     const double* in_dp = in.getSampleDataRO(0);
     double T0;
 
-    if (sb.getSolverTarget() == escript::ESCRIPT_TARGET_GPU) {
+    if (sb.getSolverTarget() == escript::SO_TARGET_GPU) {
 #ifdef USE_CUDA
         if (cudaDevices.size() == 0) {
             throw RipleyException("solve: GPU-based solver requested but no "
@@ -262,10 +262,10 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
         if (sb.isVerbose())
             std::cerr << "Solving on CUDA device..." << std::endl;
 
-        if (sb.getPreconditioner() == escript::ESCRIPT_NO_PRECONDITIONER) {
+        if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_NONE) {
             cusp::identity_operator<double, cusp::device_memory> M(mat.num_rows, mat.num_rows);
             runSolver(dmat, x, b, M, sb);
-        } else if (sb.getPreconditioner() == escript::ESCRIPT_JACOBI) {
+        } else if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
             if (sb.isVerbose())
                 std::cerr << "Using Jacobi preconditioner" << std::endl;
             // TODO: This should be cached as well but that's not supported
@@ -294,10 +294,10 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
             std::cerr << "Solving on the CPU..." << std::endl;
         }
         HostVectorType x(mat.num_rows, 0.);
-        if (sb.getPreconditioner() == escript::ESCRIPT_NO_PRECONDITIONER) {
+        if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_NONE) {
             cusp::identity_operator<double, cusp::host_memory> M(mat.num_rows, mat.num_rows);
             runSolver(mat, x, b, M, sb);
-        } else if (sb.getPreconditioner() == escript::ESCRIPT_JACOBI) {
+        } else if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
             if (sb.isVerbose())
                 std::cerr << "Using Jacobi preconditioner" << std::endl;
             // TODO: This should be cached as well but that's not supported

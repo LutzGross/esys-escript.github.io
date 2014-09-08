@@ -766,6 +766,10 @@ void RipleyDomain::Print_Mesh_Info(bool full) const
 int RipleyDomain::getSystemMatrixTypeId(int solver, int preconditioner,
                                         int package, bool symmetry) const
 {
+    // TODO
+    if (package == escript::SO_PACKAGE_CUSP)
+        return 4711;
+
     return 4711;
 }
 
