@@ -664,7 +664,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
                                        const dim_t* degree_ST,
                                        const index_t* offset_ST,
                                        const index_t* ST,
-                                       Connector_ptr col_connector,
+                                       const_Connector_ptr col_connector,
                                        const_Distribution_ptr col_dist)
 {
     Coupler_ptr w_coupler(new Coupler(col_connector, 1));

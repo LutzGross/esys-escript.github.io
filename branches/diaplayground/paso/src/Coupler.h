@@ -108,7 +108,7 @@ struct Connector
 PASO_DLL_API
 struct Coupler
 {
-    Coupler(Connector_ptr, dim_t blockSize);
+    Coupler(const_Connector_ptr, dim_t blockSize);
     ~Coupler();
 
     void startCollect(const double* in);
@@ -146,7 +146,7 @@ struct Coupler
         return connector->send->local_length;
     }
 
-    Connector_ptr connector;
+    const_Connector_ptr connector;
     dim_t block_size;
     bool in_use;
 
