@@ -30,6 +30,8 @@
 
 #define BLOCK_SIZE 128
 
+namespace bp = boost::python;
+
 namespace ripley {
 
 double gettime()
@@ -94,7 +96,7 @@ SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
     for (size_t i = 0; i < diagonalOffsets.size(); i++) {
         numEntries += blocksize*blocksize*(nRows-std::abs(diagonalOffsets[i]));
     }
-    std::cerr << "Matrix has " <<numEntries<<" entries."<<std::endl;
+    //std::cerr << "Matrix has " <<numEntries<<" entries."<<std::endl;
 
     if (cudaDevices.size() == 0)
         checkCUDA();
@@ -149,7 +151,7 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     HostVectorType yy(mat.num_rows, 0.);
     cusp::multiply(mat, xx, yy);
     thrust::copy(yy.begin(), yy.end(), y_dp);
-    std::cerr << "ypAx: " << gettime()-T0 << " seconds." << std::endl;
+    //std::cerr << "ypAx: " << gettime()-T0 << " seconds." << std::endl;
 }
 
 template<class LinearOperator,
@@ -161,9 +163,17 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
     typedef typename LinearOperator::memory_space MemorySpace;
     //cusp::verbose_monitor<double> monitor(b, sb.getIterMax(), sb.getTolerance(), sb.getAbsoluteTolerance());
     cusp::default_monitor<double> monitor(b, sb.getIterMax(), sb.getTolerance(), sb.getAbsoluteTolerance());
+    int solver = sb.getSolverMethod();
+    if (solver == escript::SO_DEFAULT) {
+        if (sb.isSymmetric()) {
+            solver = escript::SO_METHOD_PCG;
+        } else {
+            solver = escript::SO_METHOD_BICGSTAB;
+        }
+    }
 
     double T0 = gettime();
-    switch (sb.getSolverMethod()) {
+    switch (solver) {
         case escript::SO_DEFAULT:
         case escript::SO_METHOD_PCG:
             cusp::krylov::cg(A, x, b, monitor, M);
@@ -176,7 +186,7 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
             break;
         case escript::SO_METHOD_GMRES:
             {
-                const int restart = sb._getRestartForC();
+                const int restart = (sb.getRestart()==0 ? 1000 : sb.getRestart());
                 if (restart < 1)
                     throw RipleyException("Invalid restart parameter for GMRES");
                 cusp::krylov::gmres(A, x, b, restart, monitor, M);
@@ -208,7 +218,7 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
 }
 
 void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
-                                 boost::python::object& options) const
+                                 bp::object& options) const
 {
     if (m_mpiInfo->size > 1) {
         throw RipleyException("solve: ripley's block diagonal matrix "
@@ -225,7 +235,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     }
 
     options.attr("resetDiagnostics")();
-    escript::SolverBuddy sb = boost::python::extract<escript::SolverBuddy>(options);
+    escript::SolverBuddy sb = bp::extract<escript::SolverBuddy>(options);
     out.expand();
     in.expand();
 
@@ -351,7 +361,7 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
             }
         }
     }
-    std::cerr << "nullifyRowsAndCols: " << gettime()-T0 << " seconds." << std::endl;
+    //std::cerr << "nullifyRowsAndCols: " << gettime()-T0 << " seconds." << std::endl;
     matrixAltered = true;
 }
 

@@ -43,7 +43,8 @@ class Data;
    NOTE: Most of the virtual functions would be pure virtual except
    boost.python requires a non abstract base class.
 */
-class AbstractContinuousDomain : public AbstractDomain {
+class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
+{
 
  public:
 
@@ -60,7 +61,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      Throws:
      Describe any exceptions thrown
   */
-  ESCRIPT_DLL_API 
   AbstractContinuousDomain();
 
   /**
@@ -76,7 +76,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      Throws:
      Describe any exceptions thrown
   */
-  ESCRIPT_DLL_API 
   virtual ~AbstractContinuousDomain();
 
   /**
@@ -84,56 +83,48 @@ class AbstractContinuousDomain : public AbstractDomain {
      Returns true if the given integer is a valid function space type
      for this domain.
   */
-  ESCRIPT_DLL_API 
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
   /**
      \brief
      Return a description for this domain
   */
-  ESCRIPT_DLL_API 
   virtual std::string getDescription() const;
 
   /**
      \brief
      Return a continuous FunctionSpace code
   */
-  ESCRIPT_DLL_API 
   virtual int getContinuousFunctionCode() const;
 
   /**
      \brief
      Return a continuous on reduced order FunctionSpace code
   */
-  ESCRIPT_DLL_API 
   virtual int getReducedContinuousFunctionCode() const;
 
   /**
      \brief
      Return a function FunctionSpace code
   */
-  ESCRIPT_DLL_API 
   virtual int getFunctionCode() const;
 
   /**
      \brief
      Return a function FunctionSpace code with reduced integration order
   */
-  ESCRIPT_DLL_API 
   virtual int getReducedFunctionCode() const;
 
   /**
      \brief
      Return a function on boundary FunctionSpace code
   */
-  ESCRIPT_DLL_API 
   virtual int getFunctionOnBoundaryCode() const;
 
   /**
      \brief
      Return a code for a function on boundary FunctionSpace with reduced integration order
   */
-  ESCRIPT_DLL_API 
   virtual int getReducedFunctionOnBoundaryCode() const;
 
 
@@ -141,59 +132,50 @@ class AbstractContinuousDomain : public AbstractDomain {
      \brief
      Return a FunctionOnContactZero code
   */
-  ESCRIPT_DLL_API 
   virtual int getFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactZero for reduced integration order code 
   */
-  ESCRIPT_DLL_API 
   virtual int getReducedFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne code
   */
-  ESCRIPT_DLL_API 
   virtual int getFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne for reduced integration order code
   */
-  ESCRIPT_DLL_API 
   virtual int getReducedFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a Solution code
   */
-  ESCRIPT_DLL_API 
   virtual int getSolutionCode() const;
 
   /**
      \brief
      Return a ReducedSolution code
   */
-  ESCRIPT_DLL_API 
   virtual int getReducedSolutionCode() const;
 
   /**
      \brief
      Return a DiracDeltaFunctions code
   */
-  ESCRIPT_DLL_API 
   virtual int getDiracDeltaFunctionsCode() const;
 
   /**
      \brief
      return the identifier of the matrix type to be used for the global
-     stiffness matrix when a particular solver package
-     and symmetric matrix is used.
+     stiffness matrix when particular solver options are used.
   */
-  ESCRIPT_DLL_API 
-  virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
   /**
      \brief
@@ -201,8 +183,7 @@ class AbstractContinuousDomain : public AbstractDomain {
      stiffness matrix when a particular solver package
      and symmetric matrix is used.
   */
-  ESCRIPT_DLL_API 
-  virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+  virtual int getTransportTypeId(int solver, int preconditioner, int package, bool symmetry) const;
 
   /**
      \brief
@@ -210,14 +191,12 @@ class AbstractContinuousDomain : public AbstractDomain {
      arg has to be defined on this.
      has to be implemented by the Domain Adapter.
   */
-  ESCRIPT_DLL_API 
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
 //  /**
 //     \brief
 //     Return the domain as const AbstractContinuousDomain&
 //  */
-//   ESCRIPT_DLL_API 
 //   static const  AbstractContinuousDomain& asAbstractContinuousDomain(const AbstractDomain& domain);
 
 
@@ -227,7 +206,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  ESCRIPT_DLL_API
   virtual void addPDEToSystem(
                      AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
@@ -243,7 +221,6 @@ class AbstractContinuousDomain : public AbstractDomain {
 //     \brief
 //     adds a PDE onto the lumped stiffness matrix matrix
 //  */
-//  ESCRIPT_DLL_API
 //  virtual void addPDEToLumpedSystem(
 //                     escript::Data& mat,
 //                     const escript::Data& D, 
@@ -253,7 +230,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  ESCRIPT_DLL_API
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const;
@@ -262,7 +238,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      adds a PDE onto a transport problem
   */
 
-  ESCRIPT_DLL_API
   virtual void addPDEToTransportProblem(
                      AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
@@ -276,7 +251,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      \brief
     creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
-  ESCRIPT_DLL_API
   virtual ASM_ptr newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
@@ -289,7 +263,6 @@ class AbstractContinuousDomain : public AbstractDomain {
 
   */
 
-  ESCRIPT_DLL_API
   virtual ATP_ptr newTransportProblem(
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
@@ -299,7 +272,6 @@ class AbstractContinuousDomain : public AbstractDomain {
      \brief
      Return the number of data points summed across all MPI processes
   */
-  ESCRIPT_DLL_API
   virtual int getNumDataPointsGlobal() const;
 
   /**
@@ -307,21 +279,18 @@ class AbstractContinuousDomain : public AbstractDomain {
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
-  ESCRIPT_DLL_API
   virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
   /**
      \brief
      assigns new location to the domain
   */
-  ESCRIPT_DLL_API
   virtual void setNewX(const escript::Data& arg);
 
   /**
      \brief
      \param full
   */
-  ESCRIPT_DLL_API
   virtual void Print_Mesh_Info(const bool full=false) const;
 
 

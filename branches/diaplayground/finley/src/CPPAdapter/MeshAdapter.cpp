@@ -29,6 +29,7 @@
 
 using namespace std;
 using namespace paso;
+namespace bp = boost::python;
 
 namespace finley {
 
@@ -1833,14 +1834,16 @@ bool MeshAdapter::operator!=(const escript::AbstractDomain& other) const
     return !(operator==(other));
 }
 
-int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
 {
-    Mesh* mesh=m_finleyMesh.get();
-    return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
-               package, symmetry, mesh->MPIInfo);
+    const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
+
+    return SystemMatrixAdapter::getSystemMatrixTypeId(sb.getSolverMethod(),
+                sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(),
+                m_finleyMesh->MPIInfo);
 }
 
-int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+int MeshAdapter::getTransportTypeId(int solver, int preconditioner, int package, bool symmetry) const
 {
     Mesh* mesh=m_finleyMesh.get();
     return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
@@ -2154,7 +2157,7 @@ bool MeshAdapter::supportsContactElements() const
 }
 
 escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const
+       const escript::FunctionSpace& what, long seed, const bp::tuple& filter) const
 {
     escript::Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't need to check for
@@ -2190,11 +2193,11 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
     }
 }
 
-// void MeshAdapter::addDiracPoints(const boost::python::list& points, const boost::python::list& tags) const
+// void MeshAdapter::addDiracPoints(const bp::list& points, const bp::list& tags) const
 // {
 //       const int dim = getDim();
-//       int numPoints=boost::python::extract<int>(points.attr("__len__")());
-//       int numTags=boost::python::extract<int>(tags.attr("__len__")());
+//       int numPoints=bp::extract<int>(points.attr("__len__")());
+//       int numTags=bp::extract<int>(tags.attr("__len__")());
 //       Mesh* mesh=m_finleyMesh.get();
 //
 //       if  ( (numTags > 0) && ( numPoints !=  numTags ) )
@@ -2205,22 +2208,22 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 //
 //       for (int i=0;i<numPoints;++i) {
 //         int tag_id=-1;
-//         int numComps=boost::python::extract<int>(points[i].attr("__len__")());
+//         int numComps=bp::extract<int>(points[i].attr("__len__")());
 //         if  ( numComps !=   dim ) {
 //                stringstream temp;
 //                temp << "Error - illegal number of components " << numComps << " for point " << i;
 //                throw FinleyAdapterException(temp.str());
 //         }
-//         points_ptr[ i * dim     ] = boost::python::extract<double>(points[i][0]);
-//         if ( dim > 1 ) points_ptr[ i * dim + 1 ] = boost::python::extract<double>(points[i][1]);
-//         if ( dim > 2 ) points_ptr[ i * dim + 2 ] = boost::python::extract<double>(points[i][2]);
+//         points_ptr[ i * dim     ] = bp::extract<double>(points[i][0]);
+//         if ( dim > 1 ) points_ptr[ i * dim + 1 ] = bp::extract<double>(points[i][1]);
+//         if ( dim > 2 ) points_ptr[ i * dim + 2 ] = bp::extract<double>(points[i][2]);
 //
 //         if ( numTags > 0) {
-//                boost::python::extract<string> ex_str(tags[i]);
+//                bp::extract<string> ex_str(tags[i]);
 //                if  ( ex_str.check() ) {
 //                    tag_id=getTag( ex_str());
 //                } else {
-//                     boost::python::extract<int> ex_int(tags[i]);
+//                     bp::extract<int> ex_int(tags[i]);
 //                     if ( ex_int.check() ) {
 //                         tag_id=ex_int();
 //                     } else {
@@ -2241,10 +2244,10 @@ void MeshAdapter::addDiracPoints(const vector<double>& points,
 // }
 
 /*
-void MeshAdapter:: addDiracPoint( const boost::python::list& point, const int tag) const
+void MeshAdapter:: addDiracPoint( const bp::list& point, const int tag) const
 {
-    boost::python::list points =  boost::python::list();
-    boost::python::list tags =  boost::python::list();
+    bp::list points =  bp::list();
+    bp::list tags =  bp::list();
     points.append(point);
     tags.append(tag);
     addDiracPoints(points, tags);
@@ -2252,10 +2255,10 @@ void MeshAdapter:: addDiracPoint( const boost::python::list& point, const int ta
 */
 
 /*
-void MeshAdapter:: addDiracPointWithTagName( const boost::python::list& point, const string& tag) const
+void MeshAdapter:: addDiracPointWithTagName( const bp::list& point, const string& tag) const
 {
-    boost::python::list points =   boost::python::list();
-    boost::python::list tags =   boost::python::list();
+    bp::list points =   bp::list();
+    bp::list tags =   bp::list();
     points.append(point);
     tags.append(tag);
     addDiracPoints(points, tags);

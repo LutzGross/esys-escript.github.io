@@ -251,10 +251,10 @@ BOOST_PYTHON_MODULE(escriptcpp)
   // Interface for AbstractContinuousDomain
   //
   class_<escript::AbstractContinuousDomain, bases<escript::AbstractDomain>, boost::noncopyable >("ContinuousDomain","Class representing continuous domains",no_init)
-       .def("getSystemMatrixTypeId",&escript::AbstractContinuousDomain::getSystemMatrixTypeId,
-args("solver", "preconditioner", "package", "symmetry"),
+       .def("getSystemMatrixTypeId", &escript::AbstractContinuousDomain::getSystemMatrixTypeId,
+args("options"),
         ":return: the identifier of the matrix type to be used for the global stiffness matrix "
-        "when a particular solver package and symmetric matrix is used.\n"
+        "when particular solver options are used.\n"
         ":rtype: int")
        .def("getTransportTypeId",&escript::AbstractContinuousDomain::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"))
