@@ -52,7 +52,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const vector<double>& points,
                      const vector<int>& tags,
-                     const simap_t& tagnamestonums,
+                     const TagMap& tagnamestonums,
                      escript::SubWorld_ptr w) :
     RipleyDomain(2, w)
 {
@@ -171,7 +171,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
 
     populateSampleIds();
 
-    for (simap_t::const_iterator i = tagnamestonums.begin();
+    for (TagMap::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }

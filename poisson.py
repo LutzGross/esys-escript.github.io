@@ -5,7 +5,7 @@ from time import time
 
 BLOCKSIZE=1
 
-dom = Rectangle(l0=1.,l1=1.,n0=299, n1=299)
+dom = Rectangle(l0=1.,l1=1.,n0=99, n1=99)
 #dom = Brick(l0=1.,l1=1.,n0=51, n1=51, n2=17)
 x = dom.getX()
 gammaD = whereZero(x[0])+whereZero(x[1])
@@ -32,8 +32,9 @@ def solve(target):
     pde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
     pde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
     pde.getSolverOptions().setSolverMethod(SolverOptions.PCG)
-    pde.getSolverOptions().setPreconditioner(SolverOptions.NO_PRECONDITIONER)
+    pde.getSolverOptions().setSolverMethod(SolverOptions.LSQR)
     pde.getSolverOptions().setPreconditioner(SolverOptions.JACOBI)
+    pde.getSolverOptions().setPreconditioner(SolverOptions.NO_PRECONDITIONER)
     pde.getSolverOptions().setVerbosityOn()
     #pde.setDebugOn()
     #rhs=pde.getRightHandSide()

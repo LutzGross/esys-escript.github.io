@@ -485,7 +485,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain
      \param symmetry 
   */
   DUDLEY_DLL_API
-  virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
   /**
      \brief

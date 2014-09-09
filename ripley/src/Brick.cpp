@@ -63,7 +63,7 @@ inline int indexOfMax(dim_t a, dim_t b, dim_t c)
 Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const vector<double>& points, const vector<int>& tags,
-             const simap_t& tagnamestonums,
+             const TagMap& tagnamestonums,
              escript::SubWorld_ptr w) :
     RipleyDomain(3, w)
 {
@@ -204,7 +204,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
 
     populateSampleIds();
 
-    for (simap_t::const_iterator i = tagnamestonums.begin();
+    for (TagMap::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }

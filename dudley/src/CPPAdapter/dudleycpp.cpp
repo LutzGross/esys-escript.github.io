@@ -225,13 +225,10 @@ args("theta", "blocksize", "functionspace", "type"),
 ":param type:\n:type type: ``int``\n"
 )
       .def("getSystemMatrixTypeId",&dudley::MeshAdapter::getSystemMatrixTypeId,
-args("solver", "preconditioner", "package", "symmetry"),
-":return: the identifier of the matrix type to be used for the global stiffness matrix when a particular solver, package, preconditioner, and symmetric matrix is used.\n"
+args("options"),
+":return: the identifier of the matrix type to be used for the global stiffness matrix when particular solver options are used.\n"
 ":rtype: ``int``\n"
-":param solver:\n:type solver: ``int``\n"
-":param preconditioner:\n:type preconditioner: ``int``\n"
-":param package:\n:type package: ``int``\n"
-":param symmetry:\n:type symmetry: ``int``\n"
+":param options:\n:type options: `SolverBuddy`\n"
 )
       .def("getTransportTypeId",&dudley::MeshAdapter::getTransportTypeId,
 args("solver", "preconditioner", "package", "symmetry"),

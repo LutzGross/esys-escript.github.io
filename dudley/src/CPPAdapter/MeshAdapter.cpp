@@ -18,18 +18,18 @@
 #include "MeshAdapter.h"
 #include "escript/Data.h"
 #include "escript/DataFactory.h"
-#ifdef USE_NETCDF
-#include <netcdfcpp.h>
-#endif
 #include "esysUtils/blocktimer.h"
 #include "esysUtils/EsysRandom.h"
 
-#include <boost/python/import.hpp>
+#ifdef USE_NETCDF
+#include <netcdfcpp.h>
+#endif
 #include <boost/python/tuple.hpp>
 
 using namespace std;
 using namespace escript;
 using namespace paso;
+namespace bp = boost::python;
 
 namespace dudley {
 
@@ -1758,14 +1758,16 @@ bool MeshAdapter::operator!=(const AbstractDomain& other) const
    return !(operator==(other));
 }
 
-int MeshAdapter::getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+int MeshAdapter::getSystemMatrixTypeId(const bp::object& options) const
 {
-   Dudley_Mesh* mesh=m_dudleyMesh.get();
-   return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
-           package, symmetry, mesh->MPIInfo);
+    const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
+
+    return SystemMatrixAdapter::getSystemMatrixTypeId(sb.getSolverMethod(),
+                sb.getPreconditioner(), sb.getPackage(), sb.isSymmetric(),
+                m_dudleyMesh->MPIInfo);
 }
 
-int MeshAdapter::getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const
+int MeshAdapter::getTransportTypeId(int solver, int preconditioner, int package, bool symmetry) const
 {
    Dudley_Mesh* mesh=m_dudleyMesh.get();
    return TransportProblemAdapter::getTransportTypeId(solver, preconditioner,
@@ -2083,7 +2085,7 @@ bool MeshAdapter::supportsContactElements() const
 }
 
 escript::Data MeshAdapter::randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const
+       const escript::FunctionSpace& what, long seed, const bp::tuple& filter) const
 {
     Data towipe(0, shape, what, true);
     // since we just made this object, no sharing is possible and we don't need to check for

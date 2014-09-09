@@ -763,14 +763,49 @@ void RipleyDomain::Print_Mesh_Info(bool full) const
     }
 }
 
-int RipleyDomain::getSystemMatrixTypeId(int solver, int preconditioner,
-                                        int package, bool symmetry) const
+int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 {
-    // TODO
-    if (package == escript::SO_PACKAGE_CUSP)
-        return 4711;
+    const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
+    int package = sb.getPackage();
 
-    return 4711;
+    // use CUSP for single rank and supported solvers+preconditioners,
+    // PASO otherwise
+    if (package == escript::SO_DEFAULT) {
+        if (m_mpiInfo->size == 1) {
+            switch (sb.getSolverMethod()) {
+                case escript::SO_DEFAULT:
+                case escript::SO_METHOD_BICGSTAB:
+                case escript::SO_METHOD_GMRES:
+                case escript::SO_METHOD_LSQR:
+                case escript::SO_METHOD_PCG:
+                case escript::SO_METHOD_PRES20:
+                    package = escript::SO_PACKAGE_CUSP;
+                    break;
+                default:
+                    package = escript::SO_PACKAGE_PASO;
+            }
+            if (package == escript::SO_PACKAGE_CUSP) {
+                if (sb.getPreconditioner() != escript::SO_PRECONDITIONER_NONE &&
+                        sb.getPreconditioner() != escript::SO_PRECONDITIONER_JACOBI) {
+                    package = escript::SO_PACKAGE_PASO;
+                }
+            }
+        } else {
+            package = escript::SO_PACKAGE_PASO;
+        }
+    }
+
+    if (package == escript::SO_PACKAGE_CUSP) {
+        if (m_mpiInfo->size > 1) {
+            throw RipleyException("CUSP matrices are not supported with more than one rank");
+        }
+        return (int)SMT_CUSP;
+    }
+
+    // in all other cases we use PASO
+    return (int)SMT_PASO | paso::SystemMatrixAdapter::getSystemMatrixTypeId(
+            sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
+            sb.isSymmetric(), m_mpiInfo);
 }
 
 int RipleyDomain::getTransportTypeId(int solver, int preconditioner,
@@ -813,20 +848,24 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
     //if (reduceRowOrder || reduceColOrder)
     //    throw RipleyException("newSystemMatrix: reduced order not supported");
 
-    const int numMatrixRows = getNumDOF();
-    escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
-                row_functionspace, numMatrixRows, getDiagonalIndices()));
-    return sm;
-/*
-    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceRowOrder,
-                                                              reduceColOrder));
-    paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
-            row_blocksize, column_blocksize, false));
-    paso::checkPasoError();
-    escript::ASM_ptr sma(new SystemMatrixAdapter(matrix, row_blocksize,
-                row_functionspace, column_blocksize, column_functionspace));
-    return sma;
-*/
+    if (type == (int)SMT_CUSP) {
+        const int numMatrixRows = getNumDOF();
+        escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
+                    row_functionspace, numMatrixRows, getDiagonalIndices()));
+        return sm;
+    } else if (type & (int)SMT_PASO) {
+        paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
+                                            reduceRowOrder, reduceColOrder));
+        type -= (int)SMT_PASO;
+        paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
+                row_blocksize, column_blocksize, false));
+        escript::ASM_ptr sm(new paso::SystemMatrixAdapter(matrix,
+                    row_blocksize, row_functionspace, column_blocksize,
+                    column_functionspace));
+        return sm;
+    } else {
+        throw RipleyException("newSystemMatrix: unknown matrix type ID");
+    }
 }
 
 void RipleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,

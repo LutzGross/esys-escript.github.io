@@ -338,6 +338,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Options* paso_options,
     paso_options->adapt_inner_tolerance = sb.adaptInnerTolerance();
     paso_options->reordering = mapOptionToPaso(sb.getReordering());
     paso_options->preconditioner = mapOptionToPaso(sb.getPreconditioner());
+    paso_options->ode_solver = mapOptionToPaso(sb.getODESolver());
     paso_options->iter_max = sb.getIterMax();
     paso_options->inner_iter_max = sb.getInnerIterMax();
     paso_options->drop_tolerance = sb.getDropTolerance();
@@ -361,7 +362,6 @@ void SystemMatrixAdapter::escriptToPasoOptions(Options* paso_options,
     paso_options->usePanel = sb.usePanel();
     paso_options->interpolation_method = sb.getAMGInterpolation();
     paso_options->diagonal_dominance_threshold = sb.getDiagonalDominanceThreshold();
-    paso_options->ode_solver = sb.getODESolver();
 }
  
 

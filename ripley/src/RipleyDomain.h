@@ -49,13 +49,10 @@ enum assembler_t {
     LAME_ASSEMBLER
 };
 
-/* There is no particular significance to this type,
-It is here as a typedef because a bug in clang++ prevents
-that compiler from recognising it as a valid part of
-a constant expression.
-*/
-typedef std::map<std::string, int> simap_t;
-
+enum SystemMatrixType {
+    SMT_PASO = 1024,
+    SMT_CUSP = 2048
+};
 
 /**
    \brief
@@ -465,8 +462,7 @@ public:
        \param package
        \param symmetry
     */
-    virtual int getSystemMatrixTypeId(int solver, int preconditioner,
-                                      int package, bool symmetry) const;
+    virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
     /**
        \brief

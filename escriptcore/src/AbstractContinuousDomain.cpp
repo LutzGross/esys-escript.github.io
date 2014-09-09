@@ -120,18 +120,18 @@ int AbstractContinuousDomain::getDiracDeltaFunctionsCode() const
   return 0;
 }
 
-void AbstractContinuousDomain::setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const
+void AbstractContinuousDomain::setToIntegrals(std::vector<double>& integrals, const escript::Data& arg) const
 {
   throwStandardException("AbstractContinuousDomain::setToIntegrals");
   return;
 }
 
-int AbstractContinuousDomain::getSystemMatrixTypeId(const int solver, const int precondioner, const int package, const bool symmetry) const 
+int AbstractContinuousDomain::getSystemMatrixTypeId(const boost::python::object& options) const 
 {
    return 0;
 }
 
-int AbstractContinuousDomain::getTransportTypeId(const int solver, const int precondioner, const int package, const bool symmetry) const 
+int AbstractContinuousDomain::getTransportTypeId(int solver, int precondioner, int package, bool symmetry) const 
 {
    return 0;
 }
