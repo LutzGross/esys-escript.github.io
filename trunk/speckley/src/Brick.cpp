@@ -2008,7 +2008,6 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
                 MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
                                 &buf[0], count, MPI_DOUBLE, neighbour, tag,
                                 m_mpiInfo->comm, &status);
-#pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
                 data[i] += buf[i];
             }
@@ -2020,7 +2019,6 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
             MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
                             &buf[0], count, MPI_DOUBLE, neighbour, tag,
                             m_mpiInfo->comm, &status);
-#pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
                 data[i] += buf[i];
             }
@@ -2035,7 +2033,6 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
             MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
                             &buf[0], count, MPI_DOUBLE, neighbour, tag,
                             m_mpiInfo->comm, &status);
-#pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
                 data[i] += buf[i];
             }
@@ -2046,7 +2043,6 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
             MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
                             &buf[0], count, MPI_DOUBLE, neighbour, tag,
                             m_mpiInfo->comm, &status);
-#pragma omp parallel for
             for (dim_t i = 0; i < count; i++) {
                 data[i] += buf[i];
             }
