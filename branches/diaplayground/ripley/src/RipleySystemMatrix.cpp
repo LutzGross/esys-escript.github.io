@@ -24,6 +24,7 @@
 #include <cusp/multiply.h>
 #include <cusp/krylov/bicgstab.h>
 #include <cusp/krylov/cg.h>
+#include <cusp/krylov/cgls.h>
 #include <cusp/krylov/gmres.h>
 #include <cusp/krylov/lsqr.h>
 #include <cusp/precond/diagonal.h>
@@ -177,6 +178,9 @@ void SystemMatrix::runSolver(LinearOperator& A, Vector& x, Vector& b,
         case escript::SO_DEFAULT:
         case escript::SO_METHOD_PCG:
             cusp::krylov::cg(A, x, b, monitor, M);
+            break;
+        case escript::SO_METHOD_CGLS:
+            cusp::krylov::cgls(A, x, b, 0., monitor); //shift=0 for now
             break;
         case escript::SO_METHOD_LSQR:
             cusp::krylov::lsqr(A, x, b, cusp::krylov::lsqr_parameters<double>(), monitor);

@@ -193,6 +193,7 @@ const char* SolverBuddy::getName(int key) const
         case SO_PACKAGE_UMFPACK: return "UMFPACK";
 
         case SO_METHOD_BICGSTAB: return "BICGSTAB";
+        case SO_METHOD_CGLS: return "CGLS";
         case SO_METHOD_CGS: return "CGS";
         case SO_METHOD_CHOLEVSKY: return "CHOLEVSKY";
         case SO_METHOD_CR: return "CR";
@@ -452,6 +453,7 @@ void SolverBuddy::setSolverMethod(int method)
     switch(meth) {
         case SO_DEFAULT:
         case SO_METHOD_BICGSTAB:
+        case SO_METHOD_CGLS:
         case SO_METHOD_CGS:
         case SO_METHOD_CHOLEVSKY:
         case SO_METHOD_CR:

@@ -105,6 +105,7 @@ enum SolverOptions
 
     // Solver methods
     SO_METHOD_BICGSTAB,
+    SO_METHOD_CGLS,
     SO_METHOD_CGS,
     SO_METHOD_CHOLEVSKY,
     SO_METHOD_CR,
