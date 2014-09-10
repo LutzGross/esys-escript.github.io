@@ -203,10 +203,7 @@ protected:
     virtual int getDofOfNode(int node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 #ifdef ESYS_MPI
-    virtual void balanceNeighbours(escript::Data& data, bool average) const {
-        if (m_NX[0] * m_NX[1] * m_NX[2] != 1)
-            throw SpeckleyException("MPI not done yet for brick");
-    }
+    virtual void balanceNeighbours(escript::Data& data, bool average) const;
 #endif
 
 private:
@@ -229,7 +226,12 @@ private:
     void integral_order8(std::vector<double>&, const escript::Data&) const;
     void integral_order9(std::vector<double>&, const escript::Data&) const;
     void integral_order10(std::vector<double>&, const escript::Data&) const; 
-
+#ifdef ESYS_MPI
+    void setCornerNeighbours();
+    void shareEdges(escript::Data& out, int rx, int ry, int rz) const;
+    void shareFaces(escript::Data& out, int rx, int ry, int rz) const;
+    void shareCorners(escript::Data& out) const;
+#endif
     void populateSampleIds();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
@@ -253,6 +255,14 @@ private:
     escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape,
        long seed, const boost::python::tuple& filter) const;
     
+#ifdef ESYS_MPI
+    /// corner neighbours' ranks
+    int neighbour_ranks[8];
+    
+    /// corner neighbours' existence
+    bool neighbour_exists[8];
+#endif
+
     /// total number of elements in each dimension
     dim_t m_gNE[3];
 
@@ -325,9 +335,7 @@ inline boost::python::tuple Brick::getGridParameters() const
 //protected
 inline dim_t Brick::getNumDOF() const //global points
 {
-    return (m_NN[0] - (m_offset[0] ? 1 : 0))
-            *(m_NN[1] - (m_offset[1] ? 1 : 0))
-            *(m_NN[2] - (m_offset[2] ? 1 : 0));
+    return getNumNodes();
 }
 
 //protected

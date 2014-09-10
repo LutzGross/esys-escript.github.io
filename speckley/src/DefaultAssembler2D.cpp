@@ -110,8 +110,8 @@ using escript::Data;
 
 namespace speckley {
 
-void DefaultAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes, 
-                                                   const DataMap& coefs) const
+void DefaultAssembler2D::collateFunctionSpaceTypes(std::vector<int>& fsTypes,
+                                   const DataMap& coefs) const
 {
     if (isNotEmpty("A", coefs))
         fsTypes.push_back(coefs.find("A")->second.getFunctionSpace().getTypeCode());
@@ -192,7 +192,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
 void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                                         Data& rhs, const DataMap& coefs) const
 {
-    const Data& A = unpackData("A", coefs); 
+    const Data& A = unpackData("A", coefs);
     const Data& B = unpackData("B", coefs);
     const Data& C = unpackData("C", coefs);
     const Data& D = unpackData("D", coefs);

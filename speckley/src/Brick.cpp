@@ -61,7 +61,7 @@ Brick::Brick(int order, int n0, int n1, int n2, double x0, double y0, double z0,
              escript::SubWorld_ptr w) :
     SpeckleyDomain(3, order, w)
 {
-    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1) 
+    if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
             * static_cast<long>(n2 + 1) > std::numeric_limits<int>::max())
         throw SpeckleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
@@ -75,8 +75,6 @@ Brick::Brick(int order, int n0, int n1, int n2, double x0, double y0, double z0,
         d0=1;
         d1=1;
         d2=1;
-    } else {
-        throw SpeckleyException("MPI not currently supported by Brick");
     }
     bool warn=false;
 
@@ -100,7 +98,7 @@ Brick::Brick(int order, int n0, int n1, int n2, double x0, double y0, double z0,
         if (factors.size() != 0) {
             warn = true;
         }
-    } 
+    }
     while (factors.size() > 0) {
         int i = indexOfMax(epr[0],epr[1],epr[2]);
         int f = factors.back();
@@ -183,6 +181,10 @@ Brick::Brick(int order, int n0, int n1, int n2, double x0, double y0, double z0,
         setTagMap(i->first, i->second);
     }
     addPoints(points, tags);
+
+#ifdef ESYS_MPI
+    setCornerNeighbours();
+#endif
 }
 
 
@@ -608,7 +610,7 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
             const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
                              +(idx2+z)*params.numValues[0]*params.numValues[1]);
             memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
-            
+
             for (int x=0; x<num0; x++) {
                 const int baseIndex = first0+x*params.multiplier[0]
                                      +(first1+y*params.multiplier[1])*myN0
@@ -735,7 +737,7 @@ void Brick::dump(const string& fileName) const
         fn+=".silo";
     }
 
-    int driver=DB_HDF5;    
+    int driver=DB_HDF5;
     string siloPath;
     DBfile* dbfile = NULL;
 
@@ -1096,7 +1098,7 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
         throw new SpeckleyException("Speckley doesn't currently support integrals of non-Element functionspaces");
     if (!arg.actsExpanded())
         throw new SpeckleyException("Speckley doesn't currently support unexpanded data");
-    
+
     if (m_order == 2) {
         integral_order2(integrals, arg);
     } else if (m_order == 3) {
@@ -1130,20 +1132,20 @@ void Brick::populateSampleIds()
     // build node distribution vector first.
     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
     // constant for all ranks in this implementation
-    
+
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
 
     for (dim_t k = 0; k < m_mpiInfo->size - 1; k++) {
         index_t rank_left = k % m_NX[0] == 0 ? 0 : 1;
         index_t rank_bottom = k % (m_NX[0]*m_NX[1])/m_NX[0] == 0 ? 0 : 1;
         index_t rank_front = k / (m_NX[0]*m_NX[1]) == 0 ? 0 : 1;
-        m_nodeDistribution[k+1] = m_nodeDistribution[k] 
+        m_nodeDistribution[k+1] = m_nodeDistribution[k]
                                 + (m_NN[0]-rank_left) * (m_NN[1]-rank_bottom)
                                 * (m_NN[2]-rank_front);
     }
 
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
-    
+
     try {
         m_nodeId.resize(getNumNodes());
         m_elementId.resize(getNumElements());
@@ -1186,34 +1188,53 @@ void Brick::populateSampleIds()
     const dim_t NFE = getNumFaceElements();
     m_faceId.resize(NFE);
 
-//    const dim_t NN0 = m_NN[0];
-//    const dim_t NN1 = m_NN[1];
-//    const dim_t NN2 = m_NN[2];
-
     const int left = (m_offset[0]==0 ? 0 : 1);
     const int front = (m_offset[1]==0 ? 0 : 1);
     const int bottom = (m_offset[2]==0 ? 0 : 1);
 
     const int rank = m_mpiInfo->rank;
 
-    //re-use bottom-left-front corner node
-    if (bottom && left && front) {
-        //get lower-left-front node
-        int rank_wanted = rank 
-                    - m_NX[0]*m_NX[1]   //down a layer
-                    - m_NX[0]           //towards the front
-                    - 1;                //to the left
-        m_nodeId[0] = m_nodeDistribution[rank_wanted] - 1;
+    if (left && front) {
+        //re-use bottom-left-front corner node
+        if (bottom) {
+            //get lower-left-front node
+            int rank_wanted = rank
+                        - m_NX[0]*m_NX[1]   //down a layer
+                        - m_NX[0];          //towards the front
+            m_nodeId[0] = m_nodeDistribution[rank_wanted] - 1; //end of the left
+        }
+        int neighbour = rank - m_NX[0];
+        int rankLeft = neighbour % m_NX[0] ? 0 : 1;
+        int rankFront = neighbour % (m_NX[0]*m_NX[1]) / m_NX[0];
+        index_t begin = m_nodeDistribution[rank];
+        for (index_t z = bottom; z < m_NN[2]; z++) {
+            index_t i = (z-bottom)*(m_NN[0]-rankLeft)*(m_NN[1]-rankFront);
+            m_nodeId[i] = begin + i;
+        }
     }
+    //re-use nodes on bottom border
+    if (bottom) {
+        int neighbour = rank - m_NX[0]*m_NX[1];
+        //beginning, top left front of rank underneath
+        index_t begin = m_nodeDistribution[neighbour + 1] - m_NN[0]*m_NN[1];
+#pragma omp parallel for
+        for (index_t y = front; y < m_NN[1]; y++) {
+            for (index_t x = left; x < m_NN[0]; x++) {
+                index_t i = INDEX2(x,y,m_NN[0]);
+                m_nodeId[i] = begin + INDEX2(x,y,m_NN[0]);
+            }
+        }
+    }
+    
     //re-use nodes on front border
     if (front) {
         int neighbour = rank - m_NX[0];
-        index_t begin = m_nodeDistribution[neighbour] + (m_NN[0] - 1)*m_NN[1];
+        index_t begin = m_nodeDistribution[neighbour] + m_NN[0]*(m_NN[1]-1);
 #pragma omp parallel for
         for (index_t z = bottom; z < m_NN[2]; z++) {
-            for (index_t x = left; x < m_NN[0]; x++) {
-                index_t i = x + z*m_NN[0]*m_NN[1];
-                m_nodeId[i] = begin + x + z*m_NN[0]*(m_NN[1]);
+            index_t i = z*m_NN[0]*m_NN[1];
+            for (index_t x = left; x < m_NN[0]; x++, i++) {
+                m_nodeId[i] = begin + i;
             }
         }
     }
@@ -1228,37 +1249,21 @@ void Brick::populateSampleIds()
         for (index_t z = bottom; z < m_NN[2]; z++) {
             for (index_t y = front; y < m_NN[1]; y++) {
                 index_t i = INDEX3(0,y,z,m_NN[0],m_NN[1]);
-                m_nodeId[i] = end + INDEX3(0,(y-bottom),(z-front),(m_NN[0]-rank_left),(m_NN[2]-bottom));
+                m_nodeId[i] = end + INDEX3(0,(y-front),(z-bottom),
+                            (m_NN[0]-rank_left),(m_NN[2]-bottom));
             }
         }
     }
-    //re-use nodes on bottom border
-    if (bottom) {
-        int neighbour = rank - m_NX[0]*m_NX[1];
-        //DOF size of the neighbouring rank 
-        index_t rankDOF = m_nodeDistribution[neighbour + 1] 
-                        - m_nodeDistribution[neighbour];
-        //beginning of first row
-        index_t begin = m_nodeDistribution[neighbour] + rankDOF - m_NN[0]*m_NN[1];
-#pragma omp parallel for
-        for (index_t y = front; y < m_NN[1]; y++) {
-            for (index_t x = left; x < m_NN[0]; x++) {
-                index_t i = INDEX2(x,y,m_NN[0]);
-                m_nodeId[i] = begin + INDEX2(x,y,m_NN[0]);
-//                fprintf(stderr, "r%d: B %d -> %d\n", rank, i, m_nodeId[i]);
-            }
-        }
-    }
-    
+
     //now the new nodes
     const index_t start = m_nodeDistribution[m_mpiInfo->rank];
 #pragma omp parallel for
-    for (index_t z = front; z < m_NN[2]; z++) {
-        index_t z_chunk = (z-front)*(m_NN[0]-left)*(m_NN[1]-bottom);
-        for (index_t y = bottom; y < m_NN[1]; y++) {
-            index_t y_chunk = (y-bottom)*(m_NN[0]-left);
+    for (index_t z = bottom; z < m_NN[2]; z++) {
+        index_t z_chunk = (z-bottom)*(m_NN[0]-left)*(m_NN[1]-bottom);
+        for (index_t y = front; y < m_NN[1]; y++) {
+            index_t y_chunk = (y-front)*(m_NN[0]-left);
             for (index_t x = left; x < m_NN[0]; x++) {
-                m_nodeId[INDEX3(x, y, z, m_NN[0], m_NN[1])] 
+                m_nodeId[INDEX3(x, y, z, m_NN[0], m_NN[1])]
                         =  start + z_chunk + y_chunk + (x-left);
             }
         }
@@ -1337,12 +1342,16 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
             }
         }
     }
+
+    //sum and average neighbours before we average out our internal structure
+    balanceNeighbours(out, true);
+
     /* the averaging out (each point divided by the number of additions in
        the summation step). By doing each edge along an axis, those points
-       requiring division by 2, 4 and 8 will be divided by 2 the right 
+       requiring division by 2, 4 and 8 will be divided by 2 the right
        number of times
-       
-       border edges are skipped because they aren't shared but for the 
+
+       border edges are skipped because they aren't shared but for the
        points that lie along a different axes non-border edge
     */
     // for every non-border edge in x
@@ -1425,6 +1434,783 @@ void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
     throw SpeckleyException("Brick::interpolateNodesOnFaces not implemented");
 }
 
+#ifdef ESYS_MPI
+
+//protected
+void Brick::balanceNeighbours(escript::Data& out, bool average) const
+{
+    // skip all this if we aren't even subdividing the domain
+    if (m_NX[0] * m_NX[1] * m_NX[2] == 1) {
+        return;
+    }
+    const int numComp = out.getDataPointSize();
+    int rx = m_mpiInfo->rank % m_NX[0];
+    int ry = m_mpiInfo->rank % (m_NX[0]*m_NX[1]) / m_NX[0];
+    int rz = m_mpiInfo->rank / (m_NX[0]*m_NX[1]);
+    //include bordering ranks in summation
+    //averaging waits til after all sharing
+    shareFaces(out, rx, ry, rz);
+    if ((m_NX[0] > 1 && m_NX[1] > 1) 
+            || (m_NX[1] > 1 && m_NX[2] > 1) 
+            || (m_NX[0] > 1 && m_NX[2] > 1))
+        shareEdges(out, rx, ry, rz);
+    if (m_NX[0] != 1 && m_NX[1] != 1 && m_NX[2] != 1) {
+        shareCorners(out);
+        if (!average)
+            return;
+        //averaging out corners now that all sharing done
+        for (int z = 0; z < 2; z++) {
+            for (int y = 0; y < 2; y++) {
+                for (int x = 0; x < 2; x++) {
+                    if (!neighbour_exists[INDEX3(x,y,z,2,2)])
+                        continue;
+                    double *values = out.getSampleDataRW(
+                            INDEX3(x*(m_NN[0]-1), y*(m_NN[1]-1), z*(m_NN[2]-1),
+                                            m_NN[0], m_NN[1]));
+                    for (int comp = 0; comp < numComp; comp++) {
+                        values[comp] /= 2;
+                    }
+                }
+            }
+        }
+    }
+    if (!average)
+        return;
+    // average shared-edges
+
+    const bool left = rx;
+    const bool right = rx < m_NX[0] - 1;
+    const bool front = ry;
+    const bool back = ry < m_NX[1] - 1;
+    const bool bottom = rz;
+    const bool top = rz < m_NX[2] - 1;
+    if (left) {
+        if (front) { //average Z lines
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(0, 0, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (back) {//average Z lines
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(0, m_NN[1]-1, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (top) {//average Y lines
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(0, i, m_NN[2]-1, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;;
+                }
+            }
+        }
+        if (bottom) {//average Y lines
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(0,i,0,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    if (right) {
+        if (front) { //average Z lines
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (back) {//average Z lines
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1,m_NN[1]-1,i,m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (top) {//average Y lines
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1,i,m_NN[2]-1, m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (bottom) {//average Y lines
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1, i, 0, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+
+    if (top) {
+        if (front) {//average X lines
+            for (dim_t x = 0; x < m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(x, 0, m_NN[2]-1, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (back) {//average X lines
+            for (dim_t x = 0; x < m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(x,m_NN[1]-1,m_NN[2]-1,m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    if (bottom) {
+        if (front) {//average X lines
+            for (dim_t x = 0; x < m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(x);
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+        if (back) {//average X lines
+            for (dim_t x = 0; x < m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(x, m_NN[1]-1, 0, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+
+    //average shared faces
+    //up and down
+    if (top) {
+#pragma omp parallel for
+        for (dim_t y = 0; y <m_NN[1]; y++) {
+            for (dim_t x = 0; x <m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(x, y, m_NN[2]-1, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    if (bottom) {
+#pragma omp parallel for
+        for (dim_t y = 0; y <m_NN[1]; y++) {
+            for (dim_t x = 0; x <m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(INDEX2(x, y, m_NN[0]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    //left and right
+    if (right) {
+#pragma omp parallel for
+        for (dim_t z = 0; z <m_NN[2]; z++) {
+            for (dim_t y = 0; y <m_NN[1]; y++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(m_NN[0]-1, y, z, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    if (left) {
+#pragma omp parallel for
+        for (dim_t z = 0; z <m_NN[2]; z++) {
+            for (dim_t y = 0; y <m_NN[1]; y++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(0, y, z, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    //front and back
+    if (back) {
+#pragma omp parallel for
+        for (dim_t z = 0; z <m_NN[2]; z++) {
+            for (dim_t x = 0; x <m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(x, m_NN[1]-1, z, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+    if (front) {
+#pragma omp parallel for
+        for (dim_t z = 0; z <m_NN[2]; z++) {
+            for (dim_t x = 0; x <m_NN[0]; x++) {
+                double *data = out.getSampleDataRW(
+                                INDEX3(x, 0, z, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] /= 2;
+                }
+            }
+        }
+    }
+}
+
+//private
+void Brick::setCornerNeighbours()
+{
+    const int rank = m_mpiInfo->rank;
+
+    const int rx = rank % m_NX[0];
+    const int ry = rank % (m_NX[0]*m_NX[1])/m_NX[0];
+    const int rz = rank / (m_NX[0]*m_NX[1]);
+
+    const bool left = rx;
+    const bool right = rx < m_NX[0] - 1;
+    const bool front = ry;
+    const bool back = ry < m_NX[1] - 1;
+    const bool bottom = rz;
+    const bool top = rz < m_NX[2] - 1;
+
+    neighbour_exists[0] = left && front && bottom;
+    neighbour_exists[1] = right && front && bottom;
+    neighbour_exists[2] = left && back && bottom;
+    neighbour_exists[3] = right && back && bottom;
+    neighbour_exists[4] = left && front && top;
+    neighbour_exists[5] = right && front && top;
+    neighbour_exists[6] = left && back && top;
+    neighbour_exists[7] = right && back && top;
+
+    neighbour_ranks[0] = rank - m_NX[0]*(m_NX[1]+1) - 1;
+    neighbour_ranks[1] = rank - m_NX[0]*(m_NX[1]+1) + 1;
+    neighbour_ranks[2] = rank - m_NX[0]*(m_NX[1]-1) - 1;
+    neighbour_ranks[3] = rank - m_NX[0]*(m_NX[1]-1) + 1;
+    neighbour_ranks[4] = rank + m_NX[0]*(m_NX[1]+1) - 1;
+    neighbour_ranks[5] = rank + m_NX[0]*(m_NX[1]+1) + 1;
+    neighbour_ranks[6] = rank + m_NX[0]*(m_NX[1]-1) - 1;
+    neighbour_ranks[7] = rank + m_NX[0]*(m_NX[1]-1) + 1;
+}
+
+//private
+void Brick::shareCorners(escript::Data& out) const
+{
+    //setup
+    const int tag = 0;
+    MPI_Status status;
+    const int numComp = out.getDataPointSize();
+    const int count = 8 * numComp;
+    std::vector<double> inbuf(count, 0);
+
+    //share
+    if (m_mpiInfo->rank % 2) {
+        for (int z = 0; z < 2; z++) {
+            for (int y = 0; y < 2; y++) {
+                for (int x = 0; x < 2; x++) {
+                    int i = INDEX3(x,y,z,2,2);
+                    if (neighbour_exists[i]) {
+                        double *data = out.getSampleDataRW(
+                                               x*(m_NN[0]-1)
+                                             + y*(m_NN[1]-1)*m_NN[0]
+                                             + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
+                                            );
+
+                        MPI_Send(data, numComp, MPI_DOUBLE, neighbour_ranks[i], tag,
+                                m_mpiInfo->comm);
+                        MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, neighbour_ranks[i],
+                                tag, m_mpiInfo->comm, &status);
+                        //unpack
+                        double *in = &inbuf[INDEX3(x,y,z,2,2)*numComp];
+                        for (int comp = 0; comp < numComp; comp++) {
+                            data[comp] += in[comp];
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        for (int z = 0; z < 2; z++) {
+            for (int y = 0; y < 2; y++) {
+                for (int x = 0; x < 2; x++) {
+                    int i = INDEX3(x,y,z,2,2);
+                    if (neighbour_exists[i]) {
+                        double *data = out.getSampleDataRW(
+                                               x*(m_NN[0]-1)
+                                             + y*(m_NN[1]-1)*m_NN[0]
+                                             + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
+                                            );
+                        MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, neighbour_ranks[i],
+                                tag, m_mpiInfo->comm, &status);
+                        MPI_Send(data, numComp, MPI_DOUBLE, neighbour_ranks[i], tag,
+                                m_mpiInfo->comm);
+                        //unpack
+                        double *in = &inbuf[INDEX3(x,y,z,2,2)*numComp];
+                        for (int comp = 0; comp < numComp; comp++) {
+                            data[comp] += in[comp];
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+//private
+void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
+{
+    const int rank = m_mpiInfo->rank;
+
+    const int tag = 0;
+    MPI_Status status;
+    const int numComp = out.getDataPointSize();
+
+    const bool left = rx;
+    const bool right = rx < m_NX[0] - 1;
+    const bool front = ry;
+    const bool back = ry < m_NX[1] - 1;
+    const bool bottom = rz;
+    const bool top = rz < m_NX[2] - 1;
+
+
+    if (left) {
+        if (front) { //share Z lines
+            int neighbour = rank - m_NX[0] - 1;
+            const double count = m_NN[2]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0, 0, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0, 0, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+        if (back) {//share Z lines
+            int neighbour = rank + m_NX[0] - 1;
+            const double count = m_NN[2]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0,m_NN[1]-1,i,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0,m_NN[1]-1,i,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+        if (top) {//share Y lines
+            int neighbour = rank + m_NX[0]*m_NX[1] - 1;
+            const double count = m_NN[1]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+        if (bottom) {//share Y lines
+            int neighbour = rank - m_NX[0]*m_NX[1] - 1;
+            const double count = m_NN[1]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0,i,0,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(0,i,0,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+    }
+    if (right) {
+        if (front) { //share Z lines
+            int neighbour = rank - m_NX[0] + 1;
+            const double count = m_NN[2]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));            
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+        if (back) {//share Z lines
+            int neighbour = rank + m_NX[0] + 1;
+            const double count = m_NN[2]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, m_NN[1]-1, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[2]; i++) {
+                double *data = out.getSampleDataRW(
+                            INDEX3(m_NN[0]-1, m_NN[1]-1, i, m_NN[0], m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+        if (top) {//share Y lines
+            int neighbour = rank + m_NX[0]*m_NX[1] + 1;
+            const double count = m_NN[1]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,m_NN[2]-1,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+        if (bottom) {//share Y lines
+            int neighbour = rank - m_NX[0]*m_NX[1] + 1;
+            const double count = m_NN[1]*numComp;
+            std::vector<double> buf(count);
+            std::vector<double> outbuf(count);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,0,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    outbuf[i*numComp + comp] = data[comp];
+                }
+            }
+            MPI_Sendrecv(&outbuf[0], count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < m_NN[1]; i++) {
+                double *data = out.getSampleDataRW(INDEX3(m_NN[0]-1,i,0,m_NN[0],m_NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += buf[i*numComp + comp];
+                }
+            }
+        }
+    }
+
+    if (top) {
+        const double count = m_NN[0]*numComp;
+        std::vector<double> buf(count);
+        if (front) {//share X lines
+            int neighbour = rank + m_NX[0]*m_NX[1] - m_NX[0];
+            double *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1));
+                MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
+                                &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                                m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < count; i++) {
+                data[i] += buf[i];
+            }
+        }
+        if (back) {//share X lines
+            int neighbour = rank + m_NX[0]*m_NX[1] + m_NX[0];
+            double *data = out.getSampleDataRW(m_NN[0]*m_NN[1]*(m_NN[2]-1)
+                                             + m_NN[0]*(m_NN[1]-1));
+            MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < count; i++) {
+                data[i] += buf[i];
+            }
+        }
+    }
+    if (bottom) {
+        const double count = m_NN[0]*numComp;
+        std::vector<double> buf(count);
+        if (front) {//share X lines
+            int neighbour = rank - m_NX[0]*m_NX[1] - m_NX[0];
+            double *data = out.getSampleDataRW(0);
+            MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < count; i++) {
+                data[i] += buf[i];
+            }
+        }
+        if (back) {//share X lines
+            int neighbour = rank - m_NX[0]*m_NX[1] + m_NX[0];
+            double *data = out.getSampleDataRW(m_NN[0]*(m_NN[1]-1));
+            MPI_Sendrecv(data, count, MPI_DOUBLE, neighbour, tag,
+                            &buf[0], count, MPI_DOUBLE, neighbour, tag,
+                            m_mpiInfo->comm, &status);
+            for (dim_t i = 0; i < count; i++) {
+                data[i] += buf[i];
+            }
+        }
+    }
+}
+
+
+void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
+                    const int NN[3], const int NX[3], MPI_Comm& comm) {
+    const int tag = 0;
+    MPI_Status status;
+    const int front_neighbour = rank - NX[0];
+    const int back_neighbour = rank + NX[0];
+    const int count = NN[0]*NN[2]*numComp;
+    std::vector<double> front(count);
+    std::vector<double> back(count);
+    std::vector<double> recv(count);
+    for (dim_t z = 0; z < NN[2]; z++) {
+        for (dim_t x = 0; x < NN[0]; x++) {
+            const dim_t index = INDEX2(x,z,NN[0])*numComp;
+            const double *frontData = out.getSampleDataRO(INDEX3(x, 0, z, NN[0], NN[1]));
+            std::copy(frontData, frontData + numComp, &front[index]);
+
+            const double *backData = out.getSampleDataRO(INDEX3(x, NN[1]-1, z, NN[0], NN[1]));
+            std::copy(backData, backData + numComp, &back[index]);
+        }
+    }
+    //front
+    if (ry) {
+        MPI_Sendrecv(&front[0], count, MPI_DOUBLE, front_neighbour, tag,
+                    &recv[0], count, MPI_DOUBLE, front_neighbour, tag,
+                    comm, &status);
+        //unpack front
+        for (dim_t z = 0; z < NN[2]; z++) {
+            for (dim_t x = 0; x < NN[0]; x++) {
+                const dim_t index = INDEX2(x,z,NN[0])*numComp;
+                double *data = out.getSampleDataRW(INDEX3(x, 0, z, NN[0], NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += recv[index+comp];
+                }
+            }
+        }
+    }
+
+    //back
+    if (ry < NX[1] - 1) {
+        MPI_Sendrecv(&back[0], count, MPI_DOUBLE, back_neighbour, tag,
+                &recv[0], count, MPI_DOUBLE, back_neighbour, tag,
+                comm, &status);
+        //unpack back
+        for (dim_t z = 0; z < NN[2]; z++) {
+            for (dim_t x = 0; x < NN[0]; x++) {
+                const dim_t index = INDEX2(x,z,NN[0])*numComp;
+                double *data = out.getSampleDataRW(INDEX3(x, NN[1] - 1, z, NN[0], NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += recv[index+comp];
+                }
+            }
+        }
+    }
+}
+
+void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
+                    const int NN[3], const int NX[3], MPI_Comm& comm) {
+    const int tag = 0;
+    MPI_Status status;
+    const int top_neighbour = rank + NX[0]*NX[1];
+    const int bottom_neighbour = rank - NX[0]*NX[1];
+    const int count = NN[0]*NN[1]*numComp;
+    std::vector<double> top(count);
+    std::vector<double> bottom(count);
+    std::vector<double> recv(count);
+#pragma omp parallel for
+    for (dim_t y = 0; y < NN[1]; y++) {
+        for (dim_t x = 0; x < NN[0]; x++) {
+            const dim_t index = INDEX2(x,y,NN[0])*numComp;
+            const double *bottomData = out.getSampleDataRO(INDEX2(x, y, NN[0]));
+            std::copy(bottomData, bottomData + numComp, &bottom[index]);
+
+            const double *topData = out.getSampleDataRO(INDEX3(x, y, NN[2]-1, NN[0], NN[1]));
+            std::copy(topData, topData + numComp, &top[index]);
+        }
+    }
+
+    //bottom
+    if (rz) {
+        MPI_Sendrecv(&bottom[0], count, MPI_DOUBLE, bottom_neighbour, tag,
+                    &recv[0], count, MPI_DOUBLE, bottom_neighbour, tag,
+                    comm, &status);
+        //unpack to bottom
+#pragma omp parallel for
+        for (dim_t y = 0; y < NN[1]; y++) {
+            for (dim_t x = 0; x < NN[0]; x++) {
+                const dim_t index = INDEX2(x,y,NN[0])*numComp;
+                double *data = out.getSampleDataRW(INDEX2(x, y, NN[0]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += recv[index+comp];
+                }
+            }
+        }
+    }
+
+    //top
+    if (rz < NX[2] - 1) {
+        MPI_Sendrecv(&top[0], count, MPI_DOUBLE, top_neighbour, tag,
+                    &recv[0], count, MPI_DOUBLE, top_neighbour, tag,
+                    comm, &status);
+        //unpack to top
+#pragma omp parallel for
+        for (dim_t y = 0; y < NN[1]; y++) {
+            for (dim_t x = 0; x < NN[0]; x++) {
+                const dim_t index = INDEX2(x,y,NN[0])*numComp;
+                double *data = out.getSampleDataRW(INDEX3(x, y, NN[2]-1, NN[0], NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += recv[index+comp];
+                }
+            }
+        }
+    }
+}
+
+
+void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
+                    const int NN[3], const int NX[3], MPI_Comm& comm) {
+    const int tag = 0;
+    MPI_Status status;
+    const int left_neighbour = rank - 1;
+    const int right_neighbour = rank + 1;
+    const int count = NN[2]*NN[1]*numComp;
+    std::vector<double> left(count);
+    std::vector<double> right(count);
+    std::vector<double> recv(count);
+#pragma omp parallel for
+    for (dim_t z = 0; z < NN[2]; z++) {
+        for (dim_t y = 0; y < NN[1]; y++) {
+            const dim_t index = INDEX2(y,z,NN[1])*numComp;
+            const double *leftData = out.getSampleDataRO(INDEX3(0, y, z, NN[0], NN[1]));
+            std::copy(leftData, leftData + numComp, &left[index]);
+
+            const double *rightData = out.getSampleDataRO(INDEX3(NN[0]-1, y, z, NN[0], NN[1]));
+            std::copy(rightData, rightData + numComp, &right[index]);
+        }
+
+    }
+
+    //right
+    if (rx < NX[0] - 1) {
+        MPI_Sendrecv(&right[0], count, MPI_DOUBLE, right_neighbour, tag,
+                &recv[0], count, MPI_DOUBLE, right_neighbour, tag,
+                comm, &status);
+        //unpack to right
+#pragma omp parallel for
+        for (dim_t z = 0; z < NN[2]; z++) {
+            for (dim_t y = 0; y < NN[1]; y++) {
+                const dim_t index = INDEX2(y,z,NN[1])*numComp;
+                double *data = out.getSampleDataRW(INDEX3(NN[0]-1, y, z, NN[0], NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += recv[index+comp];
+                }
+            }
+        }
+    }
+    //left
+    if (rx) {
+        MPI_Sendrecv(&left[0], count, MPI_DOUBLE, left_neighbour, tag,
+                    &recv[0], count, MPI_DOUBLE, left_neighbour, tag,
+                    comm, &status);
+        //unpack to left
+#pragma omp parallel for
+        for (dim_t z = 0; z < NN[2]; z++) {
+            for (dim_t y = 0; y < NN[1]; y++) {
+                const dim_t index = INDEX2(y,z,NN[1])*numComp;
+                double *data = out.getSampleDataRW(INDEX3(0, y, z, NN[0], NN[1]));
+                for (int comp = 0; comp < numComp; comp++) {
+                    data[comp] += recv[index+comp];
+                }
+            }
+        }
+    }
+}
+
+
+//private
+void Brick::shareFaces(escript::Data& out, int rx, int ry, int rz) const
+{
+    const int numComp = out.getDataPointSize();
+    if (m_NX[0] != 1)
+        leftAndRight(out, rx, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
+    if (m_NX[1] != 1)
+        frontAndBack(out, ry, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
+    if (m_NX[2] != 1)
+        topAndBottom(out, rz, numComp, m_mpiInfo->rank, m_NN, m_NX, m_mpiInfo->comm);
+}
+#endif //#ifdef ESYS_MPI
+
+
 escript::Data Brick::randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& fs,
        long seed, const boost::python::tuple& filter) const
@@ -1475,12 +2261,12 @@ int Brick::findNode(const double *coords) const {
     double x = coords[0] - m_origin[0];
     double y = coords[1] - m_origin[1];
     double z = coords[2] - m_origin[2];
-    
+
     //check if the point is even inside the domain
-    if (x < 0 || y < 0 || z < 0 
+    if (x < 0 || y < 0 || z < 0
             || x > m_length[0] || y > m_length[1] || z > m_length[2])
         return NOT_MINE;
-        
+
     // distance in elements
     int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
     int ey = (int) floor(y / m_dx[1]+ 0.01*m_dx[1]);
