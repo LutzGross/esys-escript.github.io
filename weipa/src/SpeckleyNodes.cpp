@@ -152,7 +152,6 @@ bool SpeckleyNodes::initFromSpeckley(const speckley::SpeckleyDomain* dom)
                         coords[0][index] = dom->getLocalCoordinate(i0, 0);
                         coords[1][index] = dom->getLocalCoordinate(i1, 1);
                         coords[2][index] = dom->getLocalCoordinate(i2, 2);
-                        std::cerr << "p"<<i0<<","<<i1<<","<<i2<<" -> " << coords[0][index] << ","<< coords[1][index] << "," << coords[2][index] << "\n";
                     }
                 }
             }
