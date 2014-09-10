@@ -18,7 +18,6 @@
 #include <cusp/multiply.h>
 #include <cusp/monitor.h>
 #include <cusp/linear_operator.h>
-#include <cusp/transpose.h>
 
 namespace blas = cusp::blas;
 
@@ -92,7 +91,7 @@ lsqr_results<RealType> lsqr(LinearOperator& A,
 
     //  ------------------------------------------------------------------
     //  Set up the first vectors u and v for the bidiagonalization.
-    //  These satisfy  beta*u = b,  alpha*v = A(transpose)*u.
+    //  These satisfy  beta*u = b,  alpha*v = A^T*u.
     //  ------------------------------------------------------------------
 
     cusp::array1d<ValueType,MemorySpace> w(n);
