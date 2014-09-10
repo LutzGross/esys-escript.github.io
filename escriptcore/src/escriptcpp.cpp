@@ -937,6 +937,7 @@ args("source", "q", "r","factor"),
     .value("UMFPACK", escript::SO_PACKAGE_UMFPACK)
 
     .value("BICGSTAB", escript::SO_METHOD_BICGSTAB)
+    .value("CGLS", escript::SO_METHOD_CGLS)
     .value("CGS", escript::SO_METHOD_CGS)
     .value("CHOLEVSKY", escript::SO_METHOD_CHOLEVSKY)
     .value("CR", escript::SO_METHOD_CR)

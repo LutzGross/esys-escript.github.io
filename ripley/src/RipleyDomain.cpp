@@ -775,6 +775,7 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
             switch (sb.getSolverMethod()) {
                 case escript::SO_DEFAULT:
                 case escript::SO_METHOD_BICGSTAB:
+                case escript::SO_METHOD_CGLS:
                 case escript::SO_METHOD_GMRES:
                 case escript::SO_METHOD_LSQR:
                 case escript::SO_METHOD_PCG:
