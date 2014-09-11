@@ -516,6 +516,8 @@ env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', dup
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
 env.SConscript(dirs = ['escript/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
 
+env.SConscript(dirs = ['cusplibrary'])
+
 #This will pull in the escriptcore/py_src and escriptcore/test
 env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
 #env.SConscript(dirs = ['escript/test'], variant_dir='$BUILD_DIR/$PLATFORM/escript/test', duplicate=0)
@@ -543,8 +545,6 @@ env.Alias('target_init', [target_init])
 # delete buildvars upon cleanup
 env.Clean('target_init', os.path.join(env['libinstall'], 'buildvars'))
 
-cusphdr_inst = env.Install(env['incinstall'], Dir('#cusplibrary/cusp'))
-env.Alias('install_cusp_headers', cusphdr_inst)
 # The headers have to be installed prior to build in order to satisfy
 # #include <paso/Common.h>
 env.Alias('build_esysUtils', ['install_esysUtils_headers', 'build_esysUtils_lib'])
