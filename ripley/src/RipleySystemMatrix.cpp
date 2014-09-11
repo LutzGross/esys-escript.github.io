@@ -1,7 +1,7 @@
 
 /*****************************************************************************
 *
-* Copyright (c) 2003-2014 by University of Queensland
+* Copyright (c) 2014 by University of Queensland
 * http://www.uq.edu.au
 *
 * Primary Business: Queensland, Australia
@@ -29,8 +29,6 @@
 #include <cusp/krylov/lsqr.h>
 #include <cusp/precond/diagonal.h>
 
-#define BLOCK_SIZE 128
-
 namespace bp = boost::python;
 
 namespace ripley {
@@ -57,6 +55,7 @@ void SystemMatrix::checkCUDA()
     cudaError err = cudaGetDeviceCount(&deviceCount);
     if (deviceCount == 0 || err == cudaErrorNoDevice) {
         std::cout << "Note: There is no device supporting CUDA" << std::endl;
+        cudaDevices.push_back(-1);
         return;
     } else if (deviceCount == 1) {
         std::cout << "There is 1 GPU device" << std::endl;
@@ -68,21 +67,20 @@ void SystemMatrix::checkCUDA()
         cudaDeviceProp deviceProp;
         CUDA_SAFE_CALL(cudaGetDeviceProperties(&deviceProp, dev));
 
-        std::cout << "\nDevice " << dev << ": \"" << deviceProp.name << "\""
-                  << std::endl;
+        std::cout << "\nDevice " << dev << ": \"" << deviceProp.name << "\" -- ";
         if (deviceProp.major == 9999 && deviceProp.minor == 9999) {
-            std::cout << "  No CUDA support." << std::endl;
+            std::cout << "No CUDA support." << std::endl;
         } else {
             cudaDevices.push_back(dev);
-            std::cout << "  Major revision number:                         "
-                      << deviceProp.major << std::endl;
-            std::cout << "  Minor revision number:                         "
-                      << deviceProp.minor << std::endl;
-            std::cout << "  Total amount of global memory:                 "
-                      << deviceProp.totalGlobalMem << " bytes" << std::endl;
+            std::cout << "Rev. " << deviceProp.major << "." << deviceProp.minor
+                      << ", Mem: "
+                      << deviceProp.totalGlobalMem << " bytes." << std::endl;
         }
     }
-    std::cout << std::endl;
+    // neither of the found devices supports CUDA:
+    if (cudaDevices.empty()) {
+        cudaDevices.push_back(-1);
+    }
 #endif
 }
 
@@ -97,10 +95,7 @@ SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
     for (size_t i = 0; i < diagonalOffsets.size(); i++) {
         numEntries += blocksize*blocksize*(nRows-std::abs(diagonalOffsets[i]));
     }
-    //std::cerr << "Matrix has " <<numEntries<<" entries."<<std::endl;
-
-    if (cudaDevices.size() == 0)
-        checkCUDA();
+    //std::cout << "Matrix has " <<numEntries<<" entries."<<std::endl;
 
     mat.resize(nRows*blocksize, numEntries, diagonalOffsets.size(), blocksize);
     mat.diagonal_offsets.assign(diagonalOffsets.begin(), diagonalOffsets.end());
@@ -152,7 +147,7 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     HostVectorType yy(mat.num_rows, 0.);
     cusp::multiply(mat, xx, yy);
     thrust::copy(yy.begin(), yy.end(), y_dp);
-    //std::cerr << "ypAx: " << gettime()-T0 << " seconds." << std::endl;
+    //std::cout << "ypAx: " << gettime()-T0 << " seconds." << std::endl;
 }
 
 template<class LinearOperator,
@@ -249,13 +244,18 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
 
     if (sb.getSolverTarget() == escript::SO_TARGET_GPU) {
 #ifdef USE_CUDA
-        if (cudaDevices.size() == 0) {
+        if (cudaDevices.empty()) {
+            checkCUDA();
+        }
+
+        if (cudaDevices[0] == -1) {
             throw RipleyException("solve: GPU-based solver requested but no "
                                   "CUDA compatible device available.");
         }
+
         //TODO: give users options...
         if (sb.isVerbose()) {
-            std::cerr << "Using CUDA device " << cudaDevices[0] << std::endl;
+            std::cout << "Using CUDA device " << cudaDevices[0] << std::endl;
         }
         cudaSetDevice(cudaDevices[0]);
 
@@ -263,25 +263,25 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
         DeviceVectorType b(in_dp, in_dp+mat.num_rows);
         double host2dev = gettime()-T0;
         if (sb.isVerbose())
-            std::cerr << "Copy of b: " << host2dev << " seconds." << std::endl;
+            std::cout << "Copy of b: " << host2dev << " seconds." << std::endl;
         if (matrixAltered) {
             T0 = gettime();
             dmat = mat;
             host2dev = gettime()-T0;
             if (sb.isVerbose())
-                std::cerr << "Copy of A: " << host2dev << " seconds." << std::endl;
+                std::cout << "Copy of A: " << host2dev << " seconds." << std::endl;
             matrixAltered = false;
         }
         DeviceVectorType x(mat.num_rows, 0.);
         if (sb.isVerbose())
-            std::cerr << "Solving on CUDA device..." << std::endl;
+            std::cout << "Solving on CUDA device..." << std::endl;
 
         if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_NONE) {
             cusp::identity_operator<double, cusp::device_memory> M(mat.num_rows, mat.num_rows);
             runSolver(dmat, x, b, M, sb);
         } else if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
             if (sb.isVerbose())
-                std::cerr << "Using Jacobi preconditioner" << std::endl;
+                std::cout << "Using Jacobi preconditioner" << std::endl;
             // TODO: This should be cached as well but that's not supported
             // at the moment.
             cusp::precond::diagonal<double, cusp::device_memory> M(dmat);
@@ -294,7 +294,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
         thrust::copy(x.begin(), x.end(), out_dp);
         const double copyTime = gettime()-T0;
         if (sb.isVerbose())
-            std::cerr << "Copy of x: " << copyTime << " seconds." << std::endl;
+            std::cout << "Copy of x: " << copyTime << " seconds." << std::endl;
 #else
         throw RipleyException("solve: GPU-based solver requested but escript "
                               "not compiled with CUDA.");
@@ -304,8 +304,8 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
         HostVectorType b(in_dp, in_dp+mat.num_rows);
         double copytime = gettime()-T0;
         if (sb.isVerbose()) {
-            std::cerr << "Copy of b: " << copytime << " seconds." << std::endl;
-            std::cerr << "Solving on the CPU..." << std::endl;
+            std::cout << "Copy of b: " << copytime << " seconds." << std::endl;
+            std::cout << "Solving on the CPU..." << std::endl;
         }
         HostVectorType x(mat.num_rows, 0.);
         if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_NONE) {
@@ -313,7 +313,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
             runSolver(mat, x, b, M, sb);
         } else if (sb.getPreconditioner() == escript::SO_PRECONDITIONER_JACOBI) {
             if (sb.isVerbose())
-                std::cerr << "Using Jacobi preconditioner" << std::endl;
+                std::cout << "Using Jacobi preconditioner" << std::endl;
             // TODO: This should be cached as well but that's not supported
             // at the moment.
             cusp::precond::diagonal<double, cusp::host_memory> M(mat);
@@ -326,7 +326,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
         thrust::copy(x.begin(), x.end(), out_dp);
         const double copyTime = gettime()-T0;
         if (sb.isVerbose()) {
-            std::cerr << "Copy of x: " << copyTime << " seconds." << std::endl;
+            std::cout << "Copy of x: " << copyTime << " seconds." << std::endl;
         }
     }
 }
@@ -365,7 +365,7 @@ void SystemMatrix::nullifyRowsAndCols(escript::Data& row_q,
             }
         }
     }
-    //std::cerr << "nullifyRowsAndCols: " << gettime()-T0 << " seconds." << std::endl;
+    //std::cout << "nullifyRowsAndCols: " << gettime()-T0 << " seconds." << std::endl;
     matrixAltered = true;
 }
 
