@@ -1717,14 +1717,14 @@ void Brick::setCornerNeighbours()
     neighbour_exists[6] = left && back && top;
     neighbour_exists[7] = right && back && top;
 
-    neighbour_ranks[0] = rank - m_NX[0]*(m_NX[1]+1) - 1;
-    neighbour_ranks[1] = rank - m_NX[0]*(m_NX[1]+1) + 1;
-    neighbour_ranks[2] = rank - m_NX[0]*(m_NX[1]-1) - 1;
-    neighbour_ranks[3] = rank - m_NX[0]*(m_NX[1]-1) + 1;
-    neighbour_ranks[4] = rank + m_NX[0]*(m_NX[1]+1) - 1;
-    neighbour_ranks[5] = rank + m_NX[0]*(m_NX[1]+1) + 1;
-    neighbour_ranks[6] = rank + m_NX[0]*(m_NX[1]-1) - 1;
-    neighbour_ranks[7] = rank + m_NX[0]*(m_NX[1]-1) + 1;
+    neighbour_ranks[0] = rank - m_NX[0]*m_NX[1] - m_NX[0] - 1;
+    neighbour_ranks[1] = rank - m_NX[0]*m_NX[1] - m_NX[0] + 1;
+    neighbour_ranks[2] = rank - m_NX[0]*m_NX[1] + m_NX[0] - 1;
+    neighbour_ranks[3] = rank - m_NX[0]*m_NX[1] + m_NX[0] + 1;
+    neighbour_ranks[4] = rank + m_NX[0]*m_NX[1] - m_NX[0] - 1;
+    neighbour_ranks[5] = rank + m_NX[0]*m_NX[1] - m_NX[0] + 1;
+    neighbour_ranks[6] = rank + m_NX[0]*m_NX[1] + m_NX[0] - 1;
+    neighbour_ranks[7] = rank + m_NX[0]*m_NX[1] + m_NX[0] + 1;
 }
 
 //private
@@ -1734,55 +1734,27 @@ void Brick::shareCorners(escript::Data& out) const
     const int tag = 0;
     MPI_Status status;
     const int numComp = out.getDataPointSize();
-    const int count = 8 * numComp;
+    const int count = numComp;
     std::vector<double> inbuf(count, 0);
 
     //share
-    if (m_mpiInfo->rank % 2) {
-        for (int z = 0; z < 2; z++) {
-            for (int y = 0; y < 2; y++) {
-                for (int x = 0; x < 2; x++) {
-                    int i = INDEX3(x,y,z,2,2);
-                    if (neighbour_exists[i]) {
-                        double *data = out.getSampleDataRW(
-                                               x*(m_NN[0]-1)
-                                             + y*(m_NN[1]-1)*m_NN[0]
-                                             + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
-                                            );
+    for (int z = 0; z < 2; z++) {
+        for (int y = 0; y < 2; y++) {
+            for (int x = 0; x < 2; x++) {
+                int i = INDEX3(x,y,z,2,2);
+                if (neighbour_exists[i]) {
+                    double *data = out.getSampleDataRW(
+                                           x*(m_NN[0]-1)
+                                         + y*(m_NN[1]-1)*m_NN[0]
+                                         + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
+                                        );
 
-                        MPI_Send(data, numComp, MPI_DOUBLE, neighbour_ranks[i], tag,
-                                m_mpiInfo->comm);
-                        MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, neighbour_ranks[i],
-                                tag, m_mpiInfo->comm, &status);
-                        //unpack
-                        double *in = &inbuf[INDEX3(x,y,z,2,2)*numComp];
-                        for (int comp = 0; comp < numComp; comp++) {
-                            data[comp] += in[comp];
-                        }
-                    }
-                }
-            }
-        }
-    } else {
-        for (int z = 0; z < 2; z++) {
-            for (int y = 0; y < 2; y++) {
-                for (int x = 0; x < 2; x++) {
-                    int i = INDEX3(x,y,z,2,2);
-                    if (neighbour_exists[i]) {
-                        double *data = out.getSampleDataRW(
-                                               x*(m_NN[0]-1)
-                                             + y*(m_NN[1]-1)*m_NN[0]
-                                             + z*(m_NN[2]-1)*m_NN[0]*m_NN[1]
-                                            );
-                        MPI_Recv(&inbuf[i], numComp, MPI_DOUBLE, neighbour_ranks[i],
-                                tag, m_mpiInfo->comm, &status);
-                        MPI_Send(data, numComp, MPI_DOUBLE, neighbour_ranks[i], tag,
-                                m_mpiInfo->comm);
-                        //unpack
-                        double *in = &inbuf[INDEX3(x,y,z,2,2)*numComp];
-                        for (int comp = 0; comp < numComp; comp++) {
-                            data[comp] += in[comp];
-                        }
+                    MPI_Sendrecv(data, numComp, MPI_DOUBLE, neighbour_ranks[i], tag,
+                            &inbuf[0], numComp, MPI_DOUBLE, neighbour_ranks[i],
+                            tag, m_mpiInfo->comm, &status);
+                    //unpack
+                    for (int comp = 0; comp < numComp; comp++) {
+                        data[comp] += inbuf[comp];
                     }
                 }
             }
