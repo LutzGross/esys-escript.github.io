@@ -375,7 +375,7 @@ void SystemMatrix::saveMM(const std::string& filename) const
 
     std::ofstream f(filename.c_str());
     f << "%%MatrixMarket matrix coordinate real general" << std::endl;
-    f << mat.num_rows << " " << mat.num_rows << " " << mat.num_entries << std::endl;
+    f << mat.num_rows << " " << mat.num_cols << " " << mat.num_entries << std::endl;
     f.setf(std::ios_base::scientific, std::ios_base::floatfield);
     f.precision(15);
     for (int row=0; row < mat.num_rows; row++) {

@@ -377,7 +377,7 @@ void SparseMatrix::maxAbsRow_CSR_OFFSET0(double* array) const
             for (index_t iptr=pattern->ptr[ir]; iptr < pattern->ptr[ir+1]; iptr++) {
                 for (dim_t icb=0; icb < col_block_size; icb++) {
                     const index_t idx = iptr*block_size+irb+row_block_size*icb;
-                    fac=MAX(fac, val[idx]);
+                    fac=MAX(fac, std::abs(val[idx]));
                 }
             }
             array[irow]=MAX(array[irow], fac);
