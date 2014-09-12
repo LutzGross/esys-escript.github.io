@@ -14,23 +14,20 @@
 *
 *****************************************************************************/
 
-#ifndef __RIPLEY_BRICK_H__
-#define __RIPLEY_BRICK_H__
+#ifndef __Speckley_BRICK_H__
+#define __Speckley_BRICK_H__
 
-#include <paso/Coupler.h>
-#include <ripley/RipleyDomain.h>
+#include <speckley/SpeckleyDomain.h>
 
-namespace ripley {
+namespace speckley {
 
 /**
    \brief
-   Brick is the 3-dimensional implementation of a RipleyDomain.
+   Brick is the 3-dimensional implementation of a SpeckleyDomain.
 */
-class RIPLEY_DLL_API Brick: public RipleyDomain
+class Speckley_DLL_API Brick: public SpeckleyDomain
 {
     friend class DefaultAssembler3D;
-    friend class WaveAssembler3D;
-    friend class LameAssembler3D;
 public:
 
     /**
@@ -40,11 +37,11 @@ public:
        \param x0,y0,z0,x1,y1,z1 coordinates of corner nodes of the brick
        \param d0,d1,d2 number of subdivisions in each dimension
     */
-    Brick(int n0, int n1, int n2, double x0, double y0, double z0, double x1,
+    Brick(int order, int n0, int n1, int n2, double x0, double y0, double z0, double x1,
           double y1, double z1, int d0=-1, int d1=-1, int d2=-1,
           const std::vector<double>& points = std::vector<double>(),
           const std::vector<int>& tags = std::vector<int>(),
-          const TagMap& tagnamestonums = TagMap(),
+          const simap_t& tagnamestonums = simap_t(),
           escript::SubWorld_ptr w=escript::SubWorld_ptr());
 
     /**
@@ -63,13 +60,6 @@ public:
        \brief equality operator
     */
     virtual bool operator==(const escript::AbstractDomain& other) const;
-
-    /**
-       \brief
-       writes the current mesh to a file with the given name
-       \param filename The name of the file to write to
-    */
-    virtual void write(const std::string& filename) const;
 
     /**
        \brief
@@ -198,26 +188,51 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    virtual IndexVector getDiagonalIndices() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
-    virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
-    virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;
-    virtual paso::SystemMatrixPattern_ptr getPasoMatrixPattern(
-                             bool reducedRowOrder, bool reducedColOrder) const;
+    virtual void assembleGradient(escript::Data& out,
+                                  const escript::Data& in) const;
+    virtual void assembleIntegrate(DoubleVector& integrals,
+                                   const escript::Data& arg) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
                                   const escript::Data& in, bool reduced) const;
+    virtual void interpolateElementsOnNodes(escript::Data& out,
+                                const escript::Data& in, bool reduced) const;
     virtual void interpolateNodesOnFaces(escript::Data& out,
                                          const escript::Data& in,
                                          bool reduced) const;
-    virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
-    virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
+#ifdef ESYS_MPI
+    virtual void balanceNeighbours(escript::Data& data, bool average) const;
+#endif
 
 private:
+    void gradient_order2(escript::Data&, const escript::Data&) const;
+    void gradient_order3(escript::Data&, const escript::Data&) const;
+    void gradient_order4(escript::Data&, const escript::Data&) const;
+    void gradient_order5(escript::Data&, const escript::Data&) const;
+    void gradient_order6(escript::Data&, const escript::Data&) const;
+    void gradient_order7(escript::Data&, const escript::Data&) const;
+    void gradient_order8(escript::Data&, const escript::Data&) const;
+    void gradient_order9(escript::Data&, const escript::Data&) const;
+    void gradient_order10(escript::Data&, const escript::Data&) const;
+
+    void integral_order2(std::vector<double>&, const escript::Data&) const;
+    void integral_order3(std::vector<double>&, const escript::Data&) const;
+    void integral_order4(std::vector<double>&, const escript::Data&) const;
+    void integral_order5(std::vector<double>&, const escript::Data&) const;
+    void integral_order6(std::vector<double>&, const escript::Data&) const;
+    void integral_order7(std::vector<double>&, const escript::Data&) const;
+    void integral_order8(std::vector<double>&, const escript::Data&) const;
+    void integral_order9(std::vector<double>&, const escript::Data&) const;
+    void integral_order10(std::vector<double>&, const escript::Data&) const; 
+#ifdef ESYS_MPI
+    void setCornerNeighbours();
+    void shareEdges(escript::Data& out, int rx, int ry, int rz) const;
+    void shareFaces(escript::Data& out, int rx, int ry, int rz) const;
+    void shareCorners(escript::Data& out) const;
+#endif
     void populateSampleIds();
-    void populateDofMap();
-    std::vector<IndexVector> getConnections() const;
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
            bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
@@ -225,18 +240,28 @@ private:
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
                             const ReaderParameters& params) const;
+
     template<typename ValueType>
-    void readBinaryGridZippedImpl(escript::Data& out, const std::string& filename,
-                            const ReaderParameters& params) const;
+    void readBinaryGridZippedImpl(escript::Data& out, 
+            const std::string& filename, const ReaderParameters& params) const;
+
     template<typename ValueType>
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
 
     int findNode(const double *coords) const;
 
-    virtual escript::Data randomFillWorker(
-            const escript::DataTypes::ShapeType& shape, long seed,
-            const boost::python::tuple& filter) const;
+
+    escript::Data randomFillWorker(const escript::DataTypes::ShapeType& shape,
+       long seed, const boost::python::tuple& filter) const;
+    
+#ifdef ESYS_MPI
+    /// corner neighbours' ranks
+    int neighbour_ranks[8];
+    
+    /// corner neighbours' existence
+    bool neighbour_exists[8];
+#endif
 
     /// total number of elements in each dimension
     dim_t m_gNE[3];
@@ -255,9 +280,6 @@ private:
 
     /// number of elements for this rank in each dimension including shared
     dim_t m_NE[3];
-
-    /// number of own elements for this rank in each dimension
-    dim_t m_ownNE[3];
 
     /// number of nodes for this rank in each dimension
     dim_t m_NN[3];
@@ -281,33 +303,25 @@ private:
 
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
-
-    // vector that maps each node to a DOF index (used for the coupler)
-    IndexVector m_dofMap;
-
-    // Paso connector used by the system matrix and to interpolate DOF to
-    // nodes
-    paso::Connector_ptr m_connector;
-
-    // the Paso System Matrix pattern
-    mutable paso::SystemMatrixPattern_ptr m_pattern;
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
 inline int Brick::getDofOfNode(int node) const {
-    return m_dofMap[node];
+    return m_nodeId[node];
 }
 
 inline int Brick::getNumDataPointsGlobal() const
 {
-    return (m_gNE[0]+1)*(m_gNE[1]+1)*(m_gNE[2]+1);
+    return (m_gNE[0]*m_order+1)*(m_gNE[1]*m_order+1)*(m_gNE[2]*m_order+1);
 }
 
 inline double Brick::getLocalCoordinate(int index, int dim) const
 {
-    EsysAssert((dim>=0 && dim<3), "'dim' out of bounds");
+    EsysAssert((dim>=0 && dim<m_numDim), "'dim' out of bounds");
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
-    return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
+    return m_origin[dim]                                    //origin
+            + m_dx[dim]*(m_offset[dim] + index/m_order      //elements
+            + point_locations[m_order-2][index%m_order]);   //quads
 }
 
 inline boost::python::tuple Brick::getGridParameters() const
@@ -319,15 +333,15 @@ inline boost::python::tuple Brick::getGridParameters() const
 }
 
 //protected
-inline dim_t Brick::getNumDOF() const
+inline dim_t Brick::getNumDOF() const //global points
 {
-    return (m_gNE[0]+1)/m_NX[0]*(m_gNE[1]+1)/m_NX[1]*(m_gNE[2]+1)/m_NX[2];
+    return getNumNodes();
 }
 
 //protected
-inline dim_t Brick::getNumNodes() const
+inline dim_t Brick::getNumNodes() const //points per rank
 {
-    return m_NN[0]*m_NN[1]*m_NN[2];
+    return m_NN[0] * m_NN[1] * m_NN[2];
 }
 
 //protected
@@ -343,7 +357,7 @@ inline dim_t Brick::getNumFaceElements() const
             + m_faceCount[3] + m_faceCount[4] + m_faceCount[5];
 }
 
-} // end of namespace ripley
+} // end of namespace speckley
 
-#endif // __RIPLEY_BRICK_H__
+#endif // __Speckley_BRICK_H__
 

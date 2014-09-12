@@ -526,6 +526,7 @@ env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowr
 env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
 env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
 env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
+env.SConscript(dirs = ['speckley/src'], variant_dir='$BUILD_DIR/$PLATFORM/speckley', duplicate=0)
 env.SConscript(dirs = ['downunder/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/downunder', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
@@ -568,6 +569,9 @@ env.Alias('install_finley', ['build_finley', 'install_finley_lib', 'install_finl
 env.Alias('build_ripley', ['install_cusp_headers', 'install_ripley_headers', 'build_ripley_lib', 'build_ripleycpp_lib'])
 env.Alias('install_ripley', ['build_ripley', 'install_ripley_lib', 'install_ripleycpp_lib', 'install_ripley_py'])
 
+env.Alias('build_speckley', ['install_speckley_headers', 'build_speckley_lib', 'build_speckleycpp_lib'])
+env.Alias('install_speckley', ['build_speckley', 'install_speckley_lib', 'install_speckleycpp_lib', 'install_speckley_py'])
+
 env.Alias('build_weipa', ['install_weipa_headers', 'build_weipa_lib', 'build_weipacpp_lib'])
 env.Alias('install_weipa', ['build_weipa', 'install_weipa_lib', 'install_weipacpp_lib', 'install_weipa_py'])
 
@@ -583,6 +587,7 @@ build_all_list += ['build_pasowrap']
 build_all_list += ['build_dudley']
 build_all_list += ['build_finley']
 build_all_list += ['build_ripley']
+build_all_list += ['build_speckley']
 build_all_list += ['build_weipa']
 if not IS_WINDOWS: build_all_list += ['build_escriptreader']
 if env['usempi']:   build_all_list += ['build_pythonMPI']
@@ -598,6 +603,7 @@ install_all_list += ['install_pasowrap']
 install_all_list += ['install_dudley']
 install_all_list += ['install_finley']
 install_all_list += ['install_ripley']
+install_all_list += ['install_speckley']
 install_all_list += ['install_weipa']
 if not IS_WINDOWS: install_all_list += ['install_escriptreader']
 install_all_list += ['install_downunder_py']

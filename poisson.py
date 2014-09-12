@@ -27,7 +27,7 @@ def solve(target):
             Y_reduced[i] = 1.
 
     pde.setValue(A=A, Y_reduced=Y_reduced, q=q)
-    pde.getSolverOptions().setPackage(SolverOptions.PASO)
+    pde.getSolverOptions().setPackage(SolverOptions.CUSP)
     pde.getSolverOptions().setSolverTarget(target)
     pde.getSolverOptions().setSolverMethod(SolverOptions.PRES20)
     pde.getSolverOptions().setSolverMethod(SolverOptions.BICGSTAB)
