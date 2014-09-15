@@ -577,9 +577,7 @@ public:
        writes the current mesh to a file with the given name
        \param filename The name of the file to write to
     */
-    void write(const std::string& filename) const {
-        throw SpeckleyException("write() not implemented");
-    }
+    virtual void write(const std::string& filename) const = 0;
 
     /**
        \brief
@@ -592,9 +590,7 @@ public:
        dumps the mesh to a file with the given name
        \param filename The name of the output file
     */
-    void dump(const std::string& filename) const {
-        throw SpeckleyException("dump() not implemented");
-    }
+    void dump(const std::string& filename) const = 0;
 
     /**
        \brief
@@ -617,6 +613,36 @@ public:
        considered is defined by out. out has to be defined on this domain.
     */
     virtual void setToSize(escript::Data& out) const = 0;
+
+    /**
+       \brief
+       reads grid data from a netCDF file into a Data object
+    */
+    virtual void readNcGrid(escript::Data& out, std::string filename,
+            std::string varname, const ReaderParameters& params) const = 0;
+
+    /**
+       \brief
+       reads grid data from a raw binary file into a Data object
+    */
+    virtual void readBinaryGrid(escript::Data& out, std::string filename,
+                                const ReaderParameters& params) const = 0;
+
+#ifdef USE_BOOSTIO
+    /**
+       \brief
+       reads grid data from a compressed raw binary file into a Data object
+    */
+    virtual void readBinaryGridFromZipped(escript::Data& out,
+               std::string filename, const ReaderParameters& params) const = 0;
+#endif
+
+    /**
+       \brief
+       writes a Data object to a file in raw binary format
+    */
+    virtual void writeBinaryGrid(const escript::Data& in, std::string filename,
+                                 int byteOrder, int dataType) const = 0;
 
     /**
        \brief
@@ -695,7 +721,7 @@ public:
        \brief
        returns the order of the domain
     */
-    int getOrder() const { return m_order;}
+    inline int getOrder() const { return m_order;}
 
 protected:
     int m_numDim;
@@ -729,7 +755,6 @@ protected:
 
     void addPoints(const std::vector<double>& coords,
                    const std::vector<int>& tags);
-
 
     /***********************************************************************/
 

@@ -57,6 +57,81 @@ std::vector<T> extractPyArray(const object& obj, const std::string& name,
     return result;
 }
 
+escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
+        const object& pyShape, double fill, int byteOrder, int dataType,
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyReverse)
+{
+    int dim=fs.getDim();
+    ReaderParameters params;
+
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    params.byteOrder = byteOrder;
+    params.dataType = dataType;
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
+
+    const SpeckleyDomain* dom=dynamic_cast<const SpeckleyDomain*>(fs.getDomain().get());
+    if (!dom)
+        throw SpeckleyException("Function space must be on a speckley domain");
+
+    escript::Data res(fill, shape, fs, true);
+    dom->readBinaryGrid(res, filename, params);
+    return res;
+}
+
+#ifdef USE_BOOSTIO
+escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSpace fs,
+        const object& pyShape, double fill, int byteOrder, int dataType,
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyReverse)
+{
+    int dim=fs.getDim();
+    ReaderParameters params;
+
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    params.byteOrder = byteOrder;
+    params.dataType = dataType;
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
+
+    const SpeckleyDomain* dom=dynamic_cast<const SpeckleyDomain*>(fs.getDomain().get());
+    if (!dom)
+        throw SpeckleyException("Function space must be on a speckley domain");
+
+    escript::Data res(fill, shape, fs, true);
+    dom->readBinaryGridFromZipped(res, filename, params);
+    return res;
+}
+#endif
+
+escript::Data readNcGrid(std::string filename, std::string varname,
+        escript::FunctionSpace fs, const object& pyShape, double fill,
+        const object& pyFirst, const object& pyNum, const object& pyMultiplier,
+        const object& pyReverse)
+{
+    int dim=fs.getDim();
+    ReaderParameters params;
+
+    params.first = extractPyArray<int>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
+    params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
+    std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
+
+    const SpeckleyDomain* dom=dynamic_cast<const SpeckleyDomain*>(fs.getDomain().get());
+    if (!dom)
+        throw SpeckleyException("Function space must be on a speckley domain");
+
+    escript::Data res(fill, shape, fs, true);
+    dom->readNcGrid(res, filename, varname, params);
+    return res;
+}
+
 // These wrappers are required to make the shared pointers work through the
 // Python wrapper
 
@@ -281,12 +356,32 @@ BOOST_PYTHON_MODULE(speckleycpp)
 ":param d0: number of subdivisions in direction 0\n:type d0: ``int``\n"
 ":param d1: number of subdivisions in direction 1\n:type d1: ``int``");
 
+    def("readBinaryGrid", &speckley::readBinaryGrid, (arg("filename"),
+                arg("functionspace"), arg("shape"), arg("fill")=0.,
+                arg("byteOrder"), arg("dataType"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a binary Grid");
+#ifdef USE_BOOSTIO
+    def("_readBinaryGridFromZipped", &speckley::readBinaryGridFromZipped, (arg("filename"),
+                arg("functionspace"), arg("shape"), arg("fill")=0.,
+                arg("byteOrder"), arg("dataType"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a binary Grid");
+#endif
+    def("_readNcGrid", &speckley::readNcGrid, (arg("filename"), arg("varname"),
+                arg("functionspace"), arg("shape"), arg("fill"), arg("first"),
+                arg("numValues"), arg("multiplier"), arg("reverse")),
+"Reads a grid from a netCDF file");
+
     class_<speckley::SpeckleyDomain, bases<escript::AbstractContinuousDomain>, boost::noncopyable >
         ("SpeckleyDomain", "", no_init)
         .def("print_mesh_info", &speckley::SpeckleyDomain::Print_Mesh_Info, (arg("full")=false),
                 "Prints out a summary about the mesh.\n"
                 ":param full: whether to output additional data\n:type full: ``bool``")
+        .def("writeBinaryGrid", &speckley::SpeckleyDomain::writeBinaryGrid)
 
+        .def("dump", &speckley::SpeckleyDomain::dump, args("filename"),
+                "Dumps the mesh to a file with the given name.")
         .def("getGridParameters", &speckley::SpeckleyDomain::getGridParameters,
 "Returns the tuple (origin, spacing, elements) where the entries are tuples:\n"
 "``origin``=the coordinates of the domain's global origin,\n"
@@ -322,11 +417,6 @@ BOOST_PYTHON_MODULE(speckleycpp)
             "supported, using the supplied options (if provided)"
             ":param typename:\n:type typename: `string`\n"
             ":param options:\n:type options: `list`\n")
-        .def("addPDEToTransportProblem",&speckley::SpeckleyDomain::addPDEToTransportProblemFromPython,
-            args("tp", "source", "data"),
-            ":param tp:\n:type tp: `TransportProblemAdapter`\n"
-            ":param source:\n:type source: `Data`\n"
-            ":param data:\ntype data: `list`")
         .def("newOperator",&speckley::SpeckleyDomain::newSystemMatrix,
 args("row_blocksize", "row_functionspace", "column_blocksize", "column_functionspace", "type"),
 "creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros\n\n"
@@ -334,14 +424,6 @@ args("row_blocksize", "row_functionspace", "column_blocksize", "column_functions
 ":param row_functionspace:\n:type row_functionspace: `FunctionSpace`\n"
 ":param column_blocksize:\n:type column_blocksize: ``int``\n"
 ":param column_functionspace:\n:type column_functionspace: `FunctionSpace`\n"
-":param type:\n:type type: ``int``"
-)
-        .def("newTransportProblem",&speckley::SpeckleyDomain::newTransportProblem,
-args("theta", "blocksize", "functionspace", "type"),
-"creates a TransportProblemAdapter\n\n"
-":param theta:\n:type theta: ``float``\n"
-":param blocksize:\n:type blocksize: ``int``\n"
-":param functionspace:\n:type functionspace: `FunctionSpace`\n"
 ":param type:\n:type type: ``int``"
 )
         .def("getSystemMatrixTypeId",&speckley::SpeckleyDomain::getSystemMatrixTypeId,
@@ -353,15 +435,7 @@ args("solver", "preconditioner", "package", "symmetry"),
 ":param package:\n:type package: ``int``\n"
 ":param symmetry:\n:type symmetry: ``int``"
 )
-        .def("getTransportTypeId",&speckley::SpeckleyDomain::getTransportTypeId,
-args("solver", "preconditioner", "package", "symmetry"),
-":return: the identifier of the transport problem type to be used when a particular solver, preconditioner, package and symmetric matrix is used.\n"
-":rtype: ``int``\n"
-":param solver:\n:type solver: ``int``\n"
-":param preconditioner:\n:type preconditioner: ``int``\n"
-":param package:\n:type package: ``int``\n"
-":param symmetry:\n:type symmetry: ``int``"
-)
+        .def("writeBinaryGrid", &speckley::SpeckleyDomain::writeBinaryGrid)
         .def("getX",&speckley::SpeckleyDomain::getX, ":return: locations in the FEM nodes\n\n"
 ":rtype: `Data`")
         .def("getNormal",&speckley::SpeckleyDomain::getNormal,
