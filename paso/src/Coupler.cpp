@@ -27,7 +27,7 @@ namespace paso {
  *
  ****************************************************************************/
 
-Coupler::Coupler(Connector_ptr conn, dim_t blockSize) :
+Coupler::Coupler(const_Connector_ptr conn, dim_t blockSize) :
     connector(conn),
     block_size(blockSize),
     in_use(false),

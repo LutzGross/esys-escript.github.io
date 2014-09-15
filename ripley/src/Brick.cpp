@@ -63,7 +63,7 @@ inline int indexOfMax(dim_t a, dim_t b, dim_t c)
 Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
              double x1, double y1, double z1, int d0, int d1, int d2,
              const vector<double>& points, const vector<int>& tags,
-             const simap_t& tagnamestonums,
+             const TagMap& tagnamestonums,
              escript::SubWorld_ptr w) :
     RipleyDomain(3, w)
 {
@@ -204,7 +204,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
 
     populateSampleIds();
 
-    for (simap_t::const_iterator i = tagnamestonums.begin();
+    for (TagMap::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
@@ -2061,6 +2061,24 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
                 integrals[i]+=int_local[i];
         } // end of parallel section
     } // function space selector
+}
+
+//protected
+IndexVector Brick::getDiagonalIndices() const
+{
+    IndexVector ret(27);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
+    size_t idx = 0;
+    for (int i2=-1; i2<2; i2++) {
+        for (int i1=-1; i1<2; i1++) {
+            for (int i0=-1; i0<2; i0++) {
+                ret[idx++] = i2*nDOF0*nDOF1 + i1*nDOF0 + i0;
+            }
+        }
+    }
+
+    return ret;
 }
 
 //protected

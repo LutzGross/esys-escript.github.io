@@ -1430,6 +1430,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
     } // end of parallel section
 }
 
+//protected
 void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                                          AbstractSystemMatrix* mat, Data& rhs,
                                          const Data& d, const Data& y) const
@@ -1608,6 +1609,7 @@ void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
     } // end of parallel section
 }
 
+//protected
 void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix* mat,
                                       Data& rhs, const Data& A, const Data& B,
                                       const Data& C, const Data& D,

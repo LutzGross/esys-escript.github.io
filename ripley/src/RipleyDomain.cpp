@@ -20,13 +20,13 @@
 #include <pasowrap/SystemMatrixAdapter.h>
 #include <pasowrap/TransportProblemAdapter.h>
 #include <ripley/domainhelpers.h>
+#include <ripley/RipleySystemMatrix.h>
 
 #include <iomanip>
 
 namespace bp = boost::python;
 
 using namespace std;
-using paso::SystemMatrixAdapter;
 using paso::TransportProblemAdapter;
 
 namespace ripley {
@@ -36,12 +36,12 @@ void tupleListToMap(DataMap& mapping, const bp::list& list)
     for (int i = 0; i < len(list); i++) {
         if (!bp::extract<bp::tuple>(list[i]).check())
             throw RipleyException("Passed in list contains objects"
-                                    " other than tuples");
+                                  " other than tuples");
         bp::tuple t = bp::extract<bp::tuple>(list[i]);
         if (len(t) != 2 || !bp::extract<string>(t[0]).check() ||
                 !bp::extract<escript::Data>(t[1]).check())
             throw RipleyException("The passed in list must contain tuples"
-                " of the form (string, escript::data)");
+                " of the form (string, escript::Data)");
         mapping[bp::extract<string>(t[0])] = bp::extract<escript::Data>(t[1]);
     }
 }
@@ -763,11 +763,50 @@ void RipleyDomain::Print_Mesh_Info(bool full) const
     }
 }
 
-int RipleyDomain::getSystemMatrixTypeId(int solver, int preconditioner,
-                                        int package, bool symmetry) const
+int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
 {
-    return SystemMatrixAdapter::getSystemMatrixTypeId(solver, preconditioner,
-            package, symmetry, m_mpiInfo);
+    const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
+    int package = sb.getPackage();
+
+    // use CUSP for single rank and supported solvers+preconditioners,
+    // PASO otherwise
+    if (package == escript::SO_DEFAULT) {
+        if (m_mpiInfo->size == 1) {
+            switch (sb.getSolverMethod()) {
+                case escript::SO_DEFAULT:
+                case escript::SO_METHOD_BICGSTAB:
+                case escript::SO_METHOD_CGLS:
+                case escript::SO_METHOD_GMRES:
+                case escript::SO_METHOD_LSQR:
+                case escript::SO_METHOD_PCG:
+                case escript::SO_METHOD_PRES20:
+                    package = escript::SO_PACKAGE_CUSP;
+                    break;
+                default:
+                    package = escript::SO_PACKAGE_PASO;
+            }
+            if (package == escript::SO_PACKAGE_CUSP) {
+                if (sb.getPreconditioner() != escript::SO_PRECONDITIONER_NONE &&
+                        sb.getPreconditioner() != escript::SO_PRECONDITIONER_JACOBI) {
+                    package = escript::SO_PACKAGE_PASO;
+                }
+            }
+        } else {
+            package = escript::SO_PACKAGE_PASO;
+        }
+    }
+
+    if (package == escript::SO_PACKAGE_CUSP) {
+        if (m_mpiInfo->size > 1) {
+            throw RipleyException("CUSP matrices are not supported with more than one rank");
+        }
+        return (int)SMT_CUSP;
+    }
+
+    // in all other cases we use PASO
+    return (int)SMT_PASO | paso::SystemMatrixAdapter::getSystemMatrixTypeId(
+            sb.getSolverMethod(), sb.getPreconditioner(), sb.getPackage(),
+            sb.isSymmetric(), m_mpiInfo);
 }
 
 int RipleyDomain::getTransportTypeId(int solver, int preconditioner,
@@ -799,19 +838,35 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
         reduceColOrder=true;
     else if (column_functionspace.getTypeCode()!=DegreesOfFreedom)
         throw RipleyException("newSystemMatrix: illegal function space type for system matrix columns");
-
-    if (type & MATRIX_FORMAT_TRILINOS_CRS)
-        throw RipleyException("newSystemMatrix: Ripley does not support matrix format TRILINOS_CRS");
+    // are block sizes identical?
+    if (row_blocksize != column_blocksize)
+        throw RipleyException("newSystemMatrix: row/column block sizes must be equal");
+    // are function spaces equal
+    if (reduceRowOrder != reduceColOrder)
+        throw RipleyException("newSystemMatrix: row/column function spaces must be equal");
 
     // generate matrix
-    paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(reduceRowOrder,
-                                                              reduceColOrder));
-    paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
-            row_blocksize, column_blocksize, false));
-    paso::checkPasoError();
-    escript::ASM_ptr sma(new SystemMatrixAdapter(matrix, row_blocksize,
-                row_functionspace, column_blocksize, column_functionspace));
-    return sma;
+    //if (reduceRowOrder || reduceColOrder)
+    //    throw RipleyException("newSystemMatrix: reduced order not supported");
+
+    if (type == (int)SMT_CUSP) {
+        const int numMatrixRows = getNumDOF();
+        escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
+                    row_functionspace, numMatrixRows, getDiagonalIndices()));
+        return sm;
+    } else if (type & (int)SMT_PASO) {
+        paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
+                                            reduceRowOrder, reduceColOrder));
+        type -= (int)SMT_PASO;
+        paso::SystemMatrix_ptr matrix(new paso::SystemMatrix(type, pattern,
+                row_blocksize, column_blocksize, false));
+        escript::ASM_ptr sm(new paso::SystemMatrixAdapter(matrix,
+                    row_blocksize, row_functionspace, column_blocksize,
+                    column_functionspace));
+        return sm;
+    } else {
+        throw RipleyException("newSystemMatrix: unknown matrix type ID");
+    }
 }
 
 void RipleyDomain::addToSystem(escript::AbstractSystemMatrix& mat,
@@ -1087,7 +1142,12 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
         paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
         addToSystemMatrix(S, nodes, numEq, array);
     } else {
-        throw RipleyException("addToSystemMatrix: unknown system matrix type");
+        SystemMatrix* sm = dynamic_cast<SystemMatrix*>(mat);
+        if (sm) {
+            sm->add(nodes, array);
+        } else {
+            throw RipleyException("addToSystemMatrix: unknown system matrix type");
+        }
     }
 }
 

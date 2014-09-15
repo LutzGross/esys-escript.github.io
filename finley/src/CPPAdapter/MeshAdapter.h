@@ -78,11 +78,9 @@ struct null_deleter
    \brief implements the AbstractContinuousDomain interface for the Finley
           library.
 */
-
-class MeshAdapter : public escript::AbstractContinuousDomain {
-
- public:
-
+class FINLEY_DLL_API MeshAdapter : public escript::AbstractContinuousDomain
+{
+public:
   //
   // Codes for function space types supported
   static const int DegreesOfFreedom;
@@ -117,14 +115,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
                                Finley_Mesh_free in the MeshAdapter 
                                destructor.
   */
-  FINLEY_DLL_API
   MeshAdapter(Mesh* finleyMesh=0);
 
   /**
      \brief
      Copy constructor.
   */
-  FINLEY_DLL_API
   MeshAdapter(const MeshAdapter& in);
 
   /**
@@ -133,21 +129,18 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      this calls Finley_Mesh_free for the pointer given to the 
      constructor.
   */
-  FINLEY_DLL_API
   ~MeshAdapter();
 
   /**
      \brief
      return the number of processors used for this domain
   */
-  FINLEY_DLL_API
   virtual int getMPISize() const;
   /**
      \brief
      return the number MPI rank of this processor
   */
 
-  FINLEY_DLL_API
   virtual int getMPIRank() const;
 
   /**
@@ -155,7 +148,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      If compiled for MPI then execute an MPI_Barrier, else do nothing
   */
 
-  FINLEY_DLL_API
   virtual void MPIBarrier() const;
 
   /**
@@ -163,10 +155,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Return true if on MPI processor 0, else false
   */
 
-  FINLEY_DLL_API
   virtual bool onMasterProcessor() const;
 
-  FINLEY_DLL_API
   MPI_Comm getMPIComm() const;
 
   /**
@@ -174,14 +164,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Write the current mesh to a file with the given name.
      \param fileName Input - The name of the file to write to.
   */
-  FINLEY_DLL_API
   void write(const std::string& fileName) const;
 
   /**
      \brief
      \param full
   */
-  FINLEY_DLL_API
   void Print_Mesh_Info(const bool full=false) const;
 
   /**
@@ -189,14 +177,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      dumps the mesh to a file with the given name.
      \param fileName Input - The name of the file
   */
-  FINLEY_DLL_API
   void dump(const std::string& fileName) const;
 
   /**
      \brief
      return the pointer to the underlying finley mesh structure
   */
-  FINLEY_DLL_API
   Mesh* getFinley_Mesh() const;
 
    /**
@@ -205,7 +191,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param functionSpaceType Input - The function space type.
      \param sampleNo Input - The sample number.
   */
-  FINLEY_DLL_API
   int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
 
   /**
@@ -213,7 +198,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Return the reference number of  the given sample number.
      \param functionSpaceType Input - The function space type.
   */
-  FINLEY_DLL_API
   const int* borrowSampleReferenceIDs(int functionSpaceType) const;
 
   /**
@@ -221,119 +205,102 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Returns true if the given integer is a valid function space type
      for this domain.
   */
-  FINLEY_DLL_API
   virtual bool isValidFunctionSpaceType(int functionSpaceType) const;
 
   /**
      \brief
      Return a description for this domain
   */
-  FINLEY_DLL_API
   virtual std::string getDescription() const;
 
   /**
      \brief
      Return a description for the given function space type code
   */
-  FINLEY_DLL_API
   virtual std::string functionSpaceTypeAsString(int functionSpaceType) const;
 
   /**
      \brief
      Build the table of function space type names
   */
-  FINLEY_DLL_API
   void setFunctionSpaceTypeNames();
 
   /**
      \brief
      Return a continuous FunctionSpace code
   */
-  FINLEY_DLL_API
   virtual int getContinuousFunctionCode() const;
 
   /**
      \brief
      Return a continuous on reduced order nodes FunctionSpace code
   */
-  FINLEY_DLL_API
   virtual int getReducedContinuousFunctionCode() const;
 
   /**
      \brief
      Return a function FunctionSpace code
   */
-  FINLEY_DLL_API
   virtual int getFunctionCode() const;
 
   /**
      \brief
      Return a function with reduced integration order FunctionSpace code
   */
-  FINLEY_DLL_API
   virtual int getReducedFunctionCode() const;
 
   /**
      \brief
      Return a function on boundary FunctionSpace code
   */
-  FINLEY_DLL_API
   virtual int getFunctionOnBoundaryCode() const;
 
   /**
      \brief
      Return a function on boundary with reduced integration order FunctionSpace code
   */
-  FINLEY_DLL_API
   virtual int getReducedFunctionOnBoundaryCode() const;
 
   /**
      \brief
      Return a FunctionOnContactZero code
   */
-  FINLEY_DLL_API
   virtual int getFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactZero code  with reduced integration order
   */
-  FINLEY_DLL_API
   virtual int getReducedFunctionOnContactZeroCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne code
   */
-  FINLEY_DLL_API
   virtual int getFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a FunctionOnContactOne code  with reduced integration order
   */
-  FINLEY_DLL_API
   virtual int getReducedFunctionOnContactOneCode() const;
 
   /**
      \brief
      Return a Solution code
   */
-  FINLEY_DLL_API
   virtual int getSolutionCode() const;
 
   /**
      \brief
      Return a ReducedSolution code
   */
-  FINLEY_DLL_API
   virtual int getReducedSolutionCode() const;
 
   /**
      \brief
      Return a DiracDeltaFunctions code
   */
-  FINLEY_DLL_API
   virtual int getDiracDeltaFunctionsCode() const;
 
   /**
@@ -344,7 +311,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   /**
      \brief
   */
-  FINLEY_DLL_API
   virtual int getDim() const;
 
   /**
@@ -355,7 +321,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
      This has to be implemented by the actual Domain adapter.
   */
-  FINLEY_DLL_API
   virtual StatusType getStatus() const;
 
 
@@ -363,7 +328,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      Return the number of data points summed across all MPI processes
   */
-  FINLEY_DLL_API
   virtual int getNumDataPointsGlobal() const;
 
   /**
@@ -371,7 +335,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Return the number of data points per sample, and the number of samples as a pair.
      \param functionSpaceCode Input -
   */
-  FINLEY_DLL_API
   virtual std::pair<int,int> getDataShape(int functionSpaceCode) const;
 
   /**
@@ -379,7 +342,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      copies the location of data points into arg. The domain of arg has to match this.
      has to be implemented by the actual Domain adapter.
   */
-  FINLEY_DLL_API
   virtual void setToX(escript::Data& arg) const;
 
   /**
@@ -388,7 +350,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param name Input - tag name.
      \param tag Input - tag key.
   */
-  FINLEY_DLL_API
   virtual void setTagMap(const std::string& name,  int tag);
 
   /**
@@ -396,7 +357,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Return the tag key for tag name.
      \param name Input - tag name
   */
-  FINLEY_DLL_API
   virtual int getTag(const std::string& name) const;
 
   /**
@@ -404,35 +364,29 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      Returns true if name is a defined tage name. 
      \param name Input - tag name to be checked.
   */
-  FINLEY_DLL_API
   virtual bool isValidTagName(const std::string& name) const;
 
   /**
      \brief
      Returns all tag names in a single string sperated by commas
   */
-  FINLEY_DLL_API
   virtual std::string showTagNames() const;
 
   /**
      \brief
      assigns new location to the domain
   */
-  FINLEY_DLL_API
   virtual void setNewX(const escript::Data& arg);
 
   /**
      \brief
      interpolates data given on source onto target where source and target have to be given on the same domain.
   */
-  FINLEY_DLL_API
   virtual void interpolateOnDomain(escript::Data& target,const escript::Data& source) const;
 
 
-  FINLEY_DLL_API
   virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
   
-  FINLEY_DLL_API
   virtual signed char preferredInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
   
   
@@ -441,7 +395,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
     \brief given a vector of FunctionSpace typecodes, pass back a code which then can all be interpolated to.
     \return true is result is valid, false if not
   */
-  FINLEY_DLL_API
   bool
   commonFunctionSpace(const std::vector<int>& fs, int& resultcode) const;
 
@@ -450,14 +403,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      interpolates data given on source onto target where source and target are given on different domains.
      has to be implemented by the actual Domain adapter.
   */
-  FINLEY_DLL_API
   virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
 
   /**
   \brief determines whether interpolation from source to target is possible.
   Must be implemented by the actual Domain adapter
   */
-  FINLEY_DLL_API
   virtual bool probeInterpolationACross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
   /**
@@ -465,7 +416,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      copies the surface normals at data points into out. The actual function space to be considered
      is defined by out. out has to be defined on this.
   */
-  FINLEY_DLL_API
   virtual void setToNormal(escript::Data& out) const;
 
   /**
@@ -473,7 +423,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      copies the size of samples into out. The actual function space to be considered
      is defined by out. out has to be defined on this.
   */
-  FINLEY_DLL_API
   virtual void setToSize(escript::Data& out) const;
 
   /**
@@ -481,7 +430,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      copies the gradient of arg into grad. The actual function space to be considered
      for the gradient is defined by grad. arg and grad have to be defined on this.
   */
-  FINLEY_DLL_API
   virtual void setToGradient(escript::Data& grad,const escript::Data& arg) const;
 
   /**
@@ -489,7 +437,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      copies the integrals of the function defined by arg into integrals.
      arg has to be defined on this.
   */
-  FINLEY_DLL_API
   virtual void setToIntegrals(std::vector<double>& integrals,const escript::Data& arg) const;
 
   /**
@@ -501,8 +448,7 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param package
      \param symmetry 
   */
-  FINLEY_DLL_API
-  virtual int getSystemMatrixTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
+  virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
   /**
      \brief
@@ -513,7 +459,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \param package
      \param symmetry 
   */
-  FINLEY_DLL_API
   virtual int getTransportTypeId(const int solver, const int preconditioner, const int package, const bool symmetry) const;
 
   /**
@@ -521,11 +466,9 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      returns true if data on this domain and a function space of type functionSpaceCode has to 
      considered as cell centered data.
   */
-  FINLEY_DLL_API
   virtual bool isCellOriented(int functionSpaceCode) const;
 
 
-  FINLEY_DLL_API
   virtual bool ownSample(int fs_code, index_t id) const;
 
   /**
@@ -539,7 +482,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  FINLEY_DLL_API
   virtual void addPDEToSystem(
                      escript::AbstractSystemMatrix& mat, escript::Data& rhs,
                      const escript::Data& A, const escript::Data& B, const escript::Data& C, 
@@ -551,7 +493,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      adds a PDE onto the lumped stiffness matrix matrix
   */
-  FINLEY_DLL_API
   virtual void addPDEToLumpedSystem(
                      escript::Data& mat,
                      const escript::Data& D, 
@@ -563,7 +504,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
      adds a PDE onto the stiffness matrix mat and a rhs 
   */
-  FINLEY_DLL_API
   virtual void addPDEToRHS(escript::Data& rhs,
                      const escript::Data& X, const escript::Data& Y,
                      const escript::Data& y, const escript::Data& y_contact, const escript::Data& y_dirac) const;
@@ -572,7 +512,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      adds a PDE onto a transport problem
   */
 
-  FINLEY_DLL_API
   virtual void addPDEToTransportProblem(
                      escript::AbstractTransportProblem& tp, escript::Data& source, 
                      const escript::Data& M,
@@ -586,7 +525,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      \brief
     creates a SystemMatrixAdapter stiffness matrix and initializes it with zeros:
   */
-  FINLEY_DLL_API
   escript::ASM_ptr newSystemMatrix(
                       const int row_blocksize,
                       const escript::FunctionSpace& row_functionspace,
@@ -599,7 +537,6 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
 
   */
 
-  FINLEY_DLL_API
   escript::ATP_ptr newTransportProblem(
                       const int blocksize,
                       const escript::FunctionSpace& functionspace,
@@ -608,27 +545,22 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
   /**
      \brief returns locations in the FEM nodes
   */
-  FINLEY_DLL_API
   virtual escript::Data getX() const;
 
   /**
      \brief return boundary normals at the quadrature point on the face elements
   */
-  FINLEY_DLL_API
   virtual escript::Data getNormal() const;
 
   /**
      \brief returns the element size
   */
-  FINLEY_DLL_API
   virtual escript::Data getSize() const;
 
   /**
      \brief comparison operators
   */
-  FINLEY_DLL_API
   virtual bool operator==(const escript::AbstractDomain& other) const;
-  FINLEY_DLL_API
   virtual bool operator!=(const escript::AbstractDomain& other) const;
 
   /**
@@ -636,24 +568,20 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
      value of mask for any its sample point.
 
   */
-  FINLEY_DLL_API
   virtual void setTags(const int functionSpaceType, const int newTag, const escript::Data& mask) const;
 
   /**
       \brief
           return the number of tags in use and a pointer to an array with the number of tags in use
   */
-  FINLEY_DLL_API
   virtual int getNumberOfTagsInUse(int functionSpaceCode) const;
 
-  FINLEY_DLL_API 
   virtual const int* borrowListOfTagsInUse(int functionSpaceCode) const;
 
 
   /**
      \brief Checks if this domain allows tags for the specified functionSpaceCode.
   */
-  FINLEY_DLL_API
   virtual
   bool canTag(int functionSpaceCode) const;
 
@@ -661,15 +589,12 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
    \brief returns the approximation order used for a function space functionSpaceCode
    */
 
-  FINLEY_DLL_API
   virtual 
   int getApproximationOrder(const int functionSpaceCode) const;
 
-  FINLEY_DLL_API
   bool supportsContactElements() const;
   
 
-  FINLEY_DLL_API
   virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
        const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;       
   
@@ -682,11 +607,8 @@ class MeshAdapter : public escript::AbstractContinuousDomain {
    Do NOT call these at any time other than construction!
    Using them later creates consistency problems
    */
-  FINLEY_DLL_API
   void addDiracPoints( const std::vector<double>& points, const std::vector<int>& tags) const;
-//  FINLEY_DLL_API
 //  void addDiracPoint( const boost::python::list& points, const int tag=-1) const;
-//   FINLEY_DLL_API
 //   void addDiracPointWithTagName( const boost::python::list& points, const std::string& tag) const;
 
  protected:

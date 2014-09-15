@@ -1673,8 +1673,7 @@ class LinearPDE(LinearProblem):
       if self.isUsingLumping():
          return "__ESCRIPT_DATA"
       else:
-         solver_options=self.getSolverOptions()
-         return self.getDomain().getSystemMatrixTypeId(solver_options.getSolverMethod(), solver_options.getPreconditioner(),solver_options.getPackage(), solver_options.isSymmetric())
+         return self.getDomain().getSystemMatrixTypeId(self.getSolverOptions())
 
    def checkSymmetry(self,verbose=True):
       """

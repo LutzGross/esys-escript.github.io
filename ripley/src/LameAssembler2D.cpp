@@ -59,6 +59,7 @@ void LameAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
 {
     throw RipleyException("assemblePDESingleReduced not implemented in LameAssembler2D");
 }
+
 void LameAssembler2D::assemblePDEBoundarySingleReduced(
                                          AbstractSystemMatrix* mat, Data& rhs,
                                          const DataMap& coefs) const
