@@ -535,7 +535,7 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const std::string& 
 
     for (dim_t y=0; y<num1; y++) {
         const dim_t fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
-            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
+        memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
         const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
         dim_t dataYbase = first1+y*params.multiplier[1];
         if (y>0)
