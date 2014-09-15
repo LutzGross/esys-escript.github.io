@@ -281,17 +281,17 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
-    const int first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
-    int idx2 = max(0, m_offset[2]-params.first[2]);
+    dim_t idx0 = max(0, m_offset[0]-params.first[0]);
+    dim_t idx1 = max(0, m_offset[1]-params.first[1]);
+    dim_t idx2 = max(0, m_offset[2]-params.first[2]);
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
-    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num2 = min(params.numValues[2]-idx2, myN2-first2);
 
     // make sure we read the right block if going backwards through file
     if (params.reverse[0])
@@ -318,28 +318,28 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     out.requireWrite();
 
     // helpers for reversing
-    const int x0 = (params.reverse[0] ? num0-1 : 0);
+    const dim_t x0 = (params.reverse[0] ? num0-1 : 0);
     const int x_mult = (params.reverse[0] ? -1 : 1);
-    const int y0 = (params.reverse[1] ? num1-1 : 0);
+    const dim_t y0 = (params.reverse[1] ? num1-1 : 0);
     const int y_mult = (params.reverse[1] ? -1 : 1);
-    const int z0 = (params.reverse[2] ? num2-1 : 0);
+    const dim_t z0 = (params.reverse[2] ? num2-1 : 0);
     const int z_mult = (params.reverse[2] ? -1 : 1);
 
     for (index_t z=0; z<num2; z++) {
         for (index_t y=0; y<num1; y++) {
 #pragma omp parallel for
             for (index_t x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
+                const dim_t baseIndex = first0+x*params.multiplier[0]
                                      +(first1+y*params.multiplier[1])*myN0
                                      +(first2+z*params.multiplier[2])*myN0*myN1;
-                const int srcIndex=(z0+z_mult*z)*num1*num0
+                const dim_t srcIndex=(z0+z_mult*z)*num1*num0
                                   +(y0+y_mult*y)*num0
                                   +(x0+x_mult*x);
                 if (!isnan(values[srcIndex])) {
                     for (index_t m2=0; m2<params.multiplier[2]; m2++) {
                         for (index_t m1=0; m1<params.multiplier[1]; m1++) {
                             for (index_t m0=0; m0<params.multiplier[0]; m0++) {
-                                const int dataIndex = baseIndex+m0
+                                const dim_t dataIndex = baseIndex+m0
                                                +m1*myN0
                                                +m2*myN0*myN1;
                                 double* dest = out.getSampleDataRW(dataIndex);
@@ -405,16 +405,15 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
                                const ReaderParameters& params) const
 {
     // check destination function space
-    int myN0, myN1, myN2;
+    dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
-        myN0 = m_NN[0];
-        myN1 = m_NN[1];
-        myN2 = m_NN[2];
-    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
-                out.getFunctionSpace().getTypeCode() == ReducedElements) {
-        myN0 = m_NE[0];
-        myN1 = m_NE[1];
-        myN2 = m_NE[2];
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+        myN2 = m_NE[2] + 1;
+//    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+//        myN2 = m_NE[2];
     } else
         throw SpeckleyException("readBinaryGrid(): invalid function space for output data object");
 
@@ -439,8 +438,8 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
-    const int filesize = f.tellg();
-    const int reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
+    const dim_t filesize = f.tellg();
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         f.close();
         throw SpeckleyException("readBinaryGrid(): not enough data in file");
@@ -460,17 +459,24 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
-    const int first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    int idx0 = max(0, m_offset[0]-params.first[0]);
-    int idx1 = max(0, m_offset[1]-params.first[1]);
-    int idx2 = max(0, m_offset[2]-params.first[2]);
+    dim_t idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    dim_t idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    dim_t idx2 = max(0, (m_offset[2]/params.multiplier[2])-params.first[2]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const dim_t rest0 = m_offset[0]%params.multiplier[0];
+    const dim_t rest1 = m_offset[1]%params.multiplier[1];
+    const dim_t rest2 = m_offset[2]%params.multiplier[2];
+
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
-    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num2 = min(params.numValues[2]-idx2, myN2-first2);
 
     // make sure we read the right block if going backwards through file
     if (params.reverse[2])
@@ -483,32 +489,55 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (int z=0; z<num2; z++) {
-        for (int y=0; y<num1; y++) {
-            const int fileofs = numComp*(idx0 +
+    for (dim_t z=0; z<num2; z++) {
+        const dim_t m2limit = (z==0 ? params.multiplier[2]-rest2 : params.multiplier[2]);
+        dim_t dataZbase = first2 + z*params.multiplier[2];
+        if (z>0)
+            dataZbase -= rest2;
+
+        for (dim_t y=0; y<num1; y++) {
+            const dim_t fileofs = numComp*(idx0 +
                                 (idx1+y)*params.numValues[0] +
                                 (idx2+z_mult*z)*params.numValues[0]*params.numValues[1]);
             f.seekg(fileofs*sizeof(ValueType));
             f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+            const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+            dim_t dataYbase = first1 + y*params.multiplier[1];
+            if (y>0)
+                dataYbase -= rest1;
 
-            for (int x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
-                                     +(first1+y*params.multiplier[1])*myN0
-                                     +(first2+z*params.multiplier[2])*myN0*myN1;
-                for (int m2=0; m2<params.multiplier[2]; m2++) {
-                    for (int m1=0; m1<params.multiplier[1]; m1++) {
-                        for (int m0=0; m0<params.multiplier[0]; m0++) {
-                            const int dataIndex = baseIndex+m0
-                                           +m1*myN0
-                                           +m2*myN0*myN1;
-                            double* dest = out.getSampleDataRW(dataIndex);
+            for (dim_t x=0; x<num0; x++) {
+                const dim_t m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+                dim_t dataXbase = first0 + x*params.multiplier[0];
+                if (x>0)
+                    dataXbase -= rest0;
+                // write a block of mult0 x mult1 x mult2 identical values into
+                // Data object
+                for (dim_t m2=0; m2 < m2limit; m2++) {
+                    const dim_t dataZ = dataZbase + m2;
+                    if (dataZ >= myN2)
+                        break;
+                    for (dim_t m1=0; m1 < m1limit; m1++) {
+                        const dim_t dataY = dataYbase + m1;
+                        if (dataY >= myN1)
+                            break;
+                        for (dim_t m0=0; m0 < m0limit; m0++) {
+                            const dim_t dataX = dataXbase + m0;
+                            if (dataX >= myN0)
+                                break;
+                            const dim_t dataIndex = INDEX3(dataX, dataY, dataZ, m_NN[0],m_NN[1]);
+                            double* dest = out.getSampleDataRW(dataIndex*m_order);
                             for (int c=0; c<numComp; c++) {
                                 ValueType val = values[x*numComp+c];
 
                                 if (params.byteOrder != BYTEORDER_NATIVE) {
                                     char* cval = reinterpret_cast<char*>(&val);
                                     // this will alter val!!
-                                    byte_swap32(cval);
+                                    if (sizeof(ValueType)>4) {
+                                        byte_swap64(cval);
+                                    } else {
+                                        byte_swap32(cval);
+                                    }
                                 }
                                 if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
@@ -532,16 +561,15 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
                                const ReaderParameters& params) const
 {
     // check destination function space
-    int myN0, myN1, myN2;
+    dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
-        myN0 = m_NN[0];
-        myN1 = m_NN[1];
-        myN2 = m_NN[2];
-    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
-                out.getFunctionSpace().getTypeCode() == ReducedElements) {
-        myN0 = m_NE[0];
-        myN1 = m_NE[1];
-        myN2 = m_NE[2];
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+        myN2 = m_NE[2] + 1;
+//    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+//        myN2 = m_NE[2];
     } else
         throw SpeckleyException("readBinaryGridFromZipped(): invalid function space for output data object");
 
@@ -564,14 +592,14 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     }
     f.seekg(0, ios::end);
     const int numComp = out.getDataPointSize();
-    int filesize = f.tellg();
+    dim_t filesize = f.tellg();
     f.seekg(0, ios::beg);
     std::vector<char> compressed(filesize);
     f.read((char*)&compressed[0], filesize);
     f.close();
     std::vector<char> decompressed = unzip(compressed);
     filesize = decompressed.size();
-    const int reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*params.numValues[2]*numComp*sizeof(ValueType);
     if (filesize < reqsize) {
         throw SpeckleyException("readBinaryGridFromZipped(): not enough data in file");
     }
@@ -589,46 +617,84 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const int first0 = max(0, params.first[0]-m_offset[0]);
-    const int first1 = max(0, params.first[1]-m_offset[1]);
-    const int first2 = max(0, params.first[2]-m_offset[2]);
-    // indices to first value in file
-    const int idx0 = max(0, m_offset[0]-params.first[0]);
-    const int idx1 = max(0, m_offset[1]-params.first[1]);
-    const int idx2 = max(0, m_offset[2]-params.first[2]);
+    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
+    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
+    // indices to first value in file (not accounting for reverse yet)
+    dim_t idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    dim_t idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    dim_t idx2 = max(0, (m_offset[2]/params.multiplier[2])-params.first[2]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const dim_t rest0 = m_offset[0]%params.multiplier[0];
+    const dim_t rest1 = m_offset[1]%params.multiplier[1];
+    const dim_t rest2 = m_offset[2]%params.multiplier[2];
+
     // number of values to read
-    const int num0 = min(params.numValues[0]-idx0, myN0-first0);
-    const int num1 = min(params.numValues[1]-idx1, myN1-first1);
-    const int num2 = min(params.numValues[2]-idx2, myN2-first2);
+    const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
+    const dim_t num2 = min(params.numValues[2]-idx2, myN2-first2);
+
+    // make sure we read the right block if going backwards through file
+    if (params.reverse[2])
+        idx2 = params.numValues[2]-idx2-1;
+
+    // helpers for reversing
+    const int z_mult = (params.reverse[2] ? -1 : 1);
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
     const int dpp = out.getNumDataPointsPerSample();
 
-    for (int z=0; z<num2; z++) {
-        for (int y=0; y<num1; y++) {
-            const int fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]
-                             +(idx2+z)*params.numValues[0]*params.numValues[1]);
-            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
+    for (dim_t z=0; z<num2; z++) {
+        const dim_t m2limit = (z==0 ? params.multiplier[2]-rest2 : params.multiplier[2]);
+        dim_t dataZbase = first2 + z*params.multiplier[2];
+        if (z>0)
+            dataZbase -= rest2;
 
-            for (int x=0; x<num0; x++) {
-                const int baseIndex = first0+x*params.multiplier[0]
-                                     +(first1+y*params.multiplier[1])*myN0
-                                     +(first2+z*params.multiplier[2])*myN0*myN1;
-                for (int m2=0; m2<params.multiplier[2]; m2++) {
-                    for (int m1=0; m1<params.multiplier[1]; m1++) {
-                        for (int m0=0; m0<params.multiplier[0]; m0++) {
-                            const int dataIndex = baseIndex+m0
-                                           +m1*myN0
-                                           +m2*myN0*myN1;
-                            double* dest = out.getSampleDataRW(dataIndex);
+        for (dim_t y=0; y<num1; y++) {
+            const dim_t fileofs = numComp*(idx0 +
+                                (idx1+y)*params.numValues[0] +
+                                (idx2+z_mult*z)*params.numValues[0]*params.numValues[1]);
+            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
+            const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+            dim_t dataYbase = first1 + y*params.multiplier[1];
+            if (y>0)
+                dataYbase -= rest1;
+
+            for (dim_t x=0; x<num0; x++) {
+                const dim_t m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+                dim_t dataXbase = first0 + x*params.multiplier[0];
+                if (x>0)
+                    dataXbase -= rest0;
+                // write a block of mult0 x mult1 x mult2 identical values into
+                // Data object
+                for (dim_t m2=0; m2 < m2limit; m2++) {
+                    const dim_t dataZ = dataZbase + m2;
+                    if (dataZ >= myN2)
+                        break;
+                    for (dim_t m1=0; m1 < m1limit; m1++) {
+                        const dim_t dataY = dataYbase + m1;
+                        if (dataY >= myN1)
+                            break;
+                        for (dim_t m0=0; m0 < m0limit; m0++) {
+                            const dim_t dataX = dataXbase + m0;
+                            if (dataX >= myN0)
+                                break;
+                            const dim_t dataIndex = INDEX3(dataX, dataY, dataZ, m_NN[0],m_NN[1]);
+                            double* dest = out.getSampleDataRW(dataIndex*m_order);
                             for (int c=0; c<numComp; c++) {
                                 ValueType val = values[x*numComp+c];
 
                                 if (params.byteOrder != BYTEORDER_NATIVE) {
                                     char* cval = reinterpret_cast<char*>(&val);
                                     // this will alter val!!
-                                    byte_swap32(cval);
+                                    if (sizeof(ValueType)>4) {
+                                        byte_swap64(cval);
+                                    } else {
+                                        byte_swap32(cval);
+                                    }
                                 }
                                 if (!isnan(val)) {
                                     for (int q=0; q<dpp; q++) {
@@ -670,17 +736,16 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
                                 const string& filename, int byteOrder) const
 {
     // check function space and determine number of points
-    int myN0, myN1, myN2;
-    int totalN0, totalN1, totalN2;
+    dim_t myN0, myN1, myN2;
+    dim_t totalN0, totalN1, totalN2;
     if (in.getFunctionSpace().getTypeCode() == Nodes) {
-        myN0 = m_NN[0];
-        myN1 = m_NN[1];
-        myN2 = m_NN[2];
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+        myN2 = m_NE[2] + 1;
         totalN0 = m_gNE[0]+1;
         totalN1 = m_gNE[1]+1;
         totalN2 = m_gNE[2]+1;
-    } else if (in.getFunctionSpace().getTypeCode() == Elements ||
-                in.getFunctionSpace().getTypeCode() == ReducedElements) {
+    } else if (in.getFunctionSpace().getTypeCode() == Elements) {
         myN0 = m_NE[0];
         myN1 = m_NE[1];
         myN2 = m_NE[2];
@@ -692,7 +757,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
 
     const int numComp = in.getDataPointSize();
     const int dpp = in.getNumDataPointsPerSample();
-    const int fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1*totalN2;
+    const dim_t fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1*totalN2;
 
     if (numComp > 1 || dpp > 1)
         throw SpeckleyException("writeBinaryGrid(): only scalar, single-value data supported");
@@ -704,12 +769,13 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
 
     for (index_t z=0; z<myN2; z++) {
         for (index_t y=0; y<myN1; y++) {
-            const int fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
+            const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
                                 +(m_offset[2]+z)*totalN0*totalN1)*sizeof(ValueType);
             ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {
-                const double* sample = in.getSampleDataRO(z*myN0*myN1+y*myN0+x);
+                const double* sample = in.getSampleDataRO(
+                                INDEX3(x,y,z,m_NN[0],m_NN[1])*m_order);
                 ValueType fvalue = static_cast<ValueType>(*sample);
                 if (byteOrder == BYTEORDER_NATIVE) {
                     oss.write((char*)&fvalue, sizeof(fvalue));
@@ -798,9 +864,9 @@ void Brick::dump(const string& fileName) const
     boost::scoped_ptr<double> y(new double[m_NN[1]]);
     boost::scoped_ptr<double> z(new double[m_NN[2]]);
     double* coords[3] = { x.get(), y.get(), z.get() };
-    const int NN0 = m_NN[0];
-    const int NN1 = m_NN[1];
-    const int NN2 = m_NN[2];
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    const dim_t NN2 = m_NN[2];
 
 #pragma omp parallel
     {
@@ -817,7 +883,7 @@ void Brick::dump(const string& fileName) const
             coords[2][i2]=getLocalCoordinate(i2, 2);
         }
     }
-    int* dims = const_cast<int*>(getNumNodesPerDim());
+    dim_t* dims = const_cast<dim_t*>(getNumNodesPerDim());
 
     // write mesh
     DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 3, DB_DOUBLE,
@@ -828,7 +894,7 @@ void Brick::dump(const string& fileName) const
             NULL, 0, DB_INT, DB_NODECENT, NULL);
 
     // write element ids
-    dims = const_cast<int*>(getNumElementsPerDim());
+    dims = const_cast<dim_t*>(getNumElementsPerDim());
     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
             dims, 3, NULL, 0, DB_INT, DB_ZONECENT, NULL);
 
@@ -883,20 +949,15 @@ void Brick::dump(const string& fileName) const
 #endif
 }
 
-const int* Brick::borrowSampleReferenceIDs(int fsType) const
+const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom: // FIXME: reduced
-//            return &m_dofId[0];
         case Nodes:
-        case ReducedNodes: // FIXME: reduced
             return &m_nodeId[0];
         case Elements:
-        case ReducedElements:
             return &m_elementId[0];
         case FaceElements:
-        case ReducedFaceElements:
             return &m_faceId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
@@ -927,7 +988,7 @@ void Brick::setToSize(escript::Data& out) const
         out.requireWrite();
         const dim_t numQuad = out.getNumDataPointsPerSample();
         const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]+m_dx[2]*m_dx[2]);
-        const int numElements = getNumElements();
+        const dim_t numElements = getNumElements();
 #pragma omp parallel for
         for (index_t k = 0; k < numElements; ++k) {
             double* o = out.getSampleDataRW(k);
@@ -937,9 +998,9 @@ void Brick::setToSize(escript::Data& out) const
             || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
         out.requireWrite();
         const dim_t numQuad=out.getNumDataPointsPerSample();
-        const int NE0 = m_NE[0];
-        const int NE1 = m_NE[1];
-        const int NE2 = m_NE[2];
+        const dim_t NE0 = m_NE[0];
+        const dim_t NE1 = m_NE[1];
+        const dim_t NE2 = m_NE[2];
 #pragma omp parallel
         {
             if (m_faceOffset[0] > -1) {
@@ -1037,11 +1098,6 @@ void Brick::Print_Mesh_Info(const bool full) const
 //protected
 void Brick::assembleCoordinates(escript::Data& arg) const
 {
-    const int index = m_order-2;
-    const int max_x = m_order*m_NE[0] + 1;
-    const int max_y = m_order*m_NE[1] + 1;
-    const int max_z = m_order*m_NE[2] + 1;
-
     escriptDataC dc = arg.getDataC();
     int numDim = m_numDim;
     if (!isDataPointShapeEqual(&dc, 1, &numDim))
@@ -1049,15 +1105,18 @@ void Brick::assembleCoordinates(escript::Data& arg) const
     if (!numSamplesEqual(&dc, 1, getNumNodes()))
         throw SpeckleyException("setToX: Illegal number of samples in Data object");
 
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    const dim_t NN2 = m_NN[2];
     arg.requireWrite();
 #pragma omp parallel for
-    for (dim_t z = 0; z < max_z; z++) {
-        for (dim_t y = 0; y < max_y; y++) {
-            for (dim_t x = 0; x < max_x; x++) {
-                double *point = arg.getSampleDataRW(INDEX3(x,y,z,max_x,max_y));
-                point[0] = m_origin[0] + m_dx[0]*(m_offset[0] + x/m_order + point_locations[index][x%m_order]);
-                point[1] = m_origin[1] + m_dx[1]*(m_offset[1] + y/m_order + point_locations[index][y%m_order]);
-                point[2] = m_origin[2] + m_dx[2]*(m_offset[2] + z/m_order + point_locations[index][z%m_order]);
+    for (dim_t i2 = 0; i2 < NN2; i2++) {
+        for (dim_t i1 = 0; i1 < NN1; i1++) {
+            for (dim_t i0 = 0; i0 < NN0; i0++) {
+                double* point = arg.getSampleDataRW(i0+NN0*i1+NN0*NN1*i2);
+                point[0] = getLocalCoordinate(i0, 0);
+                point[1] = getLocalCoordinate(i1, 1);
+                point[2] = getLocalCoordinate(i2, 2);
             }
         }
     }
@@ -1193,9 +1252,9 @@ void Brick::populateSampleIds()
     const dim_t NFE = getNumFaceElements();
     m_faceId.resize(NFE);
 
-    const int left = (m_offset[0]==0 ? 0 : 1);
-    const int front = (m_offset[1]==0 ? 0 : 1);
-    const int bottom = (m_offset[2]==0 ? 0 : 1);
+    const index_t left = (m_offset[0]==0 ? 0 : 1);
+    const index_t front = (m_offset[1]==0 ? 0 : 1);
+    const index_t bottom = (m_offset[2]==0 ? 0 : 1);
 
     const int rank = m_mpiInfo->rank;
 
@@ -1316,13 +1375,13 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
         throw SpeckleyException("Speckley does not support "
                 "reduced functionspaces");
     const dim_t numComp = in.getDataPointSize();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
+    const dim_t NE2 = m_NE[2];
     const int quads = m_order + 1;
-    const int max_x = (m_order*NE0) + 1;
-    const int max_y = (m_order*NE1) + 1;
-    const int max_z = (m_order*NE2) + 1;
+    const int max_x = m_NN[0];
+    const int max_y = m_NN[1];
+    const int max_z = m_NN[2];
     out.requireWrite();
     //init to zero so we can do some sums without undefined, may not be required
     memset(out.getSampleDataRW(0), 0, sizeof(double)*quads*quads*numComp);
@@ -1363,9 +1422,9 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     */
     // for every non-border edge in x
 #pragma omp parallel for
-    for (int qz = 0; qz < max_z; qz++) {
-        for (int qy = 0; qy < max_y; qy++) {
-            for (int qx = m_order; qx < max_x - m_order; qx += m_order) {
+    for (index_t qz = 0; qz < max_z; qz++) {
+        for (index_t qy = 0; qy < max_y; qy++) {
+            for (index_t qx = m_order; qx < max_x - m_order; qx += m_order) {
                 double *n_out = out.getSampleDataRW(INDEX3(qx, qy, qz, max_x, max_y));
                 for (int comp = 0; comp < numComp; comp++) {
                     n_out[comp] /= 2.;
@@ -1375,9 +1434,9 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     }
     // for every non-border edge in y
 #pragma omp parallel for
-    for (int qz = 0; qz < max_z; qz++) {
-        for (int qy = m_order; qy < max_y - m_order; qy += m_order) {
-            for (int qx = 0; qx < max_x; qx ++) {
+    for (index_t qz = 0; qz < max_z; qz++) {
+        for (index_t qy = m_order; qy < max_y - m_order; qy += m_order) {
+            for (index_t qx = 0; qx < max_x; qx ++) {
                 double *n_out = out.getSampleDataRW(INDEX3(qx, qy, qz, max_x, max_y));
                 for (int comp = 0; comp < numComp; comp++) {
                     n_out[comp] /= 2.;
@@ -1387,9 +1446,9 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     }
     // for every non-border edge in z
 #pragma omp parallel for
-    for (int qz = m_order; qz < max_z - m_order; qz += m_order) {
-        for (int qy = 0; qy < max_y; qy++) {
-            for (int qx = 0; qx < max_x; qx++) {
+    for (index_t qz = m_order; qz < max_z - m_order; qz += m_order) {
+        for (index_t qy = 0; qy < max_y; qy++) {
+            for (index_t qx = 0; qx < max_x; qx++) {
                 double *n_out = out.getSampleDataRW(INDEX3(qx, qy, qz, max_x, max_y));
                 for (int comp = 0; comp < numComp; comp++) {
                     n_out[comp] /= 2.;
@@ -1405,12 +1464,12 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
                                        bool reduced) const
 {
     const dim_t numComp = in.getDataPointSize();
-    const int NE0 = m_NE[0];
-    const int NE1 = m_NE[1];
-    const int NE2 = m_NE[2];
+    const dim_t NE0 = m_NE[0];
+    const dim_t NE1 = m_NE[1];
+    const dim_t NE2 = m_NE[2];
     const int quads = m_order + 1;
-    const int max_x = (m_order*NE0) + 1;
-    const int max_y = (m_order*NE1) + 1;
+    const dim_t max_x = m_NN[0];
+    const dim_t max_y = m_NN[1];
     out.requireWrite();
 #pragma omp parallel for
     for (dim_t ez = 0; ez < NE2; ez++) {
