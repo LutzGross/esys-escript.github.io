@@ -185,6 +185,628 @@ bool Rectangle::operator==(const AbstractDomain& other) const
     return false;
 }
 
+void Rectangle::readNcGrid(escript::Data& out, std::string filename, 
+        std::string varname, const ReaderParameters& params) const
+{
+#ifdef USE_NETCDF
+    // check destination function space
+    dim_t myN0, myN1;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+//    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+    } else
+        throw SpeckleyException("readNcGrid(): invalid function space for output data object");
+
+    if (params.first.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'first' must have 2 entries");
+
+    if (params.numValues.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'numValues' must have 2 entries");
+
+    if (params.multiplier.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'multiplier' must have 2 entries");
+    for (size_t i=0; i<params.multiplier.size(); i++)
+        if (params.multiplier[i]<1)
+            throw SpeckleyException("readNcGrid(): all multipliers must be positive");
+    if (params.reverse.size() != 2)
+        throw SpeckleyException("readNcGrid(): argument 'reverse' must have 2 entries");
+
+    // check file existence and size
+    NcFile f(filename.c_str(), NcFile::ReadOnly);
+    if (!f.is_valid())
+        throw SpeckleyException("readNcGrid(): cannot open file");
+
+    NcVar* var = f.get_var(varname.c_str());
+    if (!var)
+        throw SpeckleyException("readNcGrid(): invalid variable");
+
+    // TODO: rank>0 data support
+    const int numComp = out.getDataPointSize();
+    if (numComp > 1)
+        throw SpeckleyException("readNcGrid(): only scalar data supported");
+
+    const int dims = var->num_dims();
+    boost::scoped_array<long> edges(var->edges());
+
+    // is this a slice of the data object (dims!=2)?
+    // note the expected ordering of edges (as in numpy: y,x)
+    if ( (dims==2 && (params.numValues[1] > edges[0] || params.numValues[0] > edges[1]))
+            || (dims==1 && params.numValues[1]>1) ) {
+        throw SpeckleyException("readNcGrid(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+params.numValues[0]*params.multiplier[0] <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+params.numValues[1]*params.multiplier[1] <= m_offset[1])
+        return;
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const dim_t first0 = std::max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(0, params.first[1]-m_offset[1]);
+    // indices to first value in file (not accounting for reverse yet)
+    dim_t idx0 = std::max(0, m_offset[0]-params.first[0]);
+    dim_t idx1 = std::max(0, m_offset[1]-params.first[1]);
+    // number of values to read
+    const dim_t num0 = std::min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = std::min(params.numValues[1]-idx1, myN1-first1);
+
+    // make sure we read the right block if going backwards through file
+    if (params.reverse[0])
+        idx0 = edges[dims-1]-num0-idx0;
+    if (dims>1 && params.reverse[1])
+        idx1 = edges[dims-2]-num1-idx1;
+
+    std::vector<double> values(num0*num1);
+    if (dims==2) {
+        var->set_cur(idx1, idx0);
+        var->get(&values[0], num1, num0);
+    } else {
+        var->set_cur(idx0);
+        var->get(&values[0], num0);
+    }
+
+    const int dpp = out.getNumDataPointsPerSample();
+    out.requireWrite();
+
+    // helpers for reversing
+    const dim_t x0 = (params.reverse[0] ? num0-1 : 0);
+    const int x_mult = (params.reverse[0] ? -1 : 1);
+    const dim_t y0 = (params.reverse[1] ? num1-1 : 0);
+    const int y_mult = (params.reverse[1] ? -1 : 1);
+
+    for (index_t y=0; y<num1; y++) {
+#pragma omp parallel for
+        for (index_t x=0; x<num0; x++) {
+            const dim_t baseIndex = first0+x*params.multiplier[0]
+                                  +(first1+y*params.multiplier[1])*myN0;
+            const dim_t srcIndex = (y0+y_mult*y)*num0+(x0+x_mult*x);
+            if (!isnan(values[srcIndex])) {
+                for (index_t m1=0; m1<params.multiplier[1]; m1++) {
+                    for (index_t m0=0; m0<params.multiplier[0]; m0++) {
+                        const dim_t dataIndex = baseIndex+m0+m1*myN0;
+                        double* dest = out.getSampleDataRW(dataIndex);
+                        for (index_t q=0; q<dpp; q++) {
+                            *dest++ = values[srcIndex];
+                        }
+                    }
+                }
+            }
+        }
+    }
+#else
+    throw SpeckleyException("readNcGrid(): not compiled with netCDF support");
+#endif
+}
+
+void Rectangle::readBinaryGrid(escript::Data& out, std::string filename,
+                               const ReaderParameters& params) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (params.dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridImpl<int>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridImpl<float>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridImpl<double>(out, filename, params);
+            break;
+        default:
+            throw SpeckleyException("readBinaryGrid(): invalid or unsupported datatype");
+    }
+}
+
+#ifdef USE_BOOSTIO
+void Rectangle::readBinaryGridFromZipped(escript::Data& out, std::string filename,
+                               const ReaderParameters& params) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (params.dataType) {
+        case DATATYPE_INT32:
+            readBinaryGridZippedImpl<int>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT32:
+            readBinaryGridZippedImpl<float>(out, filename, params);
+            break;
+        case DATATYPE_FLOAT64:
+            readBinaryGridZippedImpl<double>(out, filename, params);
+            break;
+        default:
+            throw SpeckleyException("readBinaryGridFromZipped(): invalid or unsupported datatype");
+    }
+}
+#endif
+
+template<typename ValueType>
+void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filename,
+                                   const ReaderParameters& params) const
+{
+    // check destination function space
+    dim_t myN0, myN1;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+//    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+    } else
+        throw SpeckleyException("readBinaryGrid(): invalid function space for output data object");
+
+    if (params.first.size() != 2)
+        throw SpeckleyException("readBinaryGrid(): argument 'first' must have 2 entries");
+
+    if (params.numValues.size() != 2)
+        throw SpeckleyException("readBinaryGrid(): argument 'numValues' must have 2 entries");
+
+    if (params.multiplier.size() != 2)
+        throw SpeckleyException("readBinaryGrid(): argument 'multiplier' must have 2 entries");
+    for (size_t i=0; i<params.multiplier.size(); i++)
+        if (params.multiplier[i]<1)
+            throw SpeckleyException("readBinaryGrid(): all multipliers must be positive");
+    if (params.reverse[0] != 0 || params.reverse[1] != 0)
+        throw SpeckleyException("readBinaryGrid(): reversing not supported yet");
+
+    // check file existence and size
+    std::ifstream f(filename.c_str(), std::ifstream::binary);
+    if (f.fail()) {
+        throw SpeckleyException("readBinaryGrid(): cannot open file");
+    }
+    f.seekg(0, std::ios::end);
+    const int numComp = out.getDataPointSize();
+    const dim_t filesize = f.tellg();
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
+    if (filesize < reqsize) {
+        f.close();
+        throw SpeckleyException("readBinaryGrid(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+(params.numValues[0]*params.multiplier[0]) <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+(params.numValues[1]*params.multiplier[1]) <= m_offset[1]) {
+        f.close();
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const dim_t first0 = std::max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(0, params.first[1]-m_offset[1]);
+    // indices to first value in file
+    const dim_t idx0 = std::max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    const dim_t idx1 = std::max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const dim_t rest0 = m_offset[0]%params.multiplier[0];
+    const dim_t rest1 = m_offset[1]%params.multiplier[1];
+    // number of values to read
+    const dim_t num0 = std::min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = std::min(params.numValues[1]-idx1, myN1-first1);
+
+    out.requireWrite();
+    std::vector<ValueType> values(num0*numComp);
+    const int dpp = out.getNumDataPointsPerSample();
+
+    for (dim_t y=0; y<num1; y++) {
+        const dim_t fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
+        f.seekg(fileofs*sizeof(ValueType));
+        f.read((char*)&values[0], num0*numComp*sizeof(ValueType));
+        const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+        dim_t dataYbase = first1+y*params.multiplier[1];
+        if (y>0)
+            dataYbase -= rest1;
+        for (dim_t x=0; x<num0; x++) {
+            const dim_t m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+            dim_t dataXbase = first0+x*params.multiplier[0];
+            if (x>0)
+                dataXbase -= rest0;
+            // write a block of mult0 x mult1 identical values into Data object
+            for (dim_t m1=0; m1<m1limit; m1++) {
+                const dim_t dataY = dataYbase+m1;
+                if (dataY >= myN1)
+                    break;
+                for (dim_t m0=0; m0<m0limit; m0++) {
+                    const dim_t dataX = dataXbase+m0;
+                    if (dataX >= myN0)
+                        break;
+                    const dim_t dataIndex = dataX+dataY*m_NN[0];
+                    double* dest = out.getSampleDataRW(dataIndex*m_order);
+                    for (int c=0; c<numComp; c++) {
+                        ValueType val = values[x*numComp+c];
+                        if (params.byteOrder != BYTEORDER_NATIVE) {
+                            char* cval = reinterpret_cast<char*>(&val);
+                            // this will alter val!!
+                            if (sizeof(ValueType) > 4) {
+                                byte_swap64(cval);
+                            } else {
+                                byte_swap32(cval);
+                            }
+                        }
+                        if (!isnan(val)) {
+                            for (int q=0; q<dpp; q++) {
+                                *dest++ = static_cast<double>(val);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    f.close();
+}
+
+#ifdef USE_BOOSTIO
+template<typename ValueType>
+void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const std::string& filename,
+                                   const ReaderParameters& params) const
+{
+    // check destination function space
+    dim_t myN0, myN1;
+    if (out.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NE[0] + 1;
+        myN1 = m_NE[1] + 1;
+//    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+    } else
+        throw SpeckleyException("readBinaryGrid(): invalid function space for output data object");
+
+    // check file existence and size
+    std::ifstream f(filename.c_str(), std::ifstream::binary);
+    if (f.fail()) {
+        throw SpeckleyException(strerror(errno));//"readBinaryGridFromZipped(): cannot open file");
+    }
+    f.seekg(0, std::ios::end);
+    const int numComp = out.getDataPointSize();
+    dim_t filesize = f.tellg();
+    f.seekg(0, std::ios::beg);
+    std::vector<char> compressed(filesize);
+    f.read((char*)&compressed[0], filesize);
+    f.close();
+    std::vector<char> decompressed = unzip(compressed);
+    filesize = decompressed.size();
+    const dim_t reqsize = params.numValues[0]*params.numValues[1]*numComp*sizeof(ValueType);
+    if (filesize < reqsize) {
+        throw SpeckleyException("readBinaryGridFromZipped(): not enough data in file");
+    }
+
+    // check if this rank contributes anything
+    if (params.first[0] >= m_offset[0]+myN0 ||
+            params.first[0]+(params.numValues[0]*params.multiplier[0]) <= m_offset[0] ||
+            params.first[1] >= m_offset[1]+myN1 ||
+            params.first[1]+(params.numValues[1]*params.multiplier[1]) <= m_offset[1]) {
+        return;
+    }
+
+    // now determine how much this rank has to write
+
+    // first coordinates in data object to write to
+    const dim_t first0 = std::max(0, params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(0, params.first[1]-m_offset[1]);
+    // indices to first value in file
+    const dim_t idx0 = std::max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
+    const dim_t idx1 = std::max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    // if restX > 0 the first value in the respective dimension has been
+    // written restX times already in a previous rank so this rank only
+    // contributes (multiplier-rank) copies of that value
+    const dim_t rest0 = m_offset[0]%params.multiplier[0];
+    const dim_t rest1 = m_offset[1]%params.multiplier[1];
+    // number of values to read
+    const dim_t num0 = std::min(params.numValues[0]-idx0, myN0-first0);
+    const dim_t num1 = std::min(params.numValues[1]-idx1, myN1-first1);
+
+    out.requireWrite();
+    std::vector<ValueType> values(num0*numComp);
+    const int dpp = out.getNumDataPointsPerSample();
+
+    for (dim_t y=0; y<num1; y++) {
+        const dim_t fileofs = numComp*(idx0+(idx1+y)*params.numValues[0]);
+            memcpy((char*)&values[0], (char*)&decompressed[fileofs*sizeof(ValueType)], num0*numComp*sizeof(ValueType));
+        const dim_t m1limit = (y==0 ? params.multiplier[1]-rest1 : params.multiplier[1]);
+        dim_t dataYbase = first1+y*params.multiplier[1];
+        if (y>0)
+            dataYbase -= rest1;
+        for (dim_t x=0; x<num0; x++) {
+            const dim_t m0limit = (x==0 ? params.multiplier[0]-rest0 : params.multiplier[0]);
+            dim_t dataXbase = first0+x*params.multiplier[0];
+            if (x>0)
+                dataXbase -= rest0;
+            // write a block of mult0 x mult1 identical values into Data object
+            for (dim_t m1=0; m1<m1limit; m1++) {
+                const dim_t dataY = dataYbase+m1;
+                if (dataY >= myN1)
+                    break;
+                for (dim_t m0=0; m0<m0limit; m0++) {
+                    const dim_t dataX = dataXbase+m0;
+                    if (dataX >= myN0)
+                        break;
+                    const dim_t dataIndex = dataX+dataY*m_NN[0];
+                    double* dest = out.getSampleDataRW(dataIndex*m_order);
+                    for (int c=0; c<numComp; c++) {
+                        ValueType val = values[x*numComp+c];
+
+                        if (params.byteOrder != BYTEORDER_NATIVE) {
+                            char* cval = reinterpret_cast<char*>(&val);
+                            // this will alter val!!
+                            if (sizeof(ValueType) > 4) {
+                                byte_swap64(cval);
+                            } else {
+                                byte_swap32(cval);
+                            }
+                        }
+                        if (!isnan(val)) {
+                            for (int q=0; q<dpp; q++) {
+                                *dest++ = static_cast<double>(val);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+#endif
+
+void Rectangle::writeBinaryGrid(const escript::Data& in, std::string filename,
+                                int byteOrder, int dataType) const
+{
+    // the mapping is not universally correct but should work on our
+    // supported platforms
+    switch (dataType) {
+        case DATATYPE_INT32:
+            writeBinaryGridImpl<int>(in, filename, byteOrder);
+            break;
+        case DATATYPE_FLOAT32:
+            writeBinaryGridImpl<float>(in, filename, byteOrder);
+            break;
+        case DATATYPE_FLOAT64:
+            writeBinaryGridImpl<double>(in, filename, byteOrder);
+            break;
+        default:
+            throw SpeckleyException("writeBinaryGrid(): invalid or unsupported datatype");
+    }
+}
+
+template<typename ValueType>
+void Rectangle::writeBinaryGridImpl(const escript::Data& in,
+                                    const std::string& filename, int byteOrder) const
+{
+    // check function space and determine number of points
+    dim_t myN0, myN1;
+    dim_t totalN0, totalN1;
+    if (in.getFunctionSpace().getTypeCode() == Nodes) {
+        myN0 = m_NE[0]+1;
+        myN1 = m_NE[1]+1;
+        totalN0 = m_gNE[0]+1;
+        totalN1 = m_gNE[1]+1;
+//    } else if (in.getFunctionSpace().getTypeCode() == Elements) {
+//        myN0 = m_NE[0];
+//        myN1 = m_NE[1];
+//        totalN0 = m_gNE[0];
+//        totalN1 = m_gNE[1];
+    } else
+        throw SpeckleyException("writeBinaryGrid(): invalid function space of data object");
+
+    const int numComp = in.getDataPointSize();
+    const int dpp = in.getNumDataPointsPerSample();
+
+    if (numComp > 1 || dpp > 1)
+        throw SpeckleyException("writeBinaryGrid(): only scalar, single-value data supported");
+
+    const dim_t fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1;
+
+    // from here on we know that each sample consists of one value
+    FileWriter fw;
+    fw.openFile(filename, fileSize);
+    MPIBarrier();
+
+    for (index_t y=0;/*m_offset[1] ? 1 : 0;*/ y<myN1; y++) {
+        const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0)*sizeof(ValueType);
+        std::ostringstream oss;
+
+        for (index_t x=0;/*m_offset[0] ? 1 : 0;*/ x<myN0; x++) {
+            const double* sample = in.getSampleDataRO((y*m_NN[0]+x)*m_order);
+            ValueType fvalue = static_cast<ValueType>(*sample);
+            if (byteOrder == BYTEORDER_NATIVE) {
+                oss.write((char*)&fvalue, sizeof(fvalue));
+            } else {
+                char* value = reinterpret_cast<char*>(&fvalue);
+                if (sizeof(fvalue)>4) {
+                    byte_swap64(value);
+                } else {
+                    byte_swap32(value);
+                }
+                oss.write(value, sizeof(fvalue));
+            }
+        }
+        fw.writeAt(oss, fileofs);
+    }
+    fw.close();
+}
+
+void Rectangle::write(const std::string& filename) const
+{
+    throw SpeckleyException("write: not supported");
+}
+
+void Rectangle::dump(const std::string& fileName) const
+{
+#if USE_SILO
+    std::string fn(fileName);
+    if (fileName.length() < 6 || fileName.compare(fileName.length()-5, 5, ".silo") != 0) {
+        fn+=".silo";
+    }
+
+    int driver=DB_HDF5;
+    DBfile* dbfile = NULL;
+    const char* blockDirFmt = "/block%04d";
+
+#ifdef ESYS_MPI
+    PMPIO_baton_t* baton = NULL;
+    const int NUM_SILO_FILES = 1;
+#endif
+
+    if (m_mpiInfo->size > 1) {
+#ifdef ESYS_MPI
+        baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE, m_mpiInfo->comm,
+                    0x1337, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
+                    PMPIO_DefaultClose, (void*)&driver);
+        // try the fallback driver in case of error
+        if (!baton && driver != DB_PDB) {
+            driver = DB_PDB;
+            baton = PMPIO_Init(NUM_SILO_FILES, PMPIO_WRITE, m_mpiInfo->comm,
+                        0x1338, PMPIO_DefaultCreate, PMPIO_DefaultOpen,
+                        PMPIO_DefaultClose, (void*)&driver);
+        }
+        if (baton) {
+            char siloPath[64];
+            snprintf(siloPath, 64, blockDirFmt, PMPIO_RankInGroup(baton, m_mpiInfo->rank));
+            dbfile = (DBfile*) PMPIO_WaitForBaton(baton, fn.c_str(), siloPath);
+        }
+#endif
+    } else {
+        dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL,
+                getDescription().c_str(), driver);
+        // try the fallback driver in case of error
+        if (!dbfile && driver != DB_PDB) {
+            driver = DB_PDB;
+            dbfile = DBCreate(fn.c_str(), DB_CLOBBER, DB_LOCAL,
+                    getDescription().c_str(), driver);
+        }
+        char siloPath[64];
+        snprintf(siloPath, 64, blockDirFmt, 0);
+        DBMkDir(dbfile, siloPath);
+        DBSetDir(dbfile, siloPath);
+    }
+
+    if (!dbfile)
+        throw SpeckleyException("dump: Could not create Silo file");
+
+    /*
+    if (driver==DB_HDF5) {
+        // gzip level 1 already provides good compression with minimal
+        // performance penalty. Some tests showed that gzip levels >3 performed
+        // rather badly on escript data both in terms of time and space
+        DBSetCompression("ERRMODE=FALLBACK METHOD=GZIP LEVEL=1");
+    }
+    */
+
+    const dim_t NN0 = m_NN[0];
+    const dim_t NN1 = m_NN[1];
+    boost::scoped_ptr<double> x(new double[NN0]);
+    boost::scoped_ptr<double> y(new double[NN1]);
+    double* coords[2] = { x.get(), y.get() };
+#pragma omp parallel
+    {
+#pragma omp for nowait
+        for (dim_t i0 = 0; i0 < NN0; i0++) {
+            coords[0][i0]=getLocalCoordinate(i0, 0);
+        }
+#pragma omp for nowait
+        for (dim_t i1 = 0; i1 < NN1; i1++) {
+            coords[1][i1]=getLocalCoordinate(i1, 1);
+        }
+    }
+    dim_t* dims = const_cast<dim_t*>(getNumNodesPerDim());
+
+    // write mesh
+    DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 2, DB_DOUBLE,
+            DB_COLLINEAR, NULL);
+
+    // write node ids
+    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], dims, 2,
+            NULL, 0, DB_INT, DB_NODECENT, NULL);
+
+    // write element ids
+    dims = const_cast<dim_t*>(getNumElementsPerDim());
+    DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
+            dims, 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+
+    // rank 0 writes multimesh and multivar
+    if (m_mpiInfo->rank == 0) {
+        std::vector<std::string> tempstrings;
+        std::vector<char*> names;
+        for (dim_t i=0; i<m_mpiInfo->size; i++) {
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/mesh";
+            tempstrings.push_back(path.str());
+            names.push_back((char*)tempstrings.back().c_str());
+        }
+        std::vector<int> types(m_mpiInfo->size, DB_QUAD_RECT);
+        DBSetDir(dbfile, "/");
+        DBPutMultimesh(dbfile, "multimesh", m_mpiInfo->size, &names[0],
+               &types[0], NULL);
+        tempstrings.clear();
+        names.clear();
+        for (dim_t i=0; i<m_mpiInfo->size; i++) {
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/nodeId";
+            tempstrings.push_back(path.str());
+            names.push_back((char*)tempstrings.back().c_str());
+        }
+        types.assign(m_mpiInfo->size, DB_QUADVAR);
+        DBPutMultivar(dbfile, "nodeId", m_mpiInfo->size, &names[0],
+               &types[0], NULL);
+        tempstrings.clear();
+        names.clear();
+        for (dim_t i=0; i<m_mpiInfo->size; i++) {
+            std::stringstream path;
+            path << "/block" << std::setw(4) << std::setfill('0') << std::right << i << "/elementId";
+            tempstrings.push_back(path.str());
+            names.push_back((char*)tempstrings.back().c_str());
+        }
+        DBPutMultivar(dbfile, "elementId", m_mpiInfo->size, &names[0],
+               &types[0], NULL);
+    }
+
+    if (m_mpiInfo->size > 1) {
+#ifdef ESYS_MPI
+        PMPIO_HandOffBaton(baton, dbfile);
+        PMPIO_Finish(baton);
+#endif
+    } else {
+        DBClose(dbfile);
+    }
+
+#else // USE_SILO
+    throw SpeckleyException("dump: no Silo support");
+#endif
+}
+
 const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {

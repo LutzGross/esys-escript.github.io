@@ -61,6 +61,41 @@ public:
     */
     virtual bool operator==(const escript::AbstractDomain& other) const;
 
+    /**
+       \brief
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
+    */
+    virtual void write(const std::string& filename) const;
+
+    /**
+       \brief
+       dumps the mesh to a file with the given name
+       \param filename The name of the output file
+    */
+    void dump(const std::string& filename) const;
+
+    /**
+    */
+    virtual void readNcGrid(escript::Data& out, std::string filename,
+            std::string varname, const ReaderParameters& params) const;
+
+    /**
+    */
+    virtual void readBinaryGrid(escript::Data& out, std::string filename,
+                                const ReaderParameters& params) const;
+#ifdef USE_BOOSTIO
+    /**
+    */
+    virtual void readBinaryGridFromZipped(escript::Data& out,
+                    std::string filename, const ReaderParameters& params) const;
+#endif
+
+    /**
+    */
+    virtual void writeBinaryGrid(const escript::Data& in,
+                                 std::string filename,
+                                 int byteOrder, int dataType) const;
 
     /**
        \brief

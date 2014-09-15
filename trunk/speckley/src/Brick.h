@@ -63,6 +63,13 @@ public:
 
     /**
        \brief
+       writes the current mesh to a file with the given name
+       \param filename The name of the file to write to
+    */
+    virtual void write(const std::string& filename) const;
+
+    /**
+       \brief
        dumps the mesh to a file with the given name
        \param filename The name of the output file
     */
@@ -240,7 +247,6 @@ private:
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
                             const ReaderParameters& params) const;
-
     template<typename ValueType>
     void readBinaryGridZippedImpl(escript::Data& out, 
             const std::string& filename, const ReaderParameters& params) const;
