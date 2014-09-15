@@ -59,8 +59,8 @@ public:
 
 };
 
-} // namespace escript
+} // namespace ripley
 
 
-#endif // __ESCRIPT_ABSTRACTASSEMBLER_H__
+#endif // __RIPLEY_ABSTRACTASSEMBLER_H__
 

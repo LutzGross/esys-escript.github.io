@@ -27,7 +27,7 @@ __all__ = ['Regularization']
 import logging
 import numpy as np
 from esys.escript import Function, outer, Data, Scalar, grad, inner, integrate, interpolate, kronecker, boundingBoxEdgeLengths, vol, sqrt, length,Lsup, transpose
-from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue
+from esys.escript.linearPDEs import LinearPDE, IllegalCoefficientValue,SolverOptions
 from esys.escript.pdetools import ArithmeticTuple
 from .coordinates import makeTranformation
 from .costfunctions import CostFunction

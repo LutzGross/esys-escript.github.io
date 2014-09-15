@@ -94,7 +94,7 @@ public:
                                    escript::AbstractSystemMatrix* mat,
                                    escript::Data& rhs, const escript::Data& d,
                                    const escript::Data& y) const;
-    
+
     /* The new interface for assemblers */
 
     virtual void assemblePDESingle(escript::AbstractSystemMatrix* mat,
@@ -115,7 +115,7 @@ public:
     virtual void assemblePDEBoundarySystemReduced(
                               escript::AbstractSystemMatrix* mat,
                               escript::Data& rhs, const DataMap& coefs) const;
-            
+
     void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                    const DataMap& coefs) const;
 

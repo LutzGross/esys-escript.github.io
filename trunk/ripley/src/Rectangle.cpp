@@ -52,7 +52,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
                      double y1, int d0, int d1,
                      const vector<double>& points,
                      const vector<int>& tags,
-                     const simap_t& tagnamestonums,
+                     const TagMap& tagnamestonums,
                      escript::SubWorld_ptr w) :
     RipleyDomain(2, w)
 {
@@ -171,7 +171,7 @@ Rectangle::Rectangle(dim_t n0, dim_t n1, double x0, double y0, double x1,
 
     populateSampleIds();
 
-    for (simap_t::const_iterator i = tagnamestonums.begin();
+    for (TagMap::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
@@ -1453,6 +1453,21 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
                 integrals[i]+=int_local[i];
         } // end of parallel section
     } // function space selector
+}
+
+//protected
+IndexVector Rectangle::getDiagonalIndices() const
+{
+    IndexVector ret(9);
+    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
+    size_t idx = 0;
+    for (int i1=-1; i1<2; i1++) {
+        for (int i0=-1; i0<2; i0++) {
+            ret[idx++] = i1*nDOF0 + i0;
+        }
+    }
+
+    return ret;
 }
 
 //protected

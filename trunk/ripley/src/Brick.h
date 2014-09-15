@@ -44,7 +44,7 @@ public:
           double y1, double z1, int d0=-1, int d1=-1, int d2=-1,
           const std::vector<double>& points = std::vector<double>(),
           const std::vector<int>& tags = std::vector<int>(),
-          const simap_t& tagnamestonums = simap_t(),
+          const TagMap& tagnamestonums = TagMap(),
           escript::SubWorld_ptr w=escript::SubWorld_ptr());
 
     /**
@@ -198,6 +198,7 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
+    virtual IndexVector getDiagonalIndices() const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;

@@ -119,7 +119,7 @@ public:
                                           escript::AbstractSystemMatrix* mat,
                                           escript::Data& rhs,
                                           const DataMap& coefs) const;
-            
+
     virtual void collateFunctionSpaceTypes(std::vector<int>& fsTypes,
                                            const DataMap& coefs) const;
 

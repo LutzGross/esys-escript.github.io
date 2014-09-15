@@ -67,109 +67,115 @@ void SystemMatrixAdapter::ypAx(escript::Data& y, escript::Data& x) const
 
 int SystemMatrixAdapter::mapOptionToPaso(int option)
 {
-   switch (option) {
-       case  escript::ESCRIPT_DEFAULT:
-          return PASO_DEFAULT;
-       case  escript::ESCRIPT_DIRECT:
-          return PASO_DIRECT;
-       case  escript::ESCRIPT_CHOLEVSKY:
-          return PASO_CHOLEVSKY;
-       case  escript::ESCRIPT_PCG:
-          return PASO_PCG;
-       case  escript::ESCRIPT_CR:
-          return PASO_CR;
-       case  escript::ESCRIPT_CGS:
-          return PASO_CGS;
-       case  escript::ESCRIPT_BICGSTAB:
-          return PASO_BICGSTAB;
-       case  escript::ESCRIPT_ILU0:
-          return PASO_ILU0;
-       case  escript::ESCRIPT_ILUT:
-          return PASO_ILUT;
-       case  escript::ESCRIPT_JACOBI:
-          return PASO_JACOBI;
-       case  escript::ESCRIPT_GMRES:
-          return PASO_GMRES;
-       case  escript::ESCRIPT_PRES20:
-          return PASO_PRES20;
-       case  escript::ESCRIPT_LUMPING:
-          return PASO_LUMPING;
-       case  escript::ESCRIPT_NO_REORDERING:
-          return PASO_NO_REORDERING;
-       case  escript::ESCRIPT_MINIMUM_FILL_IN:
-          return PASO_MINIMUM_FILL_IN;
-       case  escript::ESCRIPT_NESTED_DISSECTION:
-          return PASO_NESTED_DISSECTION;
-       case  escript::ESCRIPT_MKL:
-          return PASO_MKL;
-       case  escript::ESCRIPT_UMFPACK:
-          return PASO_UMFPACK;
-       case  escript::ESCRIPT_ITERATIVE:
-          return PASO_ITERATIVE;
-       case  escript::ESCRIPT_PASO:
-          return PASO_PASO;
-       case  escript::ESCRIPT_AMG:
-          return PASO_AMG;
-       case  escript::ESCRIPT_AMLI:
-          return PASO_AMLI;
-       case  escript::ESCRIPT_REC_ILU:
-          return PASO_REC_ILU;
-       case  escript::ESCRIPT_TRILINOS:
-          return PASO_TRILINOS;
-       case  escript::ESCRIPT_NONLINEAR_GMRES:
-          return PASO_NONLINEAR_GMRES;
-       case  escript::ESCRIPT_TFQMR :
-          return PASO_TFQMR;
-       case  escript::ESCRIPT_MINRES:
-          return PASO_MINRES;
-       case  escript::ESCRIPT_GAUSS_SEIDEL:
-          return PASO_GAUSS_SEIDEL;
-       case  escript::ESCRIPT_RILU:
-          return PASO_RILU;
-       case  escript::ESCRIPT_DEFAULT_REORDERING:
-          return PASO_DEFAULT_REORDERING;
-       case  escript::ESCRIPT_SUPER_LU:
-          return PASO_SUPER_LU;
-       case  escript::ESCRIPT_PASTIX:
-          return PASO_PASTIX;
-       case  escript::ESCRIPT_YAIR_SHAPIRA_COARSENING:
-          return PASO_YAIR_SHAPIRA_COARSENING;
-       case  escript::ESCRIPT_RUGE_STUEBEN_COARSENING:
-          return PASO_RUGE_STUEBEN_COARSENING;
-       case  escript::ESCRIPT_STANDARD_COARSENING:
-          return PASO_STANDARD_COARSENING;   
-       case  escript::ESCRIPT_AGGREGATION_COARSENING:
-          return PASO_AGGREGATION_COARSENING;
-       case  escript::ESCRIPT_NO_PRECONDITIONER:
-          return PASO_NO_PRECONDITIONER;
-       case escript::ESCRIPT_CLASSIC_INTERPOLATION_WITH_FF_COUPLING:
-         return PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING;
-       case escript::ESCRIPT_CLASSIC_INTERPOLATION:
-         return PASO_CLASSIC_INTERPOLATION;
-       case escript::ESCRIPT_DIRECT_INTERPOLATION:
-         return PASO_DIRECT_INTERPOLATION;
-       case escript::ESCRIPT_BOOMERAMG:
-         return PASO_BOOMERAMG;
-       case escript::ESCRIPT_CIJP_FIXED_RANDOM_COARSENING:
-         return PASO_CIJP_FIXED_RANDOM_COARSENING;
-       case escript::ESCRIPT_CIJP_COARSENING:
-         return PASO_CIJP_COARSENING;
-       case escript::ESCRIPT_FALGOUT_COARSENING:
-         return PASO_FALGOUT_COARSENING;
-       case escript::ESCRIPT_PMIS_COARSENING:
-         return PASO_PMIS_COARSENING;
-       case escript::ESCRIPT_HMIS_COARSENING:
-         return PASO_HMIS_COARSENING;
-       case  escript::ESCRIPT_LINEAR_CRANK_NICOLSON:
-         return PASO_LINEAR_CRANK_NICOLSON;
-       case  escript::ESCRIPT_CRANK_NICOLSON:
-         return PASO_CRANK_NICOLSON;
-       case  escript::ESCRIPT_BACKWARD_EULER:         
-         return PASO_BACKWARD_EULER;
-       default:
-           stringstream temp;
-           temp << "Error - Cannot map option value "<< option << " onto Paso";
-           throw PasoException(temp.str());
+    switch (option) {
+        case escript::SO_DEFAULT:
+            return PASO_DEFAULT;
+
+        case escript::SO_PACKAGE_MKL:
+            return PASO_MKL;
+        case escript::SO_PACKAGE_PASO:
+            return PASO_PASO;
+        case escript::SO_PACKAGE_PASTIX:
+            return PASO_PASTIX;
+        case escript::SO_PACKAGE_SUPER_LU:
+            return PASO_SUPER_LU;
+        case escript::SO_PACKAGE_TRILINOS:
+            return PASO_TRILINOS;
+        case escript::SO_PACKAGE_UMFPACK:
+            return PASO_UMFPACK;
+
+        case escript::SO_METHOD_BICGSTAB:
+            return PASO_BICGSTAB;
+        case escript::SO_METHOD_CGS:
+            return PASO_CGS;
+        case escript::SO_METHOD_CHOLEVSKY:
+            return PASO_CHOLEVSKY;
+        case escript::SO_METHOD_CR:
+            return PASO_CR;
+        case escript::SO_METHOD_DIRECT:
+            return PASO_DIRECT;
+        case escript::SO_METHOD_GMRES:
+            return PASO_GMRES;
+        case escript::SO_METHOD_ITERATIVE:
+            return PASO_ITERATIVE;
+        case escript::SO_METHOD_MINRES:
+            return PASO_MINRES;
+        case escript::SO_METHOD_NONLINEAR_GMRES:
+            return PASO_NONLINEAR_GMRES;
+        case escript::SO_METHOD_PCG:
+            return PASO_PCG;
+        case escript::SO_METHOD_PRES20:
+            return PASO_PRES20;
+        case escript::SO_METHOD_TFQMR:
+            return PASO_TFQMR;
+
+        case escript::SO_PRECONDITIONER_AMG:
+            return PASO_AMG;
+        case escript::SO_PRECONDITIONER_AMLI:
+            return PASO_AMLI;
+        case escript::SO_PRECONDITIONER_BOOMERAMG:
+            return PASO_BOOMERAMG;
+        case escript::SO_PRECONDITIONER_GAUSS_SEIDEL:
+            return PASO_GAUSS_SEIDEL;
+        case escript::SO_PRECONDITIONER_ILU0:
+            return PASO_ILU0;
+        case escript::SO_PRECONDITIONER_ILUT:
+            return PASO_ILUT;
+        case escript::SO_PRECONDITIONER_JACOBI:
+            return PASO_JACOBI;
+        case escript::SO_PRECONDITIONER_NONE:
+            return PASO_NO_PRECONDITIONER;
+        case escript::SO_PRECONDITIONER_REC_ILU:
+            return PASO_REC_ILU;
+        case escript::SO_PRECONDITIONER_RILU:
+            return PASO_RILU;
+
+        case escript::SO_ODESOLVER_BACKWARD_EULER:         
+            return PASO_BACKWARD_EULER;
+        case escript::SO_ODESOLVER_CRANK_NICOLSON:
+            return PASO_CRANK_NICOLSON;
+        case escript::SO_ODESOLVER_LINEAR_CRANK_NICOLSON:
+            return PASO_LINEAR_CRANK_NICOLSON;
+
+        case escript::SO_INTERPOLATION_CLASSIC:
+            return PASO_CLASSIC_INTERPOLATION;
+        case escript::SO_INTERPOLATION_CLASSIC_WITH_FF_COUPLING:
+            return PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING;
+        case escript::SO_INTERPOLATION_DIRECT:
+            return PASO_DIRECT_INTERPOLATION;
+
+        case escript::SO_COARSENING_AGGREGATION:
+            return PASO_AGGREGATION_COARSENING;
+        case escript::SO_COARSENING_CIJP:
+            return PASO_CIJP_COARSENING;
+        case escript::SO_COARSENING_CIJP_FIXED_RANDOM:
+            return PASO_CIJP_FIXED_RANDOM_COARSENING;
+        case escript::SO_COARSENING_FALGOUT:
+            return PASO_FALGOUT_COARSENING;
+        case escript::SO_COARSENING_HMIS:
+            return PASO_HMIS_COARSENING;
+        case escript::SO_COARSENING_PMIS:
+            return PASO_PMIS_COARSENING;
+        case escript::SO_COARSENING_RUGE_STUEBEN:
+            return PASO_RUGE_STUEBEN_COARSENING;
+        case escript::SO_COARSENING_STANDARD:
+            return PASO_STANDARD_COARSENING;   
+        case escript::SO_COARSENING_YAIR_SHAPIRA:
+            return PASO_YAIR_SHAPIRA_COARSENING;
+
+        case escript::SO_REORDERING_DEFAULT:
+            return PASO_DEFAULT_REORDERING;
+        case escript::SO_REORDERING_MINIMUM_FILL_IN:
+            return PASO_MINIMUM_FILL_IN;
+        case escript::SO_REORDERING_NESTED_DISSECTION:
+            return PASO_NESTED_DISSECTION;
+        case escript::SO_REORDERING_NONE:
+            return PASO_NO_REORDERING;
+
+        default:
+            stringstream temp;
+            temp << "Error - Cannot map option value "<< option << " onto Paso";
+            throw PasoException(temp.str());
     }
 }
 
@@ -332,6 +338,7 @@ void SystemMatrixAdapter::escriptToPasoOptions(Options* paso_options,
     paso_options->adapt_inner_tolerance = sb.adaptInnerTolerance();
     paso_options->reordering = mapOptionToPaso(sb.getReordering());
     paso_options->preconditioner = mapOptionToPaso(sb.getPreconditioner());
+    paso_options->ode_solver = mapOptionToPaso(sb.getODESolver());
     paso_options->iter_max = sb.getIterMax();
     paso_options->inner_iter_max = sb.getInnerIterMax();
     paso_options->drop_tolerance = sb.getDropTolerance();
@@ -355,7 +362,6 @@ void SystemMatrixAdapter::escriptToPasoOptions(Options* paso_options,
     paso_options->usePanel = sb.usePanel();
     paso_options->interpolation_method = sb.getAMGInterpolation();
     paso_options->diagonal_dominance_threshold = sb.getDiagonalDominanceThreshold();
-    paso_options->ode_solver = sb.getODESolver();
 }
  
 

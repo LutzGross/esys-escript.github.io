@@ -170,7 +170,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
         AMGBlockSelect* split_marker, const dim_t* degree_S,
         const index_t* offset_S, const index_t* S, const dim_t* degree_ST,
         const index_t* offset_ST, const index_t* ST,
-        Connector_ptr col_connector, const_Distribution_ptr col_dist);
+        const_Connector_ptr col_connector, const_Distribution_ptr col_dist);
 
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P);
 

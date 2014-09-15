@@ -49,13 +49,10 @@ enum assembler_t {
     LAME_ASSEMBLER
 };
 
-/* There is no particular significance to this type,
-It is here as a typedef because a bug in clang++ prevents
-that compiler from recognising it as a valid part of
-a constant expression.
-*/
-typedef std::map<std::string, int> simap_t;
-
+enum SystemMatrixType {
+    SMT_PASO = 1024,
+    SMT_CUSP = 2048
+};
 
 /**
    \brief
@@ -87,6 +84,8 @@ struct DiracPoint
     dim_t node;
     int tag;
 };
+
+class SystemMatrix;
 
 /**
    \brief
@@ -463,8 +462,7 @@ public:
        \param package
        \param symmetry
     */
-    virtual int getSystemMatrixTypeId(int solver, int preconditioner,
-                                      int package, bool symmetry) const;
+    virtual int getSystemMatrixTypeId(const boost::python::object& options) const;
 
     /**
        \brief
@@ -759,6 +757,9 @@ protected:
 
     /// returns the number of face elements on current MPI rank
     virtual dim_t getNumFaceElements() const = 0;
+
+    /// returns the indices of the occupied matrix diagonals
+    virtual IndexVector getDiagonalIndices() const = 0;
 
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const = 0;

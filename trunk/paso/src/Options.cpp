@@ -165,8 +165,6 @@ const char* Options::name(index_t key)
             return "GMRES";
        case PASO_PRES20:
             return "PRES20";
-       case PASO_LUMPING:
-            return "LUMPING";
        case PASO_NO_REORDERING:
             return "NO_REORDERING";
        case PASO_MINIMUM_FILL_IN:

@@ -23,7 +23,7 @@ from site_init import *
 
 # Version number to check for in options file. Increment when new features are
 # added or existing options changed.
-REQUIRED_OPTS_VERSION=201
+REQUIRED_OPTS_VERSION=202
 
 # MS Windows support, many thanks to PH
 IS_WINDOWS = (os.name == 'nt')
@@ -69,6 +69,8 @@ vars.AddVariables(
   ('cc_debug', 'Additional C++ flags for a debug build', 'default'),
   ('cxx_extra', 'Extra C++ compiler flags', ''),
   ('ld_extra', 'Extra linker flags', ''),
+  ('nvcc', 'Path to CUDA compiler', 'default'),
+  ('nvccflags', 'Base CUDA compiler flags', 'default'),
   BoolVariable('werror','Treat compiler warnings as errors', True),
   BoolVariable('debug', 'Compile with debug flags', False),
   BoolVariable('openmp', 'Compile parallel version using OpenMP', False),
@@ -113,6 +115,8 @@ vars.AddVariables(
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
   BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
+  BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
+  ('thrust_prefix', 'Prefix/Paths to NVidia thrust installation', default_prefix),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
   ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
@@ -182,6 +186,11 @@ if len(vars.UnknownVariables())>0:
     for k in vars.UnknownVariables():
         print("Unknown option '%s'" % k)
     Exit(1)
+
+if env['cuda']:
+    if env['nvcc'] != 'default':
+        env['NVCC'] = env['nvcc']
+    env.Tool('nvcc')
 
 # create dictionary which will be populated with info for buildvars file
 env['buildvars']={}
@@ -273,6 +282,10 @@ if env['omp_flags']   == 'default': env['omp_flags'] = omp_flags
 if env['omp_ldflags'] == 'default': env['omp_ldflags'] = omp_ldflags
 if env['cxx_extra'] != '': env.Append(CXXFLAGS = env['cxx_extra'])
 if env['ld_extra']  != '': env.Append(LINKFLAGS = env['ld_extra'])
+
+if env['nvccflags'] != 'default':
+    env['NVCCFLAGS'] = env['nvccflags']
+    env['SHNVCCFLAGS'] = env['nvccflags'] + ' -shared'
 
 if env['BADPYTHONMACROS']: env.Append(CXXFLAGS = ' -DBADPYTHONMACROS')
 
@@ -436,6 +449,10 @@ env=checkPython(env)
 ######## boost & boost-python (required)
 env=checkBoost(env)
 
+######## NVCC version (optional)
+if env['cuda']:
+    env=checkCudaVersion(env)
+
 ######## numpy (required) and numpy headers (optional)
 env=checkNumpy(env)
 
@@ -499,6 +516,8 @@ env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', dup
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
 env.SConscript(dirs = ['escript/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/escript', duplicate=0)
 
+env.SConscript(dirs = ['cusplibrary'])
+
 #This will pull in the escriptcore/py_src and escriptcore/test
 env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
 #env.SConscript(dirs = ['escript/test'], variant_dir='$BUILD_DIR/$PLATFORM/escript/test', duplicate=0)
@@ -547,7 +566,7 @@ env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudl
 env.Alias('build_finley', ['install_finley_headers', 'build_finley_lib', 'build_finleycpp_lib'])
 env.Alias('install_finley', ['build_finley', 'install_finley_lib', 'install_finleycpp_lib', 'install_finley_py'])
 
-env.Alias('build_ripley', ['install_ripley_headers', 'build_ripley_lib', 'build_ripleycpp_lib'])
+env.Alias('build_ripley', ['install_cusp_headers', 'install_ripley_headers', 'build_ripley_lib', 'build_ripleycpp_lib'])
 env.Alias('install_ripley', ['build_ripley', 'install_ripley_lib', 'install_ripleycpp_lib', 'install_ripley_py'])
 
 env.Alias('build_speckley', ['install_speckley_headers', 'build_speckley_lib', 'build_speckleycpp_lib'])
@@ -645,6 +664,10 @@ def print_summary():
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
         print("          LAPACK:  DISABLED")
+    if env['cuda']:
+        print("            CUDA:  YES (nvcc: %s)"%env['nvcc_version'])
+    else:
+        print("            CUDA:  DISABLED")
     d_list=[]
     e_list=[]
     for i in 'debug','openmp','boomeramg','gdal','mkl','netcdf','papi','parmetis','pyproj','scipy','silo','sympy','umfpack','visit','vsl_random':

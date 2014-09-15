@@ -155,6 +155,20 @@ def checkPython(env):
 
     return conf.Finish()
 
+def checkCudaVersion(env):
+    # NVCC availability is already checked in the Tool file
+    p=Popen([env['NVCC'], '-V'], stdout=PIPE)
+    out=p.stdout.readlines()
+    env['nvcc_version']='(unknown version)'
+    p.wait()
+    for line in out:
+        if 'release' in line:
+            version=line[line.find('release'):].strip()
+            env['nvcc_version']=version
+            break
+    env['buildvars']['nvcc']=env['NVCC']
+    return env
+
 def checkBoost(env):
     boost_inc_path,boost_lib_path=findLibWithHeader(env, env['boost_libs'], 'boost/python.hpp', env['boost_prefix'], lang='c++')
     if env['sysheaderopt'] == '':
