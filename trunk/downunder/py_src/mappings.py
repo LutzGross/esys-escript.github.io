@@ -213,6 +213,37 @@ class AcousticVelocityMapping(Mapping):
         # self.logger.info("m0:"+str(log(s[0]**2+s[1]**2)/2))
         return (log(s[0]**2+s[1]**2)/2-self.Mr)*[1., 0 ] + (atan2(s[1],s[0])-self.Mi)*[0, 1. ]
 
+class DcResMapping(Mapping):
+    """DcResMapping
+
+       sigma=sigma_reg * e^(k*m)     
+    """
+    def __init__(self, sigma_prior, k=1.):
+        self.__sigma0=sigma_prior
+        self.__k=k
+
+    def getValue(self, m):
+        print "sigma0=",self.__sigma0
+        print "m=",m
+        print "sigma=",self.__sigma0 * exp(self.__k*m)
+        return self.__sigma0 * exp(self.__k*m)
+       
+    def getDerivative(self, m):
+        """
+        returns the derivative of the mapping for m
+        """
+        return self.__sigma0*self.__k*exp(self.__k*m)
+
+    def getInverse(self, s):
+        """
+        returns the value of the inverse of the mapping for s
+        """
+        ms=whereZero(s)
+        ms0=whereZero(self.__sigma0)
+        m=1/self.__k* log(((1-ms)*s+ms*1)/((1-ms0)*self.__sigma0+ms0*1)) * (1-ms)*(1-ms0) 
+        return m 
+        
+
 class MTMapping(Mapping):
     """
     mt mapping
