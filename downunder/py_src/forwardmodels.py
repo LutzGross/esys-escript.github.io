@@ -23,9 +23,10 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm', 'MT2DModelTEMode']
+__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm', 'MT2DModelTEMode','DcRes']
 
 from esys.escript import unitsSI as U
+from esys.escript.pdetools import Locator
 from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary, Solution, length, exp
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
@@ -869,6 +870,244 @@ class AcousticWaveForm(ForwardModel):
         pde.setValue(D=D)
         ZTo2=pde.getSolution()*self.__omega**2
         return inner(ZTo2,u)*[1,0]+(ZTo2[1]*u[0]-ZTo2[0]*u[1])*[0,1]
+
+class DcRes(ForwardModel):
+    """
+    Forward Model for dc resistivity, with a given source pair.
+    The cost function is defined as:
+
+        * defect = 1/2 (sum_s sum_pq w_pqs * ((phi_sp-phi-sq)-v_pqs)**2 *
+
+    where p and q indate the 
+
+    """
+    def __init__(self, domain, locator, delphi_in, sourceInfo, current, sampleTags,sigmaHomog, w=1., coordinates=None, tol=1e-8,saveMemory=True):
+        
+        """
+        setup new ForwardModel
+        :param domain: the domain of the model
+        :type: escript domain
+        :param locator: should be setup to contain the measurement pairs
+        :type: escript locator
+        :param: delphi_in: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only
+        :type delphi_in: tuple
+        :param sourceInfo: descibes the current electode setup. a pair of tags should be provided for the current source setup. the first tag will be set to current and the second tag to -current
+        :type sourceInfo: tuple
+        :param sigmaHomog: the conductivity to be used for the Homogeneous Solution.
+        :type sigmaHomog: ``Data`` of shape (1,)
+        """
+        super(DcRes, self).__init__()
+
+        self.__domain=domain
+        self.__tol = tol
+        self.__locator=locator
+        self.__trafo=makeTranformation(domain, coordinates) 
+        self.__delphi_in=delphi_in
+        self.__sourceInfo=sourceInfo
+        self.__current=current  
+        self.__sampleTags = sampleTags
+
+        
+        # print jointSamples
+        # raise
+
+        if isinstance(w, float) or isinstance(w, int):
+               w =[ float(w) for z in delphi_in]
+               self.__w=w
+        if not len(w) == len(delphi_in):
+               raise ValueError("Number of confidence factors and number of potential input values don't match.")
+
+        self.__sigmaHomog=sigmaHomog
+        if not self.getCoordinateTransformation().isCartesian():
+            raise ValueError("Non-Cartesian Coordinates are not supported yet.")
+        if not len(delphi_in)==len(sourceInfo)/2:
+            raise ValueError("len of input potentials should match len of sourceInfo")
+        if not isinstance(locator, Locator):
+            raise ValueError("locator must be an escript Locator object")    
+        self.__pde=None
+        self.__homogPde=None
+        if not saveMemory:
+            self.__pde,self.__homogPde=self.setUpPDE()
+
+    def getDomain(self):
+        """
+        Returns the domain of the forward model.
+
+        :rtype: `Domain`
+        """
+        return self.__domain
+
+    def getCoordinateTransformation(self):
+        """
+        returns the coordinate transformation being used
+
+        :rtype: ``CoordinateTransformation``
+        """
+        return self.__trafo
+
+    def setUpPDE(self):
+        """
+        Return the underlying PDE.
+
+        :rtype: `LinearPDE`
+        """
+        if self.__pde is None:
+            dom=self.__domain
+            X = dom.getX()  
+            q=whereZero(X[2]-inf(X[2]))+whereZero(X[1]-inf(X[1]))+whereZero(X[1]-sup(X[1]))+whereZero(X[0]-inf(X[0]))+whereZero(X[0]-sup(X[0]))            
+            r=0
+
+            # if self.__sigmaHomog:
+            homogPde=LinearPDE(dom, numEquations=1)
+            homogPde.getSolverOptions().setTolerance(self.__tol)
+            
+            AHomog=homogPde.createCoefficient('A')
+            homogPde.setValue(A=AHomog,q=q,r=r)
+            homogPde.setSymmetryOn()
+            
+            pde=LinearPDE(dom, numEquations=1)
+            pde.getSolverOptions().setTolerance(self.__tol)
+            pde.setSymmetryOn()
+            A=pde.createCoefficient('A')
+            X=pde.createCoefficient('X')
+            pde.setValue(A=A,X=X,q=q,r=r)
+
+            # else:
+                # pde=LinearPDE(self.__domain, numEquations=1)   
+                # A=pde.createCoefficient('A')
+                # z = dom.getX()[DIM-1]
+                # q=whereZero(z-inf(z))
+                # r=0
+                # pde.setValue(A=AHomog,y_dirac=y_dirac,d=alpha)
+
+        else:
+            homogPde=self.__homogPde
+            homogPde.resetRightHandSideCoefficients()
+            pde=self.__pde
+            pde.resetRightHandSideCoefficients()
+        return pde, homogPde
+
+    def getArguments(self, sigma):
+        """
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
+
+        :param sigma: conductivity
+        :type sigma: ``Data`` of shape (1,)
+        :return: phi
+        :rtype: ``Data`` of shape (1,)
+        """
+        # print "sigmaHomog",self.__sigmaHomog
+        # print "sigma=",sigma
+        dom=self.__domain
+        kro=kronecker(dom)
+        pde,homogPde=self.setUpPDE()
+        
+        conHomog=self.__sigmaHomog
+        Ahomog = conHomog * kro
+        y_dirac = Scalar(0,DiracDeltaFunctions(dom))
+        y_dirac.setTaggedValue(self.__sourceInfo[0],self.__current)
+        y_dirac.setTaggedValue(self.__sourceInfo[1],-self.__current)
+        # print "setting",self.__sourceInfo[0],"to",self.__current
+        # print "setting",self.__sourceInfo[1],"to",-self.__current
+        # print "-----------------"
+        # print "conHomog=",conHomog
+        # print "AHomog=",Ahomog
+        # print "y_dirac=",y_dirac
+        # print "-----------------"
+        # homogPde.setValue(A=Ahomog,y_dirac=-y_dirac,q=q,r=r)
+        homogPde.setValue(A=Ahomog,y_dirac=-y_dirac)
+        uHomog=homogPde.getSolution()
+        A=sigma * kro
+        X=(self.__sigmaHomog - sigma) * grad(uHomog)
+        # print "+++++++++++++++++++"
+        # print "sigma=",sigma
+        # print "A=",A
+        # print "X=",X
+        # print "+++++++++++++++++++"
+        pde.setValue(A=A,X=X)
+        u=pde.getSolution()        
+        # print "got U Sol"
+        u.expand()
+        # print "u=",u,"grad(u)=",grad(u)
+        loc=self.__locator
+        val=loc.getValue(u)
+        # print "read %s at %s"%(str(val),str(loc.getX()))
+        return u, grad(u)
+
+   
+    def getDefect(self, sigma, phi,placeholder):
+        """
+        Returns the defect value.
+
+        :param sigma: a suggestion for conductivity
+        :type sigma: ``Data`` of shape (1,)
+        :param phi: potential field
+        :type phi: ``Data`` of shape (1,)
+        
+        :rtype: ``float``
+        """
+        # print "getting Defect"
+        # print "sigma=",sigma
+        # print "placeholder=",placeholder
+        loc=self.__locator
+        val=loc.getValue(phi)
+        # print "val=",val
+        length=len(val)
+        if((length%2) != 0) or (length/2 != len(self.__delphi_in)):
+            raise ValueError("length of Locator should be even")
+        delphi_calc=[]
+        for i in range(0,length,2):
+            delphi_calc.append(val[i+1]-val[i])
+        A=0
+        for i in range(length/2):
+            A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
+            # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
+        # print "A/2=",A/2,"for",self.__sourceInfo
+
+        return  A/2
+
+    def getGradient(self, sigma, phi,grad_phi):
+        """
+        Returns the gradient of the defect with respect to density.
+
+        :param sigma: a suggestion for conductivity
+        :type sigma: ``Data`` of shape (1,)
+        :param phi: potential field
+        :type phi: ``Data`` of shape (1,)
+        """
+        # print "getting gradient"
+        # print "sigma=",sigma
+        loc=self.__locator
+        val=loc.getValue(phi)
+        sampleTags=self.__sampleTags
+
+        jointSamples={}
+        for i in range(0,2*len(sampleTags),2):
+            tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
+            # print "i=", i,"val[i]=",val[i],"val[i+1]=",val[i+1],"self.__delphi_in[i/2]=",self.__delphi_in[i/2]
+            # print "tmp=",tmp
+            if sampleTags[i/2][0] in jointSamples.keys():
+                jointSamples[sampleTags[i/2][0]].append((sampleTags[i/2][1], tmp))
+            else:
+                jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],tmp)]
+        # print "jointSamples=",jointSamples
+        pde,homogPde=self.setUpPDE()
+        dom=self.__domain
+        kro=kronecker(dom)
+        A=sigma*kro
+        y_dirac = Scalar(0,DiracDeltaFunctions(dom))
+        for i in jointSamples:
+            total=0
+            for j in jointSamples[i]:
+                total+=j[1]
+            # print "setting y_dirac to ", total
+            y_dirac.setTaggedValue(i,total)
+
+        pde.setValue(A=A,y_dirac=-y_dirac)
+        u=pde.getSolution()
+        print "grad=",-inner(grad(u),grad_phi)
+        return inner(grad(u),grad_phi)
+
 
 class MT2DModelTEMode(ForwardModel):
     """
