@@ -553,6 +553,8 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     }
 
     f.close();
+    
+    interpolateFromCorners(out);
 }
 
 #ifdef USE_BOOSTIO
@@ -708,8 +710,98 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
             }
         }
     }
+    interpolateFromCorners(out);
 }
 #endif
+
+void Brick::interpolateFromCorners(escript::Data &out) const
+{
+    const int numComp = out.getDataPointSize();
+    //interpolate the missing portions
+    for (dim_t z = 0; z < m_NN[2]; z++) {
+        const double pz = point_locations[m_order-2][z%m_order];
+        for (dim_t y = 0; y < m_NN[1]; y++) {
+            const double py = point_locations[m_order-2][y%m_order];
+            for (dim_t x = 0; x < m_NN[0]; x++) {
+                //skip the points we have values for
+                if (y % m_order == 0 && x % m_order == 0 && z % m_order == 0)
+                    continue;
+                //point location in element: x,y
+                const double px = point_locations[m_order-2][x%m_order];
+
+                //the point we're interpolating a value for
+                double *point = out.getSampleDataRW(
+                        INDEX3(x, y, z, m_NN[0], m_NN[1]));
+
+                const dim_t left = x - x%m_order;
+                const dim_t right = left < m_NN[0] - 1 ? left + m_order : left;
+                const dim_t front = y - y%m_order;
+                const dim_t back = front < m_NN[1] - 1 ? front + m_order : front;
+                const dim_t down = z - z%m_order;
+                const dim_t up = down < m_NN[2] - 1 ? down + m_order : down;
+                
+                //corner values
+                const double *dlf = out.getSampleDataRO(
+                        INDEX3(left, front, down, m_NN[0], m_NN[1]));
+                const double *dlb = out.getSampleDataRO(
+                        INDEX3(left, back, down, m_NN[0], m_NN[1]));
+                const double *drf = out.getSampleDataRO(
+                        INDEX3(right, front, down, m_NN[0], m_NN[1]));
+                const double *drb = out.getSampleDataRO(
+                        INDEX3(right, back, down, m_NN[0], m_NN[1]));
+                const double *ulf = out.getSampleDataRO(
+                        INDEX3(left, front, up, m_NN[0], m_NN[1]));
+                const double *ulb = out.getSampleDataRO(
+                        INDEX3(left, back, up, m_NN[0], m_NN[1]));
+                const double *urf = out.getSampleDataRO(
+                        INDEX3(right, front, up, m_NN[0], m_NN[1]));
+                const double *urb = out.getSampleDataRO(
+                        INDEX3(right, back, up, m_NN[0], m_NN[1]));
+
+                //corner values
+//fprintf(stderr, "point %d has corners %d ", INDEX3(x, y, z, m_NN[0], m_NN[1]),
+//                        INDEX3(down, left, front, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d ",
+//                        INDEX3(down, left, back, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d ",
+//                        INDEX3(down, right, front, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d ",
+//                        INDEX3(down, right, back, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d ",
+//                        INDEX3(up, left, front, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d ",
+//                        INDEX3(up, left, back, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d ",
+//                        INDEX3(up, right, front, m_NN[0], m_NN[1]));
+//fprintf(stderr, "%d\n",
+//                        INDEX3(up, right, back, m_NN[0], m_NN[1]));
+
+                //the interpolation itself
+                for (int comp = 0; comp < numComp; comp++) {
+                    point[comp] = urb[comp]*px    *py    *pz
+                                + drb[comp]*px    *py    *(1-pz)
+                                + urf[comp]*px    *(1-py)*pz
+                                + drf[comp]*px    *(1-py)*(1-pz)
+                                + ulb[comp]*(1-px)*py    *pz
+                                + dlb[comp]*(1-px)*py    *(1-pz)
+                                + ulf[comp]*(1-px)*(1-py)*pz
+                                + dlf[comp]*(1-px)*(1-py)*(1-pz);
+//fprintf(stderr, "point %d = %g + %g + %g + %g + %g + %g + %g + %g = %g\n",
+//INDEX3(x, y, z, m_NN[0], m_NN[1]),
+//urb[comp]*px    *py    *pz,
+//drb[comp]*px    *py    *(1-pz),
+//urf[comp]*px    *(1-py)*pz,
+//drf[comp]*px    *(1-py)*(1-pz),
+//ulb[comp]*(1-px)*py    *pz,
+//dlb[comp]*(1-px)*py    *(1-pz),
+//ulf[comp]*(1-px)*(1-py)*pz,
+//dlf[comp]*(1-px)*(1-py)*(1-pz),
+//point[comp]);
+                }
+            }
+        }
+    }
+}
 
 void Brick::writeBinaryGrid(const escript::Data& in, string filename,
                             int byteOrder, int dataType) const

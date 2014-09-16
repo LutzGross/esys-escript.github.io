@@ -467,6 +467,7 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filena
     }
 
     f.close();
+    interpolateFromCorners(out);
 }
 
 #ifdef USE_BOOSTIO
@@ -578,8 +579,50 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const std::string& 
             }
         }
     }
+    interpolateFromCorners(out);
 }
 #endif
+
+void Rectangle::interpolateFromCorners(escript::Data &out) const
+{
+    const int numComp = out.getDataPointSize();
+    //interpolate the missing portions
+    for (dim_t y = 0; y < m_NN[1]; y++) {
+        for (dim_t x = 0; x < m_NN[0]; x++) {
+            //skip the points we have values for
+            if (y % m_order == 0 && x % m_order == 0)
+                continue;
+            //point location in element: x,y
+            const double px = point_locations[m_order-2][x%m_order];
+            const double py = point_locations[m_order-2][y%m_order];
+
+            double *point = out.getSampleDataRW(INDEX2(x, y, m_NN[0]));
+
+            const dim_t left = x - x%m_order;
+            const dim_t right = left < m_NN[0] - 1 ? left + m_order : left;
+            const dim_t front = y - y%m_order;
+            const dim_t back = front < m_NN[1] - 1 ? front + m_order : front;
+
+
+            const double *lowleft = out.getSampleDataRO(
+                    INDEX2(left, front, m_NN[0]));
+            const double *lowright = out.getSampleDataRO(
+                    INDEX2(right, front, m_NN[0]));
+            const double *highleft = out.getSampleDataRO(
+                    INDEX2(left, back, m_NN[0]));
+            const double *highright = out.getSampleDataRO(
+                    INDEX2(right, back, m_NN[0]));
+
+            for (int comp = 0; comp < numComp; comp++) {
+                point[comp] = highright[comp]*px*py 
+                            + highleft[comp]*(1-px)*py
+                            + lowright[comp]*px*(1-py)
+                            + lowleft[comp]*(1-px)*(1-py);
+            }
+        }
+    }
+}
+
 
 void Rectangle::writeBinaryGrid(const escript::Data& in, std::string filename,
                                 int byteOrder, int dataType) const
