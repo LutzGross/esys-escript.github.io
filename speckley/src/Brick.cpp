@@ -758,24 +758,6 @@ void Brick::interpolateFromCorners(escript::Data &out) const
                 const double *urb = out.getSampleDataRO(
                         INDEX3(right, back, up, m_NN[0], m_NN[1]));
 
-                //corner values
-//fprintf(stderr, "point %d has corners %d ", INDEX3(x, y, z, m_NN[0], m_NN[1]),
-//                        INDEX3(down, left, front, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d ",
-//                        INDEX3(down, left, back, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d ",
-//                        INDEX3(down, right, front, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d ",
-//                        INDEX3(down, right, back, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d ",
-//                        INDEX3(up, left, front, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d ",
-//                        INDEX3(up, left, back, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d ",
-//                        INDEX3(up, right, front, m_NN[0], m_NN[1]));
-//fprintf(stderr, "%d\n",
-//                        INDEX3(up, right, back, m_NN[0], m_NN[1]));
-
                 //the interpolation itself
                 for (int comp = 0; comp < numComp; comp++) {
                     point[comp] = urb[comp]*px    *py    *pz
@@ -786,17 +768,6 @@ void Brick::interpolateFromCorners(escript::Data &out) const
                                 + dlb[comp]*(1-px)*py    *(1-pz)
                                 + ulf[comp]*(1-px)*(1-py)*pz
                                 + dlf[comp]*(1-px)*(1-py)*(1-pz);
-//fprintf(stderr, "point %d = %g + %g + %g + %g + %g + %g + %g + %g = %g\n",
-//INDEX3(x, y, z, m_NN[0], m_NN[1]),
-//urb[comp]*px    *py    *pz,
-//drb[comp]*px    *py    *(1-pz),
-//urf[comp]*px    *(1-py)*pz,
-//drf[comp]*px    *(1-py)*(1-pz),
-//ulb[comp]*(1-px)*py    *pz,
-//dlb[comp]*(1-px)*py    *(1-pz),
-//ulf[comp]*(1-px)*(1-py)*pz,
-//dlf[comp]*(1-px)*(1-py)*(1-pz),
-//point[comp]);
                 }
             }
         }
