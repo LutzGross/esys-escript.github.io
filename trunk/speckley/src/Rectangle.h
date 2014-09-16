@@ -248,6 +248,13 @@ private:
        Sums the values across MPI overlaps
     */
     void shareSides(escript::Data& out, int rx, int ry) const;
+    
+    /* \brief
+        interpolates the non-corner point values of an element
+        from the corner values
+    */
+    void interpolateFromCorners(escript::Data& out) const;
+    
     /* \brief
        Sums the values across MPI overlaps
     */

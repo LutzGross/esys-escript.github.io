@@ -155,8 +155,8 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
     is assumed!
     """
     # set defaults which may be overridden in subclasses
-    NX = 10
-    NZ = 8
+    NX = 4
+    NZ = 3
     fspaces = [(ContinuousFunction,'CF')]
     byteorder = BYTEORDER_NATIVE
     datatype = DATATYPE_FLOAT64
@@ -201,7 +201,6 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
         # step 3 - write
         self.write(data, filename) # overwrite is ok
         MPIBarrierWorld()
-#        print np.fromfile(filename, dtype=self.dtype).shape, "->", tuple(reversed(adjust(self.NE,ftype)))
         result = np.fromfile(filename, dtype=self.dtype)\
             .reshape(tuple(reversed(adjust(self.NE,ftype))))
         return result
@@ -282,8 +281,6 @@ class ReadBinaryGridTestBase(unittest.TestCase): #subclassing required
                             ref = np.append(ref, extra, axis=2-d)
 
                 # step 4 - compare
-#                print "ref", ref
-#                print "result", result
                 self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
                         msg="Data doesn't match for "+str(ftype(self.domain))+\
                             "%d"%order)
@@ -304,6 +301,36 @@ class Test_readBinaryGridSpeckley_LITTLE_FLOAT64(ReadBinaryGridTestBase):
         self.datatype = DATATYPE_FLOAT64
         self.dtype = "<f8"
 
+    #since using getX as the test, doubles required
+    def test_interpolationRead2D(self):
+        self.Ndata = [self.NX*mpiSize, self.NZ]
+        self.NE = [self.NX*mpiSize, self.NZ]
+        for order in range(2,11):
+            self.domain = Rectangle(order, self.NE[0], self.NE[1], d0=mpiSize)
+            X = self.domain.getX()
+            data = X[0] + X[1]
+            filename = os.path.join(SPECKLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),'CF'))
+            filename = filename + self.dtype.replace('<','L').replace('>','B')
+            self.write(data, filename)
+            result = self.read(filename, ContinuousFunction)
+            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
+
+    #since using getX as the test, doubles required
+    def test_interpolationRead3D(self):
+        self.Ndata = [self.NX*mpiSize, self.NX, self.NZ]
+        self.NE = [self.NX*mpiSize, self.NX, self.NZ]
+        for order in range(2,11):
+            self.domain = Brick(order, self.NE[0], self.NE[1], self.NE[2], d0=mpiSize)
+            X = self.domain.getX()
+            data = X[0] + X[1] + X[2]
+            filename = os.path.join(SPECKLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),'CF'))
+            filename = filename + self.dtype.replace('<','L').replace('>','B')
+            self.write(data, filename)
+            result = self.read(filename, ContinuousFunction)
+            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
+
 class Test_readBinaryGridSpeckley_LITTLE_INT32(ReadBinaryGridTestBase):
     def setUp(self):
         self.byteorder = BYTEORDER_LITTLE_ENDIAN
@@ -321,6 +348,37 @@ class Test_readBinaryGridSpeckley_BIG_FLOAT64(ReadBinaryGridTestBase):
         self.byteorder = BYTEORDER_BIG_ENDIAN
         self.datatype = DATATYPE_FLOAT64
         self.dtype = ">f8"
+
+    #since using getX as the test, doubles required
+    def test_interpolationRead2D(self):
+        self.Ndata = [self.NX*mpiSize, self.NZ]
+        self.NE = [self.NX*mpiSize, self.NZ]
+        for order in range(2,11):
+            self.domain = Rectangle(order, self.NE[0], self.NE[1], d0=mpiSize)
+            X = self.domain.getX()
+            data = X[0] + X[1]
+            filename = os.path.join(SPECKLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),'CF'))
+            filename = filename + self.dtype.replace('<','L').replace('>','B')
+            self.write(data, filename)
+            result = self.read(filename, ContinuousFunction)
+            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
+
+    #since using getX as the test, doubles required
+    def test_interpolationRead3D(self):
+        self.Ndata = [self.NX*mpiSize, self.NX, self.NZ]
+        self.NE = [self.NX*mpiSize, self.NX, self.NZ]
+        for order in range(2,11):
+            self.domain = Brick(order, self.NE[0], self.NE[1], self.NE[2], d0=mpiSize)
+            X = self.domain.getX()
+            data = X[0] + X[1] + X[2]
+            filename = os.path.join(SPECKLEY_WORKDIR, "_wgrid%dd%s"%(self.domain.getDim(),'CF'))
+            filename = filename + self.dtype.replace('<','L').replace('>','B')
+            self.write(data, filename)
+            result = self.read(filename, ContinuousFunction)
+            self.assertAlmostEquals(Lsup(data-result), 0, delta=1e-9,
+                    msg="Data doesn't match for "+str(ContinuousFunction(self.domain)))
+
 
 class Test_readBinaryGridSpeckley_BIG_INT32(ReadBinaryGridTestBase):
     def setUp(self):

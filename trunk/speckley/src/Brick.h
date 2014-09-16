@@ -239,6 +239,12 @@ private:
     void shareFaces(escript::Data& out, int rx, int ry, int rz) const;
     void shareCorners(escript::Data& out) const;
 #endif
+    /* \brief
+        interpolates the non-corner point values of an element
+        from the corner values
+    */
+    void interpolateFromCorners(escript::Data& out) const;
+
     void populateSampleIds();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
