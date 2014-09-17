@@ -250,16 +250,17 @@ private:
     void shareSides(escript::Data& out, int rx, int ry) const;
     
     /* \brief
+       Sums the values across MPI overlaps
+    */
+    void shareVertical(escript::Data& out, int rx, int ry) const;
+#endif
+
+    /* \brief
         interpolates the non-corner point values of an element
         from the corner values
     */
     void interpolateFromCorners(escript::Data& out) const;
     
-    /* \brief
-       Sums the values across MPI overlaps
-    */
-    void shareVertical(escript::Data& out, int rx, int ry) const;
-#endif
     void populateSampleIds();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
