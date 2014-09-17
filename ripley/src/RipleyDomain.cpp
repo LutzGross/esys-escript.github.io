@@ -20,7 +20,10 @@
 #include <pasowrap/SystemMatrixAdapter.h>
 #include <pasowrap/TransportProblemAdapter.h>
 #include <ripley/domainhelpers.h>
+
+#ifdef USE_CUDA
 #include <ripley/RipleySystemMatrix.h>
+#endif
 
 #include <iomanip>
 
@@ -768,9 +771,10 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
     const escript::SolverBuddy& sb = bp::extract<escript::SolverBuddy>(options);
     int package = sb.getPackage();
 
-    // use CUSP for single rank and supported solvers+preconditioners,
-    // PASO otherwise
+    // use CUSP for single rank and supported solvers+preconditioners if CUDA
+    // is available, PASO otherwise
     if (package == escript::SO_DEFAULT) {
+#ifdef USE_CUDA
         if (m_mpiInfo->size == 1) {
             switch (sb.getSolverMethod()) {
                 case escript::SO_DEFAULT:
@@ -794,6 +798,9 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         } else {
             package = escript::SO_PACKAGE_PASO;
         }
+#else // USE_CUDA
+        package = escript::SO_PACKAGE_PASO;
+#endif
     }
 
     if (package == escript::SO_PACKAGE_CUSP) {
@@ -850,10 +857,14 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
     //    throw RipleyException("newSystemMatrix: reduced order not supported");
 
     if (type == (int)SMT_CUSP) {
+#ifdef USE_CUDA
         const int numMatrixRows = getNumDOF();
         escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
                     row_functionspace, numMatrixRows, getDiagonalIndices()));
         return sm;
+#else
+        throw RipleyException("newSystemMatrix: ripley was compiled without CUDA support so CUSP solvers & matrices are not available.");
+#endif
     } else if (type & (int)SMT_PASO) {
         paso::SystemMatrixPattern_ptr pattern(getPasoMatrixPattern(
                                             reduceRowOrder, reduceColOrder));

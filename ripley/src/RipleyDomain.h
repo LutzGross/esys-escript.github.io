@@ -85,8 +85,6 @@ struct DiracPoint
     int tag;
 };
 
-class SystemMatrix;
-
 /**
    \brief
    RipleyDomain extends the AbstractContinuousDomain interface
