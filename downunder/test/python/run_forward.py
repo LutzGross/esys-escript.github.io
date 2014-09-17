@@ -365,8 +365,84 @@ class TestMT2DModelTEMode(unittest.TestCase):
         args1=acw.getArguments(SIGMA1)
         d1=acw.getDefect(SIGMA1, *args1)
         self.assertTrue( abs( d1-d0-integrate(dg0*p) ) < 1e-2  * abs(d1-d0) )
+
+class TestSubsidence(unittest.TestCase):
+    def test_PDE(self):
+         
+        lam=2.
+        mu=1.
+
+        from esys.ripley import Brick
+        domain=Brick(20,20,20)
         
-                                  
+        xb=FunctionOnBoundary(domain).getX()
+        m=whereZero(xb[2]-1)
+        w=m*[0,0,1]
+        d=m*2.5
+        acw=Subsidence(domain, w,d, lam, mu )
+        
+        P0=10.        
+        args0=acw.getArguments(P0)
+        u=args0[0]
+        self.assertTrue(Lsup(u[0]) < 1.e-8)
+        self.assertTrue(Lsup(u[1]) < 1.e-8)
+        self.assertTrue(Lsup(u[2]-2.5*domain.getX()[2]) < 1.e-8)
+        
+        dd=acw.getDefect(P0, *args0)
+        
+        self.assertTrue( dd >= 0.)
+        self.assertTrue( dd <= 1e-7 * 2.5 )
+    def test_Differential(self):
+    
+        lam=2.
+        mu=1.
+        
+        INC=0.01 
+        from esys.ripley import Brick
+        domain=Brick(20,20,20)
+        
+        xb=FunctionOnBoundary(domain).getX()
+        m=whereZero(xb[2]-1)
+        w=m*[0,0,1]
+        d=m*2.5
+        acw=Subsidence(domain, w,d, lam, mu )
+        
+        
+        x=Function(domain).getX()
+        P0=x[0]*x[1]
+        args0=acw.getArguments(P0)
+        d0=acw.getDefect(P0, *args0)
+        grad_d=acw.getGradient(P0, *args0)
+
+        
+        dP=exp(-(length(x-[0.5,0.5,0.5])/0.06)**2)
+        P1=P0+INC*dP
+        args1=acw.getArguments(P1)
+        d1=acw.getDefect(P1, *args1)
+        ref=abs((d1-d0)/INC)
+        self.assertTrue(abs((d1-d0)/INC-integrate(grad_d* dP)) < ref * 1.e-5) 
+
+        dP=exp(-(length(x-[0.3,0.3,0.5])/0.06)**2)
+        P2=P0-INC*dP
+        args2=acw.getArguments(P2)
+        d2=acw.getDefect(P2, *args2)
+        ref=abs((d2-d0)/INC)
+        self.assertTrue(abs((d2-d0)/INC+integrate(grad_d* dP)) < ref * 1.e-5) 
+
+
+
+class TestIsostaticPressure(unittest.TestCase):
+    def ttest_all(self):
+        from esys.ripley import Brick
+        domain=Brick(50,50,50, )
+        
+        ps=IsostaticPressure(domain, level0=0., coordinates=None)
+    
+        g=Vector(0., Function(domain))
+        rho=Scalar(0., Function(domain))
+        p0=ps.getPressure(g, rho)
+        print p0
+                               
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
     

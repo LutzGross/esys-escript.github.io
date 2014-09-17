@@ -23,12 +23,13 @@ __license__="""Licensed under the Open Software License version 3.0
 http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
-__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm', 'MT2DModelTEMode','DcRes']
+__all__ = ['ForwardModel','ForwardModelWithPotential','GravityModel','MagneticModel', 'SelfDemagnetizationModel', 'AcousticWaveForm', 'MT2DModelTEMode','DcRes', 'IsostaticPressure', 'Subsidence']
+
 
 from esys.escript import unitsSI as U
 from esys.escript.pdetools import Locator
 from esys.escript import Data, Vector, Scalar, Function, DiracDeltaFunctions, FunctionOnBoundary, Solution, length, exp
-from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE, SolverOptions
+from esys.escript.linearPDEs import LinearSinglePDE, LinearPDESystem, LinearPDE, SolverOptions
 from .coordinates import makeTranformation
 from esys.escript.util import *
 from math import pi as PI
@@ -329,7 +330,72 @@ class GravityModel(ForwardModelWithPotential):
         ZT=pde.getSolution()
         return ZT*(-self.__G)
 
+class IsostaticPressure(object):
+    """
+    class to calculate isostatic pressure field correction due to gravity forces 
+    """
+    def __init__(self, domain,
+                        level0=0, 
+                        gravity0=-9.81 * U.m*U.sec**(-3),
+                        background_density= 2670* U.kg*U.m**(-3),
+                        gravity_constant=U.Gravitational_Constant, 
+                        coordinates=None, 
+                        tol=1e-8):
+        """
+        
+        :param domain: domain of the model
+        :type domain: `Domain`
+        :param background_density: defines background_density in kg/m^3
+        :type background_density: ``float``
+        :param coordinates: defines coordinate system to be used
+        :type coordinates: ReferenceSystem` or `SpatialCoordinateTransformation`
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
+        :param level0: pressure for z>=`level0` is set to zero.
+        :type level0: ``float``
+        :param gravity0: vertical background gravity at `level0`
+        :type gravity0: ``float``        
+        """
+        DIM=domain.getDim()
+        self.__domain = domain
+        self.__trafo=makeTranformation(domain, coordinates)
+        
+        self.__pde=LinearSinglePDE(domain)
+        self.__pde.getSolverOptions().setTolerance(tol)
+        self.__pde.setSymmetryOn()
 
+        z=x = domain.getX()[DIM-1]
+        self.__pde.setValue(q=whereNonPositive(z-level0))
+
+        fw = self.__trafo.getScalingFactors()**2 * self.__trafo.getVolumeFactor()
+        A=self.__pde.createCoefficient("A")
+        for i in range(DIM): A[i,i]=fw[i]
+        self.__pde.setValue(A=A)
+        self.__g_b= 4*PI*gravity_constant/self.__trafo.getScalingFactors()[DIM-1]*background_density*(level0-z) + gravity0
+        self.__rho_b=background_density
+        
+    def getPressure(self, g = None, rho=None):
+        """
+        return the pressure for gravity force anomaly `g` and 
+        density anomaly `density`
+        
+        :param g: gravity anomaly data
+        :type g: ``Vector`` 
+        :param rho: gravity anomaly data
+        :type rho: ``Scalar`` 
+        :return: pressure distribution
+        :rtype: ``Scalar`
+        """
+        if not g: g=Vector(0., Function(self.__domain))
+        if not rho: rho=Scalar(0., Function(self.__domain))
+        
+        g2=(rho * self.__g_b) * [0,0,1] + self.__rho_b  * g + rho * g 
+        d=self.__trafo.getScalingFactors()
+        V= self.__trafo.getVolumeFactor()
+        self.__pde.setValue(X= g2*d*V )
+        return self.__pde.getSolution()
+
+    
 class MagneticModel(ForwardModelWithPotential):
     """
     Forward Model for magnetic inversion as described in the inversion
@@ -1370,4 +1436,106 @@ class MT2DModelTEMode(ForwardModel):
         pde.setValue(D=D, X=X, Y=Y)
         Zstar=pde.getSolution()
         return self.__omega * self.__mu * (Zstar[0]*u1-Zstar[1]*u0)
+        
+class Subsidence(ForwardModel):
+    """
+    Forward Model for subsidence inversion minimizing integrate( (inner(w,u)-d)**2) 
+    where u is the surface displacement due to a pressure change P 
+    """
+    def __init__(self, domain, w, d, lam, mu, coordinates=None, tol=1e-8):
+        """
+        Creates a new subsidence on the given domain
+
+        :param domain: domain of the model
+        :type domain: `Domain`
+        :param w: data weighting factors and direction 
+        :type w: ``Vector`` with ``FunctionOnBoundary``
+        :param d: displacement measured at surface 
+        :type d: ``Scalar`` with ``FunctionOnBoundary``
+        :param lam: 1st Lame coefficient
+        :type lam: ``Scalar`` with ``Function``
+        :param lam: 2st Lame coefficient/Shear modulus
+        :type lam: ``Scalar`` with ``Function``
+        :param coordinates: defines coordinate system to be used (not supported yet))
+        :type coordinates: `ReferenceSystem` or `SpatialCoordinateTransformation`
+        :param tol: tolerance of underlying PDE
+        :type tol: positive ``float``
+        """
+        super(Subsidence, self).__init__()
+        DIM=domain.getDim()
+        
+        
+        self.__pde=LinearPDESystem(domain)
+        self.__pde.setSymmetryOn()
+        self.__pde.getSolverOptions().setTolerance(tol)
+        #... set coefficients ...
+        C=self.__pde.createCoefficient('A')
+        for i in range(DIM):
+            for j in range(DIM):
+                C[i,i,j,j]+=lam
+                C[i,j,i,j]+=mu
+                C[i,j,j,i]+=mu
+        x=domain.getX()
+        msk=whereZero(x[DIM-1])*kronecker(DIM)[DIM-1]
+        for i in range(DIM-1):
+            xi=x[i]
+            msk+=(whereZero(xi-inf(xi))+whereZero(xi-sup(xi))) *kronecker(DIM)[i]
+        self.__pde.setValue(A=C,q=msk)
+
+        self.__w=interpolate(w, FunctionOnBoundary(domain))
+        self.__d=interpolate(d, FunctionOnBoundary(domain))
+
+    def rescaleWeights(self, scale=1., P_scale=1.):
+        """
+        rescales the weights such that
+        :param scale: scale of data weighting factors
+        :type scale: positive ``float``
+        :param P_scale: scale of pressure increment
+        :type P_scale: ``Scalar``
+        """
+        pass
+
+    def getArguments(self, P):
+        """
+        Returns precomputed values shared by `getDefect()` and `getGradient()`.
+
+        :param P: pressure
+        :type P: ``Scalar``
+        :return: displacement u
+        :rtype: ``Vector``
+        """
+        DIM=self.__pde.getDim()
+        self.__pde.setValue(y=Data(),X=P*kronecker(DIM))
+        u= self.__pde.getSolution()
+        return u,
+
+    def getDefect(self, P,u):
+        """
+        Returns the value of the defect.
+
+        :param P: pressure
+        :type P: ``Scalar``
+        :param u: corresponding displacement
+        :type u: ``Vector``
+        :rtype: ``float``
+        """
+        return 0.5*integrate((inner(u,self.__w)-self.__d)**2)
+
+    def getGradient(self, P, u):
+        """
+        Returns the gradient of the defect with respect to susceptibility.
+
+        :param P: pressure
+        :type P: ``Scalar``
+        :param u: corresponding displacement
+        :type u: ``Vector``
+        
+        :rtype: ``Scalar``
+        """
+        d=inner(u,self.__w)-self.__d
+        self.__pde.setValue(y=d*self.__w,X=Data())
+        ustar=self.__pde.getSolution()
+
+        return div(ustar)
+            
 
