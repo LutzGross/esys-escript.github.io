@@ -31,7 +31,7 @@
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 201
+escript_opts_version = 202
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -242,4 +242,15 @@ visit_libs = ['simV2']
 #forcelazy = 'leave_alone'
 
 #forcecollres = 'leave_alone'
+
+#if this is not 'python' the command will be used instead of the python
+#version scons is running on
+#pythoncmd='python'
+
+#Set to true to build with python3 [You will need to set pythoncmd as well]
+#usepython3=False
+
+#name of the python library to link against.  For Python2 you should not need
+#to set this
+#pythonlibname=''
 
