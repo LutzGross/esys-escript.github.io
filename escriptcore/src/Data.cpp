@@ -3824,7 +3824,7 @@ Data Data::nonuniforminterp(boost::python::object in, boost::python::object out,
     int ipoints=win.getShape()[0];
     int l=0;
     bool error=false;
-    #pragma omp parallel for private(l) shared(error, rdat, sdat) schedule(static) 
+    #pragma omp parallel for private(l) schedule(static) 
     for (l=0; l<numpts; ++l)
     {
         if ((sdat)[l]<win.getElt(0))
@@ -3899,7 +3899,7 @@ Data Data::nonuniformslope(boost::python::object in, boost::python::object out, 
     int ipoints=win.getShape()[0];
     int l=0;
     bool error=false;
-    #pragma omp parallel for private(l) shared(error, rdat, sdat) schedule(static) 
+    #pragma omp parallel for private(l) schedule(static) 
     for (l=0; l<numpts; ++l)
     {
         if ((sdat)[l]<win.getElt(0))
