@@ -1153,12 +1153,16 @@ void RipleyDomain::addToSystemMatrix(escript::AbstractSystemMatrix* mat,
         paso::SystemMatrix_ptr S(sma->getPaso_SystemMatrix());
         addToSystemMatrix(S, nodes, numEq, array);
     } else {
+#ifdef USE_CUDA
         SystemMatrix* sm = dynamic_cast<SystemMatrix*>(mat);
         if (sm) {
             sm->add(nodes, array);
         } else {
             throw RipleyException("addToSystemMatrix: unknown system matrix type");
         }
+#else
+        throw RipleyException("addToSystemMatrix: unknown system matrix type");
+#endif
     }
 }
 
