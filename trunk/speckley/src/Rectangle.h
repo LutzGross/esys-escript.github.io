@@ -199,7 +199,6 @@ public:
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
-    virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
     virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
 #ifdef ESYS_MPI
@@ -211,12 +210,9 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals,
                                    const escript::Data& arg) const;
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                  const escript::Data& in, bool reduced) const;
+                                  const escript::Data& in) const;
     virtual void interpolateElementsOnNodes(escript::Data& out,
-                                const escript::Data& in, bool reduced) const;
-    virtual void interpolateNodesOnFaces(escript::Data& out,
-                                         const escript::Data& in,
-                                         bool reduced) const;
+                                const escript::Data& in) const;
     virtual int getDofOfNode(int node) const;
 
 private:
@@ -307,15 +303,10 @@ private:
     /// number of face elements per edge (left, right, bottom, top)
     int m_faceCount[4];
 
-    /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
-    /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top)
-    IndexVector m_faceOffset;
-
     /// vector of sample reference identifiers
     IndexVector m_dofId;
     IndexVector m_nodeId;
     IndexVector m_elementId;
-    IndexVector m_faceId;
 
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
@@ -367,13 +358,6 @@ inline dim_t Rectangle::getNumElements() const
 {
     return m_NE[0]*m_NE[1];
 }
-
-//protected
-inline dim_t Rectangle::getNumFaceElements() const
-{
-    return m_faceCount[0] + m_faceCount[1] + m_faceCount[2] + m_faceCount[3];
-}
-
 
 } // end of namespace speckley
 

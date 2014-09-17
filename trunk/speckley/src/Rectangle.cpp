@@ -587,6 +587,7 @@ void Rectangle::interpolateFromCorners(escript::Data &out) const
 {
     const int numComp = out.getDataPointSize();
     //interpolate the missing portions
+#pragma omp parallel for
     for (dim_t y = 0; y < m_NN[1]; y++) {
         for (dim_t x = 0; x < m_NN[0]; x++) {
             //skip the points we have values for
@@ -854,17 +855,10 @@ const dim_t* Rectangle::borrowSampleReferenceIDs(int fsType) const
 {
     switch (fsType) {
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom: // FIXME: reduced
-//            return &m_dofId[0];
         case Nodes:
-        case ReducedNodes: // FIXME: reduced
             return &m_nodeId[0];
         case Elements:
-        case ReducedElements:
             return &m_elementId[0];
-        case FaceElements:
-        case ReducedFaceElements:
-            return &m_faceId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
         default:
@@ -898,46 +892,6 @@ void Rectangle::setToSize(escript::Data& out) const
             double* o = out.getSampleDataRW(k);
             std::fill(o, o+numQuad, size);
         }
-    } else if (out.getFunctionSpace().getTypeCode() == FaceElements) {
-        out.requireWrite();
-        const dim_t numQuad=out.getNumDataPointsPerSample();
-        const dim_t NE0 = m_NE[0];
-        const dim_t NE1 = m_NE[1];
-#pragma omp parallel
-        {
-            if (m_faceOffset[0] > -1) {
-#pragma omp for nowait
-                for (index_t k1 = 0; k1 < NE1; ++k1) {
-                    double* o = out.getSampleDataRW(m_faceOffset[0]+k1);
-                    std::fill(o, o+numQuad, m_dx[1]);
-                }
-            }
-
-            if (m_faceOffset[1] > -1) {
-#pragma omp for nowait
-                for (index_t k1 = 0; k1 < NE1; ++k1) {
-                    double* o = out.getSampleDataRW(m_faceOffset[1]+k1);
-                    std::fill(o, o+numQuad, m_dx[1]);
-                }
-            }
-
-            if (m_faceOffset[2] > -1) {
-#pragma omp for nowait
-                for (index_t k0 = 0; k0 < NE0; ++k0) {
-                    double* o = out.getSampleDataRW(m_faceOffset[2]+k0);
-                    std::fill(o, o+numQuad, m_dx[0]);
-                }
-            }
-
-            if (m_faceOffset[3] > -1) {
-#pragma omp for nowait
-                for (index_t k0 = 0; k0 < NE0; ++k0) {
-                    double* o = out.getSampleDataRW(m_faceOffset[3]+k0);
-                    std::fill(o, o+numQuad, m_dx[0]);
-                }
-            }
-        } // end of parallel section
-
     } else {
         std::stringstream msg;
         msg << "setToSize: invalid function space type "
@@ -1157,9 +1111,6 @@ void Rectangle::populateSampleIds()
     else
         m_faceCount[3]=0;
 
-    const dim_t NFE = getNumFaceElements();
-    m_faceId.resize(NFE);
-
 
     if (bottom && left) {
         //get lower-left node
@@ -1199,25 +1150,6 @@ void Rectangle::populateSampleIds()
 
     m_elementTags.assign(getNumElements(), 0);
     updateTagsInUse(Elements);
-
-    // generate face offset vector and set face tags
-    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20;
-    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP };
-    m_faceOffset.assign(4, -1);
-    m_faceTags.clear();
-    index_t offset=0;
-    for (size_t i=0; i<4; i++) {
-        if (m_faceCount[i]>0) {
-            m_faceOffset[i]=offset;
-            offset+=m_faceCount[i];
-            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-        }
-    }
-    setTagMap("left", LEFT);
-    setTagMap("right", RIGHT);
-    setTagMap("bottom", BOTTOM);
-    setTagMap("top", TOP);
-    updateTagsInUse(FaceElements);
 }
 
 //private
@@ -1230,12 +1162,8 @@ void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Dat
 
 //protected
 void Rectangle::interpolateNodesOnElements(escript::Data& out,
-                                           const escript::Data& in,
-                                           bool reduced) const
+                                           const escript::Data& in) const
 {
-    if (reduced) {
-        throw SpeckleyException("Speckley domains do not support reduced function spaces");
-    }
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
@@ -1355,7 +1283,7 @@ void Rectangle::balanceNeighbours(escript::Data& data, bool average) const {
 
 //protected
 void Rectangle::interpolateElementsOnNodes(escript::Data& out,
-        const escript::Data& in, bool reduced) const {
+        const escript::Data& in) const {
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
@@ -1363,9 +1291,6 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
     const dim_t max_x = (m_order*NE0) + 1;
     const dim_t max_y = (m_order*NE1) + 1;
     out.requireWrite();
-    if (reduced) {
-        throw SpeckleyException("Speckley domains do not support reduced function spaces");
-    }
     // the summation portion
     for (dim_t colouring = 0; colouring < 2; colouring++) {
 #pragma omp parallel for
@@ -1439,17 +1364,9 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
     //share
     for (int i = 0; i < 4; i++) {
         if (conds[i]) {
-            if (rx % 2) {
-                MPI_Send(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
-                        m_mpiInfo->comm);
-                MPI_Recv(&inbuf[i], count, MPI_DOUBLE, ranks[i], tag,
-                        m_mpiInfo->comm, &status);
-            } else {
-                MPI_Recv(&inbuf[i], count, MPI_DOUBLE, ranks[i], tag,
-                        m_mpiInfo->comm, &status);
-                MPI_Send(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
-                        m_mpiInfo->comm);
-            }
+            MPI_Sendrecv(&outbuf[i], numComp, MPI_DOUBLE, ranks[i], tag,
+                    &inbuf[i], count, MPI_DOUBLE, ranks[i], tag,
+                    m_mpiInfo->comm, &status);
         }
     }
 
@@ -1609,16 +1526,6 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
     }
 }
 #endif //#ifdef ESYS_MPI
-
-//protected
-void Rectangle::interpolateNodesOnFaces(escript::Data& out,
-                                        const escript::Data& in,
-                                        bool reduced) const
-{
-    throw SpeckleyException("Rectangle::interpolateNodesOnFaces not implemented");
-}
-
-
 
 dim_t Rectangle::findNode(const double *coords) const
 {

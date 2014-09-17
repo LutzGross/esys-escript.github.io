@@ -34,6 +34,7 @@ def interpolateEscriptData(domain, data):
     from esys.escript import Solution, ReducedSolution
     from esys.escript import ContinuousFunction, ReducedContinuousFunction
     from esys.escript.util import interpolate
+    
     new_data={}
     for n,d in list(data.items()):
         if not d.isEmpty():
@@ -45,6 +46,8 @@ def interpolateEscriptData(domain, data):
             new_data[n]=d
             try:
                 if fs == Solution(domain):
+                    new_data[n]=interpolate(d, ContinuousFunction(domain))
+                elif domain.getDescription().startswith("speckley"):
                     new_data[n]=interpolate(d, ContinuousFunction(domain))
                 elif fs == ReducedSolution(domain):
                     new_data[n]=interpolate(d, ReducedContinuousFunction(domain))

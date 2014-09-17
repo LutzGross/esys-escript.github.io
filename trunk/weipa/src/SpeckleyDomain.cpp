@@ -57,9 +57,7 @@ bool SpeckleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomai
         faces = SpeckleyElements_ptr(new SpeckleyElements("FaceElements", nodes));
 
         if (nodes->initFromSpeckley(dom) &&
-                cells->initFromSpeckley(dom, speckley::Elements) 
-                //&& faces->initFromSpeckley(dom, speckley::FaceElements)
-                ) {
+                cells->initFromSpeckley(dom, speckley::Elements)) {
             initialized = true;
         }
     }
