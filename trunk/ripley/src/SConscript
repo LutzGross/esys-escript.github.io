@@ -66,18 +66,15 @@ if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
     local_env.AppendUnique(LIBS = env['silo_libs'])
 
-if env['openmp']:
-    local_env.Append(CPPDEFINES = ['THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP'])
-
 if local_env['cuda']:
     sources.append('RipleySystemMatrix.cu')
+    if env['openmp']:
+        local_env.Append(CPPDEFINES = ['THRUST_HOST_SYSTEM=THRUST_HOST_SYSTEM_OMP'])
+
     local_env['NVCCFLAGS'] += ' -w'
     local_env['SHNVCCFLAGS']  += ' -w'
     local_env.Append(CPPDEFINES = ['USE_CUDA', 'THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA'])
     local_env.Append(LIBS = ['cudart'])
-else:
-    local_env.Append(CPPDEFINES = ['THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CPP'])
-    sources.append('RipleySystemMatrix.cpp')
 
 if IS_WINDOWS:
     local_env.Append(CPPDEFINES = ['RIPLEY_EXPORTS'])
