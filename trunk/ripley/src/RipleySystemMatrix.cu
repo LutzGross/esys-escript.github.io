@@ -51,9 +51,13 @@ void SystemMatrix::checkCUDA()
 {
 #ifdef USE_CUDA
     cudaDevices.clear();
-    int deviceCount;
+    int deviceCount = 0;
     cudaError err = cudaGetDeviceCount(&deviceCount);
-    if (deviceCount == 0 || err == cudaErrorNoDevice) {
+    if (err == cudaErrorInsufficientDriver) {
+        std::cout << "Note: CUDA reported a driver error enumerating CUDA devices" << std::endl;
+        cudaDevices.push_back(-1);
+        return;
+    } else if (deviceCount == 0 || err == cudaErrorNoDevice) {
         std::cout << "Note: There is no device supporting CUDA" << std::endl;
         cudaDevices.push_back(-1);
         return;
