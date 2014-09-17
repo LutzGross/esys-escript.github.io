@@ -71,6 +71,12 @@ SpeckleyElements::SpeckleyElements(const SpeckleyElements& e)
 //
 bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int fsType)
 {
+    if (fsType != speckley::Elements) {
+        std::cerr << "Speckley only supports saving via Element functionspaces"
+                << std::endl;
+        return false;
+    }
+
 #ifndef VISIT_PLUGIN
     const pair<int,int> shape = dom->getDataShape(fsType);
     const int* faces = dom->getNumFacesPerBoundary();
@@ -87,91 +93,84 @@ bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int
         owner.assign(numElements, dom->getMPIRank());
 
         const int* iPtr = dom->borrowSampleReferenceIDs(fsType);
-        ID.assign(iPtr, iPtr+numElements);
-
-        //iPtr = dom->borrowListOfTags(fsType);
-        //tag.assign(iPtr, iPtr+numElements);
+        ID.assign(iPtr, iPtr+shape.second);
 
         const int* NE = dom->getNumElementsPerDim();
         const int* NN = dom->getNumNodesPerDim();
         nodes.clear();
         if (dom->getDim() == 2) {
             type = ZONETYPE_QUAD;
-            if (fsType==speckley::Elements) {
-                if (faces[0]==0) {
-                    owner[0]=(faces[2]==0 ? dom->getMPIRank()-NS[0]-1
-                            : dom->getMPIRank()-1);
-                    for (int i=1; i<NE[1]; i++)
-                        owner[i*NE[0]]=dom->getMPIRank()-1;
-                }
-                if (faces[2]==0) {
-                    const int first=(faces[0]==0 ? 1 : 0);
-                    for (int i=first; i<NE[0]; i++)
-                        owner[i]=dom->getMPIRank()-NS[0];
-                }
-                for (int ey = 0; ey < NE[1]; ey++) {
-                    for (int ex = 0; ex < NE[0]; ex++) {
-                        int start = order*(ex + ey*NN[0]);
-                        for (int qy=0; qy < order; qy++) {
-                            int rowstart = start + qy*NN[0];
-                            for (int qx=0; qx < order; qx++) {
-                                nodes.push_back(rowstart + qx);
-                                nodes.push_back(rowstart + qx + 1);
-                                nodes.push_back(rowstart + qx + NN[0] + 1);
-                                nodes.push_back(rowstart + qx + NN[0]);
-                            }
+            if (faces[0]==0) {
+                owner[0]=(faces[2]==0 ? dom->getMPIRank()-NS[0]-1
+                        : dom->getMPIRank()-1);
+                for (int i=1; i<NE[1]; i++)
+                    owner[i*NE[0]]=dom->getMPIRank()-1;
+            }
+            if (faces[2]==0) {
+                const int first=(faces[0]==0 ? 1 : 0);
+                for (int i=first; i<NE[0]; i++)
+                    owner[i]=dom->getMPIRank()-NS[0];
+            }
+            for (int ey = 0; ey < NE[1]; ey++) {
+                for (int ex = 0; ex < NE[0]; ex++) {
+                    int start = order*(ex + ey*NN[0]);
+                    for (int qy=0; qy < order; qy++) {
+                        int rowstart = start + qy*NN[0];
+                        for (int qx=0; qx < order; qx++) {
+                            nodes.push_back(rowstart + qx);
+                            nodes.push_back(rowstart + qx + 1);
+                            nodes.push_back(rowstart + qx + NN[0] + 1);
+                            nodes.push_back(rowstart + qx + NN[0]);
                         }
                     }
                 }
             }
         } else {
             type = ZONETYPE_HEX;
-            if (fsType==speckley::Elements) {
-                // ownership is not entirely correct but that is not critical.
-                // fix when there is time.
-                if (faces[1]==0) {
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k1=0; k1<NE[1]; k1++) {
-                            const int e=k2*NE[0]*NE[1]+(k1+1)*NE[0]-1;
-                            owner[e]=dom->getMPIRank()+1;
-                        }
-                    }
-                }
-                if (faces[3]==0) {
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int e=(k2+1)*NE[0]*NE[1]-NE[0]+k0;
-                            owner[e]=dom->getMPIRank()+NS[0];
-                        }
-                    }
-                }
-                if (faces[5]==0) {
+            // ownership is not entirely correct but that is not critical.
+            // fix when there is time.
+            if (faces[1]==0) {
+                for (int k2=0; k2<NE[2]; k2++) {
                     for (int k1=0; k1<NE[1]; k1++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int e=k1*NE[0]+k0+NE[0]*NE[1]*(NE[2]-1);
-                            owner[e]=dom->getMPIRank()+NS[0]*NS[1];
-                        }
+                        const int e=k2*NE[0]*NE[1]+(k1+1)*NE[0]-1;
+                        owner[e]=dom->getMPIRank()+1;
                     }
                 }
-                
-                for (int ez = 0; ez < NE[2]; ez++) {
-                    for (int ey = 0; ey < NE[1]; ey++) {
-                        for (int ex = 0; ex < NE[0]; ex++) {
-                            int start = order*(ex + ey*NN[0] + ez*NN[0]*NN[1]);
-                            for (int qz = 0; qz < order; qz++) {
-                                for (int qy=0; qy < order; qy++) {
-                                    for (int qx=0; qx < order; qx++) {
-                                        int xstart = start + qy*NN[0] + qz*NN[0]*NN[1] + qx;
-                                        nodes.push_back(xstart);
-                                        nodes.push_back(xstart + NN[0]*NN[1]);
-                                        nodes.push_back(xstart + NN[0]*NN[1] + 1);
-                                        nodes.push_back(xstart + 1);
-                                        
-                                        nodes.push_back(xstart + NN[0]);
-                                        nodes.push_back(xstart + NN[0]*(NN[1]+1));
-                                        nodes.push_back(xstart + NN[0]*(NN[1]+1)+1);
-                                        nodes.push_back(xstart + NN[0]+1);
-                                    }
+            }
+            if (faces[3]==0) {
+                for (int k2=0; k2<NE[2]; k2++) {
+                    for (int k0=0; k0<NE[0]; k0++) {
+                        const int e=(k2+1)*NE[0]*NE[1]-NE[0]+k0;
+                        owner[e]=dom->getMPIRank()+NS[0];
+                    }
+                }
+            }
+            if (faces[5]==0) {
+                for (int k1=0; k1<NE[1]; k1++) {
+                    for (int k0=0; k0<NE[0]; k0++) {
+                        const int e=k1*NE[0]+k0+NE[0]*NE[1]*(NE[2]-1);
+                        owner[e]=dom->getMPIRank()+NS[0]*NS[1];
+                    }
+                }
+            }
+            
+            for (int ez = 0; ez < NE[2]; ez++) {
+                for (int ey = 0; ey < NE[1]; ey++) {
+                    for (int ex = 0; ex < NE[0]; ex++) {
+                        int start = order*(ex + ey*NN[0] + ez*NN[0]*NN[1]);
+                        for (int qz = 0; qz < order; qz++) {
+                            for (int qy=0; qy < order; qy++) {
+                                for (int qx=0; qx < order; qx++) {
+                                    int xstart = start + qy*NN[0] + qz*NN[0]*NN[1] + qx;
+                                    nodes.push_back(xstart);
+                                    nodes.push_back(xstart + NN[0]*NN[1]);
+                                    nodes.push_back(xstart + NN[0]*NN[1] + 1);
+                                    nodes.push_back(xstart + 1);
+                                    
+                                    nodes.push_back(xstart + NN[0]);
+                                    nodes.push_back(xstart + NN[0]*(NN[1]+1));
+                                    nodes.push_back(xstart + NN[0]*(NN[1]+1)+1);
+                                    nodes.push_back(xstart + NN[0]+1);
                                 }
                             }
                         }
@@ -185,7 +184,6 @@ bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int
     return true;
 
 #else // VISIT_PLUGIN
-std::cerr << "visit plugin defined, returning false\n";
     return false;
 #endif
 }
