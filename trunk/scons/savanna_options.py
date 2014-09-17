@@ -24,7 +24,7 @@ except:
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 201
+escript_opts_version = 202
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -53,11 +53,11 @@ escript_opts_version = 201
 
 # Additional flags to add to the C++ compiler
 # DEFAULT: '' (empty)
-cxx_extra = '-DCORE_ID1 -sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
+cxx_extra = '-sox -I/sw/libs/numpy/x86_64/icc-14/1.8-py27_omp/lib/python2.7/site-packages/numpy/core/include'
 
 # Additional flags to add to the linker
 # DEFAULT: '' (empty)
-ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib -ipo-jobs4'
+ld_extra = '-shared-intel -L/sw/libs/hdf5/1.8.12-serial/lib'
 ld_extra += ' -wd11021 '  #silence icpc warnings about symbols ipo can't see
 
 # Whether to treat compiler warnings as errors
@@ -90,7 +90,7 @@ openmp = True
 mpi = 'INTELMPI'
 
 # Prefix or paths to MPI headers and libraries. See note above about prefixes.
-mpi_prefix = '/sw/sdev/intel/impi/4.1.3.049/intel64'
+mpi_prefix = '/sw/sdev/intel/impi/5.0.1.035/intel64'
 
 # MPI libraries to link against
 #mpi_libs = ['mpi']
@@ -146,20 +146,20 @@ parmetis_prefix = '/sw/libs/parmetis/x86_64/icc-13/parmetis-4.0.2'
 mkl = True
 
 # Prefix or paths to MKL headers and libraries. See note above.
-mkl_prefix = ['/sw/sdev/intel/composer_xe_2013_sp1.2.144/mkl/include', '/sw/sdev/intel/composer_xe_2013_sp1.2.144/mkl/lib/intel64']
+mkl_prefix = ['/sw/sdev/intel/composer_xe_2015/mkl/include', '/sw/sdev/intel/composer_xe_2015/mkl/lib/intel64']
 
 # MKL library/libraries to link against
 mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 
 # Whether to use UMFPACK (requires AMD and BLAS)
 # DEFAULT: False
-umfpack = True
+#umfpack = True
 
 # Prefix or paths to UMFPACK headers and libraries. See note above.
-umfpack_prefix = '/sw/libs/umfpack/x86_64/icc-13/umfpack-5.6.1'
+#umfpack_prefix = '/sw/libs/umfpack/x86_64/icc-13/umfpack-5.6.1'
 
 # UMFPACK library/libraries to link against
-umfpack_libs = ['umfpack', 'amd', 'suitesparseconfig']
+#umfpack_libs = ['umfpack', 'amd', 'suitesparseconfig']
 
 # Whether to use BoomerAMG (requires MPI)
 # DEFAULT: False
@@ -221,7 +221,7 @@ build_shared = True
 # Additional environmental variables to export to the tools
 env_export = ['INTEL_LICENSE_FILE']
 
-tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2013_sp1.2.144'})]
+tools_names = [('intelc',{'topdir':'/sw/sdev/intel/composer_xe_2015'})]
 
 
 #iknowwhatimdoing = False
