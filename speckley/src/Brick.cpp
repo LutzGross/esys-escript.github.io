@@ -221,8 +221,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
         myN0 = m_NN[0];
         myN1 = m_NN[1];
         myN2 = m_NN[2];
-    } else if (out.getFunctionSpace().getTypeCode() == Elements ||
-                out.getFunctionSpace().getTypeCode() == ReducedElements) {
+    } else if (out.getFunctionSpace().getTypeCode() == Elements) {
         myN0 = m_NE[0];
         myN1 = m_NE[1];
         myN2 = m_NE[2];
@@ -718,6 +717,7 @@ void Brick::interpolateFromCorners(escript::Data &out) const
 {
     const int numComp = out.getDataPointSize();
     //interpolate the missing portions
+#pragma omp parallel for
     for (dim_t z = 0; z < m_NN[2]; z++) {
         const double pz = point_locations[m_order-2][z%m_order];
         for (dim_t y = 0; y < m_NN[1]; y++) {
@@ -1020,8 +1020,6 @@ const dim_t* Brick::borrowSampleReferenceIDs(int fsType) const
             return &m_nodeId[0];
         case Elements:
             return &m_elementId[0];
-        case FaceElements:
-            return &m_faceId[0];
         case Points:
             return &m_diracPointNodeIDs[0];
         default:
@@ -1045,9 +1043,7 @@ void Brick::setToNormal(escript::Data& out) const
 
 void Brick::setToSize(escript::Data& out) const
 {
-    std::cerr << "Brick::setToSize not updated\n";
-    if (out.getFunctionSpace().getTypeCode() == Elements
-            || out.getFunctionSpace().getTypeCode() == ReducedElements) {
+    if (out.getFunctionSpace().getTypeCode() == Elements) {
         out.requireWrite();
         const dim_t numQuad = out.getNumDataPointsPerSample();
         const double size=sqrt(m_dx[0]*m_dx[0]+m_dx[1]*m_dx[1]+m_dx[2]*m_dx[2]);
@@ -1057,82 +1053,6 @@ void Brick::setToSize(escript::Data& out) const
             double* o = out.getSampleDataRW(k);
             std::fill(o, o+numQuad, size);
         }
-    } else if (out.getFunctionSpace().getTypeCode() == FaceElements
-            || out.getFunctionSpace().getTypeCode() == ReducedFaceElements) {
-        out.requireWrite();
-        const dim_t numQuad=out.getNumDataPointsPerSample();
-        const dim_t NE0 = m_NE[0];
-        const dim_t NE1 = m_NE[1];
-        const dim_t NE2 = m_NE[2];
-#pragma omp parallel
-        {
-            if (m_faceOffset[0] > -1) {
-                const double size=min(m_dx[1],m_dx[2]);
-#pragma omp for nowait
-                for (index_t k2 = 0; k2 < NE2; ++k2) {
-                    for (index_t k1 = 0; k1 < NE1; ++k1) {
-                        double* o = out.getSampleDataRW(m_faceOffset[0]+INDEX2(k1,k2,m_NE[1]));
-                        fill(o, o+numQuad, size);
-                    }
-                }
-            }
-
-            if (m_faceOffset[1] > -1) {
-                const double size=min(m_dx[1],m_dx[2]);
-#pragma omp for nowait
-                for (index_t k2 = 0; k2 < NE2; ++k2) {
-                    for (index_t k1 = 0; k1 < NE1; ++k1) {
-                        double* o = out.getSampleDataRW(m_faceOffset[1]+INDEX2(k1,k2,m_NE[1]));
-                        fill(o, o+numQuad, size);
-                    }
-                }
-            }
-
-            if (m_faceOffset[2] > -1) {
-                const double size=min(m_dx[0],m_dx[2]);
-#pragma omp for nowait
-                for (index_t k2 = 0; k2 < NE2; ++k2) {
-                    for (index_t k0 = 0; k0 < NE0; ++k0) {
-                        double* o = out.getSampleDataRW(m_faceOffset[2]+INDEX2(k0,k2,m_NE[0]));
-                        fill(o, o+numQuad, size);
-                    }
-                }
-            }
-
-            if (m_faceOffset[3] > -1) {
-                const double size=min(m_dx[0],m_dx[2]);
-#pragma omp for nowait
-                for (index_t k2 = 0; k2 < NE2; ++k2) {
-                    for (index_t k0 = 0; k0 < NE0; ++k0) {
-                        double* o = out.getSampleDataRW(m_faceOffset[3]+INDEX2(k0,k2,m_NE[0]));
-                        fill(o, o+numQuad, size);
-                    }
-                }
-            }
-
-            if (m_faceOffset[4] > -1) {
-                const double size=min(m_dx[0],m_dx[1]);
-#pragma omp for nowait
-                for (index_t k1 = 0; k1 < NE1; ++k1) {
-                    for (index_t k0 = 0; k0 < NE0; ++k0) {
-                        double* o = out.getSampleDataRW(m_faceOffset[4]+INDEX2(k0,k1,m_NE[0]));
-                        fill(o, o+numQuad, size);
-                    }
-                }
-            }
-
-            if (m_faceOffset[5] > -1) {
-                const double size=min(m_dx[0],m_dx[1]);
-#pragma omp for nowait
-                for (index_t k1 = 0; k1 < NE1; ++k1) {
-                    for (index_t k0 = 0; k0 < NE0; ++k0) {
-                        double* o = out.getSampleDataRW(m_faceOffset[5]+INDEX2(k0,k1,m_NE[0]));
-                        fill(o, o+numQuad, size);
-                    }
-                }
-            }
-        } // end of parallel section
-
     } else {
         std::stringstream msg;
         msg << "setToSize: invalid function space type "
@@ -1312,9 +1232,6 @@ void Brick::populateSampleIds()
     else
         m_faceCount[5]=0;
 
-    const dim_t NFE = getNumFaceElements();
-    m_faceId.resize(NFE);
-
     const index_t left = (m_offset[0]==0 ? 0 : 1);
     const index_t front = (m_offset[1]==0 ? 0 : 1);
     const index_t bottom = (m_offset[2]==0 ? 0 : 1);
@@ -1401,27 +1318,6 @@ void Brick::populateSampleIds()
 
     m_elementTags.assign(getNumElements(), 0);
     updateTagsInUse(Elements);
-
-    // generate face offset vector and set face tags
-    const index_t LEFT=1, RIGHT=2, BOTTOM=10, TOP=20, FRONT=100, BACK=200;
-    const index_t faceTag[] = { LEFT, RIGHT, BOTTOM, TOP, FRONT, BACK };
-    m_faceOffset.assign(6, -1);
-    m_faceTags.clear();
-    index_t offset=0;
-    for (size_t i=0; i<6; i++) {
-        if (m_faceCount[i]>0) {
-            m_faceOffset[i]=offset;
-            offset+=m_faceCount[i];
-            m_faceTags.insert(m_faceTags.end(), m_faceCount[i], faceTag[i]);
-        }
-    }
-    setTagMap("left", LEFT);
-    setTagMap("right", RIGHT);
-    setTagMap("bottom", BOTTOM);
-    setTagMap("top", TOP);
-    setTagMap("front", FRONT);
-    setTagMap("back", BACK);
-    updateTagsInUse(FaceElements);
 }
 
 //private
@@ -1433,10 +1329,7 @@ void Brick::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F
 }
 
 void Brick::interpolateElementsOnNodes(escript::Data& out,
-                                  const escript::Data& in, bool reduced) const {
-    if (reduced)
-        throw SpeckleyException("Speckley does not support "
-                "reduced functionspaces");
+                                  const escript::Data& in) const {
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
     const dim_t NE1 = m_NE[1];
@@ -1523,8 +1416,7 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
 
 //protected
 void Brick::interpolateNodesOnElements(escript::Data& out,
-                                       const escript::Data& in,
-                                       bool reduced) const
+                                       const escript::Data& in) const
 {
     const dim_t numComp = in.getDataPointSize();
     const dim_t NE0 = m_NE[0];
@@ -1554,13 +1446,6 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
             }
         }
     }
-}
-
-//protected
-void Brick::interpolateNodesOnFaces(escript::Data& out, const escript::Data& in,
-                                    bool reduced) const
-{
-    throw SpeckleyException("Brick::interpolateNodesOnFaces not implemented");
 }
 
 #ifdef ESYS_MPI

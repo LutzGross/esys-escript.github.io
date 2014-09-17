@@ -378,7 +378,7 @@ public:
        returns a continuous on reduced order nodes FunctionSpace code
     */
     virtual int getReducedContinuousFunctionCode() const {
-        return ReducedNodes;
+        throw SpeckleyException("Speckley does not support reduced functionspaces");
     }
 
     /**
@@ -391,13 +391,17 @@ public:
        \brief
        returns a function with reduced integration order FunctionSpace code
     */
-    virtual int getReducedFunctionCode() const { return ReducedElements; }
+    virtual int getReducedFunctionCode() const {
+        throw SpeckleyException("Speckley does not support reduced functionspaces");
+    }
 
     /**
        \brief
        returns a function on boundary FunctionSpace code
     */
-    virtual int getFunctionOnBoundaryCode() const { return FaceElements; }
+    virtual int getFunctionOnBoundaryCode() const {
+        throw SpeckleyException("Speckley does not support face elements");
+    }
 
     /**
        \brief
@@ -405,7 +409,7 @@ public:
        FunctionSpace code
     */
     virtual int getReducedFunctionOnBoundaryCode() const {
-        return ReducedFaceElements;
+        throw SpeckleyException("Speckley does not support reduced function spaces");
     }
 
     /**
@@ -453,7 +457,7 @@ public:
        returns a ReducedSolution FunctionSpace code
     */
     virtual int getReducedSolutionCode() const { 
-        return ReducedDegreesOfFreedom;
+        throw SpeckleyException("Speckley does not support reduced function spaces");
     }
 
     /**
@@ -730,7 +734,6 @@ protected:
     TagMap m_tagMap;
     mutable IndexVector m_nodeTags, m_nodeTagsInUse;
     mutable IndexVector m_elementTags, m_elementTagsInUse;
-    mutable IndexVector m_faceTags, m_faceTagsInUse;
     std::vector<DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;
@@ -739,12 +742,6 @@ protected:
     
     /// copies data in 'in' to 'out' (both must be on same function space)
     void copyData(escript::Data& out, const escript::Data& in) const;
-
-    /// averages data in 'in' to 'out' (from non-reduced to reduced fs)
-    void averageData(escript::Data& out, const escript::Data& in) const;
-
-    /// copies data in 'in' to 'out' (from reduced to non-reduced fs)
-    void multiplyData(escript::Data& out, const escript::Data& in) const;
 
     // this is const because setTags is const
     void updateTagsInUse(int fsType) const;
@@ -767,9 +764,6 @@ protected:
     /// returns the number of degrees of freedom per MPI rank
     virtual dim_t getNumDOF() const = 0;
 
-    /// returns the number of face elements on current MPI rank
-    virtual dim_t getNumFaceElements() const = 0;
-
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const = 0;
 
@@ -781,19 +775,13 @@ protected:
     virtual void assembleIntegrate(DoubleVector& integrals,
             const escript::Data& arg) const = 0;
 
-    /// interpolates data on nodes in 'in' onto (reduced) elements in 'out'
+    /// interpolates data on nodes in 'in' onto elements in 'out'
     virtual void interpolateNodesOnElements(escript::Data& out,
-                                            const escript::Data& in,
-                                            bool reduced) const = 0;
+                                            const escript::Data& in) const = 0;
 
-    /// interpolates data on nodes in 'in' onto (reduced) face elements in 'out'
-    virtual void interpolateNodesOnFaces(escript::Data& out,
-                                         const escript::Data& in,
-                                         bool reduced) const = 0;
-
-    /// interpolates data on elements, 'in', onto nodes, 'out'
+    /// interpolates data on elements in 'in' onto nodes in 'out'
     virtual void interpolateElementsOnNodes(escript::Data& out,
-                        const escript::Data& in, bool reduced) const = 0;
+                        const escript::Data& in) const = 0;
 
     virtual dim_t getDofOfNode(dim_t node) const = 0;
 

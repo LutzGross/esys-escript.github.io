@@ -65,8 +65,7 @@ bool SpeckleyDomain::operator==(const AbstractDomain& other) const
     const SpeckleyDomain* o=dynamic_cast<const SpeckleyDomain*>(&other);
     if (o) {
         return (m_tagMap==o->m_tagMap && m_nodeTags==o->m_nodeTags
-                && m_elementTags==o->m_elementTags
-                && m_faceTags==o->m_faceTags);
+                && m_elementTags==o->m_elementTags);
     }
     return false;
 }
@@ -75,13 +74,8 @@ bool SpeckleyDomain::isValidFunctionSpaceType(int fsType) const
 {
     switch (fsType) {
         case DegreesOfFreedom:
-//        case ReducedDegreesOfFreedom:
         case Nodes:
-//        case ReducedNodes:
         case Elements:
-//        case ReducedElements:
-//        case FaceElements:
-//        case ReducedFaceElements:
         case Points:
             return true;
         default:
@@ -115,19 +109,11 @@ pair<int,dim_t> SpeckleyDomain::getDataShape(int fsType) const
         ptsPerSample *= (m_order + 1);
     switch (fsType) {
         case Nodes:
-        case ReducedNodes: //FIXME: reduced
             return pair<int,dim_t>(1, getNumNodes());
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom: //FIXME: reduced
             return pair<int,dim_t>(1, getNumDOF());
         case Elements:
             return pair<int,dim_t>(ptsPerSample, getNumElements());
-        case FaceElements:
-            return pair<int,dim_t>(ptsPerSample/2, getNumFaceElements());
-        case ReducedElements:
-            return pair<int,dim_t>(1, getNumElements());
-        case ReducedFaceElements:
-            return pair<int,dim_t>(1, getNumFaceElements());
         case Points:
             return pair<int,dim_t>(1, m_diracPoints.size());
         default:
@@ -157,19 +143,14 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
     The idea is to use equivalence classes (i.e. types which can be
     interpolated back and forth):
     class 0: DOF <-> Nodes
-    class 1: ReducedDOF <-> ReducedNodes
     class 2: Points
     class 3: Elements
-    class 4: ReducedElements
-    class 5: FaceElements
-    class 6: ReducedFaceElements
 
     There is also a set of lines. Interpolation is possible down a line but not
     between lines.
     class 0 and 1 belong to all lines so aren't considered.
     line 0: class 2
-    line 1: class 3,4
-    line 2: class 5,6
+    line 1: class 3
 
     For classes with multiple members (eg class 1) we have vars to record if
     there is at least one instance. e.g. hasnodes is true if we have at least
@@ -180,16 +161,11 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
     vector<bool> hasclass(7, false);
     vector<int> hasline(3, 0);
     bool hasnodes=false;
-    bool hasrednodes=false;
     for (size_t i=0; i<fs.size(); ++i) {
         switch (fs[i]) {
             case Nodes: hasnodes=true; // fall through
             case DegreesOfFreedom:
                 hasclass[0]=true;
-                break;
-            case ReducedNodes: hasrednodes=true; // fall through
-            case ReducedDegreesOfFreedom:
-                hasclass[1]=true;
                 break;
             case Points:
                 hasline[0]=1;
@@ -199,23 +175,11 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
                 hasclass[3]=true;
                 hasline[1]=1;
                 break;
-            case ReducedElements:
-                hasclass[4]=true;
-                hasline[1]=1;
-                break;
-            case FaceElements:
-                hasclass[5]=true;
-                hasline[2]=1;
-                break;
-            case ReducedFaceElements:
-                hasclass[6]=true;
-                hasline[2]=1;
-                break;
             default:
                 return false;
         }
     }
-    int numLines=hasline[0]+hasline[1]+hasline[2];
+    int numLines=hasline[0]+hasline[1];
 
     // fail if we have more than one leaf group
     // = there are at least two branches we can't interpolate between
@@ -226,22 +190,10 @@ bool SpeckleyDomain::commonFunctionSpace(const vector<int>& fs, int& resultcode)
         if (hasline[0]==1)
             resultcode=Points;
         else if (hasline[1]==1) {
-            if (hasclass[4])
-                resultcode=ReducedElements;
-            else
-                resultcode=Elements;
-        } else { // hasline[2]==1
-            if (hasclass[6])
-                resultcode=ReducedFaceElements;
-            else
-                resultcode=FaceElements;
+            resultcode=Elements;
         }
     } else { // numLines==0
-        if (hasclass[1])
-            // something from class 1
-            resultcode=(hasrednodes ? ReducedNodes : ReducedDegreesOfFreedom);
-        else // something from class 0
-            resultcode=(hasnodes ? Nodes : DegreesOfFreedom);
+        resultcode=(hasnodes ? Nodes : DegreesOfFreedom);
     }
     return true;
 }
@@ -260,19 +212,8 @@ bool SpeckleyDomain::probeInterpolationOnDomain(int fsType_source,
         case Nodes:
         case DegreesOfFreedom:
             return true;
-        case ReducedNodes:
-        case ReducedDegreesOfFreedom:
-            return (fsType_target != Nodes &&
-                    fsType_target != DegreesOfFreedom);
         case Elements:
-        case ReducedElements:
-            return (fsType_target==Elements ||
-                    fsType_target==ReducedElements ||
-                    fsType_target==Nodes);
-        case FaceElements:
-        case ReducedFaceElements:
-            return (fsType_target==FaceElements ||
-                    fsType_target==ReducedFaceElements);
+            return (fsType_target==Elements || fsType_target==Nodes);
         case Points:
             return (fsType_target==fsType_source);
 
@@ -310,20 +251,10 @@ signed char SpeckleyDomain::preferredInterpolationOnDomain(int fsType_source,
         case Nodes:
         case DegreesOfFreedom:
             return 1;
-        case ReducedNodes:
-        case ReducedDegreesOfFreedom:
-            return (fsType_target != Nodes &&
-                    fsType_target != DegreesOfFreedom) ? -1 : 0;
         case Elements:
-            return (fsType_target==ReducedElements) ? 1 : 0;
-        case ReducedElements:
-            return (fsType_target==Elements) ? -1 : 0;
-        case FaceElements:
-            return (fsType_target==ReducedFaceElements) ? 1 : 0;
-        case ReducedFaceElements:
-            return (fsType_target==FaceElements) ? -1 : 0;
+            return 0;
         case Points:
-            return false;  // other case caught by the if above
+            return 0;  // other case caught by the if above
         default: {
             stringstream msg;
             msg << "probeInterpolationOnDomain: Invalid function space type "
@@ -355,48 +286,20 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
     // simplest case: 1:1 copy
     if (inFS==outFS) {
         copyData(target, in);
-    // not allowed: reduced nodes/DOF->non-reduced nodes/DOF
-    } else if ((inFS==ReducedNodes || inFS==ReducedDegreesOfFreedom)
-            && (outFS==Nodes || outFS==DegreesOfFreedom)) {
-        throw SpeckleyException("interpolateOnDomain: Cannot interpolate "
-                              "reduced data to non-reduced data.");
-    } else if ((inFS==Elements && outFS==ReducedElements)
-            || (inFS==FaceElements && outFS==ReducedFaceElements)) {
-        if (in.actsExpanded())
-            averageData(target, in);
-        else
-            copyData(target, in);
     } else if (inFS==Elements && outFS==Nodes) {
-            interpolateElementsOnNodes(target, in, false);
-    } else if ((inFS==ReducedElements && outFS==Elements)
-            || (inFS==ReducedFaceElements && outFS==FaceElements)) {
-        multiplyData(target, in);
+            interpolateElementsOnNodes(target, in);
     } else {
         switch (inFS) {
             case Nodes:
-            case ReducedNodes:
                 switch (outFS) {
                     case DegreesOfFreedom:
-                    case ReducedDegreesOfFreedom:
                     case Nodes:
-                    case ReducedNodes:
                         copyData(target, in);
                         break;
                     case Elements:
-                        interpolateNodesOnElements(target, in, false);
+                        interpolateNodesOnElements(target, in);
                         break;
 
-                    case ReducedElements:
-                        interpolateNodesOnElements(target, in, true);
-                        break;
-
-                    case FaceElements:
-                        interpolateNodesOnFaces(target, in, false);
-                        break;
-
-                    case ReducedFaceElements:
-                        interpolateNodesOnFaces(target, in, true);
-                        break;
                     case Points:
                         {
                             const dim_t numComp = in.getDataPointSize();
@@ -415,33 +318,18 @@ void SpeckleyDomain::interpolateOnDomain(escript::Data& target,
                 break;
 
             case DegreesOfFreedom:
-            case ReducedDegreesOfFreedom:
                 switch (outFS) {
                     case Nodes:
-                    case ReducedNodes:
                     case DegreesOfFreedom:
-                    case ReducedDegreesOfFreedom:
                         copyData(target, in);
                         break;
 
                     case Elements:
-                    case ReducedElements:
                         if (getMPISize()==1) {
-                            interpolateNodesOnElements(target, in, outFS==ReducedElements);
+                            interpolateNodesOnElements(target, in);
                         } else {
-                            escript::Data contIn(in, (inFS==DegreesOfFreedom ?
-                                        escript::continuousFunction(*this) : escript::reducedContinuousFunction(*this)));
-                            interpolateNodesOnElements(target, contIn, outFS==ReducedElements);
-                        }
-                        break;
-                    case FaceElements:
-                    case ReducedFaceElements:
-                        if (getMPISize()==1) {
-                            interpolateNodesOnFaces(target, in, outFS==ReducedFaceElements);
-                        } else {
-                            escript::Data contIn(in, (inFS==DegreesOfFreedom ?
-                                     escript::continuousFunction(*this) : escript::reducedContinuousFunction(*this)));
-                            interpolateNodesOnFaces(target, contIn, outFS==ReducedFaceElements);
+                            escript::Data contIn(in, escript::continuousFunction(*this));
+                            interpolateNodesOnElements(target, contIn);
                         }
                         break;
 
@@ -462,7 +350,7 @@ escript::Data SpeckleyDomain::getX() const
 
 escript::Data SpeckleyDomain::getNormal() const
 {
-    return escript::functionOnBoundary(*this).getNormal();
+    throw SpeckleyException("Speckley doesn't support getNormal");
 }
 
 escript::Data SpeckleyDomain::getSize() const
@@ -501,10 +389,8 @@ void SpeckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg
         throw SpeckleyException("setToGradient: Illegal domain of gradient");
 
     switch (grad.getFunctionSpace().getTypeCode()) {
+        case Nodes:
         case Elements:
-        case ReducedElements:
-        case FaceElements:
-        case ReducedFaceElements:
             break;
         default: {
             stringstream msg;
@@ -516,11 +402,8 @@ void SpeckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg
 
     switch (arg.getFunctionSpace().getTypeCode()) {
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom:
         case Nodes:
-        case ReducedNodes:
         case Elements:
-        case ReducedElements:
             break;
         default: {
             throw SpeckleyException("setToGradient: only supported for nodal input data");
@@ -530,9 +413,6 @@ void SpeckleyDomain::setToGradient(escript::Data& grad, const escript::Data& arg
     if (getMPISize() > 1) {
         if (arg.getFunctionSpace().getTypeCode()==DegreesOfFreedom) {
             escript::Data contArg(arg, escript::continuousFunction(*this));
-            assembleGradient(grad, contArg);
-        } else if (arg.getFunctionSpace().getTypeCode()==ReducedDegreesOfFreedom) {
-            escript::Data contArg(arg, escript::reducedContinuousFunction(*this));
             assembleGradient(grad, contArg);
         } else {
             assembleGradient(grad, arg);
@@ -551,18 +431,13 @@ void SpeckleyDomain::setToIntegrals(vector<double>& integrals, const escript::Da
 
     switch (arg.getFunctionSpace().getTypeCode()) {
         case Nodes:
-        case ReducedNodes:
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom:
             {
                 escript::Data funcArg(arg, escript::function(*this));
                 assembleIntegrate(integrals, funcArg);
             }
             break;
         case Elements:
-        case ReducedElements:
-        case FaceElements:
-        case ReducedFaceElements:
             assembleIntegrate(integrals, arg);
             break;
         default: {
@@ -579,15 +454,10 @@ bool SpeckleyDomain::isCellOriented(int fsType) const
 {
     switch(fsType) {
         case Nodes:
-        case ReducedNodes:
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom:
             return false;
         case Elements:
-        case FaceElements:
         case Points:
-        case ReducedElements:
-        case ReducedFaceElements:
             return true;
         default:
             break;
@@ -603,14 +473,9 @@ bool SpeckleyDomain::canTag(int fsType) const
     switch(fsType) {
         case Nodes:
         case Elements:
-        case ReducedElements:
-        case FaceElements:
         case Points:
-        case ReducedFaceElements:
             return true;
         case DegreesOfFreedom:
-        case ReducedDegreesOfFreedom:
-        case ReducedNodes:
             return false;
         default:
             break;
@@ -632,14 +497,8 @@ void SpeckleyDomain::setTags(const int fsType, const int newTag, const escript::
             target=&m_nodeTags;
             break;
         case Elements:
-        case ReducedElements:
             num=getNumElements();
             target=&m_elementTags;
-            break;
-        case FaceElements:
-        case ReducedFaceElements:
-            num=getNumFaceElements();
-            target=&m_faceTags;
             break;
         default: {
             stringstream msg;
@@ -668,18 +527,12 @@ int SpeckleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
                 return m_nodeTags[sampleNo];
             break;
         case Elements:
-        case ReducedElements:
             if (m_elementTags.size() > sampleNo)
                 return m_elementTags[sampleNo];
             break;
         case Points:
             if (m_diracPoints.size() > sampleNo)
                 return m_diracPoints[sampleNo].tag;
-            break;
-        case FaceElements:
-        case ReducedFaceElements:
-            if (m_faceTags.size() > sampleNo)
-                return m_faceTags[sampleNo];
             break;
         default: {
             stringstream msg;
@@ -698,11 +551,7 @@ int SpeckleyDomain::getNumberOfTagsInUse(int fsType) const
         case Nodes:
             return m_nodeTagsInUse.size();
         case Elements:
-        case ReducedElements:
             return m_elementTagsInUse.size();
-        case FaceElements:
-        case ReducedFaceElements:
-            return m_faceTagsInUse.size();
         default: {
             stringstream msg;
             msg << "getNumberOfTagsInUse: invalid function space type "
@@ -720,11 +569,7 @@ const int* SpeckleyDomain::borrowListOfTagsInUse(int fsType) const
         case Nodes:
             return &m_nodeTagsInUse[0];
         case Elements:
-        case ReducedElements:
             return &m_elementTagsInUse[0];
-        case FaceElements:
-        case ReducedFaceElements:
-            return &m_faceTagsInUse[0];
         default: {
             stringstream msg;
             msg << "borrowListOfTagsInUse: invalid function space type "
@@ -866,44 +711,6 @@ void SpeckleyDomain::copyData(escript::Data& out, const escript::Data& in) const
 }
 
 //protected
-void SpeckleyDomain::averageData(escript::Data& out, const escript::Data& in) const
-{
-    const dim_t numComp = in.getDataPointSize();
-    const dim_t dpp = in.getNumDataPointsPerSample();
-    const dim_t numSamples = in.getNumSamples();
-    out.requireWrite();
-#pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        double* dest = out.getSampleDataRW(i);
-        for (index_t c=0; c<numComp; c++) {
-            double res=0.;
-            for (index_t q=0; q<dpp; q++)
-                res+=src[c+q*numComp];
-            *dest++ = res/dpp;
-        }
-    }
-}
-
-//protected
-void SpeckleyDomain::multiplyData(escript::Data& out, const escript::Data& in) const
-{
-    const dim_t numComp = in.getDataPointSize();
-    const dim_t dpp = out.getNumDataPointsPerSample();
-    const dim_t numSamples = in.getNumSamples();
-    out.requireWrite();
-#pragma omp parallel for
-    for (index_t i=0; i<numSamples; i++) {
-        const double* src = in.getSampleDataRO(i);
-        double* dest = out.getSampleDataRW(i);
-        for (index_t c=0; c<numComp; c++) {
-            for (index_t q=0; q<dpp; q++)
-                dest[c+q*numComp] = src[c];
-        }
-    }
-}
-
-//protected
 void SpeckleyDomain::updateTagsInUse(int fsType) const
 {
     IndexVector* tagsInUse=NULL;
@@ -914,14 +721,8 @@ void SpeckleyDomain::updateTagsInUse(int fsType) const
             tagsInUse=&m_nodeTagsInUse;
             break;
         case Elements:
-        case ReducedElements:
             tags=&m_elementTags;
             tagsInUse=&m_elementTagsInUse;
-            break;
-        case FaceElements:
-        case ReducedFaceElements:
-            tags=&m_faceTags;
-            tagsInUse=&m_faceTagsInUse;
             break;
         case Points:
             throw SpeckleyException("updateTagsInUse for Speckley dirac points "
@@ -1024,17 +825,9 @@ void SpeckleyDomain::assemblePDE(escript::AbstractSystemMatrix* mat,
     //TODO: check shape and num samples of coeffs
 
     if (numEq==1) {
-        if (fs==ReducedElements) {
-            assembler->assemblePDESingleReduced(mat, temp, coefs);
-        } else {
-            assembler->assemblePDESingle(mat, temp, coefs);
-        }
+        assembler->assemblePDESingle(mat, temp, coefs);
     } else {
-        if (fs==ReducedElements) {
-            assembler->assemblePDESystemReduced(mat, temp, coefs);
-        } else {
-            assembler->assemblePDESystem(mat, temp, coefs);
-        }
+        assembler->assemblePDESystem(mat, temp, coefs);
     }
 #ifdef ESYS_MPI
     balanceNeighbours(temp, false); //summation without averaging
@@ -1063,9 +856,6 @@ void SpeckleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
         return;
     }
 
-    if (fs != FaceElements && fs != ReducedFaceElements)
-        throw SpeckleyException("assemblePDEBoundary: illegal function space type for coefficients");
-
     int numEq = 1, numComp = 1;
     if (!mat) {
         if (!rhs.isEmpty()) {
@@ -1084,15 +874,9 @@ void SpeckleyDomain::assemblePDEBoundary(escript::AbstractSystemMatrix* mat,
     //TODO: check shape and num samples of coeffs
 
     if (numEq==1) {
-        if (fs==ReducedFaceElements)
-            assembler->assemblePDEBoundarySingleReduced(mat, rhs, coefs);
-        else
-            assembler->assemblePDEBoundarySingle(mat, rhs, coefs);
+        assembler->assemblePDEBoundarySingle(mat, rhs, coefs);
     } else {
-        if (fs==ReducedFaceElements)
-            assembler->assemblePDEBoundarySystemReduced(mat, rhs, coefs);
-        else
-            assembler->assemblePDEBoundarySystem(mat, rhs, coefs);
+        assembler->assemblePDEBoundarySystem(mat, rhs, coefs);
     }
 }
 
@@ -1132,7 +916,7 @@ void SpeckleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
             }
         }
         if (dNotEmpty) {
-            throw SpeckleyException("Rectangle::assemblePDEDirac can't cope with d not being empty right now");
+            throw SpeckleyException("Rectangle::assemblePDEDirac currently doesn't support d");
 //            const double *EM_S = d.getSampleDataRO(i);
 //            std::vector<double> contents(EM_S,
 //                        EM_S+nEq*nEq*nComp*rowIndex.size()); //TODO: this will break with MPI
