@@ -432,16 +432,29 @@ class TestSubsidence(unittest.TestCase):
 
 
 class TestIsostaticPressure(unittest.TestCase):
-    def ttest_all(self):
+    def test_all(self):
         from esys.ripley import Brick
-        domain=Brick(50,50,50, )
-        
-        ps=IsostaticPressure(domain, level0=0., coordinates=None)
+        domain=Brick(50,50,50)
+
+        ps=IsostaticPressure(domain, level0=1., coordinates=None)
     
         g=Vector(0., Function(domain))
-        rho=Scalar(0., Function(domain))
+        rho=Scalar(100, Function(domain))
         p0=ps.getPressure(g, rho)
-        print p0
+        p_ref=-(1.-domain.getX()[2])*981.
+        self.assertTrue(Lsup(p0-p_ref) < 1e-6 * Lsup(p_ref))
+
+        g=Vector([0,0,-10], Function(domain))
+        rho=Scalar(0, Function(domain))
+        p0=ps.getPressure(g, rho)
+        p_ref=-(1.-domain.getX()[2])*26700
+        self.assertTrue(Lsup(p0-p_ref) < 1e-6 * Lsup(p_ref))
+
+        g=Vector([0,0,-10], Function(domain))
+        rho=Scalar(100, Function(domain))
+        p0=ps.getPressure(g, rho)
+        p_ref=-(1.-domain.getX()[2])*(981.+26700+1000)
+        self.assertTrue(Lsup(p0-p_ref) < 1e-6 * Lsup(p_ref))
                                
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)
