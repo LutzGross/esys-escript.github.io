@@ -364,8 +364,8 @@ class IsostaticPressure(object):
         self.__pde.getSolverOptions().setTolerance(tol)
         self.__pde.setSymmetryOn()
 
-        z=x = domain.getX()[DIM-1]
-        self.__pde.setValue(q=whereNonPositive(z-level0))
+        z = domain.getX()[DIM-1]
+        self.__pde.setValue(q=whereNonNegative(z-level0))
 
         fw = self.__trafo.getScalingFactors()**2 * self.__trafo.getVolumeFactor()
         A=self.__pde.createCoefficient("A")
@@ -392,7 +392,7 @@ class IsostaticPressure(object):
         g2=(rho * self.__g_b) * [0,0,1] + self.__rho_b  * g + rho * g 
         d=self.__trafo.getScalingFactors()
         V= self.__trafo.getVolumeFactor()
-        self.__pde.setValue(X= g2*d*V )
+        self.__pde.setValue(X= - g2*d*V )
         return self.__pde.getSolution()
 
     
