@@ -14,7 +14,7 @@
 #
 ##############################################################################
 
-escript_opts_version = 201
+escript_opts_version = 202
 #prefix = '/usr/local'
 #build_dir = 'build'
 #cxx = 'g++-4.8'

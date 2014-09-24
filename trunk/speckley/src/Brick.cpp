@@ -2273,10 +2273,10 @@ int Brick::findNode(const double *coords) const {
             return NOT_MINE;
         }
     }
-    // get distance from origin
-    double x = coords[0] - m_origin[0];
-    double y = coords[1] - m_origin[1];
-    double z = coords[2] - m_origin[2];
+    // get distance from subdivision origin
+    double x = coords[0] - m_origin[0] - m_offset[0]*m_dx[0];
+    double y = coords[1] - m_origin[1] - m_offset[1]*m_dx[1];
+    double z = coords[2] - m_origin[2] - m_offset[2]*m_dx[2];
 
     //check if the point is even inside the domain
     if (x < 0 || y < 0 || z < 0
@@ -2285,8 +2285,8 @@ int Brick::findNode(const double *coords) const {
 
     // distance in elements
     int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
-    int ey = (int) floor(y / m_dx[1]+ 0.01*m_dx[1]);
-    int ez = (int) floor(z / m_dx[2]+ 0.01*m_dx[2]);
+    int ey = (int) floor(y / m_dx[1] + 0.01*m_dx[1]);
+    int ez = (int) floor(z / m_dx[2] + 0.01*m_dx[2]);
     int start = m_order*(INDEX3(ex,ey,ez,m_NN[0],m_NN[1]));
     // set the min distance high enough to be outside the element plus a bit
     int closest = NOT_MINE;

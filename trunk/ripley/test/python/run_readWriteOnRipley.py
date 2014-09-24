@@ -328,15 +328,11 @@ class Test_readBinaryGridRipley_BIG_INT32(ReadBinaryGridTestBase):
         self.datatype = DATATYPE_INT32
         self.dtype = ">i4"
 
-# not supported (yet)
-#@unittest.expectedFailure
 @unittest.skip("reverseX not supported yet")
 class Test_readBinaryGridRipley_reverseX(ReadBinaryGridTestBase):
     def setUp(self):
         self.reverse = [1,0,0]
 
-# not supported (yet)
-#@unittest.expectedFailure
 @unittest.skip("reverseY not supported yet")
 class Test_readBinaryGridRipley_reverseY(ReadBinaryGridTestBase):
     def setUp(self):
