@@ -725,6 +725,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
     // check function space and determine number of points
     dim_t myN0, myN1, myN2;
     dim_t totalN0, totalN1, totalN2;
+    dim_t offset0, offset1, offset2;
     if (in.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -732,6 +733,19 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         totalN0 = m_gNE[0]+1;
         totalN1 = m_gNE[1]+1;
         totalN2 = m_gNE[2]+1;
+        offset0 = m_offset[0];
+        offset1 = m_offset[1];
+        offset2 = m_offset[2];
+    } else if (in.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
+        myN0 = (m_gNE[0]+1)/m_NX[0];
+        myN1 = (m_gNE[1]+1)/m_NX[1];
+        myN2 = (m_gNE[2]+1)/m_NX[2];
+        totalN0 = m_gNE[0]+1;
+        totalN1 = m_gNE[1]+1;
+        totalN2 = m_gNE[2]+1;
+        offset0 = (m_offset[0]>0 ? m_offset[0]+1 : 0);
+        offset1 = (m_offset[1]>0 ? m_offset[1]+1 : 0);
+        offset2 = (m_offset[2]>0 ? m_offset[2]+1 : 0);
     } else if (in.getFunctionSpace().getTypeCode() == Elements ||
                 in.getFunctionSpace().getTypeCode() == ReducedElements) {
         myN0 = m_NE[0];
@@ -740,8 +754,11 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         totalN0 = m_gNE[0];
         totalN1 = m_gNE[1];
         totalN2 = m_gNE[2];
+        offset0 = m_offset[0];
+        offset1 = m_offset[1];
+        offset2 = m_offset[2];
     } else
-        throw RipleyException("writeBinaryGrid(): invalid function space of data object");
+        throw RipleyException("writeBinaryGrid(): unsupported function space");
 
     const int numComp = in.getDataPointSize();
     const int dpp = in.getNumDataPointsPerSample();
@@ -757,8 +774,8 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
 
     for (index_t z=0; z<myN2; z++) {
         for (index_t y=0; y<myN1; y++) {
-            const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0
-                                +(m_offset[2]+z)*totalN0*totalN1)*sizeof(ValueType);
+            const dim_t fileofs = (offset0+(offset1+y)*totalN0
+                                +(offset2+z)*totalN0*totalN1)*sizeof(ValueType);
             ostringstream oss;
 
             for (index_t x=0; x<myN0; x++) {

@@ -51,7 +51,7 @@ mpiSize = getMPISizeWorld()
 mpiRank = getMPIRankWorld()
 
 def adjust(NE, ftype):
-    if ftype == ContinuousFunction:
+    if ftype in (ContinuousFunction, Solution):
         return [i+1 for i in NE]
     return NE
 
@@ -91,7 +91,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
     def test_writeGrid2D(self):
         self.NE = [self.NX, self.NZ]
         self.domain = Rectangle(self.NE[0], self.NE[1], d1=0)
-        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
             data, ref = self.generateUniqueData(ftype)
             result = self.writeThenRead(data, ftype, fcode)
             self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
@@ -100,7 +100,7 @@ class WriteBinaryGridTestBase(unittest.TestCase): #subclassing required
     def test_writeGrid3D(self):
         self.NE = [self.NX, self.NX, self.NZ]
         self.domain = Brick(self.NE[0], self.NE[1], self.NE[2], d2=0)
-        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF')]:
+        for ftype,fcode in [(ReducedFunction,'RF'), (ContinuousFunction,'CF'), (Solution, 'Sol')]:
             data, ref = self.generateUniqueData(ftype)
             result = self.writeThenRead(data, ftype, fcode)
             self.assertAlmostEquals(Lsup(ref-result), 0, delta=1e-9,
