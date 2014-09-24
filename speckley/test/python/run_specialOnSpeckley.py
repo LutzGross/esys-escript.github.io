@@ -555,11 +555,11 @@ class Test_Speckley(unittest.TestCase):
         half = 2 #change if ranks != 4 (sqrt(ranks))
         for order in range(2, 11):
             for dom,dim1,dim2 in [
-                (Brick(order, ranks, ranks, 2, l0=half, l1=half,
+                (Brick(order, 2*half, 2*half, 2, l0=half, l1=half,
                                 d0=half, d1=half), 0,1),
-                (Brick(order, ranks, 2, ranks, l0=half, l2=half,
+                (Brick(order, 2*half, 2, 2*half, l0=half, l2=half,
                                 d0=half, d2=half), 0,2),
-                (Brick(order, 2, ranks, ranks, l1=half, l2=half,
+                (Brick(order, 2, 2*half, 2*half, l1=half, l2=half,
                                 d1=half, d2=half), 1,2)]:
                 self.assertEqual(ranks + 1,
                         Lsup(dom.getX()[0] + dom.getX()[1] + dom.getX()[2]),
