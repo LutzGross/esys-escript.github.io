@@ -71,8 +71,6 @@ try:
     if DATA.dtype.byteorder != '=':
         DATA=np.array(DATA, dtype=np.float32)
 
-    f.close()
-
     # add one more point in each dimension (because we fill cells):
     ll=2*longitude[-1]-longitude[-2]
     longitude=np.resize(longitude, len(longitude)+1)
@@ -96,6 +94,8 @@ try:
 
     plt.show()
     plt.savefig("netcdf_plot.png")
+    # Now we can close the file
+    f.close()
 
 except ImportError:
     print("The scipy module was not found but is required to read netCDF files. Exiting...")
