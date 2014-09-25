@@ -1549,8 +1549,8 @@ dim_t Rectangle::findNode(const double *coords) const
         return NOT_MINE;
 
     // distance in elements
-    dim_t ex = (dim_t) floor(x / m_dx[0] + 0.01*m_dx[0]);
-    dim_t ey = (dim_t) floor(y / m_dx[1] + 0.01*m_dx[1]);
+    dim_t ex = (dim_t) floor((x + 0.01*m_dx[0]) / m_dx[0]);
+    dim_t ey = (dim_t) floor((y + 0.01*m_dx[1]) / m_dx[1]);
     dim_t start = ex*m_order + ey*m_order*m_NN[0];
     // set the min distance high enough to be outside the element plus a bit
     dim_t closest = NOT_MINE;
@@ -1566,7 +1566,6 @@ dim_t Rectangle::findNode(const double *coords) const
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
                 closest = start + dx*m_order + dy*m_NN[0]*m_order;
-				std::cerr << "Rectangle::findNode not updated for MPI\n";
                 minDist = total;
             }
         }
