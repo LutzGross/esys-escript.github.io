@@ -200,7 +200,6 @@ protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
     virtual dim_t getNumDOF() const;
-    virtual dim_t insertNeighbourNodes(IndexVector& index, index_t node) const;
 #ifdef ESYS_MPI
     virtual void balanceNeighbours(escript::Data& data, bool average) const;
 #endif

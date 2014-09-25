@@ -47,9 +47,8 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
                      double y1, int d0, int d1,
                      const std::vector<double>& points,
                      const std::vector<int>& tags,
-                     const simap_t& tagnamestonums,
-		    escript::SubWorld_ptr w
-		    ) :
+                     const TagMap& tagnamestonums,
+                     escript::SubWorld_ptr w) :
     SpeckleyDomain(2, order, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
@@ -154,7 +153,7 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
 
     populateSampleIds();
 
-    for (simap_t::const_iterator i = tagnamestonums.begin();
+    for (TagMap::const_iterator i = tagnamestonums.begin();
             i != tagnamestonums.end(); i++) {
         setTagMap(i->first, i->second);
     }
@@ -678,11 +677,11 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
     fw.openFile(filename, fileSize);
     MPIBarrier();
 
-    for (index_t y=0;/*m_offset[1] ? 1 : 0;*/ y<myN1; y++) {
+    for (index_t y=0; y<myN1; y++) {
         const dim_t fileofs = (m_offset[0]+(m_offset[1]+y)*totalN0)*sizeof(ValueType);
         std::ostringstream oss;
 
-        for (index_t x=0;/*m_offset[0] ? 1 : 0;*/ x<myN0; x++) {
+        for (index_t x=0; x<myN0; x++) {
             const double* sample = in.getSampleDataRO((y*m_NN[0]+x)*m_order);
             ValueType fvalue = static_cast<ValueType>(*sample);
             if (byteOrder == BYTEORDER_NATIVE) {
@@ -1002,35 +1001,6 @@ void Rectangle::assembleIntegrate(std::vector<double>& integrals,
     }
 }
 
-//protected
-dim_t Rectangle::insertNeighbourNodes(IndexVector& index, index_t node) const
-{
-    std::cerr << "insertNeighbourNodes not updated\n";
-    const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
-    const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
-    const int x=node%nDOF0;
-    const int y=node/nDOF0;
-    dim_t num=0;
-    // loop through potential neighbours and add to index if positions are
-    // within bounds
-    for (int i1=-1; i1<2; i1++) {
-        for (int i0=-1; i0<2; i0++) {
-            // skip node itself
-            if (i0==0 && i1==0)
-                continue;
-            // location of neighbour node
-            const int nx=x+i0;
-            const int ny=y+i1;
-            if (nx>=0 && ny>=0 && nx<nDOF0 && ny<nDOF1) {
-                index.push_back(ny*nDOF0+nx);
-                num++;
-            }
-        }
-    }
-
-    return num;
-}
-
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
 */ 
@@ -1174,7 +1144,7 @@ void Rectangle::interpolateNodesOnElements(escript::Data& out,
     for (dim_t ey = 0; ey < NE1; ey++) {
         for (dim_t ex = 0; ex < NE0; ex++) {
             double *e_out = out.getSampleDataRW(ex + ey*NE0);
-            int start = ex*m_order + ey*max_x*m_order;
+            dim_t start = ex*m_order + ey*max_x*m_order;
             int quad = 0;
             for (int qy = 0; qy < quads; qy++) {
                 for (int qx = 0; qx < quads; qx++, quad++) {
@@ -1296,7 +1266,7 @@ void Rectangle::interpolateElementsOnNodes(escript::Data& out,
 #pragma omp parallel for
         for (dim_t ey = colouring; ey < NE1; ey += 2) {
             for (dim_t ex = 0; ex < NE0; ex++) {
-                int start = ex*m_order + ey*max_x*m_order;
+                dim_t start = ex*m_order + ey*max_x*m_order;
                 const double *e_in = in.getSampleDataRO(ex + ey*NE0);
                 for (int qy = 0; qy < quads; qy++) {
                     for (int qx = 0; qx < quads; qx++) {
@@ -1450,7 +1420,7 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
     const int tag = 0;
     MPI_Status status;
     const int numComp = out.getDataPointSize();
-    const int count = m_NN[1]*numComp;
+    const dim_t count = m_NN[1]*numComp;
     const int left_neighbour = m_mpiInfo->rank - 1;
     const int right_neighbour = m_mpiInfo->rank + 1;
     //allocate some space
