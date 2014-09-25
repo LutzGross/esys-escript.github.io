@@ -182,7 +182,7 @@ silo = True
 #silo_prefix = '/usr/local/py2.6.2/silo4.7.2'
 
 # SILO library/libraries to link against
-silo_libs = ['siloh5', 'hdf5']
+silo_libs = ['siloh5', 'hdf5_openmpi']
 
 # Whether to use LLNL's VisIt simulation interface (only version 2 supported)
 # DEFAULT: False
