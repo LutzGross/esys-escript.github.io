@@ -2284,9 +2284,9 @@ int Brick::findNode(const double *coords) const {
         return NOT_MINE;
 
     // distance in elements
-    int ex = (int) floor(x / m_dx[0] + 0.01*m_dx[0]);
-    int ey = (int) floor(y / m_dx[1] + 0.01*m_dx[1]);
-    int ez = (int) floor(z / m_dx[2] + 0.01*m_dx[2]);
+    dim_t ex = (dim_t) floor((x + 0.01*m_dx[0]) / m_dx[0]);
+    dim_t ey = (dim_t) floor((y + 0.01*m_dx[1]) / m_dx[1]);
+    dim_t ez = (dim_t) floor((z + 0.01*m_dx[2]) / m_dx[2]);
     int start = m_order*(INDEX3(ex,ey,ez,m_NN[0],m_NN[1]));
     // set the min distance high enough to be outside the element plus a bit
     int closest = NOT_MINE;
