@@ -122,7 +122,7 @@ typedef enum
 /// Local preconditioner
 struct Preconditioner_AMG
 {
-    dim_t level;
+    int level;
     /// coarse level matrix
     SystemMatrix_ptr A_C;
     /// prolongation n x n_C
@@ -131,8 +131,8 @@ struct Preconditioner_AMG
     SystemMatrix_ptr R;
 
     Preconditioner_Smoother* Smoother;
-    dim_t post_sweeps;
-    dim_t pre_sweeps;
+    int post_sweeps;
+    int pre_sweeps;
     /// used in direct solver
     dim_t options_smoother;
     /// used in direct solver
@@ -140,7 +140,7 @@ struct Preconditioner_AMG
     /// applied reordering in direct solver
     index_t reordering;
     /// number of refinements in direct solver (typically =0)
-    dim_t refinements;
+    int refinements;
     /// buffer for residual
     double* r;
     /// solution of coarse level system
@@ -152,25 +152,63 @@ struct Preconditioner_AMG
     Preconditioner_AMG* AMG_C;
 };
 
+Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
+                                             Options* options);
+
 void Preconditioner_AMG_free(Preconditioner_AMG* in);
-Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level, Options* options);
-void Preconditioner_AMG_solve(SystemMatrix_ptr A, Preconditioner_AMG* amg, double* x, double* b);
-void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,  dim_t* degree_S, index_t* offset_S, index_t* S, double theta, double tau);
-void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A, dim_t* degree_S, index_t* offset_S, index_t* S, double theta, double tau);
-SystemMatrix_ptr Preconditioner_AMG_getProlongation(SystemMatrix_ptr A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, dim_t n_C, index_t* counter_C, index_t interpolation_method);
-void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S,const index_t *counter_C);
-void Preconditioner_AMG_setClassicProlongation_Block(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t* counter_C);
-void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t* counter_C);
-void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P, SystemMatrix_ptr A, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t* counter_C);
+
+void Preconditioner_AMG_solve(SystemMatrix_ptr A, Preconditioner_AMG* amg,
+                              double* x, double* b);
+
+void Preconditioner_AMG_setStrongConnections(SystemMatrix_ptr A,
+                        dim_t* degree_S, index_t* offset_S, index_t* S,
+                        double theta, double tau);
+
+void Preconditioner_AMG_setStrongConnections_Block(SystemMatrix_ptr A,
+                        dim_t* degree_S, index_t* offset_S, index_t* S,
+                        double theta, double tau);
+
+SystemMatrix_ptr Preconditioner_AMG_getProlongation(SystemMatrix_ptr A,
+                        const index_t* offset_S, const dim_t* degree_S,
+                        const index_t* S, dim_t n_C, index_t* counter_C,
+                        index_t interpolation_method);
+
+void Preconditioner_AMG_setClassicProlongation(SystemMatrix_ptr P,
+                        SystemMatrix_ptr A, const index_t* offset_S,
+                        const dim_t* degree_S, const index_t* S,
+                        const index_t* counter_C);
+
+void Preconditioner_AMG_setClassicProlongation_Block(SystemMatrix_ptr P,
+                        SystemMatrix_ptr A, const index_t* offset_S,
+                        const dim_t* degree_S, const index_t* S,
+                        const index_t* counter_C);
+
+void Preconditioner_AMG_setDirectProlongation(SystemMatrix_ptr P,
+                        SystemMatrix_ptr A, const index_t* offset_S,
+                        const dim_t* degree_S, const index_t* S,
+                        const index_t* counter_C);
+
+void Preconditioner_AMG_setDirectProlongation_Block(SystemMatrix_ptr P,
+                        SystemMatrix_ptr A, const index_t* offset_S,
+                        const dim_t* degree_S, const index_t* S,
+                        const index_t* counter_C);
 double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG* in);
+
 dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in);
-index_t Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in);
-void Preconditioner_AMG_transposeStrongConnections(dim_t n, const dim_t* degree_S, const index_t* offset_S, const index_t* S, dim_t nT, dim_t* degree_ST, index_t* offset_ST, index_t* ST);
+
+int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in);
+
+void Preconditioner_AMG_transposeStrongConnections(dim_t n,
+                        const dim_t* degree_S, const index_t* offset_S,
+                        const index_t* S, dim_t nT, dim_t* degree_ST,
+                        index_t* offset_ST, index_t* ST);
+
 void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
-        AMGBlockSelect* split_marker, const dim_t* degree_S,
-        const index_t* offset_S, const index_t* S, const dim_t* degree_ST,
-        const index_t* offset_ST, const index_t* ST,
-        const_Connector_ptr col_connector, const_Distribution_ptr col_dist);
+                        AMGBlockSelect* split_marker, const dim_t* degree_S,
+                        const index_t* offset_S, const index_t* S,
+                        const dim_t* degree_ST, const index_t* offset_ST,
+                        const index_t* ST, const_Connector_ptr col_connector,
+                        const_Distribution_ptr col_dist);
 
 SystemMatrix_ptr Preconditioner_AMG_getRestriction(SystemMatrix_ptr P);
 
@@ -187,59 +225,82 @@ void Preconditioner_AMG_mergeSolve(Preconditioner_AMG* amg);
 /// Local AMG preconditioner
 struct Preconditioner_LocalAMG
 {
-   dim_t level;
-   SparseMatrix_ptr A_C;  /* coarse level matrix */
-   SparseMatrix_ptr P;    /* prolongation n x n_C*/
-   SparseMatrix_ptr R;    /* restriction  n_C x n */
+    dim_t level;
+    SparseMatrix_ptr A_C;  // coarse level matrix
+    SparseMatrix_ptr P;    // prolongation n x n_C
+    SparseMatrix_ptr R;    // restriction  n_C x n
 
-   Preconditioner_LocalSmoother* Smoother;
-   dim_t post_sweeps;
-   dim_t pre_sweeps;
-   index_t reordering;  /* applied reordering in direct solver */
-   dim_t refinements;  /* number of refinements in direct solver (typically =0) */
-   double* r;         /* buffer for residual */
-   double* x_C;       /* solution of coarse level system */
-   double* b_C;       /* right hand side of coarse level system */
-   struct Preconditioner_LocalAMG * AMG_C;
+    Preconditioner_LocalSmoother* Smoother;
+    int post_sweeps;
+    int pre_sweeps;
+    index_t reordering; // applied reordering in direct solver
+    int refinements;    // number of refinements in direct solver (typically=0)
+    double* r;          // buffer for residual
+    double* x_C;        // solution of coarse level system
+    double* b_C;        // right hand side of coarse level system
+    struct Preconditioner_LocalAMG* AMG_C;
 };
 
-void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG * in);
-Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A, dim_t level, Options* options);
-void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A, Preconditioner_LocalAMG * amg, double * x, double * b);
+Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A,
+                                             int level, Options* options);
+void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG* in);
+void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
+                         Preconditioner_LocalAMG* amg, double* x, double* b);
 
-void Preconditioner_LocalAMG_RungeStuebenSearch(const dim_t n, const index_t* offset, const dim_t* degree, const index_t* S, AMGBlockSelect*split_marker, const bool usePanel);
-void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A, dim_t *degree, index_t *S, const double theta, const double tau);
-void Preconditioner_LocalAMG_setStrongConnections(SparseMatrix_ptr A, dim_t *degree, index_t *S, const double theta, const double tau);
+void Preconditioner_LocalAMG_RungeStuebenSearch(dim_t n, const index_t* offset,
+                         const dim_t* degree, const index_t* S,
+                         AMGBlockSelect* split_marker, bool usePanel);
 
-SparseMatrix_ptr Preconditioner_LocalAMG_getProlongation(
-        SparseMatrix_ptr A_p, const index_t* offset_S,
-        const dim_t* degree_S, const index_t* S, dim_t n_C,
-        const index_t* counter_C, index_t interpolation_method);
+void Preconditioner_LocalAMG_setStrongConnections_Block(SparseMatrix_ptr A,
+                         dim_t* degree, index_t* S, double theta, double tau);
 
-void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P_p, const_SparseMatrix_ptr A_p, const index_t *counter_C);
+void Preconditioner_LocalAMG_setStrongConnections(SparseMatrix_ptr A,
+                         dim_t* degree, index_t* S, double theta, double tau);
 
-void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P_p, const_SparseMatrix_ptr A_p, const index_t *counter_C);
-void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P_p, SparseMatrix_ptr A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
-void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P_p, SparseMatrix_ptr A_p, const index_t* offset_S, const dim_t* degree_S, const index_t* S, const index_t *counter_C);
-index_t Preconditioner_LocalAMG_getMaxLevel(const Preconditioner_LocalAMG * in);
-double Preconditioner_LocalAMG_getCoarseLevelSparsity(const Preconditioner_LocalAMG * in);
-dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG * in);
-void Preconditioner_LocalAMG_enforceFFConnectivity(const dim_t n, const index_t* offset_S, const dim_t* degree_S, const index_t* S, AMGBlockSelect*split_marker);
+SparseMatrix_ptr Preconditioner_LocalAMG_getProlongation(SparseMatrix_ptr A,
+                         const index_t* offset_S, const dim_t* degree_S,
+                         const index_t* S, dim_t n_C, const index_t* counter_C,
+                         index_t interpolation_method);
+
+void Preconditioner_LocalAMG_setDirectProlongation_Block(SparseMatrix_ptr P,
+                         const_SparseMatrix_ptr A, const index_t* counter_C);
+
+void Preconditioner_LocalAMG_setDirectProlongation(SparseMatrix_ptr P,
+                         const_SparseMatrix_ptr A, const index_t* counter_C);
+
+void Preconditioner_LocalAMG_setClassicProlongation(SparseMatrix_ptr P,
+                         SparseMatrix_ptr A, const index_t* offset_S,
+                         const dim_t* degree_S, const index_t* S,
+                         const index_t* counter_C);
+
+void Preconditioner_LocalAMG_setClassicProlongation_Block(SparseMatrix_ptr P,
+                         SparseMatrix_ptr A, const index_t* offset_S,
+                         const dim_t* degree_S, const index_t* S,
+                         const index_t* counter_C);
+
+int Preconditioner_LocalAMG_getMaxLevel(const Preconditioner_LocalAMG* in);
+double Preconditioner_LocalAMG_getCoarseLevelSparsity(const Preconditioner_LocalAMG* in);
+dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG* in);
+void Preconditioner_LocalAMG_enforceFFConnectivity(dim_t n,
+                         const index_t* offset_S, const dim_t* degree_S,
+                         const index_t* S, AMGBlockSelect* split_marker);
 
 
 struct Preconditioner_AMG_Root
 {
-  bool is_local;
-  Preconditioner_AMG* amg;
-  Preconditioner_LocalAMG* localamg;
-  Preconditioner_BoomerAMG* boomeramg;
-  dim_t sweeps;
-  Preconditioner_Smoother* amgsubstitute;
+    bool is_local;
+    Preconditioner_AMG* amg;
+    Preconditioner_LocalAMG* localamg;
+    Preconditioner_BoomerAMG* boomeramg;
+    int sweeps;
+    Preconditioner_Smoother* amgsubstitute;
 };
 
-Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A, Options* options);
-void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root * in);
-void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A, Preconditioner_AMG_Root * amg, double * x, double * b);
+Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
+                                                       Options* options);
+void Preconditioner_AMG_Root_free(Preconditioner_AMG_Root* in);
+void Preconditioner_AMG_Root_solve(SystemMatrix_ptr A,
+                         Preconditioner_AMG_Root* amg, double* x, double* b);
 
 /// ILU preconditioner
 struct Solver_ILU

@@ -29,7 +29,7 @@
 #define __PASO_PATTERN_H__
 
 #include "Paso.h"
-#include "esysUtils/IndexList.h"
+#include <esysUtils/IndexList.h>
 
 namespace paso {
 

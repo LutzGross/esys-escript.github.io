@@ -142,7 +142,7 @@ inline void BlockOps_invM_3(double* invA, const double* A, int* failed)
 }
 
 /// LU factorization of NxN matrix mat with partial pivoting
-inline void BlockOps_invM_N(dim_t N, double* mat, int* pivot, int* failed)
+inline void BlockOps_invM_N(dim_t N, double* mat, index_t* pivot, int* failed)
 {
 #ifdef USE_LAPACK
 #ifdef MKL_LAPACK
@@ -161,7 +161,7 @@ inline void BlockOps_invM_N(dim_t N, double* mat, int* pivot, int* failed)
 }
 
 /// solves system of linear equations A*X=B
-inline void BlockOps_solve_N(dim_t N, double* X, double* mat, int* pivot, int* failed)
+inline void BlockOps_solve_N(dim_t N, double* X, double* mat, index_t* pivot, int* failed)
 {
 #ifdef USE_LAPACK
 #ifdef MKL_LAPACK

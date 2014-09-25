@@ -64,22 +64,24 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
     if (Esys_noError()) {
         if (options->verbose) {
             if (prec->localamg || prec->amg || prec->boomeramg) {
-                printf("Preconditioner_AMG_Root:  Smoother is ");
+                std::cout << "Preconditioner_AMG_Root:  Smoother is ";
                 if (options->smoother == PASO_JACOBI) {
-                    printf("Jacobi");
+                    std::cout << "Jacobi";
                 } else {
-                    printf("Gauss-Seidel");
+                    std::cout << "Gauss-Seidel";
                 }
-                printf(" with %d/%d pre/post sweeps",options->pre_sweeps, options->post_sweeps);
+                std::cout << " with " << options->pre_sweeps << "/"
+                    << options->post_sweeps << " pre/post sweeps";
                 if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION) {
-                    printf( " and classical interpolation.\n");
+                    std::cout << " and classical interpolation.";
                 } else if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING) {
-                    printf( " and classical interpolation with enforced FF coupling.\n");
+                    std::cout << " and classical interpolation with enforced FF coupling.";
                 } else {
-                    printf( " and direct interpolation.\n");
+                    std::cout << " and direct interpolation.";
                 }
+                std::cout << std::endl;
             } else {
-                printf("Preconditioner_AMG_Root:  no coarsening constructed.\n");
+                std::cout << "Preconditioner_AMG_Root:  no coarsening constructed." << std::endl;
             }
         } // verbose?
 
@@ -98,9 +100,12 @@ Preconditioner_AMG_Root* Preconditioner_AMG_Root_alloc(SystemMatrix_ptr A,
             options->num_level=0;
             if (options->verbose) {
                 if (options->smoother == PASO_JACOBI) {
-                    printf("Preconditioner: Jacobi(%d) preconditioner is used.\n",prec->sweeps);
+                    std::cout << "Preconditioner: Jacobi(" << prec->sweeps
+                        << ") preconditioner is used." << std::endl;
                 } else {
-                    printf("Preconditioner: Gauss-Seidel(%d) preconditioner is used.\n",prec->sweeps);
+                    std::cout << "Preconditioner: Gauss-Seidel("
+                        << prec->sweeps << ") preconditioner is used."
+                        << std::endl;
                 }
             }
         }

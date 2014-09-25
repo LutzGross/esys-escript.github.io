@@ -78,31 +78,31 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     double tol,Factor,sum_BREAKF,gamma,SC1,SC2,norm_of_residual=0,diff,L2_R,Norm_of_residual_global=0;
     double *save_XPRES, *save_P_PRES, *save_R_PRES,save_R_PRES_dot_P_PRES;
     dim_t maxit,Num_iter_global=0,num_iter_restart=0,num_iter;
-    dim_t i,z,order, Length_of_mem, th, local_n , rest, n_start ,n_end;
+    dim_t i,z,order, th, local_n , rest, n_start ,n_end;
     bool breakFlag=false, maxIterFlag=false, convergeFlag=false,restartFlag=false;
     err_t Status=SOLVER_NO_ERROR;
 
     // adapt original routine parameters
     const dim_t n = A->getTotalNumRows();
-    Length_of_mem=std::max(Length_of_recursion,0)+1;
+    dim_t Length_of_mem = std::max(Length_of_recursion, dim_t(0)) + 1;
 
     if (restart > 0)
         restart = std::max(Length_of_recursion, restart);
 
-    X_PRES=new double*[Length_of_mem];
-    R_PRES=new double*[Length_of_mem];
-    P_PRES=new double*[Length_of_mem];
-    loc_dots=new double[std::max(Length_of_mem+1,3)];
-    dots=new double[std::max(Length_of_mem+1,3)];
-    P_PRES_dot_AP=new double[Length_of_mem];
-    R_PRES_dot_P_PRES=new double[Length_of_mem];
-    BREAKF=new double[Length_of_mem];
-    ALPHA=new double[Length_of_mem];
-    AP=new double[n];
-    for (i=0;i<Length_of_mem;i++) {
-       X_PRES[i]=new double[n];
-       R_PRES[i]=new double[n];
-       P_PRES[i]=new double[n];
+    X_PRES   = new double*[Length_of_mem];
+    R_PRES   = new double*[Length_of_mem];
+    P_PRES   = new double*[Length_of_mem];
+    loc_dots = new double[std::max(Length_of_mem+1, dim_t(3))];
+    dots     = new double[std::max(Length_of_mem+1, dim_t(3))];
+    P_PRES_dot_AP     = new double[Length_of_mem];
+    R_PRES_dot_P_PRES = new double[Length_of_mem];
+    BREAKF   = new double[Length_of_mem];
+    ALPHA    = new double[Length_of_mem];
+    AP       = new double[n];
+    for (i=0; i < Length_of_mem; i++) {
+       X_PRES[i] = new double[n];
+       R_PRES[i] = new double[n];
+       P_PRES[i] = new double[n];
     }
 
     // now PRES starts
@@ -114,20 +114,20 @@ err_t Solver_GMRES(SystemMatrix_ptr A, double* r, double* x, dim_t* iter,
     num_iter=0;
 
 #pragma omp parallel for private(th,z,i,local_n, rest, n_start, n_end)
-    for (th=0;th<num_threads;++th) {
+    for (th=0; th<num_threads; ++th) {
         local_n=n/num_threads;
         rest=n-local_n*num_threads;
         n_start=local_n*th+std::min(th,rest);
         n_end=local_n*(th+1)+std::min(th+1,rest);
         memset(&AP[n_start],0,sizeof(double)*(n_end-n_start));
-        for(i=0;i<Length_of_mem;++i) {
-            memset(&P_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
-            memset(&R_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
-            memset(&X_PRES[i][n_start],0,sizeof(double)*(n_end-n_start));
+        for(i=0; i < Length_of_mem; ++i) {
+            memset(&P_PRES[i][n_start], 0, sizeof(double)*(n_end-n_start));
+            memset(&R_PRES[i][n_start], 0, sizeof(double)*(n_end-n_start));
+            memset(&X_PRES[i][n_start], 0, sizeof(double)*(n_end-n_start));
         }
     }
 
-    while (! (convergeFlag || maxIterFlag || breakFlag))  {
+    while (! (convergeFlag || maxIterFlag || breakFlag)) {
         if (restartFlag) {
             BREAKF[0]=PASO_ONE;
 #pragma omp parallel for private(th,z, local_n, rest, n_start, n_end)

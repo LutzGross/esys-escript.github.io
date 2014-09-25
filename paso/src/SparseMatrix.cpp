@@ -102,7 +102,7 @@ void q_sort(index_t *row, index_t *col, double *val, int begin, int end, int N)
    and offsets. Otherwise unrolling and offset adjustment will be performed.
 */
 SparseMatrix::SparseMatrix(SparseMatrixType ntype, Pattern_ptr npattern,
-                           int rowBlockSize, int colBlockSize,
+                           dim_t rowBlockSize, dim_t colBlockSize,
                            bool patternIsUnrolled) :
     type(ntype),
     val(NULL),
@@ -278,7 +278,8 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
     out.reset(new SparseMatrix(MATRIX_FORMAT_DEFAULT, mainPattern, 1, 1, true));
 
     // copy values
-    for (i=0; i<nz; i++) out->val[i] = val[i];
+    for (i=0; i<nz; i++)
+        out->val[i] = val[i];
 
     delete[] val;
     delete[] row_ind;
@@ -495,7 +496,7 @@ void SparseMatrix::setValues(double value)
     }
 }
 
-void SparseMatrix::invMain(double* inv_diag, int* pivot) const
+void SparseMatrix::invMain(double* inv_diag, index_t* pivot) const
 {
     int failed = 0;
     double A11;
@@ -547,8 +548,8 @@ void SparseMatrix::invMain(double* inv_diag, int* pivot) const
     }
 }
 
-void SparseMatrix::applyBlockMatrix(double* block_diag, int* pivot, double* x,
-                                    const double *b) const
+void SparseMatrix::applyBlockMatrix(double* block_diag, index_t* pivot,
+                                    double* x, const double *b) const
 {
     const dim_t n = numRows;
     const dim_t n_block = row_block_size;

@@ -57,10 +57,10 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
 
     void copyBlockToMainDiagonal(const double* in);
 
-    void applyBlockMatrix(double* block_diag, int* pivot, double* x,
+    void applyBlockMatrix(double* block_diag, index_t* pivot, double* x,
                           const double* b) const;
 
-    void invMain(double* inv_diag, int* pivot) const;
+    void invMain(double* inv_diag, index_t* pivot) const;
 
     SparseMatrix_ptr unroll(SparseMatrixType type) const;
     SparseMatrix_ptr getSubmatrix(dim_t n_row_sub,

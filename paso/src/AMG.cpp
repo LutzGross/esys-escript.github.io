@@ -50,7 +50,7 @@ void Preconditioner_AMG_free(Preconditioner_AMG* in)
     }
 }
 
-index_t Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG * in)
+int Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG* in)
 {
     if (in->AMG_C == NULL) {
         return in->level;
@@ -59,7 +59,8 @@ index_t Preconditioner_AMG_getMaxLevel(const Preconditioner_AMG * in)
     }
 }
 
-double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG * in) {
+double Preconditioner_AMG_getCoarseLevelSparsity(const Preconditioner_AMG* in)
+{
     if (in->AMG_C == NULL) {
         if (in->A_C == NULL) {
             return 1.;
@@ -87,7 +88,7 @@ dim_t Preconditioner_AMG_getNumCoarseUnknowns(const Preconditioner_AMG* in)
    constructs AMG
 
 *****************************************************************************/
-Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
+Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, int level,
                                              Options* options)
 {
     Preconditioner_AMG* out = NULL;
@@ -110,22 +111,23 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
                 - 'SIZE' = min_coarse_matrix_size exceeded
                 - 'LEVEL' = level_max exceeded
             */
-            printf("Preconditioner: AMG: termination of coarsening by ");
+            std::cout << "Preconditioner: AMG: termination of coarsening by ";
 
             if (sparsity >= options->min_coarse_sparsity)
-                printf("SPAR");
+                std::cout << "SPAR";
 
             if (global_n <= options->min_coarse_matrix_size)
-                printf("SIZE");
+                std::cout << "SIZE";
 
             if (level > options->level_max)
-                printf("LEVEL");
+                std::cout << "LEVEL";
 
-            printf("\nPreconditioner: AMG level %d (limit = %d) stopped. "
-                   "sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n",
-                   level, options->level_max, sparsity,
-                   options->min_coarse_sparsity, global_n,
-                   options->min_coarse_matrix_size);
+            std::cout << std::endl << "Preconditioner: AMG level " << level
+                << " (limit = " << options->level_max << ") stopped."
+                << " Sparsity = " << sparsity << " (limit = "
+                << options->min_coarse_sparsity << "), unknowns = " << global_n
+                << " (limit = " << options->min_coarse_matrix_size << ")"
+                << std::endl;
         }
         return out;
     }
@@ -205,10 +207,9 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
 
         const dim_t global_n_C = global_n-global_n_F;
         if (verbose)
-            printf("Preconditioner: AMG (non-local) level %d: %d unknowns are "
-                   "flagged for elimination. %d left.\n", level, global_n_F,
-                   global_n_C);
-
+            std::cout << "Preconditioner: AMG (non-local) level " << level
+                << ": " << global_n_F << " unknowns are flagged for"
+                << " elimination. " << global_n_C << " left." << std::endl;
 
         //if (n_F == 0) { nasty case. a direct solver should be used!
         if (F_flag) {
@@ -260,7 +261,9 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
                         time0 = Esys_timer();
                         out->R = Preconditioner_AMG_getRestriction(out->P);
                         if (SHOW_TIMING)
-                            printf("timing: level %d: getTranspose: %e\n",level,Esys_timer()-time0);
+                            std::cout << "timing: level " << level
+                                << ": getTranspose: " << Esys_timer()-time0
+                                << std::endl;
                     }
                     // construct coarse level matrix
                     SystemMatrix_ptr A_C;
@@ -268,7 +271,9 @@ Preconditioner_AMG* Preconditioner_AMG_alloc(SystemMatrix_ptr A, dim_t level,
                         time0 = Esys_timer();
                         A_C = Preconditioner_AMG_buildInterpolationOperator(A, out->P, out->R);
                         if (SHOW_TIMING)
-                            printf("timing: level %d: construct coarse matrix: %e\n",level,Esys_timer()-time0);
+                            std::cout << "timing: level " << level
+                                << ": construct coarse matrix: "
+                                << Esys_timer()-time0 << std::endl;
 
                         out->AMG_C = Preconditioner_AMG_alloc(A_C, level+1, options);
                         out->A_C = A_C;
@@ -315,7 +320,8 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
     Preconditioner_Smoother_solve(A, amg->Smoother, x, b, pre_sweeps, false);
     time0 = Esys_timer()-time0;
     if (SHOW_TIMING)
-        printf("timing: level %d: Presmoothing: %e\n",amg->level, time0);
+        std::cout << "timing: level " << amg->level << ": Presmoothing: "
+            << time0 << std::endl;
     // end of presmoothing
 
     time0=Esys_timer();
@@ -333,7 +339,8 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
         // A_C is the coarsest level
         amg->merged_solver->solve(amg->x_C, amg->b_C);
         if (SHOW_TIMING)
-            printf("timing: level %d: DIRECT SOLVER: %e\n", amg->level, Esys_timer()-time0);
+            std::cout << "timing: level " << amg->level << ": DIRECT SOLVER: "
+                << Esys_timer()-time0 << std::endl;
     } else {
         // x_C = AMG(b_C)
         Preconditioner_AMG_solve(amg->A_C, amg->AMG_C, amg->x_C, amg->b_C);
@@ -349,7 +356,8 @@ void Preconditioner_AMG_solve(SystemMatrix_ptr A,
     Preconditioner_Smoother_solve(A, amg->Smoother, x, b, post_sweeps, true);
     time0 = Esys_timer()-time0;
     if (SHOW_TIMING)
-        printf("timing: level %d: Postsmoothing: %e\n", amg->level, time0);
+        std::cout << "timing: level " << amg->level << ": Postsmoothing: "
+            << time0 << std::endl;
 }
 
 /// theta = threshold for strong connections
@@ -816,7 +824,7 @@ void Preconditioner_AMG_CIJPCoarsening(dim_t n, dim_t my_n,
         }
 
         iter++;
-        // printf("coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
+        //printf("coarsening loop %d: num of undefined rows = %d \n",iter, numUndefined);
 
     } // end of while loop
 
