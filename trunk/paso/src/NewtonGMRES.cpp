@@ -45,9 +45,9 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
     bool convergeFlag=false, maxIterFlag=false, breakFlag=false;
     double *f=NULL, *step=NULL;
     err_t Status=SOLVER_NO_ERROR;
-    const bool debug=options->verbose;
+    const bool debug = options->verbose;
     const dim_t n = F->getLen();
-    dim_t iteration_count=0;
+    dim_t iteration_count = 0;
     const double atol=options->absolute_tolerance;  /* absolute tolerance */
     const double rtol=options->tolerance;           /* relative tolerance */
     const dim_t maxit=options->iter_max;            /* max iteration counter */
@@ -80,19 +80,24 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
     stop_tol=atol + rtol*normsup_f;
     if (stop_tol<=0) {
         Status=SOLVER_INPUT_ERROR;
-        if (debug) printf("NewtonGMRES: zero tolerance given.\n");
+        if (debug)
+            std::cout << "NewtonGMRES: zero tolerance given." << std::endl;
     } else {
         iteration_count=1;
         if (debug) {
-            printf("NewtonGMRES: Start Jacobi-free Newton scheme\n");
-            printf("NewtonGMRES: lsup tolerance rel/abs= %e/%e\n",rtol,atol);
-            printf("NewtonGMRES: lsup stopping tolerance = %e\n",stop_tol);
-            printf("NewtonGMRES: max. inner iterations (GMRES) = %d\n",lmaxit);
+            std::cout << "NewtonGMRES: Start Jacobi-free Newton scheme" << std::endl
+                << "NewtonGMRES: lsup tolerance rel/abs= "
+                << rtol << "/" << atol << std::endl
+                << "NewtonGMRES: lsup stopping tolerance = " << stop_tol
+                << std::endl << "NewtonGMRES: max. inner iterations (GMRES) = "
+                << lmaxit << std::endl;
             if (adapt_inner_tolerance) {
-                printf("NewtonGMRES: inner tolerance is adapted.\n");
-                printf("NewtonGMRES: max. inner l2 tolerance (GMRES) = %e\n",max_inner_tolerance);
+                std::cout << "NewtonGMRES: inner tolerance is adapted." << std::endl
+                    << "NewtonGMRES: max. inner l2 tolerance (GMRES) = "
+                    << max_inner_tolerance << std::endl;
             } else {
-                printf("NewtonGMRES: inner l2 tolerance (GMRES) = %e\n",inner_tolerance);
+                std::cout << "NewtonGMRES: inner l2 tolerance (GMRES) = "
+                    << inner_tolerance << std::endl;
             }
         }
         /*
@@ -103,14 +108,16 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
             // successive residual norms and the iteration counter
             // (iteration_count)
             if (debug)
-                printf("NewtonGMRES: iteration step %d: lsup-norm of F =%e\n",iteration_count,normsup_f);
+                std::cout << "NewtonGMRES: iteration step " << iteration_count
+                    << ": lsup-norm of F = " << normsup_f << std::endl;
 
             // call GMRES to get increment
             gmres_iter=lmaxit;
             gmres_tol=inner_tolerance;
             Status = Solver_GMRES2(F, f, x, step, &gmres_iter, &gmres_tol, pp);
             inner_tolerance=std::max(inner_tolerance, gmres_tol/norm2_f);
-            printf("NewtonGMRES: actual rel. inner tolerance = %e\n",inner_tolerance);
+            std::cout << "NewtonGMRES: actual rel. inner tolerance = "
+                << inner_tolerance << std::endl;
             iteration_count+=gmres_iter;
             if ((Status==SOLVER_NO_ERROR) || (Status==SOLVER_MAXITER_REACHED)) {
                 Status=SOLVER_NO_ERROR;
@@ -140,18 +147,26 @@ err_t Solver_NewtonGMRES(Function* F, double* x, Options* options,
             maxIterFlag = (iteration_count > maxit);
         }
         if (debug) {
-            printf("NewtonGMRES: iteration step %d: lsup-norm of F =%e\n",iteration_count,normsup_f);
+            std::cout << "NewtonGMRES: iteration step " << iteration_count
+                << ": lsup-norm of F = " << normsup_f << std::endl;
 
-            if (convergeFlag) printf("NewtonGMRES: convergence reached after %d steps.\n",iteration_count);
-            if (breakFlag) printf("NewtonGMRES: iteration break down after %d steps.\n",iteration_count);
-            if (maxIterFlag) printf("NewtonGMRES: maximum number of iteration steps %d reached.\n",maxit);
+            if (convergeFlag)
+                std::cout << "NewtonGMRES: convergence reached after "
+                    << iteration_count << " steps." << std::endl;
+            if (breakFlag)
+                std::cout << "NewtonGMRES: iteration break down after "
+                    << iteration_count << " steps." << std::endl;
+            if (maxIterFlag)
+                std::cout << "NewtonGMRES: maximum number of iteration steps "
+                    << maxit << " reached." << std::endl;
         }
         if (breakFlag) Status = SOLVER_BREAKDOWN;
         if (maxIterFlag) Status = SOLVER_MAXITER_REACHED;
     }
     delete[] f;
     delete[] step;
-    if (debug) printf("NewtonGMRES: STATUS return = %d\n",Status);
+    if (debug)
+        std::cout << "NewtonGMRES: STATUS return = " << Status << std::endl;
     return Status;
 }
 

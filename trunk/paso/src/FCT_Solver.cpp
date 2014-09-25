@@ -178,16 +178,23 @@ err_t FCT_Solver::updateLCN(double* u, double* u_old, Options* options, Performa
     sweep_max = std::max((int) (- 2 * log(RTOL)/log(2.)-0.5),1);
     norm_u_tilde = util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
     if (options->verbose) {
-        printf("FCT_Solver::updateLCN: u_tilde lsup = %e (rtol = %e, max. sweeps = %d)\n", norm_u_tilde, RTOL*norm_u_tilde, sweep_max);
+        std::cout << "FCT_Solver::updateLCN: u_tilde lsup = " << norm_u_tilde
+            << " (rtol = " << RTOL*norm_u_tilde << ", max. sweeps = "
+            << sweep_max << ")" << std::endl;
     }
     errorCode = Preconditioner_Smoother_solve_byTolerance(iteration_matrix,
             ((Preconditioner*)(iteration_matrix->solver_p))->gs, u, b, RTOL,
             &sweep_max, true);
     if (errorCode == PRECONDITIONER_NO_ERROR) {
-        if (options->verbose) printf("FCT_Solver::updateLCN: convergence after %d Gauss-Seidel steps.\n",sweep_max);
+        if (options->verbose)
+            std::cout << "FCT_Solver::updateLCN: convergence after "
+                << sweep_max << " Gauss-Seidel steps." << std::endl;
         errorCode = SOLVER_NO_ERROR;
     } else {
-        if (options->verbose) printf("FCT_Solver::updateLCN: Gauss-Seidel failed within %d stesp (rel. tolerance %e).\n",sweep_max,RTOL);
+        if (options->verbose)
+            std::cout << "FCT_Solver::updateLCN: Gauss-Seidel failed within "
+                << sweep_max << " steps (rel. tolerance " << RTOL << ")."
+                << std::endl;
         errorCode = SOLVER_MAXITER_REACHED;
     }
     return errorCode;
@@ -241,8 +248,8 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
     norm_u_tilde=util::lsup(n, flux_limiter->u_tilde, flux_limiter->mpi_info);
     const double ATOL = rtol * norm_u_tilde + atol;
     if (options->verbose)
-        printf("FCT_Solver::updateNL: iteration starts u_tilde lsup = %e "
-               "(abs. tol = %e)\n", norm_u_tilde, ATOL);
+        std::cout << "FCT_Solver::updateNL: iteration starts u_tilde lsup = "
+            << norm_u_tilde << " (abs. tol = " << ATOL << ")" << std::endl;
 
     // u_old is an initial guess for u
     util::copy(n, u, u_old);
@@ -296,7 +303,8 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
 
             // errorCode = Solver_GMRES(fctp->iteration_matrix, z, du, &cntIter, &tol, 10, 2000, pp);
             if (options->verbose)
-                printf("FCT_Solver::updateNL: BiCGStab completed after %d steps (residual =%e).\n",cntIter, tol);
+                std::cout << "FCT_Solver::updateNL: BiCGStab completed after "
+                    << cntIter << " steps (residual = " << tol << ")." << std::endl;
             options->num_iter += cntIter;
             if (errorCode != SOLVER_NO_ERROR) break;
         } else {
@@ -314,8 +322,8 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
         norm_du = util::lsup(n, du, fctp->mpi_info);
         if (m == 0) {
             if (options->verbose)
-                printf("FCT_Solver::updateNL: step %d: increment= %e\n", m+1,
-                        norm_du * omega);
+                std::cout << "FCT_Solver::updateNL: step " << m+1
+                    << ": increment = " << norm_du * omega << std::endl;
         } else {
             if (norm_du_old > 0.) {
                 rate = norm_du/norm_du_old;
@@ -325,7 +333,9 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
                 rate = LARGE_POSITIVE_FLOAT;
             }
             if (options->verbose)
-                printf("FCT_Solver::updateNL: step %d: increment= %e (rate = %e)\n",m+1, norm_du * omega, rate);
+                std::cout << "FCT_Solver::updateNL: step " << m+1
+                    << ": increment= " << norm_du * omega << " (rate = "
+                    << rate << ")" << std::endl;
             num_critical_rates += (rate<critical_rate ? 0 : 1);
             max_m_reached = (m>max_m);
             diverged = (num_critical_rates >= num_critical_rates_max);
@@ -336,15 +346,15 @@ err_t FCT_Solver::updateNL(double* u, double* u_old, Options* options,
     if (errorCode == SOLVER_NO_ERROR) {
         if (converged) {
             if (options->verbose)
-                printf("FCT_Solver::updateNL: iteration is completed.\n");
+                std::cout << "FCT_Solver::updateNL: iteration is completed." << std::endl;
             errorCode = SOLVER_NO_ERROR;
         } else if (diverged) {
             if (options->verbose)
-                printf("FCT_Solver::updateNL: divergence.\n");
+                std::cout << "FCT_Solver::updateNL: divergence." << std::endl;
             errorCode = SOLVER_DIVERGENCE;
         } else if (max_m_reached) {
             if (options->verbose)
-                printf("FCT_Solver::updateNL: maximum number of iteration steps reached.\n");
+                std::cout << "FCT_Solver::updateNL: maximum number of iteration steps reached." << std::endl;
             errorCode = SOLVER_MAXITER_REACHED;
         }
     }

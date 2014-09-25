@@ -100,17 +100,17 @@ struct Options
     /// prints diagnostic data
     void showDiagnostics() const;
 
-    static const char* name(index_t key);
+    static const char* name(int key);
 
-    static index_t getPackage(index_t solver, index_t package, bool symmetry,
-                              const esysUtils::JMPI& mpi_info);
+    static int getPackage(int solver, int package, bool symmetry,
+                          const esysUtils::JMPI& mpi_info);
 
     /// returns the solver to be used with given combination
-    static index_t getSolver(index_t solver, index_t package, bool symmetry,
-                             const esysUtils::JMPI& mpi_info);
+    static int getSolver(int solver, int package, bool symmetry,
+                         const esysUtils::JMPI& mpi_info);
 
-    index_t method;
-    index_t package;
+    int method;
+    int package;
     bool symmetric;
     double tolerance;
     double absolute_tolerance;
@@ -118,20 +118,20 @@ struct Options
     bool adapt_inner_tolerance;
     bool verbose;
     bool reordering;
-    index_t preconditioner;
+    int preconditioner;
     dim_t iter_max;
     dim_t inner_iter_max;
     double drop_tolerance;
     double drop_storage;
     index_t truncation;
     index_t restart;
-    dim_t sweeps;
-    dim_t pre_sweeps;
-    dim_t post_sweeps;
-    dim_t cycle_type;
-    dim_t level_max;
+    int sweeps;
+    int pre_sweeps;
+    int post_sweeps;
+    int cycle_type;
+    int level_max;
     dim_t min_coarse_matrix_size;
-    dim_t smoother;
+    int smoother;
     double coarsening_threshold;
     bool accept_failed_convergence;
     index_t coarsening_method;
@@ -142,8 +142,8 @@ struct Options
     dim_t coarse_matrix_refinements;
     double diagonal_dominance_threshold;
     bool usePanel;
-    index_t interpolation_method;
-    index_t ode_solver;
+    int interpolation_method;
+    int ode_solver;
 
     // diagnostic values
     dim_t num_iter;

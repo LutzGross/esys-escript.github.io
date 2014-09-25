@@ -88,57 +88,57 @@ void Options::setDefaults()
 
 void Options::showDiagnostics() const
 {
-    printf("Paso diagnostics:\n");
-    printf("\tnum_iter = %d\n", num_iter);
-    printf("\tnum_level = %d\n", num_level);
-    printf("\tnum_inner_iter = %d\n", num_inner_iter);
-    printf("\ttime = %e\n", time);
-    printf("\tset_up_time = %e\n", set_up_time);
-    printf("\tcoarsening_selection_time = %e\n", coarsening_selection_time);
-    printf("\tcoarsening_matrix_time = %e\n", coarsening_matrix_time);
-    printf("\tnet_time = %e\n", net_time);
-    printf("\tresidual_norm = %e\n", residual_norm);
-    printf("\tconverged = %d\n", converged);
-    printf("\tpreconditioner_size = %e Mbytes\n", preconditioner_size);
-    printf("\ttime_step_backtracking_used = %d\n", time_step_backtracking_used);
+    std::cout << "Paso diagnostics:" << std::endl
+        << "\tnum_iter = " << num_iter << std::endl
+        << "\tnum_level = " << num_level << std::endl
+        << "\tnum_inner_iter = " << num_inner_iter << std::endl
+        << "\ttime = " << time << std::endl
+        << "\tset_up_time = " << set_up_time << std::endl
+        << "\tcoarsening_selection_time = " << coarsening_selection_time << std::endl
+        << "\tcoarsening_matrix_time = " << coarsening_matrix_time << std::endl
+        << "\tnet_time = " << net_time << std::endl
+        << "\tresidual_norm = " << residual_norm << std::endl
+        << "\tconverged = " << converged << std::endl
+        << "\tpreconditioner_size = " << preconditioner_size << " MBytes" << std::endl
+        << "\ttime_step_backtracking_used = " << time_step_backtracking_used << std::endl;
 }
 
 void Options::show() const
 {
-    printf("Paso options settings:\n");
-    printf("\tverbose = %d\n", verbose);
-    printf("\tmethod = %s (%d)\n", name(method), method);
-    printf("\tpackage = %s (%d)\n", name(package), package);
-    printf("\tsymmetric = %d\n", symmetric);
-    printf("\treordering = %s (%d)\n", name(reordering), reordering);
-    printf("\ttolerance = %e\n", tolerance);
-    printf("\tabsolute_tolerance = %e\n", absolute_tolerance);
-    printf("\tinner_tolerance = %e\n", inner_tolerance);
-    printf("\tadapt_inner_tolerance = %d\n", adapt_inner_tolerance);
-    printf("\tpreconditioner =  %s (%d)\n", name(preconditioner), preconditioner);
-    printf("\titer_max = %d\n", iter_max);
-    printf("\tinner_iter_max = %d\n", inner_iter_max);
-    printf("\tdrop_tolerance = %e\n", drop_tolerance);
-    printf("\tdrop_storage = %e\n", drop_storage);
-    printf("\trestart = %d\n", restart);
-    printf("\ttruncation = %d\n", truncation);
-    printf("\tsweeps = %d\n", sweeps);
-    printf("\tpre_sweeps = %d\n", pre_sweeps);
-    printf("\tpost_sweeps = %d\n", post_sweeps);
-    printf("\tcoarsening_threshold = %e\n", coarsening_threshold);
-    printf("\tlevel_max = %d\n", level_max);
-    printf("\taccept_failed_convergence = %d\n", accept_failed_convergence);
-    printf("\tcoarsening_method = %s (%d)\n", name(coarsening_method), coarsening_method);
-    printf("\trelaxation_factor = %e\n", relaxation_factor);
-    printf("\tuse_local_preconditioner = %d\n", use_local_preconditioner);
-    printf("\tmin_coarse_sparsity = %e\n", min_coarse_sparsity);
-    printf("\trefinements = %d\n", refinements);
-    printf("\tcoarse_matrix_refinements = %d\n", coarse_matrix_refinements);
-    printf("\tcycle_type = %d\n", cycle_type);
-    printf("\tode_solver = %d\n", ode_solver);
+    std::cout << "Paso options settings:" << std::endl
+        << "\tverbose = " << verbose << std::endl
+        << "\tmethod = " << name(method) << " (" << method << ")" << std::endl
+        << "\tpackage = " << name(package) << " (" << package << ")" << std::endl
+        << "\tsymmetric = " << symmetric << std::endl
+        << "\treordering = " << name(reordering) << " (" << reordering << ")" << std::endl
+        << "\ttolerance = " << tolerance << std::endl
+        << "\tabsolute_tolerance = " << absolute_tolerance << std::endl
+        << "\tinner_tolerance = " << inner_tolerance << std::endl
+        << "\tadapt_inner_tolerance = " << adapt_inner_tolerance << std::endl
+        << "\tpreconditioner = " << name(preconditioner) << " (" << preconditioner << ")" << std::endl
+        << "\titer_max = " << iter_max << std::endl
+        << "\tinner_iter_max = " << inner_iter_max << std::endl
+        << "\tdrop_tolerance = " << drop_tolerance << std::endl
+        << "\tdrop_storage = " << drop_storage << std::endl
+        << "\trestart = " << restart << std::endl
+        << "\ttruncation = " << truncation << std::endl
+        << "\tsweeps = " << sweeps << std::endl
+        << "\tpre_sweeps = " << pre_sweeps << std::endl
+        << "\tpost_sweeps = " << post_sweeps << std::endl
+        << "\tcoarsening_threshold = " << coarsening_threshold << std::endl
+        << "\tlevel_max = " << level_max << std::endl
+        << "\taccept_failed_convergence = " << accept_failed_convergence << std::endl
+        << "\tcoarsening_method = " << name(coarsening_method) << " (" << coarsening_method << ")" << std::endl
+        << "\trelaxation_factor = " << relaxation_factor << std::endl
+        << "\tuse_local_preconditioner = " << use_local_preconditioner << std::endl
+        << "\tmin_coarse_sparsity = " << min_coarse_sparsity << std::endl
+        << "\trefinements = " << refinements << std::endl
+        << "\tcoarse_matrix_refinements = " << coarse_matrix_refinements << std::endl
+        << "\tcycle_type = " << cycle_type << std::endl
+        << "\tode_solver = " << ode_solver << std::endl;
 }
 
-const char* Options::name(index_t key)
+const char* Options::name(int key)
 {
     switch (key) {
        case PASO_DEFAULT:
@@ -236,10 +236,10 @@ const char* Options::name(index_t key)
     }
 }
 
-index_t Options::getSolver(index_t solver, index_t pack, bool symmetry,
-                           const esysUtils::JMPI& mpi_info)
+int Options::getSolver(int solver, int pack, bool symmetry,
+                       const esysUtils::JMPI& mpi_info)
 {
-    index_t out = PASO_DEFAULT;
+    int out = PASO_DEFAULT;
     // PASO //
     if (pack==PASO_PASO) {
         switch (solver) {
@@ -327,10 +327,10 @@ index_t Options::getSolver(index_t solver, index_t pack, bool symmetry,
     return out;
 }
 
-index_t Options::getPackage(index_t solver, index_t pack, bool symmetry,
-                            const esysUtils::JMPI& mpi_info)
+int Options::getPackage(int solver, int pack, bool symmetry,
+                        const esysUtils::JMPI& mpi_info)
 {
-    index_t out = PASO_PASO;
+    int out = PASO_PASO;
 
     switch (pack) {
         case PASO_DEFAULT:

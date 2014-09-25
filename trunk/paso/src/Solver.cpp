@@ -133,32 +133,38 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
 #pragma omp parallel for private(i) schedule(static)
             for (i = 0; i < numSol; i++) x[i]=0.;
             if (options->verbose)
-                printf("right hand side is identical to zero.\n");
+                std::cout << "right hand side is identical to zero." << std::endl;
         } else {
             if (options->verbose) {
-                printf("Solver: l2/lmax-norm of right hand side is  %e/%e.\n",norm2_of_b,norm_max_of_b);
-                printf("Solver: l2/lmax-stopping criterion is  %e/%e.\n",norm2_of_b*tolerance,norm_max_of_b*tolerance);
+                std::cout << "Solver: l2/lmax-norm of right hand side is "
+                    << norm2_of_b << "/" << norm_max_of_b << "." << std::endl
+                    << "Solver: l2/lmax-stopping criterion is "
+                    << norm2_of_b*tolerance << "/" << norm_max_of_b*tolerance
+                    << "." << std::endl;
                 switch (method) {
                     case PASO_BICGSTAB:
-                        printf("Solver: Iterative method is BiCGStab.\n");
+                        std::cout << "Solver: Iterative method is BiCGStab.\n";
                     break;
                     case PASO_PCG:
-                        printf("Solver: Iterative method is PCG.\n");
+                        std::cout << "Solver: Iterative method is PCG.\n";
                     break;
                     case PASO_TFQMR:
-                        printf("Solver: Iterative method is TFQMR.\n");
+                        std::cout << "Solver: Iterative method is TFQMR.\n";
                     break;
                     case PASO_MINRES:
-                        printf("Solver: Iterative method is MINRES.\n");
+                        std::cout << "Solver: Iterative method is MINRES.\n";
                     break;
                     case PASO_PRES20:
-                        printf("Solver: Iterative method is PRES20.\n");
+                        std::cout << "Solver: Iterative method is PRES20.\n";
                     break;
                     case PASO_GMRES:
-                        if (options->restart>0) {
-                            printf("Solver: Iterative method is GMRES(%d,%d)\n",options->truncation,options->restart);
+                        if (options->restart > 0) {
+                            std::cout << "Solver: Iterative method is GMRES("
+                                << options->truncation << ","
+                                << options->restart << ")." << std::endl;
                         } else {
-                            printf("Solver: Iterative method is GMRES(%d)\n",options->truncation);
+                            std::cout << "Solver: Iterative method is GMRES("
+                                << options->truncation << ")." << std::endl;
                         }
                     break;
                 }
@@ -221,11 +227,15 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                     options->residual_norm=norm2_of_residual;
 
                     if (options->verbose)
-                        printf("Solver: Step %5d: l2/lmax-norm of residual is  %e/%e",totIter,norm2_of_residual,norm_max_of_residual);
+                        std::cout << "Solver: Step " << totIter
+                            << ": l2/lmax-norm of residual is "
+                            << norm2_of_residual << "/" << norm_max_of_residual;
 
-                    if (totIter>1 && norm2_of_residual>=last_norm2_of_residual &&  norm_max_of_residual>=last_norm_max_of_residual) {
+                    if (totIter > 1 &&
+                            norm2_of_residual >= last_norm2_of_residual &&
+                            norm_max_of_residual >= last_norm_max_of_residual) {
 
-                        if (options->verbose) printf(" divergence!\n");
+                        if (options->verbose) std::cout << " divergence!\n";
                         Esys_setError(DIVERGED, "Solver: No improvement during iteration. Iterative solver gives up.");
 
                     } else {
@@ -233,7 +243,8 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                                 norm_max_of_residual>tolerance*norm_max_of_b ) {
 
                             tol=tolerance*MIN(norm2_of_b,0.1*norm2_of_residual/norm_max_of_residual*norm_max_of_b);
-                            if (options->verbose) printf(" (new tolerance = %e).\n",tol);
+                            if (options->verbose)
+                                std::cout << " (new tolerance = " << tol << ").\n";
 
                             last_norm2_of_residual=norm2_of_residual;
                             last_norm_max_of_residual=norm_max_of_residual;
@@ -274,33 +285,38 @@ void Solver(SystemMatrix_ptr A, double* x, double* b, Options* options,
                             } else if (errorCode == SOLVER_MAXITER_REACHED) {
                                 Esys_setError(DIVERGED, "Solver: maximum number of iteration steps reached.\nReturned solution does not fulfil stopping criterion.");
                                 if (options->verbose)
-                                    printf("Solver: Maximum number of iterations reached.\n");
+                                    std::cout << "Solver: Maximum number of "
+                                        "iterations reached." << std::endl;
                             } else if (errorCode == SOLVER_INPUT_ERROR) {
                                 Esys_setError(SYSTEM_ERROR, "Solver: illegal dimension in iterative solver.");
                                 if (options->verbose)
-                                    printf("Solver: Internal error!\n");
+                                    std::cout << "Solver: Internal error!\n";
                             } else if (errorCode == SOLVER_NEGATIVE_NORM_ERROR) {
                                 Esys_setError(VALUE_ERROR, "Solver: negative energy norm (try other solver or preconditioner).");
                                 if (options->verbose)
-                                    printf("Solver: negative energy norm (try other solver or preconditioner)!\n");
+                                    std::cout << "Solver: negative energy norm"
+                                       " (try other solver or preconditioner)!\n";
                             } else if (errorCode == SOLVER_BREAKDOWN) {
                                 if (cntIter <= 1) {
                                     Esys_setError(ZERO_DIVISION_ERROR, "Solver: fatal break down in iterative solver.");
                                     if (options->verbose)
-                                        printf("Solver: Uncurable break down!\n");
+                                        std::cout << "Solver: Uncurable break "
+                                            "down!" << std::endl;
                                 } else {
                                     if (options->verbose)
-                                        printf("Solver: Breakdown at iter %d (residual = %e). Restarting ...\n", totIter, tol);
+                                        std::cout << "Solver: Breakdown at iter "
+                                            << totIter << " (residual = "
+                                            << tol << "). Restarting ...\n";
                                     finalizeIteration = false;
                                 }
                             } else {
                                 Esys_setError(SYSTEM_ERROR, "Solver: Generic error in solver.");
                                 if (options->verbose)
-                                    printf("Solver: Generic error in solver!\n");
+                                    std::cout << "Solver: Generic error in solver!\n";
                             }
                         } else {
                             if (options->verbose)
-                                printf(" convergence!\n");
+                                std::cout << " convergence!" << std::endl;
                             options->converged = true;
                         }
                     }

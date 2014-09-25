@@ -26,11 +26,11 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
 {
     static double RENORMALIZATION_CONST=0.001;
     const dim_t l=(*iter)+1, iter_max=*iter;
-    dim_t k=0,i,j;
-    const dim_t n=F->getLen();
-    const double rel_tol=*tolerance;
-    double abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual=0.;
-    bool breakFlag=false, maxIterFlag=false, convergeFlag=false;
+    dim_t k=0, i, j;
+    const dim_t n = F->getLen();
+    const double rel_tol = *tolerance;
+    double abs_tol, normf0, normv, normv2, hh, hr, nu, norm_of_residual = 0.;
+    bool breakFlag = false, maxIterFlag = false, convergeFlag = false;
 
     if (n < 0 || iter_max<=0 || l<1 || rel_tol<0) {
         return SOLVER_INPUT_ERROR;
@@ -58,7 +58,8 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
     convergeFlag = (ABS(normf0)<=0);
     if (!convergeFlag) {
         abs_tol = rel_tol*normf0;
-        printf("GMRES2 initial residual norm %e (rel. tol=%e)\n",normf0,rel_tol);
+        std::cout << "GMRES2 initial residual norm " << normf0
+            << " (rel. tol = " << rel_tol << ")" << std::endl;
         v[0] = new double[n];
         util::zeroes(n, v[0]);
         util::update(n, 1., v[0], -1./normf0, f0); // v = -1./normf0*f0
@@ -122,7 +123,8 @@ err_t Solver_GMRES2(Function* F, const double* f0, const double* x0,
             norm_of_residual = fabs(g[k]);
             maxIterFlag = (k >= iter_max);
             convergeFlag = (norm_of_residual <= abs_tol);
-            printf("GMRES2 step %d: residual %e (abs. tol=%e)\n", k, fabs(g[k]), abs_tol);
+            std::cout << "GMRES2 step " << k << ": residual " << fabs(g[k])
+                << " (abs. tol = " << abs_tol << ")" << std::endl;
         }
     }
 

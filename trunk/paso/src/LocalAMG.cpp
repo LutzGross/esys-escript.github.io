@@ -38,7 +38,7 @@
 
 namespace paso {
 
-void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG * in)
+void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG* in)
 {
     if (in!=NULL) {
         Preconditioner_LocalSmoother_free(in->Smoother);
@@ -50,7 +50,8 @@ void Preconditioner_LocalAMG_free(Preconditioner_LocalAMG * in)
     }
 }
 
-index_t Preconditioner_LocalAMG_getMaxLevel(const Preconditioner_LocalAMG * in) {
+int Preconditioner_LocalAMG_getMaxLevel(const Preconditioner_LocalAMG* in)
+{
     if (in->AMG_C == NULL) {
         return in->level;
     }
@@ -69,7 +70,7 @@ double Preconditioner_LocalAMG_getCoarseLevelSparsity(const Preconditioner_Local
     return Preconditioner_LocalAMG_getCoarseLevelSparsity(in->AMG_C);
 }
 
-dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG * in)
+dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG* in)
 {
     if (in->AMG_C == NULL) {
         if (in->A_C == NULL) {
@@ -87,15 +88,15 @@ dim_t Preconditioner_LocalAMG_getNumCoarseUnknowns(const Preconditioner_LocalAMG
 
 ******************************************************************************/
 Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
-                                                 dim_t level, Options* options)
+                                                 int level, Options* options)
 {
     Preconditioner_LocalAMG* out=NULL;
     bool verbose=options->verbose;
 
     SparseMatrix_ptr A_C;
-    const dim_t n=A_p->numRows;
-    const dim_t n_block=A_p->row_block_size;
-    AMGBlockSelect* F_marker=NULL;
+    const dim_t n = A_p->numRows;
+    const dim_t n_block = A_p->row_block_size;
+    AMGBlockSelect* F_marker = NULL;
     index_t *counter=NULL, *mask_C=NULL, *rows_in_F=NULL, *S=NULL, *degree_S=NULL;
     dim_t n_F=0, n_C=0, i;
     double time0=0;
@@ -116,175 +117,196 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
             - 'SIZE' = min_coarse_matrix_size exceeded
             - 'LEVEL' = level_max exceeded
             */
-            printf("Preconditioner: AMG: termination of coarsening by ");
+            std::cout << "Preconditioner: AMG: termination of coarsening by ";
 
             if (sparsity >= options->min_coarse_sparsity)
-                printf("SPAR");
+                std::cout << "SPAR";
             else if (total_n <= options->min_coarse_matrix_size)
-                printf("SIZE");
+                std::cout << "SIZE";
             else if (level > options->level_max)
-                printf("LEVEL");
+                std::cout << "LEVEL";
 
-            printf("\nPreconditioner: AMG level %d (limit = %d) stopped. "
-                   "Sparsity = %e (limit = %e), unknowns = %d (limit = %d)\n",
-                   level,  options->level_max, sparsity,
-                   options->min_coarse_sparsity, total_n,
-                   options->min_coarse_matrix_size);
+            std::cout << std::endl << "Preconditioner: AMG level " << level
+                << " (limit = " << options->level_max << ") stopped. "
+                   "Sparsity = " << sparsity << " (limit = "
+                << options->min_coarse_sparsity << "), unknowns = " << total_n
+                << " (limit = " << options->min_coarse_matrix_size << ")"
+                << std::endl;
         }
         return NULL;
     }
 
     // Start Coarsening
 
-    F_marker=new AMGBlockSelect[n];
-    counter=new index_t[n];
-    degree_S=new dim_t[n];
-    S=new index_t[A_p->pattern->len];
-    if ( !( Esys_checkPtr(F_marker) || Esys_checkPtr(counter) || Esys_checkPtr(degree_S) || Esys_checkPtr(S) ) ) {
-         /*
-              set splitting of unknowns:
-         */
-         time0=Esys_timer();
-         if (n_block>1) {
-               Preconditioner_LocalAMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
-         } else {
-               Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
-         }
+    F_marker = new AMGBlockSelect[n];
+    counter = new index_t[n];
+    degree_S = new dim_t[n];
+    S = new index_t[A_p->pattern->len];
+    /*
+         set splitting of unknowns:
+    */
+    time0=Esys_timer();
+    if (n_block>1) {
+        Preconditioner_LocalAMG_setStrongConnections_Block(A_p, degree_S, S, theta,tau);
+    } else {
+        Preconditioner_LocalAMG_setStrongConnections(A_p, degree_S, S, theta,tau);
+    }
 
-         Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
+    Preconditioner_LocalAMG_RungeStuebenSearch(n, A_p->pattern->ptr, degree_S, S, F_marker, options->usePanel);
 
-         /* in BoomerAMG if interpolation is used FF connectivity is required: */
-         if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
-                             Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);
-         options->coarsening_selection_time=Esys_timer()-time0 + std::max(0., options->coarsening_selection_time);
+    /* in BoomerAMG if interpolation is used FF connectivity is required: */
+    if (options->interpolation_method == PASO_CLASSIC_INTERPOLATION_WITH_FF_COUPLING)
+        Preconditioner_LocalAMG_enforceFFConnectivity(n, A_p->pattern->ptr, degree_S, S, F_marker);
+    options->coarsening_selection_time=Esys_timer()-time0 + std::max(0., options->coarsening_selection_time);
 
-         if (Esys_noError() ) {
-            #pragma omp parallel for private(i) schedule(static)
-            for (i = 0; i < n; ++i) F_marker[i]=((F_marker[i] ==  PASO_AMG_IN_F) ? PASO_AMG_IN_C : PASO_AMG_IN_F);
+    if (Esys_noError()) {
+        #pragma omp parallel for private(i) schedule(static)
+        for (i = 0; i < n; ++i) F_marker[i]=((F_marker[i] ==  PASO_AMG_IN_F) ? PASO_AMG_IN_C : PASO_AMG_IN_F);
 
-            /*
-               count number of unknowns to be eliminated:
-            */
-            n_F=util::cumsum_maskedTrue(n,counter, (int*)F_marker);
-            n_C=n-n_F;
-            if (verbose) printf("Preconditioner: AMG level %d: %d unknowns are flagged for elimination. %d left.\n",level,n_F,n-n_F);
+        /*
+           count number of unknowns to be eliminated:
+        */
+        n_F=util::cumsum_maskedTrue(n,counter, (int*)F_marker);
+        n_C=n-n_F;
+        if (verbose)
+            std::cout << "Preconditioner: AMG level " << level << ": "
+                << n_F << " unknowns are flagged for elimination. "
+                << n-n_F << " left." << std::endl;
 
-            if ( n_F == 0 ) {  /* This is a nasty case. A direct solver should be used, return NULL */
-               out = NULL;
-            } else {
-               out=new Preconditioner_LocalAMG;
-                out->level = level;
-                out->post_sweeps = options->post_sweeps;
-                out->pre_sweeps  = options->pre_sweeps;
-                out->r = NULL;
-                out->x_C = NULL;
-                out->b_C = NULL;
-                out->AMG_C = NULL;
-                out->Smoother=NULL;
-               mask_C=new index_t[n];
-               rows_in_F=new index_t[n_F];
-               if ( Esys_noError() ) {
+        if ( n_F == 0 ) {  /* This is a nasty case. A direct solver should be used, return NULL */
+           out = NULL;
+        } else {
+           out = new Preconditioner_LocalAMG;
+           out->level = level;
+           out->post_sweeps = options->post_sweeps;
+           out->pre_sweeps  = options->pre_sweeps;
+           out->r = NULL;
+           out->x_C = NULL;
+           out->b_C = NULL;
+           out->AMG_C = NULL;
+           out->Smoother=NULL;
+           mask_C=new index_t[n];
+           rows_in_F=new index_t[n_F];
+           if (Esys_noError()) {
+                out->Smoother = Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
 
-                  out->Smoother = Preconditioner_LocalSmoother_alloc(A_p, (options->smoother == PASO_JACOBI), verbose);
+                if (n_C != 0) {
+                    /* if nothing has been removed we have a diagonal
+                     * dominant matrix and we just run a few steps of
+                     * the smoother */
+                    /* allocate helpers :*/
+                    out->x_C = new double[n_block*n_C];
+                    out->b_C = new double[n_block*n_C];
+                    out->r   = new double[n_block*n];
 
-                  if (n_C != 0) {
-                        /* if nothing has been removed we have a diagonal
-                         * dominant matrix and we just run a few steps of
-                         * the smoother */
+                    if (Esys_noError()) {
+                       /* creates index for F */
+                       #pragma omp parallel private(i)
+                       {
+                          #pragma omp for schedule(static)
+                          for (i = 0; i < n; ++i) {
+                             if (F_marker[i])
+                                 rows_in_F[counter[i]]=i;
+                          }
+                       }
+                       // create mask of C nodes with value >-1 gives new id
+                       i=util::cumsum_maskedFalse(n, counter, (int*)F_marker);
 
-                        /* allocate helpers :*/
-                        out->x_C=new double[n_block*n_C];
-                        out->b_C=new double[n_block*n_C];
-                        out->r=new double[n_block*n];
+                       #pragma omp parallel for private(i) schedule(static)
+                       for (i = 0; i < n; ++i) {
+                          if  (F_marker[i]) {
+                             mask_C[i]=-1;
+                          } else {
+                             mask_C[i]=counter[i];;
+                          }
+                       }
+                       /*
+                          get Prolongation :
+                       */
+                       time0=Esys_timer();
+                       out->P=Preconditioner_LocalAMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
+                       if (SHOW_TIMING)
+                           std::cout << "timing: level " << level <<
+                               ": getProlongation: " << Esys_timer()-time0
+                               << std::endl;
+                    }
+                    /*
+                       construct Restriction operator as transposed of Prolongation operator:
+                    */
+                    if (Esys_noError()) {
+                       time0=Esys_timer();
+                       out->R = out->P->getTranspose();
+                       if (SHOW_TIMING)
+                           std::cout << "timing: level " << level
+                               << ": SparseMatrix::getTranspose: "
+                               << Esys_timer()-time0 << std::endl;
+                    }
+                    /*
+                    construct coarse level matrix:
+                    */
+                    if (Esys_noError()) {
+                       SparseMatrix_ptr Atemp;
+                       time0=Esys_timer();
+                       if (USE_TRANSPOSE)
+                         Atemp = SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
+                       else
+                         Atemp = SparseMatrix_MatrixMatrix(A_p,out->P);
+                       A_C=SparseMatrix_MatrixMatrix(out->R, Atemp);
+                       if (SHOW_TIMING)
+                           std::cout << "timing: level " << level
+                               << ": construct coarse matrix: "
+                               << Esys_timer()-time0 << std::endl;
+                    }
 
-                        if ( Esys_noError() ) {
-                           /* creates index for F */
-                           #pragma omp parallel private(i)
-                           {
-                              #pragma omp for schedule(static)
-                              for (i = 0; i < n; ++i) {
-                                 if  (F_marker[i]) rows_in_F[counter[i]]=i;
-                              }
-                           }
-                           /*  create mask of C nodes with value >-1 gives new id */
-                           i=util::cumsum_maskedFalse(n,counter, (int*)F_marker);
-
-                           #pragma omp parallel for private(i) schedule(static)
-                           for (i = 0; i < n; ++i) {
-                              if  (F_marker[i]) {
-                                 mask_C[i]=-1;
-                              } else {
-                                 mask_C[i]=counter[i];;
-                              }
-                           }
-                           /*
-                              get Prolongation :
-                           */
-                           time0=Esys_timer();
-                           out->P=Preconditioner_LocalAMG_getProlongation(A_p,A_p->pattern->ptr, degree_S,S,n_C,mask_C, options->interpolation_method);
-                           if (SHOW_TIMING) printf("timing: level %d: getProlongation: %e\n",level, Esys_timer()-time0);
+                    /*
+                       construct coarser level:
+                    */
+                    if ( Esys_noError()) {
+                       out->AMG_C=Preconditioner_LocalAMG_alloc(A_C,level+1,options);
+                    }
+                    if ( Esys_noError()) {
+                        if ( out->AMG_C == NULL ) {
+                          out->reordering = options->reordering;
+                          out->refinements = options->coarse_matrix_refinements;
+                          // no coarse level matrix has been constructed.
+                          // Use direct solver
+#ifdef MKL
+                          out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1);
+                          A_C.reset();
+                          out->A_C->solver_package = PASO_MKL;
+                          if (verbose)
+                              std::cout << "Preconditioner: AMG: use MKL "
+                                  << "direct solver on the coarsest level "
+                                  << "(number of unknowns = "
+                                  << n_C*n_block << ")." << std::endl;
+#elif defined UMFPACK
+                          out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC);
+                          A_C.reset();
+                          out->A_C->solver_package = PASO_UMFPACK;
+                          if (verbose)
+                              std::cout << "Preconditioner: AMG: use "
+                                  << "UMFPACK direct solver on the "
+                                  << "coarsest level (number of unknowns = "
+                                  << n_C*n_block << ")." << std::endl;
+#else
+                          out->A_C = A_C;
+                          out->A_C->solver_p = Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
+                          out->A_C->solver_package = PASO_SMOOTHER;
+                          if (verbose)
+                              std::cout << "Preconditioner: AMG: use "
+                                  << "smoother on the coarsest level "
+                                  << "(number of unknowns = "
+                                  << n_C*n_block << ")." << std::endl;
+#endif
+                        } else {
+                            // finally we set some helpers for the solver step
+                            out->A_C = A_C;
                         }
-                        /*
-                           construct Restriction operator as transposed of Prolongation operator:
-                        */
-                        if ( Esys_noError()) {
-                           time0=Esys_timer();
-                           out->R = out->P->getTranspose();
-                           if (SHOW_TIMING) printf("timing: level %d: SparseMatrix::getTranspose: %e\n",level,Esys_timer()-time0);
-                        }
-                        /*
-                        construct coarse level matrix:
-                        */
-                        if ( Esys_noError()) {
-                           SparseMatrix_ptr Atemp;
-                           time0=Esys_timer();
-                           if (USE_TRANSPOSE)
-                             Atemp = SparseMatrix_MatrixMatrixTranspose(A_p,out->P,out->R);
-                           else
-                             Atemp = SparseMatrix_MatrixMatrix(A_p,out->P);
-                           A_C=SparseMatrix_MatrixMatrix(out->R, Atemp);
-                           if (SHOW_TIMING) printf("timing: level %d: construct coarse matrix: %e\n",level,Esys_timer()-time0);
-                        }
-
-                        /*
-                           construct coarser level:
-                        */
-                        if ( Esys_noError()) {
-                           out->AMG_C=Preconditioner_LocalAMG_alloc(A_C,level+1,options);
-                        }
-                        if ( Esys_noError()) {
-                           if ( out->AMG_C == NULL ) {
-                              out->reordering = options->reordering;
-                              out->refinements = options->coarse_matrix_refinements;
-                              /* no coarse level matrix has been constructed. Use direct solver */
-                              #ifdef MKL
-                                    out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_OFFSET1);
-                                    A_C.reset();
-                                    out->A_C->solver_package = PASO_MKL;
-                                    if (verbose) printf("Preconditioner: AMG: use MKL direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
-                              #else
-                                    #ifdef UMFPACK
-                                       out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC);
-                                       A_C.reset();
-                                       out->A_C->solver_package = PASO_UMFPACK;
-                                       if (verbose) printf("Preconditioner: AMG: use UMFPACK direct solver on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
-                                    #else
-                                       out->A_C=A_C;
-                                       out->A_C->solver_p=Preconditioner_LocalSmoother_alloc(out->A_C, (options->smoother == PASO_JACOBI), verbose);
-                                       out->A_C->solver_package = PASO_SMOOTHER;
-                                       if (verbose) printf("Preconditioner: AMG: use smoother on the coarsest level (number of unknowns = %d).\n",n_C*n_block);
-                                    #endif
-                              #endif
-                           } else {
-                              /* finally we set some helpers for the solver step */
-                              out->A_C=A_C;
-                           }
-                        }
-                  }
-               }
-               delete[] mask_C;
-               delete[] rows_in_F;
+                    }
+                }
             }
+            delete[] mask_C;
+            delete[] rows_in_F;
         }
     }
     delete[] counter;
@@ -305,25 +327,27 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
                                    Preconditioner_LocalAMG* amg,
                                    double* x, double* b)
 {
-     const dim_t n = A->numRows * A->row_block_size;
-     double time0=0;
-     const dim_t post_sweeps=amg->post_sweeps;
-     const dim_t pre_sweeps=amg->pre_sweeps;
+    const dim_t n = A->numRows * A->row_block_size;
+    double time0=0;
+    const dim_t post_sweeps=amg->post_sweeps;
+    const dim_t pre_sweeps=amg->pre_sweeps;
 
-     /* presmoothing */
-     time0=Esys_timer();
-     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, false);
-     time0=Esys_timer()-time0;
-     if (SHOW_TIMING) printf("timing: level %d: Presmoothing: %e\n",amg->level, time0);
-     /* end of presmoothing */
+    // presmoothing
+    time0=Esys_timer();
+    Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, pre_sweeps, false);
+    time0=Esys_timer()-time0;
+    if (SHOW_TIMING)
+        std::cout << "timing: level " << amg->level << ": Presmoothing: "
+             << time0 << std::endl;;
+    // end of presmoothing
 
-     time0=Esys_timer();
-     util::copy(n, amg->r, b);                            /*  r <- b */
-     SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
-     SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
-     time0=Esys_timer()-time0;
-     /* coarse level solve */
-     if ( amg->AMG_C == NULL) {
+    time0=Esys_timer();
+    util::copy(n, amg->r, b);                            /*  r <- b */
+    SparseMatrix_MatrixVector_CSR_OFFSET0(-1.,A,x,1.,amg->r); /*r=r-Ax*/
+    SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->R,amg->r,0.,amg->b_C);  /* b_c = R*r  */
+    time0=Esys_timer()-time0;
+    /* coarse level solve */
+    if (amg->AMG_C == NULL) {
             time0=Esys_timer();
             /*  A_C is the coarsest level */
             switch (amg->A_C->solver_package) {
@@ -338,21 +362,24 @@ void Preconditioner_LocalAMG_solve(SparseMatrix_ptr A,
                   break;
             }
             if (SHOW_TIMING)
-                printf("timing: level %d: DIRECT SOLVER: %e\n",amg->level,Esys_timer()-time0);
-     } else {
+                std::cout << "timing: level " << amg->level
+                    << ": DIRECT SOLVER: " << Esys_timer()-time0 << std::endl;
+    } else {
             Preconditioner_LocalAMG_solve(amg->A_C, amg->AMG_C,amg->x_C,amg->b_C); /* x_C=AMG(b_C)     */
-     }
-     time0=time0+Esys_timer();
-     SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */
+    }
+    time0=time0+Esys_timer();
+    SparseMatrix_MatrixVector_CSR_OFFSET0_DIAG(1.,amg->P,amg->x_C,1.,x); /* x = x + P*x_c */
 
-     /*postsmoothing*/
+    /*postsmoothing*/
 
-     /*solve Ax=b with initial guess x */
-     time0=Esys_timer();
-     Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, true);
-     time0=Esys_timer()-time0;
-     if (SHOW_TIMING) printf("timing: level %d: Postsmoothing: %e\n",amg->level,time0);
-     /*end of postsmoothing*/
+    /*solve Ax=b with initial guess x */
+    time0=Esys_timer();
+    Preconditioner_LocalSmoother_solve(A, amg->Smoother, x, b, post_sweeps, true);
+    time0=Esys_timer()-time0;
+    if (SHOW_TIMING)
+         std::cout << "timing: level " << amg->level << ": Postsmoothing: "
+             << time0 << std::endl;
+    // end of postsmoothing
 }
 
 /* theta = threshold for strong connections */

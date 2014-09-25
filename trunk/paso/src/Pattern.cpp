@@ -196,7 +196,7 @@ index_t* Pattern::borrowColoringPointer()
 }
 
 // creates a subpattern
-Pattern_ptr Pattern::getSubpattern(int newNumRows, int newNumCols,
+Pattern_ptr Pattern::getSubpattern(dim_t newNumRows, dim_t newNumCols,
                                    const index_t* row_list,
                                    const index_t* new_col_index) const
 {
