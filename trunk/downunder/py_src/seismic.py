@@ -375,7 +375,7 @@ class SonicWave(WaveBase):
              """
              returns the acceleraton for time t and solution u at time t
              """
-             self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getAcceleration(t))
+             self.__r.setTaggedValue(self.__source_tag, self.__wavelet.getValue(t))
              self.__mypde.setValue(X=-grad(u,Function(self.__mypde.getDomain())), y_dirac= self.__r)
              return self.__mypde.getSolution()
 
@@ -504,10 +504,10 @@ class VTIWave(WaveBase):
                 s=self.c44*(du[1,0]+du[0,1])
                 sigma[0,1]=s
                 sigma[1,0]=s
-            self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+            self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getValue(t))
 
         else:
-            self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+            self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getValue(t))
 
         return self.__mypde.getSolution()
 
@@ -607,7 +607,7 @@ class HTIWave(WaveBase):
              """
              du = grad(u)
              if self.fastAssembler:
-                self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+                self.__mypde.setValue(du=du, y_dirac= self.__r * self.__wavelet.getValue(t))
              else:
                  sigma=self.__mypde.getCoefficient('X')
 
@@ -641,7 +641,7 @@ class HTIWave(WaveBase):
                     s=self.c66*(du[1,0]+du[0,1])
                     sigma[0,1]=s
                     sigma[1,0]=s
-                 self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+                 self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getValue(t))
                  
              return self.__mypde.getSolution()
 
@@ -752,7 +752,7 @@ class TTIWave(WaveBase):
              sigma[0,1]=sigma_xz
              sigma[1,0]=sigma_xz
 
-             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+             self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getValue(t))
              return self.__mypde.getSolution()
 
 class SonicHTIWave(WaveBase):
@@ -837,5 +837,5 @@ class SonicHTIWave(WaveBase):
             sigma[1,0] = self.v2_t*dQ
             sigma[1,1:] = self.v2_p*dP
 
-            self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getAcceleration(t))
+            self.__mypde.setValue(X=-sigma, y_dirac= self.__r * self.__wavelet.getValue(t))
             return self.__mypde.getSolution()            
