@@ -99,7 +99,6 @@ SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
     for (size_t i = 0; i < diagonalOffsets.size(); i++) {
         numEntries += blocksize*blocksize*(nRows-std::abs(diagonalOffsets[i]));
     }
-    //std::cout << "Matrix has " <<numEntries<<" entries."<<std::endl;
 
     mat.resize(nRows*blocksize, numEntries, diagonalOffsets.size(), blocksize);
     mat.diagonal_offsets.assign(diagonalOffsets.begin(), diagonalOffsets.end());
@@ -241,6 +240,9 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
     out.expand();
     in.expand();
 
+    if (sb.isVerbose()) {
+        std::cout << "Matrix has " << mat.num_entries << " entries." << std::endl;
+    }
     double* out_dp = out.getSampleDataRW(0);
     const double* in_dp = in.getSampleDataRO(0);
     double T0;
