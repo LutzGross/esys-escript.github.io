@@ -42,7 +42,8 @@ using esysUtils::FileWriter;
 
 namespace speckley {
 
-int indexOfMax(int a, int b, int c) {
+inline int indexOfMax(dim_t a, dim_t b, dim_t c)
+{
     if (a > b) {
         if (c > a) {
             return 2;
@@ -80,7 +81,7 @@ Brick::Brick(int order, int n0, int n1, int n2, double x0, double y0, double z0,
 
     std::vector<int> factors;
     int ranks = m_mpiInfo->size;
-    int epr[3] = {n0,n1,n2};
+    dim_t epr[3] = {n0,n1,n2};
     int d[3] = {d0,d1,d2};
     if (d0<=0 || d1<=0 || d2<=0) {
         for (int i = 0; i < 3; i++) {
@@ -216,7 +217,7 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
 {
 #ifdef USE_NETCDF
     // check destination function space
-    int myN0, myN1, myN2;
+    dim_t myN0, myN1, myN2;
     if (out.getFunctionSpace().getTypeCode() == Nodes) {
         myN0 = m_NN[0];
         myN1 = m_NN[1];
@@ -486,7 +487,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
 
     out.requireWrite();
     vector<ValueType> values(num0*numComp);
-    const int dpp = out.getNumDataPointsPerSample();
+    const dim_t dpp = out.getNumDataPointsPerSample();
 
     for (dim_t z=0; z<num2; z++) {
         const dim_t m2limit = (z==0 ? params.multiplier[2]-rest2 : params.multiplier[2]);
@@ -819,7 +820,7 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         throw SpeckleyException("writeBinaryGrid(): invalid function space of data object");
 
     const int numComp = in.getDataPointSize();
-    const int dpp = in.getNumDataPointsPerSample();
+    const dim_t dpp = in.getNumDataPointsPerSample();
     const dim_t fileSize = sizeof(ValueType)*numComp*dpp*totalN0*totalN1*totalN2;
 
     if (numComp > 1 || dpp > 1)
@@ -1335,9 +1336,9 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
     const dim_t NE1 = m_NE[1];
     const dim_t NE2 = m_NE[2];
     const int quads = m_order + 1;
-    const int max_x = m_NN[0];
-    const int max_y = m_NN[1];
-    const int max_z = m_NN[2];
+    const dim_t max_x = m_NN[0];
+    const dim_t max_y = m_NN[1];
+    const dim_t max_z = m_NN[2];
     out.requireWrite();
     //init to zero so we can do some sums without undefined, may not be required
     memset(out.getSampleDataRW(0), 0, sizeof(double)*quads*quads*numComp);
@@ -1347,7 +1348,7 @@ void Brick::interpolateElementsOnNodes(escript::Data& out,
         for (dim_t ez = colouring; ez < NE2; ez += 2) {
             for (dim_t ey = 0; ey < NE1; ey++) {
                 for (dim_t ex = 0; ex < NE0; ex++) {
-                    int start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
+                    dim_t start = m_order * (INDEX3(ex, ey, ez, max_x, max_y));
                     const double *e_in = in.getSampleDataRO(INDEX3(ex,ey,ez,NE0,NE1));
                     for (int qz = 0; qz < quads; qz++) {
                         for (int qy = 0; qy < quads; qy++) {
@@ -1431,7 +1432,7 @@ void Brick::interpolateNodesOnElements(escript::Data& out,
         for (dim_t ey = 0; ey < NE1; ey++) {
             for (dim_t ex = 0; ex < NE0; ex++) {
                 double *e_out = out.getSampleDataRW(INDEX3(ex, ey, ez, NE0, NE1));
-                int start = m_order * INDEX3(ex, ey, ez, max_x, max_y);
+                dim_t start = m_order * INDEX3(ex, ey, ez, max_x, max_y);
                 int quad = 0;
                 for (int qz = 0; qz < quads; qz++) {
                     for (int qy = 0; qy < quads; qy++) {
@@ -2036,12 +2037,12 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 
 
 void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
-                    const int NN[3], const int NX[3], MPI_Comm& comm) {
+                    const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
     const int tag = 0;
     MPI_Status status;
     const int front_neighbour = rank - NX[0];
     const int back_neighbour = rank + NX[0];
-    const int count = NN[0]*NN[2]*numComp;
+    const dim_t count = NN[0]*NN[2]*numComp;
     std::vector<double> front(count);
     std::vector<double> back(count);
     std::vector<double> recv(count);
@@ -2094,12 +2095,12 @@ void frontAndBack(escript::Data& out, int ry, const int numComp, int rank,
 }
 
 void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
-                    const int NN[3], const int NX[3], MPI_Comm& comm) {
+                    const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
     const int tag = 0;
     MPI_Status status;
     const int top_neighbour = rank + NX[0]*NX[1];
     const int bottom_neighbour = rank - NX[0]*NX[1];
-    const int count = NN[0]*NN[1]*numComp;
+    const dim_t count = NN[0]*NN[1]*numComp;
     std::vector<double> top(count);
     std::vector<double> bottom(count);
     std::vector<double> recv(count);
@@ -2154,12 +2155,12 @@ void topAndBottom(escript::Data& out, int rz, int numComp, int rank,
 
 
 void leftAndRight(escript::Data& out, int rx, int numComp, int rank,
-                    const int NN[3], const int NX[3], MPI_Comm& comm) {
+                    const dim_t NN[3], const int NX[3], MPI_Comm& comm) {
     const int tag = 0;
     MPI_Status status;
     const int left_neighbour = rank - 1;
     const int right_neighbour = rank + 1;
-    const int count = NN[2]*NN[1]*numComp;
+    const dim_t count = NN[2]*NN[1]*numComp;
     std::vector<double> left(count);
     std::vector<double> right(count);
     std::vector<double> recv(count);
@@ -2287,7 +2288,7 @@ int Brick::findNode(const double *coords) const {
     dim_t ex = (dim_t) floor((x + 0.01*m_dx[0]) / m_dx[0]);
     dim_t ey = (dim_t) floor((y + 0.01*m_dx[1]) / m_dx[1]);
     dim_t ez = (dim_t) floor((z + 0.01*m_dx[2]) / m_dx[2]);
-    int start = m_order*(INDEX3(ex,ey,ez,m_NN[0],m_NN[1]));
+    dim_t start = m_order*(INDEX3(ex,ey,ez,m_NN[0],m_NN[1]));
     // set the min distance high enough to be outside the element plus a bit
     int closest = NOT_MINE;
     double minDist = 1;
