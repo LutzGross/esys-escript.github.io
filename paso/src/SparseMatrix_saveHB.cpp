@@ -29,16 +29,17 @@
 #include "Paso.h"
 #include "SparseMatrix.h"
 
-namespace paso {
+#include <fstream>
+#include <iomanip>
 
-/* TODO: Refactor the stuff in here into hbio, just like mmio! */
+namespace paso {
 
 static dim_t M, N, nz;
 
 static int calc_digits(int);
 static void fmt_str(int, int, int*, int*, int*, char*, char*);
-static void print_data(FILE*, int, int, int, char*, const void*, int, int);
-static void generate_HB(FILE*, dim_t*, dim_t*, const double*);
+static void print_data(std::ofstream&, int, int, int, char*, const void*, int, int);
+static void generate_HB(std::ofstream&, dim_t*, dim_t*, const double*);
 
 /* function to get number of digits in an integer */
 int calc_digits(int var)
@@ -82,51 +83,54 @@ void fmt_str(int nvalues, int integer, int *width, int *nlines, int *nperline, c
 }
 
 /* function to print the actual data in the right format */
-void print_data(FILE *fp, int n_perline, int width, int nval, char *fmt,
-                const void *ptr, int integer, int adjust)
+void print_data(std::ofstream& fp, int n_perline, int width, int nval,
+                char *fmt, const void *ptr, int integer, int adjust)
 {
     int entries_done = 0;
-    int padding, i;
-    char pad_fmt[10];
-
-    padding = 80 - n_perline*width;
-    sprintf(pad_fmt, "%%%dc", padding);
+    const int padding = 80 - n_perline*width;
+    char buffer[81];
+    int i;
 
     if (adjust != 1)
         adjust = 0;
 
+    const std::streamsize oldwidth = fp.width();
     if (integer) {
         const dim_t *data = reinterpret_cast<const dim_t*>(ptr);
         for(i=0; i<nval; i++) {
-            fprintf(fp, fmt, data[i]+adjust);
+            snprintf(buffer, 80, fmt, data[i]+adjust);
+            fp << buffer;
             entries_done++;
             if (entries_done == n_perline) {
-                if (padding)
-                    fprintf(fp, pad_fmt, ' ');
-                    fprintf(fp, "\n");
-                    entries_done = 0;
+                if (padding) {
+                    fp << std::setw(padding) << ' ' << std::setw(oldwidth);
+                }
+                fp << std::endl;
+                entries_done = 0;
             }
         }
     } else {
         const double *data = reinterpret_cast<const double*>(ptr);
         for (i=0; i<nval; i++) {
-            fprintf(fp, fmt, data[i]);
+            snprintf(buffer, 80, fmt, data[i]);
+            fp << buffer;
             entries_done++;
             if (entries_done == n_perline) {
-                if (padding)
-                    fprintf(fp, pad_fmt, ' ');
-                fprintf(fp, "\n");
+                if (padding) {
+                    fp << std::setw(padding) << ' ' << std::setw(oldwidth);
+                }
+                fp << std::endl;
                 entries_done = 0;
             }
         }
     }
     if ( entries_done ) {
-        sprintf(pad_fmt, "%%%dc\n", (80 - entries_done*width));
-        fprintf(fp, pad_fmt, ' ');
+        fp << std::setw(80-entries_done*width) << ' ' << std::setw(oldwidth);
     }
 }
 
-void generate_HB(FILE *fp, dim_t *col_ptr, dim_t *row_ind, const double *val)
+void generate_HB(std::ofstream& fp, dim_t *col_ptr, dim_t *row_ind,
+                 const double *val)
 {
     char buffer[81];
 
@@ -136,10 +140,12 @@ void generate_HB(FILE *fp, dim_t *col_ptr, dim_t *row_ind, const double *val)
     char ptr_pfmt[7], ind_pfmt[7], val_pfmt[11];
     char ptr_fmt[10], ind_fmt[10], val_fmt[10];
 
+    const std::streamsize oldwidth = fp.width();
+
     /* line 1 */
     sprintf( buffer, "%-72s%-8s", "Matrix Title", "Key" );
     buffer[80] = '\0';
-    fprintf( fp, "%s\n", buffer );
+    fp << buffer << std::endl;
 
     /* line 2 */
     ptr_width = calc_digits( nz+1 );
@@ -150,17 +156,16 @@ void generate_HB(FILE *fp, dim_t *col_ptr, dim_t *row_ind, const double *val)
     fmt_str( nz, 0, &val_width, &val_lines, &val_perline, val_pfmt, val_fmt );
     sprintf( buffer, "%14d%14d%14d%14d%14d%10c", (ptr_lines+ind_lines+val_lines), ptr_lines, ind_lines, val_lines, 0, ' ' );
     buffer[80] = '\0';
-    fprintf( fp, "%s\n", buffer );
+    fp << buffer << std::endl;
 
     /* line 3 */
-    sprintf( buffer, "%c%c%c%11c%14d%14d%14d%14d%10c", 'R', 'U', 'A', ' ', M, N, nz, 0, ' ' );
-    buffer[80] = '\0';
-    fprintf( fp, "%s\n", buffer );
+    fp << "RUA" << std::setw(11) << ' ' << std::setw(14) << M << N << nz
+        << 0 << std::setw(10) << ' ' << std::setw(oldwidth) << std::endl;
 
     /* line 4 */
     sprintf( buffer, "%16s%16s%20s%28c", ptr_pfmt, ind_pfmt, val_pfmt, ' ');
     buffer[80]='\0';
-    fprintf( fp, "%s\n", buffer );
+    fp << buffer << std::endl;
 
     /* line 5 */
     /* NOT PRESENT */
@@ -173,8 +178,8 @@ void generate_HB(FILE *fp, dim_t *col_ptr, dim_t *row_ind, const double *val)
 
 void SparseMatrix::saveHB_CSC(const char* filename) const
 {
-    FILE* fileHandle = fopen(filename, "w");
-    if (!fileHandle) {
+    std::ofstream f(filename);
+    if (f.fail()) {
         Esys_setError(IO_ERROR, "SparseMatrix::saveHB_CSC: File could not be opened for writing.");
         return;
     }
@@ -187,7 +192,7 @@ void SparseMatrix::saveHB_CSC(const char* filename) const
     if (row_block_size == 1 && col_block_size == 1) {
         M = numRows;
         N = numCols;
-        generate_HB(fileHandle, pattern->ptr, pattern->index, val);
+        generate_HB(f, pattern->ptr, pattern->index, val);
     } else {
         M = numRows*row_block_size;
         N = numCols*col_block_size;
@@ -215,14 +220,14 @@ void SparseMatrix::saveHB_CSC(const char* filename) const
         col_ptr[N] = len;
 
         /* generate the HB file */
-        generate_HB(fileHandle, col_ptr, row_ind, val);
+        generate_HB(f, col_ptr, row_ind, val);
 
         /* free the allocated memory */
         delete[] col_ptr;
         delete[] col_ind;
         delete[] row_ind;
     }
-    fclose(fileHandle);
+    f.close();
 }
 
 } // namespace paso

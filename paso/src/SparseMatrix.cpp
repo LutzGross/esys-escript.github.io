@@ -33,6 +33,7 @@
 #include "mmio.h"
 
 #include <boost/scoped_array.hpp>
+#include <fstream>
 
 /****************************************************************************/
 
@@ -204,38 +205,37 @@ SparseMatrix::~SparseMatrix()
 
 SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
 {
-    FILE *fileHandle_p = NULL;
     SparseMatrix_ptr out;
-    int i, scan_ret;
+    int i;
     MM_typecode matrixCode;
     Esys_resetError();
 
     // open the file
-    fileHandle_p = fopen(filename, "r");
-    if (fileHandle_p == NULL) {
+    std::ifstream f(filename);
+    if (f.fail()) {
         Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Cannot open file for reading.");
         return out;
     }
 
     // process banner
-    if (mm_read_banner(fileHandle_p, &matrixCode) != 0) {
+    if (mm_read_banner(f, &matrixCode) != 0) {
         Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Error processing MM banner.");
-        fclose(fileHandle_p);
+        f.close();
         return out;
     }
     if (!(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode))) {
         Esys_setError(TYPE_ERROR, "SparseMatrix::loadMM_toCSR: found Matrix Market type is not supported.");
-        fclose(fileHandle_p);
+        f.close();
         return out;
     }
 
     // get matrix size
     int M, N, nz;
 
-    if (mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0)
+    if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0)
     {
         Esys_setError(IO_ERROR, "SparseMatrix::loadMM_toCSR: Could not parse matrix size.");
-        fclose(fileHandle_p);
+        f.close();
         return out;
     }
 
@@ -247,19 +247,20 @@ SparseMatrix_ptr SparseMatrix::loadMM_toCSR(const char* filename)
 
     // perform actual read of elements
     for (i=0; i<nz; i++) {
-        scan_ret = fscanf(fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i]);
-        if (scan_ret != 3) {
+        f >> row_ind[i] >> col_ind[i] >> val[i];
+        //scan_ret = fscanf(fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i]);
+        if (!f.good()) {
             delete[] val;
             delete[] row_ind;
             delete[] col_ind;
             delete[] row_ptr;
-            fclose(fileHandle_p);
+            f.close();
             return out;
         }
         row_ind[i]--;
         col_ind[i]--;
     }
-    fclose(fileHandle_p);
+    f.close();
 
     // sort the entries
     q_sort(row_ind, col_ind, val, 0, nz, N);
@@ -294,13 +295,13 @@ void SparseMatrix::saveMM(const char* filename) const
     }
 
     // open the file
-    FILE* fileHandle_p = fopen(filename, "w");
-    if (fileHandle_p==NULL) {
-        Esys_setError(IO_ERROR,"SparseMatrix_saveMM: File could not be opened for writing");
+    std::ofstream f(filename);
+    if (f.fail()) {
+        Esys_setError(IO_ERROR, "SparseMatrix::saveMM: File could not be opened for writing");
         return;
     }
     if (type & MATRIX_FORMAT_CSC) {
-        Esys_setError(TYPE_ERROR,"SparseMatrix_saveMM does not support CSC yet.");
+        Esys_setError(TYPE_ERROR, "SparseMatrix::saveMM does not support CSC.");
     } else {
         MM_typecode matcode;
         mm_initialize_typecode(&matcode);
@@ -310,11 +311,13 @@ void SparseMatrix::saveMM(const char* filename) const
 
         const dim_t N = getNumRows();
         const dim_t M = getNumCols();
-        mm_write_banner(fileHandle_p, matcode);
-        mm_write_mtx_crd_size(fileHandle_p, N*row_block_size,
+        mm_write_banner(f, matcode);
+        mm_write_mtx_crd_size(f, N*row_block_size,
                               M*col_block_size, pattern->ptr[N]*block_size);
 
         const index_t offset=(type & MATRIX_FORMAT_OFFSET1 ? 1:0);
+
+        f.precision(15);
 
         if (type & MATRIX_FORMAT_DIAGONAL_BLOCK) {
             for (dim_t i=0; i<N; i++) {
@@ -323,8 +326,8 @@ void SparseMatrix::saveMM(const char* filename) const
                     for (dim_t ib=0; ib<block_size; ib++) {
                         const dim_t irow=ib+row_block_size*i;
                         const dim_t icol=ib+col_block_size*j;
-                        fprintf(fileHandle_p, "%d %d %25.15e\n", irow+1,
-                                icol+1, val[iptr*block_size+ib]);
+                        f << irow+1 << " " << icol+1 << " "
+                          << val[iptr*block_size+ib] << std::endl;
                     }
                 }
             }
@@ -336,8 +339,9 @@ void SparseMatrix::saveMM(const char* filename) const
                         const dim_t irow=irb+row_block_size*i;
                         for (dim_t icb=0; icb<col_block_size; icb++) {
                             const dim_t icol=icb+col_block_size*j;
-                            fprintf(fileHandle_p, "%d %d %25.15e\n", irow+1,
-                                    icol+1, val[iptr*block_size+irb+row_block_size*icb]);
+                            f << irow+1 << " " << icol+1 << " "
+                                << val[iptr*block_size+irb+row_block_size*icb]
+                                << std::endl;
                         }
                     }
                 }
@@ -345,7 +349,7 @@ void SparseMatrix::saveMM(const char* filename) const
         }
     }
     // close the file
-    fclose(fileHandle_p);
+    f.close();
 }
 
 void SparseMatrix::addAbsRow_CSR_OFFSET0(double* array) const

@@ -40,7 +40,7 @@ namespace paso {
 */
 
 
-SparseMatrix_ptr SparseMatrix::getSubmatrix(int n_row_sub, int n_col_sub,
+SparseMatrix_ptr SparseMatrix::getSubmatrix(dim_t n_row_sub, dim_t n_col_sub,
                                             const index_t* row_list,
                                             const index_t* new_col_index) const
 {
