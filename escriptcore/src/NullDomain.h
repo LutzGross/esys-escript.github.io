@@ -41,7 +41,7 @@ class ESCRIPT_DLL_API NullDomain : public AbstractDomain
 {
 private:
     static int NullDomainFS;
-    static int referenceID;
+    static dim_t referenceID;
         
 public:
     NullDomain() {}
@@ -83,7 +83,7 @@ public:
 
     virtual int getTagFromSampleNo(int, int) const { return 1; }
 
-    virtual const int* borrowSampleReferenceIDs(int) const { return &referenceID; }
+    virtual const dim_t* borrowSampleReferenceIDs(int) const { return &referenceID; }
 
     virtual int getDim() const { return 1; }
 

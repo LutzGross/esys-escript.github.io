@@ -15,15 +15,18 @@
 *****************************************************************************/
 
 
-#ifndef INC_ESYS_TYPES
-#define INC_ESYS_TYPES
+#ifndef __ESYS_TYPES_H__
+#define __ESYS_TYPES_H__
  
-/* on some arcitectures it could be a good idea to use long rather than int */
-/* this has not really been tested */
-
-typedef int dim_t;
+#ifdef ESYS_INDEXTYPE_LONG
+typedef long index_t;
+#else
 typedef int index_t;
+#endif
+
+typedef index_t dim_t;
 typedef int type_t;
 typedef int err_t;
 
-#endif 
+#endif // __ESYS_TYPES_H__
+

@@ -196,47 +196,64 @@ void SystemMatrixAdapter::Print_Matrix_Info(bool full=false) const
     int first_col_index = m_system_matrix->col_distribution->first_component[m_system_matrix->mpi_info->rank];
     int last_col_index  = m_system_matrix->col_distribution->first_component[m_system_matrix->mpi_info->rank+1]-1;
 
-    fprintf(stdout, "Print_Matrix_Info running on CPU %d of %d\n",
-            m_system_matrix->mpi_info->rank, m_system_matrix->mpi_info->size);
+    std::cout << "Print_Matrix_Info running on CPU "
+        << m_system_matrix->mpi_info->rank << " of "
+        << m_system_matrix->mpi_info->size << std::endl;
 
     switch (m_system_matrix->type) {
         case MATRIX_FORMAT_DEFAULT:      
-            fprintf(stdout, "\tMatrix type MATRIX_FORMAT_DEFAULT\n"); 
+            std::cout << "\tMatrix type MATRIX_FORMAT_DEFAULT" << std::endl;
             break;
         case MATRIX_FORMAT_CSC:
-            fprintf(stdout, "\tMatrix type MATRIX_FORMAT_CSC\n"); 
+            std::cout << "\tMatrix type MATRIX_FORMAT_CSC" << std::endl;
             break;
         case MATRIX_FORMAT_BLK1:
-            fprintf(stdout, "\tMatrix type MATRIX_FORMAT_BLK1\n");
+            std::cout << "\tMatrix type MATRIX_FORMAT_BLK1" << std::endl;
             break;
         case MATRIX_FORMAT_OFFSET1:
-            fprintf(stdout, "\tMatrix type MATRIX_FORMAT_OFFSET1\n"); 
+            std::cout << "\tMatrix type MATRIX_FORMAT_OFFSET1" << std::endl;
             break;
         case MATRIX_FORMAT_TRILINOS_CRS:
-            fprintf(stdout, "\tMatrix type MATRIX_FORMAT_TRILINOS_CRS\n"); 
+            std::cout << "\tMatrix type MATRIX_FORMAT_TRILINOS_CRS" << std::endl;
             break;
         default:
-            fprintf(stdout, "\tMatrix type unknown\n"); 
+            std::cout << "\tMatrix type unknown" << std::endl;
             break;
-   }
+    }
 
-   fprintf(stdout, "\trow indices run from %d to %d\n", first_row_index, last_row_index);
-   fprintf(stdout, "\tcol indices run from %d to %d\n", first_col_index, last_col_index);
-   fprintf(stdout, "\tmainBlock numRows %d\n", m_system_matrix->mainBlock->numRows);
-   fprintf(stdout, "\tmainBlock numCols %d\n", m_system_matrix->mainBlock->numCols);
-   fprintf(stdout, "\tmainBlock pattern numOutput %d\n", m_system_matrix->mainBlock->pattern->numOutput);
-   fprintf(stdout, "\tcol_coupleBlock numRows %d\n", m_system_matrix->col_coupleBlock->numRows);
-   fprintf(stdout, "\tcol_coupleBlock numCols %d\n", m_system_matrix->col_coupleBlock->numCols);
-   fprintf(stdout, "\tcol_coupleBlock pattern numOutput %d\n", m_system_matrix->col_coupleBlock->pattern->numOutput);
-   fprintf(stdout, "\trow_coupleBlock numRows %d\n", m_system_matrix->row_coupleBlock->numRows);
-   fprintf(stdout, "\trow_coupleBlock numCols %d\n", m_system_matrix->row_coupleBlock->numCols);
-   fprintf(stdout, "\trow_coupleBlock pattern numOutput %d\n", m_system_matrix->row_coupleBlock->pattern->numOutput);
-   fprintf(stdout, "\trow_block_size %d\n", m_system_matrix->row_block_size);
-   fprintf(stdout, "\tcol_block_size %d\n", m_system_matrix->col_block_size);
-   fprintf(stdout, "\tblock_size %d\n", m_system_matrix->block_size);
-   fprintf(stdout, "\tlogical_row_block_size %d\n", m_system_matrix->logical_row_block_size);
-   fprintf(stdout, "\tlogical_col_block_size %d\n", m_system_matrix->logical_col_block_size);
-
+    std::cout << "\trow indices run from " << first_row_index << " to "
+              << last_row_index << std::endl;
+    std::cout << "\tcol indices run from " << first_col_index << " to "
+              << last_col_index << std::endl;
+    std::cout << "\tmainBlock numRows " << m_system_matrix->mainBlock->numRows
+              << std::endl;
+    std::cout << "\tmainBlock numCols " << m_system_matrix->mainBlock->numCols
+              << std::endl;
+    std::cout << "\tmainBlock pattern numOutput "
+              << m_system_matrix->mainBlock->pattern->numOutput << std::endl;
+    std::cout << "\tcol_coupleBlock numRows "
+              << m_system_matrix->col_coupleBlock->numRows << std::endl;
+    std::cout << "\tcol_coupleBlock numCols "
+              << m_system_matrix->col_coupleBlock->numCols << std::endl;
+    std::cout << "\tcol_coupleBlock pattern numOutput "
+              << m_system_matrix->col_coupleBlock->pattern->numOutput
+              << std::endl;
+    std::cout << "\trow_coupleBlock numRows "
+              << m_system_matrix->row_coupleBlock->numRows << std::endl;
+    std::cout << "\trow_coupleBlock numCols "
+              << m_system_matrix->row_coupleBlock->numCols << std::endl;
+    std::cout << "\trow_coupleBlock pattern numOutput "
+              << m_system_matrix->row_coupleBlock->pattern->numOutput
+              << std::endl;
+    std::cout << "\trow_block_size " << m_system_matrix->row_block_size
+              << std::endl;
+    std::cout << "\tcol_block_size " << m_system_matrix->col_block_size
+              << std::endl;
+    std::cout << "\tblock_size " << m_system_matrix->block_size << std::endl;
+    std::cout << "\tlogical_row_block_size "
+              << m_system_matrix->logical_row_block_size << std::endl;
+    std::cout << "\tlogical_col_block_size "
+              << m_system_matrix->logical_col_block_size << std::endl;
 }
 
 void SystemMatrixAdapter::setToSolution(escript::Data& out, escript::Data& in,

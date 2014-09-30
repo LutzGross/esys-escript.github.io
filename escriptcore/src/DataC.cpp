@@ -52,7 +52,7 @@ int getNumDataPointsPerSample(struct escriptDataC* data)
 }
 
 int numSamplesEqual(struct escriptDataC* data, int numDataPointsPerSample,
-		    int numSamples)
+                    dim_t numSamples)
 {
   if (data == (struct escriptDataC*)0) {
      return 1;

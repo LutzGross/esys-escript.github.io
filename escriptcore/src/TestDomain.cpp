@@ -38,8 +38,8 @@ TestDomain::TestDomain(int pointspersample, int numsamples, int dpsize)
     if (world > 1 && rank < numsamples%world) {
         m_samples++;
     }
-    m_samplerefids=new int[numsamples];
-    for (int i=0; i<numsamples; ++i) {
+    m_samplerefids=new dim_t[numsamples];
+    for (dim_t i=0; i<numsamples; ++i) {
         m_samplerefids[i]=i+10; // the +10 is arbitrary.
     }                           // so these ids look different from others
 }
@@ -128,7 +128,6 @@ bool TestDomain::commonFunctionSpace(const std::vector<int>& fs, int& resultcode
     return true;
 }
 
-
 int TestDomain::getDefaultCode() const
 {
     return TestDomainFS;
@@ -179,12 +178,12 @@ std::pair<int,dim_t> TestDomain::getDataShape(int functionSpaceCode) const
     return std::pair<int,dim_t>(m_dpps,m_samples);
 }
 
-int TestDomain::getTagFromSampleNo(int functionSpaceType, int sampleNo) const
+int TestDomain::getTagFromSampleNo(int functionSpaceType, dim_t sampleNo) const
 {
     return 0;
 }
 
-const int* TestDomain::borrowSampleReferenceIDs(int functionSpaceType) const
+const dim_t* TestDomain::borrowSampleReferenceIDs(int functionSpaceType) const
 {
     return m_samplerefids;
 }
@@ -227,8 +226,8 @@ escript::Data TestDomain::getX() const
     if (m_dpsize<2) {
         Data res(0,DataTypes::scalarShape,FunctionSpace( getPtr(), getDefaultCode()),true);
         DataTypes::ValueType& vec=res.getReady()->getVectorRW();
-        for (int i=0;i<m_samples;++i) {
-            for (int j=0;j<m_dpps;++j) {
+        for (dim_t i=0; i<m_samples; ++i) {
+            for (int j=0; j<m_dpps; ++j) {
                 vec[i*m_dpps+j]=i+(1.0*j)/m_dpps;
             }
         }
@@ -240,9 +239,9 @@ escript::Data TestDomain::getX() const
     DataTypes::ValueType& vec=res.getReady()->getVectorRW();
     double majorstep=double(1)/m_dpps;
     double minorstep=majorstep*0.9/m_dpsize;
-    for (int i=0;i<m_samples;++i) {
-        for (int j=0;j<m_dpps;++j) {
-            for (int k=0;k<m_dpsize;++k) {
+    for (dim_t i=0; i<m_samples; ++i) {
+        for (int j=0; j<m_dpps; ++j) {
+            for (int k=0; k<m_dpsize; ++k) {
                 vec[i*m_dpsize*m_dpps+j*m_dpsize+k]=i+j*majorstep+k*minorstep;
             }
         }
@@ -262,7 +261,7 @@ escript::Data TestDomain::randomFill(const DataTypes::ShapeType& shape,
     return towipe;
 }
 
-FunctionSpace getTestDomainFunctionSpace(int dpps, int samples, int dpsize)
+FunctionSpace getTestDomainFunctionSpace(int dpps, dim_t samples, int dpsize)
 {
     TestDomain* td=new TestDomain(dpps, samples, dpsize);
     Domain_ptr p=Domain_ptr(td);

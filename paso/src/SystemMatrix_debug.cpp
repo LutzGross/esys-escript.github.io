@@ -99,74 +99,67 @@ void SystemMatrix::fillWithGlobalCoordinates(double f1)
 
 void SystemMatrix::print() const
 {
-    dim_t iPtr, q, p, ib;
     const dim_t n = getNumRows();
     const int rank = mpi_info->rank;
-    char *str1, *str2;
-    str1 = new char[n*n*block_size*30+100];
-    str2 = new char[30];
 
-    sprintf(str1, "rank %d Main Block:\n-----------\n", rank);
-    for (q=0; q<n; ++q){
-        sprintf(str2, "Row %d: ",q);
-        strcat(str1, str2);
-        for (iPtr=mainBlock->pattern->ptr[q]; iPtr<mainBlock->pattern->ptr[q+1]; ++iPtr) {
-            sprintf(str2, "(%d ",mainBlock->pattern->index[iPtr]);
-            strcat(str1, str2);
-            for (ib=0; ib<block_size; ib++){
-                sprintf(str2, "%f ", mainBlock->val[iPtr*block_size+ib]);
-                strcat(str1, str2);
+    std::cerr << "rank " << rank << " Main Block:\n-----------\n";
+
+    for (dim_t q=0; q<n; ++q) {
+        std::cerr << "Row " << q << ": ";
+        for (dim_t iPtr=mainBlock->pattern->ptr[q]; iPtr<mainBlock->pattern->ptr[q+1]; ++iPtr) {
+            std::cerr << "(" << mainBlock->pattern->index[iPtr] << " ";
+            for (dim_t ib=0; ib<block_size; ib++) {
+                std::cerr << mainBlock->val[iPtr*block_size+ib] << " ";
             }
-            sprintf(str2, "),");
-            strcat(str1, str2);
+            std::cerr << "),";
         }
-        sprintf(str1, "%s\n", str1);
+        std::cerr << std::endl;
     }
-    fprintf(stderr, "%s", str1);
     if (col_coupleBlock != NULL && mpi_info->size>1) {
-        sprintf(str1, "rank %d Column Couple Block:\n------------------\n", rank);
-        for (q=0; q<col_coupleBlock->pattern->numOutput; ++q) {
-            sprintf(str2, "Row %d: ", q);
-            strcat(str1, str2);
-            for (iPtr=col_coupleBlock->pattern->ptr[q]; iPtr<col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
-                if (global_id)
-                    sprintf(str2, "(%d %f),", global_id[col_coupleBlock->pattern->index[iPtr]], col_coupleBlock->val[iPtr*block_size]);
-                else
-                    sprintf(str2, "(%d %f),", col_coupleBlock->pattern->index[iPtr], col_coupleBlock->val[iPtr*block_size]);
-                strcat(str1, str2);
+        std::cerr << "rank " << rank
+                  << " Column Couple Block:\n------------------\n";
+        for (dim_t q=0; q<col_coupleBlock->pattern->numOutput; ++q) {
+            std::cerr << "Row " << q << ": ";
+            for (dim_t iPtr=col_coupleBlock->pattern->ptr[q]; iPtr<col_coupleBlock->pattern->ptr[q+1]; ++iPtr) {
+                if (global_id) {
+                    std::cerr << "("
+                        << global_id[col_coupleBlock->pattern->index[iPtr]]
+                        << " " << col_coupleBlock->val[iPtr*block_size]
+                        << "),";
+                } else {
+                    std::cerr << "("
+                        << col_coupleBlock->pattern->index[iPtr]
+                        << " " << col_coupleBlock->val[iPtr*block_size]
+                        << "),";
+                }
             }
-            sprintf(str1, "%s\n", str1);
+            std::cerr << std::endl;
         }
-        fprintf(stderr, "%s", str1);
     }
     if (row_coupleBlock != NULL && mpi_info->size>1) {
-        sprintf(str1, "rank %d Row Couple Block:\n--------------------\n", rank);
-        for (p=0; p<row_coupleBlock->pattern->numOutput; ++p) {
-            sprintf(str2, "Row %d:", p);
-            strcat(str1, str2);
-            for (iPtr=row_coupleBlock->pattern->ptr[p]; iPtr<row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
-                sprintf(str2, "(%d %f),", row_coupleBlock->pattern->index[iPtr], row_coupleBlock->val[iPtr*block_size]);
-                strcat(str1, str2);
+        std::cerr << "rank " << rank
+                  << " Row Couple Block:\n--------------------\n";
+        for (dim_t p=0; p<row_coupleBlock->pattern->numOutput; ++p) {
+            std::cerr << "Row " << p << ": ";
+            for (dim_t iPtr=row_coupleBlock->pattern->ptr[p]; iPtr<row_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
+                std::cerr << "(" << row_coupleBlock->pattern->index[iPtr]
+                    << " " << row_coupleBlock->val[iPtr*block_size] << "),";
             }
-            sprintf(str1, "%s\n", str1);
+            std::cerr << std::endl;
         }
-        fprintf(stderr, "%s", str1);
     }
     if (remote_coupleBlock != NULL && mpi_info->size>1) {
-        sprintf(str1, "rank %d Remote Couple Block:\n--------------------\n", rank);
-        for (p=0; p<remote_coupleBlock->pattern->numOutput; ++p) {
-            sprintf(str2, "Row %d:", p);
-            strcat(str1, str2);
-            for (iPtr=remote_coupleBlock->pattern->ptr[p]; iPtr<remote_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
-                sprintf(str2, "(%d %f),", remote_coupleBlock->pattern->index[iPtr], remote_coupleBlock->val[iPtr*block_size]);
-                strcat(str1, str2);
+        std::cerr << "rank " << rank
+                  << " Remote Couple Block:\n--------------------\n";
+        for (dim_t p=0; p<remote_coupleBlock->pattern->numOutput; ++p) {
+            std::cerr << "Row " << p << ": ";
+            for (dim_t iPtr=remote_coupleBlock->pattern->ptr[p]; iPtr<remote_coupleBlock->pattern->ptr[p+1]; ++iPtr) {
+                std::cerr << "(" << remote_coupleBlock->pattern->index[iPtr]
+                    << " " << remote_coupleBlock->val[iPtr*block_size] << "),";
             }
-            sprintf(str1, "%s\n", str1);
+            std::cerr << std::endl;
         }
-        fprintf(stderr, "%s", str1);
     }
-    delete[] str1;
-    delete[] str2;
 }
 
 } // namespace paso

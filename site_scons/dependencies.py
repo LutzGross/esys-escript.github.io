@@ -311,7 +311,7 @@ def checkOptionalLibraries(env):
         env.AppendUnique(LIBPATH = [umfpack_lib_path])
         env.AppendUnique(LIBS = env['umfpack_libs'])
         env.PrependENVPath(env['LD_LIBRARY_PATH_KEY'], umfpack_lib_path)
-        env.Append(CPPDEFINES = ['UMFPACK'])
+        env.Append(CPPDEFINES = ['USE_UMFPACK'])
         env['buildvars']['umfpack_inc_path']=umfpack_inc_path
         env['buildvars']['umfpack_lib_path']=umfpack_lib_path
     env['buildvars']['umfpack']=int(env['umfpack'])

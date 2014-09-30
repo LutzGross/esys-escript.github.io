@@ -28,7 +28,7 @@ int defaultList[2]={0,1}; // an array to return in borrowListOfTagsInUse();
 // Null domains only support 1 functionspace type.
 // The choice of =1 as the value is arbitrary
 int NullDomain::NullDomainFS = 1;
-int NullDomain::referenceID = 10; // arbitrary
+dim_t NullDomain::referenceID = dim_t(10); // arbitrary
 
 std::string NullDomain::getDescription() const 
 {
@@ -110,7 +110,7 @@ bool NullDomain::isCellOriented(int) const
     throwStandardException("NullDomain::isCellOriented");
     return false;
 }
-bool NullDomain::ownSample(int, int) const
+bool NullDomain::ownSample(int, index_t) const
 {
     throwStandardException("NullDomain::ownSample");
     return false;

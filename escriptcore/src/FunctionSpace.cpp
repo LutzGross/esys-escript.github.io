@@ -86,7 +86,7 @@ m_functionSpaceType(other.m_functionSpaceType)
 {
 }
 
-std::pair<int,int>
+std::pair<int,dim_t>
 FunctionSpace::getDataShape() const
 {
   return m_domain->getDataShape(m_functionSpaceType);
@@ -142,13 +142,13 @@ FunctionSpace::toPyString() const
 
 
 int
-FunctionSpace::getTagFromSampleNo(int sampleNo) const
+FunctionSpace::getTagFromSampleNo(dim_t sampleNo) const
 {
   return m_domain->getTagFromSampleNo(m_functionSpaceType,sampleNo);
 }
 
 int
-FunctionSpace::getTagFromDataPointNo(int dataPointNo) const
+FunctionSpace::getTagFromDataPointNo(dim_t dataPointNo) const
 {
   //
   // Get the number of samples and data-points per sample
@@ -177,14 +177,14 @@ FunctionSpace::getTagFromDataPointNo(int dataPointNo) const
   return(tagNo);
 }
 
-int FunctionSpace::getReferenceIDFromDataPointNo(int dataPointNo) const
+dim_t FunctionSpace::getReferenceIDFromDataPointNo(dim_t dataPointNo) const
 {
      //
      // Get the number of samples and data-points per sample
-     int numSamples = getNumSamples();
+     dim_t numSamples = getNumSamples();
      int numDataPointsPerSample = getNumDPPSample();
-     const int* referenceIDs= borrowSampleReferenceIDs();
-     int numDataPoints = numSamples * numDataPointsPerSample;
+     const dim_t* referenceIDs= borrowSampleReferenceIDs();
+     dim_t numDataPoints = numSamples * numDataPointsPerSample;
 
      if (numDataPointsPerSample==0) {
         throw DataException("FunctionSpace::getReferenceIDFromDataPointNo error: no data-points associated with this object.");
@@ -192,11 +192,11 @@ int FunctionSpace::getReferenceIDFromDataPointNo(int dataPointNo) const
      if (dataPointNo<0 || dataPointNo>numDataPoints) {
         throw DataException("FunctionSpace::getReferenceIDFromDataPointNo error: invalid data-point number supplied.");
      }
-     int sampleNo = dataPointNo / numDataPointsPerSample;
+     dim_t sampleNo = dataPointNo / numDataPointsPerSample;
      return referenceIDs[sampleNo];
 }
 
-const int*
+const dim_t*
 FunctionSpace::borrowSampleReferenceIDs() const
 {
   return m_domain->borrowSampleReferenceIDs(m_functionSpaceType);

@@ -31,7 +31,7 @@
 
 #include "SparseMatrix.h"
 
-#ifdef UMFPACK
+#ifdef USE_UMFPACK
 #include <umfpack.h>
 #endif
 

@@ -123,7 +123,7 @@ DataExpanded::DataExpanded(const DataExpanded& other,
       try {
         DataTypes::copySlice(getVectorRW(),getShape(),getPointOffset(i,j),
                                      other.getVectorRO(),
-				     other.getShape(),
+                                     other.getShape(),
                                      other.getPointOffset(i,j),
                                      region_loop_range);
       }
@@ -151,10 +151,10 @@ DataExpanded::DataExpanded(const FunctionSpace& what,
      // now we copy this value to all elements
      for (int i=0;i<getLength();)
      {
-	for (unsigned int j=0;j<getNoValues();++j,++i)
-	{
-	    vec[i]=data[j];
-	}
+        for (unsigned int j=0;j<getNoValues();++j,++i)
+        {
+            vec[i]=data[j];
+        }
      }
   }
   else
@@ -225,7 +225,7 @@ DataExpanded::setSlice(const DataAbstract* value,
   }
   if (tempDataExp->getRank()>0 && !DataTypes::checkShape(value->getShape(), shape)) {
     throw DataException (DataTypes::createShapeErrorMessage(
-		"Error - Couldn't copy slice due to shape mismatch.",shape, value->getShape()));
+                "Error - Couldn't copy slice due to shape mismatch.",shape, value->getShape()));
   }
   //
   // copy the data from the slice into this object
@@ -241,7 +241,7 @@ DataExpanded::setSlice(const DataAbstract* value,
     for (j=0;j<numCols;j++) {
         DataTypes::copySliceFrom(vec,mshape,getPointOffset(i,j),
                                        tVec,
-				       tShape,
+                                       tShape,
                                        tempDataExp->getPointOffset(i,j),
                                        region_loop_range);
 
@@ -285,7 +285,7 @@ void
 DataExpanded::initialise(int noSamples,
                          int noDataPointsPerSample)
 {
-  if (noSamples==0)		//retain the default empty object
+  if (noSamples==0)             //retain the default empty object
   {
      return;
   }
@@ -296,20 +296,20 @@ DataExpanded::initialise(int noSamples,
 bool
 DataExpanded::hasNaN() const
 {
-	bool haveNaN=false;
+        bool haveNaN=false;
   const ValueType& v=m_data.getData();
   #pragma omp parallel for
-	for (ValueType::size_type i=0;i<v.size();++i)
-	{
-		if (nancheck(v[i]))	
-		{
-			#pragma omp critical 
+        for (ValueType::size_type i=0;i<v.size();++i)
+        {
+                if (nancheck(v[i]))     
+                {
+                        #pragma omp critical 
       {
           haveNaN=true;
       }
-		}
-	}
-	return haveNaN;
+                }
+        }
+        return haveNaN;
 }
 
 void
@@ -623,12 +623,12 @@ DataExpanded::matrixInverse(DataAbstract* out) const
   DataExpanded* temp=dynamic_cast<DataExpanded*>(out);
   if (temp==0)
   {
-	throw DataException("Error - DataExpanded::matrixInverse: casting to DataExpanded failed (probably a programming error).");
+        throw DataException("Error - DataExpanded::matrixInverse: casting to DataExpanded failed (probably a programming error).");
   }
 
   if (getRank()!=2)
   {
-	throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
+        throw DataException("Error - DataExpanded::matrixInverse: input must be rank 2.");
 
   }
   int  sampleNo;
@@ -643,17 +643,17 @@ DataExpanded::matrixInverse(DataAbstract* out) const
      #pragma omp for schedule(static)
      for (sampleNo = 0; sampleNo < numSamples; sampleNo++)
      {
-			// not sure I like all those virtual calls to getPointOffset
-    	DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
-    	int res=DataMaths::matrix_inverse(vec, getShape(), offset, temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
-	if (res>errorcode)
-	{
-	    errorcode=res;
-	    #pragma omp critical
-	    {
-	      errcode=errorcode;	// I'm not especially concerned which error gets reported as long as one is
-	    }
-	}
+                        // not sure I like all those virtual calls to getPointOffset
+        DataTypes::ValueType::size_type offset=getPointOffset(sampleNo,0);
+        int res=DataMaths::matrix_inverse(vec, getShape(), offset, temp->getVectorRW(), temp->getShape(), offset, numdpps, h);
+        if (res>errorcode)
+        {
+            errorcode=res;
+            #pragma omp critical
+            {
+              errcode=errorcode;        // I'm not especially concerned which error gets reported as long as one is
+            }
+        }
      }
   }
   return errcode;
@@ -751,7 +751,7 @@ DataExpanded::dump(const std::string fileName) const
 
      if (! ( ids = dataFile.add_var("id", ncInt, ncdims[rank+1])) )
         throw DataException("Error - DataExpanded:: appending reference id to netCDF file failed.");
-     const int* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
+     const dim_t* ids_p=getFunctionSpace().borrowSampleReferenceIDs();
      if (! (ids->put(ids_p,dims[rank+1])) )
         throw DataException("Error - DataExpanded:: copy reference id  to netCDF buffer failed.");
      if (! ( var = dataFile.add_var("data", ncDouble, ndims, ncdims)) )
@@ -760,7 +760,8 @@ DataExpanded::dump(const std::string fileName) const
         throw DataException("Error - DataExpanded:: copy data to netCDF buffer failed.");
    }
 #ifdef ESYS_MPI
-   if (mpi_iam<mpi_num-1) MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, MPI_COMM_WORLD);
+   if (mpi_iam<mpi_num-1)
+       MPI_Send(&ndims, 0, MPI_INT, mpi_iam+1, 81801, MPI_COMM_WORLD);
 #endif
    #else
    throw DataException("Error - DataExpanded:: dump is not configured with netCDF. Please contact your installation manager.");
@@ -769,9 +770,9 @@ DataExpanded::dump(const std::string fileName) const
 
 void  
 DataExpanded::setTaggedValue(int tagKey,
- 	       const DataTypes::ShapeType& pointshape,
+               const DataTypes::ShapeType& pointshape,
                const DataTypes::ValueType& value,
-	       int dataOffset)
+               int dataOffset)
 {
   CHECK_FOR_EX_WRITE
   int numSamples = getNumSamples();
@@ -838,14 +839,14 @@ DataExpanded::reorderByReferenceIDs(int *reference_ids)
 DataTypes::ValueType&
 DataExpanded::getVectorRW()
 {
-	CHECK_FOR_EX_WRITE
-	return m_data.getData();
+        CHECK_FOR_EX_WRITE
+        return m_data.getData();
 }
 
 const DataTypes::ValueType&
 DataExpanded::getVectorRO() const
 {
-	return m_data.getData();
+        return m_data.getData();
 }
 
 // void DataExpanded::randomFill(long seed) {
