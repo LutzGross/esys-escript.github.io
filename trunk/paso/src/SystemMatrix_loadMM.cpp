@@ -32,25 +32,13 @@
 
 #include "limits.h"
 
-#define FSCANF_CHECK(scan_ret, reason) { if (scan_ret == EOF) perror(reason); return NULL; }
-
 namespace paso {
 
 static void swap(index_t*, index_t*, double*, int, int);
 static void q_sort(index_t*, index_t*, double*, int, int);
-/*static void print_entries(index_t*, index_t*, double*);*/
 
 static int M, N, nz;
 
-/* debug: print the entries
-void print_entries(index_t *r, index_t *c, double *v)
-{
-    for (int i=0; i<nz; i++)
-        printf("(%ld, %ld) == %e\n", (long)r[i], (long)c[i], v[i]);
-}
-*/
-
-/* swap function */
 void swap(index_t *r, index_t *c, double *v, int left, int right)
 {
     double v_temp;
@@ -114,76 +102,76 @@ void q_sort(index_t *row, index_t *col, double *val, int begin, int end)
 
 SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
 {
-    index_t dist[2];
     index_t *col_ind = NULL;
     index_t *row_ind = NULL;
     index_t *row_ptr = NULL;
     double *val = NULL;
-    FILE *fileHandle_p = NULL;
     SystemMatrix_ptr out;
-    int i, curr_row, scan_ret;
+    int curr_row;
     MM_typecode matrixCode;
-    esysUtils::JMPI mpi_info=esysUtils::makeInfo( MPI_COMM_WORLD);
+    esysUtils::JMPI mpi_info=esysUtils::makeInfo(MPI_COMM_WORLD);
     Esys_resetError();
-    if (mpi_info->size >1) {
-        Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: supports single processor only");
-        return out;
-    }
-    /* open the file */
-    fileHandle_p = fopen( filename, "r" );
-    if( fileHandle_p == NULL ) {
-        Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: Cannot open file for reading.");
+    if (mpi_info->size > 1) {
+        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: supports single processor only");
         return out;
     }
 
-    /* process banner */
-    if( mm_read_banner(fileHandle_p, &matrixCode) != 0 ) {
-        Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: Error processing MM banner.");
-        fclose( fileHandle_p );
-        return out;
-    }
-    if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) ) {
-        Esys_setError(TYPE_ERROR,"SystemMatrix_loadMM_toCSR: found Matrix Market type is not supported.");
-        fclose( fileHandle_p );
+    // open the file
+    std::ifstream f(filename);
+    if (!f.good()) {
+        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: Cannot open file for reading.");
         return out;
     }
 
-    /* get matrix size */
-    if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 ) {
-        Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSR: Could not read sparse matrix size.");
-        fclose( fileHandle_p );
+    // process banner
+    if (mm_read_banner(f, &matrixCode) != 0) {
+        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: Error processing MM banner.");
+        f.close();
+        return out;
+    }
+    if ( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) ) {
+        Esys_setError(TYPE_ERROR, "SystemMatrix::loadMM_toCSR: found Matrix Market type is not supported.");
+        f.close();
         return out;
     }
 
-    /* prepare storage */
-    col_ind = new  index_t [ nz];
-    row_ind = new  index_t [ nz];
-    val = new  double [ nz];
+    // get matrix size
+    if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0) {
+        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSR: Could not read sparse matrix size.");
+        f.close();
+        return out;
+    }
 
-    row_ptr = new  index_t [ (M+1)];
+    // prepare storage
+    col_ind = new index_t[nz];
+    row_ind = new index_t[nz];
+    val = new double[nz];
 
-    /* perform actual read of elements */
-    for( i=0; i<nz; i++ ) {
-        scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-        if (scan_ret!=3) {
+    row_ptr = new index_t[M+1];
+
+    // perform actual read of elements
+    for (int i=0; i<nz; i++) {
+        f >> row_ind[i] >> col_ind[i] >> val[i];
+        if (!f.good()) {
             delete[] val;
             delete[] row_ind;
             delete[] col_ind;
             delete[] row_ptr;
-            fclose(fileHandle_p);
+            f.close();
             return out;
         }
         row_ind[i]--;
         col_ind[i]--;
     }
-    fclose(fileHandle_p);
-    /* sort the entries */
+    f.close();
+
+    // sort the entries
     q_sort(row_ind, col_ind, val, 0, nz);
 
-    /* setup row_ptr */
+    // setup row_ptr
     curr_row = 0;
-    for (i=0; (i<nz && curr_row<M); curr_row++) {
-        while (row_ind[i] != curr_row ) {
+    for (int i=0; (i<nz && curr_row<M); curr_row++) {
+        while (row_ind[i] != curr_row) {
             i++;
         }
         row_ptr[curr_row] = i;
@@ -191,7 +179,7 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     row_ptr[M] = nz;
 
     // create return value
-    /* create F_SMP and F_SM */
+    index_t dist[2];
     dist[0]=0;
     dist[1]=M;
     Distribution_ptr output_dist(new Distribution(mpi_info, dist, 1, 0));
@@ -202,7 +190,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     dist[0]=M;
     SharedComponents_ptr send(new SharedComponents(
                                     M, 0, NULL, NULL, dist, 1, 0, mpi_info));
-    dist[0]=0;
     Connector_ptr connector(new Connector(send, send));
     SystemMatrixPattern_ptr pattern(new SystemMatrixPattern(
                 MATRIX_FORMAT_DEFAULT, output_dist, input_dist, mainPattern,
@@ -210,7 +197,8 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
     out.reset(new SystemMatrix(MATRIX_FORMAT_DEFAULT, pattern, 1, 1, true));
 
     // copy values
-    for(i=0; i<nz; i++)
+#pragma omp parallel for
+    for (int i=0; i<nz; i++)
         out->mainBlock->val[i] = val[i];
 
     delete[] val;
@@ -220,8 +208,6 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSR(const char *filename)
 
 SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
 {
-    index_t dist[2];
-    FILE *fileHandle_p = NULL;
     Pattern_ptr mainPattern, couplePattern;
     SystemMatrixPattern_ptr pattern;
     SystemMatrix_ptr out;
@@ -230,83 +216,76 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
     index_t *row_ind = NULL;
     index_t *col_ptr = NULL;
     double *val = NULL;
-    int i, curr_col=0, scan_ret;
+    int curr_col=0;
     MM_typecode matrixCode;
     esysUtils::JMPI mpi_info=esysUtils::makeInfo( MPI_COMM_WORLD);
-    if (mpi_info->size >1) {
-        Esys_setError(IO_ERROR, "SystemMatrix_loadMM_toCSC: supports single processor only");
+    if (mpi_info->size > 1) {
+        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSC: supports single processor only");
         return out;
     }
 
     Esys_resetError();
 
-    /* open the file */
-    fileHandle_p = fopen( filename, "r" );
-    if( fileHandle_p == NULL )
-    {
-        Esys_setError(IO_ERROR,"SystemMatrix_loadMM_toCSC: File could not be opened for reading.");
+    // open the file
+    std::ifstream f(filename);
+    if (!f.good()) {
+        Esys_setError(IO_ERROR, "SystemMatrix::loadMM_toCSC: File could not be opened for reading.");
         return out;
     }
 
-    /* process banner */
-    if( mm_read_banner(fileHandle_p, &matrixCode) != 0 )
-    {
-        Esys_setError(IO_ERROR,"SystemMatrix_loadMM_toCSC: Error processing MM banner.");
-        fclose( fileHandle_p );
+    // process banner
+    if (mm_read_banner(f, &matrixCode) != 0) {
+        Esys_setError(IO_ERROR,"SystemMatrix::loadMM_toCSC: Error processing MM banner.");
+        f.close();
         return out;
     }
-    if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) )
-    {
-        Esys_setError(TYPE_ERROR,"SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
-        fclose( fileHandle_p );
-        return out;
-    }
-
-    /* get matrix size */
-    if( mm_read_mtx_crd_size(fileHandle_p, &M, &N, &nz) != 0 )
-    {
-        Esys_setError(TYPE_ERROR,"SystemMatrix_loadMM_toCSC: found Matrix Market type is not supported.");
-        fclose( fileHandle_p );
+    if( !(mm_is_real(matrixCode) && mm_is_sparse(matrixCode) && mm_is_general(matrixCode)) ) {
+        Esys_setError(TYPE_ERROR, "SystemMatrix::loadMM_toCSC: found Matrix Market type is not supported.");
+        f.close();
         return out;
     }
 
-    /* prepare storage */
-    col_ind = new  index_t [ nz];
-    row_ind = new  index_t [ nz];
-    val = new  double [ nz];
-    col_ptr = new  index_t [ (N+1)];
+    // get matrix size
+    if (mm_read_mtx_crd_size(f, &M, &N, &nz) != 0) {
+        Esys_setError(TYPE_ERROR, "SystemMatrix::loadMM_toCSC: found Matrix Market type is not supported.");
+        f.close();
+        return out;
+    }
 
-    /* perform actual read of elements */
-    for( i=0; i<nz; i++ )
-    {
-        scan_ret = fscanf( fileHandle_p, "%d %d %le\n", &row_ind[i], &col_ind[i], &val[i] );
-        if (scan_ret!=3)
-        {
-            delete[]  val ;
-            delete[]  row_ind ;
-            delete[]  col_ind ;
-            delete[]  col_ptr ;
-            fclose(fileHandle_p);
+    // prepare storage
+    col_ind = new index_t[nz];
+    row_ind = new index_t[nz];
+    val = new double [nz];
+    col_ptr = new index_t[N+1];
+
+    // perform actual read of elements
+    for (int i=0; i<nz; i++) {
+        f >> row_ind[i] >> col_ind[i] >> val[i];
+        if (!f.good()) {
+            delete[] val;
+            delete[] row_ind;
+            delete[] col_ind;
+            delete[] col_ptr;
+            f.close();
             return out;
         }
         row_ind[i]--;
         col_ind[i]--;
     }
-    fclose( fileHandle_p );
+    f.close();
 
-    /* sort the entries */
+    // sort the entries
     q_sort( col_ind, row_ind, val, 0, nz );
 
-    /* setup row_ptr */
-    for( i=0; (i<nz && curr_col<N); curr_col++ )
-    {
+    // setup row_ptr
+    for(int i=0; (i<nz && curr_col<N); curr_col++) {
         while( col_ind[i] != curr_col )
             i++;
         col_ptr[curr_col] = i;
     }
     col_ptr[N] = nz;
 
-    /* create F_SMP and F_SM */
+    index_t dist[2];
     dist[0]=0;
     dist[1]=N;
     Distribution_ptr output_dist(new Distribution(mpi_info, dist,1,0));
@@ -321,8 +300,10 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
                 output_dist, input_dist, mainPattern, couplePattern,
                 couplePattern, connector, connector));
     out.reset(new SystemMatrix(MATRIX_FORMAT_CSC, pattern, 1, 1, true));
-    /* copy values and cleanup temps */
-    for( i=0; i<nz; i++ )
+
+    // copy values
+#pragma omp parallel for
+    for (int i=0; i<nz; i++)
         out->mainBlock->val[i] = val[i];
 
     delete[] val;
@@ -332,26 +313,24 @@ SystemMatrix_ptr SystemMatrix::loadMM_toCSC(const char* filename)
 
 void RHS_loadMM_toCSR(const char *filename, double *b, dim_t size)
 {
-    FILE *fileHandle_p = NULL;
-    int i, scan_ret;
     MM_typecode matrixCode;
     Esys_resetError();
-    /* open the file */
-    fileHandle_p = fopen(filename, "r");
-    if (fileHandle_p == NULL) {
+    // open the file
+    std::ifstream f(filename);
+    if (!f.good()) {
         Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Cannot open file for reading.");
     }
 
-    /* process banner */
-    if(mm_read_banner(fileHandle_p, &matrixCode) != 0) {
+    // process banner
+    if (mm_read_banner(f, &matrixCode) != 0) {
         Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Error processing MM banner.");
     }
     if( !(mm_is_real(matrixCode) && mm_is_general(matrixCode) && mm_is_array(matrixCode)) ) {
         Esys_setError(TYPE_ERROR,"RHS_loadMM_toCSR: found Matrix Market type is not supported.");
     }
 
-    /* get matrix size */
-    if (mm_read_mtx_array_size(fileHandle_p, &M, &N) != 0) {
+    // get matrix size
+    if (mm_read_mtx_array_size(f, &M, &N) != 0) {
         Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Could not read sparse matrix size.");
     }
 
@@ -361,17 +340,16 @@ void RHS_loadMM_toCSR(const char *filename, double *b, dim_t size)
 
     if (Esys_noError()) {
         nz=M;
-        /* perform actual read of elements */
-        for(i=0; i<nz; i++) {
-            scan_ret = fscanf( fileHandle_p, "%le\n", &b[i] );
-            if (scan_ret != 1) {
-                fclose(fileHandle_p);
+        // perform actual read of elements
+        for (int i=0; i<nz; i++) {
+            f >> b[i];
+            if (!f.good()) {
+                f.close();
                 Esys_setError(IO_ERROR, "RHS_loadMM_toCSR: Could not read some of the values.");
             }
         }
-    } else {
-        fclose(fileHandle_p);
     }
+    f.close();
 }
 
 } // namespace paso

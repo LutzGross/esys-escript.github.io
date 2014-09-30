@@ -101,7 +101,7 @@ void SystemMatrix::print() const
 {
     dim_t iPtr, q, p, ib;
     const dim_t n = getNumRows();
-    const index_t rank = mpi_info->rank;
+    const int rank = mpi_info->rank;
     char *str1, *str2;
     str1 = new char[n*n*block_size*30+100];
     str2 = new char[30];

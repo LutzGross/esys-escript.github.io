@@ -74,8 +74,6 @@ struct SparseMatrix : boost::enable_shared_from_this<SparseMatrix>
 
     void saveHB_CSC(const char* filename) const;
 
-    void saveMM_CSC(FILE* handle) const;
-
     void saveMM(const char* filename) const;
 
     inline index_t* borrowMainDiagonalPointer() const

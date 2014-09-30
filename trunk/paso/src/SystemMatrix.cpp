@@ -40,8 +40,8 @@ namespace paso {
 /// that the pattern is already unrolled to match the requested block size
 /// and offsets. Otherwise unrolling and offset adjustment will be performed.
 SystemMatrix::SystemMatrix(SystemMatrixType ntype,
-                           SystemMatrixPattern_ptr npattern, int rowBlockSize,
-                           int colBlockSize, bool patternIsUnrolled) :
+                           SystemMatrixPattern_ptr npattern, dim_t rowBlockSize,
+                           dim_t colBlockSize, bool patternIsUnrolled) :
     type(ntype),
     logical_row_block_size(rowBlockSize),
     logical_col_block_size(colBlockSize),
