@@ -420,6 +420,7 @@ class TestSubsidence(unittest.TestCase):
         args1=acw.getArguments(P1)
         d1=acw.getDefect(P1, *args1)
         ref=abs((d1-d0)/INC)
+        print "S.A",abs((d1-d0)/INC-integrate(grad_d* dP))/ref
         self.assertTrue(abs((d1-d0)/INC-integrate(grad_d* dP)) < ref * 1.e-5) 
 
         dP=exp(-(length(x-[0.3,0.3,0.5])/0.06)**2)
@@ -427,6 +428,7 @@ class TestSubsidence(unittest.TestCase):
         args2=acw.getArguments(P2)
         d2=acw.getDefect(P2, *args2)
         ref=abs((d2-d0)/INC)
+        print "S.B",abs((d2-d0)/INC+integrate(grad_d* dP))/ref
         self.assertTrue(abs((d2-d0)/INC+integrate(grad_d* dP)) < ref * 1.e-5) 
 
 
@@ -442,18 +444,21 @@ class TestIsostaticPressure(unittest.TestCase):
         rho=Scalar(100, Function(domain))
         p0=ps.getPressure(g, rho)
         p_ref=-(1.-domain.getX()[2])*981.
+        print "P.A",Lsup(p0-p_ref)/Lsup(p_ref)
         self.assertTrue(Lsup(p0-p_ref) < 1e-6 * Lsup(p_ref))
 
         g=Vector([0,0,-10], Function(domain))
         rho=Scalar(0, Function(domain))
         p0=ps.getPressure(g, rho)
         p_ref=-(1.-domain.getX()[2])*26700
+        print "P.B",Lsup(p0-p_ref)/Lsup(p_ref)
         self.assertTrue(Lsup(p0-p_ref) < 1e-6 * Lsup(p_ref))
 
         g=Vector([0,0,-10], Function(domain))
         rho=Scalar(100, Function(domain))
         p0=ps.getPressure(g, rho)
         p_ref=-(1.-domain.getX()[2])*(981.+26700+1000)
+        print "P.C",Lsup(p0-p_ref)/Lsup(p_ref)
         self.assertTrue(Lsup(p0-p_ref) < 1e-6 * Lsup(p_ref))
                                
 if __name__ == '__main__':
