@@ -82,7 +82,7 @@ ESCRIPT_DLL_API int isDataPointShapeEqual(escriptDataC* data, int rank, const in
    \param numSamples Input - number of samples
 */
 ESCRIPT_DLL_API int numSamplesEqual(escriptDataC* data, int numDataPointsPerSample,
-		    int numSamples);
+		    dim_t numSamples);
 
 /**
    \brief
@@ -104,7 +104,7 @@ ESCRIPT_DLL_API int getDataPointRank(escriptDataC* data);
    \param data Input - C wrapper for Data.
    \param i Input - index of shape component.
 */
-ESCRIPT_DLL_API int getDataPointShape(escriptDataC* data,int i);
+ESCRIPT_DLL_API int getDataPointShape(escriptDataC* data, int i);
 
 /**
    \brief

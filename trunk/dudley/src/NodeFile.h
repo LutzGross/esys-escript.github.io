@@ -29,7 +29,7 @@ struct Dudley_NodeFile {
     esysUtils::JMPI MPIInfo;	/* MPI information */
 
     dim_t numNodes;		/* number of nodes */
-    dim_t numDim;		/* spatial dimension */
+    int numDim;		/* spatial dimension */
     index_t *Id;		/* Id[i] is the id number of node i. It need to be unique. */
     index_t *Tag;		/* Tag[i] is the tag of node i. */
     index_t *tagsInUse;		/* array of tags which are actually used */

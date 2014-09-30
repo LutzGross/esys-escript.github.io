@@ -87,4 +87,7 @@
 # endif
 #endif
 
+#include <esysUtils/types.h>
+
 #endif
+

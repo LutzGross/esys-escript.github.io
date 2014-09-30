@@ -81,7 +81,7 @@ public:
 
     virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
-    virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const;
+    virtual int getTagFromSampleNo(int functionSpaceType, dim_t sampleNo) const;
 
     virtual const dim_t* borrowSampleReferenceIDs(int functionSpaceType) const;
 
@@ -102,14 +102,14 @@ public:
                                      const boost::python::tuple& filter) const;
 
 private:
-    int m_samples;       // number of samples
-    int m_dpps;          // data points per sample
-    int m_dpsize;        // how big are the datapoints?
-    int* m_samplerefids; // sample reference ids
+    dim_t m_samples;       // number of samples
+    int m_dpps;            // data points per sample
+    int m_dpsize;          // how big are the datapoints?
+    dim_t* m_samplerefids; // sample reference ids
 };
 
 ESCRIPT_DLL_API
-FunctionSpace getTestDomainFunctionSpace(int dpps, int samples, int dpsize);
+FunctionSpace getTestDomainFunctionSpace(int dpps, dim_t samples, int dpsize);
 
 } // end of namespace
 

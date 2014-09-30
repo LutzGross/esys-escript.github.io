@@ -110,9 +110,11 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                 Esys_setError(VALUE_ERROR, "TransportProblem::solve: time stepping break down.");
             } else {
                 dt3 = (dt-t)/n_substeps;
-                if (options->verbose)
-                    printf("TransportProblem::solve: number of substeps = %d "
-                           "with dt = %e.\n", n_substeps, dt3);
+                if (options->verbose) {
+                    std::cout << "TransportProblem::solve: number of substeps = "
+                        << n_substeps << " with dt = " << dt3 << "."
+                        << std::endl;
+                }
                 // initialize the iteration matrix
                 fctsolver->initialize(dt3, options, &pp);
                 rsolver->initialize(dt3/2, options);
@@ -122,8 +124,11 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                 for (i_substeps=0; i_substeps<n_substeps &&
                                    errorCode==SOLVER_NO_ERROR &&
                                    Esys_noError(); i_substeps++) {
-                    if (options->verbose)
-                        printf("TransportProblem::solve: substep %d of %d at t = %e (dt = %e)\n",i_substeps,n_substeps,t+dt3,dt3);
+                    if (options->verbose) {
+                        std::cout << "TransportProblem::solve: substep "
+                            << i_substeps << " of " << n_substeps << " at t = "
+                            << (t+dt3) << " (dt = " << dt3 << ")" << std::endl;
+                    }
 
                     // create copy for restart in case of failure
                     util::copy(n, u_save, u);
@@ -155,9 +160,11 @@ void TransportProblem::solve(double* u, double dt, double* u0, double* q,
                                 "No convergence after time step reductions.");
                     } else {
                         options->time_step_backtracking_used = true;
-                        if (options->verbose)
-                            printf("TransportProblem::solve: no convergence. "
-                                   "Time step size is reduced.\n");
+                        if (options->verbose) {
+                            std::cout << "TransportProblem::solve: "
+                                << "no convergence. Time step size is reduced."
+                                << std::endl;
+                        }
                         dt2 = dt3*reduction_after_divergence_factor;
                         num_failures++;
                         util::copy(n, u, u_save); // reset initial value

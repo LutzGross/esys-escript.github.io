@@ -366,8 +366,8 @@ load(const std::string fileName,
 	// get ids
 	if (! ( ids_var = dataFile.get_var("id")) )
 		throw DataException("Error - load:: unable to find reference ids in netCDF file.");
-	const int* ids_p=function_space.borrowSampleReferenceIDs();
-    std::vector<int> ids_of_nc(num_samples);
+	const dim_t* ids_p=function_space.borrowSampleReferenceIDs();
+    std::vector<dim_t> ids_of_nc(num_samples);
 	if (! ids_var->get(&ids_of_nc[0], (long) num_samples) ) 
 	{
 		throw DataException("Error - load:: unable to recover ids from netCDF file.");

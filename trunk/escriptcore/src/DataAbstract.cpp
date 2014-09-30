@@ -247,7 +247,7 @@ DataAbstract::setToZero()
 }
 
 void
-DataAbstract::reorderByReferenceIDs(int *reference_ids)
+DataAbstract::reorderByReferenceIDs(dim_t *reference_ids)
 {
     throw DataException("Error - DataAbstract:: cannot reorder by reference ids.");
 }

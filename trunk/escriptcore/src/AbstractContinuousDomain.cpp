@@ -193,10 +193,10 @@ int AbstractContinuousDomain::getNumDataPointsGlobal() const
   return 1;
 }
 
-std::pair<int,int> AbstractContinuousDomain::getDataShape(int functionSpaceCode) const
+std::pair<int,dim_t> AbstractContinuousDomain::getDataShape(int functionSpaceCode) const
 {
   throwStandardException("AbstractContinuousDomain::getDataShape");
-  return std::pair<int,int>(0,0);
+  return std::pair<int,dim_t>(0,0);
 }
 
 void AbstractContinuousDomain::setNewX(const escript::Data& arg)

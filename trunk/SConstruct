@@ -135,6 +135,7 @@ vars.AddVariables(
   ('SVN_VERSION', 'Do not use from options file', -2),
   ('pythoncmd', 'which python to compile with','python'),
   ('usepython3', 'Is this a python3 build? (experimental)', False),
+  ('longindices', 'use long indices (for very large matrices)', False),
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
@@ -287,7 +288,11 @@ if env['nvccflags'] != 'default':
     env['NVCCFLAGS'] = env['nvccflags']
     env['SHNVCCFLAGS'] = env['nvccflags'] + ' -shared'
 
-if env['BADPYTHONMACROS']: env.Append(CXXFLAGS = ' -DBADPYTHONMACROS')
+if env['BADPYTHONMACROS']:
+    env.Append(CPPDEFINES = ['BADPYTHONMACROS'])
+
+if env['longindices']:
+    env.Append(CPPDEFINES = ['ESYS_INDEXTYPE_LONG'])
 
 if env['usepython3']:
     env.Append(CPPDEFINES=['ESPYTHON3'])

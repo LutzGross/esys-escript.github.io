@@ -439,7 +439,7 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   */
   ESCRIPT_DLL_API
   virtual void
-  reorderByReferenceIDs(int *reference_ids);
+  reorderByReferenceIDs(dim_t *reference_ids);
 
 
 
