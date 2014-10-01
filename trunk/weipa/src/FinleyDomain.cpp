@@ -277,11 +277,8 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
                 result = faces;
                 break;
         }
-        if (result.get()) {
-            int typeId = static_cast<FinleyElements*>(result.get())
-                ->getFinleyTypeId();
-            if (result->getReducedElements())
-                result = result->getReducedElements();
+        if (result.get() && result->getReducedElements()) {
+            result = result->getReducedElements();
         }
     }
 #endif // USE_DUDLEY
