@@ -65,8 +65,8 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     int dim=fs.getDim();
     ReaderParameters params;
 
-    params.first = extractPyArray<int>(pyFirst, "first", dim);
-    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.first = extractPyArray<dim_t>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<dim_t>(pyNum, "numValues", dim);
     params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
     params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
     params.byteOrder = byteOrder;
@@ -91,8 +91,8 @@ escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSp
     int dim=fs.getDim();
     ReaderParameters params;
 
-    params.first = extractPyArray<int>(pyFirst, "first", dim);
-    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.first = extractPyArray<dim_t>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<dim_t>(pyNum, "numValues", dim);
     params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
     params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
     params.byteOrder = byteOrder;
@@ -117,8 +117,8 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     int dim=fs.getDim();
     ReaderParameters params;
 
-    params.first = extractPyArray<int>(pyFirst, "first", dim);
-    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.first = extractPyArray<dim_t>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<dim_t>(pyNum, "numValues", dim);
     params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
     params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
     std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
@@ -141,7 +141,7 @@ escript::Domain_ptr _brick(double _n0, double _n1, double _n2, const object& l0,
                  const object& l1, const object& l2, int d0, int d1, int d2,
                  const object& objpoints, const object& objtags, escript::SubWorld_ptr world)
 {
-    int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1), n2=static_cast<int>(_n2);
+    dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1), n2=static_cast<dim_t>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
     if (extract<tuple>(l0).check()) {
         tuple x=extract<tuple>(l0);
@@ -234,7 +234,7 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
 			      escript::SubWorld_ptr world
 			      )
 {
-    int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1);
+    dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
     if (extract<tuple>(l0).check()) {
         tuple x=extract<tuple>(l0);
@@ -283,7 +283,7 @@ escript::Domain_ptr _rectangle(double _n0, double _n1, const object& l0,
         extract<std::string> ex_str(pytags[i]);
         if (ex_int.check()) {
             tags[i]=ex_int();
-            if (tags[i]>= curmax) {
+            if (tags[i] >= curmax) {
                 curmax=tags[i]+1;
             }
         } else if (ex_str.check()) {

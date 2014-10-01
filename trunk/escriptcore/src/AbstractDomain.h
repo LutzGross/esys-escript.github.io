@@ -179,7 +179,7 @@ public:
        \param functionSpaceType Input - The function space type.
        \param sampleNo Input - The sample number.
     */
-    virtual int getTagFromSampleNo(int functionSpaceType, int sampleNo) const = 0;
+    virtual int getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const = 0;
 
     /**
        \brief

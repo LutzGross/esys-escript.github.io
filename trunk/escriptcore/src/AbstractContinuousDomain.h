@@ -272,7 +272,7 @@ class ESCRIPT_DLL_API AbstractContinuousDomain : public AbstractDomain
      \brief
      Return the number of data points summed across all MPI processes
   */
-  virtual int getNumDataPointsGlobal() const;
+  virtual dim_t getNumDataPointsGlobal() const;
 
   /**
      \brief

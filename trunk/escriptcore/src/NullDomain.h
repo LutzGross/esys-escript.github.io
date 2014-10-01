@@ -81,7 +81,7 @@ public:
 
     virtual std::pair<int,dim_t> getDataShape(int functionSpaceCode) const;
 
-    virtual int getTagFromSampleNo(int, int) const { return 1; }
+    virtual int getTagFromSampleNo(int, index_t) const { return 1; }
 
     virtual const dim_t* borrowSampleReferenceIDs(int) const { return &referenceID; }
 

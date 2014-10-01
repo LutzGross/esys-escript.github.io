@@ -178,7 +178,7 @@ std::pair<int,dim_t> TestDomain::getDataShape(int functionSpaceCode) const
     return std::pair<int,dim_t>(m_dpps,m_samples);
 }
 
-int TestDomain::getTagFromSampleNo(int functionSpaceType, dim_t sampleNo) const
+int TestDomain::getTagFromSampleNo(int functionSpaceType, index_t sampleNo) const
 {
     return 0;
 }

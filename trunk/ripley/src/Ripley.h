@@ -38,7 +38,7 @@ typedef std::pair<index_t,index_t> IndexPair;
 typedef std::vector<index_t> IndexVector;
 typedef std::vector<double> DoubleVector;
 typedef std::vector<Esys_MPI_rank> RankVector;
-typedef std::map<std::string,index_t> TagMap;
+typedef std::map<std::string,int> TagMap;
 
 enum {
     DegreesOfFreedom=1,

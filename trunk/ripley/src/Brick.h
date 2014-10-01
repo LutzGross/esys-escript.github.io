@@ -40,8 +40,8 @@ public:
        \param x0,y0,z0,x1,y1,z1 coordinates of corner nodes of the brick
        \param d0,d1,d2 number of subdivisions in each dimension
     */
-    Brick(int n0, int n1, int n2, double x0, double y0, double z0, double x1,
-          double y1, double z1, int d0=-1, int d1=-1, int d2=-1,
+    Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
+          double x1, double y1, double z1, int d0=-1, int d1=-1, int d2=-1,
           const std::vector<double>& points = std::vector<double>(),
           const std::vector<int>& tags = std::vector<int>(),
           const TagMap& tagnamestonums = TagMap(),
@@ -104,7 +104,7 @@ public:
        returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
-    const int* borrowSampleReferenceIDs(int fsType) const;
+    const dim_t* borrowSampleReferenceIDs(int fsType) const;
 
     /**
        \brief
@@ -131,7 +131,7 @@ public:
        \brief
        returns the number of data points summed across all MPI processes
     */
-    virtual int getNumDataPointsGlobal() const;
+    virtual dim_t getNumDataPointsGlobal() const;
 
     /**
        \brief
@@ -144,20 +144,20 @@ public:
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    virtual const int* getNumNodesPerDim() const { return m_NN; }
+    virtual const dim_t* getNumNodesPerDim() const { return m_NN; }
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    virtual const int* getNumElementsPerDim() const { return m_NE; }
+    virtual const dim_t* getNumElementsPerDim() const { return m_NE; }
 
     /**
        \brief
        returns the number of face elements in the order
        (left,right,bottom,top,front,back) on current MPI rank
     */
-    virtual const int* getNumFacesPerBoundary() const { return m_faceCount; }
+    virtual const dim_t* getNumFacesPerBoundary() const { return m_faceCount; }
 
     /**
        \brief
@@ -175,7 +175,7 @@ public:
        \brief
        returns the index'th coordinate value in given dimension for this rank
     */
-    virtual double getLocalCoordinate(int index, int dim) const;
+    virtual double getLocalCoordinate(index_t index, int dim) const;
 
     /**
        \brief
@@ -211,7 +211,7 @@ protected:
                                          bool reduced) const;
     virtual void nodesToDOF(escript::Data& out, const escript::Data& in) const;
     virtual void dofToNodes(escript::Data& out, const escript::Data& in) const;
-    virtual int getDofOfNode(int node) const;
+    virtual dim_t getDofOfNode(dim_t node) const;
     Assembler_ptr createAssembler(std::string type, const DataMap& constants) const;
 
 private:
@@ -220,7 +220,7 @@ private:
     std::vector<IndexVector> getConnections() const;
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
-           bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
+           bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
 
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
@@ -232,7 +232,7 @@ private:
     void writeBinaryGridImpl(const escript::Data& in,
                              const std::string& filename, int byteOrder) const;
 
-    int findNode(const double *coords) const;
+    dim_t findNode(const double *coords) const;
 
     virtual escript::Data randomFillWorker(
             const escript::DataTypes::ShapeType& shape, long seed,
@@ -266,7 +266,7 @@ private:
     dim_t m_offset[3];
 
     /// number of face elements per edge (left, right, bottom, top, front, back)
-    int m_faceCount[6];
+    dim_t m_faceCount[6];
 
     /// faceOffset[i]=-1 if face i is not an external face, otherwise it is
     /// the index of that face (where i: 0=left, 1=right, 2=bottom, 3=top,
@@ -294,16 +294,17 @@ private:
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
-inline int Brick::getDofOfNode(int node) const {
+inline dim_t Brick::getDofOfNode(dim_t node) const
+{
     return m_dofMap[node];
 }
 
-inline int Brick::getNumDataPointsGlobal() const
+inline dim_t Brick::getNumDataPointsGlobal() const
 {
     return (m_gNE[0]+1)*(m_gNE[1]+1)*(m_gNE[2]+1);
 }
 
-inline double Brick::getLocalCoordinate(int index, int dim) const
+inline double Brick::getLocalCoordinate(index_t index, int dim) const
 {
     EsysAssert((dim>=0 && dim<3), "'dim' out of bounds");
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
