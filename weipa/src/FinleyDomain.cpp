@@ -259,6 +259,10 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
 #endif // USE_FINLEY
 
 #ifdef USE_DUDLEY
+    // if this was finley we're done.
+    if (result.get())
+        return result;
+
     if (fsCode == DUDLEY_NODES) {
         result = cells;
     } else if (fsCode == DUDLEY_REDUCED_NODES) {
