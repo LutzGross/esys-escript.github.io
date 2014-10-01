@@ -17,11 +17,15 @@
 #include <weipa/FinleyNodes.h>
 
 #ifndef VISIT_PLUGIN
+#ifdef USE_DUDLEY
 #include <dudley/Mesh.h>
 #include <dudley/NodeFile.h>
+#endif
+#ifdef USE_FINLEY
 #include <finley/Mesh.h>
 #include <finley/NodeFile.h>
 #endif
+#endif // VISIT_PLUGIN
 
 #if USE_NETCDF
 #include <netcdfcpp.h>
@@ -127,7 +131,7 @@ FinleyNodes::~FinleyNodes()
 //
 bool FinleyNodes::initFromDudley(const Dudley_NodeFile* dudleyFile)
 {
-#ifndef VISIT_PLUGIN
+#if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numDims = dudleyFile->numDim;
     numNodes = dudleyFile->numNodes;
 
@@ -184,7 +188,7 @@ bool FinleyNodes::initFromDudley(const Dudley_NodeFile* dudleyFile)
 
     }
     return true;
-#else // VISIT_PLUGIN
+#else // VISIT_PLUGIN,USE_DUDLEY
     return false;
 #endif
 }
@@ -194,7 +198,7 @@ bool FinleyNodes::initFromDudley(const Dudley_NodeFile* dudleyFile)
 //
 bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 {
-#ifndef VISIT_PLUGIN
+#if !defined VISIT_PLUGIN && defined USE_FINLEY
     numDims = finleyFile->numDim;
     numNodes = finleyFile->numNodes;
 
@@ -251,7 +255,7 @@ bool FinleyNodes::initFromFinley(const finley::NodeFile* finleyFile)
 
     }
     return true;
-#else // VISIT_PLUGIN
+#else // VISIT_PLUGIN,USE_FINLEY
     return false;
 #endif
 }

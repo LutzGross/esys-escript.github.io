@@ -26,15 +26,6 @@ del py_wrapper_local_env['SHLIBPREFIX']
 sources = """
     DataVar.cpp
     EscriptDataset.cpp
-    FinleyDomain.cpp
-    FinleyElements.cpp
-    FinleyNodes.cpp
-    RipleyDomain.cpp
-    RipleyElements.cpp
-    RipleyNodes.cpp
-    SpeckleyDomain.cpp
-    SpeckleyElements.cpp
-    SpeckleyNodes.cpp
     VisItControl.cpp
 """.split()
 
@@ -43,20 +34,33 @@ headers = """
     DomainChunk.h
     ElementData.h
     EscriptDataset.h
-    FinleyDomain.h
-    FinleyElements.h
-    FinleyNodes.h
     NodeData.h
-    RipleyDomain.h
-    RipleyElements.h
-    RipleyNodes.h
-    SpeckleyDomain.h
-    SpeckleyElements.h
-    SpeckleyNodes.h
     VisItControl.h
     vtkCellType.h
     weipa.h
 """.split()
+
+if 'dudley' in env['domains'] or 'finley' in env['domains']:
+    sources += ['FinleyDomain.cpp','FinleyElements.cpp','FinleyNodes.cpp']
+    headers += ['FinleyDomain.h','FinleyElements.h','FinleyNodes.h']
+    if 'dudley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
+        local_env.Prepend(LIBS = ['dudley'])
+    if 'finley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_FINLEY'])
+        local_env.Prepend(LIBS = ['finley'])
+
+if 'ripley' in env['domains']:
+    sources += ['RipleyDomain.cpp','RipleyElements.cpp','RipleyNodes.cpp']
+    headers += ['RipleyDomain.h','RipleyElements.h','RipleyNodes.h']
+    local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
+    local_env.Prepend(LIBS = ['ripley'])
+
+if 'speckley' in env['domains']:
+    sources += ['SpeckleyDomain.cpp','SpeckleyElements.cpp','SpeckleyNodes.cpp']
+    headers += ['SpeckleyDomain.h','SpeckleyElements.h','SpeckleyNodes.h']
+    local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
+    local_env.Prepend(LIBS = ['speckley'])
 
 if local_env['visit']:
     sources.append(['VisItData.cpp'])
@@ -65,9 +69,9 @@ if local_env['visit']:
     local_env.AppendUnique(LIBS = ['simV2'])
 
 if not env['build_shared']:
-    local_env.Prepend(LIBS = ['ripley', 'finley', 'dudley', 'escript', 'speckley'])
+    local_env.Prepend(LIBS = ['escript'])
 else:
-    local_env.Prepend(LIBS = ['ripley', 'finley', 'dudley', 'escript', 'speckley', 'esysUtils'])
+    local_env.Prepend(LIBS = ['escript', 'esysUtils'])
 
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
@@ -90,10 +94,20 @@ lib_inst = local_env.Install(local_env['libinstall'], lib)
 env.Alias('install_weipa_lib', lib_inst)
 
 ### Python wrapper ###
+py_wrapper_local_env.Prepend(LIBS = ['weipa'])
+if 'dudley' in env['domains']:
+    py_wrapper_local_env.Prepend(LIBS = ['dudley'])
+if 'finley' in env['domains']:
+    py_wrapper_local_env.Prepend(LIBS = ['finley'])
+if 'ripley' in env['domains']:
+    py_wrapper_local_env.Prepend(LIBS = ['ripley'])
+if 'speckley' in env['domains']:
+    py_wrapper_local_env.Prepend(LIBS = ['speckley'])
+
 if not env['build_shared']:
-    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'ripley', 'finley', 'dudley', 'speckley', 'escript'])
+    py_wrapper_local_env.Prepend(LIBS = ['escript'])
 else:
-    py_wrapper_local_env.Prepend(LIBS = ['weipa', 'ripley', 'finley', 'dudley', 'speckley', 'escript', 'esysUtils'])
+    py_wrapper_local_env.Prepend(LIBS = ['escript', 'esysUtils'])
 
 py_wrapper_name = module_name + 'cpp'
 py_wrapper_lib = py_wrapper_local_env.SharedLibrary(py_wrapper_name, 'weipacpp.cpp')
@@ -123,7 +137,7 @@ plugin_sources = """
 """.split()
 
 visitplugin_env.Prepend(LIBS = ['esysUtils'])
-visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN'])
+visitplugin_env.Append(CPPDEFINES = ['VISIT_PLUGIN', 'USE_FINLEY'])
 visitplugin_env['OBJPREFIX']='reader_'
 
 if env['build_shared']:

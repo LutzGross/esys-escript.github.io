@@ -19,11 +19,15 @@
 #include <weipa/DataVar.h>
 
 #ifndef VISIT_PLUGIN
+#ifdef USE_DUDLEY
 #include <dudley/CppAdapter/MeshAdapter.h>
-#include <finley/CppAdapter/MeshAdapter.h>
 #include <dudley/Mesh.h>
+#endif
+#ifdef USE_FINLEY
+#include <finley/CppAdapter/MeshAdapter.h>
 #include <finley/Mesh.h>
 #endif
+#endif // VISIT_PLUGIN
 
 #include <iostream>
 
@@ -88,7 +92,10 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
 #ifndef VISIT_PLUGIN
     cleanup();
 
-    if (dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
+    if (0) {
+    }
+#ifdef USE_FINLEY
+    else if (dynamic_cast<const finley::MeshAdapter*>(escriptDomain)) {
         const finley::Mesh* finleyMesh =
             dynamic_cast<const finley::MeshAdapter*>(escriptDomain)
                 ->getFinley_Mesh();
@@ -104,7 +111,10 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
                 contacts->initFromFinley(finleyMesh->ContactElements)) {
             initialized = true;
         }
-    } else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
+    }
+#endif
+#ifdef USE_DUDLEY
+    else if (dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)) {
         const Dudley_Mesh* dudleyMesh =
             dynamic_cast<const dudley::MeshAdapter*>(escriptDomain)
                 ->getDudley_Mesh();
@@ -120,7 +130,7 @@ bool FinleyDomain::initFromEscript(const escript::AbstractDomain* escriptDomain)
             initialized = true;
         }
     }
-
+#endif
     return initialized;
 #else // VISIT_PLUGIN
     return false;
@@ -166,8 +176,16 @@ bool FinleyDomain::initFromFile(const string& filename)
 
 Centering FinleyDomain::getCenteringForFunctionSpace(int fsCode) const
 {
-    return (fsCode==FINLEY_REDUCED_NODES || fsCode==FINLEY_NODES ?
-        NODE_CENTERED : ZONE_CENTERED);
+    Centering ret = ZONE_CENTERED;
+#ifdef USE_FINLEY
+    if (fsCode==FINLEY_REDUCED_NODES || fsCode==FINLEY_NODES)
+        ret = NODE_CENTERED;
+#endif
+#ifdef USE_DUDLEY
+    if (fsCode==DUDLEY_REDUCED_NODES || fsCode==DUDLEY_NODES)
+        ret = NODE_CENTERED;
+#endif
+    return ret;
 }
 
 //
@@ -198,6 +216,7 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
         return result;
     }
 
+#ifdef USE_FINLEY
     if (fsCode == FINLEY_NODES) {
         result = cells;
     } else if (fsCode == FINLEY_REDUCED_NODES) {
@@ -222,25 +241,50 @@ ElementData_ptr FinleyDomain::getElementsForFunctionSpace(int fsCode) const
             case FINLEY_CONTACT_ELEMENTS_2:
                 result = contacts;
                 break;
-
-            default: {
-                cerr << "Unsupported function space type " << fsCode
-                    << "!" << endl;
-                return result;
+        }
+        if (result.get()) {
+            int typeId = static_cast<FinleyElements*>(result.get())
+                ->getFinleyTypeId();
+            if (typeId != finley::Line3Macro &&
+                    typeId != finley::Rec9 && typeId != finley::Rec9Macro &&
+                    typeId != finley::Hex27 &&
+                    typeId != finley::Hex27Macro && typeId != finley::Tri6 &&
+                    typeId != finley::Tri6Macro && typeId != finley::Tet10 &&
+                    typeId != finley::Tet10Macro) {
+                if (result->getReducedElements())
+                    result = result->getReducedElements();
             }
         }
-        int typeId = static_cast<FinleyElements*>(result.get())
-            ->getFinleyTypeId();
-        if (typeId != finley::Line3Macro &&
-                typeId != finley::Rec9 && typeId != finley::Rec9Macro &&
-                typeId != finley::Hex27 &&
-                typeId != finley::Hex27Macro && typeId != finley::Tri6 &&
-                typeId != finley::Tri6Macro && typeId != finley::Tet10 &&
-                typeId != finley::Tet10Macro) {
+    }
+#endif // USE_FINLEY
+
+#ifdef USE_DUDLEY
+    if (fsCode == DUDLEY_NODES) {
+        result = cells;
+    } else if (fsCode == DUDLEY_REDUCED_NODES) {
+        result = cells->getReducedElements();
+        if (!result)
+            result = cells;
+    } else {
+        switch (fsCode) {
+            case DUDLEY_REDUCED_ELEMENTS:
+            case DUDLEY_ELEMENTS:
+                result = cells;
+                break;
+
+            case DUDLEY_REDUCED_FACE_ELEMENTS:
+            case DUDLEY_FACE_ELEMENTS:
+                result = faces;
+                break;
+        }
+        if (result.get()) {
+            int typeId = static_cast<FinleyElements*>(result.get())
+                ->getFinleyTypeId();
             if (result->getReducedElements())
                 result = result->getReducedElements();
         }
     }
+#endif // USE_DUDLEY
 
     return result;
 }
@@ -294,28 +338,47 @@ DataVar_ptr FinleyDomain::getDataVarByName(const string& name) const
 
     DataVar_ptr var(new DataVar(name));
     if (name.find("ContactElements_") != name.npos) {
+#ifdef USE_FINLEY
         const IntVec& data = contacts->getVarDataByName(name);
         string elementName = name.substr(0, name.find('_'));
         ElementData_ptr elements = getElementsByName(elementName);
         var->initFromMeshData(shared_from_this(), data,
                 FINLEY_CONTACT_ELEMENTS_1, ZONE_CENTERED, elements->getNodes(),
                 elements->getIDs());
+#endif
     } else if (name.find("FaceElements_") != name.npos) {
         const IntVec& data =  faces->getVarDataByName(name);
         string elementName = name.substr(0, name.find('_'));
         ElementData_ptr elements = getElementsByName(elementName);
-        var->initFromMeshData(shared_from_this(), data,
-                FINLEY_FACE_ELEMENTS, ZONE_CENTERED, elements->getNodes(),
-                elements->getIDs());
+        const int fsCode =
+#ifdef USE_FINLEY
+            FINLEY_FACE_ELEMENTS;
+#else
+            DUDLEY_FACE_ELEMENTS;
+#endif
+        var->initFromMeshData(shared_from_this(), data, fsCode, ZONE_CENTERED,
+                elements->getNodes(), elements->getIDs());
     } else if (name.find("Elements_") != name.npos) {
         const IntVec& data =  cells->getVarDataByName(name);
         string elementName = name.substr(0, name.find('_'));
         ElementData_ptr elements = getElementsByName(elementName);
-        var->initFromMeshData(shared_from_this(), data, FINLEY_ELEMENTS,
+        const int fsCode =
+#ifdef USE_FINLEY
+            FINLEY_ELEMENTS;
+#else
+            DUDLEY_ELEMENTS;
+#endif
+        var->initFromMeshData(shared_from_this(), data, fsCode,
                 ZONE_CENTERED, elements->getNodes(), elements->getIDs());
     } else if (name.find("Nodes_") != name.npos) {
         const IntVec& data =  nodes->getVarDataByName(name);
-        var->initFromMeshData(shared_from_this(), data, FINLEY_NODES,
+        const int fsCode =
+#ifdef USE_FINLEY
+            FINLEY_NODES;
+#else
+            DUDLEY_NODES;
+#endif
+        var->initFromMeshData(shared_from_this(), data, fsCode,
                 NODE_CENTERED, getNodes(), getNodes()->getNodeIDs());
     } else {
         cerr << "WARNING: Unrecognized domain variable '" << name << "'\n";

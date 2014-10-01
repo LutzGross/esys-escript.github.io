@@ -24,19 +24,33 @@ __url__="https://launchpad.net/escript-finley"
 import os, math
 import esys.escriptcore.utestselect as unittest
 from esys.escriptcore.testing import *
-try:
-    import Silo
-    HAVE_SILO=True
-except ImportError:
-    HAVE_SILO=False
-
 from esys.escript import ContinuousFunction, Function, ReducedFunction,\
             FunctionOnBoundary, ReducedFunctionOnBoundary,\
             FunctionOnContactZero, ReducedFunctionOnContactZero,\
             FunctionOnContactOne, ReducedFunctionOnContactOne,\
             Solution, ReducedSolution, getMPISizeWorld
-from esys import dudley,finley,ripley
 from esys.weipa import saveSilo
+
+try:
+    import Silo
+    HAVE_SILO=True
+except ImportError:
+    HAVE_SILO=False
+try:
+    from esys import dudley
+    HAVE_DUDLEY=True
+except ImportError:
+    HAVE_DUDLEY=False
+try:
+    from esys import finley
+    HAVE_FINLEY=True
+except ImportError:
+    HAVE_FINLEY=False
+try:
+    from esys import ripley
+    HAVE_RIPLEY=True
+except ImportError:
+    HAVE_RIPLEY=False
 
 try:
      WEIPA_TEST_MESHES=os.environ['WEIPA_TEST_MESHES']
@@ -234,7 +248,9 @@ class SiloSaver(unittest.TestCase): #requires subclassing
         out=os.path.join(WEIPA_WORKDIR, outFileBase+".silo")
         self.compareSiloFiles(out, ref)
 
-@unittest.skipIf(not HAVE_SILO or getMPISizeWorld()>1, ("MPI size > 1" if getMPISizeWorld()>1 else "Silo module not available"))
+@unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
+@unittest.skipIf(not HAVE_FINLEY, "finley module not available")
+@unittest.skipIf(not HAVE_SILO, "Silo module not available")
 class Test_Finley_SaveSilo(SiloSaver):
 
   # === Finley hex 2D order 1 with contacts ===================================
@@ -1299,7 +1315,9 @@ class Test_Finley_SaveSilo(SiloSaver):
      self.check_silo("tet_3D_macro_rboundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                                data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
-@unittest.skipIf(not HAVE_SILO or getMPISizeWorld()>1, ("MPI size > 1" if getMPISizeWorld()>1 else "Silo module not available"))
+@unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
+@unittest.skipIf(not HAVE_DUDLEY, "dudley module not available")
+@unittest.skipIf(not HAVE_SILO, "Silo module not available")
 class Test_Dudley_SaveSilo(SiloSaver):
 
   # === Dudley 2D =============================================================
@@ -1390,7 +1408,9 @@ class Test_Dudley_SaveSilo(SiloSaver):
      self.check_silo("tet_3D_o1_boundary", data_s=x[0], data_v=x[0]*[1.,2.,3.],
                                            data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
-@unittest.skipIf(not HAVE_SILO or getMPISizeWorld()>1, ("MPI size > 1" if getMPISizeWorld()>1 else "Silo module not available"))
+@unittest.skipIf(getMPISizeWorld()>1, "MPI size > 1")
+@unittest.skipIf(not HAVE_RIPLEY, "ripley module not available")
+@unittest.skipIf(not HAVE_SILO, "Silo module not available")
 class Test_Ripley_SaveSilo(SiloSaver):
 
   # === Ripley 2D =============================================================

@@ -74,6 +74,7 @@ visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 
+domains = ripley,finley,speckley
 #longindices = True
 #vsl_random = True
 #sys_libs = []

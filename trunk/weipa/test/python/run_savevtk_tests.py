@@ -30,8 +30,23 @@ from esys.escript import ContinuousFunction, Function, ReducedFunction,\
             FunctionOnContactZero, ReducedFunctionOnContactZero,\
             FunctionOnContactOne, ReducedFunctionOnContactOne,\
             Solution, ReducedSolution, getMPISizeWorld
-from esys import dudley,finley,ripley
 from esys.weipa import saveVTK
+
+try:
+    from esys import dudley
+    dudleyInstalled = True
+except:
+    dudleyInstalled = False
+try:
+    from esys import finley
+    finleyInstalled = True
+except:
+    finleyInstalled = False
+try:
+    from esys import ripley
+    ripleyInstalled = True
+except:
+    ripleyInstalled = False
 
 try:
      WEIPA_TEST_MESHES=os.environ['WEIPA_TEST_MESHES']
@@ -272,6 +287,7 @@ class Test_VTKSaver(unittest.TestCase):
             self.compareVTKfiles(out, ref)
 
 
+@unittest.skipIf(not finleyInstalled, "Skipping finley saveVTK tests since finley not installed")
 class Test_Finley_SaveVTK(Test_VTKSaver):
 
   # === METADATA =============================================================
@@ -1399,6 +1415,7 @@ class Test_Finley_SaveVTK(Test_VTKSaver):
                                               data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 
+@unittest.skipIf(not dudleyInstalled, "Skipping dudley saveVTK tests since dudley not installed")
 class Test_Dudley_SaveVTK(Test_VTKSaver):
 
   # === Dudley 2D =============================================================
@@ -1490,6 +1507,7 @@ class Test_Dudley_SaveVTK(Test_VTKSaver):
                                           data_t=x[0]*[[11.,12.,13.],[21.,22.,23.],[31.,32.,33.]])
 
 @unittest.skipIf(getMPISizeWorld()>4, "Skipping ripley saveVTK tests since MPI size > 4")
+@unittest.skipIf(not ripleyInstalled, "Skipping ripley saveVTK tests since ripley not installed")
 class Test_Ripley_SaveVTK(Test_VTKSaver):
 
   # === Ripley 2D =============================================================
