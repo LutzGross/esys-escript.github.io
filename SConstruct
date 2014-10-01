@@ -116,6 +116,8 @@ vars.AddVariables(
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
   BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
   BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
+  ListVariable('domains', 'Which domains to build', 'all',\
+               ['dudley','finley','ripley','speckley']),
   ('thrust_prefix', 'Prefix/Paths to NVidia thrust installation', default_prefix),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
@@ -516,6 +518,7 @@ Export(
   ]
 )
 
+#do not auto build
 env.SConscript(dirs = ['tools/escriptconvert'], variant_dir='$BUILD_DIR/$PLATFORM/tools/escriptconvert', duplicate=0)
 env.SConscript(dirs = ['paso/src'], variant_dir='$BUILD_DIR/$PLATFORM/paso', duplicate=0)
 env.SConscript(dirs = ['weipa/src'], variant_dir='$BUILD_DIR/$PLATFORM/weipa', duplicate=0)
@@ -528,10 +531,14 @@ env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/esc
 #env.SConscript(dirs = ['escript/test'], variant_dir='$BUILD_DIR/$PLATFORM/escript/test', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
-env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
-env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
-env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
-env.SConscript(dirs = ['speckley/src'], variant_dir='$BUILD_DIR/$PLATFORM/speckley', duplicate=0)
+if 'dudley' in env['domains']:
+    env.SConscript(dirs = ['dudley/src'], variant_dir='$BUILD_DIR/$PLATFORM/dudley', duplicate=0)
+if 'finley' in env['domains']:
+    env.SConscript(dirs = ['finley/src'], variant_dir='$BUILD_DIR/$PLATFORM/finley', duplicate=0)
+if 'ripley' in env['domains']:
+    env.SConscript(dirs = ['ripley/src'], variant_dir='$BUILD_DIR/$PLATFORM/ripley', duplicate=0)
+if 'speckley' in env['domains']:
+    env.SConscript(dirs = ['speckley/src'], variant_dir='$BUILD_DIR/$PLATFORM/speckley', duplicate=0)
 env.SConscript(dirs = ['downunder/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/downunder', duplicate=0)
 env.SConscript(dirs = ['modellib/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/modellib', duplicate=0)
 env.SConscript(dirs = ['pycad/py_src'], variant_dir='$BUILD_DIR/$PLATFORM/pycad', duplicate=0)
@@ -565,17 +572,21 @@ env.Alias('install_escript', ['build_escript', 'install_escript_lib', 'install_e
 env.Alias('build_pasowrap', ['install_pasowrap_headers', 'build_pasowrap_lib', 'build_pasowrapcpp_lib'])
 env.Alias('install_pasowrap', ['build_pasowrap', 'install_pasowrap_lib', 'install_pasowrapcpp_lib', 'install_pasowrap_py'])
 
-env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
-env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
+if 'dudley' in env['domains']:
+    env.Alias('build_dudley', ['install_dudley_headers', 'build_dudley_lib', 'build_dudleycpp_lib'])
+    env.Alias('install_dudley', ['build_dudley', 'install_dudley_lib', 'install_dudleycpp_lib', 'install_dudley_py'])
 
-env.Alias('build_finley', ['install_finley_headers', 'build_finley_lib', 'build_finleycpp_lib'])
-env.Alias('install_finley', ['build_finley', 'install_finley_lib', 'install_finleycpp_lib', 'install_finley_py'])
+if 'finley' in env['domains']:
+    env.Alias('build_finley', ['install_finley_headers', 'build_finley_lib', 'build_finleycpp_lib'])
+    env.Alias('install_finley', ['build_finley', 'install_finley_lib', 'install_finleycpp_lib', 'install_finley_py'])
 
-env.Alias('build_ripley', ['install_cusp_headers', 'install_ripley_headers', 'build_ripley_lib', 'build_ripleycpp_lib'])
-env.Alias('install_ripley', ['build_ripley', 'install_ripley_lib', 'install_ripleycpp_lib', 'install_ripley_py'])
+if 'ripley' in env['domains']:
+    env.Alias('build_ripley', ['install_cusp_headers', 'install_ripley_headers', 'build_ripley_lib', 'build_ripleycpp_lib'])
+    env.Alias('install_ripley', ['build_ripley', 'install_ripley_lib', 'install_ripleycpp_lib', 'install_ripley_py'])
 
-env.Alias('build_speckley', ['install_speckley_headers', 'build_speckley_lib', 'build_speckleycpp_lib'])
-env.Alias('install_speckley', ['build_speckley', 'install_speckley_lib', 'install_speckleycpp_lib', 'install_speckley_py'])
+if 'speckley' in env['domains']:
+    env.Alias('build_speckley', ['install_speckley_headers', 'build_speckley_lib', 'build_speckleycpp_lib'])
+    env.Alias('install_speckley', ['build_speckley', 'install_speckley_lib', 'install_speckleycpp_lib', 'install_speckley_py'])
 
 env.Alias('build_weipa', ['install_weipa_headers', 'build_weipa_lib', 'build_weipacpp_lib'])
 env.Alias('install_weipa', ['build_weipa', 'install_weipa_lib', 'install_weipacpp_lib', 'install_weipa_py'])
@@ -589,14 +600,14 @@ build_all_list += ['build_esysUtils']
 build_all_list += ['build_paso']
 build_all_list += ['build_escript']
 build_all_list += ['build_pasowrap']
-build_all_list += ['build_dudley']
-build_all_list += ['build_finley']
-build_all_list += ['build_ripley']
-build_all_list += ['build_speckley']
+if 'dudley' in env['domains']: build_all_list += ['build_dudley']
+if 'finley' in env['domains']: build_all_list += ['build_finley']
+if 'ripley' in env['domains']: build_all_list += ['build_ripley']
+if 'speckley' in env['domains']: build_all_list += ['build_speckley']
 build_all_list += ['build_weipa']
-if not IS_WINDOWS: build_all_list += ['build_escriptreader']
+if not IS_WINDOWS and 'finley' in env['domains']:
+    build_all_list += ['build_escriptreader']
 if env['usempi']:   build_all_list += ['build_pythonMPI']
-build_all_list += ['build_escriptconvert']
 env.Alias('build_all', build_all_list)
 
 install_all_list = []
@@ -605,17 +616,17 @@ install_all_list += ['install_esysUtils']
 install_all_list += ['install_paso']
 install_all_list += ['install_escript']
 install_all_list += ['install_pasowrap']
-install_all_list += ['install_dudley']
-install_all_list += ['install_finley']
-install_all_list += ['install_ripley']
-install_all_list += ['install_speckley']
+if 'dudley' in env['domains']: install_all_list += ['install_dudley']
+if 'finley' in env['domains']: install_all_list += ['install_finley']
+if 'ripley' in env['domains']: install_all_list += ['install_ripley']
+if 'speckley' in env['domains']: install_all_list += ['install_speckley']
 install_all_list += ['install_weipa']
-if not IS_WINDOWS: install_all_list += ['install_escriptreader']
+if not IS_WINDOWS and 'finley' in env['domains']:
+    install_all_list += ['install_escriptreader']
 install_all_list += ['install_downunder_py']
 install_all_list += ['install_modellib_py']
 install_all_list += ['install_pycad_py']
 if env['usempi']:   install_all_list += ['install_pythonMPI']
-install_all_list += ['install_escriptconvert']
 env.Alias('install_all', install_all_list)
 
 # Default target is install

@@ -14,20 +14,56 @@
 *
 *****************************************************************************/
 
-
-#include "escript/DataFactory.h"
 #include "EscriptDatasetTestCase.h"
-#include "finley/CppAdapter/MeshAdapterFactory.h"
-#include "weipa/EscriptDataset.h"
-#include "esysUtils/Esys_MPI.h"
+#include <escript/DataFactory.h>
+#include <escript/FunctionSpaceFactory.h>
+#include <weipa/EscriptDataset.h>
+#include <esysUtils/Esys_MPI.h>
 #include <cppunit/TestCaller.h>
+
+#if USE_DUDLEY
+#include <dudley/CppAdapter/MeshAdapterFactory.h>
+#endif
+#if USE_FINLEY
+#include <finley/CppAdapter/MeshAdapterFactory.h>
+#endif
+#if USE_RIPLEY
+#include <ripley/Brick.h>
+#endif
+#if USE_SPECKLEY
+#include <speckley/Brick.h>
+#endif
 
 using namespace CppUnit;
 using namespace escript;
 using namespace weipa;
 using namespace std;
 
-void EscriptDatasetTestCase::testAll()
+TestSuite* EscriptDatasetTestCase::suite()
+{
+    TestSuite *testSuite = new TestSuite("EscriptDatasetTestCase");
+    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
+                "testBase",&EscriptDatasetTestCase::testBase));
+#if USE_DUDLEY
+    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
+                "testDudley",&EscriptDatasetTestCase::testDudley));
+#endif
+#if USE_FINLEY
+    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
+                "testFinley",&EscriptDatasetTestCase::testFinley));
+#endif
+#if USE_RIPLEY
+    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
+                "testRipley",&EscriptDatasetTestCase::testRipley));
+#endif
+#if USE_SPECKLEY
+    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
+                "testSpeckley",&EscriptDatasetTestCase::testSpeckley));
+#endif
+    return testSuite;
+}
+
+void EscriptDatasetTestCase::testBase()
 {
     cout << endl;
     cout << "\tTest default constructor." << endl;
@@ -47,11 +83,45 @@ void EscriptDatasetTestCase::testAll()
 
     cout << "\tTest getMeshVariables without data." << endl;
     CPPUNIT_ASSERT(dataset->getMeshVariables().size() == 0);
+}
 
-
+#if USE_DUDLEY
+void EscriptDatasetTestCase::testDudley()
+{
     esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
-    // instantiate a domain and data
+    Domain_ptr dom(dudley::brick(info));
+    runDomainTests(dom);
+}
+#endif
+
+#if USE_FINLEY
+void EscriptDatasetTestCase::testFinley()
+{
+    esysUtils::JMPI info=esysUtils::makeInfo(MPI_COMM_WORLD);
     Domain_ptr dom(finley::brick(info));
+    runDomainTests(dom);
+}
+#endif
+
+#if USE_RIPLEY
+void EscriptDatasetTestCase::testRipley()
+{
+    Domain_ptr dom(new ripley::Brick(5,4,3, 0,0,0, 1,1,1));
+    runDomainTests(dom);
+}
+#endif
+
+#if USE_SPECKLEY
+void EscriptDatasetTestCase::testSpeckley()
+{
+    Domain_ptr dom(new speckley::Brick(2, 5,4,3, 0,0,0, 1,1,1));
+    runDomainTests(dom);
+}
+#endif
+
+void EscriptDatasetTestCase::runDomainTests(Domain_ptr dom)
+{
+    EscriptDataset_ptr dataset(new EscriptDataset());
     escript::Data data = Scalar(0.0, continuousFunction(*dom), true);
 
     cout << "\tTest addData with NULL domain." << endl;
@@ -94,27 +164,15 @@ void EscriptDatasetTestCase::testAll()
 
 #if USE_SILO
     cout << "\tTest saveSilo." << endl;
-    CPPUNIT_ASSERT(dataset->saveSilo("weipatest.silo") == true);
-    ifstream f("weipatest.silo");
+    CPPUNIT_ASSERT(dataset->saveSilo("domaintest.silo") == true);
+    ifstream f("domaintest.silo");
     CPPUNIT_ASSERT(f.is_open());
     f.close();
 #endif
 
     cout << "\tTest saveVTK." << endl;
-    CPPUNIT_ASSERT(dataset->saveVTK("weipatest.vtu") == true);
-    checkVTKfile("weipatest.vtu");
-
-    //varnames.push_back("dummy");
-    //cout << "\tTest loadNetCDF with invalid params." << endl;
-    //CPPUNIT_ASSERT(dataset->loadNetCDF(blocks, varfiles, varnames) == false);
-}
-
-TestSuite* EscriptDatasetTestCase::suite()
-{
-    TestSuite *testSuite = new TestSuite("EscriptDatasetTestCase");
-    testSuite->addTest(new TestCaller<EscriptDatasetTestCase>(
-                "testAll",&EscriptDatasetTestCase::testAll));
-    return testSuite;
+    CPPUNIT_ASSERT(dataset->saveVTK("domaintest.vtu") == true);
+    checkVTKfile("domaintest.vtu");
 }
 
 int EscriptDatasetTestCase::getDataArrayLength(std::istream& is)

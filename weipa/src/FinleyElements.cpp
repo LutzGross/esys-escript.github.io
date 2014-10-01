@@ -18,9 +18,15 @@
 #include <weipa/NodeData.h>
 
 #ifndef VISIT_PLUGIN
+
+#ifdef USE_DUDLEY
 #include <dudley/CppAdapter/MeshAdapter.h>
+#endif
+#ifdef USE_FINLEY
 #include <finley/CppAdapter/MeshAdapter.h>
-#elif not defined(ABS)
+#endif
+
+#elif !defined(ABS)
 #define ABS(X) ((X)>0?(X):-(X))
 #endif
 
@@ -105,9 +111,13 @@ namespace weipa {
 // Constructor
 //
 FinleyElements::FinleyElements(const string& elementName, FinleyNodes_ptr nodeData)
-    : originalMesh(nodeData), name(elementName), numElements(0),
+    :
+#ifdef USE_FINLEY
+      finleyTypeId(finley::NoRef), 
+#endif
+      originalMesh(nodeData), name(elementName), numElements(0),
       numGhostElements(0), nodesPerElement(0),
-      type(ZONETYPE_UNKNOWN), finleyTypeId(finley::NoRef), elementFactor(1)
+      type(ZONETYPE_UNKNOWN), elementFactor(1)
 {
     nodeMesh.reset(new FinleyNodes(name));
 }
@@ -121,7 +131,9 @@ FinleyElements::FinleyElements(const FinleyElements& e)
     numElements = e.numElements;
     numGhostElements = e.numGhostElements;
     type = e.type;
+#ifdef USE_FINLEY
     finleyTypeId = e.finleyTypeId;
+#endif
     nodesPerElement = e.nodesPerElement;
     elementFactor = e.elementFactor;
     originalMesh = e.originalMesh;
@@ -146,7 +158,7 @@ FinleyElements::FinleyElements(const FinleyElements& e)
 //
 bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
 {
-#ifndef VISIT_PLUGIN
+#if !defined VISIT_PLUGIN && defined USE_DUDLEY
     numElements = dudleyFile->numElements;
 
     if (numElements > 0) {
@@ -189,7 +201,7 @@ bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
     }
     return true;
 
-#else // VISIT_PLUGIN
+#else // VISIT_PLUGIN,USE_DUDLEY
     return false;
 #endif
 }
@@ -199,7 +211,7 @@ bool FinleyElements::initFromDudley(const Dudley_ElementFile* dudleyFile)
 //
 bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
 {
-#ifndef VISIT_PLUGIN
+#if !defined VISIT_PLUGIN && defined USE_FINLEY
     numElements = finleyFile->numElements;
 
     if (numElements > 0) {
@@ -282,7 +294,7 @@ bool FinleyElements::initFromFinley(const finley::ElementFile* finleyFile)
     }
     return true;
 
-#else // VISIT_PLUGIN
+#else // VISIT_PLUGIN,USE_FINLEY
     return false;
 #endif
 }
@@ -335,7 +347,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
 
         // if we don't link with finley we can't get the quadrature nodes
         // and hence cannot interpolate data properly
-#ifndef VISIT_PLUGIN
+#if not defined VISIT_PLUGIN && defined USE_FINLEY
         if (f.useQuadNodes) {
             att = ncfile->get_att("order");
             int order = att->as_int(0);
@@ -379,7 +391,7 @@ bool FinleyElements::readFromNc(NcFile* ncfile)
                 delete[] quadNodes[i];
             quadNodes.clear();
         }
-#endif // VISIT_PLUGIN
+#endif // VISIT_PLUGIN,USE_FINLEY
 
         buildMeshes();
     }
@@ -786,6 +798,7 @@ bool FinleyElements::writeToSilo(DBfile* dbfile, const string& siloPath,
 //
 //
 //
+#ifdef USE_DUDLEY
 FinleyElementInfo FinleyElements::getDudleyTypeInfo(Dudley_ElementTypeId typeId)
 {
     FinleyElementInfo ret;
@@ -827,10 +840,12 @@ FinleyElementInfo FinleyElements::getDudleyTypeInfo(Dudley_ElementTypeId typeId)
     }
     return ret;
 }
+#endif // USE_DUDLEY
 
 //
 //
 //
+#ifdef USE_FINLEY
 FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId)
 {
     FinleyElementInfo ret;
@@ -982,6 +997,7 @@ FinleyElementInfo FinleyElements::getFinleyTypeInfo(finley::ElementTypeId typeId
     }
     return ret;
 }
+#endif // USE_FINLEY
 
 /////////////////////////////////
 // Helpers for buildQuadMask() //

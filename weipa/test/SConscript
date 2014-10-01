@@ -24,7 +24,19 @@ if local_env['cppunit']:
     testname='weipa_UnitTest'
 
     # build the executable
-    local_env.Append(LIBS=['weipa', 'escript', 'esysUtils', 'dudley', 'finley']+env['cppunit_libs'])
+    local_env.Append(LIBS=['weipa', 'escript', 'esysUtils']+env['cppunit_libs'])
+    if 'dudley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_DUDLEY'])
+        local_env.Prepend(LIBS = ['dudley'])
+    if 'finley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_FINLEY'])
+        local_env.Prepend(LIBS = ['finley'])
+    if 'ripley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
+        local_env.Prepend(LIBS = ['ripley'])
+    if 'speckley' in env['domains']:
+        local_env.Append(CPPDEFINES = ['USE_SPECKLEY'])
+        local_env.Prepend(LIBS = ['speckley'])
     if local_env['silo']:
         local_env.Append(CPPDEFINES = ['USE_SILO'])
         local_env.AppendUnique(LIBS = [env['silo_libs']])

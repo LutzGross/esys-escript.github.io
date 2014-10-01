@@ -17,18 +17,32 @@
 #include <weipa/EscriptDataset.h>
 #include <weipa/DataVar.h>
 #include <weipa/ElementData.h>
-#include <weipa/FinleyDomain.h>
 #include <weipa/NodeData.h>
+#if defined USE_FINLEY || defined USE_DUDLEY
+#include <weipa/FinleyDomain.h>
+#endif
+#ifdef USE_RIPLEY
 #include <weipa/RipleyDomain.h>
+#endif
+#ifdef USE_SPECKLEY
 #include <weipa/SpeckleyDomain.h>
+#endif
 
 #ifndef VISIT_PLUGIN
 #include <esysUtils/esysFileWriter.h>
 #include <escript/Data.h>
+#ifdef USE_DUDLEY
 #include <dudley/CppAdapter/MeshAdapter.h>
+#endif
+#ifdef USE_FINLEY
 #include <finley/CppAdapter/MeshAdapter.h>
+#endif
+#ifdef USE_RIPLEY
 #include <ripley/RipleyDomain.h>
+#endif
+#ifdef USE_SPECKLEY
 #include <speckley/SpeckleyDomain.h>
+#endif
 
 using esysUtils::FileWriter;
 #endif
@@ -111,9 +125,13 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
         mpiRank = domain->getMPIRank();
         mpiSize = domain->getMPISize();
 #endif
-        // FinleyDomain can handle both finley and dudley
-        if (dynamic_cast<const finley::MeshAdapter*>(domain)
-                || dynamic_cast<const dudley::MeshAdapter*>(domain)) {
+
+        // this is here to allow using 'else if' for all selectively compiled
+        // paths
+        if (0) {
+        }
+#if USE_FINLEY
+        else if (dynamic_cast<const finley::MeshAdapter*>(domain)) {
             DomainChunk_ptr dom(new FinleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)
@@ -123,7 +141,23 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
                 cerr << "Error initializing domain!" << endl;
                 myError = 2;
             }
-        } else if (dynamic_cast<const ripley::RipleyDomain*>(domain)) {
+        }
+#endif
+#if USE_DUDLEY
+        else if (dynamic_cast<const dudley::MeshAdapter*>(domain)) {
+            DomainChunk_ptr dom(new FinleyDomain());
+            if (dom->initFromEscript(domain)) {
+                if (mpiSize > 1)
+                    dom->reorderGhostZones(mpiRank);
+                domainChunks.push_back(dom);
+            } else {
+                cerr << "Error initializing domain!" << endl;
+                myError = 2;
+            }
+        }
+#endif
+#if USE_RIPLEY
+        else if (dynamic_cast<const ripley::RipleyDomain*>(domain)) {
             DomainChunk_ptr dom(new RipleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)
@@ -133,7 +167,10 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
                 cerr << "Error initializing domain!" << endl;
                 myError = 2;
             }
-        } else if (dynamic_cast<const speckley::SpeckleyDomain*>(domain)) {
+        }
+#endif
+#if USE_SPECKLEY
+        else if (dynamic_cast<const speckley::SpeckleyDomain*>(domain)) {
             DomainChunk_ptr dom(new SpeckleyDomain());
             if (dom->initFromEscript(domain)) {
                 if (mpiSize > 1)
@@ -143,7 +180,9 @@ bool EscriptDataset::setDomain(const escript::AbstractDomain* domain)
                 cerr << "Error initializing domain!" << endl;
                 myError = 2;
             }
-        } else {
+        }
+#endif
+        else {
             cerr << "Unsupported domain type!" << endl;
             myError = 2;
         }
@@ -811,6 +850,7 @@ bool EscriptDataset::loadDomain(const string filePattern, int nChunks)
         myError = 1;
 
     } else {
+#ifdef USE_FINLEY
         char* str = new char[filePattern.length()+10];
         // FIXME: This assumes a finley domain!
         if (mpiSize > 1) {
@@ -841,6 +881,10 @@ bool EscriptDataset::loadDomain(const string filePattern, int nChunks)
             }
         }
         delete[] str;
+#else // USE_FINLEY
+        cerr << "weipa not compiled with finley support." << endl;
+        myError = 3;
+#endif
     }
 
     if (mpiSize > 1) {
