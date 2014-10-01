@@ -124,7 +124,7 @@ bool RipleyNodes::initFromRipley(const ripley::RipleyDomain* dom)
 
     numDims = dom->getDim();
     globalNumNodes = dom->getNumDataPointsGlobal();
-    pair<int,int> shape = dom->getDataShape(ripley::Nodes);
+    pair<int,dim_t> shape = dom->getDataShape(ripley::Nodes);
     numNodes = shape.second;
     nodeDist = dom->getNodeDistribution();
 
@@ -133,22 +133,22 @@ bool RipleyNodes::initFromRipley(const ripley::RipleyDomain* dom)
             float* c = new float[numNodes];
             coords.push_back(c);
         }
-        const int* NN = dom->getNumNodesPerDim();
+        const dim_t* NN = dom->getNumNodesPerDim();
 
         if (numDims==2) {
 #pragma omp parallel for
-            for (int i1=0; i1<NN[1]; i1++) {
-                for (int i0=0; i0<NN[0]; i0++) {
+            for (dim_t i1=0; i1<NN[1]; i1++) {
+                for (dim_t i0=0; i0<NN[0]; i0++) {
                     coords[0][i0+NN[0]*i1] = dom->getLocalCoordinate(i0, 0);
                     coords[1][i0+NN[0]*i1] = dom->getLocalCoordinate(i1, 1);
                 }
             }
         } else {
 #pragma omp parallel for
-            for (int i2=0; i2<NN[2]; i2++) {
-                for (int i1=0; i1<NN[1]; i1++) {
-                    for (int i0=0; i0<NN[0]; i0++) {
-                        const int index = i0+NN[0]*i1+NN[0]*NN[1]*i2;
+            for (dim_t i2=0; i2<NN[2]; i2++) {
+                for (dim_t i1=0; i1<NN[1]; i1++) {
+                    for (dim_t i0=0; i0<NN[0]; i0++) {
+                        const dim_t index = i0+NN[0]*i1+NN[0]*NN[1]*i2;
                         coords[0][index] = dom->getLocalCoordinate(i0, 0);
                         coords[1][index] = dom->getLocalCoordinate(i1, 1);
                         coords[2][index] = dom->getLocalCoordinate(i2, 2);
@@ -156,7 +156,7 @@ bool RipleyNodes::initFromRipley(const ripley::RipleyDomain* dom)
                 }
             }
         }
-        const int* iPtr = dom->borrowSampleReferenceIDs(ripley::Nodes);
+        const dim_t* iPtr = dom->borrowSampleReferenceIDs(ripley::Nodes);
         nodeID.assign(iPtr, iPtr+numNodes);
 
         //iPtr = dom->borrowListOfTags(ripley::Nodes);

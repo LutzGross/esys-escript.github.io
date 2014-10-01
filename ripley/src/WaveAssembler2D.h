@@ -25,7 +25,7 @@ class WaveAssembler2D : public AbstractAssembler
 {
 public:
     WaveAssembler2D(escript::const_Domain_ptr dom, const double *dx,
-                    const dim_t *NX, const dim_t *NE, const dim_t *NN,
+                    const dim_t *NE, const dim_t *NN,
                     const DataMap& c);
 
     ~WaveAssembler2D() {}
@@ -70,7 +70,6 @@ private:
     DataMap c;
     boost::shared_ptr<const Rectangle> domain;
     const double *m_dx;
-    const dim_t *m_NX;
     const dim_t *m_NE;
     const dim_t *m_NN;
     escript::Data c11, c12, c13, c23, c33, c44, c66;

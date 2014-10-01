@@ -641,9 +641,9 @@ bool RipleyDomain::canTag(int fsType) const
     throw RipleyException(msg.str());
 }
 
-void RipleyDomain::setTags(const int fsType, const int newTag, const escript::Data& mask) const
+void RipleyDomain::setTags(int fsType, int newTag, const escript::Data& mask) const
 {
-    IndexVector* target=NULL;
+    vector<int>* target=NULL;
     dim_t num=0;
 
     switch(fsType) {
@@ -858,7 +858,7 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
 
     if (type == (int)SMT_CUSP) {
 #ifdef USE_CUDA
-        const int numMatrixRows = getNumDOF();
+        const dim_t numMatrixRows = getNumDOF();
         escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
                     row_functionspace, numMatrixRows, getDiagonalIndices()));
         return sm;
@@ -1058,8 +1058,8 @@ void RipleyDomain::multiplyData(escript::Data& out, const escript::Data& in) con
 //protected
 void RipleyDomain::updateTagsInUse(int fsType) const
 {
-    IndexVector* tagsInUse=NULL;
-    const IndexVector* tags=NULL;
+    vector<int>* tagsInUse=NULL;
+    const vector<int>* tags=NULL;
     switch(fsType) {
         case Nodes:
             tags=&m_nodeTags;
@@ -1084,19 +1084,19 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 
     // gather global unique tag values from tags into tagsInUse
     tagsInUse->clear();
-    index_t lastFoundValue = INDEX_T_MIN, minFoundValue, local_minFoundValue;
-    const long numTags = tags->size();
+    int lastFoundValue = numeric_limits<int>::min();
+    int minFoundValue, local_minFoundValue;
+    const int numTags = tags->size();
 
     while (true) {
         // find smallest value bigger than lastFoundValue
-        minFoundValue = INDEX_T_MAX;
+        minFoundValue = numeric_limits<int>::max();
 #pragma omp parallel private(local_minFoundValue)
         {
             local_minFoundValue = minFoundValue;
-            long i;     // should be size_t but omp mutter mutter
-#pragma omp for schedule(static) private(i) nowait
-            for (i = 0; i < numTags; i++) {
-                const index_t v = (*tags)[i];
+#pragma omp for schedule(static) nowait
+            for (int i = 0; i < numTags; i++) {
+                const int v = (*tags)[i];
                 if ((v > lastFoundValue) && (v < local_minFoundValue))
                     local_minFoundValue = v;
             }
@@ -1112,7 +1112,7 @@ void RipleyDomain::updateTagsInUse(int fsType) const
 #endif
 
         // if we found a new value add it to the tagsInUse vector
-        if (minFoundValue < INDEX_T_MAX) {
+        if (minFoundValue < numeric_limits<int>::max()) {
             tagsInUse->push_back(minFoundValue);
             lastFoundValue = minFoundValue;
         } else

@@ -280,30 +280,25 @@ FunctionSpace::getNumberOfTagsInUse() const
    return  m_domain->getNumberOfTagsInUse(m_functionSpaceType);
 }
 
-const int* 
-FunctionSpace::borrowListOfTagsInUse() const
+const int* FunctionSpace::borrowListOfTagsInUse() const
 {
-   return  m_domain->borrowListOfTagsInUse(m_functionSpaceType);
+   return m_domain->borrowListOfTagsInUse(m_functionSpaceType);
 }
 
-std::list<int>
-FunctionSpace::getListOfTagsSTL() const 
+std::list<int> FunctionSpace::getListOfTagsSTL() const 
 {
-  std::list<int> taglist;
-  int i;
   const int* tags=borrowListOfTagsInUse();
-  for (i=0;i<getNumberOfTagsInUse();++i) taglist.push_back(tags[i]);
+  std::list<int> taglist(tags, tags+getNumberOfTagsInUse());
   return taglist;
 }
 
 
-boost::python::list
-FunctionSpace::getListOfTags() const 
+boost::python::list FunctionSpace::getListOfTags() const 
 {
-  boost::python::list taglist;
-  int i;
   const int* tags=borrowListOfTagsInUse();
-  for (i=0;i<getNumberOfTagsInUse();++i) taglist.append(tags[i]);
+  boost::python::list taglist;
+  for (int i=0; i<getNumberOfTagsInUse(); ++i)
+      taglist.append(tags[i]);
   return taglist;
 }
 

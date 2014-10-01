@@ -25,10 +25,9 @@ class LameAssembler3D : public AbstractAssembler
 {
 public:
     LameAssembler3D(escript::const_Domain_ptr dom, const double *dx,
-                    const dim_t *NX, const dim_t *NE, const dim_t *NN)
+                    const dim_t *NE, const dim_t *NN)
         : AbstractAssembler(),
         m_dx(dx),
-        m_NX(NX),
         m_NE(NE),
         m_NN(NN)
     {
@@ -63,7 +62,6 @@ public:
 protected:
     boost::shared_ptr<const Brick> domain;
     const double *m_dx;
-    const dim_t *m_NX;
     const dim_t *m_NE;
     const dim_t *m_NN;
 };

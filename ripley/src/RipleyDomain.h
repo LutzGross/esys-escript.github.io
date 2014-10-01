@@ -583,7 +583,7 @@ public:
        returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
-    const int* borrowSampleReferenceIDs(int fsType) const = 0;
+    const dim_t* borrowSampleReferenceIDs(int fsType) const = 0;
 
     /**
        \brief
@@ -677,7 +677,7 @@ public:
        \brief
        returns the index'th coordinate value in given dimension for this rank
     */
-    virtual double getLocalCoordinate(dim_t index, int dim) const = 0;
+    virtual double getLocalCoordinate(index_t index, int dim) const = 0;
 
     /**
        \brief
@@ -712,9 +712,9 @@ protected:
     StatusType m_status;
     esysUtils::JMPI m_mpiInfo;
     TagMap m_tagMap;
-    mutable IndexVector m_nodeTags, m_nodeTagsInUse;
-    mutable IndexVector m_elementTags, m_elementTagsInUse;
-    mutable IndexVector m_faceTags, m_faceTagsInUse;
+    mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
+    mutable std::vector<int> m_elementTags, m_elementTagsInUse;
+    mutable std::vector<int> m_faceTags, m_faceTagsInUse;
     std::vector<DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;

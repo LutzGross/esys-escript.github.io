@@ -187,7 +187,7 @@ ATP_ptr AbstractContinuousDomain::newTransportProblem(
   return ATP_ptr();
 }
 
-int AbstractContinuousDomain::getNumDataPointsGlobal() const
+dim_t AbstractContinuousDomain::getNumDataPointsGlobal() const
 {
   throwStandardException("AbstractContinuousDomain::getNumDataPointsGlobal");
   return 1;

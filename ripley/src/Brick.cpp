@@ -68,7 +68,7 @@ Brick::Brick(dim_t n0, dim_t n1, dim_t n2, double x0, double y0, double z0,
     RipleyDomain(3, w)
 {
     if (static_cast<long>(n0 + 1) * static_cast<long>(n1 + 1)
-            * static_cast<long>(n2 + 1) > numeric_limits<int>::max())
+            * static_cast<long>(n2 + 1) > numeric_limits<dim_t>::max())
         throw RipleyException("The number of elements has overflowed, this "
                 "limit may be raised in future releases.");
 
@@ -304,13 +304,13 @@ void Brick::readNcGrid(escript::Data& out, string filename, string varname,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
-    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
-    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = max(dim_t(0), params.first[1]-m_offset[1]);
+    const dim_t first2 = max(dim_t(0), params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    dim_t idx0 = max(0, m_offset[0]-params.first[0]);
-    dim_t idx1 = max(0, m_offset[1]-params.first[1]);
-    dim_t idx2 = max(0, m_offset[2]-params.first[2]);
+    dim_t idx0 = max(dim_t(0), m_offset[0]-params.first[0]);
+    dim_t idx1 = max(dim_t(0), m_offset[1]-params.first[1]);
+    dim_t idx2 = max(dim_t(0), m_offset[2]-params.first[2]);
     // number of values to read
     const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
     const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
@@ -483,13 +483,13 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
-    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
-    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = max(dim_t(0), params.first[1]-m_offset[1]);
+    const dim_t first2 = max(dim_t(0), params.first[2]-m_offset[2]);
     // indices to first value in file (not accounting for reverse yet)
-    dim_t idx0 = max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
-    dim_t idx1 = max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
-    dim_t idx2 = max(0, (m_offset[2]/params.multiplier[2])-params.first[2]);
+    dim_t idx0 = max(dim_t(0), (m_offset[0]/params.multiplier[0])-params.first[0]);
+    dim_t idx1 = max(dim_t(0), (m_offset[1]/params.multiplier[1])-params.first[1]);
+    dim_t idx2 = max(dim_t(0), (m_offset[2]/params.multiplier[2])-params.first[2]);
     // if restX > 0 the first value in the respective dimension has been
     // written restX times already in a previous rank so this rank only
     // contributes (multiplier-rank) copies of that value
@@ -642,13 +642,13 @@ void Brick::readBinaryGridZippedImpl(escript::Data& out, const string& filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const dim_t first0 = max(0, params.first[0]-m_offset[0]);
-    const dim_t first1 = max(0, params.first[1]-m_offset[1]);
-    const dim_t first2 = max(0, params.first[2]-m_offset[2]);
+    const dim_t first0 = max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = max(dim_t(0), params.first[1]-m_offset[1]);
+    const dim_t first2 = max(dim_t(0), params.first[2]-m_offset[2]);
     // indices to first value in file
-    const dim_t idx0 = max(0, m_offset[0]-params.first[0]);
-    const dim_t idx1 = max(0, m_offset[1]-params.first[1]);
-    const dim_t idx2 = max(0, m_offset[2]-params.first[2]);
+    const dim_t idx0 = max(dim_t(0), m_offset[0]-params.first[0]);
+    const dim_t idx1 = max(dim_t(0), m_offset[1]-params.first[1]);
+    const dim_t idx2 = max(dim_t(0), m_offset[2]-params.first[2]);
     // number of values to read
     const dim_t num0 = min(params.numValues[0]-idx0, myN0-first0);
     const dim_t num1 = min(params.numValues[1]-idx1, myN1-first1);
@@ -887,20 +887,21 @@ void Brick::dump(const string& fileName) const
             coords[2][i2]=getLocalCoordinate(i2, 2);
         }
     }
-    dim_t* dims = const_cast<dim_t*>(getNumNodesPerDim());
+    // converting to int!
+    vector<int> dims(m_NN, m_NN+3);
 
     // write mesh
-    DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 3, DB_DOUBLE,
+    DBPutQuadmesh(dbfile, "mesh", NULL, coords, &dims[0], 3, DB_DOUBLE,
             DB_COLLINEAR, NULL);
 
     // write node ids
-    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], dims, 3,
+    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], &dims[0], 3,
             NULL, 0, DB_INT, DB_NODECENT, NULL);
 
     // write element ids
-    dims = const_cast<dim_t*>(getNumElementsPerDim());
+    dims.assign(m_NE, m_NE+3);
     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
-            dims, 3, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            &dims[0], 3, NULL, 0, DB_INT, DB_ZONECENT, NULL);
 
     // rank 0 writes multimesh and multivar
     if (m_mpiInfo->rank == 0) {
@@ -2819,7 +2820,7 @@ void Brick::populateDofMap()
 //private
 void Brick::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
          const vector<double>& EM_S, const vector<double>& EM_F, bool addS,
-         bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
+         bool addF, index_t firstNode, int nEq, int nComp) const
 {
     IndexVector rowIndex(8);
     rowIndex[0] = m_dofMap[firstNode];
@@ -2834,7 +2835,7 @@ void Brick::addToMatrixAndRHS(AbstractSystemMatrix* S, escript::Data& F,
         double *F_p=F.getSampleDataRW(0);
         for (index_t i=0; i<rowIndex.size(); i++) {
             if (rowIndex[i]<getNumDOF()) {
-                for (index_t eq=0; eq<nEq; eq++) {
+                for (int eq=0; eq<nEq; eq++) {
                     F_p[INDEX2(eq, rowIndex[i], nEq)]+=EM_F[INDEX2(eq,i,nEq)];
                 }
             }
@@ -3502,11 +3503,11 @@ dim_t Brick::findNode(const double *coords) const
 Assembler_ptr Brick::createAssembler(string type, const DataMap& constants) const
 {
     if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        return Assembler_ptr(new DefaultAssembler3D(shared_from_this(), m_dx, m_NE, m_NN));
     } else if (type.compare("WaveAssembler") == 0) {
-        return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN, constants));
+        return Assembler_ptr(new WaveAssembler3D(shared_from_this(), m_dx, m_NE, m_NN, constants));
     } else if (type.compare("LameAssembler") == 0) {
-        return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        return Assembler_ptr(new LameAssembler3D(shared_from_this(), m_dx, m_NE, m_NN));
     } else { //else ifs would go before this for other types
         throw RipleyException("Ripley::Brick does not support the requested "
                               "assembler");

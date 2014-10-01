@@ -71,8 +71,8 @@ RipleyElements::RipleyElements(const RipleyElements& e)
 bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
 {
 #ifndef VISIT_PLUGIN
-    const pair<int,int> shape = dom->getDataShape(fsType);
-    const int* faces = dom->getNumFacesPerBoundary();
+    const pair<int,dim_t> shape = dom->getDataShape(fsType);
+    const dim_t* faces = dom->getNumFacesPerBoundary();
     const int* NS = dom->getNumSubdivisionsPerDim();
 
     numElements = shape.second;
@@ -92,30 +92,30 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
         }
         owner.assign(numElements, dom->getMPIRank());
 
-        const int* iPtr = dom->borrowSampleReferenceIDs(fsType);
+        const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
         ID.assign(iPtr, iPtr+numElements);
 
         //iPtr = dom->borrowListOfTags(fsType);
         //tag.assign(iPtr, iPtr+numElements);
 
-        const int* NE = dom->getNumElementsPerDim();
-        const int* NN = dom->getNumNodesPerDim();
+        const dim_t* NE = dom->getNumElementsPerDim();
+        const dim_t* NN = dom->getNumNodesPerDim();
         nodes.clear();
         if (dom->getDim() == 2) {
             if (fsType==ripley::Elements) {
                 if (faces[0]==0) {
                     owner[0]=(faces[2]==0 ? dom->getMPIRank()-NS[0]-1
                             : dom->getMPIRank()-1);
-                    for (int i=1; i<NE[1]; i++)
+                    for (dim_t i=1; i<NE[1]; i++)
                         owner[i*NE[0]]=dom->getMPIRank()-1;
                 }
                 if (faces[2]==0) {
                     const int first=(faces[0]==0 ? 1 : 0);
-                    for (int i=first; i<NE[0]; i++)
+                    for (dim_t i=first; i<NE[0]; i++)
                         owner[i]=dom->getMPIRank()-NS[0];
                 }
                 int id=0;
-                for (int i=0; i<numElements; i++) {
+                for (dim_t i=0; i<numElements; i++) {
                     nodes.push_back(id);
                     nodes.push_back(id+1);
                     nodes.push_back(id+1+NN[0]);
@@ -139,25 +139,25 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
 
                 int id=0;
-                for (int i=0; i<faces[0]; i++) {
+                for (dim_t i=0; i<faces[0]; i++) {
                     nodes.push_back(id);
                     nodes.push_back(id+NN[0]);
                     id+=NN[0];
                 }
                 id=NN[0]-1;
-                for (int i=0; i<faces[1]; i++) {
+                for (dim_t i=0; i<faces[1]; i++) {
                     nodes.push_back(id);
                     nodes.push_back(id+NN[0]);
                     id+=NN[0];
                 }
                 id=0;
-                for (int i=0; i<faces[2]; i++) {
+                for (dim_t i=0; i<faces[2]; i++) {
                     nodes.push_back(id);
                     nodes.push_back(id+1);
                     id++;
                 }
                 id=NN[0]*(NN[1]-1);
-                for (int i=0; i<faces[3]; i++) {
+                for (dim_t i=0; i<faces[3]; i++) {
                     nodes.push_back(id);
                     nodes.push_back(id+1);
                     id++;
@@ -168,31 +168,31 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 // ownership is not entirely correct but that is not critical.
                 // fix when there is time.
                 if (faces[1]==0) {
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k1=0; k1<NE[1]; k1++) {
-                            const int e=k2*NE[0]*NE[1]+(k1+1)*NE[0]-1;
+                    for (dim_t k2=0; k2<NE[2]; k2++) {
+                        for (dim_t k1=0; k1<NE[1]; k1++) {
+                            const dim_t e=k2*NE[0]*NE[1]+(k1+1)*NE[0]-1;
                             owner[e]=dom->getMPIRank()+1;
                         }
                     }
                 }
                 if (faces[3]==0) {
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int e=(k2+1)*NE[0]*NE[1]-NE[0]+k0;
+                    for (dim_t k2=0; k2<NE[2]; k2++) {
+                        for (dim_t k0=0; k0<NE[0]; k0++) {
+                            const dim_t e=(k2+1)*NE[0]*NE[1]-NE[0]+k0;
                             owner[e]=dom->getMPIRank()+NS[0];
                         }
                     }
                 }
                 if (faces[5]==0) {
-                    for (int k1=0; k1<NE[1]; k1++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int e=k1*NE[0]+k0+NE[0]*NE[1]*(NE[2]-1);
+                    for (dim_t k1=0; k1<NE[1]; k1++) {
+                        for (dim_t k0=0; k0<NE[0]; k0++) {
+                            const dim_t e=k1*NE[0]+k0+NE[0]*NE[1]*(NE[2]-1);
                             owner[e]=dom->getMPIRank()+NS[0]*NS[1];
                         }
                     }
                 }
                 int id=0;
-                for (int i=0; i<numElements; i++) {
+                for (dim_t i=0; i<numElements; i++) {
                     nodes.push_back(id);
                     nodes.push_back(id+NN[0]*NN[1]);
                     nodes.push_back(id+NN[0]*NN[1]+1);
@@ -211,20 +211,20 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
             } else if (fsType==ripley::FaceElements) {
                 // ownership is not entirely correct but that is not critical.
                 // fix when there is time.
-                const int* NE = dom->getNumElementsPerDim();
+                const dim_t* NE = dom->getNumElementsPerDim();
                 int offset=0;
                 if (faces[0]>0) {
                     if (faces[3]==0) {
-                        for (int k2=0; k2<NE[2]; k2++)
+                        for (dim_t k2=0; k2<NE[2]; k2++)
                             owner[(k2+1)*NE[1]-1]=dom->getMPIRank()+NS[0];
                     }
                     if (faces[5]==0) {
-                        for (int k1=0; k1<NE[1]; k1++)
+                        for (dim_t k1=0; k1<NE[1]; k1++)
                             owner[NE[1]*(NE[2]-1)+k1]=dom->getMPIRank()+NS[0]*NS[1];
                     }
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k1=0; k1<NE[1]; k1++) {
-                            const int first=k2*NN[0]*NN[1]+k1*NN[0];
+                    for (dim_t k2=0; k2<NE[2]; k2++) {
+                        for (dim_t k1=0; k1<NE[1]; k1++) {
+                            const dim_t first=k2*NN[0]*NN[1]+k1*NN[0];
                             nodes.push_back(first+NN[0]*NN[1]);
                             nodes.push_back(first);
                             nodes.push_back(first+NN[0]);
@@ -235,16 +235,16 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
                 if (faces[1]>0) {
                     if (faces[3]==0) {
-                        for (int k2=0; k2<NE[2]; k2++)
+                        for (dim_t k2=0; k2<NE[2]; k2++)
                             owner[offset+(k2+1)*NE[1]-1]=dom->getMPIRank()+NS[0]+1;
                     }
                     if (faces[5]==0) {
-                        for (int k1=0; k1<NE[1]; k1++)
+                        for (dim_t k1=0; k1<NE[1]; k1++)
                             owner[offset+NE[1]*(NE[2]-1)+k1]=dom->getMPIRank()+NS[0]*NS[1]+1;
                     }
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k1=0; k1<NE[1]; k1++) {
-                            const int first=k2*NN[0]*NN[1]+(k1+1)*NN[0]-1;
+                    for (dim_t k2=0; k2<NE[2]; k2++) {
+                        for (dim_t k1=0; k1<NE[1]; k1++) {
+                            const dim_t first=k2*NN[0]*NN[1]+(k1+1)*NN[0]-1;
                             nodes.push_back(first+NN[0]*NN[1]);
                             nodes.push_back(first);
                             nodes.push_back(first+NN[0]);
@@ -255,16 +255,16 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
                 if (faces[2]>0) {
                     if (faces[1]==0) {
-                        for (int k2=0; k2<NE[2]; k2++)
+                        for (dim_t k2=0; k2<NE[2]; k2++)
                             owner[offset+(k2+1)*NE[0]-1]=dom->getMPIRank()+1;
                     }
                     if (faces[5]==0) {
-                        for (int k0=0; k0<NE[0]; k0++)
+                        for (dim_t k0=0; k0<NE[0]; k0++)
                             owner[offset+NE[0]*(NE[2]-1)+k0]=dom->getMPIRank()+NS[0]*NS[1];
                     }
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int first=k2*NN[0]*NN[1]+k0;
+                    for (dim_t k2=0; k2<NE[2]; k2++) {
+                        for (dim_t k0=0; k0<NE[0]; k0++) {
+                            const dim_t first=k2*NN[0]*NN[1]+k0;
                             nodes.push_back(first+NN[0]*NN[1]);
                             nodes.push_back(first);
                             nodes.push_back(first+1);
@@ -275,16 +275,16 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
                 if (faces[3]>0) {
                     if (faces[1]==0) {
-                        for (int k2=0; k2<NE[2]; k2++)
+                        for (dim_t k2=0; k2<NE[2]; k2++)
                             owner[offset+(k2+1)*NE[0]-1]=dom->getMPIRank()+NS[0]+1;
                     }
                     if (faces[5]==0) {
-                        for (int k0=0; k0<NE[0]; k0++)
+                        for (dim_t k0=0; k0<NE[0]; k0++)
                             owner[offset+NE[0]*(NE[2]-1)+k0]=dom->getMPIRank()+NS[0]*(NS[1]+1);
                     }
-                    for (int k2=0; k2<NE[2]; k2++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int first=(k2+1)*NN[0]*NN[1]-NN[0]+k0;
+                    for (dim_t k2=0; k2<NE[2]; k2++) {
+                        for (dim_t k0=0; k0<NE[0]; k0++) {
+                            const dim_t first=(k2+1)*NN[0]*NN[1]-NN[0]+k0;
                             nodes.push_back(first+NN[0]*NN[1]);
                             nodes.push_back(first);
                             nodes.push_back(first+1);
@@ -295,16 +295,16 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
                 if (faces[4]>0) {
                     if (faces[1]==0) {
-                        for (int k1=0; k1<NE[1]; k1++)
+                        for (dim_t k1=0; k1<NE[1]; k1++)
                             owner[offset+(k1+1)*NE[0]-1]=dom->getMPIRank()+1;
                     }
                     if (faces[3]==0) {
-                        for (int k0=0; k0<NE[0]; k0++)
+                        for (dim_t k0=0; k0<NE[0]; k0++)
                             owner[offset+NE[0]*(NE[1]-1)+k0]=dom->getMPIRank()+NS[0];
                     }
-                    for (int k1=0; k1<NE[1]; k1++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int first=k1*NN[0]+k0;
+                    for (dim_t k1=0; k1<NE[1]; k1++) {
+                        for (dim_t k0=0; k0<NE[0]; k0++) {
+                            const dim_t first=k1*NN[0]+k0;
                             nodes.push_back(first);
                             nodes.push_back(first+1);
                             nodes.push_back(first+NN[0]+1);
@@ -315,16 +315,16 @@ bool RipleyElements::initFromRipley(const ripley::RipleyDomain* dom, int fsType)
                 }
                 if (faces[5]>0) {
                     if (faces[1]==0) {
-                        for (int k1=0; k1<NE[1]; k1++)
+                        for (dim_t k1=0; k1<NE[1]; k1++)
                             owner[offset+(k1+1)*NE[0]-1]=dom->getMPIRank()+NS[0]*NS[1]+1;
                     }
                     if (faces[3]==0) {
-                        for (int k0=0; k0<NE[0]; k0++)
+                        for (dim_t k0=0; k0<NE[0]; k0++)
                             owner[offset+NE[0]*(NE[1]-1)+k0]=dom->getMPIRank()+NS[0]*(NS[1]+1);
                     }
-                    for (int k1=0; k1<NE[1]; k1++) {
-                        for (int k0=0; k0<NE[0]; k0++) {
-                            const int first=NN[0]*NN[1]*(NN[2]-1)+k1*NN[0]+k0;
+                    for (dim_t k1=0; k1<NE[1]; k1++) {
+                        for (dim_t k0=0; k0<NE[0]; k0++) {
+                            const dim_t first=NN[0]*NN[1]*(NN[2]-1)+k1*NN[0]+k0;
                             nodes.push_back(first);
                             nodes.push_back(first+1);
                             nodes.push_back(first+NN[0]+1);
@@ -400,12 +400,12 @@ IntVec RipleyElements::prepareGhostIndices(int ownIndex)
     
     // move indices of "ghost zones" to the end to be able to reorder
     // data accordingly
-    for (int i=0; i<numElements; i++) {
+    for (dim_t i=0; i<numElements; i++) {
         if (owner[i] == ownIndex)
             indexArray.push_back(i);
     }
 
-    for (int i=0; i<numElements; i++) {
+    for (dim_t i=0; i<numElements; i++) {
         if (owner[i] != ownIndex) {
             numGhostElements++;
             indexArray.push_back(i);
