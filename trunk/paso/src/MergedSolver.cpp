@@ -53,8 +53,8 @@ MergedSolver::MergedSolver(const_SystemMatrix_ptr M, const Options* options)
     // First, gather x and b into rank 0
     b = new double[global_n*n_block];
     x = new double[global_n*n_block];
-    counts = new index_t[size];
-    offset = new index_t[size];
+    counts = new int[size];
+    offset = new int[size];
 
 #pragma omp parallel for
     for (dim_t i=0; i<size; i++) {

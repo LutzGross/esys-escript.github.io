@@ -601,7 +601,7 @@ public:
        returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
-    const int* borrowSampleReferenceIDs(int fsType) const = 0;
+    const index_t* borrowSampleReferenceIDs(int fsType) const = 0;
 
     /**
        \brief
@@ -732,8 +732,8 @@ protected:
     StatusType m_status;
     esysUtils::JMPI m_mpiInfo;
     TagMap m_tagMap;
-    mutable IndexVector m_nodeTags, m_nodeTagsInUse;
-    mutable IndexVector m_elementTags, m_elementTagsInUse;
+    mutable std::vector<int> m_nodeTags, m_nodeTagsInUse;
+    mutable std::vector<int> m_elementTags, m_elementTagsInUse;
     std::vector<DiracPoint> m_diracPoints;
     IndexVector m_diracPointNodeIDs; //for borrowSampleID
     assembler_t assembler_type;

@@ -249,11 +249,11 @@ void Rectangle::readNcGrid(escript::Data& out, std::string filename,
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const dim_t first0 = std::max(0, params.first[0]-m_offset[0]);
-    const dim_t first1 = std::max(0, params.first[1]-m_offset[1]);
+    const dim_t first0 = std::max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(dim_t(0), params.first[1]-m_offset[1]);
     // indices to first value in file (not accounting for reverse yet)
-    dim_t idx0 = std::max(0, m_offset[0]-params.first[0]);
-    dim_t idx1 = std::max(0, m_offset[1]-params.first[1]);
+    dim_t idx0 = std::max(dim_t(0), m_offset[0]-params.first[0]);
+    dim_t idx1 = std::max(dim_t(0), m_offset[1]-params.first[1]);
     // number of values to read
     const dim_t num0 = std::min(params.numValues[0]-idx0, myN0-first0);
     const dim_t num1 = std::min(params.numValues[1]-idx1, myN1-first1);
@@ -403,11 +403,11 @@ void Rectangle::readBinaryGridImpl(escript::Data& out, const std::string& filena
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const dim_t first0 = std::max(0, params.first[0]-m_offset[0]);
-    const dim_t first1 = std::max(0, params.first[1]-m_offset[1]);
+    const dim_t first0 = std::max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(dim_t(0), params.first[1]-m_offset[1]);
     // indices to first value in file
-    const dim_t idx0 = std::max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
-    const dim_t idx1 = std::max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    const dim_t idx0 = std::max(dim_t(0), (m_offset[0]/params.multiplier[0])-params.first[0]);
+    const dim_t idx1 = std::max(dim_t(0), (m_offset[1]/params.multiplier[1])-params.first[1]);
     // if restX > 0 the first value in the respective dimension has been
     // written restX times already in a previous rank so this rank only
     // contributes (multiplier-rank) copies of that value
@@ -517,11 +517,11 @@ void Rectangle::readBinaryGridZippedImpl(escript::Data& out, const std::string& 
     // now determine how much this rank has to write
 
     // first coordinates in data object to write to
-    const dim_t first0 = std::max(0, params.first[0]-m_offset[0]);
-    const dim_t first1 = std::max(0, params.first[1]-m_offset[1]);
+    const dim_t first0 = std::max(dim_t(0), params.first[0]-m_offset[0]);
+    const dim_t first1 = std::max(dim_t(0), params.first[1]-m_offset[1]);
     // indices to first value in file
-    const dim_t idx0 = std::max(0, (m_offset[0]/params.multiplier[0])-params.first[0]);
-    const dim_t idx1 = std::max(0, (m_offset[1]/params.multiplier[1])-params.first[1]);
+    const dim_t idx0 = std::max(dim_t(0), (m_offset[0]/params.multiplier[0])-params.first[0]);
+    const dim_t idx1 = std::max(dim_t(0), (m_offset[1]/params.multiplier[1])-params.first[1]);
     // if restX > 0 the first value in the respective dimension has been
     // written restX times already in a previous rank so this rank only
     // contributes (multiplier-rank) copies of that value
@@ -785,20 +785,20 @@ void Rectangle::dump(const std::string& fileName) const
             coords[1][i1]=getLocalCoordinate(i1, 1);
         }
     }
-    dim_t* dims = const_cast<dim_t*>(getNumNodesPerDim());
+    std::vector<int> dims(m_NN, m_NN+2);
 
     // write mesh
-    DBPutQuadmesh(dbfile, "mesh", NULL, coords, dims, 2, DB_DOUBLE,
+    DBPutQuadmesh(dbfile, "mesh", NULL, coords, &dims[0], 2, DB_DOUBLE,
             DB_COLLINEAR, NULL);
 
     // write node ids
-    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], dims, 2,
+    DBPutQuadvar1(dbfile, "nodeId", "mesh", (void*)&m_nodeId[0], &dims[0], 2,
             NULL, 0, DB_INT, DB_NODECENT, NULL);
 
     // write element ids
-    dims = const_cast<dim_t*>(getNumElementsPerDim());
+    dims.assign(m_NE, m_NE+2);
     DBPutQuadvar1(dbfile, "elementId", "mesh", (void*)&m_elementId[0],
-            dims, 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
+            &dims[0], 2, NULL, 0, DB_INT, DB_ZONECENT, NULL);
 
     // rank 0 writes multimesh and multivar
     if (m_mpiInfo->rank == 0) {
@@ -1126,7 +1126,7 @@ void Rectangle::populateSampleIds()
 //private
 void Rectangle::addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
          const std::vector<double>& EM_S, const std::vector<double>& EM_F, bool addS,
-         bool addF, index_t firstNode, dim_t nEq, dim_t nComp) const
+         bool addF, index_t firstNode, int nEq, int nComp) const
 {
     throw SpeckleyException("Rectangle::addToMatrixAndRHS, adding to matrix not supported");
 }
@@ -1555,7 +1555,7 @@ dim_t Rectangle::findNode(const double *coords) const
 Assembler_ptr Rectangle::createAssembler(std::string type,
         const DataMap& options) const {
     if (type.compare("DefaultAssembler") == 0) {
-        return Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NX, m_NE, m_NN));
+        return Assembler_ptr(new DefaultAssembler2D(shared_from_this(), m_dx, m_NE, m_NN));
     }
     throw SpeckleyException("Speckley::Rectangle does not support the"
             " requested assembler");
