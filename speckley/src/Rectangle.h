@@ -302,7 +302,7 @@ private:
     double m_dx[2];
 
     /// number of spatial subdivisions
-    dim_t m_NX[2];
+    int m_NX[2];
 
     /// number of elements for this rank in each dimension including shared
     dim_t m_NE[2];
@@ -338,7 +338,7 @@ inline dim_t Rectangle::getNumDataPointsGlobal() const
     return (m_gNE[0]*m_order+1)*(m_gNE[1]*m_order+1);
 }
 
-inline double Rectangle::getLocalCoordinate(int index, int dim) const
+inline double Rectangle::getLocalCoordinate(index_t index, int dim) const
 {
     EsysAssert((dim>=0 && dim<2), "'dim' out of bounds");
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");

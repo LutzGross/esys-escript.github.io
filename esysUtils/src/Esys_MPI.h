@@ -25,7 +25,15 @@
 #include <boost/shared_ptr.hpp>
 
 #ifdef ESYS_MPI
-   #include "mpi_C.h"
+
+#include <mpi.h>
+
+#ifdef ESYS_INDEXTYPE_LONG
+#define MPI_DIM_T MPI_LONG
+#else
+#define MPI_DIM_T MPI_INT
+#endif
+
 #else
    typedef int MPI_Comm;
    typedef int MPI_Request;

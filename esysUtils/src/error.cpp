@@ -15,24 +15,16 @@
 *****************************************************************************/
 
 
-#include <string.h>
 #include "error.h"
+#include "Esys_MPI.h"
 
+#include <string.h>
+#include <time.h>
 #ifdef _OPENMP 
 #include <omp.h>
 #endif
 
-#ifdef ESYS_MPI
-#include "mpi_C.h"
-#else
-#include <time.h>
-#endif
-
-
-
 #define MIN(X,Y) ((X)<(Y)?(X):(Y))
-
-
 
 Esys_ErrorCodeType Esys_ErrorCode_=NO_ERROR;
 char Esys_ErrorMsg_[LenErrorMsg_MAX]={'\0'};
@@ -98,4 +90,4 @@ Esys_ErrorCodeType Esys_getErrorType(void) {
 char* Esys_getErrorMessage(void) {
    return Esys_ErrorMsg_;
 }
-/************************************************************************************/
+

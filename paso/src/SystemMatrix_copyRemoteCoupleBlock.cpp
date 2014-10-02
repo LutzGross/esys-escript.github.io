@@ -65,8 +65,8 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     }
 
     index_t* recv_buf = new index_t[mpi_size];
-    index_t* recv_degree = new index_t[mpi_size];
-    index_t* recv_offset = new index_t[mpi_size+1];
+    int* recv_degree = new int[mpi_size];
+    int* recv_offset = new int[mpi_size+1];
 #pragma omp parallel for
     for (index_t i=0; i<mpi_size; i++) {
         recv_buf[i] = 0;
@@ -129,8 +129,8 @@ void SystemMatrix::copyRemoteCoupleBlock(bool recreatePattern)
     }
     double* send_buf = new double[len*block_size];
     index_t* send_idx = new index_t[len];
-    index_t* send_offset = new index_t[p+1];
-    index_t* send_degree = new index_t[num_neighbors];
+    int* send_offset = new int[p+1];
+    int* send_degree = new int[num_neighbors];
 
     index_t k, l, m, n, q;
     len = 0;

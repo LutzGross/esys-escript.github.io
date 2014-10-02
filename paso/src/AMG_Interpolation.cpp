@@ -76,54 +76,56 @@ void Preconditioner_AMG_extendB(SystemMatrix_ptr A, SystemMatrix_ptr B)
 
     Pattern_ptr pattern_main, pattern_couple;
     Coupler_ptr coupler;
-    SharedComponents_ptr send, recv;
-    double *cols=NULL, *send_buf=NULL, *ptr_val=NULL, *send_m=NULL, *send_c=NULL;
+    double *ptr_val=NULL;
     index_t *global_id=NULL, *cols_array=NULL, *ptr_ptr=NULL, *ptr_idx=NULL;
     index_t *ptr_main=NULL, *ptr_couple=NULL, *idx_main=NULL, *idx_couple=NULL;
-    index_t *send_idx=NULL, *send_offset=NULL, *recv_buf=NULL, *recv_offset=NULL;
     index_t *idx_m=NULL, *idx_c=NULL;
-    index_t i, j, k, m, p, q, j_ub, k_lb, k_ub, m_lb, m_ub, l_m, l_c, i0;
-    index_t offset, len, block_size, block_size_size, max_num_cols;
-    index_t num_main_cols, num_couple_cols, num_neighbors, row, neighbor;
-    dim_t *recv_degree=NULL, *send_degree=NULL;
-    dim_t rank=A->mpi_info->rank, size=A->mpi_info->size;
+    index_t i, j, k, m, q, j_ub, k_lb, k_ub, m_lb, m_ub, l_m, l_c, i0;
+    index_t max_num_cols;
+    index_t row, neighbor;
+    const int rank = A->mpi_info->rank;
+    const int size = A->mpi_info->size;
 
     // sending/receiving unknown's global ID
-    num_main_cols = B->mainBlock->numCols;
-    cols = new double[num_main_cols];
-    offset = B->col_distribution->first_component[rank];
+    dim_t num_main_cols = B->mainBlock->numCols;
+    double* cols = new double[num_main_cols];
+    index_t offset = B->col_distribution->first_component[rank];
+
 #pragma omp parallel for private(i) schedule(static)
-    for (i=0; i<num_main_cols; ++i) cols[i] = offset + i;
+    for (i=0; i<num_main_cols; ++i)
+        cols[i] = offset + i;
+
     if (B->global_id == NULL) {
         coupler.reset(new Coupler(B->col_coupler->connector, 1));
         coupler->startCollect(cols);
     }
 
-    recv_buf = new index_t[size];
-    recv_degree = new dim_t[size];
-    recv_offset = new index_t[size+1];
+    index_t* recv_buf = new index_t[size];
+    int* recv_degree = new int[size];
+    int* recv_offset = new int[size+1];
+
 #pragma omp parallel for private(i) schedule(static)
-    for (i=0; i<size; i++){
+    for (i=0; i<size; i++) {
         recv_buf[i] = 0;
         recv_degree[i] = 1;
         recv_offset[i] = i;
     }
 
-    block_size = B->block_size;
-    block_size_size = block_size * sizeof(double);
-    num_couple_cols = B->col_coupleBlock->numCols;
-    send = A->col_coupler->connector->send;
-    recv = A->col_coupler->connector->recv;
-    num_neighbors = send->numNeighbors;
-    p = send->offsetInShared[num_neighbors];
-    len = p * B->col_distribution->first_component[size];
-    send_buf = new double[len * block_size];
-    send_idx = new index_t[len];
-    send_offset = new index_t[(p+1)*2];
-    send_degree = new dim_t[num_neighbors];
+    const index_t block_size = B->block_size;
+    const size_t block_size_size = block_size * sizeof(double);
+    dim_t num_couple_cols = B->col_coupleBlock->numCols;
+    SharedComponents_ptr send(A->col_coupler->connector->send);
+    SharedComponents_ptr recv(A->col_coupler->connector->recv);
+    const int num_neighbors = send->numNeighbors;
+    index_t p = send->offsetInShared[num_neighbors];
+    index_t len = p * B->col_distribution->first_component[size];
+    double* send_buf = new double[len * block_size];
+    index_t* send_idx = new index_t[len];
+    int* send_offset = new int[(p+1)*2];
+    int* send_degree = new int[num_neighbors];
     i = num_main_cols + num_couple_cols;
-    send_m = new double[i * block_size];
-    send_c = new double[i * block_size];
+    double* send_m = new double[i * block_size];
+    double* send_c = new double[i * block_size];
     idx_m = new index_t[i];
     idx_c = new index_t[i];
 
