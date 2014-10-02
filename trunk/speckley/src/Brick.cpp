@@ -2280,11 +2280,6 @@ int Brick::findNode(const double *coords) const {
     double y = coords[1] - m_origin[1] - m_offset[1]*m_dx[1];
     double z = coords[2] - m_origin[2] - m_offset[2]*m_dx[2];
 
-    //check if the point is even inside the domain
-    if (x < 0 || y < 0 || z < 0
-            || x > m_length[0] || y > m_length[1] || z > m_length[2])
-        return NOT_MINE;
-
     // distance in elements
     dim_t ex = (dim_t) floor((x + 0.01*m_dx[0]) / m_dx[0]);
     dim_t ey = (dim_t) floor((y + 0.01*m_dx[1]) / m_dx[1]);
@@ -2328,6 +2323,17 @@ Assembler_ptr Brick::createAssembler(std::string type,
         throw SpeckleyException("Speckley::Brick does not support the"
                                 " requested assembler");
     }
+}
+
+bool Brick::probeInterpolationACross(int fsType_source,
+        const escript::AbstractDomain&, int fsType_target) const
+{
+    return false;
+}
+
+void Brick::interpolateACross(escript::Data& target, const escript::Data& source) const
+{
+    throw SpeckleyException("interpolateACross() not supported");
 }
 
 } // end of namespace speckley
