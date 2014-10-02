@@ -27,6 +27,7 @@ from esys.escriptcore.testing import *
 from esys.escript import *
 from esys.escriptcore.domainCouplers import SpeckleyToRipley
 
+@unittest.skipIf(getMPISizeWorld() > 1, "Couplers not supported for multiprocess")
 class Test_ripleyCoupler(unittest.TestCase):
 
     def test_Rectangle(self):
