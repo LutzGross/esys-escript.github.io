@@ -434,14 +434,14 @@ class MeshAdapter : public escript::AbstractContinuousDomain
      has to be implemented by the actual Domain adapter.
   */
   DUDLEY_DLL_API
-  virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
+  virtual void interpolateAcross(escript::Data& target, const escript::Data& source) const;
 
   /**
   \brief determines whether interpolation from source to target is possible.
   Must be implemented by the actual Domain adapter
   */
   DUDLEY_DLL_API
-  virtual bool probeInterpolationACross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
+  virtual bool probeInterpolationAcross(int functionSpaceType_source,const escript::AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
   /**
      \brief

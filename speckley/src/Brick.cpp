@@ -14,6 +14,8 @@
 *
 *****************************************************************************/
 
+#include <ripley/Brick.h> //for interpolation across domains
+#include <speckley/lagrange_functions.h>
 #include <speckley/Brick.h>
 #include <speckley/DefaultAssembler3D.h>
 #include <esysUtils/esysFileWriter.h>
@@ -554,7 +556,7 @@ void Brick::readBinaryGridImpl(escript::Data& out, const string& filename,
     }
 
     f.close();
-    
+
     interpolateFromCorners(out);
 }
 
@@ -741,7 +743,7 @@ void Brick::interpolateFromCorners(escript::Data &out) const
                 const dim_t back = front < m_NN[1] - 1 ? front + m_order : front;
                 const dim_t down = z - z%m_order;
                 const dim_t up = down < m_NN[2] - 1 ? down + m_order : down;
-                
+         
                 //corner values
                 const double *dlf = out.getSampleDataRO(
                         INDEX3(left, front, down, m_NN[0], m_NN[1]));
@@ -1272,7 +1274,7 @@ void Brick::populateSampleIds()
             }
         }
     }
-    
+
     //re-use nodes on front border
     if (front) {
         int neighbour = rank - m_NX[0];
@@ -1466,8 +1468,8 @@ void Brick::balanceNeighbours(escript::Data& out, bool average) const
     //include bordering ranks in summation
     //averaging waits til after all sharing
     shareFaces(out, rx, ry, rz);
-    if ((m_NX[0] > 1 && m_NX[1] > 1) 
-            || (m_NX[1] > 1 && m_NX[2] > 1) 
+    if ((m_NX[0] > 1 && m_NX[1] > 1)
+            || (m_NX[1] > 1 && m_NX[2] > 1)
             || (m_NX[0] > 1 && m_NX[2] > 1))
         shareEdges(out, rx, ry, rz);
     if (m_NX[0] != 1 && m_NX[1] != 1 && m_NX[2] != 1) {
@@ -1906,7 +1908,7 @@ void Brick::shareEdges(escript::Data& out, int rx, int ry, int rz) const
 #pragma omp parallel for
             for (dim_t i = 0; i < m_NN[2]; i++) {
                 double *data = out.getSampleDataRW(
-                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));            
+                            INDEX3(m_NN[0]-1, 0, i, m_NN[0], m_NN[1]));     
                 for (int comp = 0; comp < numComp; comp++) {
                     data[comp] += buf[i*numComp + comp];
                 }
@@ -2322,6 +2324,108 @@ Assembler_ptr Brick::createAssembler(std::string type,
     } else { //else ifs would go before this for other types
         throw SpeckleyException("Speckley::Brick does not support the"
                                 " requested assembler");
+    }
+}
+
+bool Brick::probeInterpolationAcross(int fsType_source,
+        const escript::AbstractDomain& domain, int fsType_target) const
+{
+    try {
+        dynamic_cast<const ripley::Brick &>(domain);
+    } catch (const std::bad_cast& e) {
+        return false;
+    }
+    return (fsType_source == Elements && fsType_target == ripley::Elements);
+}
+
+void Brick::interpolateAcross(escript::Data& target, const escript::Data& source) const
+{
+    const ripley::Brick& other = dynamic_cast<const ripley::Brick &>(*(target.getDomain().get()));
+    if (source.getDomain() != shared_from_this())
+        throw SpeckleyException("interpolateAcross() interpolation from unsupported domain");
+
+    const int tFS = target.getFunctionSpace().getTypeCode();
+    const int sFS = source.getFunctionSpace().getTypeCode();
+
+    if (sFS != Elements || tFS != ripley::Elements) {
+        throw SpeckleyException("interpolateAcross() data must be in Function functionspace");
+    }
+
+    const int *o_NX = other.getNumSubdivisionsPerDim();
+    for (int dim = 0; dim < 3; dim++) {
+        if (o_NX[dim] != m_NX[dim])
+            throw SpeckleyException("interpolateAcross() domain subdivisions don't match");
+    }
+    if (m_mpiInfo->size != 1)
+        throw SpeckleyException("interpolateAcross() not supported with MPI");
+
+    const int numComp = source.getDataPointSize();
+    if (target.getDataPointSize() != numComp)
+        throw SpeckleyException("interpolateAcross() data point size mismatch");
+
+    double (*interpolationFuncs[9][11]) (double) = {
+        {lagrange_degree2_0, lagrange_degree2_1, lagrange_degree2_2},
+        {lagrange_degree3_0, lagrange_degree3_1, lagrange_degree3_2, lagrange_degree3_3},
+        {lagrange_degree4_0, lagrange_degree4_1, lagrange_degree4_2, lagrange_degree4_3, lagrange_degree4_4},
+        {lagrange_degree5_0, lagrange_degree5_1, lagrange_degree5_2, lagrange_degree5_3, lagrange_degree5_4, lagrange_degree5_5},
+        {lagrange_degree6_0, lagrange_degree6_1, lagrange_degree6_2, lagrange_degree6_3, lagrange_degree6_4, lagrange_degree6_5, lagrange_degree6_6},
+        {lagrange_degree7_0, lagrange_degree7_1, lagrange_degree7_2, lagrange_degree7_3, lagrange_degree7_4, lagrange_degree7_5, lagrange_degree7_6, lagrange_degree7_7},
+        {lagrange_degree8_0, lagrange_degree8_1, lagrange_degree8_2, lagrange_degree8_3, lagrange_degree8_4, lagrange_degree8_5, lagrange_degree8_6, lagrange_degree8_7, lagrange_degree8_8},
+        {lagrange_degree9_0, lagrange_degree9_1, lagrange_degree9_2, lagrange_degree9_3, lagrange_degree9_4, lagrange_degree9_5, lagrange_degree9_6, lagrange_degree9_7, lagrange_degree9_8, lagrange_degree9_9},
+        {lagrange_degree10_0, lagrange_degree10_1, lagrange_degree10_2, lagrange_degree10_3, lagrange_degree10_4, lagrange_degree10_5, lagrange_degree10_6, lagrange_degree10_7, lagrange_degree10_8, lagrange_degree10_9, lagrange_degree10_10}
+        };
+
+
+    target.requireWrite();
+    const double o_dx[3] = {other.getLocalCoordinate(1,0) - other.getLocalCoordinate(0,0),
+                        other.getLocalCoordinate(1,1) - other.getLocalCoordinate(0,1),
+                        other.getLocalCoordinate(1,2) - other.getLocalCoordinate(0,2)};
+    const double ripleyLocations[2] = {.21132486540518711775, .78867513459481288225};
+    const dim_t *o_NE = other.getNumElementsPerDim();
+    const int numQuads = m_order + 1;
+
+#pragma omp parallel for
+    for (dim_t ez = 0; ez < o_NE[2]; ez++) {
+        for (dim_t ey = 0; ey < o_NE[1]; ey++) {
+            for (dim_t ex = 0; ex < o_NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,o_NE[0],o_NE[1]));
+                //initial position
+                for (int oqz = 0; oqz < 2; oqz++) { //for each remote quad
+                    for (int oqy = 0; oqy < 2; oqy++) {
+                        for (int oqx = 0; oqx < 2; oqx++) {
+                            double x = other.getLocalCoordinate(ex, 0) + ripleyLocations[oqx]*o_dx[0];
+                            double y = other.getLocalCoordinate(ey, 1) + ripleyLocations[oqy]*o_dx[1];
+                            double z = other.getLocalCoordinate(ez, 2) + ripleyLocations[oqz]*o_dx[2];
+                            //which source element does it live in
+                            dim_t source_ex = x / m_dx[0];
+                            dim_t source_ey = y / m_dx[1];
+                            dim_t source_ez = z / m_dx[2];
+                            //now modify coords to the element reference
+                            x = ((x - source_ex * m_dx[0]) / m_dx[0]) * 2 - 1;
+                            y = ((y - source_ey * m_dx[1]) / m_dx[1]) * 2 - 1;
+                            z = ((z - source_ez * m_dx[2]) / m_dx[2]) * 2 - 1;
+                            //MPI TODO: check element belongs to this rank
+                            const double *sdata = source.getSampleDataRO(INDEX3(source_ex, source_ey, source_ez,
+                                                             m_NE[0], m_NE[1]));
+                            //and do the actual interpolation
+                            for (int sqz = 0; sqz < numQuads; sqz++) {
+                                for (int sqy = 0; sqy < numQuads; sqy++) {
+                                    for (int sqx = 0; sqx < numQuads; sqx++) {
+                                        for (int comp = 0; comp < numComp; comp++) {
+                                            out[INDEX4(comp,oqx,oqy,oqz,numComp,2,2)]
+                                                  += sdata[INDEX4(comp,sqx,sqy,sqz,numComp,numQuads,numQuads)]
+                                                     * interpolationFuncs[m_order-2][sqx](x)
+                                                     * interpolationFuncs[m_order-2][sqy](y)
+                                                     * interpolationFuncs[m_order-2][sqz](z);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 }
 

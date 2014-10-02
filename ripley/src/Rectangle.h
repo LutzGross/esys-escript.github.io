@@ -190,8 +190,7 @@ public:
        Returns a Data object filled with random data passed through filter.
     */ 
     virtual escript::Data randomFill(const escript::DataTypes::ShapeType& shape,
-       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;         
-    
+       const escript::FunctionSpace& what, long seed, const boost::python::tuple& filter) const;
     
     /**
        \brief

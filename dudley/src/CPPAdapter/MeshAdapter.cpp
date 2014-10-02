@@ -1127,7 +1127,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 //
 // interpolates data to other domain:
 //
-void MeshAdapter::interpolateACross(escript::Data& target,const escript::Data& source) const
+void MeshAdapter::interpolateAcross(escript::Data& target,const escript::Data& source) const
 {
    const_Domain_ptr targetDomain_p=target.getFunctionSpace().getDomain();
    const MeshAdapter* targetDomain=dynamic_cast<const MeshAdapter*>(targetDomain_p.get());
@@ -1738,7 +1738,7 @@ bool MeshAdapter::probeInterpolationOnDomain(int functionSpaceType_source,int fu
    return false;
 }
 
-bool MeshAdapter::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
+bool MeshAdapter::probeInterpolationAcross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
 {
    return false;
 }

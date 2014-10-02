@@ -215,6 +215,8 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
                                      const Data& C, const Data& D,
                                      const Data& X, const Data& Y) const
 {
+    if (!(A.isEmpty() && B.isEmpty() && C.isEmpty()))
+        throw SpeckleyException("Speckley does not support PDEs using A, B or C");
     int order = domain->m_order;
     const double *weights = all_weights[order-2];
     const double volume_product = m_dx[0]*m_dx[1]/4.;
@@ -242,7 +244,7 @@ void DefaultAssembler2D::assemblePDESystem(AbstractSystemMatrix* mat,
     const index_t d_indices[2] = {0,size-1};
 
     if (!D.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
-        throw SpeckleyException("assemblers can't deal with adding both lhs and rhs right now");
+        throw SpeckleyException("Speckley does not support adding left and right sides concurrently");
     
     for (dim_t colouring = 0; colouring < 2; colouring++) {
 #pragma omp parallel for
@@ -349,34 +351,34 @@ void DefaultAssembler2D::assemblePDESystemReduced(AbstractSystemMatrix* mat,
                                     const Data& C, const Data& D,
                                     const Data& X, const Data& Y) const
 {
-    throw SpeckleyException("system reduced assemblers not implemented yet");
+    throw SpeckleyException("Speckley does not support reduced functionspaces");
     
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySingle(AbstractSystemMatrix* mat,
                                 Data& rhs, const Data& d, const Data& y) const
 {
-    throw SpeckleyException("boundary single assemblers not implemented yet");
+    throw SpeckleyException("Speckley does not support boundary functionspaces");
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySingleReduced(
                                         AbstractSystemMatrix* mat, Data& rhs,
                                         const Data& d, const Data& y) const
 {
-    throw SpeckleyException("boundary single reduced assemblers not implemented yet");
+    throw SpeckleyException("Speckley does not support reduced functionspaces");
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySystem(AbstractSystemMatrix* mat,
                                Data& rhs, const Data& d, const Data& y) const
 {
-    throw SpeckleyException("boundary system assemblers not implemented yet");
+    throw SpeckleyException("Speckley does not support boundary functionspaces");
 }
 
 void DefaultAssembler2D::assemblePDEBoundarySystemReduced(
                                          AbstractSystemMatrix* mat, Data& rhs,
                                          const Data& d, const Data& y) const
 {
-    throw SpeckleyException("boundary system reduced assemblers not implemented yet");
+    throw SpeckleyException("Speckley does not support reduced functionspaces");
 }
 
 //protected
@@ -385,6 +387,8 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
         const escript::Data& C, const escript::Data& D,
         const escript::Data& X, const escript::Data& Y) const
 {
+    if (!(A.isEmpty() && B.isEmpty() && C.isEmpty()))
+        throw SpeckleyException("Speckley does not support PDEs using A, B or C");
     int order = domain->m_order;
     const double *weights = all_weights[order-2];
     const double volume_product = m_dx[0]*m_dx[1]/4.;
@@ -396,7 +400,7 @@ void DefaultAssembler2D::assemblePDESingle(AbstractSystemMatrix *mat,
     
     
     if (!D.isEmpty() && (!X.isEmpty() || !Y.isEmpty()))
-        throw SpeckleyException("assemblers can't deal with adding both lhs and rhs right now");
+        throw SpeckleyException("Speckley does not support adding left and right sides concurrently");
     
     for (dim_t colouring = 0; colouring < 2; colouring++) {
 #pragma omp parallel for
@@ -489,7 +493,7 @@ void DefaultAssembler2D::assemblePDESingleReduced(AbstractSystemMatrix* mat,
                                     const Data& C, const Data& D,
                                     const Data& X, const Data& Y) const
 {
-    throw SpeckleyException("single reduced assemblers not implemented yet");
+    throw SpeckleyException("Speckley does not support reduced functionspaces");
 }
 
 

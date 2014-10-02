@@ -201,7 +201,7 @@ public:
             return domain->probeInterpolationOnDomain(
                         getTypeCode(), other.getTypeCode());
         }
-        return domain->probeInterpolationACross(
+        return domain->probeInterpolationAcross(
                 getTypeCode(), *(other.getDomain()), other.getTypeCode());
     }
 

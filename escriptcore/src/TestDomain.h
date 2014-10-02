@@ -65,9 +65,9 @@ public:
 
     virtual escript::Data getX() const;
 
-    virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
+    virtual void interpolateAcross(escript::Data& target, const escript::Data& source) const;
 
-    virtual bool probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
+    virtual bool probeInterpolationAcross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const;
 
     virtual int getDefaultCode() const;
     virtual int getContinuousFunctionCode() const;

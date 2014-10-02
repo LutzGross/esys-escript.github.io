@@ -1456,16 +1456,16 @@ void RipleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 }
 
-bool RipleyDomain::probeInterpolationACross(int fsType_source,
+bool RipleyDomain::probeInterpolationAcross(int fsType_source,
                       const escript::AbstractDomain&, int fsType_target) const
 {
     return false;
 }
 
-void RipleyDomain::interpolateACross(escript::Data& target,
+void RipleyDomain::interpolateAcross(escript::Data& target,
                                      const escript::Data& source) const
 {
-    throw RipleyException("interpolateACross() not supported");
+    throw RipleyException("interpolateAcross() not supported");
 }
 
 // Expecting ("gaussian", radius, sigma)

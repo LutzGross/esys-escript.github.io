@@ -272,15 +272,15 @@ public:
        interpolates data given on source onto target where source and target
        are given on different domains
     */
-    virtual void interpolateACross(escript::Data& target,
-                                   const escript::Data& source) const;
+    virtual void interpolateAcross(escript::Data& target,
+                                   const escript::Data& source) const = 0;
 
     /**
        \brief
        determines whether interpolation from source to target is possible
     */
-    virtual bool probeInterpolationACross(int, const escript::AbstractDomain&,
-            int) const;
+    virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
+            int) const = 0;
 
     /**
        \brief

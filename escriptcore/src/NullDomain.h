@@ -64,9 +64,9 @@ public:
 
     virtual bool probeInterpolationOnDomain(int functionSpaceType_source,int functionSpaceType_target) const;
 
-    virtual void interpolateACross(escript::Data& target, const escript::Data& source) const;
+    virtual void interpolateAcross(escript::Data& target, const escript::Data& source) const;
 
-    virtual bool probeInterpolationACross(int, const AbstractDomain&, int) const {
+    virtual bool probeInterpolationAcross(int, const AbstractDomain&, int) const {
         return false;
     }
 

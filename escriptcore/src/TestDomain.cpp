@@ -107,12 +107,12 @@ bool TestDomain::probeInterpolationOnDomain(int functionSpaceType_source,int fun
     return true;
 }
 
-void TestDomain::interpolateACross(Data& target, const Data& source) const
+void TestDomain::interpolateAcross(Data& target, const Data& source) const
 {
     throw DomainException("Error - interpolation to the TestDomain not supported.");
 }
 
-bool TestDomain::probeInterpolationACross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
+bool TestDomain::probeInterpolationAcross(int functionSpaceType_source,const AbstractDomain& targetDomain, int functionSpaceType_target) const
 {
     return false;
 }

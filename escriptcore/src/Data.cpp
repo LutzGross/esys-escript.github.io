@@ -336,7 +336,7 @@ Data::Data(const Data& inData,
             if  (inDataDomain==functionspace.getDomain()) {
                 inDataDomain->interpolateOnDomain(tmp,inData);
             } else {
-                inDataDomain->interpolateACross(tmp,inData);
+                inDataDomain->interpolateAcross(tmp,inData);
             }
             set_m_data(tmp.m_data);
         }
