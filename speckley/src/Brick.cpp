@@ -2325,16 +2325,5 @@ Assembler_ptr Brick::createAssembler(std::string type,
     }
 }
 
-bool Brick::probeInterpolationACross(int fsType_source,
-        const escript::AbstractDomain&, int fsType_target) const
-{
-    return false;
-}
-
-void Brick::interpolateACross(escript::Data& target, const escript::Data& source) const
-{
-    throw SpeckleyException("interpolateACross() not supported");
-}
-
 } // end of namespace speckley
 
