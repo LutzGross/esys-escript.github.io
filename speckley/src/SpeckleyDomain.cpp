@@ -679,9 +679,7 @@ void SpeckleyDomain::addPDEToTransportProblemFromPython(
         escript::AbstractTransportProblem& tp, escript::Data& source,
         const bp::list& data, Assembler_ptr assembler) const
 {
-    DataMap mapping;
-    tupleListToMap(mapping, data);
-    addPDEToTransportProblem(tp, source, mapping, assembler);
+    throw SpeckleyException("Speckley domains do not support transport problems");
 }
 
 void SpeckleyDomain::addPDEToTransportProblem(
@@ -905,14 +903,12 @@ void SpeckleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 
     for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
-        const IndexVector rowIndex(1, getDofOfNode(m_diracPoints[i].node));
+        const IndexVector rowIndex(1, m_diracPoints[i].node);
         if (yNotEmpty) {
             const double *EM_F = y.getSampleDataRO(i);
             double *F_p = rhs.getSampleDataRW(0);
-            if (rowIndex[0] < getNumDOF()) {
-                for (index_t eq = 0; eq < nEq; eq++) {
-                    F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
-                }
+            for (index_t eq = 0; eq < nEq; eq++) {
+                F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
             }
         }
         if (dNotEmpty) {

@@ -623,7 +623,6 @@ void Rectangle::interpolateFromCorners(escript::Data &out) const
     }
 }
 
-
 void Rectangle::writeBinaryGrid(const escript::Data& in, std::string filename,
                                 int byteOrder, int dataType) const
 {
@@ -1510,18 +1509,21 @@ dim_t Rectangle::findNode(const double *coords) const
             return NOT_MINE;
         }
     }
-    // get distance from subdivision origin
-    double x = coords[0] - m_origin[0] - m_offset[0] * m_dx[0];
-    double y = coords[1] - m_origin[1] - m_offset[1] * m_dx[1];
+    // get distance from origin
+    double x = coords[0] - m_origin[0];
+    double y = coords[1] - m_origin[1];
 
     //check if the point is even inside the domain
     if (x < 0 || y < 0 || x > m_length[0] || y > m_length[1])
         return NOT_MINE;
 
+    // trim to rank reference point
+    x -= m_offset[0] * m_dx[0];
+    y -= m_offset[1] * m_dx[1];
+
     // distance in elements
     dim_t ex = (dim_t) floor((x + 0.01*m_dx[0]) / m_dx[0]);
     dim_t ey = (dim_t) floor((y + 0.01*m_dx[1]) / m_dx[1]);
-    dim_t start = ex*m_order + ey*m_order*m_NN[0];
     // set the min distance high enough to be outside the element plus a bit
     dim_t closest = NOT_MINE;
     double minDist = 1;
@@ -1535,7 +1537,7 @@ dim_t Rectangle::findNode(const double *coords) const
             double ydist = y - (ey + dy)*m_dx[1];
             double total = xdist*xdist + ydist*ydist;
             if (total < minDist) {
-                closest = start + dx*m_order + dy*m_NN[0]*m_order;
+                closest = (ex+dx)*m_order + (ey+dy)*m_order*m_NN[0];
                 minDist = total;
             }
         }
