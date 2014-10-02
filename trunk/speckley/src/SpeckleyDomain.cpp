@@ -921,16 +921,7 @@ void SpeckleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 }
 
-bool SpeckleyDomain::probeInterpolationACross(int fsType_source,
-        const escript::AbstractDomain&, int fsType_target) const
-{
-    return false;
-}
 
-void SpeckleyDomain::interpolateACross(escript::Data& target, const escript::Data& source) const
-{
-    throw SpeckleyException("interpolateACross() not supported");
-}
 
 // Expecting ("gaussian", radius, sigma)
 bool SpeckleyDomain::supportsFilter(const bp::tuple& t) const
@@ -952,6 +943,8 @@ void SpeckleyDomain::addPoints(const vector<double>& coords,
             dp.node = node; //local
             dp.tag = tags[i];
             m_diracPoints.push_back(dp);
+        } else if (m_mpiInfo->size == 1) {
+            throw SpeckleyException("Dirac point unmapped, implementation problem in Speckley::addPoints");
         }
     }
 }

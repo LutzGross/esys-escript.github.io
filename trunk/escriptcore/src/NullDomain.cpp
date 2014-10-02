@@ -58,7 +58,7 @@ bool NullDomain::probeInterpolationOnDomain(int functionSpaceType_source,int fun
    return true;
 }
 
-void NullDomain::interpolateACross(Data& target, const Data& source) const
+void NullDomain::interpolateAcross(Data& target, const Data& source) const
 {
    throw DomainException("Error - interpolation to the NullDomain not supported.");
 }

@@ -36,11 +36,11 @@ public:
        \param x0,y0,x1,y1 coordinates of bottom-left and top-right corners
        \param d0,d1 number of subdivisions in each dimension
     */
-    Rectangle(int order, int n0, int n1, double x0, double y0, 
+    Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, 
               double x1, double y1, int d0=-1, int d1=-1,
               const std::vector<double>& points = std::vector<double>(),
               const std::vector<int>& tags = std::vector<int>(),
-              const simap_t& tagnamestonums = simap_t(),
+              const TagMap& tagnamestonums = TagMap(),
               escript::SubWorld_ptr w=escript::SubWorld_ptr()
  	    );
 
@@ -102,7 +102,7 @@ public:
        returns the array of reference numbers for a function space type
        \param fsType The function space type
     */
-    const int* borrowSampleReferenceIDs(int fsType) const;
+    const dim_t* borrowSampleReferenceIDs(int fsType) const;
 
     /**
        \brief
@@ -129,7 +129,7 @@ public:
        \brief
        returns the number of data points summed across all MPI processes
     */
-    virtual int getNumDataPointsGlobal() const;
+    virtual dim_t getNumDataPointsGlobal() const;
 
     /**
        \brief
@@ -142,20 +142,20 @@ public:
        \brief
        returns the number of nodes per MPI rank in each dimension
     */
-    virtual const int* getNumNodesPerDim() const { return m_NN; }
+    virtual const dim_t* getNumNodesPerDim() const { return m_NN; }
 
     /**
        \brief
        returns the number of elements per MPI rank in each dimension
     */
-    virtual const int* getNumElementsPerDim() const { return m_NE; }
+    virtual const dim_t* getNumElementsPerDim() const { return m_NE; }
 
     /**
        \brief
        returns the number of face elements in the order
        (left,right,bottom,top) on current MPI rank
     */
-    virtual const int* getNumFacesPerBoundary() const { return m_faceCount; }
+    virtual const dim_t* getNumFacesPerBoundary() const { return m_faceCount; }
 
     /**
        \brief
@@ -173,7 +173,7 @@ public:
        \brief
        returns the index'th coordinate value in given dimension for this rank
     */
-    virtual double getLocalCoordinate(int index, int dim) const;
+    virtual double getLocalCoordinate(index_t index, int dim) const;
 
     /**
        \brief
@@ -195,6 +195,20 @@ public:
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const;
 
+    /**
+       \brief
+       interpolates data given on source onto target where source and target
+       are given on different domains
+    */
+    virtual void interpolateAcross(escript::Data& target,
+                                   const escript::Data& source) const;
+
+    /**
+       \brief
+       determines whether interpolation from source to target is possible
+    */
+    virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
+            int) const;
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -212,7 +226,7 @@ protected:
                                   const escript::Data& in) const;
     virtual void interpolateElementsOnNodes(escript::Data& out,
                                 const escript::Data& in) const;
-    virtual int getDofOfNode(int node) const;
+    virtual dim_t getDofOfNode(dim_t node) const;
 
 private:
     void gradient_order2(escript::Data&, const escript::Data&) const;
@@ -259,7 +273,7 @@ private:
     void populateSampleIds();
     void addToMatrixAndRHS(escript::AbstractSystemMatrix* S, escript::Data& F,
            const DoubleVector& EM_S, const DoubleVector& EM_F,
-           bool addS, bool addF, int firstNode, int nEq=1, int nComp=1) const;
+           bool addS, bool addF, index_t firstNode, int nEq=1, int nComp=1) const;
 
     template<typename ValueType>
     void readBinaryGridImpl(escript::Data& out, const std::string& filename,
@@ -300,7 +314,7 @@ private:
     dim_t m_offset[2];
 
     /// number of face elements per edge (left, right, bottom, top)
-    int m_faceCount[4];
+    dim_t m_faceCount[4];
 
     /// vector of sample reference identifiers
     IndexVector m_dofId;
@@ -314,11 +328,12 @@ private:
 };
 
 ////////////////////////////// inline methods ////////////////////////////////
-inline int Rectangle::getDofOfNode(int node) const {
+inline dim_t Rectangle::getDofOfNode(dim_t node) const
+{
     return m_nodeId[node];
 }
 
-inline int Rectangle::getNumDataPointsGlobal() const
+inline dim_t Rectangle::getNumDataPointsGlobal() const
 {
     return (m_gNE[0]*m_order+1)*(m_gNE[1]*m_order+1);
 }

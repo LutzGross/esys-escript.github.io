@@ -269,9 +269,9 @@ public:
 
      This has to be implemented by the actual Domain adapter.
     */
-    virtual void interpolateACross(escript::Data& target, const escript::Data& source) const = 0;
+    virtual void interpolateAcross(escript::Data& target, const escript::Data& source) const = 0;
 
-    virtual bool probeInterpolationACross(int functionSpaceType_source,
+    virtual bool probeInterpolationAcross(int functionSpaceType_source,
                                       const AbstractDomain& targetDomain,
                                       int functionSpaceType_target) const = 0;
 

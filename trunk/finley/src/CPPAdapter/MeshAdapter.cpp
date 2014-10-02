@@ -1194,7 +1194,7 @@ void MeshAdapter::setToNormal(escript::Data& normal) const
 //
 // interpolates data to other domain
 //
-void MeshAdapter::interpolateACross(escript::Data& target, const escript::Data& source) const
+void MeshAdapter::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
     throw FinleyAdapterException("Error - Finley does not allow interpolation across domains.");
 }
@@ -1812,7 +1812,7 @@ signed char MeshAdapter::preferredInterpolationOnDomain(int functionSpaceType_so
     return 0;
 }
 
-bool MeshAdapter::probeInterpolationACross(int functionSpaceType_source,
+bool MeshAdapter::probeInterpolationAcross(int functionSpaceType_source,
         const escript::AbstractDomain& targetDomain,
         int functionSpaceType_target) const
 {

@@ -17,7 +17,9 @@
 #include <algorithm>
 #include <limits>
 
+#include <ripley/Rectangle.h> //for interpolation across domains
 #include <speckley/Rectangle.h>
+#include <speckley/lagrange_functions.h>
 #include <esysUtils/esysFileWriter.h>
 #include <esysUtils/index.h>
 #include <esysUtils/Esys_MPI.h>
@@ -184,7 +186,7 @@ bool Rectangle::operator==(const AbstractDomain& other) const
     return false;
 }
 
-void Rectangle::readNcGrid(escript::Data& out, std::string filename, 
+void Rectangle::readNcGrid(escript::Data& out, std::string filename,
         std::string varname, const ReaderParameters& params) const
 {
 #ifdef USE_NETCDF
@@ -614,7 +616,7 @@ void Rectangle::interpolateFromCorners(escript::Data &out) const
                     INDEX2(right, back, m_NN[0]));
 
             for (int comp = 0; comp < numComp; comp++) {
-                point[comp] = highright[comp]*px*py 
+                point[comp] = highright[comp]*px*py
                             + highleft[comp]*(1-px)*py
                             + lowright[comp]*px*(1-py)
                             + lowleft[comp]*(1-px)*(1-py);
@@ -978,7 +980,7 @@ void Rectangle::assembleIntegrate(std::vector<double>& integrals,
         throw new SpeckleyException("Speckley doesn't currently support integrals of non-Element functionspaces");
     if (!arg.actsExpanded())
         throw new SpeckleyException("Speckley doesn't currently support unexpanded data");
-    
+
     if (m_order == 2) {
         integral_order2(integrals, arg);
     } else if (m_order == 3) {
@@ -1002,7 +1004,7 @@ void Rectangle::assembleIntegrate(std::vector<double>& integrals,
 
 /* This is a wrapper for filtered (and non-filtered) randoms
  * For detailed doco see randomFillWorker
-*/ 
+*/
 escript::Data Rectangle::randomFill(const escript::DataTypes::ShapeType& shape,
            const escript::FunctionSpace& fs,
            long seed, const boost::python::tuple& filter) const {
@@ -1047,7 +1049,7 @@ void Rectangle::populateSampleIds()
     for (dim_t k=1; k<m_mpiInfo->size; k++) {
         index_t rank_left = (k-1)%m_NX[0] == 0 ? 0 : 1;
         index_t rank_bottom = (k-1)/m_NX[0] == 0 ? 0 : 1;
-        m_nodeDistribution[k] = m_nodeDistribution[k-1] 
+        m_nodeDistribution[k] = m_nodeDistribution[k-1]
                                 + (m_NN[0]-rank_left)*(m_NN[1]-rank_bottom);
     }
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
@@ -1086,8 +1088,8 @@ void Rectangle::populateSampleIds()
         m_nodeId[0] = m_nodeDistribution[m_mpiInfo->rank - m_NX[0]] - 1;
     }
     if (bottom) {
-        //DOF size of the neighbouring rank 
-        index_t rankDOF = m_nodeDistribution[m_mpiInfo->rank - m_NX[0] + 1] 
+        //DOF size of the neighbouring rank
+        index_t rankDOF = m_nodeDistribution[m_mpiInfo->rank - m_NX[0] + 1]
                         - m_nodeDistribution[m_mpiInfo->rank - m_NX[0]];
         //beginning of last row of neighbouring rank
         index_t begin = m_nodeDistribution[m_mpiInfo->rank - m_NX[0]]
@@ -1100,7 +1102,7 @@ void Rectangle::populateSampleIds()
         //is the rank to the left itself right of another rank
         index_t rank_left = (m_mpiInfo->rank - 1) % m_NX[0] == 0 ? 0 : 1;
         //end of first owned row of neighbouring rank
-        index_t end = m_nodeDistribution[m_mpiInfo->rank - 1]  
+        index_t end = m_nodeDistribution[m_mpiInfo->rank - 1]
                     + m_NN[0] - rank_left - 1;
         for (index_t y = bottom; y < m_NN[1]; y++) {
             m_nodeId[y*m_NN[0]] = end + (y-bottom)*(m_NN[0]-rank_left);
@@ -1329,7 +1331,7 @@ void Rectangle::shareCorners(escript::Data& out, int rx, int ry) const
             std::copy(data, data + numComp, &outbuf[(x + 2*y)*numComp]);
         }
     }
-    
+
     //share
     for (int i = 0; i < 4; i++) {
         if (conds[i]) {
@@ -1364,7 +1366,7 @@ void Rectangle::shareVertical(escript::Data& out, int rx, int ry) const
     //get our sources
     double *top = out.getSampleDataRW((m_NN[1]-1) * m_NN[0]);
     double *bottom = out.getSampleDataRW(0);
-    
+
     if (ry % 2) {
         //send to up, read from up
         if (ry < m_NX[1] - 1) {
@@ -1434,7 +1436,7 @@ void Rectangle::shareSides(escript::Data& out, int rx, int ry) const
         const double *rightData = out.getSampleDataRO(index+m_NN[0]-1);
         std::copy(rightData, rightData + numComp, &right[n*numComp]);
     }
-    
+
     if (rx % 2) {
         //send to right, read from right
         if (rx < m_NX[0] - 1) {
@@ -1557,6 +1559,98 @@ Assembler_ptr Rectangle::createAssembler(std::string type,
     }
     throw SpeckleyException("Speckley::Rectangle does not support the"
             " requested assembler");
+}
+
+bool Rectangle::probeInterpolationAcross(int fsType_source,
+        const escript::AbstractDomain& domain, int fsType_target) const
+{
+    try {
+        dynamic_cast<const ripley::Rectangle &>(domain);
+    } catch (const std::bad_cast& e) {
+        return false;
+    }
+    return (fsType_source == Elements && fsType_target == ripley::Elements);
+}
+
+void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& source) const
+{
+    const ripley::Rectangle& other = dynamic_cast<const ripley::Rectangle &>(*(target.getDomain().get()));
+    if (source.getDomain() != shared_from_this())
+        throw SpeckleyException("interpolateAcross() interpolation from unsupported domain");
+
+    const int tFS = target.getFunctionSpace().getTypeCode();
+    const int sFS = source.getFunctionSpace().getTypeCode();
+
+    if (sFS != Elements || tFS != ripley::Elements) {
+        throw SpeckleyException("interpolateAcross() data must be in Function functionspace");
+    }
+
+    const int *o_NX = other.getNumSubdivisionsPerDim();
+    if (o_NX[0] != m_NX[0] || o_NX[1] != m_NX[1]) {
+        throw SpeckleyException("interpolateAcross() domain subdivisions don't match");
+    }
+    if (m_mpiInfo->size != 1)
+        throw SpeckleyException("interpolateAcross() not supported with MPI");
+
+    const int numComp = source.getDataPointSize();
+    if (target.getDataPointSize() != numComp)
+        throw SpeckleyException("interpolateAcross() data point size mismatch");
+
+    double (*interpolationFuncs[9][11]) (double) = {
+        {lagrange_degree2_0, lagrange_degree2_1, lagrange_degree2_2},
+        {lagrange_degree3_0, lagrange_degree3_1, lagrange_degree3_2, lagrange_degree3_3},
+        {lagrange_degree4_0, lagrange_degree4_1, lagrange_degree4_2, lagrange_degree4_3, lagrange_degree4_4},
+        {lagrange_degree5_0, lagrange_degree5_1, lagrange_degree5_2, lagrange_degree5_3, lagrange_degree5_4, lagrange_degree5_5},
+        {lagrange_degree6_0, lagrange_degree6_1, lagrange_degree6_2, lagrange_degree6_3, lagrange_degree6_4, lagrange_degree6_5, lagrange_degree6_6},
+        {lagrange_degree7_0, lagrange_degree7_1, lagrange_degree7_2, lagrange_degree7_3, lagrange_degree7_4, lagrange_degree7_5, lagrange_degree7_6, lagrange_degree7_7},
+        {lagrange_degree8_0, lagrange_degree8_1, lagrange_degree8_2, lagrange_degree8_3, lagrange_degree8_4, lagrange_degree8_5, lagrange_degree8_6, lagrange_degree8_7, lagrange_degree8_8},
+        {lagrange_degree9_0, lagrange_degree9_1, lagrange_degree9_2, lagrange_degree9_3, lagrange_degree9_4, lagrange_degree9_5, lagrange_degree9_6, lagrange_degree9_7, lagrange_degree9_8, lagrange_degree9_9},
+        {lagrange_degree10_0, lagrange_degree10_1, lagrange_degree10_2, lagrange_degree10_3, lagrange_degree10_4, lagrange_degree10_5, lagrange_degree10_6, lagrange_degree10_7, lagrange_degree10_8, lagrange_degree10_9, lagrange_degree10_10}
+        };
+
+    target.requireWrite();
+    const double o_dx[2] = {other.getLocalCoordinate(1,0) - other.getLocalCoordinate(0,0),
+                        other.getLocalCoordinate(1,1) - other.getLocalCoordinate(0,1)};
+    const double ripleyLocations[2] = {.21132486540518711775, .78867513459481288225};
+    const dim_t *o_NE = other.getNumElementsPerDim();
+    const int numQuads = m_order + 1;
+
+#pragma omp parallel for
+    for (dim_t ey = 0; ey < o_NE[1]; ey++) {
+        for (dim_t ex = 0; ex < o_NE[0]; ex++) {
+            double *out = target.getSampleDataRW(INDEX2(ex,ey,o_NE[0]));
+            //initial position
+            for (int oqy = 0; oqy < 2; oqy++) {     //for each remote quad
+                for (int oqx = 0; oqx < 2; oqx++) {
+                    double x = other.getLocalCoordinate(ex, 0) + ripleyLocations[oqx]*o_dx[0];
+                    double y = other.getLocalCoordinate(ey, 1) + ripleyLocations[oqy]*o_dx[1];
+                    //which source element does it live in
+                    dim_t source_ex = x / m_dx[0];
+                    dim_t source_ey = y / m_dx[1];
+                    //now modify coords to the element reference
+                    x = ((x - source_ex * m_dx[0]) / m_dx[0]) * 2 - 1;
+                    y = ((y - source_ey * m_dx[1]) / m_dx[1]) * 2 - 1;
+                    //MPI TODO: check element belongs to this rank
+                    const double *sdata = source.getSampleDataRO(INDEX2(source_ex, source_ey, m_NE[0]));
+                    //and do the actual interpolation
+                    for (int sqy = 0; sqy < numQuads; sqy++) {
+                        for (int sqx = 0; sqx < numQuads; sqx++) {
+                            for (int comp = 0; comp < numComp; comp++) {
+                                double a = sdata[INDEX3(comp,sqx,sqy,numComp,numQuads)]
+                                         * interpolationFuncs[m_order-2][sqx](x)
+                                         * interpolationFuncs[m_order-2][sqy](y);
+
+                                out[INDEX3(comp,oqx,oqy,numComp,2)]
+                                      += a; /*sdata[INDEX3(comp,sqx,sqy,numComp,numQuads)]
+                                         * interpolationFuncs[m_order-2][sqx](x)
+                                         * interpolationFuncs[m_order-2][sqy](y);*/
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
 }
 
 } // end of namespace speckley
