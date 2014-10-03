@@ -546,8 +546,6 @@ int SpeckleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
 int SpeckleyDomain::getNumberOfTagsInUse(int fsType) const
 {
     switch(fsType) {
-        case Points:
-            return m_diracPointNodeIDs.size();
         case Nodes:
             return m_nodeTagsInUse.size();
         case Elements:
@@ -564,8 +562,6 @@ int SpeckleyDomain::getNumberOfTagsInUse(int fsType) const
 const int* SpeckleyDomain::borrowListOfTagsInUse(int fsType) const
 {
     switch(fsType) {
-        case Points:
-            return &m_diracPointNodeIDs[0];
         case Nodes:
             return &m_nodeTagsInUse[0];
         case Elements:

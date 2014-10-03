@@ -1581,10 +1581,10 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
     const int tFS = target.getFunctionSpace().getTypeCode();
     const int sFS = source.getFunctionSpace().getTypeCode();
 
-    if (sFS != Elements || tFS != ripley::Elements) {
-        throw SpeckleyException("interpolateAcross() data must be in Function functionspace");
-    }
-
+    if (sFS != Elements) 
+        throw SpeckleyException("interpolateAcross(): source data must be in Function functionspace");
+    if (tFS != ripley::Elements)
+        throw SpeckleyException("interpolateAcross(): target data must be in Function functionspace");
     const int *o_NX = other.getNumSubdivisionsPerDim();
     if (o_NX[0] != m_NX[0] || o_NX[1] != m_NX[1]) {
         throw SpeckleyException("interpolateAcross() domain subdivisions don't match");
