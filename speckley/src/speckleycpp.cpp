@@ -65,8 +65,8 @@ escript::Data readBinaryGrid(std::string filename, escript::FunctionSpace fs,
     int dim=fs.getDim();
     ReaderParameters params;
 
-    params.first = extractPyArray<int>(pyFirst, "first", dim);
-    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.first = extractPyArray<index_t>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<dim_t>(pyNum, "numValues", dim);
     params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
     params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
     params.byteOrder = byteOrder;
@@ -91,8 +91,8 @@ escript::Data readBinaryGridFromZipped(std::string filename, escript::FunctionSp
     int dim=fs.getDim();
     ReaderParameters params;
 
-    params.first = extractPyArray<int>(pyFirst, "first", dim);
-    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.first = extractPyArray<index_t>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<dim_t>(pyNum, "numValues", dim);
     params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
     params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
     params.byteOrder = byteOrder;
@@ -117,8 +117,8 @@ escript::Data readNcGrid(std::string filename, std::string varname,
     int dim=fs.getDim();
     ReaderParameters params;
 
-    params.first = extractPyArray<int>(pyFirst, "first", dim);
-    params.numValues = extractPyArray<int>(pyNum, "numValues", dim);
+    params.first = extractPyArray<index_t>(pyFirst, "first", dim);
+    params.numValues = extractPyArray<dim_t>(pyNum, "numValues", dim);
     params.multiplier = extractPyArray<int>(pyMultiplier, "multiplier", dim);
     params.reverse = extractPyArray<int>(pyReverse, "reverse", dim);
     std::vector<int> shape(extractPyArray<int>(pyShape, "shape"));
@@ -142,7 +142,7 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
                  int d1, int d2, const object& objpoints, 
                  const object& objtags, escript::SubWorld_ptr world)
 {
-    int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1), n2=static_cast<int>(_n2);
+    dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1), n2=static_cast<dim_t>(_n2);
     double x0=0., x1=1., y0=0., y1=1., z0=0., z1=1.;
     if (order < 2 || order > 10)
         throw SpeckleyException("Order must be in the range 2 to 10");
@@ -193,11 +193,11 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
         int l=extract<int>(temp.attr("__len__")());
         if (l != 3)
             throw SpeckleyException("Number of coordinates for each dirac point must match dimensions.");
-        for (int k=0;k<l;++k) {
+        for (int k=0; k<l; ++k) {
             points.push_back(extract<double>(temp[k]));
         }
     }
-    std::map<std::string, int> tagstonames;
+    TagMap tagstonames;
     int curmax=40;
     // but which order to assign tags to names?????
     for (int i=0;i<numtags;++i) {
@@ -210,7 +210,7 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
             }
         } else if (ex_str.check()) {
             std::string s=ex_str();
-            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            TagMap::iterator it=tagstonames.find(s);
             if (it!=tagstonames.end()) {
                 // we have the tag already so look it up
                 tags[i]=it->second;
@@ -229,8 +229,6 @@ escript::Domain_ptr _brick(int order, double _n0, double _n1, double _n2,
                                             points, tags, tagstonames, world));
 }
 
-//const int _q[]={0x61686969,0x746c4144,0x79616e43};
-const int _q[]={0x62207363, 0x6574735F, 0x2020214e};
 escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
                         const object& l0, const object& l1, int d0, int d1, 
                         const object& objpoints, const object& objtags,
@@ -239,7 +237,7 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
 {
     if (order < 2 || order > 10)
         throw SpeckleyException("Order must be in the range 2 to 10");
-    int n0=static_cast<int>(_n0), n1=static_cast<int>(_n1);
+    dim_t n0=static_cast<dim_t>(_n0), n1=static_cast<dim_t>(_n1);
     double x0=0., x1=1., y0=0., y1=1.;
     if (extract<tuple>(l0).check()) {
         tuple x=extract<tuple>(l0);
@@ -280,7 +278,7 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
             points.push_back(extract<double>(temp[k]));
         }
     }
-    std::map<std::string, int> tagstonames;
+    TagMap tagstonames;
     int curmax=40;
     // but which order to assign tags to names?????
     for (int i=0;i<numtags;++i) {
@@ -293,7 +291,7 @@ escript::Domain_ptr _rectangle(int order, double _n0, double _n1,
             }
         } else if (ex_str.check()) {
             std::string s=ex_str();
-            std::map<std::string, int>::iterator it=tagstonames.find(s);
+            TagMap::iterator it=tagstonames.find(s);
             if (it!=tagstonames.end()) {
                 // we have the tag already so look it up
                 tags[i]=it->second;

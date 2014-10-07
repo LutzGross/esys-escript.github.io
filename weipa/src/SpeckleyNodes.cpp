@@ -124,7 +124,7 @@ bool SpeckleyNodes::initFromSpeckley(const speckley::SpeckleyDomain* dom)
 
     numDims = dom->getDim();
     globalNumNodes = dom->getNumDataPointsGlobal();
-    pair<int,int> shape = dom->getDataShape(speckley::Nodes);
+    pair<int,dim_t> shape = dom->getDataShape(speckley::Nodes);
     numNodes = shape.second;
     nodeDist = dom->getNodeDistribution();
 
@@ -133,7 +133,7 @@ bool SpeckleyNodes::initFromSpeckley(const speckley::SpeckleyDomain* dom)
             float* c = new float[numNodes];
             coords.push_back(c);
         }
-        const int* NN = dom->getNumNodesPerDim();
+        const dim_t* NN = dom->getNumNodesPerDim();
 
         if (numDims==2) {
 #pragma omp parallel for
@@ -156,7 +156,7 @@ bool SpeckleyNodes::initFromSpeckley(const speckley::SpeckleyDomain* dom)
                 }
             }
         }
-        const int* iPtr = dom->borrowSampleReferenceIDs(speckley::Nodes);
+        const index_t* iPtr = dom->borrowSampleReferenceIDs(speckley::Nodes);
         nodeID.assign(iPtr, iPtr+numNodes);
 
         //iPtr = dom->borrowListOfTags(speckley::Nodes);
