@@ -79,7 +79,7 @@ bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int
 
 #ifndef VISIT_PLUGIN
     const pair<int,int> shape = dom->getDataShape(fsType);
-    const int* faces = dom->getNumFacesPerBoundary();
+    const dim_t* faces = dom->getNumFacesPerBoundary();
     const int* NS = dom->getNumSubdivisionsPerDim();
     const int order = dom->getOrder();
 
@@ -92,11 +92,11 @@ bool SpeckleyElements::initFromSpeckley(const speckley::SpeckleyDomain* dom, int
         }
         owner.assign(numElements, dom->getMPIRank());
 
-        const int* iPtr = dom->borrowSampleReferenceIDs(fsType);
+        const dim_t* iPtr = dom->borrowSampleReferenceIDs(fsType);
         ID.assign(iPtr, iPtr+shape.second);
 
-        const int* NE = dom->getNumElementsPerDim();
-        const int* NN = dom->getNumNodesPerDim();
+        const dim_t* NE = dom->getNumElementsPerDim();
+        const dim_t* NN = dom->getNumNodesPerDim();
         nodes.clear();
         if (dom->getDim() == 2) {
             type = ZONETYPE_QUAD;

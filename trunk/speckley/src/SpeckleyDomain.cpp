@@ -488,7 +488,7 @@ bool SpeckleyDomain::canTag(int fsType) const
 
 void SpeckleyDomain::setTags(const int fsType, const int newTag, const escript::Data& mask) const
 {
-    IndexVector* target=NULL;
+    vector<int>* target=NULL;
     dim_t num=0;
 
     switch(fsType) {
@@ -519,7 +519,7 @@ void SpeckleyDomain::setTags(const int fsType, const int newTag, const escript::
     updateTagsInUse(fsType);
 }
 
-int SpeckleyDomain::getTagFromSampleNo(int fsType, int sampleNo) const
+int SpeckleyDomain::getTagFromSampleNo(int fsType, index_t sampleNo) const
 {
     switch(fsType) {
         case Nodes:
