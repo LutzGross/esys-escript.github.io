@@ -301,6 +301,9 @@ def createAbsorbtionLayerFunction(x, absorption_zone=300*U.m, absorption_cut=1.e
     :return: function on 'x' which is one in the iterior and decays to almost zero over a margin
              toward the boundary.
     """
+    if absorption_zone is None or absorption_zone == 0:
+        return 1
+    
     dom=x.getDomain()
     bb=boundingBox(dom)
     DIM=dom.getDim()
