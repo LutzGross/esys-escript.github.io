@@ -168,6 +168,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
             if (Esys_noError()) {
                 // Coupler holds the pointer but it doesn't appear to get
                 // used so RO should work.
+                const_cast<escript::Data*>(&in)->resolve();
                 coupler->startCollect(in.getDataRO());
                 const double *recv_buffer=coupler->finishCollect();
                 const int upperBound=nodes->getNumDegreesOfFreedom();
@@ -189,6 +190,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         } else if  (out_data_type == FINLEY_REDUCED_NODES) {
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->degreesOfFreedomConnector, numComps));
             if (Esys_noError()) {
+                const_cast<escript::Data*>(&in)->resolve();
                 coupler->startCollect(in.getDataRO());
                 const double *recv_buffer=coupler->finishCollect();
                 const int upperBound=nodes->getNumDegreesOfFreedom();
@@ -232,6 +234,7 @@ void Assemble_CopyNodalData(const NodeFile* nodes, escript::Data& out,
         } else if (out_data_type == FINLEY_REDUCED_NODES) {
             paso::Coupler_ptr coupler(new paso::Coupler(nodes->reducedDegreesOfFreedomConnector,numComps));
             if (Esys_noError()) {
+                const_cast<escript::Data*>(&in)->resolve();
                 coupler->startCollect(in.getDataRO());
                 out.requireWrite();
                 const int upperBound=nodes->getNumReducedDegreesOfFreedom();
