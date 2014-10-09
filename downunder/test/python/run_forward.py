@@ -399,7 +399,7 @@ class TestSubsidence(unittest.TestCase):
         
         INC=0.01 
         from esys.ripley import Brick
-        domain=Brick(20,20,20)
+        domain=Brick(20,20,20*getMPISizeWorld() -1 , d2=getMPISizeWorld())
         
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
@@ -436,7 +436,7 @@ class TestSubsidence(unittest.TestCase):
 class TestIsostaticPressure(unittest.TestCase):
     def test_all(self):
         from esys.ripley import Brick
-        domain=Brick(50,50,50)
+        domain=Brick(50,50,20*getMPISizeWorld() - 1, d2=getMPISizeWorld())
 
         ps=IsostaticPressure(domain, level0=1., coordinates=None)
     
