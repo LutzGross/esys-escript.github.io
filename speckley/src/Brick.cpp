@@ -1184,15 +1184,17 @@ void Brick::populateSampleIds()
     // rank i owns m_nodeDistribution[i+1]-nodeDistribution[i] nodes which is
     // constant for all ranks in this implementation
 
+#define RANK_LEFT(__rank__) ((__rank__) % m_NX[0] == 0 ? 0 : 1)
+#define RANK_FRONT(__rank__) ((__rank__) % (m_NX[0]*m_NX[1])/m_NX[0] == 0 ? 0 : 1)
+#define RANK_BELOW(__rank__) ((__rank__) / (m_NX[0]*m_NX[1]) == 0 ? 0 : 1)
+
     m_nodeDistribution.assign(m_mpiInfo->size+1, 0);
 
     for (dim_t k = 0; k < m_mpiInfo->size - 1; k++) {
-        index_t rank_left = k % m_NX[0] == 0 ? 0 : 1;
-        index_t rank_bottom = k % (m_NX[0]*m_NX[1])/m_NX[0] == 0 ? 0 : 1;
-        index_t rank_front = k / (m_NX[0]*m_NX[1]) == 0 ? 0 : 1;
         m_nodeDistribution[k+1] = m_nodeDistribution[k]
-                                + (m_NN[0]-rank_left) * (m_NN[1]-rank_bottom)
-                                * (m_NN[2]-rank_front);
+                                + (m_NN[0]-RANK_LEFT(k))
+                                * (m_NN[1]-RANK_FRONT(k))
+                                * (m_NN[2]-RANK_BELOW(k));
     }
 
     m_nodeDistribution[m_mpiInfo->size]=getNumDataPointsGlobal();
@@ -1236,11 +1238,12 @@ void Brick::populateSampleIds()
     else
         m_faceCount[5]=0;
 
-    const index_t left = (m_offset[0]==0 ? 0 : 1);
-    const index_t front = (m_offset[1]==0 ? 0 : 1);
-    const index_t bottom = (m_offset[2]==0 ? 0 : 1);
-
     const int rank = m_mpiInfo->rank;
+
+    const index_t left = RANK_LEFT(rank);
+    const index_t front = RANK_FRONT(rank);
+    const index_t bottom = RANK_BELOW(rank);
+
 
     if (left && front) {
         //re-use bottom-left-front corner node
@@ -1251,14 +1254,17 @@ void Brick::populateSampleIds()
                         - m_NX[0];          //towards the front
             m_nodeId[0] = m_nodeDistribution[rank_wanted] - 1; //end of the left
         }
-        int neighbour = rank - m_NX[0];
-        int rankLeft = neighbour % m_NX[0] ? 0 : 1;
-        int rankFront = neighbour % (m_NX[0]*m_NX[1]) / m_NX[0];
-        index_t begin = m_nodeDistribution[rank];
+        //front left edge
+        int neighbour = rank - m_NX[0] - 1;
+        int neighboursLeft = RANK_LEFT(neighbour);
+        int neighboursFront = RANK_FRONT(neighbour);
+        index_t begin = m_nodeDistribution[neighbour] 
+                    + (m_NN[0]-neighboursLeft)*(m_NN[1]-neighboursFront) - 1;
 #pragma omp parallel for
         for (index_t z = bottom; z < m_NN[2]; z++) {
-            index_t i = (z-bottom)*(m_NN[0]-rankLeft)*(m_NN[1]-rankFront);
-            m_nodeId[i] = begin + i;
+            index_t theirs = z*(m_NN[0]-neighboursLeft)*(m_NN[1]-neighboursFront);
+            index_t mine = z*m_NN[0]*m_NN[1];
+            m_nodeId[mine] = begin + theirs;
         }
     }
     //re-use nodes on bottom border
@@ -1278,28 +1284,32 @@ void Brick::populateSampleIds()
     //re-use nodes on front border
     if (front) {
         int neighbour = rank - m_NX[0];
-        index_t begin = m_nodeDistribution[neighbour] + m_NN[0]*(m_NN[1]-1);
+        index_t begin = m_nodeDistribution[neighbour] 
+                        + (m_NN[0]-RANK_LEFT(neighbour))
+                        *(m_NN[1]-RANK_FRONT(neighbour) - 1);
 #pragma omp parallel for
         for (index_t z = bottom; z < m_NN[2]; z++) {
-            index_t i = z*m_NN[0]*m_NN[1];
-            for (index_t x = left; x < m_NN[0]; x++, i++) {
-                m_nodeId[i] = begin + i;
+            index_t mine = z*m_NN[0]*m_NN[1] + left;
+            index_t theirs = z*(m_NN[0]-RANK_LEFT(neighbour))*(m_NN[1]-RANK_FRONT(neighbour));
+            for (index_t x = left; x < m_NN[0]; x++, theirs++, mine++) {
+                m_nodeId[mine] = begin + theirs;
             }
         }
     }
     //re-use nodes on left border
     if (left) {
         //is the rank to the left itself right of another rank
-        index_t rank_left = (rank - 1) % m_NX[0] == 0 ? 0 : 1;
+        index_t neighboursLeft = RANK_LEFT(rank - 1);
+        index_t neighboursFront = RANK_FRONT(rank - 1);
+        index_t neighboursBelow = RANK_BELOW(rank - 1);
         //end of first owned row of neighbouring rank
-        index_t end = m_nodeDistribution[m_mpiInfo->rank - 1]
-                    + m_NN[0] - rank_left - 1;
+        index_t end = m_nodeDistribution[rank - 1] + m_NN[0]-neighboursLeft - 1;
 #pragma omp parallel for
         for (index_t z = bottom; z < m_NN[2]; z++) {
             for (index_t y = front; y < m_NN[1]; y++) {
-                index_t i = INDEX3(0,y,z,m_NN[0],m_NN[1]);
-                m_nodeId[i] = end + INDEX3(0,(y-front),(z-bottom),
-                            (m_NN[0]-rank_left),(m_NN[2]-bottom));
+                index_t mine = INDEX3(0,y,z,m_NN[0],m_NN[1]);
+                index_t theirs = INDEX3(0,(y-neighboursFront),(z-neighboursBelow),(m_NN[0]-neighboursLeft),(m_NN[1]-neighboursFront));
+                m_nodeId[mine] = end + theirs;
             }
         }
     }
@@ -1308,7 +1318,7 @@ void Brick::populateSampleIds()
     const index_t start = m_nodeDistribution[m_mpiInfo->rank];
 #pragma omp parallel for
     for (index_t z = bottom; z < m_NN[2]; z++) {
-        index_t z_chunk = (z-bottom)*(m_NN[0]-left)*(m_NN[1]-bottom);
+        index_t z_chunk = (z-bottom)*(m_NN[0]-left)*(m_NN[1]-front);
         for (index_t y = front; y < m_NN[1]; y++) {
             index_t y_chunk = (y-front)*(m_NN[0]-left);
             for (index_t x = left; x < m_NN[0]; x++) {
@@ -1322,6 +1332,9 @@ void Brick::populateSampleIds()
 
     m_elementTags.assign(getNumElements(), 0);
     updateTagsInUse(Elements);
+#undef RANK_TO_LEFT
+#undef RANK_TO_RIGHT
+#undef RANK_TO_FRONT
 }
 
 //private

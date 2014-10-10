@@ -114,8 +114,10 @@ void EscriptDatasetTestCase::testRipley()
 #if USE_SPECKLEY
 void EscriptDatasetTestCase::testSpeckley()
 {
-    Domain_ptr dom(new speckley::Brick(2, 5,4,3, 0,0,0, 1,1,1));
-    runDomainTests(dom);
+    for (int i = 2; i < 11; i++) {
+        Domain_ptr dom(new speckley::Brick(i, 5,4,3, 0,0,0, 1,1,1));
+        runDomainTests(dom);
+    }
 }
 #endif
 
