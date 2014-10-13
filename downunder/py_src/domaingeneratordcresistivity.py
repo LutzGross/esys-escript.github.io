@@ -64,7 +64,7 @@ class DCResDomGenerator(object):
        os.close(tmp_f_id[0])
 
     def generateScriptString(self):
-        print "setting up contant half space"
+        #print "setting up constant half space"
         pntCount=5
         leftStr ="-out0[2],"
         rightStr="-out0[4],"
@@ -317,17 +317,17 @@ class DCResDomGenerator(object):
         """
         if mshName!=None:
             try:
-                print "atempting to read mesh %s"%mshName
+                logger.debug("attempting to read mesh %s"%mshName)
                 if mshName[-4:]=='.msh':
                     dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
                 elif mshName[-4:]=='.fly':
                     dom=ReadMesh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)  
-                print "mesh was read directly"
+                logger.debug("mesh was read directly")
                 return dom
             except RuntimeError:
                 # this might happen even if the cause was not the non existence of the
                 # file this should get checked at a later stage
-                print "msh file does not exist will try generate it now"
+                logger.debug("msh file does not exist. Will try generate it now...")
 
         self.generateScriptFile()
         if getMPIRankWorld() == 0:
@@ -335,15 +335,15 @@ class DCResDomGenerator(object):
                 self.generateScriptString()
             else:
                 self.generateLayedScriptString(interfaces)
-            print self.__scriptString
-            open(self.__scriptname,"w").write(self.__scriptString)
+            #print self.__scriptString
+            open(self.__scriptname, "w").write(self.__scriptString)
         if mshName == None:    
             exe="gmsh -3 -order 1 -v 3 %s"%self.__scriptname
         else:
             #exe="gmsh -3 -order 1 -v 3 -o %s %s"%(mshName[:-4]+".msh", self.__scriptname)
             exe="gmsh -3 -order 1 -o %s %s"%(mshName[:-4]+".msh", self.__scriptname)
         args=shlex.split(exe)
-        print args
+        #print args
         ret=self.runGmsh(args)
         if ret > 0:
             raise RuntimeError("Could not build mesh using: " + \
@@ -351,7 +351,7 @@ class DCResDomGenerator(object):
         if mshName == None:
             dom=ReadGmsh(self.__scriptname[:-4]+".msh" ,3,diracTags=self.__tags, diracPoints=self.__points)                  
             # os.unlink(self.__scriptname[:-4]+".msh")
-            print "unlinking;%s"%self.__scriptname[:-4]+".msh"
+            #logger.debug("unlinking;%s"%self.__scriptname[:-4]+".msh")
         else:
             if mshName[-4:]=='.msh':
                 dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
