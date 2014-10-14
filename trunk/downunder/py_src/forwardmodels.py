@@ -947,7 +947,7 @@ class DcRes(ForwardModel):
     where p and q indate the 
 
     """
-    def __init__(self, domain, locator, delphi_in, sourceInfo, current, sampleTags,sigmaHomog, w=1., coordinates=None, tol=1e-8,saveMemory=True):
+    def __init__(self, domain, locator, delphi_in, sourceInfo, current, sampleTags,sigmaHomog, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
         
         """
         setup new ForwardModel
@@ -1171,7 +1171,6 @@ class DcRes(ForwardModel):
 
         pde.setValue(A=A,y_dirac=-y_dirac)
         u=pde.getSolution()
-        print "grad=",-inner(grad(u),grad_phi)
         return inner(grad(u),grad_phi)
 
 
