@@ -736,7 +736,8 @@ void Brick::writeBinaryGridImpl(const escript::Data& in,
         offset0 = m_offset[0];
         offset1 = m_offset[1];
         offset2 = m_offset[2];
-    } else if (in.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
+    } else if (in.getFunctionSpace().getTypeCode() == DegreesOfFreedom ||
+            in.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
         myN0 = (m_gNE[0]+1)/m_NX[0];
         myN1 = (m_gNE[1]+1)/m_NX[1];
         myN2 = (m_gNE[2]+1)/m_NX[2];

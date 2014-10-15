@@ -617,7 +617,8 @@ void Rectangle::writeBinaryGridImpl(const escript::Data& in,
         totalN1 = m_gNE[1]+1;
         offset0 = m_offset[0];
         offset1 = m_offset[1];
-    } else if (in.getFunctionSpace().getTypeCode() == DegreesOfFreedom) {
+    } else if (in.getFunctionSpace().getTypeCode() == DegreesOfFreedom ||
+            in.getFunctionSpace().getTypeCode() == ReducedDegreesOfFreedom) {
         myN0 = (m_gNE[0]+1)/m_NX[0];
         myN1 = (m_gNE[1]+1)/m_NX[1];
         totalN0 = m_gNE[0]+1;
