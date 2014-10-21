@@ -70,7 +70,10 @@ void transposed_multiply(const Matrix&  A,
                          cusp::array1d_format,
                          cusp::array1d_format)
 {
-    cusp::detail::host::transposed_spmv_cds(A, B, C);
+    if (A.symmetric)
+        cusp::detail::host::spmv_cds(A, B, C);
+    else
+        cusp::detail::host::transposed_spmv_cds(A, B, C);
 }
 
 template <typename Matrix,
@@ -83,7 +86,10 @@ void transposed_multiply(const Matrix&  A,
                          cusp::array1d_format,
                          cusp::array1d_format)
 {
-    cusp::detail::host::transposed_spmv_dia(A, B, C);
+    if (A.symmetric)
+        cusp::detail::host::spmv_dia(A, B, C);
+    else
+        cusp::detail::host::transposed_spmv_dia(A, B, C);
 }
 
 

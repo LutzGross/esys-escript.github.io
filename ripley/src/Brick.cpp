@@ -2083,16 +2083,24 @@ void Brick::assembleIntegrate(vector<double>& integrals, const escript::Data& ar
 }
 
 //protected
-IndexVector Brick::getDiagonalIndices() const
+IndexVector Brick::getDiagonalIndices(bool upperOnly) const
 {
-    IndexVector ret(27);
+    IndexVector ret;
+    // only store non-negative indices if requested
+    if (upperOnly)
+        ret.resize(14);
+    else
+        ret.resize(27);
+
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     const dim_t nDOF1 = (m_gNE[1]+1)/m_NX[1];
     size_t idx = 0;
     for (int i2=-1; i2<2; i2++) {
         for (int i1=-1; i1<2; i1++) {
             for (int i0=-1; i0<2; i0++) {
-                ret[idx++] = i2*nDOF0*nDOF1 + i1*nDOF0 + i0;
+                const int index = i2*nDOF0*nDOF1 + i1*nDOF0 + i0;
+                if (!upperOnly || index >= 0)
+                    ret[idx++] = index;
             }
         }
     }

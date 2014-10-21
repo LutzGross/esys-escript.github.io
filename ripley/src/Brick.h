@@ -198,7 +198,7 @@ protected:
     virtual dim_t getNumElements() const;
     virtual dim_t getNumFaceElements() const;
     virtual dim_t getNumDOF() const;
-    virtual IndexVector getDiagonalIndices() const;
+    virtual IndexVector getDiagonalIndices(bool upperOnly) const;
     virtual void assembleCoordinates(escript::Data& arg) const;
     virtual void assembleGradient(escript::Data& out, const escript::Data& in) const;
     virtual void assembleIntegrate(DoubleVector& integrals, const escript::Data& arg) const;

@@ -142,51 +142,60 @@ void spmv_dia(const Matrix&  A,
 
     const size_t num_diagonals = A.values.num_cols;
 
+    if (A.symmetric) {
 #pragma omp parallel for
-    for (size_t ch = 0; ch < A.num_rows; ch += DIA_CHUNKSIZE) {
-        // initialize chunk
-        for (size_t row = ch; row < std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
-        {
-            y[row] = initialize(y[row]);
-        }
-        // for each diagonal
-        for (size_t d = 0; d < num_diagonals; d++)
-        {
-            for (IndexType row=ch; row<std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
+        for (size_t ch = 0; ch < A.num_rows; ch += DIA_CHUNKSIZE) {
+            for (size_t row = ch; row < std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
             {
-                const IndexType col = row + A.diagonal_offsets[d];
-                if (col >= 0 && col < A.num_cols)
+                // initialize
+                y[row] = initialize(y[row]);
+
+                // process subdiagonals
+                for (size_t d = 0; d < num_diagonals; d++)
                 {
-                    y[row] = reduce(y[row], combine(A.values(row, d), x[col]));
+                    const size_t diag = num_diagonals-d-1;
+                    // skip main diagonal which is handled below
+                    if (A.diagonal_offsets[diag] == 0)
+                        continue;
+                    const IndexType col = row - A.diagonal_offsets[diag];
+                    if (col >= 0 && col < A.num_rows)
+                    {
+                        y[row] = reduce(y[row], combine(A.values(col, diag), x[col]));
+                    }
+                }
+                // process main and upper diagonals
+                for (size_t d = 0; d < num_diagonals; d++)
+                {
+                    const IndexType col = row + A.diagonal_offsets[d];
+                    if (col >= 0 && col < A.num_cols)
+                    {
+                        y[row] = reduce(y[row], combine(A.values(row, d), x[col]));
+                    }
+                }
+            }
+        }
+    } else {
+#pragma omp parallel for
+        for (size_t ch = 0; ch < A.num_rows; ch += DIA_CHUNKSIZE) {
+            // initialize chunk
+            for (size_t row = ch; row < std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
+            {
+                y[row] = initialize(y[row]);
+            }
+            // for each diagonal
+            for (size_t d = 0; d < num_diagonals; d++)
+            {
+                for (IndexType row=ch; row<std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
+                {
+                    const IndexType col = row + A.diagonal_offsets[d];
+                    if (col >= 0 && col < A.num_cols)
+                    {
+                        y[row] = reduce(y[row], combine(A.values(row, d), x[col]));
+                    }
                 }
             }
         }
     }
-/*
-    for(size_t i = 0; i < A.num_rows; i++)
-        y[i] = initialize(y[i]);
-
-    for(size_t i = 0; i < num_diagonals; i++)
-    {
-        const IndexType& k = A.diagonal_offsets[i];
-
-        const IndexType i_start = std::max<IndexType>(0, -k);
-        const IndexType j_start = std::max<IndexType>(0,  k);
-
-        // number of elements to process in this diagonal
-        const IndexType N = std::min(A.num_rows - i_start, A.num_cols - j_start);
-
-        for(IndexType n = 0; n < N; n++)
-        {
-            const ValueType& Aij = A.values(i_start + n, i);
-
-            const ValueType& xj = x[j_start + n];
-                  ValueType& yi = y[i_start + n];
-    
-            yi = reduce(yi, combine(Aij, xj));
-        }
-    }
-*/
 }
 
 template <typename Matrix,
@@ -232,58 +241,148 @@ void spmv_cds(const Matrix&  A,
 
     // optimization for special case
     if (block_size == 2) {
+        if (A.symmetric) {
 #pragma omp parallel for
-        for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
-        {
-            for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row+=2)
+            for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
             {
-                ValueType sum1 = initialize(y[row]);
-                ValueType sum2 = initialize(y[row+1]);
+                for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row+=2)
+                {
+                    ValueType sum1 = initialize(y[row]);
+                    ValueType sum2 = initialize(y[row+1]);
+                    // process subdiagonal blocks
+                    for(IndexType d = 0; d < num_diagonals; d++)
+                    {
+                        const IndexType diag = num_diagonals-d-1;
+                        // skip main diagonal block which is handled below
+                        if (A.diagonal_offsets[diag] == 0)
+                            continue;
+                        const IndexType col = row - A.diagonal_offsets[diag]*2;
+                        if (col >= 0 && col <= num_rows)
+                        {
+                            sum1 = reduce(sum1,combine(A.values(col,  2*diag),  x[col]));
+                            sum2 = reduce(sum2,combine(A.values(col+1,2*diag),  x[col]));
+                            sum1 = reduce(sum1,combine(A.values(col,  2*diag+1),x[col+1]));
+                            sum2 = reduce(sum2,combine(A.values(col+1,2*diag+1),x[col+1]));
+                        }
+                    }
+                    // process main and upper diagonal blocks
+                    for(IndexType d = 0; d < num_diagonals; d++)
+                    {
+                        const IndexType col = row + A.diagonal_offsets[d]*2;
+                        if (col >= 0 && col <= num_rows)
+                        {
+                            sum1 = reduce(sum1,combine(A.values(row,  2*d),  x[col]));
+                            sum2 = reduce(sum2,combine(A.values(row+1,2*d),  x[col]));
+                            sum1 = reduce(sum1,combine(A.values(row,  2*d+1),x[col+1]));
+                            sum2 = reduce(sum2,combine(A.values(row+1,2*d+1),x[col+1]));
+                        }
+                    }
+                    y[row] = sum1;
+                    y[row+1] = sum2;
+                }
+            }
+        } else {
+#pragma omp parallel for
+            for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
+            {
+                for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row+=2)
+                {
+                    ValueType sum1 = initialize(y[row]);
+                    ValueType sum2 = initialize(y[row+1]);
+                    // for each diagonal block
+                    for(IndexType d = 0; d < num_diagonals; d++)
+                    {
+                        const IndexType col = row + A.diagonal_offsets[d]*2;
+                        if (col >= 0 && col <= num_rows)
+                        {
+                            sum1 = reduce(sum1,combine(A.values(row,  2*d),  x[col]));
+                            sum2 = reduce(sum2,combine(A.values(row+1,2*d),  x[col]));
+                            sum1 = reduce(sum1,combine(A.values(row,  2*d+1),x[col+1]));
+                            sum2 = reduce(sum2,combine(A.values(row+1,2*d+1),x[col+1]));
+                        }
+                    }
+                    y[row] = sum1;
+                    y[row+1] = sum2;
+                }
+            }
+        } // A.symmetric
+    } else { // block size
+        if (A.symmetric) {
+#pragma omp parallel for
+            for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
+            {
+                for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
+                {
+                    y[row] = initialize(y[row]);
+
+                    // process subdiagonal blocks
+                    for (IndexType d = 0; d < num_diagonals; d++)
+                    {
+                        const IndexType diag = num_diagonals-d-1;
+                        // skip main diagonal block which is handled below
+                        if (A.diagonal_offsets[diag] == 0)
+                            continue;
+                        const IndexType col = block_size*(row/block_size) - A.diagonal_offsets[diag]*block_size;
+                        if (col >= 0 && col <= num_rows-block_size)
+                        {
+                            // for each column in block
+                            for (IndexType i = 0; i < block_size; i++)
+                            {
+                                const ValueType& Aij = A.values(col+i, diag*block_size+row%block_size);
+                                const ValueType& xj = x[col + i];
+
+                                y[row] = reduce(y[row], combine(Aij, xj));
+                            }
+                        }
+                    }
+                    // process main and upper diagonal blocks
+                    for (IndexType d = 0; d < num_diagonals; d++)
+                    {
+                        const IndexType col = block_size*(row/block_size) + A.diagonal_offsets[d]*block_size;
+                        if (col >= 0 && col <= num_rows-block_size)
+                        {
+                            // for each column in block
+                            for (IndexType i = 0; i < block_size; i++)
+                            {
+                                const ValueType& Aij = A.values(row+i, d*block_size+row%block_size);
+                                const ValueType& xj = x[col + i];
+
+                                y[row] = reduce(y[row], combine(Aij, xj));
+                            }
+                        }
+                    }
+                }
+            }
+        } else { // A.symmetric
+#pragma omp parallel for
+            for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
+            {
+                for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
+                {
+                    y[row] = initialize(y[row]);
+                }
+
                 // for each diagonal block
                 for(IndexType d = 0; d < num_diagonals; d++)
                 {
-                    const IndexType col = row + A.diagonal_offsets[d]*2;
-                    if (col >= 0 && col <= num_rows)
-                    {
-                        sum1 = reduce(sum1,combine(A.values(row,  2*d),  x[col]));
-                        sum2 = reduce(sum2,combine(A.values(row+1,2*d),  x[col]));
-                        sum1 = reduce(sum1,combine(A.values(row,  2*d+1),x[col+1]));
-                        sum2 = reduce(sum2,combine(A.values(row+1,2*d+1),x[col+1]));
-                    }
-                }
-                y[row] = sum1;
-                y[row+1] = sum2;
-            }
-        }
-    } else {
-#pragma omp parallel for
-        for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
-        {
-            for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
-            {
-                y[row] = initialize(y[row]);
-            }
+                    const IndexType k = A.diagonal_offsets[d]*block_size;
 
-            // for each diagonal block
-            for(IndexType d = 0; d < num_diagonals; d++)
-            {
-                const IndexType k = A.diagonal_offsets[d]*block_size;
-
-                for(IndexType row=ch; row<std::min(ch+chunksize,num_rows); row+=block_size)
-                {
-                    const IndexType col = row + k;
-                    if (col >= 0 && col <= num_rows-block_size)
+                    for(IndexType row=ch; row<std::min(ch+chunksize,num_rows); row+=block_size)
                     {
-                        // for each column in block
-                        for (IndexType i = 0; i < block_size; i++)
+                        const IndexType col = row + k;
+                        if (col >= 0 && col <= num_rows-block_size)
                         {
-                            // for each row in block
-                            for (IndexType j = 0; j < block_size; j++)
+                            // for each column in block
+                            for (IndexType i = 0; i < block_size; i++)
                             {
-                                const ValueType& Aij = A.values(row+j, d*block_size+i);
-                                const ValueType& xj = x[col + i];
+                                // for each row in block
+                                for (IndexType j = 0; j < block_size; j++)
+                                {
+                                    const ValueType& Aij = A.values(row+j, d*block_size+i);
+                                    const ValueType& xj = x[col + i];
 
-                                y[row+j] = reduce(y[row+j], combine(Aij, xj));
+                                    y[row+j] = reduce(y[row+j], combine(Aij, xj));
+                                }
                             }
                         }
                     }

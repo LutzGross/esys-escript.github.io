@@ -1,18 +1,18 @@
-/*
- *  Copyright 2008-2009 NVIDIA Corporation
+
+/*****************************************************************************
  *
- *  Licensed under the Apache License, Version 2.0 (the "License");
- *  you may not use this file except in compliance with the License.
- *  You may obtain a copy of the License at
+ * Copyright (c) 2014 by University of Queensland
+ * http://www.uq.edu.au
  *
- *      http://www.apache.org/licenses/LICENSE-2.0
+ * Primary Business: Queensland, Australia
+ * Licensed under the Open Software License version 3.0
+ * http://www.opensource.org/licenses/osl-3.0.php
  *
- *  Unless required by applicable law or agreed to in writing, software
- *  distributed under the License is distributed on an "AS IS" BASIS,
- *  WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *  See the License for the specific language governing permissions and
- *  limitations under the License.
- */
+ * Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+ * Development 2012-2013 by School of Earth Sciences
+ * Development from 2014 by Centre for Geoscience Computing (GeoComp)
+ *
+ *****************************************************************************/
 
 /*! \file cds_matrix.h
  *  \brief Column Diagonal Block matrix format.
@@ -169,9 +169,14 @@ class cds_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
      */
     size_t block_size;
 
+    /*! Indicator for matrix symmetry. If true, only non-negative diagonal
+     *  offsets are stored.
+     */
+    bool symmetric;
+
     /*! Construct an empty \p cds_matrix.
      */
-    cds_matrix() {}
+    cds_matrix() : block_size(1), symmetric(false) {}
 
     /*! Construct a \p cds_matrix with a specific shape, number of nonzero entries,
      *  and number of occupied diagonals.
@@ -182,10 +187,12 @@ class cds_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
      *  \param alignment Amount of padding used to align the data structure (default 32).
      */
     cds_matrix(size_t num_rows, size_t num_entries,
-               size_t num_diagonals, size_t blocksize, size_t alignment = 32)
+               size_t num_diagonals, size_t blocksize, bool is_symmetric,
+               size_t alignment = 32)
       : Parent(num_rows, num_rows, num_entries),
         diagonal_offsets(num_diagonals),
-        block_size(blocksize)
+        block_size(blocksize),
+        symmetric(is_symmetric)
       {
         // TODO use array2d constructor when it can accept pitch
         values.resize(num_rows, num_diagonals*blocksize, detail::round_up(num_rows, alignment));
@@ -229,6 +236,7 @@ class cds_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
       Parent::swap(matrix);
       diagonal_offsets.swap(matrix.diagonal_offsets);
       thrust::swap(block_size, matrix.block_size);
+      thrust::swap(symmetric, matrix.symmetric);
       values.swap(matrix.values);
     }
     

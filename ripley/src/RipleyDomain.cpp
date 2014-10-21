@@ -807,7 +807,10 @@ int RipleyDomain::getSystemMatrixTypeId(const bp::object& options) const
         if (m_mpiInfo->size > 1) {
             throw RipleyException("CUSP matrices are not supported with more than one rank");
         }
-        return (int)SMT_CUSP;
+        int type = (int)SMT_CUSP;
+        if (sb.isSymmetric())
+            type |= (int)SMT_SYMMETRIC;
+        return type;
     }
 
     // in all other cases we use PASO
@@ -856,11 +859,13 @@ escript::ASM_ptr RipleyDomain::newSystemMatrix(int row_blocksize,
     //if (reduceRowOrder || reduceColOrder)
     //    throw RipleyException("newSystemMatrix: reduced order not supported");
 
-    if (type == (int)SMT_CUSP) {
+    if (type & (int)SMT_CUSP) {
 #ifdef USE_CUDA
         const dim_t numMatrixRows = getNumDOF();
+        bool symmetric = (type & (int)SMT_SYMMETRIC);
         escript::ASM_ptr sm(new SystemMatrix(m_mpiInfo, row_blocksize,
-                    row_functionspace, numMatrixRows, getDiagonalIndices()));
+                    row_functionspace, numMatrixRows,
+                    getDiagonalIndices(symmetric), symmetric));
         return sm;
 #else
         throw RipleyException("newSystemMatrix: ripley was compiled without CUDA support so CUSP solvers & matrices are not available.");

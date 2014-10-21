@@ -90,9 +90,10 @@ void SystemMatrix::checkCUDA()
 
 SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
                            const escript::FunctionSpace& fs, int nRows,
-                           const IndexVector& diagonalOffsets) :
+                           const IndexVector& diagonalOffsets, bool symm) :
     AbstractSystemMatrix(blocksize, fs, blocksize, fs),
-    m_mpiInfo(mpiInfo)
+    m_mpiInfo(mpiInfo),
+    symmetric(symm)
 {
     // count nonzero entries
     int numEntries = 0;
@@ -102,6 +103,7 @@ SystemMatrix::SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
 
     mat.resize(nRows*blocksize, numEntries, diagonalOffsets.size(), blocksize);
     mat.diagonal_offsets.assign(diagonalOffsets.begin(), diagonalOffsets.end());
+    mat.symmetric = symmetric;
     matrixAltered = true;
 }
 
@@ -110,16 +112,40 @@ void SystemMatrix::add(const IndexVector& rowIdx,
 {
     const int blockSize = getBlockSize();
     const int emSize = rowIdx.size();
-    for (int i=0; i<emSize; i++) {
-        for (int j=0; j<emSize; j++) {
-            const int revi = emSize-1-i;
-            const int diag = j%2 + revi%2 + 3*(j/2+revi/2 + j/4+revi/4);
-            for (int k=0; k<blockSize; k++) {
-                for (int m=0; m<blockSize; m++) {
-                    const int row = rowIdx[i]*blockSize + k;
-                    const int d = diag*blockSize + m;
-                    const int srcIdx = INDEX4(k, m, i, j, blockSize, blockSize, emSize);
-                    mat.values(row, d) += array[srcIdx];
+    if (symmetric) {
+        const int offset = mat.diagonal_offsets.size()-1; // 4 in 2D, 12 in 3D
+        for (int i=0; i<emSize; i++) {
+            for (int j=i; j<emSize; j++) {
+                const int revi = emSize-1-i;
+                // This ugliness is to convert matrix diagonal index to an
+                // index in the storage scheme (i.e. main diagonal = 0)
+                const int diag = j%2 + revi%2 + 3*(j/2+revi/2 + j/4+revi/4)-offset;
+                for (int k=0; k<blockSize; k++) {
+                    for (int m=0; m<blockSize; m++) {
+                        const int row = rowIdx[i]*blockSize + k;
+                        const int d = diag*blockSize + m;
+                        const int srcIdx =
+                            INDEX4(k, m, i, j, blockSize, blockSize, emSize);
+                        mat.values(row, d) += array[srcIdx];
+                    }
+                }
+            }
+        }
+    } else {
+        for (int i=0; i<emSize; i++) {
+            for (int j=0; j<emSize; j++) {
+                const int revi = emSize-1-i;
+                // This ugliness is to convert matrix diagonal index to an
+                // index in the storage scheme (i.e. lower-most diagonal = 0)
+                const int diag = j%2 + revi%2 + 3*(j/2+revi/2 + j/4+revi/4);
+                for (int k=0; k<blockSize; k++) {
+                    for (int m=0; m<blockSize; m++) {
+                        const int row = rowIdx[i]*blockSize + k;
+                        const int d = diag*blockSize + m;
+                        const int srcIdx =
+                            INDEX4(k, m, i, j, blockSize, blockSize, emSize);
+                        mat.values(row, d) += array[srcIdx];
+                    }
                 }
             }
         }
@@ -380,10 +406,31 @@ void SystemMatrix::saveMM(const std::string& filename) const
 
     std::ofstream f(filename.c_str());
     f << "%%MatrixMarket matrix coordinate real general" << std::endl;
-    f << mat.num_rows << " " << mat.num_cols << " " << mat.num_entries << std::endl;
+    f << mat.num_rows << " " << mat.num_cols << " ";
+    // here we assume the matrix has a main diagonal block!
+    if (symmetric)
+       f << 2*mat.num_entries-blockSize*mat.num_rows << std::endl;
+    else
+       f << mat.num_entries << std::endl;
+
     f.setf(std::ios_base::scientific, std::ios_base::floatfield);
     f.precision(15);
     for (int row=0; row < mat.num_rows; row++) {
+        if (symmetric) {
+            for (int diag=mat.diagonal_offsets.size()-1; diag >= 0; diag--) {
+                // skip main diagonal which is handled below
+                if (mat.diagonal_offsets[diag] == 0)
+                    continue;
+                const int col = blockSize*(row/blockSize)-mat.diagonal_offsets[diag]*blockSize;
+                if (col >= 0 && col <= mat.num_rows-blockSize) {
+                    for (int i=0; i<blockSize; i++) {
+                        f << row+1 << " " << col+i+1 << " "
+                          << mat.values(col+i, diag*blockSize+row%blockSize)
+                          << std::endl;
+                    }
+                }
+            }
+        }
         for (int diag=0; diag < mat.diagonal_offsets.size(); diag++) {
             const int col = blockSize*(row/blockSize)+mat.diagonal_offsets[diag]*blockSize;
             if (col >= 0 && col <= mat.num_rows-blockSize) {
