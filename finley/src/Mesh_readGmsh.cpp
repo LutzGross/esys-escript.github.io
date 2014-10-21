@@ -88,6 +88,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
 
 #ifdef ESYS_MPI        
     int chunkInfo[2];//chunkInfo stores the number of element and number of face elements
+    int cpuId = 0;
 #endif
 
 #pragma omp parallel for private (i) schedule(static)
@@ -104,9 +105,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
     
     if (mpi_info->rank == 0) {
       /* read all in */
-#ifdef ESYS_MPI
-    int cpuId = 0;
-#endif
         for(e = 0; e < totalNumElements; e++) {
             count = (chunkElements + chunkFaceElements);
             scan_ret = fscanf(fileHandle_p, "%d %d", &id[count], &gmsh_type);
@@ -190,6 +188,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                     break;
                 default:
                    element_type[count]=NoRef;
+                   element_dim=-1;
                    sprintf(error_msg,"Unexpected gmsh element type %d in mesh file %s.", gmsh_type, fname.c_str());
                    errorFlag = 4;
             }
@@ -297,6 +296,10 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
 #endif
             
             //end elment reading for loop
+            if (errorFlag)
+            {
+                break;
+            }
         }
     } else {
 #ifdef ESYS_MPI
@@ -418,33 +421,26 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
             mesh_p->ContactElements->maxColor=0;
             mesh_p->Points->minColor=0;
             mesh_p->Points->maxColor=0;
-            
+#pragma omp parallel for private (e,j) schedule(static)
+            for(e = 0; e < chunkElements; e++) {
+                mesh_p->Elements->Id[e]=id[elementIndecies[e]];
+                mesh_p->Elements->Tag[e]=tag[elementIndecies[e]];
+                mesh_p->Elements->Color[e]=elementIndecies[e];
+                mesh_p->Elements->Owner[e]=mpi_info->rank;
+                for (j = 0; j<  mesh_p->Elements->numNodes; ++j)  {
+                    mesh_p->Elements->Nodes[INDEX2(j, e, mesh_p->Elements->numNodes)]=vertices[INDEX2(j,elementIndecies[e],MAX_numNodes_gmsh)];
+                }
+            }
 
-            chunkElements=0;
-            chunkFaceElements=0;
-            for(e = 0; e < chunkSize; e++) {
-               if (element_type[e] == final_element_type) {
-                  mesh_p->Elements->Id[chunkElements]=id[e];
-                  mesh_p->Elements->Tag[chunkElements]=tag[e];
-                  mesh_p->Elements->Color[chunkElements]=e;
-                  mesh_p->Elements->Owner[chunkElements]=mpi_info->rank;
-                  // fprintf(stderr,"element id%d: ",mesh_p->Elements->Id[chunkElements]);
-                  for (j = 0; j<  mesh_p->Elements->numNodes; ++j)  {
-                        mesh_p->Elements->Nodes[INDEX2(j, chunkElements, mesh_p->Elements->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
-                        // fprintf(stderr,"nodes[%d]=%d ",INDEX2(j, chunkElements, mesh_p->Elements->numNodes),vertices[INDEX2(j,e,MAX_numNodes_gmsh)]);
-                  }
-                  // fprintf(stderr,"\n");
-                  chunkElements++;
-               } else if (element_type[e] == final_face_element_type) {
-                  mesh_p->FaceElements->Id[chunkFaceElements]=id[e];
-                  mesh_p->FaceElements->Tag[chunkFaceElements]=tag[e];
-                  mesh_p->FaceElements->Color[chunkFaceElements]=chunkFaceElements;
-                  mesh_p->FaceElements->Owner[chunkFaceElements]=mpi_info->rank;
-                  for (j=0; j<mesh_p->FaceElements->numNodes; ++j) {
-                           mesh_p->FaceElements->Nodes[INDEX2(j, chunkFaceElements, mesh_p->FaceElements->numNodes)]=vertices[INDEX2(j,e,MAX_numNodes_gmsh)];
-                  }
-                  chunkFaceElements++;
-               }
+#pragma omp parallel for private (e,j) schedule(static)
+            for (e = 0; e < chunkFaceElements; e++) {    
+                mesh_p->FaceElements->Id[e]=id[faceElementIndecies[e]];
+                mesh_p->FaceElements->Tag[e]=tag[faceElementIndecies[e]];
+                mesh_p->FaceElements->Color[e]=e;
+                mesh_p->FaceElements->Owner[e]=mpi_info->rank;
+                for (j=0; j<mesh_p->FaceElements->numNodes; ++j) {
+                    mesh_p->FaceElements->Nodes[INDEX2(j, e, mesh_p->FaceElements->numNodes)]=vertices[INDEX2(j,faceElementIndecies[e],MAX_numNodes_gmsh)];
+                }
             }
         } else {
             return 6;
@@ -453,7 +449,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
     } else {
         return 6;
     }
-    // fprintf(stderr,"in elements rank=,%d\n",mpi_info->rank);    
 
     /* and clean up */
     delete[] id;
@@ -729,6 +724,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                     MPI_Bcast(&name, tag_info[1], MPI_CHAR,  0, mpi_info->comm); //strlen + 1 for null terminator
                 }
 #endif         
+                
                 mesh_p->addTagMap(&name[1], tag_info[0]);
                 //fprintf(stderr,"elements errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
 
