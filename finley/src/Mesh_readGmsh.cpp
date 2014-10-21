@@ -382,8 +382,8 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                 msg[2] = contact_element_type;
             } else {
                 msg[0] = 0;
+                msg[1] = 0;
                 msg[2] = 0;
-                msg[3] = 0;
             }
             MPI_Bcast(msg, 3, MPI_INT,  0, mpi_info->comm);
             final_element_type = static_cast<ElementTypeId>(msg[0]);
@@ -422,8 +422,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
 
             chunkElements=0;
             chunkFaceElements=0;
-#pragma omp parallel for private (i) schedule(static)
-
             for(e = 0; e < chunkSize; e++) {
                if (element_type[e] == final_element_type) {
                   mesh_p->Elements->Id[chunkElements]=id[e];
@@ -588,15 +586,12 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
 {
     double version = 1.0;
     bool nodesRead=false, elementsRead=false;
-    int format = 0, size = sizeof(double), scan_ret, flags[2], errorFlag=0, logicFlag=0;
+    int format = 0, size = sizeof(double), scan_ret,  errorFlag=0, logicFlag=0;
     int numNames=0;
     int i, tag_info[2], itmp;
     char line[LenString_MAX+1], name[LenString_MAX+1];
     char error_msg[LenErrorMsg_MAX];
     
-    flags[0]=0; //error flag
-    flags[1]=0; //logic flag
-
 #ifdef Finley_TRACE
     double time0=timer();
 #endif
@@ -654,7 +649,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
             }
         }
 #ifdef ESYS_MPI
-
+        int flags[2];
         // Broadcast line
         if (mpi_info->size > 1) {
             if (mpi_info -> rank==0) {
@@ -734,7 +729,6 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                     MPI_Bcast(&name, tag_info[1], MPI_CHAR,  0, mpi_info->comm); //strlen + 1 for null terminator
                 }
 #endif         
-                MPI_Barrier(mpi_info->comm);
                 mesh_p->addTagMap(&name[1], tag_info[0]);
                 //fprintf(stderr,"elements errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
 
