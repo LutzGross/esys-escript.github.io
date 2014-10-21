@@ -40,7 +40,7 @@ class SystemMatrix : public escript::AbstractSystemMatrix
 public:
     SystemMatrix(esysUtils::JMPI mpiInfo, int blocksize,
                  const escript::FunctionSpace& fs, int nRows,
-                 const IndexVector& diagonalOffsets);
+                 const IndexVector& diagonalOffsets, bool symmetric);
 
     virtual ~SystemMatrix() {}
 
@@ -77,6 +77,7 @@ private:
     HostMatrixType mat;
     mutable DeviceMatrixType dmat;
     mutable bool matrixAltered;
+    bool symmetric;
 };
 
 } // namespace ripley

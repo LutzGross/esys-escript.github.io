@@ -143,9 +143,14 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
      */
     values_array_type values;
         
+    /*! Indicator for matrix symmetry. If true, only non-negative diagonal
+     *  offsets are stored.
+     */
+    bool symmetric;
+
     /*! Construct an empty \p dia_matrix.
      */
-    dia_matrix() {}
+    dia_matrix() : symmetric(false) {}
 
     /*! Construct a \p dia_matrix with a specific shape, number of nonzero entries,
      *  and number of occupied diagonals.
@@ -157,9 +162,10 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
      *  \param alignment Amount of padding used to align the data structure (default 32).
      */
     dia_matrix(size_t num_rows, size_t num_cols, size_t num_entries,
-               size_t num_diagonals, size_t alignment = 32)
+               size_t num_diagonals, bool is_symmetric, size_t alignment = 32)
       : Parent(num_rows, num_cols, num_entries),
-        diagonal_offsets(num_diagonals)
+        diagonal_offsets(num_diagonals),
+        symmetric(is_symmetric)
       {
         // TODO use array2d constructor when it can accept pitch
         values.resize(num_rows, num_diagonals, detail::round_up(num_rows, alignment));
@@ -201,6 +207,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
       Parent::swap(matrix);
       diagonal_offsets.swap(matrix.diagonal_offsets);
       values.swap(matrix.values);
+      thrust::swap(symmetric, matrix.symmetric);
     }
     
     /*! Assignment from another matrix.

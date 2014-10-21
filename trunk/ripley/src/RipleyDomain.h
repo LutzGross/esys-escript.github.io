@@ -51,7 +51,8 @@ enum assembler_t {
 
 enum SystemMatrixType {
     SMT_PASO = 1024,
-    SMT_CUSP = 2048
+    SMT_CUSP = 2048,
+    SMT_SYMMETRIC = 4096
 };
 
 /**
@@ -757,7 +758,7 @@ protected:
     virtual dim_t getNumFaceElements() const = 0;
 
     /// returns the indices of the occupied matrix diagonals
-    virtual IndexVector getDiagonalIndices() const = 0;
+    virtual IndexVector getDiagonalIndices(bool upperOnly) const = 0;
 
     /// populates the data object 'arg' with the node coordinates
     virtual void assembleCoordinates(escript::Data& arg) const = 0;

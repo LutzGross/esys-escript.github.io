@@ -1471,14 +1471,21 @@ void Rectangle::assembleIntegrate(vector<double>& integrals,
 }
 
 //protected
-IndexVector Rectangle::getDiagonalIndices() const
+IndexVector Rectangle::getDiagonalIndices(bool upperOnly) const
 {
-    IndexVector ret(9);
+    IndexVector ret;
+    // only store non-negative indices if requested
+    if (upperOnly)
+        ret.resize(5);
+    else
+        ret.resize(9);
     const dim_t nDOF0 = (m_gNE[0]+1)/m_NX[0];
     size_t idx = 0;
     for (int i1=-1; i1<2; i1++) {
         for (int i0=-1; i0<2; i0++) {
-            ret[idx++] = i1*nDOF0 + i0;
+            const int index = i1*nDOF0 + i0;
+            if (!upperOnly || index >= 0)
+                ret[idx++] = index;
         }
     }
 
