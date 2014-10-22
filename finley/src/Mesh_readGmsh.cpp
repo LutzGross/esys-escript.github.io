@@ -620,6 +620,7 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                     } else{
                         errorFlag=5;
                     }
+                    break;
                 }
             } while(line[0] != '$');
         }
