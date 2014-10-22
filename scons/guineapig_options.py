@@ -64,6 +64,12 @@ escript_opts_version = 202
 # DEFAULT: False
 #verbose = True
 
+# use CUDA
+cuda = True
+
+# NVidia compiler flags
+nvccflags = "-ccbin=g++-4.8 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
+
 # Set to True to add flags that enable OpenMP parallelization
 # DEFAULT: False
 openmp = True
