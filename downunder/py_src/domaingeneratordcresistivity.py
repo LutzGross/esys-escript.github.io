@@ -311,7 +311,6 @@ class DCResDomGenerator(object):
         self.__scriptString=out        
 
     def runGmsh(self, args):
-        sys.stdout.flush()
         if getMPIRankWorld() == 0:
             import subprocess
             try:
@@ -320,9 +319,7 @@ class DCResDomGenerator(object):
                 ret = 1
         else:
             ret = 0
-        sys.stdout.flush()
         ret=getMPIWorldMax(ret)
-        sys.stdout.flush()
         return ret    
 
     def getDom(self, mshName=None, interfaces=None):
