@@ -134,29 +134,32 @@ void transposed_spmv_cds(const Matrix&  A,
                 y[row+1] = sum2;
             }
         }
-    } else {
+    } else { // block_size!=2
 #pragma omp parallel for
         for (IndexType ch = 0; ch < num_cols; ch += chunksize) {
             for (IndexType row = ch; row < std::min(ch+chunksize,num_cols); row++)
             {
                 y[row] = initialize(y[row]);
-            }
 
-            // for each diagonal block
-            for (IndexType d = 0; d < num_diagonals; d++)
-            {
-                const IndexType k = A.diagonal_offsets[d]*block_size;
-                for (IndexType row=ch; row<std::min(ch+chunksize,num_cols); row+=block_size)
+                // for each diagonal block
+                for (IndexType d = 0; d < num_diagonals; d++)
                 {
-                    const IndexType col = row - k;
-                    if (col >= 0 && col < A.num_rows-block_size)
+                    const IndexType k = A.diagonal_offsets[d]*block_size;
+                    const IndexType col = block_size*(row/block_size) - k;
+                    if (col >= 0 && col <= A.num_rows-block_size)
                     {
-                        //y[row] = reduce(y[row], combine(A.values(col, d), x[col]));
+                        // for each column in block
+                        for (IndexType i = 0; i < block_size; i++)
+                        {
+                            const ValueType& Aij = A.values(col+i, d*block_size+row%block_size);
+                            const ValueType& xj = x[col + i];
+                            y[row] = reduce(y[row], combine(Aij, xj));
+                        }
                     }
-                }
-            }
-        }
-    }
+                } // diagonals
+            } // rows
+        } // chunks
+    } // block_size
 }
 
 template <typename Matrix,
