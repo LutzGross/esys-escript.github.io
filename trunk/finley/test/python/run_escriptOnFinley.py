@@ -363,7 +363,6 @@ class Test_DiracOnFinley(unittest.TestCase):
 
 
 
-  @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
   def test_rectReadGmsh(self):
     fname=os.path.join(FINLEY_TEST_MESH_PATH, 'rect_test.msh')
     self.assertRaises(RuntimeError, ReadGmsh, fname, 2, diracPoints=[(0,0)])
@@ -384,7 +383,6 @@ class Test_DiracOnFinley(unittest.TestCase):
     self.assertEquals(z.showTagNames(), 'A, B, C')
     self.assertEquals(z.getTag("C"), 42)
 
-  @unittest.skipIf(mpisize>1, "more than 1 MPI rank")
   def test_brickReadGmsh(self):
     fname=os.path.join(FINLEY_TEST_MESH_PATH, 'brick_test.msh')
     self.assertRaises(RuntimeError, ReadGmsh, fname, 3, diracPoints=[(0,0)])
