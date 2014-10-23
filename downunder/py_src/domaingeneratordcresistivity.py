@@ -22,8 +22,8 @@ from math import pi
 import esys.escript.pdetools           as pdetools
 import tempfile, os
 import shlex
-
-
+import sys
+import os
 import logging
 logger=logging.getLogger('inv.DCResDomGenerator')
 
@@ -312,6 +312,8 @@ class DCResDomGenerator(object):
         self.__scriptString=out        
 
     def runGmsh(self, args):
+        print "about to call subprocess"
+        sys.stdout.flush()
         if getMPIRankWorld() == 0:
             import subprocess
             try:
@@ -320,7 +322,11 @@ class DCResDomGenerator(object):
                 ret = 1
         else:
             ret = 0
+        print "getting getMPIWorldMax"
+        sys.stdout.flush()
         ret=getMPIWorldMax(ret)
+        print "got MPIWorldMax"
+        sys.stdout.flush()
         return ret    
 
     def getDom(self, mshName=None, interfaces=None):
@@ -330,52 +336,37 @@ class DCResDomGenerator(object):
             ignore the z-extent. the layers will be tagged iterative from volume-0 to volume-(n-1)
         :type interfaces, list    
         """
-        if mshName!=None:
-            try:
-                logger.debug("attempting to read mesh %s"%mshName)
-                if mshName[-4:]=='.msh':
-                    dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
-                elif mshName[-4:]=='.fly':
-                    dom=ReadMesh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)  
-                logger.debug("mesh was read directly")
-                return dom
-            except RuntimeError:
-                # this might happen even if the cause was not the non existence of the
-                # file this should get checked at a later stage
-                logger.debug("msh file does not exist. Will try generate it now...")
 
-        self.generateScriptFile()
+
+        if (mshName!=None and os.path.isfile(mshName)==True):
+            if mshName[-4:]=='.msh':
+                dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
+            elif mshName[-4:]=='.fly':
+                dom=ReadMesh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)
+            return dom 
+
         if getMPIRankWorld() == 0:
+            self.generateScriptFile()
             if interfaces == None:
                 self.generateScriptString()
             else:
                 self.generateLayedScriptString(interfaces)
-            #print self.__scriptString
             open(self.__scriptname, "w").write(self.__scriptString)
-        if mshName == None:    
-            exe="gmsh -3 -order 1 -v 3 %s"%self.__scriptname
+            if mshName == None:    
+                exe="gmsh -3 -order 1 -v 3 %s"%self.__scriptname
+            else:
+                exe="gmsh -3 -order 1 -o %s %s"%(mshName[:-4]+".msh", self.__scriptname) #add -v 3 for verbosity
+            args=shlex.split(exe)
         else:
-            #exe="gmsh -3 -order 1 -v 3 -o %s %s"%(mshName[:-4]+".msh", self.__scriptname)
-            exe="gmsh -3 -order 1 -o %s %s"%(mshName[:-4]+".msh", self.__scriptname)
-        args=shlex.split(exe)
-        #print args
+            args=""
         ret=self.runGmsh(args)
         if ret > 0:
             raise RuntimeError("Could not build mesh using: " + \
                     "%s"%" ".join(args) + "\nCheck gmsh is available")
         if mshName == None:
             dom=ReadGmsh(self.__scriptname[:-4]+".msh" ,3,diracTags=self.__tags, diracPoints=self.__points)                  
-            # os.unlink(self.__scriptname[:-4]+".msh")
-            #logger.debug("unlinking;%s"%self.__scriptname[:-4]+".msh")
         else:
-            if mshName[-4:]=='.msh':
-                dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
-            elif mshName[-4:]=='.fly':
-                #"dom=ReadMesh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)"
-                raise RuntimeError("please convert msh to fly")
-            # os.unlink(mshName+".msh")
-            # print "unlinking;%s"%mshName
-        #os.unlink(self.__scriptname)
+            dom=ReadGmsh(mshName ,3,diracTags=self.__tags, diracPoints=self.__points)     
         return dom
 
 
