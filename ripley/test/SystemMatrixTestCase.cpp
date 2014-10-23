@@ -130,28 +130,63 @@ const double ref_symm_bs4[] =
 
 const double* ref_symm[] = {ref_symm_bs1, ref_symm_bs2, ref_symm_bs3, ref_symm_bs4};
 
+/// helper
+double lsup(const double* d0, const double* d1, int length)
+{
+    double result = 0.;
+    for (int i=0; i<length; i++) {
+        result = std::max(result, std::abs(d0[i] - d1[i]));
+        //std::cerr << d0[i] << " " << d1[i] << std::endl;
+    }
+    return result;
+}
+
 TestSuite* SystemMatrixTestCase::suite()
 {
     TestSuite *testSuite = new TestSuite("SystemMatrixTestCase");
     testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
-                "testSpMV",&SystemMatrixTestCase::testSpMV));
+                "testSpMV_CPU_blocksize1_nonsymmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize1_nonsymmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize2_nonsymmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize2_nonsymmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize3_nonsymmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize3_nonsymmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize4_nonsymmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize4_nonsymmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize1_symmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize1_symmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize2_symmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize2_symmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize3_symmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize3_symmetric));
+    testSuite->addTest(new TestCaller<SystemMatrixTestCase>(
+                "testSpMV_CPU_blocksize4_symmetric",
+                &SystemMatrixTestCase::testSpMV_CPU_blocksize4_symmetric));
     return testSuite;
 }
 
-void SystemMatrixTestCase::testSpMV()
+void SystemMatrixTestCase::setUp()
 {
-    esysUtils::JMPI info(esysUtils::makeInfo(MPI_COMM_WORLD));
-    escript::Domain_ptr dom(new ripley::Rectangle(4, 3, 0., 0., 1., 1.));
-    escript::FunctionSpace fs(escript::solution(*dom));
+    mpiInfo = esysUtils::makeInfo(MPI_COMM_WORLD);
+    domain.reset(new ripley::Rectangle(4, 3, 0., 0., 1., 1.));
+}
 
-    int blocksize = 1;
-    bool symmetric = false;
-    int firstdiag = (symmetric ? 4 : 0);
-    ripley::IndexVector offsets(diag_off+firstdiag, diag_off+9);
+escript::ASM_ptr SystemMatrixTestCase::createMatrix(int blocksize,
+                                                    bool symmetric)
+{
+    escript::FunctionSpace fs(escript::solution(*domain));
+    const int firstdiag = (symmetric ? 4 : 0);
+    const ripley::IndexVector offsets(diag_off+firstdiag, diag_off+9);
 
-    // create a 20x20 matrix with 9 diagonals, blocksize 1, non-symmetric
-    escript::ASM_ptr matptr(new ripley::SystemMatrix(info, blocksize,
-               fs, rows, offsets, symmetric));
+    // create a matrix with 9 diagonals, given blocksize and symmetric flag
+    escript::ASM_ptr matptr(new ripley::SystemMatrix(mpiInfo, blocksize, fs,
+                             rows, offsets, symmetric));
     ripley::SystemMatrix* mat(dynamic_cast<ripley::SystemMatrix*>(matptr.get()));
 
     ripley::IndexVector rowIdx(4);
@@ -176,7 +211,13 @@ void SystemMatrixTestCase::testSpMV()
         }
         mat->add(rowIdx, array);
     }
+    //mat->saveMM("/tmp/test.mtx");
+    return matptr;
+}
 
+escript::Data SystemMatrixTestCase::createInputVector(int blocksize)
+{
+    escript::FunctionSpace fs(escript::solution(*domain));
     escript::DataTypes::ShapeType shape;
     if (blocksize > 1)
         shape.push_back(blocksize);
@@ -186,19 +227,110 @@ void SystemMatrixTestCase::testSpMV()
         for (int j=0; j<blocksize; j++)
             xx[j] = (double)i*blocksize + j;
     }
+    return x;
+}
 
-    //mat->saveMM("/tmp/test.mtx");
-    escript::Data y = mat->vectorMultiply(x);
-    double lsup = 0.;
-    for (int i=0; i<rows; i++) {
-        const double* yy = y.getSampleDataRO(i);
-        const double* yref = (symmetric ? &ref_symm[blocksize-1][i*blocksize] : &ref[blocksize-1][i*blocksize]);
-        for (int j=0; j<blocksize; j++) {
-            lsup = std::max(lsup, std::abs(yref[j] - yy[j]));
-            //std::cerr << yref[j] << " " << yy[j] << std::endl;
-        }
-    }
+void SystemMatrixTestCase::testSpMV_CPU_blocksize1_nonsymmetric()
+{
+    int blocksize = 1;
+    bool symmetric = false;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
 
-    CPPUNIT_ASSERT(lsup < 1e-12);
+void SystemMatrixTestCase::testSpMV_CPU_blocksize2_nonsymmetric()
+{
+    int blocksize = 2;
+    bool symmetric = false;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
+
+void SystemMatrixTestCase::testSpMV_CPU_blocksize3_nonsymmetric()
+{
+    int blocksize = 3;
+    bool symmetric = false;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
+
+void SystemMatrixTestCase::testSpMV_CPU_blocksize4_nonsymmetric()
+{
+    int blocksize = 4;
+    bool symmetric = false;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
+
+void SystemMatrixTestCase::testSpMV_CPU_blocksize1_symmetric()
+{
+    int blocksize = 1;
+    bool symmetric = true;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref_symm[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
+
+void SystemMatrixTestCase::testSpMV_CPU_blocksize2_symmetric()
+{
+    int blocksize = 2;
+    bool symmetric = true;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref_symm[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
+
+void SystemMatrixTestCase::testSpMV_CPU_blocksize3_symmetric()
+{
+    int blocksize = 3;
+    bool symmetric = true;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref_symm[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
+}
+
+void SystemMatrixTestCase::testSpMV_CPU_blocksize4_symmetric()
+{
+    int blocksize = 4;
+    bool symmetric = true;
+    escript::ASM_ptr mat(createMatrix(blocksize, symmetric));
+    const escript::Data x(createInputVector(blocksize));
+    const escript::Data y(mat->vectorMultiply(x));
+    const double* yref = ref_symm[blocksize-1];
+    const double* yy = y.getSampleDataRO(0);
+    double error = lsup(yref, yy, blocksize*rows);
+    CPPUNIT_ASSERT(error < 1e-12);
 }
 

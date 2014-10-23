@@ -242,6 +242,10 @@ void spmv_cds(const Matrix&  A,
     // optimization for special case
     if (block_size == 2) {
         if (A.symmetric) {
+            // if there is a main diagonal block, it is the first in offsets
+            // and should be skipped in the first loop below since the main
+            // diagonal is processed in the second loop
+            const IndexType d0 = (A.diagonal_offsets[0] == 0 ? 1 : 0);
 #pragma omp parallel for
             for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
             {
@@ -250,18 +254,15 @@ void spmv_cds(const Matrix&  A,
                     ValueType sum1 = initialize(y[row]);
                     ValueType sum2 = initialize(y[row+1]);
                     // process subdiagonal blocks
-                    for(IndexType d = 0; d < num_diagonals; d++)
+                    for(IndexType d = 0; d < num_diagonals-d0; d++)
                     {
                         const IndexType diag = num_diagonals-d-1;
-                        // skip main diagonal block which is handled below
-                        if (A.diagonal_offsets[diag] == 0)
-                            continue;
                         const IndexType col = row - A.diagonal_offsets[diag]*2;
-                        if (col >= 0 && col <= num_rows)
+                        if (col >= 0 && col <= num_rows-2)
                         {
                             sum1 = reduce(sum1,combine(A.values(col,  2*diag),  x[col]));
-                            sum2 = reduce(sum2,combine(A.values(col+1,2*diag),  x[col]));
-                            sum1 = reduce(sum1,combine(A.values(col,  2*diag+1),x[col+1]));
+                            sum2 = reduce(sum2,combine(A.values(col,  2*diag+1),x[col]));
+                            sum1 = reduce(sum1,combine(A.values(col+1,2*diag),  x[col+1]));
                             sum2 = reduce(sum2,combine(A.values(col+1,2*diag+1),x[col+1]));
                         }
                     }
@@ -269,7 +270,7 @@ void spmv_cds(const Matrix&  A,
                     for(IndexType d = 0; d < num_diagonals; d++)
                     {
                         const IndexType col = row + A.diagonal_offsets[d]*2;
-                        if (col >= 0 && col <= num_rows)
+                        if (col >= 0 && col <= num_rows-2)
                         {
                             sum1 = reduce(sum1,combine(A.values(row,  2*d),  x[col]));
                             sum2 = reduce(sum2,combine(A.values(row+1,2*d),  x[col]));
@@ -281,7 +282,7 @@ void spmv_cds(const Matrix&  A,
                     y[row+1] = sum2;
                 }
             }
-        } else {
+        } else { // A.symmetric
 #pragma omp parallel for
             for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
             {
@@ -293,7 +294,7 @@ void spmv_cds(const Matrix&  A,
                     for(IndexType d = 0; d < num_diagonals; d++)
                     {
                         const IndexType col = row + A.diagonal_offsets[d]*2;
-                        if (col >= 0 && col <= num_rows)
+                        if (col >= 0 && col <= num_rows-2)
                         {
                             sum1 = reduce(sum1,combine(A.values(row,  2*d),  x[col]));
                             sum2 = reduce(sum2,combine(A.values(row+1,2*d),  x[col]));
@@ -308,6 +309,10 @@ void spmv_cds(const Matrix&  A,
         } // A.symmetric
     } else { // block size
         if (A.symmetric) {
+            // if there is a main diagonal block, it is the first in offsets
+            // and should be skipped in the first loop below since the main
+            // diagonal is processed in the second loop
+            const IndexType d0 = (A.diagonal_offsets[0] == 0 ? 1 : 0);
 #pragma omp parallel for
             for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
             {
@@ -316,12 +321,9 @@ void spmv_cds(const Matrix&  A,
                     y[row] = initialize(y[row]);
 
                     // process subdiagonal blocks
-                    for (IndexType d = 0; d < num_diagonals; d++)
+                    for (IndexType d = 0; d < num_diagonals-d0; d++)
                     {
                         const IndexType diag = num_diagonals-d-1;
-                        // skip main diagonal block which is handled below
-                        if (A.diagonal_offsets[diag] == 0)
-                            continue;
                         const IndexType col = block_size*(row/block_size) - A.diagonal_offsets[diag]*block_size;
                         if (col >= 0 && col <= num_rows-block_size)
                         {
@@ -344,7 +346,7 @@ void spmv_cds(const Matrix&  A,
                             // for each column in block
                             for (IndexType i = 0; i < block_size; i++)
                             {
-                                const ValueType& Aij = A.values(row+i, d*block_size+row%block_size);
+                                const ValueType& Aij = A.values(row, d*block_size+i);
                                 const ValueType& xj = x[col + i];
 
                                 y[row] = reduce(y[row], combine(Aij, xj));
