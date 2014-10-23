@@ -244,7 +244,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
             if (!noError()) {
                 errorFlag = 6;
             }
-            // fprintf(stderr,"num elements=%d, chunkElements = %d\n",(numElements+numFaceElements),(chunkFaceElements+chunkElements));
             for(j = 0; j < numNodesPerElement; j++) {
               scan_ret = fscanf(fileHandle_p, "%d", &vertices[INDEX2(j,count,MAX_numNodes_gmsh)]);
               FSCANF_CHECK(scan_ret);
@@ -326,7 +325,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
 
     }
 
-    // fprintf(stderr,"in elements rank=,%d\n",mpi_info->rank);    
 
 #ifdef ESYS_MPI    
     if(mpi_info->size>1){
@@ -536,8 +534,6 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
 #endif
     }
 
-    // fprintf(stderr, "chunkNodes=%d on rank %d\n",chunkNodes, mpi_info->rank);
-    // throw FinleyAdapterException("die");
 
 #ifdef ESYS_MPI    
     if(mpi_info->size>1){
@@ -557,14 +553,10 @@ int getNodes(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, int 
         mesh_p->Nodes->Id[i]                     = tempInts[i];
         mesh_p->Nodes->globalDegreesOfFreedom[i] = tempInts[i];
         mesh_p->Nodes->Tag[i]=0;
-        // fprintf(stderr,"node id%d %d: ",mesh_p->Nodes->Id[i], mesh_p->Nodes->globalDegreesOfFreedom[i]);
         
-        // mesh_p->Nodes->Tag[i]              = tempInts[chunkSize*2+i];
         for (j=0; j<numDim; j++) {
             mesh_p->Nodes->Coordinates[INDEX2(j,i,numDim)]  = tempCoords[i*numDim+j];
-            // fprintf(stderr, "%g ", tempCoords[i*numDim+j]);
         }
-        // fprintf(stderr, "\n");
 
     }
 
@@ -660,22 +652,18 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
             errorFlag = flags[0];
             logicFlag = flags[1];
         }
-        //fprintf(stderr,"broadcasted\n");
 #endif
         // MPI_Barrier(mpi_info->comm);
-        //fprintf(stderr,"logic flag:%d on rank %d  at line %d\n", logicFlag,mpi_info->rank,__LINE__);
         /* format */
         if (mpi_info->rank==0 && logicFlag ==1) {
                 scan_ret = fscanf(fileHandle_p, "%lf %d %d\n", &version, &format, &size);
                 FSCANF_CHECK(scan_ret);
-                //fprintf(stderr,"mesh format errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
         }
         /* nodes are read */
         else if (logicFlag == 2) {
 
             nodesRead=true;
             errorFlag = getNodes(mpi_info, mesh_p, fileHandle_p, numDim,error_msg); 
-            //fprintf(stderr,"nodes errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
             logicFlag=0;     
         }
        
@@ -683,7 +671,6 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
         else if(logicFlag==3) {
             elementsRead=true;
             errorFlag=getElements(mpi_info, mesh_p, fileHandle_p, error_msg, useMacroElements, fname, numDim, version, order, reduced_order);
-            //fprintf(stderr,"elements errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
             logicFlag=0;
         }
          /* name tags (thanks to Antoine Lefebvre, antoine.lefebvre2@mail.mcgill.ca ) */
@@ -727,10 +714,8 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
 #endif         
                 
                 mesh_p->addTagMap(&name[1], tag_info[0]);
-                //fprintf(stderr,"elements errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
 
             }
-            //fprintf(stderr,"physical errorFlag:%d on rank %d \n",errorFlag,mpi_info->rank);
             logicFlag=0;
         }
 
@@ -765,9 +750,8 @@ Mesh* Mesh::readGmsh(esysUtils::JMPI& mpi_info, const std::string fname, int num
                     }                    
                     break;
                 case 6:
-                    fprintf(stderr,"returning NULL\n");
-                    throw FinleyAdapterException("not noError");
-                    return NULL;
+                    // throw FinleyAdapterException("not noError");
+                    return NULL; 
                 default:
                     throw FinleyAdapterException("an unknown error has occured in readGmsh");
             }
