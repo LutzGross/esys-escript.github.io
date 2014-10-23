@@ -79,7 +79,6 @@ class DCResDomGenerator(object):
        os.close(tmp_f_id[0])
 
     def generateScriptString(self):
-        #print "setting up constant half space"
         pntCount=5
         leftStr ="-out0[2],"
         rightStr="-out0[4],"
@@ -312,7 +311,6 @@ class DCResDomGenerator(object):
         self.__scriptString=out        
 
     def runGmsh(self, args):
-        print "about to call subprocess"
         sys.stdout.flush()
         if getMPIRankWorld() == 0:
             import subprocess
@@ -322,10 +320,8 @@ class DCResDomGenerator(object):
                 ret = 1
         else:
             ret = 0
-        print "getting getMPIWorldMax"
         sys.stdout.flush()
         ret=getMPIWorldMax(ret)
-        print "got MPIWorldMax"
         sys.stdout.flush()
         return ret    
 
