@@ -373,7 +373,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
       self.assertEquals(v.toListOfTuples(),[(0,0), (0,1), (1,0), (1,1)])
-    self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEquals(v.getNumberOfDataPoints(), 4)
     v.setTaggedValue("A",(-10,99))
     self.assertEquals(inf(v[0]), -10)
     self.assertEquals(Lsup(v[1]), 99)
@@ -394,7 +394,7 @@ class Test_DiracOnFinley(unittest.TestCase):
     v=interpolate(z.getX(), DiracDeltaFunctions(z))
     if mpisize==1:
       self.assertEquals(v.toListOfTuples(),[(0,0,0), (0,1,0), (1,0,1), (1,1,1)])
-    self.assertEquals(v.getNumberOfDataPoints(), 4)
+      self.assertEquals(v.getNumberOfDataPoints(), 4)
     v.setTaggedValue("A",(-10,99,-98))
     self.assertEquals(inf(v[0]), -10)
     self.assertEquals(Lsup(v[1]), 99)
