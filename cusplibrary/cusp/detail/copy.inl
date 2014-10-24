@@ -44,6 +44,7 @@ void copy(const T1& src, T2& dst,
 {    
   copy_matrix_dimensions(src, dst);
   dst.block_size = src.block_size;
+  dst.symmetric = src.symmetric;
   cusp::copy(src.diagonal_offsets, dst.diagonal_offsets);
   cusp::copy(src.values,           dst.values);
 }
