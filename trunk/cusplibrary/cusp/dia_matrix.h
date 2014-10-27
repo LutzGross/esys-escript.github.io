@@ -75,7 +75,7 @@ namespace cusp
  *  A.values(1,2) =  0;  // outside matrix
  *  A.values(2,0) = 40;
  *  A.values(3,0) = 60;
- *  
+ *
  *  // second diagonal
  *  A.values(0,1) = 10;
  *  A.values(1,1) =  0;
@@ -105,7 +105,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
   typedef cusp::detail::matrix_base<IndexType,ValueType,MemorySpace,cusp::dia_format> Parent;
   public:
     // TODO statically assert is_signed<IndexType>
-    
+
     /*! rebind matrix to a different MemorySpace
      */
     template<typename MemorySpace2>
@@ -114,7 +114,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
     /*! type of diagonal offsets array
      */
     typedef typename cusp::array1d<IndexType, MemorySpace>                     diagonal_offsets_array_type;
-    
+
     /*! type of values array
      */
     typedef typename cusp::array2d<ValueType, MemorySpace, cusp::column_major> values_array_type;
@@ -128,7 +128,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
     typedef typename cusp::dia_matrix_view<typename diagonal_offsets_array_type::view,
                                            typename values_array_type::view,
                                            IndexType, ValueType, MemorySpace> view;
-    
+
     /*! equivalent const_view type
      */
     typedef typename cusp::dia_matrix_view<typename diagonal_offsets_array_type::const_view,
@@ -138,11 +138,11 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
     /*! Storage for the diagonal offsets.
      */
     diagonal_offsets_array_type diagonal_offsets;
-    
+
     /*! Storage for the nonzero entries of the DIA data structure.
      */
     values_array_type values;
-        
+
     /*! Indicator for matrix symmetry. If true, only non-negative diagonal
      *  offsets are stored.
      */
@@ -170,14 +170,14 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
         // TODO use array2d constructor when it can accept pitch
         values.resize(num_rows, num_diagonals, detail::round_up(num_rows, alignment));
       }
-    
+
     /*! Construct a \p dia_matrix from another matrix.
      *
      *  \param matrix Another sparse or dense matrix.
      */
     template <typename MatrixType>
     dia_matrix(const MatrixType& matrix);
-    
+
     /*! Resize matrix dimensions and underlying storage
      */
     void resize(size_t num_rows, size_t num_cols, size_t num_entries,
@@ -187,7 +187,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
       diagonal_offsets.resize(num_diagonals);
       values.resize(num_rows, num_diagonals);
     }
-               
+
     /*! Resize matrix dimensions and underlying storage
      */
     void resize(size_t num_rows, size_t num_cols, size_t num_entries,
@@ -197,7 +197,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
       diagonal_offsets.resize(num_diagonals);
       values.resize(num_rows, num_diagonals, detail::round_up(num_rows, alignment));
     }
-    
+
     /*! Swap the contents of two \p dia_matrix objects.
      *
      *  \param matrix Another \p dia_matrix with the same IndexType and ValueType.
@@ -209,7 +209,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
       values.swap(matrix.values);
       thrust::swap(symmetric, matrix.symmetric);
     }
-    
+
     /*! Assignment from another matrix.
      *
      *  \param matrix Another sparse or dense matrix.
@@ -219,7 +219,7 @@ class dia_matrix : public detail::matrix_base<IndexType,ValueType,MemorySpace,cu
 }; // class dia_matrix
 /*! \}
  */
-    
+
 /*! \addtogroup sparse_matrix_views Sparse Matrix Views
  *  \ingroup sparse_matrices
  *  \{
@@ -246,7 +246,7 @@ class dia_matrix_view : public detail::matrix_base<IndexType,ValueType,MemorySpa
     /*! type of \c diagonal_offsets array
      */
     typedef Array1 diagonal_offsets_array_type;
-    
+
     /*! type of \c column_indices array
      */
     typedef Array2 values_array_type;
@@ -280,15 +280,15 @@ class dia_matrix_view : public detail::matrix_base<IndexType,ValueType,MemorySpa
     dia_matrix_view(size_t num_rows, size_t num_cols, size_t num_entries,
                     const OtherArray1& diagonal_offsets, const OtherArray2& values)
     : Parent(num_rows, num_cols, num_entries), diagonal_offsets(diagonal_offsets), values(values) {}
-    
+
     template <typename Matrix>
     dia_matrix_view(Matrix& A)
     : Parent(A), diagonal_offsets(A.diagonal_offsets), values(A.values) {}
-    
+
     template <typename Matrix>
     dia_matrix_view(const Matrix& A)
     : Parent(A), diagonal_offsets(A.diagonal_offsets), values(A.values) {}
-    
+
     /*! Resize matrix dimensions and underlying storage
      */
     void resize(size_t num_rows, size_t num_cols, size_t num_entries,
@@ -298,7 +298,7 @@ class dia_matrix_view : public detail::matrix_base<IndexType,ValueType,MemorySpa
       diagonal_offsets.resize(num_diagonals);
       values.resize(num_rows, num_diagonals);
     }
-               
+
     /*! Resize matrix dimensions and underlying storage
      */
     void resize(size_t num_rows, size_t num_cols, size_t num_entries,
@@ -327,7 +327,7 @@ template <typename Array1,
           typename MemorySpace>
 dia_matrix_view<Array1,Array2,IndexType,ValueType,MemorySpace>
 make_dia_matrix_view(const dia_matrix_view<Array1,Array2,IndexType,ValueType,MemorySpace>& m);
-    
+
 template <typename IndexType, typename ValueType, class MemorySpace>
 typename dia_matrix<IndexType,ValueType,MemorySpace>::view
 make_dia_matrix_view(dia_matrix<IndexType,ValueType,MemorySpace>& m);
@@ -337,7 +337,7 @@ typename dia_matrix<IndexType,ValueType,MemorySpace>::const_view
 make_dia_matrix_view(const dia_matrix<IndexType,ValueType,MemorySpace>& m);
 /*! \} // end Views
  */
-    
+
 } // end namespace cusp
 
 #include <cusp/array2d.h>
