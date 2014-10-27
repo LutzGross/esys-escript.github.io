@@ -1,0 +1,106 @@
+
+/*****************************************************************************
+*
+* Copyright (c) 2003-2014 by University of Queensland
+* http://www.uq.edu.au
+*
+* Primary Business: Queensland, Australia
+* Licensed under the Open Software License version 3.0
+* http://www.opensource.org/licenses/osl-3.0.php
+*
+* Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+* Development 2012-2013 by School of Earth Sciences
+* Development from 2014 by Centre for Geoscience Computing (GeoComp)
+*
+*****************************************************************************/
+
+#ifndef __SPECKLEY_CROSSDOMAINCOUPLER_H__
+#define __SPECKLEY_CROSSDOMAINCOUPLER_H__
+
+#include <speckley/Rectangle.h>
+#include <speckley/Brick.h>
+#include <ripley/Rectangle.h>
+#include <ripley/Brick.h>
+
+namespace speckley {
+
+class RectangleCoupler {
+public:
+    RectangleCoupler(
+            const Rectangle *speck, const double s_dx[2], int rank
+#ifdef ESYS_MPI
+            , MPI_Comm comm
+#endif
+            );
+
+
+    void interpolate(escript::Data& target, const escript::Data& source) const;
+private:
+    // a struct type to hold all the relevant info on the target domain
+    struct Ripley {
+        const ripley::Rectangle *domain;
+        double dx[3];
+        dim_t NE[3];
+        dim_t mins[3];
+        dim_t maxs[3];
+    };
+    void calculateOrder2(int dim, double loc, double *results) const;
+    void calculateOrder3(int dim, double loc, double *results) const;
+    void calculateOrder4(int dim, double loc, double *results) const;
+    void calculateOrder5(int dim, double loc, double *results) const;
+    void calculateOrder6(int dim, double loc, double *results) const;
+    void calculateOrder7(int dim, double loc, double *results) const;
+    void calculateOrder8(int dim, double loc, double *results) const;
+    void calculateOrder9(int dim, double loc, double *results) const;
+    void calculateOrder10(int dim, double loc, double *results) const;
+
+    void generateLocations(struct Ripley& r, double **positions) const;
+
+    bool validInterpolation(escript::Data& target, const escript::Data& source,
+            const SpeckleyDomain *speck, const double *s_dx,
+            const ripley::RipleyDomain *other) const;
+    void calculate(struct Ripley& r, dim_t ex, dim_t ey,
+            int oqx, int oqy, double *out, double *factor_x, double *factor_y,
+            const escript::Data& source) const;
+
+    void getEdgeSpacing(struct Ripley r, int *lower, int *upper) const;
+
+    //speckley info
+    const Rectangle *speck;
+    dim_t s_NE[3];
+    double s_dx[3];
+    int s_NX[3];
+    double speckley_origin[3];
+    int order;
+    int numQuads;
+
+    //coupling info
+    bool hasLower[3];
+    bool hasUpper[3];
+    int rank;
+
+    //per interpolation
+    mutable int numComp;
+
+#ifdef ESYS_MPI
+    MPI_Comm comm;
+#endif
+
+};
+
+/**
+   \brief
+   interpolates data given on source onto target where source and target
+   are given on different domains
+*/
+void interpolateAcross3D(escript::Data& target, const escript::Data& source,
+                    const Brick *speck, const double s_dx[3], int rank,
+                    MPI_Comm comm);
+
+bool probeInterpolationAcross(int fsType_source,
+        const escript::AbstractDomain& domain, int fsType_target, int dim);
+
+} // end of namespace speckley
+
+#endif // __SPECKLEY_CROSSDOMAINCOUPLER_H__
+
