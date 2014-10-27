@@ -192,6 +192,17 @@ public:
                                      long seed,
                                      const boost::python::tuple& filter) const;
 
+    /**
+       \brief
+       returns the lengths of the domain
+    */
+    const double *getLength() const { return m_length; }
+
+    /**
+       \brief
+       returns the lengths of an element
+    */
+    const double *getElementLength() const { return m_dx; }
 
 protected:
     virtual dim_t getNumNodes() const;

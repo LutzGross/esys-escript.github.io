@@ -688,6 +688,18 @@ public:
 
     /**
        \brief
+       returns the lengths of the domain
+    */
+    virtual const double *getLength() const = 0;
+
+    /**
+       \brief
+       returns the lengths of an element
+    */
+    virtual const double *getElementLength() const = 0;
+
+    /**
+       \brief
        returns true if this domain can handle the specified tuple of filter
        options.
     */

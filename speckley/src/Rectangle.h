@@ -21,6 +21,8 @@
 
 namespace speckley {
 
+class RectangleCoupler; //forward declaration of coupler to avoid circles
+
 /**
    \brief
    Rectangle is the 2-dimensional implementation of a SpeckleyDomain.
@@ -210,6 +212,12 @@ public:
     virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
             int) const;
 
+    /**
+       \brief
+       returns the lengths of the domain
+    */
+    const double *getLength() const { return m_length; }
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;
@@ -263,7 +271,7 @@ private:
     */
     void shareVertical(escript::Data& out, int rx, int ry) const;
 #endif
-
+    
     /* \brief
         interpolates the non-corner point values of an element
         from the corner values
@@ -323,6 +331,8 @@ private:
 
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
+
+    mutable RectangleCoupler *coupler;
 
     friend class DefaultAssembler2D;
 };
