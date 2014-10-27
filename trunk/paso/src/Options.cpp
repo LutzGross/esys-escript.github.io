@@ -339,7 +339,7 @@ int Options::getPackage(int solver, int pack, bool symmetry,
                 if (mpi_info->size == 1) {
 #if defined MKL
                     out = PASO_MKL;
-#elif defined UMFPACK
+#elif defined USE_UMFPACK
                     out = PASO_UMFPACK;
 #elif defined PASTIX
                     out = PASO_PASTIX

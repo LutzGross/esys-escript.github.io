@@ -74,8 +74,8 @@ EscriptParams::EscriptParams()
 #ifdef MKL
     temp_direct_solver=true;
 #endif
-#ifdef UMFPACK
-      temp_direct_solver=true;
+#ifdef USE_UMFPACK
+    temp_direct_solver=true;
 #endif
 #ifdef PASTIX
     temp_direct_solver=true;

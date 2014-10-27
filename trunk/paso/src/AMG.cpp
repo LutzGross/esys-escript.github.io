@@ -33,7 +33,6 @@
 #include "Options.h"
 #include "PasoUtil.h"
 #include "MKL.h"
-#include "UMFPACK.h"
 
 namespace paso {
 
