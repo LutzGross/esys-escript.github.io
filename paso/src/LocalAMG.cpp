@@ -279,7 +279,7 @@ Preconditioner_LocalAMG* Preconditioner_LocalAMG_alloc(SparseMatrix_ptr A_p,
                                   << "direct solver on the coarsest level "
                                   << "(number of unknowns = "
                                   << n_C*n_block << ")." << std::endl;
-#elif defined UMFPACK
+#elif defined USE_UMFPACK
                           out->A_C = A_C->unroll(MATRIX_FORMAT_BLK1 + MATRIX_FORMAT_CSC);
                           A_C.reset();
                           out->A_C->solver_package = PASO_UMFPACK;
