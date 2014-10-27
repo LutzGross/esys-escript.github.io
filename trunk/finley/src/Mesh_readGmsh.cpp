@@ -76,7 +76,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
     }
 #endif
     
-    int chunkSize = totalNumElements / mpi_info->size + 1, chunkElements=0, chunkFaceElements=0, count=0;
+    int chunkSize = totalNumElements / mpi_info->size + 1, chunkElements=0, chunkFaceElements=0, count=0 ,chunkOtherElements=0;
     id = new int[chunkSize+1];
     tag = new int[chunkSize+1];
     vertices = new int[chunkSize*MAX_numNodes_gmsh];
@@ -106,7 +106,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
     if (mpi_info->rank == 0) {
       /* read all in */
         for(e = 0; e < totalNumElements; e++) {
-            count = (chunkElements + chunkFaceElements);
+            count = (chunkElements + chunkFaceElements + chunkOtherElements);
             scan_ret = fscanf(fileHandle_p, "%d %d", &id[count], &gmsh_type);
             FSCANF_CHECK(scan_ret);
             switch (gmsh_type) {
@@ -213,6 +213,8 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                faceElementIndecies[chunkFaceElements]=count;
                numFaceElements++;
                chunkFaceElements++;
+            } else{
+                chunkOtherElements++;
             }
             if(version <= 1.0){
               scan_ret = fscanf(fileHandle_p, "%d %d %d", &tag[count], &elementary_id, &numNodesPerElement2);
@@ -255,13 +257,13 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                  vertices[INDEX2(8,count,MAX_numNodes_gmsh)]=itmp;
             }
 #ifdef ESYS_MPI
-            if(chunkElements+chunkFaceElements==chunkSize) {
+            if(chunkElements+chunkFaceElements + chunkOtherElements==chunkSize) {
                 cpuId++;
                 chunkInfo[0]=chunkElements;
                 chunkInfo[1]=chunkFaceElements;
 
                 if(cpuId < mpi_info->size) {
-                    if(!errorFlag){                
+                    if(!errorFlag){         
                         MPI_Send(&errorFlag, 1, MPI_INT, cpuId, 81719, mpi_info->comm);
                         MPI_Send(vertices, chunkSize*MAX_numNodes_gmsh, MPI_INT, cpuId, 81720, mpi_info->comm);
                         MPI_Send(id, chunkSize, MPI_INT, cpuId, 81721, mpi_info->comm);
@@ -279,7 +281,6 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                     }
                     
                     // reset arrays for next cpu
-                    // for i in vertices vertices[i]=-1 etc also use openMp
 #pragma omp parallel for private (i) schedule(static)
                     for (i=0; i<chunkSize*MAX_numNodes_gmsh; i++) vertices[i] = -1;
 #pragma omp parallel for private (i) schedule(static)
@@ -290,6 +291,7 @@ int getElements(esysUtils::JMPI& mpi_info, Mesh * mesh_p, FILE * fileHandle_p, c
                     }
                     chunkElements=0;
                     chunkFaceElements=0;
+                    chunkOtherElements=0;
                 }
             }
 #endif
