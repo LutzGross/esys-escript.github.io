@@ -41,8 +41,8 @@ class SpeckleyToRipley(object):
                     diracTags=[], order=None):
         self.ranks = getMPISizeWorld()
 
-        if self.ranks > 1:
-            raise RuntimeError("SpeckleyToRipley: MPI support not here yet")
+        if dimensions == 3 and self.ranks > 1:
+            raise RuntimeError("SpeckleyToRipley: MPI support not here yet for Bricks")
 
         if dimensions not in [2,3]:
             raise ValueError("SpeckleyToRipley: requires dimension of 2 or 3")
@@ -86,8 +86,9 @@ class SpeckleyToRipley(object):
             else:
                 ripleyElements.append(points)
             speck = ripleyElements[i]/self.order % self.ranks
-            if speck != 0:
-                speck = self.ranks - speck
+            if i == splitDim:
+                if speck != 0:
+                    speck = self.ranks - speck
             speck += ripleyElements[i]/self.order
             if speck < 2:
                 speck = 2

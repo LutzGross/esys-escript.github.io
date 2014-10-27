@@ -17,9 +17,7 @@
 #include <algorithm>
 #include <limits>
 
-#include <ripley/Rectangle.h> //for interpolation across domains
 #include <speckley/Rectangle.h>
-#include <speckley/lagrange_functions.h>
 #include <esysUtils/esysFileWriter.h>
 #include <esysUtils/index.h>
 #include <esysUtils/Esys_MPI.h>
@@ -27,6 +25,10 @@
 #include <boost/scoped_array.hpp>
 #include <escript/FunctionSpaceFactory.h>
 #include "esysUtils/EsysRandom.h"
+
+#ifdef USE_RIPLEY
+#include <speckley/CrossDomainCoupler.h>
+#endif
 
 #ifdef USE_NETCDF
 #include <netcdfcpp.h>
@@ -160,10 +162,18 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
         setTagMap(i->first, i->second);
     }
     addPoints(points, tags);
+    
+
+#ifdef USE_RIPLEY
+    coupler = NULL;
+#endif
 }
 
 Rectangle::~Rectangle()
 {
+#ifdef USE_RIPLEY
+    delete coupler;
+#endif
 }
 
 std::string Rectangle::getDescription() const
@@ -1564,93 +1574,28 @@ Assembler_ptr Rectangle::createAssembler(std::string type,
 bool Rectangle::probeInterpolationAcross(int fsType_source,
         const escript::AbstractDomain& domain, int fsType_target) const
 {
-    try {
-        dynamic_cast<const ripley::Rectangle &>(domain);
-    } catch (const std::bad_cast& e) {
-        return false;
-    }
-    return (fsType_source == Elements && fsType_target == ripley::Elements);
+#ifdef USE_RIPLEY
+    return speckley::probeInterpolationAcross(fsType_source, domain,
+            fsType_target, 2);
+#else
+    return false;
+#endif
 }
 
 void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
-    const ripley::Rectangle& other = dynamic_cast<const ripley::Rectangle &>(*(target.getDomain().get()));
-    if (source.getDomain() != shared_from_this())
-        throw SpeckleyException("interpolateAcross() interpolation from unsupported domain");
-
-    const int tFS = target.getFunctionSpace().getTypeCode();
-    const int sFS = source.getFunctionSpace().getTypeCode();
-
-    if (sFS != Elements) 
-        throw SpeckleyException("interpolateAcross(): source data must be in Function functionspace");
-    if (tFS != ripley::Elements)
-        throw SpeckleyException("interpolateAcross(): target data must be in Function functionspace");
-    const int *o_NX = other.getNumSubdivisionsPerDim();
-    if (o_NX[0] != m_NX[0] || o_NX[1] != m_NX[1]) {
-        throw SpeckleyException("interpolateAcross() domain subdivisions don't match");
+#ifdef USE_RIPLEY
+    if (coupler == NULL) {
+#ifdef ESYS_MPI
+        coupler = new RectangleCoupler(this, m_dx, m_mpiInfo->rank, m_mpiInfo->comm);
+#else
+        coupler = new RectangleCoupler(this, m_dx, m_mpiInfo->rank);
+#endif
     }
-    if (m_mpiInfo->size != 1)
-        throw SpeckleyException("interpolateAcross() not supported with MPI");
-
-    const int numComp = source.getDataPointSize();
-    if (target.getDataPointSize() != numComp)
-        throw SpeckleyException("interpolateAcross() data point size mismatch");
-
-    double (*interpolationFuncs[9][11]) (double) = {
-        {lagrange_degree2_0, lagrange_degree2_1, lagrange_degree2_2},
-        {lagrange_degree3_0, lagrange_degree3_1, lagrange_degree3_2, lagrange_degree3_3},
-        {lagrange_degree4_0, lagrange_degree4_1, lagrange_degree4_2, lagrange_degree4_3, lagrange_degree4_4},
-        {lagrange_degree5_0, lagrange_degree5_1, lagrange_degree5_2, lagrange_degree5_3, lagrange_degree5_4, lagrange_degree5_5},
-        {lagrange_degree6_0, lagrange_degree6_1, lagrange_degree6_2, lagrange_degree6_3, lagrange_degree6_4, lagrange_degree6_5, lagrange_degree6_6},
-        {lagrange_degree7_0, lagrange_degree7_1, lagrange_degree7_2, lagrange_degree7_3, lagrange_degree7_4, lagrange_degree7_5, lagrange_degree7_6, lagrange_degree7_7},
-        {lagrange_degree8_0, lagrange_degree8_1, lagrange_degree8_2, lagrange_degree8_3, lagrange_degree8_4, lagrange_degree8_5, lagrange_degree8_6, lagrange_degree8_7, lagrange_degree8_8},
-        {lagrange_degree9_0, lagrange_degree9_1, lagrange_degree9_2, lagrange_degree9_3, lagrange_degree9_4, lagrange_degree9_5, lagrange_degree9_6, lagrange_degree9_7, lagrange_degree9_8, lagrange_degree9_9},
-        {lagrange_degree10_0, lagrange_degree10_1, lagrange_degree10_2, lagrange_degree10_3, lagrange_degree10_4, lagrange_degree10_5, lagrange_degree10_6, lagrange_degree10_7, lagrange_degree10_8, lagrange_degree10_9, lagrange_degree10_10}
-        };
-
-    target.requireWrite();
-    const double o_dx[2] = {other.getLocalCoordinate(1,0) - other.getLocalCoordinate(0,0),
-                        other.getLocalCoordinate(1,1) - other.getLocalCoordinate(0,1)};
-    const double ripleyLocations[2] = {.21132486540518711775, .78867513459481288225};
-    const dim_t *o_NE = other.getNumElementsPerDim();
-    const int numQuads = m_order + 1;
-
-#pragma omp parallel for
-    for (dim_t ey = 0; ey < o_NE[1]; ey++) {
-        for (dim_t ex = 0; ex < o_NE[0]; ex++) {
-            double *out = target.getSampleDataRW(INDEX2(ex,ey,o_NE[0]));
-            //initial position
-            for (int oqy = 0; oqy < 2; oqy++) {     //for each remote quad
-                for (int oqx = 0; oqx < 2; oqx++) {
-                    double x = other.getLocalCoordinate(ex, 0) + ripleyLocations[oqx]*o_dx[0];
-                    double y = other.getLocalCoordinate(ey, 1) + ripleyLocations[oqy]*o_dx[1];
-                    //which source element does it live in
-                    dim_t source_ex = x / m_dx[0];
-                    dim_t source_ey = y / m_dx[1];
-                    //now modify coords to the element reference
-                    x = ((x - source_ex * m_dx[0]) / m_dx[0]) * 2 - 1;
-                    y = ((y - source_ey * m_dx[1]) / m_dx[1]) * 2 - 1;
-                    //MPI TODO: check element belongs to this rank
-                    const double *sdata = source.getSampleDataRO(INDEX2(source_ex, source_ey, m_NE[0]));
-                    //and do the actual interpolation
-                    for (int sqy = 0; sqy < numQuads; sqy++) {
-                        for (int sqx = 0; sqx < numQuads; sqx++) {
-                            for (int comp = 0; comp < numComp; comp++) {
-                                double a = sdata[INDEX3(comp,sqx,sqy,numComp,numQuads)]
-                                         * interpolationFuncs[m_order-2][sqx](x)
-                                         * interpolationFuncs[m_order-2][sqy](y);
-
-                                out[INDEX3(comp,oqx,oqy,numComp,2)]
-                                      += a; /*sdata[INDEX3(comp,sqx,sqy,numComp,numQuads)]
-                                         * interpolationFuncs[m_order-2][sqx](x)
-                                         * interpolationFuncs[m_order-2][sqy](y);*/
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
+    coupler->interpolate(target, source);
+#else
+    throw SpeckleyException("Speckley::Rectangle interpolation to unsupported domain");
+#endif
 }
 
 } // end of namespace speckley

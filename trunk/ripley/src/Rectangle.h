@@ -199,6 +199,17 @@ public:
     virtual Assembler_ptr createAssembler(std::string type,
                                           const DataMap& options) const;
 
+    /**
+       \brief
+       returns the lengths of the domain
+    */
+    const double *getLength() const { return m_length; }
+
+    /**
+       \brief
+       returns the lengths of an element
+    */
+    const double *getElementLength() const { return m_dx; }
 
 protected:
     virtual dim_t getNumNodes() const;
@@ -316,6 +327,8 @@ inline dim_t Rectangle::getNumDataPointsGlobal() const
 inline double Rectangle::getLocalCoordinate(index_t index, int dim) const
 {
     EsysAssert((dim>=0 && dim<2), "'dim' out of bounds");
+    if (index < 0 || index >= m_NN[dim])
+fprintf(stderr, "about to break with index: %d and dim %d\n", index, dim);
     EsysAssert((index>=0 && index<m_NN[dim]), "'index' out of bounds");
     return m_origin[dim]+m_dx[dim]*(m_offset[dim]+index);
 }

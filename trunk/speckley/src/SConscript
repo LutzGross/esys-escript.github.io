@@ -31,31 +31,39 @@ sources = """
     Brick.cpp
     BrickGradients.cpp
     BrickIntegrals.cpp
+    DefaultAssembler2D.cpp
+    DefaultAssembler3D.cpp
+    domainhelpers.cpp
     Rectangle.cpp
     RectangleGradients.cpp
     RectangleIntegrals.cpp
     SpeckleyDomain.cpp
     SpeckleyException.cpp
-    DefaultAssembler2D.cpp
-    DefaultAssembler3D.cpp
-    domainhelpers.cpp
 """.split()
 
 headers = """
     AbstractAssembler.h
     Brick.h
+    DefaultAssembler2D.h
+    DefaultAssembler3D.h
+    domainhelpers.h
     lagrange_functions.h
     Rectangle.h
     Speckley.h
     SpeckleyDomain.h
     SpeckleyException.h
     system_dep.h
-    DefaultAssembler2D.h
-    DefaultAssembler3D.h
-    domainhelpers.h
 """.split()
 
-local_env.Prepend(LIBS = ['escript', 'esysUtils', 'ripley'])
+local_env.Prepend(LIBS = ['escript', 'esysUtils'])
+
+if 'ripley' in env['domains']:
+    local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
+    py_wrapper_local_env.Append(CPPDEFINES = ['USE_RIPLEY'])
+    local_env.Append(LIBS = ['ripley'])
+    sources += ['CrossDomainCoupler.cpp']
+    headers += ['CrossDomainCoupler.h']
+
 if local_env['silo']:
     local_env.Append(CPPDEFINES = ['USE_SILO'])
     local_env.AppendUnique(LIBS = env['silo_libs'])

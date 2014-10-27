@@ -204,6 +204,12 @@ public:
     virtual bool probeInterpolationAcross(int, const escript::AbstractDomain&,
             int) const;
 
+    /**
+       \brief
+       returns the lengths of the domain
+    */
+    const double *getLength() const { return m_length; }
+
 protected:
     virtual dim_t getNumNodes() const;
     virtual dim_t getNumElements() const;

@@ -723,6 +723,12 @@ public:
 
     /**
        \brief
+       returns the lengths of the domain
+    */
+    virtual const double *getLength() const = 0;
+
+    /**
+       \brief
        returns the order of the domain
     */
     inline int getOrder() const { return m_order;}
