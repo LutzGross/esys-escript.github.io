@@ -169,7 +169,7 @@ def runPyUnitTest(target, source, env):
        else:
            app = "cd "+ pn +" & "+sys.executable + " " + sn
    else:
-     skipfile = os.path.join(env['build_dir'], sn[:-3]) + ".skipped"
+     skipfile = os.path.join(env['BUILD_DIR'], sn[:-3]) + ".skipped"
      try:
          os.unlink(skipfile)
      except Exception as e:
