@@ -175,8 +175,27 @@ void SystemMatrix::ypAx(escript::Data& y, escript::Data& x) const
     HostVectorType xx(x_dp, x_dp+mat.num_rows);
     HostVectorType yy(mat.num_rows, 0.);
     cusp::multiply(mat, xx, yy);
+    /*
+    DeviceVectorType xx(x_dp, x_dp+mat.num_rows);
+    DeviceVectorType yy(mat.num_rows, 0.);
+    copyMatrixToDevice();
+    cusp::multiply(dmat, xx, yy);
+    */
     thrust::copy(yy.begin(), yy.end(), y_dp);
     //std::cout << "ypAx: " << gettime()-T0 << " seconds." << std::endl;
+}
+
+void SystemMatrix::copyMatrixToDevice(bool verbose) const
+{
+    if (matrixAltered) {
+        double T0 = gettime();
+        dmat = mat;
+        if (verbose) {
+            double host2dev = gettime()-T0;
+            std::cout << "Copy of A: " << host2dev << " seconds." << std::endl;
+        }
+        matrixAltered = false;
+    }
 }
 
 template<class LinearOperator,
@@ -295,14 +314,7 @@ void SystemMatrix::setToSolution(escript::Data& out, escript::Data& in,
         double host2dev = gettime()-T0;
         if (sb.isVerbose())
             std::cout << "Copy of b: " << host2dev << " seconds." << std::endl;
-        if (matrixAltered) {
-            T0 = gettime();
-            dmat = mat;
-            host2dev = gettime()-T0;
-            if (sb.isVerbose())
-                std::cout << "Copy of A: " << host2dev << " seconds." << std::endl;
-            matrixAltered = false;
-        }
+        copyMatrixToDevice(sb.isVerbose());
         DeviceVectorType x(mat.num_rows, 0.);
         if (sb.isVerbose())
             std::cout << "Solving on CUDA device..." << std::endl;

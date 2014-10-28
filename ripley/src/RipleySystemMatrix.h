@@ -63,6 +63,9 @@ private:
     void runSolver(LinearOperator& A, Vector& x, Vector& b, Preconditioner& M,
                    escript::SolverBuddy& sb) const;
 
+    /// copies the current matrix stored on host to device *if required*
+    void copyMatrixToDevice(bool verbose=false) const;
+
     virtual void setToSolution(escript::Data& out, escript::Data& in,
                                boost::python::object& options) const;
 
