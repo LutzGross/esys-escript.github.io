@@ -23,12 +23,12 @@ cuda = True
 cc_optim = '-O3 -march=native'
 cc_debug = "-g3 -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK -D_GLIBCXX_DEBUG -fno-omit-frame-pointer -fsanitize=address --param=max-vartrack-size=90000000"
 cxx_extra = '-Wextra -Wno-unused-parameter -g'
-nvccflags = "-ccbin=g++-4.8 -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
+nvccflags = "-ccbin=g++ -arch=sm_30 -DBOOST_NOINLINE='__attribute__((noinline))'"
 #ld_extra = ''
 #werror = False
 #debug = True
-if debug:
-    ld_extra = '-fsanitize=address'
+#if debug:
+#ld_extra = '-fsanitize=address'
 verbose = True
 openmp = True
 #omp_flags = '-fopenmp'
@@ -74,8 +74,8 @@ visit_prefix = '/opt/visit/2.7.0b/linux-x86_64/libsim/V2'
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
 
-domains = 'ripley,speckley'
-longindices = True
+#domains = 'ripley,speckley'
+#longindices = True
 #vsl_random = True
 #sys_libs = []
 #env_export = []

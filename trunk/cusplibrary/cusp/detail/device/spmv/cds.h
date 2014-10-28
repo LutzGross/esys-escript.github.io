@@ -60,10 +60,10 @@ spmv_cds_kernel(const IndexType num_rows,
                 const IndexType num_diagonals,
                 const IndexType block_size,
                 const IndexType pitch,
-                const IndexType * diagonal_offsets,
-                const ValueType * values,
-                const ValueType * x,
-                      ValueType * y)
+                const IndexType* diagonal_offsets,
+                const ValueType* values,
+                const ValueType* x,
+                      ValueType* y)
 {
     __shared__ IndexType offsets[BLOCK_SIZE];
 
@@ -73,18 +73,18 @@ spmv_cds_kernel(const IndexType num_rows,
     const IndexType num_cols = num_diagonals * block_size;
 
     // for BLOCK_SIZE=256 this is most likely only executed once
-    for(IndexType base = 0; base < num_cols; base += BLOCK_SIZE)
+    for (IndexType base = 0; base < num_cols; base += BLOCK_SIZE)
     {
         // read a chunk of the diagonal offsets into shared memory
         const IndexType chunk_size = thrust::min(IndexType(BLOCK_SIZE), num_cols - base);
 
-        if(threadIdx.x < chunk_size)
+        if (threadIdx.x < chunk_size)
             offsets[threadIdx.x] = diagonal_offsets[(base + threadIdx.x)/block_size] * block_size + threadIdx.x%block_size;
 
         __syncthreads();
 
         // process chunk
-        for(IndexType row = thread_id; row < num_rows; row += grid_size)
+        for (IndexType row = thread_id; row < num_rows; row += grid_size)
         {
             ValueType sum = (base == 0) ? ValueType(0) : y[row];
 
@@ -95,11 +95,11 @@ spmv_cds_kernel(const IndexType num_rows,
             //const IndexType colbase = block_size*(int)((row/bsf)+0.001f);
             const IndexType colbase = block_size*(row/block_size);
 
-            for(IndexType n = 0; n < chunk_size; n++)
+            for (IndexType n = 0; n < chunk_size; n++)
             {
                 const IndexType col = colbase + offsets[n];
 
-                if(col >= 0 && col < num_rows)
+                if (col >= 0 && col < num_rows)
                 {
                     const ValueType& A_ij = values[idx];
                     sum += A_ij * fetch_x<UseCache>(col, x);
@@ -138,12 +138,12 @@ spmv_cds_symmetric_kernel(const IndexType num_rows,
     const IndexType t_mod_bs = threadIdx.x % block_size;
 
     // for BLOCK_SIZE=256 this is most likely only executed once
-    for(IndexType base = 0; base < num_cols; base += BLOCK_SIZE)
+    for (IndexType base = 0; base < num_cols; base += BLOCK_SIZE)
     {
         // read a chunk of the diagonal offsets into shared memory
         const IndexType chunk_size = thrust::min(IndexType(BLOCK_SIZE), num_cols - base);
 
-        if(threadIdx.x < chunk_size) {
+        if (threadIdx.x < chunk_size) {
             offsets[threadIdx.x] = diagonal_offsets[(base + threadIdx.x)/block_size] * block_size + t_mod_bs;
             offsets2[threadIdx.x] = -diagonal_offsets[(base + threadIdx.x)/block_size] * block_size + t_mod_bs;
         }
@@ -151,7 +151,7 @@ spmv_cds_symmetric_kernel(const IndexType num_rows,
         __syncthreads();
 
         // process chunk
-        for(IndexType row = thread_id; row < num_rows; row += grid_size)
+        for (IndexType row = thread_id; row < num_rows; row += grid_size)
         {
             ValueType sum = (base == 0) ? ValueType(0) : y[row];
 
@@ -161,11 +161,11 @@ spmv_cds_symmetric_kernel(const IndexType num_rows,
             const IndexType colbase = block_size*(row/block_size);
 
             // process subdiagonal blocks
-            for(IndexType n = block_size; n < chunk_size; n++)
+            for (IndexType n = block_size; n < chunk_size; n++)
             {
                 const IndexType col = colbase + offsets2[n];
 
-                if(col >= 0 && col < num_rows)
+                if (col >= 0 && col < num_rows)
                 {
                     const IndexType diagbase = block_size*(n/block_size) + t_mod_bs;
                     const ValueType& A_ij = values[col + pitch*(base+diagbase)];
@@ -177,11 +177,11 @@ spmv_cds_symmetric_kernel(const IndexType num_rows,
             IndexType idx = row + pitch * base;
 
             // process main and upper diagonal blocks
-            for(IndexType n = 0; n < chunk_size; n++)
+            for (IndexType n = 0; n < chunk_size; n++)
             {
                 const IndexType col = colbase + offsets[n];
 
-                if(col >= 0 && col < num_rows)
+                if (col >= 0 && col < num_rows)
                 {
                     const ValueType& A_ij = values[idx];
                     sum += A_ij * fetch_x<UseCache>(col, x);
