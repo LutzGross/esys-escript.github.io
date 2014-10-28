@@ -331,7 +331,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         Ex1_ex=exp(-k.real*z)*sin(-k.imag*z)
         Ex1_ex_z=(-k.real*sin(-k.imag*z)-k.imag*cos(-k.imag*z)) * exp(-k.real*z)
 
-        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.] )
+        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], tol=1e-9 )
     
         # this is the base line:
         SIGMA0=10.        
