@@ -1154,9 +1154,9 @@ class DcRes(ForwardModel):
         sampleTags=self.__sampleTags
 
         jointSamples={}
-        print sampleTags
+        # print(sampleTags)
         for i in range(0,2*len(sampleTags),2):
-            print i
+            # print(i)
             if sampleTags[i][1]!="-":
                 tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
             else:
