@@ -36,6 +36,8 @@ if local_env['cppunit'] and local_env['cuda']:
     local_env['NVCCFLAGS'] += ' -w'
     local_env['SHNVCCFLAGS']  += ' -w'
     local_env.Append(CPPDEFINES = ['USE_CUDA', 'THRUST_DEVICE_SYSTEM=THRUST_DEVICE_SYSTEM_CUDA'])
+    #TODO: This needs a config option:
+    local_env.Append(CPPDEFINES = ['CUSP_USE_TEXTURE_MEMORY'])
     local_env.Append(LIBS = ['cudart'])
 
     program = local_env.Program(testname, sources)
