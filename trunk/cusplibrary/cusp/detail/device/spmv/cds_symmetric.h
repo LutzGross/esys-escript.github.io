@@ -199,6 +199,88 @@ spmv_cds_symmetric_bs2_kernel(const IndexType  num_rows,
     }
 }
 
+//
+// diagonal block size 3
+//
+template <typename IndexType, typename ValueType, unsigned int BLOCK_SIZE, bool UseCache>
+__launch_bounds__(BLOCK_SIZE,1)
+__global__ void
+spmv_cds_symmetric_bs3_kernel(const IndexType  num_rows,
+                              const IndexType  num_diagonals,
+                              const IndexType  pitch,
+                              const IndexType* diagonal_offsets,
+                              const ValueType* values,
+                              const ValueType* x,
+                                    ValueType* y)
+{
+    __shared__ IndexType offsets[BLOCK_SIZE];
+    __shared__ IndexType offsets2[BLOCK_SIZE];
+
+    const IndexType thread_id = BLOCK_SIZE * blockIdx.x + threadIdx.x;
+    const IndexType grid_size = BLOCK_SIZE * gridDim.x;
+    const IndexType t_mod_bs = threadIdx.x % 3;
+
+    // for BLOCK_SIZE=256 this is most likely only executed once
+    for (IndexType base = 0; base < num_diagonals; base += BLOCK_SIZE)
+    {
+        // read a chunk of the diagonal offsets into shared memory
+        const IndexType chunk_size = thrust::min(IndexType(BLOCK_SIZE), num_diagonals - base);
+
+        if (threadIdx.x < chunk_size) {
+            offsets[threadIdx.x] = 3*diagonal_offsets[base + threadIdx.x];
+            offsets2[threadIdx.x] = -3*diagonal_offsets[num_diagonals - base - 1 - threadIdx.x];
+        }
+
+        __syncthreads();
+
+        // process chunk
+        for (IndexType row = thread_id; row < num_rows; row += grid_size)
+        {
+            const IndexType row_step = 3*(row/3);
+            ValueType sum1 = (base == 0) ? ValueType(0) : y[row];
+
+            // index into values array
+            IndexType idx = 3 * pitch * (num_diagonals - base - 1) + t_mod_bs*pitch;
+
+            // process subdiagonal blocks
+            for (IndexType n = 0; n < chunk_size-1; n++)
+            {
+                const IndexType col = row_step + offsets2[n];
+
+                if (col >= 0 && col <= num_rows-3)
+                {
+                    sum1 += values[col   + idx] * fetch_x<UseCache>(col, x);
+                    sum1 += values[col+1 + idx] * fetch_x<UseCache>(col+1, x);
+                    sum1 += values[col+2 + idx] * fetch_x<UseCache>(col+2, x);
+                }
+                idx -= 3*pitch;
+            }
+
+            // index into values array
+            idx = row + 3 * pitch * base;
+
+            // process main and upper diagonal blocks
+            for (IndexType n = 0; n < chunk_size; n++)
+            {
+                const IndexType col = row_step + offsets[n];
+
+                if (col >= 0 && col <= num_rows-3)
+                {
+                    sum1 += values[idx] * fetch_x<UseCache>(col, x);
+                    sum1 += values[idx+pitch] * fetch_x<UseCache>(col+1, x);
+                    sum1 += values[idx+2*pitch] * fetch_x<UseCache>(col+2, x);
+                }
+                idx += 3*pitch;
+            }
+
+            y[row] = sum1;
+        }
+
+        // wait until all threads are done reading offsets
+        __syncthreads();
+    }
+}
+
 template <bool UseCache,
           typename Matrix,
           typename ValueType>
@@ -209,36 +291,55 @@ void __spmv_cds_symmetric(const Matrix&    A,
     using cusp::detail::device::arch::max_active_blocks;
     typedef typename Matrix::index_type IndexType;
 
-    const size_t BLOCK_SIZE = 256;
+    const size_t BLOCK_SIZE = 192;
     const IndexType num_diagonals = A.values.num_cols / A.block_size;
     const IndexType pitch         = A.values.pitch;
 
     if (UseCache)
         bind_x(x);
 
-    if (A.block_size == 2) {
-        const size_t MAX_BLOCKS = max_active_blocks(
-                spmv_cds_symmetric_bs2_kernel<IndexType, ValueType,
-                BLOCK_SIZE, UseCache>, BLOCK_SIZE,
-                (size_t) sizeof(IndexType) * BLOCK_SIZE);
-        const size_t NUM_BLOCKS = std::min<size_t>(MAX_BLOCKS,
-                DIVIDE_INTO(A.num_rows, BLOCK_SIZE));
-        spmv_cds_symmetric_bs2_kernel<IndexType, ValueType, BLOCK_SIZE, UseCache>
-            <<<NUM_BLOCKS, BLOCK_SIZE>>>(A.num_rows, num_diagonals, pitch,
-                thrust::raw_pointer_cast(&A.diagonal_offsets[0]),
-                thrust::raw_pointer_cast(&A.values.values[0]), x, y);
-    } else {
-        const size_t MAX_BLOCKS = max_active_blocks(
-                spmv_cds_symmetric_kernel<IndexType, ValueType, BLOCK_SIZE,
-                UseCache>, BLOCK_SIZE,
-                (size_t) sizeof(IndexType) * BLOCK_SIZE);
-        const size_t NUM_BLOCKS = std::min<size_t>(MAX_BLOCKS,
-                DIVIDE_INTO(A.num_rows, BLOCK_SIZE));
-        spmv_cds_symmetric_kernel<IndexType, ValueType, BLOCK_SIZE, UseCache>
-            <<<NUM_BLOCKS, BLOCK_SIZE>>>(A.num_rows, num_diagonals,
-                A.block_size, pitch,
-                thrust::raw_pointer_cast(&A.diagonal_offsets[0]),
-                thrust::raw_pointer_cast(&A.values.values[0]), x, y);
+    switch (A.block_size) {
+        case 2: {
+            const size_t MAX_BLOCKS = max_active_blocks(
+                    spmv_cds_symmetric_bs2_kernel<IndexType, ValueType,
+                    BLOCK_SIZE, UseCache>, BLOCK_SIZE,
+                    (size_t) sizeof(IndexType) * BLOCK_SIZE);
+            const size_t NUM_BLOCKS = std::min<size_t>(MAX_BLOCKS,
+                    DIVIDE_INTO(A.num_rows, BLOCK_SIZE));
+            spmv_cds_symmetric_bs2_kernel<IndexType, ValueType, BLOCK_SIZE, UseCache>
+                <<<NUM_BLOCKS, BLOCK_SIZE>>>(A.num_rows, num_diagonals, pitch,
+                    thrust::raw_pointer_cast(&A.diagonal_offsets[0]),
+                    thrust::raw_pointer_cast(&A.values.values[0]), x, y);
+        }
+        break;
+
+        case 3: {
+            const size_t MAX_BLOCKS = max_active_blocks(
+                    spmv_cds_symmetric_bs3_kernel<IndexType, ValueType,
+                    BLOCK_SIZE, UseCache>, BLOCK_SIZE,
+                    (size_t) sizeof(IndexType) * BLOCK_SIZE);
+            const size_t NUM_BLOCKS = std::min<size_t>(MAX_BLOCKS,
+                    DIVIDE_INTO(A.num_rows, BLOCK_SIZE));
+            spmv_cds_symmetric_bs3_kernel<IndexType, ValueType, BLOCK_SIZE, UseCache>
+                <<<NUM_BLOCKS, BLOCK_SIZE>>>(A.num_rows, num_diagonals, pitch,
+                    thrust::raw_pointer_cast(&A.diagonal_offsets[0]),
+                    thrust::raw_pointer_cast(&A.values.values[0]), x, y);
+        }
+        break;
+
+        default: {
+            const size_t MAX_BLOCKS = max_active_blocks(
+                    spmv_cds_symmetric_kernel<IndexType, ValueType, BLOCK_SIZE,
+                    UseCache>, BLOCK_SIZE,
+                    (size_t) sizeof(IndexType) * BLOCK_SIZE);
+            const size_t NUM_BLOCKS = std::min<size_t>(MAX_BLOCKS,
+                    DIVIDE_INTO(A.num_rows, BLOCK_SIZE));
+            spmv_cds_symmetric_kernel<IndexType, ValueType, BLOCK_SIZE, UseCache>
+                <<<NUM_BLOCKS, BLOCK_SIZE>>>(A.num_rows, num_diagonals,
+                    A.block_size, pitch,
+                    thrust::raw_pointer_cast(&A.diagonal_offsets[0]),
+                    thrust::raw_pointer_cast(&A.values.values[0]), x, y);
+        }
     }
 
     if (UseCache)
