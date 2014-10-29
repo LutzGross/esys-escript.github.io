@@ -222,7 +222,7 @@ class InversionCostFunction(MeteredCostFunction):
             self.mu_model=np.ones((self.numModels, ))
         else:
             if self.numModels > 1:
-                mu=np.asarray(mu)
+                mu=np.asarray(mu, dtype=float)
                 if min(mu) > 0:
                     self.mu_model= mu
                 else:
