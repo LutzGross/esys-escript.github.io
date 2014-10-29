@@ -28,6 +28,7 @@ using namespace CppUnit;
 
 int main(int argc, char* argv[])
 {
+    int mpiRank = 0;
     int mpiSize = 1;
 #ifdef ESYS_MPI
     int status = MPI_Init(&argc, &argv);
@@ -35,7 +36,8 @@ int main(int argc, char* argv[])
         std::cerr << argv[0] << ": MPI_Init failed, exiting." << std::endl;
         return status;
     }
-    MPI_Comm_rank(MPI_COMM_WORLD, &mpiSize);
+    MPI_Comm_rank(MPI_COMM_WORLD, &mpiRank);
+    MPI_Comm_size(MPI_COMM_WORLD, &mpiSize);
 #endif
     TestResult controller;
     TestResultCollector result;
@@ -44,12 +46,14 @@ int main(int argc, char* argv[])
     if (mpiSize == 1) {
         runner.addTest(SystemMatrixTestCase::suite());
     } else {
-        std::cout << "Skipping SystemMatrixTestCase with more than one rank."
-                  << std::endl;
+        if (mpiRank == 0)
+            std::cout << "Skipping SystemMatrixTestCase with more than one rank."
+                      << std::endl;
     }
     runner.run(controller);
     CompilerOutputter outputter( &result, std::cerr );
-    outputter.write();
+    if (mpiRank == 0)
+        outputter.write();
 #ifdef ESYS_MPI
     MPI_Finalize();
 #endif
