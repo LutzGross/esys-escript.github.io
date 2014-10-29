@@ -63,6 +63,8 @@ http://www.opensource.org/licenses/osl-3.0.php"""
 __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
+from .util import getMPIRankWorld
+import os
 import sys
 
 def __add_tests(suite, modulename):
@@ -82,13 +84,20 @@ def run_single_test(test, exit_on_failure=False):
     return s
 
 def run_tests(modulename, classes = [], exit_on_failure = False):
+    rank = getMPIRankWorld()
+    stream=sys.stderr #default
+    verb=2
+    if rank > 0:
+        stream=open(os.devnull,'w')
+        verb=0
+
     suite = unittest.TestSuite()
     if len(classes) == 0:
         __add_tests(suite, modulename)
     else:
         for test_class in classes:
             suite.addTest(unittest.makeSuite(test_class))
-    s=unittest.TextTestRunner(verbosity=2).run(suite)
+    s=unittest.TextTestRunner(stream=stream,verbosity=verb).run(suite)
     if exit_on_failure and not s.wasSuccessful():
         sys.exit(1)
     return s

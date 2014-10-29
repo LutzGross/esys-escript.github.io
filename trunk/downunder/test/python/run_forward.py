@@ -231,7 +231,7 @@ class TestAcousticInversion(unittest.TestCase):
 class TestMT2DModelTEMode(unittest.TestCase):
     def test_API(self):
         from esys.ripley import Rectangle
-        domain=Rectangle(20,20)
+        domain=Rectangle(19, 19, d1=mpisize)
         omega=2.
         x=[ [0.2,0.5], [0.3,0.5] ]
         Z_XY=[ complex(1.2,1.5), complex(1.3,2.5) ]
@@ -256,14 +256,13 @@ class TestMT2DModelTEMode(unittest.TestCase):
         self.assertRaises(ValueError, MT2DModelTEMode, domain, omega, [(6.7,5)], Z_XY, eta=[1.,1.], w0=[2.,3.], E_x0=complex(4.5,6) )
 
     def test_PDE(self):
-         
         omega=2.
         mu0=0.123
         SIGMA=15.
         k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
 
         from esys.ripley import Rectangle
-        domain=Rectangle(200,200)
+        domain=Rectangle(199,199, d1=mpisize)
 
         
         IMP=cmath.sqrt(1j*omega*mu0/SIGMA)
@@ -276,7 +275,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         Ex1_ex=exp(-k.real*z)*sin(-k.imag*z)
         Ex1_ex_z=(-k.real*sin(-k.imag*z)-k.imag*cos(-k.imag*z)) * exp(-k.real*z)
 
-        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.] )
+        acw=MT2DModelTEMode(domain, omega, x, Z_XY, eta, mu=mu0, fixAtBottom=True, E_x0=Ex0_ex*[1.,0]+ Ex1_ex*[0,1.], tol=1e-9)
 
         args=acw.getArguments(SIGMA)
         Ex=args[0]
@@ -318,7 +317,7 @@ class TestMT2DModelTEMode(unittest.TestCase):
         k=cmath.sqrt(1j*omega*mu0*SIGMA)  # Ex=exp(k*z)
 
         from esys.ripley import Rectangle
-        domain=Rectangle(200,200)
+        domain=Rectangle(99,99, d1=mpisize)
 
         
         IMP=-cmath.sqrt(1j*omega*mu0/SIGMA)
@@ -373,7 +372,7 @@ class TestSubsidence(unittest.TestCase):
         mu=1.
 
         from esys.ripley import Brick
-        domain=Brick(20,20,20)
+        domain=Brick(20,20,19, d2=mpisize)
         
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
@@ -399,7 +398,7 @@ class TestSubsidence(unittest.TestCase):
         
         INC=0.01 
         from esys.ripley import Brick
-        domain=Brick(20,20,20*getMPISizeWorld() -1 , d2=getMPISizeWorld())
+        domain=Brick(20,20,20*mpisize-1 , d2=mpisize)
         
         xb=FunctionOnBoundary(domain).getX()
         m=whereZero(xb[2]-1)
@@ -434,7 +433,7 @@ class TestSubsidence(unittest.TestCase):
 class TestIsostaticPressure(unittest.TestCase):
     def test_all(self):
         from esys.ripley import Brick
-        domain=Brick(50,50,20*getMPISizeWorld() - 1, d2=getMPISizeWorld())
+        domain=Brick(50,50,20*mpisize-1, d2=mpisize)
 
         ps=IsostaticPressure(domain, level0=1., coordinates=None)
     
