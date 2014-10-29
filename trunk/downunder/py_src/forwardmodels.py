@@ -1072,7 +1072,8 @@ class DcRes(ForwardModel):
         Ahomog = conHomog * kro
         y_dirac = Scalar(0,DiracDeltaFunctions(dom))
         y_dirac.setTaggedValue(self.__sourceInfo[0],self.__current)
-        y_dirac.setTaggedValue(self.__sourceInfo[1],-self.__current)
+        if(self.__sourceInfo[1]!="-"):
+            y_dirac.setTaggedValue(self.__sourceInfo[1],-self.__current)
         # print "setting",self.__sourceInfo[0],"to",self.__current
         # print "setting",self.__sourceInfo[1],"to",-self.__current
         # print "-----------------"
@@ -1119,11 +1120,16 @@ class DcRes(ForwardModel):
         val=loc.getValue(phi)
         # print "val=",val
         length=len(val)
-        if((length%2) != 0) or (length/2 != len(self.__delphi_in)):
+        if((self.__sourceInfo[1]!="-" and (length%2) != 0) or (length/2 != len(self.__delphi_in))):
             raise ValueError("length of Locator should be even")
+
         delphi_calc=[]
-        for i in range(0,length,2):
-            delphi_calc.append(val[i+1]-val[i])
+        if self.__sourceInfo[1]!="-":
+            for i in range(0,length,2):
+                delphi_calc.append(val[i+1]-val[i])
+        else:
+            for i in range(0,length,2):
+                delphi_calc.append(val[i])
         A=0
         for i in range(length/2):
             A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
@@ -1148,8 +1154,13 @@ class DcRes(ForwardModel):
         sampleTags=self.__sampleTags
 
         jointSamples={}
+        print sampleTags
         for i in range(0,2*len(sampleTags),2):
-            tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
+            print i
+            if sampleTags[i][1]!="-":
+                tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
+            else:
+                tmp=val[i]-self.__delphi_in[i/2]
             # print "i=", i,"val[i]=",val[i],"val[i+1]=",val[i+1],"self.__delphi_in[i/2]=",self.__delphi_in[i/2]
             # print "tmp=",tmp
             if sampleTags[i/2][0] in jointSamples.keys():
