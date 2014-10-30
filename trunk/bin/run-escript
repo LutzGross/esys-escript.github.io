@@ -150,7 +150,7 @@ Usage: run-escript [options] script.py [arguments...]
 	-o		redirect output from MPI to files
 	-v		print diagnostics
 	-x		run in new xterm instance
-	-m tool		run with valgrind {tool=m[emcheck]/c[allgrind]}
+	-m tool		run with valgrind {tool=m[emcheck]/c[allgrind]/[cac]h[egrind]}
 	script.py	Your python script
 	arguments...	The optional command-line arguments to your script
 "
@@ -395,6 +395,12 @@ then
             # run callgrind
             LOGFILE=${LOGDIR}/callgrind.%p.xml
             VALGRIND="valgrind --tool=callgrind --callgrind-out-file=$LOGFILE"
+            EXEC_CMD="$EXEC_CMD $VALGRIND"
+        elif [ $VG_TOOL = "h" ];
+        then
+            # run cachegrind
+            LOGFILE=${LOGDIR}/cachegrind.%p.xml
+            VALGRIND="valgrind --tool=cachegrind --cachegrind-out-file=$LOGFILE"
             EXEC_CMD="$EXEC_CMD $VALGRIND"
         else
             # run memcheck by default
