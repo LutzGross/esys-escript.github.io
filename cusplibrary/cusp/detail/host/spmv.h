@@ -313,46 +313,65 @@ void spmv_cds(const Matrix&  A,
             // and should be skipped in the first loop below since the main
             // diagonal is processed in the second loop
             const IndexType d0 = (A.diagonal_offsets[0] == 0 ? 1 : 0);
+            const ValueType* values = thrust::raw_pointer_cast(&A.values.values[0]);
+            const IndexType pitch = A.values.pitch;
 #pragma omp parallel for
             for(IndexType ch = 0; ch < num_rows; ch+=chunksize)
             {
                 for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
                 {
                     y[row] = initialize(y[row]);
+                }
 
-                    // process subdiagonal blocks
-                    for (IndexType d = 0; d < num_diagonals-d0; d++)
+                IndexType idx = pitch*block_size*(num_diagonals-1);
+                // process subdiagonal blocks
+                for (IndexType d = 0; d < num_diagonals-d0; d++)
+                {
+                    const IndexType diag = num_diagonals-d-1;
+                    const IndexType k = -block_size*A.diagonal_offsets[diag];
+                    for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
                     {
-                        const IndexType diag = num_diagonals-d-1;
-                        const IndexType col = block_size*(row/block_size) - A.diagonal_offsets[diag]*block_size;
+                        const IndexType row_step = block_size*(row/block_size);
+                        const IndexType ridx = idx + pitch*(row%block_size);
+
+                        const IndexType col = row_step + k;
                         if (col >= 0 && col <= num_rows-block_size)
                         {
                             // for each column in block
                             for (IndexType i = 0; i < block_size; i++)
                             {
-                                const ValueType& Aij = A.values(col+i, diag*block_size+row%block_size);
+                                const ValueType& Aij = values[ridx+col+i];
                                 const ValueType& xj = x[col + i];
 
                                 y[row] = reduce(y[row], combine(Aij, xj));
                             }
                         }
                     }
+                    idx -= block_size*pitch;
+                }
+                for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
+                {
+                    const IndexType row_step = block_size*(row/block_size);
+                    ValueType sum = y[row];
+                    IndexType idx = row;
                     // process main and upper diagonal blocks
                     for (IndexType d = 0; d < num_diagonals; d++)
                     {
-                        const IndexType col = block_size*(row/block_size) + A.diagonal_offsets[d]*block_size;
+                        const IndexType col = row_step + block_size*A.diagonal_offsets[d];
                         if (col >= 0 && col <= num_rows-block_size)
                         {
                             // for each column in block
                             for (IndexType i = 0; i < block_size; i++)
                             {
-                                const ValueType& Aij = A.values(row, d*block_size+i);
+                                const ValueType& Aij = values[idx+i*pitch];
                                 const ValueType& xj = x[col + i];
 
-                                y[row] = reduce(y[row], combine(Aij, xj));
+                                sum = reduce(sum, combine(Aij, xj));
                             }
                         }
+                        idx += block_size*pitch;
                     }
+                    y[row] = sum;
                 }
             }
         } else { // A.symmetric
