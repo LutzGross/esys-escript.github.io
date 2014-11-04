@@ -973,10 +973,6 @@ class DcRes(ForwardModel):
         self.__current=current  
         self.__sampleTags = sampleTags
 
-        
-        # print jointSamples
-        # raise
-
         if isinstance(w, float) or isinstance(w, int):
                w =[ float(w) for z in delphi_in]
                self.__w=w
@@ -1120,21 +1116,28 @@ class DcRes(ForwardModel):
         val=loc.getValue(phi)
         # print "val=",val
         length=len(val)
-        if((self.__sourceInfo[1]!="-" and (length%2) != 0) or (length/2 != len(self.__delphi_in))):
-            raise ValueError("length of Locator should be even")
+        # print self.__sampleTags[0] 
+        if((self.__sampleTags[0][1]!="-" and (length%2) != 0) or (self.__sampleTags[0][1]!="-" and length/2 != len(self.__delphi_in))):
+            raise ValueError("length of locator is wrong")
 
         delphi_calc=[]
-        if self.__sourceInfo[1]!="-":
+        if self.__sampleTags[0][1]!="-":
             for i in range(0,length,2):
                 delphi_calc.append(val[i+1]-val[i])
         else:
-            for i in range(0,length,2):
-                delphi_calc.append(val[i])
+            for i in range(length):
+                delphi_calc.append(-val[i])
         A=0
-        for i in range(length/2):
-            A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
-            # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
+        if (self.__sampleTags[0][1]!="-"):
+            for i in range(length/2):
+                A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
+                # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
+        else:
+            for i in range(length):
+                A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
+                # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
         # print "A/2=",A/2,"for",self.__sourceInfo
+
 
         return  A/2
 
@@ -1160,14 +1163,14 @@ class DcRes(ForwardModel):
             if sampleTags[i][1]!="-":
                 tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
             else:
-                tmp=val[i]-self.__delphi_in[i/2]
-            # print "i=", i,"val[i]=",val[i],"val[i+1]=",val[i+1],"self.__delphi_in[i/2]=",self.__delphi_in[i/2]
-            # print "tmp=",tmp
+                tmp=-val[i]-self.__delphi_in[i/2]
+            print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
+            print ("tmp=",tmp)
             if sampleTags[i/2][0] in jointSamples.keys():
                 jointSamples[sampleTags[i/2][0]].append((sampleTags[i/2][1], tmp))
             else:
                 jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],tmp)]
-        # print "jointSamples=",jointSamples
+        print ("jointSamples=",jointSamples)
         pde,homogPde=self.setUpPDE()
         dom=self.__domain
         kro=kronecker(dom)
@@ -1182,7 +1185,8 @@ class DcRes(ForwardModel):
 
         pde.setValue(A=A,y_dirac=-y_dirac)
         u=pde.getSolution()
-        return inner(grad(u),grad_phi)
+        retVal=-inner(grad(u),grad(phi))
+        return retVal
 
 
 class MT2DModelTEMode(ForwardModel):
