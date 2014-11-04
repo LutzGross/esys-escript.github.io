@@ -73,7 +73,8 @@ def createDataset(domain=None, **data):
         dataset.addData(d, n, "")
     return dataset
 
-def saveSilo(filename, domain=None, write_meshdata=False, **data):
+def saveSilo(filename, domain=None, write_meshdata=False, time=0., cycle=0,
+        **data):
     """
     Writes `Data` objects and their mesh to a file using the SILO file format.
 
@@ -95,6 +96,10 @@ def saveSilo(filename, domain=None, write_meshdata=False, **data):
                            identifiers, ownership etc. This is mainly useful
                            for debugging.
     :type write_meshdata: ``bool``
+    :param time: the timestamp to save within the file
+    :type time: ``float``
+    :param cycle: the cycle (or timestep) of the data
+    :type cycle: ``int``
     :keyword <name>: writes the assigned value to the Silo file using <name> as
                      identifier
     :note: All data objects have to be defined on the same domain but they may
@@ -102,10 +107,12 @@ def saveSilo(filename, domain=None, write_meshdata=False, **data):
     """
 
     dataset = createDataset(domain, **data)
+    dataset.setCycleAndTime(cycle, time)
     dataset.setSaveMeshData(write_meshdata)
     return dataset.saveSilo(filename)
 
-def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_meshdata=False, **data):
+def saveVTK(filename, domain=None, metadata='', metadata_schema=None,
+        write_meshdata=False, time=0., cycle=0, **data):
     """
     Writes `Data` objects and their mesh to a file using the VTK XML file
     format.
@@ -149,6 +156,10 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_mesh
                            identifiers, ownership etc. This is mainly useful
                            for debugging.
     :type write_meshdata: ``bool``
+    :param time: the timestamp to save within the file, seperate to metadata
+    :type time: ``float``
+    :param cycle: the cycle (or timestep) of the data
+    :type cycle: ``int``
     :note: All data objects have to be defined on the same domain. They may not
            be in the same `FunctionSpace` but not all combinations of
            `FunctionSpace` s can be written to a single VTK file.
@@ -156,6 +167,7 @@ def saveVTK(filename, domain=None, metadata='', metadata_schema=None, write_mesh
     """
 
     dataset = createDataset(domain, **data)
+    dataset.setCycleAndTime(cycle, time)
     ss=''
     ms=''
     if not metadata is None:
