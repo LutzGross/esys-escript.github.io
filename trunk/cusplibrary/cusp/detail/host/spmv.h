@@ -143,28 +143,35 @@ void spmv_dia(const Matrix&  A,
     const size_t num_diagonals = A.values.num_cols;
 
     if (A.symmetric) {
+        // if matrix has a main diagonal it is the first in offsets and should
+        // be skipped in the subdiagonal loop below. The main diagonal is
+        // processed by the second loop
+        const size_t d0 = (A.diagonal_offsets[0] == 0 ? 1 : 0);
 #pragma omp parallel for
         for (size_t ch = 0; ch < A.num_rows; ch += DIA_CHUNKSIZE) {
+            // initialize chunk
             for (size_t row = ch; row < std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
             {
-                // initialize
                 y[row] = initialize(y[row]);
+            }
 
-                // process subdiagonals
-                for (size_t d = 0; d < num_diagonals; d++)
+            // process subdiagonals
+            for (size_t d = 0; d < num_diagonals-d0; d++)
+            {
+                const size_t diag = num_diagonals-d-1;
+                for (size_t row = ch; row < std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
                 {
-                    const size_t diag = num_diagonals-d-1;
-                    // skip main diagonal which is handled below
-                    if (A.diagonal_offsets[diag] == 0)
-                        continue;
                     const IndexType col = row - A.diagonal_offsets[diag];
                     if (col >= 0 && col < A.num_rows)
                     {
                         y[row] = reduce(y[row], combine(A.values(col, diag), x[col]));
                     }
                 }
-                // process main and upper diagonals
-                for (size_t d = 0; d < num_diagonals; d++)
+            }
+            // process main and upper diagonals
+            for (size_t d = 0; d < num_diagonals; d++)
+            {
+                for (size_t row = ch; row < std::min(ch+DIA_CHUNKSIZE,A.num_rows); row++)
                 {
                     const IndexType col = row + A.diagonal_offsets[d];
                     if (col >= 0 && col < A.num_cols)
@@ -174,7 +181,7 @@ void spmv_dia(const Matrix&  A,
                 }
             }
         }
-    } else {
+    } else { // !A.symmetric
 #pragma omp parallel for
         for (size_t ch = 0; ch < A.num_rows; ch += DIA_CHUNKSIZE) {
             // initialize chunk
