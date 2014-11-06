@@ -329,49 +329,50 @@ void spmv_cds(const Matrix&  A,
                 {
                     const IndexType diag = num_diagonals-d-1;
                     const IndexType k = -block_size*A.diagonal_offsets[diag];
-                    for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
+                    for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row+=block_size)
                     {
-                        const IndexType row_step = block_size*(row/block_size);
-                        const IndexType ridx = idx + pitch*(row%block_size);
-
-                        const IndexType col = row_step + k;
+                        const IndexType col = row + k;
                         if (col >= 0 && col <= num_rows-block_size)
                         {
-                            // for each column in block
-                            for (IndexType i = 0; i < block_size; i++)
+                            // for each row in block
+                            for (IndexType j = 0; j < block_size; j++)
                             {
-                                const ValueType& Aij = values[ridx+col+i];
-                                const ValueType& xj = x[col + i];
+                                // for each column in block
+                                for (IndexType i = 0; i < block_size; i++)
+                                {
+                                    const ValueType& Aij = values[idx+col+i+j*pitch];
+                                    const ValueType& xj = x[col + i];
 
-                                y[row] = reduce(y[row], combine(Aij, xj));
+                                    y[row+j] = reduce(y[row+j], combine(Aij, xj));
+                                }
                             }
                         }
                     }
                     idx -= block_size*pitch;
                 }
-                for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row++)
+                // process main and upper diagonal blocks
+                for (IndexType d = 0; d < num_diagonals; d++)
                 {
-                    const IndexType row_step = block_size*(row/block_size);
-                    ValueType sum = y[row];
-                    IndexType idx = row;
-                    // process main and upper diagonal blocks
-                    for (IndexType d = 0; d < num_diagonals; d++)
+                    const IndexType k = A.diagonal_offsets[d]*block_size;
+                    for (IndexType row = ch; row<std::min(ch+chunksize,num_rows); row+=block_size)
                     {
-                        const IndexType col = row_step + block_size*A.diagonal_offsets[d];
+                        const IndexType col = row + k;
                         if (col >= 0 && col <= num_rows-block_size)
                         {
                             // for each column in block
                             for (IndexType i = 0; i < block_size; i++)
                             {
-                                const ValueType& Aij = values[idx+i*pitch];
-                                const ValueType& xj = x[col + i];
+                                // for each row in block
+                                for (IndexType j = 0; j < block_size; j++)
+                                {
+                                    const ValueType& Aij = values[row+j+(d*block_size+i)*pitch];
+                                    const ValueType& xj = x[col + i];
 
-                                sum = reduce(sum, combine(Aij, xj));
+                                    y[row+j] = reduce(y[row+j], combine(Aij, xj));
+                                }
                             }
                         }
-                        idx += block_size*pitch;
                     }
-                    y[row] = sum;
                 }
             }
         } else { // A.symmetric
