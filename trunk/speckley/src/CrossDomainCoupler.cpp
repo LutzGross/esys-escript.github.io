@@ -1112,6 +1112,7 @@ void RipleyCoupler::shareWithNeighbours(bool lowerFirst, int hasLower,
         int hasUpper, double *bottom, double *top, double *brecv, double *trecv,
         int bSize, int tSize, int distance) const
 {
+#ifdef ESYS_MPI
     const int above = rank + distance;
     const int below = rank - distance;
     MPI_Status status;
@@ -1142,6 +1143,7 @@ void RipleyCoupler::shareWithNeighbours(bool lowerFirst, int hasLower,
                     comm, &status);
         }
     }
+#endif
 }
 
 } // end of namespace speckley
