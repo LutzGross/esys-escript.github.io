@@ -41,9 +41,6 @@ class SpeckleyToRipley(object):
                     diracTags=[], order=None):
         self.ranks = getMPISizeWorld()
 
-        if dimensions == 3 and self.ranks > 1:
-            raise RuntimeError("SpeckleyToRipley: MPI support not here yet for Bricks")
-
         if dimensions not in [2,3]:
             raise ValueError("SpeckleyToRipley: requires dimension of 2 or 3")
         self.dim = dimensions

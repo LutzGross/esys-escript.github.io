@@ -21,6 +21,10 @@
 
 namespace speckley {
 
+#ifdef USE_RIPLEY
+class RipleyCoupler; //forward declaration of coupler to avoid circles
+#endif
+
 /**
    \brief
    Brick is the 3-dimensional implementation of a SpeckleyDomain.
@@ -326,6 +330,10 @@ private:
 
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
+
+#ifdef USE_RIPLEY
+    mutable RipleyCoupler *coupler;
+#endif
 };
 
 ////////////////////////////// inline methods ////////////////////////////////

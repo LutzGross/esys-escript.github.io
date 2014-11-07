@@ -21,7 +21,9 @@
 
 namespace speckley {
 
-class RectangleCoupler; //forward declaration of coupler to avoid circles
+#ifdef USE_RIPLEY
+class RipleyCoupler; //forward declaration of coupler to avoid circles
+#endif
 
 /**
    \brief
@@ -332,7 +334,9 @@ private:
     // vector with first node id on each rank
     IndexVector m_nodeDistribution;
 
-    mutable RectangleCoupler *coupler;
+#ifdef USE_RIPLEY
+    mutable RipleyCoupler *coupler;
+#endif
 
     friend class DefaultAssembler2D;
 };

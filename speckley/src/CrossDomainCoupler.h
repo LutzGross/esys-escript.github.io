@@ -24,21 +24,16 @@
 
 namespace speckley {
 
-class RectangleCoupler {
+class RipleyCoupler {
 public:
-    RectangleCoupler(
-            const Rectangle *speck, const double s_dx[2], int rank
-#ifdef ESYS_MPI
-            , MPI_Comm comm
-#endif
-            );
+    RipleyCoupler(const SpeckleyDomain *speck, const double s_dx[2], int rank);
 
 
     void interpolate(escript::Data& target, const escript::Data& source) const;
 private:
     // a struct type to hold all the relevant info on the target domain
     struct Ripley {
-        const ripley::Rectangle *domain;
+        const ripley::RipleyDomain *domain;
         double dx[3];
         dim_t NE[3];
         dim_t mins[3];
@@ -59,14 +54,30 @@ private:
     bool validInterpolation(escript::Data& target, const escript::Data& source,
             const SpeckleyDomain *speck, const double *s_dx,
             const ripley::RipleyDomain *other) const;
-    void calculate(struct Ripley& r, dim_t ex, dim_t ey,
-            int oqx, int oqy, double *out, double *factor_x, double *factor_y,
+    void calculate(struct Ripley& r, dim_t ex, dim_t ey, dim_t ez, 
+            int oqx, int oqy, int oqz, double *out, const double *factor_x,
+            const double *factor_y, const double *factor_z,
             const escript::Data& source) const;
+
+    void shareWithNeighbours(bool lowerFirst, int hasLower, int hasUpper,
+            double *bottom, double *top, double *brecv, double *trecv,
+            int bSize, int tSize, int distance) const;
 
     void getEdgeSpacing(struct Ripley r, int *lower, int *upper) const;
 
+    void shareBrickXFaces(struct Ripley& r, int numComp, int hasLower,
+            int hasUpper, int lower, int upper, escript::Data& target) const;
+    void shareBrickYFaces(struct Ripley& r, int numComp, int hasLower,
+            int hasUpper, int lower, int upper, escript::Data& target) const;
+    void shareBrickZFaces(struct Ripley& r, int numComp, int hasLower,
+            int hasUpper, int lower, int upper, escript::Data& target) const;
+
+    void shareRectangleXEdges(struct Ripley& r, int numComp, int hasLower,
+            int hasUpper, int lower, int upper, escript::Data& target) const;
+    void shareRectangleYEdges(struct Ripley& r, int numComp, int hasLower,
+            int hasUpper, int lower, int upper, escript::Data& target) const;
     //speckley info
-    const Rectangle *speck;
+    const SpeckleyDomain *speck;
     dim_t s_NE[3];
     double s_dx[3];
     int s_NX[3];
