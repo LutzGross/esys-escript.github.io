@@ -33,18 +33,19 @@ from esys.finley import Rectangle as fRectangle
 class Test_ripleyCoupler(unittest.TestCase):
 
     def calculateVariance(self, s, r):
-        actual = r.getX()[0]
-        sinput = s.getX()[0]
+        actual = r.getX()
+        sinput = s.getX()
         sX = interpolate(sinput, Function(s))
         return actual - interpolate(sX, Function(r)) #actual - interpo...
 
     def test_Rectangle(self):
-        for order in range(2,11): #TODO change to 11
+        for order in range(2,11):
             coupler = SpeckleyToRipley(2, (2*getMPISizeWorld()*order,order),
                     order=order, lengths=[3.*getMPISizeWorld(),2.])
             a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
             self.assertLess(Lsup(a), 1e-10,
-                    "Rectangles of order %d failed to interpolate correctly"%order)
+                    "Rectangles of order %d failed to interpolate correctly"%order +\
+                    ", variance of %g"%Lsup(a))
             
             coupler = SpeckleyToRipley(2, (order, 2*getMPISizeWorld()*order),
                     order=order, lengths=[2.,3.*getMPISizeWorld()])
@@ -79,26 +80,35 @@ class Test_ripleyCoupler(unittest.TestCase):
                         d0=divs[0], d1=divs[1])
                 s = sRectangle(order, divs[0]*2, divs[1]*2,
                         d0=divs[0], d1=divs[1])
-#                print self.calculateVariance(s, r)
-#                print divs, Lsup(self.calculateVariance(s, r))
                 self.assertLess(Lsup(self.calculateVariance(s, r)), 1e-10,
                         "".join(["Rectangles of order %d with "%order,
                                 "subdivisons %s "%subdivs,
                                 "failed to interpolate correctly"]))
-#                print divs, Lsup(self.calculateVariance(s, r)), "OK"
                 divs.append(divs.pop(0))
                 
-
-    @unittest.skipIf(getMPISizeWorld() > 1, "Brick doesn't currently support MPI")
     def test_Brick(self):
         for order in range(2,11):
-            coupler = SpeckleyToRipley(3, (4*order, 2*order,order),
-                    order=order, lengths=[2.*order,4.*order,8.*order])
-            s = coupler.getSpeckley()
-            r = coupler.getRipley()
-            a = self.calculateVariance(s, r)
+            coupler = SpeckleyToRipley(3, (3*getMPISizeWorld()*order, 2*order, order),
+                    order=order, lengths=[3.*getMPISizeWorld(),4.,5.])
+            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
             self.assertLess(Lsup(a), 1e-10,
-                    "Bricks of order %d failed to interpolate correctly"%order)
+                    "Brick x-split of order %d failed to interpolate correctly"%order +\
+                    ", variance of %g"%Lsup(a))
+            
+            coupler = SpeckleyToRipley(3, (order, 3*getMPISizeWorld()*order, 2*order),
+                    order=order, lengths=[5.,3.*getMPISizeWorld(),4.])
+            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
+            self.assertLess(Lsup(a), 1e-10,
+                    "Brick y-split of order %d failed to interpolate correctly"%order +\
+                    ", variance of %g"%Lsup(a))
+
+            coupler = SpeckleyToRipley(3, (2*order, order, 3*getMPISizeWorld()*order),
+                    order=order, lengths=[4.,5.,3.*getMPISizeWorld()])
+            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
+            self.assertLess(Lsup(a), 1e-10,
+                    "Brick z-split of order %d failed to interpolate correctly"%order +\
+                    ", variance of %g"%Lsup(a))
+
 
     def test_mismatch_errors(self):
         ranks = getMPISizeWorld()
@@ -128,14 +138,14 @@ class Test_ripleyCoupler(unittest.TestCase):
             self.calculateVariance(f, s)
 
     def test_creation(self):
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(RuntimeError): #invalid order
             coupler = SpeckleyToRipley(2, pointsPerDim=(4,2*getMPISizeWorld()), order=1)
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(RuntimeError): #invalid order
             coupler = SpeckleyToRipley(2, pointsPerDim=(40,20*getMPISizeWorld()), order=11)
-        with self.assertRaises(ValueError):
+        with self.assertRaises(ValueError): #invalid dimension
             coupler = SpeckleyToRipley(1, pointsPerDim=(4,2*getMPISizeWorld()))
-        with self.assertRaises(ValueError):
-            coupler = SpeckleyToRipley(4, pointsPerDim=(4,2*getMPISizeWorld()), order=1)
+        with self.assertRaises(ValueError): #incalid dimension
+            coupler = SpeckleyToRipley(4, pointsPerDim=(4,2*getMPISizeWorld()))
         
 
 if __name__ == '__main__':

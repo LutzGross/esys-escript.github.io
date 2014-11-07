@@ -191,11 +191,19 @@ Brick::Brick(int order, dim_t n0, dim_t n1, dim_t n2, double x0, double y0, doub
 #ifdef ESYS_MPI
     setCornerNeighbours();
 #endif
+
+#ifdef USE_RIPLEY
+    coupler = NULL;
+#endif
 }
 
 
 Brick::~Brick()
 {
+#ifdef USE_RIPLEY
+    if (coupler != NULL)
+        delete coupler;
+#endif
 }
 
 string Brick::getDescription() const
@@ -2345,14 +2353,24 @@ Assembler_ptr Brick::createAssembler(std::string type,
 bool Brick::probeInterpolationAcross(int fsType_source,
         const escript::AbstractDomain& domain, int fsType_target) const
 {
+#ifdef USE_RIPLEY
     return speckley::probeInterpolationAcross(fsType_source, domain,
             fsType_target, 3);
+#else
+    return false;
+#endif
 }
 
 void Brick::interpolateAcross(escript::Data& target, const escript::Data& source) const
 {
-    interpolateAcross3D(target, source, this, m_dx, m_mpiInfo->rank,
-            m_mpiInfo->comm);
+#ifdef USE_RIPLEY
+    if (coupler == NULL) {
+        coupler = new RipleyCoupler(this, m_dx, m_mpiInfo->rank);
+    }
+    coupler->interpolate(target, source);
+#else
+    throw SpeckleyException("Speckley::Brick interpolation to unsupported domain");
+#endif
 }
 
 } // end of namespace speckley

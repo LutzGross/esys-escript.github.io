@@ -19,16 +19,20 @@
 #include <esysUtils/index.h>
 #include <esysUtils/Esys_MPI.h>
 
+#define MINE 1
+#define SHARED 0
+#define THEIRS -1
+
 namespace speckley {
 
 //this should probably come from ripley dynamically
 const double ripleyLocations[2] = {.21132486540518711775, .78867513459481288225};
- 
+
 bool probeInterpolationAcross(int fsType_source,
         const escript::AbstractDomain& domain, int fsType_target, int dim)
 {
     try {
-        const ripley::RipleyDomain& other = 
+        const ripley::RipleyDomain& other =
                 dynamic_cast<const ripley::RipleyDomain &>(domain);
         if (other.getDim() != dim)
             return false;
@@ -38,14 +42,8 @@ bool probeInterpolationAcross(int fsType_source,
     return (fsType_source == Elements && fsType_target == ripley::Elements);
 }
 
-RectangleCoupler::RectangleCoupler(const speckley::Rectangle *speck, 
-        const double s_dx[2], int rank
-#ifdef ESYS_MPI
-        , MPI_Comm comm) : speck(speck), rank(rank), comm(comm)
-#else
-        ) : speck(speck), rank(rank)
-#endif
-        
+RipleyCoupler::RipleyCoupler(const speckley::SpeckleyDomain *speck,
+        const double s_dx[2], int rank) : speck(speck), rank(rank)
 {
     const int *splits = speck->getNumSubdivisionsPerDim();
     const dim_t *elements = speck->getNumElementsPerDim();
@@ -58,11 +56,19 @@ RectangleCoupler::RectangleCoupler(const speckley::Rectangle *speck,
         hasLower[i] = (edges[2*i] == 0);
         hasUpper[i] = (edges[2*i + 1] == 0);
     }
+    if (speck->getDim() == 2) {
+        hasLower[2] = false;
+        hasUpper[2] = false;
+        s_NX[2] = 1;
+    }
     order = speck->getOrder();
     numQuads = order + 1;
+#ifdef ESYS_MPI
+    comm = speck->getMPIComm();
+#endif
 }
 
-bool RectangleCoupler::validInterpolation(escript::Data& target,
+bool RipleyCoupler::validInterpolation(escript::Data& target,
             const escript::Data& source,
             const SpeckleyDomain *speck, const double *s_dx,
             const ripley::RipleyDomain *other) const
@@ -71,10 +77,14 @@ bool RectangleCoupler::validInterpolation(escript::Data& target,
         throw SpeckleyException(
             "ripleyCoupler: interpolation from unsupported domain");
 
+    if (speck->getDim() != other->getDim())
+        throw SpeckleyException(
+            "ripleyCoupler: domains must have the same dimensions");
+
     //validate functionspaces
     const int tFS = target.getFunctionSpace().getTypeCode();
     const int sFS = source.getFunctionSpace().getTypeCode();
-    if (sFS != Elements) 
+    if (sFS != Elements)
         throw SpeckleyException(
                 "ripleyCoupler: source data must be in Function functionspace");
     if (tFS != ripley::Elements)
@@ -103,33 +113,20 @@ bool RectangleCoupler::validInterpolation(escript::Data& target,
         }
     }
 
+#ifdef ESYS_MPI
+    int res;
+    if (MPI_Comm_compare(speck->getMPIComm(), other->getMPIComm(), &res)
+            != MPI_SUCCESS)
+        throw SpeckleyException(
+                "ripleyCoupler: domains have bad communicators");
+    if (res != MPI_IDENT)
+        throw SpeckleyException(
+                "ripleyCoupler: domain communicators are not identical");
+#endif
     return true;
 }
 
-inline void RectangleCoupler::calculate(struct Ripley& r, dim_t ex, dim_t ey,
-        int oqx, int oqy, double *out, double *factor_x, double *factor_y,
-        const escript::Data& source) const
-{
-    double x = r.domain->getLocalCoordinate(ex, 0) - speckley_origin[0]
-                + ripleyLocations[oqx]*r.dx[0];
-    double y = r.domain->getLocalCoordinate(ey, 1) - speckley_origin[1]
-                + ripleyLocations[oqy]*r.dx[1];
-    dim_t source_ex = x / s_dx[0];
-    dim_t source_ey = y / s_dx[1];
-    const double *sdata = source.getSampleDataRO(
-                                    INDEX2(source_ex, source_ey, s_NE[0]));
-    for (int sqy = 0; sqy < numQuads; sqy++) {
-        for (int sqx = 0; sqx < numQuads; sqx++) {
-            for (int comp = 0; comp < numComp; comp++) {
-                out[INDEX3(comp,oqx,oqy,numComp,2)]
-                      += sdata[INDEX3(comp,sqx,sqy,numComp,numQuads)]
-                         * factor_x[sqx] * factor_y[sqy];
-            }
-        }
-    }
-}
-
-void RectangleCoupler::generateLocations(struct Ripley& r, double **positions) const
+void RipleyCoupler::generateLocations(struct Ripley& r, double *positions[3]) const
 {
     switch(order) {
         case 2:
@@ -250,11 +247,12 @@ void RectangleCoupler::generateLocations(struct Ripley& r, double **positions) c
             }
             break;
         default:
-            throw SpeckleyException("RectangleCoupler:: unexpected order of domain, can only be implementation error");
+            throw SpeckleyException(
+                    "RipleyCoupler:: unexpected order of domain");
     }
 }
 
-void RectangleCoupler::calculateOrder2(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder2(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -264,7 +262,7 @@ void RectangleCoupler::calculateOrder2(int dim, double loc, double *results) con
     results[2] = lagrange_degree2_2(local);
 }
 
-void RectangleCoupler::calculateOrder3(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder3(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -275,7 +273,7 @@ void RectangleCoupler::calculateOrder3(int dim, double loc, double *results) con
     results[3] = lagrange_degree3_3(local);
 }
 
-void RectangleCoupler::calculateOrder4(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder4(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -287,7 +285,7 @@ void RectangleCoupler::calculateOrder4(int dim, double loc, double *results) con
     results[4] = lagrange_degree4_4(local);
 }
 
-void RectangleCoupler::calculateOrder5(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder5(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -300,7 +298,7 @@ void RectangleCoupler::calculateOrder5(int dim, double loc, double *results) con
     results[5] = lagrange_degree5_5(local);
 }
 
-void RectangleCoupler::calculateOrder6(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder6(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -314,7 +312,7 @@ void RectangleCoupler::calculateOrder6(int dim, double loc, double *results) con
     results[6] = lagrange_degree6_6(local);
 }
 
-void RectangleCoupler::calculateOrder7(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder7(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -329,7 +327,7 @@ void RectangleCoupler::calculateOrder7(int dim, double loc, double *results) con
     results[7] = lagrange_degree7_7(local);
 }
 
-void RectangleCoupler::calculateOrder8(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder8(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -345,7 +343,7 @@ void RectangleCoupler::calculateOrder8(int dim, double loc, double *results) con
     results[8] = lagrange_degree8_8(local);
 }
 
-void RectangleCoupler::calculateOrder9(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder9(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -362,7 +360,7 @@ void RectangleCoupler::calculateOrder9(int dim, double loc, double *results) con
     results[9] = lagrange_degree9_9(local);
 }
 
-void RectangleCoupler::calculateOrder10(int dim, double loc, double *results) const
+void RipleyCoupler::calculateOrder10(int dim, double loc, double *results) const
 {
     loc -= speckley_origin[dim];
     dim_t source_e = loc / s_dx[dim];
@@ -380,31 +378,80 @@ void RectangleCoupler::calculateOrder10(int dim, double loc, double *results) co
     results[10] = lagrange_degree10_10(local);
 }
 
-void RectangleCoupler::getEdgeSpacing(struct Ripley r, int *lower, int *upper) const
+void RipleyCoupler::getEdgeSpacing(struct Ripley r, int *lower, int *upper) const
 {
     for (int i = 0; i < speck->getDim(); i++) {
         const double first = ripleyLocations[0]*r.dx[i];
         const double second = ripleyLocations[1]*r.dx[i];
         double start = r.domain->getLocalCoordinate(0, i) - speckley_origin[i];
-        lower[i] = 0;
+
+        lower[i] = SHARED;
+
         if (start + first > 0)
-            lower[i] = 1; //both in this
+            lower[i] = MINE;
         else if (start + second < 0)
-            lower[i] = -1; //both in neighbour
+            lower[i] = THEIRS;
+
         start = r.domain->getLocalCoordinate(r.NE[i]-1, i) - speckley_origin[i];
         upper[i] = 0;
         if ((start + first)/s_dx[i] >= s_NE[i])
-            upper[i] = -1; //both in neighbour
+            upper[i] = THEIRS;
         else if ((start + second)/s_dx[i] < s_NE[i])
-            upper[i] = 1; //both in this
+            upper[i] = MINE;
     }
 }
 
-void RectangleCoupler::interpolate(escript::Data& target,
+
+inline void RipleyCoupler::calculate(struct Ripley& r,
+        dim_t ex, dim_t ey, dim_t ez, int oqx, int oqy, int oqz, double *out,
+        const double *factor_x, const double *factor_y, const double *factor_z,
+        const escript::Data& source) const
+{
+    const double x = r.domain->getLocalCoordinate(ex, 0) - speckley_origin[0]
+                + ripleyLocations[oqx]*r.dx[0];
+    const double y = r.domain->getLocalCoordinate(ey, 1) - speckley_origin[1]
+                + ripleyLocations[oqy]*r.dx[1];
+    const dim_t source_ex = x / s_dx[0];
+    const dim_t source_ey = y / s_dx[1];
+
+    if (speck->getDim() == 2) {
+        const double *sdata = source.getSampleDataRO(
+                                    INDEX2(source_ex, source_ey, s_NE[0]));
+        for (int sqy = 0; sqy < numQuads; sqy++) {
+            for (int sqx = 0; sqx < numQuads; sqx++) {
+                for (int comp = 0; comp < numComp; comp++) {
+                    out[INDEX3(comp,oqx,oqy,numComp,2)]
+                          += sdata[INDEX3(comp,sqx,sqy,numComp,numQuads)]
+                             * factor_x[sqx] * factor_y[sqy];
+                }
+            }
+        }
+    } else { //dim == 3
+        const double z = r.domain->getLocalCoordinate(ez, 2) - speckley_origin[2]
+                + ripleyLocations[oqz]*r.dx[2];
+        const dim_t source_ez = z / s_dx[2];
+        const double *sdata = source.getSampleDataRO(
+                    INDEX3(source_ex, source_ey, source_ez, s_NE[0], s_NE[1]));
+        for (int sqz = 0; sqz < numQuads; sqz++) {
+            for (int sqy = 0; sqy < numQuads; sqy++) {
+                for (int sqx = 0; sqx < numQuads; sqx++) {
+                    for (int comp = 0; comp < numComp; comp++) {
+                        out[INDEX4(comp,oqx,oqy,oqz,numComp,2,2)]
+                              += sdata[INDEX4(comp,sqx,sqy,sqz,numComp,numQuads,numQuads)]
+                                * factor_x[sqx] * factor_y[sqy] * factor_z[sqz];
+                    }
+                }
+            }
+        }
+    }
+}
+
+void RipleyCoupler::interpolate(escript::Data& target,
         const escript::Data& source) const
 {
     //can only interpolate to ripley right now, so check it
-    const ripley::Rectangle *other = dynamic_cast<const ripley::Rectangle *>
+    const ripley::RipleyDomain *other =
+                            dynamic_cast<const ripley::RipleyDomain *>
                                                 (target.getDomain().get());
     if (other == NULL)
         throw SpeckleyException("interpolation to unsupported domain");
@@ -423,381 +470,676 @@ void RectangleCoupler::interpolate(escript::Data& target,
     }
 
     std::vector<double> factors_x_vec(2*r.NE[0]*numQuads);
-    double *factors_x = &factors_x_vec[0];
     std::vector<double> factors_y_vec(2*r.NE[1]*numQuads);
-    double *factors_y = &factors_y_vec[0];
-    double *positions[2] = {factors_x, factors_y};
-    generateLocations(r, positions);
-    
+    std::vector<double> factors_z_vec(speck->getDim() == 3 ? 2*r.NE[2]*numQuads : 1);
+    double *factors[3] = {&factors_x_vec[0], &factors_y_vec[0], &factors_z_vec[0]};
+    generateLocations(r, factors);
+    double *factors_x = factors[0];
+    double *factors_y = factors[1];
+    double *factors_z = factors[2];
+
     numComp = source.getDataPointSize();
     target.requireWrite();
 
     //positional help, 0 = split, -1 = both on neighbour, 1 = both local
-    int upper[3];
-    int lower[3];
+    int upper[3] = {1,1,1};
+    int lower[3] = {1,1,1};
     getEdgeSpacing(r, lower, upper);
     for (int i = 0; i < speck->getDim(); i++) {
-        if (hasUpper[i] && upper[i] == 1) {
+        if (hasUpper[i] && upper[i] == MINE) {
             r.maxs[i] += 1;
         }
-        if (hasLower[i] && lower[i] == 1) {
+        if (hasLower[i] && lower[i] == MINE) {
             r.mins[i] = 0;
         }
     }
-    
-    //elements that are entirely internal to this rank
-#pragma omp parallel for
-    for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-        for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-            double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-            for (int oqy = 0; oqy < 2; oqy++) {
-                double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                for (int oqx = 0; oqx < 2; oqx++) {
-                    double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-                    calculate(r, ex, ey, oqx, oqy, out, precalc_x, precalc_y, source);
-                }
-            }
-        }
-    }
-#ifdef ESYS_MPI
-    if (s_NX[0] * s_NX[1] == 1) {
-        return;
+    if (speck->getDim() == 2) {
+        r.mins[2] = 0;
+        r.maxs[2] = 1;
     }
 
-    const size_t pointsize = numComp * sizeof(double);
-    MPI_Status status;
-    // communicate across X splits
-    if (hasLower[0] || hasUpper[0]) {
-        const dim_t leftCount = r.NE[1]*numComp*2 * (1 + lower[0]*lower[0]);
-        const dim_t rightCount = r.NE[1]*numComp*2 * (1 + upper[0]*upper[0]);
-        std::vector<double> left(leftCount, 0);
-        std::vector<double> right(rightCount, 0);
-        std::vector<double> rrecv(rightCount, 0);
-        std::vector<double> lrecv(leftCount, 0);
-        if (lower[0] == 0) { //left, only if an element is split in two
-            const dim_t ex = 0;
-            const int oqx = 1;
-#pragma omp parallel for
-            for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                for (int oqy = 0; oqy < 2; oqy++) {
-                    double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                    double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-                    calculate(r, ex, ey, oqx, oqy, out, precalc_x, precalc_y, source);
-                }
-            }
-            //fill the corners while we're here, if required
-            if (lower[1] == 0) { //bottom left element, top right quad
-                const dim_t ey = 0;
-                double *out = target.getSampleDataRW(0);
-                calculate(r, ex, ey, oqx, 1, out, factors_x + numQuads, factors_y + numQuads, source);
-            }
-            if (upper[1] == 0) { //top left element, bottom right quad
-                const dim_t ey = r.NE[1] - 1;
-                double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                calculate(r, ex, ey, oqx, 0, out, factors_x + (2*ex+1)*numQuads, factors_y + 2*ey*numQuads, source);
-                
-            }
-        }
-        if (upper[0] == 0) { //right, only if an element is split in two
-            const dim_t ex = r.NE[0] - 1;
-            const int oqx = 0;
-#pragma omp parallel for
-            for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                for (int oqy = 0; oqy < 2; oqy++) {     //for each remote quad
-                    double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                    calculate(r, ex, ey, oqx, oqy, out, factors_x + 2*ex*numQuads, precalc_y, source);
-                }
-            }
-            //fill the corners while we're here, if required
-            if (lower[1] == 0) { //bottom right element, top left quad
-                const dim_t ey = 0;
-                double *out = target.getSampleDataRW(ex);
-                calculate(r, ex, ey, oqx, 1, out, factors_x + 2*ex*numQuads, factors_y + numQuads, source);
-            }
-            if (upper[1] == 0) { //top right element, bottom left quad
-                const dim_t ey = r.maxs[1];
-                double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                calculate(r, ex, ey, oqx, 0, out, factors_x + 2*ex*numQuads, factors_y + 2*ey*numQuads, source);
-            }
-        }
-        //fill outbound arrays
-        if (lower[0] == 0) { //single 
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
-                memcpy(&left[ey*2*numComp], out + numComp, pointsize);
-                memcpy(&left[(ey*2 + 1)*numComp], out + 3*numComp, pointsize);
-            }
-        } else if (lower[0] == 1) { //double
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
-                memcpy(&left[ey*4*numComp], out, pointsize*4);
-            }
-        }
-        if (upper[0] == 0) { //single
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
-                memcpy(&right[ey*2*numComp], out, pointsize);
-                memcpy(&right[(ey*2 + 1)*numComp], out + 2*numComp, pointsize);
-            }
-        } else if (upper[0] == 1) { //double
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
-                memcpy(&right[ey*4*numComp], out, pointsize*4);
-            }
-        }
-        //now share
-        if ((rank % s_NX[0]) % 2) {
-            //left first
-            if (hasLower[0]) {
-                MPI_Sendrecv(&left[0], leftCount, MPI_DOUBLE, rank - 1, 0,
-                        &lrecv[0], leftCount, MPI_DOUBLE, rank - 1, 0,
-                        comm, &status);
+    const int qz_max = speck->getDim() - 1;
+    //end of setup
 
-            }
-            if (hasUpper[0]) {
-                MPI_Sendrecv(&right[0], rightCount, MPI_DOUBLE, rank + 1, 0,
-                        &rrecv[0], rightCount, MPI_DOUBLE, rank+1, 0,
-                        comm, &status);
-            }
-        } else {
-            //right first
-            if (hasUpper[0]) {
-                MPI_Sendrecv(&right[0], rightCount, MPI_DOUBLE, rank + 1, 0,
-                        &rrecv[0], rightCount, MPI_DOUBLE, rank+1, 0,
-                        comm, &status);
-            }
-            if (hasLower[0]) {
-                MPI_Sendrecv(&left[0], leftCount, MPI_DOUBLE, rank - 1, 0,
-                        &lrecv[0], leftCount, MPI_DOUBLE, rank - 1, 0,
-                        comm, &status);
-            }
-        }
-        //unpacking
-        if (lower[0] == 0) {
+    //calculate elements that are entirely internal to this rank
+    for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
 #pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
-                memcpy(out, &lrecv[ey*2*numComp], pointsize);
-                memcpy(out + 2*numComp, &lrecv[(ey*2 + 1)*numComp], pointsize);
-            }
-        } else if (lower[0] == -1) {
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
-                memcpy(out, &lrecv[ey*4*numComp], pointsize*4);
-            }
-        }
-        if (upper[0] == 0) {
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
-                memcpy(out + numComp, &rrecv[ey*2*numComp], pointsize);
-                memcpy(out + 3*numComp, &rrecv[(ey*2 + 1)*numComp], pointsize);
-            }
-        } else if (upper[0] == -1) {
-#pragma omp parallel for
-            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
-                double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
-                memcpy(out, &rrecv[ey*4*numComp], pointsize*4);
-            }
-        }
-    }
-
-    // communicate across Y splits
-    if (hasLower[1] || hasUpper[1]) {
-        const dim_t bottomCount = r.NE[0]*numComp*2 * (1 + lower[1]*lower[1]);
-        const dim_t topCount = r.NE[0]*numComp*2 * (1 + upper[1]*upper[1]);
-        std::vector<double> bottom(bottomCount, 0);
-        std::vector<double> top(topCount, 0);
-        std::vector<double> brecv(bottomCount, 0);
-        std::vector<double> trecv(topCount, 0);
-        if (lower[1] == 0) { //bottom, only if an element is split in two
-            const dim_t ey = 0;
-            const int oqy = 1;
-            double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-#pragma omp parallel for
+        for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
             for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-                double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                for (int oqx = 0; oqx < 2; oqx++) {
-                    double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-                    calculate(r, ex, ey, oqx, oqy, out, precalc_x, precalc_y, source);
-                }
-            }
-        }
-        if (upper[1] == 0) { //top, only if an element is split in two
-            const dim_t ey = r.NE[1] - 1;
-            const int oqy = 0;
-            double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-#pragma omp parallel for
-            for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-                double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                for (int oqx = 0; oqx < 2; oqx++) {     //for each remote quad
-                    double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-                    calculate(r, ex, ey, oqx, oqy, out, precalc_x, precalc_y, source);
-                }
-            }
-        }
-        //fill outbound arrays
-        if (lower[1] == 0) { //single 
-#pragma omp parallel for
-            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
-                double *out = target.getSampleDataRW(ex);
-                memcpy(&bottom[ex*2*numComp], out + 2*numComp, pointsize*2);
-            }
-        } else if (lower[1] == 1) { //double
-            double *out = target.getSampleDataRW(0);
-            memcpy(&bottom[0], out, pointsize*4*r.NE[0]);
-        }
-        if (upper[1] == 0) { //single
-#pragma omp parallel for
-            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
-                double *out = target.getSampleDataRW(INDEX2(ex,r.NE[1]-1,r.NE[0]));
-                memcpy(&top[ex*2*numComp], out, pointsize*2);
-            }
-        } else if (upper[1] == 1) { //double
-            double *out = target.getSampleDataRW((r.NE[1]-1)*r.NE[0]);
-            memcpy(&top[0], out, pointsize*4*r.NE[0]);
-        }
-        //now share
-        if ((rank / s_NX[0]) % 2) {
-            //down first
-            if (hasLower[1]) {
-                MPI_Sendrecv(&bottom[0], bottomCount, MPI_DOUBLE, rank - s_NX[0], 0,
-                        &brecv[0], bottomCount, MPI_DOUBLE, rank - s_NX[0], 0,
-                        comm, &status);
-
-            }
-            if (hasUpper[1]) {
-                MPI_Sendrecv(&top[0], topCount, MPI_DOUBLE, rank + s_NX[0], 0,
-                        &trecv[0], topCount, MPI_DOUBLE, rank + s_NX[0], 0,
-                        comm, &status);
-            }
-        } else {
-            //up first
-            if (hasUpper[1]) {
-                MPI_Sendrecv(&top[0], topCount, MPI_DOUBLE, rank + s_NX[0], 0,
-                        &trecv[0], topCount, MPI_DOUBLE, rank+s_NX[0], 0,
-                        comm, &status);
-            }
-            if (hasLower[1]) {
-                MPI_Sendrecv(&bottom[0], bottomCount, MPI_DOUBLE, rank - s_NX[0], 0,
-                        &brecv[0], bottomCount, MPI_DOUBLE, rank - s_NX[0], 0,
-                        comm, &status);
-            }
-        }
-        //unpacking
-        if (lower[1] == 0) {
-#pragma omp parallel for
-            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
-                double *out = target.getSampleDataRW(ex);
-                memcpy(out, &brecv[ex*2*numComp], pointsize*2);
-            }
-        } else if (lower[1] == -1) {
-            double *out = target.getSampleDataRW(0);
-            memcpy(out, &brecv[0], pointsize*4*r.NE[0]);
-        }
-        if (upper[1] == 0) {
-#pragma omp parallel for
-            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
-                double *out = target.getSampleDataRW(INDEX2(ex,r.NE[1]-1,r.NE[0]));
-                memcpy(out + 2*numComp, &trecv[ex*2*numComp], pointsize*2);
-            }
-        } else if (upper[1] == -1) {
-            double *out = target.getSampleDataRW((r.NE[1]-1)*r.NE[0]);
-            memcpy(out, &trecv[0], pointsize*4*r.NE[0]);
-        }
-    }
-#endif //ESYS_MPI
-}
-
-
-
-//these should be unrolled
-double (*interpolationFuncs[9][11]) (double) = {
-    {lagrange_degree2_0, lagrange_degree2_1, lagrange_degree2_2},
-    {lagrange_degree3_0, lagrange_degree3_1, lagrange_degree3_2, lagrange_degree3_3},
-    {lagrange_degree4_0, lagrange_degree4_1, lagrange_degree4_2, lagrange_degree4_3, lagrange_degree4_4},
-    {lagrange_degree5_0, lagrange_degree5_1, lagrange_degree5_2, lagrange_degree5_3, lagrange_degree5_4, lagrange_degree5_5},
-    {lagrange_degree6_0, lagrange_degree6_1, lagrange_degree6_2, lagrange_degree6_3, lagrange_degree6_4, lagrange_degree6_5, lagrange_degree6_6},
-    {lagrange_degree7_0, lagrange_degree7_1, lagrange_degree7_2, lagrange_degree7_3, lagrange_degree7_4, lagrange_degree7_5, lagrange_degree7_6, lagrange_degree7_7},
-    {lagrange_degree8_0, lagrange_degree8_1, lagrange_degree8_2, lagrange_degree8_3, lagrange_degree8_4, lagrange_degree8_5, lagrange_degree8_6, lagrange_degree8_7, lagrange_degree8_8},
-    {lagrange_degree9_0, lagrange_degree9_1, lagrange_degree9_2, lagrange_degree9_3, lagrange_degree9_4, lagrange_degree9_5, lagrange_degree9_6, lagrange_degree9_7, lagrange_degree9_8, lagrange_degree9_9},
-    {lagrange_degree10_0, lagrange_degree10_1, lagrange_degree10_2, lagrange_degree10_3, lagrange_degree10_4, lagrange_degree10_5, lagrange_degree10_6, lagrange_degree10_7, lagrange_degree10_8, lagrange_degree10_9, lagrange_degree10_10}
-    };
-   
-
-void interpolateAcross3D(escript::Data& target, const escript::Data& source,
-        const Brick *speck, const double s_dx[3], int rank,
-        MPI_Comm comm)
-{
-    const int *s_NX = speck->getNumSubdivisionsPerDim();
-    if (s_NX[0] * s_NX[1] * s_NX[2] > 1)
-        throw SpeckleyException("speckley::Brick doesn't support multiple ranks");
-    //can only interpolate to ripley right now, so check it
-    const ripley::Brick& other = dynamic_cast<const ripley::Brick &>
-                                                (*(target.getDomain().get()));
-    // this throw is defensive in case the validation function at some point
-    // returns false
-//    if (!validInterpolation(target, source, speck, s_dx, other))
-//        throw SpeckleyException("ripleyCoupler: unable to interpolate");
-    const dim_t *r_NE = other.getNumElementsPerDim();
-    const dim_t *s_NE = speck->getNumElementsPerDim();
-    const double r_dx[3] = {other.getLength()[0] / r_NE[0],
-                            other.getLength()[1] / r_NE[1],
-                            other.getLength()[2] / r_NE[2]};
-    const int numComp = source.getDataPointSize();
-    const int order = speck->getOrder();
-    const int numQuads = order + 1;
-
-    target.requireWrite();
-
-#pragma omp parallel for
-    for (dim_t ez = 0; ez < r_NE[2]; ez++) {
-        for (dim_t ey = 0; ey < r_NE[1]; ey++) {
-            for (dim_t ex = 0; ex < r_NE[0]; ex++) {
-                double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r_NE[0],r_NE[1]));
-                //initial position
-                for (int oqz = 0; oqz < 2; oqz++) { //for each remote quad
+                double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                for (int oqz = 0; oqz < qz_max; oqz++) { //2 if 3D, 1 if 2D
+                    double *precalc_z = factors_z + (2*ez + oqz) * numQuads;
                     for (int oqy = 0; oqy < 2; oqy++) {
+                        double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
                         for (int oqx = 0; oqx < 2; oqx++) {
-                            double x = other.getLocalCoordinate(ex, 0) + ripleyLocations[oqx]*r_dx[0];
-                            double y = other.getLocalCoordinate(ey, 1) + ripleyLocations[oqy]*r_dx[1];
-                            double z = other.getLocalCoordinate(ez, 2) + ripleyLocations[oqz]*r_dx[2];
-                            //which source element does it live in
-                            dim_t source_ex = x / s_dx[0];
-                            dim_t source_ey = y / s_dx[1];
-                            dim_t source_ez = z / s_dx[2];
-                            //now modify coords to the element reference
-                            x = ((x - source_ex * s_dx[0]) / s_dx[0]) * 2 - 1;
-                            y = ((y - source_ey * s_dx[1]) / s_dx[1]) * 2 - 1;
-                            z = ((z - source_ez * s_dx[2]) / s_dx[2]) * 2 - 1;
-                            //MPI TODO: check element belongs to this rank
-                            const double *sdata = source.getSampleDataRO(INDEX3(source_ex, source_ey, source_ez,
-                                                             s_NE[0], s_NE[1]));
-                            //and do the actual interpolation
-                            for (int sqz = 0; sqz < numQuads; sqz++) {
-                                for (int sqy = 0; sqy < numQuads; sqy++) {
-                                    for (int sqx = 0; sqx < numQuads; sqx++) {
-                                        for (int comp = 0; comp < numComp; comp++) {
-                                            out[INDEX4(comp,oqx,oqy,oqz,numComp,2,2)]
-                                                  += sdata[INDEX4(comp,sqx,sqy,sqz,numComp,numQuads,numQuads)]
-                                                     * interpolationFuncs[order-2][sqx](x)
-                                                     * interpolationFuncs[order-2][sqy](y)
-                                                     * interpolationFuncs[order-2][sqz](z);
-                                        }
-                                    }
-                                }
-                            }
+                            double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
                         }
                     }
                 }
             }
+        }
+    }
+
+    //return early if we don't even need to do this work
+    if (s_NX[0] * s_NX[1] * s_NX[2] == 1) {
+        return;
+    }
+
+    //begin edge cases and communication
+
+    // calculate across X splits
+    if (hasLower[0] || hasUpper[0]) {
+        if (lower[0] == SHARED) { //left, only if an element is split in two
+            const dim_t ex = 0;
+            const int oqx = 1;
+            const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
+            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+#pragma omp parallel for
+                for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                    double *out = target.getSampleDataRW(INDEX3(0,ey,ez,r.NE[0],r.NE[1]));
+                    for (int oqz = 0; oqz < qz_max; oqz++) {
+                        const double *precalc_z = factors_z + (2*ez + oqz) * numQuads;
+                        for (int oqy = 0; oqy < 2; oqy++) {
+                            const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                        }
+                    }
+                }
+            }
+            if (speck->getDim() == 2) {
+                const dim_t ez = 0;
+                //fill the corners while we're here, if required
+                if (lower[1] == SHARED) { //bottom left element, top right quad
+                    double *out = target.getSampleDataRW(0);
+                    calculate(r, ex, 0, ez, oqx, 1, 0, out,
+                            factors_x + numQuads, factors_y + numQuads, factors_z, source);
+                }
+                if (upper[1] == SHARED) { //top left element, bottom right quad
+                    const dim_t ey = r.NE[1] - 1;
+                    double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
+                    calculate(r, ex, ey, ez, oqx, 0, 0, out,
+                            factors_x + (2*ex+1)*numQuads, factors_y + 2*ey*numQuads, factors_z, source);
+                }
+            } else {
+                if (lower[1] == SHARED || upper[1] == SHARED || lower[2] == SHARED || upper[2] == SHARED) {
+                    throw SpeckleyException("ripleyCoupler: multidimension subdivisions not supported");
+                }
+            }
+        }
+        if (upper[0] == SHARED) { //right, only if an element is split in two
+            const int oqx = 0;
+            const dim_t ex = r.NE[0] - 1;
+            const double *precalc_x = factors_x + 2*ex*numQuads;
+            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+#pragma omp parallel for
+                for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                    double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                    for (int oqz = 0; oqz < qz_max; oqz++) {
+                        const double *precalc_z = factors_z + (2*ez + oqz) * numQuads;
+                        for (int oqy = 0; oqy < 2; oqy++) {
+                            const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                    precalc_x, precalc_y, precalc_z, source);
+                        }
+                    }
+                }
+            }
+            if (speck->getDim() == 2) {
+                //fill the corners while we're here, if required
+                if (lower[1] == SHARED) { //bottom right element, top left quad
+                    double *out = target.getSampleDataRW(INDEX2(ex,0,r.NE[0]));
+                    calculate(r, ex, 0, 0, oqx, 1, 0, out, precalc_x, factors_y + numQuads, factors_z, source);
+                }
+                if (upper[1] == SHARED) { //top right element, bottom left quad
+                    const dim_t ey = r.NE[1]-1;
+                    double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
+                    calculate(r, ex, ey, 0, oqx, 0, 0, out, precalc_x, factors_y + 2*ey*numQuads, factors_z, source);
+                }
+            } else {
+                if (lower[1] == SHARED || upper[1] == SHARED || lower[2] == SHARED || upper[2] == SHARED)
+                    throw SpeckleyException("upper x edges still need doing");
+            }
+
+        }
+        if (speck->getDim() == 2) {
+            shareRectangleXEdges(r, numComp, hasLower[0], hasUpper[0], lower[0], upper[0], target);
+        } else {
+            shareBrickXFaces(r, numComp, hasLower[0], hasUpper[0], lower[0], upper[0], target);
+        }
+    }
+
+    // calculate across Y splits
+    if (hasLower[1] || hasUpper[1]) {
+        if (lower[1] == SHARED) { //bottom, only if an element is split in two
+            const dim_t ey = 0;
+            const int oqy = 1;
+            double *precalc_y = factors_y + oqy * numQuads;
+            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+#pragma omp parallel for
+                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                    double *out = target.getSampleDataRW(INDEX3(ex,0,ez,r.NE[0],r.NE[1]));
+                    for (int oqz = 0; oqz < qz_max; oqz++) {
+                        const double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
+                        for (int oqx = 0; oqx < 2; oqx++) {
+                            double *precalc_x = factors_x + (2*ex+oqx)*numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                        }
+                    }
+                }
+            }
+        }
+        if (upper[1] == SHARED) { //top, only if an element is split in two
+            const dim_t ey = r.NE[1]-1;
+            const int oqy = 0;
+            double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+#pragma omp parallel for
+                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                    double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                    for (int oqz = 0; oqz < qz_max; oqz++) {
+                        const double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
+                        for (int oqx = 0; oqx < 2; oqx++) {
+                            double *precalc_x = factors_x + (2*ex+oqx)*numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                        }
+                    }
+                }
+            }
+        }
+        if (lower[2] == SHARED || upper[2] == SHARED) {
+            throw SpeckleyException("ripleyCoupler: multidimension subdivisions not supported");
+        }
+        if (speck->getDim() == 2) {
+            shareRectangleYEdges(r, numComp, hasLower[1], hasUpper[1], lower[1], upper[1], target);
+        } else {
+            shareBrickYFaces(r, numComp, hasLower[1], hasUpper[1], lower[1], upper[1], target);
+        }
+    }
+
+    // z splits
+    if (hasLower[2] || hasUpper[2]) {
+        if (lower[2] == SHARED) {
+            const dim_t ez = 0;
+            const int oqz = 1;
+            const double *precalc_z = factors_z + numQuads;
+#pragma omp parallel for
+            for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                    double *out = target.getSampleDataRW(INDEX3(ex, ey, ez, r.NE[0], r.NE[1]));
+                    for (int oqy = 0; oqy < 2; oqy++) {
+                        const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                        for (int oqx = 0; oqx < 2; oqx++) {
+                            const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                        }
+                    }
+                }
+            }
+        }
+        if (upper[2] == SHARED) {
+            const int oqz = 0;
+            const dim_t ez = r.NE[2]-1;
+            const double *precalc_z = factors_z + 2*ez*numQuads;
+#pragma omp parallel for
+            for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                    double *out = target.getSampleDataRW(INDEX3(ex, ey, ez, r.NE[0], r.NE[1]));
+                    for (int oqy = 0; oqy < 2; oqy++) {
+                        const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                        for (int oqx = 0; oqx < 2; oqx++) {
+                            const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
+                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                        }
+                    }
+                }
+            }
+        }
+        shareBrickZFaces(r, numComp, hasLower[2], hasUpper[2], lower[2], upper[2], target);
+    }
+}
+
+void RipleyCoupler::shareBrickXFaces(struct Ripley& r, int numComp, int hasLower,
+        int hasUpper, int lower, int upper, escript::Data& target) const
+{
+#ifdef ESYS_MPI
+    const dim_t leftCount = r.NE[2]*r.NE[1]*numComp*4 * (1 + lower*lower);
+    const dim_t rightCount = r.NE[2]*r.NE[1]*numComp*4 * (1 + upper*upper);
+    std::vector<double> left(leftCount, 0);
+    std::vector<double> right(rightCount, 0);
+    std::vector<double> rrecv(rightCount, 0);
+    std::vector<double> lrecv(leftCount, 0);
+    const size_t pointsize = numComp * sizeof(double);
+
+    //fill outbound arrays
+    if (lower == SHARED) { //single
+        const dim_t z_size = r.NE[1]*numComp*4;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(0, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(&left[z_offset + ey*4*numComp], out + numComp, pointsize);
+                memcpy(&left[z_offset + (ey*4 + 1)*numComp], out + 3*numComp, pointsize);
+                memcpy(&left[z_offset + (ey*4 + 2)*numComp], out + 5*numComp, pointsize);
+                memcpy(&left[z_offset + (ey*4 + 3)*numComp], out + 7*numComp, pointsize);
+            }
+        }
+    } else if (hasLower && lower == MINE) { //double
+        const dim_t z_size = r.NE[1]*numComp*8;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(0, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(&left[z_offset + ey*8*numComp], out, pointsize*8);
+            }
+        }
+    }
+    if (upper == SHARED) { //single
+        const dim_t z_size = r.NE[1]*numComp*4;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(r.NE[0]-1, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(&right[z_offset + ey*4*numComp], out, pointsize);
+                memcpy(&right[z_offset + (ey*4 + 1)*numComp], out + 2*numComp, pointsize);
+                memcpy(&right[z_offset + (ey*4 + 2)*numComp], out + 4*numComp, pointsize);
+                memcpy(&right[z_offset + (ey*4 + 3)*numComp], out + 6*numComp, pointsize);
+            }
+        }
+    } else if (hasUpper && upper == MINE) { //double
+        const dim_t z_size = r.NE[1]*numComp*8;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(r.NE[0]-1, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(&right[z_offset + ey*8*numComp], out, pointsize*8);
+            }
+        }
+    }
+
+    shareWithNeighbours((rank % s_NX[0]) % 2, hasLower, hasUpper, &left[0],
+            &right[0], &lrecv[0], &rrecv[0], leftCount, rightCount, 1);
+
+    //unpacking
+    if (lower == SHARED) {
+        const dim_t z_size = r.NE[1]*numComp*4;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(0, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(out, &lrecv[z_offset + ey*4*numComp], pointsize);
+                memcpy(out + 2*numComp, &lrecv[z_offset + (ey*4 + 1)*numComp], pointsize);
+                memcpy(out + 4*numComp, &lrecv[z_offset + (ey*4 + 2)*numComp], pointsize);
+                memcpy(out + 6*numComp, &lrecv[z_offset + (ey*4 + 3)*numComp], pointsize);
+            }
+        }
+    } else if (lower == THEIRS) {
+        const dim_t z_size = r.NE[1]*numComp*8;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(0, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(out, &lrecv[z_offset + ey*8*numComp], pointsize*8);
+            }
+        }
+    }
+    if (upper == SHARED) {
+        const dim_t z_size = r.NE[1]*numComp*4;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(r.NE[0]-1, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(out + numComp, &rrecv[z_offset + ey*4*numComp], pointsize);
+                memcpy(out + 3*numComp, &rrecv[z_offset + (ey*4 + 1)*numComp], pointsize);
+                memcpy(out + 5*numComp, &rrecv[z_offset + (ey*4 + 2)*numComp], pointsize);
+                memcpy(out + 7*numComp, &rrecv[z_offset + (ey*4 + 3)*numComp], pointsize);
+            }
+        }
+    } else if (upper == THEIRS) {
+        const dim_t z_size = r.NE[1]*numComp*8;
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            const dim_t z_offset = ez * z_size;
+            for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+                double *out = target.getSampleDataRW(INDEX3(r.NE[0]-1, ey, ez, r.NE[0], r.NE[1]));
+                memcpy(out, &rrecv[z_offset + ey*8*numComp], pointsize*8);
+            }
+        }
+    }
+#endif
+}
+
+void RipleyCoupler::shareBrickYFaces(struct Ripley& r, int numComp, int hasLower,
+        int hasUpper, int lower, int upper, escript::Data& target) const
+{
+
+#ifdef ESYS_MPI
+    const size_t pointsize = numComp * sizeof(double);
+    //fill outbound arrays
+    const dim_t bottomCount = r.NE[2]*r.NE[0]*numComp*4 * (1 + lower*lower);
+    const dim_t topCount = r.NE[2]*r.NE[0]*numComp*4 * (1 + upper*upper);
+    std::vector<double> bottom(bottomCount, 0);
+    std::vector<double> top(topCount, 0);
+    std::vector<double> brecv(bottomCount, 0);
+    std::vector<double> trecv(topCount, 0);
+
+    if (lower == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex, 0, ez, r.NE[0], r.NE[1]));
+                memcpy(&bottom[ez*4*numComp*r.NE[0] + ex*4*numComp], out + 2*numComp, pointsize*2);
+                memcpy(&bottom[ez*4*numComp*r.NE[0] + ex*4*numComp + 2*numComp], out + 6*numComp, pointsize*2);
+            }
+        }
+    } else if (hasLower && lower == MINE) { //double
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            double *out = target.getSampleDataRW(INDEX3(0, 0, ez, r.NE[0], r.NE[1]));
+            memcpy(&bottom[ez*8*numComp*r.NE[0]], out, pointsize*8*r.NE[0]);
+        }
+    }
+    if (upper == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex, r.NE[1]-1, ez, r.NE[0], r.NE[1]));
+                memcpy(&top[ez*4*numComp*r.NE[0] + ex*4*numComp], out, pointsize*4);
+                memcpy(&top[ez*4*numComp*r.NE[0] + ex*4*numComp + 2*numComp], out + 4*numComp, pointsize*2);
+            }
+        }
+    } else if (hasUpper && upper == MINE) { //double
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            double *out = target.getSampleDataRW(INDEX3(0, r.NE[1]-1, ez, r.NE[0], r.NE[1]));
+            memcpy(&top[ez*8*numComp*r.NE[0]], out, pointsize*8*r.NE[0]);
+        }
+    }
+
+    shareWithNeighbours((rank / s_NX[0]) % 2, hasLower, hasUpper, &bottom[0],
+            &top[0], &brecv[0], &trecv[0], bottomCount, topCount, s_NX[0]);
+
+    //unpacking
+    if (lower == SHARED) {
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex, 0, ez, r.NE[0], r.NE[1]));
+                memcpy(out, &brecv[INDEX4(0,0,ex,ez,numComp,4,r.NE[0])], pointsize*2);
+                memcpy(out + 4*numComp, &brecv[INDEX4(0,2,ex,ez,numComp,4,r.NE[0])], pointsize*2);
+            }
+        }
+    } else if (lower == THEIRS) {
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            double *out = target.getSampleDataRW(INDEX3(0, 0, ez, r.NE[0], r.NE[1]));
+            memcpy(out, &brecv[ez*8*numComp*r.NE[0]], pointsize*8*r.NE[0]);
+        }
+    }
+    if (upper == SHARED) {
+#pragma omp parallel for
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex, r.NE[1]-1, ez, r.NE[0], r.NE[1]));
+
+                memcpy(out + 2*numComp, &trecv[INDEX4(0,0,ex,ez,numComp,4,r.NE[0])], pointsize*2);
+                memcpy(out + 6*numComp, &trecv[INDEX4(0,2,ex,ez,numComp,4,r.NE[0])], pointsize*2);
+            }
+        }
+    } else if (upper == THEIRS) {
+        for (dim_t ez = 0; ez < r.NE[2]; ez++) {
+            double *out = target.getSampleDataRW(INDEX3(0, r.NE[1]-1, ez, r.NE[0], r.NE[1]));
+            memcpy(out, &trecv[ez*8*numComp*r.NE[0]], pointsize*8*r.NE[0]);
+        }
+    }
+#endif
+}
+
+
+void RipleyCoupler::shareBrickZFaces(struct Ripley& r, int numComp, int hasLower,
+        int hasUpper, int lower, int upper, escript::Data& target) const
+{
+#ifdef ESYS_MPI
+    const size_t pointsize = numComp * sizeof(double);
+    //fill outbound arrays
+    const dim_t bottomCount = r.NE[1]*r.NE[0]*numComp*4 * (1 + lower*lower);
+    const dim_t topCount = r.NE[1]*r.NE[0]*numComp*4 * (1 + upper*upper);
+    std::vector<double> bottom(bottomCount, 0);
+    std::vector<double> top(topCount, 0);
+    std::vector<double> brecv(bottomCount, 0);
+    std::vector<double> trecv(topCount, 0);
+
+    if (lower == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex, ey, 0, r.NE[0], r.NE[1]));
+                memcpy(&bottom[INDEX4(0,0,ex,ey,numComp,4,r.NE[0])], out + 4*numComp, pointsize*4);
+            }
+        }
+    } else if (hasLower && lower == MINE) { //double
+        double *out = target.getSampleDataRW(0);
+        memcpy(&bottom[0], out, pointsize*8*r.NE[0]*r.NE[1]);
+    }
+    if (upper == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex,ey,r.NE[2]-1,r.NE[0],r.NE[1]));
+                memcpy(&top[INDEX4(0,0,ex,ey,numComp,4,r.NE[0])], out, pointsize*4);
+            }
+        }
+    } else if (hasUpper && upper == MINE) { //double
+        double *out = target.getSampleDataRW((r.NE[2]-1)*r.NE[0]*r.NE[1]);
+        memcpy(&top[0], out, pointsize*8*r.NE[0]*r.NE[1]);
+    }
+
+    shareWithNeighbours((rank / s_NX[0]) % 2, hasLower, hasUpper, &bottom[0],
+            &top[0], &brecv[0], &trecv[0], bottomCount, topCount, s_NX[0]*s_NX[1]);
+
+    //unpacking
+    if (lower == SHARED) {
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(ex + ey*r.NE[0]);
+                memcpy(out, &brecv[INDEX4(0,0,ex,ey,numComp,4,r.NE[0])], pointsize*4);
+            }
+        }
+    } else if (lower == THEIRS) {
+        double *out = target.getSampleDataRW(0);
+        memcpy(out, &brecv[0], pointsize*8*r.NE[0]*r.NE[1]);
+    }
+    if (upper == SHARED) {
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+                double *out = target.getSampleDataRW(INDEX3(ex,ey,r.NE[2]-1,r.NE[0],r.NE[1]));
+                memcpy(out + 4*numComp, &trecv[INDEX4(0,0,ex,ey,numComp,4,r.NE[0])], pointsize*4);
+            }
+        }
+    } else if (upper == THEIRS) {
+        double *out = target.getSampleDataRW((r.NE[2]-1)*r.NE[0]*r.NE[1]);
+        memcpy(out, &trecv[0], pointsize*8*r.NE[0]*r.NE[1]);
+    }
+#endif
+}
+
+void RipleyCoupler::shareRectangleXEdges(struct Ripley& r, int numComp,
+        int hasLower, int hasUpper, int lower, int upper,
+        escript::Data& target) const
+{
+#ifdef ESYS_MPI
+    const dim_t leftCount = r.NE[1]*numComp*2 * (1 + lower*lower);
+    const dim_t rightCount = r.NE[1]*numComp*2 * (1 + upper*upper);
+    std::vector<double> left(leftCount, 0);
+    std::vector<double> right(rightCount, 0);
+    std::vector<double> rrecv(rightCount, 0);
+    std::vector<double> lrecv(leftCount, 0);
+    const size_t pointsize = numComp * sizeof(double);
+
+    //fill outbound arrays
+    if (lower == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
+            memcpy(&left[ey*2*numComp], out + numComp, pointsize);
+            memcpy(&left[(ey*2 + 1)*numComp], out + 3*numComp, pointsize);
+        }
+    } else if (hasLower && lower == MINE) { //double
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
+            memcpy(&left[ey*4*numComp], out, pointsize*4);
+        }
+    }
+    if (upper == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
+            memcpy(&right[ey*2*numComp], out, pointsize);
+            memcpy(&right[(ey*2 + 1)*numComp], out + 2*numComp, pointsize);
+        }
+    } else if (hasUpper && upper == MINE) { //double
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
+            memcpy(&right[ey*4*numComp], out, pointsize*4);
+        }
+    }
+
+    shareWithNeighbours((rank % s_NX[0]) % 2, hasLower, hasUpper, &left[0],
+            &right[0], &lrecv[0], &rrecv[0], leftCount, rightCount, 1);
+
+    //unpacking
+    if (lower == SHARED) {
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
+            memcpy(out, &lrecv[ey*2*numComp], pointsize);
+            memcpy(out + 2*numComp, &lrecv[(ey*2 + 1)*numComp], pointsize);
+        }
+    } else if (lower == THEIRS) {
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(0, ey, r.NE[0]));
+            memcpy(out, &lrecv[ey*4*numComp], pointsize*4);
+        }
+    }
+    if (upper == SHARED) {
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
+            memcpy(out + numComp, &rrecv[ey*2*numComp], pointsize);
+            memcpy(out + 3*numComp, &rrecv[(ey*2 + 1)*numComp], pointsize);
+        }
+    } else if (upper == THEIRS) {
+#pragma omp parallel for
+        for (dim_t ey = 0; ey < r.NE[1]; ey++) {
+            double *out = target.getSampleDataRW(INDEX2(r.NE[0]-1, ey, r.NE[0]));
+            memcpy(out, &rrecv[ey*4*numComp], pointsize*4);
+        }
+    }
+#endif
+}
+
+void RipleyCoupler::shareRectangleYEdges(struct Ripley& r, int numComp, int hasLower,
+        int hasUpper, int lower, int upper, escript::Data& target) const
+{
+#ifdef ESYS_MPI
+    const size_t pointsize = numComp * sizeof(double);
+    //fill outbound arrays
+    const dim_t bottomCount = r.NE[0]*numComp*2 * (1 + lower*lower);
+    const dim_t topCount = r.NE[0]*numComp*2 * (1 + upper*upper);
+    std::vector<double> bottom(bottomCount, 0);
+    std::vector<double> top(topCount, 0);
+    std::vector<double> brecv(bottomCount, 0);
+    std::vector<double> trecv(topCount, 0);
+
+    if (lower == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+            double *out = target.getSampleDataRW(ex);
+            memcpy(&bottom[ex*2*numComp], out + 2*numComp, pointsize*2);
+        }
+    } else if (hasLower && lower == MINE) { //double
+        double *out = target.getSampleDataRW(0);
+        memcpy(&bottom[0], out, pointsize*4*r.NE[0]);
+    }
+    if (upper == SHARED) { //single
+#pragma omp parallel for
+        for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+            double *out = target.getSampleDataRW(INDEX2(ex,r.NE[1]-1,r.NE[0]));
+            memcpy(&top[ex*2*numComp], out, pointsize*2);
+        }
+    } else if (hasUpper && upper == MINE) { //double
+        double *out = target.getSampleDataRW((r.NE[1]-1)*r.NE[0]);
+        memcpy(&top[0], out, pointsize*4*r.NE[0]);
+    }
+    //now share
+    shareWithNeighbours((rank / s_NX[0]) % 2, hasLower, hasUpper, &bottom[0],
+            &top[0], &brecv[0], &trecv[0], bottomCount, topCount, s_NX[0]);
+
+    //unpacking
+    if (lower == SHARED) {
+#pragma omp parallel for
+        for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+            double *out = target.getSampleDataRW(ex);
+            memcpy(out, &brecv[ex*2*numComp], pointsize*2);
+        }
+    } else if (lower == THEIRS) {
+        double *out = target.getSampleDataRW(0);
+        memcpy(out, &brecv[0], pointsize*4*r.NE[0]);
+    }
+    if (upper == SHARED) {
+#pragma omp parallel for
+        for (dim_t ex = 0; ex < r.NE[0]; ex++) {
+            double *out = target.getSampleDataRW(INDEX2(ex,r.NE[1]-1,r.NE[0]));
+            memcpy(out + 2*numComp, &trecv[ex*2*numComp], pointsize*2);
+        }
+    } else if (upper == THEIRS) {
+        double *out = target.getSampleDataRW((r.NE[1]-1)*r.NE[0]);
+        memcpy(out, &trecv[0], pointsize*4*r.NE[0]);
+    }
+#endif
+}
+
+void RipleyCoupler::shareWithNeighbours(bool lowerFirst, int hasLower,
+        int hasUpper, double *bottom, double *top, double *brecv, double *trecv,
+        int bSize, int tSize, int distance) const
+{
+    const int above = rank + distance;
+    const int below = rank - distance;
+    MPI_Status status;
+
+    if (lowerFirst) {
+        //down first
+        if (hasLower) {
+            MPI_Sendrecv(bottom, bSize, MPI_DOUBLE, below, 0,
+                    brecv, bSize, MPI_DOUBLE, below, 0,
+                    comm, &status);
+
+        }
+        if (hasUpper) {
+            MPI_Sendrecv(top, tSize, MPI_DOUBLE, above, 0,
+                    trecv, tSize, MPI_DOUBLE, above, 0,
+                    comm, &status);
+        }
+    } else {
+        //up first
+        if (hasUpper) {
+            MPI_Sendrecv(top, tSize, MPI_DOUBLE, above, 0,
+                    trecv, tSize, MPI_DOUBLE, above, 0,
+                    comm, &status);
+        }
+        if (hasLower) {
+            MPI_Sendrecv(bottom, bSize, MPI_DOUBLE, below, 0,
+                    brecv, bSize, MPI_DOUBLE, below, 0,
+                    comm, &status);
         }
     }
 }

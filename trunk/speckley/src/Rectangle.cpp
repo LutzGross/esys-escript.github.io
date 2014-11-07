@@ -172,7 +172,8 @@ Rectangle::Rectangle(int order, dim_t n0, dim_t n1, double x0, double y0, double
 Rectangle::~Rectangle()
 {
 #ifdef USE_RIPLEY
-    delete coupler;
+    if (coupler != NULL)
+        delete coupler;
 #endif
 }
 
@@ -1586,11 +1587,7 @@ void Rectangle::interpolateAcross(escript::Data& target, const escript::Data& so
 {
 #ifdef USE_RIPLEY
     if (coupler == NULL) {
-#ifdef ESYS_MPI
-        coupler = new RectangleCoupler(this, m_dx, m_mpiInfo->rank, m_mpiInfo->comm);
-#else
-        coupler = new RectangleCoupler(this, m_dx, m_mpiInfo->rank);
-#endif
+        coupler = new RipleyCoupler(this, m_dx, m_mpiInfo->rank);
     }
     coupler->interpolate(target, source);
 #else
