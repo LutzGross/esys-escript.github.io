@@ -979,7 +979,7 @@ class DcRes(ForwardModel):
         if not len(w) == len(delphi_in):
                raise ValueError("Number of confidence factors and number of potential input values don't match.")
 
-        self.__sigmaHomog=sigmaPrimary
+        self.__sigmaPrimary=sigmaPrimary
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not len(delphi_in)==len(sourceInfo)/2:
@@ -987,9 +987,9 @@ class DcRes(ForwardModel):
         if not isinstance(locator, Locator):
             raise ValueError("locator must be an escript Locator object")    
         self.__pde=None
-        self.__homogPde=None
+        self.__primaryPde=None
         if not saveMemory:
-            self.__pde,self.__homogPde=self.setUpPDE()
+            self.__pde,self.__primaryPde=self.setUpPDE()
 
     def getDomain(self):
         """
@@ -1019,13 +1019,13 @@ class DcRes(ForwardModel):
             q=whereZero(X[2]-inf(X[2]))+whereZero(X[1]-inf(X[1]))+whereZero(X[1]-sup(X[1]))+whereZero(X[0]-inf(X[0]))+whereZero(X[0]-sup(X[0]))            
             r=0
 
-            # if self.__sigmaHomog:
-            homogPde=LinearPDE(dom, numEquations=1)
-            homogPde.getSolverOptions().setTolerance(self.__tol)
+            # if self.__sigmaPrimary:
+            primaryPde=LinearPDE(dom, numEquations=1)
+            primaryPde.getSolverOptions().setTolerance(self.__tol)
             
-            AHomog=homogPde.createCoefficient('A')
-            homogPde.setValue(A=AHomog,q=q,r=r)
-            homogPde.setSymmetryOn()
+            APrimary=primaryPde.createCoefficient('A')
+            primaryPde.setValue(A=APrimary,q=q,r=r)
+            primaryPde.setSymmetryOn()
             
             pde=LinearPDE(dom, numEquations=1)
             pde.getSolverOptions().setTolerance(self.__tol)
@@ -1040,14 +1040,14 @@ class DcRes(ForwardModel):
                 # z = dom.getX()[DIM-1]
                 # q=whereZero(z-inf(z))
                 # r=0
-                # pde.setValue(A=AHomog,y_dirac=y_dirac,d=alpha)
+                # pde.setValue(A=APrimary,y_dirac=y_dirac,d=alpha)
 
         else:
-            homogPde=self.__homogPde
-            homogPde.resetRightHandSideCoefficients()
+            primaryPde=self.__primaryPde
+            primaryPde.resetRightHandSideCoefficients()
             pde=self.__pde
             pde.resetRightHandSideCoefficients()
-        return pde, homogPde
+        return pde, primaryPde
 
     def getArguments(self, sigma):
         """
@@ -1059,13 +1059,13 @@ class DcRes(ForwardModel):
         :rtype: ``Data`` of shape (1,)
         """
         print("getting argument")
-        # print "sigmaPrimary",self.__sigmaHomog
+        # print "sigmaPrimary",self.__sigmaPrimary
         # print "sigma=",sigma
         dom=self.__domain
         kro=kronecker(dom)
-        pde,homogPde=self.setUpPDE()
-        conHomog=self.__sigmaHomog
-        Ahomog = conHomog * kro
+        pde,primaryPde=self.setUpPDE()
+        conPrimary=self.__sigmaPrimary
+        APrimary = conPrimary * kro
         y_dirac = Scalar(0,DiracDeltaFunctions(dom))
         y_dirac.setTaggedValue(self.__sourceInfo[0],self.__current)
         if(self.__sourceInfo[1]!="-"):
@@ -1073,15 +1073,15 @@ class DcRes(ForwardModel):
         # print "setting",self.__sourceInfo[0],"to",self.__current
         # print "setting",self.__sourceInfo[1],"to",-self.__current
         # print "-----------------"
-        # print "conHomog=",conHomog
-        # print "AHomog=",Ahomog
+        # print "conPrimary=",conPrimary
+        # print "APrimary=",APrimary
         # print "y_dirac=",y_dirac
         # print "-----------------"
-        # homogPde.setValue(A=Ahomog,y_dirac=-y_dirac,q=q,r=r)
-        homogPde.setValue(A=Ahomog,y_dirac=-y_dirac)
-        uHomog=homogPde.getSolution()
+        # primaryPde.setValue(A=APrimary,y_dirac=-y_dirac,q=q,r=r)
+        primaryPde.setValue(A=APrimary,y_dirac=-y_dirac)
+        uPrimary=primaryPde.getSolution()
         A=sigma * kro
-        X=(self.__sigmaHomog - sigma) * grad(uHomog)
+        X=(self.__sigmaPrimary - sigma) * grad(uPrimary)
         # print "+++++++++++++++++++"
         # print "sigma=",sigma
         # print "A=",A
@@ -1171,7 +1171,7 @@ class DcRes(ForwardModel):
             else:
                 jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],tmp)]
         print ("jointSamples=",jointSamples)
-        pde,homogPde=self.setUpPDE()
+        pde,primaryPde=self.setUpPDE()
         dom=self.__domain
         kro=kronecker(dom)
         A=sigma*kro
