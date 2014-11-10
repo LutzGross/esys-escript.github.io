@@ -78,6 +78,13 @@ class Ricker(Wavelet):
                 e2=(self.__s*(t-self.__t0))**2
                 return (1-2*e2)*exp(-e2)
 
+        def getVelocity(self, t):
+                """
+                get the velocity f'(t) at time `t`
+                """
+                e2=(self.__s*(t-self.__t0))**2
+                return (-3+2*e2)*exp(-e2)*2*self.__s**2*(t-self.__t0)
+
         def getAcceleration(self, t):
                 """
                 get the acceleration f''(t) at time `t`
