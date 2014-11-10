@@ -1443,17 +1443,18 @@ void RipleyDomain::assemblePDEDirac(escript::AbstractSystemMatrix* mat,
     }
 
     for (int i = 0; i < m_diracPoints.size(); i++) { //only for this rank
-        const IndexVector rowIndex(1, getDofOfNode(m_diracPoints[i].node));
+        const index_t dof = getDofOfNode(m_diracPoints[i].node);
         if (yNotEmpty) {
             const double *EM_F = y.getSampleDataRO(i);
             double *F_p = rhs.getSampleDataRW(0);
-            if (rowIndex[0] < getNumDOF()) {
+            if (dof < getNumDOF()) {
                 for (index_t eq = 0; eq < nEq; eq++) {
-                    F_p[INDEX2(eq, rowIndex[0], nEq)] += EM_F[INDEX2(eq,i,nEq)];
+                    F_p[INDEX2(eq, dof, nEq)] += EM_F[eq];
                 }
             }
         }
         if (dNotEmpty) {
+            const IndexVector rowIndex(1, dof);
             const double *EM_S = d.getSampleDataRO(i);
             vector<double> contents(EM_S, EM_S+nEq*nEq*nComp);
             addToSystemMatrix(mat, rowIndex, nEq, contents);
