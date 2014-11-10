@@ -942,12 +942,12 @@ class DcRes(ForwardModel):
     Forward Model for dc resistivity, with a given source pair.
     The cost function is defined as:
 
-        * defect = 1/2 (sum_s sum_pq w_pqs * ((phi_sp-phi-sq)-v_pqs)**2 *
+        * defect = 1/2 (sum_s sum_pq w_pqs * ((phi_sp-phi_sq)-v_pqs)**2 *
 
     where p and q indate the 
 
     """
-    def __init__(self, domain, locator, delphi_in, sourceInfo, current, sampleTags,sigmaHomog, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
+    def __init__(self, domain, locator, delphi_in, sourceInfo, current, sampleTags,sigmaPrimary, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
         
         """
         setup new ForwardModel
@@ -959,8 +959,8 @@ class DcRes(ForwardModel):
         :type delphi_in: tuple
         :param sourceInfo: descibes the current electode setup. a pair of tags should be provided for the current source setup. the first tag will be set to current and the second tag to -current
         :type sourceInfo: tuple
-        :param sigmaHomog: the conductivity to be used for the Homogeneous Solution.
-        :type sigmaHomog: ``Data`` of shape (1,)
+        :param sigmaPrimary: the conductivity to be used for the Primary Solution.
+        :type sigmaPrimary: ``Data`` of shape (1,)
         """
         super(DcRes, self).__init__()
 
@@ -979,7 +979,7 @@ class DcRes(ForwardModel):
         if not len(w) == len(delphi_in):
                raise ValueError("Number of confidence factors and number of potential input values don't match.")
 
-        self.__sigmaHomog=sigmaHomog
+        self.__sigmaHomog=sigmaPrimary
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
         if not len(delphi_in)==len(sourceInfo)/2:
@@ -1058,12 +1058,12 @@ class DcRes(ForwardModel):
         :return: phi
         :rtype: ``Data`` of shape (1,)
         """
-        # print "sigmaHomog",self.__sigmaHomog
+        print("getting argument")
+        # print "sigmaPrimary",self.__sigmaHomog
         # print "sigma=",sigma
         dom=self.__domain
         kro=kronecker(dom)
         pde,homogPde=self.setUpPDE()
-        
         conHomog=self.__sigmaHomog
         Ahomog = conHomog * kro
         y_dirac = Scalar(0,DiracDeltaFunctions(dom))
@@ -1109,7 +1109,7 @@ class DcRes(ForwardModel):
         
         :rtype: ``float``
         """
-        # print "getting Defect"
+        # print ("getting Defect")
         # print "sigma=",sigma
         # print "placeholder=",placeholder
         loc=self.__locator
@@ -1136,7 +1136,7 @@ class DcRes(ForwardModel):
             for i in range(length):
                 A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
                 # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
-        # print "A/2=",A/2,"for",self.__sourceInfo
+        print ("A/2=",A/2)
 
 
         return  A/2
@@ -1150,7 +1150,7 @@ class DcRes(ForwardModel):
         :param phi: potential field
         :type phi: ``Data`` of shape (1,)
         """
-        # print "getting gradient"
+        # print ("getting gradient")
         # print "sigma=",sigma
         loc=self.__locator
         val=loc.getValue(phi)
@@ -1164,8 +1164,8 @@ class DcRes(ForwardModel):
                 tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
             else:
                 tmp=-val[i]-self.__delphi_in[i/2]
-            print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
-            print ("tmp=",tmp)
+            # print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
+            # print ("tmp=",tmp)
             if sampleTags[i/2][0] in jointSamples.keys():
                 jointSamples[sampleTags[i/2][0]].append((sampleTags[i/2][1], tmp))
             else:

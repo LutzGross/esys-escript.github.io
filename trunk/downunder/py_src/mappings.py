@@ -223,7 +223,7 @@ class DcResMapping(Mapping):
         self.__k=k
 
     def getValue(self, m):
-        print ("in get value m=", m)
+        print ("in get value inf(m)=",inf(m)," sup(m)=", sup(m))
         return self.__sigma0 * (self.__k*m)
        
     def getDerivative(self, m):
