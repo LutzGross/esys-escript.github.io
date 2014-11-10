@@ -14,7 +14,8 @@
 #
 ##############################################################################
 
-# This is a template configuration file for escript/finley on Windows.
+# NOTE: THIS FILE IS DEPRECATED!
+# This is a template configuration file for escript on Windows.
 # Copy this file to <hostname>_options.py, where <hostname> is your machine's
 # short hostname, then customize to your needs.
 
