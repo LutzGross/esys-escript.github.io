@@ -86,16 +86,14 @@ vars.AddVariables(
   EnumVariable('mpi', 'Compile parallel version using MPI flavour', 'none', allowed_values=mpi_flavours),
   ('mpi_prefix', 'Prefix/Paths of MPI installation', default_prefix),
   ('mpi_libs', 'MPI shared libraries to link with', ['mpi']),
+  BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
+  ('thrust_prefix', 'Prefix/Paths to NVidia thrust installation', default_prefix),
   BoolVariable('netcdf', 'Enable netCDF file support', False),
   ('netcdf_prefix', 'Prefix/Paths of netCDF installation', default_prefix),
   ('netcdf_libs', 'netCDF libraries to link with', ['netcdf_c++', 'netcdf']),
   BoolVariable('parmetis', 'Enable ParMETIS (requires MPI)', False),
   ('parmetis_prefix', 'Prefix/Paths of ParMETIS installation', default_prefix),
   ('parmetis_libs', 'ParMETIS libraries to link with', ['parmetis', 'metis']),
-  BoolVariable('papi', 'Enable PAPI', False),
-  ('papi_prefix', 'Prefix/Paths to PAPI installation', default_prefix),
-  ('papi_libs', 'PAPI libraries to link with', ['papi']),
-  BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False),
   BoolVariable('mkl', 'Enable the Math Kernel Library', False),
   ('mkl_prefix', 'Prefix/Paths to MKL installation', default_prefix),
   ('mkl_libs', 'MKL libraries to link with', ['mkl_solver','mkl_em64t','guide','pthread']),
@@ -114,11 +112,8 @@ vars.AddVariables(
   BoolVariable('visit', 'Enable the VisIt simulation interface', False),
   ('visit_prefix', 'Prefix/Paths to VisIt installation', default_prefix),
   ('visit_libs', 'VisIt libraries to link with', ['simV2']),
-  BoolVariable('vsl_random', 'Use VSL from intel for random data', False),
-  BoolVariable('cuda', 'Enable GPU code with CUDA (requires thrust)', False),
   ListVariable('domains', 'Which domains to build', 'all',\
                ['dudley','finley','ripley','speckley']),
-  ('thrust_prefix', 'Prefix/Paths to NVidia thrust installation', default_prefix),
 # Advanced settings
   #dudley_assemble_flags = -funroll-loops      to actually do something
   ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
@@ -129,21 +124,23 @@ vars.AddVariables(
   ('env_export', 'Environment variables to be passed to tools',[]),
   EnumVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
   EnumVariable('forcecollres', 'For testing use only - set the default value for force resolving collective ops', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
-  # finer control over library building, intel aggressive global optimisation
-  # works with dynamic libraries on windows.
   ('build_shared', 'Build dynamic libraries only', False),
   ('sys_libs', 'Extra libraries to link with', []),
   ('escript_opts_version', 'Version of options file (do not specify on command line)'),
   ('SVN_VERSION', 'Do not use from options file', -2),
   ('pythoncmd', 'which python to compile with','python'),
   ('usepython3', 'Is this a python3 build? (experimental)', False),
-  ('longindices', 'use long indices (for very large matrices)', False),
   ('pythonlibname', 'Name of the python library to link. (This is found automatically for python2.X.)', ''),
   ('pythonlibpath', 'Path to the python library. (You should not need to set this unless your python has moved)',''),
   ('pythonincpath','Path to python include files. (You should not need to set this unless your python has moved',''),
+  BoolVariable('longindices', 'use long indices (for very large matrices)', False),
   BoolVariable('BADPYTHONMACROS','Extra \#include to get around a python bug.', True),
   BoolVariable('compressed_files','Enables reading from compressed binary files', True),
-  ('compression_libs', 'Compression libraries to link with', ['boost_iostreams'])
+  ('compression_libs', 'Compression libraries to link with', ['boost_iostreams']),
+  BoolVariable('papi', 'Enable PAPI', False),
+  ('papi_prefix', 'Prefix/Paths to PAPI installation', default_prefix),
+  ('papi_libs', 'PAPI libraries to link with', ['papi']),
+  BoolVariable('papi_instrument_solver', 'Use PAPI to instrument each iteration of the solver', False)
 )
 
 ##################### Create environment and help text #######################
@@ -251,12 +248,13 @@ if cc_name == 'icpc':
     omp_ldflags = "-openmp -openmp_report=1"
     fatalwarning = "-Werror"
 elif cc_name[:3] == 'g++':
-    # GNU C on any system
+    # GNU C++ on any system
     # note that -ffast-math is not used because it breaks isnan(),
     # see mantis #691
     cc_flags     = "-pedantic -Wall -fPIC -Wno-unknown-pragmas -Wno-sign-compare -Wno-system-headers -Wno-long-long -Wno-strict-aliasing -finline-functions"
     cc_optim     = "-O3"
-    cc_debug     = "-g -O0 -DDOASSERT -DDOPROF -DBOUNDS_CHECK --param=max-vartrack-size=90000000" #avoids vartrack limit being exceeded with escriptcpp.cpp
+    #max-vartrack-size: avoid vartrack limit being exceeded with escriptcpp.cpp
+    cc_debug     = "-g3 -O0 -D_GLIBCXX_DEBUG -DDOASSERT -DDOPROF -DBOUNDS_CHECK --param=max-vartrack-size=100000000"
     omp_flags    = "-fopenmp"
     omp_ldflags  = "-fopenmp"
     fatalwarning = "-Werror"
@@ -365,11 +363,6 @@ if IS_WINDOWS:
     if not env['build_shared']:
         env.Append(CPPDEFINES = ['ESYSUTILS_STATIC_LIB'])
         env.Append(CPPDEFINES = ['PASO_STATIC_LIB'])
-
-# VSL random numbers
-env['buildvars']['vsl_random']=int(env['vsl_random'])
-if env['vsl_random']:
-    env.Append(CPPDEFINES = ['MKLRANDOM'])
 
 env['IS_WINDOWS']=IS_WINDOWS
 
@@ -528,7 +521,6 @@ env.SConscript(dirs = ['cusplibrary'])
 
 #This will pull in the escriptcore/py_src and escriptcore/test
 env.SConscript(dirs = ['escriptcore/src'], variant_dir='$BUILD_DIR/$PLATFORM/escriptcore', duplicate=0)
-#env.SConscript(dirs = ['escript/test'], variant_dir='$BUILD_DIR/$PLATFORM/escript/test', duplicate=0)
 env.SConscript(dirs = ['esysUtils/src'], variant_dir='$BUILD_DIR/$PLATFORM/esysUtils', duplicate=0)
 env.SConscript(dirs = ['pasowrap/src'], variant_dir='$BUILD_DIR/$PLATFORM/pasowrap', duplicate=0)
 if 'dudley' in env['domains']:
@@ -659,7 +651,6 @@ if not IS_WINDOWS:
     generateTestScripts(env, TestGroups)
 
 
-
 ######################## Summarize our environment ###########################
 def print_summary():
     print("")
@@ -675,34 +666,34 @@ def print_summary():
     if env['usempi']:
         print("             MPI:  YES (flavour: %s)"%env['mpi'])
     else:
-        print("             MPI:  DISABLED")
+        print("             MPI:  NO")
     if env['uselapack']:
         print("          LAPACK:  YES (flavour: %s)"%env['lapack'])
     else:
-        print("          LAPACK:  DISABLED")
+        print("          LAPACK:  NO")
     if env['cuda']:
         print("            CUDA:  YES (nvcc: %s)"%env['nvcc_version'])
     else:
-        print("            CUDA:  DISABLED")
+        print("            CUDA:  NO")
     d_list=[]
     e_list=[]
-    for i in 'debug','openmp','boomeramg','gdal','mkl','netcdf','papi','parmetis','pyproj','scipy','silo','sympy','umfpack','visit','vsl_random':
+    for i in 'debug','openmp','boomeramg','gdal','mkl','netcdf','papi','parmetis','pyproj','scipy','silo','sympy','umfpack','visit':
         if env[i]: e_list.append(i)
         else: d_list.append(i)
     for i in e_list:
         print("%16s:  YES"%i)
     for i in d_list:
-        print("%16s:  DISABLED"%i)
+        print("%16s:  NO"%i)
     if env['cppunit']:
-        print("         CppUnit:  FOUND")
+        print("         CppUnit:  YES")
     else:
-        print("         CppUnit:  NOT FOUND")
+        print("         CppUnit:  NO")
     if env['gmsh']=='m':
-        print("            gmsh:  FOUND, MPI-ENABLED")
+        print("            gmsh:  YES, MPI-ENABLED")
     elif env['gmsh']=='s':
-        print("            gmsh:  FOUND")
+        print("            gmsh:  YES")
     else:
-        print("            gmsh:  NOT FOUND")
+        print("            gmsh:  NO")
     print(    "            gzip:  " + ("YES" if env['compressed_files'] else "NO"))
 
     if ((fatalwarning != '') and (env['werror'])):

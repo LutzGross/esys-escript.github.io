@@ -16,9 +16,6 @@
 
 from guineapig_options import *
 
-# Prefix or paths to boost-python headers and libraries. See note above.
-#boost_prefix = '/usr/local'
-
 # boost-python library/libraries to link against
 boost_libs = ['boost_python-py34']
 usepython3=True
