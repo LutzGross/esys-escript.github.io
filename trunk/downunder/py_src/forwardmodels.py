@@ -953,9 +953,9 @@ class DcRes(ForwardModel):
         setup new ForwardModel
         :param domain: the domain of the model
         :type: escript domain
-        :param locator: should be setup to contain the measurement pairs
-        :type: escript locator
-        :param: delphi_in: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only
+        :param locator: contains locator to the measurement pairs
+        :type: `list` of ``Locator``
+        :param: delphi_in: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only. 
         :type delphi_in: tuple
         :param sourceInfo: descibes the current electode setup. a pair of tags should be provided for the current source setup. the first tag will be set to current and the second tag to -current
         :type sourceInfo: tuple
@@ -985,11 +985,31 @@ class DcRes(ForwardModel):
         if not len(delphi_in)==len(sourceInfo)/2:
             raise ValueError("len of input potentials should match len of sourceInfo")
         if not isinstance(locator, Locator):
-            raise ValueError("locator must be an escript Locator object")    
-        self.__pde=None
-        self.__primaryPde=None
+            raise ValueError("locator must be an escript locator object")    
+
+        
+        # get promary potential:
+        x = domain.getX()
+        DIM=domain.getDim()
+        q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+        for i in xrange(DIM-1):
+              xi=x[i]
+              q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
+        primaryPde=LinearPDE(domain, numEquations=1)
+        primaryPde.getSolverOptions().setTolerance(self.__tol)
+        src= Scalar(0,DiracDeltaFunctions(domain))
+        src.setTaggedValue(self.__sourceInfo[0],self.__current)
+        if (self.__sourceInfo[1]!="-"):
+            src.setTaggedValue(self.__sourceInfo[1],-self.__current)
+        primaryPde.setValue(A=kronecker(DIM)*self.__sigmaPrimary, q=q, y_dirac=-src)
+        primaryPde.setSymmetryOn()
+        self.u_primary=primaryPde.getSolution()
+        # FIXME: subtract primary potential from data!
+
+        
+        self.__pde=None        
         if not saveMemory:
-            self.__pde,self.__primaryPde=self.setUpPDE()
+            self.__pde=self.setUpPDE()
 
     def getDomain(self):
         """
@@ -1015,24 +1035,19 @@ class DcRes(ForwardModel):
         """
         if self.__pde is None:
             dom=self.__domain
-            X = dom.getX()  
-            q=whereZero(X[2]-inf(X[2]))+whereZero(X[1]-inf(X[1]))+whereZero(X[1]-sup(X[1]))+whereZero(X[0]-inf(X[0]))+whereZero(X[0]-sup(X[0]))            
-            r=0
-
-            # if self.__sigmaPrimary:
-            primaryPde=LinearPDE(dom, numEquations=1)
-            primaryPde.getSolverOptions().setTolerance(self.__tol)
-            
-            APrimary=primaryPde.createCoefficient('A')
-            primaryPde.setValue(A=APrimary,q=q,r=r)
-            primaryPde.setSymmetryOn()
+            x = dom.getX()
+            DIM=dom.getDim()
+            q=whereZero(x[DIM-1]-inf(x[DIM-1]))
+            for i in xrange(DIM-1):
+                xi=x[i]
+                q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
             
             pde=LinearPDE(dom, numEquations=1)
             pde.getSolverOptions().setTolerance(self.__tol)
             pde.setSymmetryOn()
             A=pde.createCoefficient('A')
             X=pde.createCoefficient('X')
-            pde.setValue(A=A,X=X,q=q,r=r)
+            pde.setValue(A=A,X=X,q=q)
 
             # else:
                 # pde=LinearPDE(self.__domain, numEquations=1)   
@@ -1043,11 +1058,9 @@ class DcRes(ForwardModel):
                 # pde.setValue(A=APrimary,y_dirac=y_dirac,d=alpha)
 
         else:
-            primaryPde=self.__primaryPde
-            primaryPde.resetRightHandSideCoefficients()
             pde=self.__pde
             pde.resetRightHandSideCoefficients()
-        return pde, primaryPde
+        return pde
 
     def getArguments(self, sigma):
         """
@@ -1062,43 +1075,25 @@ class DcRes(ForwardModel):
         # print "sigmaPrimary",self.__sigmaPrimary
         # print "sigma=",sigma
         dom=self.__domain
-        kro=kronecker(dom)
-        pde,primaryPde=self.setUpPDE()
-        conPrimary=self.__sigmaPrimary
-        APrimary = conPrimary * kro
-        y_dirac = Scalar(0,DiracDeltaFunctions(dom))
-        y_dirac.setTaggedValue(self.__sourceInfo[0],self.__current)
-        if(self.__sourceInfo[1]!="-"):
-            y_dirac.setTaggedValue(self.__sourceInfo[1],-self.__current)
-        # print "setting",self.__sourceInfo[0],"to",self.__current
-        # print "setting",self.__sourceInfo[1],"to",-self.__current
-        # print "-----------------"
-        # print "conPrimary=",conPrimary
-        # print "APrimary=",APrimary
-        # print "y_dirac=",y_dirac
-        # print "-----------------"
-        # primaryPde.setValue(A=APrimary,y_dirac=-y_dirac,q=q,r=r)
-        primaryPde.setValue(A=APrimary,y_dirac=-y_dirac)
-        uPrimary=primaryPde.getSolution()
-        A=sigma * kro
-        X=(self.__sigmaPrimary - sigma) * grad(uPrimary)
+        pde=self.setUpPDE()
+        X=(self.__sigmaPrimary - sigma) * grad(self.u_primary)
         # print "+++++++++++++++++++"
         # print "sigma=",sigma
         # print "A=",A
         # print "X=",X
         # print "+++++++++++++++++++"
-        pde.setValue(A=A,X=X)
-        u=pde.getSolution()        
+        pde.setValue(A=sigma * kronecker(dom),X=X)
+        phi=pde.getSolution()        
         # print "got U Sol"
-        u.expand()
+        #u.expand()
         # print "u=",u,"grad(u)=",grad(u)
         loc=self.__locator
-        val=loc.getValue(u)
+        loc_phi=loc.getValue(phi)
         # print "read %s at %s"%(str(val),str(loc.getX()))
-        return u, grad(u)
+        return phi, loc_phi
 
    
-    def getDefect(self, sigma, phi,placeholder):
+    def getDefect(self, sigma, phi, loc_phi):
         """
         Returns the defect value.
 
@@ -1112,8 +1107,7 @@ class DcRes(ForwardModel):
         # print ("getting Defect")
         # print "sigma=",sigma
         # print "placeholder=",placeholder
-        loc=self.__locator
-        val=loc.getValue(phi)
+        val=loc_phi
         # print "val=",val
         length=len(val)
         # print self.__sampleTags[0] 
@@ -1141,7 +1135,7 @@ class DcRes(ForwardModel):
 
         return  A/2
 
-    def getGradient(self, sigma, phi,grad_phi):
+    def getGradient(self, sigma, phi, loc_phi):
         """
         Returns the gradient of the defect with respect to density.
 
@@ -1152,8 +1146,7 @@ class DcRes(ForwardModel):
         """
         # print ("getting gradient")
         # print "sigma=",sigma
-        loc=self.__locator
-        val=loc.getValue(phi)
+        val=loc_phi
         sampleTags=self.__sampleTags
 
         jointSamples={}
@@ -1171,10 +1164,8 @@ class DcRes(ForwardModel):
             else:
                 jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],tmp)]
         print ("jointSamples=",jointSamples)
-        pde,primaryPde=self.setUpPDE()
+        pde =self.setUpPDE()
         dom=self.__domain
-        kro=kronecker(dom)
-        A=sigma*kro
         y_dirac = Scalar(0,DiracDeltaFunctions(dom))
         for i in jointSamples:
             total=0
@@ -1183,7 +1174,7 @@ class DcRes(ForwardModel):
             # print "setting y_dirac to ", total
             y_dirac.setTaggedValue(i,total)
 
-        pde.setValue(A=A,y_dirac=-y_dirac)
+        pde.setValue(A=kronecker(dom)*sigma, y_dirac=-y_dirac)
         u=pde.getSolution()
         retVal=-inner(grad(u),grad(phi))
         return retVal
