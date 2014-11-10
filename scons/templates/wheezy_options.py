@@ -165,7 +165,7 @@ netcdf = True
 # MKL library/libraries to link against
 #mkl_libs = ['mkl_intel_lp64', 'mkl_intel_thread', 'mkl_core', 'pthread']
 
-# Whether to add support for the UMFPACK (requires AMD and BLAS) direct solver
+# Whether to add support for the UMFPACK direct solver (requires AMD and BLAS)
 # DEFAULT: False
 #umfpack = True
 
