@@ -161,6 +161,13 @@ DataAbstract::getSampleDataByTag(int tag)
     throw DataException("Error - DataAbstract::getSampleDataByTag: Data type does not have tag values.");
 }
 
+size_t
+DataAbstract::getTagCount()
+{
+    return 0;
+}
+
+
 
 void  
 DataAbstract::setTaggedValue(int tagKey,

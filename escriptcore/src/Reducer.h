@@ -23,6 +23,15 @@
 namespace escript
 {
 
+  
+namespace reducerstatus
+{
+const char NONE=0;  	// I have not value for this var and no interest in it
+const char INTERESTED=1;	// I am interested in this variable but I have no value for it
+const char HAVE=2;	// I have a new value for this variable
+const char ERROR='!';	// Something bad happened  
+}
+  
 // There is currently no way to get a completely generic result out of this
 class AbstractReducer
 {
@@ -56,6 +65,15 @@ public:
 	// true if at least one localValue has been added
 	// used to check if this subworld should participate in remote merges
     bool hasValue();
+    
+	// Get a value for this variable from another process
+	// This is not a reduction and will replace any existing value
+    virtual bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)=0;
+
+	// Send a value to this variable to another process
+	// This is not a reduction and will replace any existing value    
+    virtual bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)=0;
+    
 protected:
     bool valueadded;
     
@@ -63,6 +81,9 @@ protected:
 
 
 typedef boost::shared_ptr<AbstractReducer> Reducer_ptr;
+
+
+
 
 // Reduces using pointwise MPI operations
 class MPIDataReducer : public AbstractReducer
@@ -80,7 +101,24 @@ public:
     bool reduceLocalValue(boost::python::object v, std::string& errstring);
     void reset();
     bool checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring);
+    
+    void getCompatibilityInfo(std::vector<unsigned>& params);
+    
+      // talk to corresponding processes in other subworlds
     bool reduceRemoteValues(esysUtils::JMPI& mpi_info);
+    
+    
+    
+	// Get a value for this variable from another process
+	// This is not a reduction and will replace any existing value
+    bool recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo);
+
+	// Send a value to this variable to another process
+	// This is not a reduction and will replace any existing value    
+    bool sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo);    
+    
+    
+    
 private:    
     escript::Data value;
     escript::const_Domain_ptr dom;

@@ -44,7 +44,13 @@ class Job(object):
   The instances of this class used in the subworlds will
   be constructed by the system.
   The majority of the work done by the Job will be in the 
-  *overloaded* work() method
+  *overloaded* work() method.
+  To do specific work, this class should be subclassed and the work() 
+  (and possibly __init__ methods overloaded).
+  The majority of the work done by the job will be in the *overloaded* work() method.
+  The work() method should retreive values from the outside using importValue() and pass values to
+  the rest of the system using exportValue().
+  The rest of the methods should be considered off limits.
   """
 
   def __init__(self, *args, **kwargs):
@@ -80,17 +86,19 @@ class Job(object):
     else:
         return None
         
-  def export(self, name, v):
+  def exportValue(self, name, v):
     """
     Make value v available to other Jobs under the label name.
-    name must have already been registered with the SplitWorld instance
+    name must have already been registered with the SplitWorld instance.
+    For use inside the work() method.
     :var name: registered label for exported value
     :type name: ``str``
     """
     self.exportedvalues[name]=v
     
-  def getImport(self, name):
+  def importValue(self, name):
     """
+    For use inside the work() method.
     :var name: label for imported value. Returns None if import not present.
     :type name: ``str``
     """
