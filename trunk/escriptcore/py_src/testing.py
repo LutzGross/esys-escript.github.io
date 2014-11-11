@@ -99,6 +99,9 @@ def run_tests(modulename, classes = [], exit_on_failure = False):
             suite.addTest(unittest.makeSuite(test_class))
     s=unittest.TextTestRunner(stream=stream,verbosity=verb).run(suite)
     if exit_on_failure and not s.wasSuccessful():
+        sys.stderr.flush()
+        from time import sleep
+        sleep(1)
         sys.exit(1)
     return s
 
