@@ -526,9 +526,6 @@ void RipleyCoupler::interpolate(escript::Data& target,
         return;
     }
 
-    if (s_NX[0] != 1 && s_NX[1] != 1 && s_NX[2] != 1)
-        throw SpeckleyException("ripleyCoupler: Triaxial subdivisions not supported");
-
     //begin edge cases and communication
 
     // calculate across X splits
@@ -592,6 +589,23 @@ void RipleyCoupler::interpolate(escript::Data& target,
                                         double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
                                         calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
                                                 precalc_x, precalc_y, precalc_z, source);
+                                    }
+                                }
+                                
+                                //triaxial split corner cases
+                                if (hasLower[2] || hasUpper[2]) {
+                                    const bool shared_set[2] = {lower[2] == SHARED, upper[2] == SHARED};
+                                    const dim_t ez_set[2] = {0, r.NE[2] - 1};
+                                    const int oqz_set[2] = {1, 0};
+                                    for (int j = 0; j < 2; j++) {
+                                        if (shared_set[j]) {
+                                            const dim_t ez = ez_set[j];
+                                            const int oqz = oqz_set[j];
+                                            const double *precalc_z = factors_z + (2*ez + oqz)*numQuads;
+                                            double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                                    precalc_x, precalc_y, precalc_z, source);
+                                        }
                                     }
                                 }
                             }

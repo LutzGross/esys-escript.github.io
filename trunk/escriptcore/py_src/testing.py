@@ -64,6 +64,7 @@ __url__="https://launchpad.net/escript-finley"
 
 import esys.escriptcore.utestselect as unittest
 from .util import getMPIRankWorld
+from .escriptcpp import MPIBarrierWorld
 import os
 import sys
 
@@ -100,8 +101,7 @@ def run_tests(modulename, classes = [], exit_on_failure = False):
     s=unittest.TextTestRunner(stream=stream,verbosity=verb).run(suite)
     if exit_on_failure and not s.wasSuccessful():
         sys.stderr.flush()
-        from time import sleep
-        sleep(1)
+        MPIBarrierWorld()
         sys.exit(1)
     return s
 
