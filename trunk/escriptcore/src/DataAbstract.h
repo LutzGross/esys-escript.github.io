@@ -215,6 +215,18 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   virtual
   double*
   getSampleDataByTag(int tag);
+  
+  
+  /**
+     \brief Return number of tagged values stored in the data object
+     \warning results are only meaningful for DataTagged. All other types return 0.
+     This functionality is only currently used by reducers and should
+     not be exposed to Python without making it more generally applicable
+  */
+  ESCRIPT_DLL_API
+  virtual
+  size_t
+  getTagCount();  
 
   /**
      \brief

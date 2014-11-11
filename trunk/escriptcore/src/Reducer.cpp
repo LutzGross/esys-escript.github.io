@@ -38,7 +38,7 @@ Reducer_ptr makeDataReducer(std::string type)
 	throw SplitWorldException("Unsupported operation for makeDataReducer.");
     }
     MPIDataReducer* m=new MPIDataReducer(op);
-    return Reducer_ptr(m);
+    return Reducer_ptr(m);    
 }
 
 }
@@ -54,7 +54,7 @@ void combineData(Data& d1, const Data& d2, MPI_Op op)
     }
 }
 
-
+const int PARAMTAG=120567;	// arbitrary value
 }
 
 bool AbstractReducer::hasValue()
@@ -144,38 +144,36 @@ void MPIDataReducer::reset()
 bool MPIDataReducer::checkRemoteCompatibility(esysUtils::JMPI& mpi_info, std::string& errstring)
 {
 #ifdef ESYS_MPI    
-    // since they can't add it unless it is using the proper domain, we need to 
-    // check the following:
-    //   FunctionSpace,
-    //   Shape (for which we can just use dpps*dpsize)
-    //   Domain version stamp [ if it exists ]
+    // since they can't add it unless it is using the proper domain, we need to check 
     
-    // So We'll use an INT built up in the following way
-    int check=0;
-    check+=(value.getFunctionSpace().getTypeCode()%30)+1;				// guarantees we don't get all zeros
-    check+=(value.getDataPointSize()*value.getNumDataPointsPerSample()%255)<<5;
+    std::vector<unsigned> compat(6);
+    getCompatibilityInfo(compat);
 
     // still need to incorporate domain version into this
     // or are domains not mutable in any way that matters?
-    int* rbuff=new int[mpi_info->size];
+    int* rbuff=new int[mpi_info->size*compat.size()];
     boost::scoped_array<int> dummy(rbuff);	// to ensure cleanup
     for (int i=0;i<mpi_info->size;++i)
     {
 	rbuff[i]=0;	// since this won't match any valid value we can use it as a failure check
     }
-    if (MPI_Allgather(&check, 1, MPI_INT, rbuff, 1, MPI_INT, mpi_info->comm)!=MPI_SUCCESS)
+    if (MPI_Allgather(&compat[0], compat.size(), MPI_UNSIGNED, rbuff, 
+	    compat.size(), MPI_UNSIGNED, mpi_info->comm)!=MPI_SUCCESS)
     {
 	errstring="MPI failure in checkRemoteCompatibility.";
 	return false;
     }
     for (int i=0;i<mpi_info->size-1;++i)
     {
-	if (rbuff[i]!=rbuff[i+1])
+	for (int j=0;j<compat.size();++i)
 	{
-	    std::ostringstream oss;
-	    oss << "Incompatible value found for SubWorld " << i+1 << '.';
-	    errstring=oss.str();
-	    return false;
+	    if (rbuff[i*compat.size()+j]!=rbuff[(i+1)*compat.size()+j])
+	    {
+		std::ostringstream oss;
+		oss << "Incompatible value found for SubWorld " << i+1 << '.';
+		errstring=oss.str();
+		return false;	      
+	    } 
 	}
     }
     return true;
@@ -200,4 +198,132 @@ bool MPIDataReducer::reduceRemoteValues(esysUtils::JMPI& mpi_info)
 #else
     return true;
 #endif
+}
+
+// populate a vector of ints with enough information to ensure two values are compatible
+// or to construct a container for incomming data
+// Format for this:
+//  [0]    Type of Data:  {0 : error,  1: DataEmpty, 10: constant, 11:tagged, 12:expanded}
+//  [1]    Functionspace type code
+//  [2]    Only used for tagged --- gives the number of tags (which exist in the data object)
+//  [3..6] Components of the shape  
+void MPIDataReducer::getCompatibilityInfo(std::vector<unsigned>& params)
+{
+    params.resize(7);
+    for (int i=0;i<7;++i)
+    {
+	params[0]=0;
+    }
+    if (value.isConstant())
+    {
+	params[0]=10;
+    }
+    else if (value.isTagged())
+    {
+	params[0]=11;
+    }
+    else if (value.isExpanded())
+    {
+	params[0]=12;
+    }
+    else	// This could be DataEmpty or some other weirdness but we won't allow that
+    {
+	params[0]=0;	// invalid type to send
+    }    
+    params[1]=value.getFunctionSpace().getTypeCode();
+    params[2]=static_cast<unsigned>(value.getNumberOfTaggedValues());    
+    const DataTypes::ShapeType& s=value.getDataPointShape();
+    for (int i=0;i<s.size();++i)
+    {
+	params[3+i]=s[i];
+    }    
+}
+
+
+	// Get a value for this variable from another process
+	// This is not a reduction and will replace any existing value
+bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysUtils::JMPI& mpiinfo)
+{
+#ifdef ESYS_MPI  
+      // first we need to find out what we are expecting
+    unsigned params[6];
+    MPI_Status stat;
+    if (MPI_Recv(params, 6, MPI_UNSIGNED, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
+    {
+	return false;
+    }
+    if (params[0]<10)	// the sender somehow tried to send something invalid
+    {
+	return false;
+    }
+      // now we put the shape object together
+    escript::DataTypes::ShapeType s;
+    for (int i=0;i<4;++i)
+    {
+	if (params[3+i]>0)
+	{
+	    s.push_back(params[3+i]);
+	}
+	else
+	{
+	    break;
+	}
+    }
+      // Now we need the FunctionSpace
+    FunctionSpace fs=FunctionSpace(dom, static_cast<int>(params[1]));
+    value=Data(0, s, fs, params[0]==12);
+    if (params[0]==11)	// The Data is tagged so we need to work out what tags we need
+    {
+	// TODO:  Need to ship the tags and names over but for now just make sure there
+	// are the same number of tags
+	value.tag();
+	
+	DataVector dv(DataTypes::noValues(s), 0, 1);
+	for (unsigned i=0;i<params[2];++i)
+	{
+	    value.setTaggedValueFromCPP(static_cast<int>(i)+1, s, dv, 0);
+	}
+	return false;	// because I don't trust this yet
+    }
+#endif    
+    return true;
+}
+
+	// Send a value to this variable to another process
+	// This is not a reduction and will replace any existing value    
+bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUtils::JMPI& mpiinfo)
+{
+#ifdef ESYS_MPI  
+      // first step is to let the other world know what sort of thing it needs to make
+      if (value.isLazy())
+      {
+	  value.resolve();
+      }
+      std::vector<unsigned> params;
+      getCompatibilityInfo(params);
+      if (MPI_Send(&params[0], 6, MPI_UNSIGNED, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+      {
+	  return false;
+      }
+	// now we have informed the other end of what happened
+	// are we done or is there actually data to send
+      if (params[0]<10)
+      {
+	  return false;
+      }
+	// at this point, we know there is data to send
+      const DataAbstract::ValueType::value_type* vect=value.getDataRO();
+	// now the receiver knows how much data it should be receive
+	// need to make sure that we aren't trying to send data with no local samples
+      if (vect>0)
+      {
+	  // MPI v3 has this first param as a const void* (as it should be)
+	  // Version on my machine expects void*
+	  if (MPI_Send(const_cast<DataAbstract::ValueType::value_type*>(vect), value.getLength(), MPI_DOUBLE, target, PARAMTAG, mpiinfo->comm)!=MPI_SUCCESS)
+	  {
+	      return false;
+	  }
+      }
+#endif      
+      return true;
 }
