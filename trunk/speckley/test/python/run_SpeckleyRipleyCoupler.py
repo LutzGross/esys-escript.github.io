@@ -1,3 +1,5 @@
+from __future__ import print_function
+from __future__ import division
 
 ##############################################################################
 #
@@ -46,7 +48,7 @@ class Test_ripleyCoupler(unittest.TestCase):
             self.assertLess(Lsup(a), 1e-10,
                     "Rectangles of order %d failed to interpolate correctly"%order +\
                     ", variance of %g"%Lsup(a))
-            
+
             coupler = SpeckleyToRipley(2, (order, 2*getMPISizeWorld()*order),
                     order=order, lengths=[2.,3.*getMPISizeWorld()])
             a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
@@ -58,23 +60,21 @@ class Test_ripleyCoupler(unittest.TestCase):
         ranks = getMPISizeWorld()
         squares = [4,9,16,25,36] #could do more, unlikely to test though
         subdivs = [0,0]
-        loop = 0
+        loop = 2
         if ranks not in squares:
             if ranks % 2 == 0:
                 subdivs[0] = 2
                 subdivs[1] = ranks//2
-                loop = 1
             elif ranks % 3 == 0:
                 subdivs[0] = 3
                 subdivs[1] = ranks//3
-                loop = 2
             else:
                 raise unittest.SkipTest("inappropriate number of ranks")
         else:
-            subdivs = [squares.index(ranks)+1]*2
+            subdivs = [squares.index(ranks)+2]*2
 
         for order in range(2,11):
-            divs = subdivs[:]        
+            divs = subdivs[:]
             for i in range(loop):
                 r = rRectangle(2*divs[0]*order-1, 2*divs[1]*order-1,
                         d0=divs[0], d1=divs[1])
@@ -85,30 +85,54 @@ class Test_ripleyCoupler(unittest.TestCase):
                                 "subdivisons %s "%subdivs,
                                 "failed to interpolate correctly"]))
                 divs.append(divs.pop(0))
-                
-    def test_Brick(self):
+
+    @unittest.skipIf(getMPISizeWorld() < 4, "requires at least 4 ranks")
+    def test_BiaxialSplits_Brick(self):
+        ranks = getMPISizeWorld()
+        squares = [4,9,16,25,36] #could do more, unlikely to test though
+        error_msg = "Brick of order {0} and subdivisions {1} failed to"+\
+                " interpolate correctly, variance of {2}"
+        subdivs = [0,0,0]
+        loop = 3
+        if ranks not in squares:
+            if ranks % 2 == 0:
+                subdivs[0] = 2
+                subdivs[1] = ranks//2
+                subdivs[2] = 1
+            elif ranks % 3 == 0:
+                subdivs[0] = 3
+                subdivs[1] = ranks//3
+                subdivs[2] = 1
+            else:
+                raise unittest.SkipTest("inappropriate number of ranks")
+        else:
+            subdivs = [squares.index(ranks)+2]*2 + [1]
+
         for order in range(2,11):
-            coupler = SpeckleyToRipley(3, (3*getMPISizeWorld()*order, 2*order, order),
-                    order=order, lengths=[3.*getMPISizeWorld(),4.,5.])
-            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
-            self.assertLess(Lsup(a), 1e-10,
-                    "Brick x-split of order %d failed to interpolate correctly"%order +\
-                    ", variance of %g"%Lsup(a))
-            
-            coupler = SpeckleyToRipley(3, (order, 3*getMPISizeWorld()*order, 2*order),
-                    order=order, lengths=[5.,3.*getMPISizeWorld(),4.])
-            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
-            self.assertLess(Lsup(a), 1e-10,
-                    "Brick y-split of order %d failed to interpolate correctly"%order +\
-                    ", variance of %g"%Lsup(a))
+            for i in range(loop):
+                divs = subdivs[i:] + subdivs[:i]
+                r = rBrick(2*divs[0]*order-1, 2*divs[1]*order-1, 2*divs[2]*order-1,
+                        d0=divs[0], d1=divs[1], d2=divs[2])
+                s = sBrick(order, divs[0]*2, divs[1]*2, divs[2]*2,
+                        d0=divs[0], d1=divs[1], d2=divs[2])
+                res = Lsup(self.calculateVariance(s, r))
+                self.assertLess(res, 1e-10, error_msg.format(order, divs, res))
 
-            coupler = SpeckleyToRipley(3, (2*order, order, 3*getMPISizeWorld()*order),
-                    order=order, lengths=[4.,5.,3.*getMPISizeWorld()])
-            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
-            self.assertLess(Lsup(a), 1e-10,
-                    "Brick z-split of order %d failed to interpolate correctly"%order +\
-                    ", variance of %g"%Lsup(a))
-
+    def test_Brick(self):
+        elements = [3*getMPISizeWorld(), 2, 1]
+        lengths = [3.*getMPISizeWorld(), 4., 5.]
+        labels = ["x", "y", "z"]
+        error_message = "Brick {0}-split of order {1} failed to interpolate " +\
+                        "correctly, variance of {2}"
+        for i in range(len(labels)):
+            e = tuple(elements[i:] + elements[:i])
+            l = tuple(lengths[i:] + lengths[:i])
+            for order in range(2,11):
+                ele = tuple([j*order for j in e])
+                coupler = SpeckleyToRipley(3, ele, order=order, lengths=l)
+                a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
+                self.assertLess(Lsup(a), 1e-10,
+                        error_message.format(labels[i], order, Lsup(a)))
 
     def test_mismatch_errors(self):
         ranks = getMPISizeWorld()
@@ -146,7 +170,7 @@ class Test_ripleyCoupler(unittest.TestCase):
             coupler = SpeckleyToRipley(1, pointsPerDim=(4,2*getMPISizeWorld()))
         with self.assertRaises(ValueError): #incalid dimension
             coupler = SpeckleyToRipley(4, pointsPerDim=(4,2*getMPISizeWorld()))
-        
+
 
 if __name__ == '__main__':
     run_tests(__name__, exit_on_failure=True)

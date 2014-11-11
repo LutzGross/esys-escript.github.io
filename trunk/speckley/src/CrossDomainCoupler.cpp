@@ -526,81 +526,98 @@ void RipleyCoupler::interpolate(escript::Data& target,
         return;
     }
 
+    if (s_NX[0] != 1 && s_NX[1] != 1 && s_NX[2] != 1)
+        throw SpeckleyException("ripleyCoupler: Triaxial subdivisions not supported");
+
     //begin edge cases and communication
 
     // calculate across X splits
     if (hasLower[0] || hasUpper[0]) {
-        if (lower[0] == SHARED) { //left, only if an element is split in two
-            const dim_t ex = 0;
-            const int oqx = 1;
-            const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
-#pragma omp parallel for
-                for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-                    double *out = target.getSampleDataRW(INDEX3(0,ey,ez,r.NE[0],r.NE[1]));
-                    for (int oqz = 0; oqz < qz_max; oqz++) {
-                        const double *precalc_z = factors_z + (2*ez + oqz) * numQuads;
-                        for (int oqy = 0; oqy < 2; oqy++) {
-                            const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+        const bool shared_set[2] = {lower[0] == SHARED, upper[0] == SHARED};
+        const int oqx_set[2] = {1, 0};
+        const dim_t ex_set[2] = {0, r.NE[0] - 1};
+        for (int i = 0; i < 2; i++) {
+            if (shared_set[i]) { //left, only if an element is split in two
+                const dim_t ex = ex_set[i];
+                const int oqx = oqx_set[i];
+                const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
+                for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+    #pragma omp parallel for
+                    for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                        double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                        for (int oqz = 0; oqz < qz_max; oqz++) {
+                            const double *precalc_z = factors_z + (2*ez + oqz) * numQuads;
+                            for (int oqy = 0; oqy < 2; oqy++) {
+                                const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                                calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                        precalc_x, precalc_y, precalc_z, source);
+                            }
+                        }
+                    }
+                }
+                if (speck->getDim() == 2) {
+                    const dim_t ez = 0;
+                    const int oqz = 0;
+                    //fill the corners while we're here, if required
+                    if (lower[1] == SHARED) { //bottom left element, top right quad
+                        const dim_t ey = 0;
+                        const int oqy = 1;
+                        const double *precalc_y = factors_y + (2*ey+oqy)*numQuads;
+                        double *out = target.getSampleDataRW(ex);
+                        calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                precalc_x, precalc_y, factors_z, source);
+                    }
+                    if (upper[1] == SHARED) { //top left element, bottom right quad
+                        const dim_t ey = r.NE[1] - 1;
+                        const int oqy = 0;
+                        const double *precalc_y = factors_y + (2*ey+oqy)*numQuads;
+                        double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
+                        calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                precalc_x, precalc_y, factors_z, source);
+                    }
+                } else {
+                    if (hasLower[1] || hasUpper[1]) {
+                        const bool shared_set[2] = {lower[1] == SHARED, upper[1] == SHARED};
+                        const dim_t ey_set[2] = {0, r.NE[1] - 1};
+                        const int oqy_set[2] = {1, 0};
+                        for (int j = 0; j < 2; j++) {
+                            //fill the edges while we're here, if required
+                            if (shared_set[j]) {
+                                const dim_t ey = ey_set[j];
+                                const int oqy = oqy_set[j];
+                                const double *precalc_y = factors_y + (2*ey+oqy)*numQuads;
+                                for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+                                    for (int oqz = 0; oqz < 2; oqz++) {
+                                        double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
+                                        double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                                        calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                                precalc_x, precalc_y, precalc_z, source);
+                                    }
+                                }
+                            }
+                        }
+                    } else if (hasLower[2] || hasUpper[2]) {
+                        const bool shared_set[2] = {lower[2] == SHARED, upper[2] == SHARED};
+                        const dim_t ez_set[2] = {0, r.NE[2] - 1};
+                        const int oqz_set[2] = {1, 0};
+                        for (int j = 0; j < 2; j++) {
+                            if (shared_set[j]) {
+                                const dim_t ez = ez_set[j];
+                                const int oqz = oqz_set[j];
+                                const double *precalc_z = factors_z + (2*ez + oqz)*numQuads;
+                                for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                                    for (int oqy = 0; oqy < 2; oqy++) {
+                                        double *precalc_y = factors_y + (2*ey+oqy)*numQuads;
+                                        double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                                        calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                                precalc_x, precalc_y, precalc_z, source);
+                                    }
+                                }
+                            }
                         }
                     }
                 }
             }
-            if (speck->getDim() == 2) {
-                const dim_t ez = 0;
-                //fill the corners while we're here, if required
-                if (lower[1] == SHARED) { //bottom left element, top right quad
-                    double *out = target.getSampleDataRW(0);
-                    calculate(r, ex, 0, ez, oqx, 1, 0, out,
-                            factors_x + numQuads, factors_y + numQuads, factors_z, source);
-                }
-                if (upper[1] == SHARED) { //top left element, bottom right quad
-                    const dim_t ey = r.NE[1] - 1;
-                    double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                    calculate(r, ex, ey, ez, oqx, 0, 0, out,
-                            factors_x + (2*ex+1)*numQuads, factors_y + 2*ey*numQuads, factors_z, source);
-                }
-            } else {
-                if (lower[1] == SHARED || upper[1] == SHARED || lower[2] == SHARED || upper[2] == SHARED) {
-                    throw SpeckleyException("ripleyCoupler: multidimension subdivisions not supported");
-                }
-            }
-        }
-        if (upper[0] == SHARED) { //right, only if an element is split in two
-            const int oqx = 0;
-            const dim_t ex = r.NE[0] - 1;
-            const double *precalc_x = factors_x + 2*ex*numQuads;
-            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
-#pragma omp parallel for
-                for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-                    double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
-                    for (int oqz = 0; oqz < qz_max; oqz++) {
-                        const double *precalc_z = factors_z + (2*ez + oqz) * numQuads;
-                        for (int oqy = 0; oqy < 2; oqy++) {
-                            const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
-                                    precalc_x, precalc_y, precalc_z, source);
-                        }
-                    }
-                }
-            }
-            if (speck->getDim() == 2) {
-                //fill the corners while we're here, if required
-                if (lower[1] == SHARED) { //bottom right element, top left quad
-                    double *out = target.getSampleDataRW(INDEX2(ex,0,r.NE[0]));
-                    calculate(r, ex, 0, 0, oqx, 1, 0, out, precalc_x, factors_y + numQuads, factors_z, source);
-                }
-                if (upper[1] == SHARED) { //top right element, bottom left quad
-                    const dim_t ey = r.NE[1]-1;
-                    double *out = target.getSampleDataRW(INDEX2(ex,ey,r.NE[0]));
-                    calculate(r, ex, ey, 0, oqx, 0, 0, out, precalc_x, factors_y + 2*ey*numQuads, factors_z, source);
-                }
-            } else {
-                if (lower[1] == SHARED || upper[1] == SHARED || lower[2] == SHARED || upper[2] == SHARED)
-                    throw SpeckleyException("upper x edges still need doing");
-            }
-
         }
         if (speck->getDim() == 2) {
             shareRectangleXEdges(r, numComp, hasLower[0], hasUpper[0], lower[0], upper[0], target);
@@ -611,44 +628,48 @@ void RipleyCoupler::interpolate(escript::Data& target,
 
     // calculate across Y splits
     if (hasLower[1] || hasUpper[1]) {
-        if (lower[1] == SHARED) { //bottom, only if an element is split in two
-            const dim_t ey = 0;
-            const int oqy = 1;
-            double *precalc_y = factors_y + oqy * numQuads;
-            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
-#pragma omp parallel for
-                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-                    double *out = target.getSampleDataRW(INDEX3(ex,0,ez,r.NE[0],r.NE[1]));
-                    for (int oqz = 0; oqz < qz_max; oqz++) {
-                        const double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
-                        for (int oqx = 0; oqx < 2; oqx++) {
-                            double *precalc_x = factors_x + (2*ex+oqx)*numQuads;
-                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+        const bool shared_set[2] = {lower[1] == SHARED, upper[1] == SHARED};
+        const int oqy_set[2] = {1, 0};
+        const dim_t ey_set[2] = {0, r.NE[1] - 1};
+        for (int i = 0; i < 2; i++) {
+            if (shared_set[i]) { //bottom, only if an element is split in two
+                const dim_t ey = ey_set[i];
+                const int oqy = oqy_set[i];
+                double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
+    #pragma omp parallel for
+                    for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                        double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                        for (int oqz = 0; oqz < qz_max; oqz++) {
+                            const double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
+                            for (int oqx = 0; oqx < 2; oqx++) {
+                                double *precalc_x = factors_x + (2*ex+oqx)*numQuads;
+                                calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                            }
+                        }
+                    }
+                }
+                if (hasLower[2] || hasUpper[2]) {
+                    const bool shared_set[2] = {lower[2] == SHARED, upper[2] == SHARED};
+                    const dim_t ez_set[2] = {0, r.NE[2] - 1};
+                    const int oqz_set[2] = {1, 0};
+                    for (int j = 0; j < 2; j++) {
+                        if (shared_set[j]) {
+                            const dim_t ez = ez_set[j];
+                            const int oqz = oqz_set[j];
+                            const double *precalc_z = factors_z + (2*ez + oqz)*numQuads;
+                            for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                                for (int oqx = 0; oqx < 2; oqx++) {
+                                    double *precalc_x = factors_x + (2*ex+oqx)*numQuads;
+                                    double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
+                                    calculate(r, ex, ey, ez, oqx, oqy, oqz, out,
+                                            precalc_x, precalc_y, precalc_z, source);
+                                }
+                            }
                         }
                     }
                 }
             }
-        }
-        if (upper[1] == SHARED) { //top, only if an element is split in two
-            const dim_t ey = r.NE[1]-1;
-            const int oqy = 0;
-            double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-            for (dim_t ez = r.mins[2]; ez < r.maxs[2]; ez++) {
-#pragma omp parallel for
-                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-                    double *out = target.getSampleDataRW(INDEX3(ex,ey,ez,r.NE[0],r.NE[1]));
-                    for (int oqz = 0; oqz < qz_max; oqz++) {
-                        const double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
-                        for (int oqx = 0; oqx < 2; oqx++) {
-                            double *precalc_x = factors_x + (2*ex+oqx)*numQuads;
-                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
-                        }
-                    }
-                }
-            }
-        }
-        if (lower[2] == SHARED || upper[2] == SHARED) {
-            throw SpeckleyException("ripleyCoupler: multidimension subdivisions not supported");
         }
         if (speck->getDim() == 2) {
             shareRectangleYEdges(r, numComp, hasLower[1], hasUpper[1], lower[1], upper[1], target);
@@ -659,37 +680,24 @@ void RipleyCoupler::interpolate(escript::Data& target,
 
     // z splits
     if (hasLower[2] || hasUpper[2]) {
-        if (lower[2] == SHARED) {
-            const dim_t ez = 0;
-            const int oqz = 1;
-            const double *precalc_z = factors_z + numQuads;
+        const dim_t ez_set[2] = {0, r.NE[2] - 1};
+        const int oqz_set[2] = {1, 0};
+        const bool shared_set[2] = {lower[2] == SHARED, upper[2] == SHARED};
+        for (int i = 0; i < 2; i++) {
+            if (shared_set[i]) {
+                const dim_t ez = ez_set[i];
+                const int oqz = oqz_set[i];
+                const double *precalc_z = factors_z + (2*ez+oqz)*numQuads;
 #pragma omp parallel for
-            for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-                    double *out = target.getSampleDataRW(INDEX3(ex, ey, ez, r.NE[0], r.NE[1]));
-                    for (int oqy = 0; oqy < 2; oqy++) {
-                        const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                        for (int oqx = 0; oqx < 2; oqx++) {
-                            const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
-                        }
-                    }
-                }
-            }
-        }
-        if (upper[2] == SHARED) {
-            const int oqz = 0;
-            const dim_t ez = r.NE[2]-1;
-            const double *precalc_z = factors_z + 2*ez*numQuads;
-#pragma omp parallel for
-            for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
-                for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
-                    double *out = target.getSampleDataRW(INDEX3(ex, ey, ez, r.NE[0], r.NE[1]));
-                    for (int oqy = 0; oqy < 2; oqy++) {
-                        const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
-                        for (int oqx = 0; oqx < 2; oqx++) {
-                            const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
-                            calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                for (dim_t ey = r.mins[1]; ey < r.maxs[1]; ey++) {
+                    for (dim_t ex = r.mins[0]; ex < r.maxs[0]; ex++) {
+                        double *out = target.getSampleDataRW(INDEX3(ex, ey, ez, r.NE[0], r.NE[1]));
+                        for (int oqy = 0; oqy < 2; oqy++) {
+                            const double *precalc_y = factors_y + (2*ey + oqy) * numQuads;
+                            for (int oqx = 0; oqx < 2; oqx++) {
+                                const double *precalc_x = factors_x + (2*ex + oqx) * numQuads;
+                                calculate(r, ex, ey, ez, oqx, oqy, oqz, out, precalc_x, precalc_y, precalc_z, source);
+                            }
                         }
                     }
                 }
