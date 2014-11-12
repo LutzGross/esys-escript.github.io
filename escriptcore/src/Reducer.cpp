@@ -315,7 +315,7 @@ bool MPIDataReducer::sendTo(Esys_MPI_rank localid, Esys_MPI_rank target, esysUti
       const DataAbstract::ValueType::value_type* vect=value.getDataRO();
 	// now the receiver knows how much data it should be receive
 	// need to make sure that we aren't trying to send data with no local samples
-      if (vect>0)
+      if (vect!=0)
       {
 	  // MPI v3 has this first param as a const void* (as it should be)
 	  // Version on my machine expects void*
