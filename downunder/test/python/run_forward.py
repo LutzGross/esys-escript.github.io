@@ -34,6 +34,7 @@ from esys.escript import *
 from esys.weipa import saveSilo
 from esys.escript.linearPDEs import LinearSinglePDE, LinearPDE
 from esys.escript import getEscriptParamInt
+from esys.escript.pdetools import Locator
 
 mpisize = getMPISizeWorld()
 # this is mainly to avoid warning messages
@@ -428,7 +429,120 @@ class TestSubsidence(unittest.TestCase):
         ref=abs((d2-d0)/INC)
         self.assertTrue(abs((d2-d0)/INC+integrate(grad_d* dP)) < ref * 1.e-5) 
 
+class TestDCResistivity(unittest.TestCase):
 
+    def test_PDE2D(self):
+         
+        dx_tests=0.1 
+
+        sigma0=1.
+        electrodes=[(0.5-2*dx_tests,1.), (0.5-dx_tests,1.), (0.5+dx_tests,1.), (0.5+2*dx_tests,1.)]
+        from esys.finley import Rectangle
+        domain=Rectangle(20,20, d1=mpisize,  diracPoints=electrodes, diracTags=["sl0", "sl1", "sr0", "sr1"] )
+        loc=Locator(domain,electrodes[2:])
+
+        # this creates some reference Data:
+        x=domain.getX()
+        q=whereZero(x[0]-inf(x[0]))+whereZero(x[0]-sup(x[0]))+whereZero(x[1]-inf(x[1]))
+        ppde=LinearPDE(domain, numEquations=1)
+        s=Scalar(0.,DiracDeltaFunctions(domain))
+        s.setTaggedValue("sl0" ,1.)
+        s.setTaggedValue("sl1",-1.)
+        ppde.setValue(A=kronecker(2)*sigma0, q=q, y_dirac=s)
+        pp=ppde.getSolution()
+        uu=loc(pp)
+        
+        # arguments for DcRes
+        current = 10.
+        sourceInfo = [ "sl0",  "sl1" ]
+        sampleTags = [ ("sr0", "sr1") ]
+
+        sigmaPrimary=7.
+        phiPrimary=pp*current*sigma0/sigmaPrimary
+
+        uuscale=1-current*sigma0/sigmaPrimary
+        delphi_in = [ (uu[1]-uu[0]) * uuscale]
+        
+        acw=DcRes(domain, loc, delphi_in, sampleTags,  phiPrimary, sigmaPrimary)
+
+        self.assertTrue(Lsup(phiPrimary-acw.getPrimaryPotential()) < 1.e-10 * Lsup(acw.getPrimaryPotential()))
+
+        SIGMA=10. # matches current        
+        args0=acw.getArguments(SIGMA)
+        p=args0[0]
+        u=args0[1]
+
+        # true secondary potential
+        pps=pp-phiPrimary
+        self.assertTrue(Lsup(p-pps) < 1.e-6 * Lsup(pps))
+
+
+        # test return values at electrodes:
+        self.assertTrue(abs(u[0]-uu[0]*uuscale) < 1.e-6 * abs(uu[0]*uuscale))
+        self.assertTrue(abs(u[1]-uu[1]*uuscale) < 1.e-6 * abs(uu[1]*uuscale))
+
+        # this sould be zero
+        dd=acw.getDefect(SIGMA, *args0)
+        self.assertTrue( dd >= 0.)
+        self.assertTrue( dd <= 1e-7 )
+
+    def test_Differential2D(self):
+
+        INC=0.001
+
+        sigma0=1.
+        dx_tests=0.1 
+        electrodes=[(0.5-2*dx_tests,1.), (0.5-dx_tests,1.), (0.5+dx_tests,1.), (0.5+2*dx_tests,1.)]
+        from esys.finley import Rectangle
+        domain=Rectangle(20,20, d1=mpisize,  diracPoints=electrodes, diracTags=["sl0", "sl1", "sr0", "sr1"] )
+        loc=Locator(domain,electrodes[2:])
+
+        # arguments for DcRes
+        #current = 10.
+        sampleTags = [ ("sr0", "sr1") ]
+
+        delphi_in = [ 0.05 ]
+
+        sigmaPrimary=1
+        x=domain.getX()
+        phiPrimary=(x[0]-inf(x[0]))*(x[1]-inf(x[1]))*(x[0]-sup(x[0]))
+
+        acw=DcRes(domain, loc, delphi_in, sampleTags,  phiPrimary, sigmaPrimary)
+
+        #===========================================================================
+        x=Function(domain).getX()
+        SIGMA0=x[0]*x[1]+1
+        args0=acw.getArguments(SIGMA0)
+        d0=acw.getDefect(SIGMA0, *args0)
+        grad_d=acw.getGradient(SIGMA0, *args0)
+        
+        dS=exp(-(length(x-[0.5,0.5])/0.2)**2)
+        SIGMA1=SIGMA0+INC*dS
+        args1=acw.getArguments(SIGMA1)
+        d1=acw.getDefect(SIGMA1, *args1)
+        ref=abs((d1-d0)/INC)
+        self.assertTrue(abs((d1-d0)/INC-integrate(grad_d* dS)) < ref * 1.e-3) 
+
+        dS=-exp(-(length(x-[0.5,0.5])/0.2)**2)
+        SIGMA2=SIGMA0+INC*dS
+        args2=acw.getArguments(SIGMA2)
+        d2=acw.getDefect(SIGMA2, *args2)
+        ref=abs((d2-d0)/INC)
+        self.assertTrue(abs((d2-d0)/INC-integrate(grad_d* dS)) < ref * 1.e-3) 
+
+        dS=-1
+        SIGMA3=SIGMA0+INC*dS
+        args3=acw.getArguments(SIGMA3)
+        d3=acw.getDefect(SIGMA3, *args3)
+        ref=abs((d3-d0)/INC)
+        self.assertTrue(abs((d3-d0)/INC-integrate(grad_d* dS)) < ref * 1.e-3) 
+
+        dS=1
+        SIGMA4=SIGMA0+INC*dS
+        args4=acw.getArguments(SIGMA4)
+        d4=acw.getDefect(SIGMA4, *args4)
+        ref=abs((d4-d0)/INC)
+        self.assertTrue(abs((d4-d0)/INC-integrate(grad_d* dS)) < ref * 1.e-3) 
 
 class TestIsostaticPressure(unittest.TestCase):
     def test_all(self):

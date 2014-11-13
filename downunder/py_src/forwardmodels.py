@@ -947,7 +947,7 @@ class DcRes(ForwardModel):
     where p and q indate the 
 
     """
-    def __init__(self, domain, locator, delphi_in, sourceInfo, current, sampleTags,phiPrimary,sigmaPrimary, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
+    def __init__(self, domain, locator, delphi_in, sampleTags, phiPrimary, sigmaPrimary, w=1., coordinates=None, tol=1e-8,saveMemory=True,b=None):
         
         """
         setup new ForwardModel
@@ -957,12 +957,10 @@ class DcRes(ForwardModel):
         :type: `list` of ``Locator``
         :param: delphi_in: this is v_pq, the potential difference for the current source  and a set of measurement pairs. a list of measured potential differences is expected. Note this should be the secondary potential only. 
         :type delphi_in: tuple
-        :param sourceInfo: descibes the current electode setup. a pair of tags should be provided for the current source setup. the first tag will be set to current and the second tag to -current
-        :type sourceInfo: tuple
         :param sampleTags:  tags of measurement points from which potential differences will be calculated.
         :type sampleTags: list of tuples
         :param phiPrimary: primary potential.
-        :type phiPrimary: ``Data`` of shape (1,)
+        :type phiPrimary: `Scalar`
         """
         super(DcRes, self).__init__()
 
@@ -971,10 +969,17 @@ class DcRes(ForwardModel):
         self.__locator=locator
         self.__trafo=makeTranformation(domain, coordinates) 
         self.__delphi_in=delphi_in
-        self.__sourceInfo=sourceInfo
-        self.__current=current  
         self.__sampleTags = sampleTags
         self.__sigmaPrimary = sigmaPrimary
+
+        if not isinstance(sampleTags, list):
+            raise ValueError("sampleTags must be a list.")    
+        if not len(sampleTags) == len(delphi_in):
+            raise ValueError("sampleTags and delphi_in must have the same length.")  
+        if not len(sampleTags)>0:
+            raise ValueError("sampleTags list is empty.")    
+        if not isinstance(sampleTags[0], tuple):
+            raise ValueError("sampleTags must be a list of tuple.")    
 
         if isinstance(w, float) or isinstance(w, int):
                w =[ float(w) for z in delphi_in]
@@ -985,30 +990,9 @@ class DcRes(ForwardModel):
         self.__phiPrimary=phiPrimary
         if not self.getCoordinateTransformation().isCartesian():
             raise ValueError("Non-Cartesian Coordinates are not supported yet.")
-        if not len(delphi_in)==len(sourceInfo)/2:
-            raise ValueError("len of input potentials should match len of sourceInfo")
         if not isinstance(locator, Locator):
             raise ValueError("locator must be an escript locator object")    
-
         
-        # # get promary potential:
-        # x = domain.getX()
-        # DIM=domain.getDim()
-        # q=whereZero(x[DIM-1]-inf(x[DIM-1]))
-        # for i in xrange(DIM-1):
-        #       xi=x[i]
-        #       q+=whereZero(xi-inf(xi))+whereZero(xi-sup(xi))
-        # primaryPde=LinearPDE(domain, numEquations=1)
-        # primaryPde.getSolverOptions().setTolerance(self.__tol)
-        # src= Scalar(0,DiracDeltaFunctions(domain))
-        # src.setTaggedValue(self.__sourceInfo[0],self.__current)
-        # if (self.__sourceInfo[1]!="-"):
-        #     src.setTaggedValue(self.__sourceInfo[1],-self.__current)
-        # primaryPde.setValue(A=kronecker(DIM)*self.__sigmaPrimary, q=q, y_dirac=-src)
-        # primaryPde.setSymmetryOn()
-        # self.u_primary=primaryPde.getSolution()
-        # # FIXME: subtract primary potential from data!
-
         
         self.__pde=None        
         if not saveMemory:
@@ -1030,6 +1014,12 @@ class DcRes(ForwardModel):
         """
         return self.__trafo
 
+    def getPrimaryPotential(self):
+        """
+        returns the primary potential
+        :rtype: `Data`
+        """
+        return self.__phiPrimary 
     def setUpPDE(self):
         """
         Return the underlying PDE.
@@ -1156,17 +1146,24 @@ class DcRes(ForwardModel):
         # print(sampleTags)
         for i in range(0,2*len(sampleTags),2): #2*len because sample tags is a list of tuples
             # print(i)
-            if sampleTags[i][1]!="-":
-                tmp=val[i+1]-val[i]-self.__delphi_in[i/2]
+            if sampleTags[i/2][1]!="-":
+                tmp=(val[i+1]-val[i]-self.__delphi_in[i/2])*self.__w[i]
             else:
-                tmp=val[i]-self.__delphi_in[i/2]
+                tmp=(val[i]-self.__delphi_in[i/2]) *self.__w[i]
                 # tmp=self.__delphi_in[i/2]-val[i]
             # print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
             # print ("tmp=",tmp)
             if sampleTags[i/2][0] in jointSamples.keys():
-                jointSamples[sampleTags[i/2][0]].append((sampleTags[i/2][1], tmp))
+                jointSamples[sampleTags[i/2][0]].append((sampleTags[i/2][1], -tmp))
             else:
-                jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],tmp)]
+                jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],-tmp)]
+            
+            if sampleTags[i/2][1]!="-":
+                if sampleTags[i/2][1] in jointSamples.keys():
+                    jointSamples[sampleTags[i/2][1]].append((sampleTags[i/2][0], tmp))
+                else:
+                    jointSamples[sampleTags[i/2][1]]=[(sampleTags[i/2][0], tmp)]
+
         print ("jointSamples=",jointSamples)
         pde =self.setUpPDE()
         dom=self.__domain
@@ -1178,12 +1175,12 @@ class DcRes(ForwardModel):
             total=0
             for j in jointSamples[i]:
                 total+=j[1]
-            # print "setting y_dirac to ", total
+            print "setting y_dirac ", i, " to ", total
             y_dirac.setTaggedValue(i,total)
 
-        pde.setValue(A=sigma*kronecker(dom), y_dirac=-y_dirac)
+        pde.setValue(A=sigma*kronecker(dom), y_dirac=y_dirac)
         u=pde.getSolution()
-        retVal=-inner(grad(u),grad(phi))
+        retVal=-inner(grad(u),grad(phi+self.__phiPrimary))
         return retVal
 
 
