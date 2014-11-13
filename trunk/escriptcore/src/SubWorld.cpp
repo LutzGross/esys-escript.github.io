@@ -365,7 +365,7 @@ bool SubWorld::deliverGlobalImports(std::vector<char>& vb, std::string& errmsg)
 	} 
 	else if (localid==earliest)	// we will be the one to ship the value to others
 	{
-	    for (uint target=0;target<swcount;++target)	// look through all worlds and see who we need to send to
+	    for (unsigned int target=0;target<swcount;++target)	// look through all worlds and see who we need to send to
 	    {
 		if (vb[target*nv+i]==rs::INTERESTED)	// nobody who has the value will be marked as INTERESTED
 		{
@@ -408,7 +408,7 @@ void SubWorld::getVariableStatus(std::vector<char>& vb)
     vb.resize(reducemap.size());
     str2reduce::const_iterator rm=reducemap.begin();
     str2bool::const_iterator im=importmap.begin();
-    for (uint i=0;rm!=reducemap.end();++rm,++im,++i)
+    for (unsigned int i=0;rm!=reducemap.end();++rm,++im,++i)
     {
 	if (rm->second->hasValue())
 	{
