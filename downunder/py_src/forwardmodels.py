@@ -1,4 +1,4 @@
-
+from __future__ import print_function
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -1175,7 +1175,7 @@ class DcRes(ForwardModel):
             total=0
             for j in jointSamples[i]:
                 total+=j[1]
-            print "setting y_dirac ", i, " to ", total
+            print("setting y_dirac ", i, " to ", total)
             y_dirac.setTaggedValue(i,total)
 
         pde.setValue(A=sigma*kronecker(dom), y_dirac=y_dirac)
