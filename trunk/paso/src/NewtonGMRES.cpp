@@ -31,6 +31,7 @@
 *
 */
 
+#include <iostream>
 #include "Solver.h"
 #include "PasoUtil.h"
 

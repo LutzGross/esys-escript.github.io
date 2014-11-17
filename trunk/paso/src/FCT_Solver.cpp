@@ -30,6 +30,7 @@
 
 /****************************************************************************/
 
+#include <iostream>
 #include "FCT_Solver.h"
 #include "Preconditioner.h"
 #include "PasoUtil.h"

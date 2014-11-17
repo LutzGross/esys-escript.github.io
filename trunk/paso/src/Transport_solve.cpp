@@ -37,6 +37,7 @@
 
 /****************************************************************************/
 
+#include <iostream>
 #include "Transport.h"
 #include "FCT_Solver.h"
 #include "ReactiveSolver.h"

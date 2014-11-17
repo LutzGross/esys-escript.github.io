@@ -29,6 +29,7 @@
 #define USE_TRANSPOSE true
 #define SMALL_PANEL true
 
+#include <iostream>
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "Options.h"
