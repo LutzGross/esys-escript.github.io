@@ -44,34 +44,39 @@ class Test_ripleyCoupler(unittest.TestCase):
         for order in range(2,11):
             coupler = SpeckleyToRipley(2, (2*getMPISizeWorld()*order,order),
                     order=order, lengths=[3.*getMPISizeWorld(),2.])
-            a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
-            self.assertLess(Lsup(a), 1e-10,
+            d = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
+            res = Lsup(d)
+            self.assertLess(res, 1e-10,
                     "Rectangles of order %d failed to interpolate correctly"%order +\
-                    ", variance of %g"%Lsup(a))
+                    ", variance of %g"%res)
 
             coupler = SpeckleyToRipley(2, (order, 2*getMPISizeWorld()*order),
                     order=order, lengths=[2.,3.*getMPISizeWorld()])
             a = self.calculateVariance(coupler.getSpeckley(), coupler.getRipley())
             self.assertLess(Lsup(a), 1e-10,
-                    "Rectangles of order %d failed to interpolate correctly"%order)
+                    "Rectangles of order %d failed to interpolate correctly"%order +\
+                    ", variance of %g"%Lsup(a))
 
     @unittest.skipIf(getMPISizeWorld() < 4, "requires at least 4 ranks")
     def test_MultiDimSplit_Rectangle(self):
         ranks = getMPISizeWorld()
         squares = [4,9,16,25,36] #could do more, unlikely to test though
         subdivs = [0,0]
-        loop = 2
+        loop = 0
         if ranks not in squares:
-            if ranks % 2 == 0:
-                subdivs[0] = 2
-                subdivs[1] = ranks//2
-            elif ranks % 3 == 0:
+            if ranks % 3 == 0:
                 subdivs[0] = 3
                 subdivs[1] = ranks//3
+                loop = 2
+            elif ranks % 2 == 0:
+                subdivs[0] = 2
+                subdivs[1] = ranks//2
+                loop = 1
             else:
                 raise unittest.SkipTest("inappropriate number of ranks")
         else:
             subdivs = [squares.index(ranks)+2]*2
+            loop = 2
 
         for order in range(2,11):
             divs = subdivs[:]
@@ -80,10 +85,13 @@ class Test_ripleyCoupler(unittest.TestCase):
                         d0=divs[0], d1=divs[1])
                 s = sRectangle(order, divs[0]*2, divs[1]*2,
                         d0=divs[0], d1=divs[1])
-                self.assertLess(Lsup(self.calculateVariance(s, r)), 1e-10,
+                d = self.calculateVariance(s, r)
+                res = Lsup(d)
+                self.assertLess(res, 1e-10,
                         "".join(["Rectangles of order %d with "%order,
-                                "subdivisons %s "%subdivs,
-                                "failed to interpolate correctly"]))
+                                "subdivisons %s "%divs,
+                                "failed to interpolate correctly",
+                                ", variance of %g"%res]))
                 divs.append(divs.pop(0))
 
     @unittest.skipIf(getMPISizeWorld() < 4, "requires at least 4 ranks")
@@ -95,18 +103,66 @@ class Test_ripleyCoupler(unittest.TestCase):
         subdivs = [0,0,0]
         loop = 3
         if ranks not in squares:
-            if ranks % 2 == 0:
-                subdivs[0] = 2
-                subdivs[1] = ranks//2
-                subdivs[2] = 1
-            elif ranks % 3 == 0:
+            if ranks % 3 == 0:
                 subdivs[0] = 3
                 subdivs[1] = ranks//3
+                subdivs[2] = 1
+            elif ranks % 2 == 0:
+                subdivs[0] = 2
+                subdivs[1] = ranks//2
                 subdivs[2] = 1
             else:
                 raise unittest.SkipTest("inappropriate number of ranks")
         else:
             subdivs = [squares.index(ranks)+2]*2 + [1]
+            loop = 1
+
+        for order in range(2,11):
+            for i in range(loop):
+                divs = subdivs[i:] + subdivs[:i]
+                r = rBrick(2*divs[0]*order-1, 2*divs[1]*order-1, 2*divs[2]*order-1,
+                        d0=divs[0], d1=divs[1], d2=divs[2])
+                s = sBrick(order, divs[0]*2, divs[1]*2, divs[2]*2,
+                        d0=divs[0], d1=divs[1], d2=divs[2])
+                d = self.calculateVariance(s, r)
+                res = Lsup(d)
+                self.assertLess(res, 1e-10, error_msg.format(order, divs, res))
+            return
+
+    @unittest.skipIf(getMPISizeWorld() < 8, "requires at least 8 ranks")
+    def test_TriaxialSplits_Brick(self):
+        ranks = getMPISizeWorld()
+        cubes = [8,27,64] #could do more, unlikely to test though
+        error_msg = "Brick of order {0} and subdivisions {1} failed to"+\
+                " interpolate correctly, variance of {2}"
+        subdivs = [0,0,0]
+        loop = 3
+        if ranks not in cubes:
+            if ranks % 2 == 0:
+                subdivs[0] = 2
+                if (ranks // 2) % 2 == 0:
+                    subdivs[1] = 2
+                    subdivs[2] = ranks // 4
+                elif (ranks // 2) % 3 == 0:
+                    subdivs[1] = 3
+                    subdivs[2] = ranks // 6
+                else:
+                    raise unittest.SkipTest("inappropriate number of ranks")
+            elif ranks % 3 == 0:
+                subdivs[0] = 3
+                if (ranks // 2) % 2 == 0:
+                    subdivs[1] = 2
+                    subdivs[2] = ranks // 4
+                elif (ranks // 2) % 3 == 0:
+                    subdivs[1] = 3
+                    subdivs[2] = ranks // 6
+                else:
+                    raise unittest.SkipTest("inappropriate number of ranks")
+            else:
+                raise unittest.SkipTest("inappropriate number of ranks")
+        else:
+            subdivs = [cubes.index(ranks)+2]*3
+            loop = 1
 
         for order in range(2,11):
             for i in range(loop):
