@@ -127,7 +127,6 @@ class Test_ripleyCoupler(unittest.TestCase):
                 d = self.calculateVariance(s, r)
                 res = Lsup(d)
                 self.assertLess(res, 1e-10, error_msg.format(order, divs, res))
-            return
 
     @unittest.skipIf(getMPISizeWorld() < 8, "requires at least 8 ranks")
     def test_TriaxialSplits_Brick(self):
