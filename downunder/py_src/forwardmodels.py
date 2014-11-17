@@ -36,6 +36,10 @@ from math import pi as PI
 from esys.weipa import saveSilo
 import numpy as np
 
+try:
+    xrange
+except NameError:
+    xrange = range
 
 class ForwardModel(object):
     """
