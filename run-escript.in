@@ -1,39 +1,50 @@
 #!/usr/bin/env sh
 
-# Escript/Finley wrapper for python
-# Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI launcher
+##############################################################################
+#
+# Copyright (c) 2003-2014 by University of Queensland
+# http://www.uq.edu.au
+#
+# Primary Business: Queensland, Australia
+# Licensed under the Open Software License version 3.0
+# http://www.opensource.org/licenses/osl-3.0.php
+#
+# Development until 2012 by Earth Systems Science Computational Center (ESSCC)
+# Development 2012-2013 by School of Earth Sciences
+# Development from 2014 by Centre for Geoscience Computing (GeoComp)
+#
+##############################################################################
 
-#Extra paths can be configured about a page further down
-#Search for EXTRA_PATH=""
+# Escript wrapper for python
+# Sets LD_LIBRARY_PATH and PYTHONPATH and then runs either python or the MPI
+# launcher.
 
-#set to 1 if performing this is a standalone build and ../../pkg contains the relevant tools
+# Extra paths can be configured about a page further down
+# Search for EXTRA_PATH=""
+
+# set to 1 if this is a standalone build and ../../pkg contains the relevant
+# tools
 STANDALONE=0
 
-#set to 1 if this is part of a packaged build (.deb) and files will be installed in standard locations
-#rather than everything in a single directory
-#Do not use this together with $STANDALONE
+# set to 1 if this is part of a packaged build (.deb) and files will be
+# installed in standard locations rather than everything in a single directory
+# Do not use this together with STANDALONE
 STDLOCATION=0
 
-#Now we find the location of this script
-#Note that this location should be absolute but does not need to be unique
+# Now we find the location of this script
+# Note that this location should be absolute but does not need to be unique
 scriptdir=""
 CURDIR=$(pwd)
 
-#Environment vars which control operations:
+# Environment vars which control operations:
 # ESCRIPT_NUM_NODES, ESCRIPT_NUM_PROCS, ESCRIPT_NUM_THREADS, ESCRIPT_HOSTFILE, ESCRIPT_CREATESTDFILES
 
-#set up thread binding if unset
-if [ "$OMP_PROC_BIND" = "" ]; then
-    #Force OpenMP binding for Intel (and GCC, though GCC is on by default)
-    export OMP_PROC_BIND=true
-fi
-if [ "$KMP_AFFINITY" = "" ]; then
-    #Set the style of binding (overrides OMP_PROC_BIND in many cases)
-    export KMP_AFFINITY=verbose,compact
-fi
-
 HOSTFILE=/tmp/escript.$USER.$$
-HOSTFILE2=/tmp/escript2.$USER.$$
+
+die () {
+    echo "Error: $@" 1>&2
+    exit 1
+}
 
 #Begin finding ESCRIPT_ROOT
 if [ $STDLOCATION -ne 0 ]
@@ -53,8 +64,7 @@ else
       tscriptdir=$(which $0)
       if [ $? -ne 0 ]
       then
-          echo "Error! Unable to determine script directory. Exiting."
-          exit 1
+          die "Unable to determine script directory!"
       fi
       scriptdir=$(dirname $tscriptdir)
   fi
@@ -113,28 +123,12 @@ if [ ! -r "$BUILDINFO_FILE" ]; then
         fi
         exit 0
     fi
-    echo "Error! Unable to read escript build information. Exiting."
-    exit 1
+    die "Unable to read escript build information!"
 fi
 
 get_buildvar () {
     echo $(grep "^$1=" "$BUILDINFO_FILE" |cut -d= -f2)
 }
-
-#
-#   Add VisIt paths if required
-#
-WITH_VISIT=$(get_buildvar visit)
-if [ "$WITH_VISIT" = "1" ]; then
-    VISIT_BIN=$(which visit 2>/dev/null)
-    if [ $? -eq 0 ]; then
-        VISIT_PY_PATH=$($VISIT_BIN -env | grep LIBPATH | cut -d= -f2)
-        EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
-        EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$VISIT_PY_PATH
-    elif [ ! -z $ESCRIPT_VERBOSE ]; then
-        echo "VisIt module enabled but VisIt not in path!"
-    fi
-fi
 
 HELP_TEXT="
 Usage: run-escript [options] script.py [arguments...]
@@ -209,6 +203,13 @@ do
     esac
 done
 shift $(($OPTIND - 1))
+
+vlog () {
+    if [ ! -z $ESCRIPT_VERBOSE ]; then
+        echo "$@"
+    fi
+}
+
 #==============================================
 #
 #   Read MPI_FLAVOUR and WITH_OPENMP from the buildvars
@@ -216,9 +217,26 @@ shift $(($OPTIND - 1))
 MPI_FLAVOUR=$(get_buildvar mpi)
 WITH_OPENMP=$(get_buildvar openmp)
 
-if [ ! -z $ESCRIPT_VERBOSE ]; then
-    echo "MPI flavour is $MPI_FLAVOUR."
-    if [ "$WITH_OPENMP" = "1" ]; then echo "OpenMP enabled."; fi
+vlog "MPI flavour is $MPI_FLAVOUR."
+if [ "$WITH_OPENMP" = "1" ]; then
+    vlog "OpenMP enabled."
+else
+    vlog "OpenMP disabled."
+fi
+
+#
+#   Add VisIt paths if required
+#
+WITH_VISIT=$(get_buildvar visit)
+if [ "$WITH_VISIT" = "1" ]; then
+    VISIT_BIN=$(which visit 2>/dev/null)
+    if [ $? -eq 0 ]; then
+        VISIT_PY_PATH=$($VISIT_BIN -env | grep LIBPATH | cut -d= -f2)
+        EXTRA_PYTHONPATH=$EXTRA_PYTHONPATH:$VISIT_PY_PATH
+        EXTRA_LD_LIBRARY_PATH=$EXTRA_LD_LIBRARY_PATH:$VISIT_PY_PATH
+    else
+        vlog "Warning: VisIt module enabled but VisIt not in path!"
+    fi
 fi
 
 #
@@ -233,13 +251,13 @@ then
     export DYLD_LIBRARY_PATH=$EXTRA_DYLD_LIBRARY_PATH:$EXTRA_LD_LIBRARY_PATH:$DYLD_LIBRARY_PATH
     EXPORT_ENV="$EXPORT_ENV,DYLD_LIBRARY_PATH"
 fi
-if [ ! -z $ESCRIPT_VERBOSE ]
-then
-    echo "PATH = $PATH "
-    echo "LD_LIBRARY_PATH = $LD_LIBRARY_PATH "
-    echo "PYTHONPATH = $PYTHONPATH "
-    if [ ! -z $DYLD_LIBRARY_PATH ]; then echo "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH "; fi
+vlog "PATH = $PATH
+LD_LIBRARY_PATH = $LD_LIBRARY_PATH
+PYTHONPATH = $PYTHONPATH"
+if [ ! -z $DYLD_LIBRARY_PATH ]; then
+    vlog "DYLD_LIBRARY_PATH = $DYLD_LIBRARY_PATH"
 fi
+
 #==============================================
 #
 #  Ensure the variables have sensible values
@@ -273,24 +291,25 @@ else
     then
         if [ -f "$ESCRIPT_HOSTFILE" ]
         then
-            cat "$ESCRIPT_HOSTFILE" | sort -u > $HOSTFILE
-            NUM_HOSTS=$(cat "$HOSTFILE" | wc -l)
+            sort -u "${ESCRIPT_HOSTFILE}" > $HOSTFILE
+            HOSTLIST=$(awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE")
+
+            NUM_HOSTS=$(wc -l "$HOSTFILE")
             if [ ! -z $ESCRIPT_NUM_NODES ]
             then
                 if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
                 then
-                    echo "number of hosts selected in the host file $ESCRIPT_HOSTFILE needs to match the requested number of nodes $ESCRIPT_NUM_NODES."
-                    exit 1
+                    die "Number of hosts selected in the host file $ESCRIPT_HOSTFILE needs to match the requested number of nodes $ESCRIPT_NUM_NODES!"
                 fi
              else
                 ESCRIPT_NUM_NODES=$NUM_HOSTS
              fi
         else
-           echo "cannot find hostfile $ESCRIPT_HOSTFILE."
-           exit 1
+           die "Cannot find hostfile $ESCRIPT_HOSTFILE!"
         fi
     else
-        HOSTFILE=''
+        echo "localhost" > $HOSTFILE
+        HOSTLIST="localhost"
     fi
 
     if [ -z $ESCRIPT_NUM_NODES ]
@@ -303,42 +322,45 @@ else
         ESCRIPT_NUM_PROCS=1
     fi
 
-    if [ ! -z $ESCRIPT_VERBOSE ]
-    then
-        echo "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES "
-        echo "ESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS "
-    fi
+    vlog "ESCRIPT_NUM_NODES = $ESCRIPT_NUM_NODES\nESCRIPT_NUM_PROCS = $ESCRIPT_NUM_PROCS"
 fi
 
 if [ "$WITH_OPENMP" = "1" ]
 then
-   if [ -z $ESCRIPT_NUM_THREADS ]
-   then
+    if [ -z $ESCRIPT_NUM_THREADS ]
+    then
         ESCRIPT_NUM_THREADS=$OMP_NUM_THREADS
         if [ -z $ESCRIPT_NUM_THREADS ]
         then
-           ESCRIPT_NUM_THREADS=1
+            ESCRIPT_NUM_THREADS=1
         fi
-   fi
-   if [ ! -z $ESCRIPT_VERBOSE ]
-   then
-        echo "ESCRIPT_NUM_THREADS is $ESCRIPT_NUM_THREADS."
-   fi
+    fi
+    vlog "ESCRIPT_NUM_THREADS = $ESCRIPT_NUM_THREADS"
 else
-   if [ ! -z $ESCRIPT_NUM_THREADS ] && [ $ESCRIPT_NUM_THREADS != 1 ]
-   then
-       echo "Warning: OpenMP is disabled but number of threads requested is $ESCRIPT_NUM_THREADS!=1. Running without threads."
-   fi
-   ESCRIPT_NUM_THREADS=1
+    if [ ! -z $ESCRIPT_NUM_THREADS ] && [ $ESCRIPT_NUM_THREADS != 1 ]
+    then
+       echo "Warning: OpenMP is disabled but number of threads requested is $ESCRIPT_NUM_THREADS!=1. Option ignored."
+    fi
+    ESCRIPT_NUM_THREADS=1
 fi
+
 #
 # Now we compute total number of Processes
 #
 TOTPROC=$((ESCRIPT_NUM_NODES * ESCRIPT_NUM_PROCS))
-if [ $? -ne 0 ]     #Some compute error
+if [ $? -ne 0 ] #Some compute error
 then            #This could happen if the args were not a number
-    echo "expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical."
-    exit 1
+    die "Expression of total number of processors = $ESCRIPT_NUM_NODES * $ESCRIPT_NUM_PROCS is not numerical!"
+fi
+
+# set up thread binding if unset
+if [ "$OMP_PROC_BIND" = "" ]; then
+    #Force OpenMP binding for Intel (and GCC, though GCC is on by default)
+    export OMP_PROC_BIND=true
+fi
+if [ "$KMP_AFFINITY" = "" ]; then
+    #Set the style of binding (overrides OMP_PROC_BIND in many cases)
+    export KMP_AFFINITY=verbose,compact
 fi
 
 #
@@ -346,8 +368,7 @@ fi
 #
 if ([ ! -z $DO_INTERACTIVE ] || [ $# -eq 0 ]) && ([ $TOTPROC -gt 1 ])
 then
-    echo "Interactive mode cannot be used with more than one process"
-    exit 1
+    die "Interactive mode cannot be used with more than one process!"
 fi
 
 if [ $TOTPROC -gt 1 ]
@@ -367,8 +388,7 @@ if [ $# -eq 0 ]
 then
     if [ ! -z $DO_BINARY ]
     then
-        echo "No program to run was specified. Exiting."
-        exit 1
+        die "No program to run was specified!"
     else
         DO_INTERACTIVE=y
     fi
@@ -411,8 +431,7 @@ then
             EXEC_CMD="$EXEC_CMD $VALGRIND"
         fi
     else
-        echo "Execution with valgrind requested but valgrind not in path!"
-        exit 1
+        die "Execution with valgrind requested but valgrind not in path!"
     fi
 fi
 
@@ -435,9 +454,8 @@ else
     intversion=$($PYTHON_CMD -c 'from __future__ import print_function;import sys;print("%d.%d"%(sys.version_info[0], sys.version_info[1]))')
     if [ "$compversion" != "$intversion" ]
     then
-        echo "Python versions do not match. Escript was compiled for "$compversion"."
-        echo "Current version of Python appears to be "$intversion"."
-        exit 1
+        die "Python versions do not match. Escript was compiled for '$compversion'.
+Current version of Python appears to be '$intversion'."
     fi
     if [ "$MPI_FLAVOUR" = "none" ]
     then
@@ -456,7 +474,7 @@ else
         fi
     fi
 fi
-if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Command to be executed is \"$EXEC_CMD\"."; fi
+vlog "Command to be executed is \"$EXEC_CMD\""
 #==============================================================================
 #
 #   now we start to spawn things:
@@ -466,112 +484,20 @@ then
    export OMP_NUM_THREADS=$ESCRIPT_NUM_THREADS
    EXPORT_ENV="$EXPORT_ENV,OMP_NUM_THREADS"
 fi
-EXIT_CODE=1
-#=============== no MPI ===================================
-if [ "$MPI_FLAVOUR" = "none" ]
-then
-   $EXEC_CMD
-   EXIT_CODE=$?
-#=============== OpenMPI ===================================
-elif [ "$MPI_FLAVOUR" = "OPENMPI" ]
-then
-   EXPORT_ENV=$(echo $EXPORT_ENV|sed -e 's/,/ -x /g')
-   if [ ! -z "$HOSTFILE" ]
-   then
-      HOST_LIST=$(sort -u "$HOSTFILE" | awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}')
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --bynode --bind-to-none --host $HOST_LIST -np $TOTPROC $EXEC_CMD"
-   else
-      CMD="mpirun --gmca mpi_warn_on_fork 0 -x ${EXPORT_ENV} --cpus-per-rank $ESCRIPT_NUM_THREADS --bind-to-core -np $TOTPROC $EXEC_CMD"
-   fi
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
-   $CMD
-   EXIT_CODE=$?
 
-#=============== Intel MPI ===================================
-elif [ "$MPI_FLAVOUR" = "INTELMPI" ]
-then
-
-   if [ "$WITH_OPENMP" = "1" ]
-   then
-       export I_MPI_PIN_DOMAIN=omp
-       EXPORT_ENV="$EXPORT_ENV,I_MPI_PIN_DOMAIN"
-   fi
-
-   if [ ! -z "$HOSTFILE" ]
-   then
-        CMD="mpirun -hostfile $HOSTFILE -n $TOTPROC -ppn $ESCRIPT_NUM_PROCS $EXEC_CMD"
-   else
-        if [ ! -z $ESCRIPT_VERBOSE ]; then echo "Empty hostfile, running on single node"; fi
-        CMD="mpirun -n 1 -ppn $ESCRIPT_NUM_PROCS $EXEC_CMD"
-   fi
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
-   $CMD
-   EXIT_CODE=$?
-#=============== SGI's MPIMPT ===================================
-elif [ "$MPI_FLAVOUR" = "MPT" ]
-then
-   export MPI_NUM_MEMORY_REGIONS=0
-   EXPORT_ENV="$EXPORT_ENV,MPI_NUM_MEMORY_REGIONS"
-   if [ ! -z "$HOSTFILE" ]
-   then
-      HOST_LIST=$(awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE")
-      CMD="mpirun $HOST_LIST -np $ESCRIPT_NUM_PROCS $EXEC_CMD"
-   else
-      CMD="mpirun -np $TOTPROC $EXEC_CMD"
-   fi
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
-   $CMD
-   EXIT_CODE=$?
-#=============== MPICH ===================================
-elif [ "$MPI_FLAVOUR" = "MPICH" ]
-then
-   if [ ! -z "$HOSTFILE" ]
-   then
-      touch "$HOSTFILE2"
-      for i in $(seq $ESCRIPT_NUM_PROCS); do cat "$HOSTFILE" >> "$HOSTFILE2"; done
-      CMD="mpirun -machinefile \"$HOSTFILE2\" -np $TOTPROC $EXEC_CMD"
-   else
-      CMD="mpirun -np $TOTPROC $EXEC_CMD"
-   fi
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
-   $CMD
-   EXIT_CODE=$?
-#=============== MPICH2 ===================================
-elif [ "$MPI_FLAVOUR" = "MPICH2" ]
-then
-   if [ ! -z "$HOSTFILE" ]
-   then
-         mpdboot -n $ESCRIPT_NUM_NODES -r ssh -f "$HOSTFILE"
-         if [ $? -ne 0 ]
-         then
-            echo "mpdboot with host file $ESCRIPT_HOSTFILE for $ESCRIPT_NUM_NODES nodes failed."
-            exit 1
-         else
-             if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started with host file $HOSTFILE for $ESCRIPT_NUM_NODES nodes."; fi
-         fi
-   else
-      mpdboot -n 1 -r ssh
-      if [ $? -ne 0 ]
-      then
-         echo "mpdboot failed."
-         exit 1
-      else
-          if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdboot was started."; fi
-      fi
-   fi
-   CMD="mpiexec -genvlist $EXPORT_ENV -np $TOTPROC $EXEC_CMD"
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "MPI command is \"$CMD\"."; fi
-   $CMD
-   EXIT_CODE=$?
-   mpdallexit
-   if [ ! -z $ESCRIPT_VERBOSE ]; then echo "mpdallexit executed."; fi
-else
-   echo "unknown MPI flavour '$MPI_FLAVOUR'."
-fi
+vlog "Pre-launch command: \"@@PRELAUNCH\""
+@@PRELAUNCH
+vlog "Launch command: \"@@LAUNCH\""
+@@LAUNCH
+EXIT_CODE=$?
+vlog "Post-launch command: \"@@POSTLAUNCH\""
+@@POSTLAUNCH
 
 if [ ! -z "$DO_VALGRIND" ]; then
    echo "Valgrind log file written to ${LOGFILE}"
 fi
+
+rm -f $HOSTFILE
 
 exit $EXIT_CODE
 

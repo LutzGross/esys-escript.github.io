@@ -115,11 +115,14 @@ vars.AddVariables(
   ListVariable('domains', 'Which domains to build', 'all',\
                ['dudley','finley','ripley','speckley']),
 # Advanced settings
+  ('launcher', 'Launcher command (e.g. mpirun)', 'default'),
+  ('prelaunch', 'Command to execute before launcher (e.g. mpdboot)', 'default'),
+  ('postlaunch', 'Command to execute after launcher (e.g. mpdexit)', 'default'),
   #dudley_assemble_flags = -funroll-loops      to actually do something
   ('dudley_assemble_flags', 'compiler flags for some dudley optimisations', ''),
   # To enable passing function pointers through python
   BoolVariable('iknowwhatimdoing', 'Allow non-standard C', False),
-  # An option for specifying the compiler tools (see windows branch)
+  # An option for specifying the compiler tools
   ('tools_names', 'Compiler tools to use', ['default']),
   ('env_export', 'Environment variables to be passed to tools',[]),
   EnumVariable('forcelazy', 'For testing use only - set the default value for autolazy', 'leave_alone', allowed_values=('leave_alone', 'on', 'off')),
@@ -340,6 +343,40 @@ env.Append(CCFLAGS = env['cc_flags'])
 # add system libraries
 env.AppendUnique(LIBS = env['sys_libs'])
 
+# set defaults for launchers if not otherwise specified
+if env['prelaunch'] == 'default':
+    if env['mpi'] == 'INTELMPI' and env['openmp']:
+        env['prelaunch'] = "export I_MPI_PIN_DOMAIN=omp"
+    elif env['mpi'] == 'OPENMPI':
+        # transform comma-separated list to '-x a -x b -x c ...'
+        env['prelaunch'] = "EE=$(echo %e|sed -e 's/,/ -x /g')"
+    elif env['mpi'] == 'MPT':
+        env['prelaunch'] = "export MPI_NUM_MEMORY_REGIONS=0"
+    elif env['mpi'] == 'MPICH2':
+        env['prelaunch'] = "mpdboot -n %n -r ssh -f %f"
+    else:
+        env['prelaunch'] = ""
+
+if env['launcher'] == 'default':
+    if env['mpi'] == 'INTELMPI':
+        env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
+    elif env['mpi'] == 'OPENMPI':
+        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --host %h -np %N %b"
+    elif env['mpi'] == 'MPT':
+        env['launcher'] = "mpirun %h -np %p %b"
+    elif env['mpi'] == 'MPICH':
+        env['launcher'] = "mpirun -machinefile %f -np %N %b"
+    elif env['mpi'] == 'MPICH2':
+        env['launcher'] = "mpiexec -genvlist %e -np %N %b"
+    else:
+        env['launcher'] = "%b"
+
+if env['postlaunch'] == 'default':
+    if env['mpi'] == 'MPICH2':
+        env['postlaunch'] = "mpdallexit"
+    else:
+        env['postlaunch'] = ""
+
 # determine svn revision
 global_revision=ARGUMENTS.get('SVN_VERSION', None)
 if global_revision:
@@ -542,6 +579,8 @@ env.SConscript(dirs = ['paso/profiling'], variant_dir='$BUILD_DIR/$PLATFORM/paso
 ######################## Populate the buildvars file #########################
 
 write_buildvars(env)
+
+write_launcher(env)
 
 ################### Targets to build and install libraries ###################
 

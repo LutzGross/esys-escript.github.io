@@ -89,6 +89,31 @@ def write_buildvars(env):
         buildvars.write("%s=%s\n"%(k,v))
     buildvars.close()
 
+def write_launcher(env):
+    reps={'%n':'${ESCRIPT_NUM_NODES}', '%p':'${ESCRIPT_NUM_PROCS}',
+          '%N':'${TOTPROC}', '%t':'${ESCRIPT_NUM_THREADS}', '%f':'${HOSTFILE}',
+          '%h':'${HOSTLIST}', '%e':'${EXPORT_ENV}', '%b':'${EXEC_CMD}'}
+    pre=env['prelaunch']
+    cmd=env['launcher']
+    post=env['postlaunch']
+    # %b should be present in launcher at least
+    if not '%b' in cmd:
+        raise RuntimeError('option "launcher" must contain %b!')
+
+    for k, v in reps.iteritems():
+        pre = pre.replace(k, v)
+        cmd = cmd.replace(k, v)
+        post = post.replace(k, v)
+    try:
+        launchscript = os.path.join(env['bininstall'], 'run-escript')
+        launcher=open(launchscript, 'w')
+        for line in open('run-escript.in','r').readlines():
+            launcher.write(line.replace('@@PRELAUNCH', pre).replace('@@LAUNCH', cmd).replace('@@POSTLAUNCH', post))
+        launcher.close()
+        env.Execute(Chmod(launchscript, 0o755))
+    except IOError:
+        env['warnings'].append("Error attempting to write launcher script.")
+
 def generateTestScripts(env, TestGroups):
     try:
         utest=open('utest.sh','w')
@@ -114,11 +139,6 @@ def generateTestScripts(env, TestGroups):
     # delete scripts upon cleanup
     env.Clean('target_init', 'utest.sh')
     env.Clean('target_init', 'itest.sh')
-
-    # Make sure that the escript wrapper is in place
-    if not os.path.isfile(os.path.join(env['bininstall'], 'run-escript')):
-        print("Copying escript wrapper.")
-        env.Execute(Copy(os.path.join(env['bininstall'],'run-escript'), 'bin/run-escript'))
 
 # Code to build .pyc from .py
 def build_py(target, source, env):
