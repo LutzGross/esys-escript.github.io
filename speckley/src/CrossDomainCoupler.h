@@ -54,7 +54,7 @@ private:
     bool validInterpolation(escript::Data& target, const escript::Data& source,
             const SpeckleyDomain *speck, const double *s_dx,
             const ripley::RipleyDomain *other) const;
-    void calculate(struct Ripley& r, dim_t ex, dim_t ey, dim_t ez, 
+    void calculate(struct Ripley& r, dim_t ex, dim_t ey, dim_t ez,
             int oqx, int oqy, int oqz, double *out, const double *factor_x,
             const double *factor_y, const double *factor_z,
             const escript::Data& source) const;
@@ -65,16 +65,16 @@ private:
 
     void getEdgeSpacing(struct Ripley r, int *lower, int *upper) const;
 
-    void shareBrickXFaces(struct Ripley& r, int numComp, int hasLower,
+    void shareBrickXFaces(struct Ripley& r, int hasLower,
             int hasUpper, int lower, int upper, escript::Data& target) const;
-    void shareBrickYFaces(struct Ripley& r, int numComp, int hasLower,
+    void shareBrickYFaces(struct Ripley& r, int hasLower,
             int hasUpper, int lower, int upper, escript::Data& target) const;
-    void shareBrickZFaces(struct Ripley& r, int numComp, int hasLower,
+    void shareBrickZFaces(struct Ripley& r, int hasLower,
             int hasUpper, int lower, int upper, escript::Data& target) const;
 
-    void shareRectangleXEdges(struct Ripley& r, int numComp, int hasLower,
+    void shareRectangleXEdges(struct Ripley& r, int hasLower,
             int hasUpper, int lower, int upper, escript::Data& target) const;
-    void shareRectangleYEdges(struct Ripley& r, int numComp, int hasLower,
+    void shareRectangleYEdges(struct Ripley& r, int hasLower,
             int hasUpper, int lower, int upper, escript::Data& target) const;
     //speckley info
     const SpeckleyDomain *speck;
