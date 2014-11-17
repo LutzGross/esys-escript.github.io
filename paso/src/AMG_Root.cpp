@@ -25,6 +25,7 @@
 
 /****************************************************************************/
 
+#include <iostream>
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "BOOMERAMG.h"

@@ -27,6 +27,7 @@
 
 #define SHOW_TIMING 0
 
+#include <iostream>
 #include "Paso.h"
 #include "Preconditioner.h"
 #include "MergedSolver.h"

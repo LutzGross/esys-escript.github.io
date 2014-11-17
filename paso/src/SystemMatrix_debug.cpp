@@ -24,7 +24,7 @@
  Author: Lutz Gross, l.gross@uq.edu.au
 
 *****************************************************************************/
-
+#include <iostream>
 #include "SystemMatrix.h"
 
 #include <cstring> // strcat
