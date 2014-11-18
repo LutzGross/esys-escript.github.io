@@ -58,7 +58,7 @@ class DataReady;
 typedef POINTER_WRAPPER_CLASS(DataReady) DataReady_ptr;
 typedef POINTER_WRAPPER_CLASS(const DataReady) const_DataReady_ptr;
 
-class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
+class ESCRIPT_DLL_API DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 {
 
  public:
@@ -70,20 +70,18 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
    \brief Return shared pointer managing this object.
 
    If there is not already a shared pointer managing this object then create one.
-   Once a shared pointer is created for an object, the deallocation of the object 
+   Once a shared pointer is created for an object, the deallocation of the object
    must be handled by shared_ptr.
 
-   \warning So, do not call this on an automatic object. 
-   Do not call this in a method where you do not pass the shared_pointer out and 
+   \warning So, do not call this on an automatic object.
+   Do not call this in a method where you do not pass the shared_pointer out and
    you need the object to outlast the method.
 
    Note: This is _not_ equivalent to weak_ptr::lock.
 
    */
-   ESCRIPT_DLL_API
    DataAbstract_ptr getPtr();
-   ESCRIPT_DLL_API
-   const_DataAbstract_ptr getPtr() const; 
+   const_DataAbstract_ptr getPtr() const;
 
 
 
@@ -95,14 +93,12 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param shape - Input - Shape of each data value.
      \param isDataEmpty - Input - Is this an instance of DataEmpty (for internal use only)
   */
-  ESCRIPT_DLL_API
   DataAbstract(const FunctionSpace& what, const ShapeType& shape, bool isDataEmpty=false);
 
   /**
     \brief
     Destructor for DataAbstract.
   */
-  ESCRIPT_DLL_API
   virtual
   ~DataAbstract();
 
@@ -110,7 +106,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Write the data as a string.
   */
-  ESCRIPT_DLL_API
   virtual
   std::string
   toString() const = 0;
@@ -118,7 +113,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   /**
      \brief Return a deep copy of the current object.
   */
-  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   deepCopy()=0;
@@ -126,7 +120,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   /**
      \brief Return a data object with all points resolved.
   */
-  ESCRIPT_DLL_API
   virtual
   DataReady_ptr
   resolve()=0;
@@ -135,7 +128,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      dumps the object into a netCDF file
   */
-  ESCRIPT_DLL_API
   virtual
   void
   dump(const std::string fileName) const;
@@ -144,7 +136,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Return the number of data points per sample.
   */
-  ESCRIPT_DLL_API
   int
   getNumDPPSample() const;
 
@@ -152,26 +143,23 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Return the number of samples.
   */
-  ESCRIPT_DLL_API
   int
   getNumSamples() const;
 
   /**
-     \brief 
+     \brief
      Return the shape information for the point data.
 
      The omission of a non-constant form is deliberate.
   */
-  ESCRIPT_DLL_API
-  const DataTypes::ShapeType& 
+  const DataTypes::ShapeType&
   getShape() const;
 
   /**
-     \brief 
+     \brief
      Return the rank information for the point data.
   */
-  ESCRIPT_DLL_API
-  unsigned int 
+  unsigned int
   getRank() const;
 
 
@@ -179,18 +167,16 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
  /**
     \brief
     Return the offset for the given sample. This returns the offset for the given
-    point into the container holding the point data. 
+    point into the container holding the point data.
 
     \param sampleNo - Input - sample number.
     \param dataPointNo - Input - data point number.
   */
-  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const = 0;
 
-  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
@@ -201,7 +187,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Return the number of doubles stored for this Data object.
   */
-  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getLength() const = 0;
@@ -211,22 +196,20 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Return the sample data for the given tag key.
      NB: If the data isn't tagged an exception will be thrown.
   */
-  ESCRIPT_DLL_API
   virtual
   double*
   getSampleDataByTag(int tag);
-  
-  
+
+
   /**
      \brief Return number of tagged values stored in the data object
      \warning results are only meaningful for DataTagged. All other types return 0.
      This functionality is only currently used by reducers and should
      not be exposed to Python without making it more generally applicable
   */
-  ESCRIPT_DLL_API
   virtual
   size_t
-  getTagCount();  
+  getTagCount() const;
 
   /**
      \brief
@@ -235,7 +218,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
      \param right - Input - The right hand side.
   */
-  ESCRIPT_DLL_API
   void
   operandCheck(const DataAbstract& right) const;
 
@@ -243,7 +225,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Return true if a valid sample point number.
   */
-  ESCRIPT_DLL_API
   bool
   validSamplePointNo(int samplePointNo) const;
 
@@ -251,7 +232,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Return true if a valid sample number.
   */
-  ESCRIPT_DLL_API
   bool
   validSampleNo(int sampleNo) const;
 
@@ -260,7 +240,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \brief
      Return the function space associated with this Data object.
   */
-  ESCRIPT_DLL_API
   const
   FunctionSpace&
   getFunctionSpace() const;
@@ -271,7 +250,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
      NB: The caller is responsible for managing the object created.
   */
-  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataTypes::RegionType& region) const = 0;
@@ -295,7 +273,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      The final parameter is to allow for the case whete the vector contains
      multiple data values.
   */
-  ESCRIPT_DLL_API
   virtual
   void
   setTaggedValue(int tagKey,
@@ -315,7 +292,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param dataPointNo Input - data point of the sample
      \param value Input - new values for the data point
   */
-  ESCRIPT_DLL_API
   virtual void
   copyToDataPoint(const int sampleNo, const int dataPointNo, const double value);
 
@@ -327,7 +303,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param dataPointNo Input - data point of the sample
      \param value Input - new values for the data point
   */
-  ESCRIPT_DLL_API
   virtual void
   copyToDataPoint(const int sampleNo, const int dataPointNo, const WrappedArray& value);
 
@@ -339,7 +314,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      If the object cannot be referenced by tag numbers, an exception
      will be thrown.
   */
-  ESCRIPT_DLL_API
   virtual
   int
   getTagNumber(int dpno);
@@ -351,7 +325,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param ev - Output - a symmetric matrix
 
   */
-  ESCRIPT_DLL_API
   virtual void
   symmetric(DataAbstract* ev);
 
@@ -362,7 +335,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param ev - Output - a nonsymmetric matrix
 
   */
-  ESCRIPT_DLL_API
   virtual void
   nonsymmetric(DataAbstract* ev);
 
@@ -373,7 +345,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param ev - Output - the trace of a matrix
      \param axis_offset
   */
-  ESCRIPT_DLL_API
   virtual void
   trace(DataAbstract* ev, int axis_offset);
 
@@ -384,7 +355,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param ev - Output - the transpose of a matrix
      \param axis_offset
   */
-  ESCRIPT_DLL_API
   virtual void
   transpose(DataAbstract* ev, int axis_offset);
 
@@ -396,7 +366,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param axis0
      \param axis1
   */
-  ESCRIPT_DLL_API
   virtual void
   swapaxes(DataAbstract* ev, int axis0, int axis1);
   /**
@@ -406,7 +375,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      \param ev - Output - eigenvalues in increasing order at each data point
 
   */
-  ESCRIPT_DLL_API
   virtual void
   eigenvalues(DataAbstract* ev);
 
@@ -415,7 +383,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
     \param out - Where to store the results
     \return errorcode (0 indicates success)
   */
-  ESCRIPT_DLL_API
   virtual int
   matrixInverse(DataAbstract* out) const;
 
@@ -424,7 +391,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      sets values to zero
 
   */
-  ESCRIPT_DLL_API
   virtual void
   setToZero();
 
@@ -439,7 +405,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
   */
 
-  ESCRIPT_DLL_API
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
@@ -449,7 +414,6 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 
      \param reference_ids - Input - reference_ids used for current ordering
   */
-  ESCRIPT_DLL_API
   virtual void
   reorderByReferenceIDs(dim_t *reference_ids);
 
@@ -459,20 +423,16 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
 	\brief
 	Return the number of values in the shape for this object.
   */
-  ESCRIPT_DLL_API
   unsigned int
   getNoValues() const;
 
 
-  ESCRIPT_DLL_API
   bool isLazy() const;	// a test to determine if this object is an instance of DataLazy
 
-  ESCRIPT_DLL_API
   virtual
   bool
   isConstant() const {return false;}
 
-  ESCRIPT_DLL_API
   virtual
   bool
   isExpanded() const {return false;}
@@ -483,17 +443,14 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
      Return true if this Data is expanded or resolves to expanded.
      That is, if it has a separate value for each datapoint in the sample.
   */
-  ESCRIPT_DLL_API
   virtual
   bool
   actsExpanded() const {return false;}
 
-  ESCRIPT_DLL_API
   virtual
   bool
   isTagged() const {return false;}
 
-  ESCRIPT_DLL_API
   bool isEmpty() const;	// a fast test to determine if this object is an instance of DataEmpty
 
 
@@ -512,33 +469,32 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   /**
 	\brief Is this object owned by more than one Data object
   */
-  ESCRIPT_DLL_API
   bool
   isShared() const
   {
 	return m_lazyshared || (m_owners.size()>1);
   }
 
- protected:
+protected:
+    /**
+    \brief Returns true if this object is not shared.
+    For internal use only. - It may not be particularly fast
+    */
+    bool checkNoSharing() const;
 
-   /**
-   \brief Returns true if this object is not shared.
-   For internal use only. - It may not be particularly fast
-   */
-   ESCRIPT_DLL_API
-   bool checkNoSharing() const;
+    /**
+    \brief Marks this DataAbstract shared as LazyData
+    For internal use only.
+    */
+    void
+    makeLazyShared();	
 
-   /**
-   \brief Marks this DataAbstract shared as LazyData
-   For internal use only.
-   */
-   void
-   makeLazyShared();	
+    friend class DataLazy;
 
-   friend class DataLazy;
+    std::vector<Data*> m_owners;
+    bool m_lazyshared;
 
- private:
-
+private:
   //
   // The number of samples in this Data object.
   // This is derived directly from the FunctionSpace.
@@ -566,13 +522,9 @@ class DataAbstract : public REFCOUNT_BASE_CLASS(DataAbstract)
   // The rank of the points stored in this view
   unsigned int m_rank;
 
-  // 
+  //
   // Is this an instance of DataEmpty?
   bool m_isempty;
-
-public:			// these should be private once I have finished debugging
-  std::vector<Data*> m_owners;
-  bool m_lazyshared;
 };
 
 inline
@@ -627,7 +579,7 @@ DataAbstract::getFunctionSpace() const
 }
 
 inline
-const DataTypes::ShapeType& 
+const DataTypes::ShapeType&
 DataAbstract::getShape() const
 {
 	if (isEmpty())
@@ -637,7 +589,7 @@ DataAbstract::getShape() const
 	return m_shape;
 }
 
-inline 
+inline
 unsigned int
 DataAbstract::getRank() const
 {
