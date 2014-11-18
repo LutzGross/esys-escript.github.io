@@ -15,15 +15,16 @@
 *****************************************************************************/
 
 
-#if !defined escript_DataTagged_20040615_H
-#define escript_DataTagged_20040615_H
+#ifndef __ESCRIPT_DATATAGGED_H__
+#define __ESCRIPT_DATATAGGED_H__
+
 #include "system_dep.h"
 
 #include "DataReady.h"
 #include "DataTypes.h"
 
-#include <vector>
 #include <map>
+#include <vector>
 
 namespace escript {
 
@@ -40,15 +41,15 @@ class DataConstant;
    dataPointNo values.
 */
 
-class DataTagged : public DataReady {
-typedef DataReady parent;
+class ESCRIPT_DLL_API DataTagged : public DataReady
+{
+    typedef DataReady parent;
  public:
 
   //
   // Types for the lists of tags and values.
-  typedef std::vector<int>           TagListType;
-//  typedef std::vector<DataArrayView> ValueListType;
-  typedef DataTypes::ValueType   ValueType;
+  typedef std::vector<int> TagListType;
+  typedef DataTypes::ValueType ValueType;
   typedef std::vector<ValueType::ElementType> ValueBatchType;
 
   //
@@ -65,7 +66,6 @@ typedef DataReady parent;
      tag values are stored.
     T
   */
-  ESCRIPT_DLL_API
   DataTagged();
 
   /**
@@ -80,7 +80,6 @@ typedef DataReady parent;
      \param data - The data values for each tag.
     NB: no unit testing yet
   */
-  ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const int tags[],
@@ -98,7 +97,6 @@ typedef DataReady parent;
      \param data - The data values for each tag.
 TODO Make sure to document the relationship between tags and data, ie: data also contains the default value
  */
-  ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType &shape,
              const TagListType& tags,
@@ -110,7 +108,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Performs a deep copy from the given DataTagged object.
     T
   */
-  ESCRIPT_DLL_API
   DataTagged(const DataTagged& other);
 
   /**
@@ -120,7 +117,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      The default value will be the value of the DataConstant object.
     T
   */
-  ESCRIPT_DLL_API
   DataTagged(const DataConstant& other);
 
   /**
@@ -133,21 +129,18 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param defaultvalue - Input - Default value for new DataTagged
      \param tagsource - Input - A DataTagged object which supplies the tags. 
   */
-  ESCRIPT_DLL_API
   DataTagged(const FunctionSpace& what,
              const DataTypes::ShapeType& shape,
-	     const DataTypes::ValueType& defaultvalue,
+             const DataTypes::ValueType& defaultvalue,
              const DataTagged* tagsource=0);
 
   /**
      \brief
      Destructor
   */
-  ESCRIPT_DLL_API
   inline virtual
   ~DataTagged() {};
 
-  ESCRIPT_DLL_API
   bool
   isTagged() const 
   {
@@ -157,21 +150,18 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   /**
   \brief Return true if any one of the datapoints contains a NaN.
   */
-  ESCRIPT_DLL_API
   bool
   hasNaN() const;
 
   /**
   \brief replaces all NaN values with value 
   */
-  ESCRIPT_DLL_API
   void
   replaceNaN(double value);
   
   /**
      \brief Return a deep copy of the current object.
   */
-  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   deepCopy();
@@ -189,7 +179,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      ** NB: need to do array bounds checking when accessing returned value!
     T
   */
-  ESCRIPT_DLL_API
   virtual
   double*
   getSampleDataByTag(int tag);
@@ -201,7 +190,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      associated with each tag.
     T
   */
-  ESCRIPT_DLL_API
   virtual
   std::string
   toString() const;
@@ -209,7 +197,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \brief
      dumps the object into a netCDF file
   */
-  ESCRIPT_DLL_API
   virtual
   void
   dump(const std::string fileName) const;
@@ -219,7 +206,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
     \param out - Where to store the results
     \return errorcode (0 indicates success)
   */
-  ESCRIPT_DLL_API
   virtual int
   matrixInverse(DataAbstract* out) const;
 
@@ -227,7 +213,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \brief
     sets all values to zero
   */
-  ESCRIPT_DLL_API
   virtual
   void
   setToZero();
@@ -238,7 +223,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      according to the associated function space.
     T
   */
-  ESCRIPT_DLL_API
   virtual
   int
   getTagNumber(int dpno);
@@ -255,13 +239,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param dataPointNo - Input - data-point number.
     T
   */
-  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
                  int dataPointNo) const;
 
-  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getPointOffset(int sampleNo,
@@ -277,14 +259,13 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param values - Input - A vector of doubles. If this is empty, the default value for
                      this DataTagged will be used for all tags.
                      If it contains one value all tag values will be assigned
-		     this value. Otherwise consecutive tags will be assigned 
+                     this value. Otherwise consecutive tags will be assigned 
                      consecutive values.  If there is a mismatch between  the
-		     number of keys and the number of values an exception 
-		     will be generated.
+                     number of keys and the number of values an exception 
+                     will be generated.
      \param vShape - shape of the datapoints in "values"
     T
  */
-  ESCRIPT_DLL_API
   void
   addTaggedValues(const TagListType& tagKeys,
                             const ValueBatchType& values,
@@ -296,18 +277,17 @@ TODO Make sure to document the relationship between tags and data, ie: data also
    Add the given tags and values to this DataTagged object.
    \param tagKeys - Input - A vector of integer tags.
    \param values - Input - A DataVector containing the datapoints.
-		     If this is empty, the default value for
+                     If this is empty, the default value for
                      this DataTagged will be used for all tags.
                      If it contains one value all tag values will be assigned
-		     this value. Otherwise consecutive tags will be assigned 
+                     this value. Otherwise consecutive tags will be assigned 
                      consecutive values.  If there is a mismatch between  the
-		     number of keys and the number of values an exception 
-		     will be generated.
+                     number of keys and the number of values an exception 
+                     will be generated.
     \param vShape - shape of the datapoints in "values"
 
    TODO Makesure this is properly unit tested
   */
-  ESCRIPT_DLL_API
   void
   addTaggedValues(const TagListType& tagKeys,
                             const ValueType& values,
@@ -328,12 +308,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param value - Input - Single DataArrayView value to be assigned to the tag. 
      \param dataOffset - Input - Offset of the beginning of the point in the value parameter 
   */
-  ESCRIPT_DLL_API
   void
   addTaggedValue(int tagKey,
-		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::ShapeType& pointshape,
                  const ValueType& value,
-		 int dataOffset=0);
+                 int dataOffset=0);
 
   /**
      \brief
@@ -345,7 +324,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param tagKey - Input - Integer tag.
     TODO: Make sure this is unit tested
   */
-  ESCRIPT_DLL_API
   void
   addTag(int tagKey);
 
@@ -361,12 +339,11 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param dataOffset - beginning of the datapoint within "value".
     T
   */
-  ESCRIPT_DLL_API
   void
   setTaggedValue(int tagKey,
-		 const DataTypes::ShapeType& pointshape,
+                 const DataTypes::ShapeType& pointshape,
                  const ValueType& value,
-		 int dataOffset=0);
+                 int dataOffset=0);
 
   /**
      \brief
@@ -378,11 +355,9 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param i - position in the underlying datastructure
   */
 
-  ESCRIPT_DLL_API
   DataTypes::ValueType::reference
   getDataByTagRW(int tag, DataTypes::ValueType::size_type i);
 
-  ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
   getDataByTagRO(int tag, DataTypes::ValueType::size_type i) const;
 
@@ -397,7 +372,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
       Note: If the tag is not valid, the offset of the default value is returned instead.
   */
-  ESCRIPT_DLL_API
   DataTypes::ValueType::size_type
   getOffsetForTag(int tag) const;
 
@@ -407,11 +381,9 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return a reference to the underlying DataVector.
   */
 
-  ESCRIPT_DLL_API
   DataTypes::ValueType&
   getVectorRW();
 
-  ESCRIPT_DLL_API
   const DataTypes::ValueType&
   getVectorRO() const;
 
@@ -425,7 +397,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return a reference to the tag offset lookup table.
     T
   */
-  ESCRIPT_DLL_API
   const DataMapType&
   getTagLookup() const;
 
@@ -440,7 +411,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      keys in the associated function space.
     T
   */
-  ESCRIPT_DLL_API
   bool
   isCurrentTag(int tag) const;
 
@@ -453,11 +423,9 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      is not explicitly recorded in this DataTagged object's tag map.
      \param i - position in the underlying datastructure
   */
-  ESCRIPT_DLL_API
   DataTypes::ValueType::reference
   getDefaultValueRW(DataTypes::ValueType::size_type i);
 
-  ESCRIPT_DLL_API
   DataTypes::ValueType::const_reference
   getDefaultValueRO(DataTypes::ValueType::size_type i) const;
 
@@ -473,7 +441,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      Return the total number of doubles stored for this DataTagged object.
     T
   */
-  ESCRIPT_DLL_API
   virtual
   ValueType::size_type
   getLength() const;
@@ -488,7 +455,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      The caller is reponsible for managing the returned object.
     T
   */
-  ESCRIPT_DLL_API
   virtual
   DataAbstract*
   getSlice(const DataTypes::RegionType& region) const;
@@ -504,9 +470,8 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param region - Input - Region to slice.
     T
   */
-  ESCRIPT_DLL_API
   DataTagged(const DataTagged& other, 
-	     const DataTypes::RegionType& region);
+             const DataTypes::RegionType& region);
 
   /**
      \brief
@@ -518,7 +483,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param region - Input - Region to copy into (NB: must have same shape as other!).
     T
   */
-  ESCRIPT_DLL_API
   virtual
   void
   setSlice(const DataAbstract* other,
@@ -532,7 +496,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param ev - Output - symmetric matrix
 
   */
-  ESCRIPT_DLL_API
   virtual void
   symmetric(DataAbstract* ev);
 
@@ -543,7 +506,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param ev - Output - nonsymmetric matrix
 
   */
-  ESCRIPT_DLL_API
   virtual void
   nonsymmetric(DataAbstract* ev);
 
@@ -554,7 +516,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param ev - Output - the trace of a matrix
      \param axis_offset
   */
-  ESCRIPT_DLL_API
   virtual void
   trace(DataAbstract* ev, int axis_offset);
 
@@ -566,7 +527,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param axis0
      \param axis1
   */
-  ESCRIPT_DLL_API
   virtual void
   swapaxes(DataAbstract* ev, int axis0, int axis1);
 
@@ -577,7 +537,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param ev - Output - the transpose of a matrix
      \param axis_offset
   */
-  ESCRIPT_DLL_API
   virtual void
   transpose(DataAbstract* ev, int axis_offset);
 
@@ -588,7 +547,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
      \param ev - Output - eigenvalues in increasing order at each data point
 
   */
-  ESCRIPT_DLL_API
   virtual void
   eigenvalues(DataAbstract* ev);
 
@@ -603,7 +561,6 @@ TODO Make sure to document the relationship between tags and data, ie: data also
 
   */
 
-  ESCRIPT_DLL_API
   virtual void
   eigenvalues_and_eigenvectors(DataAbstract* ev,DataAbstract* V,const double tol=1.e-13);
 
@@ -611,14 +568,12 @@ TODO Make sure to document the relationship between tags and data, ie: data also
   /**
      \brief  Returns the offset in the structure which stores the default value
   */
-  ESCRIPT_DLL_API
   DataTypes::ValueType::size_type
   getDefaultOffset() const;
   
   /**
    \brief Return the number of tags which have been given values (+the default) 
   */ 
-  ESCRIPT_DLL_API
   size_t
   getTagCount() const;
   
@@ -652,21 +607,21 @@ inline
 DataTypes::ValueType::size_type
 DataTagged::getDefaultOffset() const
 {
-  return m_defaultValueOffset;	
+  return m_defaultValueOffset;  
 }
 
 inline
 DataTypes::ValueType::reference
 DataTagged::getDefaultValueRW(DataTypes::ValueType::size_type i)
-{	
-	return getVectorRW()[i];		// getVectorRW has exclusive write checks
+{       
+        return getVectorRW()[i];                // getVectorRW has exclusive write checks
 }
 
 inline
 DataTypes::ValueType::const_reference
 DataTagged::getDefaultValueRO(DataTypes::ValueType::size_type i) const
 {
-	return getVectorRO()[i];
+        return getVectorRO()[i];
 }
 
 inline
@@ -685,4 +640,5 @@ DataTagged::getLength() const
 
 } // end of namespace
 
-#endif
+#endif // __ESCRIPT_DATATAGGED_H__
+
