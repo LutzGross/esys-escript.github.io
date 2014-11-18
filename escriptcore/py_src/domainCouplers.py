@@ -15,8 +15,9 @@
 ##############################################################################
 
 """
-Domain couplers allow coupling of two domains, each from a different domain
-family. This coupling enables the interpolation from one to another.
+These domain couplers create a matching domain from each of two different domain
+families, allowing more simple interpolation across the two. These domains
+must already support interpolation in at least one direction.
 
 """
 
@@ -34,11 +35,33 @@ from esys.speckley import Rectangle as sRectangle
 from esys.speckley import Brick as sBrick
 
 class SpeckleyToRipley(object):
+    """
+    A class for creating and storing a matching pair of domains from speckley
+    and ripley families.
+    """
+
     DEFAULT_lengths = (1.,1.,1.)
     DEFAULT_order = 2
 
     def __init__(self, dimensions, pointsPerDim, lengths=None, diracPoints=[],
                     diracTags=[], order=None):
+        """
+        Initialises the coupler, creating domains.
+
+       :param dimensions: whether 2-dimensional or 3-dimensional
+       :type dimensions: ``int``
+       :param pointsPerDim: the number of data points (not elements) in each
+                            dimension
+       :type pointsPerDim: ``tuple`` of ``int``
+       :param lengths: the length of the domain, defaults to 1 in each dimension
+       :type lengths: ``tuple`` of ``int``
+       :param diracPoints: set of dirac point locations
+       :type diracPoints: ``tuple`` of ``tuple`` of ``float``
+       :param diracTags: tag name for each point in `diracPoints`
+       :type diracTags: ``tuple`` of ``string``
+       :param order: element order of the speckley domain, defaults to 2
+       :type order: ``int``
+        """
         self.ranks = getMPISizeWorld()
 
         if dimensions not in [2,3]:
@@ -71,6 +94,15 @@ class SpeckleyToRipley(object):
 
 
     def createDomains(self, pointsPerDim):
+        """
+        Creates a pair of domains with the previously supplied information and
+        number of points.
+
+       :param pointsPerDim: the number of data points (not elements) in each
+                            dimension
+       :type pointsPerDim: ``tuple`` of ``int``
+        """
+        
         splitDim = pointsPerDim.index(max(pointsPerDim))
         divs = [1]*self.dim
         divs[splitDim] = self.ranks
@@ -117,21 +149,52 @@ class SpeckleyToRipley(object):
                     diracPoints=self.diracPoints, diracTags=self.diracTags)
 
     def getShapes(self):
+        """
+        Returns the shape of the domains
+
+       :return: A ``tuple`` of the two shape ``tuple``s in the form
+                (speckley, ripley)
+       :rtype: ``tuple`` of ``tuple`` of ``int``
+        """
         return (self.speckleyShape, self.ripleyShape)
 
     def getSpeckleyShape(self):
+        """
+        Returns the shape of the speckley domain
+
+       :return: A ``tuple`` containing the number of elements in each dimension
+       :rtype: ``tuple`` of ``int``
+        """
         return self.speckleyShape
 
     def getRipleyShape(self):
+        """
+        Returns the shape of the speckley domain
+
+       :return: A ``tuple`` containing the number of elements in each dimension
+       :rtype: ``tuple`` of ``int``
+        """
         return self.ripleyShape
 
     def getDomains(self):
         return (self.speckley, self.ripley)
 
     def getSpeckley(self):
+        """
+        Returns the speckley domain
+
+       :return: The speckley domain
+       :rtype: ``SpeckleyDomain``
+        """
         return self.speckley
 
     def getRipley(self):
+        """
+        Returns the `ripley` domain
+
+       :return: The `ripley` domain
+       :rtype: ``RipleyDomain``
+        """
         return self.ripley
 
 
