@@ -1,4 +1,5 @@
 from __future__ import print_function
+from __future__ import division
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -1119,7 +1120,7 @@ class DcRes(ForwardModel):
                 delphi_calc.append(val[i])
         A=0
         if (self.__sampleTags[0][1]!="-"):
-            for i in range(length/2):
+            for i in range(length//2):
                 A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
                 # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
         else:
@@ -1127,9 +1128,6 @@ class DcRes(ForwardModel):
                 A+=(self.__w[i]*(delphi_calc[i]-self.__delphi_in[i])**2)        
                 # A+=(self.__w[i]*(self.__delphi_in[i]-delphi_calc[i])**2)        
                 # print "delphi_calc[i]=",delphi_calc[i],"self.__delphi_in[i]",self.__delphi_in[i] 
-        print ("A/2=",A/2)
-
-
         return  A/2
 
     def getGradient(self, sigma, phi, loc_phi):
@@ -1149,26 +1147,28 @@ class DcRes(ForwardModel):
         jointSamples={}
         # print(sampleTags)
         for i in range(0,2*len(sampleTags),2): #2*len because sample tags is a list of tuples
+            half = i//2
             # print(i)
-            if sampleTags[i/2][1]!="-":
-                tmp=(val[i+1]-val[i]-self.__delphi_in[i/2])*self.__w[i]
+            if sampleTags[half][1]!="-":
+                tmp=(val[i+1]-val[i]-self.__delphi_in[half])*self.__w[i]
             else:
                 tmp=(val[i]-self.__delphi_in[i/2]) *self.__w[i]
                 # tmp=self.__delphi_in[i/2]-val[i]
             # print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
             # print ("tmp=",tmp)
-            if sampleTags[i/2][0] in jointSamples.keys():
-                jointSamples[sampleTags[i/2][0]].append((sampleTags[i/2][1], -tmp))
+            sample = sampleTags[half]
+            if sample[0] in jointSamples.keys():
+                jointSamples[sample[0]].append((sample[1], -tmp))
             else:
-                jointSamples[sampleTags[i/2][0]]=[(sampleTags[i/2][1],-tmp)]
+                jointSamples[sampleTags[half][0]]=[(sample[1],-tmp)]
             
-            if sampleTags[i/2][1]!="-":
-                if sampleTags[i/2][1] in jointSamples.keys():
-                    jointSamples[sampleTags[i/2][1]].append((sampleTags[i/2][0], tmp))
+            if sample[1]!="-":
+                if sample[1] in jointSamples.keys():
+                    jointSamples[sample[1]].append((sample[0], tmp))
                 else:
-                    jointSamples[sampleTags[i/2][1]]=[(sampleTags[i/2][0], tmp)]
+                    jointSamples[sample[1]]=[(sample[0], tmp)]
 
-        print ("jointSamples=",jointSamples)
+#        print ("jointSamples=",jointSamples)
         pde =self.setUpPDE()
         dom=self.__domain
         # conPrimary=self.__sigmaPrimary
@@ -1179,7 +1179,7 @@ class DcRes(ForwardModel):
             total=0
             for j in jointSamples[i]:
                 total+=j[1]
-            print("setting y_dirac ", i, " to ", total)
+#            print("setting y_dirac ", i, " to ", total)
             y_dirac.setTaggedValue(i,total)
 
         pde.setValue(A=sigma*kronecker(dom), y_dirac=y_dirac)
