@@ -294,7 +294,7 @@ else
             sort -u "${ESCRIPT_HOSTFILE}" > $HOSTFILE
             HOSTLIST=$(awk 'BEGIN{S=""}{if (S == "") { S = $0 } else {S = S "," $0}}END{print S}' "$HOSTFILE")
 
-            NUM_HOSTS=$(wc -l "$HOSTFILE")
+            NUM_HOSTS=$(cat "$HOSTFILE" | wc -l)
             if [ ! -z $ESCRIPT_NUM_NODES ]
             then
                 if [ $NUM_HOSTS -ne $ESCRIPT_NUM_NODES ]
