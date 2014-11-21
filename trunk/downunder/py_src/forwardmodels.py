@@ -1025,6 +1025,7 @@ class DcRes(ForwardModel):
         :rtype: `Data`
         """
         return self.__phiPrimary 
+
     def setUpPDE(self):
         """
         Return the underlying PDE.
@@ -1105,6 +1106,9 @@ class DcRes(ForwardModel):
         # print "sigma=",sigma
         # print "placeholder=",placeholder
         val=loc_phi
+        if not isinstance(val,list):
+            tmp=val
+            val=[tmp]
         # print "val=",val
         length=len(val)
         # print self.__sampleTags[0] 
@@ -1142,6 +1146,9 @@ class DcRes(ForwardModel):
         # print ("getting gradient")
         # print "sigma=",sigma
         val=loc_phi
+        if not isinstance(val,list):
+            tmp=val
+            val=[tmp]
         sampleTags=self.__sampleTags
 
         jointSamples={}
@@ -1152,21 +1159,25 @@ class DcRes(ForwardModel):
             if sampleTags[half][1]!="-":
                 tmp=(val[i+1]-val[i]-self.__delphi_in[half])*self.__w[i]
             else:
-                tmp=(val[i]-self.__delphi_in[i/2]) *self.__w[i]
+                tmp=(val[i]-self.__delphi_in[i//2]) *self.__w[i]
                 # tmp=self.__delphi_in[i/2]-val[i]
             # print ("in gradient","i=", i,"val[i]=",-val[i],"self.__delphi_in[i/2]=",self.__delphi_in[i/2])
             # print ("tmp=",tmp)
             sample = sampleTags[half]
-            if sample[0] in jointSamples.keys():
-                jointSamples[sample[0]].append((sample[1], -tmp))
-            else:
-                jointSamples[sampleTags[half][0]]=[(sample[1],-tmp)]
-            
             if sample[1]!="-":
+                if sample[0] in jointSamples.keys():
+                    jointSamples[sample[0]].append((sample[1], -tmp))
+                else:
+                    jointSamples[sampleTags[half][0]]=[(sample[1],-tmp)]
                 if sample[1] in jointSamples.keys():
                     jointSamples[sample[1]].append((sample[0], tmp))
                 else:
                     jointSamples[sample[1]]=[(sample[0], tmp)]
+            else:
+                if sample[0] in jointSamples.keys():
+                    jointSamples[sample[0]].append((sample[1], tmp))
+                else:
+                    jointSamples[sampleTags[half][0]]=[(sample[1],tmp)]
 
 #        print ("jointSamples=",jointSamples)
         pde =self.setUpPDE()
