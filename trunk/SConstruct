@@ -361,7 +361,7 @@ if env['launcher'] == 'default':
     if env['mpi'] == 'INTELMPI':
         env['launcher'] = "mpirun -hostfile %f -n %N -ppn %p %b"
     elif env['mpi'] == 'OPENMPI':
-        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --host %h -bynode -bind-to-core -np %N %b"
+        env['launcher'] = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --host %h -bynode -bind-to-core --cpus-per-rank %t -np %N %b"
     elif env['mpi'] == 'MPT':
         env['launcher'] = "mpirun %h -np %p %b"
     elif env['mpi'] == 'MPICH':
