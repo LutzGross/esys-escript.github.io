@@ -889,12 +889,12 @@ class AcousticWaveForm(ForwardModel):
         :type sigma: ``Data`` of shape (2,)
         :param u: a u vector
         :type u: ``Data`` of shape (2,)
-        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
-        :type uTar: float
-        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
-        :type uTa: float
-        :param uTu : = integrate( w  * (u,u))
-        :type uTu: float
+        :param uTar: equals `integrate( w  * (data[0]*u[0]+data[1]*u[1]))`
+        :type uTar: `float`
+        :param uTai: equals `integrate( w  * (data[1]*u[0]-data[0]*u[1]))`
+        :type uTa: `float`
+        :param uTu: equals `integrate( w  * (u,u))`
+        :type uTu: `float`
 
         :rtype: ``float``
         """
@@ -913,12 +913,12 @@ class AcousticWaveForm(ForwardModel):
         :type sigma: ``Data`` of shape (2,)
         :param u: a u vector
         :type u: ``Data`` of shape (2,)
-        :param uTar : = integrate( w  * (data[0]*u[0]+data[1]*u[1]))
-        :type uTar: float
-        :param uTai : = integrate( w  * (data[1]*u[0]-data[0]*u[1]))
-        :type uTa: float
-        :param uTu : = integrate( w  * (u,u))
-        :type uTu: float
+        :param uTar: equals `integrate( w  * (data[0]*u[0]+data[1]*u[1]))`
+        :type uTar: `float`
+        :param uTai: equals `integrate( w  * (data[1]*u[0]-data[0]*u[1]))`
+        :type uTa: `float`
+        :param uTu: equals `integrate( w  * (u,u))`
+        :type uTu: `float`
         """
         pde=self.setUpPDE()
 

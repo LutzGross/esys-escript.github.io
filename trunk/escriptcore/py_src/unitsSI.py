@@ -1,4 +1,3 @@
-
 ##############################################################################
 #
 # Copyright (c) 2003-2014 by University of Queensland
@@ -14,6 +13,73 @@
 #
 ##############################################################################
 
+"""
+
+    :synopsis: some tools supporting physical units and conversion
+
+    :var Yotta: prefix yotta, symbol:   Y
+    :var Zetta: prefix zetta, symbol: Z
+    :var Exa: prefix exa, symbol: E
+    :var Peta: prefix peta, symbol: P
+    :var Tera: prefix tera, symbol: T
+    :var Giga: prefix giga, symbol: G
+    :var Mega: prefix mega, symbol: M
+    :var Kilo: prefix kilo, symbol: k
+    :var Hecto: prefix hecto, symbol: h
+    :var Deca:  prefix deca, symbol: da
+    :var Deci:  prefix deci, symbol: d
+    :var Centi: prefix centi, symbol: c
+    :var Milli: prefix milli, symbol: m
+    :var Micro: prefix micro, symbol: mu
+    :var Nano:  prefix nano, symbol: n
+    :var Pico:  prefix pico, symbol: p
+    :var Femto: prefix femto, symbol: f
+    :var Atto: prefix atto, symbol: a
+    :var Zepto: prefix zepto, symbol: z
+    :var Yocto: prefix yocto, symbol: y
+
+    :var km: unit of kilo meter
+    :var m: unit of meter
+    :var cm: unit of centi meter
+    :var mm: unit of milli meter
+    :var sec: unit of second
+    :var msec: unit of milli second
+    :var minute: unit of minute
+    :var h: unit of hour
+    :var hour: unit of hour
+    :var day: unit of day
+    :var yr: unit of year
+    :var Myr: unit of mega year
+    :var Gyr: unit of giga year
+    :var gram: unit of gram
+    :var kg: unit of kilo gram
+    :var lb: unit of pound
+    :var ton: metric ton
+    :var A: unit of Ampere
+    :var Hz: unit of Hertz (frequenacy)
+    :var N: unit of Newton (force)
+    :var Pa: unit of Pascal (pressure, stress)
+    :var bar: unit of bar (pressure)
+    :var atm: unit of atmosphere (pressure)
+    :var J: unit of Joule (energy, work)
+    :var W: unit of Watt (power)
+    :var C: unit of Coulomb (electric charge)
+    :var V: unit of Volt (electric potential)
+    :var F: unit of Farad (capacitance)
+    :var Ohm: unit of Ohm (electric resistance)
+    :var K: unit of Kelvin (temperature)
+    :var Mol: unit of Mole (temperature)
+    :var Celsius: unit of Celsius (temperature)
+    :var Fahrenheit: unit of Fahrenheit (temperature)
+    :var Poise: unit of Poise (dynamic viscosity)
+    :var R_Earth_equator: Earth's equatorial radius
+    :var R_Earth_poles: Earth's polar radius
+    :var R_Earth: Earth's radius
+    :var v_light: speed of light
+    :var pi: value of pi accurate to 10 decimal places
+"""
+
+
 __copyright__="""Copyright (c) 2003-2014 by University of Queensland
 http://www.uq.edu.au
 Primary Business: Queensland, Australia"""
@@ -24,77 +90,6 @@ __author__="Lutz Gross, l.gross@uq.edu.au"
 
 ## :file unitsSI.py
 
-"""
-some tools supporting physical units and conversion
-
-:var __author__: name of author
-:var __copyright__: copyrights
-:var __license__: licence agreement
-:var __url__: url entry point on documentation
-:var __version__: version
-:var __date__: date of the version
-
-:var Yotta : prefix yotta, symbol:   Y
-:var Zetta : prefix zetta, symbol: Z
-:var Exa : prefix exa, symbol: E
-:var Peta : prefix peta, symbol: P
-:var Tera : prefix tera, symbol: T
-:var Giga : prefix giga, symbol: G
-:var Mega : prefix mega, symbol: M
-:var Kilo : prefix kilo, symbol: k
-:var Hecto : prefix hecto, symbol: h
-:var Deca :  prefix deca, symbol: da
-:var Deci :  prefix deci, symbol: d
-:var Centi : prefix centi, symbol: c
-:var Milli : prefix milli, symbol: m
-:var Micro : prefix micro, symbol: mu
-:var Nano :  prefix nano, symbol: n
-:var Pico :  prefix pico, symbol: p
-:var Femto : prefix femto, symbol: f
-:var Atto : prefix atto, symbol: a
-:var Zepto : prefix zepto, symbol: z
-:var Yocto : prefix yocto, symbol: y
-
-:var km : unit of kilo meter
-:var m : unit of meter
-:var cm : unit of centi meter
-:var mm : unit of milli meter
-:var sec: unit of second
-:var msec: unit of milli second
-:var minute : unit of minute
-:var h : unit of hour
-:var hour : unit of hour
-:var day : unit of day
-:var yr : unit of year
-:var Myr : unit of mega year
-:var Gyr : unit of giga year
-:var gram : unit of gram
-:var kg : unit of kilo gram
-:var lb : unit of pound
-:var ton : metric ton
-:var A : unit of Ampere
-:var Hz: unit of Hertz (frequenacy)
-:var N: unit of Newton (force)
-:var Pa: unit of Pascal (pressure, stress)
-:var bar: unit of bar (pressure)
-:var atm: unit of atmosphere (pressure)
-:var J: unit of Joule (energy, work)
-:var W: unit of Watt (power)
-:var C: unit of Coulomb (electric charge)
-:var V: unit of Volt (electric potential)
-:var F: unit of Farad (capacitance)
-:var Ohm: unit of Ohm (electric resistance)
-:var K : unit of Kelvin (temperature)
-:var Mol : unit of Mole (temperature)
-:var Celsius: unit of Celsius (temperature)
-:var Fahrenheit : unit of Fahrenheit (temperature)
-:var Poise : unit of Poise (dynamic viscosity)
-:var R_Earth_equator: Earth's equatorial radius
-:var R_Earth_poles: Earth's polar radius
-:var R_Earth: Earth's radius
-:var v_light: speed of light
-:var pi: value of pi accurate to 10 decimal places
-"""
 from math import pi
 class Unit(object):
    """
