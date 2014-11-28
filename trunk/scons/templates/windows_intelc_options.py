@@ -33,7 +33,7 @@ import os
 # The options file version. SCons will refuse to build if there have been
 # changes to the set of variables and your file has not been updated.
 # This setting is mandatory.
-escript_opts_version = 201
+escript_opts_version = 202
 
 # Installation prefix. Files will be installed in subdirectories underneath.
 # DEFAULT: '.' (current directory)
@@ -216,9 +216,22 @@ netcdf_libs = ['netcdf_cpp', 'netcdf']
 #DEFAULT: False
 #build_shared = True
 
+# List of domain families to build [new in 202]
+# DEFAULT: 'all' (i.e. dudley, finley, ripley, speckley)
+#domains = ['finley', 'ripley']
 
 ### ADVANCED OPTIONS ###
 # Do not change the following options unless you know what they do
+
+# launcher, prelaunch, postlaunch: for MPI builds/batch system runs
+# the following substitutions are applied to all three:
+# %b = executable, %n = number of nodes, %p = number of processes,
+# %N = total number of processes, # %t = number of threads,
+# %f = name of hostfile, %h = comma-separated list of hosts,
+# %e = comma-separated list of environment variables to export
+#prelaunch = "EE=$(echo %e|sed -e 's/,/ -x /g')"
+#launcher = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --bynode --bind-to-none --host %h -np %N %b"
+#postlaunch = ""
 
 # Use intel's VSL library for random data
 # DEFAULT: False
