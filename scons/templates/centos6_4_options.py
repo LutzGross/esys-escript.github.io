@@ -227,6 +227,16 @@ netcdf = True
 # Compiler flags for some optimisations in dudley
 #dudley_assemble_flags = '-funroll-loops'
 
+# launcher, prelaunch, postlaunch: for MPI builds/batch system runs
+# the following substitutions are applied to all three:
+# %b = executable, %n = number of nodes, %p = number of processes,
+# %N = total number of processes, # %t = number of threads,
+# %f = name of hostfile, %h = comma-separated list of hosts,
+# %e = comma-separated list of environment variables to export
+#prelaunch = "EE=$(echo %e|sed -e 's/,/ -x /g')"
+#launcher = "mpirun --gmca mpi_warn_on_fork 0 -x ${EE} --bynode --bind-to-none --host %h -np %N %b"
+#postlaunch = ""
+
 # enables code that is non-standard
 #iknowwhatimdoing = True
 
