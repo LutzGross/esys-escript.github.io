@@ -16,6 +16,39 @@
 \chapter{Changes from previous releases}
 \label{app:changes}
 
+\subsection*{3.4.2 to 4.0}
+\begin{itemize}
+  \item New spectral element domain, \speckley
+  \item CUDA and diagonal system matrices
+  \item DC Resisitivity forward model and inversions added
+  \item New build options:
+   \begin{itemize}
+     \item 'domains': allows only the specified domains to
+           be built
+     \item 'prelaunch', 'launcher', 'postlaunch': allows specific launch
+           commands
+   \end{itemize}
+  \item GMsh reader now \MPI parallelised
+  
+  \item Silo and VTK files can now have cycle and timestamps embedded
+  \item PDEs using \ripley now have per-PDE assemblers to allow domains to have
+        multiple PDEs of different types without conflict
+  \item General documentation updates, both guides and code commenting
+  \item Test framework compatible with older versions of Python
+  \item Removed BASHisms from \escript launcher
+  \item Data objects now have isNaN() and replaceNaN() methods
+  \item readBinaryGrid() now supports scaling and 64-bit floats in non-native
+        byte order
+  \item Now compiles with Cray compiler 
+  \item Wave models corrected
+  \item Equality checks on Data objects now throw exceptions
+  \item General changes to help compilers with OMP parallelisation
+  \item Intel-based OMP flavours now have proper thread binding
+  \item \ripley dirac points no longer get lost in domains with enormous
+        elements
+
+\end{itemize}
+
 \subsection*{3.4.1 to 3.4.2}
 \begin{itemize}
  \item Changes to SolverOptions: Most of this is under the hood at this point
