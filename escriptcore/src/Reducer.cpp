@@ -246,9 +246,9 @@ bool MPIDataReducer::recvFrom(Esys_MPI_rank localid, Esys_MPI_rank source, esysU
 {
 #ifdef ESYS_MPI  
       // first we need to find out what we are expecting
-    unsigned params[6];
+    unsigned params[7];
     MPI_Status stat;
-    if (MPI_Recv(params, 6, MPI_UNSIGNED, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
+    if (MPI_Recv(params, 7, MPI_UNSIGNED, source, PARAMTAG, mpiinfo->comm, &stat)!=MPI_SUCCESS)
     {
 	return false;
     }
