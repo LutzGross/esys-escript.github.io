@@ -15,10 +15,9 @@
 ##############################################################################
 
 from templates.wheezy_options import *
-domains = 'speckley'
 cc_optim = '-O3 -march=native'
-cxx_extra = '-Wextra -Wno-unused-parameter -Warray-bounds'
-verbose = True
+cxx_extra = '-Wextra -Wno-unused-parameter'
+verbose = False
 mpi = 'OPENMPI'
 boost_libs = ['boost_python-py27']
 parmetis = True
